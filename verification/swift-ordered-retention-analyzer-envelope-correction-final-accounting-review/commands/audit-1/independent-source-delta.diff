@@ -1,0 +1,36 @@
+--- reviewed-proposal2
++++ selected-final
+@@ -2,16 +2,16 @@
+ use super::*;
+ 
+ const SETUP_ENVELOPE: u64 = 534;
+-const FINISH_ENVELOPE: u64 = 8;
+-const RECORD_ENVELOPE: u64 = 128;
+-const SETUP_WRAPPER: u64 = 20;
+-const FINAL_WRAPPER: u64 = 44;
+-const UNDERFUNDED_GUARD: u64 = 36;
+-// HISTORICAL, UNQUALIFIED numeric constants; operation proposal does not select them.
+-const WRAPPER_GROUPS: [u64; 12] = [4, 3, 3, 5, 4, 3, 3, 3, 3, 3, 3, 5];
++const FINISH_ENVELOPE: u64 = 47;
++const RECORD_ENVELOPE: u64 = 425;
++const SETUP_WRAPPER: u64 = 42;
++const FINAL_WRAPPER: u64 = 42;
++const UNDERFUNDED_GUARD: u64 = 112;
++// Selected operation-ledger partition W01..W09; outer F42 includes early-error13.
++const WRAPPER_GROUPS: [u64; 9] = [1, 3, 1, 2, 3, 2, 1, 5, 6];
+ const WRAPPER_STEPS: u64 = WRAPPER_GROUPS[0] + WRAPPER_GROUPS[1] + WRAPPER_GROUPS[2] + WRAPPER_GROUPS[3]
+     + WRAPPER_GROUPS[4] + WRAPPER_GROUPS[5] + WRAPPER_GROUPS[6] + WRAPPER_GROUPS[7]
+-    + WRAPPER_GROUPS[8] + WRAPPER_GROUPS[9] + WRAPPER_GROUPS[10] + WRAPPER_GROUPS[11];
++    + WRAPPER_GROUPS[8];
+ const COMBINED_RECORD: u64 = RECORD_STEPS + RECORD_ENVELOPE + WRAPPER_STEPS;
+ const CELLS: [usize; 12] = [7, 9, 10, 11, 12, 13, 14, 64, 65, 66, 160, 161];
+ const PAYLOAD: usize = 888;
+@@ -125,7 +125,7 @@
+ }
+ 
+ fn observe_fixture_envelope_v1(arena: &mut [u8], candidate: &mut Candidate2048, record: &FixtureDecodedRecordV1<'_>, steps: &mut StepBudget) -> FixtureEnvelopeReplyV1 {
+-    // Current historical orchestration prepays128. Its unqualified guard reserve,
++    // Selected orchestration prepays425. Its separate fixed112-credit guard,
+     // reserved before candidate mutation, pays these reads and the complete
+     // Steps reply if a private caller supplies fewer credits. It can run only
+     // once through the orchestrator: its Refused reply latches.

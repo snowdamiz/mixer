@@ -1,0 +1,332 @@
+{
+  "schema": 1,
+  "target_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "target_source_lines": [
+    265,
+    267
+  ],
+  "helper_source_lines": [
+    149,
+    155
+  ],
+  "old_operations_per_load": [
+    {
+      "id": "offset_1",
+      "name": "offset multiplication or cast",
+      "units": 1
+    },
+    {
+      "id": "offset_2",
+      "name": "offset addition or multiplication",
+      "units": 1
+    },
+    {
+      "id": "b_arg",
+      "name": "complete b slice argument source->ld received",
+      "units": 1
+    },
+    {
+      "id": "at_arg",
+      "name": "offset scalar argument source->ld received",
+      "units": 1
+    },
+    {
+      "id": "end",
+      "name": "compute at+8",
+      "units": 1
+    },
+    {
+      "id": "range",
+      "name": "complete Range16 constructor/index-received edge",
+      "units": 1
+    },
+    {
+      "id": "start_check",
+      "name": "range start<=end",
+      "units": 1
+    },
+    {
+      "id": "end_check",
+      "name": "range end<=Candidate/slice length",
+      "units": 1
+    },
+    {
+      "id": "shared_c_view",
+      "name": "shared captured-c Index/range view source->received; favorable full-view primitive",
+      "units": 1
+    },
+    {
+      "id": "first_chunk_predicate",
+      "name": "first_chunk::<8> length predicate",
+      "units": 1
+    },
+    {
+      "id": "option_edge",
+      "name": "complete Option<&[u8;8]>8 source->received receiver",
+      "units": 1
+    },
+    {
+      "id": "tag",
+      "name": "Option tag check",
+      "units": 1
+    },
+    {
+      "id": "ref_edge",
+      "name": "complete &[u8;8]8 unwrap/expect return->received",
+      "units": 1
+    },
+    {
+      "id": "LE",
+      "name": "from_le_bytes conversion",
+      "units": 1
+    },
+    {
+      "id": "message_arg",
+      "name": "explicit static str16 message source->expect received",
+      "units": 1
+    },
+    {
+      "id": "conversion_return",
+      "name": "conversion u64 return->ld tail received",
+      "units": 1
+    },
+    {
+      "id": "ld_return",
+      "name": "ld u64 return->caller initializer/operand received",
+      "units": 1
+    }
+  ],
+  "proposed_operations_per_expanded_load": [
+    {
+      "id": "offset_1",
+      "name": "offset multiplication or cast",
+      "units": 1
+    },
+    {
+      "id": "offset_2",
+      "name": "offset addition or multiplication",
+      "units": 1
+    },
+    {
+      "id": "at_local",
+      "name": "offset expression source->block-local usize at received",
+      "units": 1
+    },
+    {
+      "id": "end",
+      "name": "compute at+8",
+      "units": 1
+    },
+    {
+      "id": "range",
+      "name": "complete Range16 constructor/index-received edge",
+      "units": 1
+    },
+    {
+      "id": "start_check",
+      "name": "range start<=end",
+      "units": 1
+    },
+    {
+      "id": "end_check",
+      "name": "range end<=Candidate/slice length",
+      "units": 1
+    },
+    {
+      "id": "shared_c_view",
+      "name": "shared captured-c Index/range view source->received; favorable full-view primitive",
+      "units": 1
+    },
+    {
+      "id": "first_chunk_predicate",
+      "name": "first_chunk::<8> length predicate",
+      "units": 1
+    },
+    {
+      "id": "option_edge",
+      "name": "complete Option<&[u8;8]>8 source->received receiver",
+      "units": 1
+    },
+    {
+      "id": "tag",
+      "name": "Option tag check",
+      "units": 1
+    },
+    {
+      "id": "ref_edge",
+      "name": "complete &[u8;8]8 unwrap/expect return->received",
+      "units": 1
+    },
+    {
+      "id": "LE",
+      "name": "from_le_bytes conversion",
+      "units": 1
+    },
+    {
+      "id": "conversion_return",
+      "name": "conversion u64 return->expanded initializer/operand received",
+      "units": 1
+    }
+  ],
+  "explicit_initializer_binding_edges": [
+    {
+      "id": "a_binding",
+      "name": "expanded/old initializer value8 source->named a8",
+      "units": 1,
+      "applies_to": "both old and new A/B initializers"
+    },
+    {
+      "id": "b_binding",
+      "name": "expanded/old initializer value8 source->named b8",
+      "units": 1,
+      "applies_to": "both old and new A/B initializers"
+    }
+  ],
+  "shared_predicates": [
+    {
+      "id": "b_absent",
+      "name": "b==ABSENT",
+      "units": 1
+    },
+    {
+      "id": "b_branch",
+      "name": "|| short-circuit branch",
+      "units": 1
+    },
+    {
+      "id": "a_present",
+      "name": "a!=ABSENT",
+      "units": 1
+    },
+    {
+      "id": "a_branch",
+      "name": "&& short-circuit branch",
+      "units": 1
+    },
+    {
+      "id": "order",
+      "name": "timestamp_a<=timestamp_b",
+      "units": 1
+    },
+    {
+      "id": "result",
+      "name": "comparison bool expression source->take_left received",
+      "units": 1
+    }
+  ],
+  "old": {
+    "scalars": 76,
+    "distinct_payload_array_copies": 4,
+    "conditional_pooled_minimum_groups": 9
+  },
+  "proposed": {
+    "scalars": 64,
+    "distinct_payload_array_copies": 4,
+    "proposed_scalar_groups": 4,
+    "proposed_total_G3_groups": 8,
+    "full_scalar_blocks": [
+      {
+        "id": "S1",
+        "operations": [
+          "A.offset_1",
+          "A.offset_2",
+          "A.at_local",
+          "A.end",
+          "A.range",
+          "A.start_check",
+          "A.end_check",
+          "A.shared_c_view",
+          "A.first_chunk_predicate",
+          "A.option_edge",
+          "A.tag",
+          "A.ref_edge",
+          "A.LE",
+          "A.conversion_return",
+          "a_binding",
+          "B.offset_1"
+        ],
+        "count": 16
+      },
+      {
+        "id": "S2",
+        "operations": [
+          "B.offset_2",
+          "B.at_local",
+          "B.end",
+          "B.range",
+          "B.start_check",
+          "B.end_check",
+          "B.shared_c_view",
+          "B.first_chunk_predicate",
+          "B.option_edge",
+          "B.tag",
+          "B.ref_edge",
+          "B.LE",
+          "B.conversion_return",
+          "b_binding",
+          "b_absent",
+          "b_branch"
+        ],
+        "count": 16
+      },
+      {
+        "id": "S3",
+        "operations": [
+          "a_present",
+          "a_branch",
+          "TA.offset_1",
+          "TA.offset_2",
+          "TA.at_local",
+          "TA.end",
+          "TA.range",
+          "TA.start_check",
+          "TA.end_check",
+          "TA.shared_c_view",
+          "TA.first_chunk_predicate",
+          "TA.option_edge",
+          "TA.tag",
+          "TA.ref_edge",
+          "TA.LE",
+          "TA.conversion_return"
+        ],
+        "count": 16
+      },
+      {
+        "id": "S4",
+        "operations": [
+          "TB.offset_1",
+          "TB.offset_2",
+          "TB.at_local",
+          "TB.end",
+          "TB.range",
+          "TB.start_check",
+          "TB.end_check",
+          "TB.shared_c_view",
+          "TB.first_chunk_predicate",
+          "TB.option_edge",
+          "TB.tag",
+          "TB.ref_edge",
+          "TB.LE",
+          "TB.conversion_return",
+          "order",
+          "result"
+        ],
+        "count": 16
+      }
+    ]
+  },
+  "payload_copy": "Exactly one dereferenced8-byte array source->from_le_bytes by-value received argument per actual load; no returned LE-array value",
+  "exact_once_scalar_id_check": true,
+  "all_copy_groups_disjoint_from_scalar_operations": true,
+  "proposed_path_scalar_counts": {
+    "tail_paths_G4": 0,
+    "B_absent": 33,
+    "A_absent_B_eligible": 35,
+    "both_eligible": 64
+  },
+  "source_order_preserved": true,
+  "grouping_qualification": "S1 includes only the first B offset operation after completed A initializer/binding; S2 continues B then b guard. This is explicit source-order scalar-stream partition, not per-load rounding or instruction reordering. No scalar credit is transferred to any other group.",
+  "primitive_qualification": "Range/index-received edge and full shared-c Index/range-view edge use one favorable complete primitive each; pointer Option/reference/full str source->received movements use one favorable scalar edge each. Binding contract does not formalize this grammar; exact source/caller edges are visible for independent review, not silently accepted.",
+  "unselected_unimplemented_unexecuted": true,
+  "source_bound_accepted": false
+}

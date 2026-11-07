@@ -1,0 +1,13 @@
+--- frozen-preparation/owned_runner.py
++++ final-review/owned_runner.py
+@@ -78,8 +78,8 @@
+     """
+     if not argv or not Path(executable).is_absolute() or not cwd.is_absolute():
+         raise ValueError("exact command, absolute executable and cwd required")
+-    if not 0 < timeout_seconds <= 60:
+-        raise ValueError("one bounded method/compile command needs a deadline <=60s")
++    if not 0 < timeout_seconds <= 180:
++        raise ValueError("one bounded method/compile command needs a deadline <=180s")
+     artifacts.mkdir(parents=True, exist_ok=False)
+     stdout_path, stderr_path = artifacts / "stdout.bin", artifacts / "stderr.bin"
+     start = time.monotonic()

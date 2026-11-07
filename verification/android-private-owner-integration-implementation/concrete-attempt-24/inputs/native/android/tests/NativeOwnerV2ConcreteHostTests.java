@@ -1,0 +1,355 @@
+package dev.mixer.android;
+
+import android.app.Activity;
+import android.graphics.Canvas;
+import android.os.Handler;
+import android.widget.FrameLayout;
+import android.view.View;
+import android.view.MotionEvent;
+import android.view.KeyEvent;
+import android.widget.EditText;
+import android.widget.Switch;
+import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.EditorInfo;
+import android.os.Bundle;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/** Executes real owner/core/coordinator/observer/renderer/native-view bodies with controlled platform leaves. */
+public final class NativeOwnerV2ConcreteHostTests {
+    private static byte[] descriptor;
+    private static int checks;
+    private static Fixture activeFixture;
+    private static String scenario;
+    private static List<Barrier> barriers=List.of();
+    private static final Map<String,String> witnesses=new LinkedHashMap<>();
+    private static MatrixCase matrix;
+    private static final class MatrixDone extends RuntimeException {private static final long serialVersionUID=1L;}
+    private static final class Fatal extends Error {private static final long serialVersionUID=1L;Fatal(String message){super(message);}}
+    private static String receiverId(Object receiver){
+        if(receiver==null)return null;
+        try{Field record=receiver.getClass().getDeclaredField("record");record.setAccessible(true);Object owner=record.get(receiver);if(owner instanceof NativeAppearanceViewsV2.Record value)return value.id;}catch(NoSuchFieldException ignored){}catch(IllegalAccessException failure){throw new AssertionError(failure);}
+        if(receiver instanceof View view&&view.getTag() instanceof String tag)return tag;
+        return null;
+    }
+    private record Barrier(String id,String className,int line,String entryMethod,String returnMethod,
+                           String returnReceiverId,String returnReceiverClass,Integer returnFrameLine,String boundaryMode,String equivalence) {
+        boolean matches(ConcreteHostProbe.Event event){
+            boolean returning=event.phase.equals("beforeReturn");String target=returning?returnMethod:entryMethod;
+            if(!target.equals("*")&&!(target.contains(".")?event.method.equals(target):event.method.endsWith("."+target)))return false;
+            if(returning){
+                if(returnReceiverId!=null&&!returnReceiverId.equals(receiverId(event.receiver)))return false;
+                if(returnReceiverClass!=null&&(event.receiver==null||!event.receiver.getClass().getSimpleName().equals(returnReceiverClass)))return false;
+                if(returnFrameLine!=null&&event.productionFrames.stream().noneMatch(frame->frame.line()==returnFrameLine&&frame.className().equals("dev.mixer.android.NativeAppearanceViewsV2")))return false;
+            }
+            for(var frame:event.productionFrames)if(frame.line()==line&&(frame.className().equals(className)||frame.className().startsWith(className+"$")))return true;
+            return false;
+        }
+    }
+    private static final class MatrixCase {
+        final Barrier barrier;final String name;boolean fired,validated;Fixture fixture;int commits;ConcreteHostProbe.Event reached;
+        final MatrixDone done=new MatrixDone();final Fatal fatal=new Fatal("matrix fatal");final RuntimeException ordinary=new IllegalStateException("matrix ordinary");
+        MatrixCase(Barrier barrier,String name){this.barrier=barrier;this.name=name;}
+        void hook(String method,String phase){
+            var event=ConcreteHostProbe.lastEvent();String wanted=name.endsWith("entry")||name.equals("clean")?"entry":"beforeReturn";
+            if(fired||activeFixture==null||!phase.equals(wanted)||!barrier.matches(event))return;
+            fired=true;reached=event;fixture=activeFixture;ConcreteHostProbe.hook=null;commits=NativeBridge.commitCalls;
+            NativeOwnerV2.Fence fence=fixture.fence();
+            if(fence.operation!=null)assertGates(fixture,"transaction callback entry");
+            if(name.startsWith("dirty"))fixture.owner.onPause();
+            else if(!name.equals("clean")){
+                if(fence.operation!=null||fence.terminal)fixture.owner.close();else fixture.renderer().retireV2();
+            }
+            if(!name.equals("clean"))assertGates(fixture,"callback returned to selected native call");
+            check(fixture.queue.queued()<=1,"second owned runnable during reentry");
+            validated=true;
+            if(name.equals("ordinary-throw-after-callback"))throw ordinary;
+            if(name.equals("fatal-throw-after-callback"))throw fatal;
+        }
+    }
+    private static void assertGates(Fixture f,String where){
+        check(!f.fence().drawAllowed&&!f.fence().inputAllowed,where+": shared gates open");
+        Object joined=field(f.owner,"opening");if(joined==null)joined=field(f.owner,"coordinator");
+        if(joined==null)return;NativeRenderer renderer=(NativeRenderer)field(joined,"renderer");
+        Object gate=field(renderer,"v2Gate");if(gate!=null)check(!(Boolean)field(gate,"open"),where+": current gate open");
+        Object pending=field(renderer,"v2Pending");if(pending!=null)check(!(Boolean)field(field(pending,"gate"),"open"),where+": pending gate open");
+    }
+    private static void check(boolean value,String message){checks++;if(!value)throw new AssertionError(message);}
+    private static Object field(Object value,String name){try{Field f=value.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(value);}catch(ReflectiveOperationException failure){throw new AssertionError(failure);}}
+    private static Map<String,Object> node(String id,String kind,Map<String,Object> props,List<Object> children){
+        List<Object> actions=switch(kind){case "button"->List.of(Json.map("id",id+"Action","event","activate"));case "toggle"->List.of(Json.map("id",id+"Change","event","valueChange"));case "textField"->List.of(Json.map("id",id+"Change","event","textChange"),Json.map("id",id+"Submit","event","submit"));default->List.of();};
+        return Json.map("id",id,"kind",kind,"properties",props,"children",children,"actions",actions);
+    }
+    private static void write(StringBuilder out,Object value){if(value instanceof List<?> values){out.append('[');for(int i=0;i<values.size();i++){if(i>0)out.append(',');write(out,values.get(i));}out.append(']');}else if(value instanceof Map<?,?> values){out.append('{');boolean comma=false;for(var e:values.entrySet()){if(comma)out.append(',');comma=true;Json.write(out,e.getKey());out.append(':');write(out,e.getValue());}out.append('}');}else Json.write(out,value);}
+    private static void identities(Object raw,List<Object> out){Map<String,Object> n=Json.object(raw);out.add(Json.map("id",n.get("id"),"generation",new Json.Num(Integer.toString(out.size()+1))));for(Object child:Json.array(n.get("children")))identities(child,out);}
+    private static byte[] packet(long revision){return packet(revision,"controls");}
+    private static byte[] packet(long revision,String scene){return packet(revision,scene,"hello");}
+    private static byte[] packet(long revision,String scene,String fieldValue){
+        Object text=node("text","text",Json.map("text","Independent host text","style","body"),List.of());
+        Object button=node("button","button",Json.map("label","Do action"),List.of());
+        Object field=node("field","textField",Json.map("label","Entry","value",fieldValue),List.of());
+        Object toggle=node("toggle","toggle",Json.map("label","Enable","value",false),List.of());
+        Object h=node("horizontal","hStack",Json.map("alignment","center"),List.of(node("short","text",Json.map("text","Short"),List.of()),node("long","text",Json.map("text","Long text"),List.of())));
+        Object z=node("overlay","zStack",Json.map("alignment","bottomTrailing"),List.of(node("back","text",Json.map("text","Back"),List.of()),node("front","text",Json.map("text","Front"),List.of())));
+        Object section=node("section","section",Json.map("title","Details"),List.of(text,h,z,button,field,toggle));
+        Object root=node("root","vStack",Json.map("alignment","leading"),List.of(section));
+        if(scene.equals("navigation")){
+            List<Object> rows=new ArrayList<>();rows.add(node("group","section",Json.map("title","Group"),List.of(text,h,z)));
+            for(int i=0;i<30;i++)rows.add(node("row"+i,"text",Json.map("text","Scrolling text row "+i),List.of()));
+            root=node("nav","navigation",Json.map("title","Navigation"),List.of(node("list","list",Map.of(),rows)));
+        } else if(scene.equals("field"))root=field;
+        else if(scene.equals("replace"))root=node("replacement","zStack",Map.of(),List.of(section));
+        List<Object> ids=new ArrayList<>();identities(root,ids);
+        StringBuilder out=new StringBuilder();write(out,Json.map("schemaVersion",new Json.Num("1"),"document",Json.map("schemaVersion",new Json.Num("1"),"revision",new Json.Num(Long.toString(revision)),"root",root),"identities",ids));return out.toString().getBytes(StandardCharsets.UTF_8);
+    }
+    private static final class Fixture implements AutoCloseable {
+        final Activity activity=new Activity();final FrameLayout root=new FrameLayout(activity);final NativeOwnerV2 owner;
+        final Handler queue;
+        Fixture(){this("controls");}
+        Fixture(String scene){
+            activity.assets.put(InstalledAppearanceV2.DESCRIPTOR,descriptor);root.layout(0,0,1000,1500);activity.window.getDecorView().layout(0,0,1000,1500);
+            root.hostAttach(new Object());NativeBridge.reset();NativeBridge.preparedPacket=packet(1,scene);
+            owner=new NativeOwnerV2(activity,root);activeFixture=this;queue=(Handler)field(owner,"handler");owner.onResume();if(owner.cleanupLedger().primary()!=null)throw new AssertionError("fixture resume failed",owner.cleanupLedger().primary());owner.start();
+        }
+        void ready(){queue.drainAll(4);check(owner.hasCommittedPresentation(),"owner did not publish: "+owner.cleanupLedger().cause()+" / "+owner.cleanupLedger().primary());}
+        NativeRenderer renderer(){return (NativeRenderer)field(field(owner,"coordinator"),"renderer");}
+        NativeOwnerV2.Fence fence(){return (NativeOwnerV2.Fence)field(owner,"fence");}
+        @Override public void close(){owner.close();queue.drainAll(4);if(matrix!=null&&matrix.fired&&matrix.fixture==this)throw matrix.done;}
+    }
+    private static final Map<String,Integer> sites=new LinkedHashMap<>();
+    private static void collect(){for(var event:ConcreteHostProbe.events())if(event.phase.equals("entry")){
+        if(matrix==null)for(Barrier barrier:barriers)if(barrier.matches(event))witnesses.putIfAbsent(barrier.id(),scenario);
+        for(var site:event.productionFrames){String key=site.className()+"|"+site.methodName()+"|"+site.line()+"|"+event.method;sites.merge(key,1,Integer::sum);}
+    }ConcreteHostProbe.reset();if(matrix!=null&&!matrix.fired)ConcreteHostProbe.hook=matrix::hook;}
+    private static void safe(Runnable action){try{action.run();}catch(RuntimeException expected){/* Individual native failure policies are asserted in focused controls below. */}}
+    private static void callback(Object target,String method,Class<?>[] types,Object... args){try{var declared=target.getClass().getDeclaredMethod(method,types);declared.setAccessible(true);declared.invoke(target,args);}catch(java.lang.reflect.InvocationTargetException failure){if(failure.getCause() instanceof RuntimeException ordinary)throw ordinary;if(failure.getCause() instanceof Error fatal)throw fatal;throw new AssertionError(failure.getCause());}catch(ReflectiveOperationException failure){throw new AssertionError(failure);}}
+    private static void positiveCallbacks(){
+        try(Fixture f=new Fixture()){
+            f.ready();NativeRenderer renderer=f.renderer();EditText edit=(EditText)renderer.view("field");Switch toggle=(Switch)renderer.view("toggle");
+            edit.requestFocus();InputConnection connection=edit.onCreateInputConnection(new EditorInfo());check(connection!=null,"live IME acquisition");
+            safe(()->connection.setComposingRegion(0,1));safe(()->connection.setComposingRegion(0,1,new android.view.inputmethod.TextAttribute()));
+            safe(connection::finishComposingText);safe(()->connection.setSelection(1,1));safe(()->connection.setImeConsumesInput(true));
+            NativeBridge.preparedPacket=packet(2);safe(()->connection.setComposingText("",1));NativeBridge.preparedPacket=packet(3);safe(()->connection.setComposingText("",1,new android.view.inputmethod.TextAttribute()));
+            safe(connection::beginBatchEdit);safe(connection::endBatchEdit);safe(()->connection.clearMetaKeyStates(1));
+            safe(()->edit.onKeyDown(KeyEvent.KEYCODE_ENTER,new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_ENTER)));
+            safe(()->edit.performAccessibilityAction(0,new Bundle()));
+            safe(()->edit.onTextContextMenuItem(0));
+            if(edit.cursorDrawable!=null)edit.cursorDrawable.draw(new Canvas());
+            if(edit.selectHandle!=null)edit.selectHandle.draw(new Canvas());
+            edit.clearFocus();
+            toggle.setVisibility(View.VISIBLE);toggle.hostWindowVisibility(View.VISIBLE);toggle.onWindowFocusChanged(true);toggle.requestFocus();toggle.hostDetach();toggle.hostAttach(f.root.getWindowToken());
+            safe(()->f.root.dispatchTouchEvent(MotionEvent.obtain(0,1,MotionEvent.ACTION_CANCEL,0,0,0)));
+            safe(()->f.root.getChildAt(0).dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,0)));
+            NativeBridge.preparedPacket=packet(4,"controls");safe(toggle::performClick);
+            long down=10;safe(()->toggle.onTouchEvent(MotionEvent.obtain(down,down,MotionEvent.ACTION_DOWN,toggle.getWidth()-5,toggle.getHeight()/2f,0)));
+            safe(()->toggle.onTouchEvent(MotionEvent.obtain(down,down+10,MotionEvent.ACTION_MOVE,10,toggle.getHeight()/2f,0)));
+            safe(()->toggle.onTouchEvent(MotionEvent.obtain(down,down+20,MotionEvent.ACTION_CANCEL,10,toggle.getHeight()/2f,0)));
+            safe(()->toggle.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_ENTER)));
+            safe(()->toggle.performAccessibilityAction(0,new Bundle()));
+            f.root.draw(new Canvas());
+            NativeBridge.preparedPacket=packet(5,"replace");safe(()->renderer.view("button").performClick());
+            check(NativeBridge.prepareCalls>=2,"native input was not synchronous");
+        }collect();
+        try(Fixture f=new Fixture("navigation")){
+            f.ready();f.root.draw(new Canvas());safe(()->f.renderer().view("list").scrollTo(0,500));f.root.draw(new Canvas());
+            check(f.fence().operation==null,"ordinary scroll invented operation");
+        }collect();
+    }
+    private static void hierarchyControls(){
+        try(Fixture f=new Fixture()){
+            // Concrete root membership was changed by the fixture before the real refresh capture.
+            f.root.addView(new View(f.activity));f.ready();
+            NativeRenderer renderer=f.renderer();android.view.ViewGroup gate=(android.view.ViewGroup)field(renderer,"v2Gate");
+            View desired=renderer.view("root");FrameLayout foreign=new FrameLayout(f.activity);foreign.layout(0,0,1000,1500);foreign.hostAttach(f.root.getWindowToken());
+            gate.addView(new View(f.activity));
+            NativeAppearanceViewsV2.Record section=renderer.inspectV2().get("section");section.group.addView(new View(f.activity));
+            View body=renderer.view("text");section.group.removeView(body);foreign.addView(body);
+            gate.removeView(desired);foreign.addView(desired);f.owner.onPause();f.queue.drainAll(4);
+            check(desired.getParent()==gate,"concrete desired child was not reattached");
+            f.root.removeView(gate);foreign.addView(gate);f.owner.onResume();f.queue.drainAll(4);check(gate.getParent()==f.root,"concrete gate not reattached");
+        }collect();
+    }
+    private static void rollbackControls(){
+        for(int step:new int[]{0,2,4,6,8,24})try(Fixture f=new Fixture()){
+            f.ready();NativeRenderer renderer=f.renderer();renderer.testFaultV2(step,false);NativeBridge.preparedPacket=packet(2,"replace");safe(()->renderer.view("button").performClick());
+            check(f.fence().terminal,"failed transaction did not retire");
+        }
+        collect();
+    }
+    private static void rollbackStateControls(){
+        for(String scene:List.of("controls","navigation"))try(Fixture f=new Fixture(scene)){
+            f.ready();NativeRenderer renderer=f.renderer();View selected=renderer.view(scene.equals("controls")?"field":"list");
+            if(scene.equals("controls"))selected.requestFocus();
+            renderer.testFaultV2(renderer.inspectV2().size()*2,false);
+            f.owner.onPause();
+            final boolean[] fired={false};
+            java.util.function.BiConsumer<String,String> previousHook=ConcreteHostProbe.hook;
+            ConcreteHostProbe.hook=(method,phase)->{if(previousHook!=null)previousHook.accept(method,phase);var event=ConcreteHostProbe.lastEvent();if(!f.fence().terminal&&!fired[0]&&phase.equals("entry")&&method.equals("View.setTag")&&event.productionFrames.stream().anyMatch(site->site.className().equals("dev.mixer.android.NativeRenderer")&&site.methodName().equals("attachV2"))){fired[0]=true;ConcreteHostProbe.hook=previousHook;if(scene.equals("controls"))selected.clearFocus();else selected.scrollTo(0,10);}};
+            safe(()->f.queue.drainAll(4));ConcreteHostProbe.hook=previousHook;
+            check(fired[0],"rollback native state mutation hook missed");check(f.fence().terminal,"rollback failure did not retire lifetime");
+        }collect();
+        try(Fixture f=new Fixture()){
+            java.util.function.BiConsumer<String,String> previousHook=ConcreteHostProbe.hook;
+            ConcreteHostProbe.hook=(method,phase)->{if(previousHook!=null)previousHook.accept(method,phase);if(method.equals("NativeBridge.commitV2")&&phase.equals("entry")){ConcreteHostProbe.hook=previousHook;f.owner.close();}};
+            safe(()->f.queue.drainAll(4));ConcreteHostProbe.hook=previousHook;
+            check(f.fence().terminal&&!f.owner.hasCommittedPresentation(),"commit reentry published a live presentation");
+        }collect();
+    }
+    private static void imeSuccessor(){
+        try(Fixture f=new Fixture("field")){
+            f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();
+            InputConnection connection=editor.onCreateInputConnection(new EditorInfo());
+            NativeAppearanceViewsV2.Mutation original=NativeAppearanceViewsV2.Mutation.live(f.fence());
+            OwnerLifecycleV2.Token before=f.fence().presentation;NativeBridge.preparedPacket=packet(2,"field","helloz");
+            boolean committed=connection.commitText("z",1);if(!committed&&f.owner.cleanupLedger().primary()!=null)f.owner.cleanupLedger().primary().printStackTrace();
+            check(committed,"completed IME delegate rejected after accepted successor: "+f.owner.cleanupLedger().cause()+" / "+f.owner.cleanupLedger().primary());
+            check(editor.getText().toString().equals("helloz"),"real editor buffer not changed");
+            check(f.fence().presentation!=before&&!f.fence().terminal,"IME successor not published");
+            check(NativeBridge.prepareCalls==2&&NativeBridge.lastInput!=null,"ordinary edit not synchronous");
+            boolean previousWouldFail=false;try{original.require();}catch(IllegalStateException expected){previousWouldFail=true;}
+            check(previousWouldFail,"pre-fix old-scope postcheck witness missing");
+            f.owner.onPause();int forwarded=ConcreteHostProbe.count("InputConnectionWrapper.commitText","entry");
+            check(!connection.commitText("!",1),"retained sealed IME committed");
+            check(editor.onCreateInputConnection(new EditorInfo())==null,"sealed new IME acquired native delegate");
+            check(ConcreteHostProbe.count("InputConnectionWrapper.commitText","entry")==forwarded,"sealed edit reached native wrapper");
+        }collect();
+    }
+    private interface ImeCall {boolean call(InputConnection connection);}
+    private record ImeFamily(String name,String leaf,ImeCall call) {}
+    private static List<ImeFamily> imeFamilies(){return List.of(
+        new ImeFamily("beginBatchEdit","beginBatchEdit",InputConnection::beginBatchEdit),
+        new ImeFamily("endBatchEdit","endBatchEdit",InputConnection::endBatchEdit),
+        new ImeFamily("clearMetaKeyStates","clearMetaKeyStates",c->c.clearMetaKeyStates(1)),
+        new ImeFamily("commitText","commitText",c->c.commitText("z",1)),
+        new ImeFamily("commitTextWithAttributes","commitTextWithAttributes",c->c.commitText("z",1,new android.view.inputmethod.TextAttribute())),
+        new ImeFamily("setComposingText","setComposingText",c->c.setComposingText("z",1)),
+        new ImeFamily("setComposingTextWithAttributes","setComposingTextWithAttributes",c->c.setComposingText("z",1,new android.view.inputmethod.TextAttribute())),
+        new ImeFamily("setComposingRegion","setComposingRegion",c->c.setComposingRegion(0,1)),
+        new ImeFamily("setComposingRegionWithAttributes","setComposingRegion",c->c.setComposingRegion(0,1,new android.view.inputmethod.TextAttribute())),
+        new ImeFamily("finishComposingText","finishComposingText",InputConnection::finishComposingText),
+        new ImeFamily("deleteSurroundingText","deleteSurroundingText",c->c.deleteSurroundingText(1,0)),
+        new ImeFamily("deleteSurroundingTextInCodePoints","deleteSurroundingTextInCodePoints",c->c.deleteSurroundingTextInCodePoints(1,0)),
+        new ImeFamily("setSelection","setSelection",c->c.setSelection(0,1)),
+        new ImeFamily("performEditorAction","performEditorAction",c->c.performEditorAction(EditorInfo.IME_ACTION_DONE)),
+        new ImeFamily("sendKeyEvent","sendKeyEvent",c->c.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_SPACE))),
+        new ImeFamily("setImeConsumesInput","setImeConsumesInput",c->c.setImeConsumesInput(true)),
+        new ImeFamily("commitCompletion","commitCompletion",c->c.commitCompletion(new android.view.inputmethod.CompletionInfo(1,0,"z"))));}
+    private static void imeControls(){
+        for(ImeFamily family:imeFamilies())for(String state:List.of("current","successor","terminal","dirty","stale","fatal")){
+            try(Fixture f=new Fixture("field")){
+                f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();InputConnection connection=editor.onCreateInputConnection(new EditorInfo());
+                NativeAppearanceViewsV2.Record record=f.renderer().inspectV2().get("field");
+                // Controlled native delegates can complete without notifying a feature callback. Keep the real binding guard.
+                record.changing=true;editor.editorListener=(view,action,event)->true;
+                OwnerLifecycleV2.Token captured=f.fence().presentation;NativeAppearanceViewsV2.Mutation old=NativeAppearanceViewsV2.Mutation.live(f.fence());
+                String nativeMethod="BaseInputConnection."+family.leaf();int before=ConcreteHostProbe.count(nativeMethod,"entry");Fatal fatal=new Fatal("IME "+family.name());boolean[] reached={false};
+                java.util.function.BiConsumer<String,String> previous=ConcreteHostProbe.hook;
+                if(state.equals("successor")||state.equals("fatal"))ConcreteHostProbe.hook=(method,phase)->{
+                    if(previous!=null)previous.accept(method,phase);
+                    if(!reached[0]&&method.equals(nativeMethod)&&phase.equals("beforeReturn")){
+                        reached[0]=true;ConcreteHostProbe.hook=previous;
+                        if(state.equals("fatal"))throw fatal;
+                        record.changing=false;NativeBridge.preparedPacket=packet(2,"field",editor.getText().toString());record.input.event(record,"textChange",editor.getText().toString());
+                    }};
+                if(state.equals("terminal"))f.owner.close();else if(state.equals("dirty"))f.owner.onPause();else if(state.equals("stale"))f.activity.getResources().configuration.fontScale=1.25f;
+                Throwable escaped=null;boolean returned=false;try{returned=family.call().call(connection);}catch(RuntimeException|Error failure){escaped=failure;}finally{ConcreteHostProbe.hook=previous;record.changing=false;}
+                if(state.equals("current"))check(returned&&escaped==null&&f.fence().presentation==captured,"IME exact current "+family.name());
+                else if(state.equals("successor")){
+                    check(reached[0]&&returned&&escaped==null&&f.fence().presentation!=captured&&!f.fence().terminal,"IME completed successor "+family.name());
+                    boolean rejects=false;try{old.require();}catch(IllegalStateException expected){rejects=true;}check(rejects,"pre-fix stale scope witness "+family.name());
+                }else if(state.equals("fatal"))check(reached[0]&&escaped==fatal,"IME fatal swallowed "+family.name());
+                else check(!returned&&escaped==null&&ConcreteHostProbe.count(nativeMethod,"entry")==before,"sealed/stale IME forwarded "+state+" / "+family.name());
+            }
+        }
+        for(String state:List.of("current","terminal","dirty","stale"))try(Fixture f=new Fixture("field")){
+            f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();InputConnection connection=editor.onCreateInputConnection(new EditorInfo());
+            if(state.equals("terminal"))f.owner.close();else if(state.equals("dirty"))f.owner.onPause();else if(state.equals("stale"))f.activity.getResources().configuration.fontScale=1.25f;
+            int before=ConcreteHostProbe.events().size();
+            check(!connection.replaceText(0,1,"x",1,null)&&!connection.performPrivateCommand("private",new Bundle())&&!connection.previewHandwritingGesture(null,null)&&!connection.commitCorrection(null)&&!connection.commitContent(null,0,null),"IME refusal override accepted "+state);
+            int[] result={-1};connection.performHandwritingGesture(null,Runnable::run,value->result[0]=value);
+            check(result[0]==InputConnection.HANDWRITING_GESTURE_RESULT_UNSUPPORTED,"handwriting refusal result");
+            check(ConcreteHostProbe.events().subList(before,ConcreteHostProbe.events().size()).stream().noneMatch(event->event.method.startsWith("InputConnectionWrapper.")||event.method.startsWith("BaseInputConnection.")),"refusal forwarded native "+state);
+        }
+        try(Fixture f=new Fixture("field")){
+            f.ready();EditText editor=(EditText)f.renderer().view("field");editor.requestFocus();InputConnection connection=editor.onCreateInputConnection(new EditorInfo());connection.closeConnection();
+            check(((android.view.inputmethod.BaseInputConnection)editor.lastConnection).closed,"closeConnection delegate not reached");
+            check(ConcreteHostProbe.events().stream().anyMatch(event->event.method.equals("BaseInputConnection.closeConnection")&&event.productionFrames.stream().anyMatch(frame->frame.methodName().equals("closeConnection")&&frame.descriptor().equals("()V")&&frame.bytecodeIndex()>=0)),"closeConnection product descriptor/BCI missing");
+        }collect();
+    }
+    private static void v1Baselines(){
+        Activity activity=new Activity();List<byte[]> events=new ArrayList<>();NativeRenderer renderer=new NativeRenderer(activity,events::add);
+        UiPacket first=UiPacket.decode(packet(1));View root=renderer.apply(first);check(root==renderer.view("root")&&renderer.packet==first,"V1 initial apply");
+        View text=renderer.view("text");renderer.apply(UiPacket.decode(packet(2)));check(renderer.view("text")==text,"V1 exact generation reuse");
+        renderer.view("button").performClick();check(events.size()==1&&Json.object(Json.parse(events.get(0))).get("revision")!=null,"V1 native button event");
+        ((Switch)renderer.view("toggle")).performClick();check(events.size()==2,"V1 native toggle event");
+        EditText editor=(EditText)renderer.view("field");editor.hostReplace(0,editor.getText().length(),"legacy");check(events.size()==3,"V1 native field event");
+        renderer.apply(UiPacket.decode(packet(3,"replace")));check(renderer.view("replacement")!=root,"V1 hierarchy replacement");collect();
+    }
+    private static void smoke(){
+        try(Fixture f=new Fixture()){
+            f.ready();check(NativeBridge.createCalls==1&&NativeBridge.prepareCalls==1&&NativeBridge.commitCalls==1,"initial exact engine calls");
+            check(f.fence().operation==null&&f.fence().drawAllowed&&f.fence().inputAllowed,"publication after operation");
+            f.root.draw(new Canvas());
+            byte[] retained=(byte[])field(field(f.owner,"coordinator"),"committedPacket");
+            f.owner.onPause();check(!f.fence().inputAllowed&&!f.fence().drawAllowed,"pause seals");f.queue.drainAll(4);
+            check(field(field(f.owner,"coordinator"),"committedPacket")==retained,"refresh replaced retained array");
+            check(NativeBridge.prepareCalls==1&&NativeBridge.commitCalls==1&&NativeBridge.abortCalls==0,"refresh engine work");
+            f.owner.onResume();f.queue.drainAll(4);check(f.fence().inputAllowed,"resume/focus mapping");
+        }
+        check(NativeBridge.destroyCalls==1,"session exactly once");collect();
+    }
+    private static void runScenario(String selected){scenario=selected;switch(selected){case "smoke"->smoke();case "positive"->positiveCallbacks();case "hierarchy"->hierarchyControls();case "rollback"->rollbackControls();case "rollbackState"->rollbackStateControls();case "imeSuccessor"->imeSuccessor();default->throw new AssertionError(selected);}}
+    private static void loadBarriers(Path path)throws Exception{
+        var root=Json.object(Json.parse(Files.readAllBytes(path)));List<Barrier> selected=new ArrayList<>();
+        for(Object value:Json.array(root.get("records"))){
+            var record=Json.object(value);var candidate=Json.object(Json.array(record.get("candidates")).get(0));var boundary=Json.object(record.get("boundary"));
+            selected.add(new Barrier(Json.string(record.get("baseline")),"dev.mixer.android."+Json.string(record.get("class")),Integer.parseInt(((Json.Num)candidate.get("line")).raw),
+                Json.string(boundary.get("entry_native_suffix")),Json.string(boundary.get("return_native_suffix")),
+                (String)boundary.get("return_receiver_id"),(String)boundary.get("return_receiver_class"),boundary.get("return_frame_line")==null?null:Integer.valueOf(((Json.Num)boundary.get("return_frame_line")).raw),
+                Json.string(boundary.get("mode")),Json.string(boundary.get("equivalence"))));
+        }
+        barriers=List.copyOf(selected);
+    }
+    private static void runMatrix(Path output)throws Exception{
+        List<Object> results=new ArrayList<>();List<String> missed=new ArrayList<>();
+        for(Barrier barrier:barriers){String witness=witnesses.get(barrier.id());if(witness==null){missed.add(barrier.id());continue;}
+            for(String name:List.of("clean","terminal-at-entry","terminal-before-return","dirty-at-entry","dirty-before-return","ordinary-throw-after-callback","fatal-throw-after-callback")){
+                matrix=new MatrixCase(barrier,name);ConcreteHostProbe.reset();ConcreteHostProbe.hook=matrix::hook;Throwable escaped=null;
+                try{runScenario(witness);}catch(RuntimeException|Error failure){escaped=failure;}
+                finally{ConcreteHostProbe.hook=null;}
+                if(!matrix.fired)throw new AssertionError("matrix site missed "+barrier.id()+" / "+witness+" / "+name);
+                check(matrix.validated,"selected callback invariant failed "+barrier.id()+" / "+name);
+                if(name.startsWith("terminal")||name.endsWith("throw-after-callback")){
+                    assertGates(matrix.fixture,"after selected callback stack");check(matrix.fixture.fence().terminal,"terminal stimulus did not retire fence");
+                    check(NativeBridge.commitCalls==matrix.commits,"commit after selected terminal callback "+barrier.id()+" / "+name);
+                }
+                if(name.equals("fatal-throw-after-callback"))check(escaped==matrix.fatal||matrix.fixture.owner.cleanupLedger().firstFatal()==matrix.fatal,"fatal demoted "+barrier.id());
+                if(escaped instanceof AssertionError failure&&!name.startsWith("clean")&&matrix.fired){
+                    // The original positive scenario is expected to reject live publication after deliberate reentry.
+                }else if(name.equals("clean")&&escaped!=null&&escaped!=matrix.done)throw new AssertionError("clean scenario failed "+barrier.id(),escaped);
+                results.add(Json.map("site",barrier.id(),"case",name,"stimulus",name.startsWith("dirty")?"actual owner onPause lifecycle invalidation":"selected concrete callback", "scenario",witness,"hit",true,"boundaryMode",barrier.boundaryMode(),"boundaryEquivalence",barrier.equivalence(),"nativeMethod",matrix.reached.method,"nativePhase",matrix.reached.phase,"selectedFrames",matrix.reached.productionFrames.stream().filter(frame->frame.line()==barrier.line()&&(frame.className().equals(barrier.className())||frame.className().startsWith(barrier.className()+"$"))).map(frame->Json.map("class",frame.className(),"method",frame.methodName(),"descriptor",frame.descriptor(),"bytecodeIndex",new Json.Num(Integer.toString(frame.bytecodeIndex())),"line",new Json.Num(Integer.toString(frame.line())))).toList(),"escaped",escaped==null?null:escaped.getClass().getName()));
+                matrix=null;collect();
+            }
+        }
+        StringBuilder report=new StringBuilder();write(report,Json.map("scope","actual fourteen product subjects with explicit mechanical leaves; lifecycle dirty is separate from actual observer invalidation","baselineSites",new Json.Num(Integer.toString(barriers.size())),"missing",missed,"cases",results));Files.writeString(output,report);
+        check(missed.isEmpty(),"missing actual baseline sites "+missed);
+    }
+    public static void main(String[] args)throws Exception{
+        descriptor=Files.readAllBytes(Path.of(args[0]));if(args.length>2)loadBarriers(Path.of(args[2]));
+        for(String selected:List.of("smoke","positive","hierarchy","rollback","rollbackState","imeSuccessor"))runScenario(selected);
+        imeControls();v1Baselines();collect();
+        if(args.length>3)runMatrix(Path.of(args[3]));
+
+        if(args.length>1){StringBuilder report=new StringBuilder();for(var e:sites.entrySet())report.append(e.getKey()).append('|').append(e.getValue()).append('\n');Files.writeString(Path.of(args[1]),report);}
+
+        System.out.println("PASS concrete actual14 host checks="+checks+"; platform/JNI leaves, native runtime pending");
+    }
+}

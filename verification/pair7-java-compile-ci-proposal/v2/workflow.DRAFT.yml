@@ -1,0 +1,237 @@
+# SOURCE PROPOSAL ONLY. Root selection, independent source review, and first execution are pending.
+# Proposed install path: .github/workflows/pair7-java-compile.yml
+# This first job produces actual source data. It does not claim Java compilation.
+name: Pair7 actual Android Java compile evidence
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pair7-java-compile.yml'
+      - 'verification/pair7-java-compile-ci-proposal/v2/**'
+      - 'scripts/ci/verify-apple-toolchain.py'
+      - 'cli/Package.swift'
+      - 'cli/Package.resolved'
+      - 'cli/Sources/**'
+      - 'cli/Tests/**'
+      - 'sdk/Package.swift'
+      - 'sdk/Sources/**'
+      - 'sdk/Tests/**'
+      - 'updates/Package.swift'
+      - 'updates/Package.resolved'
+      - 'updates/Sources/**'
+      - 'updates/Tests/**'
+      - 'native/android/app/src/dev/mixer/android/**'
+      - 'native/android/engine/Sources/MixerAndroidRuntime/**'
+      - 'native/android/bridge/**'
+      - 'native/android/contracts/android-profile-v1.json'
+  pull_request:
+    paths:
+      - '.github/workflows/pair7-java-compile.yml'
+      - 'verification/pair7-java-compile-ci-proposal/v2/**'
+      - 'scripts/ci/verify-apple-toolchain.py'
+      - 'cli/Package.swift'
+      - 'cli/Package.resolved'
+      - 'cli/Sources/**'
+      - 'cli/Tests/**'
+      - 'sdk/Package.swift'
+      - 'sdk/Sources/**'
+      - 'sdk/Tests/**'
+      - 'updates/Package.swift'
+      - 'updates/Package.resolved'
+      - 'updates/Sources/**'
+      - 'updates/Tests/**'
+      - 'native/android/app/src/dev/mixer/android/**'
+      - 'native/android/engine/Sources/MixerAndroidRuntime/**'
+      - 'native/android/bridge/**'
+      - 'native/android/contracts/android-profile-v1.json'
+permissions:
+  contents: read
+concurrency:
+  group: pair7-java-snapshot-source-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    if: github.run_attempt == 1
+    runs-on: macos-15
+    timeout-minutes: 34
+    outputs:
+      snapshot_id: ${{ steps.snapshot-upload.outputs.artifact-id }}
+      snapshot_digest: ${{ steps.snapshot-upload.outputs.artifact-digest }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        timeout-minutes: 3
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/pair7-java-compile.yml
+            /verification/pair7-java-compile-ci-proposal/v2/
+            /scripts/ci/verify-apple-toolchain.py
+            /cli/Package.swift
+            /cli/Package.resolved
+            /cli/Sources/
+            /cli/Tests/
+            /sdk/Package.swift
+            /sdk/Sources/
+            /sdk/Tests/
+            /updates/Package.swift
+            /updates/Package.resolved
+            /updates/Sources/
+            /updates/Tests/
+            /native/android/app/src/dev/mixer/android/
+            /native/android/engine/Sources/MixerAndroidRuntime/
+            /native/android/bridge/
+            /native/android/contracts/android-profile-v1.json
+      - name: Guarded data controls before any selected producer
+        timeout-minutes: 2
+        env:
+          MIXER_PAIR7_CONTROL_ROOT: ${{ runner.temp }}/pair7-java-controls-${{ github.run_id }}-1
+        run: python3 -I -B -S verification/pair7-java-compile-ci-proposal/v2/test_source_controls.py
+      - name: Bind exact sources and stage one proposal-only test
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          printf 'MIXER_PAIR7_SNAPSHOT_OUT=%s/pair7-java-snapshot-%s-1\n' "$RUNNER_TEMP" "$GITHUB_RUN_ID" >> "$GITHUB_ENV"
+          python3 -I -B -S verification/pair7-java-compile-ci-proposal/v2/bind_snapshot_source.py stage
+          ulimit -f > "$RUNNER_TEMP/pair7-java-source-$GITHUB_RUN_ID-1/bash-file-limit.txt"
+          printf "%s\n" "$BASH_VERSION" > "$RUNNER_TEMP/pair7-java-source-$GITHUB_RUN_ID-1/bash-version.txt"
+      - name: Record the existing pinned Apple toolchain
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          python3 -B scripts/ci/verify-apple-toolchain.py \
+            --developer-dir "$DEVELOPER_DIR" --xcode-version 26.3 --xcode-build 17C529 \
+            --output "$RUNNER_TEMP/pair7-java-source-$GITHUB_RUN_ID-1/apple-toolchain.json"
+      - name: Run the actual retained snapshot producer once
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          test ! -e "$RUNNER_TEMP/pair7-java-swift-$GITHUB_RUN_ID-1"
+          set +e
+          "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift" test \
+            --package-path cli --scratch-path "$RUNNER_TEMP/pair7-java-swift-$GITHUB_RUN_ID-1" \
+            --jobs 2 --force-resolved-versions \
+            --filter pair7RetainedActualAndroidSnapshotForJavaCI \
+            > "$RUNNER_TEMP/pair7-java-source-$GITHUB_RUN_ID-1/swift.stdout" \
+            2> "$RUNNER_TEMP/pair7-java-source-$GITHUB_RUN_ID-1/swift.stderr"
+          MIXER_PAIR7_SWIFT_EXIT="$?"
+          set -e
+          printf "%s\n" "$MIXER_PAIR7_SWIFT_EXIT" > "$RUNNER_TEMP/pair7-java-source-$GITHUB_RUN_ID-1/swift.exit"
+          exit "$MIXER_PAIR7_SWIFT_EXIT"
+      - name: Rehash exact sources after the producer
+        if: always()
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -f 65536
+          python3 -I -B -S verification/pair7-java-compile-ci-proposal/v2/bind_snapshot_source.py post
+      - name: Admit only the bounded complete actual snapshot for upload
+        id: snapshot-bound
+        if: always()
+        timeout-minutes: 2
+        run: python3 -I -B -S verification/pair7-java-compile-ci-proposal/v2/transport_gate.py snapshot-upload
+      - name: Retain actual generated snapshot data
+        id: snapshot-upload
+        if: always() && steps.snapshot-bound.outputs.snapshot_upload_ready == 'true'
+        timeout-minutes: 2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pair7-java-snapshot-${{ github.sha }}-${{ github.run_id }}-1
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/pair7-java-snapshot-${{ github.run_id }}-1/
+
+      - name: Admit only bounded named host command evidence
+        id: host-logs-bound
+        if: always()
+        timeout-minutes: 2
+        run: python3 -I -B -S verification/pair7-java-compile-ci-proposal/v2/transport_gate.py host-log-upload
+      - name: Retain snapshot source binding and host command logs
+        if: always() && steps.host-logs-bound.outputs.host_logs_upload_ready == 'true'
+        timeout-minutes: 2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pair7-java-snapshot-host-${{ github.sha }}-${{ github.run_id }}-1
+          retention-days: 14
+          if-no-files-found: error
+          path: ${{ runner.temp }}/pair7-java-source-${{ github.run_id }}-1/
+  compile:
+    needs: snapshot
+    if: github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 17
+    env:
+      MIXER_PAIR7_SNAPSHOT_ARTIFACT_ID: ${{ needs.snapshot.outputs.snapshot_id }}
+      MIXER_PAIR7_SNAPSHOT_ARTIFACT_DIGEST: ${{ needs.snapshot.outputs.snapshot_digest }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        timeout-minutes: 2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/pair7-java-compile.yml
+            /verification/pair7-java-compile-ci-proposal/v2/
+            /verification/android-view-api-package-runtime-host-preparation/
+            /verification/android-view-api-boundary-bytecode-inspection/inspect_artifacts.py
+            /verification/android-api28-collections-prerequisite/run.py
+            /verification/android-api28-collections-prerequisite/audit.py
+            /scripts/ci/verify-apple-toolchain.py
+            /cli/Package.swift
+            /cli/Package.resolved
+            /cli/Sources/
+            /cli/Tests/
+            /sdk/Package.swift
+            /sdk/Sources/
+            /sdk/Tests/
+            /updates/Package.swift
+            /updates/Package.resolved
+            /updates/Sources/
+            /updates/Tests/
+            /native/android/app/src/dev/mixer/android/
+            /native/android/engine/Sources/MixerAndroidRuntime/
+            /native/android/bridge/
+            /native/android/contracts/android-profile-v1.json
+      - name: Refuse absent or malformed transfer identity before downloading
+        id: snapshot-transfer
+        timeout-minutes: 1
+        run: /usr/bin/python3 -I -B -S verification/pair7-java-compile-ci-proposal/v2/transport_gate.py transfer
+      - name: Download only this run's exact producer artifact id
+        timeout-minutes: 2
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.snapshot.outputs.snapshot_id }}
+          path: ${{ runner.temp }}/pair7-java-snapshot-input
+          merge-multiple: true
+      - name: Exact generated18 SDK37 javac and D8 with fresh Java API floors
+        id: collect
+        timeout-minutes: 9
+        run: |
+          /usr/bin/python3 -I -B -S verification/pair7-java-compile-ci-proposal/v2/compile_pair7.py \
+            "$RUNNER_TEMP/pair7-java-snapshot-input" \
+            "$RUNNER_TEMP/pair7-java-compile-$GITHUB_RUN_ID-1"
+      - name: Retain only completed bounded success or refusal evidence
+        if: always() && steps.collect.outputs.output_artifact_ready == 'true'
+        timeout-minutes: 2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pair7-java-compile-${{ github.sha }}-${{ github.run_id }}-1
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/pair7-java-compile-${{ github.run_id }}-1/

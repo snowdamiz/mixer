@@ -1,0 +1,1 @@
+use corrected_envelope::*; fn main(){let mut words=[0u64;16];let _=analyze_fixture_envelope_v1(&mut words,true);}

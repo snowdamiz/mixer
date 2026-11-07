@@ -1,0 +1,407 @@
+{
+  "checks": [
+    {
+      "name": "help exits zero",
+      "passed": true
+    },
+    {
+      "name": "missing explicit arguments fail",
+      "passed": true
+    },
+    {
+      "name": "invalid PG fails before output allocation",
+      "passed": true
+    },
+    {
+      "name": "root output rejected",
+      "passed": true
+    },
+    {
+      "name": "repository output rejected",
+      "passed": true
+    },
+    {
+      "name": "symlink output parent rejected",
+      "passed": true
+    },
+    {
+      "name": "parent traversal rejected",
+      "passed": true
+    },
+    {
+      "name": "selectors and path overrides absent",
+      "passed": true
+    },
+    {
+      "name": "timeout terminates owned child and records nonzero",
+      "passed": true
+    },
+    {
+      "name": "command failure is propagated",
+      "passed": true
+    },
+    {
+      "name": "actual PostgreSQL failure cleanup is complete",
+      "passed": true
+    },
+    {
+      "name": "missing selected tool makes a retained failed attempt",
+      "passed": true
+    },
+    {
+      "name": "second invocation creates a separate retained failed attempt",
+      "passed": true
+    },
+    {
+      "name": "failed attempts preserve prior receipt bytes",
+      "passed": true
+    },
+    {
+      "name": "preflight failures allocate no scratch or PG",
+      "passed": true
+    },
+    {
+      "name": "contract source bytes unchanged",
+      "passed": true
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "revision",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "git-tree",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "postgres-version",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "git",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "git-version",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+        "--help"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "help",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 2,
+      "label": "missing-arguments",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+        "--pg-bin",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-callback-ci/contract-attempts/b295f196-112c-4c68-bcec-abef35ff3b7a/absent-pg",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-callback-ci/contract-attempts/b295f196-112c-4c68-bcec-abef35ff3b7a/invalid-pg-output"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 2,
+      "label": "invalid-pg",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+        "--pg-bin",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+        "--output",
+        "/"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 2,
+      "label": "root-output",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+        "--pg-bin",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 2,
+      "label": "repository-output",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+        "--pg-bin",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-callback-ci/contract-attempts/b295f196-112c-4c68-bcec-abef35ff3b7a/output-link/child"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 2,
+      "label": "symlink-output",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+        "--pg-bin",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-callback-ci/contract-attempts/b295f196-112c-4c68-bcec-abef35ff3b7a/../sibling"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 2,
+      "label": "traversal-output",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+        "--pg-bin",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-callback-ci/contract-attempts/b295f196-112c-4c68-bcec-abef35ff3b7a/preflight-failures"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 1,
+      "label": "missing-tool-first",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+        "--pg-bin",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+        "--output",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-callback-ci/contract-attempts/b295f196-112c-4c68-bcec-abef35ff3b7a/preflight-failures"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 1,
+      "label": "missing-tool-second",
+      "timeout_seconds": 15
+    }
+  ],
+  "finished_at": "2026-10-25T21:49:09.164769+00:00",
+  "git_tree": "5d454399dc31bc1515222abec859a59df7276c19",
+  "invocation": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "verification/hosted-browser-callback-ci/check_runner.py",
+    "--pg-bin",
+    "/opt/homebrew/Cellar/postgresql@17/17.11/bin"
+  ],
+  "owned_failure_attempt": {
+    "cleanup": {
+      "data_identity_preserved": true,
+      "no_native_capture_browser_phone_or_provider_started": true,
+      "owned_scratch_absent": true,
+      "postmaster_absent": true,
+      "postmaster_identity_preserved": true,
+      "postmaster_status_nonrunning": true,
+      "scratch_identity_preserved": true
+    },
+    "commands": [
+      {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-c",
+          "import time; time.sleep(30)"
+        ],
+        "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+        "exit": -9,
+        "label": "timed-out-owned-command",
+        "owned_pid": 43936,
+        "timed_out": true,
+        "timeout_seconds": 0.05
+      },
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+          "-D",
+          "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-callback-ci-contract-o_egy_h4/data",
+          "-U",
+          "browser_admin",
+          "-A",
+          "trust",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+        "exit": 0,
+        "label": "initdb",
+        "owned_pid": 43937,
+        "timed_out": false,
+        "timeout_seconds": 55
+      },
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+          "-D",
+          "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-callback-ci-contract-o_egy_h4/data",
+          "-l",
+          "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-callback-ci/contract-attempts/b295f196-112c-4c68-bcec-abef35ff3b7a/postgres.log",
+          "-o",
+          "-h 127.0.0.1 -p 56395 -k ''",
+          "-w",
+          "start"
+        ],
+        "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+        "exit": 0,
+        "label": "postgres-start",
+        "owned_pid": 43947,
+        "timed_out": false,
+        "timeout_seconds": 55
+      },
+      {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-c",
+          "raise SystemExit(7)"
+        ],
+        "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+        "exit": 7,
+        "label": "forced-command-failure",
+        "owned_pid": 43958,
+        "timed_out": false,
+        "timeout_seconds": 55
+      },
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+          "-D",
+          "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-callback-ci-contract-o_egy_h4/data",
+          "-m",
+          "immediate",
+          "-w",
+          "stop"
+        ],
+        "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+        "exit": 0,
+        "label": "postgres-stop",
+        "owned_pid": 43959,
+        "timed_out": false,
+        "timeout_seconds": 15
+      },
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+          "-D",
+          "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-callback-ci-contract-o_egy_h4/data",
+          "status"
+        ],
+        "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+        "exit": 3,
+        "label": "postmaster-status",
+        "owned_pid": 43961,
+        "timed_out": false,
+        "timeout_seconds": 55
+      }
+    ],
+    "data_identity": [
+      16777233,
+      138140562
+    ],
+    "invocation": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "verification/hosted-browser-callback-ci/check_runner.py",
+      "--pg-bin",
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin"
+    ],
+    "output": "/Users/andreyyurlov/Documents/dev/mixer/verification/hosted-browser-callback-ci/contract-attempts/b295f196-112c-4c68-bcec-abef35ff3b7a/owned-failure",
+    "owned_scratch": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-callback-ci-contract-o_egy_h4",
+    "pg_bin": "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+    "platform": "darwin",
+    "port": 56395,
+    "postmaster_identity": [
+      "43949",
+      "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-browser-callback-ci-contract-o_egy_h4/data",
+      "1792964948",
+      "56395"
+    ],
+    "schema": 1,
+    "scope": "Selected actual CallbackDraft/Store, RuntimeOwner/default KeyOwner and fixed LifecycleRepo only; unchanged synthetic restricted-role pool2/noqueue fixtures. Manual localhost RuntimeConfig bypasses deployment TLS/5432 constructor qualification. No provider, HTTP facade, Unit B, full hosted application, native runtime, publication, dogfood or GA qualification.",
+    "scratch_identity": [
+      16777233,
+      138140560
+    ],
+    "started_at": "2026-10-25T21:49:07.665238+00:00"
+  },
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "revision": "68468f8fb73f21d2e4b388c41ad15fd01bfd0d93",
+  "runner_sha256": "090d356041aa46e70f2de2dfe3420646851f72eccd341837705a9e360911575b",
+  "schema": 1,
+  "scope": "Bounded CLI, timeout and actual owned-PG cleanup contracts for the CI runner.",
+  "source_tree_after_sha256": "6f02f12ee836aa0197ae027180cf555cfd6e9621d75d2e02054d51603566db37",
+  "source_tree_sha256": "6f02f12ee836aa0197ae027180cf555cfd6e9621d75d2e02054d51603566db37",
+  "sources": {
+    ".github/workflows/hosted.yml": "be2a9746f0d18b52109173969e042d88253ccbcffbde788821436067549c4560",
+    "docs/hosted-browser-callback-ci.md": "9872f29d6ac23b39fa2e88f780d423e5fac11c77ec276c11f54e6d5a2d1aaf24",
+    "hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py": "090d356041aa46e70f2de2dfe3420646851f72eccd341837705a9e360911575b",
+    "verification/hosted-browser-callback-ci/check_runner.py": "540b273e57a04fa2d1952203ac969e41e4436139a1107af199c032fc131cdfc0",
+    "verification/hosted-browser-callback-ci/selected-methods.json": "b74e83c45746e3988189575d808196115ff3d619c1a8613febd628e23f91a0bc"
+  },
+  "sources_after": {
+    ".github/workflows/hosted.yml": "be2a9746f0d18b52109173969e042d88253ccbcffbde788821436067549c4560",
+    "docs/hosted-browser-callback-ci.md": "9872f29d6ac23b39fa2e88f780d423e5fac11c77ec276c11f54e6d5a2d1aaf24",
+    "hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py": "090d356041aa46e70f2de2dfe3420646851f72eccd341837705a9e360911575b",
+    "verification/hosted-browser-callback-ci/check_runner.py": "540b273e57a04fa2d1952203ac969e41e4436139a1107af199c032fc131cdfc0",
+    "verification/hosted-browser-callback-ci/selected-methods.json": "b74e83c45746e3988189575d808196115ff3d619c1a8613febd628e23f91a0bc"
+  },
+  "success": true
+}

@@ -1,0 +1,26 @@
+import hashlib,json,stat
+from pathlib import Path
+from datetime import datetime,timezone
+base=Path('verification/swift-envelope-ci-implementation')
+roots=[Path('scripts/ci/check-analyzer-envelope.py'),Path('scripts/ci/tests/test_analyzer_envelope_runner.py'),Path('docs/swift-envelope-ci-implementation.md'),Path('verification/swift-envelope-ci-pack'),base]
+excluded={str(base/'seal.json'),str(base/'seal.sha256')}
+def sha(p):
+ h=hashlib.sha256()
+ with p.open('rb') as f:
+  for block in iter(lambda:f.read(65536),b''):h.update(block)
+ return h.hexdigest()
+paths=[]
+for root in roots:
+ for p in ([root] if root.is_file() else sorted(root.rglob('*'))):
+  if str(p) in excluded:continue
+  if p.is_symlink():raise RuntimeError('symlink '+str(p))
+  mode=p.lstat().st_mode
+  if stat.S_ISDIR(mode):continue
+  if not stat.S_ISREG(mode):raise RuntimeError('special file '+str(p))
+  paths.append(p)
+if len(set(paths))!=len(paths):raise RuntimeError('duplicate seal member')
+rows=[{'path':str(p),'bytes':p.stat().st_size,'sha256':sha(p)} for p in sorted(paths)]
+seal={'schema':1,'at':datetime.now(timezone.utc).isoformat(),'scope':'standalone closed fixture-envelope pack/host runner; locally qualified Rust1.99.0; awaiting independent/root review and delivery','member_count':len(rows),'total_bytes':sum(x['bytes'] for x in rows),'members':rows,'excluded':sorted(excluded),'tree_hash_encoding':'SHA256 of UTF-8 JSON members array sort_keys=true separators=comma/colon','tree_sha256':hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(',',':')).encode()).hexdigest(),'pack_manifest_sha256':'4800e90fa39b81d0e6514afa087a77b93f838204883974df7fbbec4c69a21b9a','pack_tree_sha256':'7a73ac6f477b6ac90db0be8444712bc195c184fb21239266c07601f9ea90ecee','final_host_run':'run-4','producer_methods':78,'independent_methods':14,'fresh_comparisons_against_reused_expected_bytes':21714,'complete_host_layouts':32,'API_positive':1,'API_negative_intended_diagnostics':8,'runner_controls_normal':25,'runner_controls_python_O':25,'root_acceptance':False,'remote_CI_verified':False,'CI_1_98_1_envelope_qualified':False,'native_runtime_or_capture_executed':False,'storedPrefixValidated':False,'fullReplayAccepted':False,'semanticMetricsValid':False,'model_imported_or_evaluated':False,'GA_qualified':False}
+(base/'seal.json').write_text(json.dumps(seal,sort_keys=True,indent=2)+'\n')
+seal_digest=sha(base/'seal.json');(base/'seal.sha256').write_text(seal_digest+'  seal.json\n')
+print(json.dumps({'seal_sha256':seal_digest,'member_count':seal['member_count'],'total_bytes':seal['total_bytes'],'tree_sha256':seal['tree_sha256']},sort_keys=True))

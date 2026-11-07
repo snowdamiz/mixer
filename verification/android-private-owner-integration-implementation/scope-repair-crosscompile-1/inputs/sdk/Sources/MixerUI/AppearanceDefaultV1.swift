@@ -1,0 +1,11 @@
+import Foundation
+
+// The only maintained product default: exact reviewed canonical ASCII descriptor.
+// No installed-resource, renderer support or native appearance authority is implied.
+private let mixerDefaultAppearanceBytesV1 = Data((##"{"format":"mixer.native-appearance.1","id":"mixer.default.v1","mode":"shared","resources":[],"theme":{"controls":{"button":{"labelInsets64":{"bottom":0,"leading":0,"top":0,"trailing":0},"minimumHeight64":2816,"minimumWidth64":2816,"radius64":512},"field":{"border64":0,"insets64":{"bottom":0,"leading":0,"top":0,"trailing":0},"minimumHeight64":2816},"focusRadius64":512,"focusWidth64":128,"pressedOpacityPermille":120,"selectionOpacityPermille":240,"toggle":{"inset64":128,"labelGap64":512,"minimumRow64":2816,"thumb64":1728,"trackHeight64":1984,"trackWidth64":3264}},"dark":{"accent":"#0A84FFFF","canvas":"#000000FF","destructive":"#FF453AFF","disabledText":"#8E8E93FF","focus":"#0A84FFFF","primaryText":"#FFFFFFFF","secondaryText":"#AEAEB2FF","separator":"#38383AFF","surface":"#1C1C1EFF","toggleOff":"#39393DFF","toggleThumb":"#FFFFFFFF"},"layout":{"hStackAlignment":"center","list":{"groupGap64":1024,"insets64":{"bottom":512,"leading":1024,"top":512,"trailing":1024},"minimumRow64":2816,"rowGap64":0,"separator64":64},"navigation":{"minimumBarHeight64":2816,"titleAlignment":"leading","titleInsets64":{"bottom":512,"leading":1024,"top":512,"trailing":1024}},"sectionHeaderInsets64":{"bottom":512,"leading":0,"top":1024,"trailing":0},"stackGap64":512,"vStackAlignment":"center","zStackAlignment":"center"},"light":{"accent":"#007AFFFF","canvas":"#FFFFFFFF","destructive":"#FF3B30FF","disabledText":"#8E8E93FF","focus":"#007AFFFF","primaryText":"#000000FF","secondaryText":"#606068FF","separator":"#D1D1D6FF","surface":"#F2F2F7FF","toggleOff":"#E5E5EAFF","toggleThumb":"#FFFFFFFF"},"recipe":"sharedCandidate1","typography":{"body":{"minimumLineBox64":1408,"size64":1088,"weight":400},"caption":{"minimumLineBox64":1024,"size64":768,"weight":400},"font":{"kind":"systemSans"},"headline":{"minimumLineBox64":1408,"size64":1088,"weight":600},"title":{"minimumLineBox64":2176,"size64":1792,"weight":400}}}}"## + "\n").utf8)
+
+public extension UIAppearanceDescriptorCodecV1 {
+    static func mixerDefaultV1() throws -> UIAppearanceConfigurationV1 {
+        try decode(mixerDefaultAppearanceBytesV1)
+    }
+}

@@ -1,0 +1,1166 @@
+{
+  "schema": 1,
+  "required_artifacts": 17,
+  "schemas": {
+    "prod/runtime.json": {
+      "type": "object",
+      "fields": {
+        "elixir": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "1.20.4"
+          ]
+        },
+        "otp_release": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "29"
+          ]
+        },
+        "node": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "nonode@nohost"
+          ]
+        },
+        "schedulers_online": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 2
+        },
+        "product_application_started": {
+          "type": "boolean",
+          "value": false
+        },
+        "build": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "prod"
+          ]
+        }
+      }
+    },
+    "test/runtime.json": {
+      "type": "object",
+      "fields": {
+        "elixir": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "1.20.4"
+          ]
+        },
+        "otp_release": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "29"
+          ]
+        },
+        "node": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "nonode@nohost"
+          ]
+        },
+        "schedulers_online": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 2
+        },
+        "product_application_started": {
+          "type": "boolean",
+          "value": false
+        },
+        "build": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "test"
+          ]
+        }
+      }
+    },
+    "prod/production-exclusion.json": {
+      "type": "object",
+      "fields": {
+        "supervisor_fixture_export_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "owner_fixture_export_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "transport_fixture_export_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "fixture_tuple_init_rejected": {
+          "type": "boolean",
+          "value": true
+        },
+        "ordinary_fixture_option_rejected": {
+          "type": "boolean",
+          "value": true
+        },
+        "owner_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "workers_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "admission_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "loopback_denied": {
+          "type": "boolean",
+          "value": true
+        },
+        "product_application_not_started": {
+          "type": "boolean",
+          "value": true
+        }
+      }
+    },
+    "test/format-check.json": {
+      "type": "object",
+      "fields": {
+        "total": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 5
+        },
+        "unchanged": {
+          "type": "boolean",
+          "value": true
+        }
+      }
+    },
+    "test/openssl-version.json": {
+      "type": "object",
+      "fields": {
+        "output": {
+          "type": "string",
+          "max": 4096
+        },
+        "exit_code": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 0
+        }
+      }
+    },
+    "test/exunit-result.json": {
+      "type": "object",
+      "fields": {
+        "total": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 9
+        },
+        "failures": {
+          "type": "integer",
+          "min": 0,
+          "max": 9
+        },
+        "skipped": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 0
+        },
+        "excluded": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 0
+        }
+      }
+    },
+    "test/postconditions.json": {
+      "type": "object",
+      "fields": {
+        "test_owners_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "test_workers_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "test_admission_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "default_owner_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "default_repo_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "product_application_not_started": {
+          "type": "boolean",
+          "value": true
+        },
+        "ordinary_cleanup_receipts": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 7
+        },
+        "inflight_observation_receipts": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 2
+        }
+      }
+    },
+    "test/KOL04-cleanup.json": {
+      "type": "object",
+      "fields": {
+        "admission_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "exact_tables_deleted": {
+          "type": "boolean",
+          "value": true
+        }
+      }
+    },
+    "test/KOL06-cleanup.json": {
+      "type": "object",
+      "fields": {
+        "owner_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "workers_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "admission_absent": {
+          "type": "boolean",
+          "value": true
+        }
+      }
+    },
+    "test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL01Owner-cleanup.json": {
+      "type": "object",
+      "fields": {
+        "component_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "observed_exact_children_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "owner_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "workers_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "admission_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "resume_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        },
+        "stop_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        }
+      }
+    },
+    "test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL02Owner-cleanup.json": {
+      "type": "object",
+      "fields": {
+        "component_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "observed_exact_children_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "owner_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "workers_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "admission_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "resume_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        },
+        "stop_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        }
+      }
+    },
+    "test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL03Owner-cleanup.json": {
+      "type": "object",
+      "fields": {
+        "component_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "observed_exact_children_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "owner_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "workers_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "admission_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "resume_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        },
+        "stop_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        }
+      }
+    },
+    "test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL05Owner-cleanup.json": {
+      "type": "object",
+      "fields": {
+        "component_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "observed_exact_children_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "owner_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "workers_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "admission_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "resume_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        },
+        "stop_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        }
+      }
+    },
+    "test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL07Owner-cleanup.json": {
+      "type": "object",
+      "fields": {
+        "component_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "observed_exact_children_stopped": {
+          "type": "boolean",
+          "value": true
+        },
+        "owner_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "workers_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "admission_absent": {
+          "type": "boolean",
+          "value": true
+        },
+        "resume_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        },
+        "stop_result": {
+          "type": "string",
+          "enum": [
+            ":ok",
+            ":already_stopped"
+          ]
+        }
+      }
+    },
+    "test/KOL08-GRACEFUL-observation.json": {
+      "type": "object",
+      "fields": {
+        "schema": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 1
+        },
+        "case_id": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "KOL08-GRACEFUL"
+          ]
+        },
+        "stage": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "created",
+            "completed-tls-pending-jwks",
+            "controller-held-trigger-ready",
+            "graceful-drain-held",
+            "graceful-gate-passed",
+            "worker-death-order-witness-retained",
+            "worker-death-resource-gate-passed"
+          ]
+        },
+        "deadline_margin_ms": {
+          "type": "integer",
+          "min": -1,
+          "max": 2000
+        },
+        "tls_protocol": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "unobserved",
+            "tlsv1.2",
+            "tlsv1.3"
+          ]
+        },
+        "raw_reply": {
+          "type": "object",
+          "fields": {
+            "kind": {
+              "type": "string",
+              "max": 65536,
+              "enum": [
+                "unobserved",
+                "reply",
+                "exit"
+              ]
+            },
+            "result": {
+              "type": "string",
+              "max": 16384
+            },
+            "before_deadline": {
+              "type": "boolean"
+            },
+            "observed_at_ms": {
+              "type": "integer",
+              "min": -9223372036854775808,
+              "max": 9223372036854775807
+            },
+            "pointer": {
+              "type": "string",
+              "max": 128
+            },
+            "owner_alive": {
+              "type": "boolean"
+            },
+            "table_alive": {
+              "type": "boolean"
+            }
+          }
+        },
+        "resume_results": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "max": 4096
+          },
+          "min": 0,
+          "max": 8
+        },
+        "public_reply": {
+          "type": "string",
+          "max": 4096
+        },
+        "fault_reason": {
+          "type": "string",
+          "max": 16384
+        },
+        "cleanup_errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "max": 4096
+          },
+          "min": 0,
+          "max": 32
+        },
+        "observations": {
+          "type": "object",
+          "fields": {
+            "tls_preconditions": {
+              "type": "boolean"
+            },
+            "raw_explicit_reply": {
+              "type": "boolean"
+            },
+            "fresh_denial": {
+              "type": "boolean"
+            },
+            "raw_port_closed_while_held": {
+              "type": "boolean"
+            },
+            "parent_stop_pending": {
+              "type": "boolean"
+            },
+            "old_resources_down_at_stop": {
+              "type": "boolean"
+            },
+            "owner_alive_at_raw_reply": {
+              "type": "boolean"
+            },
+            "table_alive_at_raw_reply": {
+              "type": "boolean"
+            },
+            "pointer_absent_at_raw_reply": {
+              "type": "boolean"
+            },
+            "replacement_observed": {
+              "type": "boolean"
+            },
+            "old_resources_down_before_replacement": {
+              "type": "boolean"
+            },
+            "replacement_empty": {
+              "type": "boolean"
+            },
+            "old_permit_rejected": {
+              "type": "boolean"
+            },
+            "stale_lease_rejected": {
+              "type": "boolean"
+            },
+            "public_denial": {
+              "type": "boolean"
+            },
+            "callback_clean": {
+              "type": "boolean"
+            }
+          }
+        },
+        "cleanup": {
+          "type": "object",
+          "fields": {
+            "resume_result": {
+              "type": "string",
+              "max": 4096
+            },
+            "component_stop_result": {
+              "type": "string",
+              "max": 4096
+            },
+            "fixture_stop_result": {
+              "type": "string",
+              "max": 4096
+            },
+            "barrier_released": {
+              "type": "boolean"
+            },
+            "all_resources_down": {
+              "type": "boolean"
+            },
+            "current_admission_absent": {
+              "type": "boolean"
+            },
+            "owner_absent": {
+              "type": "boolean"
+            },
+            "workers_absent": {
+              "type": "boolean"
+            },
+            "old_table_gone": {
+              "type": "boolean"
+            },
+            "key_directory_removed": {
+              "type": "boolean"
+            },
+            "fixture_peer_closed": {
+              "type": "boolean"
+            },
+            "recorder_stopped": {
+              "type": "boolean"
+            }
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "fields": {
+              "role": {
+                "type": "string",
+                "max": 65536,
+                "enum": [
+                  "fixture",
+                  "listener_socket",
+                  "acceptor",
+                  "component",
+                  "owner",
+                  "workers",
+                  "raw_caller",
+                  "public_caller",
+                  "server_handler",
+                  "server_socket",
+                  "flight",
+                  "worker",
+                  "controller",
+                  "raw_socket",
+                  "client_socket",
+                  "stop_caller"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "max": 128
+              },
+              "down": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string",
+                "max": 4096
+              },
+              "down_ms": {
+                "type": "integer",
+                "min": -9223372036854775808,
+                "max": 9223372036854775807
+              }
+            }
+          },
+          "min": 0,
+          "max": 64
+        },
+        "pointer_samples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "fields": {
+              "phase": {
+                "type": "string",
+                "max": 65536,
+                "enum": [
+                  "before-trigger",
+                  "raw-reply-observed",
+                  "replacement-while-old-controller-held"
+                ]
+              },
+              "at_ms": {
+                "type": "integer",
+                "min": -9223372036854775808,
+                "max": 9223372036854775807
+              },
+              "kind": {
+                "type": "string",
+                "max": 65536,
+                "enum": [
+                  "absent",
+                  "old",
+                  "current",
+                  "other"
+                ]
+              },
+              "table": {
+                "type": "string",
+                "max": 128
+              }
+            }
+          },
+          "min": 0,
+          "max": 8
+        }
+      }
+    },
+    "test/KOL09-KILL-observation.json": {
+      "type": "object",
+      "fields": {
+        "schema": {
+          "type": "integer",
+          "min": -9223372036854775808,
+          "max": 9223372036854775807,
+          "value": 1
+        },
+        "case_id": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "KOL09-KILL"
+          ]
+        },
+        "stage": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "created",
+            "completed-tls-pending-jwks",
+            "controller-held-trigger-ready",
+            "graceful-drain-held",
+            "graceful-gate-passed",
+            "worker-death-order-witness-retained",
+            "worker-death-resource-gate-passed"
+          ]
+        },
+        "deadline_margin_ms": {
+          "type": "integer",
+          "min": -1,
+          "max": 2000
+        },
+        "tls_protocol": {
+          "type": "string",
+          "max": 65536,
+          "enum": [
+            "unobserved",
+            "tlsv1.2",
+            "tlsv1.3"
+          ]
+        },
+        "raw_reply": {
+          "type": "object",
+          "fields": {
+            "kind": {
+              "type": "string",
+              "max": 65536,
+              "enum": [
+                "unobserved",
+                "reply",
+                "exit"
+              ]
+            },
+            "result": {
+              "type": "string",
+              "max": 16384
+            },
+            "before_deadline": {
+              "type": "boolean"
+            },
+            "observed_at_ms": {
+              "type": "integer",
+              "min": -9223372036854775808,
+              "max": 9223372036854775807
+            },
+            "pointer": {
+              "type": "string",
+              "max": 128
+            },
+            "owner_alive": {
+              "type": "boolean"
+            },
+            "table_alive": {
+              "type": "boolean"
+            }
+          }
+        },
+        "resume_results": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "max": 4096
+          },
+          "min": 0,
+          "max": 8
+        },
+        "public_reply": {
+          "type": "string",
+          "max": 4096
+        },
+        "fault_reason": {
+          "type": "string",
+          "max": 16384
+        },
+        "cleanup_errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "max": 4096
+          },
+          "min": 0,
+          "max": 32
+        },
+        "observations": {
+          "type": "object",
+          "fields": {
+            "tls_preconditions": {
+              "type": "boolean"
+            },
+            "raw_explicit_reply": {
+              "type": "boolean"
+            },
+            "fresh_denial": {
+              "type": "boolean"
+            },
+            "raw_port_closed_while_held": {
+              "type": "boolean"
+            },
+            "parent_stop_pending": {
+              "type": "boolean"
+            },
+            "old_resources_down_at_stop": {
+              "type": "boolean"
+            },
+            "owner_alive_at_raw_reply": {
+              "type": "boolean"
+            },
+            "table_alive_at_raw_reply": {
+              "type": "boolean"
+            },
+            "pointer_absent_at_raw_reply": {
+              "type": "boolean"
+            },
+            "replacement_observed": {
+              "type": "boolean"
+            },
+            "old_resources_down_before_replacement": {
+              "type": "boolean"
+            },
+            "replacement_empty": {
+              "type": "boolean"
+            },
+            "old_permit_rejected": {
+              "type": "boolean"
+            },
+            "stale_lease_rejected": {
+              "type": "boolean"
+            },
+            "public_denial": {
+              "type": "boolean"
+            },
+            "callback_clean": {
+              "type": "boolean"
+            }
+          }
+        },
+        "cleanup": {
+          "type": "object",
+          "fields": {
+            "resume_result": {
+              "type": "string",
+              "max": 4096
+            },
+            "component_stop_result": {
+              "type": "string",
+              "max": 4096
+            },
+            "fixture_stop_result": {
+              "type": "string",
+              "max": 4096
+            },
+            "barrier_released": {
+              "type": "boolean"
+            },
+            "all_resources_down": {
+              "type": "boolean"
+            },
+            "current_admission_absent": {
+              "type": "boolean"
+            },
+            "owner_absent": {
+              "type": "boolean"
+            },
+            "workers_absent": {
+              "type": "boolean"
+            },
+            "old_table_gone": {
+              "type": "boolean"
+            },
+            "key_directory_removed": {
+              "type": "boolean"
+            },
+            "fixture_peer_closed": {
+              "type": "boolean"
+            },
+            "recorder_stopped": {
+              "type": "boolean"
+            }
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "fields": {
+              "role": {
+                "type": "string",
+                "max": 65536,
+                "enum": [
+                  "fixture",
+                  "listener_socket",
+                  "acceptor",
+                  "component",
+                  "owner",
+                  "workers",
+                  "raw_caller",
+                  "public_caller",
+                  "server_handler",
+                  "server_socket",
+                  "flight",
+                  "worker",
+                  "controller",
+                  "raw_socket",
+                  "client_socket",
+                  "stop_caller"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "max": 128
+              },
+              "down": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string",
+                "max": 4096
+              },
+              "down_ms": {
+                "type": "integer",
+                "min": -9223372036854775808,
+                "max": 9223372036854775807
+              }
+            }
+          },
+          "min": 0,
+          "max": 64
+        },
+        "pointer_samples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "fields": {
+              "phase": {
+                "type": "string",
+                "max": 65536,
+                "enum": [
+                  "before-trigger",
+                  "raw-reply-observed",
+                  "replacement-while-old-controller-held"
+                ]
+              },
+              "at_ms": {
+                "type": "integer",
+                "min": -9223372036854775808,
+                "max": 9223372036854775807
+              },
+              "kind": {
+                "type": "string",
+                "max": 65536,
+                "enum": [
+                  "absent",
+                  "old",
+                  "current",
+                  "other"
+                ]
+              },
+              "table": {
+                "type": "string",
+                "max": 128
+              }
+            }
+          },
+          "min": 0,
+          "max": 8
+        }
+      }
+    },
+    "test/openssl-invocations.json": {
+      "type": "object",
+      "fields": {
+        "starts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "fields": {
+              "executable": {
+                "type": "string",
+                "max": 65536,
+                "enum": [
+                  "/usr/bin/openssl"
+                ]
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "max": 4096
+                },
+                "min": 1,
+                "max": 32
+              },
+              "wrapper_pid": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "child_pid": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "parent_pid": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "process_group": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "started_ns": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              }
+            }
+          },
+          "min": 7,
+          "max": 7
+        },
+        "invocations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "fields": {
+              "executable": {
+                "type": "string",
+                "max": 65536,
+                "enum": [
+                  "/usr/bin/openssl"
+                ]
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "max": 4096
+                },
+                "min": 1,
+                "max": 32
+              },
+              "wrapper_pid": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "child_pid": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "parent_pid": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "process_group": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "started_ns": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "finished_ns": {
+                "type": "integer",
+                "min": 1,
+                "max": 9223372036854775807
+              },
+              "exit_code": {
+                "type": "integer",
+                "min": -255,
+                "max": 255
+              },
+              "output": {
+                "type": "string",
+                "max": 65536
+              },
+              "output_cap_exceeded": {
+                "type": "boolean"
+              }
+            }
+          },
+          "min": 7,
+          "max": 7
+        }
+      }
+    }
+  },
+  "scope": "Exact field/type schemas; failures are retained and clean-gate acceptance is checked separately."
+}

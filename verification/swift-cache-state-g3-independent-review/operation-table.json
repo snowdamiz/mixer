@@ -1,0 +1,512 @@
+{
+  "schema": 1,
+  "source_sha256": "1ffc4ee5bb37c4ca2794c456f66bfcd9f1916090a0de3a548c19b6c82a3767b9",
+  "model": "Explicit favorable source/value-flow atomization; conditional, not an implicit amendment of binding primitive definitions.",
+  "loads": [
+    {
+      "id": "L1",
+      "caller_line": 265,
+      "received_value": "a",
+      "operations": [
+        {
+          "id": "L1-A1",
+          "line": 265,
+          "operation": "left*8",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-A2",
+          "line": 265,
+          "operation": "src+offset",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-A3",
+          "line": 265,
+          "operation": "caller complete slice reference -> ld b parameter (one favorable transfer; no extra reborrow/coercion operation charged)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-A4",
+          "line": 265,
+          "operation": "computed offset source -> ld at parameter",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H01",
+          "line": 151,
+          "operation": "at+8 endpoint arithmetic",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H02",
+          "line": 151,
+          "operation": "construct complete Range<usize> (one favorable operation for both fields and its source form)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H03",
+          "line": 151,
+          "operation": "range start<=end predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H04",
+          "line": 151,
+          "operation": "range end<=slice length predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H05",
+          "line": 151,
+          "operation": "create complete shared slice view/borrow (one favorable operation)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H06",
+          "line": 152,
+          "operation": "first_chunk::<8> length>=8 predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H07",
+          "line": 152,
+          "operation": "first_chunk Option<&[u8;8]> source -> received value (one favorable complete-value transfer)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H08",
+          "line": 153,
+          "operation": "expect Option tag predicate on successful Some path",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H09",
+          "line": 153,
+          "operation": "expect returned &[u8;8] source -> received borrowed array view",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H10",
+          "line": 150,
+          "operation": "LE decode in from_le_bytes",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H11",
+          "line": 150,
+          "operation": "from_le_bytes u64 return source -> ld received/tail-result value",
+          "scalar_units": 1
+        },
+        {
+          "id": "L1-H12",
+          "line": 154,
+          "operation": "ld u64 return source -> merge received a/b or timestamp-operand value",
+          "scalar_units": 1
+        }
+      ],
+      "scalar_core": 16,
+      "payload_copy": {
+        "groups": 1,
+        "bytes": 8,
+        "source": "dereferenced array behind successful first_chunk/expect reference",
+        "destination": "from_le_bytes by-value [u8;8] argument"
+      },
+      "no_returned_LE_array": "from_le_bytes returns u64; no st-like LE-array return copy is introduced."
+    },
+    {
+      "id": "L2",
+      "caller_line": 266,
+      "received_value": "b",
+      "operations": [
+        {
+          "id": "L2-A1",
+          "line": 266,
+          "operation": "right*8",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-A2",
+          "line": 266,
+          "operation": "src+offset",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-A3",
+          "line": 266,
+          "operation": "caller complete slice reference -> ld b parameter (one favorable transfer; no extra reborrow/coercion operation charged)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-A4",
+          "line": 266,
+          "operation": "computed offset source -> ld at parameter",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H01",
+          "line": 151,
+          "operation": "at+8 endpoint arithmetic",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H02",
+          "line": 151,
+          "operation": "construct complete Range<usize> (one favorable operation for both fields and its source form)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H03",
+          "line": 151,
+          "operation": "range start<=end predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H04",
+          "line": 151,
+          "operation": "range end<=slice length predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H05",
+          "line": 151,
+          "operation": "create complete shared slice view/borrow (one favorable operation)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H06",
+          "line": 152,
+          "operation": "first_chunk::<8> length>=8 predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H07",
+          "line": 152,
+          "operation": "first_chunk Option<&[u8;8]> source -> received value (one favorable complete-value transfer)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H08",
+          "line": 153,
+          "operation": "expect Option tag predicate on successful Some path",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H09",
+          "line": 153,
+          "operation": "expect returned &[u8;8] source -> received borrowed array view",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H10",
+          "line": 150,
+          "operation": "LE decode in from_le_bytes",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H11",
+          "line": 150,
+          "operation": "from_le_bytes u64 return source -> ld received/tail-result value",
+          "scalar_units": 1
+        },
+        {
+          "id": "L2-H12",
+          "line": 154,
+          "operation": "ld u64 return source -> merge received a/b or timestamp-operand value",
+          "scalar_units": 1
+        }
+      ],
+      "scalar_core": 16,
+      "payload_copy": {
+        "groups": 1,
+        "bytes": 8,
+        "source": "dereferenced array behind successful first_chunk/expect reference",
+        "destination": "from_le_bytes by-value [u8;8] argument"
+      },
+      "no_returned_LE_array": "from_le_bytes returns u64; no st-like LE-array return copy is introduced."
+    },
+    {
+      "id": "L3",
+      "caller_line": 267,
+      "received_value": "left timestamp",
+      "operations": [
+        {
+          "id": "L3-A1",
+          "line": 267,
+          "operation": "a as usize",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-A2",
+          "line": 267,
+          "operation": "converted a*8",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-A3",
+          "line": 267,
+          "operation": "caller complete slice reference -> ld b parameter (one favorable transfer; no extra reborrow/coercion operation charged)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-A4",
+          "line": 267,
+          "operation": "computed offset source -> ld at parameter",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H01",
+          "line": 151,
+          "operation": "at+8 endpoint arithmetic",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H02",
+          "line": 151,
+          "operation": "construct complete Range<usize> (one favorable operation for both fields and its source form)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H03",
+          "line": 151,
+          "operation": "range start<=end predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H04",
+          "line": 151,
+          "operation": "range end<=slice length predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H05",
+          "line": 151,
+          "operation": "create complete shared slice view/borrow (one favorable operation)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H06",
+          "line": 152,
+          "operation": "first_chunk::<8> length>=8 predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H07",
+          "line": 152,
+          "operation": "first_chunk Option<&[u8;8]> source -> received value (one favorable complete-value transfer)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H08",
+          "line": 153,
+          "operation": "expect Option tag predicate on successful Some path",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H09",
+          "line": 153,
+          "operation": "expect returned &[u8;8] source -> received borrowed array view",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H10",
+          "line": 150,
+          "operation": "LE decode in from_le_bytes",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H11",
+          "line": 150,
+          "operation": "from_le_bytes u64 return source -> ld received/tail-result value",
+          "scalar_units": 1
+        },
+        {
+          "id": "L3-H12",
+          "line": 154,
+          "operation": "ld u64 return source -> merge received a/b or timestamp-operand value",
+          "scalar_units": 1
+        }
+      ],
+      "scalar_core": 16,
+      "payload_copy": {
+        "groups": 1,
+        "bytes": 8,
+        "source": "dereferenced array behind successful first_chunk/expect reference",
+        "destination": "from_le_bytes by-value [u8;8] argument"
+      },
+      "no_returned_LE_array": "from_le_bytes returns u64; no st-like LE-array return copy is introduced."
+    },
+    {
+      "id": "L4",
+      "caller_line": 267,
+      "received_value": "right timestamp",
+      "operations": [
+        {
+          "id": "L4-A1",
+          "line": 267,
+          "operation": "b as usize",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-A2",
+          "line": 267,
+          "operation": "converted b*8",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-A3",
+          "line": 267,
+          "operation": "caller complete slice reference -> ld b parameter (one favorable transfer; no extra reborrow/coercion operation charged)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-A4",
+          "line": 267,
+          "operation": "computed offset source -> ld at parameter",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H01",
+          "line": 151,
+          "operation": "at+8 endpoint arithmetic",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H02",
+          "line": 151,
+          "operation": "construct complete Range<usize> (one favorable operation for both fields and its source form)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H03",
+          "line": 151,
+          "operation": "range start<=end predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H04",
+          "line": 151,
+          "operation": "range end<=slice length predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H05",
+          "line": 151,
+          "operation": "create complete shared slice view/borrow (one favorable operation)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H06",
+          "line": 152,
+          "operation": "first_chunk::<8> length>=8 predicate",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H07",
+          "line": 152,
+          "operation": "first_chunk Option<&[u8;8]> source -> received value (one favorable complete-value transfer)",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H08",
+          "line": 153,
+          "operation": "expect Option tag predicate on successful Some path",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H09",
+          "line": 153,
+          "operation": "expect returned &[u8;8] source -> received borrowed array view",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H10",
+          "line": 150,
+          "operation": "LE decode in from_le_bytes",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H11",
+          "line": 150,
+          "operation": "from_le_bytes u64 return source -> ld received/tail-result value",
+          "scalar_units": 1
+        },
+        {
+          "id": "L4-H12",
+          "line": 154,
+          "operation": "ld u64 return source -> merge received a/b or timestamp-operand value",
+          "scalar_units": 1
+        }
+      ],
+      "scalar_core": 16,
+      "payload_copy": {
+        "groups": 1,
+        "bytes": 8,
+        "source": "dereferenced array behind successful first_chunk/expect reference",
+        "destination": "from_le_bytes by-value [u8;8] argument"
+      },
+      "no_returned_LE_array": "from_le_bytes returns u64; no st-like LE-array return copy is introduced."
+    }
+  ],
+  "comparison_operations": [
+    {
+      "id": "P1",
+      "line": 267,
+      "operation": "b==ABSENT predicate",
+      "scalar_units": 1
+    },
+    {
+      "id": "P2",
+      "line": 267,
+      "operation": "|| short-circuit branch on P1; false continues",
+      "scalar_units": 1
+    },
+    {
+      "id": "P3",
+      "line": 267,
+      "operation": "a!=ABSENT predicate",
+      "scalar_units": 1
+    },
+    {
+      "id": "P4",
+      "line": 267,
+      "operation": "&& short-circuit branch on P3; true continues",
+      "scalar_units": 1
+    },
+    {
+      "id": "P5",
+      "line": 267,
+      "operation": "left timestamp <= right timestamp predicate",
+      "scalar_units": 1
+    },
+    {
+      "id": "P6",
+      "line": 268,
+      "operation": "comparison result source -> received take_left value",
+      "scalar_units": 1
+    }
+  ],
+  "four_load_scalar_core": 64,
+  "comparison_scalar_core": 6,
+  "four_load_path_scalar_lower_core": 70,
+  "payload_copy_groups": 4,
+  "maximum_scalar_groups_available_under8": 4,
+  "maximum_named_scalars_available": 64,
+  "partition_test": {
+    "possible": false,
+    "reason": "70 distinct named operations cannot be partitioned into4 sets each of cardinality<=16; even arbitrary regrouping within comparison cannot cure the6-operation deficit.",
+    "scalar_groups_at_least": 5,
+    "total_groups_at_least": 9
+  },
+  "zero_cost_same_width_cast_sensitivity": "Even granting both explicit u64->usize casts zero cost, contrary to this source-operation convention,68 remain>64.",
+  "lower_core_omissions_not_free": [
+    "extra scalar reads/coercions/reborrows beyond one favorable complete slice-argument transfer",
+    "Range parameter movement into slice indexing beyond one complete constructor",
+    "first_chunk method receiver transfer and Some construction beyond one favorable Option result movement",
+    "expect method receiver movement, string-message argument transfer, success-reference extraction beyond one favorable returned-reference transfer",
+    "any full fat-reference fields beyond one favorable complete view/transfer",
+    "additional expression/boolean intermediate places or operand reads not already in named predicates"
+  ],
+  "not_complete9_group_upper_bound": true,
+  "not_measured_runtime_overrun": true
+}

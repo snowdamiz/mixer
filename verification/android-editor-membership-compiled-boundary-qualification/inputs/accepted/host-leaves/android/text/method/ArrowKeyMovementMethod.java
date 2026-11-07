@@ -1,0 +1,1 @@
+package android.text.method;public final class ArrowKeyMovementMethod implements MovementMethod {private static final ArrowKeyMovementMethod INSTANCE=new ArrowKeyMovementMethod();private ArrowKeyMovementMethod(){}public static ArrowKeyMovementMethod getInstance(){return INSTANCE;}}

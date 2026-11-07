@@ -1,0 +1,11 @@
+owned.py syntax parsed 2900
+
+prepare.py syntax parsed 10237
+for record in filter(None,raw.split(b"\0")):
+    h,path=record.split(b"\t",1);mode,oid,stage=h.decode().split();assert stage=="0"
+deliver.py syntax parsed 6136
+with (OUT/"paths.nul").open("xb") as f:f.write(b"".join(p.encode()+b"\0" for p in paths))
+raw=commands.run("staged-objects",["git","diff","--cached","--raw","--no-abbrev","-z"]).split(b"\0");assert len(raw)%2==1
+dispatch.py syntax parsed 2577
+match=re.search(rb"https://github\.com/snowdamiz/mixer/actions/runs/(\d+)",output);run=None
+{"filesBeforeManifest": 50, "bytesBeforeManifest": 3515135, "cap": 6291456, "metadataBytes": {"PLAN.md": 152709, "STATUS.md": 171934, "work-graph.json": 1419448, "gates/ga.json": 1309757}, "preparationCustodyGroups": 13}

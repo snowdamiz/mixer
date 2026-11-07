@@ -1,0 +1,2 @@
+#![allow(dead_code)]
+use mixer_fixture_envelope::*; use std::fs::File; fn main(){let _entry:fn(&mut File,&mut File,&mut File,&mut File)->Result<FixtureEnvelopeOutcomeV1,AnalyzerError>=analyze_fixture_envelope_v1;let _getter:fn(&FixtureEnvelopeOutcomeV1)->&FixtureEnvelopeObservationV1=FixtureEnvelopeOutcomeV1::envelope;let _frame:fn(&FixtureEnvelopeOutcomeV1)->&ReplayOutcome=FixtureEnvelopeOutcomeV1::framing;}

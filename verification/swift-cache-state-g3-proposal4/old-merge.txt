@@ -1,0 +1,42 @@
+fn merge(c: &mut Candidate2048) {
+    let mut src = 512;
+    let mut dst = 1024;
+    let mut width = 1;
+    while width < 64 {
+        let mut base = 0;
+        while base < 64 {
+            let mut left = base;
+            let mid = base + width;
+            let end = base + 2 * width;
+            let mut right = mid;
+            for out in base..end {
+                let take_left = if left == mid {
+                    false
+                } else if right == end {
+                    true
+                } else {
+                    #[cfg(test)]
+                    SORT_COMPARISONS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let a = ld(c, src + left * 8);
+                    let b = ld(c, src + right * 8);
+                    b == ABSENT || (a != ABSENT && ld(c, a as usize * 8) <= ld(c, b as usize * 8))
+                };
+                let index_at = if take_left {
+                    let at = src + left * 8;
+                    left += 1;
+                    at
+                } else {
+                    let at = src + right * 8;
+                    right += 1;
+                    at
+                };
+                c.copy_within(index_at..index_at + 8, dst + out * 8);
+                #[cfg(test)]
+                SORT_MOVES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            }
+            base = end;
+        }
+        std::mem::swap(&mut src, &mut dst);
+        width *= 2;
+    }
+}

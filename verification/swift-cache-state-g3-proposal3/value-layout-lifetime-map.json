@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "new_places": [
+    {
+      "name": "shared thin Candidate receiver",
+      "type": "&Candidate2048",
+      "complete_source_received_bytes_at_least": 16,
+      "birth_drop": "word-view call only"
+    },
+    {
+      "name": "byte slice receiver",
+      "type": "&[u8]",
+      "complete_source_received_bytes_at_least": 32,
+      "birth_drop": "input view creation through as_chunks call"
+    },
+    {
+      "name": "split result tuple",
+      "type": "(&[u8],&[u8])",
+      "complete_source_received_bytes_at_least": 64,
+      "birth_drop": "internal split return and tuple-pattern receive; no payload byte copies"
+    },
+    {
+      "name": "multiple_of_n/remainder",
+      "type": "two shared slices",
+      "complete_source_received_bytes_at_least": 64,
+      "birth_drop": "as_chunks internal locals until outer tuple return"
+    },
+    {
+      "name": "array_slice",
+      "type": "&[[u8;8]]",
+      "complete_source_received_bytes_at_least": 32,
+      "birth_drop": "as_chunks_unchecked return/local until outer tuple construction"
+    },
+    {
+      "name": "outer view tuple",
+      "type": "(&[[u8;8]],&[u8])",
+      "complete_source_received_bytes_at_least": 64,
+      "birth_drop": "as_chunks return->caller tuple-pattern receive"
+    },
+    {
+      "name": "words binding",
+      "type": "&[[u8;8]]",
+      "complete_source_received_bytes_at_least": 32,
+      "birth_drop": "received chunks fields move into words; lives actual comparison block only"
+    },
+    {
+      "name": "Index receiver per actual load",
+      "type": "&[[u8;8]]",
+      "complete_source_received_bytes_at_least": 32,
+      "birth_drop": "one load Index call; two pointer/length fields named separately"
+    },
+    {
+      "name": "array reference per load",
+      "type": "&[u8;8]",
+      "complete_source_received_bytes_at_least": 16,
+      "birth_drop": "Index return through array dereference"
+    },
+    {
+      "name": "array payload per load",
+      "type": "[u8;8]",
+      "complete_source_received_bytes_at_least": 16,
+      "birth_drop": "dereference source->from_le_bytes argument; one distinct copy"
+    },
+    {
+      "name": "decoded scalar per load",
+      "type": "u64",
+      "complete_source_received_bytes_at_least": 16,
+      "birth_drop": "conversion return->initializer/operand"
+    },
+    {
+      "name": "a/b initializer and binding",
+      "type": "u64 each",
+      "complete_source_received_bytes_at_least": 16,
+      "birth_drop": "initializer ends after each statement; a/b bindings persist through guard/comparison"
+    },
+    {
+      "name": "left timestamp operand",
+      "type": "u64",
+      "complete_source_received_bytes_at_least": 8,
+      "birth_drop": "must remain while right timestamp load executes"
+    },
+    {
+      "name": "comparison result",
+      "type": "bool",
+      "complete_source_received_bytes_at_least": 2,
+      "birth_drop": "result->take_left; no reference escapes"
+    }
+  ],
+  "layout_status": "64-bit source field arithmetic/lower bounds only. Fat references have pointer+length; tuple holds two such values. No new compiler layout measurement or complete role-union proof. Padding/additional owners cannot reduce the lower-core obstacle.",
+  "loan": "shared words borrows exactly the existing Candidate; no new buffer, native u64 alias, allocation, unsafe user code or adopted FD. All view/Index borrows end at comparison-block end before G4 c.copy_within.",
+  "read_order": [
+    "metadata-only view formation, no payload read",
+    "index a",
+    "index b",
+    "bMAX ||",
+    "aMAX &&",
+    "timestamp a",
+    "timestamp b",
+    "<=",
+    "result"
+  ],
+  "byte_equivalence": "src is512/1024 so8*(src/8+left/right)==src+8*left/right. Eligible a,b are0..63; MAX guards unchanged. Decode remains LE, timestampMAX is valid data, equality chooses left.",
+  "panic_notes": "New nonzero-chunk check cannot fail at literal8; shared Index bounds preserve panic on out-of-range. Exact panic text/type location may differ and is not admitted. No panic or runtime branch was executed.",
+  "full_lifetime_or_29344_proof_accepted": false
+}

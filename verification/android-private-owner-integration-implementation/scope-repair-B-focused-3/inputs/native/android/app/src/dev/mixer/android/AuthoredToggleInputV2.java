@@ -1,0 +1,99 @@
+package dev.mixer.android;
+
+/** Constant-space authored toggle policy. Android dispatch and admission stay in the native adapter. */
+final class AuthoredToggleInputV2 {
+    enum Phase { idle, pending, drag, draining }
+    static final int NO_CHANGE = -1;
+    record Geometry(int width, int height, float trackX, float trackY, int trackWidth, int trackHeight,
+                    double offOrigin, double onOrigin, double thumbY, double thumbWidth,
+                    double carrierTop, double carrierBottom, double corridorTop, double corridorBottom) {
+        double offCenter() { return trackX + offOrigin + thumbWidth / 2; }
+        double onCenter() { return trackX + onOrigin + thumbWidth / 2; }
+        boolean row(double x, double y) { return finite(x,y) && x >= 0 && x < width && y >= 0 && y < height; }
+        boolean carrier(double x, double y) { return x >= trackX && x <= trackX + trackWidth && y >= carrierTop && y <= carrierBottom; }
+        double origin(double fraction) { return offOrigin + fraction * (onOrigin - offOrigin); }
+        boolean corridor(double y) { return Double.isFinite(y) && y >= corridorTop && y <= corridorBottom; }
+    }
+    static Geometry geometry(int width, int height, int density, boolean rtl,
+                             long trackWidth64, long trackHeight64, long thumbWidth64, long thumbHeight64) {
+        if (width <= 0 || height <= 0 || density < 128 || density > 16384 ||
+            trackWidth64 != 63*64 || trackHeight64 != 28*64 || thumbWidth64 != 37*64 || thumbHeight64 != 24*64) return null;
+        int w = AppearanceGeometryV2.pixelEdge(trackWidth64,density), h = AppearanceGeometryV2.pixelEdge(trackHeight64,density);
+        float x = rtl ? 0 : width-w, y = (height-h)/2f;
+        var direction = rtl ? AppearanceGeometryV2.Direction.rightToLeft : AppearanceGeometryV2.Direction.leftToRight;
+        var off = AppearanceGeometryV2.thumbOrigin(false,direction); var on = AppearanceGeometryV2.thumbOrigin(true,direction);
+        double a = AppearanceGeometryV2.pixelCoordinate(off.x64(),density), b = AppearanceGeometryV2.pixelCoordinate(on.x64(),density);
+        double thumbY = AppearanceGeometryV2.pixelCoordinate(off.y64(),density), thumbWidth = AppearanceGeometryV2.pixelCoordinate(thumbWidth64,density);
+        double carrierHeight = AppearanceGeometryV2.pixelCoordinate(44*64,density), expansion = AppearanceGeometryV2.pixelCoordinate(22*64,density);
+        double top = y+(h-carrierHeight)/2, bottom = top+carrierHeight;
+        if (!finite(a,b) || a == b || w <= 0 || h <= 0) return null;
+        return new Geometry(width,height,x,y,w,h,a,b,thumbY,thumbWidth,top,bottom,top-expansion,bottom+expansion);
+    }
+    private Phase phase = Phase.idle;
+    private Object binding;
+    private Geometry geometry;
+    private int pointer;
+    private long downTime, lastTime;
+    private double downX, downY, slop, fraction;
+    private boolean initial, eligible, pressed, surrendered;
+    Phase phase() { return phase; }
+    Object binding() { return binding; }
+    Geometry geometry() { return geometry; }
+    long downTime() { return downTime; }
+    boolean active() { return phase == Phase.pending || phase == Phase.drag; }
+    boolean ownsRemainder() { return phase != Phase.idle && !surrendered; }
+    boolean pressed() { return pressed; }
+    double fraction() { return fraction; }
+    boolean visualChecked() { return select(fraction,initial); }
+    boolean matches(Object current, boolean checked) { return active() && binding == current && checked == initial; }
+    boolean begin(Object current, Geometry frame, int id, int count, double x, double y,
+                  boolean checked, double nativeSlop, long eventDownTime, long eventTime) {
+        end();
+        if (current == null || frame == null || id < 0 || count != 1 || !frame.row(x,y) ||
+            !Double.isFinite(nativeSlop) || nativeSlop < 0 || eventDownTime < 0 || eventTime < eventDownTime) return false;
+        binding=current;geometry=frame;pointer=id;downX=x;downY=y;initial=checked;slop=nativeSlop;
+        downTime=eventDownTime;lastTime=eventTime;fraction=checked?1:0;eligible=frame.carrier(x,y);pressed=true;phase=Phase.pending;
+        return true;
+    }
+    boolean sample(int id, int count, double x, double y, long time) {
+        if (!active()) return false;
+        if (id != pointer || count != 1 || !finite(x,y) || time < lastTime) { cancel(); return false; }
+        lastTime=time;double dx=x-downX,dy=y-downY;
+        if (!finite(dx,dy)) { cancel(); return false; }
+        if (phase == Phase.pending) {
+            if (Math.abs(dy)>slop && Math.abs(dy)>=Math.abs(dx)) { cancel();surrendered=true;return false; }
+            if (Math.abs(dx)>slop && Math.abs(dx)>Math.abs(dy)) {
+                if (!eligible) { cancel();return false; }
+                phase=Phase.drag;
+            }
+        }
+        if (phase == Phase.drag) {
+            fraction=Math.max(0,Math.min(1,(initial?1:0)+dx/(geometry.onCenter()-geometry.offCenter())));pressed=true;
+        } else pressed=geometry.row(x,y);
+        return true;
+    }
+    int result(double x, double y) {
+        if (phase == Phase.pending) return geometry.row(x,y) ? (initial?0:1) : NO_CHANGE;
+        if (phase != Phase.drag || !geometry.corridor(y)) return NO_CHANGE;
+        boolean selected=select(fraction,initial);return selected == initial ? NO_CHANGE : selected?1:0;
+    }
+    void cancel() { if (phase != Phase.idle) phase=Phase.draining;binding=null;geometry=null;pressed=false;fraction=0; }
+    void end() { phase=Phase.idle;binding=null;geometry=null;pressed=false;fraction=0;surrendered=false; }
+    private static boolean select(double value, boolean initial) { return value == .5 ? initial : value > .5; }
+    private static boolean finite(double x, double y) { return Double.isFinite(x) && Double.isFinite(y); }
+
+    interface CheckedBinding {
+        Boolean latestBoundChecked();
+        boolean nativeChecked();
+        boolean changingGuard();
+        void changingGuard(boolean value);
+        void restoreChecked(boolean value);
+    }
+    /** Reconcile against the latest binding, including retired owners; never restore a DOWN snapshot. */
+    static void reconcile(CheckedBinding value) {
+        Boolean latest=value.latestBoundChecked();
+        if (latest == null || value.nativeChecked() == latest) return;
+        boolean guard=value.changingGuard();value.changingGuard(true);
+        try { value.restoreChecked(latest); } finally { value.changingGuard(guard); }
+    }
+}

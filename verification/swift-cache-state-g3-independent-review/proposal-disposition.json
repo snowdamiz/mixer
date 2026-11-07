@@ -1,0 +1,538 @@
+{
+  "schema": 1,
+  "status": "macro flow plausible; conservative64 core partition established; complete bound and implementation not accepted",
+  "proposal_seal": {
+    "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/seal.json",
+    "bytes": 2753,
+    "sha256": "e57b30d5ef4ab540f98e8fa60d324c9497b5d0afeeb001c09c5ec549ebd1768b"
+  },
+  "proposal_members_verified": [
+    {
+      "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/README.md",
+      "bytes": 2628,
+      "sha256": "8cda5ea783e0bc82f46d3d4ee2d87094675a57601eb29448186bc0dfa41adb6a"
+    },
+    {
+      "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/build_proposal.py",
+      "bytes": 8492,
+      "sha256": "283aa41b6a238a5cd20fda23d98b640bdcda74df0af62a7e940b6a7a8850b3d3"
+    },
+    {
+      "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/freeze.py",
+      "bytes": 1379,
+      "sha256": "4ac56aa49f0e1452f674ae5ad58fb8ba960fe9c86791d42e8a82f7bc8aed7542"
+    },
+    {
+      "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/input-bindings.json",
+      "bytes": 1128,
+      "sha256": "d6108c46c320f15bbc8feae05624c12a1b78e61c8b4e15db8cb22efa35cae331"
+    },
+    {
+      "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/old-fragment.txt",
+      "bytes": 202,
+      "sha256": "65ddf8014b9db289e09884aebd3fa47e076aae2789c0d350765417fce3ca1724"
+    },
+    {
+      "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/operation-partition.json",
+      "bytes": 8236,
+      "sha256": "ef0a24bbc6baff91d155f86c787ba63904a40f27c040a4c2e5a61ab72aeff8f6"
+    },
+    {
+      "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/proposed-fragment.txt",
+      "bytes": 775,
+      "sha256": "5dd33f7e232addb726f06db3f736175b411eb886f66bbccb1cc5f344422262f9"
+    },
+    {
+      "path": "verification/swift-cache-state-implementation/correction-2/g3-proposal/value-and-lifetime-flow.json",
+      "bytes": 2264,
+      "sha256": "c2bb801ee7f1debf47b22f96036b8a19a8bda0fdf800deba49c658c553517149"
+    }
+  ],
+  "proposal_source_target_sha256_as_sealed_not_current_source_verified": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "exact_current_source_not_read": "Only admitted frozen proposal text and correction1 source were read, not active correction2 product writes.",
+  "syntax_hygiene_and_order": [
+    "The macro is an item declaration inside the comparison else-block; defining it has no runtime function/closure/capture-owner construction.",
+    "The transcriber contains exactly one $offset use, in let at=$offset. Offsets evaluate exactly once. Four invocation sites preserve A then B then the same ||/&& guards then TA before TB and <=.",
+    "The literal c identifier resolves to the enclosing merge parameter at the macro definition site. Introduced at bindings are hygienic and separate per expansion; they do not capture/rebind a/b/src/left/right.",
+    "The transcriber outer delimiter contains one expression block; no extra runtime macro invocation frame exists. The final from_le_bytes call has no semicolon and supplies that block value.",
+    "Range indexing the byte Candidate requires Range<usize>; at and all offset expressions are usize. src/left/right are correspondingly inferred usize, while a/b and decoded timestamps are u64. The producer value-flow labels offset as u64 and must be corrected; equal64-bit width is not a type argument.",
+    "c remains the same &mut Candidate2048 owner. Indexing creates an implicit shared reborrow and slice view for each read; no captured closure, by-value Candidate, or runtime b slice parameter is created. That shared receiver belongs to view, not zero work.",
+    "Only successful decoded u64 escapes each expansion. Offset local and borrowed Range/Option/reference/array operands end at their expression/block scopes; shared borrows end before c.copy_within278. Operand temporaries, including TA while TB evaluates, remain named lifetime owners."
+  ],
+  "block_tail_decision": {
+    "intrinsic_extra_u64_forwarding_place": false,
+    "reason": "An ordinary expression block has the type/value of its final operand. Here that operand is a call value, not a named local moved out. The block adds neither function output location, constructor nor u64 local. It therefore introduces no extra tail-to-block function return edge. This is a source-expression classification, not assumed compiler copy elimination.",
+    "received_place_caveat": "A/B let initializers are place contexts and identifier patterns bind by copy/move. Conservatively name each outer initializer temporary and its separate a/b binding; the conversion return reaches that initializer temporary and one extra transfer initializes the binding. Timestamp conversion returns reach comparison operand temporaries. No unassigned value disappears.",
+    "consistency_rule": "Apply the same expression-composition rule to ordinary blocks and cache_body!: a macro alone creates no forwarding function Result. Still account every real constructor/Ok payload, initializer or operand temporary, local binding, function output and immediate caller Result. A tail containing a named owned local would entail its actual move; no general macros-have-no-moves rule is asserted.",
+    "binding_atomization_limit": "Rust language semantics distinguish value/place/function boundaries but do not define the debit grammar. Root must accept the explicit primitive partition; neither Reference nor this reviewer supplies an optimizer/runtime bound."
+  },
+  "independent_conservative_core": {
+    "operations": {
+      "A.offset1": {
+        "operation": "first caller multiplication or explicit usize cast",
+        "scalar_units": 1
+      },
+      "A.offset2": {
+        "operation": "second caller addition or multiplication",
+        "scalar_units": 1
+      },
+      "A.at_binding": {
+        "operation": "computed offset source -> block-local at:usize received",
+        "scalar_units": 1
+      },
+      "A.end": {
+        "operation": "at+8",
+        "scalar_units": 1
+      },
+      "A.range": {
+        "operation": "complete Range<usize> constructor/index argument source->receive; explicit favorable atomic primitive",
+        "scalar_units": 1
+      },
+      "A.range_order": {
+        "operation": "start<=end",
+        "scalar_units": 1
+      },
+      "A.range_end": {
+        "operation": "end<=Candidate length",
+        "scalar_units": 1
+      },
+      "A.view": {
+        "operation": "shared c indexing reborrow, complete slice view and first_chunk receiver; explicit favorable atomic primitive",
+        "scalar_units": 1
+      },
+      "A.chunk": {
+        "operation": "first_chunk::<8> length predicate",
+        "scalar_units": 1
+      },
+      "A.option": {
+        "operation": "complete Option<&[u8;8]> source -> expect received self value",
+        "scalar_units": 1
+      },
+      "A.expect_tag": {
+        "operation": "expect Some tag test",
+        "scalar_units": 1
+      },
+      "A.array_ref": {
+        "operation": "expect returned &[u8;8] source -> received dereference operand view",
+        "scalar_units": 1
+      },
+      "A.LE": {
+        "operation": "from_le_bytes LE conversion",
+        "scalar_units": 1
+      },
+      "A.conversion_receive": {
+        "operation": "from_le_bytes returned u64 source -> outer initializer/operand temporary received",
+        "scalar_units": 1
+      },
+      "B.offset1": {
+        "operation": "first caller multiplication or explicit usize cast",
+        "scalar_units": 1
+      },
+      "B.offset2": {
+        "operation": "second caller addition or multiplication",
+        "scalar_units": 1
+      },
+      "B.at_binding": {
+        "operation": "computed offset source -> block-local at:usize received",
+        "scalar_units": 1
+      },
+      "B.end": {
+        "operation": "at+8",
+        "scalar_units": 1
+      },
+      "B.range": {
+        "operation": "complete Range<usize> constructor/index argument source->receive; explicit favorable atomic primitive",
+        "scalar_units": 1
+      },
+      "B.range_order": {
+        "operation": "start<=end",
+        "scalar_units": 1
+      },
+      "B.range_end": {
+        "operation": "end<=Candidate length",
+        "scalar_units": 1
+      },
+      "B.view": {
+        "operation": "shared c indexing reborrow, complete slice view and first_chunk receiver; explicit favorable atomic primitive",
+        "scalar_units": 1
+      },
+      "B.chunk": {
+        "operation": "first_chunk::<8> length predicate",
+        "scalar_units": 1
+      },
+      "B.option": {
+        "operation": "complete Option<&[u8;8]> source -> expect received self value",
+        "scalar_units": 1
+      },
+      "B.expect_tag": {
+        "operation": "expect Some tag test",
+        "scalar_units": 1
+      },
+      "B.array_ref": {
+        "operation": "expect returned &[u8;8] source -> received dereference operand view",
+        "scalar_units": 1
+      },
+      "B.LE": {
+        "operation": "from_le_bytes LE conversion",
+        "scalar_units": 1
+      },
+      "B.conversion_receive": {
+        "operation": "from_le_bytes returned u64 source -> outer initializer/operand temporary received",
+        "scalar_units": 1
+      },
+      "TA.offset1": {
+        "operation": "first caller multiplication or explicit usize cast",
+        "scalar_units": 1
+      },
+      "TA.offset2": {
+        "operation": "second caller addition or multiplication",
+        "scalar_units": 1
+      },
+      "TA.at_binding": {
+        "operation": "computed offset source -> block-local at:usize received",
+        "scalar_units": 1
+      },
+      "TA.end": {
+        "operation": "at+8",
+        "scalar_units": 1
+      },
+      "TA.range": {
+        "operation": "complete Range<usize> constructor/index argument source->receive; explicit favorable atomic primitive",
+        "scalar_units": 1
+      },
+      "TA.range_order": {
+        "operation": "start<=end",
+        "scalar_units": 1
+      },
+      "TA.range_end": {
+        "operation": "end<=Candidate length",
+        "scalar_units": 1
+      },
+      "TA.view": {
+        "operation": "shared c indexing reborrow, complete slice view and first_chunk receiver; explicit favorable atomic primitive",
+        "scalar_units": 1
+      },
+      "TA.chunk": {
+        "operation": "first_chunk::<8> length predicate",
+        "scalar_units": 1
+      },
+      "TA.option": {
+        "operation": "complete Option<&[u8;8]> source -> expect received self value",
+        "scalar_units": 1
+      },
+      "TA.expect_tag": {
+        "operation": "expect Some tag test",
+        "scalar_units": 1
+      },
+      "TA.array_ref": {
+        "operation": "expect returned &[u8;8] source -> received dereference operand view",
+        "scalar_units": 1
+      },
+      "TA.LE": {
+        "operation": "from_le_bytes LE conversion",
+        "scalar_units": 1
+      },
+      "TA.conversion_receive": {
+        "operation": "from_le_bytes returned u64 source -> outer initializer/operand temporary received",
+        "scalar_units": 1
+      },
+      "TB.offset1": {
+        "operation": "first caller multiplication or explicit usize cast",
+        "scalar_units": 1
+      },
+      "TB.offset2": {
+        "operation": "second caller addition or multiplication",
+        "scalar_units": 1
+      },
+      "TB.at_binding": {
+        "operation": "computed offset source -> block-local at:usize received",
+        "scalar_units": 1
+      },
+      "TB.end": {
+        "operation": "at+8",
+        "scalar_units": 1
+      },
+      "TB.range": {
+        "operation": "complete Range<usize> constructor/index argument source->receive; explicit favorable atomic primitive",
+        "scalar_units": 1
+      },
+      "TB.range_order": {
+        "operation": "start<=end",
+        "scalar_units": 1
+      },
+      "TB.range_end": {
+        "operation": "end<=Candidate length",
+        "scalar_units": 1
+      },
+      "TB.view": {
+        "operation": "shared c indexing reborrow, complete slice view and first_chunk receiver; explicit favorable atomic primitive",
+        "scalar_units": 1
+      },
+      "TB.chunk": {
+        "operation": "first_chunk::<8> length predicate",
+        "scalar_units": 1
+      },
+      "TB.option": {
+        "operation": "complete Option<&[u8;8]> source -> expect received self value",
+        "scalar_units": 1
+      },
+      "TB.expect_tag": {
+        "operation": "expect Some tag test",
+        "scalar_units": 1
+      },
+      "TB.array_ref": {
+        "operation": "expect returned &[u8;8] source -> received dereference operand view",
+        "scalar_units": 1
+      },
+      "TB.LE": {
+        "operation": "from_le_bytes LE conversion",
+        "scalar_units": 1
+      },
+      "TB.conversion_receive": {
+        "operation": "from_le_bytes returned u64 source -> outer initializer/operand temporary received",
+        "scalar_units": 1
+      },
+      "A.init_binding": {
+        "operation": "A initializer temporary -> a:u64 identifier binding",
+        "scalar_units": 1
+      },
+      "B.init_binding": {
+        "operation": "B initializer temporary -> b:u64 identifier binding",
+        "scalar_units": 1
+      },
+      "b_absent": {
+        "operation": "b==ABSENT",
+        "scalar_units": 1
+      },
+      "b_branch": {
+        "operation": "|| short-circuit",
+        "scalar_units": 1
+      },
+      "a_present": {
+        "operation": "a!=ABSENT",
+        "scalar_units": 1
+      },
+      "a_branch": {
+        "operation": "&& short-circuit",
+        "scalar_units": 1
+      },
+      "order": {
+        "operation": "timestamp_a<=timestamp_b",
+        "scalar_units": 1
+      },
+      "result": {
+        "operation": "comparison bool source -> take_left binding",
+        "scalar_units": 1
+      }
+    },
+    "ordered_operations": [
+      "A.offset1",
+      "A.offset2",
+      "A.at_binding",
+      "A.end",
+      "A.range",
+      "A.range_order",
+      "A.range_end",
+      "A.view",
+      "A.chunk",
+      "A.option",
+      "A.expect_tag",
+      "A.array_ref",
+      "A.LE",
+      "A.conversion_receive",
+      "A.init_binding",
+      "B.offset1",
+      "B.offset2",
+      "B.at_binding",
+      "B.end",
+      "B.range",
+      "B.range_order",
+      "B.range_end",
+      "B.view",
+      "B.chunk",
+      "B.option",
+      "B.expect_tag",
+      "B.array_ref",
+      "B.LE",
+      "B.conversion_receive",
+      "B.init_binding",
+      "b_absent",
+      "b_branch",
+      "a_present",
+      "a_branch",
+      "TA.offset1",
+      "TA.offset2",
+      "TA.at_binding",
+      "TA.end",
+      "TA.range",
+      "TA.range_order",
+      "TA.range_end",
+      "TA.view",
+      "TA.chunk",
+      "TA.option",
+      "TA.expect_tag",
+      "TA.array_ref",
+      "TA.LE",
+      "TA.conversion_receive",
+      "TB.offset1",
+      "TB.offset2",
+      "TB.at_binding",
+      "TB.end",
+      "TB.range",
+      "TB.range_order",
+      "TB.range_end",
+      "TB.view",
+      "TB.chunk",
+      "TB.option",
+      "TB.expect_tag",
+      "TB.array_ref",
+      "TB.LE",
+      "TB.conversion_receive",
+      "order",
+      "result"
+    ],
+    "scalar_blocks": [
+      {
+        "id": "S1",
+        "operations": [
+          "A.offset1",
+          "A.offset2",
+          "A.at_binding",
+          "A.end",
+          "A.range",
+          "A.range_order",
+          "A.range_end",
+          "A.view",
+          "A.chunk",
+          "A.option",
+          "A.expect_tag",
+          "A.array_ref",
+          "A.LE",
+          "A.conversion_receive",
+          "A.init_binding",
+          "B.offset1"
+        ],
+        "count": 16
+      },
+      {
+        "id": "S2",
+        "operations": [
+          "B.offset2",
+          "B.at_binding",
+          "B.end",
+          "B.range",
+          "B.range_order",
+          "B.range_end",
+          "B.view",
+          "B.chunk",
+          "B.option",
+          "B.expect_tag",
+          "B.array_ref",
+          "B.LE",
+          "B.conversion_receive",
+          "B.init_binding",
+          "b_absent",
+          "b_branch"
+        ],
+        "count": 16
+      },
+      {
+        "id": "S3",
+        "operations": [
+          "a_present",
+          "a_branch",
+          "TA.offset1",
+          "TA.offset2",
+          "TA.at_binding",
+          "TA.end",
+          "TA.range",
+          "TA.range_order",
+          "TA.range_end",
+          "TA.view",
+          "TA.chunk",
+          "TA.option",
+          "TA.expect_tag",
+          "TA.array_ref",
+          "TA.LE",
+          "TA.conversion_receive"
+        ],
+        "count": 16
+      },
+      {
+        "id": "S4",
+        "operations": [
+          "TB.offset1",
+          "TB.offset2",
+          "TB.at_binding",
+          "TB.end",
+          "TB.range",
+          "TB.range_order",
+          "TB.range_end",
+          "TB.view",
+          "TB.chunk",
+          "TB.option",
+          "TB.expect_tag",
+          "TB.array_ref",
+          "TB.LE",
+          "TB.conversion_receive",
+          "order",
+          "result"
+        ],
+        "count": 16
+      }
+    ],
+    "scalars": 64,
+    "copies": 4,
+    "candidate_groups": 8,
+    "producer62_difference": "Add distinct A and B initializer->identifier binding transfers. Partition shifts B.offset1 into S1; all four blocks contain16. No operation is assigned twice.",
+    "block_sizes": [
+      16,
+      16,
+      16,
+      16
+    ],
+    "complete_upper_bound": false,
+    "path_core_totals": {
+      "B_absent": 33,
+      "A_absent_B_eligible": 35,
+      "both_eligible": 64
+    }
+  },
+  "remaining_explicit_source_edges": [
+    {
+      "id": "M1..M4",
+      "where": "every .expect(\"proved eight-byte range\")",
+      "type": "&'static str",
+      "edge": "constant string-reference source -> expect msg parameter received",
+      "why": "Literal identity is constant, but the method still has a distinct msg argument. The named expect_tag/Option/reference rows do not explicitly own this transfer. A generic constants-are-free claim is insufficient.",
+      "effect_if_separate_scalar_transfer_each": 4,
+      "conditional_total_with_core": 68
+    },
+    {
+      "id": "RANGE_VIEW",
+      "where": "range constructor/index receiver and slice/first_chunk receiver",
+      "edge": "all complete source/received/coercion/reborrow fields",
+      "why": "64 core groups these into favorable named primitives. Show exact source places and root acceptance of this atomization; splitting any additional operation exhausts the current capacity."
+    },
+    {
+      "id": "LIFETIME",
+      "where": "macro at, A/B initializers/bindings, TA/TB operands and preexisting helpers",
+      "edge": "birth/drop/peak assignment",
+      "why": "No automatic extra function result, but actual operand/initializer/temp/borrow owners must enter fixed helper192/merge144/leaf/Option/wire role map; no full29344 proof supplied."
+    },
+    {
+      "id": "ACTUAL_BYTES",
+      "where": "implementation",
+      "edge": "selected exact source -> fresh admitted host evidence",
+      "why": "Conceptual syntax review is not compilation, API/layout or actual comparison/borrow behavior acceptance."
+    }
+  ],
+  "minimal_additional_unselected_option": "A separately sealed macro amendment using .unwrap() rather than .expect(message) removes the explicit message argument while retaining a Some/None check and same successful read. Internal panic text changes; fail-closed behavior and complete source/lifetime partition must be reviewed. No such amendment is selected here.",
+  "G3_G4_disjointness": "Same boundaries as path-and-boundary-table.json. The macro changes comparison reads only; G4 tail checks/repeated chosen-offset/index-advance/copy/loop work still needs its own unchanged2-group proof. No spare G4 credit is transferred.",
+  "semantic_concept_supported": true,
+  "cost_bound_accepted": false,
+  "full_lifetime_accepted": false,
+  "implementation_accepted": false,
+  "repair_selected": false,
+  "runtime_tests": 0
+}

@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "created_at": "2026-10-28T02:23:49.260565+00:00",
+  "status": "recommend-root-consider-one-exact-candidate-2-component-run-no-execution-grant",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/runtime-review-2/source-contract.json",
+    "bytes": 12478,
+    "sha256": "2440f7eaa930ecd714ff7e4c94ad3b83aaa99fe14a04ec40cd702790ee874204"
+  },
+  "producer_freeze_sha256": "a0b9711ae54c50f43766e53dbd55b7e26c23e916c5131acce0609f2b81e4a57d",
+  "execution_plan_sha256": "88b7b8421fb0e5f4624e9abdc263d083822d01fb9300ff3d5be14e2f7e6c900f",
+  "source_tree_sha256": "16b5f695124189e58adbe343d0936289ad74500adb7cdea934a3f4714caab30c",
+  "blocking_findings": [],
+  "checks": [
+    {
+      "control": "source scope and production exclusion",
+      "verdict": "consistent",
+      "evidence": "KeyOwnerSupervisor guards both start_fixture/1 and fixture tuple init/1 under test build. Ordinary and fixture routes share KeyOwner.child_spec, name/worker derivation, infinite owner shutdown, child order, one_for_all and restart limits; only start MFA varies. Admission, KeyOwner, DNS/global-address, FetchFlight, transport and TLSFixture source are unchanged. Fresh prod bootstrap separately checks missing fixture exports, tuple rejection, ordinary fixture-option rejection, loopback denial and exact registration/admission cleanup.",
+      "source_refs": [
+        "inputs/hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex:7-26",
+        "bootstrap-prod.exs:5-51"
+      ]
+    },
+    {
+      "control": "nine selected methods and warnings",
+      "verdict": "consistent",
+      "evidence": "The prior accepted seven-case source is byte-identical; two dedicated inflight methods make nine. Fresh test bootstrap compiles only TLSFixture and the two selected test modules plus nested Recorder, then demands total 9/failures 0/skipped 0/excluded 0 and seven cleanup/two inflight receipts. Both compiler invocations require empty compile/runtime warnings. Full OTP reports remain in stdout. KeyOwnerTest CI repair is excluded.",
+      "source_refs": [
+        "compile-common.exs:7-44",
+        "bootstrap-test.exs:29-75",
+        "artifact-validation.py:72-87"
+      ]
+    },
+    {
+      "control": "completed TLS and pending response preconditions",
+      "verdict": "consistent",
+      "evidence": "TLSFixture barrier follows successful handshake, parsed HTTP request and recorded SNI/protocol. New tests require one socket, GET /keys, expected SNI and TLS 1.2/1.3, registered socket/controller/raw port and live worker, exactly one flight/two waiters and empty snapshots. They suspend only captured controller and require at least 750 ms on the unchanged original deadline before trigger. No body or completed fetch/authentication is claimed. Pinned OTP29 sslsocket record confirms tuple indexes used by test-only resource capture.",
+      "source_refs": [
+        "inputs/hosted/test/support/identity_tls_fixture.ex:194-238",
+        "inputs/hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs:155-172,234-343"
+      ]
+    },
+    {
+      "control": "explicit reply and normal parent shutdown",
+      "verdict": "consistent",
+      "evidence": "Raw caller uses direct GenServer.call and records reply versus exit, exact error, deadline, pointer and owner/table liveness; public caller uses real ConfiguredVerifier including its release path. Graceful case invokes Supervisor.stop on real component, requires raw reply, pointer absent/fresh denial, closed raw port and still-pending stop while controller held, then resumes/releases and checks component/resources down and final public denial.",
+      "source_refs": [
+        "inputs/hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs:270-303,346-415,563-637"
+      ]
+    },
+    {
+      "control": "adverse worker-death witness remains failed",
+      "verdict": "consistent with interpretation limit",
+      "evidence": "Kill is restricted to captured owned worker DynamicSupervisor. The method records exact killed DOWN, raw reply and old owner reason; callback_clean requires shutdown. It observes fresh replacement table/epoch, emptiness, old flight/worker/controller/raw liveness while no explicit resume has occurred, pointer ownership and stale permit/lease rejection. Callback or early-resource observations remain mandatory assertions and clean-validator gates; eventual cleanup never turns the adverse result green.",
+      "source_refs": [
+        "inputs/hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs:639-751",
+        "artifact-validation.py:72-87"
+      ]
+    },
+    {
+      "control": "case cleanup and evidence retention",
+      "verdict": "consistent",
+      "evidence": "Recorder/on_exit cleanup is registered before TLS setup; exact PID/port monitors are installed before triggers. after and on_exit resume only captured controller, release only captured server barrier, stop exact component/fixture, wait for recorded liveness and DOWN, remove current admission and check old table/key directory/peer closure. Cleanup errors accumulate across recovery attempts. Report includes stage, original margin, raw/public outcomes, owner callback reason, pointer samples, each resource reason/time and cleanup.",
+      "source_refs": [
+        "inputs/hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs:199-230,375-407,423-560"
+      ]
+    },
+    {
+      "control": "two isolated compiler/test VMs, no product application",
+      "verdict": "consistent",
+      "evidence": "Runner has runtime-only prepared-2 dispatch and fresh candidate-2 slot. Sanitized environment, fresh scratch HOME/TMPDIR, pinned start_clean and dependency ebin paths are explicit. compile-common starts Mix.State only, checks no _build code path, loads declared dependency apps/versions and rejects MixerHosted modules in dependency BEAMs; it compiles 18 frozen identity sources/19 modules without a product Mix project/application. No DB/Repo/endpoint/provider/DNS fixture is started by the selected bootstraps.",
+      "source_refs": [
+        "runner.py:99-115,193-239",
+        "compile-common.exs:1-46",
+        "bootstrap-prod.exs",
+        "bootstrap-test.exs"
+      ]
+    },
+    {
+      "control": "strict 17 artifacts and actual membership",
+      "verdict": "consistent",
+      "evidence": "Duplicate keys and non-finite numbers reject before recursive validation. All 17 required JSON shapes use exact nested object membership and exact Python bool/int distinction, bounded arrays/strings/ranges/enums; nine clean methods and true resource observations are separate from admissible adverse artifacts. Seven producer malformed controls cover bool/float/wrong value/string/null/missing/extra fields by source review; an independent reference checked the same seven without importing producer code. Runner checks exact prod/test directories and exact required per-phase members including command/stdout and test raw OpenSSL streams, rejects symlinks/subdirectories/extras/missing files, and retains available required JSON when a peer is absent.",
+      "source_refs": [
+        "runner.py:21-35,281-338",
+        "artifact-validation.py:4-87",
+        "required-artifact-schemas.json",
+        "verify.py:66-83"
+      ]
+    },
+    {
+      "control": "OpenSSL identity, recipes, native group and key cleanup",
+      "verdict": "consistent",
+      "evidence": "Native executable and wrapper/interpreter/config are pinned. Test performs one version command after five-file read-only format equality; two sequential default TLSFixtures each perform exact req/req/x509 recipe. Wrapper logs launch/completion executable/argv/PIDs/parent/group/timestamps/output/exit and waits its exact native child; no new group is created, so outer retained test group cleanup covers interruption. Output is capped at 64 KiB per call; outer validator requires seven starts/completions, exact paired records/recipes, selected executable/test group, success, timing and no cap overflow. Fixture makes private random scratch/tmp directory, deletes key files in after before listening, reports removal, and scratch deletion follows confirmed group absence. No production signing keys or external publication is involved.",
+      "source_refs": [
+        "bin/openssl:1-61",
+        "openssl-config.json",
+        "artifact-validation.py:42-69",
+        "bootstrap-test.exs:9-27,65-67",
+        "inputs/hosted/test/support/identity_tls_fixture.ex:12-160"
+      ]
+    },
+    {
+      "control": "retained child, caps, signals and receipt",
+      "verdict": "consistent",
+      "evidence": "Nonraising INT/TERM/HUP handlers cannot interrupt ownership retention after launch. Each new VM session Popen is stored before selector work; inner/final cleanup reaps exact child and group with TERM/KILL and preserves scratch on uncertainty. Monotonic work/cleanup/observation/terminal checkpoints are 40/46/52/55 seconds with 512 KiB phase and 1 MiB combined stdout/artifact caps. Signal, phase failure, changed pins, bad artifact, uncertain cleanup or exceeded cutoff prevents passed status. Final actual elapsed and cleanup require terminal receipt review; source checks do not prove behavior under stalled OS I/O.",
+      "source_refs": [
+        "runner.py:87-98,127-163,236-280,339-384"
+      ]
+    }
+  ],
+  "interpretation_limits": [
+    "old_resources_down_before_replacement is sampled immediately after first observing and reading replacement, while the old controller has not been explicitly resumed. Retain that held-controller witness; do not infer a total causal order from unrelated DOWN message/timestamp order alone.",
+    "Seven malformed-schema controls were source-reviewed and checked with an independent reference; no producer validator/runtime replay occurred.",
+    "The frozen runner accepts the three required root-release fields; root must retain the reviewed exact command and plan SHA. A review recommendation is not a root release.",
+    "No candidate-2 production compile, test, TLS/OpenSSL outcome, actual process cleanup or elapsed runtime result is established by this source review."
+  ],
+  "root_next_step": "Root may separately select one exact execution-plan SHA 88b7b8421fb0e5f4624e9abdc263d083822d01fb9300ff3d5be14e2f7e6c900f invocation using pinned Python -B and a single-execution exact release, after other root scheduling priorities. Inspect terminal source/tool hashes, all 17 artifacts, complete stdout, seven native invocation pairs, both exact VM groups/scratch cleanup and actual elapsed. Preserve failed KOL09 callback/resource evidence for a separately reviewed minimal correction; do not retry, change timeout or mark the resource gate passed.",
+  "pending": [
+    "Original KOL08 ordinary owner-crash adaptation",
+    "Production destination/provider/application/HTTP/browser/session integration",
+    "Signing custody, published-package separate-repository FieldLog, operational qualification and every GA gate",
+    "Native UI/capture/simulator/emulator/device checks remain paused; no native acceptance receipt"
+  ],
+  "review_actions": "Only owned runtime-review-2 artifacts written; no product edit, protected hosted/store change, central metadata, commit or push."
+}

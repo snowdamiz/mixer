@@ -1,0 +1,102 @@
+{
+  "combined_debit_preflight_qualified": false,
+  "findings": [
+    {
+      "affected_claims": [
+        "leaf prior-read subtotal27",
+        "leaf authored upper111",
+        "guard G36",
+        "combined debit/preflight proof"
+      ],
+      "assigned_caller_groups": 3,
+      "assigned_scalar_capacity": 48,
+      "conservatism": "CELLS[i] indexing plus load is counted as only one operation here; counting them separately strengthens the finding.",
+      "end_line": 139,
+      "excluded_from_lower_bound": [
+        "loop creation/next/condition/increment",
+        "separate bounds checks",
+        "borrow and argument handoff",
+        "Pair source/return/caller handling",
+        "word_at internal work",
+        "fixed error arm"
+      ],
+      "id": "A1",
+      "iterations": 12,
+      "minimum_caller_groups_excluding_loop_arguments_and_bounds": 7,
+      "minimum_scalar_operations_per_iteration": 9,
+      "minimum_scalar_operations_total": 108,
+      "not_established": [
+        "128 suffices for actual complete source",
+        "B192 suffices",
+        "a particular amended G or wrapper amount",
+        "CPU or native cost"
+      ],
+      "priority": "P1",
+      "requested_correction": "Provide a complete operation-level worst-path source ledger, reconcile old/new word accesses and every caller/helper/copy/move/branch, and revise separately prepaid G before mutation. Independently review the amended proof; do not consume the stated17 unused credits by inference.",
+      "rule": "At most16 bounded scalar source operations OR one fixed copy <=128 bytes per group; no inactive-group credit borrowing",
+      "source": "verification/swift-ordered-retention-analyzer-envelope/src/envelope.rs",
+      "source_ledger": [
+        {
+          "id": "caller01",
+          "line": 137,
+          "minimum_scalar_operations": 1,
+          "operation": "CELLS[i] indexed scalar read"
+        },
+        {
+          "id": "caller02",
+          "line": 137,
+          "minimum_scalar_operations": 1,
+          "operation": "8 * selected cell"
+        },
+        {
+          "id": "caller03",
+          "line": 137,
+          "minimum_scalar_operations": 1,
+          "operation": "SCALAR.base + computed offset"
+        },
+        {
+          "id": "caller04",
+          "line": 138,
+          "minimum_scalar_operations": 1,
+          "operation": "pair.status scalar load"
+        },
+        {
+          "id": "caller05",
+          "line": 138,
+          "minimum_scalar_operations": 1,
+          "operation": "status != 1 comparison"
+        },
+        {
+          "id": "caller06",
+          "line": 138,
+          "minimum_scalar_operations": 1,
+          "operation": "if status discriminator branch"
+        },
+        {
+          "id": "caller07",
+          "line": 139,
+          "minimum_scalar_operations": 1,
+          "operation": "pair.value scalar load"
+        },
+        {
+          "id": "caller08",
+          "line": 139,
+          "minimum_scalar_operations": 1,
+          "operation": "prior[i] destination index"
+        },
+        {
+          "id": "caller09",
+          "line": 139,
+          "minimum_scalar_operations": 1,
+          "operation": "scalar store to prior destination"
+        }
+      ],
+      "source_sha256": "80eb9830ed78b1122ff3ec0723e1ce20afb46fd4a4e5abf80c60c4883a65a84e",
+      "start_line": 136,
+      "title": "Prior-read caller work exceeds its named scalar allowance"
+    }
+  ],
+  "product_acceptance": false,
+  "schema": 1,
+  "status": "source-accounting-proof-rejected-revision-required"
+}

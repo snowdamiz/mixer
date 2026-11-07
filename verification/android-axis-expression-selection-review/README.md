@@ -1,0 +1,13 @@
+# Axis expression delivery selection review
+
+Accepted the exact frozen selection as finite source/data evidence, with no blocking source-data finding. All 173 unique payloads plus selection itself match: 174 paths, 6,880,812 bytes, regular mode 100644 and exact SHA256 identities. The two protected file hashes and .wrangler directory identity match the supplied preparation evidence. No canonical SDK, Android or VM product source is in the selected roster.
+
+The installed 6,670-byte workflow is exactly 8483fbf0… and matches the existing 18-control inputs plus Sol/fresh Astra source reviews. The template remains false/unbound, the first axis dispatch ceiling is one at attempt 1, and unknown-outcome replay is false. Old invalid push 40883832500 ran zero jobs; axis manual submissions and host methods remain zero. GitHub validation and 8 XCTest plus 11 Swift Testing methods remain pending.
+
+Package run 40895131023 has one consumed submission and no new allowance. Existing actual/binary data receipts corroborate 13 groups, 2,227 assertions, 152 source-correlated interruptions and all three independent emitted reports; 16 actual-review and 9 binary-review seal members rehash without mismatch. This retains scoped host acceptance, with provenance, canonical/native/published FieldLog/OTA/release/GA qualification pending. Current PLAN/STATUS and targeted W05/G06/W02 fields agree; gates remain 8 running, 30 planned, 0 verified.
+
+Exactly one formatting exception is retained: sealed ACTUAL-REVIEW.md line 51 ends with one space. Its complete bytes/hash/mode and prepared staged/committed object proofs remain mandatory; only formatting excludes that exact path. The new helper differs from its parent only in the baseline repin. Its 44 controls are historical and were not rerun. Raw ZIP/log/helper-state files are excluded, and both saved public consumer sources contain no private URL.
+
+Method qualification: initial directory creation and bounded exploratory file reads used exec_command and Python stdlib. One scratch SyntaxError occurred before execution and is preserved, with exact commands, in tool-provenance.json. Later checks/writes used guarded Node fs/crypto/path operations. No target source, Git/gh, compiler/product/native/UI/network/signal/timer or process-inspection API was used. No held-process effect is inferred from these file-data scripts. Runtime/tool versions were not queried.
+
+This review grants no execution authority and does not review the separately prepared final drivers. Root requires separate phase-source review and exact phase authority before execution; future GitHub validation and host acceptance are not inferred here. See receipt.json and source-data-checks.json for exact identities and limitations.

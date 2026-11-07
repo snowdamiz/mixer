@@ -1,0 +1,19 @@
+native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/app/Activity.java:1: warning: [this-escape] possible 'this' escape before subclass is fully initialized
+package android.app;import android.content.Context;import android.view.Window;import dev.mixer.android.ConcreteHostProbe;public class Activity extends Context {public boolean destroyed;public Window window=new Window(this);public boolean isDestroyed(){ConcreteHostProbe.hit("Activity.isDestroyed","entry",this);boolean value=destroyed;ConcreteHostProbe.hit("Activity.isDestroyed","beforeReturn",this);return value;}public Window getWindow(){ConcreteHostProbe.hit("Activity.getWindow","entry",this);Window value=window;ConcreteHostProbe.hit("Activity.getWindow","beforeReturn",this);return value;}}
+                                                                                                                                                                                                                         ^
+error: warnings found and -Werror specified
+native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnectionWrapper.java:18: error: variable value is already defined in method commitCompletion(CompletionInfo)
+@Override public boolean commitCompletion(CompletionInfo value){ConcreteHostProbe.hit("InputConnectionWrapper.commitCompletion","entry",this);boolean value=target.commitCompletion(value);ConcreteHostProbe.hit("InputConnectionWrapper.commitCompletion","beforeReturn",this);return value;}
+                                                                                                                                                      ^
+native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnectionWrapper.java:18: error: incompatible types: boolean cannot be converted to CompletionInfo
+@Override public boolean commitCompletion(CompletionInfo value){ConcreteHostProbe.hit("InputConnectionWrapper.commitCompletion","entry",this);boolean value=target.commitCompletion(value);ConcreteHostProbe.hit("InputConnectionWrapper.commitCompletion","beforeReturn",this);return value;}
+                                                                                                                                                                                    ^
+native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnectionWrapper.java:19: error: variable value is already defined in method commitCorrection(CorrectionInfo)
+@Override public boolean commitCorrection(CorrectionInfo value){ConcreteHostProbe.hit("InputConnectionWrapper.commitCorrection","entry",this);boolean value=target.commitCorrection(value);ConcreteHostProbe.hit("InputConnectionWrapper.commitCorrection","beforeReturn",this);return value;}
+                                                                                                                                                      ^
+native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputConnectionWrapper.java:19: error: incompatible types: boolean cannot be converted to CorrectionInfo
+@Override public boolean commitCorrection(CorrectionInfo value){ConcreteHostProbe.hit("InputConnectionWrapper.commitCorrection","entry",this);boolean value=target.commitCorrection(value);ConcreteHostProbe.hit("InputConnectionWrapper.commitCorrection","beforeReturn",this);return value;}
+                                                                                                                                                                                    ^
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+5 errors
+1 warning

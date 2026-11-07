@@ -1,0 +1,52 @@
+warning: unused imports: `BootstrapLedgerV1`, `BorrowedOwnerDataV1`, `CorrelatedSelectedProfileV1`, and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N02/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2394:25
+     |
+2394 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1, CorrelatedSelectedProfileV1,
+     |                         ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2395 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N02/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1923:63
+     |
+1923 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1923 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1923 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+error[E0382]: use of moved value: `attempt`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N02/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2388:44
+     |
+2386 |     fn negative_twice_v1(attempt:PrepaidCorrelationAttemptV1<'_>,one:SuppliedLoaderCarrierV1,two:SuppliedLoaderCarrierV1,expected:...
+     |                          ------- move occurs because `attempt` has type `PrepaidCorrelationAttemptV1<'_>`, which does not implement the `Copy` trait
+2387 |         let _=correlate_admitted_loader_v1(attempt,one,expected);
+     |                                            ------- value moved here
+2388 |         let _=correlate_admitted_loader_v1(attempt,two,expected);
+     |                                            ^^^^^^^ value used here after move
+     |
+note: consider changing this parameter type in function `correlate_admitted_loader_v1` to borrow instead if owning the value isn't necessary
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N02/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2032:18
+     |
+2031 |     pub(in crate::experimental_swift_reactor) fn correlate_admitted_loader_v1(
+     |                                                  ---------------------------- in this function
+2032 |         attempt: PrepaidCorrelationAttemptV1<'_>, carrier: SuppliedLoaderCarrierV1,
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this parameter takes ownership of the value
+note: if `PrepaidCorrelationAttemptV1<'_>` implemented `Clone`, you could clone the value
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N02/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1958:5
+     |
+1958 |     pub(in crate::experimental_swift_reactor) struct PrepaidCorrelationAttemptV1<'owner> {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider implementing `Clone` for this type
+...
+2387 |         let _=correlate_admitted_loader_v1(attempt,one,expected);
+     |                                            ------- you could clone this value
+
+error: aborting due to 1 previous error; 2 warnings emitted
+
+For more information about this error, try `rustc --explain E0382`.

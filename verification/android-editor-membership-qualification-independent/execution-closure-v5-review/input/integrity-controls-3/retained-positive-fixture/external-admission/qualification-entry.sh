@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/env -i PATH=/usr/bin:/bin LANG=C LC_ALL=C TZ=UTC /bin/sh -c 'core=/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/integrity-controls-3/owned-bootstrap-control-h38fgxjj/positive/external-admission/admission-core.sh; result=$(/usr/bin/shasum -a 256 -- "$core"); result=${result%% *}; [ "$result" = 612d816f31196cff82fcf541a5e37ae90830866578e8c2aa033144bb357af8d4 ] || { echo "refused altered admission core" >&2; exit 2; }; exec /bin/sh "$core" "$@"' mixer-admission "$@"

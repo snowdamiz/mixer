@@ -1,0 +1,52 @@
+{
+  "schema": 3,
+  "evidence": "Source/AST only; every actual workflow dispatch remains unexecuted. Existing collector and binder entrypoints were already present in v2.",
+  "proposal_scripts": [
+    {
+      "file": "run_data_controls.py",
+      "dispatch": "main",
+      "workflow_invocations": [
+        "python3 -I -B -S verification/pair7-java-compile-ci-proposal/v3/run_data_controls.py"
+      ]
+    },
+    {
+      "file": "bind_snapshot_source.py",
+      "dispatch": "main",
+      "workflow_invocations": [
+        "python3 -I -B -S verification/pair7-java-compile-ci-proposal/v3/bind_snapshot_source.py stage",
+        "python3 -I -B -S verification/pair7-java-compile-ci-proposal/v3/bind_snapshot_source.py post"
+      ]
+    },
+    {
+      "file": "transport_gate.py",
+      "dispatch": "main",
+      "workflow_invocations": [
+        "python3 -I -B -S verification/pair7-java-compile-ci-proposal/v3/transport_gate.py snapshot-upload",
+        "python3 -I -B -S verification/pair7-java-compile-ci-proposal/v3/transport_gate.py host-log-upload",
+        "/usr/bin/python3 -I -B -S verification/pair7-java-compile-ci-proposal/v3/transport_gate.py transfer"
+      ]
+    },
+    {
+      "file": "compile_pair7.py",
+      "dispatch": "collect",
+      "workflow_invocations": [
+        "/usr/bin/python3 -I -B -S verification/pair7-java-compile-ci-proposal/v3/compile_pair7.py"
+      ],
+      "argv": [
+        "RUNNER_TEMP/pair7-java-snapshot-input",
+        "RUNNER_TEMP/pair7-java-compile-GITHUB_RUN_ID-1"
+      ]
+    }
+  ],
+  "existing_apple_verifier": {
+    "path": "scripts/ci/verify-apple-toolchain.py",
+    "bytes": 4855,
+    "sha256": "74a3e0261a8dcd9faa075333a09d33f635e5a96351560c4a4d94d1a90b11c442",
+    "workflow_invocation": "python3 -B scripts/ci/verify-apple-toolchain.py"
+  },
+  "swift_producer": {
+    "filter": "pair7RetainedActualAndroidSnapshotForJavaCI",
+    "actual_api": "AndroidProject.snapshot(adapter:destination:)",
+    "execution": "pending"
+  }
+}

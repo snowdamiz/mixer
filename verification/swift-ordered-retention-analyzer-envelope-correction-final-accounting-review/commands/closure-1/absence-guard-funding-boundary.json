@@ -1,0 +1,223 @@
+{
+  "current_guard_rows": [
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 2,
+      "id": "L01",
+      "note": "",
+      "phase": "leaf",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 4,
+          "operation": "four native parameter receiving/binding operations"
+        },
+        {
+          "count": 4,
+          "operation": "steps.remaining load, threshold load, comparison, underfunded binding"
+        },
+        {
+          "count": 4,
+          "operation": "steps.spent load, zero materialize, compare, branch"
+        },
+        {
+          "count": 2,
+          "operation": "!underfunded and branch"
+        },
+        {
+          "count": 4,
+          "operation": "remaining load, threshold load, subtraction, remaining store"
+        },
+        {
+          "count": 2,
+          "operation": "threshold load and spent store"
+        },
+        {
+          "count": 5,
+          "operation": "arena native receiver/length return, bound materialize, comparison, branch"
+        }
+      ],
+      "scalar_groups": 2,
+      "scalar_operations": 25,
+      "source": "envelope.rs:127-137 entry through whole-slice preflight"
+    },
+    {
+      "copies": [
+        {
+          "bytes": 96,
+          "count": 1,
+          "edge": "prior96 source literal -> prior local"
+        }
+      ],
+      "copy_groups": 1,
+      "groups": 3,
+      "id": "L02",
+      "note": "",
+      "phase": "leaf",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 13,
+          "operation": "prior zero materialization and twelve scalar element stores"
+        },
+        {
+          "count": 9,
+          "operation": "word zero materialization and eight scalar byte stores"
+        }
+      ],
+      "scalar_groups": 2,
+      "scalar_operations": 22,
+      "source": "envelope.rs:138-139 fixed local initialization"
+    },
+    {
+      "copies": [
+        {
+          "bytes": 16,
+          "count": 1,
+          "edge": "Range16 literal -> Index argument"
+        },
+        {
+          "bytes": 16,
+          "count": 1,
+          "edge": "shared arena slice16 -> Index receiver"
+        },
+        {
+          "bytes": 16,
+          "count": 1,
+          "edge": "Index returned slice16 -> caller result"
+        },
+        {
+          "bytes": 16,
+          "count": 1,
+          "edge": "caller source slice16 -> copy_from_slice source argument"
+        },
+        {
+          "bytes": 16,
+          "count": 1,
+          "edge": "word mutable unsized slice16 -> copy_from_slice receiver"
+        },
+        {
+          "bytes": 8,
+          "count": 1,
+          "edge": "source range8 -> word8 data"
+        }
+      ],
+      "copy_groups": 6,
+      "groups": 96,
+      "id": "L03",
+      "note": "No loop/CELLS indexing/Pair/checked arithmetic remains. Explicitly includes both Index return and later copy argument edges; no source/destination double charge for a single edge.",
+      "phase": "leaf",
+      "repeat": 12,
+      "scalar_atoms": [
+        {
+          "count": 1,
+          "operation": "mutable word/native borrow formation"
+        },
+        {
+          "count": 4,
+          "operation": "two Range endpoint materializations and two field stores"
+        },
+        {
+          "count": 1,
+          "operation": "shared arena reborrow/argument preparation"
+        },
+        {
+          "count": 4,
+          "operation": "range bounds checks and branch (start<=end,end<=length)"
+        },
+        {
+          "count": 1,
+          "operation": "source slice/native result binding"
+        },
+        {
+          "count": 2,
+          "operation": "copy length equality check/branch"
+        },
+        {
+          "count": 2,
+          "operation": "copy call/return control"
+        },
+        {
+          "count": 6,
+          "operation": "prior destination base/index argument/bounds comparison/branch/address/store"
+        },
+        {
+          "count": 4,
+          "operation": "word8 scalar source/read and LE argument/return/decode handling"
+        }
+      ],
+      "scalar_groups": 2,
+      "scalar_operations": 25,
+      "source": "envelope.rs:140-151 twelve separately written prior reads"
+    },
+    {
+      "copies": [],
+      "copy_groups": 0,
+      "groups": 1,
+      "id": "L04",
+      "note": "",
+      "phase": "leaf",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 2,
+          "operation": "underfunded read and branch"
+        }
+      ],
+      "scalar_groups": 1,
+      "scalar_operations": 2,
+      "source": "envelope.rs:152 guard dispatch (normal funded branch)"
+    },
+    {
+      "copies": [
+        {
+          "bytes": 128,
+          "count": 1,
+          "edge": "complete leaf Reply128 return -> walk received128"
+        }
+      ],
+      "copy_groups": 1,
+      "groups": 10,
+      "helper_groups": 8,
+      "id": "L14",
+      "note": "Exactly one function return is possible; helper maximum RH01/RH02 is attached below. A caller source/destination for the same return is one edge, not two.",
+      "phase": "leaf",
+      "repeat": 1,
+      "scalar_atoms": [
+        {
+          "count": 8,
+          "operation": "four native call operands and four argument transfers"
+        },
+        {
+          "count": 2,
+          "operation": "call and return control"
+        }
+      ],
+      "scalar_groups": 1,
+      "scalar_operations": 10,
+      "source": "all observe leaf returns; reply/poison helper and caller"
+    }
+  ],
+  "current_guard_scope": "Separately prepaid underfunded-prior-state/Steps guard; not selected as a nominally funded absent-state guard.",
+  "dependent_caller_concern": {
+    "lines": [
+      290,
+      291,
+      292,
+      323
+    ],
+    "required_for_next_proposal": "Bind corrected private poison0/spent0 behavior, caller validation and cumulative main-paid425 independently. No refund of B471/public425.",
+    "source_fact": "reply_debit_valid accepts paid425 or underfunded Steps0 only; it rejects a funded poisoned0 result. The walk replaces a rejected result with poisoned425. Normal public construction supplies a full arena; private contract remains material."
+  },
+  "new_credit_inferred": false,
+  "numeric_or_funding_amendment_selected_by_reviewer": false,
+  "proposal_only": "L01 includes existing range preflight; L14 includes complete poison/helper maximum. A reordered absent-readability path may be a subset of these named rows, but requires its own frozen source mapping, caller validation proof and root funding selection.",
+  "schema": 1,
+  "source_readability_range_preflight": {
+    "currently_after_private_charge": true,
+    "line": 137,
+    "minimum_length": 7731056
+  },
+  "source_sha256": "7b8237abbaec492e595508eb7456dab38fbb0d92d8d3cd5a88184f7c1082b9d1"
+}

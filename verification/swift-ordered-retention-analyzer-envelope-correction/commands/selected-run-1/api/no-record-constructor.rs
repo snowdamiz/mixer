@@ -1,0 +1,1 @@
+use corrected_envelope::FixtureDecodedRecordV1; fn main(){}

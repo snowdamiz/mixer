@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "status": "uninstalled-unexecuted-source-proposal",
+  "proposed_install_path": ".github/workflows/pair7-java-compile.yml",
+  "existing_verify_yml": "unchanged",
+  "source_draft": "workflow.DRAFT.yml",
+  "events": [
+    "push to main with finite explicit paths",
+    "pull_request with the same finite paths"
+  ],
+  "attempts": "Only github.run_attempt 1. No retry/install/fallback/runtime/main. New ordinary pushes are distinct source-bound runs, never reuse a nonce or old allowance.",
+  "jobs": {
+    "snapshot": {
+      "os": "macos-15",
+      "maximum_job_minutes": 30,
+      "toolchain": {
+        "developer_directory": "/Applications/Xcode_26.3.app/Contents/Developer",
+        "xcode": "26.3",
+        "build": "17C529",
+        "swift_minimum": "6.2.0",
+        "exact_swift_observed_at_runtime": true
+      },
+      "apple_verifier": {
+        "path": "scripts/ci/verify-apple-toolchain.py",
+        "bytes": 4855,
+        "sha256": "74a3e0261a8dcd9faa075333a09d33f635e5a96351560c4a4d94d1a90b11c442"
+      },
+      "apple_verifier_direct_commands": 7,
+      "apple_verifier_per_command_seconds": 30,
+      "swift_command": [
+        "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "test",
+        "--package-path",
+        "cli",
+        "--scratch-path",
+        "$RUNNER_TEMP/pair7-java-swift-$GITHUB_RUN_ID-1",
+        "--jobs",
+        "2",
+        "--force-resolved-versions",
+        "--filter",
+        "pair7RetainedActualAndroidSnapshotForJavaCI"
+      ],
+      "swift_command_timeout_minutes": 12,
+      "swift_descendant_count": "Unknown before execution. SwiftPM builds the selected test target and dependencies, but selects one snapshot test body.",
+      "pinned_remote_dependencies": [
+        {
+          "identity": "swift-asn1",
+          "kind": "remoteSourceControl",
+          "location": "https://github.com/apple/swift-asn1.git",
+          "state": {
+            "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+            "version": "1.7.3"
+          }
+        },
+        {
+          "identity": "swift-crypto",
+          "kind": "remoteSourceControl",
+          "location": "https://github.com/apple/swift-crypto.git",
+          "state": {
+            "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+            "version": "5.0.3"
+          }
+        }
+      ],
+      "compiler_and_dependency_fetch_scope": "Separate producer prerequisite, broader than Java compile-only collection. Existing exact Swift package pins may be fetched in this new CI job. No tool installer, arbitrary dependency update or full Android build.",
+      "custody_limit": "Workflow step exit and logs only for the existing Apple verifier and SwiftPM. This source proposal does not add a new macOS exact-kernel command supervisor or attest escaped descendants/provider disposal.",
+      "scratch_cleanup": "Snapshot source data, command logs and Swift scratch retained in owned RUNNER_TEMP; no local scratch created, no old process or other project accessed. Provider cleanup is not attested."
+    },
+    "compile": {
+      "os": "ubuntu-24.04",
+      "maximum_job_minutes": 16,
+      "collector_timeout_minutes": 9,
+      "tool_children": 5,
+      "product_test_mains": 0,
+      "exact_tool_profile": "package-observed-temurin17.0.21.0.0+9-0-amd64-sdk37-d8-084a89126ae0-exact-v1",
+      "scratch_cleanup": "Unchanged Linux custody helper; all owned evidence/scratch retained on success/failure, unresolved custody permanently stops later children."
+    }
+  },
+  "actions": {
+    "checkout": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+    "upload": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+    "download": "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
+    "download_pin_evidence": {
+      "source": "Root message in this task",
+      "basis": "Read-only connected GitHub git/ref/tags/v4 and immutable action.yml",
+      "url": "https://github.com/actions/download-artifact/blob/d3f86a106a0bac45b974a628896c90dbdf5c8093/action.yml",
+      "runtime": "node20",
+      "inputs_selected": [
+        "artifact-ids",
+        "path",
+        "merge-multiple"
+      ],
+      "separate_saved_connector_receipt": "Root may attach it; not queried by this lane."
+    }
+  },
+  "artifact_transfer": {
+    "same_workflow_same_head_same_run": true,
+    "selected_id": "needs.snapshot.outputs.snapshot_id",
+    "selected_digest": "needs.snapshot.outputs.snapshot_digest",
+    "snapshot_upload_root": "$RUNNER_TEMP/pair7-java-snapshot-$GITHUB_RUN_ID-1/",
+    "download_root": "$RUNNER_TEMP/pair7-java-snapshot-input",
+    "archive_digest": "Pinned GitHub action metadata; independent archive transport/kernel attestation is not claimed.",
+    "consumer_source_byte_identities": "All exact18 and entire actual generated snapshot manifest checked before/after each tool child."
+  },
+  "pending": [
+    "Independent source review of all new source",
+    "Eleven prepared guarded data controls, including Python AST parsing, DEX truncation/checksum, missing class, unknown/later/array library types and inherited later floor; zero controls executed.",
+    "Workflow syntax/provider validation",
+    "First actual snapshot production",
+    "First javac and D8 execution at this source",
+    "Independent retained actual-data and cleanup review"
+  ],
+  "native_runtime_release_GA": false
+}

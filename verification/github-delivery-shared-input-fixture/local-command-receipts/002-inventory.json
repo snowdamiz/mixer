@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T23:47:58.667003+00:00",
+  "command": [
+    "python3",
+    "-c",
+    "from pathlib import Path; import subprocess, shutil; base=Path(\"/Users/andreyyurlov/Documents/dev/mixer\"); files=[\"AGENTS.md\",\"verification/cache-fixture-shared-input-candidate/SEALED.json\",\"verification/cache-fixture-shared-input-review/SEALED.json\",\"verification/cache-fixture-overlay-independent/SEALED.json\"]; print(\"MEMORY MATCHES\"); subprocess.run([shutil.which(\"rg\"),\"-n\",\"shared.input|fixture|delivery|capacity.window\",\"/Users/andreyyurlov/.codex/memories/MEMORY.md\"],check=False); print(\"DELIVERY FILES\"); [print(str(p.relative_to(base))) for p in sorted((base/\"verification/github-delivery-shared-input-fixture\").rglob(\"*\")) if p.is_file() and \"local-command-receipts\" not in str(p)]; print(\"CANDIDATE FILES\"); [print(str(p.relative_to(base))) for p in sorted((base/\"verification/cache-fixture-shared-input-candidate\").rglob(\"*\")) if p.is_file()]; print(\"REVIEW FILES\"); [print(str(p.relative_to(base)),p.stat().st_size) for d in [\"verification/cache-fixture-shared-input-review\",\"verification/cache-fixture-overlay-independent\"] for p in sorted((base/d).rglob(\"*\")) if p.is_file()]; [print(\"FILE \"+f+\"\\n\"+(base/f).read_text()) for f in files if (base/f).is_file()]"
+  ],
+  "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+  "pid": 285,
+  "pgid": 285,
+  "exitCode": 0,
+  "timedOut": false,
+  "outputLimitExceeded": false,
+  "waitReaped": true,
+  "groupAbsent": true,
+  "eof": [
+    "stderr",
+    "stdout"
+  ],
+  "cleanup": [],
+  "durationSeconds": 0.0906,
+  "pythonVersion": "3.14.8",
+  "stdoutSHA256": "f06d07bf4b4a72b2349788795ae8c56160bf46bb4431736f24354d538202bef5",
+  "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

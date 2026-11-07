@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "source_sha256": "1ffc4ee5bb37c4ca2794c456f66bfcd9f1916090a0de3a548c19b6c82a3767b9",
+  "evaluation_order": [
+    "G4 first tests left==mid (258). If true choose false without any G3 load.",
+    "Otherwise G4 tests right==end (260). If true choose true without any G3 load.",
+    "When both runs nonempty, G3 evaluates L1 index a completely, including ld return to a, then L2 index b completely, including ld return to b.",
+    "Evaluate b==ABSENT. True short-circuits ||, choosing true; a eligibility and both timestamp loads are skipped.",
+    "If b is eligible, evaluate a!=ABSENT. False short-circuits &&, choosing false; both timestamp loads are skipped.",
+    "Only when both indices eligible, evaluate L3 left timestamp before L4 right timestamp, then <=. Equality chooses left, preserving stability.",
+    "G3 result enters take_left. G4 tests it and recomputes chosen offset at270/274, advances selected cursor, then copy_within278."
+  ],
+  "paths": [
+    {
+      "id": "T-left-empty",
+      "G3_loads": [],
+      "G3_scalar_core": 0,
+      "G3_payload_copies": 0,
+      "result_owner": "G4 tail path"
+    },
+    {
+      "id": "T-right-empty",
+      "G3_loads": [],
+      "G3_scalar_core": 0,
+      "G3_payload_copies": 0,
+      "result_owner": "G4 tail path"
+    },
+    {
+      "id": "B-absent",
+      "G3_loads": [
+        "L1",
+        "L2"
+      ],
+      "G3_operations": [
+        "P1",
+        "P2",
+        "P6"
+      ],
+      "G3_scalar_core": 35,
+      "G3_payload_copies": 2
+    },
+    {
+      "id": "A-absent-B-eligible",
+      "G3_loads": [
+        "L1",
+        "L2"
+      ],
+      "G3_operations": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P6"
+      ],
+      "G3_scalar_core": 37,
+      "G3_payload_copies": 2
+    },
+    {
+      "id": "both-eligible",
+      "G3_loads": [
+        "L1",
+        "L2",
+        "L3",
+        "L4"
+      ],
+      "G3_operations": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "G3_scalar_core": 70,
+      "G3_payload_copies": 4
+    }
+  ],
+  "G3_owns": [
+    "265..267 actual index/timestamp address computations, ld scalar argument/result transfers, checked range/chunk/expect work,8-byte input copies and LE decodes",
+    "267 eligibility predicates/short-circuit control, timestamp comparison, result transfer into take_left on actual comparison paths"
+  ],
+  "G4_owns": [
+    "258 and260 run-empty tail predicates/branches, including paths with no comparison",
+    "269 take_left branch;270/274 separate repeated chosen-source computation and at binding;271/275 cursor update;272/276 chosen-offset return/received;278 checked copy_within range/destination work and8-byte transfer",
+    "246..257 and281..285 merge entry/local state, outer/pass/pair/output iteration creation/guards/advance/final tests, base=end, swap source/received references and width update, according to its complete transfer-loop proof"
+  ],
+  "no_cross_credit": "Neither G4 unused allowance nor fewer actual G3 comparisons purchases missing scalar operations for one actual four-load comparison. Identical offset text evaluated again in G4 is separate source work; no optimizer common-expression elimination is assumed.",
+  "structural_count_scope": "Six-pass321 pair comparison and384 transfer maxima are inherited structural obligations; no sort model or executable sort was run. This packet does not close G4<=2 or global complete ledger."
+}

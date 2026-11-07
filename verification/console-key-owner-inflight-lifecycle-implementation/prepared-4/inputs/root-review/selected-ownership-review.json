@@ -1,0 +1,174 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T02:47:23.078175+00:00",
+  "status": "adequate-source-design-only-with-binding-root-amendments-no-implementation-or-runtime-grant",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/ownership-contract-review/source-contract.json",
+    "bytes": 2588,
+    "sha256": "58b34c7d7c918d44e3f1853db8134eb61dc3e5512e0f9698189a3665e49592da"
+  },
+  "producer_freeze_sha256": "a708f1173cff9908f8fb5697d927e85c0a4181ed242506f1bae9ca3c75f69f62",
+  "preaccess_controls_compared": 10,
+  "root_amendments_required": [
+    {
+      "id": "OCR-A1",
+      "priority": 2,
+      "title": "Distinguish closed future grants from an already issued ACK",
+      "source_refs": [
+        "contract.md:45-62",
+        "contract.md:74-83",
+        "protocol.json:57-63"
+      ],
+      "issue": "Closing the runner latch or observing a signal cannot retract a complete ACK the wrapper already validated. A native launch may race cancellation after ACK and before Popen; a filesystem latch read has its own race. The current absolute wording that a closed launch latch means no native Popen is ambiguous between runner and local wrapper state.",
+      "required_selection_text": "Closing the runner latch forbids new ACKs. An issued ACK remains a bounded one-shot capability for its already-retained wrapper group until expiry/local cancellation; a launch racing runner cancellation remains custody-owned and is drained. Wrapper-observed signal/error irreversibly closes its local launch path and cannot be reopened by a later ACK. Do not claim zero post-runner-cancel native launches without a separately demonstrated revocation mechanism.",
+      "test_focus": "Outer cancellation after durable ACK but before child launch must retain group ownership and fail/clean or preserve scratch honestly, whether child starts or not. This requires no additional service or protocol phase."
+    },
+    {
+      "id": "OCR-A2",
+      "priority": 2,
+      "title": "Make final spool messages immutable without replacement",
+      "source_refs": [
+        "contract.md:24-28",
+        "protocol.json:6",
+        "protocol.json:27-33"
+      ],
+      "issue": "An exclusively created temporary file followed by ordinary rename can replace an existing final path. That publication recipe alone does not establish the stated duplicate/replay rejection or immutable ACK/completion binding.",
+      "required_selection_text": "Final publication must refuse an existing destination (or use an equivalent immutable unique message identity with explicit duplicate-state rejection). Never overwrite a prior registration, ACK, completion or exit grant. Journal transition validation must reject duplicate/replayed/conflicting messages and retain every already-proven group. A publication error closes grants and fails/preserves scratch when accounting is incomplete.",
+      "test_focus": "Existing destination, duplicate nonce and conflicting same-identity publication must not overwrite prior evidence or obtain another native grant."
+    },
+    {
+      "id": "OCR-A3",
+      "priority": 2,
+      "title": "Bind phase and selected invocation recipe unambiguously",
+      "source_refs": [
+        "contract.md:37-44",
+        "protocol.json:17-26"
+      ],
+      "issue": "The prose requires selected recipe validation, but listed registration/ACK fields have run and invocation nonces without explicit phase or ordinal/recipe identity. Those nonces alone do not state which allowed call they authorize.",
+      "required_selection_text": "Add explicit phase plus invocation ordinal/recipe ID to registration/journal/ACK/completion, or define an equally unambiguous private spool and journal binding. Only test phase may request selected OpenSSL work; version and each fixture recipe have finite ordered identities, at most seven one-shot grants. ACK remains bound to full request hash and plan.",
+      "test_focus": "Wrong-phase, out-of-order recipe, replayed ordinal and cross-run request receive no new ACK/native grant; prior proven custody is retained."
+    }
+  ],
+  "control_assessment": [
+    {
+      "id": "OC-01",
+      "status": "satisfied in design",
+      "evidence": "Separate wrapper PID/PGID/SID, group-leader shape PGID==PID, no VM-group equality, exact identity checks and rejection of unproven groups. SID need not equal PID when OTP used setpgrp.",
+      "refs": [
+        "contract.md:15-20,30-44",
+        "protocol.json:35-41"
+      ]
+    },
+    {
+      "id": "OC-02",
+      "status": "satisfied subject to OCR-A1/A2",
+      "evidence": "Journal append/fsync precedes hash-bound ACK; wrapper cannot Popen before exact ACK; all proven groups retained even when late/refused. Implementation must retain cleanup ownership before any fallible journal/ACK operation following proof, so a journal failure cannot forget the group.",
+      "refs": [
+        "contract.md:37-62"
+      ]
+    },
+    {
+      "id": "OC-03",
+      "status": "honest failure boundary specified",
+      "evidence": "Bootstrap/import/prepublication failure has no native authority. No unknown group is guessed or killed; incomplete handshake is failed/uncertain with scratch preserved. Late valid requests stay cleanup-owned with grants closed. This is adequate source-contract handling, not a claim that an unpublished wrapper is always recovered.",
+      "refs": [
+        "contract.md:58-62,85-102",
+        "protocol.json:57-63"
+      ]
+    },
+    {
+      "id": "OC-04",
+      "status": "requires OCR-A2/A3",
+      "evidence": "Private 0700 file spool, exact capped JSON, file/directory fsync and nonces/hash bindings provide custody evidence; final no-replace semantics and phase/recipe binding need the explicit amendments.",
+      "refs": [
+        "contract.md:24-28,37-55",
+        "protocol.json:17-33,43-55"
+      ]
+    },
+    {
+      "id": "OC-05",
+      "status": "satisfied in design",
+      "evidence": "Native child starts in acknowledged wrapper group; child identity/group and exact wait/rapid-exit path are required. Bounded output/native work, nonraising signal behavior, native terminate/kill/wait and completion persistence are specified. Child-group discrepancy fails; it cannot be relabeled as VM containment.",
+      "refs": [
+        "contract.md:45-55,66-77"
+      ]
+    },
+    {
+      "id": "OC-06",
+      "status": "satisfied as bounded cleanup or explicit failure",
+      "evidence": "All VM children and proven wrapper groups must be accounted before scratch removal. Lost leader with a live group is uncertainty, no signal authority, failed receipt and scratch preservation. After terminal absence PGID is never signaled again. This intentionally may leave an unresolved exact group rather than authorize a guessed/reused identity.",
+      "refs": [
+        "contract.md:74-102",
+        "protocol.json:35-41,57-63"
+      ]
+    },
+    {
+      "id": "OC-07",
+      "status": "satisfied in design",
+      "evidence": "40/46/52/55 cutoffs, <=1second ACK wait, <=5second native work inside remaining work budget, seven grants/16 requests/4096byte request+ACK/64KiB output and <=10ms poll. Native7x5seconds is still constrained by total40second work, not an independent extra budget. Arbitrary OS progress proof is explicitly excluded.",
+      "refs": [
+        "contract.md:64-72,92-102",
+        "protocol.json:43-55"
+      ]
+    },
+    {
+      "id": "OC-08",
+      "status": "implementation requirement retained",
+      "evidence": "Exact output membership/typed custody evidence are explicitly future work. Registration, ACK, child/wait/completion and per-group cleanup schemas must implement these bindings and preserve failure/missing states. The current protocol is a source design, not final executable schema or evidence.",
+      "refs": [
+        "contract.md:104-114",
+        "protocol.json:17-33"
+      ]
+    },
+    {
+      "id": "OC-09",
+      "status": "satisfied with targeted controls carried forward",
+      "evidence": "Contract names no-ACK, journal-failure, successful leader-held completion, signal/native timeout, malformed/replayed request and prepublication uncertainty controls. Future implementation review must additionally inspect the A1 ACK/cancel race, A2 publication conflicts, late/overflow requests and post-Popen/pre-start-record failure already required by sealed controls. No control runs now.",
+      "refs": [
+        "contract.md:104-114"
+      ]
+    },
+    {
+      "id": "OC-10",
+      "status": "satisfied",
+      "evidence": "Source-only proposal authorizes neither implementation nor execution; no product/test/security policy change or KOL09 weakening. Failed run, later group sample and charlist syntax scope remain distinct; other CI/native/provider/GA boundaries remain pending.",
+      "refs": [
+        "contract.md:3-20,104-118",
+        "protocol.json:3-5,65-66"
+      ]
+    }
+  ],
+  "leader_loss_and_stale_PGID_cases": [
+    {
+      "case": "Leader remains alive while native runs/completion awaits exit grant",
+      "judgment": "Root may act on the currently proven registered leader/group; native launch was already within retained custody."
+    },
+    {
+      "case": "Root grants leader exit after durable completion and group then becomes absent",
+      "judgment": "Record absence as terminal and never signal that PGID again."
+    },
+    {
+      "case": "Leader disappears or exits unexpectedly while group is still present",
+      "judgment": "Contract correctly fails with uncertainty and preserved scratch; no signal against a guessed or newly matching numeric PGID. Later absence is recovery evidence only."
+    },
+    {
+      "case": "Previously lost/terminal numeric PID/PGID appears again",
+      "judgment": "Do not re-arm the old custody record or infer continuity from same numeric PID/PGID/SID; reject as unresolved/reused identity. The stated guard is not an atomic OS generation handle; no broader impossibility proof is required."
+    },
+    {
+      "case": "Request arrives after cutoff/signal or cap overflow leaves unread/unresolved requests",
+      "judgment": "Issue no new ACK. Retain each proven valid group. If finite collection cannot establish complete accounting, fail and preserve scratch; do not treat request-count cap or VM exit as proof all wrapper groups are absent."
+    }
+  ],
+  "selection_recommendation": "Root may select this contract for a minimal source implementation only if its selection binds OCR-A1, OCR-A2 and OCR-A3 plus the explicit failure/scratch-preservation and terminal identity rules. Preserve this immutable 12-member packet; a root amendment may supply those clarifications. Independently review the exact new implementation/tool/source/evidence freeze and focused control plan before any execution release. No code or runtime is authorized by this review.",
+  "acceptance_boundary": "Explicit uncertainty with scratch preservation is a failed result, not a design claim of unconditional cleanup. No arbitrary OS-stall proof, global process inventory or unrelated-source expansion requested.",
+  "runtime_or_probe_executed": false,
+  "implementation_authorized": false,
+  "execution_authorized": false,
+  "pending": [
+    "Binding root source selection/amendments",
+    "Minimal wrapper/runner/evidence implementation and exact frozen source review",
+    "Separate bounded control and eventual real host runtime review/releases",
+    "Unchanged product/KOL09/native/provider/operations/GA qualification boundaries"
+  ]
+}

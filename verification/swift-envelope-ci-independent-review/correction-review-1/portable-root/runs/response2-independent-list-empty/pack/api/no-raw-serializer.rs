@@ -1,0 +1,1 @@
+use mixer_absence::*;pub fn f(x:&FixtureEnvelopeObservationV1){let _=x.to_bytes();}fn main(){}

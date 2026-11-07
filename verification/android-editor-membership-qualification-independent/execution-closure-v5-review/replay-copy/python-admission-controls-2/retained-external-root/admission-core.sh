@@ -1,0 +1,23 @@
+#!/bin/sh
+set -efu
+PATH=/usr/bin:/bin; LANG=C; LC_ALL=C; TZ=UTC; export PATH LANG LC_ALL TZ
+# Caller supplies only an already-owned scratch directory, followed by quoted bootstrap arguments.
+scratch=$1; shift
+case "$scratch" in /*) ;; *) echo 'refused nonabsolute owned scratch' >&2; exit 2;; esac
+[ -d "$scratch" ] && [ ! -L "$scratch" ] || exit 2
+work=$(/usr/bin/mktemp -d "$scratch/owned-python-admission.XXXXXX")
+trap '/bin/rm -rf -- "$work"' EXIT HUP INT TERM
+digest(){ result=$(/usr/bin/shasum -a 256 -- "$1"); result=${result%% *}; printf '%s' "$result"; }
+[ "$(digest /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/external-admission/python-runtime-policy.json)" = 13cef3c5d387e97321bdf8f41032b3d03bfc0c5266d869046ebb987bc60dcb9d ] || { echo 'refused altered external admission python-runtime-policy.json' >&2; exit 2; }
+[ "$(digest /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/external-admission/python-files.sha256)" = 26b6c526d666541bdffd31b5fe4172d7524fdae3aca04835f7c3666099479888 ] || { echo 'refused altered external admission python-files.sha256' >&2; exit 2; }
+[ "$(digest /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/external-admission/python-links.tsv)" = 652929c9b3c7a1d2691d658324f1f5328ea5acc5ee693441539a0073ace65e05 ] || { echo 'refused altered external admission python-links.tsv' >&2; exit 2; }
+[ "$(digest /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/external-admission/python-prefix-pathset.txt)" = 9c36c2d57445a5124c647edb8bff43f7dfac64740b11b5c90f6b9d633283b3c9 ] || { echo 'refused altered external admission python-prefix-pathset.txt' >&2; exit 2; }
+[ "$(digest /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/admitted-bootstrap.py)" = 8d77486eac140efe0e1db4050021ef44ae0aee96439862d702063ad5e3486326 ] || { echo "refused altered selected bootstrap" >&2; exit 2; }
+[ ! -L /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/owned-python-runtime ] || { echo "refused runtime prefix alias" >&2; exit 2; }
+/usr/bin/find /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/owned-python-runtime -path /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/owned-python-runtime/lib/python3.14/site-packages -prune -o \( -type f -o -type l \) -print > "$work/paths.raw"
+/usr/bin/sort "$work/paths.raw" > "$work/paths.sorted"
+/usr/bin/cmp -s "$work/paths.sorted" /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/external-admission/python-prefix-pathset.txt || { echo "refused missing/extra runtime path" >&2; exit 2; }
+/usr/bin/shasum -a 256 -c /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/external-admission/python-files.sha256 > "$work/file-checks" 2>&1 || { echo "refused changed/missing runtime file" >&2; exit 2; }
+tab=$(printf "\t")
+while IFS="$tab" read -r path target; do [ -L "$path" ] && [ "$(/usr/bin/readlink "$path")" = "$target" ] || { echo "refused changed/missing runtime symlink" >&2; exit 2; }; done < /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/external-admission/python-links.tsv
+/usr/bin/env -i PATH=/usr/bin:/bin LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 TZ=UTC /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/owned-python-runtime/bin/python3.14 -I -B -S /Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-2/owned-scratch/admitted-bootstrap.py "$@"

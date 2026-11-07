@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "scope": "Root-selected proposal2 semantics before proposal2 access; expectations only, not product execution",
+  "outer_error": {"aggregate": false},
+  "input_error": [
+    {"code": "BINDING", "boundary": "Unavailable", "reason": "FramingUnavailable", "fixture_fields": "zero", "framing_classification": "preserved"},
+    {"code": "BUDGET", "boundary": "Unavailable", "reason": "FramingLimited", "fixture_fields": "zero", "framing_classification": "preserved"},
+    {"code": "all-other-input-framing-errors", "boundary": "Unavailable", "reason": "FramingInvalid", "fixture_fields": "zero", "framing_classification": "preserved"}
+  ],
+  "successful_structural_limited_drain": [
+    {"private_leaf": "Absent", "boundary": "Unavailable", "reason": "EnvelopeUnavailable", "fixture_fields": "zero"},
+    {"private_leaf": "Observed", "boundary": "AnalysisLimited", "reason": "FramingLimited", "fixture_fields": "last-safe-extent"},
+    {"private_leaf": "Refused", "boundary": "AnalysisLimited", "reason": "first-leaf-refusal", "fixture_fields": "last-safe-extent"},
+    {"private_leaf": "InternalPoisoned", "boundary": "AnalysisLimited", "reason": "InternalPoisoned", "fixture_fields": "zero"}
+  ],
+  "complete_framing_eligibility": "private complete plus strictEOF plus allfinalinputmetadata success; never Decision::Unavailable alone",
+  "complete_framing_finish_order": ["Absent", "InternalPoisoned", "latched-Refused", "unsupported-state", "sole-CAP-unknown-tail", "Idle-phase5-exactmask-closed", "incomplete-boundary-refused"],
+  "debit": {
+    "name": "envelope_debit",
+    "meaning": "cumulative reserved authored envelope credits; not leaf execution count",
+    "setup": "add534 only after setupcharge succeeds",
+    "finish": "add8 only after finishreservation succeeds",
+    "record": "add128 for every successful main B recordcharge including laterdecodefailure, skippedleaf, latchedrefusal and suppressedobservation",
+    "refund": false
+  },
+  "record_admission": {
+    "mandatory_preflight": 8192,
+    "charge": "22framing+128leaf+source-justified-wrapperW<=8192 atomically beforedecode",
+    "leaf_budget": "prepaid128 subdivision; no fresh replay credits",
+    "full8192blindcharge_selected": false
+  },
+  "authority": {"storedPrefixValidated": false, "fullReplayAccepted": false, "semanticMetricsValid": false}
+}

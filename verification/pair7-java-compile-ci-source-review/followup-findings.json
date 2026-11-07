@@ -1,0 +1,38 @@
+{
+  "findings": [
+    {
+      "file": "compile_pair7.py",
+      "id": "R6",
+      "lines": [
+        55,
+        70
+      ],
+      "priority": "binding-correction",
+      "problem": "Consumer and producer job identity is not checked/recorded in the run/head/attempt durable binding.",
+      "requested": "Require GITHUB_JOB compile for consumer and snapshot for producer, and record source head/run/attempt/job in durable reservation/receipt."
+    },
+    {
+      "file": "workflow.DRAFT.yml",
+      "id": "R7",
+      "lines": [
+        100,
+        108
+      ],
+      "priority": "binding-correction",
+      "problem": "Apple verifier expected4855/74a3e026\u2026 is declared only in workflow contract; it is absent from the141-member source manifest and not checked before execution.",
+      "related_file": "workflow.contract.json",
+      "related_lines": [
+        23,
+        27
+      ],
+      "requested": "Bind exact existing verifier in stage/post source verification and include its path in workflow triggers, updating manifest totals accurately."
+    }
+  ],
+  "precision_notes": [
+    "Exact action artifact ID and declared digest are bindings. No independent archive checksum is implied when download-artifact does not retain its archive.",
+    "Root observed checkout/upload actions declaringNode20 executing under forcedNode24. Download action.yml node20 is a declared runtime only; actual download runner runtime is not independently observed in this review.",
+    "Python data commands ran. Candidate code/controls, compilers, workflow, native code, process probes/signals and network remained unrun."
+  ],
+  "schema": 1,
+  "source_seal_sha256": "1f83422d3c9bef9b26d195ab6c2850b22d645f335b173b1ea843697f6e55fb21"
+}

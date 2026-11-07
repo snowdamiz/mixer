@@ -1,0 +1,22 @@
+{
+  "status": "source-only lifecycle correction; runtime pending exact release",
+  "supersedes": "fixture-source-audit.json lifecycle field only; row/schema/role/GUC audit remains unchanged",
+  "observed_candidate4": "All seven method bodies completed, then ExUnit setup_all on_exit failed because Admission persistent_term still held a dead ETS table reference after supervised owner shutdown. Terminal ExUnit suite failed and bootstrap postcondition raised before its result JSON was written.",
+  "source_evidence": [
+    "KeyOwner initialize does not set trap_exit. Its terminate callback calls Admission.close and cancels any owned refresh flights.",
+    "Existing KeyOwnerTest starts the existing fixture owner explicitly and calls normal GenServer.stop in on_exit.",
+    "ExUnit can shut down supervised components before on_exit; an intended later normal stop then sees a dead owner."
+  ],
+  "resource_ownership": "Create the existing TLS fixture, existing DynamicSupervisor and existing KeyOwner via normal start_link/start_fixture. Immediately unlink each exact owned PID from setup lifetime and register early callbacks. No new product collaborator or implementation is added.",
+  "ordered_cleanup": [
+    "Aggregate callback registered immediately after owner start and before any verifier warmup.",
+    "Observe owner and both dependencies alive before requesting normal owner stop.",
+    "Normal GenServer.stop(owner) executes canonical terminate while refresh supervisor and TLS are alive; do not erase Admission directly.",
+    "Stop owned workers and TLS only after normal owner stop; then stop any surviving fixture/default repo PIDs.",
+    "Record all component stop results, default names, Admission absence and TLS key directory; keep every previous cleanup assertion plus new owner/dependency liveness assertions.",
+    "Earlier callbacks for worker/TLS creation failures stop their exact owned PIDs; outer runner still bounds/reaps the entire fresh BEAM process group and owned database."
+  ],
+  "recording_correction_separate_from_acceptance": "Write ExUnit terminal result immediately after ExUnit.run, before checking postconditions. Persist those same four postconditions as booleans and require them all true in the unchanged pass predicate. Outer runner attaches retained JSONs on failure; this changes recording only.",
+  "unchanged": "Seven authority methods, real fixed verifier/default Repo, schema/roles/seed rows, runtime pool1, 36 ordinary sources, dependencies, commands, OS cleanup and 50+5 second limits.",
+  "limitations": "This normal explicit fixture lifecycle does not qualify production owner supervision/startup/shutdown, provider custody, browser sessions, HTTP equivalence, Neon or GA."
+}

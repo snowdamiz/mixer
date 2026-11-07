@@ -1,0 +1,19 @@
+** (Mix) mix format failed due to --check-formatted.
+The following files are not formatted:
+
+[1m[31m/home/runner/work/mixer/mixer/hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs
+[0m
+         |
+ 81  81  |    fixture = start_supervised!(TLSFixture)
+ 82  82  |    authority = GenServer.call(fixture, :authority)
+ 83     -|    assert {:ok, socket} = :gen_tcp.connect(authority.ip, authority.port, [:binary, active: false])
+ 84  83  |
+     84 +|    assert {:ok, socket} =
+     85 +|             :gen_tcp.connect(authority.ip, authority.port, [:binary, active: false])
+     86 +|
+ 85  87  |    try do
+ 86  88  |      eventually(fixture, &(&1.accepted == 1))
+         |
+
+
+

@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+"""Selected actual-runner synthetic response controls, independent of producer tests."""
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROUND=Path(__file__).resolve().parents[1]
+REPO=ROUND.parents[2]
+ROOT=ROUND/'portable-root'
+runner=ROOT/'scripts/ci/check-analyzer-envelope.py'
+if hashlib.sha256(runner.read_bytes()).hexdigest()!='4c56beec330b8118f01be3a6e7460f9857e4b1e8b61f29b4a9bce16fb6c1130c':raise RuntimeError('unadmitted response runner')
+methods=json.loads((ROOT/'verification/swift-envelope-ci-pack/inventories/expected-methods.json').read_bytes())
+layouts=json.loads((ROOT/'verification/swift-envelope-ci-pack/inventories/expected-host-layouts.json').read_bytes())
+oracle={'producer':methods['producer']['names'],'independent':methods['independent_exact_source']['names'],'layouts':[x['bytes'] for x in layouts['layouts']]}
+with (ROUND/'response-oracle.json').open('x') as stream:json.dump(oracle,stream,indent=2,sort_keys=True);stream.write('\n')
+compiler=ROUND/'response-toolchain/bin/rustc';compiler.parent.mkdir(parents=True)
+data=(ROUND/'commands/response-compiler.py').read_text().replace("ROUND=Path('REPLACED_ROUND')",'ROUND=Path('+repr(str(ROUND))+')')
+compiler.write_text('#!'+sys.executable+'\n'+'\n'.join(data.splitlines()[1:])+'\n');compiler.chmod(0o755)
+cases=[('valid-response-protocol','valid','producer',False,True)]
+for lane in ('producer','independent'):
+    for mode in ('list-empty','list-missing','list-extra','list-duplicate','list-substitute','execute-empty','execute-missing','execute-duplicate','execute-substitute','execute-ignored','execute-failed','execute-measured','execute-filtered'):
+        cases.append((lane+'-'+mode,mode,lane,mode.startswith('execute'),False))
+for mode in ('layout-missing','layout-wrong','layout-duplicate','comparison-missing','comparison-wrong','comparison-duplicate','positive-fails','negative-missing-library','negative-malformed-json','negative-crash','negative-success','negative-produced-executable','independent-other-warning'):
+    cases.append((mode,mode,'producer',True,False))
+results=[]
+for name,mode,lane,optimize,expected_pass in cases:
+    cfg={'case':name,'mode':mode,'lane':lane}
+    (ROUND/'response-settings.json').write_text(json.dumps(cfg,sort_keys=True)+'\n')
+    out=ROOT/'runs'/('response-'+name)
+    argv=[sys.executable,*(['-O'] if optimize else []),'-B',str(runner),'--out',str(out),'--rustc',str(compiler)]
+    env=dict(os.environ);env.update({'RUSTFLAGS':'--cfg UNSELECTED','RUSTC_WRAPPER':'/unselected-wrapper','RUST_TEST_THREADS':'99','RUST_TEST_RUN_IGNORED':'1'})
+    row={'name':name,'fixture':cfg,'argv':argv,'cwd':str(REPO),'expected_pass':expected_pass,'started_utc':datetime.now(timezone.utc).isoformat(),'python_optimization':1 if optimize else 0,'scope':'Synthetic protocol/fault response only; never product or compiler qualification.'}
+    start=time.monotonic()
+    with (ROUND/('response-'+name+'.stdout')).open('xb') as stdout,(ROUND/('response-'+name+'.stderr')).open('xb') as stderr:
+        result=subprocess.run(argv,cwd=REPO,env=env,stdout=stdout,stderr=stderr,timeout=40)
+    receipt=json.loads((out/'receipt.json').read_bytes())
+    observed_pass=result.returncode==0 and receipt['status']=='passed-host-fixture-check'
+    intended_stage='producer-list' if mode.startswith('list-') and lane=='producer' else 'independent-list' if mode.startswith('list-') else 'producer-execute' if mode.startswith('execute-') and lane=='producer' else 'independent-execute' if mode.startswith('execute-') else 'producer-execute' if mode.startswith(('layout-','comparison-')) else 'api-positive' if mode=='positive-fails' else 'api-negative-private-field' if mode.startswith('negative-') else 'independent-compile' if mode=='independent-other-warning' else 'revision-after'
+    commands=[r['name'] for r in receipt['commands']]
+    stage_reached=intended_stage in commands
+    row.update({'exit':result.returncode,'status':receipt['status'],'errors':receipt['errors'],'elapsed_seconds':round(time.monotonic()-start,6),'finished_utc':datetime.now(timezone.utc).isoformat(),'commands':commands,'intended_stage':intended_stage,'intended_stage_reached':stage_reached,'passed':observed_pass==expected_pass and stage_reached,'receipt':str((out/'receipt.json').relative_to(ROUND)),'cleanup_removed':receipt['cleanup']['removed'],'environment_scrubbed':all(not any(k in r['environment'] for k in ('RUSTFLAGS','RUSTC_WRAPPER','RUST_TEST_THREADS','RUST_TEST_RUN_IGNORED')) for r in receipt['commands'])})
+    row['raw_streams_verified']=True
+    for command in receipt['commands']:
+        for stream in ('stdout','stderr'):
+            record=command[stream];path=out/record['path']
+            if path.stat().st_size!=record['bytes'] or hashlib.sha256(path.read_bytes()).hexdigest()!=record['sha256']:row['raw_streams_verified']=False
+    results.append(row)
+    (ROUND/'response-controls-progress.json').write_text(json.dumps(results,indent=2,sort_keys=True)+'\n')
+    print(json.dumps({'case':name,'passed':row['passed'],'status':row['status'],'intended_stage_reached':stage_reached,'elapsed_seconds':row['elapsed_seconds']},sort_keys=True),flush=True)
+summary={'schema':1,'scope':'Independent actual-runner synthetic response protocol only. One valid fixture baseline and faults; no synthetic product qualification.','case_count':len(results),'passed':sum(x['passed'] for x in results),'failed':[x['name'] for x in results if not x['passed']],'results':results}
+with (ROUND/'response-controls.json').open('x') as stream:json.dump(summary,stream,indent=2,sort_keys=True);stream.write('\n')
+print(json.dumps({k:v for k,v in summary.items() if k!='results'},sort_keys=True))
+sys.exit(0 if not summary['failed'] else 1)

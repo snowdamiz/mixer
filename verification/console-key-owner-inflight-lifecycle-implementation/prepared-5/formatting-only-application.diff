@@ -1,0 +1,486 @@
+--- before/hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs
++++ after/hosted/test/mixer_hosted/identity/key_owner_inflight_lifecycle_test.exs
+@@ -1,7 +1,13 @@
+ defmodule MixerHosted.Identity.KeyOwnerInflightLifecycleTest do
+   use ExUnit.Case, async: false
+ 
+-  alias MixerHosted.Identity.{Admission, ConfiguredVerifier, KeyOwner, KeyOwnerSupervisor, TLSFixture}
++  alias MixerHosted.Identity.{
++    Admission,
++    ConfiguredVerifier,
++    KeyOwner,
++    KeyOwnerSupervisor,
++    TLSFixture
++  }
+ 
+   defmodule Recorder do
+     use GenServer
+@@ -20,7 +26,15 @@
+          resources: %{},
+          values: %{},
+          observations: %{},
+-         raw_reply: %{kind: "unobserved", result: "unobserved", before_deadline: false, observed_at_ms: -1, pointer: "unobserved", owner_alive: false, table_alive: false},
++         raw_reply: %{
++           kind: "unobserved",
++           result: "unobserved",
++           before_deadline: false,
++           observed_at_ms: -1,
++           pointer: "unobserved",
++           owner_alive: false,
++           table_alive: false
++         },
+          public_reply: "unobserved",
+          fault_reason: "unobserved",
+          deadline_margin_ms: -1,
+@@ -33,10 +47,15 @@
+     def handle_call({:put, key, value}, _, state), do: {:reply, :ok, Map.put(state, key, value)}
+     def handle_call(:get, _, state), do: {:reply, state, state}
+ 
+-    def handle_call({:track, role, resource}, _, state) when is_pid(resource) or is_port(resource) do
++    def handle_call({:track, role, resource}, _, state)
++        when is_pid(resource) or is_port(resource) do
+       resources =
+         Map.put_new_lazy(state.resources, resource, fn ->
+-          monitor = if is_pid(resource), do: Process.monitor(resource), else: :erlang.monitor(:port, resource)
++          monitor =
++            if is_pid(resource),
++              do: Process.monitor(resource),
++              else: :erlang.monitor(:port, resource)
++
+           %{role: role, monitor: monitor, down: false, reason: "unobserved", down_ms: -1}
+         end)
+ 
+@@ -143,8 +162,13 @@
+   end
+ 
+   defp ports(recorder, role, port) when is_port(port), do: track(recorder, role, port)
+-  defp ports(recorder, role, tuple) when is_tuple(tuple), do: ports(recorder, role, Tuple.to_list(tuple))
+-  defp ports(recorder, role, list) when is_list(list), do: Enum.each(list, &ports(recorder, role, &1))
++
++  defp ports(recorder, role, tuple) when is_tuple(tuple),
++    do: ports(recorder, role, Tuple.to_list(tuple))
++
++  defp ports(recorder, role, list) when is_list(list),
++    do: Enum.each(list, &ports(recorder, role, &1))
++
+   defp ports(_, _, _), do: :ok
+ 
+   defp sample_pointer(recorder, phase) do
+@@ -154,10 +178,17 @@
+ 
+     kind =
+       cond do
+-        current == :absent -> "absent"
+-        old != nil and current == old.table -> "old"
+-        is_reference(current) and :ets.info(current, :owner) == Process.whereis(state.name) -> "current"
+-        true -> "other"
++        current == :absent ->
++          "absent"
++
++        old != nil and current == old.table ->
++          "old"
++
++        is_reference(current) and :ets.info(current, :owner) == Process.whereis(state.name) ->
++          "current"
++
++        true ->
++          "other"
+       end
+ 
+     sample = %{phase: phase, at_ms: mono(), kind: kind, table: inspect(current)}
+@@ -173,16 +204,27 @@
+       try do
+         cleanup(recorder)
+       rescue
+-        exception -> cleanup_error(recorder, "cleanup collector raised: #{Exception.message(exception)}")
++        exception ->
++          cleanup_error(recorder, "cleanup collector raised: #{Exception.message(exception)}")
+       catch
+         kind, reason -> cleanup_error(recorder, "cleanup collector #{kind}: #{inspect(reason)}")
+       end
++
+       state = Recorder.get(recorder)
+       :ok = GenServer.stop(recorder, :normal, 500)
+       report = report(state, not Process.alive?(recorder))
+       write_evidence(case_id <> "-observation.json", report)
+       assert report.cleanup_errors == []
+-      assert Enum.all?(Map.drop(report.cleanup, [:resume_result, :component_stop_result, :fixture_stop_result]), fn {_, value} -> value == true end)
++
++      assert Enum.all?(
++               Map.drop(report.cleanup, [
++                 :resume_result,
++                 :component_stop_result,
++                 :fixture_stop_result
++               ]),
++               fn {_, value} -> value == true end
++             )
++
+       assert report.cleanup.component_stop_result in [":ok", ":already_stopped"]
+       assert report.cleanup.fixture_stop_result in [":ok", ":already_stopped"]
+     end)
+@@ -193,7 +235,13 @@
+     Process.unlink(fixture)
+     value(recorder, :fixture, track(recorder, :fixture, fixture))
+     fixture_state = :sys.get_state(fixture)
+-    value(recorder, :listener, socket_resources(recorder, :listener_socket, fixture_state.listener))
++
++    value(
++      recorder,
++      :listener,
++      socket_resources(recorder, :listener_socket, fixture_state.listener)
++    )
++
+     value(recorder, :acceptor, track(recorder, :acceptor, fixture_state.acceptor))
+     authority = GenServer.call(fixture, :authority)
+     :ok = TLSFixture.configure(fixture, {:barrier, self(), TLSFixture.response("{\"keys\":[]}")})
+@@ -229,10 +277,16 @@
+             reply = GenServer.call(owner, {:checkout, permit, now()}, 2_200)
+             %{kind: "reply", result: inspect(reply), before_deadline: false}
+           catch
+-            :exit, reason -> %{kind: "exit", result: inspect(reason, limit: 30), before_deadline: false}
++            :exit, reason ->
++              %{kind: "exit", result: inspect(reason, limit: 30), before_deadline: false}
+           end
+ 
+-        send(parent, {:raw_checkout, self(), result, mono(), pointer(name), Process.alive?(owner), :ets.info(old.table) != :undefined})
++        send(
++          parent,
++          {:raw_checkout, self(), result, mono(), pointer(name), Process.alive?(owner),
++           :ets.info(old.table) != :undefined}
++        )
++
+         Admission.release(permit)
+       end)
+ 
+@@ -293,9 +347,25 @@
+     state = Recorder.get(recorder)
+     raw = state.values.raw_caller
+     assert_receive {:raw_checkout, ^raw, result, at, ptr, owner_alive, table_alive}, 600
+-    result = Map.merge(result, %{before_deadline: at < state.values.deadline, observed_at_ms: at, pointer: inspect(ptr), owner_alive: owner_alive, table_alive: table_alive})
++
++    result =
++      Map.merge(result, %{
++        before_deadline: at < state.values.deadline,
++        observed_at_ms: at,
++        pointer: inspect(ptr),
++        owner_alive: owner_alive,
++        table_alive: table_alive
++      })
++
+     Recorder.put(recorder, :raw_reply, result)
+-    fact(recorder, :raw_explicit_reply, result.kind == "reply" and result.result == "{:error, :identity_unavailable}" and result.before_deadline)
++
++    fact(
++      recorder,
++      :raw_explicit_reply,
++      result.kind == "reply" and result.result == "{:error, :identity_unavailable}" and
++        result.before_deadline
++    )
++
+     fact(recorder, :pointer_absent_at_raw_reply, ptr == :absent)
+     fact(recorder, :owner_alive_at_raw_reply, owner_alive)
+     fact(recorder, :table_alive_at_raw_reply, table_alive)
+@@ -318,10 +388,21 @@
+       end
+ 
+     value(recorder, :resume_result, inspect(result))
+-    value(recorder, :resume_results, (Recorder.get(recorder).values[:resume_results] || []) ++ [inspect(result)])
+-    if result not in [:ok, :already_stopped], do: cleanup_error(recorder, "controller resume failed: #{inspect(result)}")
++
++    value(
++      recorder,
++      :resume_results,
++      (Recorder.get(recorder).values[:resume_results] || []) ++ [inspect(result)]
++    )
++
++    if result not in [:ok, :already_stopped],
++      do: cleanup_error(recorder, "controller resume failed: #{inspect(result)}")
++
+     value(recorder, :suspended, false)
+-    if alive?(state.values[:server_handler]), do: send(state.values.server_handler, :release_response)
++
++    if alive?(state.values[:server_handler]),
++      do: send(state.values.server_handler, :release_response)
++
+     value(recorder, :barrier_released, true)
+   end
+ 
+@@ -349,14 +430,27 @@
+     end
+ 
+     component_result = stop(state.values[:component])
+-    if component_result not in [:ok, :already_stopped], do: cleanup_error(recorder, "component stop failed: #{inspect(component_result)}")
++
++    if component_result not in [:ok, :already_stopped],
++      do: cleanup_error(recorder, "component stop failed: #{inspect(component_result)}")
++
+     fixture = state.values[:fixture]
+-    peer_closed = not alive?(fixture) or wait_observed(fn -> TLSFixture.info(fixture).closed == 1 end)
+-    if not peer_closed, do: cleanup_error(recorder, "server peer closure not observed before fixture stop")
+-    fixture_info = if alive?(state.values[:fixture]), do: TLSFixture.info(state.values.fixture), else: nil
++
++    peer_closed =
++      not alive?(fixture) or wait_observed(fn -> TLSFixture.info(fixture).closed == 1 end)
++
++    if not peer_closed,
++      do: cleanup_error(recorder, "server peer closure not observed before fixture stop")
++
++    fixture_info =
++      if alive?(state.values[:fixture]), do: TLSFixture.info(state.values.fixture), else: nil
++
+     if fixture_info != nil, do: value(recorder, :fixture_info, fixture_info)
+     fixture_result = stop(state.values[:fixture])
+-    if fixture_result not in [:ok, :already_stopped], do: cleanup_error(recorder, "fixture stop failed: #{inspect(fixture_result)}")
++
++    if fixture_result not in [:ok, :already_stopped],
++      do: cleanup_error(recorder, "fixture stop failed: #{inspect(fixture_result)}")
++
+     state = Recorder.get(recorder)
+ 
+     for key <- [:raw_caller, :public_caller, :stop_caller] do
+@@ -365,9 +459,19 @@
+     end
+ 
+     # Only these exact recorded resources are observed; no VM/process inventory.
+-    all_gone = wait_observed(fn -> Enum.all?(Recorder.get(recorder).resources, fn {resource, _} -> not alive?(resource) end) end)
+-    all_down = wait_observed(fn -> Enum.all?(Recorder.get(recorder).resources, fn {_, resource} -> resource.down end) end)
+-    if not all_gone or not all_down, do: cleanup_error(recorder, "recorded owned resource remains or DOWN missing")
++    all_gone =
++      wait_observed(fn ->
++        Enum.all?(Recorder.get(recorder).resources, fn {resource, _} -> not alive?(resource) end)
++      end)
++
++    all_down =
++      wait_observed(fn ->
++        Enum.all?(Recorder.get(recorder).resources, fn {_, resource} -> resource.down end)
++      end)
++
++    if not all_gone or not all_down,
++      do: cleanup_error(recorder, "recorded owned resource remains or DOWN missing")
++
+     state = Recorder.get(recorder)
+     info = state.values[:fixture_info]
+ 
+@@ -380,7 +484,8 @@
+       current_admission_absent: pointer(state.name) == :absent,
+       owner_absent: Process.whereis(state.name) == nil,
+       workers_absent: Process.whereis(workers(state.name)) == nil,
+-      old_table_gone: state.values[:old] == nil or :ets.info(state.values.old.table) == :undefined,
++      old_table_gone:
++        state.values[:old] == nil or :ets.info(state.values.old.table) == :undefined,
+       key_directory_removed: info != nil and info.key_dir_removed,
+       fixture_peer_closed: info != nil and info.accepted == 1 and info.closed == 1
+     })
+@@ -407,10 +512,17 @@
+ 
+   defp report(state, recorder_stopped) do
+     cleanup_defaults = %{
+-      resume_result: "unobserved", component_stop_result: "unobserved", fixture_stop_result: "unobserved",
+-      barrier_released: false, all_resources_down: false, current_admission_absent: false,
+-      owner_absent: false, workers_absent: false, old_table_gone: false,
+-      key_directory_removed: false, fixture_peer_closed: false
++      resume_result: "unobserved",
++      component_stop_result: "unobserved",
++      fixture_stop_result: "unobserved",
++      barrier_released: false,
++      all_resources_down: false,
++      current_admission_absent: false,
++      owner_absent: false,
++      workers_absent: false,
++      old_table_gone: false,
++      key_directory_removed: false,
++      fixture_peer_closed: false
+     }
+ 
+     %{
+@@ -428,9 +540,16 @@
+       pointer_samples: state.pointer_samples,
+       resources:
+         Enum.map(state.resources, fn {resource, entry} ->
+-          %{role: Atom.to_string(entry.role), id: inspect(resource), down: entry.down, reason: entry.reason, down_ms: entry.down_ms}
++          %{
++            role: Atom.to_string(entry.role),
++            id: inspect(resource),
++            down: entry.down,
++            reason: entry.reason,
++            down_ms: entry.down_ms
++          }
+         end),
+-      cleanup: Map.put(Map.merge(cleanup_defaults, state.cleanup), :recorder_stopped, recorder_stopped)
++      cleanup:
++        Map.put(Map.merge(cleanup_defaults, state.cleanup), :recorder_stopped, recorder_stopped)
+     }
+   end
+ 
+@@ -458,16 +577,56 @@
+       raw_reply(recorder)
+       wait_until(fn -> Port.info(values.raw_socket) == nil end)
+       fact(recorder, :raw_port_closed_while_held, true)
+-      fact(recorder, :fresh_denial, Admission.acquire(__MODULE__.GracefulOwner, :configured) == {:error, :identity_unavailable} and ConfiguredVerifier.authenticate(__MODULE__.GracefulOwner, :configured, "synthetic", now()) == {:error, :identity_unavailable})
++
++      fact(
++        recorder,
++        :fresh_denial,
++        Admission.acquire(__MODULE__.GracefulOwner, :configured) ==
++          {:error, :identity_unavailable} and
++          ConfiguredVerifier.authenticate(
++            __MODULE__.GracefulOwner,
++            :configured,
++            "synthetic",
++            now()
++          ) == {:error, :identity_unavailable}
++      )
++
+       refute_receive {:component_stopped, ^stopper, _}, 50
+       fact(recorder, :parent_stop_pending, alive?(stopper) and alive?(values.controller))
+       Recorder.put(recorder, :stage, "graceful-drain-held")
+       release(recorder)
+       assert_receive {:component_stopped, ^stopper, :ok}, 1_000
+-      fact(recorder, :old_resources_down_at_stop, Enum.all?([values.component, values.owner, values.workers, values.flight, values.worker, values.controller, values.raw_socket], &(not alive?(&1))))
++
++      fact(
++        recorder,
++        :old_resources_down_at_stop,
++        Enum.all?(
++          [
++            values.component,
++            values.owner,
++            values.workers,
++            values.flight,
++            values.worker,
++            values.controller,
++            values.raw_socket
++          ],
++          &(not alive?(&1))
++        )
++      )
++
+       public_reply(recorder)
+ 
+-      for key <- [:raw_explicit_reply, :fresh_denial, :raw_port_closed_while_held, :parent_stop_pending, :old_resources_down_at_stop, :owner_alive_at_raw_reply, :table_alive_at_raw_reply, :pointer_absent_at_raw_reply, :public_denial] do
++      for key <- [
++            :raw_explicit_reply,
++            :fresh_denial,
++            :raw_port_closed_while_held,
++            :parent_stop_pending,
++            :old_resources_down_at_stop,
++            :owner_alive_at_raw_reply,
++            :table_alive_at_raw_reply,
++            :pointer_absent_at_raw_reply,
++            :public_denial
++          ] do
+         assert Recorder.get(recorder).observations[key], "missing graceful observation #{key}"
+       end
+ 
+@@ -490,30 +649,100 @@
+       assert_receive {:DOWN, ^owner_monitor, :process, _, reason}, 700
+       Recorder.put(recorder, :fault_reason, inspect(reason, limit: 50))
+       fact(recorder, :callback_clean, reason == :shutdown)
+-      wait_until(fn -> is_pid(Process.whereis(__MODULE__.WorkerDeathOwner)) and Process.whereis(__MODULE__.WorkerDeathOwner) != values.owner end)
++
++      wait_until(fn ->
++        is_pid(Process.whereis(__MODULE__.WorkerDeathOwner)) and
++          Process.whereis(__MODULE__.WorkerDeathOwner) != values.owner
++      end)
++
+       replacement = Process.whereis(__MODULE__.WorkerDeathOwner)
+       current = :sys.get_state(replacement)
+       track(recorder, :owner, replacement)
+       track(recorder, :workers, Process.whereis(current.workers))
+-      fact(recorder, :replacement_observed, current.table != values.old.table and current.epoch != values.old.epoch)
+-      initially_empty = Enum.all?([:snapshots, :attempts, :flights, :waiters, :admitted, :negatives], &(current[&1] == %{})) and DynamicSupervisor.count_children(current.workers).active == 0
+-      fact(recorder, :old_resources_down_before_replacement, Enum.all?([values.flight, values.worker, values.controller, values.raw_socket], &(not alive?(&1))))
++
++      fact(
++        recorder,
++        :replacement_observed,
++        current.table != values.old.table and current.epoch != values.old.epoch
++      )
++
++      initially_empty =
++        Enum.all?(
++          [:snapshots, :attempts, :flights, :waiters, :admitted, :negatives],
++          &(current[&1] == %{})
++        ) and DynamicSupervisor.count_children(current.workers).active == 0
++
++      fact(
++        recorder,
++        :old_resources_down_before_replacement,
++        Enum.all?(
++          [values.flight, values.worker, values.controller, values.raw_socket],
++          &(not alive?(&1))
++        )
++      )
++
+       assert sample_pointer(recorder, "replacement-while-old-controller-held") == current.table
+       Recorder.put(recorder, :stage, "worker-death-order-witness-retained")
+       release(recorder)
+       public_reply(recorder)
+-      wait_until(fn -> Enum.all?([values.flight, values.worker, values.controller, values.raw_socket], &(not alive?(&1))) end)
++
++      wait_until(fn ->
++        Enum.all?(
++          [values.flight, values.worker, values.controller, values.raw_socket],
++          &(not alive?(&1))
++        )
++      end)
++
+       after_drain = :sys.get_state(replacement)
+-      fact(recorder, :replacement_empty, initially_empty and Enum.all?([:snapshots, :attempts, :flights, :waiters, :admitted, :negatives], &(after_drain[&1] == %{})))
+-      fact(recorder, :old_permit_rejected, KeyOwner.checkout(__MODULE__.WorkerDeathOwner, values.permit, now()) == {:error, :identity_unavailable})
+-      lease = %KeyOwner.Lease{epoch: values.old.epoch, generation: values.old.generation, id: "inflight", snapshot_generation: make_ref(), snapshot: :synthetic_rejection_only, permit: values.permit}
+-      fact(recorder, :stale_lease_rejected, KeyOwner.finish(__MODULE__.WorkerDeathOwner, lease) == {:error, :identity_unavailable})
++
++      fact(
++        recorder,
++        :replacement_empty,
++        initially_empty and
++          Enum.all?(
++            [:snapshots, :attempts, :flights, :waiters, :admitted, :negatives],
++            &(after_drain[&1] == %{})
++          )
++      )
++
++      fact(
++        recorder,
++        :old_permit_rejected,
++        KeyOwner.checkout(__MODULE__.WorkerDeathOwner, values.permit, now()) ==
++          {:error, :identity_unavailable}
++      )
++
++      lease = %KeyOwner.Lease{
++        epoch: values.old.epoch,
++        generation: values.old.generation,
++        id: "inflight",
++        snapshot_generation: make_ref(),
++        snapshot: :synthetic_rejection_only,
++        permit: values.permit
++      }
++
++      fact(
++        recorder,
++        :stale_lease_rejected,
++        KeyOwner.finish(__MODULE__.WorkerDeathOwner, lease) == {:error, :identity_unavailable}
++      )
++
+       assert pointer(__MODULE__.WorkerDeathOwner) == current.table
+ 
+       # Keep this adverse witness red until an independently reviewed correction
+       # is justified by its actual callback reason and old-resource ordering.
+-      for key <- [:raw_explicit_reply, :replacement_observed, :replacement_empty, :old_resources_down_before_replacement, :callback_clean, :old_permit_rejected, :stale_lease_rejected, :public_denial] do
+-        assert Recorder.get(recorder).observations[key], "failed active-flight resource gate #{key}"
++      for key <- [
++            :raw_explicit_reply,
++            :replacement_observed,
++            :replacement_empty,
++            :old_resources_down_before_replacement,
++            :callback_clean,
++            :old_permit_rejected,
++            :stale_lease_rejected,
++            :public_denial
++          ] do
++        assert Recorder.get(recorder).observations[key],
++               "failed active-flight resource gate #{key}"
+       end
+ 
+       Recorder.put(recorder, :stage, "worker-death-resource-gate-passed")

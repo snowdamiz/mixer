@@ -1,0 +1,271 @@
+--- verification/cache-fixture-shared-input-candidate/test_runner.py
++++ verification/cache-fixture-shared-input-candidate-v2/test_runner.py
+@@ -46,7 +46,7 @@
+    alias=self.base/'alias';alias.symlink_to(runs,target_is_directory=True);self.bad(r.fresh_output,alias/'child')
+  def test_checks_active_under_optimized_python(self):
+   code="import runpy;d=runpy.run_path(%r);d['member']('../escape')"%str(HERE/'check_cache_state.py')
+-  p=subprocess.run([sys.executable,'-B','-O','-c',code],capture_output=True,timeout=15);self.assertNotEqual(p.returncode,0);self.assertIn(b'Noncanonical member path',p.stderr)
++  p=subprocess.run([sys.executable,'-B','-O','-c',code],capture_output=True,timeout=15,cwd=HERE);self.assertNotEqual(p.returncode,0);self.assertIn(b'Noncanonical member path',p.stderr)
+  def test_environment_scrubs_all_test_flags_and_caller_scratch(self):
+   bad={'RUSTFLAGS':'bad','RUST_TEST_SHUFFLE':'1','RUST_TEST_NEW_OPTION':'bad','RUST_MIN_STACK':'bad','RUSTC_BOOTSTRAP':'bad','RUSTUP_AUTO_INSTALL':'1','RUSTC_WRAPPER':'bad','CARGO_ENCODED_RUSTFLAGS':'bad','MIXER_CACHE_FIXTURE_EVIDENCE':'bad','MIXER_OTHER':'bad','REVIEW_SCRATCH':'bad','TMPDIR':'bad','TMP':'bad','TEMP':'bad'}
+   with mock.patch.dict(os.environ,bad):
+--- verification/cache-fixture-shared-input-candidate/check_cache_state.py
++++ verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py
+@@ -10,7 +10,7 @@
+ ROOT=HERE.parents[1]
+ PACK=HERE/'materialized'/'pack'
+ RUNS=HERE/'runs'
+-MANIFEST_SHA256='86c104696aca726a47715cde9e6beedfd0522f5f9ec7f3e68d4fed4de1368d07'
++MANIFEST_SHA256='e8a74a521ddbc01f0fc1274a32838cab57c60d63ee7924b5b830b56686836c3d'
+ EXPECTED_COMPILER_HOST='aarch64-apple-darwin'
+ EXPECTED_COMPILER_RELEASE='1.98.1'
+ SOURCE_SHA256='f98f7801925bc280e0e2a9c08ec2b4841b7ffc2942d2fedf6c4d3b4c1796bf1b'
+--- verification/cache-fixture-shared-input-candidate/materialize_pack.py
++++ verification/cache-fixture-shared-input-candidate-v2/materialize_pack.py
+@@ -17,7 +17,7 @@
+ OVERLAY = HERE / 'pack-overlay'
+ OVERLAY_MANIFEST = HERE / 'overlay-manifest.json'
+ MATERIALIZED = HERE / 'materialized'
+-OVERLAY_SHA256 = 'fb60b65c8c3b6b0684592654c77a20ec82b74982b21a1837d46147723cb518ca'
++OVERLAY_SHA256 = 'c7c4ecd65f4a92f1edd2b36fcbb54bc8e233662b9a673d6555fd36b284d201a6'
+ BASE_MANIFEST_SHA256 = 'd1caf2069e17ac1beff6707d6e084ea49d18382bc959d73d5184ec49cb7886b9'
+ BASE_TREE_SHA256 = 'ab2d0a6ef1c0df25f9624fc4b7d72cb0007df749fd1ed88bf43f243336eeedb2'
+ ORIGINAL_SOURCE_SHA256 = '7c9c3006e1e7fd6a927fc7c3ca472c33abe3084f50a1f5aea0d31c6d9d75c411'
+--- verification/cache-fixture-shared-input-candidate/verify_candidate.py
++++ verification/cache-fixture-shared-input-candidate-v2/verify_candidate.py
+@@ -6,7 +6,7 @@
+ import materialize_pack as m
+ 
+ HERE = Path(__file__).resolve().parent
+-WORKFLOW = '.github/workflows/cache-fixture-shared-input-diagnostic.yml'
++WORKFLOW = '.github/workflows/cache-fixture-shared-input-controls-v2.yml'
+ 
+ 
+ def verify(installed=False):
+@@ -25,7 +25,7 @@
+         'logs', 'runs', 'control-scratch', 'materialized', '__pycache__'})}
+     m.need(observed == expected, 'Missing/extra shipping candidate member')
+     if installed:
+-        m.need(m.sha(m.regular(m.ROOT / WORKFLOW)) == m.sha(HERE / 'workflow/cache-fixture-shared-input-diagnostic.yml'),
++        m.need(m.sha(m.regular(m.ROOT / WORKFLOW)) == m.sha(HERE / 'workflow/cache-fixture-shared-input-controls-v2.yml'),
+                'Installed workflow differs from sealed manual candidate')
+     return {'candidate_tree_sha256': seal['tree_sha256'], 'candidate_member_count': seal['member_count'],
+             'workflow_installed_and_bound': installed, 'inputs': m.verify_inputs()}
+--- verification/cache-fixture-shared-input-candidate/offline_verify.py
++++ verification/cache-fixture-shared-input-candidate-v2/offline_verify.py
+@@ -102,7 +102,7 @@
+     commands = 2 + 4 + 16 + (7 + len(methods['producer_debug_partition'])) + 56
+     report = {
+         'schema': 1, 'created_utc': datetime.now(timezone.utc).isoformat(),
+-        'command': 'python3 -B verification/cache-fixture-shared-input-candidate/offline_verify.py',
++        'command': 'python3 -B verification/cache-fixture-shared-input-candidate-v2/offline_verify.py',
+         'python': sys.version, 'host_uname': list(os.uname()),
+         'scope': 'Audited in-process Python file/source/mock controls only; no compiler, product, Git, process inventory, child, socket, signal, wait, UI, native, capture, held probe or dispatch',
+         'status': 'passed-offline-preparation-controls' if result.wasSuccessful() and materializer_result.wasSuccessful() else 'failed',
+--- verification/cache-fixture-shared-input-candidate/pack-overlay/inventories/source-roster.json
++++ verification/cache-fixture-shared-input-candidate-v2/pack-overlay/inventories/source-roster.json
+@@ -425,7 +425,7 @@
+         "packed": "source/regression/independent_tests.rs",
+         "sha256": "140833c2d18655b77769d3f4c1346aee4b0f43aed25dae8e7160860adcd5033f"
+       },
+-      "original": "verification/cache-fixture-shared-input-candidate/pack-overlay/source/regression/independent_tests.rs",
++      "original": "verification/cache-fixture-shared-input-candidate-v2/pack-overlay/source/regression/independent_tests.rs",
+       "packed": "source/regression/independent_tests.rs",
+       "sha256": "f7d62c01e251642677e22f7595af9683f9c451f1db43683be5d2ef86fedba141",
+       "shared_input_amendment": "Reviewed shared read-only stream/profile inputs; fresh context/report/open cursors and all 1003 analyzer calls/assertions preserved.",
+--- verification/cache-fixture-shared-input-candidate/pack-overlay/manifest.json
++++ verification/cache-fixture-shared-input-candidate-v2/pack-overlay/manifest.json
+@@ -355,9 +355,9 @@
+       "sha256": "5c10842338f189edb183cf865d8d3dadd4d8928c773f712f8a5268821a48363f"
+     },
+     {
+-      "bytes": 24785,
++      "bytes": 24788,
+       "path": "inventories/source-roster.json",
+-      "sha256": "10a47f65df0e6e88a7e4d2358eb7dd70ae0f6b2e4ca7958f82b0246ad7fc68f4"
++      "sha256": "dad2046ce801b1b6c57364cf5a88e13170b9d6924dbc6fc253163995d6cb6d8b"
+     },
+     {
+       "bytes": 11745,
+@@ -449,6 +449,6 @@
+   "schema": 1,
+   "selected_source_count": 78,
+   "source_revision_scope": "Accepted library/API closure with reviewed context1003 fixture-setup amendment; exact current members are pinned here. Each compiler requires fresh complete qualification. Shared-input context1003 harness overlay is source-accepted only; one complete diagnostic on the declared compiler remains required.",
+-  "total_bytes": 8844865,
+-  "tree_sha256": "9c18ceeb282950bda7f28a1d44a2b6a4cdab2ea1232cf43258fbf50e431c8a99"
++  "total_bytes": 8844868,
++  "tree_sha256": "ac3263770d66a981bc20ee859fb0081bb28d5001ff550163b0a8030a355a505b"
+ }
+--- verification/cache-fixture-shared-input-candidate/overlay-manifest.json
++++ verification/cache-fixture-shared-input-candidate-v2/overlay-manifest.json
+@@ -6,8 +6,8 @@
+     "path": "verification/swift-cache-state-ci/pack",
+     "tree_sha256": "ab2d0a6ef1c0df25f9624fc4b7d72cb0007df749fd1ed88bf43f243336eeedb2"
+   },
+-  "candidate_manifest_sha256": "86c104696aca726a47715cde9e6beedfd0522f5f9ec7f3e68d4fed4de1368d07",
+-  "candidate_tree_sha256": "9c18ceeb282950bda7f28a1d44a2b6a4cdab2ea1232cf43258fbf50e431c8a99",
++  "candidate_manifest_sha256": "e8a74a521ddbc01f0fc1274a32838cab57c60d63ee7924b5b830b56686836c3d",
++  "candidate_tree_sha256": "ac3263770d66a981bc20ee859fb0081bb28d5001ff550163b0a8030a355a505b",
+   "replacements": [
+     {
+       "base_sha256": "8352c6acbd242b47223d7985b492de063671c94e99433c7c8a41f01e92d2b7b6",
+@@ -18,17 +18,17 @@
+     },
+     {
+       "base_sha256": "0d0f8c2835767dd501cd5073edd16c2b34796a22203d277ca4926db4560b45a1",
+-      "bytes": 24785,
++      "bytes": 24788,
+       "overlay": "pack-overlay/inventories/source-roster.json",
+       "path": "inventories/source-roster.json",
+-      "sha256": "10a47f65df0e6e88a7e4d2358eb7dd70ae0f6b2e4ca7958f82b0246ad7fc68f4"
++      "sha256": "dad2046ce801b1b6c57364cf5a88e13170b9d6924dbc6fc253163995d6cb6d8b"
+     },
+     {
+       "base_sha256": "d1caf2069e17ac1beff6707d6e084ea49d18382bc959d73d5184ec49cb7886b9",
+       "bytes": 16006,
+       "overlay": "pack-overlay/manifest.json",
+       "path": "manifest.json",
+-      "sha256": "86c104696aca726a47715cde9e6beedfd0522f5f9ec7f3e68d4fed4de1368d07"
++      "sha256": "e8a74a521ddbc01f0fc1274a32838cab57c60d63ee7924b5b830b56686836c3d"
+     },
+     {
+       "base_sha256": "7c9c3006e1e7fd6a927fc7c3ca472c33abe3084f50a1f5aea0d31c6d9d75c411",
+--- verification/cache-fixture-shared-input-candidate/provenance.json
++++ verification/cache-fixture-shared-input-candidate-v2/provenance.json
+@@ -3,6 +3,16 @@
+     "original_sha256": "7c9c3006e1e7fd6a927fc7c3ca472c33abe3084f50a1f5aea0d31c6d9d75c411",
+     "path": "pack-overlay/source/regression/independent_tests.rs",
+     "sha256": "f7d62c01e251642677e22f7595af9683f9c451f1db43683be5d2ef86fedba141"
++  },
++  "control_correction": {
++    "change": "cwd=HERE only in optimized Python control subprocess.run",
++    "failed_attempt": 1,
++    "failed_method": "RunnerControls.test_checks_active_under_optimized_python",
++    "failed_run": 40790391653,
++    "observed_error": "ModuleNotFoundError: No module named 'materialize_pack'",
++    "original_diagnostic_preserved": true,
++    "prior_candidate_seal_sha256": "db6ba0fcb4c66f5a38dd0f93ce9dc381a869b12fbf8eda7ecb8f5b3f57bfeca7",
++    "v2_remote_selected_or_executed": false
+   },
+   "derivation": {
+     "base_controls_count": 32,
+@@ -12,9 +22,9 @@
+     "base_runner_sha256": "162b34dcf64fee840c53ead9ff0ee9ab7241741ac9708fbed8ccb697caff2bf3",
+     "candidate_controls_count": 36,
+     "candidate_controls_path": "test_runner.py",
+-    "candidate_controls_sha256": "c87eb1a698baa2beb4105301de2d38b00d2325460fb6781660113bc30d69ff93",
++    "candidate_controls_sha256": "e7ce50d89ef974d26d8c7a449f84964d6df36d7a279df6013dba932937f4e257",
+     "candidate_runner_path": "check_cache_state.py",
+-    "candidate_runner_sha256": "40357071ea8da19e051c8e470a7faa78dfa42bfbc3c756d3d30a790671be7d6d",
++    "candidate_runner_sha256": "5b29269988838c8af4fdfd4858645b17837bddd8812a133ef4e6aaa709ba55ad",
+     "new_mock_accounting_controls": 4,
+     "preserved_base_controls_count": 32
+   },
+@@ -22,19 +32,19 @@
+     "base_manifest_sha256": "d1caf2069e17ac1beff6707d6e084ea49d18382bc959d73d5184ec49cb7886b9",
+     "base_tree_sha256": "ab2d0a6ef1c0df25f9624fc4b7d72cb0007df749fd1ed88bf43f243336eeedb2",
+     "borrowed_unchanged_member_count": 83,
+-    "candidate_manifest_sha256": "86c104696aca726a47715cde9e6beedfd0522f5f9ec7f3e68d4fed4de1368d07",
++    "candidate_manifest_sha256": "e8a74a521ddbc01f0fc1274a32838cab57c60d63ee7924b5b830b56686836c3d",
+     "candidate_member_count": 86,
+-    "candidate_tree_sha256": "9c18ceeb282950bda7f28a1d44a2b6a4cdab2ea1232cf43258fbf50e431c8a99",
+-    "overlay_manifest_sha256": "fb60b65c8c3b6b0684592654c77a20ec82b74982b21a1837d46147723cb518ca",
++    "candidate_tree_sha256": "ac3263770d66a981bc20ee859fb0081bb28d5001ff550163b0a8030a355a505b",
++    "overlay_manifest_sha256": "c7c4ecd65f4a92f1edd2b36fcbb54bc8e233662b9a673d6555fd36b284d201a6",
+     "review_tree_sha256": "407647c81271e3dd4d49308a224a7d0cc1165e31a793dfadb1a51924aa605d84"
+   },
+   "no_canonical_or_global_edits": true,
+   "no_compiler_runtime_git_process_probe_native_capture_dispatch": true,
+-  "owned_path": "verification/cache-fixture-shared-input-candidate",
++  "owned_path": "verification/cache-fixture-shared-input-candidate-v2",
+   "schema": 1,
+   "scope": "one source-accepted harness diagnostic only; no regression, speedup, product, native, release or GA claim",
+-  "source_revision": "Not probed: Git/process operations forbidden in this source/file preparation lane; exact immutable read-set and candidate tree digests bind the bytes. Later CI records checkout revision/tree.",
++  "source_revision": "Derived from delivered fe8f4857954cc5cabc25bf5b4fe5657bb414838a, tree e7f4a5b9be6138d66f2ca48befd9684a86e25cfe; no local Git probe",
+   "status": "ready-for-root-review-and-later-manual-selection",
+-  "workflow_candidate": "verification/cache-fixture-shared-input-candidate/workflow/cache-fixture-shared-input-diagnostic.yml",
+-  "workflow_install_path": ".github/workflows/cache-fixture-shared-input-diagnostic.yml"
++  "workflow_candidate": "verification/cache-fixture-shared-input-candidate-v2/workflow/cache-fixture-shared-input-controls-v2.yml",
++  "workflow_install_path": ".github/workflows/cache-fixture-shared-input-controls-v2.yml"
+ }
+--- verification/cache-fixture-shared-input-candidate/workflow/cache-fixture-shared-input-diagnostic.yml
++++ verification/cache-fixture-shared-input-candidate-v2/workflow/cache-fixture-shared-input-controls-v2.yml
+@@ -1,4 +1,4 @@
+-name: Shared-input cache fixture diagnostic
++name: Shared-input cache fixture controls v2
+ 
+ on:
+   workflow_dispatch:
+@@ -7,7 +7,7 @@
+   contents: read
+ 
+ concurrency:
+-  group: shared-input-cache-fixture-${{ github.ref }}
++  group: shared-input-cache-fixture-controls-v2-${{ github.ref }}
+   cancel-in-progress: false
+ 
+ jobs:
+@@ -24,15 +24,15 @@
+           sparse-checkout-cone-mode: false
+           sparse-checkout: |
+             /verification/swift-cache-state-ci/
+-            /verification/cache-fixture-shared-input-candidate/
++            /verification/cache-fixture-shared-input-candidate-v2/
+             /verification/cache-fixture-shared-input-review/
+-            /.github/workflows/cache-fixture-shared-input-diagnostic.yml
++            /.github/workflows/cache-fixture-shared-input-controls-v2.yml
+       - name: Bind checkout, candidate and owned materialization
+         timeout-minutes: 2
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate"
++          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           mkdir -p "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs"
+           {
+             test "$GITHUB_RUN_ATTEMPT" = 1
+@@ -48,7 +48,7 @@
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate"
++          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+@@ -60,7 +60,7 @@
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate"
++          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           {
+             MIXER_SHARED_INPUT_RUSTC="$(command -v rustc)"
+             python3 -B "$MIXER_SHARED_INPUT_DIR/check_cache_state.py" \
+@@ -74,7 +74,7 @@
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate"
++          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           python3 -B "$MIXER_SHARED_INPUT_DIR/verify_candidate.py" --workflow-installed \
+             > "$MIXER_SHARED_INPUT_DIR/logs/candidate-postflight.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/candidate-postflight.stderr"
+@@ -83,14 +83,14 @@
+         timeout-minutes: 5
+         uses: actions/upload-artifact@v4
+         with:
+-          name: cache-fixture-shared-input-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
++          name: cache-fixture-shared-input-controls-v2-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+           retention-days: 14
+           if-no-files-found: warn
+           include-hidden-files: true
+           path: |
+-            ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate/
++            ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
+             ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
+             ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
+             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+             ${{ github.workspace }}/verification/swift-cache-state-ci/test_runner.py
+-            ${{ github.workspace }}/.github/workflows/cache-fixture-shared-input-diagnostic.yml
++            ${{ github.workspace }}/.github/workflows/cache-fixture-shared-input-controls-v2.yml

@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "status": "old G3 lower core blocked; macro design semantically plausible with64-scalar core, complete cost/lifetime proof still blocked",
+  "source_sha256": "1ffc4ee5bb37c4ca2794c456f66bfcd9f1916090a0de3a548c19b6c82a3767b9",
+  "binding_contract": {
+    "path": "docs/swift-semantic-adapter-prerequisite.md",
+    "lines": [
+      244,
+      266
+    ],
+    "sha256": "c818e47d15d541731df98cdf79032846cb4e4aa28aad2eee7e25ac36cb1c7f41",
+    "mandatory": [
+      "G3 <=321 comparisons at8 groups each, total2568",
+      "each actual micro-operation/check/LE conversion/copy/value/return/caller move exactly once",
+      "<=16 named scalar operations/group and distinct fixed copies<=128 bytes/group",
+      "no cross-group spare credits, cap increase or implicit optimizer elision"
+    ],
+    "not_formally_fixed": "Exact primitive grammar is not supplied. This review explicitly exposes its favorable source/value-flow atomization rather than claiming that70 is a universal machine-instruction count."
+  },
+  "independent_result": "Four8-byte input-array copies plus70 named scalar lower-core operations.4 scalar groups hold64, so no partition exists in that explicit model; even arbitrary per-comparison pooling requires at least5 scalar+4 copy=9 groups. This is not a complete9-group bound or runtime measurement.",
+  "mandatory_missing_mapping_blocker": "Regardless of primitive-grammar ambiguity, the inherited general8-group declaration contains no complete source-bound <=64 partition and cannot be accepted as proof. A differently compressed grammar requires explicit justification/acceptance, not omission of actual returned/received places.",
+  "unselected_source_only_options": [
+    {
+      "id": "O1",
+      "scope": "Comparator-local source rewrite, preserving existing global ld helper and all other callers",
+      "candidate": "Expose the four checked LE reads directly inside merge with explicit offset values and the same short-circuit sequence. Consider RangeFrom + first_chunk to avoid dynamic end arithmetic and one range predicate, while preserving successful8-byte access and failure safety.",
+      "why": "Potentially removes merge->ld b/at argument and ld->merge return transfers plus redundant exact-range work. Merely text-inlining ld duplicates offset expressions or adds source/received bindings, so it is not itself a cost proof.",
+      "required": "Produce exact proposed bytes with every Range/Option/reference/argument/return/binding move and a complete<=64 table for every eligible/absent path; preserve a,b evaluation and left timestamp before right; establish G4 remains unchanged and no additional helper/lifetime owner. No concrete<=64 bound accepted here."
+    },
+    {
+      "id": "O2",
+      "scope": "Dedicated comparison helper or narrower checked-load helper selected only after full map",
+      "candidate": "A specialized comparison operation can absorb offset computations and eligibility handling while exposing exactly which generic ld layers disappear; a checked tail-slice + first_chunk read can reduce scalar checks without relying on compiler removal.",
+      "why": "May replace nested generic load-call movement with fewer explicit source transfers. Helper addition also creates its own full arguments, return, ranges and options; these can erase savings.",
+      "required": "Freeze precise implementation/proof first; account helper caller/received/result and complete lifetimes; show unchanged panic/fail-closed contracts and <=8 groups. A helper signature or opaque read primitive alone is not a fix."
+    },
+    {
+      "id": "O3",
+      "scope": "Representation/merge redesign if no local safe source rewrite closes8",
+      "candidate": "Reduce actual repeated index->timestamp loads by changing the owned scratch/merge representation with an explicit source contract amendment inside unchanged caps.",
+      "why": "Could reduce the number of loads rather than relabel their cost, but affects Candidate layout, sort transfers, prefix, zero-tail induction and work/lifetime accounting.",
+      "required": "Broader root selection and complete G2/G3/G4/G5/G6/layout/lifetime proof. No extra Candidate, unassigned memory, cap raise, precomputed uncharged loads, or hidden source store. This is a fallback design option, not a narrow authorized edit."
+    }
+  ],
+  "current_authorization": "Root reported correction2 selection permits24 literal commit/restore copies only. No G3/helper edit is selected or authorized by this review.",
+  "producer_proposal_custody": "Admitted8-member/25104-byte proposal independently hash verified; see proposal-disposition.json.",
+  "next_gate": "Root selects concrete source repair only after complete named per-path scalar/copy and source/received/drop/peak proof; then separately admits compile/layout/API/behavior/private regression against its exact hash.",
+  "runtime_tests": 0,
+  "product_compiler_harness_model_execution": false,
+  "implementation_accepted": false,
+  "repair_selected": false,
+  "limitations": [
+    "Source-only conditional cost proof; no actual stack/RSS/runtime/target or release measurement.",
+    "No active correction2 writes inspected; original candidate/correction1/old independent packet remain immutable.",
+    "G4 and other semantic groups, full lifetime union and final product gates remain open.",
+    "No native/UI/capture/simulator/emulator/phone runs or process inventory."
+  ],
+  "macro_proposal_disposition": "No intrinsic function-return layer from expression block; explicit A/B initializer transfers yield64 core with16/16/16/16 partition. Actual expect msg argument and favorable primitive granularity remain open; not a complete upper bound."
+}

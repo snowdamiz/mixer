@@ -1,0 +1,316 @@
+{
+  "schema": 1,
+  "status": "source-only-review-corrections-no-driver-executed",
+  "selection": {
+    "path": "verification/android-host-followup-selection-2026-10-29/selection.json",
+    "bytes": 71593,
+    "sha256": "7bb6b03c7250933ec51fd18b8c748135db3fdc418705203f759bed39bd8e8dab"
+  },
+  "supersedesRejectedPreparation": {
+    "path": "verification/github-delivery-android-host-followup/delivery-followup-preparation-seal.json",
+    "bytes": 16796,
+    "sha256": "a190e676f076e2748b298f666c2417d438e8cf44945b6f60cd7ff9aa65fdce62",
+    "allOriginalFilesPreserved": true
+  },
+  "reviewCorrections": [
+    {
+      "issue": "Delivery receipt overstated dispatch authority in delivery-only phase",
+      "resolution": "manualWorkflowDispatchesAuthorized=0; separatelySelectedManualDispatchCeiling=2"
+    },
+    {
+      "issue": "Per-command accepted preflight evidence recheck was omitted",
+      "resolution": "Restore accepted_preflight() immediately after check_sources() in StrictCommands.run"
+    },
+    {
+      "issue": "Output-name replacements changed9 legitimate historical selected path literals inside AUTHORED",
+      "resolution": "Reset final v2 AUTHORED from immutable exact manifest subjects after all source renames; assert exact order and set equality with both unchanged manifest vectors",
+      "incorrectPathLiteralCount": 9,
+      "incorrectHistoricalPaths": [
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/argv-delivery-followup-corrected.json",
+          "correct": "verification/github-delivery-android-jdk-observation/argv-delivery-selected-corrected.json"
+        },
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/argv-delivery-followup.json",
+          "correct": "verification/github-delivery-android-jdk-observation/argv-delivery-selected.json"
+        },
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/authority-snapshot-delivery-followup-corrected.json",
+          "correct": "verification/github-delivery-android-jdk-observation/authority-snapshot-delivery-selected-corrected.json"
+        },
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/committed-followup-corrected-objects.json",
+          "correct": "verification/github-delivery-android-jdk-observation/committed-selected-corrected-objects.json"
+        },
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/committed-followup-corrected.json",
+          "correct": "verification/github-delivery-android-jdk-observation/committed-selected-corrected.json"
+        },
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/delivery-followup-corrected-once.json",
+          "correct": "verification/github-delivery-android-jdk-observation/delivery-selected-corrected-once.json"
+        },
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/delivery-followup-corrected-receipt.json",
+          "correct": "verification/github-delivery-android-jdk-observation/delivery-selected-corrected-receipt.json"
+        },
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/manifest-followup.json",
+          "correct": "verification/github-delivery-android-jdk-observation/manifest-selected.json"
+        },
+        {
+          "wrong": "verification/github-delivery-android-jdk-observation/push-followup-corrected-once.json",
+          "correct": "verification/github-delivery-android-jdk-observation/push-selected-corrected-once.json"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "basis": {
+        "path": "verification/github-delivery-android-host-followup/selection_common_delivery_followup.py",
+        "bytes": 33280,
+        "sha256": "c5e3db642c7726629fd9b8fc346cc44b4859da1bf2aefa84c3ffc202985b6a31"
+      },
+      "prepared": {
+        "path": "verification/github-delivery-android-host-followup/selection_common_delivery_followup_v2.py",
+        "bytes": 33333,
+        "sha256": "331d8e63935337cf9222e7021ac8c74020f790442b1229bc8687bda4d910903a"
+      },
+      "edits": [
+        {
+          "oldStartLine": 171,
+          "newStartLine": 171,
+          "removed": [
+            "DRIVERS = [\"selection_common_delivery_followup.py\",\"deliver_followup.py\",\"bind_ci_followup.py\",\"dispatch_axis_followup.py\",\"dispatch_package_followup.py\",\"bind_axis_run_followup.py\",\"bind_package_run_followup.py\"]"
+          ],
+          "added": [
+            "DRIVERS = [\"selection_common_delivery_followup_v2.py\",\"deliver_followup_v2.py\",\"bind_ci_followup_v2.py\",\"dispatch_axis_followup_v2.py\",\"dispatch_package_followup_v2.py\",\"bind_axis_run_followup_v2.py\",\"bind_package_run_followup_v2.py\"]"
+          ]
+        },
+        {
+          "oldStartLine": 179,
+          "newStartLine": 179,
+          "removed": [
+            "    return {'source': row(OUT / 'selection_common_delivery_followup.py'),"
+          ],
+          "added": [
+            "    return {'source': row(OUT / 'selection_common_delivery_followup_v2.py'),"
+          ]
+        },
+        {
+          "oldStartLine": 384,
+          "newStartLine": 384,
+          "removed": [],
+          "added": [
+            "        accepted_preflight()"
+          ]
+        }
+      ]
+    },
+    {
+      "basis": {
+        "path": "verification/github-delivery-android-host-followup/deliver_followup.py",
+        "bytes": 34794,
+        "sha256": "cc8b257be8ee2509b60ba6f2fc16e6c9e777036b84d6e897fdb9c8a0bde36656"
+      },
+      "prepared": {
+        "path": "verification/github-delivery-android-host-followup/deliver_followup_v2.py",
+        "bytes": 34843,
+        "sha256": "bd7fa1e462992b38db58f986c2bd43ab83937a0bf286b3079dc8c5eba0110a0f"
+      },
+      "edits": [
+        {
+          "oldStartLine": 7,
+          "newStartLine": 7,
+          "removed": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup.py'))"
+          ],
+          "added": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup_v2.py'))"
+          ]
+        },
+        {
+          "oldStartLine": 15,
+          "newStartLine": 15,
+          "removed": [
+            "AUTHORED = [\".github/workflows/android-axis-refusal-host.yml\",\".github/workflows/android-view-api-package-runtime-focused-admission.yml\",\"PLAN.md\",\"STATUS.md\",\"gates/ga.json\",\"verification/android-axis-host-selection-2026-10-29/.gitignore\",\"verification/android-axis-host-selection-2026-10-29/README.md\",\"verification/android-axis-host-selection-2026-10-29/root-review.json\",\"verification/android-axis-refusal-host-admission-result-correction/.gitignore\",\"verification/android-axis-refusal-host-admission-result-correction/README.md\",\"verification/android-axis-refusal-host-admission-result-correction/admission-manifest.json\",\"verification/android-axis-refusal-host-admission-result-correction/controls.mjs\",\"verification/android-axis-refusal-host-admission-result-correction/receipt.json\",\"verification/android-axis-refusal-host-admission-result-correction/required-tests.json\",\"verification/android-axis-refusal-host-admission-result-correction/root-selection.template.json\",\"verification/android-axis-refusal-host-admission-result-correction/source-checks.json\",\"verification/android-axis-refusal-host-admission-result-correction/verify-file-limit.py\",\"verification/android-axis-refusal-host-admission-result-correction/verify.mjs\",\"verification/android-axis-refusal-host-admission-result-correction/workflow.draft.yml\",\"verification/android-axis-refusal-host-admission-review/correction-supplement.json\",\"verification/android-axis-refusal-host-admission-review/findings.md\",\"verification/android-axis-refusal-host-admission-review/receipt.json\",\"verification/android-axis-refusal-host-admission-review/source-checks.json\",\"verification/android-axis-refusal-host-admission/.gitignore\",\"verification/android-axis-refusal-host-admission/README.md\",\"verification/android-axis-refusal-host-admission/admission-manifest.json\",\"verification/android-axis-refusal-host-admission/controls.mjs\",\"verification/android-axis-refusal-host-admission/receipt.json\",\"verification/android-axis-refusal-host-admission/required-tests.json\",\"verification/android-axis-refusal-host-admission/root-selection.template.json\",\"verification/android-axis-refusal-host-admission/source-checks.json\",\"verification/android-axis-refusal-host-admission/verify-file-limit.py\",\"verification/android-axis-refusal-host-admission/verify.mjs\",\"verification/android-axis-refusal-host-admission/workflow.draft.yml\",\"verification/android-axis-refusal-host-preparation/package/Package.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerAndroidRuntime/DocumentSession.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerAndroidRuntime/SessionRegistry.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/FeatureStore.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/JSONInputGuard.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/Lifecycle.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/Navigation.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/Resources.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceDefaultV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceDefaultV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceDescriptorV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceDescriptorV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceGeometryV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceMetricMathV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceResolutionV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceResolutionV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceValuesV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceValuesV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/Authoring.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/NativePacketV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/Protocol.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/Reconciliation.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/SharedTextProfilesV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/Validation.swift\",\"verification/android-axis-refusal-host-preparation/package/Tests/MixerAndroidRuntimeTests/AndroidTextFieldAxisRefusalTests.swift\",\"verification/android-axis-refusal-host-preparation/package/Tests/MixerAndroidRuntimeTests/RuntimeTests.swift\",\"verification/android-axis-refusal-host-preparation/package/Tests/MixerAndroidRuntimeTests/TransactionTests.swift\",\"verification/android-axis-refusal-host-preparation/proposal.md\",\"verification/android-axis-refusal-host-preparation/receipt.json\",\"verification/android-axis-refusal-host-preparation/source-manifest.json\",\"verification/android-axis-refusal-host-review/findings.md\",\"verification/android-axis-refusal-host-review/receipt.json\",\"verification/android-axis-refusal-host-review/source-checks.json\",\"verification/android-host-followup-selection-2026-10-29/.gitignore\",\"verification/android-host-followup-selection-2026-10-29/README.md\",\"verification/android-host-followup-selection-2026-10-29/helper-review.json\",\"verification/android-host-followup-selection-2026-10-29/root-review.json\",\"verification/android-host-followup-selection-2026-10-29/selection.json\",\"verification/android-jdk-comparison-challenge/ACTUAL-RESULT-REVIEW.md\",\"verification/android-jdk-comparison-challenge/DIRECTORY-SUFFIX-SUPPLEMENT.md\",\"verification/android-jdk-comparison-challenge/REVIEW.md\",\"verification/android-jdk-comparison-challenge/actual-result-review-local-correction.json\",\"verification/android-jdk-comparison-challenge/actual-result-review-seal.json\",\"verification/android-jdk-comparison-challenge/actual-result-review.json\",\"verification/android-jdk-comparison-challenge/actual_result_review.mjs\",\"verification/android-jdk-comparison-challenge/actual_result_review_v2.mjs\",\"verification/android-jdk-comparison-challenge/audit_metadata.mjs\",\"verification/android-jdk-comparison-challenge/challenge-receipt.json\",\"verification/android-jdk-comparison-challenge/directory-suffix-supplement-seal.json\",\"verification/android-jdk-comparison-challenge/directory-suffix-supplement.json\",\"verification/android-jdk-comparison-challenge/seal.json\",\"verification/android-jdk-data-outcome-2026-10-29/README.md\",\"verification/android-jdk-data-outcome-2026-10-29/observation.json\",\"verification/android-jdk-data-outcome-2026-10-29/ordinary-ci.json\",\"verification/android-package-jdk-host-selection-2026-10-29/.gitignore\",\"verification/android-package-jdk-host-selection-2026-10-29/README.md\",\"verification/android-package-jdk-host-selection-2026-10-29/pure-controls.json\",\"verification/android-package-jdk-host-selection-2026-10-29/root-review.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/SOURCE-REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/check_source_data.js\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/compare_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/contract.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/observed-binding-template.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/source-data-checks.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/source-manifest.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/CP437-SETUP-CORRECTION.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/.gitignore\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/compare_actual_data_cpu_bound.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/compare_actual_data_portable_limits.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/context-refusal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/context-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/directory-suffix-controls.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/directory-suffix-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/empty-directory-name-pairs.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/first-execution-refusal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/portable-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/result-summary.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/second-execution-refusal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/selection.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/PREPARATION.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/binding-complete.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/compare_actual_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/PREPARATION.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/binding-unbound.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/compare_actual_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/check_synthetic.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/check_synthetic_cp437.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/cp437-setup-correction-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/cp437-setup-correction-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/check_synthetic_directory_suffix.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/compare_actual_data_directory_suffix.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/compare_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/compare_actual_data_failure_context.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/compare_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/static-evidence.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/review-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/review-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/.gitignore\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/ACTUAL-REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/actual-review-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/actual-review-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit-compatibility-preparation.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit-compatibility-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit-source-review.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit_outer_data.py\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit_outer_data_compat.py\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/corrected-consumer-preparation/SOURCE-REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/corrected-consumer-preparation/consume_selected_artifact.js\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/corrected-consumer-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/corrected-consumer-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/original-transfer-abort-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/recovery-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/review-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/review-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/source-inspection-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/source-inspection-supplement.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/transfer-control.redacted.js\",\"verification/android-view-api-package-runtime-host-preparation/.gitignore\",\"verification/android-view-api-package-runtime-host-preparation/README.md\",\"verification/android-view-api-package-runtime-host-preparation/admission.json\",\"verification/android-view-api-package-runtime-host-preparation/baseline.json\",\"verification/android-view-api-package-runtime-host-preparation/collect.py\",\"verification/android-view-api-package-runtime-host-preparation/custody.py\",\"verification/android-view-api-package-runtime-host-preparation/input-manifest.json\",\"verification/android-view-api-package-runtime-host-preparation/inspector-review.json\",\"verification/android-view-api-package-runtime-host-preparation/jdk-runtime-members.json\",\"verification/android-view-api-package-runtime-host-preparation/linux-signal-abi-source-receipt.json\",\"verification/android-view-api-package-runtime-host-preparation/node-data-checks.json\",\"verification/android-view-api-package-runtime-host-preparation/preparation-receipt.json\",\"verification/android-view-api-package-runtime-host-preparation/seal.json\",\"verification/android-view-api-package-runtime-host-preparation/selection-template.json\",\"verification/android-view-api-package-runtime-host-preparation/source-data-attempts.json\",\"verification/android-view-api-package-runtime-host-preparation/source-delta.json\",\"verification/android-view-api-package-runtime-host-preparation/test_preparation.py\",\"verification/android-view-api-package-runtime-host-preparation/tool-profile-historical-macos.json\",\"verification/android-view-api-package-runtime-host-preparation/tool-profile.json\",\"verification/android-view-api-package-runtime-host-preparation/workflow-actions.json\",\"verification/android-view-api-package-runtime-host-preparation/workflow.DRAFT.yml\",\"verification/android-view-api-package-runtime-host-review/REVIEW.md\",\"verification/android-view-api-package-runtime-host-review/receipt.json\",\"verification/android-view-api-package-runtime-host-review/seal.json\",\"verification/github-delivery-android-host-followup/.gitignore\",\"verification/github-delivery-android-host-followup/baseline-repin.diff\",\"verification/github-delivery-android-host-followup/owned.py\",\"verification/github-delivery-android-host-followup/preflight_selected.py.template\",\"verification/github-delivery-android-host-followup/preparation.json\",\"verification/github-delivery-android-host-followup/two-workflow-feasibility.json\",\"verification/github-delivery-android-jdk-observation/.gitignore\",\"verification/github-delivery-android-jdk-observation/CORRECTION.md\",\"verification/github-delivery-android-jdk-observation/HELPER-BASELINE.diff\",\"verification/github-delivery-android-jdk-observation/argv-ci-binding-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/argv-ci-binding-selected.json\",\"verification/github-delivery-android-jdk-observation/argv-delivery-followup-corrected.json\",\"verification/github-delivery-android-jdk-observation/argv-delivery-followup.json\",\"verification/github-delivery-android-jdk-observation/argv-dispatch-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/argv-dispatch-selected.json\",\"verification/github-delivery-android-jdk-observation/argv-preflight-selected.json\",\"verification/github-delivery-android-jdk-observation/authority-snapshot-ci-binding-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/authority-snapshot-delivery-followup-corrected.json\",\"verification/github-delivery-android-jdk-observation/authority-snapshot-dispatch-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/authority-snapshot-preflight-selected.json\",\"verification/github-delivery-android-jdk-observation/bind_ci_selected.py\",\"verification/github-delivery-android-jdk-observation/bind_ci_selected_corrected.py\",\"verification/github-delivery-android-jdk-observation/ci-binding-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/committed-followup-corrected-objects.json\",\"verification/github-delivery-android-jdk-observation/committed-followup-corrected.json\",\"verification/github-delivery-android-jdk-observation/deliver_selected.py\",\"verification/github-delivery-android-jdk-observation/deliver_selected_corrected.py\",\"verification/github-delivery-android-jdk-observation/delivery-ci-dispatch-actual.seal.json\",\"verification/github-delivery-android-jdk-observation/delivery-followup-corrected-once.json\",\"verification/github-delivery-android-jdk-observation/delivery-followup-corrected-receipt.json\",\"verification/github-delivery-android-jdk-observation/delivery-source-correction-packet.json\",\"verification/github-delivery-android-jdk-observation/delivery-source-correction-packet.seal.json\",\"verification/github-delivery-android-jdk-observation/delivery-source-packet.json\",\"verification/github-delivery-android-jdk-observation/delivery-source-packet.seal.json\",\"verification/github-delivery-android-jdk-observation/dispatch_selected.py\",\"verification/github-delivery-android-jdk-observation/dispatch_selected_corrected.py\",\"verification/github-delivery-android-jdk-observation/driver-preparation.json\",\"verification/github-delivery-android-jdk-observation/manifest-followup.json\",\"verification/github-delivery-android-jdk-observation/manual-dispatch-selected-corrected-input.json\",\"verification/github-delivery-android-jdk-observation/manual-dispatch-selected-corrected-once.json\",\"verification/github-delivery-android-jdk-observation/manual-dispatch-selected-corrected-submitted.json\",\"verification/github-delivery-android-jdk-observation/owned.py\",\"verification/github-delivery-android-jdk-observation/preflight-selected.json\",\"verification/github-delivery-android-jdk-observation/preflight-selected.seal.json\",\"verification/github-delivery-android-jdk-observation/preflight-source-packet.json\",\"verification/github-delivery-android-jdk-observation/preflight-source-packet.seal.json\",\"verification/github-delivery-android-jdk-observation/preflight_selected.py\",\"verification/github-delivery-android-jdk-observation/preparation.json\",\"verification/github-delivery-android-jdk-observation/push-followup-corrected-once.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-ci-dispatch-actual-data-controls.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-ci-dispatch-actual-review.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-ci-dispatch-actual-review.seal.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-final-data-controls.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-final-review.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-final-review.seal.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-review-attempt-001.json\",\"verification/github-delivery-android-jdk-observation/review/guarded-draft-diffs.json\",\"verification/github-delivery-android-jdk-observation/review/guarded-draft-review.json\",\"verification/github-delivery-android-jdk-observation/review/preflight-actual-evidence-review.json\",\"verification/github-delivery-android-jdk-observation/review/preflight-final-data-controls.json\",\"verification/github-delivery-android-jdk-observation/review/preflight-final-review.json\",\"verification/github-delivery-android-jdk-observation/review/preflight-final-review.seal.json\",\"verification/github-delivery-android-jdk-observation/selection_common_delivery.py\",\"verification/github-delivery-android-jdk-observation/selection_common_delivery_corrected.py\",\"verification/github-delivery-android-jdk-observation/selection_common_preflight.py\",\"verification/github-delivery-android-jdk-observation/stage-selected-corrected-pathspec-admission.json\",\"work-graph.json\"]"
+          ],
+          "added": [
+            "AUTHORED = [\".github/workflows/android-axis-refusal-host.yml\",\".github/workflows/android-view-api-package-runtime-focused-admission.yml\",\"PLAN.md\",\"STATUS.md\",\"gates/ga.json\",\"verification/android-axis-host-selection-2026-10-29/.gitignore\",\"verification/android-axis-host-selection-2026-10-29/README.md\",\"verification/android-axis-host-selection-2026-10-29/root-review.json\",\"verification/android-axis-refusal-host-admission-result-correction/.gitignore\",\"verification/android-axis-refusal-host-admission-result-correction/README.md\",\"verification/android-axis-refusal-host-admission-result-correction/admission-manifest.json\",\"verification/android-axis-refusal-host-admission-result-correction/controls.mjs\",\"verification/android-axis-refusal-host-admission-result-correction/receipt.json\",\"verification/android-axis-refusal-host-admission-result-correction/required-tests.json\",\"verification/android-axis-refusal-host-admission-result-correction/root-selection.template.json\",\"verification/android-axis-refusal-host-admission-result-correction/source-checks.json\",\"verification/android-axis-refusal-host-admission-result-correction/verify-file-limit.py\",\"verification/android-axis-refusal-host-admission-result-correction/verify.mjs\",\"verification/android-axis-refusal-host-admission-result-correction/workflow.draft.yml\",\"verification/android-axis-refusal-host-admission-review/correction-supplement.json\",\"verification/android-axis-refusal-host-admission-review/findings.md\",\"verification/android-axis-refusal-host-admission-review/receipt.json\",\"verification/android-axis-refusal-host-admission-review/source-checks.json\",\"verification/android-axis-refusal-host-admission/.gitignore\",\"verification/android-axis-refusal-host-admission/README.md\",\"verification/android-axis-refusal-host-admission/admission-manifest.json\",\"verification/android-axis-refusal-host-admission/controls.mjs\",\"verification/android-axis-refusal-host-admission/receipt.json\",\"verification/android-axis-refusal-host-admission/required-tests.json\",\"verification/android-axis-refusal-host-admission/root-selection.template.json\",\"verification/android-axis-refusal-host-admission/source-checks.json\",\"verification/android-axis-refusal-host-admission/verify-file-limit.py\",\"verification/android-axis-refusal-host-admission/verify.mjs\",\"verification/android-axis-refusal-host-admission/workflow.draft.yml\",\"verification/android-axis-refusal-host-preparation/package/Package.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerAndroidRuntime/DocumentSession.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerAndroidRuntime/SessionRegistry.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/FeatureStore.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/JSONInputGuard.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/Lifecycle.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/Navigation.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerCore/Resources.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceDefaultV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceDefaultV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceDescriptorV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceDescriptorV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceGeometryV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceMetricMathV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceResolutionV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceResolutionV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceValuesV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/AppearanceValuesV2.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/Authoring.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/NativePacketV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/Protocol.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/Reconciliation.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/SharedTextProfilesV1.swift\",\"verification/android-axis-refusal-host-preparation/package/Sources/MixerUI/Validation.swift\",\"verification/android-axis-refusal-host-preparation/package/Tests/MixerAndroidRuntimeTests/AndroidTextFieldAxisRefusalTests.swift\",\"verification/android-axis-refusal-host-preparation/package/Tests/MixerAndroidRuntimeTests/RuntimeTests.swift\",\"verification/android-axis-refusal-host-preparation/package/Tests/MixerAndroidRuntimeTests/TransactionTests.swift\",\"verification/android-axis-refusal-host-preparation/proposal.md\",\"verification/android-axis-refusal-host-preparation/receipt.json\",\"verification/android-axis-refusal-host-preparation/source-manifest.json\",\"verification/android-axis-refusal-host-review/findings.md\",\"verification/android-axis-refusal-host-review/receipt.json\",\"verification/android-axis-refusal-host-review/source-checks.json\",\"verification/android-host-followup-selection-2026-10-29/.gitignore\",\"verification/android-host-followup-selection-2026-10-29/README.md\",\"verification/android-host-followup-selection-2026-10-29/helper-review.json\",\"verification/android-host-followup-selection-2026-10-29/root-review.json\",\"verification/android-host-followup-selection-2026-10-29/selection.json\",\"verification/android-jdk-comparison-challenge/ACTUAL-RESULT-REVIEW.md\",\"verification/android-jdk-comparison-challenge/DIRECTORY-SUFFIX-SUPPLEMENT.md\",\"verification/android-jdk-comparison-challenge/REVIEW.md\",\"verification/android-jdk-comparison-challenge/actual-result-review-local-correction.json\",\"verification/android-jdk-comparison-challenge/actual-result-review-seal.json\",\"verification/android-jdk-comparison-challenge/actual-result-review.json\",\"verification/android-jdk-comparison-challenge/actual_result_review.mjs\",\"verification/android-jdk-comparison-challenge/actual_result_review_v2.mjs\",\"verification/android-jdk-comparison-challenge/audit_metadata.mjs\",\"verification/android-jdk-comparison-challenge/challenge-receipt.json\",\"verification/android-jdk-comparison-challenge/directory-suffix-supplement-seal.json\",\"verification/android-jdk-comparison-challenge/directory-suffix-supplement.json\",\"verification/android-jdk-comparison-challenge/seal.json\",\"verification/android-jdk-data-outcome-2026-10-29/README.md\",\"verification/android-jdk-data-outcome-2026-10-29/observation.json\",\"verification/android-jdk-data-outcome-2026-10-29/ordinary-ci.json\",\"verification/android-package-jdk-host-selection-2026-10-29/.gitignore\",\"verification/android-package-jdk-host-selection-2026-10-29/README.md\",\"verification/android-package-jdk-host-selection-2026-10-29/pure-controls.json\",\"verification/android-package-jdk-host-selection-2026-10-29/root-review.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/SOURCE-REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/check_source_data.js\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/compare_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/contract.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/observed-binding-template.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/source-data-checks.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-preparation/source-manifest.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/CP437-SETUP-CORRECTION.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/.gitignore\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/compare_actual_data_cpu_bound.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/compare_actual_data_portable_limits.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/context-refusal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/context-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/directory-suffix-controls.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/directory-suffix-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/empty-directory-name-pairs.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/first-execution-refusal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/portable-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/result-summary.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/second-execution-refusal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-data-execution/selection.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/PREPARATION.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/binding-complete.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/compare_actual_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-bound-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/PREPARATION.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/binding-unbound.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/compare_actual_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/actual-wrapper-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/check_synthetic.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/check_synthetic_cp437.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/cp437-setup-correction-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/cp437-setup-correction-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/check_synthetic_directory_suffix.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/compare_actual_data_directory_suffix.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/compare_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/directory-slash-correction-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/compare_actual_data_failure_context.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/compare_data.py\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/failure-context-wrapper-preparation/static-evidence.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/review-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-archive-comparison-review/review-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/.gitignore\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/ACTUAL-REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/actual-review-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/actual-review-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit-compatibility-preparation.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit-compatibility-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit-source-review.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit_outer_data.py\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/audit_outer_data_compat.py\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/corrected-consumer-preparation/SOURCE-REVIEW.md\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/corrected-consumer-preparation/consume_selected_artifact.js\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/corrected-consumer-preparation/preparation-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/corrected-consumer-preparation/preparation-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/original-transfer-abort-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/recovery-selection.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/review-receipt.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/review-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/source-inspection-seal.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/source-inspection-supplement.json\",\"verification/android-view-api-focused-actual-review/jdk-data-actual-review/transfer-control.redacted.js\",\"verification/android-view-api-package-runtime-host-preparation/.gitignore\",\"verification/android-view-api-package-runtime-host-preparation/README.md\",\"verification/android-view-api-package-runtime-host-preparation/admission.json\",\"verification/android-view-api-package-runtime-host-preparation/baseline.json\",\"verification/android-view-api-package-runtime-host-preparation/collect.py\",\"verification/android-view-api-package-runtime-host-preparation/custody.py\",\"verification/android-view-api-package-runtime-host-preparation/input-manifest.json\",\"verification/android-view-api-package-runtime-host-preparation/inspector-review.json\",\"verification/android-view-api-package-runtime-host-preparation/jdk-runtime-members.json\",\"verification/android-view-api-package-runtime-host-preparation/linux-signal-abi-source-receipt.json\",\"verification/android-view-api-package-runtime-host-preparation/node-data-checks.json\",\"verification/android-view-api-package-runtime-host-preparation/preparation-receipt.json\",\"verification/android-view-api-package-runtime-host-preparation/seal.json\",\"verification/android-view-api-package-runtime-host-preparation/selection-template.json\",\"verification/android-view-api-package-runtime-host-preparation/source-data-attempts.json\",\"verification/android-view-api-package-runtime-host-preparation/source-delta.json\",\"verification/android-view-api-package-runtime-host-preparation/test_preparation.py\",\"verification/android-view-api-package-runtime-host-preparation/tool-profile-historical-macos.json\",\"verification/android-view-api-package-runtime-host-preparation/tool-profile.json\",\"verification/android-view-api-package-runtime-host-preparation/workflow-actions.json\",\"verification/android-view-api-package-runtime-host-preparation/workflow.DRAFT.yml\",\"verification/android-view-api-package-runtime-host-review/REVIEW.md\",\"verification/android-view-api-package-runtime-host-review/receipt.json\",\"verification/android-view-api-package-runtime-host-review/seal.json\",\"verification/github-delivery-android-host-followup/.gitignore\",\"verification/github-delivery-android-host-followup/baseline-repin.diff\",\"verification/github-delivery-android-host-followup/owned.py\",\"verification/github-delivery-android-host-followup/preflight_selected.py.template\",\"verification/github-delivery-android-host-followup/preparation.json\",\"verification/github-delivery-android-host-followup/two-workflow-feasibility.json\",\"verification/github-delivery-android-jdk-observation/.gitignore\",\"verification/github-delivery-android-jdk-observation/CORRECTION.md\",\"verification/github-delivery-android-jdk-observation/HELPER-BASELINE.diff\",\"verification/github-delivery-android-jdk-observation/argv-ci-binding-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/argv-ci-binding-selected.json\",\"verification/github-delivery-android-jdk-observation/argv-delivery-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/argv-delivery-selected.json\",\"verification/github-delivery-android-jdk-observation/argv-dispatch-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/argv-dispatch-selected.json\",\"verification/github-delivery-android-jdk-observation/argv-preflight-selected.json\",\"verification/github-delivery-android-jdk-observation/authority-snapshot-ci-binding-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/authority-snapshot-delivery-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/authority-snapshot-dispatch-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/authority-snapshot-preflight-selected.json\",\"verification/github-delivery-android-jdk-observation/bind_ci_selected.py\",\"verification/github-delivery-android-jdk-observation/bind_ci_selected_corrected.py\",\"verification/github-delivery-android-jdk-observation/ci-binding-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/committed-selected-corrected-objects.json\",\"verification/github-delivery-android-jdk-observation/committed-selected-corrected.json\",\"verification/github-delivery-android-jdk-observation/deliver_selected.py\",\"verification/github-delivery-android-jdk-observation/deliver_selected_corrected.py\",\"verification/github-delivery-android-jdk-observation/delivery-ci-dispatch-actual.seal.json\",\"verification/github-delivery-android-jdk-observation/delivery-selected-corrected-once.json\",\"verification/github-delivery-android-jdk-observation/delivery-selected-corrected-receipt.json\",\"verification/github-delivery-android-jdk-observation/delivery-source-correction-packet.json\",\"verification/github-delivery-android-jdk-observation/delivery-source-correction-packet.seal.json\",\"verification/github-delivery-android-jdk-observation/delivery-source-packet.json\",\"verification/github-delivery-android-jdk-observation/delivery-source-packet.seal.json\",\"verification/github-delivery-android-jdk-observation/dispatch_selected.py\",\"verification/github-delivery-android-jdk-observation/dispatch_selected_corrected.py\",\"verification/github-delivery-android-jdk-observation/driver-preparation.json\",\"verification/github-delivery-android-jdk-observation/manifest-selected.json\",\"verification/github-delivery-android-jdk-observation/manual-dispatch-selected-corrected-input.json\",\"verification/github-delivery-android-jdk-observation/manual-dispatch-selected-corrected-once.json\",\"verification/github-delivery-android-jdk-observation/manual-dispatch-selected-corrected-submitted.json\",\"verification/github-delivery-android-jdk-observation/owned.py\",\"verification/github-delivery-android-jdk-observation/preflight-selected.json\",\"verification/github-delivery-android-jdk-observation/preflight-selected.seal.json\",\"verification/github-delivery-android-jdk-observation/preflight-source-packet.json\",\"verification/github-delivery-android-jdk-observation/preflight-source-packet.seal.json\",\"verification/github-delivery-android-jdk-observation/preflight_selected.py\",\"verification/github-delivery-android-jdk-observation/preparation.json\",\"verification/github-delivery-android-jdk-observation/push-selected-corrected-once.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-ci-dispatch-actual-data-controls.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-ci-dispatch-actual-review.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-ci-dispatch-actual-review.seal.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-final-data-controls.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-final-review.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-final-review.seal.json\",\"verification/github-delivery-android-jdk-observation/review/delivery-review-attempt-001.json\",\"verification/github-delivery-android-jdk-observation/review/guarded-draft-diffs.json\",\"verification/github-delivery-android-jdk-observation/review/guarded-draft-review.json\",\"verification/github-delivery-android-jdk-observation/review/preflight-actual-evidence-review.json\",\"verification/github-delivery-android-jdk-observation/review/preflight-final-data-controls.json\",\"verification/github-delivery-android-jdk-observation/review/preflight-final-review.json\",\"verification/github-delivery-android-jdk-observation/review/preflight-final-review.seal.json\",\"verification/github-delivery-android-jdk-observation/selection_common_delivery.py\",\"verification/github-delivery-android-jdk-observation/selection_common_delivery_corrected.py\",\"verification/github-delivery-android-jdk-observation/selection_common_preflight.py\",\"verification/github-delivery-android-jdk-observation/stage-selected-corrected-pathspec-admission.json\",\"work-graph.json\"]"
+          ]
+        },
+        {
+          "oldStartLine": 141,
+          "newStartLine": 141,
+          "removed": [
+            "    'rawHelperInventoriesCommitted': False, 'manualDispatchesPending': 2, 'manualWorkflowDispatchesAuthorized': 2, 'manualHostKeys': ['axis', 'package'],"
+          ],
+          "added": [
+            "    'rawHelperInventoriesCommitted': False, 'manualDispatchesPending': 2, 'manualWorkflowDispatchesAuthorized': 0, 'separatelySelectedManualDispatchCeiling': 2, 'manualHostKeys': ['axis', 'package'],"
+          ]
+        }
+      ]
+    },
+    {
+      "basis": {
+        "path": "verification/github-delivery-android-host-followup/bind_ci_followup.py",
+        "bytes": 3870,
+        "sha256": "d9dac6521029a96bd2b9d8b10d0d4c7c318a385b8501ca47f7170958e3106687"
+      },
+      "prepared": {
+        "path": "verification/github-delivery-android-host-followup/bind_ci_followup_v2.py",
+        "bytes": 3873,
+        "sha256": "0d20e43bce8e72b3cc7936ea225f5ebd103391b7c53d00b915b5a11636f211c4"
+      },
+      "edits": [
+        {
+          "oldStartLine": 7,
+          "newStartLine": 7,
+          "removed": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup.py'))"
+          ],
+          "added": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup_v2.py'))"
+          ]
+        }
+      ]
+    },
+    {
+      "basis": {
+        "path": "verification/github-delivery-android-host-followup/dispatch_axis_followup.py",
+        "bytes": 572,
+        "sha256": "3a0f14c764e08ed6d7b99f0e1ff2dc6917b5ee81e6e99b6092136cfcc147281c"
+      },
+      "prepared": {
+        "path": "verification/github-delivery-android-host-followup/dispatch_axis_followup_v2.py",
+        "bytes": 575,
+        "sha256": "2cf2d7c01c58c09adaa2e87869093f4a2fbb3923ce079c54af32405260f31824"
+      },
+      "edits": [
+        {
+          "oldStartLine": 7,
+          "newStartLine": 7,
+          "removed": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup.py'))"
+          ],
+          "added": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup_v2.py'))"
+          ]
+        }
+      ]
+    },
+    {
+      "basis": {
+        "path": "verification/github-delivery-android-host-followup/dispatch_package_followup.py",
+        "bytes": 578,
+        "sha256": "52fc432c00086f765da14b992be751bb27e2d5c931c704e0a1216cd34e54f15d"
+      },
+      "prepared": {
+        "path": "verification/github-delivery-android-host-followup/dispatch_package_followup_v2.py",
+        "bytes": 581,
+        "sha256": "a763068c4dd90a81e0f8109192febdce7cb242b04c00adec77d40f8974728b8c"
+      },
+      "edits": [
+        {
+          "oldStartLine": 7,
+          "newStartLine": 7,
+          "removed": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup.py'))"
+          ],
+          "added": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup_v2.py'))"
+          ]
+        }
+      ]
+    },
+    {
+      "basis": {
+        "path": "verification/github-delivery-android-host-followup/bind_axis_run_followup.py",
+        "bytes": 568,
+        "sha256": "67eda1878ad3c5c96e97dd6757e4cf5f09ee541b9d8be0ca184edf4cb7d08391"
+      },
+      "prepared": {
+        "path": "verification/github-delivery-android-host-followup/bind_axis_run_followup_v2.py",
+        "bytes": 571,
+        "sha256": "6fb331003db46b4af2863d3938e95cc87e5a82fc2a63362c2ac4fe0d0c4c2162"
+      },
+      "edits": [
+        {
+          "oldStartLine": 7,
+          "newStartLine": 7,
+          "removed": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup.py'))"
+          ],
+          "added": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup_v2.py'))"
+          ]
+        }
+      ]
+    },
+    {
+      "basis": {
+        "path": "verification/github-delivery-android-host-followup/bind_package_run_followup.py",
+        "bytes": 574,
+        "sha256": "4218b4ffd2b27b5a73dc9779d21ee7fa41af30b90a87c099df0c64d0b2093c6e"
+      },
+      "prepared": {
+        "path": "verification/github-delivery-android-host-followup/bind_package_run_followup_v2.py",
+        "bytes": 577,
+        "sha256": "715ccb881ecfeb26fea253362e941bf8c0a51ab90232f1c6389c6ba30f9cf2ce"
+      },
+      "edits": [
+        {
+          "oldStartLine": 7,
+          "newStartLine": 7,
+          "removed": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup.py'))"
+          ],
+          "added": [
+            "spec = importlib.util.spec_from_file_location('android_host_followup_delivery_common', Path(__file__).with_name('selection_common_delivery_followup_v2.py'))"
+          ]
+        }
+      ]
+    }
+  ],
+  "argvPacketsUnchanged": [
+    {
+      "path": "verification/github-delivery-android-host-followup/argv-delivery-followup.json",
+      "bytes": 117708,
+      "sha256": "8133635e7580e3b91887c17692440fc62494002b4a217d5f4392e62f6cde5a18"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/argv-ci-binding-followup.json",
+      "bytes": 9163,
+      "sha256": "b6e720eb1d0590f0b589750d95e0ed2b5580a9dc6961ff2ac5d5468ab2ad2196"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/argv-dispatch-axis-followup.json",
+      "bytes": 8890,
+      "sha256": "fb0d65d463c48dde793b30fef67217f3536783b9eeb48275582316ae31deca4a"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/argv-bind-axis-run-followup.json",
+      "bytes": 6531,
+      "sha256": "62925622f344835726e6ae082546147fca7050d7ab31b626e5d7d2aedb2bc73a"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/argv-dispatch-package-followup.json",
+      "bytes": 9958,
+      "sha256": "827621b9eb2569091c0dca3af40d7098726ddcdf05dfd03c69f11ca0bcc7de5f"
+    },
+    {
+      "path": "verification/github-delivery-android-host-followup/argv-bind-package-run-followup.json",
+      "bytes": 7544,
+      "sha256": "f510988193da3a900dca0dc86245386e20ed7675bb9b72d2eff767d67d7b9c0e"
+    }
+  ],
+  "helperCustodyUnchanged": true,
+  "acceptedActualPreflight": {
+    "path": "verification/github-delivery-android-host-followup/preflight-followup-root-review.json",
+    "bytes": 7969,
+    "sha256": "d9bcb597aebb1ffd887a396021bdad49687a3ef4654a9cb220b93698981dfc35"
+  },
+  "noAuthorityGenerated": true,
+  "noDriverExecuted": true
+}

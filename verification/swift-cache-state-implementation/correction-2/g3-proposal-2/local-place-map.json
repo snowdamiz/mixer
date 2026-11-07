@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "target_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "scope": "proposal-only G3 transient places, not full29344 role-union proof",
+  "merge_places": [
+    {
+      "name": "c",
+      "type": "&mut Candidate2048",
+      "bytes": 8,
+      "birth_drop": "merge parameter lifetime"
+    },
+    {
+      "name": "src/dst/width/base/left/mid/end/right/out",
+      "type": "nine usize scalar locals",
+      "bytes": 72,
+      "birth_drop": "actual enclosing pass/pair/output scopes"
+    },
+    {
+      "name": "offset expression source",
+      "type": "usize",
+      "bytes": 8,
+      "birth_drop": "one expansion address expression through at initialization"
+    },
+    {
+      "name": "at received",
+      "type": "usize",
+      "bytes": 8,
+      "birth_drop": "one macro block until final operand"
+    },
+    {
+      "name": "a/b identifier bindings",
+      "type": "two u64",
+      "bytes": 16,
+      "birth_drop": "after their initializer edges through comparison result"
+    },
+    {
+      "name": "TA operand",
+      "type": "u64",
+      "bytes": 8,
+      "birth_drop": "TA conversion received through <= after TB"
+    }
+  ],
+  "merge_place_peak_conservative": 120,
+  "selected_merge_subrole": 144,
+  "helper_places": [
+    {
+      "name": "Range16 source+Index received",
+      "complete_source_and_received_bytes": 32,
+      "birth_drop": "range expression through checked indexing"
+    },
+    {
+      "name": "shared slice16 source+first_chunk receiver",
+      "complete_source_and_received_bytes": 32,
+      "birth_drop": "checked Index view through chunk call"
+    },
+    {
+      "name": "Option<&array8> source+unwrap self received",
+      "complete_source_and_received_bytes": 16,
+      "birth_drop": "chunk return through Some tag"
+    },
+    {
+      "name": "array reference8 source+received",
+      "complete_source_and_received_bytes": 16,
+      "birth_drop": "unwrap return through dereference"
+    },
+    {
+      "name": "array8 dereference source+LE argument received",
+      "complete_source_and_received_bytes": 16,
+      "birth_drop": "dereference through conversion call"
+    },
+    {
+      "name": "decoded u64 return source+received operand/initializer",
+      "complete_source_and_received_bytes": 16,
+      "birth_drop": "conversion return through enclosing expression"
+    },
+    {
+      "name": "implicit shared Candidate receiver8 source+received",
+      "complete_source_and_received_bytes": 16,
+      "birth_drop": "Index receiver reborrow through shared range evaluation"
+    }
+  ],
+  "helper_place_peak_conservative": 144,
+  "selected_helper_subrole": 192,
+  "coexistence": "TB is conservatively counted while TA operand and both a/b bindings remain. Anonymous source/received movements are not erased. Source/received ranges/views/options may die earlier, but the local table does not rely on that reduction.",
+  "A_B_initializer_temp_note": "A initializer8 to a binding8 and B initializer8 to b binding8 are explicit operation edges; their source is the decoded-receive slot, not a duplicate second source slot. After each statement, that initializer ends before the next one.",
+  "no_new_Result_or_Ok_or_full_aggregate_owner": true,
+  "local_peak_is_not_stack_RSS_or_complete_product_union": true,
+  "atomization_and_lifetime_accepted": false
+}

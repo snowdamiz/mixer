@@ -1,0 +1,45 @@
+warning: unused imports: `BootstrapLedgerV1`, `BorrowedOwnerDataV1`, `CorrelatedSelectedProfileV1`, and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N07/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2427:25
+     |
+2427 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1, CorrelatedSelectedProfileV1,
+     |                         ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2428 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N07/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1923:63
+     |
+1923 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1923 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1923 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+error[E0308]: mismatched types
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N07/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2421:60
+     |
+2421 |         let _=correlate_admitted_loader_v1(attempt,carrier,&dictionary);
+     |               ----------------------------                 ^^^^^^^^^^^ expected `&AdmittedLoaderCorrespondenceV1<'_>`, found `&HashMap<String, [u8; 32]>`
+     |               |
+     |               arguments to this function are incorrect
+     |
+     = note: expected reference `&AdmittedLoaderCorrespondenceV1<'_>`
+                found reference `&HashMap<String, [u8; 32]>`
+note: function defined here
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N07/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2031:50
+     |
+2031 |     pub(in crate::experimental_swift_reactor) fn correlate_admitted_loader_v1(
+     |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2032 |         attempt: PrepaidCorrelationAttemptV1<'_>, carrier: SuppliedLoaderCarrierV1,
+2033 |         expected: &AdmittedLoaderCorrespondenceV1<'_>,
+     |         ---------------------------------------------
+
+error: aborting due to 1 previous error; 2 warnings emitted
+
+For more information about this error, try `rustc --explain E0308`.

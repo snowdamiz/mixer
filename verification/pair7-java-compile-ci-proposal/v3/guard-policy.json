@@ -1,0 +1,64 @@
+{
+  "schema": 3,
+  "status": "source-only-separate-review-and-root-selection-required",
+  "basis": {
+    "path": "verification/rust-1991-actual-audit-preparation-v2/deny_runtime.py",
+    "sha256": "69873787132f3c8d8f29977c87101e5c3d0337ae8429104bb49f1658b102cb74",
+    "unchanged": true
+  },
+  "candidate_guard": {
+    "path": "fixture_guard.py",
+    "sha256": "a21b0e80f9efe937bf18117d8f2c611f386073c796ba91c74f009c724a561197"
+  },
+  "exact_added_capabilities": [
+    "os.symlink/posix.symlink only new fixture destination and target lexically inside the same owned fixture root; ordinary ancestors, no symlink target; no dir_fd",
+    "os.mkfifo/posix.mkfifo only mode0600 fixture nodes, no dir_fd; no FIFO read/open admitted",
+    "os.unlink/os.remove/posix aliases for fixture leaf removal only; no root removal or dir_fd",
+    "os.rmdir/posix.rmdir only fixture descendants, ordinary parents, no root/dir_fd",
+    "os.fdopen only rb for one registered ordinary read-only descriptor opened under fixtures or selected packet with exact O_RDONLY|O_NOFOLLOW|O_NONBLOCK flags; fstat identity verified; authority consumed immediately",
+    "os.close only a still-registered descriptor, to clean up a refused fdopen; unregistered host descriptors refused"
+  ],
+  "unchanged_denials": [
+    "process creation/discovery/waits/signals including all old named APIs",
+    "network/socket APIs",
+    "threads and multiprocessing",
+    "ctypes/FFI",
+    "environment mutation",
+    "descriptor writes, dup, pipes, pty, arbitrary FileIO, fd-based builtins/io.open",
+    "chmod/chown/utime/truncate/rename/hardlink and outside-root mutation"
+  ],
+  "inherited_read_boundary": "Existing ordinary Python pathname reads remain inherited from the known-source guard; no claim of an adversarial sandbox. Newly admitted descriptors are confined to owned fixtures and the selected packet.",
+  "fixture_lifecycle": {
+    "environment": "MIXER_PAIR7_CONTROL_ROOT",
+    "requirement": "Fresh absolute canonical-parent path, basename pair7-java-controls-*, separate from packet, created once by launcher before guard install",
+    "subject_fixtures": "cases/ below new root",
+    "final_disposition": "Retain explicit root for review. No external cleanup or host resource operation."
+  },
+  "refusal_controls": [
+    "FIFO descriptor open",
+    "outside admitted packet/fixture descriptor path",
+    "unregistered descriptor0 fdopen",
+    "outside-root symlink target",
+    "outside-root symlink destination",
+    "outside-root unlink",
+    "packet/root rmdir",
+    "outside-root FIFO creation",
+    "write-mode fdopen of owned read-only descriptor"
+  ],
+  "expected_deliberate_guard_denials": 9,
+  "unexpected_guard_denials": "Fail the selected control run. Guard rejections never count as subject-test passes.",
+  "selected_invocation": {
+    "argv": [
+      "python3",
+      "-I",
+      "-B",
+      "-S",
+      "verification/pair7-java-compile-ci-proposal/v3/run_data_controls.py"
+    ],
+    "environment": {
+      "MIXER_PAIR7_CONTROL_ROOT": "ROOT_SELECTED_FRESH_CANONICAL_TEMP_PARENT/pair7-java-controls-UNIQUE"
+    },
+    "execution": "Not authorized or performed by this preparation lane"
+  },
+  "process_network_native_held_resource_authority_added": false
+}

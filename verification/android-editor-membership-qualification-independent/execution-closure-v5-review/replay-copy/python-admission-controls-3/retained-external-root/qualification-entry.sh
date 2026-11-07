@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/env -i PATH=/usr/bin:/bin LANG=C LC_ALL=C TZ=UTC /bin/sh -c 'core=/Users/andreyyurlov/Documents/dev/mixer/verification/android-editor-membership-compiled-boundary-qualification/interface-v5/python-admission-controls-3/owned-scratch/external-admission/admission-core.sh; result=$(/usr/bin/shasum -a 256 -- "$core"); result=${result%% *}; [ "$result" = 22ef4582fe970065285c27edb9e0b75bfb91f005529360db07add5d3e1d1bd3a ] || { echo "refused altered admission core" >&2; exit 2; }; exec /bin/sh "$core" "$@"' mixer-admission "$@"

@@ -1,0 +1,115 @@
+{
+  "schema": 2,
+  "status": "v3-bounded-source-correction-independent-review-and-controls-pending",
+  "root_decision": "Independently review exact v3 and its separate fixture guard, then select one finite guarded DATA control invocation. Workflow installation/host execution remain separate decisions.",
+  "selected": false,
+  "available_actual_generated_artifact": null,
+  "why_existing_routes_do_not_supply_it": [
+    {
+      "path": "cli/Tests/MixerBuildTests/AndroidProjectTests.swift",
+      "test": "androidSnapshotOwnsOnlyRuntimeRendererCoordinatorAndBridgeAndLocksExactBytes",
+      "observed_lines": [
+        8,
+        10,
+        12,
+        23,
+        26
+      ],
+      "fact": "Calls the actual AndroidProject.snapshot and checks exact18. Its defer deletes the generated directory; no artifact handoff exists."
+    },
+    {
+      "path": "cli/Sources/MixerBuild/ProjectGenerator.swift",
+      "observed_lines": [
+        48,
+        52,
+        56,
+        71
+      ],
+      "fact": "Full create invokes snapshot, Swift version and AndroidProject.inspectToolchain. It is broader than this compile-only action."
+    },
+    {
+      "path": "cli/Sources/MixerBuild/Resources/android-build.py",
+      "observed_lines": [
+        475,
+        476,
+        477
+      ],
+      "fact": "Actual build compiles generated adapter app/src plus package Java and D8-min28, within a broader Swift/JNI/APK build. It is not selected by this proposal."
+    },
+    {
+      "path": "verification/pair7-java-compile-ci-proposal/Pair7JavaSnapshotExportTests.swift",
+      "fact": "New proposal invokes the actual snapshot path and retains exact generated18 and complete snapshot tree. Requires separately selected remote Swift host test execution."
+    }
+  ],
+  "required_producer_receipt_fields": [
+    "repository",
+    "immutable_source_head",
+    "source_tree",
+    "github_run_id",
+    "github_run_attempt",
+    "workflow_path",
+    "workflow_sha256",
+    "generator_source_identity",
+    "profile_literal_identity",
+    "exact_argv",
+    "tool_versions_and_hashes",
+    "command_exit_and_stdout_stderr_hashes",
+    "actual_snapshot_tree_manifest",
+    "source_before_and_after",
+    "owned_command_custody",
+    "scratch_disposition",
+    "artifact_manifest_and_archive_hash",
+    "producer_job=snapshot",
+    "raw receipt identity checked before/after each child",
+    "exact complete ordinary artifact namespace",
+    "SourceDigest.tree recomputation from complete generated rows"
+  ],
+  "required_generated_namespace": {
+    "root": "Generated/MixerAndroid",
+    "java_members_from": "exact-java-closure.json:members[*].generated_path",
+    "java_members": 18,
+    "java_bytes": 393165,
+    "application_Java_manifest": [],
+    "closed_membership": true,
+    "ordinary_files_and_ancestors": true,
+    "case_exact": true,
+    "symlinks": false,
+    "extra_Java_refused": true,
+    "immutable_profile_required": "mixer.android-source-pair.7",
+    "same_source_head_as_compile": true,
+    "maximum_nodes": 256,
+    "maximum_bytes": 4194304,
+    "root_artifact_files": [
+      "started.json",
+      "snapshot-receipt.json",
+      "consumer/Generated/MixerAndroid/<exact declared generated tree>"
+    ]
+  },
+  "transport_boundary": "Exact same-run producer artifact ID and declared digest are validated before download and again before collector helper imports. They remain action metadata bindings only. Downloaded started/producer receipt bytes, the whole ordinary source namespace and recomputed SourceDigest.tree are independently checked before/after every Java child. No archive bytes, kernel transport or provider disposal are attested.",
+  "not_authorized_by_this_contract": [
+    "Local producer or compiler execution",
+    "Canonical file mutation",
+    "Workflow installation or dispatch",
+    "Existing allowance reuse",
+    "Full ProjectGenerator.create or Android build driver execution",
+    "Native/UI/phone execution"
+  ],
+  "separate_pending": [
+    "Debug/Release generated consumer compilation",
+    "Relocated consumer compilation",
+    "Exported consumer compilation",
+    "Complete app-owned Swift/JNI/APK build",
+    "Native runtime and release qualification"
+  ],
+  "concrete_producer": {
+    "source": "Pair7JavaSnapshotExportTests.swift",
+    "binder": "bind_snapshot_source.py",
+    "workflow": "workflow.DRAFT.yml",
+    "source_manifest": "snapshot-source-manifest.json",
+    "source_members": 142,
+    "source_bytes": 2779239,
+    "only_test": "pair7RetainedActualAndroidSnapshotForJavaCI",
+    "actual_generated_tree_currently_observed": false,
+    "packet": "verification/pair7-java-compile-ci-proposal/v3/"
+  }
+}

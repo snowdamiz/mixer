@@ -1,12 +1,19 @@
 defmodule MixerHosted.BrowserAuth.Store do
   @moduledoc """
-  Fixed preauthentication storage operations on the dedicated lifecycle pool.
+  Fixed preauthentication and pending callback storage operations on the dedicated lifecycle pool.
 
   No request-selected Repo, clock, callback, SQL name or provider is accepted.
   The internal owner must still authenticate ciphertext and fence private release
   after the transaction. A decoded snapshot alone grants no authentication.
   """
-  alias MixerHosted.BrowserAuth.{Catalog, LifecycleRepo, PreauthDraft, RelationCatalog}
+  alias MixerHosted.BrowserAuth.{
+    CallbackDraft,
+    Catalog,
+    LifecycleRepo,
+    PreauthDraft,
+    RelationCatalog
+  }
+
   alias MixerHosted.BrowserAuth.{Protocol, RuntimeConfig, RuntimeOwner, StoredSnapshot, Vault}
 
   defmodule Failure do
@@ -18,6 +25,8 @@ defmodule MixerHosted.BrowserAuth.Store do
   @phase {__MODULE__, :phase}
   @owned {__MODULE__, :owned}
   @entered {__MODULE__, :entered}
+  @callback_walls {__MODULE__, :callback_walls}
+  @callback_active {__MODULE__, :callback_active}
   @ordinary_context {MixerHosted.Authorization.Transaction.Context, :active}
 
   @doc false
@@ -97,6 +106,110 @@ defmodule MixerHosted.BrowserAuth.Store do
 
   def begin_login(_, _), do: failure(:admission, :not_started)
 
+  @doc "Private committed pending callback source; no decrypted material is returned."
+  def discover_callback(%CallbackDraft.Discovery{} = input),
+    do: callback_call(:discover_callback, input, nil)
+
+  def discover_callback(_), do: failure(:admission, :not_started)
+
+  @doc "Consumes only an authenticated live pending source; returns no claim authority."
+  def claim(%CallbackDraft.Claim{} = draft, metadata),
+    do: callback_call(:claim, draft, metadata)
+
+  def claim(_, _), do: failure(:admission, :not_started)
+
+  @doc "Records a fixed provider rejection after authenticating the preauth session."
+  def provider_reject(%CallbackDraft.Reject{} = draft, metadata),
+    do: callback_call(:provider_reject, draft, metadata)
+
+  def provider_reject(_, _), do: failure(:admission, :not_started)
+
+  defp callback_call(operation, draft, metadata) do
+    if Process.get(@callback_active, false) do
+      callback_result(draft.lease, failure(:admission, :not_started))
+    else
+      Process.put(@callback_active, true)
+
+      try do
+        result = callback_result(draft.lease, callback_transaction(operation, draft, metadata))
+
+        unless operation === :discover_callback and match?({:ok, %StoredSnapshot{}}, result),
+          do: forget_callback_wall(draft.lease)
+
+        result
+      after
+        Process.delete(@callback_active)
+      end
+    end
+  end
+
+  defp forget_callback_wall(%PreauthDraft.Lease{} = lease) do
+    walls = Process.get(@callback_walls, %{})
+
+    case Map.get(walls, lease.reference) do
+      %{lease: ^lease} -> Process.put(@callback_walls, Map.delete(walls, lease.reference))
+      _ -> :ok
+    end
+  end
+
+  defp forget_callback_wall(_), do: :ok
+
+  defp callback_transaction(:discover_callback, input, nil) do
+    with true <- map_size(input) == 4,
+         true <- raw?(input.cookie_digest, 32) and raw?(input.state_digest, 32),
+         :ok <- RuntimeOwner.checkpoint(input.lease) do
+      transact(
+        input.lease.runtime,
+        input.lease.deadline,
+        input.lease,
+        {:discover_callback, input}
+      )
+    else
+      _ -> failure(:admission, :not_started)
+    end
+  rescue
+    _ -> failure(:admission, :not_started)
+  catch
+    _, _ -> failure(:admission, :not_started)
+  end
+
+  defp callback_transaction(operation, draft, metadata) do
+    with true <- metadata?(metadata),
+         :ok <- RuntimeOwner.checkpoint(draft.lease),
+         true <- callback_draft?(operation, draft),
+         :ok <- RuntimeOwner.checkpoint(draft.lease) do
+      transact(
+        draft.lease.runtime,
+        draft.lease.deadline,
+        draft.lease,
+        {operation, draft, metadata}
+      )
+    else
+      _ -> failure(:admission, :not_started)
+    end
+  rescue
+    _ -> failure(:admission, :not_started)
+  catch
+    _, _ -> failure(:admission, :not_started)
+  end
+
+  defp callback_result(%PreauthDraft.Lease{} = lease, {:error, %Failure{}} = error) do
+    # This fixed Store call owns reporting. Only the original actual caller can
+    # affect the exact retained slot. Failed acknowledgement remains unavailable;
+    # no new timeout, owner replacement, retry or readiness assertion is made.
+    if lease.caller === self() and Process.whereis(RuntimeOwner) === lease.owner do
+      GenServer.call(lease.owner, {:failed, lease, error}, remaining!(lease.deadline))
+    end
+
+    error
+  rescue
+    _ -> error
+  catch
+    _, _ -> error
+  end
+
+  defp callback_result(_, result), do: result
+
   @doc false
   def failure(phase, outcome),
     do: {:error, %Failure{code: :session_unavailable, phase: phase, outcome: outcome}}
@@ -164,6 +277,8 @@ defmodule MixerHosted.BrowserAuth.Store do
             # check can withhold a known committed result, never resurrect it.
             try do
               checkpoint!(lease, deadline)
+              callback_committed!(operation, value)
+              remaining!(deadline)
               {:ok, value}
             rescue
               _ -> failure(:commit, :committed)
@@ -283,7 +398,8 @@ defmodule MixerHosted.BrowserAuth.Store do
     )
   end
 
-  defp effect!({operation, input}, deadline) when operation in [:load, :discover_begin] do
+  defp effect!({operation, input}, deadline)
+       when operation in [:load, :discover_begin, :discover_callback] do
     snapshot!(
       query!(
         """
@@ -330,6 +446,68 @@ defmodule MixerHosted.BrowserAuth.Store do
           s.iv,
           s.tag,
           s.ciphertext,
+          metadata.request_id
+        ],
+        deadline
+      )
+    )
+  end
+
+  defp effect!({operation, d, metadata}, deadline)
+       when operation in [:claim, :provider_reject] do
+    input = %CallbackDraft.Discovery{
+      lease: d.lease,
+      cookie_digest: d.source.browser["cookie_digest"],
+      state_digest: d.source.attempt["state_digest"]
+    }
+
+    # Fixed load holds its browser SHARE lock through this transaction. Revision
+    # CAS alone misses audit-only transitions, so compare the whole source first.
+    raw = effect!({:discover_callback, input}, deadline)
+    Process.put(@phase, :decode)
+    true = decode!({:discover_callback, input}, raw) === d.source
+    checkpoint!(d.lease, deadline)
+    Process.put(@phase, :effect)
+    callback_effect!(operation, d, metadata, deadline)
+  end
+
+  defp callback_effect!(:claim, d, metadata, deadline) do
+    b = d.source.browser
+
+    snapshot!(
+      query!(
+        """
+        SELECT public.mixer_browser_claim($1::bytea,$2::bytea,$3::bytea,$4::bigint,
+          $5::bytea,$6::bigint,$7::text) AS snapshot
+        """,
+        [
+          b["cookie_digest"],
+          d.source.attempt["state_digest"],
+          b["config_digest"],
+          b["revision"],
+          :crypto.hash(:sha256, d.claim_secret),
+          d.claim_expires_at,
+          metadata.request_id
+        ],
+        deadline
+      )
+    )
+  end
+
+  defp callback_effect!(:provider_reject, d, metadata, deadline) do
+    b = d.source.browser
+
+    snapshot!(
+      query!(
+        """
+        SELECT public.mixer_browser_provider_reject($1::bytea,$2::bytea,$3::bytea,
+          $4::bigint,$5::text) AS snapshot
+        """,
+        [
+          b["cookie_digest"],
+          d.source.attempt["state_digest"],
+          b["config_digest"],
+          b["revision"],
           metadata.request_id
         ],
         deadline
@@ -413,6 +591,148 @@ defmodule MixerHosted.BrowserAuth.Store do
     s
   end
 
+  defp decode!({:discover_callback, input}, raw) do
+    {:ok, %StoredSnapshot{} = s} = StoredSnapshot.decode(raw)
+    callback_source!(s, input)
+    s
+  end
+
+  defp decode!({operation, d, _}, raw) when operation in [:claim, :provider_reject] do
+    {:ok, %StoredSnapshot{} = s} = StoredSnapshot.decode(raw)
+    b = d.source.browser
+    true = s.browser === %{b | "audit_sequence" => b["audit_sequence"] + 1}
+    true = s.session_envelope === d.source.session_envelope and s.attempt_envelope === nil
+    a = d.source.attempt
+    erased = %{a | "key_id" => nil, "iv" => nil, "tag" => nil, "ciphertext" => nil}
+
+    expected =
+      case operation do
+        :claim ->
+          wall = callback_wall!(d.lease, d.source)
+          claimed = s.attempt["claimed_at"]
+          true = is_integer(claimed) and claimed >= d.lease.started_at and claimed <= wall
+          true = wall < d.claim_expires_at
+
+          %{
+            erased
+            | "status" => "claimed",
+              "claim_digest" => :crypto.hash(:sha256, d.claim_secret),
+              "claimed_at" => claimed,
+              "claim_expires_at" => d.claim_expires_at
+          }
+
+        :provider_reject ->
+          callback_wall!(d.lease, d.source)
+          %{erased | "status" => "provider_rejected", "completion_reason" => "provider_rejected"}
+      end
+
+    true = s.attempt === expected
+    s
+  end
+
+  defp callback_committed!({:discover_callback, input}, source) do
+    callback_source!(source, input)
+    callback_final!(input.lease, source, nil)
+  end
+
+  defp callback_committed!({operation, d, _}, _)
+       when operation in [:claim, :provider_reject] do
+    wall = callback_wall!(d.lease, d.source)
+    if operation === :claim, do: true = wall < d.claim_expires_at
+    expires = if operation === :claim, do: d.claim_expires_at, else: nil
+    callback_final!(d.lease, d.source, expires)
+  end
+
+  defp callback_committed!(_, _), do: :ok
+
+  defp callback_final!(lease, source, expires) do
+    # A previous owner reply may already be queued when dependencies disappear.
+    # Resample the exact lease after source/time work, then make the last local
+    # expiry/PID/deadline samples. This remains a sampled check-to-return fence.
+    checkpoint!(lease, lease.deadline)
+    wall = callback_wall!(lease, source)
+    true = is_nil(expires) or wall < expires
+    true = Process.whereis(RuntimeOwner) === lease.owner
+    remaining!(lease.deadline)
+    :ok
+  end
+
+  defp callback_source!(source, input) do
+    :ok = preauth_source!(source, input)
+    true = not is_nil(source.attempt) and not is_nil(source.attempt_envelope)
+    wall = callback_wall!(input.lease, source)
+    :ok = pending_source!(source, input.lease.runtime.browser_config, wall)
+    true = source.attempt["state_digest"] === input.state_digest
+    :ok
+  end
+
+  defp callback_wall!(lease, source) do
+    walls =
+      Process.get(@callback_walls, %{})
+      |> Map.reject(fn {_, record} ->
+        System.monotonic_time(:millisecond) >= record.lease.deadline
+      end)
+
+    previous =
+      case Map.get(walls, lease.reference) do
+        %{lease: ^lease, wall: wall} ->
+          wall
+
+        nil ->
+          true = map_size(walls) < 32
+          lease.started_at
+      end
+
+    wall = System.system_time(:second)
+    true = wall >= previous and wall >= lease.started_at
+    true = wall < source.browser["idle_expires_at"]
+    true = wall < source.browser["absolute_expires_at"]
+    true = wall < source.attempt["expires_at"]
+    Process.put(@callback_walls, Map.put(walls, lease.reference, %{lease: lease, wall: wall}))
+    wall
+  end
+
+  defp callback_draft?(operation, d) do
+    s = d.source
+
+    input = %CallbackDraft.Discovery{
+      lease: d.lease,
+      cookie_digest: s.browser["cookie_digest"],
+      state_digest: s.attempt["state_digest"]
+    }
+
+    :ok = callback_source!(s, input)
+    envelope = s.session_envelope
+    key = d.lease.runtime.custody.key
+
+    # Never open Vault in the mutation transaction. Source authentication here
+    # precedes checkout; rediscovery then proves full committed source equality.
+    {:ok, %Vault.Preauth{csrf: csrf}} = Vault.open(key, envelope.context, envelope.sealed)
+    true = Protocol.token?(csrf) and :crypto.hash(:sha256, csrf) === s.browser["csrf_digest"]
+
+    case operation do
+      :claim ->
+        true = map_size(d) == 6 and Protocol.token?(d.verifier) and raw?(d.claim_secret, 32)
+
+        expires =
+          Enum.min([
+            d.lease.started_at + 60,
+            s.attempt["expires_at"],
+            s.browser["idle_expires_at"],
+            s.browser["absolute_expires_at"]
+          ])
+
+        true = is_integer(d.claim_expires_at) and d.claim_expires_at === expires
+        true = callback_wall!(d.lease, s) < expires
+        e = s.attempt_envelope
+        {:ok, verifier} = Vault.open(key, e.context, e.sealed)
+        verifier === %Vault.Verifier{verifier: d.verifier}
+
+      :provider_reject ->
+        map_size(d) == 3
+    end
+  end
+
   defp preauth_source!(%StoredSnapshot{} = s, input) do
     b = s.browser
     config = input.lease.runtime.browser_config
@@ -455,7 +775,10 @@ defmodule MixerHosted.BrowserAuth.Store do
 
   defp pending_source!(%StoredSnapshot{attempt: nil, attempt_envelope: nil}, _), do: :ok
 
-  defp pending_source!(%StoredSnapshot{} = s, config) do
+  defp pending_source!(%StoredSnapshot{} = s, config),
+    do: pending_source!(s, config, System.system_time(:second))
+
+  defp pending_source!(%StoredSnapshot{} = s, config, wall) do
     a = s.attempt
     b = s.browser
     e = s.attempt_envelope
@@ -479,7 +802,7 @@ defmodule MixerHosted.BrowserAuth.Store do
 
     true = e.context === c
     true = raw?(a["state_digest"], 32) and raw?(a["nonce_digest"], 32)
-    true = a["created_at"] >= b["created_at"] and a["created_at"] <= System.system_time(:second)
+    true = a["created_at"] >= b["created_at"] and a["created_at"] <= wall
     true = a["expires_at"] > a["created_at"] and a["expires_at"] <= a["created_at"] + 300
     true = a["expires_at"] <= min(b["absolute_expires_at"], b["idle_expires_at"])
     true = a === attempt_fields(c, e.sealed, a["nonce_digest"], a["created_at"])

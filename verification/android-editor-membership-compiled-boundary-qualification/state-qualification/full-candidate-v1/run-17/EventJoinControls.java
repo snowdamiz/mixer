@@ -1,0 +1,21 @@
+package dev.mixer.android;
+import java.util.*;import java.util.function.Consumer;import java.nio.charset.StandardCharsets;
+import android.view.inputmethod.BaseInputConnection;
+/** Nested hooks must retain the selected immutable event; missing source chronology refuses. */
+public final class EventJoinControls {
+ private EventJoinControls(){}private static int checks;
+ private static void check(boolean value,String why){checks++;if(!value)throw new AssertionError(why);}
+ private static void nested(){
+  BaseInputConnection target=new BaseInputConnection(new android.view.View(new android.app.Activity()),true);ConcreteHostProbe.reset();DirectBoundaryStates.Trace trace=new DirectBoundaryStates.Trace();OutcomeCapture capture=new OutcomeCapture();capture.begin(trace);List<Integer> selected=new ArrayList<>();ConcreteHostProbe.hook=(method,phase)->{if(method.equals("BaseInputConnection.requestCursorUpdatesFiltered")&&phase.equals("entry"))target.getHandler();};Consumer<ConcreteHostProbe.Event> observer=event->{trace.event(event);if(event.method.equals("BaseInputConnection.requestCursorUpdatesFiltered"))selected.add(trace.index(event));};ConcreteHostProbe.installQualificationHook(observer);boolean actual;
+  try{actual=target.requestCursorUpdates(0,0);}finally{ConcreteHostProbe.clearQualificationHook(observer);ConcreteHostProbe.hook=null;capture.end();}
+  check(actual&&capture.clean(),"nested original callback keeps normal result/cleanliness");check(selected.equals(List.of(0,2)),"outer entry index precedes nested entry, return index follows it");check(trace.sequence.size()==3&&Json.object(trace.sequence.get(0)).get("method").equals("BaseInputConnection.requestCursorUpdatesFiltered")&&Json.object(trace.sequence.get(1)).get("method").equals("BaseInputConnection.getHandler"),"chronological actual event order");
+  List<Map<String,Object>> own=capture.rows.stream().map(Json::object).filter(row->row.get("method").equals("BaseInputConnection.requestCursorUpdatesFiltered")).toList();check(own.size()==1&&own.get(0).get("native_event_sequence_index").equals(2)&&own.get(0).get("native_event_phase").equals("beforeReturn"),"same exact outer normal return event bound");Map<String,Object> handler=capture.rows.stream().map(Json::object).filter(row->row.get("method").equals("BaseInputConnection.getHandler")).findFirst().orElseThrow();check(handler.get("native_event_sequence_index").equals(1)&&handler.get("native_event_phase").equals("entry"),"entry-only handler uses actual own event");ConcreteHostProbe.reset();
+ }
+ private static void removedOriginal(){
+  BaseInputConnection target=new BaseInputConnection(new android.view.View(new android.app.Activity()),true);ConcreteHostProbe.reset();DirectBoundaryStates.Trace trace=new DirectBoundaryStates.Trace();OutcomeCapture capture=new OutcomeCapture();capture.begin(trace);ConcreteHostProbe.hook=(method,phase)->{if(phase.equals("entry"))ConcreteHostProbe.reset();};Consumer<ConcreteHostProbe.Event> observer=trace::event;ConcreteHostProbe.installQualificationHook(observer);boolean actual;
+  try{actual=target.requestCursorUpdates(0,0);}finally{ConcreteHostProbe.clearQualificationHook(observer);ConcreteHostProbe.hook=null;capture.end();}
+  check(actual&&!capture.clean(),"lost original history dirties/refuses while preserving original return");check(NativeOutcomeProbe.captureFailure()!=null,"exact lost-event diagnostic retained");OutcomeCapture next=new OutcomeCapture();next.begin();next.end();check(next.clean()&&!capture.clean(),"later begin cannot erase earlier missing-event refusal");ConcreteHostProbe.reset();
+ }
+ private static void serializer(){Map<String,Object> parsed=Json.object(Json.parse("{\"bci\":381,\"source_line\":66}".getBytes(StandardCharsets.UTF_8)));String actual=DirectBoundaryStates.json(parsed);check(actual.equals("{\"bci\":381,\"source_line\":66}"),"binding numeric tokens remain actual JSON integers");boolean refused=false;try{DirectBoundaryStates.json(new Json.Num("1.25"));}catch(NumberFormatException expected){refused=true;}check(refused,"supplementary binding serializer refuses noninteger tokens");}
+ public static void main(String[] args){nested();removedOriginal();serializer();System.out.println("PASS exact event/result join and integer serializer controls checks="+checks);}
+}

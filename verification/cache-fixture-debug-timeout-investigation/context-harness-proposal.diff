@@ -1,0 +1,107 @@
+--- a/verification/swift-cache-state-ci/pack/source/regression/independent_tests.rs
++++ b/verification/swift-cache-state-ci/pack/source/regression/independent_tests.rs
+@@ -147,6 +147,72 @@
+     fs::remove_dir_all(&path).unwrap();
+ }
+ 
++#[derive(Default)]
++struct ContextPhaseTimes {
++    prepare: std::time::Duration,
++    analyze: std::time::Duration,
++    report_assert: std::time::Duration,
++    cleanup: std::time::Duration,
++}
++
++fn run_context_opened(
++    files: (File, File, File, File), framing: bool, label: &str, path: &std::path::Path,
++) -> ContextPhaseTimes {
++    let (mut stream,mut profile,mut context,mut output)=files;
++    let analyze_start=std::time::Instant::now();
++    let result=product::analyze_fixture(&mut stream,&mut profile,&mut context,&mut output);
++    let analyze=analyze_start.elapsed();
++    let report_start=std::time::Instant::now();
++    output.seek(SeekFrom::Start(0)).unwrap(); let mut report=Vec::new(); output.read_to_end(&mut report).unwrap();
++    match &result {
++        Ok(outcome)=>{assert!(!outcome.stored_prefix_validated());assert!(!outcome.full_replay_accepted());},
++        Err(error)=>{assert_eq!(error.reserved,0);assert!(report.len()<=REPORT);if report.len()==REPORT {assert_eq!(get(&report,4),0);}},
++    }
++    if framing { assert!(result.is_ok(),"expected framing observation {label}"); check_report(&report,true); }
++    else if result.is_ok() {check_report(&report,false); assert_eq!(get(&report,3),3,"malformed vector admitted: {label}");}
++    let report_assert=report_start.elapsed();
++    let cleanup_start=std::time::Instant::now();
++    drop((stream,profile,context,output));
++    fs::remove_dir_all(path).unwrap();
++    ContextPhaseTimes { prepare: std::time::Duration::ZERO, analyze, report_assert, cleanup: cleanup_start.elapsed() }
++}
++
++fn assert_shared_context_inputs(shared: &std::path::Path, baseline: &Fixture) {
++    for (name,expected) in [("stream",&baseline.stream),("profile",&baseline.profile)] {
++        let path=shared.join(name);
++        let metadata=fs::metadata(&path).unwrap();
++        assert!(metadata.is_file());
++        assert!(metadata.permissions().readonly());
++        assert_eq!(&fs::read(&path).unwrap(),expected,"shared context input bytes changed: {name}");
++    }
++}
++
++fn run_context_case(
++    bytes: &[u8], shared: &std::path::Path, label: &str,
++    completed: &mut usize, total: &mut ContextPhaseTimes, started: std::time::Instant,
++) {
++    let prepare_start=std::time::Instant::now();
++    let path=scratch(label);
++    fs::write(path.join("context"),bytes).unwrap();
++    let mut stream=File::open(shared.join("stream")).unwrap();
++    let mut profile=File::open(shared.join("profile")).unwrap();
++    let mut context=File::open(path.join("context")).unwrap();
++    let mut output=OpenOptions::new().read(true).write(true).create_new(true).open(path.join("report")).unwrap();
++    for file in [&mut stream,&mut profile,&mut context,&mut output] {
++        assert_eq!(file.stream_position().unwrap(),0,"fresh offset-zero handle required");
++    }
++    let prepare=prepare_start.elapsed();
++    let phases=run_context_opened((stream,profile,context,output),false,label,&path);
++    total.prepare+=prepare;total.analyze+=phases.analyze;
++    total.report_assert+=phases.report_assert;total.cleanup+=phases.cleanup;
++    *completed+=1;
++    if *completed%64==0 || *completed==1003 {
++        eprintln!("context_progress completed={}/1003 elapsed_ms={} prepare_ms={} analyze_ms={} report_assert_ms={} cleanup_ms={}",
++            *completed,started.elapsed().as_millis(),total.prepare.as_millis(),total.analyze.as_millis(),
++            total.report_assert.as_millis(),total.cleanup.as_millis());
++    }
++}
++
+ #[test]
+ fn independently_encoded_all_kind_baseline() { run(&Fixture::new(),true,"baseline"); }
+ 
+@@ -208,12 +274,27 @@
+ 
+ #[test]
+ fn context_schema_scalar_reserved_and_lengths() {
++    let started=std::time::Instant::now();
+     let baseline=Fixture::new();
++    let shared=scratch("context-shared-inputs");
++    for (name,bytes) in [("stream",&baseline.stream),("profile",&baseline.profile)] {
++        let path=shared.join(name);
++        fs::write(&path,bytes).unwrap();
++        let mut permissions=fs::metadata(&path).unwrap().permissions();
++        permissions.set_readonly(true);
++        fs::set_permissions(&path,permissions).unwrap();
++    }
++    assert_shared_context_inputs(&shared,&baseline);
++    let mut completed=0usize;
++    let mut total=ContextPhaseTimes::default();
+     for (word,value) in [(1,2),(2,8191),(3,0),(3,2),(4,0),(4,4194305),(5,32),(5,64),(6,M),(7,0),(7,4294967296),(8,0),(8,65),(9,0),(9,65),(10,0),(10,2),(11,M),(12,99),(13,0),(13,1001),(14,1),(15,1)] {
+-        let mut f=baseline.clone();f.context(word,value);run(&f,false,&format!("context-{word}-{value}"));
+-    }
+-    for word in 48..1024 {let mut f=baseline.clone();f.context(word,1);run(&f,false,&format!("context-reserved-{word}"));}
+-    for len in [0usize,1,8191,8193] {let mut f=baseline.clone();f.context.resize(len,0);run(&f,false,&format!("context-length-{len}"));}
++        let mut context=baseline.context.clone();put(&mut context,word,value);run_context_case(&context,&shared,&format!("context-{word}-{value}"),&mut completed,&mut total,started);
++    }
++    for word in 48..1024 {let mut context=baseline.context.clone();put(&mut context,word,1);run_context_case(&context,&shared,&format!("context-reserved-{word}"),&mut completed,&mut total,started);}
++    for len in [0usize,1,8191,8193] {let mut context=baseline.context.clone();context.resize(len,0);run_context_case(&context,&shared,&format!("context-length-{len}"),&mut completed,&mut total,started);}
++    assert_eq!(completed,1003,"complete ordered context vector coverage");
++    assert_shared_context_inputs(&shared,&baseline);
++    fs::remove_dir_all(&shared).unwrap();
+ }
+ 
+ #[test]

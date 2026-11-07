@@ -1,0 +1,236 @@
+{
+  "schema": 1,
+  "status": "authored-actual-source-group-proof-awaiting-independent-review",
+  "source_sha256": "80eb9830ed78b1122ff3ec0723e1ce20afb46fd4a4e5abf80c60c4883a65a84e",
+  "group_rule": "at most16boundedscalar source operations OR one<=128-byte fixed copy; bounded loops charged each iteration; allbranches conservativelyreserved; never CPU/RSS qualification",
+  "record": {
+    "framing": 22,
+    "envelope": 128,
+    "wrapper": 42,
+    "combined": 192,
+    "mandatory_preflight": 8192,
+    "wrapper_groups": [
+      {
+        "name": "record admission/iteration/combined debit call wrapper",
+        "groups": 4,
+        "source": "walk_fixture_envelope_v1: preflight through atomic combined Budget call; fixed new-wrapper argument/control receiving places"
+      },
+      {
+        "name": "cumulative128 reservation counter update",
+        "groups": 3,
+        "source": "walk_fixture_envelope_v1: p.debit update before any read, plus holder borrow/source/destination"
+      },
+      {
+        "name": "decoded-record construction and caller/callee borrow",
+        "groups": 3,
+        "source": "walk_fixture_envelope_v1: FixtureDecodedRecordV1 with private immutable128 backing borrow"
+      },
+      {
+        "name": "latch eligibility and leaf_pending call/return",
+        "groups": 5,
+        "source": "leaf_pending + new walk condition; absent/Observed/status refusal branches charged regardless of branch"
+      },
+      {
+        "name": "StepBudget construction and complete argument handoff",
+        "groups": 4,
+        "source": "new walk: two-u64 source/owner and four leaf borrows including Vec-to-slice view"
+      },
+      {
+        "name": "complete received reply source/return/caller128",
+        "groups": 3,
+        "source": "observe_fixture_envelope_v1 return and received local128; each complete<=128 fixed copy has a slot"
+      },
+      {
+        "name": "progress reply install and reply_valid transition",
+        "groups": 3,
+        "source": "new walk: p.reply=received then reply_valid=1; no initialObserved projector"
+      },
+      {
+        "name": "normal debit postcondition audit",
+        "groups": 3,
+        "source": "reply_debit_valid funded branch and caller boolean/error control"
+      },
+      {
+        "name": "underfunded guard debit postcondition audit",
+        "groups": 3,
+        "source": "reply_debit_valid Steps0 branch; inactive fixed slots remain paid"
+      },
+      {
+        "name": "audit-failure fixed poison constructor/source/return",
+        "groups": 3,
+        "source": "poisoned128 plus new walk source/return copy; fixed error arm always reserved"
+      },
+      {
+        "name": "audit-failure destination/latch handling",
+        "groups": 3,
+        "source": "new walk: poisoned128 into p.reply; no subsequent eligible leaf call"
+      },
+      {
+        "name": "latched skip/source-scope exit and result/error receiving",
+        "groups": 5,
+        "source": "new walk: branch/source lifetime exits and complete fixed receiving/error borrow places after earlier refusal/poison"
+      }
+    ],
+    "leaf_groups": [
+      {
+        "name": "private entry/subdivision debit/predicate",
+        "groups": 2
+      },
+      {
+        "name": "twelve checked prior loads and fixed loop bookkeeping",
+        "groups": 27
+      },
+      {
+        "name": "retained-state discriminator/invariant checks",
+        "groups": 2
+      },
+      {
+        "name": "closed wire shape helper: common and maximum kind arm, including Options",
+        "groups": 12
+      },
+      {
+        "name": "sequence/work/instruction/terminal coordinate guards",
+        "groups": 3
+      },
+      {
+        "name": "complete prior-to-next96 source/destination copy",
+        "groups": 2
+      },
+      {
+        "name": "phase/release/failure/acquire/stage/publication transition maximum fixed arm",
+        "groups": 9
+      },
+      {
+        "name": "twelve bounded candidate8byte stores; all destination ranges prechecked by priorloads and sized candidate",
+        "groups": 24
+      },
+      {
+        "name": "twelve prechecked commit fixed copies and address/loop work",
+        "groups": 24
+      },
+      {
+        "name": "complete fixed observed/refused/poison reply source/return/error handling",
+        "groups": 6
+      }
+    ]
+  },
+  "fixed": {
+    "envelope_setup": 534,
+    "envelope_finish": 8,
+    "wrapper_setup": 20,
+    "wrapper_final": 44,
+    "underfunded_guard": 36,
+    "wrapper_setup_groups": [
+      {
+        "name": "Progress zero128 source + Reply128 constructor",
+        "groups": 2
+      },
+      {
+        "name": "Progress144 source/destination/conservative move, each split<=128",
+        "groups": 6
+      },
+      {
+        "name": "fixed main wrapper setup/report admission calls and complete error receiving",
+        "groups": 4
+      },
+      {
+        "name": "Progress borrow/initial private discriminator/debit scalar bookkeeping",
+        "groups": 4
+      },
+      {
+        "name": "separate guard reservation call/error/return before mutation",
+        "groups": 4
+      }
+    ],
+    "wrapper_final_groups": [
+      {
+        "name": "returned input-error classification and fixed error borrow/receiving",
+        "groups": 6
+      },
+      {
+        "name": "private input-success/complete/limited eligibility and absence projection dispatch",
+        "groups": 5
+      },
+      {
+        "name": "limited-boundary/refusal firstreason projection dispatch",
+        "groups": 4
+      },
+      {
+        "name": "unsupported-status/state fixed public unavailable projection dispatch",
+        "groups": 4
+      },
+      {
+        "name": "closed leaf reason to fixed typed enum conversion",
+        "groups": 4
+      },
+      {
+        "name": "public observation eleven conditional extent fields and debit/authority constants",
+        "groups": 6
+      },
+      {
+        "name": "complete observation128 source/return/caller/project movement",
+        "groups": 4
+      },
+      {
+        "name": "aggregate232 source/destination/Result/public/caller moves split<=128",
+        "groups": 8
+      },
+      {
+        "name": "outer public/error receiving and fixed final return handling",
+        "groups": 3
+      }
+    ],
+    "guard_groups": [
+      {
+        "name": "twelve checked prior loads: <=16scalar/check/borrow/Pair-return operations plus one8-byte fixed array copy",
+        "groups": 24
+      },
+      {
+        "name": "complete prior96 initializer/source/destination",
+        "groups": 2
+      },
+      {
+        "name": "twelve bounded iteration/index/control groups",
+        "groups": 3
+      },
+      {
+        "name": "complete128RefusedSteps/prior source/return/caller reply handling",
+        "groups": 4
+      },
+      {
+        "name": "underfunded predicate/prepaid guard bookkeeping and no-mutation return",
+        "groups": 3
+      }
+    ]
+  },
+  "reservation_order": [
+    "Budget.new reserves IO263584+report3000000",
+    "wrapper setup20 and report44 admission before arena/progress/input work",
+    "reviewed output safety and Arena allocation/initialization",
+    "reviewed context/profile/header admission",
+    "main setup534 succeeds then debit+=534",
+    "main report8 succeeds then debit+=8",
+    "main report guard36 succeeds before candidate initializer/cell mutation",
+    "single Candidate2048 initializer and twelve cells",
+    "before each record require8192 then atomic main replay192 then debit+=128 then decode",
+    "leaf128 is a subdivision; guardSteps0 may runatmostonce, latchesRefused",
+    "complete/limited/error table after all required metadata",
+    "fixed report and finalResult; no refunds"
+  ],
+  "envelope_debit": "534*S+8*F+128*N; includes failed reads/framing and skipped latched calls; zeroextent never zeroes truthful debit",
+  "step_ceiling": 268435456,
+  "setup_cap": 65536,
+  "report_reserve": 3000000,
+  "io_reserve": 263584,
+  "arena_init": 1048576,
+  "profile": 640000,
+  "record_cap": 4194304,
+  "full_cap_promised": false,
+  "leaf_slots_versus_contract": "128 total unchanged; exact typed-borrow Rust operation mapping refines finite-contract illustrative schedule and requires root/independent confirmation before acceptance",
+  "overlap": "Framing22 owns reviewed decode/closed profile identity/coordinate work; leaf128 owns acquisition transition; W owns added typed-record/progress/latch/StepBudget/reply handoff only. Fixed setup534 and finish8 retain leaf work; T20/F44/G36 own named added wrapper/guard work. No paidcreditis reused, refunded or silently drawn from spare margin.",
+  "limitations": [
+    "authoredlogicalsourcegroups, notcompilerCPUinstructions",
+    "no fulltarget or throughput acceptance",
+    "independent review required before accepting actual combined proof"
+  ]
+}

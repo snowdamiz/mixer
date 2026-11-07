@@ -1,0 +1,16 @@
+                    macro_rules! comparison_word {
+                        ($offset:expr) => {{
+                            let at = $offset;
+                            u64::from_le_bytes(
+                                *c[at..at + 8]
+                                    .first_chunk::<8>()
+                                    .expect("proved eight-byte range"),
+                            )
+                        }};
+                    }
+                    let a = comparison_word!(src + left * 8);
+                    let b = comparison_word!(src + right * 8);
+                    b == ABSENT
+                        || (a != ABSENT
+                            && comparison_word!(a as usize * 8)
+                                <= comparison_word!(b as usize * 8))

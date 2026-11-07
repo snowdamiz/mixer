@@ -1,0 +1,228 @@
+{
+  "schema": 1,
+  "source_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "status": "Explicit component-atomized qualified lower/core model; NOT a complete upper or binding-implied numeric overrun",
+  "binding_caps": [
+    256,
+    2560,
+    2568,
+    768,
+    640,
+    640,
+    248
+  ],
+  "rules": [
+    "One named scalar operation handles at most one machine scalar word or one primitive predicate/arithmetic/control operation.",
+    "One transfer edge owns both its named source and its received destination; they are not two transfer debits.",
+    "A distinct explicit initializer/source field followed by a later by-value receive is two different edges, each named once.",
+    "A Range<usize>16 is two word fields; a slice view16 is pointer and length. Neither is treated as one scalar.",
+    "A scalar literal-to-operand/field is a named source edge, not a free implicit argument or an extra duplicated receive.",
+    "One fixed-copy debit owns one distinct complete payload movement of at most128B. Unrelated copies are not byte-packed together.",
+    "All core scalar operations may be partitioned in source order across G6 in blocks of16; no site-local rounding assumption.",
+    "Copy operations are independent of the scalar stream and cannot consume partial scalar-block capacity.",
+    "Array8 LE return-to-temporary and temporary-to-destination are distinct payload movements; no optimizer elision.",
+    "This is not a Rust machine-instruction count and does not prove runtime slowness or an unconditional cap overrun."
+  ],
+  "clear_body_core": [
+    {
+      "id": "C01",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "i scalar source -> multiplication operand",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C02",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "literal8 source -> multiplication operand",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C03",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "multiply i*8",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C04",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "multiplication result source -> local at binding",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C05",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "at source -> destination Range.start source field",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C06",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "at scalar source -> endpoint-addition operand",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C07",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "literal8 source -> endpoint-addition operand",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C08",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "add at+8",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C09",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "addition result source -> destination Range.end source field",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C10",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "Range.start source field -> received index start field",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C11",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "Range.end source field -> received index end field",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C12",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "destination ordered-range predicate start<=end",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C13",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "destination upper-bound predicate end<=Candidate length",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C14",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "destination address formation from Candidate base and start",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C15",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "destination view length formation end-start",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C16",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "destination view.data source -> received copy receiver.data",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C17",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "destination view.len source -> received copy receiver.len",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C18",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "shared zero source address -> source slice argument.data",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C19",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "literal8 source -> source slice argument.len",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C20",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "copy_from_slice destination/source length equality predicate",
+      "named_scalar_operations": 1
+    },
+    {
+      "id": "C21",
+      "source_lines": [
+        783,
+        784
+      ],
+      "operation": "copy_from_slice unit/control return -> actual caller continuation",
+      "named_scalar_operations": 1
+    }
+  ],
+  "clear_body_core_count": 21,
+  "iterations": 256,
+  "excluded_from_core_and_not_free": [
+    "clear loop Range/IntoIterator/iterator construction and complete component transfers",
+    "all257 next calls, Some/None construction/received Option/branch, i binding and iterator advance",
+    "Candidate receiver/borrow transfer into indexing, source borrow construction and source view construction beyond named edges",
+    "copy call entry and any remaining function/trait control or intermediate source/view places",
+    "all non-clear helper/caller scalar operations and administration",
+    "zero8 initializer scalar inputs and cleanup call/return/guard"
+  ],
+  "qualification": "The binding passage does not supply a formal primitive grammar. A reviewer must accept this listed component grammar before interpreting its665 core numerically. No complete upper follows from the core."
+}

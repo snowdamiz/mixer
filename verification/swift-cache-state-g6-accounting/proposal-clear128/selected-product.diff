@@ -1,0 +1,37 @@
+--- frozen-correction2/cache_state.rs
++++ unselected-source-only-clear128/cache_state.rs
+@@ -773,15 +773,29 @@
+ }
+ // This sole cleanup block follows every loan return. Length/ranges are checked
+ // before the loan and the exact same exclusive slice survives through here.
+-// Explicit zero-word stores avoid a second2048-byte temporary source owner.
++// Explicit bounded stores avoid a second2048-byte temporary source owner.
+ fn cleanup(b: &[u8], c: &mut Candidate2048) -> bool {
+     if b.len() != ARENA_BYTES {
+         return false;
+     }
+-    let zero = [0u8; 8];
+-    for i in 0..256 {
+-        let at = i * 8;
+-        c[at..at + 8].copy_from_slice(&zero);
++    {
++        let zero = [0u8; 128];
++        c[0..128].copy_from_slice(&zero);
++        c[128..256].copy_from_slice(&zero);
++        c[256..384].copy_from_slice(&zero);
++        c[384..512].copy_from_slice(&zero);
++        c[512..640].copy_from_slice(&zero);
++        c[640..768].copy_from_slice(&zero);
++        c[768..896].copy_from_slice(&zero);
++        c[896..1024].copy_from_slice(&zero);
++        c[1024..1152].copy_from_slice(&zero);
++        c[1152..1280].copy_from_slice(&zero);
++        c[1280..1408].copy_from_slice(&zero);
++        c[1408..1536].copy_from_slice(&zero);
++        c[1536..1664].copy_from_slice(&zero);
++        c[1664..1792].copy_from_slice(&zero);
++        c[1792..1920].copy_from_slice(&zero);
++        c[1920..2048].copy_from_slice(&zero);
+     }
+     c[888..896].copy_from_slice(&b[7729816..7729824]);
+     c[896..904].copy_from_slice(&b[7729832..7729840]);

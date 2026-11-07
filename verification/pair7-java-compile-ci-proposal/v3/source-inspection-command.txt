@@ -1,0 +1,91 @@
+# Run from repository root: python3 -I -B -S - < verification/pair7-java-compile-ci-proposal/v3/source-inspection-command.txt
+# DATA source inspection/receipt sealing only. Never imports candidate/helper/control modules.
+import ast
+import hashlib
+import json
+import sys
+from pathlib import Path
+ROOT = Path.cwd().resolve()
+NEW = ROOT/'verification/pair7-java-compile-ci-proposal/v3'
+OLD = NEW.parent/'v2'
+GUARD = ROOT/'verification/rust-1991-actual-audit-preparation-v2/deny_runtime.py'
+guard_source = GUARD.read_bytes()
+assert hashlib.sha256(guard_source).hexdigest() == '69873787132f3c8d8f29977c87101e5c3d0337ae8429104bb49f1658b102cb74'
+namespace = {}
+exec(compile(guard_source,str(GUARD),'exec'),namespace)
+namespace['install'](NEW)
+def identity(path):
+    data=path.read_bytes()
+    return {'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+def write(name,value):
+    (NEW/name).write_text(json.dumps(value,indent=2)+'\n')
+def definitions(path):
+    return {n.name:n for n in ast.parse(path.read_text()).body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
+old_seal=identity(OLD/'seal.json')
+assert old_seal['sha256']=='037d82d7c274eb3d2b6ba33531398642e9e3779dbc49ec2fc9d8d8ec98f18a20'
+review_seal=identity(ROOT/'verification/pair7-java-compile-ci-source-review/seal.json')
+assert review_seal['sha256']=='60751e869ce6ff9677d8d46a5d554ecf22600619043763c98e0f87a7f859119b'
+for row in json.loads((OLD/'seal.json').read_bytes())['members']:
+    assert identity(OLD/row['path'])=={k:row[k] for k in ('bytes','sha256')},row['path']
+workflow=identity(ROOT/'.github/workflows/verify.yml')
+assert workflow=={'bytes':31363,'sha256':'5ce51236f178080e3301289513fa3f5a8313e3a3969b0bab3f2b1cd4668de7f5'}
+modules={p.name:ast.parse(p.read_text(),filename=str(p)) for p in sorted(NEW.glob('*.py'))}
+shared=definitions(NEW/'source_contract.py'); collector=definitions(NEW/'compile_pair7.py')
+for name,node in shared.items(): assert ast.dump(node)==ast.dump(collector[name]),name
+primitive_names=('stat_identity','bounded_file','file_snapshot')
+for name in ('bind_snapshot_source.py','transport_gate.py','test_source_controls.py','run_data_controls.py'):
+    copies=definitions(NEW/name)
+    for definition in primitive_names:
+        assert ast.dump(shared[definition])==ast.dump(copies[definition]),(name,definition)
+assert ast.dump(shared['WallBudget'])==ast.dump(definitions(OLD/'source_contract.py')['WallBudget'])
+# Check the actual preserved main blocks through EOF, never a diff hunk boundary.
+cli=json.loads((NEW/'cli-bindings.json').read_bytes())
+draft=(NEW/'workflow.DRAFT.yml').read_text()
+main_shape=ast.dump(ast.parse('__name__ == "__main__"',mode='eval').body)
+cli_rows=[]
+for row in cli['proposal_scripts']:
+    module=modules[row['file']]
+    main=[n for n in module.body if isinstance(n,ast.If) and ast.dump(n.test)==main_shape]
+    assert len(main)==1,row['file']
+    assert any(isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id==row['dispatch'] for n in ast.walk(main[0])),row['file']
+    for invocation in row['workflow_invocations']: assert invocation in draft,invocation
+    cli_rows.append({'path':row['file'],'dispatch':row['dispatch'],'main_lines':[main[0].lineno,main[0].end_lineno]})
+assert cli['existing_apple_verifier']['workflow_invocation'] in draft
+# Guard process/network/signal/thread/FFI tail is exactly the original source.
+old_guard=guard_source.decode()
+new_guard=(NEW/'fixture_guard.py').read_text()
+start='    for module in (os, posix):\n'
+assert new_guard[new_guard.index(start):].removesuffix('\n    os.fdopen = read_fdopen\n    sys._mixer_pair7_fixture_guard = True\n')==old_guard[old_guard.index(start):]
+for name in ('write_path','file_open_wrapper','mkdir_wrapper'):
+    assert ast.dump(definitions(GUARD)[name])==ast.dump(definitions(NEW/'fixture_guard.py')[name]),name
+constants={n.targets[0].id:ast.literal_eval(n.value) for n in modules['run_data_controls.py'].body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and isinstance(n.value,ast.Constant)}
+assert constants['GUARD_SHA256']==identity(NEW/'fixture_guard.py')['sha256']
+manifest=json.loads((NEW/'snapshot-source-manifest.json').read_bytes())
+prior=json.loads((OLD/'snapshot-source-manifest.json').read_bytes())
+assert manifest['members']==prior['members'] and manifest['count']==142 and manifest['bytes']==2779239
+source_mismatches=[r['path'] for r in manifest['members'] if identity(ROOT/r['path'])!={k:r[k] for k in ('bytes','sha256')}]
+assert manifest['overlay']['sha256']==identity(NEW/'Pair7JavaSnapshotExportTests.swift')['sha256']
+closure=json.loads((NEW/'exact-java-closure.json').read_bytes())
+old_closure=json.loads((OLD/'exact-java-closure.json').read_bytes())
+assert closure['members']==old_closure['members']
+assert len(closure['members'])==18 and sum(r['bytes'] for r in closure['members'])==393165
+java_mismatches=[r['canonical_path'] for r in closure['members'] if identity(ROOT/r['canonical_path'])!={k:r[k] for k in ('bytes','sha256')}]
+plan=json.loads((NEW/'compile-command-plan.json').read_bytes())
+old_plan=json.loads((OLD/'compile-command-plan.json').read_bytes())
+assert plan['donor_files']==old_plan['donor_files'] and plan['bounds']==old_plan['bounds']
+for row in plan['donor_files']: assert identity(ROOT/row['path'])=={k:row[k] for k in ('bytes','sha256')},row['path']
+controls=[{'name':n.name,'line':n.lineno} for n in ast.walk(modules['test_source_controls.py']) if isinstance(n,ast.FunctionDef) and n.name.startswith('test_')]
+assert len(controls)==55
+old_controls={n.name for n in ast.walk(ast.parse((OLD/'test_source_controls.py').read_text())) if isinstance(n,ast.FunctionDef) and n.name.startswith('test_')}
+assert len(old_controls)==42 and old_controls.issubset({r['name'] for r in controls})
+review_map={'schema':3,'status':'source-only-AST-and-byte-evidence','workflow_cli':cli_rows,'prepared_controls':controls,'prepared_count':len(controls),'executed_count':0,'core_definitions':{name:{key:[node.lineno,node.end_lineno] for key,node in definitions(NEW/name).items()} for name in ('source_contract.py','tool_data.py','java_api_floor.py','fixture_guard.py')}}
+write('review-map.json',review_map)
+receipt={'schema':3,'status':'bounded-source-candidate-prepared-independent-review-required','command':'python3 -I -B -S - < verification/pair7-java-compile-ci-proposal/v3/source-inspection-command.txt','command_source':identity(NEW/'source-inspection-command.txt'),'python':sys.version,'source_revision':'No Git inspection authorized. Exact old/review/verify identities and new sealed tree identify this source preparation.','old_guard':identity(GUARD),'old_guard_denied_calls':namespace['DENIED'],'v2_seal':old_seal,'review_seal':review_seal,'unchanged_verify_yml':workflow,'observed_source_rows':142,'observed_source_bytes':2779239,'current_source_mismatches':source_mismatches,'java_rows':18,'java_bytes':393165,'current_java_mismatches':java_mismatches,'donor_pins_verified':len(plan['donor_files']),'python_modules_parsed':sorted(modules),'shared_contract_AST_equal':True,'bootstrap_snapshot_AST_equal':True,'unchanged_WallBudget_AST_equal':True,'old_guard_active_API_tail_exact':True,'workflow_cli_source_presence':cli_rows,'prepared_controls':55,'executed_controls':0,'subject_imports':0,'candidate_guard_installs':0,'compiler_product_network_process_native_UI_capture_execution':False,'scope':'Python source inspection/authoring under the unchanged known-source DATA guard only; AST/bytes are not behavioral, workflow or compile validation.','remaining':['Independent source/guard review and root selection','Actual finite guarded55 control run','Workflow lint/provider validation and installation decision','Host source integration if needed, exact tool availability, actual Swift snapshot/javac/D8','All native/API28/runtime/FieldLog/OTA/release/GA evidence']}
+write('preparation-receipt.json',receipt)
+# Seal every flat member, including this exact inspection command. No candidate code runs.
+members=[{'path':p.name,**identity(p)} for p in sorted(NEW.iterdir()) if p.name!='seal.json']
+assert all((NEW/r['path']).is_file() and not (NEW/r['path']).is_symlink() for r in members)
+assert len(members)<64 and sum(r['bytes'] for r in members)<1048576
+seal={'schema':3,'status':'frozen-v3-source-only-candidate-independent-review-and-control-selection-pending','superseded_v2_seal_sha256':old_seal['sha256'],'v2_review_seal_sha256':review_seal['sha256'],'members':members,'total_members':len(members),'total_bytes':sum(r['bytes'] for r in members),'local_subject_helper_control_compiler_or_workflow_execution':False}
+write('seal.json',seal)
+print(json.dumps({'seal':identity(NEW/'seal.json'),'members':len(members),'member_bytes':seal['total_bytes'],'prepared_controls':55,'executed_controls':0,'source_mismatches':source_mismatches,'java_mismatches':java_mismatches,'denied':namespace['DENIED']}))

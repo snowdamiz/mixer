@@ -1,0 +1,183 @@
+{
+  "schema": 1,
+  "status": "v3-bounded-source-correction-independent-review-and-controls-pending",
+  "proposed_install_path": ".github/workflows/pair7-java-compile.yml",
+  "existing_verify_yml": "unchanged",
+  "source_draft": "workflow.DRAFT.yml",
+  "events": [
+    "push to main with finite explicit paths",
+    "pull_request with the same finite paths"
+  ],
+  "attempts": "Only github.run_attempt 1. No retry/install/fallback/runtime/main. New ordinary pushes are distinct source-bound runs, never reuse a nonce or old allowance.",
+  "jobs": {
+    "snapshot": {
+      "os": "macos-15",
+      "maximum_job_minutes": 34,
+      "toolchain": {
+        "developer_directory": "/Applications/Xcode_26.3.app/Contents/Developer",
+        "xcode": "26.3",
+        "build": "17C529",
+        "swift_minimum": "6.2.0",
+        "exact_swift_observed_at_runtime": true
+      },
+      "apple_verifier": {
+        "path": "scripts/ci/verify-apple-toolchain.py",
+        "bytes": 4855,
+        "sha256": "74a3e0261a8dcd9faa075333a09d33f635e5a96351560c4a4d94d1a90b11c442"
+      },
+      "apple_verifier_direct_commands": 7,
+      "apple_verifier_per_command_seconds": 30,
+      "swift_command": [
+        "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+        "test",
+        "--package-path",
+        "cli",
+        "--scratch-path",
+        "$RUNNER_TEMP/pair7-java-swift-$GITHUB_RUN_ID-1",
+        "--jobs",
+        "2",
+        "--force-resolved-versions",
+        "--filter",
+        "pair7RetainedActualAndroidSnapshotForJavaCI"
+      ],
+      "swift_command_timeout_minutes": 12,
+      "swift_descendant_count": "Unknown before execution. SwiftPM builds the selected test target and dependencies, but selects one snapshot test body.",
+      "pinned_remote_dependencies": [
+        {
+          "identity": "swift-asn1",
+          "kind": "remoteSourceControl",
+          "location": "https://github.com/apple/swift-asn1.git",
+          "state": {
+            "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+            "version": "1.7.3"
+          }
+        },
+        {
+          "identity": "swift-crypto",
+          "kind": "remoteSourceControl",
+          "location": "https://github.com/apple/swift-crypto.git",
+          "state": {
+            "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+            "version": "5.0.3"
+          }
+        }
+      ],
+      "compiler_and_dependency_fetch_scope": "Separate producer prerequisite, broader than Java compile-only collection. Existing exact Swift package pins may be fetched in this new CI job. No tool installer, arbitrary dependency update or full Android build.",
+      "custody_limit": "Workflow step exit and logs only for the existing Apple verifier and SwiftPM. This source proposal does not add a new macOS exact-kernel command supervisor or attest escaped descendants/provider disposal.",
+      "scratch_cleanup": "Snapshot source data, command logs and Swift scratch retained in owned RUNNER_TEMP; no local scratch created, no old process or other project accessed. Provider cleanup is not attested.",
+      "source_members": 142,
+      "source_bytes": 2779239,
+      "guarded_controls": {
+        "prepared_methods": 55,
+        "executed": 0,
+        "required_owned_fixture_root": "MIXER_PAIR7_CONTROL_ROOT",
+        "workflow_fixture_path": "$RUNNER_TEMP/pair7-java-controls-$GITHUB_RUN_ID-1",
+        "tempfile_fallback": false,
+        "launcher": "run_data_controls.py",
+        "guard": "fixture_guard.py",
+        "guard_policy": "guard-policy.json"
+      },
+      "snapshot_upload_admission": {
+        "step": "snapshot-bound",
+        "required_output": "snapshot_upload_ready=true",
+        "maximum_nodes": 256,
+        "maximum_bytes": 4194304,
+        "maximum_file_bytes": 1048576,
+        "exact_namespace": "started.json, snapshot-receipt.json and the exact complete declared consumer/Generated/MixerAndroid tree; no extra empty directories, symlinks or special nodes."
+      },
+      "host_log_upload_admission": {
+        "step": "host-logs-bound",
+        "required_output": "host_logs_upload_ready=true",
+        "maximum_nodes": 9,
+        "maximum_bytes": 134217728,
+        "maximum_file_bytes": 67108864,
+        "namespace": "Nonempty subset of eight explicitly named source/tool/log files; no directories, symlinks or special nodes."
+      }
+    },
+    "compile": {
+      "os": "ubuntu-24.04",
+      "maximum_job_minutes": 17,
+      "collector_timeout_minutes": 9,
+      "tool_children": 5,
+      "product_test_mains": 0,
+      "exact_tool_profile": "package-observed-temurin17.0.21.0.0+9-0-amd64-sdk37-d8-084a89126ae0-exact-v1",
+      "scratch_cleanup": "Unchanged Linux custody helper; all owned evidence/scratch retained on success/failure, unresolved custody permanently stops later children.",
+      "identity_gate": {
+        "job": "compile",
+        "before": "download-artifact and helper imports/tool children",
+        "artifact_id": "positive ASCII decimal, no leading zero, bounded unsigned64 value",
+        "artifact_digest": "exact lowercase64hex declared action digest",
+        "download_destination": "fresh absent RUNNER_TEMP/pair7-java-snapshot-input",
+        "producer_job": "snapshot"
+      },
+      "wall_budget": {
+        "active_seconds": 420,
+        "retention_seconds": 60,
+        "total_maximum_seconds": 480,
+        "unchanged_child_reservation_seconds": 68,
+        "collector_cpu_seconds": 480,
+        "enforcement": "Monotonic checks in traversal, bounded chunk hashing, file-only tool checks, DEX decoding and JSON writes; reserve60+6+2 before each unchanged custody command; no child in retention.",
+        "system_boundary": "Cooperative checkpoints do not preempt a blocked provider/kernel/filesystem syscall. Such a stall has no accepted completion guarantee; workflow timeout remains the outer bound."
+      },
+      "output_budget": {
+        "scratch": {
+          "maximum_nodes": 1024,
+          "maximum_bytes": 134217728,
+          "maximum_file_bytes": 67108864
+        },
+        "artifact_before_metadata": {
+          "maximum_nodes": 4094,
+          "maximum_bytes": 260046848
+        },
+        "artifact_final": {
+          "maximum_nodes": 4096,
+          "maximum_bytes": 268435456,
+          "maximum_file_bytes": 67108864
+        },
+        "upload_admission": "Only steps.collect.outputs.output_artifact_ready==true admits upload after successful final bounded scan. On retention/cap failure, skip whole-directory upload; leave evidence retained on provider and report refusal in bounded workflow stderr.",
+        "durable_reservation": "Original exclusive run/head/attempt/job reservation remains in RUNNER_TEMP. Its exact bounded byte copy is reservation.json inside the capped artifact and both are rehashed before/after each child. Only the capped output root is uploaded."
+      }
+    }
+  },
+  "actions": {
+    "checkout": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+    "upload": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+    "download": "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
+    "download_pin_evidence": {
+      "source": "Root message in this task",
+      "basis": "Read-only connected GitHub git/ref/tags/v4 and immutable action.yml",
+      "url": "https://github.com/actions/download-artifact/blob/d3f86a106a0bac45b974a628896c90dbdf5c8093/action.yml",
+      "inputs_selected": [
+        "artifact-ids",
+        "path",
+        "merge-multiple"
+      ],
+      "separate_saved_connector_receipt": "Root may attach it; not queried by this lane.",
+      "declared_runtime": "node20",
+      "actual_runner_execution_runtime": "Pending for this proposal; existing current CI can force Node24 for v4 actions, so declared Node20 is not an execution receipt."
+    }
+  },
+  "artifact_transfer": {
+    "same_workflow_same_head_same_run": true,
+    "selected_id": "needs.snapshot.outputs.snapshot_id",
+    "selected_digest": "needs.snapshot.outputs.snapshot_digest",
+    "snapshot_upload_root": "$RUNNER_TEMP/pair7-java-snapshot-$GITHUB_RUN_ID-1/",
+    "download_root": "$RUNNER_TEMP/pair7-java-snapshot-input",
+    "archive_digest": "Exact artifact ID and declared digest are action metadata bindings only. Download unpacks without retained archive. No independent archive-byte checksum, kernel transport or provider-disposal proof.",
+    "consumer_source_byte_identities": "All exact18 and entire actual generated snapshot manifest checked before/after each tool child."
+  },
+  "pending": [
+    "Independent v3 source and separate fixture-guard review",
+    "Root selection and all55 guarded DATA controls",
+    "Actionlint/provider syntax validation",
+    "Separately reviewed canonical host-test integration if needed; unchanged142 source closure must match",
+    "Actual snapshot export, artifact transfer, fresh javac/D8 and retained evidence review"
+  ],
+  "native_runtime_release_GA": false,
+  "superseded_v1": {
+    "seal_sha256": "1f83422d3c9bef9b26d195ab6c2850b22d645f335b173b1ea843697f6e55fb21",
+    "member_bytes_preserved": true,
+    "execution": "Historical source only; its root namespace validator would refuse the new nested v3 directory. It is superseded, not independently selected for execution."
+  },
+  "existing_verify_yml_sha256": "5ce51236f178080e3301289513fa3f5a8313e3a3969b0bab3f2b1cd4668de7f5"
+}

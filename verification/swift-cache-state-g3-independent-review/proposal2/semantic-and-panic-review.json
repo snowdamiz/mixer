@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "syntax_and_types": [
+    "The620-byte fragment replaces only frozen265..267 within the existing actual-comparison else branch. Macro definition is a declaration, not a runtime closure/function.",
+    "Exactly one transcription of $offset initializes explicit at:usize. All four invocations evaluate their offset once. src/left/right and range endpoints remain usize; a/b and timestamp values remain u64. No width-only type equivalence is used.",
+    "Definition-site c resolves to the same &mut Candidate2048. Expansion-local at bindings are hygienic and per expansion. No by-value c/Candidate capture or separate persistent slice parameter exists.",
+    "Actual shared Index receiver/reborrow, slice view, chunk receiver, Option self receiver, returned array reference,8-byte LE argument and returned u64 all have named operations/places under the disclosed full-view grammar.",
+    "The expression block has its tail call value/type. It creates no extra function return output location. A/B outer initializer temporaries -> identifier bindings are counted separately; TA received operand survives while TB evaluates. No value place disappears merely because syntax is a macro."
+  ],
+  "read_order_and_branches": [
+    "G4 left==mid, then right==end tail checks precede actual comparison. Tail branches execute zero G3 loads.",
+    "A index load completes before B index load. b==ABSENT short-circuits to true and skips a predicate and both timestamps.",
+    "If b!=ABSENT, a!=ABSENT is checked; false skips both timestamps. Both eligible evaluates TA before TB, then <=. Equal timestamps choose left; timestampMAX remains data.",
+    "After received take_left, G4 owns branch, repeated chosen offset, selected cursor advance, copy_within and all pass/pair/output loop state. No G3 costs move into G4."
+  ],
+  "None_unreachability": {
+    "strong_local_fact": "Any successful c[at..at+8] range access produces a slice of exactly8 bytes. first_chunk::<8> therefore returns Some by its API contract. No callback, mutation or slice resize occurs between these operations. A bad offset may panic before this point, but cannot produce a shorter successful range and then None.",
+    "admitted_offset_induction": [
+      {
+        "id": "I1",
+        "lines": [
+          328,
+          334,
+          362,
+          405
+        ],
+        "fact": "f.slots is admitted1..64. Resident loop plus inactive tail loop writes all64 index cells512..1024, each slot0..63 or ABSENT; timestamps occupy0..512. No uninitialized index position survives."
+      },
+      {
+        "id": "I2",
+        "lines": [
+          247,
+          257,
+          282,
+          285
+        ],
+        "fact": "src/dst alternate512 and1024. width is1,2,4,8,16,32; base is a multiple of2*width and end<=64. left/right begin inside their half-open runs."
+      },
+      {
+        "id": "I3",
+        "lines": [
+          258,
+          278
+        ],
+        "fact": "Tail guards and one selected-cursor increment per output preserve cursor bounds. Both-nonempty comparisons read indices0..63. Largest index slice end is1024+63*8+8=1536<=2048."
+      },
+      {
+        "id": "I4",
+        "lines": [
+          267,
+          278
+        ],
+        "fact": "Every transfer copies one existing8-byte index from current src to disjoint dst. Inductively every copied value remains0..63 or ABSENT; no arbitrary timestamp is substituted for an index."
+      },
+      {
+        "id": "I5",
+        "lines": [
+          267,
+          267
+        ],
+        "fact": "The original b/a sentinel guards precede timestamp casts. Both non-ABSENT indices are0..63, so casts are value-preserving and timestamp slice end<=63*8+8=512. Timestamp u64MAX is not an index sentinel."
+      },
+      {
+        "id": "I6",
+        "lines": [
+          534,
+          538
+        ],
+        "fact": "Plan staging1648..1688 and scalar stages1688..1944 are disjoint from timestamp/index scratch. merge follows successful full seed/guards; no fallible I/O or user callback mutates these ranges during comparison."
+      }
+    ],
+    "not_optimizer_elision": "The checks are still counted even though this induction proves success. No checks are removed from authored source or presumed optimized away.",
+    "scope": "All admitted production semantic states reaching merge, including arbitrary timestamp bytes and stale pre-seed Candidate bytes. Direct private calls with unseeded index arrays are outside the admitted merge contract; even there successful exact8-byte slice cannot yield None."
+  },
+  "panic_difference": {
+    "explicit_change": "An impossible None would use unwrap panic text instead of old expect custom text. Bounds/overflow checks remain; no public AnalyzerError/reason/projection behavior is changed on admitted inputs.",
+    "new_safety_escape": false,
+    "unchecked_or_unsafe_read": false,
+    "not_executed": "No panic, private state, comparison or compiled macro was executed; this is a source/API proof."
+  },
+  "language_semantics_basis": [
+    {
+      "url": "https://doc.rust-lang.org/std/primitive.slice.html#method.first_chunk",
+      "retrieved": "2026-10-26",
+      "fact": "first_chunk<N> returns an array reference when the slice has at leastN items; otherwise None. Applied here with len=N=8."
+    },
+    {
+      "url": "https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap",
+      "fact": "unwrap consumes self and returns Some payload; no explicit message parameter."
+    },
+    {
+      "url": "https://doc.rust-lang.org/reference/expressions/block-expr.html",
+      "fact": "Block value/type is its final operand; expression-only block creates no function boundary."
+    },
+    {
+      "url": "https://doc.rust-lang.org/reference/macros-by-example.html",
+      "fact": "Mixed-site hygiene resolves captured local c at definition and keeps introduced at bindings per expansion."
+    },
+    {
+      "url": "https://doc.rust-lang.org/reference/expressions.html",
+      "fact": "Value/place context, initializer/operand temporaries and left-to-right operand order inform named source/received places; they do not define debit units."
+    }
+  ]
+}

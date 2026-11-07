@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "status": "proposed-source-only-awaiting-root-contract-review",
+  "implementation_authorized": false,
+  "execution_authorized": false,
+  "transport": "Private mode-0700 per-run file spool; exclusive temp writes, file fsync, atomic rename, directory fsync",
+  "states": [
+    "bootstrap-unpublished-no-native-authority",
+    "registered-awaiting-root-custody",
+    "root-journal-durable-awaiting-wrapper-ack-validation",
+    "acknowledged-native-launch-permitted-once",
+    "native-waited-completion-durable-leader-held",
+    "root-exit-grant-custody-retained",
+    "group-absence-observed-terminal-no-future-signal",
+    "failed-or-uncertain-scratch-preserved"
+  ],
+  "registration_fields": [
+    "schema", "run_nonce", "invocation_nonce", "wrapper_pid", "wrapper_pgid", "wrapper_sid",
+    "wrapper_path", "wrapper_sha256", "interpreter_path", "interpreter_sha256",
+    "native_path", "native_sha256", "argv", "published_monotonic_ns", "requested_work_deadline_ns"
+  ],
+  "ack_binding_fields": [
+    "schema", "run_nonce", "invocation_nonce", "registration_sha256", "wrapper_pid", "wrapper_pgid",
+    "execution_plan_sha256", "runner_pid", "journal_acceptance_sequence", "ack_deadline_ns",
+    "native_work_deadline_ns", "cleanup_deadline_ns"
+  ],
+  "durability_order": [
+    "Wrapper registration published before waiting for ACK",
+    "Runner validates and retains exact group in durable custody journal",
+    "Only after journal fsync, runner publishes exact hash-bound ACK",
+    "Only after full ACK/deadline/identity validation, wrapper may Popen native child",
+    "Wrapper publishes child identity before output processing; exact wait and completion follow",
+    "Runner accepts completion before exit grant; custody ends only after group absence observation"
+  ],
+  "group_policy": {
+    "require_wrapper_to_be_its_recorded_group_leader": true,
+    "require_wrapper_group_equals_VM_group": false,
+    "blanket_descendant_containment_claim": false,
+    "signal_after_observed_group_absence": false,
+    "signal_unproven_or_identity_lost_group": false,
+    "native_can_start_without_acknowledged_custody": false
+  },
+  "bounds": {
+    "work_seconds": 40,
+    "cleanup_seconds": 46,
+    "post_seconds": 52,
+    "receipt_seconds": 55,
+    "ack_wait_seconds_max": 1,
+    "native_work_seconds_max": 5,
+    "native_grants_max": 7,
+    "published_requests_max": 16,
+    "registration_bytes_max": 4096,
+    "ack_bytes_max": 4096,
+    "native_output_bytes_max": 65536,
+    "poll_seconds_max": 0.01
+  },
+  "failure_rules": [
+    "No ACK, invalid binding, closed launch latch or expired deadline means no native Popen",
+    "Late valid requests remain cleanup-owned but receive no launch ACK",
+    "Bootstrap/prepublication uncertainty fails and preserves scratch; it does not authorize a guessed group kill",
+    "Lost leader identity with a live group fails and preserves scratch rather than risking a reused group",
+    "All known groups must be absent and waits complete before scratch removal",
+    "Hard kill/uninterruptible creation or I/O is an explicit completion limit, not a clean receipt"
+  ],
+  "product_changes_selected": false,
+  "new_runtime_or_probe_invocations": 0
+}

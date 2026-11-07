@@ -1,0 +1,14 @@
+error[E0616]: field `envelope` of struct `FixtureEnvelopeOutcomeV1` is private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope-review/implementation-review-1/api-probes/run-1/private_aggregate_field.rs:2:120
+  |
+2 | ...value:&mut FixtureEnvelopeOutcomeV1){let _=&mut value.envelope;} fn main(){}
+  |                                                          ^^^^^^^^ private field
+  |
+help: a method `envelope` also exists, call it with parentheses
+  |
+2 | use mixer_fixture_envelope::FixtureEnvelopeOutcomeV1; fn attempt(value:&mut FixtureEnvelopeOutcomeV1){let _=&mut value.envelope();} fn main(){}
+  |                                                                                                                                ++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0616`.

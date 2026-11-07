@@ -1,0 +1,57 @@
+--- correction-1/cache_state.rs
++++ correction-2/cache_state.rs
+@@ -750,16 +750,18 @@
+         let at = PLAN.base + plan_delta as usize * 40;
+         b[at..at + 40].copy_from_slice(&c[1648..1688]);
+     }
+-    for i in 0..10 {
+-        let source = SC + (6 + i) * 8;
+-        let destination = SCALAR.base + ROW_CELLS[i] * 8;
+-        b[destination..destination + 8].copy_from_slice(&c[source..source + 8]);
+-    }
+-    for i in 0..2 {
+-        let source = SC + (17 + i) * 8;
+-        let destination = SCALAR.base + EXTRA_CELLS[i] * 8;
+-        b[destination..destination + 8].copy_from_slice(&c[source..source + 8]);
+-    }
++    b[7729928..7729936].copy_from_slice(&c[1736..1744]);
++    b[7729936..7729944].copy_from_slice(&c[1744..1752]);
++    b[7729944..7729952].copy_from_slice(&c[1752..1760]);
++    b[7729896..7729904].copy_from_slice(&c[1760..1768]);
++    b[7730784..7730792].copy_from_slice(&c[1768..1776]);
++    b[7730800..7730808].copy_from_slice(&c[1776..1784]);
++    b[7730808..7730816].copy_from_slice(&c[1784..1792]);
++    b[7730856..7730864].copy_from_slice(&c[1792..1800]);
++    b[7730432..7730440].copy_from_slice(&c[1800..1808]);
++    b[7730888..7730896].copy_from_slice(&c[1808..1816]);
++    b[7730328..7730336].copy_from_slice(&c[1824..1832]);
++    b[7730384..7730392].copy_from_slice(&c[1832..1840]);
+     if w[1] == 6 {
+         st(b, SCALAR.base + 138 * 8, w[13]);
+     }
+@@ -781,13 +783,18 @@
+         let at = i * 8;
+         c[at..at + 8].copy_from_slice(&zero);
+     }
+-    for i in 0..12 {
+-        let source = SCALAR.base + CELLS[i] * 8;
+-        let destination = 888 + i * 8;
+-        // Both cells already encode one canonical LE u64: this complete8-byte
+-        // load/restore needs no scalar decode/re-encode or array return place.
+-        c[destination..destination + 8].copy_from_slice(&b[source..source + 8]);
+-    }
++    c[888..896].copy_from_slice(&b[7729816..7729824]);
++    c[896..904].copy_from_slice(&b[7729832..7729840]);
++    c[904..912].copy_from_slice(&b[7729840..7729848]);
++    c[912..920].copy_from_slice(&b[7729848..7729856]);
++    c[920..928].copy_from_slice(&b[7729856..7729864]);
++    c[928..936].copy_from_slice(&b[7729864..7729872]);
++    c[936..944].copy_from_slice(&b[7729872..7729880]);
++    c[944..952].copy_from_slice(&b[7730272..7730280]);
++    c[952..960].copy_from_slice(&b[7730280..7730288]);
++    c[960..968].copy_from_slice(&b[7730288..7730296]);
++    c[968..976].copy_from_slice(&b[7731040..7731048]);
++    c[976..984].copy_from_slice(&b[7731048..7731056]);
+     #[cfg(test)]
+     if CLEANUP_FAULT.swap(false, std::sync::atomic::Ordering::Relaxed) {
+         c[0] = 0x51;

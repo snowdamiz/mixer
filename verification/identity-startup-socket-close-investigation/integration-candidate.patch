@@ -1,0 +1,276 @@
+--- a/hosted/test/support/identity_tls_fixture.ex
++++ b/hosted/test/support/identity_tls_fixture.ex
+@@ -155,6 +155,7 @@
+        requests: [],
+        accepted: 0,
+        closed: 0,
++       terminal_results: [],
+        max_active: 0,
+        response: {:body, "{}"},
+        key_dir_removed: not File.exists?(dir)
+@@ -179,7 +180,8 @@
+           end)
+ 
+         :ok = :ssl.controlling_process(socket, pid)
+-        send(owner, {:accepted, pid, socket})
++        # Record ownership before this handler can report an early EOF.
++        :ok = GenServer.call(owner, {:accepted, pid, socket})
+         send(pid, :go)
+         accept(listener, owner)
+ 
+@@ -192,19 +194,34 @@
+   end
+ 
+   defp serve(socket, owner) do
+-    try do
+-      with {:ok, socket} <- :ssl.handshake(socket, 3_000),
+-           {:ok, request} <- request(socket, "") do
+-        {:ok, info} = :ssl.connection_information(socket, [:sni_hostname, :protocol])
+-        response = GenServer.call(owner, {:request, request, info})
+-        respond(socket, response)
+-        # Observe client close even for keepalive/stall responses.
+-        :ssl.recv(socket, 0, 3_000)
++    result =
++      try do
++        with {:handshake, {:ok, socket}} <- {:handshake, :ssl.handshake(socket, 3_000)},
++             {:request, {:ok, request}} <- {:request, request(socket, "")} do
++          {:ok, info} = :ssl.connection_information(socket, [:sni_hostname, :protocol])
++          response = GenServer.call(owner, {:request, request, info})
++          respond(socket, response)
++          # Withhold a stall response while still observing client EOF immediately.
++          {:peer_close, :ssl.recv(socket, 0, 3_000)}
++        end
++      after
++        :ssl.close(socket)
+       end
+-    after
+-      :ssl.close(socket)
+-      send(owner, {:closed, self()})
+-    end
++
++    send(owner, {:finished, self(), terminal_result(result)})
++  end
++
++  defp terminal_result({stage, result}) do
++    {outcome, bytes} =
++      case result do
++        {:error, :closed} -> {:peer_closed, 0}
++        {:error, :timeout} -> {:timeout, 0}
++        {:ok, data} when is_binary(data) -> {:unexpected_data, byte_size(data)}
++        {:error, _} -> {:transport_error, 0}
++        _ -> {:unexpected_result, 0}
++      end
++
++    %{stage: stage, outcome: outcome, unexpected_bytes: bytes}
+   end
+ 
+   defp request(socket, acc) do
+@@ -238,7 +255,7 @@
+     end
+   end
+ 
+-  defp respond(_, :stall), do: Process.sleep(3_000)
++  defp respond(_, :stall), do: :ok
+ 
+   def response(body, extra \\ []) do
+     date = :httpd_util.rfc1123_date() |> List.to_string()
+@@ -262,9 +279,9 @@
+   def handle_call({:request, request, tls}, _, s),
+     do: {:reply, s.response, %{s | requests: [%{request: request, tls: tls} | s.requests]}}
+ 
+-  def handle_info({:accepted, pid, socket}, s),
++  def handle_call({:accepted, pid, socket}, _, s),
+     do:
+-      {:noreply,
++      {:reply, :ok,
+        %{
+          s
+          | sockets: Map.put(s.sockets, pid, socket),
+@@ -272,12 +289,39 @@
+            max_active: max(s.max_active, map_size(s.sockets) + 1)
+        }}
+ 
+-  def handle_info({:closed, pid}, s),
+-    do: {:noreply, %{s | sockets: Map.delete(s.sockets, pid), closed: s.closed + 1}}
++  def handle_info({:finished, pid, terminal}, s) do
++    # Handler cleanup is not proof of peer closure: local timeouts must not pass
++    # shutdown assertions. EOF may also arrive before TLS or HTTP completes.
++    peer_closed = terminal.outcome == :peer_closed
++
++    {:noreply,
++     %{
++       s
++       | sockets: Map.delete(s.sockets, pid),
++         closed: s.closed + if(peer_closed, do: 1, else: 0),
++         terminal_results: Enum.take([terminal | s.terminal_results], 16)
++     }}
++  end
+ 
+   def handle_info({:EXIT, _, _}, s), do: {:noreply, s}
+ 
+   def terminate(_, s) do
++    # Preserve bounded failure diagnostics before cleanup; never print requests,
++    # certificates, key material, sockets, or unexpected application data.
++    summary = %{
++      accepted: s.accepted,
++      peer_closed: s.closed,
++      active: map_size(s.sockets),
++      requests: length(s.requests),
++      terminal_results: s.terminal_results
++    }
++
++    try do
++      IO.puts("TLSFixture lifecycle: #{inspect(summary, limit: 200, printable_limit: 256)}")
++    catch
++      _, _ -> :ok
++    end
++
+     :ssl.close(s.listener)
+     Process.exit(s.acceptor, :kill)
+ 
+--- /dev/null
++++ b/hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs
+@@ -0,0 +1,143 @@
++defmodule MixerHosted.Identity.TLSFixtureLifecycleControlTest do
++  use ExUnit.Case, async: false
++
++  alias MixerHosted.Identity.TLSFixture
++
++  defp summary(info) do
++    %{
++      accepted: info.accepted,
++      closed: info.closed,
++      socket_count: map_size(info.sockets),
++      request_count: length(info.requests),
++      terminal_results: Map.get(info, :terminal_results, :unavailable)
++    }
++  end
++
++  defp eventually(fixture, predicate, remaining \\ 250) do
++    info = TLSFixture.info(fixture)
++
++    cond do
++      predicate.(info) ->
++        info
++
++      remaining == 0 ->
++        flunk("fixture lifecycle observation: #{inspect(summary(info))}")
++
++      true ->
++        Process.sleep(10)
++        eventually(fixture, predicate, remaining - 1)
++    end
++  end
++
++  defp connect(fixture) do
++    authority = GenServer.call(fixture, :authority)
++
++    assert {:ok, socket} =
++             :ssl.connect(
++               authority.ip,
++               authority.port,
++               [
++                 :binary,
++                 active: false,
++                 verify: :verify_peer,
++                 cacerts: [authority.ca],
++                 server_name_indication: ~c"jwks.fixture.invalid",
++                 customize_hostname_check: [
++                   match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
++                 ]
++               ],
++               2_000
++             )
++
++    assert :ok =
++             :ssl.send(socket, "GET /keys HTTP/1.1\r\nHost: jwks.fixture.invalid\r\n\r\n")
++
++    eventually(fixture, &(length(&1.requests) == 1))
++    socket
++  end
++
++  test "stalled response stays silent and reports client EOF within the unchanged startup wait" do
++    fixture = start_supervised!(TLSFixture)
++    TLSFixture.configure(fixture, :stall)
++    socket = connect(fixture)
++
++    try do
++      assert {:error, :timeout} = :ssl.recv(socket, 0, 100)
++      assert TLSFixture.info(fixture).closed == 0
++      assert :ok = :ssl.close(socket)
++      info = eventually(fixture, &(&1.closed == 1))
++      assert info.accepted == 1
++      assert info.sockets == %{}
++
++      assert info.terminal_results == [
++               %{stage: :peer_close, outcome: :peer_closed, unexpected_bytes: 0}
++             ]
++    after
++      :ssl.close(socket)
++    end
++  end
++
++  test "an accepted TCP client that aborts before handshake records exactly one peer EOF" do
++    fixture = start_supervised!(TLSFixture)
++    authority = GenServer.call(fixture, :authority)
++    assert {:ok, socket} = :gen_tcp.connect(authority.ip, authority.port, [:binary, active: false])
++
++    try do
++      eventually(fixture, &(&1.accepted == 1))
++      assert :ok = :gen_tcp.close(socket)
++      info = eventually(fixture, &(&1.closed == 1))
++      assert info.accepted == 1
++      assert info.requests == []
++      assert info.sockets == %{}
++
++      assert info.terminal_results == [
++               %{stage: :handshake, outcome: :peer_closed, unexpected_bytes: 0}
++             ]
++    after
++      :gen_tcp.close(socket)
++    end
++  end
++
++  test "local receive timeout cleans the handler without counting a peer EOF" do
++    fixture = start_supervised!(TLSFixture)
++    TLSFixture.configure(fixture, :stall)
++    socket = connect(fixture)
++
++    try do
++      # This control waits for the fixture's existing 3-second timeout. It does
++      # not change the startup method's 250 x 10ms closure assertion.
++      info = eventually(fixture, &(length(&1.terminal_results) == 1), 400)
++      assert info.accepted == 1
++      assert info.closed == 0
++      assert info.sockets == %{}
++
++      assert info.terminal_results == [
++               %{stage: :peer_close, outcome: :timeout, unexpected_bytes: 0}
++             ]
++    after
++      :ssl.close(socket)
++    end
++  end
++
++  test "unexpected client data does not count as peer EOF or enter diagnostics" do
++    fixture = start_supervised!(TLSFixture)
++    TLSFixture.configure(fixture, :stall)
++    socket = connect(fixture)
++
++    try do
++      assert :ok = :ssl.send(socket, "private-synthetic-payload")
++      info = eventually(fixture, &(length(&1.terminal_results) == 1))
++      assert info.accepted == 1
++      assert info.closed == 0
++      assert info.sockets == %{}
++
++      assert info.terminal_results == [
++               %{stage: :peer_close, outcome: :unexpected_data, unexpected_bytes: 25}
++             ]
++
++      refute inspect(info.terminal_results) =~ "private-synthetic-payload"
++    after
++      :ssl.close(socket)
++    end
++  end
++end

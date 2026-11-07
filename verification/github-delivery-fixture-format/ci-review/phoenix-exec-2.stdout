@@ -1,0 +1,76 @@
+{
+  "status": "ordinary-phoenix-format-compile-four-lifecycle-controls-and-host-suite-qualified",
+  "commands_verified": 43,
+  "new_TLS_lifecycle_controls": {
+    "source_names": [
+      "stalled response stays silent and reports client EOF within the unchanged startup wait",
+      "an accepted TCP client that aborts before handshake records exactly one peer EOF",
+      "local receive timeout cleans the handler without counting a peer EOF",
+      "unexpected client data does not count as peer EOF or enter diagnostics"
+    ],
+    "source_sha256": "a76b33c4cefac67797fed2909fe7b0c2eb7f7bb99a40b7924adc68901a514fff",
+    "runtime_execution_observed": true,
+    "passed": 4,
+    "failed": 0,
+    "diagnostics": [
+      {
+        "stage": "peer_close",
+        "outcome": "peer_closed",
+        "accepted": 1,
+        "requests": 1,
+        "peer_closed": 1,
+        "unexpected_bytes": 0
+      },
+      {
+        "stage": "handshake",
+        "outcome": "peer_closed",
+        "accepted": 1,
+        "requests": 0,
+        "peer_closed": 1,
+        "unexpected_bytes": 0
+      },
+      {
+        "stage": "peer_close",
+        "outcome": "timeout",
+        "accepted": 1,
+        "requests": 1,
+        "peer_closed": 0,
+        "unexpected_bytes": 0
+      },
+      {
+        "stage": "peer_close",
+        "outcome": "unexpected_data",
+        "accepted": 1,
+        "requests": 1,
+        "peer_closed": 0,
+        "unexpected_bytes": 25
+      }
+    ],
+    "all_handlers_active_zero": true
+  },
+  "ordinary_suite": {
+    "passed": 701,
+    "skipped": 2,
+    "total": 703,
+    "failed": 0,
+    "completed_trace_methods": 703,
+    "skip_names": [
+      "K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched",
+      "IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle"
+    ],
+    "argv": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace"
+    ],
+    "summary": "Result: 701 passed, 2 skipped",
+    "seconds": 121.8
+  },
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  }
+}

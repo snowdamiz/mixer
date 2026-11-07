@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "execution_plan_sha256": "88b7b8421fb0e5f4624e9abdc263d083822d01fb9300ff3d5be14e2f7e6c900f",
+  "phases": [
+    {
+      "id": "prod",
+      "returncode": 0,
+      "output_bytes": 62
+    },
+    {
+      "id": "test",
+      "returncode": 2,
+      "output_bytes": 1529
+    }
+  ],
+  "owned_processes": [
+    {
+      "pid": 58479,
+      "direct_child_reaped": true,
+      "group_absent": true
+    },
+    {
+      "pid": 58517,
+      "direct_child_reaped": true,
+      "group_absent": true
+    }
+  ],
+  "scratch_path": "/private/tmp/mixer-key-owner-inflight-73rkfez0",
+  "scratch_removed": true,
+  "all_original_pins_rechecked": true,
+  "original_changes": [],
+  "artifacts": {
+    "prod/runtime.json": {
+      "node": "nonode@nohost",
+      "schedulers_online": 2,
+      "otp_release": "29",
+      "elixir": "1.20.4",
+      "build": "prod",
+      "product_application_started": false
+    },
+    "prod/production-exclusion.json": {
+      "supervisor_fixture_export_absent": true,
+      "owner_fixture_export_absent": true,
+      "transport_fixture_export_absent": true,
+      "fixture_tuple_init_rejected": true,
+      "ordinary_fixture_option_rejected": true,
+      "owner_absent": true,
+      "workers_absent": true,
+      "admission_absent": true,
+      "loopback_denied": true,
+      "product_application_not_started": true
+    },
+    "test/runtime.json": {
+      "node": "nonode@nohost",
+      "schedulers_online": 2,
+      "otp_release": "29",
+      "elixir": "1.20.4",
+      "build": "test",
+      "product_application_started": false
+    },
+    "test/format-check.json": {
+      "total": 5,
+      "unchanged": true
+    },
+    "test/openssl-version.json": {
+      "output": "LibreSSL 3.3.6",
+      "exit_code": 0
+    }
+  },
+  "errors": [
+    "RuntimeError: phase failed: test",
+    "exact phase output membership differs: test: missing=['Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL01Owner-cleanup.json', 'Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL02Owner-cleanup.json', 'Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL03Owner-cleanup.json', 'Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL05Owner-cleanup.json', 'Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL07Owner-cleanup.json', 'KOL04-cleanup.json', 'KOL06-cleanup.json', 'KOL08-GRACEFUL-observation.json', 'KOL09-KILL-observation.json', 'exunit-result.json', 'openssl-invocations.json', 'postconditions.json'], extra=[]",
+    "artifact parsing test/exunit-result.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/postconditions.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/KOL04-cleanup.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/KOL06-cleanup.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL01Owner-cleanup.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL02Owner-cleanup.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL03Owner-cleanup.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL05Owner-cleanup.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/Elixir.MixerHosted.Identity.KeyOwnerLifecycleTest.KOL07Owner-cleanup.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/KOL08-GRACEFUL-observation.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/KOL09-KILL-observation.json: FileNotFoundError(2, 'No such file or directory')",
+    "artifact parsing test/openssl-invocations.json: FileNotFoundError(2, 'No such file or directory')",
+    "finalization: ValueError('exact terminal artifact membership differs')"
+  ],
+  "cleanup_errors": [],
+  "observed_signals_before_observation_write": [],
+  "elapsed_seconds": 3.295227
+}

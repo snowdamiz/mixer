@@ -1,0 +1,68 @@
+{
+  "accepted_parent_sha256": "1ef11e06678642231f783fea0e5fe376e8b1912730a6fb696a653ab04cb2043b",
+  "accepted_prefix_preserved": true,
+  "all_new_record_operations_separately_owned": true,
+  "atomic_combined_debit": 471,
+  "framing22_reproven": false,
+  "mandatory_preflight": 8192,
+  "rows": [
+    {
+      "accepted_line": 387,
+      "accepted_statement": "for index in 0..s.physical {",
+      "new_leaf_access_funded_by_inherited22": false,
+      "role": "ordinary loop",
+      "selected_line": 311,
+      "selected_statement": "for index in 0..s.physical {"
+    },
+    {
+      "accepted_line": 388,
+      "accepted_statement": "if budget.replay_left < RECORD_PREFLIGHT { s.limited = true; break; }",
+      "new_leaf_access_funded_by_inherited22": false,
+      "role": "mandatory preflight",
+      "selected_line": 312,
+      "selected_statement": "if budget.replay_left < RECORD_PREFLIGHT { s.limited = true; break; }"
+    },
+    {
+      "accepted_line": 389,
+      "accepted_statement": "budget.replay(RECORD_STEPS)?;",
+      "new_leaf_access_funded_by_inherited22": false,
+      "role": "atomic main debit call",
+      "selected_line": 313,
+      "selected_statement": "budget.replay(COMBINED_RECORD)?; p.debit += RECORD_ENVELOPE;"
+    },
+    {
+      "accepted_line": 390,
+      "accepted_statement": "let mut w = [0;16]; reader.words(input, arena, budget, &mut w)?;",
+      "new_leaf_access_funded_by_inherited22": false,
+      "role": "record backing and decoder",
+      "selected_line": 314,
+      "selected_statement": "let mut w = [0; 16]; reader.words(input, arena, budget, &mut w)?;"
+    },
+    {
+      "accepted_line": 391,
+      "accepted_statement": "let offset = 512 + index * 128;",
+      "new_leaf_access_funded_by_inherited22": false,
+      "role": "record offset",
+      "selected_line": 315,
+      "selected_statement": "let offset = 512 + index * 128;"
+    },
+    {
+      "accepted_line": 392,
+      "accepted_statement": "if !record_fields(arena, &w, f) { return Err(error(SCHEMA, RECORD_STAGE, offset, index + 1)); }",
+      "new_leaf_access_funded_by_inherited22": false,
+      "role": "field/profile join",
+      "selected_line": 316,
+      "selected_statement": "if !record_fields(arena, &w, f) { return Err(error(SCHEMA, RECORD_STAGE, offset, index + 1)); }"
+    },
+    {
+      "accepted_line": 393,
+      "accepted_statement": "if !s.coordinate(&w) { return Err(error(COORDINATE, RECORD_STAGE, offset, index + 1)); }",
+      "new_leaf_access_funded_by_inherited22": false,
+      "role": "wire coordinate",
+      "selected_line": 317,
+      "selected_statement": "if !s.coordinate(&w) { return Err(error(COORDINATE, RECORD_STAGE, offset, index + 1)); }"
+    }
+  ],
+  "schema": 1,
+  "selected_source_sha256": "7b8237abbaec492e595508eb7456dab38fbb0d92d8d3cd5a88184f7c1082b9d1"
+}

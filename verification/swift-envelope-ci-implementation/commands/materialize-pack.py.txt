@@ -1,0 +1,42 @@
+import hashlib,json,stat
+from pathlib import Path
+root=Path.cwd(); pack=root/'verification/swift-envelope-ci-pack'
+def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+def check(p,sha,n):
+ for a in [p,*p.parents]:
+  if a.is_symlink(): raise RuntimeError('symlink '+str(a))
+ if not stat.S_ISREG(p.stat().st_mode) or p.stat().st_size!=n or digest(p)!=sha: raise RuntimeError('changed '+str(p))
+def write(dest,data):
+ p=pack/dest;p.parent.mkdir(parents=True,exist_ok=True)
+ with p.open('xb') as f:f.write(data)
+def exact(p,dest,sha=None,n=None):
+ if sha is not None:check(root/p,sha,n)
+ write(dest,(root/p).read_bytes())
+selection='verification/swift-envelope-ci-root-review/implementation-selection.json'
+check(root/selection,'33124b5e9b5c8534ea0e18fffe145cea770f704b2aa3618457ab50573d0f5474', (root/selection).stat().st_size)
+base=Path('verification/swift-envelope-ci-contract')
+check(root/base/'seal.json','690894df6376ddf33067f9dda10493bc3aaf22151b8ac7935cba4389ba88b466',(root/base/'seal.json').stat().st_size)
+seal=json.loads((root/base/'seal.json').read_bytes())
+for r in seal['members']:check(root/r['path'],r['sha256'],r['bytes'])
+m=json.loads((root/base/'selected-input-manifest.json').read_bytes());layout=json.loads((root/base/'proposed-layout.json').read_bytes())
+if len(m['inputs'])!=60 or sum(r['bytes'] for r in m['inputs'])!=7957311:raise RuntimeError('original counts')
+pack.mkdir(exist_ok=False)
+for r in m['inputs']:
+ for d in r['packed_destinations']:exact(r['path'],d,r['sha256'],r['bytes'])
+for r in layout['derived_test_only_files']:
+ original=r['original'];check(root/original['path'],original['sha256'],original['bytes'])
+ data=(root/original['path']).read_bytes()+r['appendix_utf8'].encode()
+ if len(data)!=r['bytes'] or hashlib.sha256(data).hexdigest()!=r['sha256']:raise RuntimeError('derived construction')
+ write(r['packed_path'],data)
+for name in ['selected-input-manifest.json','proposed-layout.json','expected-methods.json','expected-api.json','expected-host-layouts.json']:
+ exact(str(base/name),'inventories/'+name)
+for r in m['provenance_references'][6:]:exact(r['path'],'provenance/records/'+r['path'],r['sha256'],r['bytes'])
+exact(selection,'provenance/implementation-selection.json')
+exact(str(base/'seal.json'),'provenance/contract-seal.json')
+rows=[]
+for p in sorted(pack.rglob('*')):
+ if p.is_file():rows.append({'path':p.relative_to(pack).as_posix(),'bytes':p.stat().st_size,'sha256':digest(p)})
+tree=hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+manifest={'schema':1,'member_count':len(rows),'total_bytes':sum(r['bytes'] for r in rows),'tree_sha256':tree,'tree_hash_encoding':'SHA256 of UTF-8 JSON members array sort_keys=true separators=comma/colon','members':rows,'excluded':['manifest.json'],'selected_original_count':60,'selected_original_bytes':7957311,'selected_original_tree_sha256':m['original_tree_sha256'],'storedPrefixValidated':False,'fullReplayAccepted':False,'semanticMetricsValid':False,'model_imported_or_evaluated':False}
+write('manifest.json',(json.dumps(manifest,sort_keys=True,indent=2)+'\n').encode())
+print(json.dumps({'manifest_sha256':digest(pack/'manifest.json'),'member_count':len(rows),'total_bytes':manifest['total_bytes'],'tree_sha256':tree},sort_keys=True))

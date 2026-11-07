@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""Independent compiler interposition: real compilation, intentionally invalid identity/spans."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+BASE = Path(__file__).resolve().parents[2]
+TOOLCHAIN = BASE / 'faults/identity-api-toolchain'
+RECORDS = BASE / 'faults/identity-api-records'
+REAL = Path('/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc')
+argv = sys.argv[1:]
+if argv == ['--print', 'sysroot']:
+    print(TOOLCHAIN)
+    sys.exit(0)
+result = subprocess.run([str(REAL), *argv], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+stdout, stderr = result.stdout, result.stderr
+if argv == ['--version', '--verbose']:
+    (RECORDS / 'original-version.stdout').write_bytes(stdout)
+    text = stdout.decode()
+    text = text.replace('host: aarch64-apple-darwin\n', 'host: x86_64-unknown-linux-gnu\nhost: aarch64-apple-darwin\n')
+    text = text.replace('release: 1.99.0\n', 'release: 1.98.2\nrelease: 1.99.0\n')
+    stdout = text.encode()
+elif '--error-format=json' in argv:
+    source = next(Path(x) for x in argv if x.endswith('.rs'))
+    (RECORDS / (source.stem + '.original.stderr')).write_bytes(stderr)
+    rewritten = []
+    changes = []
+    for line in stderr.splitlines():
+        diagnostic = json.loads(line)
+        if diagnostic.get('level') == 'error' and diagnostic.get('code'):
+            for span in diagnostic.get('spans', []):
+                if span.get('is_primary'):
+                    changes.append({'original_span':dict(span),'wrong_source_bytes':'u'})
+                    span.update({'byte_start':0,'byte_end':1,'line_start':1,'line_end':1,'column_start':1,'column_end':2})
+                    span['text'] = [{'text':source.read_text(),'highlight_start':1,'highlight_end':2}]
+        rewritten.append(json.dumps(diagnostic).encode())
+    stderr = b'\n'.join(rewritten) + b'\n'
+    (RECORDS / (source.stem + '.changes.json')).write_text(json.dumps(changes,indent=2,sort_keys=True)+'\n')
+sys.stdout.buffer.write(stdout)
+sys.stderr.buffer.write(stderr)
+sys.exit(result.returncode)

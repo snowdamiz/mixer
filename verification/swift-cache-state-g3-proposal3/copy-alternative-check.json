@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "eligible_existing_transfer_objects": [
+    {
+      "id": "byte_receiver",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "split_front_binding",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "split_remainder_binding",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "outer_constructor_chunks",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "outer_constructor_remainder",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "outer_return_tuple",
+      "field_scalars_replaced": 4,
+      "complete_copy_bytes": 32,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "word_binding",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "A_Index_receiver",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "B_Index_receiver",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "TA_Index_receiver",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    },
+    {
+      "id": "TB_Index_receiver",
+      "field_scalars_replaced": 2,
+      "complete_copy_bytes": 16,
+      "fixed_copy_groups_if_chosen": 1
+    }
+  ],
+  "enumerated_choices": 2048,
+  "minimum_lower_core_groups": 9,
+  "minimum_choices": [
+    {
+      "fixed_copy_substitutions": [],
+      "scalars": 74,
+      "copies": 4,
+      "groups": 9
+    }
+  ],
+  "all_other_choices_above_minimum": true,
+  "single_scalar_transfer_copy_choices": "Replacing one8-byte scalar transfer with one fixed copy adds one group and removes at most one scalar operation; it cannot improve the minimum. No one whole copy replaces different noncontiguous source values or independent operand calls.",
+  "method": "exhaustive static integer partition check; not product/model/runtime execution or a performance counter",
+  "copy_source_and_destination": "each substitution has complete source and received object; it cannot also retain its replaced scalar fields or share one of the four data-array copy groups",
+  "constructor_caveat": "Metadata constructor field writes V02/V03 and V19..V22 are not made free by copying the constructed aggregate later. No contiguous pre-existing32-byte source is invented for distinct tuple fields.",
+  "not_global_impossibility": "This only rejects the exact explored fragment under this source-bound field core; other structural designs require their own proof."
+}

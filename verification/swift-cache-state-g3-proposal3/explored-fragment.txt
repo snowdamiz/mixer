@@ -1,0 +1,7 @@
+                    let (words, _) = c.as_chunks::<8>();
+                    let a = u64::from_le_bytes(words[src / 8 + left]);
+                    let b = u64::from_le_bytes(words[src / 8 + right]);
+                    b == ABSENT
+                        || (a != ABSENT
+                            && u64::from_le_bytes(words[a as usize])
+                                <= u64::from_le_bytes(words[b as usize]))

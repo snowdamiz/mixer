@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "created_at": "2026-10-28T02:10:38.750202+00:00",
+  "status": "recommend-root-separate-single-format-only-run-no-execution-grant",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/format-review-1/source-contract.json",
+    "bytes": 6188,
+    "sha256": "2b4c3caa30f670f4d4c5748d035ccedcf045adbcec71347a90f80bc87bcabdb5"
+  },
+  "producer_freeze_sha256": "4d46a3a66e9bbc6a0d699af3a020c1b84a4d1316cf8d672d198f1d76c79b8d2f",
+  "formatting_plan_sha256": "6476cd142edd9c808d18e7d057af6ad6d201e8751f3447574ccc71ad49ace11c",
+  "blocking_findings": [],
+  "checks": [
+    {
+      "control": "exact release and dispatch",
+      "conclusion": "--format-only selects formatting-plan.json before exact SHA comparison; required root status, exact plan SHA and single_execution is True are checked before creating fresh formatting-1. The same release cannot select execution-plan.json. Extra release fields are not runner-enforced; root must retain the exact scoped invocation.",
+      "source": "runner.py:99-116"
+    },
+    {
+      "control": "one format VM and two outputs",
+      "conclusion": "Exactly one format phase passes only format-only.exs and its evidence directory after pinned tool/dependency paths. It invokes Code.format_string! for exactly the two pinned owned source strings, writes basenames under the run output, and loads/compiles no product source or Mix project/application. Runtime bootstrap and OpenSSL validator calls are in the other branch.",
+      "source": "runner.py:210-243,319-335; format-only.exs:1-28"
+    },
+    {
+      "control": "canonical and frozen bindings",
+      "conclusion": "All 238 frozen members, 971 tool files, 25 current canonical files and 235 prepared-plan files match. The selected 661-byte supervisor beforeimage matches its original root pin; the candidate 1072-byte supervisor and new 23116-byte test match the separate current input pins. Runner hashes original tools/canonical files before launch and after cleanup and never writes canonical files.",
+      "source": "runner.py:166-202,285-293"
+    },
+    {
+      "control": "strict format artifacts",
+      "conclusion": "Duplicate JSON keys/non-finite values reject. Recursive validator requires exact object fields, two typed entries, each selected source/output/hash binding and output byte/hash equality. Actual phase members are restricted to the two outputs, formatting.json, command.json and stdout.txt; symlinks and other members reject.",
+      "source": "runner.py:21-35,294-329; artifact-validation.py:4-39; format-artifact-schemas.json"
+    },
+    {
+      "control": "retained child and cleanup",
+      "conclusion": "Nonraising INT/TERM/HUP handlers retain the Popen child with its new session before selector work. Finally reaps the retained exact group with TERM/KILL and checks child reaped/group absent. Scratch is removed only after confirmed cleanup; uncertainty is retained as failure with scratch preserved. No global process search is used.",
+      "source": "runner.py:96-98,134-164,240-284"
+    },
+    {
+      "control": "caps and finite receipt",
+      "conclusion": "Monotonic work/cleanup/observation/terminal checkpoints are 40/46/52/55 seconds. Output caps are 512 KiB per phase/1 MiB combined; artifact caps are 512 KiB each/1 MiB combined. Signals before the finite cutoff, nonzero child, changed inputs, missing/invalid artifacts or cleanup errors fail. Actual elapsed time and cleanup still require terminal review; source inspection is not proof of runtime bounds under stalled OS I/O.",
+      "source": "runner.py:89-95,128-132,245-268,294-382"
+    }
+  ],
+  "root_next_step": "If root independently selects this recommendation, release only formatting-plan.json SHA 6476cd142edd9c808d18e7d057af6ad6d201e8751f3447574ccc71ad49ace11c for one exact --format-only invocation using pinned Python -B. Review its terminal receipt and exact two outputs before applying source changes and freezing a successor runtime packet.",
+  "limits": [
+    "No run was granted or performed by this review.",
+    "The inherited formatting-plan formatting string mentions the future five-file runtime equality check; exact branch, phase and root release scope limit this recommendation to two outputs.",
+    "The prospective b56b67f9aab98f589b9d2e35b02c25404048746f2a3748bbd0156effa44ad979 runtime plan, nine tests and OpenSSL/TLS lifecycle have not been reviewed for release here.",
+    "No production/provider/application/store/HTTP/session/native/device/operations/FieldLog/GA acceptance follows; UI/capture/native-runtime pause remains in effect."
+  ]
+}

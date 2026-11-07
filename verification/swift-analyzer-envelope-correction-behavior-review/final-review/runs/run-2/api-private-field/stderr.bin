@@ -1,0 +1,21 @@
+error[E0616]: field `envelope` of struct `FixtureEnvelopeOutcomeV1` is private
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-analyzer-envelope-correction-behavior-review/final-review/runs/run-2/api/private-field.rs:1:55
+  |
+1 | pub fn f(x:&mut reviewed::FixtureEnvelopeOutcomeV1){x.envelope=panic!();}fn main(){}
+  |                                                       ^^^^^^^^ private field
+
+error: unreachable expression
+ --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-analyzer-envelope-correction-behavior-review/final-review/runs/run-2/api/private-field.rs:1:53
+  |
+1 | pub fn f(x:&mut reviewed::FixtureEnvelopeOutcomeV1){x.envelope=panic!();}fn main(){}
+  |                                                     ^^^^^^^^^^^--------
+  |                                                     |          |
+  |                                                     |          any code following this expression is unreachable
+  |                                                     unreachable expression
+  |
+  = note: `-D unreachable-code` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(unreachable_code)]`
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0616`.

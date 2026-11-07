@@ -1,0 +1,143 @@
+{
+  "agent_role": {
+    "model_and_effort": "parent launch metadata is authoritative; child cannot independently inspect actual launch configuration",
+    "requested_role": "fresh-context difficult blocker investigation under product-plan 24.4"
+  },
+  "baseline": {
+    "delivery_revision": "e9fc0e7d984c79bf2d3493f5d5d16a0b167b3af7",
+    "result": "K03 passed; IS04/IS05 failed at startup_linux_network_test.exs:97; no startup semantic receipt",
+    "run_id": 40770270255,
+    "run_receipt_reinterpretation": "none",
+    "source_digest_sha256": "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e",
+    "source_files": 177,
+    "startup_method_elapsed_ms": 3849.9,
+    "test_command_metadata": "verification/github-delivery-positive-timestamp/ci-review/network/logs/0101.json",
+    "test_trace": "verification/github-delivery-positive-timestamp/ci-review/network/logs/0101.stdout"
+  },
+  "candidate": {
+    "added_source_files": [
+      "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs"
+    ],
+    "changed_existing_source_files": [
+      "hosted/test/support/identity_tls_fixture.ex"
+    ],
+    "changed_product_files": [
+      "hosted/test/support/identity_tls_fixture.ex",
+      "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs"
+    ],
+    "changes": [
+      "A stalled response emits no response and immediately enters the existing bounded 3000ms passive receive.",
+      "Only {:error, :closed} returned by handshake, request read, or post-request receive increments closed.",
+      "Local timeout, unexpected bytes, transport error, and unexpected result are categorical non-EOF terminal outcomes.",
+      "At most 16 terminal outcomes are retained; each contains stage, outcome and byte count only.",
+      "Fixture termination emits bounded counts and categorical outcomes before cleanup, without request bytes, key/certificate material, sockets, or unexpected application data.",
+      "Acceptance is acknowledged before the accepted handler can emit an early terminal event."
+    ],
+    "fixture_bytes": 9533,
+    "fixture_sha256": "d3b55796a8baac4f9ebd37cc9ee5e44bde01ca346ce2dd00a0a5dd884711ba55",
+    "integration_patch": "integration-candidate.patch",
+    "new_control_source": {
+      "bytes": 4387,
+      "path": "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs",
+      "sha256": "417704f8e805196f9546a508a770d23a55d40ce9d6214be5225f131c4bd2c7c6"
+    },
+    "product_implementation_changes": [],
+    "selected_source_count": 178,
+    "selected_source_digest_sha256": "ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7",
+    "startup_test_sha256_unchanged": "7d28b594476d349b3ca6e35c2dbadb21f6e831f53ace235e3a1e8b85cb712480",
+    "superseded_unexecuted_177_source_candidate_digest": "23333458f4e9c2f0b9599d1a19f1a85741052294549a69fdc8d51e37d7f485fb",
+    "unchanged": [
+      "all startup test source and assertions, including closed == 3 and sockets == %{}",
+      "startup polling count and sleep duration",
+      "all product transport, owner, verifier and supervisor implementation bytes",
+      "TLS fixture handshake/request/receive timeouts",
+      "TLS verification, trust, DNS policy, runtime/resource/custody/native holds",
+      "old 177-file manifest, prepared archive and historical evidence"
+    ]
+  },
+  "execution_and_cleanup": {
+    "canonical_or_global_edits": false,
+    "cleanup": "no runtime resources created; investigation files intentionally retained for root review",
+    "git_writes_push_dispatch": false,
+    "local_elixir_compiler_runtime_docker_postgres_network_native_capture_or_custody_probes": false,
+    "new_runtime_processes_or_sockets": 0,
+    "owned_output_scope": "verification/identity-startup-socket-close-investigation/",
+    "protected_dirty_files": "both original hashes verified by passing source controls"
+  },
+  "findings": [
+    {
+      "confidence": "source-proven timing defect; causal explanation of this run remains runtime-unconfirmed",
+      "fact": "The fixture's :stall branch sleeps 3000ms before the only peer-close receive. Startup closure polling has 250 sleeps of 10ms, nominally 2500ms plus scheduler/call overhead. A promptly closed client can therefore fail the unchanged test while the fixture is still deliberately asleep.",
+      "id": "F1",
+      "source": [
+        "hosted/test/support/identity_tls_fixture.ex:194-207",
+        "hosted/test/support/identity_tls_fixture.ex:241",
+        "hosted/test/mixer_hosted/identity/startup_linux_network_test.exs:16-26",
+        "hosted/test/mixer_hosted/identity/startup_linux_network_test.exs:89-97"
+      ]
+    },
+    {
+      "confidence": "source-proven evidence-integrity defect; not independently identified as current failure cause",
+      "fact": "The old fixture sends :closed unconditionally from its after block. Handshake failure, request timeout, receive timeout and unexpected client bytes can all increment closed after fixture-initiated cleanup. That counter alone does not prove peer EOF.",
+      "id": "F2",
+      "source": [
+        "hosted/test/support/identity_tls_fixture.ex:194-217",
+        "hosted/test/support/identity_tls_fixture.ex:275-276"
+      ]
+    },
+    {
+      "confidence": "source-proven observation limitation",
+      "fact": "accepted increments before TLS handshake or HTTP request admission. Passing accepted == 3 establishes transport acceptance only; the third request may have entered handshake, HTTP read, or the stalled-response branch. The old boolean assertion retains none of those stage facts. The candidate acknowledges fixture ownership registration before releasing the handler, eliminating cross-sender accepted/finished ordering as an accounting ambiguity.",
+      "id": "F3",
+      "source": [
+        "hosted/test/support/identity_tls_fixture.ex:171-184",
+        "hosted/test/support/identity_tls_fixture.ex:265-276",
+        "hosted/test/mixer_hosted/identity/startup_linux_network_test.exs:94-97"
+      ]
+    },
+    {
+      "confidence": "source review only; not product leak clearance",
+      "fact": "Production BoundedTCP registers the owned raw TCP port before TLS ownership transfer. FetchFlight tracks raw-port and TLS-controller monitors. Graceful flight termination kills the worker, closes raw/TLS sockets, waits for raw port DOWN and controller DOWN, then worker DOWN. KeyOwner termination waits for each flight DOWN. This supplies a concrete cleanup path, but the failing run did not retain the third raw port/controller states or peer EOF.",
+      "id": "F4",
+      "source": [
+        "hosted/lib/mixer_hosted/identity/bounded_tcp.ex:20-44",
+        "hosted/lib/mixer_hosted/identity/bounded_tcp.ex:89-123",
+        "hosted/lib/mixer_hosted/identity/fetch_flight.ex:90-123",
+        "hosted/lib/mixer_hosted/identity/fetch_flight.ex:158-212",
+        "hosted/lib/mixer_hosted/identity/key_owner.ex:492-512",
+        "hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex:21-28"
+      ]
+    }
+  ],
+  "status": "fixture-candidate-ready-for-independent-review; runtime-unrun",
+  "unknown_in_failed_run": [
+    "actual accepted, closed, socket-map and request counts at the failed final poll",
+    "whether closed was below or above three",
+    "third connection's precise handshake/request/stall phase",
+    "third client raw-port and TLS-controller termination timestamps",
+    "third peer's receive outcome and whether fixture cleanup caused closure",
+    "whether the failure would disappear under immediate EOF observation"
+  ],
+  "validation": {
+    "ci_integration": "Promote the new file into hosted/test/mixer_hosted/identity/ so the ordinary Phoenix mix test suite discovers and executes all four controls. Require those actual CI results; source inclusion or compilation is not a pass. The production network command still names only the original K03 and IS04/IS05 test files.",
+    "decisive_workload": "Run the original two-method K03 and IS04/IS05 command with original source methods and wait limits against the explicitly selected fixture source. Retain both semantic receipts and raw observer output. No automatic blind retry.",
+    "elixir_compile_format_and_runtime": "unrun; remote-only after independent review and source selection",
+    "remote_control_bounds_proposal": "one selected CI invocation, 60 seconds, unchanged test image/resources; fixtures are supervised and client sockets close in after blocks",
+    "remote_control_command_proposal": "mix test --no-start --warnings-as-errors --seed 0 --max-cases 1 --trace test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs",
+    "remote_control_source": "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs",
+    "remote_controls": [
+      "stalled response remains silent, then client EOF is counted within the unchanged nominal 2500ms polling interval",
+      "accepted TCP abort before TLS handshake records exactly one peer EOF and no stale fixture socket",
+      "fixture local receive timeout removes its handler but closed stays zero",
+      "unexpected client bytes remove the handler but closed stays zero and payload is absent from diagnostics"
+    ],
+    "source_only": "6/6 Python source/scope controls pass with child/socket audit denial",
+    "source_only_command": "python3 -B verification/identity-startup-socket-close-investigation/verify_candidate.py",
+    "source_only_log": "source-controls.log",
+    "stop_conditions": [
+      "any closure control fails: retain its categorical terminal facts and review that counterexample before another run",
+      "original startup still fails: do not mark product cleanup verified; use new final fixture summary to choose the next bounded test",
+      "both original methods and all controls pass: scoped fixture/production-network acceptance only, not hosted GA or native qualification"
+    ]
+  }
+}

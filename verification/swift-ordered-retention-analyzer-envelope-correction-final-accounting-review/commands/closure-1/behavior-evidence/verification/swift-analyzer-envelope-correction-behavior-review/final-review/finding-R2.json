@@ -1,0 +1,64 @@
+{
+  "actual": "credits425/426 -> status3/reason15, debit425/spent425; credits0/1/424 -> debit0/spent0; no arena/candidate mutation",
+  "actual_debit_vector": [
+    0,
+    0,
+    0,
+    425,
+    425,
+    0,
+    0,
+    0,
+    425,
+    425
+  ],
+  "candidate_changed": false,
+  "contract": "accepted absent state -> InternalPoisoned/debit0; numeric selection changes threshold only",
+  "expected": "length0/32 cannot read any required prior state: status3/reason15, private debit0/spent0, prior budget and arena/candidate bytes unchanged",
+  "expected_debit_vector": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "id": "R2",
+  "inputs": {
+    "arena_lengths": [
+      0,
+      32
+    ],
+    "credits": [
+      0,
+      1,
+      424,
+      425,
+      426
+    ]
+  },
+  "method": "fixture_envelope::independent_final::independent_absent_prior_state_precedes_normal_debit",
+  "public_paid_counter_change_authorized": false,
+  "schema": 1,
+  "scope": "private unreadable prior-state boundary; public initialized safe-File path is separate",
+  "source_lines": [
+    {
+      "line": 134,
+      "text": "    if !underfunded { steps.remaining -= RECORD_ENVELOPE; steps.spent = RECORD_ENVELOPE; }"
+    },
+    {
+      "line": 137,
+      "text": "    if arena.len() < 7_731_056 { return poisoned(if underfunded { 0 } else { RECORD_ENVELOPE }); }"
+    }
+  ],
+  "source_sha256": "7b8237abbaec492e595508eb7456dab38fbb0d92d8d3cd5a88184f7c1082b9d1",
+  "status": "reproduced-candidate-mismatch-acceptance-withheld",
+  "stderr": "runs/run-2/independent-tests/stderr.bin",
+  "stderr_sha256": "b8a68b1b95f23022f40ce78c13684a95f9898eaeee2123d18f27788eda67fcee",
+  "stdout": "runs/run-2/independent-tests/stdout.bin",
+  "stdout_sha256": "5ebb016baaa4ca09ff06029dd04375cb9fde3dc386e6a2312168a1921db97c99"
+}

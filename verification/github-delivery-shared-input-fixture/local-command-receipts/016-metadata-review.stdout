@@ -1,0 +1,470 @@
+diff --git a/gates/ga.json b/gates/ga.json
+index fb735dd7e..48cd94949 100644
+--- a/gates/ga.json
++++ b/gates/ga.json
+@@ -27,5 +27,24 @@
+         "sha256": "82692cfb422ce511491eee01eaeff6b01078b0639cd1bf070ae85067dea675d0"
+       },
+-      "runtimeProductionOrGAAccepted": false
++      "runtimeProductionOrGAAccepted": false,
++      "latestRunObservation": {
++        "path": "verification/github-delivery-shared-input-fixture/capacity-run-observation.json",
++        "bytes": 431,
++        "sha256": "66da80c565c68dc7e4eca664d3e3983958549ce5528f78293c6344b093c40496"
++      }
++    },
++    "currentSharedInputFixtureSelection": {
++      "selection": {
++        "path": "verification/github-delivery-shared-input-fixture/selection.json",
++        "bytes": 2147,
++        "sha256": "100d22c44c20bc32e212c8278a937defe14c91dfc26ea6cdbbc52e7b39d59e87"
++      },
++      "sourceOnlyAccepted": true,
++      "runtimeProductionOrGAAccepted": false,
++      "fieldlogLatest": {
++        "path": "verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json",
++        "bytes": 2819,
++        "sha256": "592dac0ce16438888130c38126174ba0d89454a8ae60276fde4a2c6525759890"
++      }
+     }
+   },
+@@ -350,5 +369,9 @@
+         "verification/public-host-campaigns-2026-10-28/checkpoint.json",
+         "verification/github-delivery-capacity-window/selection.json",
+-        "verification/swift-capacity-window-independent/receipt.json"
++        "verification/swift-capacity-window-independent/receipt.json",
++        "verification/github-delivery-shared-input-fixture/selection.json",
++        "verification/cache-fixture-shared-input-candidate/seal.json",
++        "verification/cache-fixture-shared-input-review/seal.json",
++        "verification/cache-fixture-overlay-independent/seal.json"
+       ],
+       "reviewer": null,
+@@ -8744,7 +8767,71 @@
+             "productionDefaultsChanged": false,
+             "GA_accepted": false,
+-            "holdsUnchanged": true
++            "holdsUnchanged": true,
++            "latestRunObservation": {
++              "path": "verification/github-delivery-shared-input-fixture/capacity-run-observation.json",
++              "bytes": 431,
++              "sha256": "66da80c565c68dc7e4eca664d3e3983958549ce5528f78293c6344b093c40496"
++            }
+           }
+         }
++      },
++      "sharedInputFixtureDiagnostic": {
++        "schema": 1,
++        "at": "2026-10-28T23:50:45.047603+00:00",
++        "status": "root-selected-source; exact workflow installed; one manual dispatch selected; complete fixture and compiler availability pending",
++        "selection": {
++          "path": "verification/github-delivery-shared-input-fixture/selection.json",
++          "bytes": 2147,
++          "sha256": "100d22c44c20bc32e212c8278a937defe14c91dfc26ea6cdbbc52e7b39d59e87"
++        },
++        "candidateSeal": {
++          "path": "verification/cache-fixture-shared-input-candidate/seal.json",
++          "bytes": 3980,
++          "sha256": "db6ba0fcb4c66f5a38dd0f93ce9dc381a869b12fbf8eda7ecb8f5b3f57bfeca7"
++        },
++        "candidateTreeSHA256": "96a51f27039c6c091eae9fd0e447bc9ca2d71f453eebc6c8ca6e58474640c698",
++        "sourceReviewSeal": {
++          "path": "verification/cache-fixture-shared-input-review/seal.json",
++          "bytes": 1282,
++          "sha256": "6b5b13ac132044f25c624f83dcf457b3ce39f013bc0a350ccf5da24f2b24acac"
++        },
++        "sourceReviewTreeSHA256": "407647c81271e3dd4d49308a224a7d0cc1165e31a793dfadb1a51924aa605d84",
++        "integrationReviewSeal": {
++          "path": "verification/cache-fixture-overlay-independent/seal.json",
++          "bytes": 1501,
++          "sha256": "ef4690fa83901f5927e617bd41ea3d8ba470e58df6dde45744a8435ac60665b7"
++        },
++        "workflow": {
++          "path": ".github/workflows/cache-fixture-shared-input-diagnostic.yml",
++          "bytes": 4399,
++          "sha256": "50f55de2d34606f93a0687413d8a542e47d843c8481a2bc958f13e2407c26bbf"
++        },
++        "dispatchLimit": 1,
++        "bounds": {
++          "commands": 103,
++          "childSeconds": 60,
++          "activeSeconds": 600,
++          "cleanupSeconds": 60,
++          "compiler": "1.98.1-aarch64-apple-darwin",
++          "nativeRuntime": false
++        },
++        "offlineEvidence": {
++          "producerOfflineRunnerControls": 28,
++          "materializerGroups": 9,
++          "independentAdditionalIntegrationControls": 6,
++          "remoteRequiredRunnerControls": 36,
++          "unrunRealChildOrSignalControls": 8
++        },
++        "completeRemoteRunnerControlsRequired": 36,
++        "remoteRealChildOrSignalControlsUnrun": 8,
++        "borrowedUnchangedFrozenMembers": 83,
++        "materializedPackMembers": 86,
++        "originalVectors": 1003,
++        "originalAssertionsAndFreshArenasUnchanged": true,
++        "ordinaryFixtureCIRegressed": false,
++        "speedupAccepted": false,
++        "compilerFallbackRetryOrDefaultPromotionSelected": false,
++        "runtimeNativeReleaseOrGAAccepted": false,
++        "holdsUnchanged": true
+       }
+     },
+@@ -12378,7 +12465,7 @@
+       ],
+       "reviewer": null,
+-      "evidence_scope": " Private executor layout and finalfoundation correction only:2102bindings,350passing/9ignored allfeaturetests/profile. No executoralgorithm or targetexecution, device/release/GA pass. Root accepts bounded private Uninitialized construction and zero-frame cleanup: 927 bindings, 615 typed classes/5,004 positions, eight layouts; fresh product-only D/R full suites 366 passed with nine ignored each. Earlier contaminated 367-test claims superseded. No shared interpreter, initialized target, physical or GA qualification. Static type/borrow subset only accepted with149bindings; no instruction algorithm or target execution. NarrowFrozenMode numericprimitive dispatch accepted360rootbindings; originalowner validation/work/observe/trap literal, noAPI/ownerfield/formulachange. Selected1572hostexecutions+72explicitNodeoracles,4x454publictraces,independent10semantic+4workboundarychecks/profile pass. Typedmax464within512/fixed2912 unchanged. Fullintegration suite notrerun; broadClippy26sameexistingdiagnostics remainsfailure. Complete numericowner/sharedSwiftoperations/fulltarget/physical/FieldLog/GA remainpending. Private literal Frozen control macro extraction has scoped host acceptance:795 matching rows/configuration,four configurations,44 independently verified binaries,eight root host replays; no Swift control/active-frame/full-runtime/native/GA acceptance. Candidate2 private control source/accounting preflight accepted after7640positive fields,fresh independentMIR/eightlayouts and unchangedFrozenexpansions. SC01-SC12 behavior and liveintegration remainpending; no published target/native/GA gate pass. Private control behavior is now root accepted and integrated at241f7a60:4x46 original/4x6Frozen per producer/reviewer,4x7 independent probes,168/197full libraries perDebug/Release,8layouts; root669bindings and52integratedRelease tests. Full dispatcher/Ready/public/native/FieldLog/GA remainpending. Load/Store compiling type/borrow/logical-accounting prerequisite only:454root bindings,8independent library checks,16paired layouts,39unchanged Frozen methods. MM01-MM16 behavior/caller orchestration remain pending; original absent-cursor Cleanup diagnostic remains and G08 stays open. No integration/native/GA acceptance. Latest isolated behavior review: Isolated memory behavior passes64MM+24independent adversarial selections,16paired layouts,39Frozen methods and56Frozen pairs. Root verifies381review+1451producer bindings. MR01 requires eight separately counted unit promotion fields (64named bytes); isolated correction active. Live VM remains accepted control baseline241f7a60. No full dispatcher/Ready/public/native/GA acceptance; G08 source diagnostic remains open. Checkpointe337ddd1 passes all three engine jobs. Latest correction: Memory promoted correction563bindings/4800positions/64MM+184prior pass; fresh independentreview active, liveunchanged. Latest integrated checkpoint: Private original-owner Load/Store is now independently reviewed, root accepted and integrated. MR01 resolves eight omitted unit promoted positions (64 bytes), retaining all 4,792 prior positions for 4,800 total. Root verifies 1,269 upstream and 22 integration bindings; fresh normalized-source Release runs pass 62 focused tests and 16 Frozen integration tests, plus Swift CI Clippy with warnings denied. Producer64 memory/184 prior selections and reviewer12 focused selections remain separately bound. Integrated123-file closure17f9ea5b93fbc0b5bd51df8484e30e0cbe420eac646730da7d330c4b4ecde9ff. Full dispatch/Ready/public/native/FieldLog/GA and G08 absent-cursor diagnostics remain open. Checkpoint615a05dc passes all three engine CI jobs; no GA acceptance. Latest follow-on slice: The isolated copy/fill/MemorySize candidate is frozen at 125-file closure e5050427a9653019e429bd6cb050133e89617d9a40c9896e0d684f12aa7c8626. Producer evidence passes 312 selected tests across four configurations, 64 Frozen differential pairs, 16 paired layouts and 4,324 newly accounted fields while preserving all 4,800 prior memory rows. Root replay of the sealed producer packet and live baseline passes. Fresh independent source, behavior and accounting review is in progress; this candidate is not integrated. Growth, dispatcher, Ready/public execution, native and GA acceptance remain pending. Latest checkpoint: Shared original-owner copy/fill/MemorySize is now independently reviewed, root accepted and integrated. The reviewed125-file closure e5050427a9653019e429bd6cb050133e89617d9a40c9896e0d684f12aa7c8626 differs from integrated96c945a817c81be17fb526067d87cc667a21cdaf5a47be18179e10fe5ed8de0d only by two explicitly bound blank-line whitespace removals. Root574upstream+23rootbindings pass; fresh normalized-source78focused/16Frozen Release tests, Swift CI Clippy and whitespace pass. Independent76fresh selections,4MIR,4layouts,39Frozenmethods/14owners; producer312selections/64Frozenpairs/16layouts remain separately attributed. All4800memory positions retained plus4324bulk positions. Owned scratch removed. Growth implementation is underway in isolation; full dispatch/Ready/public/native/GA and G08 remain open. Latest isolated growth prerequisite: The private Swift memory.grow slice is independently reviewed and integrated. Root verifies 798 upstream bindings and 31 integration files; the raw reviewed closure is preserved and the integrated 127-file closure a0bbe77aca3021e48f1fb76dc97cfbc0406c24e5ba7eacdd33d5dabe8f998d9b differs only by one removed trailing ASCII space. Fresh normalized-source checks pass 98 focused all-feature Release tests, 16 Frozen Release tests and Swift-only Clippy. Independent review passes 20 exact-source growth tests, 14 adversarial selections, four fresh MIR inventories, sixteen raw layout audits and four representative layout executions. All 10,356 growth, 4,800 memory and 4,324 bulk positions remain accounted; 39 Frozen methods and sixteen checked owner declarations are unchanged. Owned command groups and scratch are cleaned. This accepts private host development only; G08 absent-cursor diagnostics, full dispatch/Ready/public/native/FieldLog/physical/GA remain pending. The private host-import contract has root compiler/layout prerequisite acceptance: 557 root bindings, 14 original source archives, 16 fresh isolated layout contexts, retained exact executables and eight full unit lists. Historical shared-target outputs supply numeric proposals only. An isolated implementation lane is rebasing and remeasuring on accepted growth before qualifying H01\u2013H16 actual imported-host behavior. No host import runtime acceptance is claimed.",
++      "evidence_scope": " Private executor layout and finalfoundation correction only:2102bindings,350passing/9ignored allfeaturetests/profile. No executoralgorithm or targetexecution, device/release/GA pass. Root accepts bounded private Uninitialized construction and zero-frame cleanup: 927 bindings, 615 typed classes/5,004 positions, eight layouts; fresh product-only D/R full suites 366 passed with nine ignored each. Earlier contaminated 367-test claims superseded. No shared interpreter, initialized target, physical or GA qualification. Static type/borrow subset only accepted with149bindings; no instruction algorithm or target execution. NarrowFrozenMode numericprimitive dispatch accepted360rootbindings; originalowner validation/work/observe/trap literal, noAPI/ownerfield/formulachange. Selected1572hostexecutions+72explicitNodeoracles,4x454publictraces,independent10semantic+4workboundarychecks/profile pass. Typedmax464within512/fixed2912 unchanged. Fullintegration suite notrerun; broadClippy26sameexistingdiagnostics remainsfailure. Complete numericowner/sharedSwiftoperations/fulltarget/physical/FieldLog/GA remainpending. Private literal Frozen control macro extraction has scoped host acceptance:795 matching rows/configuration,four configurations,44 independently verified binaries,eight root host replays; no Swift control/active-frame/full-runtime/native/GA acceptance. Candidate2 private control source/accounting preflight accepted after7640positive fields,fresh independentMIR/eightlayouts and unchangedFrozenexpansions. SC01-SC12 behavior and liveintegration remainpending; no published target/native/GA gate pass. Private control behavior is now root accepted and integrated at241f7a60:4x46 original/4x6Frozen per producer/reviewer,4x7 independent probes,168/197full libraries perDebug/Release,8layouts; root669bindings and52integratedRelease tests. Full dispatcher/Ready/public/native/FieldLog/GA remainpending. Load/Store compiling type/borrow/logical-accounting prerequisite only:454root bindings,8independent library checks,16paired layouts,39unchanged Frozen methods. MM01-MM16 behavior/caller orchestration remain pending; original absent-cursor Cleanup diagnostic remains and G08 stays open. No integration/native/GA acceptance. Latest isolated behavior review: Isolated memory behavior passes64MM+24independent adversarial selections,16paired layouts,39Frozen methods and56Frozen pairs. Root verifies381review+1451producer bindings. MR01 requires eight separately counted unit promotion fields (64named bytes); isolated correction active. Live VM remains accepted control baseline241f7a60. No full dispatcher/Ready/public/native/GA acceptance; G08 source diagnostic remains open. Checkpointe337ddd1 passes all three engine jobs. Latest correction: Memory promoted correction563bindings/4800positions/64MM+184prior pass; fresh independentreview active, liveunchanged. Latest integrated checkpoint: Private original-owner Load/Store is now independently reviewed, root accepted and integrated. MR01 resolves eight omitted unit promoted positions (64 bytes), retaining all 4,792 prior positions for 4,800 total. Root verifies 1,269 upstream and 22 integration bindings; fresh normalized-source Release runs pass 62 focused tests and 16 Frozen integration tests, plus Swift CI Clippy with warnings denied. Producer64 memory/184 prior selections and reviewer12 focused selections remain separately bound. Integrated123-file closure17f9ea5b93fbc0b5bd51df8484e30e0cbe420eac646730da7d330c4b4ecde9ff. Full dispatch/Ready/public/native/FieldLog/GA and G08 absent-cursor diagnostics remain open. Checkpoint615a05dc passes all three engine CI jobs; no GA acceptance. Latest follow-on slice: The isolated copy/fill/MemorySize candidate is frozen at 125-file closure e5050427a9653019e429bd6cb050133e89617d9a40c9896e0d684f12aa7c8626. Producer evidence passes 312 selected tests across four configurations, 64 Frozen differential pairs, 16 paired layouts and 4,324 newly accounted fields while preserving all 4,800 prior memory rows. Root replay of the sealed producer packet and live baseline passes. Fresh independent source, behavior and accounting review is in progress; this candidate is not integrated. Growth, dispatcher, Ready/public execution, native and GA acceptance remain pending. Latest checkpoint: Shared original-owner copy/fill/MemorySize is now independently reviewed, root accepted and integrated. The reviewed125-file closure e5050427a9653019e429bd6cb050133e89617d9a40c9896e0d684f12aa7c8626 differs from integrated96c945a817c81be17fb526067d87cc667a21cdaf5a47be18179e10fe5ed8de0d only by two explicitly bound blank-line whitespace removals. Root574upstream+23rootbindings pass; fresh normalized-source78focused/16Frozen Release tests, Swift CI Clippy and whitespace pass. Independent76fresh selections,4MIR,4layouts,39Frozenmethods/14owners; producer312selections/64Frozenpairs/16layouts remain separately attributed. All4800memory positions retained plus4324bulk positions. Owned scratch removed. Growth implementation is underway in isolation; full dispatch/Ready/public/native/GA and G08 remain open. Latest isolated growth prerequisite: The private Swift memory.grow slice is independently reviewed and integrated. Root verifies 798 upstream bindings and 31 integration files; the raw reviewed closure is preserved and the integrated 127-file closure a0bbe77aca3021e48f1fb76dc97cfbc0406c24e5ba7eacdd33d5dabe8f998d9b differs only by one removed trailing ASCII space. Fresh normalized-source checks pass 98 focused all-feature Release tests, 16 Frozen Release tests and Swift-only Clippy. Independent review passes 20 exact-source growth tests, 14 adversarial selections, four fresh MIR inventories, sixteen raw layout audits and four representative layout executions. All 10,356 growth, 4,800 memory and 4,324 bulk positions remain accounted; 39 Frozen methods and sixteen checked owner declarations are unchanged. Owned command groups and scratch are cleaned. This accepts private host development only; G08 absent-cursor diagnostics, full dispatch/Ready/public/native/FieldLog/physical/GA remain pending. The private host-import contract has root compiler/layout prerequisite acceptance: 557 root bindings, 14 original source archives, 16 fresh isolated layout contexts, retained exact executables and eight full unit lists. Historical shared-target outputs supply numeric proposals only. An isolated implementation lane is rebasing and remeasuring on accepted growth before qualifying H01–H16 actual imported-host behavior. No host import runtime acceptance is claimed.",
+       "currentCheckpoint": "The private Swift calls/dispatch candidate at source closure ba9231499244692bbed61f0566ec72864a979df9e3fc71511560ec66a2e00c70 now has independent and root logical-accounting acceptance: 89,124 roles, 1,032 exact finite positions, eight compiler contexts and sixteen layouts. All 39 Frozen methods, the 2,912-byte Frozen bound, original owners and ceilings are preserved. Runtime preflight found three original fixture sums missing the new calls component. The separate V7 candidate at source closure 78e2586b41f698c60e1bcd4cdd4abb33fbf98d747d1ee183a793988dea7b5237 contains only those three expectation additions over V5; all eight implementation files remain unchanged. Fresh compiler evidence, root replay and final independent accounting review pass with all selected runtime MIR bodies unchanged. The sealed 27-command private runtime matrix now passes with 1,378 test executions, all 63 source/compiler and Node prelaunch checks, final Node pins and cleanup. Root accepted it, integrated eleven changed files and passed a fresh 342-test live-path check with the qualified tool environment. The first live check had one runner-PATH failure and remains preserved. Final integrated closure 3dee84f70c852c2a26572c1d6e3463e45e56760a6bba403fabfb9c355ccb1cd3 differs from V7 only by removing spaces on seven otherwise-empty lines after the successful runtime checks; the exact formatting normalization is recorded and git diff --check passes. See verification/swift-calls-dispatch-root-review/sealed-v7/runtime-review.json and live-v7-integration-retry. Prior checkpoint 9a9c0e00 passes all three Engine CI jobs. No native, full Swift readiness, FieldLog, OTA or GA gate is closed by this development slice.",
+-      "lifecycleCheckpoint": "The private Swift lifecycle V3 candidate now has root acceptance for its selected host matrix: all 30 rows pass, comprising 1,602 test executions and four compile checks. The four focused contexts pass 23 lifecycle tests each; Swift and all-feature libraries, Frozen regressions and both qualified Node oracle runs also pass. Root verifies all 978 sealed files and all 30 target cleanups. V2\u2019s failed ticket assertion remains preserved; V3 changes its expectation to match retained decoded-cache ownership without changing engine limits. The exact three-file private implementation is now integrated: the full 132-file VM source closure matches the tested candidate, and 23 focused live tests plus Swift-only Clippy pass. Its fresh target is removed. The complete SL matrix, guest table mutation, real full reactor, native execution, FieldLog and GA remain pending.",
++      "lifecycleCheckpoint": "The private Swift lifecycle V3 candidate now has root acceptance for its selected host matrix: all 30 rows pass, comprising 1,602 test executions and four compile checks. The four focused contexts pass 23 lifecycle tests each; Swift and all-feature libraries, Frozen regressions and both qualified Node oracle runs also pass. Root verifies all 978 sealed files and all 30 target cleanups. V2’s failed ticket assertion remains preserved; V3 changes its expectation to match retained decoded-cache ownership without changing engine limits. The exact three-file private implementation is now integrated: the full 132-file VM source closure matches the tested candidate, and 23 focused live tests plus Swift-only Clippy pass. Its fresh target is removed. The complete SL matrix, guest table mutation, real full reactor, native execution, FieldLog and GA remain pending.",
+       "lifecycleTestCheckpoint": "The private lifecycle test suite is now expanded from 23 to 49 identities and integrated without changing production engine bytes. All four Swift/all Debug/Release contexts pass (196 executions), six compiler-negative checks pass, and independent review passes 49 tests plus two controls over eight variants. Root verifies both packets and passes a fresh 49-test live replay at exact 132-file closure `64a3d9c52ade75ec16de10191f14257fb75ff358c366666cf47809e2b9a7f0de`. All owned build targets are removed. Every SL01-SL23 row remains partial; table mutation, the full reactor, public/signed/native entry, FieldLog and GA remain pending. See docs/swift-reactor-lifecycle-remaining-checkpoint.md.",
+       "latestLifecycleCI": "Checkpoint `50f70a79` passes the complete Engine CI after the test-only deadline fixture repair: all three jobs and all 38 steps succeed, with none skipped. The Linux VM job passes 391 all-feature tests and 361 Swift-only tests in both Debug and Release; Swift, services and separate Phoenix CI also pass. The earlier `ccd8e4c3` three-test Linux setup failure remains preserved. See `verification/github-ci-50f70a79-engine/receipt.json`, `verification/github-ci-50f70a79-vm/receipt.json` and `verification/github-ci-50f70a79-phoenix/receipt.json`."
+@@ -12760,5 +12847,5 @@
+       "buildAggregateAdmissionCheckpoint": "The hosted build service now enforces fleet-total, platform-pool, organization-total and organization/platform capacity together. A fixed PostgreSQL mutex and READ COMMITTED requirement prevent missing-row and stale-snapshot overbooking; uncertain held workers continue counting and can reconcile after limits shrink. Root verifies 255 repository tests plus 11 separate independent PostgreSQL controls, with two isolated-network identity skips in the repository suite. All 91 repository inputs/19 logs and 92 independent inputs/23 logs match; release checks and owned database/scratch cleanup pass. The first collection retained a four-test setup failure from an outdated migration list, corrected without production changes. Production migration, provider execution, public authorization, usage attribution, signing and GA remain pending. See [the capacity checkpoint](docs/hosted-build-aggregate-admission-checkpoint.md).",
+       "workerTransportContract": "The worker transport contract is selected for isolated implementation only. Two dependency-only probes pass; root verifies six command outputs and preserves all 88 exact read-context inputs, recovering the authorized intermediate Admission source from its retained archive. No Mixer source was loaded by the probes. Real HTTPS authentication, controller/provider execution, hard resource isolation and runtime installation remain unqualified.",
+-      "workerTransportReviewCheckpoint": "Independent review blocks the first outbound worker client: a guard/owner-loss control admits 16 replacement requests while an old TLS flight remains alive, producing 17 connections against the limit of 16. Root verifies all 86 candidate inputs, 35 review artifacts and four command-output sets. The 25 baseline and 13 independent controls pass, including successful defect reproductions; they do not accept the candidate. The original seven-header contract also misses Mint\u2019s User-Agent. A separate V2 repair is implementing a VM-lifetime restart interlock and explicit mixer-worker/1 header. Live installation remains unconfigured. See docs/hosted-worker-transport-independent-review.md and verification/hosted-worker-transport-root-review/independent-v1-decision.json.",
++      "workerTransportReviewCheckpoint": "Independent review blocks the first outbound worker client: a guard/owner-loss control admits 16 replacement requests while an old TLS flight remains alive, producing 17 connections against the limit of 16. Root verifies all 86 candidate inputs, 35 review artifacts and four command-output sets. The 25 baseline and 13 independent controls pass, including successful defect reproductions; they do not accept the candidate. The original seven-header contract also misses Mint’s User-Agent. A separate V2 repair is implementing a VM-lifetime restart interlock and explicit mixer-worker/1 header. Live installation remains unconfigured. See docs/hosted-worker-transport-independent-review.md and verification/hosted-worker-transport-root-review/independent-v1-decision.json.",
+       "workerControllerContractCheckpoint": "The narrow Cloudflare worker-controller contract is selected for implementation: exact worker wire, SQLite Durable Object fencing, permanent stop records and one-time claims, with Phoenix retaining tenant authorization. Root verifies nine frozen inputs and seven contract artifacts, then pins Miniflare/workerd, TypeScript and Workers types for local runtime tests. The executable contract has five byte vectors and 20 future-candidate scenarios; it contains no controller implementation. Real clock/provider enablement, edge EOF/header behavior, source/result authority, worker isolation and GA remain pending. See docs/hosted-worker-controller-contract.md and verification/hosted-worker-controller-root-selection/contract-selection.json.",
+       "workerTransportV2PreparationCheckpoint": "The repaired outbound worker client is frozen for independent review: 42 producer controls and 36 cross-runtime vectors pass. Root verifies 107 current/archived inputs and 165 output bindings. The VM generation marker prevents replacement while old resources are uncertain; an additional post-cleanup deadline check fixes a reproduced late valid response. A separate startup candidate passes 16 production-branch configuration and transport-supervision checks, with fixed dispatch bounds and transport-before-queue ordering. Live hosted installation, complete application/Oban integration, independent acceptance, deployment resource limits, real provider operation and GA remain pending. See docs/hosted-worker-transport-v2.md and docs/hosted-worker-startup-integration.md.",
+@@ -12906,5 +12993,5 @@
+       ],
+       "reviewer": null,
+-      "currentCheckpoint": "The SolidJS Builds screen now shares the website\u2019s exact identity and the existing release-screen shell. It shows per-platform build outcomes, attempts and source references, with expandable immutable inputs. Root accepts 32 repository tests, seven independent controls, 117 backend text-boundary comparisons and 14 actual browser states. Desktop and 320/375-pixel layouts, keyboard details/skip/select behavior, navigation and production preview exclusion pass. The initial text-boundary mismatch and 320-pixel preview-control overflow are corrected and preserved in evidence. Phoenix data/auth, real build workflows and full G22/GA qualification remain pending. See [the Builds checkpoint](docs/console-build-overview-checkpoint.md).",
++      "currentCheckpoint": "The SolidJS Builds screen now shares the website’s exact identity and the existing release-screen shell. It shows per-platform build outcomes, attempts and source references, with expandable immutable inputs. Root accepts 32 repository tests, seven independent controls, 117 backend text-boundary comparisons and 14 actual browser states. Desktop and 320/375-pixel layouts, keyboard details/skip/select behavior, navigation and production preview exclusion pass. The initial text-boundary mismatch and 320-pixel preview-control overflow are corrected and preserved in evidence. Phoenix data/auth, real build workflows and full G22/GA qualification remain pending. See [the Builds checkpoint](docs/console-build-overview-checkpoint.md).",
+       "latestConsoleCI": "ee9f6dc7 Console CI passes all nine steps on attempt one, including delivered frontend session source, full host tests, typecheck and production build. Backend/browser/provider/GA acceptance remains pending.",
+       "bearerIdentityTransport": "Root accepts the unrouted identity prerequisite after verifying 74 producer and 221 review bindings. Corrected producer 47 tests (31 middleware and 16 verifier) and ten independent groups pass with no skips. Malformed parameter tails, empty subtypes and duplicate response metadata findings are closed. Source stable and owned scratch removed. No routes, membership, provider, database or console data connection; no GA promotion. See docs/hosted-bearer-identity-review.md and verification/current-observer-root-review/acceptance.json.",
+@@ -16628,5 +16715,5 @@
+       "reviewer": null,
+       "currentCheckpoint": "The private Linux resource harness V5 now has independent and root source/host-method acceptance with no open findings. All 82 producer controls and eight independent controls pass. V4 repaired child-PID-namespace lifetime tracking and immutable retry history; V5 additionally preserves each successful descriptor observation before a later read error, deadline or proved exit. Final physical-zero proof stays separate from historical positive counts. All prior packets and unchanged C/NIF/role/signal bytes remain preserved. Separate compiler prerequisite V4 now passes four native compilations and exported repeat equality; no helper/NIF/BEAM execution or resource runtime row has run. Controller integration and all 30 runtime rows remain pending. See docs/stripe-resource-harness-v5-source-checkpoint.md and verification/stripe-webhook-resource-ingress-root-review/v5-source-acceptance/receipt.json. No production transport, provider or GA acceptance.",
+-      "linuxCompilerCheckpoint": "The private Linux compiler prerequisite now has root acceptance. The C6 V4 attempt compiles the unchanged helper and NIF twice, retains four AArch64 products totaling 288,864 bytes, and passes both native byte comparisons plus exported hash, dependency and GNU-version checks. All 46 host controls pass; root verifies 118 execution bindings, 27 command outputs, actual isolation and successful container/snapshot cleanup. V4 changes only fixed tar product-export transport. The earlier image, archive-name and export failures remain preserved. This qualifies the reviewed /opt compiler invocation only. The resource controller\u2019s /usr/bin/cc integration, helper execution, NIF loading, BEAM execution and all 30 resource runtime rows remain pending."
++      "linuxCompilerCheckpoint": "The private Linux compiler prerequisite now has root acceptance. The C6 V4 attempt compiles the unchanged helper and NIF twice, retains four AArch64 products totaling 288,864 bytes, and passes both native byte comparisons plus exported hash, dependency and GNU-version checks. All 46 host controls pass; root verifies 118 execution bindings, 27 command outputs, actual isolation and successful container/snapshot cleanup. V4 changes only fixed tar product-export transport. The earlier image, archive-name and export failures remain preserved. This qualifies the reviewed /opt compiler invocation only. The resource controller’s /usr/bin/cc integration, helper execution, NIF loading, BEAM execution and all 30 resource runtime rows remain pending."
+     },
+     {
+@@ -18475,5 +18562,6 @@
+         "verification/swift-resident-index-grouped-reservation-root-integration/receipt.json",
+         "verification/public-host-campaigns-2026-10-28/checkpoint.json",
+-        "verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json"
++        "verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json",
++        "verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json"
+       ],
+       "reviewer": null,
+@@ -18503,4 +18591,24 @@
+         "next": "Source-backed exact app Git reads correction under preparation; no further host dispatch selected",
+         "nativeDogfoodOrGA": false
++      },
++      "fieldlogAppReadResult": {
++        "summary": {
++          "path": "verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json",
++          "bytes": 2819,
++          "sha256": "592dac0ce16438888130c38126174ba0d89454a8ae60276fde4a2c6525759890"
++        },
++        "commit": "496399f87e36577433a877aef5cf7f513d2f3014",
++        "tree": "0c5633ee90fbfa6315df12d4b98405b88163663c",
++        "run": 40788707965,
++        "status": "public exact 73-blob hydration passed; requested app read admitted; Executor process-group inheritance guard rejected before inner Git child",
++        "testsStartedObserved": 0,
++        "authoredTests": 38,
++        "recordedOuterGroupsClosed": 12,
++        "recordedAcquisitionChildrenClosed": 29,
++        "rejectedAdapterActualPGIDRecorded": false,
++        "unrecordedDetachedDescendantAbsenceProven": false,
++        "initialLocalReadsWithoutSeparateGroupReceipts": 8,
++        "next": "Fresh Astra ownership candidate under preparation; no further FieldLog run selected",
++        "nativeDogfoodOrGA": false
+       }
+     },
+@@ -18532,5 +18640,6 @@
+         "verification/swift-resident-index-grouped-reservation-root-integration/receipt.json",
+         "verification/public-host-campaigns-2026-10-28/checkpoint.json",
+-        "verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json"
++        "verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json",
++        "verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json"
+       ],
+       "reviewer": null,
+@@ -18560,4 +18669,24 @@
+         "next": "Source-backed exact app Git reads correction under preparation; no further host dispatch selected",
+         "nativeDogfoodOrGA": false
++      },
++      "fieldlogAppReadResult": {
++        "summary": {
++          "path": "verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json",
++          "bytes": 2819,
++          "sha256": "592dac0ce16438888130c38126174ba0d89454a8ae60276fde4a2c6525759890"
++        },
++        "commit": "496399f87e36577433a877aef5cf7f513d2f3014",
++        "tree": "0c5633ee90fbfa6315df12d4b98405b88163663c",
++        "run": 40788707965,
++        "status": "public exact 73-blob hydration passed; requested app read admitted; Executor process-group inheritance guard rejected before inner Git child",
++        "testsStartedObserved": 0,
++        "authoredTests": 38,
++        "recordedOuterGroupsClosed": 12,
++        "recordedAcquisitionChildrenClosed": 29,
++        "rejectedAdapterActualPGIDRecorded": false,
++        "unrecordedDetachedDescendantAbsenceProven": false,
++        "initialLocalReadsWithoutSeparateGroupReceipts": 8,
++        "next": "Fresh Astra ownership candidate under preparation; no further FieldLog run selected",
++        "nativeDogfoodOrGA": false
+       }
+     },
+@@ -18611,5 +18740,5 @@
+     {
+       "id": "G32",
+-      "requirement": "D0\u2013D8 complete; FieldLog is available through real iOS/Android store distribution with transparent update behavior.",
++      "requirement": "D0–D8 complete; FieldLog is available through real iOS/Android store distribution with transparent update behavior.",
+       "status": "planned",
+       "evidence": [],
+diff --git a/work-graph.json b/work-graph.json
+index 3b68c816c..3d7a919b4 100644
+--- a/work-graph.json
++++ b/work-graph.json
+@@ -2,5 +2,5 @@
+   "schema": 1,
+   "scope": "Full product plan; packages only verified after specified acceptance",
+-  "updated": "2026-10-28T23:09:54.185Z",
++  "updated": "2026-10-28T23:50:45.055120+00:00",
+   "executionPolicy": {
+     "reference": "mixer-product-plan.md#244-aggressive-blocker-experiments-and-integration-priority",
+@@ -82,5 +82,24 @@
+         "sha256": "82692cfb422ce511491eee01eaeff6b01078b0639cd1bf070ae85067dea675d0"
+       },
+-      "runtimeProductionOrGAAccepted": false
++      "runtimeProductionOrGAAccepted": false,
++      "latestRunObservation": {
++        "path": "verification/github-delivery-shared-input-fixture/capacity-run-observation.json",
++        "bytes": 431,
++        "sha256": "66da80c565c68dc7e4eca664d3e3983958549ce5528f78293c6344b093c40496"
++      }
++    },
++    "currentSharedInputFixtureSelection": {
++      "selection": {
++        "path": "verification/github-delivery-shared-input-fixture/selection.json",
++        "bytes": 2147,
++        "sha256": "100d22c44c20bc32e212c8278a937defe14c91dfc26ea6cdbbc52e7b39d59e87"
++      },
++      "sourceOnlyAccepted": true,
++      "runtimeProductionOrGAAccepted": false,
++      "fieldlogLatest": {
++        "path": "verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json",
++        "bytes": 2819,
++        "sha256": "592dac0ce16438888130c38126174ba0d89454a8ae60276fde4a2c6525759890"
++      }
+     }
+   },
+@@ -270,5 +289,5 @@
+       "owner": "Framework lead",
+       "deliverables": "Lifecycle, state, effects, navigation model, resources, errors; shared app appearance contract per section8.3",
+-      "dependencies": "W01\u201302",
++      "dependencies": "W01–02",
+       "acceptance": "Same state/effect tests in native targets; restoration works.",
+       "state": "in_progress",
+@@ -711,5 +730,5 @@
+       "owner": "Android lead",
+       "deliverables": "JNI boundary, Compose/native controls, lifecycle, back behavior, native resources; shared-theme component appearance per section8.3",
+-      "dependencies": "W02\u201303",
++      "dependencies": "W02–03",
+       "acceptance": "D2 with native Android interaction and accessibility evidence. Shared design parity with the other platform, reviewed on physical reference screens per section8.3.",
+       "state": "in_progress",
+@@ -4027,5 +4046,5 @@
+       "owner": "Compiler lead",
+       "deliverables": "Guest libraries, module extraction, API diagnostics, source maps, dependency closure",
+-      "dependencies": "W02\u201303, W06",
++      "dependencies": "W02–03, W06",
+       "acceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss.",
+       "state": "in_progress",
+@@ -4524,10 +4543,14 @@
+         "verification/public-host-campaigns-2026-10-28/frame-pin128-result.json",
+         "verification/github-delivery-capacity-window/selection.json",
+-        "verification/swift-capacity-window-independent/receipt.json"
++        "verification/swift-capacity-window-independent/receipt.json",
++        "verification/github-delivery-shared-input-fixture/selection.json",
++        "verification/cache-fixture-shared-input-candidate/seal.json",
++        "verification/cache-fixture-shared-input-review/seal.json",
++        "verification/cache-fixture-overlay-independent/seal.json"
+       ],
+       "remaining": "Shared defined/indirect call and fetch/run orchestration is integrated with scoped host acceptance. Complete initializer/Ready/private fixed-target lifecycle, then separately reviewed public invocation. Preserve accepted private numeric/value/frame/control/memory/bulk/growth/imported-host mechanics and fail-closed bounds. Complete supported-profile conformance/differential/fuzz/resource-limit qualification, source diagnostics, performance/memory/size, native joins, immutable published FieldLog consumption and D3/GA acceptance.",
+       "currentCheckpoint": "Underlying fixture-only envelope source and bounded accounting have scoped independent host acceptance: 78 producer methods, 14 exact-source independent methods plus 2 separate test-overlay methods, API1+8, 21,714 fresh candidate comparisons and 32 layouts; root verified 407 source/accounting/review members. No semantic replay, live VM/CLI/target or GA acceptance. Portable CI runner round1 was rejected for ambiguous compiler identity and unrelated diagnostic spans. Corrected runner passes 32 normal/optimized controls and one fresh full Rust1.99 host closure; independent correction review now passes and root accepts the scoped runner. Exact CI wiring is applied; delivery and actual Rust1.98.1 CI remain pending. The earlier complete target still fails Corpus1 CacheWork; no optimization has been accepted from this fixture work.",
+       "nextImplementation": "Implement the selected standalone fixture cache-state Rust closure within unchanged source/work/move/caller/lifetime/cleanup bounds, then freeze source and proofs for independent actual-File review. Existing APIs/ABI/report and the immutable envelope pack remain fixed; live VM/target/native work remains unselected.",
+-      "lifecycleCheckpoint": "The private Swift lifecycle V3 candidate now has root acceptance for its selected host matrix: all 30 rows pass, comprising 1,602 test executions and four compile checks. The four focused contexts pass 23 lifecycle tests each; Swift and all-feature libraries, Frozen regressions and both qualified Node oracle runs also pass. Root verifies all 978 sealed files and all 30 target cleanups. V2\u2019s failed ticket assertion remains preserved; V3 changes its expectation to match retained decoded-cache ownership without changing engine limits. The exact three-file private implementation is now integrated: the full 132-file VM source closure matches the tested candidate, and 23 focused live tests plus Swift-only Clippy pass. Its fresh target is removed. The complete SL matrix, guest table mutation, real full reactor, native execution, FieldLog and GA remain pending.",
++      "lifecycleCheckpoint": "The private Swift lifecycle V3 candidate now has root acceptance for its selected host matrix: all 30 rows pass, comprising 1,602 test executions and four compile checks. The four focused contexts pass 23 lifecycle tests each; Swift and all-feature libraries, Frozen regressions and both qualified Node oracle runs also pass. Root verifies all 978 sealed files and all 30 target cleanups. V2’s failed ticket assertion remains preserved; V3 changes its expectation to match retained decoded-cache ownership without changing engine limits. The exact three-file private implementation is now integrated: the full 132-file VM source closure matches the tested candidate, and 23 focused live tests plus Swift-only Clippy pass. Its fresh target is removed. The complete SL matrix, guest table mutation, real full reactor, native execution, FieldLog and GA remain pending.",
+       "latestCI": "Host Engine CI 40176959303 for pushed 6b8aba350224ed19f678669bdbea6b359d8de68b passes all three jobs and all 38 steps with zero skips. See verification/github-ci-6b8aba35-engine/terminal-receipt.json. This does not pass native, provider or GA gates.",
+       "linuxFixtureRepairCheckpoint": "Exact two-file test-only repair accepted at132-file closure6d4b1deed091d6c0f0a2ae0c101c98afbd0e27fdc3c2b2992a999e08565a3fe8. Production code/limits unchanged.196localpasses and independent3plusnegativecontrols; Linux VM CI nowpasses all12steps including391allfeature/361Swift-only tests inDebugandRelease. No native/fullreactor/GA qualification.",
+@@ -12919,5 +12942,10 @@
+             "productionDefaultsChanged": false,
+             "GA_accepted": false,
+-            "holdsUnchanged": true
++            "holdsUnchanged": true,
++            "latestRunObservation": {
++              "path": "verification/github-delivery-shared-input-fixture/capacity-run-observation.json",
++              "bytes": 431,
++              "sha256": "66da80c565c68dc7e4eca664d3e3983958549ce5528f78293c6344b093c40496"
++            }
+           }
+         }
+@@ -12949,4 +12977,63 @@
+         "productionDefaultOrGA": false,
+         "next": "Exact reviewed capacity-window-v1 selected for one independent bounded campaign; prior two attempts remain spent"
++      },
++      "sharedInputFixtureDiagnostic": {
++        "schema": 1,
++        "at": "2026-10-28T23:50:45.047603+00:00",
++        "status": "root-selected-source; exact workflow installed; one manual dispatch selected; complete fixture and compiler availability pending",
++        "selection": {
++          "path": "verification/github-delivery-shared-input-fixture/selection.json",
++          "bytes": 2147,
++          "sha256": "100d22c44c20bc32e212c8278a937defe14c91dfc26ea6cdbbc52e7b39d59e87"
++        },
++        "candidateSeal": {
++          "path": "verification/cache-fixture-shared-input-candidate/seal.json",
++          "bytes": 3980,
++          "sha256": "db6ba0fcb4c66f5a38dd0f93ce9dc381a869b12fbf8eda7ecb8f5b3f57bfeca7"
++        },
++        "candidateTreeSHA256": "96a51f27039c6c091eae9fd0e447bc9ca2d71f453eebc6c8ca6e58474640c698",
++        "sourceReviewSeal": {
++          "path": "verification/cache-fixture-shared-input-review/seal.json",
++          "bytes": 1282,
++          "sha256": "6b5b13ac132044f25c624f83dcf457b3ce39f013bc0a350ccf5da24f2b24acac"
++        },
++        "sourceReviewTreeSHA256": "407647c81271e3dd4d49308a224a7d0cc1165e31a793dfadb1a51924aa605d84",
++        "integrationReviewSeal": {
++          "path": "verification/cache-fixture-overlay-independent/seal.json",
++          "bytes": 1501,
++          "sha256": "ef4690fa83901f5927e617bd41ea3d8ba470e58df6dde45744a8435ac60665b7"
++        },
++        "workflow": {
++          "path": ".github/workflows/cache-fixture-shared-input-diagnostic.yml",
++          "bytes": 4399,
++          "sha256": "50f55de2d34606f93a0687413d8a542e47d843c8481a2bc958f13e2407c26bbf"
++        },
++        "dispatchLimit": 1,
++        "bounds": {
++          "commands": 103,
++          "childSeconds": 60,
++          "activeSeconds": 600,
++          "cleanupSeconds": 60,
++          "compiler": "1.98.1-aarch64-apple-darwin",
++          "nativeRuntime": false
++        },
++        "offlineEvidence": {
++          "producerOfflineRunnerControls": 28,
++          "materializerGroups": 9,
++          "independentAdditionalIntegrationControls": 6,
++          "remoteRequiredRunnerControls": 36,
++          "unrunRealChildOrSignalControls": 8
++        },
++        "completeRemoteRunnerControlsRequired": 36,
++        "remoteRealChildOrSignalControlsUnrun": 8,
++        "borrowedUnchangedFrozenMembers": 83,
++        "materializedPackMembers": 86,
++        "originalVectors": 1003,
++        "originalAssertionsAndFreshArenasUnchanged": true,
++        "ordinaryFixtureCIRegressed": false,
++        "speedupAccepted": false,
++        "compilerFallbackRetryOrDefaultPromotionSelected": false,
++        "runtimeNativeReleaseOrGAAccepted": false,
++        "holdsUnchanged": true
+       }
+     },
+@@ -12956,5 +13043,5 @@
+       "owner": "iOS/Android leads",
+       "deliverables": "All capability families in Section 9, plugin authoring guide",
+-      "dependencies": "W04\u201306",
++      "dependencies": "W04–06",
+       "acceptance": "FieldLog flows pass on both devices; native additions correctly require binary changes.",
+       "state": "in_progress",
+@@ -13046,6 +13133,6 @@
+       "owner": "Runtime/release leads",
+       "deliverables": "Verifier, cache, activation, health, quarantine, recovery, key rotation",
+-      "dependencies": "W07\u201308",
+-      "acceptance": "D4\u201305, data-preserving rollback, offline recovery, fault matrix.",
++      "dependencies": "W07–08",
++      "acceptance": "D4–05, data-preserving rollback, offline recovery, fault matrix.",
+       "state": "in_progress",
+       "evidence": [
+@@ -14108,5 +14195,5 @@
+       "buildAggregateAdmissionCheckpoint": "The hosted build service now enforces fleet-total, platform-pool, organization-total and organization/platform capacity together. A fixed PostgreSQL mutex and READ COMMITTED requirement prevent missing-row and stale-snapshot overbooking; uncertain held workers continue counting and can reconcile after limits shrink. Root verifies 255 repository tests plus 11 separate independent PostgreSQL controls, with two isolated-network identity skips in the repository suite. All 91 repository inputs/19 logs and 92 independent inputs/23 logs match; release checks and owned database/scratch cleanup pass. The first collection retained a four-test setup failure from an outdated migration list, corrected without production changes. Production migration, provider execution, public authorization, usage attribution, signing and GA remain pending. See [the capacity checkpoint](docs/hosted-build-aggregate-admission-checkpoint.md).",
+       "workerTransportContract": "The worker transport contract is selected for isolated implementation only. Two dependency-only probes pass; root verifies six command outputs and preserves all 88 exact read-context inputs, recovering the authorized intermediate Admission source from its retained archive. No Mixer source was loaded by the probes. Real HTTPS authentication, controller/provider execution, hard resource isolation and runtime installation remain unqualified.",
+-      "workerTransportReviewCheckpoint": "Independent review blocks the first outbound worker client: a guard/owner-loss control admits 16 replacement requests while an old TLS flight remains alive, producing 17 connections against the limit of 16. Root verifies all 86 candidate inputs, 35 review artifacts and four command-output sets. The 25 baseline and 13 independent controls pass, including successful defect reproductions; they do not accept the candidate. The original seven-header contract also misses Mint\u2019s User-Agent. A separate V2 repair is implementing a VM-lifetime restart interlock and explicit mixer-worker/1 header. Live installation remains unconfigured. See docs/hosted-worker-transport-independent-review.md and verification/hosted-worker-transport-root-review/independent-v1-decision.json.",
++      "workerTransportReviewCheckpoint": "Independent review blocks the first outbound worker client: a guard/owner-loss control admits 16 replacement requests while an old TLS flight remains alive, producing 17 connections against the limit of 16. Root verifies all 86 candidate inputs, 35 review artifacts and four command-output sets. The 25 baseline and 13 independent controls pass, including successful defect reproductions; they do not accept the candidate. The original seven-header contract also misses Mint’s User-Agent. A separate V2 repair is implementing a VM-lifetime restart interlock and explicit mixer-worker/1 header. Live installation remains unconfigured. See docs/hosted-worker-transport-independent-review.md and verification/hosted-worker-transport-root-review/independent-v1-decision.json.",
+       "workerControllerContractCheckpoint": "The narrow Cloudflare worker-controller contract is selected for implementation: exact worker wire, SQLite Durable Object fencing, permanent stop records and one-time claims, with Phoenix retaining tenant authorization. Root verifies nine frozen inputs and seven contract artifacts, then pins Miniflare/workerd, TypeScript and Workers types for local runtime tests. The executable contract has five byte vectors and 20 future-candidate scenarios; it contains no controller implementation. Real clock/provider enablement, edge EOF/header behavior, source/result authority, worker isolation and GA remain pending. See docs/hosted-worker-controller-contract.md and verification/hosted-worker-controller-root-selection/contract-selection.json.",
+       "workerTransportV2PreparationCheckpoint": "The repaired outbound worker client is frozen for independent review: 42 producer controls and 36 cross-runtime vectors pass. Root verifies 107 current/archived inputs and 165 output bindings. The VM generation marker prevents replacement while old resources are uncertain; an additional post-cleanup deadline check fixes a reproduced late valid response. A separate startup candidate passes 16 production-branch configuration and transport-supervision checks, with fixed dispatch bounds and transport-before-queue ordering. Live hosted installation, complete application/Oban integration, independent acceptance, deployment resource limits, real provider operation and GA remain pending. See docs/hosted-worker-transport-v2.md and docs/hosted-worker-startup-integration.md.",
+@@ -14151,5 +14238,5 @@
+       "owner": "Product/cloud leads",
+       "deliverables": "SolidJS/TypeScript/Vite console on Cloudflare Workers Static Assets, onboarding, permissions, SSO, usage ledger, Stripe billing, support",
+-      "dependencies": "W11\u201313",
++      "dependencies": "W11–13",
+       "acceptance": "New organization completes full workflow through public UX/API; Stripe duplicate/out-of-order/test-mode and usage reconciliation cases pass.",
+       "state": "in_progress",
+@@ -14357,7 +14444,7 @@
+       "currentCheckpoint": "Local browser-auth prerequisites accepted: fixed same-origin cookie workspace adapter shares bounded transport with bearer client; no browser token/origin/header input. Console112 host tests/typecheck/build pass. Config/PKCE/cookie/CSRF/callback helpers pass39 selected host tests; independent15transport+15protocol methods pass. Root verifies113 current inputs/57 retained bindings. Website logo/colors/fonts preserved, narrow navigation adjusted with visual check pending. Selected protocol CI wired. Durable lifecycle contract has18pending implementation cases, no SQL/vault/provider/routes/session integration yet. Production entry unavailable; no GA promotion.",
+       "nextImplementation": "Qualify the accepted private dispatcher with the actual default verifier/default Repo and ordinary current-authorization transaction behavior in a separately selected bounded scope. Session/cookie lifecycle/provider and active-token provenance remain pending; stopped callback review is not replayed.",
+-      "consoleCheckpoint": "The SolidJS Builds screen now shares the website\u2019s exact identity and the existing release-screen shell. It shows per-platform build outcomes, attempts and source references, with expandable immutable inputs. Root accepts 32 repository tests, seven independent controls, 117 backend text-boundary comparisons and 14 actual browser states. Desktop and 320/375-pixel layouts, keyboard details/skip/select behavior, navigation and production preview exclusion pass. The initial text-boundary mismatch and 320-pixel preview-control overflow are corrected and preserved in evidence. Phoenix data/auth, real build workflows and full G22/GA qualification remain pending. See [the Builds checkpoint](docs/console-build-overview-checkpoint.md).",
++      "consoleCheckpoint": "The SolidJS Builds screen now shares the website’s exact identity and the existing release-screen shell. It shows per-platform build outcomes, attempts and source references, with expandable immutable inputs. Root accepts 32 repository tests, seven independent controls, 117 backend text-boundary comparisons and 14 actual browser states. Desktop and 320/375-pixel layouts, keyboard details/skip/select behavior, navigation and production preview exclusion pass. The initial text-boundary mismatch and 320-pixel preview-control overflow are corrected and preserved in evidence. Phoenix data/auth, real build workflows and full G22/GA qualification remain pending. See [the Builds checkpoint](docs/console-build-overview-checkpoint.md).",
+       "consoleNextImplementation": "Implement durable browser lifecycle storage, encrypted custody, qualified provider/OIDC exchange and fixed same-origin routes before installing a real console session; then connected build/release/onboarding/billing workflows and required browser/customer gates.",
+-      "linuxCompilerCheckpoint": "The private Linux compiler prerequisite now has root acceptance. The C6 V4 attempt compiles the unchanged helper and NIF twice, retains four AArch64 products totaling 288,864 bytes, and passes both native byte comparisons plus exported hash, dependency and GNU-version checks. All 46 host controls pass; root verifies 118 execution bindings, 27 command outputs, actual isolation and successful container/snapshot cleanup. V4 changes only fixed tar product-export transport. The earlier image, archive-name and export failures remain preserved. This qualifies the reviewed /opt compiler invocation only. The resource controller\u2019s /usr/bin/cc integration, helper execution, NIF loading, BEAM execution and all 30 resource runtime rows remain pending.",
++      "linuxCompilerCheckpoint": "The private Linux compiler prerequisite now has root acceptance. The C6 V4 attempt compiles the unchanged helper and NIF twice, retains four AArch64 products totaling 288,864 bytes, and passes both native byte comparisons plus exported hash, dependency and GNU-version checks. All 46 host controls pass; root verifies 118 execution bindings, 27 command outputs, actual isolation and successful container/snapshot cleanup. V4 changes only fixed tar product-export transport. The earlier image, archive-name and export failures remain preserved. This qualifies the reviewed /opt compiler invocation only. The resource controller’s /usr/bin/cc integration, helper execution, NIF loading, BEAM execution and all 30 resource runtime rows remain pending.",
+       "resourceHarnessCheckpoint": "Private resource harness V5 has source/host acceptance. Separate C6 V4 compiler qualification now passes four isolated native compilations of unchanged helper/NIF sources, retains 288,864 product bytes, verifies repeat equality and ELF dependencies/versions, and cleans its owned container/snapshot. Root accepts 118 execution bindings and 27 command outputs. This qualifies only the reviewed /opt compiler invocation. Controller /usr/bin/cc integration, helper execution, NIF loading, BEAM execution and all 30 resource rows remain pending. Earlier failed attempts remain preserved; the independent catalog-inspector/authority lane stays frozen.",
+       "latestConsoleCI": "ee9f6dc7 Console CI passes all nine steps on attempt one, including delivered frontend session source, full host tests, typecheck and production build. Backend/browser/provider/GA acceptance remains pending.",
+@@ -18000,5 +18087,5 @@
+       "owner": "DevEx lead",
+       "deliverables": "Native/guest debug, migration reports, profiler, export/ejection guide",
+-      "dependencies": "W02, W07\u201310",
++      "dependencies": "W02, W07–10",
+       "acceptance": "Original source diagnostics, external app import, independent CI export build.",
+       "state": "in_progress",
+@@ -18016,5 +18103,5 @@
+       "owner": "Security/QA/SRE",
+       "deliverables": "Threat review, audit remediation, monitoring, Neon backups/restore, Cloudflare/Oban lifecycle and R2/CDN isolation drills, Stripe recovery, load tests",
+-      "dependencies": "Starts W01; final W10\u201314",
++      "dependencies": "Starts W01; final W10–14",
+       "acceptance": "No unresolved launch-blocking findings; measured service objectives across selected providers and explicit hosting exceptions.",
+       "state": "in_progress",
+@@ -19236,5 +19323,5 @@
+       "deliverables": "Real product, backend, users, both stores, continuous updates",
+       "dependencies": "Starts W01; consumes all",
+-      "acceptance": "D0\u201308 with independently reviewable evidence and no private escape routes. Physical iOS/Android reference screens meet section8.3 design parity.",
++      "acceptance": "D0–08 with independently reviewable evidence and no private escape routes. Physical iOS/Android reference screens meet section8.3 design parity.",
+       "state": "in_progress",
+       "evidence": [
+@@ -19312,5 +19399,6 @@
+         "verification/console-session-and-checkout-root-review/fieldlog-public-fields-delivery-observation.json",
+         "verification/public-host-campaigns-2026-10-28/fieldlog-filtered-result.json",
+-        "verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json"
++        "verification/github-delivery-capacity-window/fieldlog-promisor-v2-result.json",
++        "verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json"
+       ],
+       "remaining": "Separate native FieldLog offline iOS workflow passes isolated physical iPhone tests, including exact draft restoration and native report preview. Auth/backend/real users, photo/permission/accessibility/device/performance matrices, broader public MixerUI/guest/plugin adoption, Android app, store readiness and D0-D8 remain open. Initial public MixerCore task-feature adoption passes 17 host tests and unchanged simulator UI workflow; Android/Wasm shared source cross-compiles but is not executed there. Hosted35a9a36 passed GCC fixture/bridge48 per mode/activation113, then found SwiftUI teardown reentrant publication. Scoped repair passes13 presentation tests per Debug/Release plus12 TSan,2 independent probes and mobile module compilation; pinned hosted/current-repair native visible qualification remain pending. Exact reactor diagnostic covers79832 defined bodies with six current control-limit rejects; max control depth379 including function, parameters+locals181 and scalar-arity operand-height67. All150 current bindings audited; reference execution is not owned execution or release qualification. Cache-backed frozen-profile execution and standalone exact34 WASI adapter pass combined244 plus9 explicit reference checks per mode,4 executor and6 WASI independent probes. Constructor diagnostic accounting repaired; new-feature hosted CI passes at92e93b2 and e299f1a. Full Swift policy/proof and execution integration remain open. Pinned teardown CI5a5b395 and fresh current-source Mac native save/health/storage/close flow now pass; caaa005 remains a failed CI run; independent noise reproduces unsound observer accounting, repaired test-only observers preserve exact assertions and measurements in Debug/Release with and without noise. The exact CI allocation origin is unattributed. Hosted92e93b2 and e299f1a now pass all three jobs. Android bounded C transport has26 owner plus9 independent cases per host mode and API30link proof. Fence-progress wake, prebind counted reservation and actual Swift/JNI/Looper integration remain open. Nondefault fixed-policy full reactor validation now passes all79832 bodies and147 independent adversarial cases with exact legacy budget/observation parity; root audits1071 bindings. Combined263+9 tests per mode and old feature matrices pass. Hosted8296296 all three jobs pass. Full Swift runtime/WASI composition, size budget and specified external acceptance remain open; validation creates no execution/release authority. Presentation obligation prerequisite now passes scoped Debug/Release/TSan and complete-module reservation checks; root audits410 bindings. Corrected Android staged binding contract accepted, implementation remains incomplete. Common lifetime/setup, C facade/UI-entry/progress, Swift binding/JNI and exact display/health remain next. No physical/platform/GA qualification inferred. Hostedf19cf9f/401e16c VM/services pass but Swiftfailed respectively HTTPcleanupassertion and wasm32dependencyfalsepositive. Scopedtest-onlyclockrepair and guardrepair pass locally with source-bound evidence; exacthostedHTTPorderingunattributed and pinnedCIrecheckpending. No gatechanged. Private C facade/entry/progress stage passes248 owner and292 independent host cases across four modes, API30arm64 compile/link checks,301 root evidence bindings and146 portable host checks. New Linux CI pending. Actual Swift/JNI consumer joins, view cleanup, Android display/health and physical qualification remain open; no signed UI mode or GA acceptance enabled. Private Swift runtime-control foundation accepted after24 owner and7 independent probes per mode,287 combined+9 reference tests per Debug/Release and563 root evidence bindings. No cache/executor/WASI composition or target execution. Hosted22d048c confirms HTTP/guard repairs but fails later cold-start ordering fixture; d6505ac VM fails another process-wide allocation observer with+4calls/+900bytes, exact origin unknown; Android host step skipped. Repairs underway, no gate changed. Common presentation lifetime/setup integration reviewed with actual Task joins and final view retirement; root audits1163 bindings. Test-only cold-start race repair passes15 expected deterministic outcomes; exact hosted ordering unproven. Hosted020f909 prior foundation all3jobs pass including Android host C regression. New presentation hosted, Android binding/display, devices and specified GA acceptance remain open. Remaining3 allocation observers repaired without product changes; all69assertions/17measurements exact. Independent43checks across4runs and exact5test CI noiseD/R commands pass; root audits546bindings. Hostedcauseunattributed; newhosted/device/GA qualification remains pending. Updated product-plan section8.3 requires shared-theme design parity: same layout, hierarchy, content, colors, typography scale, iconography, spacing and component appearance on iOS/Android. Current platform-default controls do not satisfy it. Shared appearance schema and both adapters require coordinated implementation, explicit opt-in for platform-specific app appearance, and side-by-side physical reference-screen review. Native accessibility/navigation/text input and system-owned surfaces remain native. Legitimate text-shaping/rasterization/density/safe-area differences are permitted. Physical design-parity evidence remains pending while phones are disconnected; prior interaction receipts do not qualify this requirement. Apple reference measurement accepted within simulator scope:24captures/12D-Rprofiles,385rootbindings; independentImageIO reproduces all24decodedpixelhashes,16historical+12D-Rexactcomparisons. Per-role accessibility/font and component recipe refinement/native consumption/physical parity remain pending. Hosted5988e4a all3jobs pass. Java appearance resolution now accepted as pure data with 183 root bindings; twelve native type profiles/contextual font candidates accepted with 571 bindings and eighteen byte-identical PNGs. Android preference mapping, measured geometry recipe and native consumption remain pending. Hosted7c2baeb all three jobs pass; c687e69 TSan fault-leave timeout remains recorded and test-precondition repair is under qualification. Shape-reference integrity accepted260bindings/12byte-identicalPNGcases; authoredcurve residuals explicit. Sharedtextprofile API accepted65bindings:89SDKhosttests/profile,72publicmetrics againstrawnative reference and3502selection outcomes/profile,publiciOS/Androidmodulecompilation. Versioned measuredrecipe contract inpreparation; no native consumption/physicalparitypass. Current October24 API37 candidate16 now qualifies the private Android consumer Section/baseline repairs:570 main+120 first+120 last+14 inset native assertions and5 rejection installations;9 current capture scenes, exactsource/build binding, owned emulator stopped. Ordinary engine/JNI/native join, cross-platform appearance/full resources/OS support, physical and GA remain pending.",
+@@ -19694,4 +19782,24 @@
+         "next": "Source-backed exact app Git reads correction under preparation; no further host dispatch selected",
+         "nativeDogfoodOrGA": false
++      },
++      "fieldlogAppReadResult": {
++        "summary": {
++          "path": "verification/github-delivery-shared-input-fixture/fieldlog-app-read-result.json",
++          "bytes": 2819,
++          "sha256": "592dac0ce16438888130c38126174ba0d89454a8ae60276fde4a2c6525759890"
++        },
++        "commit": "496399f87e36577433a877aef5cf7f513d2f3014",
++        "tree": "0c5633ee90fbfa6315df12d4b98405b88163663c",
++        "run": 40788707965,
++        "status": "public exact 73-blob hydration passed; requested app read admitted; Executor process-group inheritance guard rejected before inner Git child",
++        "testsStartedObserved": 0,
++        "authoredTests": 38,
++        "recordedOuterGroupsClosed": 12,
++        "recordedAcquisitionChildrenClosed": 29,
++        "rejectedAdapterActualPGIDRecorded": false,
++        "unrecordedDetachedDescendantAbsenceProven": false,
++        "initialLocalReadsWithoutSeparateGroupReceipts": 8,
++        "next": "Fresh Astra ownership candidate under preparation; no further FieldLog run selected",
++        "nativeDogfoodOrGA": false
+       }
+     },
+@@ -19701,5 +19809,5 @@
+       "owner": "Product + DevEx",
+       "deliverables": "Two external apps minimum, paid pilots, docs, support, migration, release train",
+-      "dependencies": "W09\u201317",
++      "dependencies": "W09–17",
+       "acceptance": "Section 29 gates; customers onboard and pay without bespoke engine forks.",
+       "state": "ready",

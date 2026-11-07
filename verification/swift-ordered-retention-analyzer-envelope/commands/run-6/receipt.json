@@ -1,0 +1,546 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T00:33:08.609875+00:00",
+  "scope": "bounded standalone std-only fixture host; no semantic/real binding/target/native/capture",
+  "commands": [
+    {
+      "name": "logical-inventory",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/inventory.py"
+      ],
+      "status": 0,
+      "stdout": "logical-inventory.stdout",
+      "stderr": "logical-inventory.stderr"
+    },
+    {
+      "name": "step-inventory",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/step_inventory.py"
+      ],
+      "status": 0,
+      "stdout": "step-inventory.stdout",
+      "stderr": "step-inventory.stderr"
+    },
+    {
+      "name": "revision",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "status": 0,
+      "stdout": "revision.stdout",
+      "stderr": "revision.stderr"
+    },
+    {
+      "name": "python-version",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "python-version.stdout",
+      "stderr": "python-version.stderr"
+    },
+    {
+      "name": "rust-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--version",
+        "--verbose"
+      ],
+      "status": 0,
+      "stdout": "rust-version.stdout",
+      "stderr": "rust-version.stderr"
+    },
+    {
+      "name": "compile-library",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--edition=2021",
+        "--crate-type=lib",
+        "-Dwarnings",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/src/analyzer.rs",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/commands/run-6/library.rlib"
+      ],
+      "status": 0,
+      "stdout": "compile-library.stdout",
+      "stderr": "compile-library.stderr"
+    },
+    {
+      "name": "compile-tests",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--edition=2021",
+        "--test",
+        "-Dwarnings",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/commands/run-6/harness/independent_tests.rs",
+        "-o",
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/commands/run-6/fixture-tests"
+      ],
+      "status": 0,
+      "stdout": "compile-tests.stdout",
+      "stderr": "compile-tests.stderr"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/commands/run-6/fixture-tests",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "status": 0,
+      "stdout": "tests.stdout",
+      "stderr": "tests.stderr"
+    }
+  ],
+  "source_inputs": [
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/accepted-inventory.json",
+      "bytes": 16093,
+      "sha256": "28f4c947715993c80f6d03297b9050ad38046d18fa4d94561463ab54a18bb2b1"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/fsm-model.py",
+      "bytes": 9061,
+      "sha256": "15480f7b67bd3705cd485a51dd1b5c87e64cb0fa6854414d9fa2daa7595ed488"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-completion-6__completion-1.bin",
+      "bytes": 5120,
+      "sha256": "0767b28e6f361f57a3ee413304f6c5f5bc2f6b28e0e8f6b814fc378086f1ed69"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-completion-6__completion-1.sidecar.json",
+      "bytes": 1621,
+      "sha256": "208d40be4f2cd03a7ec3b24892cedd977617527f4da052d1634930f63637f575"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-completion-6__completion-4.bin",
+      "bytes": 2432,
+      "sha256": "97697a14ef1ee58c5ef777fcbd0181b0f2971ba441a0ee3f3a2ddc25ab72da4e"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-completion-6__completion-4.sidecar.json",
+      "bytes": 1621,
+      "sha256": "4f0a71e80f0ed7a7ee939225dec77436541485d5319bb6030568df98e4c95e8b"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-completion-6__completion-7.bin",
+      "bytes": 1024,
+      "sha256": "0ec53502f6fdeb08b4e20f6a6da5fd4a04f02bea71e2ee75d19bf01e20544c52"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-completion-6__completion-7.sidecar.json",
+      "bytes": 1621,
+      "sha256": "2df931594e34097b7a71460fb0786a1ad299cbf184074195257145d6939d28c8"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-completion-6__completion-9.bin",
+      "bytes": 1024,
+      "sha256": "5993a62a281b8365a53a5ccbad25f0d16cd33fb0b508a3d6719c1efe1184b135"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-completion-6__completion-9.sidecar.json",
+      "bytes": 1621,
+      "sha256": "ff73e26ea6ac3e044d72486987088023f2f7b04b3ae0c2e0f6c00105fcae79c6"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__completion-1.bin",
+      "bytes": 5120,
+      "sha256": "0767b28e6f361f57a3ee413304f6c5f5bc2f6b28e0e8f6b814fc378086f1ed69"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__completion-1.sidecar.json",
+      "bytes": 1617,
+      "sha256": "28355a6761b9f33ae96f2fb1490da5b4df57344d5af7ef908974e2b7b7e3cd68"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__completion-4.bin",
+      "bytes": 2432,
+      "sha256": "97697a14ef1ee58c5ef777fcbd0181b0f2971ba441a0ee3f3a2ddc25ab72da4e"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__completion-4.sidecar.json",
+      "bytes": 1617,
+      "sha256": "9e32d68e12d04fed33d28ea88e66ae351421fe0e52fcb8d9c5f9fd2bda4d86e0"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__completion-7.bin",
+      "bytes": 1024,
+      "sha256": "0ec53502f6fdeb08b4e20f6a6da5fd4a04f02bea71e2ee75d19bf01e20544c52"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__completion-7.sidecar.json",
+      "bytes": 1617,
+      "sha256": "9a5a754e81b38416c652be37f2669a3dfdb9e96ec2ecd8c6ff09311f8528bd31"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__completion-9.bin",
+      "bytes": 1024,
+      "sha256": "5993a62a281b8365a53a5ccbad25f0d16cd33fb0b508a3d6719c1efe1184b135"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__completion-9.sidecar.json",
+      "bytes": 1617,
+      "sha256": "0e43f9f11c59f75cb391942f298b7cc11495aec567f73e1a99a5c6b0df3b4938"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-0.bin",
+      "bytes": 4224,
+      "sha256": "7e38b253524aff96aa934eabf101a7651f81f553e235e2ed4ecd1ede0123bf4a"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-0.sidecar.json",
+      "bytes": 1617,
+      "sha256": "7514012b01a063921b72d08dd8917255f4ad8c939e9efd1c96860b4983970691"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-1.bin",
+      "bytes": 1024,
+      "sha256": "455404f9708ea97a8e416fa9f07c33646bc4d067a41fe5a795c30ff815fb8278"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-1.sidecar.json",
+      "bytes": 1617,
+      "sha256": "fcfdb86b9788896721a58a957236e0d322a216f0dcdb8d33ab62c44af38eb43c"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-10.bin",
+      "bytes": 1408,
+      "sha256": "454acb29f34d8b877ef49d21315c09db594d0cce8e4f5e1da4c9dc4e8c7b9dd4"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-10.sidecar.json",
+      "bytes": 1617,
+      "sha256": "861fe0fd9b76c2a7eaf80b62b7fafe2683c4c977f686a9c5dfca12517701bf7d"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-2.bin",
+      "bytes": 2432,
+      "sha256": "4080877c8471cca5178986e905123d5953322b24b1f213df30f3d99cbe0c961b"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-2.sidecar.json",
+      "bytes": 1617,
+      "sha256": "8c836a0edaf699e9a531e324a4ecfb77dde32bb55e94009292d45d225fdf41bc"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-3.bin",
+      "bytes": 1920,
+      "sha256": "b6fefc49007c0cfd4de5370736d29ec671ae2617787cf1fec3908f7afcd4c0ad"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-3.sidecar.json",
+      "bytes": 1617,
+      "sha256": "1cb42a6bc137b7bb875d9ccc79f077d686caee879aea96aa096f68965661451e"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-4.bin",
+      "bytes": 1664,
+      "sha256": "19a6ea42980a6d1a00977a37352fd2e5b47738a5f5b28afa1b1eede62e28fa5d"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-4.sidecar.json",
+      "bytes": 1617,
+      "sha256": "aabecbf6326441e93394ac7746b70a261b8c4e99c32c52f0af1b3b6acb2aa9ba"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-5.bin",
+      "bytes": 1280,
+      "sha256": "1eee4a5117a26c4bd6dae52f8078eade55bd210357c9c542b5646bc1b0e7d69d"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-5.sidecar.json",
+      "bytes": 1617,
+      "sha256": "ccb33abbe6125f90597050ea8bef4b435500f30962abc3810c6de54dc4b5bd62"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-8.bin",
+      "bytes": 5120,
+      "sha256": "8ef3766f400720cf16af161103d221d68e999cabb15207744858b1b9acea5126"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-8.sidecar.json",
+      "bytes": 1617,
+      "sha256": "7f879a4662a02983057d15ed42867429d5b483dd0b4f7410b26a5db288649131"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-9.bin",
+      "bytes": 1408,
+      "sha256": "4e7d59d092cf6221ae8cf94785f0fc2c5ee3ee45e2100aec24adc41d73d7317c"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/historical/candidate-final-exact-swift__ordered-9.sidecar.json",
+      "bytes": 1617,
+      "sha256": "1b73aa7845c61930ba7324b1dd51df2331382ec420bc449160d9bab8ea0d2f47"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/implementation-accounting-addendum.json",
+      "bytes": 3035,
+      "sha256": "242b19079476ab4ee8437f4e7df04d8ebb584e899f7dab7bef537c8330f526dc"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/interface-selection.json",
+      "bytes": 2473,
+      "sha256": "3058c7a0c3dfed57842014874db94b8014c6e8beee4386cce6478b6615634e64"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/leaf-accounting-reconciliation-selection.json",
+      "bytes": 1696,
+      "sha256": "9b8de2ab2c7a8d3e72dbb934aec046e22473e3e20a1fee187ef9053534f2b362"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/oracle.bin",
+      "bytes": 5691840,
+      "sha256": "cef691f8192a5d066b0c5d9c443200188b187192f666d503ca71af97b1c7b6e6"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/oracle.json",
+      "bytes": 170,
+      "sha256": "04d31e0d38162265dc71dfa4dfb006325a9fb1689c38cb5b66c3410fded5e058"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/inputs/preparation-freezes.json",
+      "bytes": 17283,
+      "sha256": "0a8d96d1b046412cc295902cc1834f1829c97badef4e280e856add7aa54e809b"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/src/analyzer.rs",
+      "bytes": 33759,
+      "sha256": "1ef11e06678642231f783fea0e5fe376e8b1912730a6fb696a653ab04cb2043b"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/src/envelope.rs",
+      "bytes": 22179,
+      "sha256": "80eb9830ed78b1122ff3ec0723e1ce20afb46fd4a4e5abf80c60c4883a65a84e"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/tests/envelope_tests.rs",
+      "bytes": 25889,
+      "sha256": "ea6aa417dc282b251eb280f45013a95cc97543181e883bebb254c7895c095c57"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/tests/fixture_tests.rs",
+      "bytes": 29327,
+      "sha256": "a2980d7586c88b0a76aa9aef2a74789d516186e562078ecb8522bf2b6c05b6f2"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/tests/independent_tests.rs",
+      "bytes": 22556,
+      "sha256": "f5a56f984fb087edc86a50388a3b014902c965dae6a3787031fc1c56f269891d"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/commands/run-6/sources/tests/private_io_tests.rs",
+      "bytes": 11606,
+      "sha256": "432533ea0760b3860d74f763dd3ce6eb3a8c63377cdd53f697153df75012eb18"
+    }
+  ],
+  "scratch": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6",
+  "upstream_before": [
+    {
+      "packet": "swift-ordered-retention-analyzer-design",
+      "sha256": "c52828b9bbd2aea835871f1f6b68c6dd29281499ee080e5e52fefe525d1e92a8",
+      "members": 67,
+      "bytes": 2398795
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-review",
+      "sha256": "da87dd37e0983e212bbaf9658bc3177cb47c146bb13d82ddd2fea948c1966ebc",
+      "members": 212,
+      "bytes": 5837040
+    },
+    {
+      "packet": "swift-ordered-retention-diagnostic-rust",
+      "sha256": "c19bd3fb06e2db11a5e6ecb5aad8de2ca6ee19a35e50a5ba691ecb598bde40bf",
+      "members": 186,
+      "bytes": 20248850
+    },
+    {
+      "packet": "swift-ordered-retention-diagnostic-completion",
+      "sha256": "2e427447a34357ab4ff70eb220f56754f685a930edf4a89ebc29096fff3b73ba",
+      "members": 222,
+      "bytes": 18780202
+    },
+    {
+      "packet": "swift-ordered-retention-diagnostic-completion-review",
+      "sha256": "87a6fe21fd5c8f6590992aae8cc826e2502454686cf0d7a8c550acb7965827cc",
+      "members": 158,
+      "bytes": 10531020
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-library",
+      "sha256": "777e0a1b7a10d483bacb81475ad6c7af9a4d40fff64dd5ff2f3d893e1cd0fe63",
+      "members": 270,
+      "bytes": 44356309
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-library-review",
+      "sha256": "a5e21463c820277e1857a7eebcecdc7e45f40857b9c1dd39e8741f9b06a1bd4e",
+      "members": 624,
+      "bytes": 89222620
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-fsm-contract",
+      "sha256": "bde96e5f4f1b0ad5bc6366fee79a47f7a375247959191b206d8e7799ed4da193",
+      "members": 245,
+      "bytes": 10117781
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-fsm-contract-review",
+      "sha256": "101e6c9a67e41cce0e3c82c67ba92ef8025da19376b0578f8ddcdd694fb67212",
+      "members": 528,
+      "bytes": 16129288
+    }
+  ],
+  "preparation_files_unchanged_before": 68,
+  "source_tree_sha256": "ebd0ff925a58b36dd22f7f7012b6693a854ddd4ce29eac7116963175d027a3ec",
+  "tools": {
+    "python": {
+      "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+    },
+    "rustc": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+    }
+  },
+  "test_environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "MIXER_REVIEW_SCRATCH": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/review",
+    "MIXER_ANALYZER_LIBRARY_TEST_SCRATCH": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation",
+    "MIXER_ENVELOPE_SCRATCH": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/envelope",
+    "MIXER_ANALYZER_LIBRARY_HISTORICAL": "/Users/andreyyurlov/Documents/dev/mixer/verification/swift-ordered-retention-analyzer-envelope/inputs/historical"
+  },
+  "status": "passed",
+  "upstream_after": [
+    {
+      "packet": "swift-ordered-retention-analyzer-design",
+      "sha256": "c52828b9bbd2aea835871f1f6b68c6dd29281499ee080e5e52fefe525d1e92a8",
+      "members": 67,
+      "bytes": 2398795
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-review",
+      "sha256": "da87dd37e0983e212bbaf9658bc3177cb47c146bb13d82ddd2fea948c1966ebc",
+      "members": 212,
+      "bytes": 5837040
+    },
+    {
+      "packet": "swift-ordered-retention-diagnostic-rust",
+      "sha256": "c19bd3fb06e2db11a5e6ecb5aad8de2ca6ee19a35e50a5ba691ecb598bde40bf",
+      "members": 186,
+      "bytes": 20248850
+    },
+    {
+      "packet": "swift-ordered-retention-diagnostic-completion",
+      "sha256": "2e427447a34357ab4ff70eb220f56754f685a930edf4a89ebc29096fff3b73ba",
+      "members": 222,
+      "bytes": 18780202
+    },
+    {
+      "packet": "swift-ordered-retention-diagnostic-completion-review",
+      "sha256": "87a6fe21fd5c8f6590992aae8cc826e2502454686cf0d7a8c550acb7965827cc",
+      "members": 158,
+      "bytes": 10531020
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-library",
+      "sha256": "777e0a1b7a10d483bacb81475ad6c7af9a4d40fff64dd5ff2f3d893e1cd0fe63",
+      "members": 270,
+      "bytes": 44356309
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-library-review",
+      "sha256": "a5e21463c820277e1857a7eebcecdc7e45f40857b9c1dd39e8741f9b06a1bd4e",
+      "members": 624,
+      "bytes": 89222620
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-fsm-contract",
+      "sha256": "bde96e5f4f1b0ad5bc6366fee79a47f7a375247959191b206d8e7799ed4da193",
+      "members": 245,
+      "bytes": 10117781
+    },
+    {
+      "packet": "swift-ordered-retention-analyzer-fsm-contract-review",
+      "sha256": "101e6c9a67e41cce0e3c82c67ba92ef8025da19376b0578f8ddcdd694fb67212",
+      "members": 528,
+      "bytes": 16129288
+    }
+  ],
+  "preparation_files_unchanged_after": 68,
+  "retained_files": [
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/envelope/envelope-context",
+      "bytes": 8192,
+      "sha256": "05d3b2bbde1f35e038197e285edf658bbf9dfbd699cc19bf842db91f3e1542c8"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/envelope/envelope-profile",
+      "bytes": 2560512,
+      "sha256": "5cc2da7ab906e2349049f81dabcdb5943d2468d044c4a9bd7f39c828425ab096"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/envelope/envelope-report",
+      "bytes": 49152,
+      "sha256": "35a5e2d8fbbf00920762602df373aed47b891b43079a722d820f7dce8da2c907"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/envelope/envelope-stream",
+      "bytes": 1664,
+      "sha256": "4218390494cfabd4860d1dc159bb43900d7f07d04cce07c78428b3b8a2113a70"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/alias-context",
+      "bytes": 8192,
+      "sha256": "0ebd72a6ca9b6371e71badac43f792cf8488cf8b7f99b5a4369f42e71b7bcbf0"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/alias-hardlink",
+      "bytes": 1152,
+      "sha256": "b08d19e3727424c2c61cceee803ab366b9cf06e3584bdafd51f3d7a0cff382a4"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/alias-profile",
+      "bytes": 2560512,
+      "sha256": "11ed2aaafce55a713a53892d526c36df2031855053aeeb076a6741a5aa87ec88"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/alias-stream",
+      "bytes": 1152,
+      "sha256": "b08d19e3727424c2c61cceee803ab366b9cf06e3584bdafd51f3d7a0cff382a4"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/context",
+      "bytes": 8192,
+      "sha256": "0ebd72a6ca9b6371e71badac43f792cf8488cf8b7f99b5a4369f42e71b7bcbf0"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/offset-report",
+      "bytes": 49152,
+      "sha256": "24ab37f05ed22d775deab2c6d0cd775481b6eba9f621ed74cba427dc17eb7fcc"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/profile",
+      "bytes": 2560512,
+      "sha256": "11ed2aaafce55a713a53892d526c36df2031855053aeeb076a6741a5aa87ec88"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/report",
+      "bytes": 49152,
+      "sha256": "692b51a25e8831b9efcf2335ebd7c4b74e7b9d4ca3cb20b12fd2531741533567"
+    },
+    {
+      "path": "verification/swift-ordered-retention-analyzer-envelope/scratch/run-6/foundation/stream",
+      "bytes": 1152,
+      "sha256": "b08d19e3727424c2c61cceee803ab366b9cf06e3584bdafd51f3d7a0cff382a4"
+    }
+  ],
+  "cleanup": "Owned scratch archived and removed after all synchronous children exited; no process/device discovery or native/capture work."
+}

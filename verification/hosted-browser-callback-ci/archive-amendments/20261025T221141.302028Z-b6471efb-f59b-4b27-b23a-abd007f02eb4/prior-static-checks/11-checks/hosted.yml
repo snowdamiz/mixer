@@ -1,0 +1,123 @@
+name: Phoenix foundation checks
+on:
+  push:
+    paths:
+      - 'hosted/**'
+      - 'services/protocol/testdata/signed-release-v3.json'
+      - 'services/protocol/testdata/release-v3-cases.json'
+      - '.github/workflows/hosted.yml'
+      - 'console/src/api/**'
+      - 'console/src/domain/workspace-directory.ts'
+      - 'console/package.json'
+      - 'console/package-lock.json'
+      - 'verification/hosted-customer-workspace-http-integration/node-client-driver.mjs'
+      - 'verification/hosted-browser-auth-protocol/run.py'
+      - 'verification/hosted-browser-callback-ci/selected-methods.json'
+      - 'verification/hosted-browser-callback-storage/*.exs'
+      - 'verification/hosted-browser-preauth-store/live.exs'
+      - 'verification/hosted-browser-begin-login/*.exs'
+  pull_request:
+    paths:
+      - 'hosted/**'
+      - 'services/protocol/testdata/signed-release-v3.json'
+      - 'services/protocol/testdata/release-v3-cases.json'
+      - '.github/workflows/hosted.yml'
+      - 'console/src/api/**'
+      - 'console/src/domain/workspace-directory.ts'
+      - 'console/package.json'
+      - 'console/package-lock.json'
+      - 'verification/hosted-customer-workspace-http-integration/node-client-driver.mjs'
+      - 'verification/hosted-browser-auth-protocol/run.py'
+      - 'verification/hosted-browser-callback-ci/selected-methods.json'
+      - 'verification/hosted-browser-callback-storage/*.exs'
+      - 'verification/hosted-browser-preauth-store/live.exs'
+      - 'verification/hosted-browser-begin-login/*.exs'
+permissions:
+  contents: read
+jobs:
+  phoenix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.3'
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124
+        with:
+          version-file: hosted/.tool-versions
+          version-type: strict
+      - name: Resolve locked dependencies
+        working-directory: hosted
+        run: mix deps.get --check-locked
+      - name: Browser auth protocol host checks
+        working-directory: hosted
+        env:
+          MIX_ENV: test
+        run: |
+          mix deps.compile jason
+          python3 ../verification/hosted-browser-auth-protocol/run.py
+      - name: Compile workspace client for real HTTP integration
+        working-directory: console
+        run: |
+          node --version
+          npm --version
+          npm ci --ignore-scripts --no-audit --no-fund
+          node node_modules/typescript/bin/tsc --version
+          node node_modules/typescript/bin/tsc src/api/workspace-client.ts \
+            --target ES2022 --module ES2022 --moduleResolution bundler \
+            --strict --skipLibCheck --lib ES2022,DOM \
+            --outDir "$RUNNER_TEMP/workspace-client"
+          cp ../verification/hosted-customer-workspace-http-integration/node-client-driver.mjs \
+            "$RUNNER_TEMP/workspace-client/driver.mjs"
+          printf '%s\n' '{"type":"module"}' > "$RUNNER_TEMP/workspace-client/package.json"
+          printf 'MIXER_WORKSPACE_HTTP_NODE_DRIVER=%s/driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"
+      - name: Browser session storage and migration checks
+        working-directory: hosted
+        env:
+          MIX_ENV: test
+        run: |
+          mix deps.compile
+          python3 test/mixer_hosted/browser_auth/run_storage_fixture.py \
+            --pg-bin /usr/lib/postgresql/16/bin
+          python3 test/mixer_hosted/browser_auth/run_migration_fixture.py \
+            --pg-bin /usr/lib/postgresql/16/bin \
+            --output "$RUNNER_TEMP/browser-migrations"
+      - name: Selected browser callback, preauth and begin checks
+        working-directory: hosted
+        env:
+          MIX_ENV: test
+        run: |
+          python3 -B test/mixer_hosted/browser_auth/run_callback_fixture.py \
+            --pg-bin /usr/lib/postgresql/16/bin \
+            --output "$RUNNER_TEMP/browser-callback"
+      - name: Phoenix and disposable PostgreSQL host checks
+        working-directory: hosted
+        run: |
+          python3 scripts/test-local.py \
+            --pg-bin /usr/lib/postgresql/16/bin \
+            --output "$RUNNER_TEMP/phoenix-foundation"
+      - name: Preserve host evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phoenix-foundation-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/phoenix-foundation/
+            verification/hosted-browser-auth-protocol/attempts/
+            verification/hosted-browser-session-storage/attempts/
+            ${{ runner.temp }}/browser-migrations/
+            ${{ runner.temp }}/browser-callback/
+      - name: Preserve callback hidden source inputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: callback-source-inputs-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          include-hidden-files: true
+          path: |
+            ${{ runner.temp }}/browser-callback/*/inputs/.github/workflows/hosted.yml
+            ${{ runner.temp }}/browser-callback/*/inputs/hosted/.tool-versions

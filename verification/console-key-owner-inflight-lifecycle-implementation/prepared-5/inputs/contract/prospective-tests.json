@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "status": "source-only-prospective-unimplemented-unexecuted",
+  "execution_authorized_by_this_packet": false,
+  "finite_method_count": 2,
+  "original_contract": "verification/console-key-owner-lifecycle-contract/prospective-tests.json",
+  "common_preconditions": [
+    "A separately reviewed test-build-only KeyOwnerSupervisor fixture constructor uses the same ordinary child-spec/topology path and existing KeyOwner.start_fixture destination seam.",
+    "Production start_link still rejects fixture options; production DNS loopback refusal and TLS peer/hostname validation remain unchanged.",
+    "One loopback TLSFixture is reused sequentially; each case uses a distinct finite atom owner name and derives its exact FetchSupervisor name.",
+    "One enabled profile, one tracked FetchFlight, one linked transport worker, one registered client raw port/controller/SSL socket and exactly two checkout waiters exist.",
+    "TLSFixture response-ready barrier and recorded HTTP request/SNI/protocol prove completed TLS negotiation with a pending JWKS response. No completed JWKS fetch, snapshot, authenticated lease or valid identity is claimed.",
+    "One caller uses real ConfiguredVerifier.authenticate. One test-owned caller obtains its own real permit and uses raw GenServer.call checkout, recording reply versus exit; it does not replace a verifier or transport.",
+    "Capture original flight deadline; require at least 750 ms remaining immediately before the fault trigger and require raw-reply observations before that deadline. A failed margin/precondition is a failed run with no automatic retry.",
+    "All exact process/port monitors and failure cleanup are registered before suspension or mutation; only the captured owned client controller is suspended."
+  ],
+  "tests": [
+    {
+      "id": "KOL08-GRACEFUL",
+      "parent_id": "KOL08",
+      "name": "real component parent shutdown drains one active TLS fetch",
+      "trigger": "Monitored owned helper calls Supervisor.stop(component, :normal, :infinity). No direct GenServer.stop(owner) or test Admission erasure.",
+      "held_controller_assertions": [
+        "Exact Admission pointer becomes absent while old owner and ETS table are still alive.",
+        "Fresh Admission.acquire and ConfiguredVerifier.authenticate return identity_unavailable.",
+        "Raw checkout caller receives explicit identity_unavailable reply before original deadline; receipt records pointer absence and old owner/table liveness at observation.",
+        "Exact raw port closes, captured client controller stays alive and suspended, and parent-stop helper has not completed during the finite 50 ms observation barrier."
+      ],
+      "after_release_assertions": [
+        "Resume captured client controller and release exact server response handler from after on every path.",
+        "Public pending caller returns identity_unavailable; parent stop returns normally.",
+        "Component, old owner, old worker supervisor, flight, transport worker and client controller are down; raw port closed; old table destroyed; exact Admission pointer absent.",
+        "Exact server handler closes and, after final fixture shutdown, listener/acceptor and recorded fixture sockets/controllers are down."
+      ],
+      "adverse_outcomes": [
+        "Missing completed-TLS/active-flight/deadline precondition",
+        "Raw checkout exits or times out instead of explicit terminate reply",
+        "Stop completes while old controller remains alive",
+        "Admission remains open, pointer remains after normal stop, or any owned cleanup is missing/uncertain"
+      ],
+      "qualification": "Real KeyOwnerSupervisor lifecycle with existing test-only local destination and real TLS cleanup; production network construction is not qualified."
+    },
+    {
+      "id": "KOL09-KILL",
+      "parent_id": "KOL09",
+      "name": "worker supervisor death with one tracked active TLS fetch",
+      "trigger": "Process.exit(exact_owned_worker_supervisor, :kill); retain its monitor DOWN reason. Do not manually stop owner or erase Admission.",
+      "required_observations": [
+        "Retain old owner DOWN reason and full terminate callback reports; distinguish expected supervisor fault logs from callback exception.",
+        "Record raw checkout reply versus exit/timeout separately from final public safe_call denial.",
+        "Record Admission samples and replacement owner/worker/table/epoch publication while old client controller remains held. If transient absence is missed, label it unobserved.",
+        "Retain exact old flight/worker/controller/raw-port liveness at replacement publication; unrelated DOWN-message arrival order is not a total causal order.",
+        "Once replacement exists, its exact pointer identifies its own creator-owned table; late old cleanup must not erase it. Old permits and an explicitly synthetic stale Lease are rejected.",
+        "Resume controller and release server handler in after; record eventual old cleanup separately from barrier outcome; stop replacement normally and verify final pointer/process cleanup."
+      ],
+      "required_adverse_witness": {
+        "source_risk": "With worker supervisor absent, KeyOwner.terminate closes/replies then DynamicSupervisor.terminate_child may exit; old FetchFlight can still be waiting for its suspended controller while replacement starts.",
+        "if_observed": "Preserve exact callback exit and replacement-before-resource-DOWN evidence; classify clean lifecycle/resource gate failed despite public denial and eventual cleanup.",
+        "if_not_observed": "Retain exact event/resource evidence supporting clean ordering; do not treat an unexercised or deadline-expired fault as a pass.",
+        "no_selected_correction": "No broad rescue, timeout increase, supervisor-strategy change, alternate cleanup owner or hidden fault suppression is authorized by this packet."
+      },
+      "qualification": "Fault observation and public denial are separate from successful old-resource-before-replacement ordering. A useful adverse witness does not accept the resource gate."
+    }
+  ],
+  "explicitly_pending": [
+    "Original KOL08 owner-crash adaptation under ordinary KeyOwnerSupervisor",
+    "A separate graceful worker-supervisor stop case",
+    "Production DNS/global-address admission and an entirely ordinary network-construction path",
+    "Completed JWKS fetch, valid snapshot, authenticated lease and real-provider authentication",
+    "Application startup/HTTP/browser/session integration, database/Neon/Cloudflare operation, custody and GA",
+    "Native UI/runtime/capture, simulator/emulator and physical-phone runs remain paused"
+  ]
+}

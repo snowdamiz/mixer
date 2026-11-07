@@ -1,0 +1,64 @@
+warning: unused imports: `BootstrapLedgerV1`, `BorrowedOwnerDataV1`, `CorrelatedSelectedProfileV1`, and `selected_bootstrap_ledger_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N01/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2394:25
+     |
+2394 |     BootstrapFailureV1, BootstrapLedgerV1, BorrowedOwnerDataV1, SuppliedLoaderCarrierV1, CorrelatedSelectedProfileV1,
+     |                         ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2395 |     OriginalCorrelationRefusalV1, OwnedCorrelationOutcomeV1, selected_bootstrap_ledger_v1,
+     |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N01/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:1923:63
+     |
+1923 |         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+     |                                                               ^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+help: replace the use of the deprecated method
+     |
+1923 -         let association = match NEXT_ADMISSION_ASSOCIATION_V1.fetch_update(std::sync::atomic::Ordering::Relaxed,
+1923 +         let association = match NEXT_ADMISSION_ASSOCIATION_V1.try_update(std::sync::atomic::Ordering::Relaxed,
+     |
+
+error[E0277]: the trait bound `AcquisitionReservationV1<'_>: Copy` is not satisfied
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N01/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2388:34
+     |
+2388 |         negative_require_copy_v1(reservation); negative_require_copy_v1(attempt);
+     |         ------------------------ ^^^^^^^^^^^ the trait `Copy` is not implemented for `AcquisitionReservationV1<'_>`
+     |         |
+     |         required by a bound introduced by this call
+     |
+note: required by a bound in `negative_require_copy_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N01/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2386:35
+     |
+2386 |     fn negative_require_copy_v1<T:Copy>(_:T) {}
+     |                                   ^^^^ required by this bound in `negative_require_copy_v1`
+help: consider annotating `AcquisitionReservationV1<'_>` with `#[derive(Copy)]`
+     |
+1506 +     #[derive(Copy)]
+1507 |     struct AcquisitionReservationV1<'root> {
+     |
+
+error[E0277]: the trait bound `PrepaidCorrelationAttemptV1<'_>: Copy` is not satisfied
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N01/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2388:73
+     |
+2388 |         negative_require_copy_v1(reservation); negative_require_copy_v1(attempt);
+     |                                                ------------------------ ^^^^^^^ the trait `Copy` is not implemented for `PrepaidCorrelationAttemptV1<'_>`
+     |                                                |
+     |                                                required by a bound introduced by this call
+     |
+note: required by a bound in `negative_require_copy_v1`
+    --> /Users/andreyyurlov/Documents/dev/mixer/verification/swift-guarded-snapshot-actual-owner-rust-implementation/probes/N01/source/vm/src/experimental_swift_reactor/retained_profile_loader_v1.rs:2386:35
+     |
+2386 |     fn negative_require_copy_v1<T:Copy>(_:T) {}
+     |                                   ^^^^ required by this bound in `negative_require_copy_v1`
+help: consider annotating `PrepaidCorrelationAttemptV1<'_>` with `#[derive(Copy)]`
+     |
+1958 +     #[derive(Copy)]
+1959 |     pub(in crate::experimental_swift_reactor) struct PrepaidCorrelationAttemptV1<'owner> {
+     |
+
+error: aborting due to 2 previous errors; 2 warnings emitted
+
+For more information about this error, try `rustc --explain E0277`.

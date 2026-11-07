@@ -1,0 +1,1 @@
+package android.view.inputmethod;public final class TextBoundsInfoResult {public static final int CODE_UNSUPPORTED=3;private final int code;public TextBoundsInfoResult(int code){this.code=code;}public int getResultCode(){return code;}public Object getTextBoundsInfo(){return null;}}

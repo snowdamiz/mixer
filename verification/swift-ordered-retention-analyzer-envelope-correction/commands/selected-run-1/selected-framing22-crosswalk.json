@@ -1,0 +1,104 @@
+{
+  "accepted_source_exact_prefix": true,
+  "accepted_source_sha256": "ce8f3013f7ecc9ccdb5ca88db75b7019f6af24cff995907d5d95012edb5d1757",
+  "accepted_step_declaration": {
+    "framing_debit": 22,
+    "lines": [
+      116,
+      124
+    ],
+    "path": "docs/swift-ordered-retention-analyzer-library.md",
+    "sha256": "df8bff93d1f2c467919ca494599790f2ca80a613010bff1ce4a50baf171b1674"
+  },
+  "at": "2026-10-26T01:51:22.565445+00:00",
+  "baseline_or_cost_dependent_replay": false,
+  "crosswalk": [
+    {
+      "accepted_line": 387,
+      "accepted_statement": "for index in 0..s.physical {",
+      "assessment": "unchanged iteration extent; additional leaf work is outside inherited subdivision",
+      "proposal_line": 311,
+      "proposal_statement": "for index in 0..s.physical {",
+      "role": "ordinary loop"
+    },
+    {
+      "accepted_line": 388,
+      "accepted_statement": "if budget.replay_left < RECORD_PREFLIGHT { s.limited = true; break; }",
+      "assessment": "same8192 threshold, no lower B-specific threshold",
+      "proposal_line": 312,
+      "proposal_statement": "if budget.replay_left < RECORD_PREFLIGHT { s.limited = true; break; }",
+      "role": "mandatory preflight"
+    },
+    {
+      "accepted_line": 389,
+      "accepted_statement": "budget.replay(RECORD_STEPS)?;",
+      "assessment": "same generic Budget.replay helper once; n value changes by explicit contract amendment only; added debit update is W01",
+      "proposal_line": 313,
+      "proposal_statement": "budget.replay(COMBINED_RECORD)?; p.debit += RECORD_ENVELOPE;",
+      "role": "atomic main debit call"
+    },
+    {
+      "accepted_line": 390,
+      "accepted_statement": "let mut w = [0;16]; reader.words(input, arena, budget, &mut w)?;",
+      "assessment": "same complete128 backing and one unchanged Reader.words call; no new private-leaf typed access inherits this work",
+      "proposal_line": 314,
+      "proposal_statement": "let mut w = [0; 16]; reader.words(input, arena, budget, &mut w)?;",
+      "role": "record backing and decoder"
+    },
+    {
+      "accepted_line": 391,
+      "accepted_statement": "let offset = 512 + index * 128;",
+      "assessment": "same arithmetic",
+      "proposal_line": 315,
+      "proposal_statement": "let offset = 512 + index * 128;",
+      "role": "record offset"
+    },
+    {
+      "accepted_line": 392,
+      "accepted_statement": "if !record_fields(arena, &w, f) { return Err(error(SCHEMA, RECORD_STAGE, offset, index + 1)); }",
+      "assessment": "same helper/body and one call per decoded record",
+      "proposal_line": 316,
+      "proposal_statement": "if !record_fields(arena, &w, f) { return Err(error(SCHEMA, RECORD_STAGE, offset, index + 1)); }",
+      "role": "field/profile join"
+    },
+    {
+      "accepted_line": 393,
+      "accepted_statement": "if !s.coordinate(&w) { return Err(error(COORDINATE, RECORD_STAGE, offset, index + 1)); }",
+      "assessment": "same Framing80 coordinate owner/helper and one call; new arena coordinates remain separate",
+      "proposal_line": 317,
+      "proposal_statement": "if !s.coordinate(&w) { return Err(error(COORDINATE, RECORD_STAGE, offset, index + 1)); }",
+      "role": "wire coordinate"
+    }
+  ],
+  "limitations": [
+    "Reuses the previously accepted22 source boundary; does not independently requalify that historical bound",
+    "Changed n argument requires root-selected numeric contract; no current B471 execution qualification",
+    "C1 early-error funding and C2 complete Result sizes remain unresolved"
+  ],
+  "numeric_selection": false,
+  "proposal_envelope_sha256": "e86ef43a99f99245c78308666f91f5147981859ca03fa3f97e62d46993667535",
+  "proposal_parent_sha256": "1ef11e06678642231f783fea0e5fe376e8b1912730a6fb696a653ab04cb2043b",
+  "schema": 1,
+  "separately_charged_added_work": {
+    "aggregate/changed error results": "F01-F04",
+    "candidate/setup calls/initializer": "S01-S06",
+    "finalize/project helpers": "E01-E10; C1 funding gap remains",
+    "new debit/record/progress/StepBudget/poison handling": "W01-W09",
+    "private_word_reads_shape_coordinates_transition_staging_commit_replies": "L01-L14 and linked helpers",
+    "progress initialization and new argument chain": "T01-T03"
+  },
+  "status": "inherited22-call-shape-crosswalk-supported-no-baseline-reproving",
+  "unchanged_called_definitions_by_exact_prefix": [
+    "Budget.replay",
+    "Reader.words",
+    "Reader.take",
+    "record_fields",
+    "full_identity",
+    "Framing.coordinate",
+    "error"
+  ],
+  "proposal2_source_sha256": "7b8237abbaec492e595508eb7456dab38fbb0d92d8d3cd5a88184f7c1082b9d1",
+  "source_sha256": "7b8237abbaec492e595508eb7456dab38fbb0d92d8d3cd5a88184f7c1082b9d1",
+  "selected_contract_sha256": "199dfa75b024d04eeef28f2f40165115797a0bbb3d09a2405426172d8339867c",
+  "runtime_source_delta": "selected constants/compile-time partition/comments only; body unchanged"
+}

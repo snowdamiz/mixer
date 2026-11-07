@@ -1,0 +1,62 @@
+{
+  "findings": [
+    {
+      "coverage_gap": "F01-F04 cover aggregates/changed inherited calls/outer errors, not E01/E09/E10. Globally withheld reporting capacity is not a recorded authored debit. Inactive success/error row credits cannot be reassigned.",
+      "declared_early_finish_path_upper": 13,
+      "executed_finish_rows_for_early_input_error": [
+        "E01",
+        "E09",
+        "E10"
+      ],
+      "finish_reservation_succeeded": false,
+      "id": "C1",
+      "path": [
+        "wrapper T42 and F29 admission succeeds",
+        "initial(stream), context, profile, header or setup fails before finish reservation",
+        "observe_inputs returns Err",
+        "core still calls finalize unconditionally",
+        "Err branch calls project and returns observation"
+      ],
+      "prepaid_wrapper_rows": [
+        "F01",
+        "F02",
+        "F03",
+        "F04"
+      ],
+      "priority": "P1",
+      "requested_change": "Explicitly fund every early finalize/project path before it can execute, reconcile source call order and finish/public-counter semantics, and reissue a frozen operation/numeric proposal. No particular amended amount is selected.",
+      "source": "source-envelope.rs",
+      "source_lines": [
+        300,
+        348,
+        353,
+        375
+      ],
+      "source_sha256": "e86ef43a99f99245c78308666f91f5147981859ca03fa3f97e62d46993667535",
+      "title": "Early-error finalization has no named prepaid coverage under proposed finish split"
+    },
+    {
+      "actual_bytes": 40,
+      "actual_type": "Result<(),AnalyzerError>",
+      "fresh_probe": "commands/proposal-layout-1/receipt.json",
+      "id": "C2",
+      "listed_bytes": 32,
+      "numeric_effect": "Each complete transfer still fits one<=128byte copy group. Correct the complete-type labels; do not infer a group-count change from this annotation alone.",
+      "priority": "P2",
+      "requested_change": "Replace all affected unit/walk Result32 transfer annotations with actual complete40byte types and carry them consistently into the memory/edge inventory.",
+      "rows": [
+        "BR01",
+        "BS01",
+        "BP01",
+        "S01",
+        "S03",
+        "F03"
+      ],
+      "title": "Complete unit Result transfer sizes are labeled32 instead of actual40"
+    }
+  ],
+  "numeric_values_selected": false,
+  "proposal_manifest_sha256": "f3567bdae0835d7f024fcf7e759e197c44a7b4571204b37c80fb6c596e5bc23d",
+  "schema": 1,
+  "status": "proposal-revision-required-before-numeric-selection"
+}

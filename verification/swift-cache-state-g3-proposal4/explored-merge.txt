@@ -1,0 +1,48 @@
+// SOURCE-ONLY EXPLORED DESIGN. No product edit or compiler/runtime execution.
+fn merge(c: &mut Candidate2048) {
+    let (words, _) = c.as_chunks_mut::<8>();
+    let mut src = 64;
+    let mut dst = 128;
+    let mut width = 1;
+    while width < 64 {
+        let mut base = 0;
+        while base < 64 {
+            let mut left = base;
+            let mid = base + width;
+            let end = base + 2 * width;
+            let mut right = mid;
+            let mut out = base;
+            while out < end {
+                let take_left = if left == mid {
+                    false
+                } else if right == end {
+                    true
+                } else {
+                    #[cfg(test)]
+                    SORT_COMPARISONS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let a = u64::from_le_bytes(words[src + left]);
+                    let b = u64::from_le_bytes(words[src + right]);
+                    b == ABSENT
+                        || (a != ABSENT
+                            && u64::from_le_bytes(words[a as usize])
+                                <= u64::from_le_bytes(words[b as usize]))
+                };
+                if take_left {
+                    words[dst + out] = words[src + left];
+                    left += 1;
+                } else {
+                    words[dst + out] = words[src + right];
+                    right += 1;
+                }
+                out += 1;
+                #[cfg(test)]
+                SORT_MOVES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            }
+            base = end;
+        }
+        let old_src = src;
+        src = dst;
+        dst = old_src;
+        width *= 2;
+    }
+}

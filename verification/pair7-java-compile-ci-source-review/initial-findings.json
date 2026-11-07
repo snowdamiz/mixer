@@ -1,0 +1,91 @@
+{
+  "findings": [
+    {
+      "file": "compile_pair7.py",
+      "id": "R1",
+      "lines": [
+        55,
+        64,
+        159
+      ],
+      "priority": "blocking",
+      "problem": "Artifact ID and digest are not required or shape-validated until the success receipt after all five children. Empty artifact-ids is passed directly to download-artifact, allowing its unselected default behavior; late env indexing can fail after compilation.",
+      "related_file": "workflow.DRAFT.yml",
+      "related_lines": [
+        194,
+        200
+      ],
+      "requested": "Require nonempty decimal artifact ID and exact 64-hex digest before download and before imports/children; test absent, empty and malformed identities."
+    },
+    {
+      "file": "compile_pair7.py",
+      "id": "R2",
+      "lines": [
+        88,
+        118
+      ],
+      "priority": "blocking",
+      "problem": "The downloaded snapshot receipt is loaded once but excluded from preflight/postflight identities. The artifact root is not a closed namespace, and the claimed generated tree digest is copied without independently recomputing the SourceDigest record format.",
+      "requested": "Bind the ordinary downloaded receipt identity into each flight, close the entire transferred artifact, and recompute its complete generated-tree digest."
+    },
+    {
+      "file": "compile_pair7.py",
+      "id": "R3",
+      "lines": [
+        74,
+        76,
+        102,
+        118,
+        162,
+        165
+      ],
+      "priority": "blocking",
+      "problem": "RLIMIT_CPU(420) does not enforce the stated collector active wall deadline. Final retained artifact enumeration/hash has no implemented 60-second budget or whole-output node/total-byte limit.",
+      "requested": "Implement collector/retention wall deadlines with a reserved per-command custody/cleanup margin, bounded regular-node discovery and total output limits, and guarded data controls."
+    },
+    {
+      "file": "compile_pair7.py",
+      "id": "R4",
+      "lines": [
+        111,
+        115,
+        132,
+        133,
+        148,
+        157,
+        164
+      ],
+      "priority": "blocking",
+      "problem": "rglob completes unbounded discovery before checking node/byte limits; class and final artifact discovery can follow symlink file targets and ignore nonregular nodes. Generated discovery is also unbounded.",
+      "requested": "Bound discovery while traversing, reject symlinks/nonordinary nodes, enforce per-file and aggregate budgets before hashing and before upload, cover negative fixtures."
+    },
+    {
+      "file": "test_source_controls.py",
+      "id": "R5",
+      "lines": [
+        43,
+        85
+      ],
+      "priority": "control-gap",
+      "problem": "The eleven prepared controls cover only parsing and floor-reader data. No source-binding, artifact identity/path/topology, receipt mutation, output budget or deadline controls are prepared. tempfile cleanup is incompatible with the root-selected exact deny_runtime write/deletion policy.",
+      "requested": "Add targeted controls for integration invariants under the selected known-source guard policy; keep execution pending until authorized."
+    }
+  ],
+  "pending": [
+    "No candidate controls or helper code executed",
+    "No actionlint/YAML provider validation",
+    "No subject Swift/JVM/compiler/CI/native/runtime execution, process probes/signals, or network access"
+  ],
+  "positive_scope": [
+    "Concrete Swift @testable MixerBuild producer calls actual AndroidProject.snapshot",
+    "Exact artifact ID is wired between jobs, but lacks early refusal controls",
+    "Donor custody source and tool pins remain unchanged",
+    "Five Linux child commands with two work commands and no product main",
+    "Ordinary verify.yml remains exact whole-byte pinned",
+    "Both API36 guards and source-axis guard are outside candidate mutation"
+  ],
+  "review_kind": "independent-source-only",
+  "schema": 1,
+  "source_approval": false,
+  "source_seal_sha256": "1f83422d3c9bef9b26d195ab6c2850b22d645f335b173b1ea843697f6e55fb21"
+}

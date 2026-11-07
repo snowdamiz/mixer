@@ -1,0 +1,1 @@
+use corrected_envelope::*; fn need<T:Copy>(){} fn main(){need::<FixtureEnvelopeOutcomeV1>();}

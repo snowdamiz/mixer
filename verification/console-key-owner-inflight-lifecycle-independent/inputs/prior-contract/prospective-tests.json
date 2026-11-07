@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "status": "prospective-unimplemented-unexecuted",
+  "execution_authorized_by_this_packet": false,
+  "first_boundary": [
+    "KOL01",
+    "KOL02",
+    "KOL03",
+    "KOL04",
+    "KOL05",
+    "KOL06",
+    "KOL07"
+  ],
+  "tests": [
+    {
+      "id": "KOL01",
+      "name": "ordinary supervised graceful stop clears exact admission",
+      "procedure": "Start the actual KeyOwnerSupervisor with an isolated locally registered atom name, a valid manifest whose bound profile is disabled, and valid OTP CA DER. Capture exact owner/workers/table/epoch. Acquire and release a permit without starting a fetch. Supervisor.stop(component, :normal).",
+      "assertions": [
+        "Parent shutdown invokes real owner cleanup without GenServer.stop(owner) or direct Admission erasure.",
+        "Exact owner and worker-supervisor PIDs stop; ETS.info(old_table) is undefined; exact persistent_term key is absent.",
+        "Admission.acquire and ConfiguredVerifier.authenticate reject with identity_unavailable. No flight/socket is created."
+      ],
+      "phase": "first socket-free host run"
+    },
+    {
+      "id": "KOL02",
+      "name": "explicit terminate child and restart fence old state",
+      "procedure": "Start ordinary component, acquire permit and capture old owner/table/epoch. Use Supervisor.terminate_child(component, KeyOwner), then Supervisor.restart_child(component, KeyOwner). For the finish rejection, construct only a stale Lease value from the captured old permit/epoch with placeholder snapshot fields; this is an early-fence rejection assertion and claims no authenticated lease acquisition.",
+      "assertions": [
+        "After child termination, old table is gone and pointer absent; workers remain alive.",
+        "Restart returns a new owner PID/table/epoch with snapshots/attempts/flights/waiters/admitted/negatives empty.",
+        "An old permit is rejected by checkout and finish on replacement; releasing it is harmless and does not consume/delete a new permit.",
+        "No fixture success identity or verifier collaborator is injected."
+      ],
+      "phase": "first socket-free host run"
+    },
+    {
+      "id": "KOL03",
+      "name": "forced owner death denies during restart barrier",
+      "procedure": "Start ordinary component and record exact owner/workers/table/epoch. Suspend only the owned component supervisor in a try/after, kill only the owned owner, await old owner DOWN, inspect old pointer/table and call public denial. Resume owned supervisor in after and await replacement.",
+      "assertions": [
+        "Old table is destroyed while old pointer may equal old_table; public acquire/authenticate return identity_unavailable without exception.",
+        "Resuming supervisor replaces workers and owner; new table/epoch and empty state appear; stale permit rejects; a synthetic stale Lease is used only to assert early-fence rejection.",
+        "Normal final component shutdown removes its current pointer. No global term erase, unrelated process action, or socket use occurs."
+      ],
+      "phase": "first socket-free host run"
+    },
+    {
+      "id": "KOL04",
+      "name": "close requires creator and current exact table",
+      "procedure": "In isolated test-owned processes use the actual Admission API to create old/current tables under a test-only key. Exercise guarded close with mismatched table, nonowner caller, absent key, already dead table, and then current owner/current table. Reap only exact fixture PIDs.",
+      "assertions": [
+        "Mismatch, foreign caller, absent and dead-table attempts return false without changing a live current pointer.",
+        "Exact current-table creator close returns true once and false thereafter.",
+        "Expected-table checking is documented as serialized ordinary-lifecycle protection, not concurrent CAS."
+      ],
+      "phase": "first socket-free host run"
+    },
+    {
+      "id": "KOL05",
+      "name": "duplicate registered start cannot replace first owner",
+      "procedure": "While ordinary atom owner is alive, attempt a second ordinary KeyOwner.start_link with the same registered name and valid options; capture table before and after.",
+      "assertions": [
+        "Second start returns already_started pointing to original PID and never publishes a new table.",
+        "First pointer/table/epoch are unchanged and still owned by original PID.",
+        "Original normal supervisor stop clears only that owner pointer."
+      ],
+      "phase": "first socket-free host run"
+    },
+    {
+      "id": "KOL06",
+      "name": "invalid start publishes no registry state",
+      "procedure": "Attempt ordinary supervised start with invalid manifest/binding/roots using isolated names; inspect exact component registrations and persistent_term key afterward.",
+      "assertions": [
+        "Initialization fails with existing invalid_identity_configuration result.",
+        "No owner table is published; owned worker child is retired by failed supervisor startup.",
+        "No provider fetch or network fixture starts."
+      ],
+      "phase": "first socket-free host run"
+    },
+    {
+      "id": "KOL07",
+      "name": "worker supervisor failure preserves fail-closed restart",
+      "procedure": "Start actual ordinary component with disabled bound profile and no flights. Kill only its exact owned worker supervisor, await one_for_all replacement of both child PIDs, then stop normally.",
+      "assertions": [
+        "Old KeyOwner follows parent shutdown despite trap_exit and catch-all handle_info; no old owner remains.",
+        "Any terminate callback exit is retained as failure evidence; do not hide it with a broad rescue.",
+        "New owner starts empty with new table/epoch; old permit rejects; final current pointer absent.",
+        "If cleanup faults, classify and narrow a follow-up before claiming this fault gate passed.",
+        "No-flight case does not exercise terminate_child against an already-dead worker supervisor; KOL09 covers that separate fault gate."
+      ],
+      "phase": "first socket-free host run"
+    },
+    {
+      "id": "KOL08",
+      "name": "real refresh drain under supervised stop and crash",
+      "procedure": "Separately adapt existing K07g/K07h assertions to actual ordinary KeyOwnerSupervisor and its real FetchFlight path with an explicitly authorized isolated synthetic TLS fixture. Pause exact owned TLS controller, request parent stop/restart, inspect resource barriers, resume in after, await complete cleanup.",
+      "assertions": [
+        "Graceful admission closes before waiter failure/flight drain; stop cannot complete before exact controller/worker/raw-port DOWN.",
+        "Crash restart does not publish new owner until old supervised transport subtree stops.",
+        "Exact old PIDs and raw sockets are gone; no authority escapes via old lease/result.",
+        "Terminal counts and complete owned TLS/process cleanup are retained even on assertion failure."
+      ],
+      "phase": "pending separate exact root-released host slot with synthetic network; not run by this packet"
+    },
+    {
+      "id": "KOL09",
+      "name": "worker supervisor death while actual flights are tracked",
+      "procedure": "In a separately released synthetic TLS run, start a real refresh flight through ordinary KeyOwner and stop/kill only its exact owned DynamicSupervisor. Observe old owner shutdown, admission close, public waiter outcome, old resource PIDs/ports, and one_for_all replacement. Retain callback exception reports and full output.",
+      "assertions": [
+        "Exact Admission key is closed by old owner even if later terminate_child targets an absent supervisor; pointer must not erase replacement.",
+        "Distinguish public safe_call denial from a waiter explicitly replied by terminate; neither alone proves flight or socket cleanup.",
+        "Record whether DynamicSupervisor.terminate_child exits after worker-supervisor death. Do not swallow or relabel callback faults as clean normal cleanup.",
+        "Require old owned flight/worker/controller/raw-port cleanup before accepting resource gate; if ordering/cleanup fails, propose a scoped follow-up before changing strategies or timeout policy."
+      ],
+      "phase": "pending separate exact root-released host/network fault slot; not part of first socket-free run"
+    }
+  ],
+  "first_run_constraints": {
+    "database": false,
+    "network_fixture": false,
+    "native_ui_capture": false,
+    "bound_seconds": 55,
+    "fallback": "If a case cannot be honestly exercised socket-free, retain pending and return a concrete narrowed execution proposal; do not add an alternate verifier or transport."
+  },
+  "reuse_existing_tests": [
+    {
+      "id": "K07g",
+      "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+      "lines": [
+        834,
+        864
+      ],
+      "existing_trigger": "explicit GenServer.stop owner normal infinity",
+      "reuse": "TLS suspension/drain assertions; add distinct supervised parent-stop trigger for KOL08"
+    },
+    {
+      "id": "K07h",
+      "path": "hosted/test/mixer_hosted/identity/key_owner_test.exs",
+      "lines": [
+        866,
+        943
+      ],
+      "existing_trigger": "fixture owner kill under ComponentFixture one_for_all",
+      "reuse": "old-controller/worker/port DOWN-before-restart assertions; distinguish ordinary supervisor path"
+    },
+    {
+      "id": "IS05",
+      "path": "hosted/test/mixer_hosted/identity/startup_lifecycle_test.exs",
+      "lines": [
+        158,
+        194
+      ],
+      "existing_trigger": "actual application owner kill, application stop/restart",
+      "reuse": "empty-state/registrations/public-denial assertions; add exact pointer absence in future application run"
+    }
+  ]
+}

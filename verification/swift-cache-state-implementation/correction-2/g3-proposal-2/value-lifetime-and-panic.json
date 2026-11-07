@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "target_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "offset_types": {
+    "src": "usize (initialized512 then swaps1024)",
+    "left_right": "usize from base/width loops",
+    "index_offsets": "src+left*8 / src+right*8 are usize",
+    "timestamp_offsets": "a as usize*8 / b as usize*8, cast once before multiply",
+    "macro_at": "explicit usize local; offset expression evaluated once"
+  },
+  "captured_c": {
+    "original_type": "&mut Candidate2048",
+    "macro_capture": "lexical hygienic source expression only; no runtime closure/capture struct",
+    "actual_read_loan": "shared Index/range view for one expanded expression, named shared_c_view operation",
+    "borrow_end": "after that expression, all read loans end before c.copy_within278",
+    "acceptance_qualification": "If source review requires a distinct captured-c receiver/reborrow transfer in addition to the favorable Index/range-view primitive, add it explicitly; current64 then does not fit and cannot be called accepted."
+  },
+  "value_edges": [
+    {
+      "old": "offset expression8 ->ld at8",
+      "new": "offset expression8 ->macro block-local at8",
+      "count": "one edge each; new explicit at_local"
+    },
+    {
+      "old": "caller shared/coerced b16 ->ld b16",
+      "new": "no ld argument layer; actual direct-c Index/range view retained as shared_c_view",
+      "count": "old b_arg removed; new view not omitted"
+    },
+    {
+      "old": "from_le_bytes u64 return8 ->ld tail8 ->caller initializer/operand8",
+      "new": "from_le_bytes u64 return8 ->enclosing expanded initializer/operand8",
+      "count": "one fewer function-return edge in source, no optimizer assumed"
+    },
+    {
+      "old": "initializer a/b value8 ->named a/b8",
+      "new": "same explicit complete8-byte initializer->binding edges",
+      "count": "two additional binding edges included in both tables"
+    },
+    {
+      "old": "each expect receives explicit static str16 argument",
+      "new": "unwrap receives no explicit message argument",
+      "count": "four unconditional caller message transfers removed; std panic-only path separately qualified"
+    }
+  ],
+  "unchanged_complete_values": [
+    "Range16 source/received",
+    "shared slice view16",
+    "Option<&[u8;8]>8 source/received",
+    "array reference8 source/received",
+    "dereferenced array8 source/argument received",
+    "u64 decoded return/operand8",
+    "bool1 expression/take_left received"
+  ],
+  "new_lexical_owners": "one usize8 offset expression source and one block-local at8 received per expansion, each consumed/dropped before the next load; A/B own named scalar bindings8 each unchanged; no new persistent array/map/Result",
+  "read_order": [
+    "index a",
+    "index b",
+    "b==ABSENT then ||",
+    "a!=ABSENT then &&",
+    "timestamp[a]",
+    "timestamp[b]",
+    "<=",
+    "take_left"
+  ],
+  "short_circuit": "bMAX skips both timestamp loads; aMAX after b!=MAX skips both. TimestampMAX remains sortable data, equal timestamps prefer left.",
+  "guards": "same eight-byte bounds/range checks, first_chunk predicate and Option tag behavior remain; no unsafe and no unchecked read",
+  "panic_change": {
+    "selected": false,
+    "old": "expect with explicit proved eight-byte range message",
+    "new": "unwrap standard library panic text on None",
+    "admitted_path": "after successful at..at+8 range the slice length is exactly8, so first_chunk::<8> is Some; a/b timestamp offsets remain behind original MAX guards",
+    "unadmitted_branch": "If impossible-short-chunk None were supplied, both panic but text differs. This difference is explicit; it is not an AnalyzerError/reason/terminal change on admitted inputs.",
+    "std_internal_panic_work": "Not credited as a normal-path saving; unwrap may construct panic arguments only on None. Its exact panic text or internal formatting is not promised or executed here."
+  },
+  "no_new_runtime_API_or_extra_guard": true,
+  "no_compile_or_execution": true,
+  "lifetime_proof_accepted": false
+}

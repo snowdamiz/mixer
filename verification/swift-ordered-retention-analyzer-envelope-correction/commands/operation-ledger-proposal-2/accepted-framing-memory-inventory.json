@@ -1,0 +1,594 @@
+{
+  "allocation_count": 1,
+  "arena_backing_bytes": 8388608,
+  "excluded": "stdlib/allocator/kernel internals, optimizer copies, physical stack/TLS/RSS, test harness and caller paths; no physical-memory qualification",
+  "helper_leases": {
+    "api": {
+      "bytes": 288,
+      "roles": "four File borrows32; returned/receiving Outcome Results2x104; nested-call argument copies40; padding8"
+    },
+    "arena_new": {
+      "bytes": 192,
+      "roles": "budget/fn/call borrows24; complete Arena Results3x40; error32; padding16"
+    },
+    "arena_new_with": {
+      "bytes": 256,
+      "roles": "args16; region/end/next/indices/borrow temporaries64; three complete checked-call Results3x40; checked Option16; error32; padding8"
+    },
+    "budget_io": {
+      "bytes": 192,
+      "roles": "self8; scalars/branches/borrow40; error32; complete unit Results2x40; padding32"
+    },
+    "budget_new": {
+      "bytes": 256,
+      "roles": "limit8; produced Budget56; complete Budget Results2x64; checked Option16; error32; padding16"
+    },
+    "budget_replay": {
+      "bytes": 192,
+      "roles": "self/n args16; checked Option16; scalar operands24; error32; complete unit Results2x40; padding24"
+    },
+    "budget_report": {
+      "bytes": 192,
+      "roles": "same complete roles as budget_setup"
+    },
+    "budget_setup": {
+      "bytes": 192,
+      "roles": "self/n args16; checked Option16; scalar operands24; error32; complete unit Results2x40; padding24"
+    },
+    "budget_used": {
+      "bytes": 32,
+      "roles": "self8; returned/receiving u64 pair16; scalar8"
+    },
+    "context": {
+      "bytes": 512,
+      "roles": "args24; row/copy/check indices48; complete Fixture return/receiving Results2x80; produced Fixture72; four complete helper Results4x40; error32; padding16"
+    },
+    "coordinate": {
+      "bytes": 128,
+      "roles": "self/wire refs16; checked Option16; scalar/comparison/boolean/borrow temporaries94; returned/receiving bool pair2"
+    },
+    "core": {
+      "bytes": 1280,
+      "roles": "args40; Budget56; Framing80; error32; Decision8; bool1; Result<bool,Error>40; matched error32; Outcome104; complete Outcome return/receiving/move places4x104; complete setup/write/budget Results4x40; scalar/borrow/branch temporaries311"
+    },
+    "error": {
+      "bytes": 128,
+      "roles": "code/stage/offset/record args24; produced/returned/receiving Error3x32; padding8"
+    },
+    "file_wrappers": {
+      "bytes": 128,
+      "roles": "one live File stamp wrapper borrow8 and complete IO Result80, or position borrow8/Result16; nested return moves additionally charged metadata; padding40"
+    },
+    "footer": {
+      "bytes": 384,
+      "roles": "args40; fail32; checked Options32; complete helper and return Results4x40; scalar/borrow/branch/padding120"
+    },
+    "framing_new": {
+      "bytes": 192,
+      "roles": "physical8; produced/returned Framing160; scalar/padding24"
+    },
+    "get32": {
+      "bytes": 256,
+      "roles": "same checked get64 lease, complete four-byte temporary rounded to8"
+    },
+    "get64": {
+      "bytes": 256,
+      "roles": "args48; Range Result40; Range16; slice Option16; borrowed bytes16; copied eight bytes8; complete value Results2x40; error32"
+    },
+    "getters": {
+      "bytes": 96,
+      "roles": "three self borrows3x8; three returned/receiving bool pairs6; comparison/scalar/padding66"
+    },
+    "header": {
+      "bytes": 384,
+      "roles": "args96; tuple/index/iteration scalar48; two nested Results2x40; returned/receiving unit Results2x40; error32; padding48"
+    },
+    "identity": {
+      "bytes": 256,
+      "roles": "Fixture/ref/release args96; function/row16; three complete identity-value Results3x40; boolean return/receiving/comparison/padding24"
+    },
+    "initial": {
+      "bytes": 256,
+      "roles": "args16; returned/receiving Result<Stamp,Error>2x80; position8; error32; complete budget-call Result40"
+    },
+    "observe": {
+      "bytes": 512,
+      "roles": "six refs48; Fixture72; complete return/receiving Results2x40; six setup/profile/walk/stability Result slots6x40; error32; scalar/borrow/padding40"
+    },
+    "output_safety": {
+      "bytes": 384,
+      "roles": "five borrows40; pos/indices24; two loop iterators32; returned/receiving Stamp Results2x80; helper Result40; error32; scalar/borrow/padding56"
+    },
+    "profile": {
+      "bytes": 768,
+      "roles": "args96; row/defined/type20; checked Option16; eight complete helper Results8x40; complete unit return/receiving Results2x40; error32; scalar/borrow/padding204"
+    },
+    "put32": {
+      "bytes": 288,
+      "roles": "same put64 lease; complete four-byte LE temporary rounded to8"
+    },
+    "put64": {
+      "bytes": 288,
+      "roles": "args56; Range Result40; Range16; slice Option16; bytes borrow16; LE temporary8; complete unit Results2x40; error32; padding24"
+    },
+    "range": {
+      "bytes": 384,
+      "roles": "Region/index/field/width args48; error32; eight checked Option<usize> slots128; start/end/region_end24; Range16; complete Range Results2x40; padding56"
+    },
+    "record_fields": {
+      "bytes": 192,
+      "roles": "Fixture/arena/wire args88; all named and expression bool/scalar temporaries64; returned/receiving bool pair2; padding38"
+    },
+    "stable": {
+      "bytes": 256,
+      "roles": "input/Stamp/budget args88; complete returned/receiving unit Results2x40; error32; helper Result40; scalar/padding16"
+    },
+    "stamp_len": {
+      "bytes": 96,
+      "roles": "complete by-value Stamp72; returned/receiving u64 pair16; padding8"
+    },
+    "walk": {
+      "bytes": 512,
+      "roles": "args112; index/offset/target/available/count/copy locals56; loop iterator16; four complete helper Results4x40; returned/receiving unit Results2x40; error32; padding56"
+    },
+    "write_report": {
+      "bytes": 768,
+      "roles": "output/Stamp/arena/budget/Outcome/Framing args184; scalar indices/value/position/done/count40; iterators56; six complete helper Results6x40; returned/receiving Results2x40; error32; padding136"
+    }
+  },
+  "kind": "conservative-complete-named-role-inventory-for-fixture-foundation",
+  "limitations": "Authored conservative logical inventory requiring independent source review; no semantic candidate/CLI/host custody/preparer/native/target authority",
+  "named_role_upper_by_group": {
+    "candidate": 0,
+    "control": 3968,
+    "io": 1472,
+    "metadata": 2400,
+    "report": 1680,
+    "setup": 2336,
+    "wire": 2392
+  },
+  "named_role_upper_total": 14248,
+  "phases": {
+    "arena_initialize": {
+      "call_chain": [
+        "api",
+        "core",
+        "arena_new",
+        "arena_new_with",
+        "budget_replay",
+        "error"
+      ],
+      "control_upper": 2464
+    },
+    "arena_reserve": {
+      "call_chain": [
+        "api",
+        "core",
+        "arena_new",
+        "arena_new_with",
+        "error"
+      ],
+      "control_upper": 2272
+    },
+    "arena_sentinels": {
+      "call_chain": [
+        "api",
+        "core",
+        "arena_new",
+        "arena_new_with",
+        "put64",
+        "range",
+        "budget_setup",
+        "budget_replay",
+        "error"
+      ],
+      "control_upper": 3328
+    },
+    "context_block_read": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "context",
+        "budget_io",
+        "error"
+      ],
+      "control_upper": 3040
+    },
+    "context_checked_copy": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "context",
+        "put64",
+        "range",
+        "budget_setup",
+        "budget_replay",
+        "error"
+      ],
+      "control_upper": 3904
+    },
+    "context_checked_validate": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "context",
+        "get64",
+        "range",
+        "error"
+      ],
+      "control_upper": 3488
+    },
+    "footer_decode_check": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "walk",
+        "footer",
+        "budget_setup",
+        "budget_replay",
+        "error"
+      ],
+      "control_upper": 3616
+    },
+    "framing_construct": {
+      "call_chain": [
+        "api",
+        "core",
+        "framing_new",
+        "error"
+      ],
+      "control_upper": 2016
+    },
+    "header_join": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "walk",
+        "header",
+        "get64",
+        "range",
+        "error"
+      ],
+      "control_upper": 3872
+    },
+    "initial_input_metadata": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "initial",
+        "file_wrappers",
+        "error"
+      ],
+      "control_upper": 2720
+    },
+    "input_final_metadata": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "stable",
+        "file_wrappers",
+        "error"
+      ],
+      "control_upper": 2720
+    },
+    "limited_drain": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "walk",
+        "budget_setup",
+        "budget_replay",
+        "budget_io",
+        "error"
+      ],
+      "control_upper": 3424
+    },
+    "output_no_alias_metadata": {
+      "call_chain": [
+        "api",
+        "core",
+        "output_safety",
+        "file_wrappers",
+        "error"
+      ],
+      "control_upper": 2336
+    },
+    "profile_block_read": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "profile",
+        "budget_io",
+        "error"
+      ],
+      "control_upper": 3296
+    },
+    "profile_checked_publish": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "profile",
+        "put64",
+        "range",
+        "budget_replay",
+        "error"
+      ],
+      "control_upper": 3968
+    },
+    "record_coordinate": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "walk",
+        "coordinate",
+        "error"
+      ],
+      "control_upper": 2976
+    },
+    "record_fields_identity": {
+      "call_chain": [
+        "api",
+        "core",
+        "observe",
+        "walk",
+        "record_fields",
+        "identity",
+        "get64",
+        "range",
+        "error"
+      ],
+      "control_upper": 3936
+    },
+    "report_digest_echo": {
+      "call_chain": [
+        "api",
+        "core",
+        "write_report",
+        "get64",
+        "put64",
+        "range",
+        "budget_report",
+        "error"
+      ],
+      "control_upper": 3712
+    },
+    "report_write_metadata": {
+      "call_chain": [
+        "api",
+        "core",
+        "write_report",
+        "file_wrappers",
+        "error"
+      ],
+      "control_upper": 2720
+    },
+    "report_zero_encode": {
+      "call_chain": [
+        "api",
+        "core",
+        "write_report",
+        "put64",
+        "range",
+        "budget_report",
+        "error"
+      ],
+      "control_upper": 3456
+    },
+    "return_or_error": {
+      "call_chain": [
+        "api",
+        "core",
+        "getters",
+        "budget_used",
+        "error"
+      ],
+      "control_upper": 1952
+    },
+    "setup_budget": {
+      "call_chain": [
+        "api",
+        "core",
+        "budget_new",
+        "error"
+      ],
+      "control_upper": 2080
+    }
+  },
+  "reservations": {
+    "candidate": 2048,
+    "control": 8192,
+    "io": 4096,
+    "metadata": 4096,
+    "report": 8192,
+    "setup": 12288,
+    "wire": 3072
+  },
+  "reserved_total": 41984,
+  "roles": {
+    "candidate": [],
+    "io": [
+      {
+        "bytes": 256,
+        "roles": "bounded_read complete args/locals/read-Result/error/return/caller/read-call borrows"
+      },
+      {
+        "bytes": 256,
+        "roles": "eof complete args/byte/iteration/read-Result/error/return/caller/read-call borrows"
+      },
+      {
+        "bytes": 256,
+        "roles": "Reader.take complete args/loop/cursors/slices/helper-Result/error/return/caller"
+      },
+      {
+        "bytes": 192,
+        "roles": "Reader.words arguments/helper-Result/return/caller/slice temporaries excluding wire buffers"
+      },
+      {
+        "bytes": 112,
+        "roles": "Reader.new produced/returned/receiving Reader plus args"
+      },
+      {
+        "bytes": 144,
+        "roles": "three caller Reader owners"
+      },
+      {
+        "bytes": 256,
+        "roles": "output bytes slice/write-Result/error/offset/iteration/error-return places"
+      }
+    ],
+    "metadata": [
+      {
+        "bytes": 16,
+        "roles": "all four caller File owners retained through borrows"
+      },
+      {
+        "bytes": 8,
+        "roles": "file_stamp File borrow"
+      },
+      {
+        "bytes": 296,
+        "roles": "complete File.metadata Result and extracted Metadata"
+      },
+      {
+        "bytes": 312,
+        "roles": "constructed Stamp and IO return/wrapper/caller moves"
+      },
+      {
+        "bytes": 168,
+        "roles": "initial Stamp and complete IO Results/position Result"
+      },
+      {
+        "bytes": 216,
+        "roles": "observe_inputs three initial Stamp owners"
+      },
+      {
+        "bytes": 152,
+        "roles": "stable before Stamp and IO result"
+      },
+      {
+        "bytes": 576,
+        "roles": "output_safety a,b,c,d and complete all array"
+      },
+      {
+        "bytes": 216,
+        "roles": "output_safety returned/receiving Stamp and core retained output_initial"
+      },
+      {
+        "bytes": 376,
+        "roles": "write_report by-value initial/before/after Stamps and complete IO results"
+      },
+      {
+        "bytes": 64,
+        "roles": "four position-wrapper complete IO Results"
+      }
+    ],
+    "report": [
+      {
+        "bytes": 256,
+        "roles": "write_report complete fixed header"
+      },
+      {
+        "bytes": 128,
+        "roles": "header enumerate/value and zero/report loops"
+      },
+      {
+        "bytes": 520,
+        "roles": "core outcome plus public/core/caller return receiving and branch move places"
+      },
+      {
+        "bytes": 152,
+        "roles": "Outcome error/decision/matched error and complete Result<bool,Error> moves"
+      },
+      {
+        "bytes": 368,
+        "roles": "complete report helper/error/caller Results and Error copies"
+      },
+      {
+        "bytes": 256,
+        "roles": "final steps/position/counter/borrow/enum temporaries"
+      }
+    ],
+    "setup": [
+      {
+        "bytes": 72,
+        "roles": "Arena/Vec local/produced/core owner moves"
+      },
+      {
+        "bytes": 120,
+        "roles": "complete Arena return/wrapper/caller Results"
+      },
+      {
+        "bytes": 48,
+        "roles": "reserve complete Result/error/caller slots"
+      },
+      {
+        "bytes": 8,
+        "roles": "reserve function pointer argument"
+      },
+      {
+        "bytes": 760,
+        "roles": "zero initializer8; REGIONS literal288; complete IntoIter bounded336; region/end/next/loop scalars"
+      },
+      {
+        "bytes": 80,
+        "roles": "five small-row/init Range iterators"
+      },
+      {
+        "bytes": 40,
+        "roles": "all context numeric comparison literals"
+      },
+      {
+        "bytes": 368,
+        "roles": "profile expected/reserved/tuple literal and complete tuple iterator"
+      },
+      {
+        "bytes": 528,
+        "roles": "header expected/reserved/tuple literals and complete tuple iterator"
+      },
+      {
+        "bytes": 128,
+        "roles": "record absent/zero literals for every source occurrence"
+      },
+      {
+        "bytes": 24,
+        "roles": "coordinate kind literal"
+      },
+      {
+        "bytes": 160,
+        "roles": "footer reserved literal"
+      }
+    ],
+    "wire": [
+      {
+        "bytes": 1152,
+        "roles": "walk header/footer/record arrays"
+      },
+      {
+        "bytes": 544,
+        "roles": "profile header/row arrays"
+      },
+      {
+        "bytes": 136,
+        "roles": "context decoded header/single-word array"
+      },
+      {
+        "bytes": 560,
+        "roles": "Reader.words raw512/eight-byte copy/iterator/word slice"
+      }
+    ]
+  },
+  "safe_file_owners_created_inside_library": 0,
+  "schema": 1,
+  "unassigned_margin": 23552
+}

@@ -1,0 +1,327 @@
+{
+  "acceptance": {
+    "frozen_baseline_preserved": true,
+    "native_runtime_checks": "paused; none attempted",
+    "original_full_Debug_timeout_remains_failed": true,
+    "runtime_release_or_GA": false
+  },
+  "artifact": {
+    "bytes": 452264,
+    "file_count": 134,
+    "id": 12861426383,
+    "sha256": "cf09a7e676de302a84c4035d646c17ed44839bff65833ba2af3e0ef58ec7c048"
+  },
+  "bindings": {
+    "accepted_rust_source_sha256": "f7d62c01e251642677e22f7595af9683f9c451f1db43683be5d2ef86fedba141",
+    "all_materialized_pack_members_exact": true,
+    "all_sealed_candidate_source_members_exact": true,
+    "candidate_seal_sha256": "db6ba0fcb4c66f5a38dd0f93ce9dc381a869b12fbf8eda7ecb8f5b3f57bfeca7",
+    "candidate_tree_sha256": "96a51f27039c6c091eae9fd0e447bc9ca2d71f453eebc6c8ca6e58474640c698",
+    "frozen_manifest_sha256": "d1caf2069e17ac1beff6707d6e084ea49d18382bc959d73d5184ec49cb7886b9",
+    "integration_review_binding": "Exact raw source at delivered head plus local preflight; not included in workflow sparse artifact",
+    "integration_review_seal_sha256": "ef4690fa83901f5927e617bd41ea3d8ba470e58df6dde45744a8435ac60665b7",
+    "materialized_pack_tree_sha256": "9c18ceeb282950bda7f28a1d44a2b6a4cdab2ea1232cf43258fbf50e431c8a99",
+    "preflight_equals_postflight": true,
+    "source_review_seal_sha256": "6b5b13ac132044f25c624f83dcf457b3ce39f013bc0a350ccf5da24f2b24acac",
+    "source_review_tree_sha256": "407647c81271e3dd4d49308a224a7d0cc1165e31a793dfadb1a51924aa605d84",
+    "workflow_sha256": "50f55de2d34606f93a0687413d8a542e47d843c8481a2bc958f13e2407c26bbf"
+  },
+  "cleanup": {
+    "archive_custody_hold_file_count": 0,
+    "deadline_controls": {
+      "postflight": {
+        "cleanup_elapsed_seconds": 0.093708,
+        "deadline_expired": true,
+        "no_commands": true,
+        "scratch_preserved_at_assertion": true,
+        "unittest_including_teardown_passed": true
+      },
+      "retention": {
+        "cleanup_elapsed_seconds": 0.065139,
+        "deadline_expired": true,
+        "no_commands": true,
+        "scratch_preserved_at_assertion": true,
+        "unittest_including_teardown_passed": true
+      }
+    },
+    "descendant_control": {
+      "custody_hold": false,
+      "direct_child_returned": true,
+      "elapsed_seconds": 0.719213,
+      "exit": -9,
+      "owned_group_gone": true
+    },
+    "materialization": "87 ordinary copies retained intentionally for diagnostic upload",
+    "optimized_check_cleanup_limit": "No standalone command/group receipt retained for subprocess.run; it returned to the failing assertion. No process probe performed.",
+    "other_command_cleanup_limit": "35 successful unittest results include teardown. Most individual child receipts were removed with owned test scratch; do not infer unretained details."
+  },
+  "command": [
+    "python3",
+    "-B",
+    "verification/github-delivery-shared-input-fixture/ci-review/audit_artifact.py"
+  ],
+  "complete_fixture": {
+    "compiler_identity_or_availability_observed": false,
+    "declared_child_commands": 103,
+    "declared_compiler": "1.98.1-aarch64-apple-darwin",
+    "fixture_child_commands_observed": 0,
+    "fixture_invocations": 0,
+    "rust_test_regression_claimed": false,
+    "speedup_or_equivalence_claimed": false,
+    "step": "skipped",
+    "synthetic_missing_compiler_controls_are_availability_evidence": false
+  },
+  "concrete_v2_candidate": {
+    "directory": "verification/cache-fixture-shared-input-candidate-v2",
+    "fixture_and_compiler": "unrun; no availability identity or performance claim",
+    "installed": false,
+    "local_pure_controls": {
+      "existing_integration_same_agent_replay": 6,
+      "materializer": 9,
+      "runner": 28
+    },
+    "member_count": 29,
+    "optimized_subprocess": "in-process-only differential; real -O child pending",
+    "seal_sha256": "dd0dc7c030eb19e9763b547c2b9a45601997545e1e94a82f2a38ee76ca1bd591",
+    "selected_or_dispatched": false,
+    "tree_sha256": "9462eee75a345bf8f4980e579067722039656969df0f5565c73260e89d7ceaef",
+    "workflow_install_path": ".github/workflows/cache-fixture-shared-input-controls-v2.yml",
+    "workflow_template_sha256": "42963b1014a08e8682438270d13b692141a5d9443a528f68bc99ff93a63f8b5c"
+  },
+  "failure": {
+    "assertion": "Expected b'Noncanonical member path' absent from subprocess stderr",
+    "cause": "Source-file runpy.run_path does not add candidate sibling directory to module search path; -c subprocess inherits repository working directory",
+    "method": "test_checks_active_under_optimized_python",
+    "phase": "Python optimized-check subprocess import, before member-path guard and before complete fixture step",
+    "raw_stack": "FAIL: test_checks_active_under_optimized_python (__main__.RunnerControls.test_checks_active_under_optimized_python)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/runner/work/mixer/mixer/verification/cache-fixture-shared-input-candidate/test_runner.py\", line 49, in test_checks_active_under_optimized_python\n    p=subprocess.run([sys.executable,'-B','-O','-c',code],capture_output=True,timeout=15);self.assertNotEqual(p.returncode,0);self.assertIn(b'Noncanonical member path',p.stderr)\n                                                                                                                              ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: b'Noncanonical member path' not found in b'Traceback (most recent call last):\\n  File \"<string>\", line 1, in <module>\\n    import runpy;d=runpy.run_path(\\'/Users/runner/work/mixer/mixer/verification/cache-fixture-shared-input-candidate/check_cache_state.py\\');d[\\'member\\'](\\'../escape\\')\\n                   ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"<frozen runpy>\", line 294, in run_path\\n  File \"<frozen runpy>\", line 98, in _run_module_code\\n  File \"<frozen runpy>\", line 88, in _run_code\\n  File \"/Users/runner/work/mixer/mixer/verification/cache-fixture-shared-input-candidate/check_cache_state.py\", line 5, in <module>\\n    import materialize_pack as overlay\\nModuleNotFoundError: No module named \\'materialize_pack\\'\\n'\n\n----------------------------------------------------------------------\nRan 36 tests in 2.090s\n\nFAILED (failures=1)\n",
+    "root_exception": "ModuleNotFoundError: No module named 'materialize_pack'",
+    "runner_import_line": 5,
+    "test_runner_line": 49
+  },
+  "focused_controls": {
+    "materializer_elapsed_seconds": 1.029,
+    "materializer_methods": [
+      {
+        "method": "test_duplicate_traversal_and_symlink_overlay_rejected",
+        "result": "ok"
+      },
+      {
+        "method": "test_exact_materialization_ordinary_files_and_postflight",
+        "result": "ok"
+      },
+      {
+        "method": "test_failed_copy_retains_owned_scratch_and_receipt",
+        "result": "ok"
+      },
+      {
+        "method": "test_mutated_missing_extra_and_symlink_candidate_member_rejected",
+        "result": "ok"
+      },
+      {
+        "method": "test_mutated_missing_extra_base_and_manifest_rejected",
+        "result": "ok"
+      },
+      {
+        "method": "test_mutated_missing_extra_overlay_replacement_rejected",
+        "result": "ok"
+      },
+      {
+        "method": "test_mutated_missing_overlay_manifest_rejected",
+        "result": "ok"
+      },
+      {
+        "method": "test_ownership_change_and_wrong_output_path_rejected",
+        "result": "ok"
+      },
+      {
+        "method": "test_wrong_original_source_preimage_even_with_repinned_manifest",
+        "result": "ok"
+      }
+    ],
+    "materializer_passed": 9,
+    "materializer_total": 9,
+    "runner_elapsed_seconds": 2.09,
+    "runner_failed": [
+      "test_checks_active_under_optimized_python"
+    ],
+    "runner_methods": [
+      {
+        "method": "test_File_expected_counts_and_full_results_bound",
+        "result": "ok"
+      },
+      {
+        "method": "test_changed_scratch_marker_preserves_recovery",
+        "result": "ok"
+      },
+      {
+        "method": "test_checks_active_under_optimized_python",
+        "result": "FAIL"
+      },
+      {
+        "method": "test_cleanup_hashes_and_retains_before_delete",
+        "result": "ok"
+      },
+      {
+        "method": "test_closed_pack_source_and_manifest",
+        "result": "ok"
+      },
+      {
+        "method": "test_commands_without_owned_scratch_start_nothing",
+        "result": "ok"
+      },
+      {
+        "method": "test_derivative_exact_roster_and_suffix",
+        "result": "ok"
+      },
+      {
+        "method": "test_environment_scrubs_all_test_flags_and_caller_scratch",
+        "result": "ok"
+      },
+      {
+        "method": "test_every_child_gets_owned_default_temporary_directory",
+        "result": "ok"
+      },
+      {
+        "method": "test_exact_methods_full_and_partition",
+        "result": "ok"
+      },
+      {
+        "method": "test_expired_global_deadline_starts_no_child",
+        "result": "ok"
+      },
+      {
+        "method": "test_fixture_temporary_override_stays_inside_owned_scratch",
+        "result": "ok"
+      },
+      {
+        "method": "test_foreign_mismatched_or_symlink_temporary_directory_refused",
+        "result": "ok"
+      },
+      {
+        "method": "test_fresh_output_fixed_directory",
+        "result": "ok"
+      },
+      {
+        "method": "test_layouts_complete_and_no_duplicates",
+        "result": "ok"
+      },
+      {
+        "method": "test_manifest_rewrite_and_source_hash_override_rejected",
+        "result": "ok"
+      },
+      {
+        "method": "test_missing_and_failed_commands_keep_raw_receipts",
+        "result": "ok"
+      },
+      {
+        "method": "test_missing_extra_mutated_pack_rejected",
+        "result": "ok"
+      },
+      {
+        "method": "test_mocked_cleanup_only_exception_is_reported_and_held",
+        "result": "ok"
+      },
+      {
+        "method": "test_mocked_cpu_custody_hold_withholds_delta",
+        "result": "ok"
+      },
+      {
+        "method": "test_mocked_cpu_failure_retains_aggregate_after_terminal_facts",
+        "result": "ok"
+      },
+      {
+        "method": "test_mocked_cpu_success_has_raw_snapshots_and_aggregate_delta",
+        "result": "ok"
+      },
+      {
+        "method": "test_mocked_cpu_timeout_retains_failure_and_aggregate",
+        "result": "ok"
+      },
+      {
+        "method": "test_mocked_primary_and_stop_exceptions_retain_terminal_receipt",
+        "result": "ok"
+      },
+      {
+        "method": "test_mocked_success_still_requires_positive_group_disappearance",
+        "result": "ok"
+      },
+      {
+        "method": "test_negative_api_binary_or_changed_source_refused",
+        "result": "ok"
+      },
+      {
+        "method": "test_negative_api_exact_primary_closure",
+        "result": "ok"
+      },
+      {
+        "method": "test_negative_command_timeout_descendant_or_unreturned_refused",
+        "result": "ok"
+      },
+      {
+        "method": "test_owned_descendant_group_is_stopped",
+        "result": "ok"
+      },
+      {
+        "method": "test_parent_components_refuse_binding_and_child_before_spawn",
+        "result": "ok"
+      },
+      {
+        "method": "test_paths_symlinks_special_members",
+        "result": "ok"
+      },
+      {
+        "method": "test_postflight_deadline_is_terminal_and_preserves_scratch",
+        "result": "ok"
+      },
+      {
+        "method": "test_retention_deadline_is_terminal_and_preserves_scratch",
+        "result": "ok"
+      },
+      {
+        "method": "test_selected_compiler_identity_only",
+        "result": "ok"
+      },
+      {
+        "method": "test_timeout_owned_child_group_and_output_cap",
+        "result": "ok"
+      },
+      {
+        "method": "test_unclassified_nested_or_duplicate_diagnostic_errors_rejected",
+        "result": "ok"
+      }
+    ],
+    "runner_passed": 35,
+    "runner_total": 36
+  },
+  "host_observed": {
+    "os": "Darwin 24.6.0 arm64",
+    "python": "Python 3.14.7"
+  },
+  "proposal": {
+    "actual_corrected_subprocess_and_full_controls": "pending; no automatic second run",
+    "change": "Add cwd=HERE only to the optimized-Python control subprocess call",
+    "in_process_verification": "verification/cache-fixture-controls-correction/proposal-verification.json",
+    "path": "verification/cache-fixture-controls-correction/proposal.diff",
+    "sha256": "0030416c8a81081cdee2653da2d7a32a4c81d54dbbcbb1adb205229cc285acfa"
+  },
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "reviewed_utc": "2026-10-29T00:00:26.105714+00:00",
+  "run": {
+    "attempt": 1,
+    "conclusion": "failure",
+    "id": 40790391653,
+    "job_id": 123173894863,
+    "status": "completed"
+  },
+  "schema": 1,
+  "scope": "Read-only actual CI artifact and source binding review; no local child, compiler, Rust, Swift, native, UI, Git, dispatch, retry or held-process probe",
+  "separate_push_workflow_final": {
+    "all_6_jobs_success": true,
+    "conclusion": "success",
+    "receipt": "engine-final-observation.json",
+    "run_id": 40790385107,
+    "scope": "Final statuses only; does not qualify skipped shared-input diagnostic"
+  },
+  "source_revision": "fe8f4857954cc5cabc25bf5b4fe5657bb414838a",
+  "source_tree": "e7f4a5b9be6138d66f2ca48befd9684a86e25cfe"
+}

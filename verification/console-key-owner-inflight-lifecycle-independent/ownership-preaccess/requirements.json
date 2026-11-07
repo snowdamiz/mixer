@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T02:38:35.172553+00:00",
+  "status": "independent-preaccess-source-only-custody-requirements-frozen",
+  "before_access_to_producer_ownership_correction_contract": true,
+  "baseline_failed_terminal_decision": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/runtime-terminal-2/decision.json",
+    "bytes": 3895,
+    "sha256": "b27c1286317e16cee498c40def419db96029a4e626c6925955af83a928b1dd47"
+  },
+  "baseline_prepared_freeze": {
+    "path": "verification/console-key-owner-inflight-lifecycle-implementation/prepared-2/freeze.json",
+    "bytes": 47074,
+    "sha256": "a0b9711ae54c50f43766e53dbd55b7e26c23e916c5131acce0609f2b81e4a57d"
+  },
+  "prior_format_and_runtime_review_preserved": true,
+  "scope": "Minimal selected runner/OpenSSL-wrapper ownership/evidence correction. No product DNS/TLS behavior, tests/timeouts/gates or speculative KOL09 correction; no execution grant.",
+  "requirements": [
+    {
+      "id": "OC-01",
+      "requirement": "Treat wrapper group/session as a separate owned resource.",
+      "acceptance": "Identify actual wrapper PID/PGID before native spawn. Validate ownership against private run/phase/invocation channel and selected wrapper. Use exact identities only; no global inventory or unrelated-group signaling."
+    },
+    {
+      "id": "OC-02",
+      "requirement": "Registration publication precedes outer retention, which precedes ACK, which precedes native Popen.",
+      "acceptance": "No matching ACK means no native launch. Outer retains exact group in cleanup set and a durable run-local custody record before ACK delivery. Missing/malformed/duplicate/cross-run/phase identities or ACKs fail closed. Retention survives ACK delivery or later validation failure."
+    },
+    {
+      "id": "OC-03",
+      "requirement": "Close ordinary publication/bootstrap/pre-ACK failure gaps.",
+      "acceptance": "Specify wrapper entry/bootstrap, publication, bounded ACK wait and native-launch/start-receipt order. Imports/config/channel/publication failure cannot create native work. Pre-ACK timeout, broken channel, root cancellation and bootstrap error have bounded exit paths. State how outer drains/rejects late registration and records uncertainty. Missing registration never means native authorization; do not claim unknown bootstrap process cleanup without evidence."
+    },
+    {
+      "id": "OC-04",
+      "requirement": "Use durable identity and a private finite channel.",
+      "acceptance": "Bind registration/ACK/native/completion to fresh run ID, phase/invocation identity, wrapper PID/PGID, selected executable/argv and deadlines. Bound message sizes/counts and handle partial/truncated messages/writes. Keep authoritative custody evidence outside disposable scratch. Never discard a known group because later evidence is invalid."
+    },
+    {
+      "id": "OC-05",
+      "requirement": "Retain exact native child promptly and bound its whole lifecycle.",
+      "acceptance": "After ACK only, Popen stays in acknowledged wrapper group. Retain child before further fallible work. Normal/error/signal/output-cap/deadline paths close streams and terminate/wait/reap that child, retain result/timing and never detach. Reads/waits are deadline-aware; output remains bounded. Outer acknowledged-group cleanup covers wrapper failure."
+    },
+    {
+      "id": "OC-06",
+      "requirement": "Cleanup all known groups before deleting scratch/keys.",
+      "acceptance": "Outer finally covers both VM children and every retained wrapper group, including missing completion, failed ACK delivery and interruption. Exact group absence and direct-child reaping where applicable precede scratch deletion. Preserve scratch and failed cleanup evidence on uncertainty, and retain earlier cleanup errors after recovery. No replay or process sweep."
+    },
+    {
+      "id": "OC-07",
+      "requirement": "Keep original finite host budget; fail closed on protocol failure.",
+      "acceptance": "Registration/ACK/native/output work remains within40second work/46second cleanup/52second observation/55second receipt envelope, with remaining-budget checks and no automatic retry. No proof of progress under arbitrary kernel/filesystem/interpreter stalls is required; actual receipt retains elapsed/failure boundaries."
+    },
+    {
+      "id": "OC-08",
+      "requirement": "Extend exact schemas/acceptance for actual ownership topology.",
+      "acceptance": "Record registration, retained custody, ACK outcome, native start/completion and each group cleanup, including incomplete failure states. Validate actual member sets, nested types/identity pairing, exact selected tool/argv/count and hashes. Do not compare native group to VMpid or turn eventual cleanup into clean resource acceptance. Retain available evidence when another artifact is absent."
+    },
+    {
+      "id": "OC-09",
+      "requirement": "Define focused future controls without executing them now.",
+      "acceptance": "Separately released controls cover missing/malformed/stale ACK with zero native launches; outer interruption after retention/before ACK; wrapper failure after ACK/before native; failure just after Popen/before start receipt; output cap/native deadline; missing completion; late/partial registration during cancellation; known-group cleanup and scratch preservation on uncertainty. Use a minimal controlled child where sufficient; actual OpenSSL/TLS needs a separate exact release."
+    },
+    {
+      "id": "OC-10",
+      "requirement": "Preserve source/evidence and qualification boundaries.",
+      "acceptance": "Keep failed candidate2, prior reviews, formatter packet and root later cleanup sample immutable. Charlist syntax correction does not fix custody. No GA, product app/provider, UI/native/device, production publication, customer message, credential or store/workflow change follows."
+    }
+  ],
+  "not_required": [
+    "Global process inventory or process sweep",
+    "Arbitrary OS-stall impossibility proof",
+    "Speculative product fix or test/timeout weakening",
+    "Any new compiler/OpenSSL/TLS/native runtime to prepare/review this contract"
+  ],
+  "producer_contract_accessed": false,
+  "new_runtime_executed": false,
+  "no_execution_grant": true
+}

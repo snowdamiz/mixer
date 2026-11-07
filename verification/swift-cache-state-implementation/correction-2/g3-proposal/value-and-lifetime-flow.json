@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "target_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "old_value_edges": [
+    {
+      "type": "u64",
+      "from": "offset expression",
+      "to": "ld received at8"
+    },
+    {
+      "type": "&[u8]16",
+      "from": "caller c shared/coerced view",
+      "to": "ld received b16"
+    },
+    {
+      "type": "u64",
+      "from": "from_le_bytes return8",
+      "to": "ld received tail/return place8"
+    },
+    {
+      "type": "u64",
+      "from": "ld return8",
+      "to": "a/b/comparator operand8"
+    }
+  ],
+  "new_value_edges": [
+    {
+      "type": "u64",
+      "from": "offset expression",
+      "to": "block local at8"
+    },
+    {
+      "type": "u64",
+      "from": "from_le_bytes return8",
+      "to": "a/b/comparator operand8"
+    }
+  ],
+  "unchanged_complete_edges": [
+    "Range16 source/index received",
+    "shared slice view16 source/receiver",
+    "Option<&[u8;8]>8 source/received",
+    "&[u8;8]8 expect-return/received",
+    "array8 dereference source/from_le_bytes parameter received"
+  ],
+  "no_new_function_return_or_call_argument_layer": "macro expands expression in the current comparator; no runtime comparison_word function exists",
+  "new_at_birth_drop": "each macro expansion has one8-byte block-local at; offset evaluated once; drops at that block end before next load or mutation",
+  "source_array_lifetime": "temporary8-byte value consumed as from_le_bytes argument before scalar return; no borrowed array exported",
+  "candidate_loan": "shared read borrow only within comparison expression; ends before mutable c.copy_within278",
+  "read_order": [
+    "index a",
+    "index b",
+    "b==ABSENT || short-circuit",
+    "a!=ABSENT && short-circuit",
+    "timestamp[a]",
+    "timestamp[b]",
+    "<=",
+    "take_left received"
+  ],
+  "eligibility": "b==MAX skips all timestamp loads; otherwise a==MAX skips all timestamp loads. Legitimate timestampMAX is still data; equal timestamps retain left preference.",
+  "forbidden_claims": [
+    "no compiler optimization assumed",
+    "no changed logical read or short-circuit ordering",
+    "no full memory-role union claimed by this local table",
+    "no implementation/test/qualification acceptance"
+  ],
+  "lifetime_proof_accepted": false
+}

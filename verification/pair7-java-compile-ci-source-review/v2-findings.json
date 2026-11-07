@@ -1,0 +1,101 @@
+{
+  "decision": "withhold-source-approval-for-exact-v2",
+  "findings": [
+    {
+      "file": "tool_data.py",
+      "fix": "Keep the exact invocation-path/version/provider admission, resolve the interpreter target explicitly, validate/hash that ordinary canonical target with the same bounded reader and retain both invocation and target identity. Add a positive selected-interpreter symlink data control and a changed-target refusal control.",
+      "id": "V2-1",
+      "lines": [
+        130,
+        145
+      ],
+      "priority": 1,
+      "problem": "The selected provider route requires sys.executable invocation path /usr/bin/python3, then identity(sys.executable) forwards that invocation path into file_identity. file_identity requires an lstat regular file and opens with O_NOFOLLOW, so a symlinked interpreter route is refused before any Java child. The donor verifier followed the interpreter target; v2 already records Path(sys.executable).resolve() but does not pass it to identity.",
+      "related_file": "source_contract.py",
+      "related_lines": [
+        84,
+        106
+      ],
+      "scope": "Source-proven rejection of the selected symlinked interpreter route; this lane did not probe a remote filesystem."
+    },
+    {
+      "file": "source_contract.py",
+      "fix": "Decode the same nofollow descriptor snapshot through an actual maximum+1 bounded read with clock checks and stable identity checks, rather than a separate unbounded pathname reopen. Add a focused replacement/growth read control. Apply the same bound to bootstrap seal reads that presently rely on a stat-then-read sequence.",
+      "id": "V2-2",
+      "lines": [
+        150,
+        157
+      ],
+      "priority": 2,
+      "problem": "read_json performs a bounded nofollow hash, then reopens the pathname with Path.read_bytes() before checking its length/hash. If the file changes after the first identity, that second read can allocate beyond maximum or follow a newly substituted path. The size check happens after the unbounded read. The collector contains the identical copied definition.",
+      "related_file": "compile_pair7.py",
+      "related_lines": [
+        158,
+        165
+      ]
+    },
+    {
+      "file": "java_api_floor.py",
+      "fix": "Parse all DEX structures from one bounded immutable byte snapshot. Require its reported hash to equal the collector's selected DEX identity and verify that identity again before acceptance/retention. Add a deterministic changing-reader or two-snapshot data control.",
+      "id": "V2-3",
+      "lines": [
+        82,
+        103
+      ],
+      "priority": 2,
+      "problem": "inspect reads and checksum-validates one DEX byte sequence, then dex_refs(dex_file) reopens and reads the path again. Library references can therefore come from different bytes than the header/checksum/class-definition inspection and returned dex_sha256. The collector records the earlier dex_tree identity, does not require floors.dex_sha256 to equal it, and does not rehash DEX after inspection (only class output is rechecked).",
+      "related_file": "compile_pair7.py",
+      "related_lines": [
+        419,
+        428
+      ]
+    }
+  ],
+  "limitations": [
+    "No candidate, donor or collector subject import/execution.",
+    "No42 data controls, actionlint/YAML provider validation, Swift/JVM/compiler/CI/native/UI/phone run.",
+    "No Git, network, process probes/signals, historical full-owner retry or release/GA acceptance.",
+    "Python data commands did execute under -I -B -S plus exact known-source guard, with zero denied calls."
+  ],
+  "next_scope": "Root may select a fresh sibling correction and the AGENTS-required independent fresh Astra review after the two source-preparation cycles; no v3 source or execution is authorized by this review.",
+  "pending_control_selection": [
+    {
+      "detail": "The42 prepared controls have not run. They require descriptor reads via os.fdopen and create/remove symlinks/directories/FIFO fixtures. The currently selected known-source deny_runtime guard698737... blocks os.fdopen, all symlink creation, rmdir and removal even within its owned root. These controls cannot be claimed runnable under that unchanged guard simply by moving fixtures beneath its root. The script's own audit hook does not confine writes or block every low-level thread/descriptor API.",
+      "file": "test_source_controls.py",
+      "id": "V2-C1",
+      "lines": [
+        177,
+        250
+      ],
+      "related_file": "source_contract.py",
+      "related_lines": [
+        84,
+        106
+      ],
+      "required": "Before any separately authorized control execution, select and independently review a narrow fixture/descriptor-compatible known-source guard policy, or revise fixtures to fit the existing guard. Do not silently relax guard authority or count guard rejection as subject-test evidence."
+    }
+  ],
+  "schema": 2,
+  "source_evidence_only": [
+    "All17 sealed members/188140 bytes match. All142 named sources/2779239 bytes and eight donor pins match current bytes.",
+    "Seven Python modules parse as AST data; all copied pure contract definitions match source_contract ASTs; all four workflow-invoked scripts have actual guarded CLI entrypoints.",
+    "Early ID/digest/job/run/head gates, complete receipt/topology/digest rechecks, cooperative wall checkpoints, bounded traversal/upload gates, Apple verifier source pin and runtime/transport scope wording are present in v2 source. Their controls remain unrun.",
+    "Real Swift @testable snapshot call remains; no fake Python generation path was substituted. Exact18/393165 Java source input, five-child/two-work-command shape, unchanged custody helper and API36 guard authority remain.",
+    "Ordinary verify.yml remains31363 bytes/SHA5ce51236f178080e3301289513fa3f5a8313e3a3969b0bab3f2b1cd4668de7f5."
+  ],
+  "source_seal": {
+    "bytes": 2987,
+    "path": "verification/pair7-java-compile-ci-proposal/v2/seal.json",
+    "sha256": "037d82d7c274eb3d2b6ba33531398642e9e3779dbc49ec2fc9d8d8ec98f18a20"
+  },
+  "withdrawn_findings": [
+    {
+      "id": "withdrawn-collector-entrypoint",
+      "reason": "Reviewer mistook changed span1-458 for EOF. Exact sealed collector has461 lines and guarded __main__ argv/collect dispatch at459-461."
+    },
+    {
+      "id": "withdrawn-binder-entrypoint",
+      "reason": "Reviewer mistook changed span1-106 for EOF. Exact sealed binder has108 lines and guarded __main__/main dispatch at107-108."
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "repo": "snowdamiz/fieldlog",
+  "runID": 40744921829,
+  "expectedHead": "70f3aa1d28f29e7c327a17fd46199480d41ca749",
+  "connectorFallback": "GitHub plugin jobs returned 404 for new private repo",
+  "wallSeconds": 0.908,
+  "commands": [
+    {
+      "label": "checks",
+      "command": [
+        "gh",
+        "api",
+        "repos/snowdamiz/fieldlog/commits/70f3aa1d28f29e7c327a17fd46199480d41ca749/check-runs",
+        "--jq",
+        "{total_count,check_runs:[.check_runs[]|{id,name,status,conclusion,details_url,output:{title:.output.title,summary:.output.summary,text:.output.text,annotations_count:.output.annotations_count}}]}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/fieldlog-private-remote-delivery",
+      "secondsBound": 55,
+      "startedAt": "2026-10-28T18:26:54.298705+00:00",
+      "pid": 70785,
+      "pgid": 70785,
+      "cleanup": {
+        "directChildReaped": true,
+        "exactOwnedGroupAbsent": true,
+        "outputTransport": "closed regular files"
+      },
+      "exitCode": 0,
+      "wallSeconds": 0.533,
+      "outputs": [
+        {
+          "path": "20261028T182654298546Z-checks.log",
+          "bytes": 280,
+          "sha256": "e1315c2c60b27d85e410bfa3558b61568ec8854f7dec04ce1da70a39e466d034"
+        },
+        {
+          "path": "20261028T182654298546Z-checks.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "label": "annotations-123016069558",
+      "command": [
+        "gh",
+        "api",
+        "repos/snowdamiz/fieldlog/check-runs/123016069558/annotations?per_page=100",
+        "--jq",
+        "[.[]|{path,start_line,end_line,annotation_level,title,message,raw_details}]"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer/verification/fieldlog-private-remote-delivery",
+      "secondsBound": 55,
+      "startedAt": "2026-10-28T18:26:54.832253+00:00",
+      "pid": 70792,
+      "pgid": 70792,
+      "cleanup": {
+        "directChildReaped": true,
+        "exactOwnedGroupAbsent": true,
+        "outputTransport": "closed regular files"
+      },
+      "exitCode": 0,
+      "wallSeconds": 0.373,
+      "outputs": [
+        {
+          "path": "20261028T182654298546Z-annotations-123016069558.log",
+          "bytes": 511,
+          "sha256": "da57cd5dcf9025a5041fd29d2785d0ebd641c31615f03a7f55032e59a120c752"
+        },
+        {
+          "path": "20261028T182654298546Z-annotations-123016069558.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "status": "local place arithmetic consistent; full union/layout/caller proof remains open",
+  "independent_merge_places": [
+    {
+      "place": "c merge parameter",
+      "type": "&mut Candidate2048",
+      "bytes": 8
+    },
+    {
+      "place": "src,dst,width,base,left,mid,end,right,out",
+      "type": "nine usize",
+      "bytes": 72
+    },
+    {
+      "place": "current offset source and at local received",
+      "type": "two usize",
+      "bytes": 16
+    },
+    {
+      "place": "a,b bindings",
+      "type": "two u64",
+      "bytes": 16
+    },
+    {
+      "place": "TA received operand while TB runs",
+      "type": "u64",
+      "bytes": 8
+    }
+  ],
+  "merge_sum": 120,
+  "selected_merge_subrole": 144,
+  "independent_helper_places": [
+    {
+      "place": "Range source+Index argument received",
+      "bytes": 32
+    },
+    {
+      "place": "shared slice view source+chunk receiver",
+      "bytes": 32
+    },
+    {
+      "place": "Option source+unwrap self received",
+      "bytes": 16
+    },
+    {
+      "place": "array reference source+received",
+      "bytes": 16
+    },
+    {
+      "place": "array8 dereference source+LE argument received",
+      "bytes": 16
+    },
+    {
+      "place": "decoded u64 source+received operand/initializer",
+      "bytes": 16
+    },
+    {
+      "place": "implicit shared Candidate receiver source+received",
+      "bytes": 16
+    }
+  ],
+  "helper_sum": 144,
+  "selected_helper_subrole": 192,
+  "phase_detail": [
+    "For A/B, decoded received slot is initializer source, copied once into named a/b binding; no duplicate source slot is invented. A initializer ends before B; no two at locals coexist.",
+    "For TB, a/b bindings and TA operand still exist; TB decoded received operand is already in helper16 row. This avoids omitting the left operand while right is evaluated.",
+    "take_left source/received bool occurs after expanded load locals/borrows finish; no peak120+144 proof depends on eliding it. G4 index_at/chosen branch locals are a later distinct phase and require their own full ledger.",
+    "Source/received Range/view/Option/array rows conservatively coexist in local helper144; earlier actual drops are not needed to fit that local sum.",
+    "No extra Result/Ok/aggregate, closure, Candidate, heap owner, map or array owner is introduced. Full enclosing leaf/Progress/options/wire/caller role union must still be reconciled."
+  ],
+  "size_qualification": "These are declared64-bit source-type sizes for local design arithmetic, not newly measured compiler layouts, physical stack/RSS or complete product peak.",
+  "same_rule_for_other_macros": "Do not invent function Results solely for macro blocks; do retain actual constructor/Ok, initializer/operand, local, function-return and immediate caller places elsewhere.",
+  "full_role_union_proved": false,
+  "fresh_layout_run": false
+}

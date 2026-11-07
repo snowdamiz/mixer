@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T02:38:35.172294+00:00",
+  "status": "failed-no-lifecycle-tests-native-custody-assumption-disproved-block-next-runtime",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/runtime-terminal-2/source-contract.json",
+    "bytes": 7354,
+    "sha256": "28c38c8186aac888de29dd8c19b84fb68ba8e0a6a493ed149ea9af4bb1f1b6e1"
+  },
+  "findings": [
+    {
+      "id": "IF-TERM-2-COMPILE",
+      "priority": 2,
+      "finding": "Test compilation correctly rejected one deprecated single-quoted SNI charlist literal at new inflight test line312.",
+      "evidence": "prod return0; test return2 before ExUnit.run. Ordinary identity compilation was warning-free.",
+      "consequence": "Zero lifecycle methods executed; no nine-method or KOL08/KOL09 outcome. Root reports an unexecuted prepared-3 syntax correction; that packet was not reviewed here."
+    },
+    {
+      "id": "IF-TERM-2-CUSTODY",
+      "priority": 1,
+      "finding": "The OpenSSL wrapper group is outside the retained test VM group, disproving earlier interruption-cleanup containment.",
+      "evidence": "Raw version start/completion records have wrapper PID/PGID58589/native58594; retained testVM group58517. OTP29 child setup calls setpgrp/setsid before exec. Runner retains only VM groups58479/58517.",
+      "consequence": "VM group cleanup cannot authorize complete wrapper/native or scratch/key cleanup. Existing validate_openssl also demands native group==testVMpid and would reject this topology. A charlist-only correction is insufficient for next runtime release."
+    }
+  ],
+  "prior_review_correction": {
+    "superseded_file": {
+      "path": "verification/console-key-owner-inflight-lifecycle-independent/runtime-review-2/decision.json",
+      "bytes": 11275,
+      "sha256": "e912b7f29d7dcbdca8bda175c1f458fa4937e744136dee365dfbce6a8905522b"
+    },
+    "superseded_claim": "No new group is created, so outer retained test group cleanup covers interruption.",
+    "correction": "Python Popen inherits the wrapper group, but OTP has already placed the wrapper in a separate group. The review missed that boundary. Its no-blocking-finding recommendation does not apply to further runtime until acknowledged custody is reviewed."
+  },
+  "scoped_observations": [
+    "Production exclusion JSON has all ten booleans true and prod phase returned0; this is bounded component production-build evidence only.",
+    "Five-file read-only formatting equality passed; ordinary identity compilation was warning-free; new test compilation failed on one warning.",
+    "One OpenSSL version command completed exit0/no output overflow with matching launch/completion; frozen wrapper wait path reaped native58594.",
+    "Both retained VM children were reported reaped/groups absent; scratch reported removed, original pins rechecked/no changes, no signals, finite cutoff3.29545seconds.",
+    "Root later sampled exact known PGID58589 absent. This supports absence then, not retroactive containment or complete tracking of all potential wrapper groups."
+  ],
+  "cleanup_scope_correction": "receipt cleanup_errors=[] covers recorded VM groups only. Preserve original receipt unchanged. No fresh process/group query occurred in this review.",
+  "next_requirement": "Source-only registration/ACK custody contract: wrapper publishes actual group before native spawn; outer retains durable group identity before ACK; no native spawn without ACK; all known groups cleaned before scratch removal; bounded publication/pre-ACK/native/output handling.",
+  "no_execution_grant": true,
+  "lifecycle_tests_executed": 0,
+  "GA_acceptance": false,
+  "pending": [
+    "Acknowledged custody protocol and independent review",
+    "New exact source/plan freeze and root execution release",
+    "Nine lifecycle methods and broader app/provider/native/operations/GA qualification"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "status": "independent-preaccess-prospective-controls-unexecuted",
+  "producer_access_before_freeze": false,
+  "runtime_authorized": false,
+  "cases": [
+    {"id": "P01", "case": "TCP accept and connection PID without acknowledged completed TLS request", "classification": "insufficient setup evidence", "accept_resource_gate": false},
+    {"id": "P02", "case": "completed TLS handshake and real HTTP request with response withheld", "classification": "response-stalled actual flight prerequisite", "claim": "not successful JWKS or authentication"},
+    {"id": "P03", "case": "flight budget expires before lifecycle trigger", "classification": "setup/original-deadline failure", "accept_resource_gate": false},
+    {"id": "P04", "case": "direct owner stop substituted for parent supervisor stop", "classification": "wrong graceful trigger", "accept_KOL08_GRACEFUL": false},
+    {"id": "P05", "case": "parent stop pending while exact controller suspended; admission absent and post-close public denial", "classification": "necessary graceful barrier observations", "additional_requirement": "all exact resource DOWN and successful stop after resume"},
+    {"id": "P06", "case": "raw port closed but old controller or flight remains alive", "classification": "partial cleanup only", "accept_resource_gate": false},
+    {"id": "P07", "case": "ConfiguredVerifier task completes only after its after-release call", "classification": "task completion is not direct waiter-reply timestamp", "required": "separate explicit checkout-reply observation if ordering claimed"},
+    {"id": "P08", "case": "worker DynamicSupervisor killed with queued actual flight; old owner terminate_child exits noproc", "classification": "prospective callback cleanup fault", "accept_clean_KOL09": false},
+    {"id": "P09", "case": "new owner/table/pointer published while old controller remains suspended/alive", "classification": "replacement barrier failure", "accept_clean_KOL09": false},
+    {"id": "P10", "case": "old flight eventually ends after early replacement or callback fault", "classification": "later eventual cleanup does not repair ordering failure", "accept_clean_KOL09": false},
+    {"id": "P11", "case": "public safe_call identity_unavailable from owner death or timeout", "classification": "public fail-closed evidence only", "claim": "not explicit terminate waiter reply or resource drain"},
+    {"id": "P12", "case": "new ordinary initializer accepts fixture option or production DNS accepts loopback", "classification": "production boundary regression", "accept_seam": false},
+    {"id": "P13", "case": "test-only supervisor seam differs in child identity/shutdown/topology/restart strategy", "classification": "not selected common topology", "accept_seam": false},
+    {"id": "P14", "case": "trial fails with controller suspended", "classification": "retain failure then unconditional exact-PID resume and complete owned cleanup", "cleanup_may_convert_failure_to_pass": false},
+    {"id": "P15", "case": "graceful active-flight case passes", "classification": "KOL08-GRACEFUL only", "forced_owner_crash_KOL08_verified": false},
+    {"id": "P16", "case": "diagnostic control expects noproc/early replacement and records it", "classification": "defect reproduction may succeed while product cleanup gate fails", "accept_clean_KOL09": false},
+    {"id": "P17", "case": "helper/assertion deadline or outer VM timeout with no retained stage/resource evidence", "classification": "unclassified execution failure", "accept_resource_gate": false},
+    {"id": "P18", "case": "finite acknowledged blocked interval with controller suspended; all old resources DOWN before replacement publication after resume", "classification": "necessary positive fault-ordering evidence", "additional_requirement": "retain actual callback outcome, source bounds, empty restart and complete final cleanup"}
+  ],
+  "mandatory_evidence": ["source/tool pins and versions", "actual constructor and child specs", "completed TLS request barrier with response withheld", "exact component/owner/workers/flight/worker/controller/port/caller/server identities", "original deadline and remaining budget at trigger", "admission pointer before/after", "explicit reply versus safe_call fallback distinction", "owner/callback DOWN reason and complete logs", "replacement publication barrier", "all exact old resource DOWN", "failure-path cleanup and node child/group/scratch cleanup"],
+  "excluded_claims": ["successful JWKS fetch from response stall", "authenticated token or lease", "production endpoint success", "KOL08 forced owner crash", "application/HTTP/browser/session/provider integration", "native/device qualification", "GA"]
+}

@@ -1,0 +1,6177 @@
+{
+  "schema": 1,
+  "source_sha256": "e86ef43a99f99245c78308666f91f5147981859ca03fa3f97e62d46993667535",
+  "status": "proposal2-corrected-funding-and-complete-types-requires-independent-source-audit",
+  "group_rule": "<=16 named bounded scalar operations OR one actual source-level transfer/copy<=128B per group; each block rounds independently; no reuse/refund/hiddenpadding",
+  "counting_primitives": {
+    "indexed_u64_read": "native base/borrow1,index argument1,bounds compare1,bounds branch1,address/native reference return1,scalar load1; additional explicit nested member selections separately",
+    "indexed_u64_write": "native base/borrow1,index argument1,bounds compare1,bounds branch1,address/native reference return1,scalar store1",
+    "native_argument": "one explicit native operand read and one source->parameter transfer unless already in primitive; native8 values are scalar operations",
+    "whole_value_copy": "one per actual source-level transfer edge for16+ byte handles/aggregates or actual fixed data copy. Edge source and destination do not count twice. Larger aggregate transfer split into disjoint<=128B pieces. No compiler scalarization/elision assumption.",
+    "standard_primitives": "Caller-visible Rust Index/IndexMut/copy_from_slice/checked arithmetic operations; no claim about standard library machine instructions or memcpy internals. Bounds/equality/control counted separately from fixed copy.",
+    "expression_occurrence_inventory": "Review aid over explicitly selected source expressions, not source authorization or a substitute for independent audit. Every selected expression and atom emitted.",
+    "static_branch_unions": "Some transition/error blocks reserve every named alternative, each once, to form a deliberately conservative upper; unused alternative groups are not reused by other work. Single-return/match maxima have explicit one-execution invariants."
+  },
+  "rows": [
+    {
+      "id": "L01",
+      "phase": "leaf",
+      "source": "envelope.rs:127-137 entry through whole-slice preflight",
+      "scalar_atoms": [
+        {
+          "operation": "four native parameter receiving/binding operations",
+          "count": 4
+        },
+        {
+          "operation": "steps.remaining load, threshold load, comparison, underfunded binding",
+          "count": 4
+        },
+        {
+          "operation": "steps.spent load, zero materialize, compare, branch",
+          "count": 4
+        },
+        {
+          "operation": "!underfunded and branch",
+          "count": 2
+        },
+        {
+          "operation": "remaining load, threshold load, subtraction, remaining store",
+          "count": 4
+        },
+        {
+          "operation": "threshold load and spent store",
+          "count": 2
+        },
+        {
+          "operation": "arena native receiver/length return, bound materialize, comparison, branch",
+          "count": 5
+        }
+      ],
+      "scalar_operations": 25,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": ""
+    },
+    {
+      "id": "L02",
+      "phase": "leaf",
+      "source": "envelope.rs:138-139 fixed local initialization",
+      "scalar_atoms": [
+        {
+          "operation": "prior zero materialization and twelve scalar element stores",
+          "count": 13
+        },
+        {
+          "operation": "word zero materialization and eight scalar byte stores",
+          "count": 9
+        }
+      ],
+      "scalar_operations": 22,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "prior96 source literal -> prior local",
+          "bytes": 96,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 3,
+      "note": ""
+    },
+    {
+      "id": "L03",
+      "phase": "leaf",
+      "source": "envelope.rs:140-151 twelve separately written prior reads",
+      "scalar_atoms": [
+        {
+          "operation": "mutable word/native borrow formation",
+          "count": 1
+        },
+        {
+          "operation": "two Range endpoint materializations and two field stores",
+          "count": 4
+        },
+        {
+          "operation": "shared arena reborrow/argument preparation",
+          "count": 1
+        },
+        {
+          "operation": "range bounds checks and branch (start<=end,end<=length)",
+          "count": 4
+        },
+        {
+          "operation": "source slice/native result binding",
+          "count": 1
+        },
+        {
+          "operation": "copy length equality check/branch",
+          "count": 2
+        },
+        {
+          "operation": "copy call/return control",
+          "count": 2
+        },
+        {
+          "operation": "prior destination base/index argument/bounds comparison/branch/address/store",
+          "count": 6
+        },
+        {
+          "operation": "word8 scalar source/read and LE argument/return/decode handling",
+          "count": 4
+        }
+      ],
+      "scalar_operations": 25,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "Range16 literal -> Index argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "shared arena slice16 -> Index receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "Index returned slice16 -> caller result",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "caller source slice16 -> copy_from_slice source argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "word mutable unsized slice16 -> copy_from_slice receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "source range8 -> word8 data",
+          "bytes": 8,
+          "count": 1
+        }
+      ],
+      "copy_groups": 6,
+      "repeat": 12,
+      "groups": 96,
+      "note": "No loop/CELLS indexing/Pair/checked arithmetic remains. Explicitly includes both Index return and later copy argument edges; no source/destination double charge for a single edge."
+    },
+    {
+      "id": "L04",
+      "phase": "leaf",
+      "source": "envelope.rs:152 guard dispatch (normal funded branch)",
+      "scalar_atoms": [
+        {
+          "operation": "underfunded read and branch",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 2,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "L05",
+      "phase": "leaf",
+      "source": "envelope.rs:153 retained invariants",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[5]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[6]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "10: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "5: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": ">= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": ">= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 54,
+      "scalar_groups": 4,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 4,
+      "note": "",
+      "expression": "prior[7] > 10 || prior[4] > 5 || prior[5] >= 64 || prior[6] >= 64 || prior[10] > 1 || prior[11] > 1"
+    },
+    {
+      "id": "L06",
+      "phase": "leaf",
+      "source": "envelope.rs:154-155 record borrow binding and shape call",
+      "scalar_atoms": [
+        {
+          "operation": "record.words member load/native local binding",
+          "count": 2
+        },
+        {
+          "operation": "shape native argument preparation/transfer and call/return control",
+          "count": 4
+        },
+        {
+          "operation": "returned boolean negation and if dispatch",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 8,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "H01",
+      "phase": "shape",
+      "source": "envelope.rs:106",
+      "scalar_atoms": [
+        {
+          "operation": "w[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "k store",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[1]"
+    },
+    {
+      "id": "H02",
+      "phase": "shape",
+      "source": "envelope.rs:106",
+      "scalar_atoms": [
+        {
+          "operation": "w[6]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "f store",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[6]"
+    },
+    {
+      "id": "H03",
+      "phase": "shape",
+      "source": "envelope.rs:107",
+      "scalar_atoms": [
+        {
+          "operation": "w[2]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "k: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "k: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "14: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "5: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 17,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": "",
+      "expression": "k == 0 || k > 14 || w[2] > 5"
+    },
+    {
+      "id": "H04",
+      "phase": "shape",
+      "source": "envelope.rs:108",
+      "scalar_atoms": [
+        {
+          "operation": "w[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[8]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[9]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "absent store",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 27,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": "",
+      "expression": "w[7] == ABSENT && w[8] == ABSENT && w[9] == ABSENT"
+    },
+    {
+      "id": "H05",
+      "phase": "shape",
+      "source": "envelope.rs:109",
+      "scalar_atoms": [
+        {
+          "operation": "w[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[12]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "no_slots store",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 27,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": "",
+      "expression": "w[10] == ABSENT && w[11] == ABSENT && w[12] == 0"
+    },
+    {
+      "id": "H06",
+      "phase": "shape",
+      "source": "envelope.rs:110",
+      "scalar_atoms": [
+        {
+          "operation": "w[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[8]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[9]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[8]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "80_000: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "u32::MAX: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "scalar cast",
+          "count": 1
+        },
+        {
+          "operation": "u64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "- scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "full store",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 49,
+      "scalar_groups": 4,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 4,
+      "note": "",
+      "expression": "f < 80_000 && w[7] != ABSENT && w[8] != ABSENT && w[9] <= u32::MAX as u64 && w[7] <= ABSENT - w[8]"
+    },
+    {
+      "id": "H07",
+      "phase": "shape",
+      "source": "envelope.rs:111-123 closed match dispatch",
+      "scalar_atoms": [
+        {
+          "operation": "fourteen possible kind tests: kind read, pattern materialization, comparison, branch",
+          "count": 56
+        },
+        {
+          "operation": "wildcard branch/boolean return",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 58,
+      "scalar_groups": 4,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 4,
+      "note": ""
+    },
+    {
+      "id": "HA01",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind1",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "80_000: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "absent: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "no_slots: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 44,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": "",
+      "expression": "w[3] > 0 && f < 80_000 && absent && no_slots && w[13] == 0 && w[14] == 0 && w[15] == 0"
+    },
+    {
+      "id": "HA02",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind2",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[12]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 83,
+      "scalar_groups": 6,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 6,
+      "note": "",
+      "expression": "w[3] > 0 && full && w[11] == ABSENT && w[12] == 0 && w[14] == 0 && w[15] == 0 && ((w[13] == 0 && w[10] == ABSENT) || (w[13] == 1 && w[10] < 64))"
+    },
+    {
+      "id": "HA03",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind3",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "no_slots: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "& scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "511: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 42,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": "",
+      "expression": "w[3] > 0 && full && no_slots && w[13] == 0 && w[14] == 0 && w[15] == (f & 511)"
+    },
+    {
+      "id": "HA04",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind4",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "no_slots: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "& scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "511: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "2: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "80_000: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 78,
+      "scalar_groups": 5,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": "",
+      "expression": "w[3] > 0 && full && no_slots && w[15] == (f & 511) && (((w[13] == 0 || w[13] == 2) && w[14] == ABSENT) || (w[13] == 1 && w[14] < 80_000 && w[14] != f))"
+    },
+    {
+      "id": "HA05",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind5",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "no_slots: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "- scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 57,
+      "scalar_groups": 4,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 4,
+      "note": "",
+      "expression": "w[3] > 0 && full && no_slots && w[13] > 0 && w[14] <= w[15] && w[13] <= w[15] - w[14]"
+    },
+    {
+      "id": "HA06",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind6",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[12]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 65,
+      "scalar_groups": 5,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": "",
+      "expression": "w[3] > 0 && full && w[10] < 64 && w[11] == ABSENT && w[12] == 0 && w[13] > 0 && w[14] == 0 && w[15] == 0"
+    },
+    {
+      "id": "HA07",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind7",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[12]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 65,
+      "scalar_groups": 5,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": "",
+      "expression": "w[3] > 0 && full && w[10] < 64 && w[11] == ABSENT && w[12] == 0 && w[13] > 0 && w[14] == 0 && w[15] == 0"
+    },
+    {
+      "id": "HA08",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind8",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[12]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 65,
+      "scalar_groups": 5,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": "",
+      "expression": "w[3] > 0 && full && w[10] < 64 && w[11] == ABSENT && w[12] == 0 && w[13] > 0 && w[14] == 0 && w[15] == 0"
+    },
+    {
+      "id": "HA09",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind9",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "no_slots: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 40,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": "",
+      "expression": "w[3] > 0 && full && no_slots && w[13] > 0 && w[14] == 0 && w[15] == 0"
+    },
+    {
+      "id": "HA10",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind10",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "no_slots: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 40,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": "",
+      "expression": "w[3] > 0 && full && no_slots && w[13] > 0 && w[14] == 0 && w[15] == 0"
+    },
+    {
+      "id": "HA11",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind11",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[12]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "full: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 74,
+      "scalar_groups": 5,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": "",
+      "expression": "w[3] > 0 && full && w[10] < 64 && w[11] < 64 && w[12] > 0 && w[13] <= 1 && w[14] > 0 && w[15] > 0 && w[15] <= 64"
+    },
+    {
+      "id": "HA12",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind12",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[8]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[9]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[12]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "80_000: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "u32::MAX: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "scalar cast",
+          "count": 1
+        },
+        {
+          "operation": "u64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 96,
+      "scalar_groups": 6,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 6,
+      "note": "",
+      "expression": "w[3] == 0 && f < 80_000 && w[7] != ABSENT && w[8] == ABSENT && w[9] <= u32::MAX as u64 && w[10] < 64 && w[11] < 64 && w[12] > 0 && w[13] > 0 && w[14] == 0 && w[15] < 64"
+    },
+    {
+      "id": "HA13",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind13",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[2]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "absent: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "no_slots: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 49,
+      "scalar_groups": 4,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 4,
+      "note": "",
+      "expression": "w[3] == 0 && f == ABSENT && absent && no_slots && w[13] == w[2] && w[14] == 0 && w[15] == 0"
+    },
+    {
+      "id": "HA14",
+      "phase": "shape-arm",
+      "source": "envelope.rs:112-122 selected kind14",
+      "scalar_atoms": [
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[14]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[15]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "absent: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "f: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "80_000: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "no_slots: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "21: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "24: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "6: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "boolean return control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 66,
+      "scalar_groups": 5,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": "",
+      "expression": "absent && (f == ABSENT || f < 80_000) && no_slots && w[13] > 0 && w[13] <= 21 && w[14] > 0 && w[14] <= 24 && w[15] > 0 && w[15] <= 6"
+    },
+    {
+      "id": "L07",
+      "phase": "leaf",
+      "source": "shape helper H01-H07 plus selected HA arm",
+      "scalar_atoms": [],
+      "scalar_operations": 0,
+      "scalar_groups": 0,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 22,
+      "note": "LINKED subtotal, charged once: common=16, maximum one arm=6. Selection is a single Rust match; no execution can use two arms.",
+      "linked_groups": 22
+    },
+    {
+      "id": "L08",
+      "phase": "leaf",
+      "source": "envelope.rs:156",
+      "scalar_atoms": [
+        {
+          "operation": "prior[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[5]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[2]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "+ scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "if dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 53,
+      "scalar_groups": 4,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 4,
+      "note": "",
+      "expression": "prior[0] == ABSENT || w[0] != prior[0] + 1 || w[4] < prior[1] || w[5] < prior[2]"
+    },
+    {
+      "id": "L09",
+      "phase": "leaf",
+      "source": "envelope.rs:157",
+      "scalar_atoms": [
+        {
+          "operation": "prior[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "5: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "prior[4] == 5"
+    },
+    {
+      "id": "L10",
+      "phase": "leaf",
+      "source": "envelope.rs:158",
+      "scalar_atoms": [],
+      "scalar_operations": 0,
+      "scalar_groups": 0,
+      "copies": [
+        {
+          "edge": "prior96 -> next96",
+          "bytes": 96,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TP01",
+      "phase": "transition",
+      "source": "envelope.rs:159",
+      "scalar_atoms": [
+        {
+          "operation": "w[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "13: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[1] == 13"
+    },
+    {
+      "id": "TP02",
+      "phase": "transition",
+      "source": "envelope.rs:160",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[2]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[5]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[2]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "<= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "& scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "<< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 41,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": "",
+      "expression": "prior[7] != 0 || w[2] <= prior[4] || prior[5] & (1 << w[2]) != 0"
+    },
+    {
+      "id": "TP03",
+      "phase": "transition",
+      "source": "envelope.rs:163",
+      "scalar_atoms": [
+        {
+          "operation": "w[2]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 14,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[2] != prior[4]"
+    },
+    {
+      "id": "TP04",
+      "phase": "transition",
+      "source": "envelope.rs:164",
+      "scalar_atoms": [
+        {
+          "operation": "w[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "12: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[1] == 12"
+    },
+    {
+      "id": "TP05",
+      "phase": "transition",
+      "source": "envelope.rs:165",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "prior[7] != 0"
+    },
+    {
+      "id": "TP06",
+      "phase": "transition",
+      "source": "envelope.rs:166",
+      "scalar_atoms": [
+        {
+          "operation": "w[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "14: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[1] == 14"
+    },
+    {
+      "id": "TP07",
+      "phase": "transition",
+      "source": "envelope.rs:167",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[3] == 0"
+    },
+    {
+      "id": "TP08",
+      "phase": "transition",
+      "source": "envelope.rs:168",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 18,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": "",
+      "expression": "prior[7] != 0 || prior[10] != 0"
+    },
+    {
+      "id": "TP09",
+      "phase": "transition",
+      "source": "envelope.rs:171",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[8]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 41,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": "",
+      "expression": "prior[7] == 0 || prior[11] != 0 || prior[10] != 0 || w[3] != prior[8]"
+    },
+    {
+      "id": "TP10",
+      "phase": "transition",
+      "source": "envelope.rs:175",
+      "scalar_atoms": [
+        {
+          "operation": "prior[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[11]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 18,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": "",
+      "expression": "prior[10] != 0 || prior[11] != 0"
+    },
+    {
+      "id": "TP11",
+      "phase": "transition",
+      "source": "envelope.rs:176",
+      "scalar_atoms": [
+        {
+          "operation": "w[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[1] == 1"
+    },
+    {
+      "id": "TP12",
+      "phase": "transition",
+      "source": "envelope.rs:177",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": ">= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "4: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "ABSENT: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "+ scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 43,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": "",
+      "expression": "prior[7] != 0 || prior[4] >= 4 || prior[3] == ABSENT || w[3] != prior[3] + 1"
+    },
+    {
+      "id": "TP13",
+      "phase": "transition",
+      "source": "envelope.rs:180",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[8]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[6]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[9]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 28,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": "",
+      "expression": "w[3] != prior[8] || w[6] != prior[9]"
+    },
+    {
+      "id": "TP14",
+      "phase": "transition",
+      "source": "envelope.rs:181",
+      "scalar_atoms": [
+        {
+          "operation": "w[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "2: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[1] == 2"
+    },
+    {
+      "id": "TP15",
+      "phase": "transition",
+      "source": "envelope.rs:182",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "prior[7] != 1"
+    },
+    {
+      "id": "TP16",
+      "phase": "transition",
+      "source": "envelope.rs:183",
+      "scalar_atoms": [
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[13] == 1"
+    },
+    {
+      "id": "TP17",
+      "phase": "transition",
+      "source": "envelope.rs:184",
+      "scalar_atoms": [
+        {
+          "operation": "w[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "11: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "w[1] == 11"
+    },
+    {
+      "id": "TP18",
+      "phase": "transition",
+      "source": "envelope.rs:185",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[13]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "! scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "2: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "10: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 37,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": "",
+      "expression": "!((prior[7] == 2 && w[13] == 0) || (prior[7] == 10 && w[13] == 1))"
+    },
+    {
+      "id": "TP19",
+      "phase": "transition",
+      "source": "envelope.rs:189",
+      "scalar_atoms": [
+        {
+          "operation": "prior[7]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "before: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": "",
+      "expression": "prior[7] != before"
+    },
+    {
+      "id": "TS01",
+      "phase": "transition",
+      "source": "envelope.rs:161 next[4] store",
+      "scalar_atoms": [
+        {
+          "operation": "w[2]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 12,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS02",
+      "phase": "transition",
+      "source": "envelope.rs:169 next[10] store",
+      "scalar_atoms": [
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS03",
+      "phase": "transition",
+      "source": "envelope.rs:172 next[7] store",
+      "scalar_atoms": [
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS04",
+      "phase": "transition",
+      "source": "envelope.rs:172 next[11] store",
+      "scalar_atoms": [
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS05",
+      "phase": "transition",
+      "source": "envelope.rs:178 next[7] store",
+      "scalar_atoms": [
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS06",
+      "phase": "transition",
+      "source": "envelope.rs:178 next[3] store",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 12,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS07",
+      "phase": "transition",
+      "source": "envelope.rs:178 next[8] store",
+      "scalar_atoms": [
+        {
+          "operation": "w[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 12,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS08",
+      "phase": "transition",
+      "source": "envelope.rs:178 next[9] store",
+      "scalar_atoms": [
+        {
+          "operation": "w[6]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 12,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS09",
+      "phase": "transition",
+      "source": "envelope.rs:183 next[7] store",
+      "scalar_atoms": [
+        {
+          "operation": "2: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS10",
+      "phase": "transition",
+      "source": "envelope.rs:183 next[7] store",
+      "scalar_atoms": [
+        {
+          "operation": "3: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS11",
+      "phase": "transition",
+      "source": "envelope.rs:186 next[7] store",
+      "scalar_atoms": [
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS12",
+      "phase": "transition",
+      "source": "envelope.rs:190 next[7] store",
+      "scalar_atoms": [
+        {
+          "operation": "after: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 7,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS13",
+      "phase": "transition",
+      "source": "envelope.rs:195 next[0] store",
+      "scalar_atoms": [
+        {
+          "operation": "w[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 12,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS14",
+      "phase": "transition",
+      "source": "envelope.rs:195 next[1] store",
+      "scalar_atoms": [
+        {
+          "operation": "w[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 12,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TS15",
+      "phase": "transition",
+      "source": "envelope.rs:195 next[2] store",
+      "scalar_atoms": [
+        {
+          "operation": "w[5]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "destination base/native borrow,index,bounds comparison,bounds branch,address,store",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 12,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TC01",
+      "phase": "transition",
+      "source": "envelope.rs:161 compound mask assignment",
+      "scalar_atoms": [
+        {
+          "operation": "next[5]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "w[2]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load",
+          "count": 6
+        },
+        {
+          "operation": "| scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "<< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "single already indexed destination scalar store",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 16,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "TC02",
+      "phase": "transition",
+      "source": "envelope.rs:188 complete closed stage match",
+      "scalar_atoms": [
+        {
+          "operation": "w[1] array read primitive",
+          "count": 6
+        },
+        {
+          "operation": "eight kind tests: operand read, pattern, compare, branch",
+          "count": 32
+        },
+        {
+          "operation": "sixteen before/after literal source reads and field stores",
+          "count": 32
+        },
+        {
+          "operation": "before/after binding reads and stores",
+          "count": 4
+        },
+        {
+          "operation": "wildcard branch/native control",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 76,
+      "scalar_groups": 5,
+      "copies": [
+        {
+          "edge": "selected (before,after)16 tuple -> destructuring binding",
+          "bytes": 16,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 6,
+      "note": ""
+    },
+    {
+      "id": "L11",
+      "phase": "leaf",
+      "source": "transition TP/TS/TC static union",
+      "scalar_atoms": [],
+      "scalar_operations": 0,
+      "scalar_groups": 0,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 52,
+      "note": "LINKED subtotal charged once. All branch-specific rows remain reserved on every record; no inactive transition credit is reused.",
+      "linked_groups": 52
+    },
+    {
+      "id": "L12",
+      "phase": "leaf",
+      "source": "envelope.rs:200-211 twelve fixed candidate stores",
+      "scalar_atoms": [
+        {
+          "operation": "next scalar base/index argument,bounds check/branch,address,load",
+          "count": 6
+        },
+        {
+          "operation": "LE native argument/return and decode handling",
+          "count": 3
+        },
+        {
+          "operation": "two Range endpoints and two field stores",
+          "count": 4
+        },
+        {
+          "operation": "candidate native mutable reborrow",
+          "count": 1
+        },
+        {
+          "operation": "range bounds comparisons and branch",
+          "count": 4
+        },
+        {
+          "operation": "copy receiver/source native preparation and dispatch/return",
+          "count": 3
+        },
+        {
+          "operation": "copy length equality/branch",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 23,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "destination Range16 -> IndexMut argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "candidate slice16 -> IndexMut receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "IndexMut returned slice16 -> caller result",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "caller destination slice16 -> copy receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "temporary LE array8 unsized slice16 -> copy source argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "LE array8 -> candidate8 data",
+          "bytes": 8,
+          "count": 1
+        }
+      ],
+      "copy_groups": 6,
+      "repeat": 12,
+      "groups": 96,
+      "note": ""
+    },
+    {
+      "id": "L13",
+      "phase": "leaf",
+      "source": "envelope.rs:213-224 twelve fixed commit copies",
+      "scalar_atoms": [
+        {
+          "operation": "four Range endpoints and four field stores",
+          "count": 8
+        },
+        {
+          "operation": "two shared/mutable native reborrows",
+          "count": 2
+        },
+        {
+          "operation": "two range bounds pairs and branches",
+          "count": 8
+        },
+        {
+          "operation": "copy native preparation/dispatch/return",
+          "count": 3
+        },
+        {
+          "operation": "copy length equality/branch",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 23,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "arena destination Range16 -> IndexMut argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "candidate source Range16 -> Index argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "arena slice16 -> IndexMut receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "candidate slice16 -> Index receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "IndexMut returned slice16 -> caller result",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "Index returned slice16 -> caller result",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "caller destination slice16 -> copy receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "caller source slice16 -> copy argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "candidate8 -> arena8 data",
+          "bytes": 8,
+          "count": 1
+        }
+      ],
+      "copy_groups": 9,
+      "repeat": 12,
+      "groups": 132,
+      "note": ""
+    },
+    {
+      "id": "RH01",
+      "phase": "reply",
+      "source": "envelope.rs:99-100 complete fixed reply",
+      "scalar_atoms": [
+        {
+          "operation": "eleven s[index] native indexed read primitives",
+          "count": 66
+        },
+        {
+          "operation": "three native parameter reads (status,reason,debit)",
+          "count": 3
+        },
+        {
+          "operation": "two zero literal reads",
+          "count": 2
+        },
+        {
+          "operation": "sixteen scalar field stores in fresh words",
+          "count": 16
+        }
+      ],
+      "scalar_operations": 87,
+      "scalar_groups": 6,
+      "copies": [
+        {
+          "edge": "words128 source -> Reply128 constructor",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "Reply128 return -> leaf call result",
+          "bytes": 128,
+          "count": 1
+        }
+      ],
+      "copy_groups": 2,
+      "repeat": 1,
+      "groups": 8,
+      "note": ""
+    },
+    {
+      "id": "RH02",
+      "phase": "poison-reply",
+      "source": "envelope.rs:102-103 complete fixed poison reply",
+      "scalar_atoms": [
+        {
+          "operation": "fifteen literal source reads plus debit parameter read",
+          "count": 16
+        },
+        {
+          "operation": "sixteen scalar field stores",
+          "count": 16
+        }
+      ],
+      "scalar_operations": 32,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "words128 source -> Reply128 constructor",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "Reply128 return -> caller result",
+          "bytes": 128,
+          "count": 1
+        }
+      ],
+      "copy_groups": 2,
+      "repeat": 1,
+      "groups": 4,
+      "note": ""
+    },
+    {
+      "id": "L14",
+      "phase": "leaf",
+      "source": "all observe leaf returns; reply/poison helper and caller",
+      "scalar_atoms": [
+        {
+          "operation": "four native call operands and four argument transfers",
+          "count": 8
+        },
+        {
+          "operation": "call and return control",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 10,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "complete leaf Reply128 return -> walk received128",
+          "bytes": 128,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 10,
+      "note": "Exactly one function return is possible; helper maximum RH01/RH02 is attached below. A caller source/destination for the same return is one edge, not two.",
+      "helper_groups": 8
+    },
+    {
+      "id": "W01",
+      "phase": "wrapper-record",
+      "source": "envelope.rs:313 cumulative debit",
+      "scalar_atoms": [
+        {
+          "operation": "p native owner/member selection",
+          "count": 1
+        },
+        {
+          "operation": "p.debit read, RECORD_ENVELOPE read,add,store",
+          "count": 4
+        }
+      ],
+      "scalar_operations": 5,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "W02",
+      "phase": "wrapper-record",
+      "source": "envelope.rs:318 and leaf_pending285-288",
+      "scalar_atoms": [
+        {
+          "operation": "p native borrow argument/call/result/branch",
+          "count": 5
+        },
+        {
+          "operation": "p.reply_valid read,zero literal,comparison,branch",
+          "count": 4
+        },
+        {
+          "operation": "p.reply_valid read,one literal,comparison,shortcircuit branch",
+          "count": 4
+        },
+        {
+          "operation": "p.reply.words[0] native indexed read with member selections",
+          "count": 8
+        },
+        {
+          "operation": "three literal,compare,shortcircuit branch",
+          "count": 3
+        },
+        {
+          "operation": "p.reply.words[1] native indexed read with member selections",
+          "count": 8
+        },
+        {
+          "operation": "fifteen literal,comparison,if branch",
+          "count": 3
+        },
+        {
+          "operation": "last p.reply.words[0] indexed read",
+          "count": 8
+        },
+        {
+          "operation": "one literal,compare,boolean return",
+          "count": 3
+        }
+      ],
+      "scalar_operations": 46,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": ""
+    },
+    {
+      "id": "W03",
+      "phase": "wrapper-record",
+      "source": "envelope.rs:319 immutable record construction",
+      "scalar_atoms": [
+        {
+          "operation": "native w borrow,words field store,record binding store",
+          "count": 3
+        }
+      ],
+      "scalar_operations": 3,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "W04",
+      "phase": "wrapper-record",
+      "source": "envelope.rs:320 StepBudget construction",
+      "scalar_atoms": [
+        {
+          "operation": "two native source reads and two scalar field stores",
+          "count": 4
+        }
+      ],
+      "scalar_operations": 4,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "StepBudget16 constructor -> steps local",
+          "bytes": 16,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 2,
+      "note": ""
+    },
+    {
+      "id": "W05",
+      "phase": "wrapper-record",
+      "source": "envelope.rs:321 leaf arguments; leaf return already in L14",
+      "scalar_atoms": [
+        {
+          "operation": "arena Vec native borrow/member selection",
+          "count": 2
+        },
+        {
+          "operation": "candidate native borrow+argument",
+          "count": 2
+        },
+        {
+          "operation": "record native borrow+argument",
+          "count": 2
+        },
+        {
+          "operation": "steps native borrow+argument",
+          "count": 2
+        },
+        {
+          "operation": "call/return control",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 10,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "Vec-to-slice16 view result -> walk argument temporary",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "slice16 temporary -> leaf arena argument",
+          "bytes": 16,
+          "count": 1
+        }
+      ],
+      "copy_groups": 2,
+      "repeat": 1,
+      "groups": 3,
+      "note": ""
+    },
+    {
+      "id": "W06",
+      "phase": "wrapper-record",
+      "source": "envelope.rs:322 install then validity",
+      "scalar_atoms": [
+        {
+          "operation": "p.reply member destination selection",
+          "count": 1
+        },
+        {
+          "operation": "one literal materialization and reply_valid store",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 3,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "received Reply128 -> p.reply128",
+          "bytes": 128,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 2,
+      "note": ""
+    },
+    {
+      "id": "W07",
+      "phase": "wrapper-record",
+      "source": "envelope.rs:323 reply_debit_valid call/return and audit branch",
+      "scalar_atoms": [
+        {
+          "operation": "p.reply native member borrow and argument transfer",
+          "count": 3
+        },
+        {
+          "operation": "steps native borrow and argument transfer",
+          "count": 2
+        },
+        {
+          "operation": "call/return control,result negation,if branch",
+          "count": 4
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "DV01",
+      "phase": "debit-audit",
+      "source": "envelope.rs:291",
+      "scalar_atoms": [
+        {
+          "operation": "three field/native source reads remaining/spent/threshold and two zero/threshold operands",
+          "count": 7
+        },
+        {
+          "operation": "reply.words[13] native indexed read primitive plus one member selection",
+          "count": 7
+        },
+        {
+          "operation": "three comparisons,two conjunction branches,disjunct branch",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 20,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": "",
+      "expression": "steps.remaining == 0 && steps.spent == RECORD_ENVELOPE && reply.words[13] == RECORD_ENVELOPE"
+    },
+    {
+      "id": "DV02",
+      "phase": "debit-audit",
+      "source": "envelope.rs:292 guard disjunct",
+      "scalar_atoms": [
+        {
+          "operation": "remaining/spent fields plus threshold/zero sources",
+          "count": 4
+        },
+        {
+          "operation": "three reply.words indexed scalar reads, each primitive6 plus member selection1",
+          "count": 21
+        },
+        {
+          "operation": "three RHS constant source reads",
+          "count": 3
+        },
+        {
+          "operation": "five comparisons,four conjunction branches,boolean return",
+          "count": 10
+        }
+      ],
+      "scalar_operations": 38,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": ""
+    },
+    {
+      "id": "W08",
+      "phase": "wrapper-record",
+      "source": "reply_debit_valid body DV01+DV02",
+      "scalar_atoms": [],
+      "scalar_operations": 0,
+      "scalar_groups": 0,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": "LINKED static upper: both disjunct source rows are separately reserved; no normal/guard pooling.",
+      "linked_groups": 5
+    },
+    {
+      "id": "W09",
+      "phase": "wrapper-record",
+      "source": "envelope.rs:323 audit failure poison construction+install",
+      "scalar_atoms": [
+        {
+          "operation": "threshold read/native argument/call/return",
+          "count": 4
+        },
+        {
+          "operation": "p.reply destination member selection",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 5,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "poison call result128 -> p.reply128",
+          "bytes": 128,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 6,
+      "note": "RH02 helper source/return is separate below; error-path reserve always remains paid.",
+      "helper_groups": 4
+    },
+    {
+      "id": "BR01",
+      "phase": "budget-helper",
+      "source": "analyzer.rs:166-168 Budget.replay",
+      "scalar_atoms": [
+        {
+          "operation": "self/n native parameter receiving",
+          "count": 2
+        },
+        {
+          "operation": "replay_left load,n read and two native arithmetic argument handoffs",
+          "count": 4
+        },
+        {
+          "operation": "checked subtraction,overflow split,Option discriminator branch",
+          "count": 3
+        },
+        {
+          "operation": "four eager error operands plus argument transfers",
+          "count": 8
+        },
+        {
+          "operation": "error helper five stores,four native parameter reads,zero read",
+          "count": 10
+        },
+        {
+          "operation": "ok_or discriminator/payload handoff and ? tag/branch",
+          "count": 5
+        },
+        {
+          "operation": "replay_left store and replay_spent load,n read,addition,store",
+          "count": 5
+        },
+        {
+          "operation": "Ok return/native control",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 38,
+      "scalar_groups": 3,
+      "copies": [
+        {
+          "edge": "checked_sub Option<u64>16 -> ok_or source temporary",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "Option16 temporary -> ok_or self argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "error32 helper return -> ok_or argument temporary",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "error32 argument temporary -> ok_or error argument",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "ok_or Result<u64,Error>40 -> ? temporary",
+          "bytes": 40,
+          "count": 1
+        },
+        {
+          "edge": "error32 ? payload -> propagated error temporary",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "complete helper Result<(),Error>40 -> caller",
+          "bytes": 40,
+          "count": 1
+        }
+      ],
+      "copy_groups": 7,
+      "repeat": 1,
+      "groups": 10,
+      "note": ""
+    },
+    {
+      "id": "BS01",
+      "phase": "budget-helper",
+      "source": "analyzer.rs:170-172 Budget.setup excluding nested replay",
+      "scalar_atoms": [
+        {
+          "operation": "self/n native parameter receiving",
+          "count": 2
+        },
+        {
+          "operation": "setup_spent/n source reads plus arithmetic argument handoffs",
+          "count": 4
+        },
+        {
+          "operation": "checked addition,overflow split",
+          "count": 2
+        },
+        {
+          "operation": "Option tag/payload handoff,closure parameter,cap operand,comparison,closure return,if branch",
+          "count": 7
+        },
+        {
+          "operation": "four error operands plus argument transfers",
+          "count": 8
+        },
+        {
+          "operation": "error helper five stores,four parameter reads,zero read",
+          "count": 10
+        },
+        {
+          "operation": "self native borrow,n native read+argument,call/return",
+          "count": 5
+        },
+        {
+          "operation": "? tag/branch plus setup_spent load,n read,add,store and Ok control",
+          "count": 7
+        }
+      ],
+      "scalar_operations": 45,
+      "scalar_groups": 3,
+      "copies": [
+        {
+          "edge": "checked_add Option16 -> is_none_or source temporary",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "Option16 -> is_none_or self argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "fixed error32 helper return -> Err payload temporary",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "fixed error32 -> propagated Err payload",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "nested replay error32 ? payload -> setup propagated error",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "complete setup Result40 -> caller",
+          "bytes": 40,
+          "count": 1
+        }
+      ],
+      "copy_groups": 6,
+      "repeat": 1,
+      "groups": 9,
+      "note": ""
+    },
+    {
+      "id": "BP01",
+      "phase": "budget-helper",
+      "source": "analyzer.rs:178-180 Budget.report",
+      "scalar_atoms": [
+        {
+          "operation": "self/n parameter receiving",
+          "count": 2
+        },
+        {
+          "operation": "report_spent/n reads and arithmetic argument handoffs",
+          "count": 4
+        },
+        {
+          "operation": "checked addition,overflow split",
+          "count": 2
+        },
+        {
+          "operation": "Option tag/payload handoff,closure param,reserve operand,comparison,closure return,if branch",
+          "count": 7
+        },
+        {
+          "operation": "four error operands plus argument transfers",
+          "count": 8
+        },
+        {
+          "operation": "error helper five stores,four parameter reads,zero read",
+          "count": 10
+        },
+        {
+          "operation": "report_spent read,n read,addition,store,Ok control",
+          "count": 5
+        }
+      ],
+      "scalar_operations": 38,
+      "scalar_groups": 3,
+      "copies": [
+        {
+          "edge": "checked_add Option16 -> is_none_or temporary",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "Option16 -> is_none_or self argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "fixed error32 helper return -> Err payload temporary",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "fixed error32 -> Err payload",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "complete report Result40 -> caller",
+          "bytes": 40,
+          "count": 1
+        }
+      ],
+      "copy_groups": 5,
+      "repeat": 1,
+      "groups": 8,
+      "note": ""
+    },
+    {
+      "id": "S01",
+      "phase": "envelope-setup",
+      "source": "envelope.rs:299-301 three new setup/report/guard calls",
+      "scalar_atoms": [
+        {
+          "operation": "three native budget borrows,three n read/argument pairs,three call/return pairs",
+          "count": 15
+        },
+        {
+          "operation": "three ? tag/branch tests",
+          "count": 6
+        },
+        {
+          "operation": "two cumulative debit updates, each field read/constant/add/store",
+          "count": 8
+        }
+      ],
+      "scalar_operations": 29,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "three possible returned Error32 payloads -> walk Err temporaries",
+          "bytes": 32,
+          "count": 3
+        },
+        {
+          "edge": "walk Result40 -> observe_inputs caller on setup failure",
+          "bytes": 40,
+          "count": 1
+        }
+      ],
+      "copy_groups": 4,
+      "repeat": 1,
+      "groups": 41,
+      "note": "LINKED new Budget bodies setup19+report8+guard-report8 attached below; only one failure can return.",
+      "helper_groups": 35
+    },
+    {
+      "id": "S02",
+      "phase": "envelope-setup",
+      "source": "envelope.rs:302 Candidate2048 literal initialization",
+      "scalar_atoms": [
+        {
+          "operation": "zero literal source plus2048 scalar byte stores",
+          "count": 2049
+        }
+      ],
+      "scalar_operations": 2049,
+      "scalar_groups": 129,
+      "copies": [
+        {
+          "edge": "candidate literal source2048 -> retained candidate destination, sixteen disjoint fixed128 chunks",
+          "bytes": 128,
+          "count": 16
+        }
+      ],
+      "copy_groups": 16,
+      "repeat": 1,
+      "groups": 145,
+      "note": "Unlike old source-level illustrative256+256 schedule, this actual bound counts each byte zero store, then every full literal/destination transfer once. No compiler elision or per-record reinitialization assumed."
+    },
+    {
+      "id": "S03",
+      "phase": "envelope-setup",
+      "source": "envelope.rs:304 length check/error path",
+      "scalar_atoms": [
+        {
+          "operation": "arena member/native length call/return,equality operands,compare,if branch",
+          "count": 7
+        },
+        {
+          "operation": "four error operands+arguments",
+          "count": 8
+        },
+        {
+          "operation": "error helper five stores,four parameter reads,zero read",
+          "count": 10
+        }
+      ],
+      "scalar_operations": 25,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "Error32 helper -> error temporary",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "Error32 temporary -> Err payload",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "walk Result40 -> input caller",
+          "bytes": 40,
+          "count": 1
+        }
+      ],
+      "copy_groups": 3,
+      "repeat": 1,
+      "groups": 5,
+      "note": ""
+    },
+    {
+      "id": "S04",
+      "phase": "envelope-setup",
+      "source": "envelope.rs:305 for0..12 loop setup",
+      "scalar_atoms": [
+        {
+          "operation": "two endpoints and two Range field stores",
+          "count": 4
+        }
+      ],
+      "scalar_operations": 4,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "Range16 constructor -> iterator source",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "Range16 -> IntoIterator argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "Range16 IntoIterator return -> retained iterator",
+          "bytes": 16,
+          "count": 1
+        }
+      ],
+      "copy_groups": 3,
+      "repeat": 1,
+      "groups": 4,
+      "note": ""
+    },
+    {
+      "id": "S05",
+      "phase": "envelope-setup",
+      "source": "envelope.rs:305 for loop next/condition/body handoff",
+      "scalar_atoms": [
+        {
+          "operation": "native iterator receiver/argument/call",
+          "count": 3
+        },
+        {
+          "operation": "start/end loads,compare,branch,increment,store,return control",
+          "count": 7
+        },
+        {
+          "operation": "Option tag/payload/native i binding and branch/backedge",
+          "count": 5
+        }
+      ],
+      "scalar_operations": 15,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "next Option<usize>16 -> caller match temporary",
+          "bytes": 16,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 13,
+      "groups": 26,
+      "note": "Twelve Some plus final None are charged; each listed operation is reserved even on final terminating next."
+    },
+    {
+      "id": "S06",
+      "phase": "envelope-setup",
+      "source": "envelope.rs:306-308 selected-cell initializer body",
+      "scalar_atoms": [
+        {
+          "operation": "i source/constants/comparisons/two branches and three alternative result operands/bind",
+          "count": 11
+        },
+        {
+          "operation": "f.mask native field load for selected cell",
+          "count": 1
+        },
+        {
+          "operation": "SCALAR.base source plus CELLS[i] indexed read primitive6,multiplier source,multiply,add,at binding",
+          "count": 11
+        },
+        {
+          "operation": "at source and8source,addition plus Range endpoint field stores",
+          "count": 5
+        },
+        {
+          "operation": "value native source,LE argument/return/decode",
+          "count": 4
+        },
+        {
+          "operation": "Vec/member native reborrow",
+          "count": 2
+        },
+        {
+          "operation": "range bound comparisons/branches,copy equality/branch,call/return",
+          "count": 8
+        }
+      ],
+      "scalar_operations": 42,
+      "scalar_groups": 3,
+      "copies": [
+        {
+          "edge": "destination Range16 -> IndexMut argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "candidate slice16 -> IndexMut receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "IndexMut returned slice16 -> caller result",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "caller destination slice16 -> copy receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "temporary LE array8 unsized slice16 -> copy source argument",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "LE array8 -> candidate8 data",
+          "bytes": 8,
+          "count": 1
+        }
+      ],
+      "copy_groups": 6,
+      "repeat": 12,
+      "groups": 108,
+      "note": "Same six IndexMut/Range/slice/data transfer template as L12, with runtime at bookkeeping named here. Constant f.mask branch is charged even when zero initialization applies."
+    },
+    {
+      "id": "T01",
+      "phase": "wrapper-setup",
+      "source": "envelope.rs:361 setup(T),report(F) new reservation call/control",
+      "scalar_atoms": [
+        {
+          "operation": "two native budget borrows,n read+argument and call/return groups",
+          "count": 10
+        },
+        {
+          "operation": "two ? tag and branch operations",
+          "count": 4
+        }
+      ],
+      "scalar_operations": 14,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "each possible Error32 ? payload -> outer Err temporary",
+          "bytes": 32,
+          "count": 2
+        },
+        {
+          "edge": "core Error32 Err payload -> Result232 return split128+104",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "core Error32 Err payload -> Result232 second104",
+          "bytes": 104,
+          "count": 1
+        },
+        {
+          "edge": "core Result232 -> public Result232 chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "core Result232 -> public Result232 chunk104",
+          "bytes": 104,
+          "count": 1
+        },
+        {
+          "edge": "public Result232 -> external caller chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "public Result232 -> external caller chunk104",
+          "bytes": 104,
+          "count": 1
+        }
+      ],
+      "copy_groups": 8,
+      "repeat": 1,
+      "groups": 36,
+      "note": "LINKED Budget setup/report bodies attached; failure returns no aggregate. The fixed complete Result232 transfers reserve both chunks even for Err.",
+      "helper_groups": 27
+    },
+    {
+      "id": "T02",
+      "phase": "wrapper-setup",
+      "source": "envelope.rs:365 Progress absent backing initializer",
+      "scalar_atoms": [
+        {
+          "operation": "zero source and sixteen words zero element stores",
+          "count": 17
+        },
+        {
+          "operation": "reply_valid/debit zero reads and scalar stores",
+          "count": 4
+        }
+      ],
+      "scalar_operations": 21,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "words128 literal -> Reply128 backing field",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "Progress144 constructor -> retained p first128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "Progress144 constructor -> retained p remaining16",
+          "bytes": 16,
+          "count": 1
+        }
+      ],
+      "copy_groups": 3,
+      "repeat": 1,
+      "groups": 5,
+      "note": "Zero backing is never Observed; no reply_valid1 store here."
+    },
+    {
+      "id": "T03",
+      "phase": "wrapper-setup",
+      "source": "envelope.rs:366,347,353,295 added progress borrowing chain",
+      "scalar_atoms": [
+        {
+          "operation": "three p native borrow/argument receiving pairs",
+          "count": 6
+        },
+        {
+          "operation": "three corresponding native parameter local bindings",
+          "count": 3
+        }
+      ],
+      "scalar_operations": 9,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "E01",
+      "phase": "envelope-finish",
+      "source": "envelope.rs:375,253 finalizer argument/entry and returned input-error branch256-258",
+      "scalar_atoms": [
+        {
+          "operation": "four native argument borrows/receiving plus call/return control",
+          "count": 10
+        },
+        {
+          "operation": "input Result borrow/discriminant/match/error-payload native reference",
+          "count": 4
+        },
+        {
+          "operation": "e.code loads twice,two code operands,two comparisons,two branches",
+          "count": 8
+        },
+        {
+          "operation": "fixed reason binding and project native arguments/call/return",
+          "count": 8
+        }
+      ],
+      "scalar_operations": 30,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": ""
+    },
+    {
+      "id": "EF02",
+      "phase": "finish-expression",
+      "source": "envelope.rs:260",
+      "scalar_atoms": [
+        {
+          "operation": "s.flags: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "! scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "s.complete: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "! scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "s.limited: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "s.limited: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "! scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "s.complete: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "two borrowed Result<bool> discriminant checks,two bool payload reads and success comparisons",
+          "count": 8
+        },
+        {
+          "operation": "if dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 23,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": "",
+      "expression": "s.flags > 1 || !((s.complete && !s.limited) || (s.limited && !s.complete))"
+    },
+    {
+      "id": "E02",
+      "phase": "envelope-finish",
+      "source": "envelope.rs:260-264 complete/limited/input eligibility,absent/unsupported Progress",
+      "scalar_atoms": [
+        {
+          "operation": "EF02 eligibility expression linked atoms",
+          "count": 23
+        },
+        {
+          "operation": "p.reply_valid twice: native member loads,two constants,two comparisons,two branches",
+          "count": 8
+        }
+      ],
+      "scalar_operations": 31,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": ""
+    },
+    {
+      "id": "E03",
+      "phase": "envelope-finish",
+      "source": "envelope.rs:266-267 poison-first dispatch",
+      "scalar_atoms": [
+        {
+          "operation": "p.reply.words[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "3: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "15: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if branch; limited field read/conditional branch; two boundary literal operands",
+          "count": 5
+        }
+      ],
+      "scalar_operations": 26,
+      "scalar_groups": 2,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 2,
+      "note": ""
+    },
+    {
+      "id": "EF04",
+      "phase": "finish-expression",
+      "source": "envelope.rs:269-272 state/status support",
+      "scalar_atoms": [
+        {
+          "operation": "p.reply.words[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[0]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[1]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[5]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[9]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[10]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "< scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "2: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "14: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "!= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "2: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "10: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "5: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": ">= scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "64: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "|| short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "> scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "1: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 132,
+      "scalar_groups": 9,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 9,
+      "note": "",
+      "expression": "p.reply.words[0] < 1 || p.reply.words[0] > 2 || p.reply.words[1] > 14 || (p.reply.words[0] == 1 && p.reply.words[1] != 0) || (p.reply.words[0] == 2 && p.reply.words[1] == 0) || p.reply.words[3] > 10 || p.reply.words[4] > 5 || p.reply.words[5] >= 64 || p.reply.words[9] > 1 || p.reply.words[10] > 1"
+    },
+    {
+      "id": "E04",
+      "phase": "envelope-finish",
+      "source": "envelope.rs:269-274 actual RangeInclusive support predicate",
+      "scalar_atoms": [
+        {
+          "operation": "EF04 scalar predicate upper including two tests for contains",
+          "count": 132
+        },
+        {
+          "operation": "actual RangeInclusive1..=2 constructor three fields and two literal sources",
+          "count": 5
+        },
+        {
+          "operation": "actual range receiver/native reference,word native reference,contains call/return,negation",
+          "count": 6
+        }
+      ],
+      "scalar_operations": 143,
+      "scalar_groups": 9,
+      "copies": [
+        {
+          "edge": "RangeInclusive<u64>24 constructor -> contains receiver temporary",
+          "bytes": 24,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 10,
+      "note": "EF04 replaces the scalar part of actual contains with both comparisons, then also pays actual range constructor/borrow. This conservatively duplicates scalar support comparisons, explicitly named and never reused."
+    },
+    {
+      "id": "E05",
+      "phase": "envelope-finish",
+      "source": "envelope.rs:275-279 limited/refused/CAP dispatch and fixed reason call",
+      "scalar_atoms": [
+        {
+          "operation": "limited field load and branch",
+          "count": 2
+        },
+        {
+          "operation": "two p.reply.words[0] indexed reads with nested member selections",
+          "count": 16
+        },
+        {
+          "operation": "two kind2 constants/comparisons/branches",
+          "count": 6
+        },
+        {
+          "operation": "s.flags native read,one literal,compare,branch",
+          "count": 4
+        },
+        {
+          "operation": "p.reply.words[1] indexed reason read and native argument/call/return handoff",
+          "count": 11
+        }
+      ],
+      "scalar_operations": 39,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": ""
+    },
+    {
+      "id": "EH01",
+      "phase": "finish-helper",
+      "source": "envelope.rs:228-239 reason_from_leaf",
+      "scalar_atoms": [
+        {
+          "operation": "sixteen possible discriminator tests: input read,literal operand,comparison,branch",
+          "count": 64
+        },
+        {
+          "operation": "selected enum native materialization and return control",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 66,
+      "scalar_groups": 5,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": ""
+    },
+    {
+      "id": "E06",
+      "phase": "envelope-finish",
+      "source": "envelope.rs:275-278 optional reason conversion EH01",
+      "scalar_atoms": [],
+      "scalar_operations": 0,
+      "scalar_groups": 0,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 5,
+      "note": "Exactly one reason_from_leaf call can execute; reserve its complete maximum regardless of branch.",
+      "helper_groups": 5
+    },
+    {
+      "id": "EH02",
+      "phase": "finish-helper",
+      "source": "envelope.rs:92-97 word_at checked tail/first_chunk",
+      "scalar_atoms": [
+        {
+          "operation": "native bytes/offset parameter receiving",
+          "count": 2
+        },
+        {
+          "operation": "offset read and RangeFrom scalar field store",
+          "count": 2
+        },
+        {
+          "operation": "get native argument/index bounds compare/branch/Option tag handling",
+          "count": 6
+        },
+        {
+          "operation": "tail native binding,first_chunk native receiver/argument,8literal,range length compare/branch,Option tag/native array binding",
+          "count": 9
+        },
+        {
+          "operation": "array8 source read,LE native argument/decode/return",
+          "count": 4
+        },
+        {
+          "operation": "status/value source reads and two Pair field stores",
+          "count": 4
+        },
+        {
+          "operation": "two fixed failure Pair zero values plus fields and return control",
+          "count": 5
+        }
+      ],
+      "scalar_operations": 32,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "slice16 argument -> get receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "get Option<&[u8]>16 return -> caller match",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "Some tail slice16 -> tail binding",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "tail slice16 -> first_chunk receiver",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "edge": "complete Pair16 constructor -> function return/caller",
+          "bytes": 16,
+          "count": 1
+        }
+      ],
+      "copy_groups": 5,
+      "repeat": 1,
+      "groups": 7,
+      "note": "RangeFrom<usize> and Option<&[u8;8]> are native8 values. Pair16/slice16/Option-slice16 transfers use separate whole-copy units. Source byte array8->LE argument is one native8 operation, not sixteen assumed CPU loads."
+    },
+    {
+      "id": "E07",
+      "phase": "envelope-finish",
+      "source": "envelope.rs:280 word_at call/helper",
+      "scalar_atoms": [
+        {
+          "operation": "Vec/member native receiver and coercion source preparation",
+          "count": 2
+        },
+        {
+          "operation": "SCALAR.base read,CELLS[6] primitive read6,8source,multiply,add",
+          "count": 10
+        },
+        {
+          "operation": "offset native argument,call/return control",
+          "count": 3
+        }
+      ],
+      "scalar_operations": 15,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "Vec-to-slice16 view -> word_at argument",
+          "bytes": 16,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 9,
+      "note": "EH02 attached below; Pair return already EH02, not a second receiving copy.",
+      "helper_groups": 7
+    },
+    {
+      "id": "E08",
+      "phase": "envelope-finish",
+      "source": "envelope.rs:281-283 closed boundary check",
+      "scalar_atoms": [
+        {
+          "operation": "expected.status native read,one literal,compare,branch",
+          "count": 4
+        },
+        {
+          "operation": "p.reply.words[3]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[4]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "p.reply.words[5]: base/native borrow, index argument, bounds compare, bounds branch, address/native return, scalar load plus two explicit member selections",
+          "count": 8
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "0: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "5: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "&& short-circuit control",
+          "count": 1
+        },
+        {
+          "operation": "== scalar operator",
+          "count": 1
+        },
+        {
+          "operation": "expected.value: native operand read/materialization",
+          "count": 1
+        },
+        {
+          "operation": "if/else dispatch",
+          "count": 1
+        }
+      ],
+      "scalar_operations": 37,
+      "scalar_groups": 3,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 3,
+      "note": ""
+    },
+    {
+      "id": "EH03",
+      "phase": "finish-helper",
+      "source": "envelope.rs:241-251 full projection",
+      "scalar_atoms": [
+        {
+          "operation": "p.reply.words native fixed-array borrow binding",
+          "count": 3
+        },
+        {
+          "operation": "eleven extent source reads and conditional branches",
+          "count": 22
+        },
+        {
+          "operation": "eleven true indexed scalar reads primitive6",
+          "count": 66
+        },
+        {
+          "operation": "eleven false zero source materializations",
+          "count": 11
+        },
+        {
+          "operation": "sixteen scalar destination field stores",
+          "count": 16
+        },
+        {
+          "operation": "boundary/reason/debit native source reads plus two authority zero reads",
+          "count": 5
+        }
+      ],
+      "scalar_operations": 123,
+      "scalar_groups": 8,
+      "copies": [
+        {
+          "edge": "Observation128 constructor -> project return/caller",
+          "bytes": 128,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 9,
+      "note": "Both alternatives in each conditional are explicitly reserved, never shared with other fields. No heap/error text or public arbitrary verified input."
+    },
+    {
+      "id": "E09",
+      "phase": "envelope-finish",
+      "source": "all mutually exclusive finalize->project calls",
+      "scalar_atoms": [
+        {
+          "operation": "four native argument preparations/transfers",
+          "count": 8
+        },
+        {
+          "operation": "call and return control",
+          "count": 2
+        }
+      ],
+      "scalar_operations": 10,
+      "scalar_groups": 1,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 10,
+      "note": "Exactly one project executes because every preceding branch returns. EH03 attached once, separate from other helper returns.",
+      "helper_groups": 9
+    },
+    {
+      "id": "E10",
+      "phase": "envelope-finish",
+      "source": "finalize return into core envelope local",
+      "scalar_atoms": [],
+      "scalar_operations": 0,
+      "scalar_groups": 0,
+      "copies": [
+        {
+          "edge": "complete Observation128 finalize return -> core envelope",
+          "bytes": 128,
+          "count": 1
+        }
+      ],
+      "copy_groups": 1,
+      "repeat": 1,
+      "groups": 1,
+      "note": ""
+    },
+    {
+      "id": "F01",
+      "phase": "wrapper-final",
+      "source": "envelope.rs:379,383-384 complete aggregate and success Result moves",
+      "scalar_atoms": [
+        {
+          "operation": "core/public function native File parameter receiving and argument transfers",
+          "count": 8
+        },
+        {
+          "operation": "public STEP_LIMIT read/argument and call/return control",
+          "count": 4
+        },
+        {
+          "operation": "aggregate/Ok constructor and return control",
+          "count": 3
+        }
+      ],
+      "scalar_operations": 15,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "ReplayOutcome104 -> aggregate framing field",
+          "bytes": 104,
+          "count": 1
+        },
+        {
+          "edge": "Observation128 -> aggregate envelope field",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "Outcome232 constructor -> Ok Result232 chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "Outcome232 constructor -> Ok Result232 chunk104",
+          "bytes": 104,
+          "count": 1
+        },
+        {
+          "edge": "core Result232 -> public Result232 chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "core Result232 -> public Result232 chunk104",
+          "bytes": 104,
+          "count": 1
+        },
+        {
+          "edge": "public Result232 -> external caller chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "public Result232 -> external caller chunk104",
+          "bytes": 104,
+          "count": 1
+        }
+      ],
+      "copy_groups": 8,
+      "repeat": 1,
+      "groups": 9,
+      "note": ""
+    },
+    {
+      "id": "F02",
+      "phase": "wrapper-final",
+      "source": "envelope.rs:362-366 inherited fixed calls changed aggregate error destination",
+      "scalar_atoms": [
+        {
+          "operation": "four inherited ? receiving tests native tag/control (Budget.new,output_safety,Arena,new reservations)",
+          "count": 8
+        }
+      ],
+      "scalar_operations": 8,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "four possible Error32 ? payloads -> outer aggregate Err temporary",
+          "bytes": 32,
+          "count": 4
+        },
+        {
+          "edge": "core Err complete Result232 -> public chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "core Err complete Result232 -> public chunk104",
+          "bytes": 104,
+          "count": 1
+        },
+        {
+          "edge": "public Err Result232 -> caller chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "public Err Result232 -> caller chunk104",
+          "bytes": 104,
+          "count": 1
+        }
+      ],
+      "copy_groups": 8,
+      "repeat": 1,
+      "groups": 9,
+      "note": "Error alternatives are explicitly reserved separately from success return; none can upgrade input/framing observation."
+    },
+    {
+      "id": "F03",
+      "phase": "wrapper-final",
+      "source": "envelope.rs:366,347,353 changed internal call Result/error propagation",
+      "scalar_atoms": [
+        {
+          "operation": "two renamed calls retain baseline parameter handling; added p control/borrow is T03",
+          "count": 0
+        },
+        {
+          "operation": "three fixed Result discriminant/native return handling operations",
+          "count": 3
+        }
+      ],
+      "scalar_operations": 3,
+      "scalar_groups": 1,
+      "copies": [
+        {
+          "edge": "walk Result<(),Error>40 -> observe_inputs receiving",
+          "bytes": 40,
+          "count": 1
+        },
+        {
+          "edge": "observe_inputs Result<bool,Error>40 -> core result local",
+          "bytes": 40,
+          "count": 1
+        }
+      ],
+      "copy_groups": 2,
+      "repeat": 1,
+      "groups": 3,
+      "note": "Conservative full changed caller return edges added explicitly, although underlying pre-existing framing already has equivalent source. No baseline22 transfer removed."
+    },
+    {
+      "id": "F04",
+      "phase": "wrapper-final",
+      "source": "envelope.rs:377-378 output failure changed Result232 returns",
+      "scalar_atoms": [
+        {
+          "operation": "write_report returned Result tag/branch; budget.used call/return/limit load/compare/branch",
+          "count": 8
+        },
+        {
+          "operation": "error(BUDGET) native arguments and helper field stores",
+          "count": 18
+        }
+      ],
+      "scalar_operations": 26,
+      "scalar_groups": 2,
+      "copies": [
+        {
+          "edge": "write_report Error32 ? payload -> core Err payload",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "error32 helper -> budget Err payload",
+          "bytes": 32,
+          "count": 1
+        },
+        {
+          "edge": "core Result232 error return chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "core Result232 error return chunk104",
+          "bytes": 104,
+          "count": 1
+        },
+        {
+          "edge": "public Result232 error return chunk128",
+          "bytes": 128,
+          "count": 1
+        },
+        {
+          "edge": "public Result232 error return chunk104",
+          "bytes": 104,
+          "count": 1
+        }
+      ],
+      "copy_groups": 6,
+      "repeat": 1,
+      "groups": 8,
+      "note": "Outer Err always carries no aggregate; these error source rows remain reserved even on success."
+    },
+    {
+      "id": "F05",
+      "phase": "wrapper-final-early-input-error",
+      "source": "envelope.rs:256-258,375 and241-251 projection,253 finalizer return",
+      "scalar_atoms": [],
+      "scalar_operations": 0,
+      "scalar_groups": 0,
+      "copies": [],
+      "copy_groups": 0,
+      "repeat": 1,
+      "groups": 13,
+      "linked_groups": 13,
+      "linked_rows": [
+        "E01",
+        "E09",
+        "E10"
+      ],
+      "note": "Dedicated outer-prepaid early-input-error finalization subdivision. Owns E01+E09/EH03+E10 for EVERY input Err (including when finish reservation happened). No new operation is implied: a distinct paid branch-specific reserve owns the identical actual source. In this Err case the separate complete finish47 remains unused, with no refund. On input Ok this entire F05 reserve remains unused and finish47 owns E01-E10. No credits transfer between these branches."
+    }
+  ],
+  "charge_composition": {
+    "leaf_rows": [
+      "L01",
+      "L02",
+      "L03",
+      "L04",
+      "L05",
+      "L06",
+      "L07",
+      "L08",
+      "L09",
+      "L10",
+      "L11",
+      "L12",
+      "L13",
+      "L14"
+    ],
+    "leaf_total": 425,
+    "guard_shared_rows": [
+      "L01",
+      "L02",
+      "L03",
+      "L04",
+      "L14"
+    ],
+    "guard_total": 112,
+    "wrapper_record_rows": [
+      "W01",
+      "W02",
+      "W03",
+      "W04",
+      "W05",
+      "W06",
+      "W07",
+      "W08",
+      "W09"
+    ],
+    "wrapper_record_total": 24,
+    "setup_rows": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06"
+    ],
+    "setup_actual_bound": 329,
+    "wrapper_setup_rows": [
+      "T01",
+      "T02",
+      "T03"
+    ],
+    "wrapper_setup_total": 42,
+    "finish_rows": [
+      "E01",
+      "E02",
+      "E03",
+      "E04",
+      "E05",
+      "E06",
+      "E07",
+      "E08",
+      "E09",
+      "E10"
+    ],
+    "finish_total": 47,
+    "wrapper_final_rows": [
+      "F01",
+      "F02",
+      "F03",
+      "F04",
+      "F05"
+    ],
+    "wrapper_final_total": 42,
+    "budget_helper_setup_total": 19,
+    "budget_helper_report_total": 8,
+    "budget_helper_replay_total": 10,
+    "early_input_error_rows": [
+      "E01",
+      "E09",
+      "E10"
+    ],
+    "early_input_error_total": 13
+  },
+  "no_nested_doublecharge": "linked_groups/helper_groups are attached to parent row once; child rows are explanatory and not charged again in composition totals. Leaf return->received lives only in L14. received->Progress is W06. Guard shares source templates but uses its separate reserve, never L prepaid credits. Proposal2 F05 links the same finalizer rows only on input Err; finish47 links them only on input Ok. Both reserves may succeed but at most one owns the executed path.",
+  "funding_dispatch": {
+    "outer_charge": "F_wrapper=42 paid by budget.report before output_safety/Arena/progress/input observation",
+    "input_Err": "F05=13 owns E01+E09/EH03+E10; finish47, if paid, stays unused",
+    "input_Ok": "complete finish47 owns E01-E10; observe_inputs Ok entails walk setup/finish reservations succeeded; F05 stays unused",
+    "no_extra_runtime_discriminator": "Existing finalize input match determines the source path. S_paid/F_paid are proof variables over successful charge events, never extra Rust owners/arguments or stored booleans.",
+    "complete_finalizer_source_executions": 1,
+    "no_double_charge_of_executed_work": "One funding owner per actual dynamic finalize execution. All unused prepaid amounts remain truthful reserved credits, never reused/refunded."
+  }
+}

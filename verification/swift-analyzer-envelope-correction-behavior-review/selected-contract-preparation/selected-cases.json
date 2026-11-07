@@ -1,0 +1,440 @@
+{
+  "behavioral_passes_claimed": 0,
+  "candidate_or_proposal_accessed": false,
+  "cases": [
+    {
+      "frozen_behavior": {
+        "evidence": "call counter plus whole retained reply and candidate/arena snapshots",
+        "expected": "leaf_pending=false;no later leaf call;InternalPoisoned/InternalPoisoned;all11fields0;debit unchanged",
+        "historical_control": "review_poison_marker_prevents_any_later_leaf_call",
+        "id": "R1-exact-original",
+        "input": "reply_valid1,status1,reason15,state999;complete,soleCAP",
+        "seam": "private-owned-copy"
+      },
+      "id": "R1-exact-original",
+      "preaccess_case_sha256": "75ea2240b3dd21d043a60842b8f93d9ae81f1630211224e2a9895131e1a767c2",
+      "selected_numeric_expectation": "Status1/reason15/state999 cannot schedule another leaf. Complete CAP returns InternalPoisoned with zero extent; retain the synthetic prepaid counter supplied by the private seam.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "no state dereference or later leaf;complete=>InternalPoisoned/InternalPoisoned;limited=>AnalysisLimited/InternalPoisoned;all11fields0;actual reserved debit",
+        "id": "poison-cross-product",
+        "input": "reply_valid1;status1or3/reason15;state0,10,999;CAPor nonCAP;completeor successful limited drain",
+        "seam": "private-owned-copy"
+      },
+      "id": "poison-cross-product",
+      "preaccess_case_sha256": "0060db60b6e75fba0aa13a186818dad602849f0aa1e7c06aec2cc546ad736fee",
+      "selected_numeric_expectation": "Reason15 or status3 precedes scheduling, CAP and stale-state access. Complete poison is InternalPoisoned; successful limited poison is AnalysisLimited/InternalPoisoned. All eleven extent fields are zero.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "actual input error mapping overrides poison;framing error preserved;all11fields0;paid charges retained;no later leaf",
+        "id": "poison-later-wire-error",
+        "input": "retained R1 fault followed by malformed later record/footer,EOF erroror metadata drift",
+        "seam": "actualFile-plus-private-fault"
+      },
+      "id": "poison-later-wire-error",
+      "preaccess_case_sha256": "b86108c30acba7bdb810ce97aa978c2e7fa84bfeae11a13152878b529b03badf",
+      "selected_numeric_expectation": "A later framing error overrides retained poison. Preserve 534*S_paid+47*F_paid+425*N_B, not a leaf-execution count. Returned input Err finalizes through dedicated F05=13.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "Unavailable/EnvelopeUnavailable;all11fields0;backing never projected;actual reserved debit",
+        "id": "absent-backing",
+        "input": "reply_valid0 with Observed-shaped,poisoned,and stale invalid backing;completeor successful limited;CAPor nonCAP",
+        "seam": "private-owned-copy"
+      },
+      "id": "absent-backing",
+      "preaccess_case_sha256": "ef2ddb18120e12ddcc905882bd49ac146d91f89c3ab4bf867fa2ee4ca6ce079d",
+      "selected_numeric_expectation": "reply_valid0 never projects its backing, even poisoned garbage. Complete or successfully limited framing is Unavailable/EnvelopeUnavailable with zero extent and the actual paid debit.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "reply_valid remains0;Unavailable/EnvelopeUnavailable;all11fields0;E_SETUP*S+E_FINISH*F+E_LEAF*N;N reflects actual paid charges,not calls",
+        "id": "zero-actual-leaf-calls",
+        "input": "setup completed but no leaf returned;successful bounded drain",
+        "seam": "actualFile-private-lowered-budget"
+      },
+      "id": "zero-actual-leaf-calls",
+      "preaccess_case_sha256": "bbf0c969afe662eb0f4c607261f5dcef3ec3cc2be9df3b604db956c44dd23510",
+      "selected_numeric_expectation": "With setup and finish paid and N_B=0, debit581. No actual completed leaf reply means Unavailable/EnvelopeUnavailable and all eleven extent fields zero. A paid failed decode can instead leave N_B>0 without a reply; its input error still overrides.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "only the installed actual complete reply makes reply_valid1;no fabricated Observed0;first Steps reply may become valid",
+        "id": "reply-valid-only-after-return",
+        "input": "candidate initialized;decoded record not yet entered,leaf returned not installed,and actual complete reply installed",
+        "seam": "private-owned-copy"
+      },
+      "id": "reply-valid-only-after-return",
+      "preaccess_case_sha256": "983ad6f871c976abc1739294ee1eb5c498720cce82c2083cadbed4448fd1ca4d",
+      "selected_numeric_expectation": "Setup534, finish47 and G112 must precede candidate mutation. Candidate initialization does not set reply_valid. Only an actual complete returned-and-installed reply can do so; an actual Steps reply is valid.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "InternalPoisoned/debit0;no arena/candidate mutation;no shape,coordinateor state reconstruction",
+        "id": "absent-prior-state-before-underfunding",
+        "input": "absent prior state with funds0,1,E_LEAF-1 and malformed next record",
+        "seam": "private-owned-copy"
+      },
+      "id": "absent-prior-state-before-underfunding",
+      "preaccess_case_sha256": "fb508882bf5fc7c26a91011a45f1ff6fcca45c6cf959a9eb5ce0dc4b89d9faa0",
+      "selected_numeric_expectation": "Absent state returns InternalPoisoned/debit0 before shape or funding checks. Test funds0 through425 without inventing prior extent; no arena/candidate mutation.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "Refused/Steps;exact prior state and coordinate;private debit0;budget unchanged;whole arena/candidate unchanged;actual reply may install;no later leaf",
+        "id": "underfunded-first-and-later",
+        "input": "initialized prior state,before first normal replyor after committed record;funds0,1,E_LEAF-1;validor malformed next record",
+        "seam": "private-owned-copy"
+      },
+      "id": "underfunded-first-and-later",
+      "preaccess_case_sha256": "06b8b5ba321354a24daa271aaf3355fda7dd12b7de04ff10bf45d40c79977af4",
+      "selected_numeric_expectation": "For every remaining value0..424, first/later and valid/malformed record: actual Refused/Steps, unchanged prior state/coordinate, debit0, unchanged budget/arena/candidate. G112 is prepaid once; public main-paid425 remains reserved.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "one-below=>atomic Steps/debit0;exactand above=>normal specified transition with E_LEAF debit;no extra credit source",
+        "id": "exact-leaf-funding",
+        "input": "same valid next record and prior state with funds E_LEAF-1,E_LEAF,E_LEAF+1",
+        "seam": "private-owned-copy"
+      },
+      "id": "exact-leaf-funding",
+      "preaccess_case_sha256": "6924aee1bbbf17aa3c85b1c5db75a2b11bef47f0591aa5842b2a61168abde84f",
+      "selected_numeric_expectation": "Funds424 => Steps/debit0/no mutation. Funds425 and426 admit the specified valid transition with debit425; remaining0 and1 respectively. No fresh replay credit is introduced.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "first exact fixed refusal reason;prior committed arena/candidate/coordinate unchanged;paid E_LEAF retained;later framing continues and later leaves skip",
+        "id": "ordinary-refusal-atomic",
+        "input": "paid malformed shape,coordinateoverflow,identity,stage,phaseorlatch refusal",
+        "seam": "actualFile-and-private"
+      },
+      "id": "ordinary-refusal-atomic",
+      "preaccess_case_sha256": "9ad2895cab5abecf114a4e03cc55cc8a6364182d6ca0d8eddbf821864285b622",
+      "selected_numeric_expectation": "Every successfully charged record includes425 before decode. Paid ordinary refusals retain425, preserve the prior complete state and latch. No later leaf call resumes.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "prechecked refusal/poison contract before any candidateor arena write;whole available arena/candidate unchanged;paid debit retained;no normal boundary",
+        "id": "last-cell-boundary",
+        "input": "arena truncated at final selected cell;valid record and fully funded leaf",
+        "seam": "private-owned-copy"
+      },
+      "id": "last-cell-boundary",
+      "preaccess_case_sha256": "1d5f5fe0cc146c50e132824334ea7e73f24a56e63f4e01d72a04f5f373bdb015",
+      "selected_numeric_expectation": "At the last selected-cell byte boundary, check every address before any write. A fully prepaid425 call returns poison on missing required state, keeps all available arena/candidate bytes unchanged and retains425.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "InternalPoisoned;all public fixture fields0;no rollbackor prior-prefix claim;no later leaf;no added production fault API",
+        "id": "partial-commit-fault",
+        "input": "fault after commit begins if a bounded private seam is admissible",
+        "seam": "private-owned-copy-test-only"
+      },
+      "id": "partial-commit-fault",
+      "preaccess_case_sha256": "f0cd8ea52f5b3c081a30f22b16680f1ab14d7663a96bb1f97eb9fbbdbdc86a60",
+      "selected_numeric_expectation": "If an admissible private seam exists after exact-source admission, a partial commit must poison, suppress extent and stop later calls. No rollback, fabricated prior extent or production fault API. Charge425 remains paid.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "CapCutUnknownTail/Observed;exact last committed fixture state;no invented closure,phasebits,terminalFailureor uncaptured tail;hard_false invariant",
+        "id": "complete-sole-cap-eleven-states",
+        "input": "each supported Idle0through Built10 cut by intact soleCAP",
+        "seam": "actualFile"
+      },
+      "id": "complete-sole-cap-eleven-states",
+      "preaccess_case_sha256": "60ac7bc26b5da93188f8d315bbfb34f0f3ce88199f0caeb0bce405dbf61943df",
+      "selected_numeric_expectation": "All eleven supported states remain CapCutUnknownTail/Observed after complete sole-CAP framing. Debit is581+425*N_B when setup/finish succeeded. No closure or missing tail is invented.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "closed=>ClosedEnvelopeObserved/Observed;other supported boundary=>Refused/IncompleteBoundary;safe fixture extent only",
+        "id": "complete-noncap-finality",
+        "input": "supported Observed reply;Idle/phase5/exact mask versus openstateor incomplete phase/mask;strictEOFand final metadata successful",
+        "seam": "actualFile-and-private"
+      },
+      "id": "complete-noncap-finality",
+      "preaccess_case_sha256": "3bed9af840aa194fe1f4ce3b424a4aa28cdfb4fdc6115fdd76c0e7e737f21a25",
+      "selected_numeric_expectation": "Strict EOF and all final metadata are mandatory. Only supported Idle/phase5/exact mask closes. Other supported non-CAP boundaries are Refused/IncompleteBoundary. No counter changes during finalization beyond already reserved finish47.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "Absent=>Unavailable/EnvelopeUnavailable/zero;Observed=>AnalysisLimited/FramingLimited/safeextent;Refused=>AnalysisLimited/firstreason/safeextent;Poisoned=>AnalysisLimited/InternalPoisoned/zero",
+        "id": "successful-limited-table",
+        "input": "bounded drain completes with footer,EOFand metadata success;Absent,Observed,Refused,Poisoned retained values",
+        "seam": "actualFile-private-lowered-budget"
+      },
+      "id": "successful-limited-table",
+      "preaccess_case_sha256": "1f2ac4cb3a6685add6f49c54a4d331445f942f3ebab9dab904ad9f1f8a8925c6",
+      "selected_numeric_expectation": "Absent => unavailable/zero; Observed => AnalysisLimited/FramingLimited/safe extent; Refused => AnalysisLimited/first reason/safe extent; poison => AnalysisLimited/InternalPoisoned/zero. Preserve581+425*N_B after paid setup/finish.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "input error map;all11fields0;actual framing classification;no successful partial envelope;actual paid debit retained",
+        "id": "failed-limited-drain",
+        "input": "limit reached then drain budget,IO,footer,EOFor metadata fails",
+        "seam": "private-scripted-IO-plus-actualFile-footer"
+      },
+      "id": "failed-limited-drain",
+      "preaccess_case_sha256": "e08d7fc618a876b0722d822069eb199f1f2ce028a5c81afcbaac0cb427cbdfea",
+      "selected_numeric_expectation": "A failed drain is an input Err, not a partial envelope. Input BINDING/BUDGET/other maps to reason16/18/17; extent is zero and paid debit survives. F05=13 funds this error path even if finish47 was paid.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "Unavailable/UnavailableState;all11fields0;poison reason15 first before stale state;input errors override;no normal finish",
+        "id": "invalid-private-values",
+        "input": "unknownstatus/reason/state,phase6,mask64,latch2,unsupported flags,or inconsistent complete/limited/returned combination",
+        "seam": "private-owned-copy"
+      },
+      "id": "invalid-private-values",
+      "preaccess_case_sha256": "91d292f0ed7f65fb58fc9697eabd2bb94cc28bde21ef6d79aa9334ae7babf0ac",
+      "selected_numeric_expectation": "Unsupported values/flag combinations fail closed with Unavailable/UnavailableState and zero extent. Reason15 poison is recognized before stale state. Actual input errors take precedence and use F05.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "preserve BindingUnavailable framing observation;Unavailable/FramingUnavailable;all11fields0;no candidate or reply fabrication",
+        "id": "unknown-context",
+        "input": "unknown context magic with safe distinct regular files",
+        "seam": "actualFile"
+      },
+      "id": "unknown-context",
+      "preaccess_case_sha256": "e254b6cbaca8e1fb4e1086d0db96fb6cc4205cec3d717655863afecd3fd885ac",
+      "selected_numeric_expectation": "Unknown fixture context preserves BindingUnavailable framing and returns Unavailable/FramingUnavailable, zero extent. Do not charge unentered main setup/finish/record terms; actual counters govern debit.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "actual input error classification and stage preserved;Unavailable with selected input reason;all11fields0;no unearned setupor record debit",
+        "id": "context-profile-header-errors",
+        "input": "closed field,reserved,echo,width,length,bodyjoinor arithmetic failures at context/profile/header stages",
+        "seam": "actualFile"
+      },
+      "id": "context-profile-header-errors",
+      "preaccess_case_sha256": "e395d0a7f96ab05a8d8912b52609e2522acf8225c25ef044d84cfef3e0c9a0a5",
+      "selected_numeric_expectation": "Keep actual framing stage/classification and zero envelope extent. Preserve only successful main534/47/425 reservations. Every returned input Err has separately funded F05=13, with no reuse of inactive finish credits.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "failed reservations do not increment S/F;no candidate initialization before successful required reservations;funded fixed error finalization only;input BUDGET=>Unavailable/FramingLimited/zero;no borrowed future-path funding",
+        "id": "setup-finish-admission",
+        "input": "onebelowand exact complete named setup/finish/wrapper early-error reservations",
+        "seam": "private-owned-copy-lowered-budget"
+      },
+      "id": "setup-finish-admission",
+      "preaccess_case_sha256": "883b6fb1b68826758c12f1298f4fe61a4638184bdc0923929df2e48ed2b17df5",
+      "selected_numeric_expectation": "Main setup failure=>debit0; setup paid then finish failure=>534; setup+finish paid then guard failure=>581. All are pre-candidate input BUDGET errors with zero extent and F05=13 finalization. Exact reservation boundaries await a mechanical map to admitted source.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "below=>no record decode,leafcallor halfadvance;exact=>atomic B_RECORD charge beforedecode;successful drain uses limitedtable;bad footer overrides;threshold derived afresh",
+        "id": "next-record-preflight",
+        "input": "actual selected combined schedule at exact8192 next-record preflightand onebelow after separately reserved work",
+        "seam": "actualFile-private-lowered-budget"
+      },
+      "id": "next-record-preflight",
+      "preaccess_case_sha256": "f0283687a29e5b61a830baae5c5c99f9fe7f03b3bd7962f53d8d632495f88026",
+      "selected_numeric_expectation": "Next-record funds8191 stop before decode/leaf;8192 permit atomic B471 before decode. B471 is22+425+24. Derive the complete lowered-limit threshold afresh after exact-source setup/report/IO charges; do not reuse a historical threshold or claim capacity.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "N increments;public debit includes E_LEAF;no refund;reply_valid does not fabricate;input error map and all11fields0;framing preserved",
+        "id": "paid-decode-failure",
+        "input": "successful B_RECORD charge then read/decode/framing failure before leaf return",
+        "seam": "actualFile-and-private-scripted-IO"
+      },
+      "id": "paid-decode-failure",
+      "preaccess_case_sha256": "d3296592087a2e8cb1a2c0781bb214e7616da0cef4da27d9bb6438da6c2116da",
+      "selected_numeric_expectation": "With setup/finish paid, one B471 followed by failed decode produces public debit1006, even with zero leaf replies. Two such paid charges produce1431. Input error suppresses all extent and routes through F05=13; no refund.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "first reply stays latched;no later leaf calls;framing cursor advances independently;every successful B_RECORD adds E_LEAF;later malformed framing suppresses extent",
+        "id": "paid-latched-skip",
+        "input": "one refusalor poison followed by independently decodable records before footer",
+        "seam": "actualFile-plus-private-counter"
+      },
+      "id": "paid-latched-skip",
+      "preaccess_case_sha256": "dde46ee5b43b65868b81ff7c9caae61977e57b827b38ff584e4a5589032e9b23",
+      "selected_numeric_expectation": "One paid record then a second B471 whose leaf is skipped yields public debit1431 with setup/finish paid. Count actual charges independently of calls. First refusal/poison stays latched; later framing error zeroes extent without refund.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "actual input error map always overrides;all11fields0;reserved debit retained;Decision::Unavailable alone never admits complete finality",
+        "id": "late-record-footer-EOF-metadata",
+        "input": "validclosed,refused,capor poisoned early leaf followed by late record/footer corruption,extraEOFbyte,EOFerroror exact metadata drift",
+        "seam": "actualFile-and-private-scripted-IO"
+      },
+      "id": "late-record-footer-EOF-metadata",
+      "preaccess_case_sha256": "a8957aec6a12b26f32a9328725f8e3359c3e1c64ea2bdff2b5a24b0ebf274ea8",
+      "selected_numeric_expectation": "Late actual error overrides closed/refused/CAP/poisoned state, preserves exact framing classification and534*S_paid+47*F_paid+425*N_B, and clears all eleven extent fields. Dedicated F05=13 pays returned input Err finalization.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "outer fixed Err;no aggregate;no source writes,truncate,reopenor duplicate;admissible test seam only;preserve actual bytesand error",
+        "id": "outer-safety-and-allocation",
+        "input": "unknownidentity,pairwisealias,hardlink/clonealias,nonregular/nonempty/nonzero-cursor output,Budget constructionor allocation failure",
+        "seam": "actualFile-and-private-fallible-allocation"
+      },
+      "id": "outer-safety-and-allocation",
+      "preaccess_case_sha256": "156e745cbdc551642301aa74c4ba666719fdefe2e0ff2102e0084d9e4ada994f",
+      "selected_numeric_expectation": "Output safety/Budget construction/allocation errors remain outer Err with no aggregate. No public debit or extent is fabricated. No source write, truncate, reopen, clone owner or unauthorized fault API.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "unchanged bounded IO/error semantics;failed read invents no bytes;write/postwrite failures outerErr;partial physical report retained as failed output;no successful aggregate",
+        "id": "bounded-IO-and-report-errors",
+        "input": "short,Interrupted,zero,impossiblecounts,nonInterruptederror,attempt exhaustion;prewrite/postwrite drift",
+        "seam": "private-scripted-IO"
+      },
+      "id": "bounded-IO-and-report-errors",
+      "preaccess_case_sha256": "343faa3f452715883ff899da1da870aa2687817159876be814bc4c4de8e237c3",
+      "selected_numeric_expectation": "Preserve existing bounded IO and fixed report failure semantics. Returned input Err uses F05=13; output/write/postwrite failure is outer Err with no aggregate. Partial physical output is failed evidence, never an observation.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "exact accepted finite stage/reason/state/coordinate rules;no inferred success stagesor failure applicability;framing remains independent",
+        "id": "finite-stage-and-failure-sequences",
+        "input": "closedhit/build/eviction,all ordinary kindsafterphase5,phase4,independent/absent Failurecursor,forbiddenresume,legalIdleReleaseafterpin/terminalFailure",
+        "seam": "actualFile"
+      },
+      "id": "finite-stage-and-failure-sequences",
+      "preaccess_case_sha256": "17282cf6a904056b35b73c87b3784fa7cf9278b6df52ea4aecf7119899818625",
+      "selected_numeric_expectation": "Finite transition/reason/state/coordinate behavior is unchanged; each successful normal private admission costs425. Retain independent Failure cursors, legal Idle Release, no resumption and phase5 terminality. No semantic authority.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "one stable2048candidate;only888..983 leafpayloadand12selectedarena cells change;remainingcandidatebytes zero;initialization source dead before loop;no retainedborrow,perrecordallocationor owner move;refusals comparewholeprepost",
+        "id": "candidate-and-arena-footprint",
+        "input": "setup,repeatedacceptedcalls,ordinaryrefusal,underfunding,poisonandfinish",
+        "seam": "private-owned-copy-plus-source-review"
+      },
+      "id": "candidate-and-arena-footprint",
+      "preaccess_case_sha256": "ef506e3f78a3d2aa38bcddd6f4589a3ef885f56cd721dcd2cdcb8cba2914c65b",
+      "selected_numeric_expectation": "One retained Candidate2048; only bytes888..983 and twelve named scalar cells change through the leaf. G112 precedes mutation; no per-record owner, rezero, allocator, IO or callback. Underfunded/refused controls compare whole snapshots.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "compiles with exactselectedtypes;all semantic/acceptance getters false;fixture coordinates explicitly nonsemantic",
+        "id": "public-API-positive",
+        "input": "old entry plus selected separate new safeFile entry and immutable borrowed getters",
+        "seam": "external-compiler-probe-later"
+      },
+      "id": "public-API-positive",
+      "preaccess_case_sha256": "9621fed895f365c8d451f9712a12d43f8c7d50ea93a42874a86a9f355e23e5b2",
+      "selected_numeric_expectation": "Future positive compiler probe uses exact admitted safe-File entry and immutable getters. Public report stays49152 bytes, semantics/acceptance stay false. Compile/execution is currently forbidden.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "each independently fails for intended public restriction;no alternate authority or descriptorowner API",
+        "id": "public-API-negative",
+        "input": "private record/leaf import,arbitrarywords/trustboolean constructor,aggregatefieldwrite,observationCopy,aggregateClone,authorityor rawdescriptor constructor",
+        "seam": "external-compiler-probes-later"
+      },
+      "id": "public-API-negative",
+      "preaccess_case_sha256": "885567df1f28da4d4be108d797de868ebb5b3e79fa56529698904013fe7fcf11",
+      "selected_numeric_expectation": "Future separate negative probes reject private record/leaf access, arbitrary-word/trust-bool construction, aggregate mutation, observation Copy, aggregate Clone, raw serializer and descriptor/authority constructors. No probe compiled now.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "old ABI/reportlayout/version/mask/reserved/semanticzeros unchanged;all framing fields equal except truthful selectedsteps;reportbytecomparison permits only authoredstepword change;no historical64timeout replay promoted",
+        "id": "old-framing-and-fixed-report",
+        "input": "paired old/new entries over independently frozen finite fixtures;separately selected unchanged compatibilitymethods",
+        "seam": "actualFile-later"
+      },
+      "id": "old-framing-and-fixed-report",
+      "preaccess_case_sha256": "9c65e30f3a720f1beba646bbed104e0889e59ec15f9b05e98fa304bf97d4df97",
+      "selected_numeric_expectation": "Preserve accepted old entry/ABI/report/version/mask/reserved zeros. New public debit is selected534/47/425; truthful total authored steps include separately reserved wrapper/G. Paired report differences require an exact field allowlist. No original64 retry.",
+      "status": "pending-no-candidate-access-or-execution"
+    },
+    {
+      "frozen_behavior": {
+        "expected": "separate sourceproof under unchangedceilings;behavioralpass cannot discharge accounting;new costs remain unselected until root amendment",
+        "id": "complete-memory-and-lifetime-handoff",
+        "input": "future exactsource complete arguments,Result/Option/enum/metadata/IO/publicreply/return/callermoveandlexicalphases",
+        "seam": "independent-accountant-handoff"
+      },
+      "id": "complete-memory-and-lifetime-handoff",
+      "preaccess_case_sha256": "eb7a46b19dac3900b804336a3cf45d408cdbd14e914d4165360d2763e7e770f8",
+      "selected_numeric_expectation": "Selected contract names24656-byte upper within41984 reservation/65536 ceiling; behavioral checks do not qualify exact-source accounting. Candidate source, types, moves, Results and lexical overlap remain pending final accounting review.",
+      "status": "pending-no-candidate-access-or-execution"
+    }
+  ],
+  "compiler_calls": 0,
+  "cost_dependent_executions": 0,
+  "expected_public_debit_examples": {
+    "finish_failure_after_setup": 534,
+    "guard_failure_after_setup_and_finish": 581,
+    "setup_failure": 0,
+    "setup_finish_paid_no_record": 581,
+    "setup_finish_paid_one_record_decode_failure": 1006,
+    "setup_finish_paid_two_records_second_leaf_skipped": 1431
+  },
+  "funding_route": {
+    "G112": "prepaid before candidate mutation, usable at most once, total authored steps only",
+    "input_Err": "dedicated outer F05=13, even when finish47 was paid; no refund or inactive credit reassignment",
+    "input_Ok": "finish47; F05 stays unused; successful walk setup/finish is implied"
+  },
+  "ga_gate_promotions": 0,
+  "implementation_acceptance": false,
+  "parameter_bindings": {
+    "B_RECORD": 471,
+    "E_FINISH": 47,
+    "E_LEAF": 425,
+    "E_SETUP": 534,
+    "F05_early_error": 13,
+    "F_base": 29,
+    "G": 112,
+    "W_FINISH": 42,
+    "W_RECORD": 24,
+    "W_SETUP": 42
+  },
+  "positive_private_funding_controls": [
+    425,
+    426
+  ],
+  "prepared_source_scope": {
+    "expected_observation.rs": "pending normalized public assertions; actual safe-File adapter is not yet supplied",
+    "owned_runner.py": "unexecuted future bounded runner; its qualification is pending",
+    "private_controls.rs": "six pending methods covering R1, poison product, absent backing, all underfunded values, exact funding and last checked cell"
+  },
+  "private_underfunded_values_inclusive": [
+    0,
+    424
+  ],
+  "protected_baseline_seal_sha256": "582d0ab43c078caeb9142650390345eee3076c6114c35d217f1964f460e324da",
+  "public_formula": "534*S_paid + 47*F_paid + 425*N_B",
+  "root_selection": "verification/swift-ordered-retention-analyzer-envelope-root-review/correction-numeric-contract-selection.json",
+  "root_selection_sha256": "199dfa75b024d04eeef28f2f40165115797a0bbb3d09a2405426172d8339867c",
+  "schema": 1,
+  "status": "selected-expectations-prepared-all-controls-pending"
+}

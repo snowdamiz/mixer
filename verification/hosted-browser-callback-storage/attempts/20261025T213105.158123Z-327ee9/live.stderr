@@ -1,0 +1,23 @@
+    warning: unknown key .message in expression:
+
+        error.message
+
+    the given type does not have the given key:
+
+        %{..., __exception__: term(), __struct__: atom()}
+
+    where "error" was given the type:
+
+        # type: %{..., __exception__: term(), __struct__: atom()}
+        # from: verification/hosted-browser-callback-storage/live.exs
+        rescue error
+
+    hint: when you rescue without specifying exception names, the variable is assigned a type of a struct but all of its fields are unknown. If you are trying to access an exception's :message key, either specify the exception names or use `Exception.message/1`.
+
+    type warning found at:
+    │
+ 97 │              error.message in [
+    │                    ~~~~~~~
+    │
+    └─ verification/hosted-browser-callback-storage/live.exs:97:20: CallbackFixture.record_selected/2
+

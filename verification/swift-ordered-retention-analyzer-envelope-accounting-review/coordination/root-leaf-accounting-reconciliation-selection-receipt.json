@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-26T00:25:46.179577+00:00",
+  "before_after_match": true,
+  "bytes": 1696,
+  "command": [
+    "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python",
+    "-B",
+    "-c",
+    "import datetime,hashlib,json,pathlib,sys; src=pathlib.Path(\"verification/swift-ordered-retention-analyzer-envelope-root-review/leaf-accounting-reconciliation-selection.json\"); data=src.read_bytes(); actual=hashlib.sha256(data).hexdigest(); expected=\"9b8de2ab2c7a8d3e72dbb934aec046e22473e3e20a1fee187ef9053534f2b362\"; assert actual==expected; dst=pathlib.Path(\"verification/swift-ordered-retention-analyzer-envelope-accounting-review/coordination/root-leaf-accounting-reconciliation-selection.json\"); assert not dst.exists(); dst.write_bytes(data); receipt={\"schema\":1,\"at\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"command\":sys.orig_argv,\"source\":str(src),\"copy\":str(dst),\"bytes\":len(data),\"sha256\":actual,\"expected_sha256\":expected,\"separate_from_initial_six_inputs\":True,\"before_after_match\":hashlib.sha256(src.read_bytes()).hexdigest()==actual,\"numeric_acceptance\":False,\"mutable_implementation_read\":False}; out=dst.with_name(\"root-leaf-accounting-reconciliation-selection-receipt.json\"); assert not out.exists(); out.write_text(json.dumps(receipt,indent=2,sort_keys=True)+\"\\n\"); print(json.dumps({\"bytes\":len(data),\"sha256\":actual,\"before_after_match\":receipt[\"before_after_match\"],\"numeric_acceptance\":False},sort_keys=True))"
+  ],
+  "copy": "verification/swift-ordered-retention-analyzer-envelope-accounting-review/coordination/root-leaf-accounting-reconciliation-selection.json",
+  "expected_sha256": "9b8de2ab2c7a8d3e72dbb934aec046e22473e3e20a1fee187ef9053534f2b362",
+  "mutable_implementation_read": false,
+  "numeric_acceptance": false,
+  "schema": 1,
+  "separate_from_initial_six_inputs": true,
+  "sha256": "9b8de2ab2c7a8d3e72dbb934aec046e22473e3e20a1fee187ef9053534f2b362",
+  "source": "verification/swift-ordered-retention-analyzer-envelope-root-review/leaf-accounting-reconciliation-selection.json"
+}

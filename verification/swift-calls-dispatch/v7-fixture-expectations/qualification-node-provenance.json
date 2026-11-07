@@ -1,0 +1,31 @@
+{
+  "actualPath": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+  "bytes": 112925600,
+  "candidateSourceClosure": "78e2586b41f698c60e1bcd4cdd4abb33fbf98d747d1ee183a793988dea7b5237",
+  "dependencyInventory": "THIRD_PARTY.yml existing Node.js V8 and WASI development-only entry; never linked into product",
+  "executableSHA256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b",
+  "observedUTC": "2026-10-24T19:04:48.361626+00:00",
+  "oracleArgv": [
+    "node",
+    "-e",
+    "\nconst fs = require('node:fs');\nfor (const c of JSON.parse(fs.readFileSync(0, 'utf8'))) {\n  const i = new WebAssembly.Instance(new WebAssembly.Module(Buffer.from(c.hex, 'hex')));\n  let result;\n  try {\n    const v = i.exports.run();\n    if (c.ty === 'none') result = 'none';\n    else if (c.ty === 'i32' || c.ty === 'i64') result = c.ty + ':' + v;\n    else if (Number.isNaN(v)) result = c.ty === 'f32' ? 'nan32' : 'nan64';\n    else { const d = new DataView(new ArrayBuffer(8)); if (c.ty === 'f32') { d.setFloat32(0, v, true); result = 'f32:' + d.getUint32(0, true); } else { d.setFloat64(0, v, true); result = 'f64:' + d.getBigUint64(0, true); } }\n  } catch (e) { if (!(e instanceof WebAssembly.RuntimeError)) throw e; result = 'trap'; }\n  const memory = i.exports.memory ? new Uint8Array(i.exports.memory.buffer) : [];\n  let hash = 2166136261; for (const b of memory) hash = Math.imul(hash ^ b, 16777619) >>> 0;\n  console.log(result + '/' + hash + '/' + memory.length);\n}\n"
+  ],
+  "producerSealSHA256": "79089f1ef382a14e02fbbbf0a6e6dcd0a67158bcfa5354d565a5b037b1d149b2",
+  "resolvedPATH": "/Users/andreyyurlov/.local/state/fnm_multishells/47185_1792819498381/bin/node",
+  "rootRuntimeSelectionPending": true,
+  "schema": 1,
+  "scope": "Existing original Frozen development-only Node oracle; no Wasm execution in this metadata capture",
+  "script": "\nconst fs = require('node:fs');\nfor (const c of JSON.parse(fs.readFileSync(0, 'utf8'))) {\n  const i = new WebAssembly.Instance(new WebAssembly.Module(Buffer.from(c.hex, 'hex')));\n  let result;\n  try {\n    const v = i.exports.run();\n    if (c.ty === 'none') result = 'none';\n    else if (c.ty === 'i32' || c.ty === 'i64') result = c.ty + ':' + v;\n    else if (Number.isNaN(v)) result = c.ty === 'f32' ? 'nan32' : 'nan64';\n    else { const d = new DataView(new ArrayBuffer(8)); if (c.ty === 'f32') { d.setFloat32(0, v, true); result = 'f32:' + d.getUint32(0, true); } else { d.setFloat64(0, v, true); result = 'f64:' + d.getBigUint64(0, true); } }\n  } catch (e) { if (!(e instanceof WebAssembly.RuntimeError)) throw e; result = 'trap'; }\n  const memory = i.exports.memory ? new Uint8Array(i.exports.memory.buffer) : [];\n  let hash = 2166136261; for (const b of memory) hash = Math.imul(hash ^ b, 16777619) >>> 0;\n  console.log(result + '/' + hash + '/' + memory.length);\n}\n",
+  "scriptBytes": 971,
+  "scriptSHA256": "23750ec1c461fc1c7bd9e080d034d5101d408f9d55d310c966c84f5cf3818de6",
+  "source": "tests/span_execution_oracle.rs",
+  "sourceSHA256": "3725f2a95a439a6b2998a7c85bd06a5fd22bebe2112ec6644ecfe974b117f8a2",
+  "stdin": "Deterministic original first-party fixture-generated JSON; construction bound by unchanged oracle source and source closure",
+  "versionCommand": {
+    "argv": [
+      "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+      "--version"
+    ],
+    "stdout": "v22.23.3\n"
+  }
+}

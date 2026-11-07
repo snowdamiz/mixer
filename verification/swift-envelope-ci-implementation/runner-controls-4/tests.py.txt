@@ -1,0 +1,313 @@
+"""Failure controls for the closed envelope runner, independent of product behavior."""
+import gzip
+import importlib.util
+import json
+import os
+from pathlib import Path
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+import unittest
+from unittest import mock
+
+ROOT = Path(__file__).resolve().parents[3]
+RUNNER = ROOT / 'scripts/ci/check-analyzer-envelope.py'
+spec = importlib.util.spec_from_file_location('envelope_runner', RUNNER)
+r = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(r)
+
+
+class RunnerControls(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='mixer-envelope-runner-controls-')
+        self.base = Path(self.temp.name).resolve()
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def raises(self, function, *args, **kwargs):
+        with self.assertRaises((RuntimeError, OSError, ValueError)):
+            function(*args, **kwargs)
+
+    def commands(self, suffix='commands', deadline=30):
+        out = self.base / suffix
+        out.mkdir()
+        receipt = {'commands': []}
+        return r.Commands(out, receipt, time.monotonic() + deadline)
+
+    def pack(self):
+        p = self.base / 'pack'
+        shutil.copytree(ROOT / r.PACK, p)
+        return p
+
+    def scratch(self):
+        out = self.base / 'out'; out.mkdir()
+        c = r.Commands(out, {'commands': []}, time.monotonic()+30)
+        scratch = out/'scratch'; scratch.mkdir()
+        marker = {'token': 'test-owned-marker'}
+        (scratch/'ownership.json').write_text(json.dumps(marker))
+        return out, scratch, r.scratch_identity(scratch), marker, c
+
+    def test_closed_pack_and_exact_relative_augmentations(self):
+        m = r.verify_pack(ROOT/r.PACK)
+        self.assertEqual(m['member_count'], 86)
+        self.assertEqual(m['selected_original_count'], 60)
+        self.assertEqual(m['selected_original_bytes'], 7957311)
+        out = self.base/'snapshot'; out.mkdir()
+        copied = r.copy_pack(ROOT/r.PACK, out, m)
+        self.assertEqual(r.verify_pack(copied), m)
+        self.assertEqual(r.sha(copied/'source/library/envelope.rs'), r.ENVELOPE_SHA256)
+
+    def test_manifest_and_unexpected_member_mutations_fail(self):
+        p = self.pack()
+        (p/'unexpected').write_bytes(b'extra')
+        self.raises(r.verify_pack, p)
+        (p/'unexpected').unlink()
+        (p/'manifest.json').write_text('{}')
+        self.raises(r.verify_pack, p)
+
+    def test_missing_source_or_mutated_overlay_fail(self):
+        p = self.pack()
+        source = p/'source/producer/inputs/framing.rs'
+        data = source.read_bytes(); source.write_bytes(data+b'\n')
+        self.raises(r.verify_pack, p)
+        self.raises(r.verify_sources, p)
+        source.unlink()
+        self.raises(r.verify_pack, p)
+
+    def test_symlink_ancestor_and_member_nonregular_refusal(self):
+        p = self.pack(); source = p/'api/no-clone.rs'
+        source.unlink(); source.symlink_to(p/'api/no-copy.rs')
+        self.raises(r.verify_pack, p)
+        alias = self.base/'alias'; alias.symlink_to(p, target_is_directory=True)
+        self.raises(r.verify_pack, alias)
+        source.unlink(); os.mkfifo(source)
+        self.raises(r.verify_pack, p)
+
+    def test_member_traversal_alias_and_git_paths_refused(self):
+        for name in ('', '.', '../x', 'a/../b', '/x', 'a//b', './x', 'a/./b', '.git/x', 'a\\b', 'x\x00'):
+            self.raises(r.member_path, name)
+        self.assertEqual(r.member_path('a/b'), Path('a/b'))
+
+    def test_output_existing_symlink_and_historical_refused(self):
+        existing = self.base/'existing'; existing.mkdir()
+        self.raises(r.fresh_output, existing)
+        alias = self.base/'alias'; alias.symlink_to(existing, target_is_directory=True)
+        self.raises(r.fresh_output, alias/'new')
+        self.raises(r.fresh_output, self.base/'a/../new')
+        self.raises(r.fresh_output, ROOT/r.PACK/'new')
+        self.raises(r.fresh_output, ROOT/'verification/swift-envelope-ci-contract/new')
+        out = r.fresh_output(self.base/'fresh')
+        self.assertTrue((out/'output-ownership.json').is_file())
+
+    def test_checks_remain_active_under_python_optimization(self):
+        code = "import importlib.util; s=importlib.util.spec_from_file_location('r',%r);r=importlib.util.module_from_spec(s);s.loader.exec_module(r);r.member_path('../escape')" % str(RUNNER)
+        p = subprocess.run([sys.executable, '-O', '-B', '-c', code], capture_output=True, timeout=15)
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn(b'Noncanonical member path', p.stderr)
+
+    def test_exact_listing_and_execution_reject_empty_ignored_substitution(self):
+        names = ['a', 'b']
+        listing = 'a: test\nb: test\n\n2 tests, 0 benchmarks\n'
+        self.assertEqual(r.verify_methods(listing, names), names)
+        good = 'running 2 tests\ntest a ... hello\nok\ntest b ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.1s\n'
+        self.assertEqual(r.verify_methods(good, names, True), names)
+        for bad in ('', listing.replace('b:', 'c:'), listing.replace('b: test', 'a: test')):
+            self.raises(r.verify_methods, bad, names)
+        for bad in (good.replace('0 ignored', '1 ignored'), good.replace('test b', 'test c'), good.replace('2 passed', '1 passed'), good.replace('test b ... ok', 'test b ... ignored')):
+            self.raises(r.verify_methods, bad, names, True)
+
+    def test_independent_lint_allowance_is_fixed_and_cannot_leak(self):
+        producer = r.test_compile_argv(Path('/selected/rustc'), 'producer', Path('/owned/producer'))
+        independent = r.test_compile_argv(Path('/selected/rustc'), 'independent', Path('/owned/independent'))
+        self.assertEqual(producer, [Path('/selected/rustc'), '--edition=2024', '-Dwarnings', '--test',
+                                  'source/producer/independent_tests.rs', '-o', Path('/owned/producer')])
+        self.assertEqual(independent, [Path('/selected/rustc'), '--edition=2024', '-Dwarnings', '-A',
+                                     'non_snake_case', '--test', 'source/independent/source/analyzer.rs',
+                                     '-o', Path('/owned/independent')])
+        self.raises(r.test_compile_argv, Path('/selected/rustc'), 'api', Path('/owned/api'))
+        self.raises(r.test_compile_argv, Path('/selected/rustc'), 'library', Path('/owned/library'))
+        self.assertNotIn('-A', producer)
+
+    def test_complete_layout_mapping_requires_fresh_complete_values(self):
+        expected = json.loads((ROOT/r.PACK/'inventories/expected-host-layouts.json').read_bytes())
+        text = 'CORRECTED_ACTUAL_COMPLETE_LAYOUTS='+json.dumps([x['bytes'] for x in expected['layouts']])
+        observed = r.verify_layouts(text, expected)
+        self.assertEqual(observed[-2:], [{'type':'std::fs::Metadata','bytes':144},{'type':'io::Result<std::fs::Metadata>','bytes':152}])
+        self.raises(r.verify_layouts, text.replace('152', '151'), expected)
+        self.raises(r.verify_layouts, text+'\n'+text, expected)
+
+    def test_missing_and_failed_compiler_preserve_command_receipt(self):
+        c = self.commands()
+        self.raises(r.select_compiler, self.base/'missing-rustc', c, ROOT, c.out)
+        self.raises(c.run, 'missing', [self.base/'missing-command'], cwd=self.base)
+        self.assertIn('spawn_error', c.receipt['commands'][-1])
+        self.raises(c.run, 'failed', [sys.executable,'-c','import sys;print("partial");sys.exit(7)'], cwd=self.base)
+        self.assertEqual((c.out/'commands/failed.stdout').read_text(), 'partial\n')
+        self.assertEqual(c.receipt['commands'][-1]['exit'], 7)
+        self.assertTrue(c.receipt['commands'][-1]['owned_group_gone'])
+
+    def test_explicit_launcher_queries_original_then_direct_sysroot(self):
+        c = self.commands()
+        toolchain = self.base/'toolchain'; (toolchain/'bin').mkdir(parents=True)
+        compiler = toolchain/'bin/rustc'
+        compiler.write_text('#!/bin/sh\nprintf "rustc 1.99.0 (test)\\nbinary: rustc\\nrelease: 1.99.0\\nhost: aarch64-apple-darwin\\n"\n')
+        compiler.chmod(0o755)
+        target = self.base/'rustup-init'
+        target.write_text('#!/bin/sh\ncase "$0" in *rustc) test "$RUSTUP_AUTO_INSTALL" = 0 || exit 8; echo "'+str(toolchain)+'";; *) echo rustup-init; exit 9;; esac\n')
+        target.chmod(0o755)
+        launcher = self.base/'rustc'; launcher.symlink_to(target)
+        with mock.patch.dict(os.environ, {'RUSTFLAGS':'malicious','RUSTC_WRAPPER':'malicious','DYLD_INSERT_LIBRARIES':'malicious'}):
+            selected, identity = r.select_compiler(launcher, c, ROOT, c.out)
+        self.assertEqual(selected, compiler)
+        self.assertEqual(c.receipt['commands'][0]['argv'][0], str(launcher))
+        self.assertEqual(c.receipt['commands'][1]['argv'][0], str(compiler))
+        self.assertNotIn('RUSTFLAGS', c.receipt['commands'][0]['environment'])
+        self.assertNotIn('DYLD_INSERT_LIBRARIES', c.receipt['commands'][0]['environment'])
+        self.assertEqual(identity['identity']['release'], '1.99.0')
+
+    def test_noncompiler_and_missing_sysroot_refused(self):
+        self.raises(r.rustc_identity, 'rustup-init 1.99.0\n')
+        self.raises(r.rustc_identity, 'rustc 1.99.0\nbinary: rustc\nrelease: 1.99.1\nhost: x\n')
+        c = self.commands(); launcher = self.base/'rustc'
+        launcher.write_text('#!/bin/sh\necho /nonexistent-mixer-toolchain\n'); launcher.chmod(0o755)
+        self.raises(r.select_compiler, launcher, c, ROOT, c.out)
+
+    def test_timeout_reaps_owned_group_retains_partial_logs(self):
+        c = self.commands()
+        # The direct parent reaps its descendant when SIGTERM is delivered by
+        # the descendant itself; runner times out while the parent still waits.
+        code = 'import subprocess,sys,time; p=subprocess.Popen([sys.executable,"-c","import time;time.sleep(.05)"]);p.wait();print("partial-before-timeout",flush=True);time.sleep(10)'
+        self.raises(c.run, 'timeout', [sys.executable,'-c',code], cwd=self.base, timeout=.2)
+        row = c.receipt['commands'][-1]
+        self.assertTrue(row['timed_out']); self.assertTrue(row['child_returned']); self.assertTrue(row['owned_group_gone'])
+        self.assertIn('partial-before-timeout', (c.out/'commands/timeout.stdout').read_text())
+
+    def test_descendant_timeout_return_and_group_identity(self):
+        c = self.commands()
+        # A real concurrent descendant inherits the owned process group. On
+        # macOS init reaps it after group termination; no global discovery.
+        code = 'import subprocess,sys,time;subprocess.Popen([sys.executable,"-c","import time;time.sleep(20)"]);print("descendant-started",flush=True);time.sleep(20)'
+        self.raises(c.run, 'descendant', [sys.executable,'-c',code], cwd=self.base, timeout=.2)
+        row = c.receipt['commands'][-1]
+        self.assertTrue(row['timed_out']); self.assertTrue(row['child_returned']); self.assertTrue(row['owned_group_gone'])
+        self.assertEqual(row['pid'], row['owned_pgid'])
+
+    def test_overall_deadline_refuses_spawn(self):
+        c = self.commands(deadline=-1)
+        self.raises(c.run, 'expired', [sys.executable,'--version'], cwd=self.base)
+        self.assertEqual(c.receipt['commands'], [])
+
+    def diagnostic(self, name, code=None, message=None, filename=None):
+        source = self.base/'api'/ (name+'.rs'); source.parent.mkdir(exist_ok=True); source.write_text('probe source bytes')
+        target = self.base/'executable'
+        expected, *tokens = r.API_TARGETS[name]
+        diag = {'level':'error','code':{'code':code or expected},'message': message or ' '.join(tokens),
+                'spans':[{'file_name':filename or 'api/'+source.name,'is_primary':True,'byte_start':0,'byte_end':5}]}
+        row = {'exit':1,'timed_out':False,'child_returned':True,'owned_group_gone':True}
+        return source,target,diag,row
+
+    def test_negative_api_requires_intended_code_target_and_primary_probe_span(self):
+        for name in r.API_TARGETS:
+            source,target,diag,row = self.diagnostic(name)
+            self.assertTrue(r.verify_negative(name,json.dumps(diag),source,target,row))
+            for change in ({'code':{'code':'E0463'}}, {'message':'missing dependency'}, {'spans':[]},
+                           {'spans':[{'file_name':'api/different.rs','is_primary':True,'byte_start':0,'byte_end':5}]}):
+                bad = dict(diag); bad.update(change)
+                self.raises(r.verify_negative,name,json.dumps(bad),source,target,row)
+            target.write_text('unexpected executable')
+            self.raises(r.verify_negative,name,json.dumps(diag),source,target,row); target.unlink()
+
+    def test_negative_api_abnormal_failure_and_extra_error_never_pass(self):
+        name='no-clone'; source,target,diag,row = self.diagnostic(name)
+        for change in ({'exit':-9},{'exit':0},{'exit':101},{'timed_out':True},{'child_returned':False},{'owned_group_gone':False}):
+            bad=dict(row);bad.update(change)
+            self.raises(r.verify_negative,name,json.dumps(diag),source,target,bad)
+        self.raises(r.verify_negative,name,json.dumps(diag)+'\n'+json.dumps({'level':'error','message':'compiler crash'}),source,target,row)
+        self.raises(r.verify_negative,name,'not JSON',source,target,row)
+
+    def test_postflight_pack_failure_does_not_suppress_tool_and_partial_snapshot_checks(self):
+        root = self.base/'root'; (root/r.PACK).mkdir(parents=True)
+        (root/r.PACK/'manifest.json').write_text('{}')
+        out = self.base/'out'; (out/'pack').mkdir(parents=True)
+        (out/'pack/partial.rs').write_text('partial retained snapshot')
+        runner = out/'runner.py'; runner.write_text('runner bytes')
+        receipt = {'errors': [], 'runner': {'sha256': r.sha(runner)}, 'python': {
+            'path': sys.executable, 'resolved_path': str(Path(sys.executable).resolve()),
+            'sha256': r.sha(Path(sys.executable).resolve())}}
+        result = r.postflight_checks(root,out,runner,receipt,None,time.monotonic()+10)
+        self.assertFalse(result['pack']['passed']); self.assertFalse(result['snapshot']['passed'])
+        self.assertTrue(result['runner']['passed']); self.assertTrue(result['python']['passed'])
+        self.assertEqual(result['snapshot-observed']['observed'][0]['path'], 'partial.rs')
+        self.assertEqual(len(receipt['errors']), 2)
+
+    def test_postflight_detects_retargeted_compiler_launcher(self):
+        out = self.base/'out'; out.mkdir()
+        tool = out/'rustc'; tool.write_bytes(b'compiler')
+        launcher = out/'launcher'; launcher.symlink_to(tool)
+        other = out/'different'; other.write_bytes(b'different compiler')
+        runner = out/'runner.py'; runner.write_bytes(b'runner')
+        receipt = {'errors': [], 'runner': {'sha256':r.sha(runner)}, 'python': {
+            'path':sys.executable,'resolved_path':str(Path(sys.executable).resolve()),
+            'sha256':r.sha(Path(sys.executable).resolve())}, 'rustc': {
+            'launcher':str(launcher),'launcher_target':str(tool),
+            'launcher_sha256':r.sha(tool),'sha256':r.sha(tool)}}
+        launcher.unlink();launcher.symlink_to(other)
+        result=r.postflight_checks(ROOT,out,runner,receipt,tool,time.monotonic()+10)
+        self.assertTrue(result['compiler']['passed']);self.assertFalse(result['launcher']['passed'])
+
+    def test_retains_independent_reports_input_and_product_hashes(self):
+        out,scratch,identity,marker,c = self.scratch()
+        (scratch/'independent-files').mkdir()
+        (scratch/'independent-files/report').write_bytes(b'actual File report\x00')
+        (scratch/'independent-files/input').write_bytes(b'input')
+        (scratch/'producer-tests').write_bytes(b'compiler-product')
+        result = r.preserve_and_cleanup(out,scratch,identity,marker,{'producer-tests'},c)
+        self.assertTrue(result['removed']); self.assertFalse(scratch.exists())
+        self.assertEqual((out/'retained/independent-files/report').read_bytes(),b'actual File report\x00')
+        self.assertIn('producer-tests',result['compiler_products'])
+        self.assertFalse((out/'retained/producer-tests').exists())
+
+    def test_sparse_failure_lossless_streaming_compression(self):
+        out,scratch,identity,marker,c = self.scratch()
+        source=scratch/'sparse-input'
+        with source.open('wb') as f:
+            f.write(b'first');f.seek(20*1024*1024);f.write(b'last')
+        expected=r.sha(source)
+        result=r.preserve_and_cleanup(out,scratch,identity,marker,set(),c)
+        record=result['test_files']['sparse-input']
+        self.assertEqual(record['encoding'],'gzip');self.assertEqual(record['original_sha256'],expected)
+        self.assertEqual(record['original_bytes'],20*1024*1024+4)
+        self.assertLess(record['bytes'],100000)
+        with gzip.open(out/record['path'],'rb') as f:
+            self.assertEqual(f.read(5),b'first');f.seek(20*1024*1024);self.assertEqual(f.read(),b'last')
+
+    def test_changed_scratch_inode_marker_symlink_special_or_live_child_preserved(self):
+        out,scratch,identity,marker,c = self.scratch()
+        self.raises(r.preserve_and_cleanup,out,scratch,[identity[0],identity[1]+1,identity[2]],marker,set(),c)
+        self.assertTrue(scratch.exists())
+        (scratch/'ownership.json').write_text('{}')
+        self.raises(r.preserve_and_cleanup,out,scratch,identity,marker,set(),c)
+        (scratch/'ownership.json').write_text(json.dumps(marker))
+        (scratch/'link').symlink_to(scratch/'ownership.json')
+        self.raises(r.preserve_and_cleanup,out,scratch,identity,marker,set(),c);(scratch/'link').unlink()
+        os.mkfifo(scratch/'pipe')
+        self.raises(r.preserve_and_cleanup,out,scratch,identity,marker,set(),c);(scratch/'pipe').unlink()
+        c.receipt['commands'].append({'pid':123,'owned_group_gone':False})
+        self.raises(r.preserve_and_cleanup,out,scratch,identity,marker,set(),c)
+        self.assertTrue(scratch.exists())
+
+    def test_retention_interruption_keeps_source_recoverable(self):
+        out,scratch,identity,marker,c = self.scratch()
+        (scratch/'input').write_bytes(b'recover-me')
+        with mock.patch.object(r.shutil,'copyfileobj',side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                r.preserve_and_cleanup(out,scratch,identity,marker,set(),c)
+        self.assertEqual((scratch/'input').read_bytes(),b'recover-me')
+
+
+if __name__ == '__main__':
+    unittest.main()

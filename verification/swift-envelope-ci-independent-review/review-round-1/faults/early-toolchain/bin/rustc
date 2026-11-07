@@ -1,0 +1,53 @@
+#!/opt/homebrew/opt/python@3.14/bin/python3.14
+"""Independent, non-product fixture for closed runner failure paths."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+BASE = Path('/Users/andreyyurlov/Documents/dev/mixer/verification/swift-envelope-ci-independent-review/review-round-1/faults')
+cfg = json.loads((BASE/'early-settings.json').read_text())
+args = sys.argv[1:]
+with (BASE/'early-invocations.jsonl').open('a') as stream:
+    stream.write(json.dumps({'case':cfg['case'],'argv0':sys.argv[0],'argv':args,'cwd':os.getcwd(),'environment':dict(os.environ)},sort_keys=True)+'\n')
+if args == ['--print','sysroot']:
+    if cfg.get('require_launcher_spelling') and Path(sys.argv[0]).name != 'rustc':
+        print('rustup-init incorrect dispatch',file=sys.stderr);sys.exit(9)
+    print(BASE/'early-toolchain');sys.exit(0)
+if args == ['--version','--verbose']:
+    if cfg.get('mode') == 'timeout-descendant':
+        subprocess.Popen([sys.executable,'-c','import time;print("owned-descendant-partial",flush=True);time.sleep(40)'])
+        print('owned-parent-partial',flush=True);print('owned-parent-stderr',file=sys.stderr,flush=True);time.sleep(40)
+    release=cfg.get('release','1.99.0');host=cfg.get('host','aarch64-apple-darwin')
+    form=cfg.get('identity','complete')
+    if form=='manager': print('rustup-init 1.99.0');sys.exit(0)
+    print('rustc '+release+' (012345678 2026-09-28)')
+    print('binary: rustc')
+    if form!='incomplete': print('commit-hash: '+'0'*40+'\ncommit-date: 2026-09-28')
+    if form=='duplicate': print('host: x86_64-unknown-linux-gnu\nrelease: 1.98.2')
+    print('host: '+host+'\nrelease: '+('1.98.1' if form=='mismatch' else release))
+    if form!='incomplete': print('LLVM version: 23.1.1')
+    sys.exit(0)
+target=Path(args[args.index('-o')+1])
+scratch=target.parent;out=scratch.parent
+mode=cfg.get('mode','compile-failure')
+if mode=='missing-binary': sys.exit(0)
+if mode=='marker-change': (scratch/'ownership.json').write_text('{}')
+if mode=='inode-change':
+    scratch.rename(out/'scratch-original');scratch.mkdir();(scratch/'ownership.json').write_text('{}')
+if mode=='scratch-link': (scratch/'owned-link').symlink_to(BASE/'sentinel.txt')
+if mode=='scratch-fifo': os.mkfifo(scratch/'owned-fifo')
+if mode=='snapshot-change':
+    p=Path.cwd()/'source/library/analyzer.rs';p.chmod(0o644);p.write_bytes(p.read_bytes()+b'\n// independent mutation\n')
+if mode=='runner-change':
+    p=BASE/'early-root/scripts/ci/check-analyzer-envelope.py';p.write_bytes(p.read_bytes()+b'\n# independent mutation\n')
+if mode=='compiler-change':
+    p=Path(__file__).resolve();p.write_bytes(p.read_bytes()+b'\n# independent mutation\n')
+if mode=='retention-interrupt':
+    with (scratch/'sparse.failure').open('wb') as stream:
+        stream.write(b'FIRST');stream.seek(64*1024*1024);stream.write(b'LAST')
+print('independent-partial-stdout',flush=True)
+print('independent-compile-refusal',file=sys.stderr,flush=True)
+sys.exit(7)

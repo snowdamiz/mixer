@@ -1,0 +1,47 @@
+// SOURCE-ONLY NEXT OPTION. Uncompiled, unselected, no accepted work/loan bound.
+fn merge(c: &mut Candidate2048) {
+    let (words, _) = c.as_chunks_mut::<8>();
+    let mut src = 64;
+    let mut dst = 128;
+    let mut width = 1;
+    while width < 64 {
+        let mut base = 0;
+        while base < 64 {
+            let mut left = base;
+            let mid = base + width;
+            let end = base + 2 * width;
+            let mut right = mid;
+            for out in base..end {
+                let take_left = if left == mid {
+                    false
+                } else if right == end {
+                    true
+                } else {
+                    #[cfg(test)]
+                    SORT_COMPARISONS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                    let a = u64::from_le_bytes(words[src + left]);
+                    let b = u64::from_le_bytes(words[src + right]);
+                    b == ABSENT
+                        || (a != ABSENT
+                            && u64::from_le_bytes(words[a as usize])
+                                <= u64::from_le_bytes(words[b as usize]))
+                };
+                let index_at = if take_left {
+                    let at = src + left;
+                    left += 1;
+                    at
+                } else {
+                    let at = src + right;
+                    right += 1;
+                    at
+                };
+                words.copy_within(index_at..index_at + 1, dst + out);
+                #[cfg(test)]
+                SORT_MOVES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            }
+            base = end;
+        }
+        std::mem::swap(&mut src, &mut dst);
+        width *= 2;
+    }
+}

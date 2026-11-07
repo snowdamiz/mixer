@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "status": "root primitive-model choice required; binding text alone does not establish single-scalar grain",
+  "binding_question": "Prerequisite244..266 requires every micro-operation/fixed copy/full caller move exactly once, with<=16 named scalar operations/group. It does not define a whole Range16 or fat-view16 as a scalar, nor authorize hiding their complete transfers.",
+  "exact_control_value_owners": [
+    {
+      "producer_row": "range",
+      "source": "Range<usize>{start:at,end:at+8}, complete16 bytes",
+      "received": "Index range argument, complete16 bytes",
+      "covered_by64_row": "Construction and complete source-to-received Range boundary are combined as one authored-source primitive. The two endpoint values and32-byte source/received role sum remain named, not optimized away."
+    },
+    {
+      "producer_row": "shared_c_view",
+      "source": "Thin shared Candidate Index receiver8 plus returned &[u8] view16",
+      "received": "Index receiver8 plus first_chunk shared-view receiver16",
+      "covered_by64_row": "Receiver reborrow/transfer and shared fat-view source/received flow are combined into one whole checked-view primitive. Distinct16-byte thin-receiver union and32-byte fat-view union remain in local helper144."
+    },
+    {
+      "producer_row": "option_edge",
+      "source": "Option<&[u8;8]> payload/tag representation, claimed8 bytes",
+      "received": "unwrap self of same complete type",
+      "covered_by64_row": "One complete Option source/received boundary; this is not permission to erase a second independent caller/local if one exists."
+    },
+    {
+      "producer_row": "ref_edge",
+      "source": "unwrap returned &[u8;8], claimed8 bytes",
+      "received": "dereference operand reference of same type",
+      "covered_by64_row": "One actual complete reference boundary;8-byte payload array movement stays a separate fixed-copy group."
+    }
+  ],
+  "defensibility_and_limit": "These are finite authored-source control operations with named complete owners, so they can form an explicit abstract cost model. They are not established as single physical/register/memory micro-operations by Rust semantics or by the binding passage. The reviewer does not infer conformance merely from64 fitting. Root must explicitly select/clarify this grammar, or require a finer proof/repair. This packet offers no unconditional source-cost upper bound.",
+  "illustrative_finer_grain_sensitivity": {
+    "not_a_new_binding_rule": true,
+    "Range": "Even charging two endpoint/control-field operations to each Range row rather than one adds4 over four loads.",
+    "fat_view": "Even charging pointer/length as two control operations to each view row rather than one adds4 more.",
+    "partial_scalar_total": 72,
+    "additional_receiver_note": "A distinct8-byte Index receiver argument and actual constructor-to-parameter moves could add still more.72 is illustrative partial expansion, not a complete alternate upper bound.",
+    "copy_alternative": "If a full Range16/view16 transfer is instead classified as its own fixed copy, each distinct transfer needs a copy unit; it cannot be silently mixed into the existing four payload copies."
+  },
+  "required_consistency_if_root_selects_whole_control_primitives": [
+    "Write the permitted primitive semantics, complete types/sizes and all source/received boundaries explicitly, rather than treating any convenient multi-operation bucket as one scalar.",
+    "Apply exactly the same Range/view/reference/Option and binding rules to ld, st, sq, direct copies, setup, cleanup, projections and existing ordinary/macro blocks. Changed grammar must not silently rescue only G3.",
+    "Keep actual independent arrays/payload stores as fixed copies: st LE-array return and destination store remain two copies; four comparator input arrays remain four copies; full Result/aggregate/caller moves retain their explicit copy chunks.",
+    "An atomic primitive never erases a lifetime owner: source and received Range/view/receiver/Option places remain present in the role union even if their work debit uses one named operation.",
+    "Require a fresh complete bound under the selected definition before marking implementation accepted. Actual code, full roles and runtime behavior remain separate gates."
+  ],
+  "root_model_choice_resolved_by_reviewer": false
+}

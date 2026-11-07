@@ -1,0 +1,336 @@
+{
+  "schema": 1,
+  "target_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "old_lines": [
+    265,
+    267
+  ],
+  "old_helper_lines": [
+    149,
+    155
+  ],
+  "load_sites": [
+    {
+      "id": "A",
+      "old_line": 265,
+      "address": "src+left*8",
+      "reads": "index a",
+      "execution": "always within actual pair comparison"
+    },
+    {
+      "id": "B",
+      "old_line": 266,
+      "address": "src+right*8",
+      "reads": "index b",
+      "execution": "after A, always within actual pair comparison"
+    },
+    {
+      "id": "TA",
+      "old_line": 267,
+      "address": "a as usize*8",
+      "reads": "timestamp[a]",
+      "execution": "only after b!=ABSENT then a!=ABSENT"
+    },
+    {
+      "id": "TB",
+      "old_line": 267,
+      "address": "b as usize*8",
+      "reads": "timestamp[b]",
+      "execution": "after TA, under same b/a guards"
+    }
+  ],
+  "old_scalar_ops_per_load": [
+    {
+      "id": "offset_mul",
+      "name": "caller offset multiplication/cast",
+      "scalar_units": 1
+    },
+    {
+      "id": "offset_add",
+      "name": "caller offset addition/multiplication",
+      "scalar_units": 1
+    },
+    {
+      "id": "slice_arg",
+      "name": "complete b slice view/argument source->ld received",
+      "scalar_units": 1
+    },
+    {
+      "id": "offset_arg",
+      "name": "offset scalar source->ld received",
+      "scalar_units": 1
+    },
+    {
+      "id": "end_add",
+      "name": "at+8",
+      "scalar_units": 1
+    },
+    {
+      "id": "range",
+      "name": "complete Range16 constructor/index argument source->receive",
+      "scalar_units": 1
+    },
+    {
+      "id": "range_order",
+      "name": "range start<=end",
+      "scalar_units": 1
+    },
+    {
+      "id": "range_end",
+      "name": "range end<=slice length",
+      "scalar_units": 1
+    },
+    {
+      "id": "view",
+      "name": "complete shared8-byte range view/receiver",
+      "scalar_units": 1
+    },
+    {
+      "id": "chunk_predicate",
+      "name": "first_chunk::<8> length predicate",
+      "scalar_units": 1
+    },
+    {
+      "id": "option",
+      "name": "complete Option<&[u8;8]>8 source->received",
+      "scalar_units": 1
+    },
+    {
+      "id": "expect_tag",
+      "name": "expect Option tag test",
+      "scalar_units": 1
+    },
+    {
+      "id": "array_reference",
+      "name": "complete &[u8;8]8 source->received",
+      "scalar_units": 1
+    },
+    {
+      "id": "LE",
+      "name": "from_le_bytes conversion",
+      "scalar_units": 1
+    },
+    {
+      "id": "conversion_return",
+      "name": "from_le_bytes u64 return->ld tail received",
+      "scalar_units": 1
+    },
+    {
+      "id": "ld_return",
+      "name": "ld u64 return->caller binding received",
+      "scalar_units": 1
+    }
+  ],
+  "proposed_scalar_ops_per_expanded_load": [
+    {
+      "id": "offset_mul",
+      "name": "caller offset multiplication/cast",
+      "scalar_units": 1
+    },
+    {
+      "id": "offset_add",
+      "name": "caller offset addition/multiplication",
+      "scalar_units": 1
+    },
+    {
+      "id": "address_binding",
+      "name": "offset scalar source->block-local at received",
+      "scalar_units": 1
+    },
+    {
+      "id": "end_add",
+      "name": "at+8",
+      "scalar_units": 1
+    },
+    {
+      "id": "range",
+      "name": "complete Range16 constructor/index argument source->receive",
+      "scalar_units": 1
+    },
+    {
+      "id": "range_order",
+      "name": "range start<=end",
+      "scalar_units": 1
+    },
+    {
+      "id": "range_end",
+      "name": "range end<=slice length",
+      "scalar_units": 1
+    },
+    {
+      "id": "view",
+      "name": "complete shared8-byte range view/receiver",
+      "scalar_units": 1
+    },
+    {
+      "id": "chunk_predicate",
+      "name": "first_chunk::<8> length predicate",
+      "scalar_units": 1
+    },
+    {
+      "id": "option",
+      "name": "complete Option<&[u8;8]>8 source->received",
+      "scalar_units": 1
+    },
+    {
+      "id": "expect_tag",
+      "name": "expect Option tag test",
+      "scalar_units": 1
+    },
+    {
+      "id": "array_reference",
+      "name": "complete &[u8;8]8 source->received",
+      "scalar_units": 1
+    },
+    {
+      "id": "LE",
+      "name": "from_le_bytes conversion",
+      "scalar_units": 1
+    },
+    {
+      "id": "conversion_return",
+      "name": "from_le_bytes u64 return->enclosing caller expression/binding received",
+      "scalar_units": 1
+    }
+  ],
+  "shared_comparator_scalars": [
+    {
+      "id": "b_absent",
+      "name": "b==ABSENT",
+      "scalar_units": 1
+    },
+    {
+      "id": "b_short_circuit",
+      "name": "|| short-circuit branch",
+      "scalar_units": 1
+    },
+    {
+      "id": "a_present",
+      "name": "a!=ABSENT",
+      "scalar_units": 1
+    },
+    {
+      "id": "a_short_circuit",
+      "name": "&& short-circuit branch",
+      "scalar_units": 1
+    },
+    {
+      "id": "timestamp_order",
+      "name": "timestamp_a<=timestamp_b",
+      "scalar_units": 1
+    },
+    {
+      "id": "result",
+      "name": "complete comparison bool source->take_left received",
+      "scalar_units": 1
+    }
+  ],
+  "payload_flow_per_load": "dereferenced8-byte source array -> from_le_bytes by-value received array; exactly one fixed-copy group, no returned LE array",
+  "old": {
+    "scalar_total": 70,
+    "copy_groups": 4,
+    "conditional_pooled_group_minimum": 9
+  },
+  "new": {
+    "scalar_total": 62,
+    "copy_groups": 4,
+    "proposed_groups": 8
+  },
+  "proposed_scalar_blocks": [
+    {
+      "id": "S1",
+      "load": "A",
+      "operations": [
+        "A.offset_mul",
+        "A.offset_add",
+        "A.address_binding",
+        "A.end_add",
+        "A.range",
+        "A.range_order",
+        "A.range_end",
+        "A.view",
+        "A.chunk_predicate",
+        "A.option",
+        "A.expect_tag",
+        "A.array_reference",
+        "A.LE",
+        "A.conversion_return"
+      ],
+      "count": 14
+    },
+    {
+      "id": "S2",
+      "load": "B plus b guard",
+      "operations": [
+        "B.offset_mul",
+        "B.offset_add",
+        "B.address_binding",
+        "B.end_add",
+        "B.range",
+        "B.range_order",
+        "B.range_end",
+        "B.view",
+        "B.chunk_predicate",
+        "B.option",
+        "B.expect_tag",
+        "B.array_reference",
+        "B.LE",
+        "B.conversion_return",
+        "b_absent",
+        "b_short_circuit"
+      ],
+      "count": 16
+    },
+    {
+      "id": "S3",
+      "load": "a guard then TA",
+      "operations": [
+        "a_present",
+        "a_short_circuit",
+        "TA.offset_mul",
+        "TA.offset_add",
+        "TA.address_binding",
+        "TA.end_add",
+        "TA.range",
+        "TA.range_order",
+        "TA.range_end",
+        "TA.view",
+        "TA.chunk_predicate",
+        "TA.option",
+        "TA.expect_tag",
+        "TA.array_reference",
+        "TA.LE",
+        "TA.conversion_return"
+      ],
+      "count": 16
+    },
+    {
+      "id": "S4",
+      "load": "TB then result",
+      "operations": [
+        "TB.offset_mul",
+        "TB.offset_add",
+        "TB.address_binding",
+        "TB.end_add",
+        "TB.range",
+        "TB.range_order",
+        "TB.range_end",
+        "TB.view",
+        "TB.chunk_predicate",
+        "TB.option",
+        "TB.expect_tag",
+        "TB.array_reference",
+        "TB.LE",
+        "TB.conversion_return",
+        "timestamp_order",
+        "result"
+      ],
+      "count": 16
+    }
+  ],
+  "G3_G4_boundary": "left==mid/right==end tail guards, output transfer/loop work stay G4; every actual pair comparison load, its offset/cast/received and the six result predicates stay G3",
+  "contract_requirement": "every source operation/complete move exactly once;<=16 scalar/group and one fixed<=128-byte copy/group; no optimizer elision or cross-group credit",
+  "chosen_atomization_qualification": "Complete Range constructor/index argument, full shared view/receiver and scalar/pointer Option/reference source->received edges each count one favorable named scalar primitive. Binding contract does not formalize this grammar; independent source review/root admission required. All sources/received places named, no split-layer is silently removed from old helper.",
+  "no_product_change_or_execution": true,
+  "bound_accepted": false
+}

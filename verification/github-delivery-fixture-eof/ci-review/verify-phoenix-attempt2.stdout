@@ -1,0 +1,25 @@
+{
+  "status": "failed-at-format-before-compile-and-four-control-tests",
+  "causal_error": {
+    "command": [
+      "mix",
+      "format",
+      "--check-formatted"
+    ],
+    "exit": 1,
+    "file": "hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs",
+    "source_line": 83,
+    "message": "long assert and gen_tcp.connect require formatter line wrapping; one blank line precedes assertion",
+    "raw_diff": "phoenix/_temp/phoenix-foundation/format.log"
+  },
+  "four_controls_unrun": [
+    "stalled response stays silent and reports client EOF within the unchanged startup wait",
+    "an accepted TCP client that aborts before handshake records exactly one peer EOF",
+    "local receive timeout cleans the handler without counting a peer EOF",
+    "unexpected client data does not count as peer EOF or enter diagnostics"
+  ],
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  }
+}

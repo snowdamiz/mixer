@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "source_sha256": "e86ef43a99f99245c78308666f91f5147981859ca03fa3f97e62d46993667535",
+  "ranges": [
+    {
+      "cell": 7,
+      "start": 7729816,
+      "end": 7729824,
+      "candidate_start": 888,
+      "candidate_end": 896
+    },
+    {
+      "cell": 9,
+      "start": 7729832,
+      "end": 7729840,
+      "candidate_start": 896,
+      "candidate_end": 904
+    },
+    {
+      "cell": 10,
+      "start": 7729840,
+      "end": 7729848,
+      "candidate_start": 904,
+      "candidate_end": 912
+    },
+    {
+      "cell": 11,
+      "start": 7729848,
+      "end": 7729856,
+      "candidate_start": 912,
+      "candidate_end": 920
+    },
+    {
+      "cell": 12,
+      "start": 7729856,
+      "end": 7729864,
+      "candidate_start": 920,
+      "candidate_end": 928
+    },
+    {
+      "cell": 13,
+      "start": 7729864,
+      "end": 7729872,
+      "candidate_start": 928,
+      "candidate_end": 936
+    },
+    {
+      "cell": 14,
+      "start": 7729872,
+      "end": 7729880,
+      "candidate_start": 936,
+      "candidate_end": 944
+    },
+    {
+      "cell": 64,
+      "start": 7730272,
+      "end": 7730280,
+      "candidate_start": 944,
+      "candidate_end": 952
+    },
+    {
+      "cell": 65,
+      "start": 7730280,
+      "end": 7730288,
+      "candidate_start": 952,
+      "candidate_end": 960
+    },
+    {
+      "cell": 66,
+      "start": 7730288,
+      "end": 7730296,
+      "candidate_start": 960,
+      "candidate_end": 968
+    },
+    {
+      "cell": 160,
+      "start": 7731040,
+      "end": 7731048,
+      "candidate_start": 968,
+      "candidate_end": 976
+    },
+    {
+      "cell": 161,
+      "start": 7731048,
+      "end": 7731056,
+      "candidate_start": 976,
+      "candidate_end": 984
+    }
+  ],
+  "checks": [
+    "arena.len>=7731056 occurs before all reads/staging/semantic writes",
+    "one exclusive arena slice remains identical with unchanged length through commit",
+    "no allocator/I/O/callback/Vec mutation or alias escapes in leaf",
+    "Candidate2048 sized owner proves fixed888..984 destinations before staging",
+    "all source/destination intervals are8bytes, disjoint within each role",
+    "word8 initialized once per leaf, reused twelve times; prior96 and next96 bounded locals",
+    "private record is thin immutable borrow of framing-owned w128; never public arbitraryword constructor",
+    "all borrowed input/candidate/steps views end at reply return before next record/finalize",
+    "new word8 temporary consumes existing fixed helper-local lease; no new retained owner",
+    "Progress reply_valid stays0 throughcandidate/cell initialization, becomes1 only after complete received reply is installed",
+    "retained poison status3 OR reason15 suppresses every later leaf call; firstStepsRefused likewise stops leaf",
+    "underfunded guard uses no arena/candidate mutation, returns prior-state debit0; paid main leaf subdivision remains reserved"
+  ],
+  "actual_known_layouts_historical_probe_not_new_measurement": {
+    "Reply": 128,
+    "Progress": 144,
+    "Observation": 128,
+    "Outcome": 232,
+    "ResultOutcome": 232,
+    "StepBudget": 16,
+    "Pair": 16,
+    "decodedborrow": 8,
+    "word": 8,
+    "slice": 16,
+    "Range": 16,
+    "RangeInclusiveU64": 24,
+    "OptionSlice": 16,
+    "OptionArrayBorrow": 8,
+    "arrayborrow": 8,
+    "Metadata": 144,
+    "Stamp": 72,
+    "AnalyzerError": 32,
+    "ReplayOutcome": 104
+  },
+  "fresh_layout_execution_pending": true,
+  "memory_caps_unchanged": {
+    "arena": 8388608,
+    "transient": 65536,
+    "transient_reservation": 41984
+  },
+  "source_scope_no_new_owner": "Same retained candidate2048, existingframing/Reader/metadata/Stamp/report owners.12Pair prior loop removed; local word8 is leased within prior approved helper scratch. No real binding/semanticmetric/report authority."
+}

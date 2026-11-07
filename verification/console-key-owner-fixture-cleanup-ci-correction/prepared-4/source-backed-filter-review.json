@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "scope": "Official source read plus offline harness correction; no runtime retry",
+  "framework_version": "Elixir ExUnit 1.20.4",
+  "primary_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/elixir-lang/elixir/v1.20.4/lib/ex_unit/lib/ex_unit/runner.ex",
+      "lines": "257-279",
+      "paraphrase": "Runner adds runtime test-name metadata immediately before evaluating include/exclude filters; compiled test registrations have not yet received that metadata."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/elixir-lang/elixir/v1.20.4/lib/ex_unit/lib/ex_unit/filters.ex",
+      "lines": "166-205",
+      "paraphrase": "Filters.eval/4 accepts include filters, exclude filters, effective tags and the test collection; it returns admission or an exclusion/skip result."
+    }
+  ],
+  "observed_failure": "Candidate-3 compiled all product, four support and full test modules warning-free, then KeyError on pre-run test.tags.test before ExUnit.run or TLS setup.",
+  "control": "Use the installed ExUnit configuration, add only the relevant runtime :test tag, invoke actual ExUnit.Filters.eval/4 and require the admitted set equals the exact seven configured names with 22 exclusions.",
+  "framework_implementation_copied": false,
+  "canonical_product_test_support_tools_dependencies_schemas_wrapper_unchanged": true,
+  "retained_failed_execution_members": [
+    {
+      "path": "corrected/command.json",
+      "bytes": 2011,
+      "sha256": "fdc421fc3240f16bb5f6ce75ce28c6b91a77bce7b3addd252e08a974869e73cd"
+    },
+    {
+      "path": "corrected/openssl-01.json",
+      "bytes": 268,
+      "sha256": "74f7a03b5dcf54cea10c82232f1f14155a13ffd8e141c9fb5c27e92a91e9a1aa"
+    },
+    {
+      "path": "corrected/runtime.json",
+      "bytes": 119,
+      "sha256": "4ae28c46f76e2c84b7283c6406de596d05eb00162a84a8cf2693bfc499b9b6e7"
+    },
+    {
+      "path": "corrected/stdout.txt",
+      "bytes": 718,
+      "sha256": "cb4c881b0771c593027d4b5d46f27e1aba56755f23a3bf68cbdd50e9f67d3601"
+    },
+    {
+      "path": "observations.json",
+      "bytes": 919,
+      "sha256": "f86df55a7ae91945c24d509ff27aadbb910967b954661377b14da80e6fdd1dd5"
+    },
+    {
+      "path": "receipt.json",
+      "bytes": 1548,
+      "sha256": "482f38e50f7bf39f46e83296edb0f3250a498865ad033af369daf2a634150372"
+    }
+  ],
+  "compiler_or_runtime_invocations": 0
+}

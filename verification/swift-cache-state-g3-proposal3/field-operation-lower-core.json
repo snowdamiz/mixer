@@ -1,0 +1,451 @@
+{
+  "schema": 1,
+  "target_source_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "variant": "one safe word-slice borrow scoped to each actual comparison",
+  "scalar_grain": "one usize/pointer/u64/bool field transfer or predicate/arithmetic/address operation; no whole Range/fat view as one scalar",
+  "view_operations": [
+    {
+      "id": "V01",
+      "name": "thin shared Candidate receiver reborrow",
+      "units": 1
+    },
+    {
+      "id": "V02",
+      "name": "byte-slice receiver source pointer field",
+      "units": 1
+    },
+    {
+      "id": "V03",
+      "name": "byte-slice receiver source length field",
+      "units": 1
+    },
+    {
+      "id": "V04",
+      "name": "byte-slice pointer source->as_chunks received field",
+      "units": 1
+    },
+    {
+      "id": "V05",
+      "name": "byte-slice length source->as_chunks received field",
+      "units": 1
+    },
+    {
+      "id": "V06",
+      "name": "N!=0 predicate",
+      "units": 1
+    },
+    {
+      "id": "V07",
+      "name": "nonzero assert conditional branch",
+      "units": 1
+    },
+    {
+      "id": "V08",
+      "name": "read self length for rounding expression",
+      "units": 1
+    },
+    {
+      "id": "V09",
+      "name": "length /8",
+      "units": 1
+    },
+    {
+      "id": "V10",
+      "name": "rounded word count *8",
+      "units": 1
+    },
+    {
+      "id": "V11",
+      "name": "rounded byte-length initializer->local binding",
+      "units": 1
+    },
+    {
+      "id": "V12",
+      "name": "split_at_unchecked receiver pointer field transfer",
+      "units": 1
+    },
+    {
+      "id": "V13",
+      "name": "split_at_unchecked receiver length field transfer",
+      "units": 1
+    },
+    {
+      "id": "V14",
+      "name": "rounded byte-length->split received mid scalar",
+      "units": 1
+    },
+    {
+      "id": "V15",
+      "name": "split tuple front pointer->multiple_of_n binding",
+      "units": 1
+    },
+    {
+      "id": "V16",
+      "name": "split tuple front length->multiple_of_n binding",
+      "units": 1
+    },
+    {
+      "id": "V17",
+      "name": "split tuple remainder pointer->remainder binding",
+      "units": 1
+    },
+    {
+      "id": "V18",
+      "name": "split tuple remainder length->remainder binding",
+      "units": 1
+    },
+    {
+      "id": "V19",
+      "name": "outer tuple chunks pointer field construction",
+      "units": 1
+    },
+    {
+      "id": "V20",
+      "name": "outer tuple chunks length field construction",
+      "units": 1
+    },
+    {
+      "id": "V21",
+      "name": "outer tuple remainder pointer field construction",
+      "units": 1
+    },
+    {
+      "id": "V22",
+      "name": "outer tuple remainder length field construction",
+      "units": 1
+    },
+    {
+      "id": "V23",
+      "name": "outer return tuple chunks pointer->caller received",
+      "units": 1
+    },
+    {
+      "id": "V24",
+      "name": "outer return tuple chunks length->caller received",
+      "units": 1
+    },
+    {
+      "id": "V25",
+      "name": "outer return tuple remainder pointer->caller received",
+      "units": 1
+    },
+    {
+      "id": "V26",
+      "name": "outer return tuple remainder length->caller received",
+      "units": 1
+    },
+    {
+      "id": "V27",
+      "name": "received chunks pointer->words pattern binding",
+      "units": 1
+    },
+    {
+      "id": "V28",
+      "name": "received chunks length->words pattern binding",
+      "units": 1
+    }
+  ],
+  "view_lower_core_scalar_count": 28,
+  "loads": [
+    {
+      "id": "A",
+      "offset": [
+        [
+          "A.div",
+          "src/8"
+        ],
+        [
+          "A.add",
+          "plus left"
+        ]
+      ],
+      "reads": "bytes[8*(src/8+left)..+8]",
+      "executes": "first always"
+    },
+    {
+      "id": "B",
+      "offset": [
+        [
+          "B.div",
+          "src/8"
+        ],
+        [
+          "B.add",
+          "plus right"
+        ]
+      ],
+      "reads": "bytes[8*(src/8+right)..+8]",
+      "executes": "second always"
+    },
+    {
+      "id": "TA",
+      "offset": [
+        [
+          "TA.cast",
+          "a as usize"
+        ]
+      ],
+      "reads": "timestamp bytes at8*a",
+      "executes": "after b!=MAX and a!=MAX"
+    },
+    {
+      "id": "TB",
+      "offset": [
+        [
+          "TB.cast",
+          "b as usize"
+        ]
+      ],
+      "reads": "timestamp bytes at8*b",
+      "executes": "after TA under same guards"
+    }
+  ],
+  "load_and_predicate_operations": [
+    {
+      "id": "A.div",
+      "name": "src/8",
+      "units": 1
+    },
+    {
+      "id": "A.add",
+      "name": "plus left",
+      "units": 1
+    },
+    {
+      "id": "A.receiver_ptr",
+      "name": "words pointer field->Index received",
+      "units": 1
+    },
+    {
+      "id": "A.receiver_len",
+      "name": "words length field->Index received",
+      "units": 1
+    },
+    {
+      "id": "A.index_arg",
+      "name": "usize index source->received",
+      "units": 1
+    },
+    {
+      "id": "A.bound",
+      "name": "index<len predicate",
+      "units": 1
+    },
+    {
+      "id": "A.address",
+      "name": "indexed element address",
+      "units": 1
+    },
+    {
+      "id": "A.reference",
+      "name": "thin array reference source->received dereference",
+      "units": 1
+    },
+    {
+      "id": "A.LE",
+      "name": "from_le_bytes conversion",
+      "units": 1
+    },
+    {
+      "id": "A.conversion_return",
+      "name": "u64 conversion source->received initializer/operand",
+      "units": 1
+    },
+    {
+      "id": "A.binding",
+      "name": "initializer8->named u64 binding8",
+      "units": 1
+    },
+    {
+      "id": "B.div",
+      "name": "src/8",
+      "units": 1
+    },
+    {
+      "id": "B.add",
+      "name": "plus right",
+      "units": 1
+    },
+    {
+      "id": "B.receiver_ptr",
+      "name": "words pointer field->Index received",
+      "units": 1
+    },
+    {
+      "id": "B.receiver_len",
+      "name": "words length field->Index received",
+      "units": 1
+    },
+    {
+      "id": "B.index_arg",
+      "name": "usize index source->received",
+      "units": 1
+    },
+    {
+      "id": "B.bound",
+      "name": "index<len predicate",
+      "units": 1
+    },
+    {
+      "id": "B.address",
+      "name": "indexed element address",
+      "units": 1
+    },
+    {
+      "id": "B.reference",
+      "name": "thin array reference source->received dereference",
+      "units": 1
+    },
+    {
+      "id": "B.LE",
+      "name": "from_le_bytes conversion",
+      "units": 1
+    },
+    {
+      "id": "B.conversion_return",
+      "name": "u64 conversion source->received initializer/operand",
+      "units": 1
+    },
+    {
+      "id": "B.binding",
+      "name": "initializer8->named u64 binding8",
+      "units": 1
+    },
+    {
+      "id": "TA.cast",
+      "name": "a as usize",
+      "units": 1
+    },
+    {
+      "id": "TA.receiver_ptr",
+      "name": "words pointer field->Index received",
+      "units": 1
+    },
+    {
+      "id": "TA.receiver_len",
+      "name": "words length field->Index received",
+      "units": 1
+    },
+    {
+      "id": "TA.index_arg",
+      "name": "usize index source->received",
+      "units": 1
+    },
+    {
+      "id": "TA.bound",
+      "name": "index<len predicate",
+      "units": 1
+    },
+    {
+      "id": "TA.address",
+      "name": "indexed element address",
+      "units": 1
+    },
+    {
+      "id": "TA.reference",
+      "name": "thin array reference source->received dereference",
+      "units": 1
+    },
+    {
+      "id": "TA.LE",
+      "name": "from_le_bytes conversion",
+      "units": 1
+    },
+    {
+      "id": "TA.conversion_return",
+      "name": "u64 conversion source->received initializer/operand",
+      "units": 1
+    },
+    {
+      "id": "TB.cast",
+      "name": "b as usize",
+      "units": 1
+    },
+    {
+      "id": "TB.receiver_ptr",
+      "name": "words pointer field->Index received",
+      "units": 1
+    },
+    {
+      "id": "TB.receiver_len",
+      "name": "words length field->Index received",
+      "units": 1
+    },
+    {
+      "id": "TB.index_arg",
+      "name": "usize index source->received",
+      "units": 1
+    },
+    {
+      "id": "TB.bound",
+      "name": "index<len predicate",
+      "units": 1
+    },
+    {
+      "id": "TB.address",
+      "name": "indexed element address",
+      "units": 1
+    },
+    {
+      "id": "TB.reference",
+      "name": "thin array reference source->received dereference",
+      "units": 1
+    },
+    {
+      "id": "TB.LE",
+      "name": "from_le_bytes conversion",
+      "units": 1
+    },
+    {
+      "id": "TB.conversion_return",
+      "name": "u64 conversion source->received initializer/operand",
+      "units": 1
+    },
+    {
+      "id": "P1",
+      "name": "b==MAX",
+      "units": 1
+    },
+    {
+      "id": "P2",
+      "name": "|| short-circuit branch",
+      "units": 1
+    },
+    {
+      "id": "P3",
+      "name": "a!=MAX",
+      "units": 1
+    },
+    {
+      "id": "P4",
+      "name": "&& short-circuit branch",
+      "units": 1
+    },
+    {
+      "id": "P5",
+      "name": "timestamp_a<=timestamp_b",
+      "units": 1
+    },
+    {
+      "id": "P6",
+      "name": "comparison bool source->take_left received",
+      "units": 1
+    }
+  ],
+  "load_and_predicate_scalar_count": 46,
+  "total_scalar_lower_core": 74,
+  "array_payload_copies": 4,
+  "minimum_groups_under_this_field_core": 9,
+  "selected_comparison_groups": 8,
+  "not_a_complete_upper_bound": true,
+  "omitted_additional_normal_path_work": [
+    "split_at_unchecked tuple construction/function return source->received fields before pattern binding",
+    "all split_at_unchecked internal pointer/length arithmetic and precondition work",
+    "as_chunks_unchecked receiver fields, return view fields, initializer binding and internal metadata/precondition work",
+    "standard Index receiver reborrow, bounds branch and further pointer metadata reads if separate",
+    "any additional aggregate/argument/returned value not represented by these lower-core edges"
+  ],
+  "const_generic_sensitivity": "Even omitting V06/V07 entirely,72 scalars +4 copies require9 groups. This does not invoke constant folding to claim a bound.",
+  "unconditional_machine_or_runtime_overrun_asserted": false,
+  "source_bound_accepted": false
+}

@@ -1,0 +1,71 @@
+--- prepared-1/runner.py
++++ prepared-2/runner.py
+@@ -9,6 +9,7 @@
+ import selectors
+ import shutil
+ import signal
++import stat
+ import subprocess
+ import tempfile
+ import time
+@@ -72,6 +73,29 @@
+         stream.write(encoded)
+         stream.flush()
+         os.fsync(stream.fileno())
++
++
++
++def validate_phase_directory(directory, required, deadline):
++    ensure(deadline, 'phase membership')
++    if not stat.S_ISDIR(directory.lstat().st_mode):
++        raise ValueError('phase output must be an ordinary directory, not a symlink')
++    expected = set(required) | {'command.json', 'stdout.txt'}
++    if len(required) != 8 or len(set(required)) != 8 or len(expected) != 10:
++        raise ValueError('exact eight artifact and ten total phase names required')
++    entries = []
++    for entry in directory.iterdir():
++        ensure(deadline, 'phase membership')
++        entries.append(entry)
++    actual = {entry.name for entry in entries}
++    if actual != expected:
++        raise ValueError('actual phase directory membership differs; missing=' +
++                         repr(sorted(expected - actual)) + '; unexpected=' +
++                         repr(sorted(actual - expected)))
++    for entry in entries:
++        ensure(deadline, 'phase member type')
++        if not stat.S_ISREG(entry.lstat().st_mode):
++            raise ValueError('phase member must be an ordinary file, not symlink or special type: ' + entry.name)
+ 
+ 
+ def validate_terminal_artifacts(artifacts, packet, scratch):
+@@ -147,7 +171,7 @@
+     args = parser.parse_args()
+     prepared = Path(__file__).resolve().parent
+     lane = prepared.parent
+-    if prepared.name != 'prepared-1' or lane.name != 'console-key-owner-fixture-cleanup-ci-correction':
++    if prepared.name != 'prepared-2' or lane.name != 'console-key-owner-fixture-cleanup-ci-correction':
+         raise ValueError('runner must execute from its exact frozen lane')
+     plan_path = prepared / 'execution-plan.json'
+     plan = read_json(plan_path)
+@@ -157,7 +181,7 @@
+             release.get('execution_plan_sha256') != plan_sha256 or
+             release.get('single_execution') is not True):
+         raise ValueError('exact single-execution root release missing or mismatched')
+-    output = lane / 'executions' / 'candidate-1'
++    output = lane / 'executions' / 'candidate-2'
+     output.mkdir(parents=True, exist_ok=False)
+     scratch = None
+     children = []
+@@ -315,9 +339,12 @@
+             pins_rechecked = True
+             for pin in plan['prepared_files']:
+                 check_pin(prepared / pin['path'], pin, finalize_deadline)
++            if not owned_absent or cleanup_errors:
++                raise RuntimeError('phase membership requires confirmed owned child/group cleanup')
+             for phase in plan['phases']:
+                 phase_output = output / phase['id']
+                 names = phase['required_artifacts']
++                validate_phase_directory(phase_output, names, finalize_deadline)
+                 for name in names:
+                     ensure(finalize_deadline, 'artifact parsing')
+                     path = phase_output / name

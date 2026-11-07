@@ -1,0 +1,20 @@
+{
+  "appended_suffix": "\n// Independent test-only interposition: one dispatch callsite delegates unchanged.\n#[cfg(test)]\nstatic INDEPENDENT_DISPATCH: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);\n#[cfg(test)]\nfn independent_counted_leaf(a:&mut[u8],c:&mut Candidate2048,r:&FixtureDecodedRecordV1<'_>,s:&mut StepBudget)->FixtureEnvelopeReplyV1 {\n INDEPENDENT_DISPATCH.fetch_add(1,std::sync::atomic::Ordering::SeqCst);\n observe_fixture_envelope_v1(a,c,r,s)\n}\n#[cfg(test)]\n#[path=\"../tests/counter_tests.rs\"]\nmod independent_counted;\n",
+  "derivative_source": {
+    "bytes": 25335,
+    "sha256": "a4e01217ca932928a86fd1d547b1f85925472e08739af438ddcaf69b68159bbe"
+  },
+  "leaf_body_unchanged": true,
+  "producer_tests_used": false,
+  "schema": 1,
+  "scope": "independent test-only interposition; not exact selected source runtime claim",
+  "selected_source": {
+    "bytes": 24805,
+    "sha256": "2cd286a387ce336a18ea2872974e371ca4e772e2fd801f2186a3f62ce639bfef"
+  },
+  "single_replacement": {
+    "count": 1,
+    "from": "let received = observe_fixture_envelope_v1(&mut arena.bytes, &mut candidate, &record, &mut steps);",
+    "to": "let received = independent_counted_leaf(&mut arena.bytes, &mut candidate, &record, &mut steps);"
+  }
+}

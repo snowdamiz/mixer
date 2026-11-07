@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T02:48:58.033623+00:00",
+  "selection": {
+    "status": "reviewed-contract-selected-wrapper-runner-source-implementation-only",
+    "contract": {
+      "path": "verification/console-key-owner-inflight-lifecycle-implementation/ownership-correction/freeze.json",
+      "bytes": 2333,
+      "sha256": "a708f1173cff9908f8fb5697d927e85c0a4181ed242506f1bae9ca3c75f69f62"
+    },
+    "review": {
+      "path": "verification/console-key-owner-inflight-lifecycle-independent/ownership-contract-review/decision.json",
+      "bytes": 11482,
+      "sha256": "732bdce094461caf6fb8e4ed771042bf6cf401d4fcd6c3d9aa136c210f3cc13e"
+    },
+    "binding_amendments": [
+      {
+        "id": "OCR-A1",
+        "priority": 2,
+        "title": "Distinguish closed future grants from an already issued ACK",
+        "source_refs": [
+          "contract.md:45-62",
+          "contract.md:74-83",
+          "protocol.json:57-63"
+        ],
+        "issue": "Closing the runner latch or observing a signal cannot retract a complete ACK the wrapper already validated. A native launch may race cancellation after ACK and before Popen; a filesystem latch read has its own race. The current absolute wording that a closed launch latch means no native Popen is ambiguous between runner and local wrapper state.",
+        "required_selection_text": "Closing the runner latch forbids new ACKs. An issued ACK remains a bounded one-shot capability for its already-retained wrapper group until expiry/local cancellation; a launch racing runner cancellation remains custody-owned and is drained. Wrapper-observed signal/error irreversibly closes its local launch path and cannot be reopened by a later ACK. Do not claim zero post-runner-cancel native launches without a separately demonstrated revocation mechanism.",
+        "test_focus": "Outer cancellation after durable ACK but before child launch must retain group ownership and fail/clean or preserve scratch honestly, whether child starts or not. This requires no additional service or protocol phase."
+      },
+      {
+        "id": "OCR-A2",
+        "priority": 2,
+        "title": "Make final spool messages immutable without replacement",
+        "source_refs": [
+          "contract.md:24-28",
+          "protocol.json:6",
+          "protocol.json:27-33"
+        ],
+        "issue": "An exclusively created temporary file followed by ordinary rename can replace an existing final path. That publication recipe alone does not establish the stated duplicate/replay rejection or immutable ACK/completion binding.",
+        "required_selection_text": "Final publication must refuse an existing destination (or use an equivalent immutable unique message identity with explicit duplicate-state rejection). Never overwrite a prior registration, ACK, completion or exit grant. Journal transition validation must reject duplicate/replayed/conflicting messages and retain every already-proven group. A publication error closes grants and fails/preserves scratch when accounting is incomplete.",
+        "test_focus": "Existing destination, duplicate nonce and conflicting same-identity publication must not overwrite prior evidence or obtain another native grant."
+      },
+      {
+        "id": "OCR-A3",
+        "priority": 2,
+        "title": "Bind phase and selected invocation recipe unambiguously",
+        "source_refs": [
+          "contract.md:37-44",
+          "protocol.json:17-26"
+        ],
+        "issue": "The prose requires selected recipe validation, but listed registration/ACK fields have run and invocation nonces without explicit phase or ordinal/recipe identity. Those nonces alone do not state which allowed call they authorize.",
+        "required_selection_text": "Add explicit phase plus invocation ordinal/recipe ID to registration/journal/ACK/completion, or define an equally unambiguous private spool and journal binding. Only test phase may request selected OpenSSL work; version and each fixture recipe have finite ordered identities, at most seven one-shot grants. ACK remains bound to full request hash and plan.",
+        "test_focus": "Wrong-phase, out-of-order recipe, replayed ordinal and cross-run request receive no new ACK/native grant; prior proven custody is retained."
+      }
+    ],
+    "implementation_scope": "New frozen wrapper/runner/evidence plumbing in existing in-flight implementation lane only; preserve product source and nine lifecycle methods except already selected charlist spelling. No edits to separate CI correction lane.",
+    "compiler_native_TLS_or_probe_released": false,
+    "prior_runtime_failure_preserved": true,
+    "prepublication_or_lost_leader_uncertainty_must_fail_and_preserve_scratch": true,
+    "GA_accepted": false
+  },
+  "metadata": [
+    {
+      "path": "work-graph.json",
+      "bytes": 1241714,
+      "sha256": "32f0641b2514305ad684c1b6f69da6bc287306f02b75ce06b03e16e5e3fa27fb"
+    },
+    {
+      "path": "gates/ga.json",
+      "bytes": 1154930,
+      "sha256": "3700635d36471f44a3dba3596d88c2adb75fc494b5d717ed81a03b34be6ad2be"
+    }
+  ]
+}

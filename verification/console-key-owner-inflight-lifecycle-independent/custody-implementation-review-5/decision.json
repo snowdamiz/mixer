@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T03:42:47.250880+00:00",
+  "status": "CIR01-02-03-source-corrected-current-control-and-real-plan-specific-blockers-remain",
+  "source_contract": {
+    "path": "verification/console-key-owner-inflight-lifecycle-independent/custody-implementation-review-5/source-contract.json",
+    "bytes": 5045,
+    "sha256": "112c60fa30ae60268ae6ee196632640597d2c92b3704d8b0ed291b72758940a5"
+  },
+  "freeze_sha256": "d7d0ad7b4cd16ba905da0aa4bb778a221239a1e3ffa3cfa730dc6805e4305db5",
+  "control_plan_sha256": "b5f7a30a2e1d1d7f22cba3b20d688ec78564960aa168995706a124a14b3ea37a",
+  "real_plan_sha256": "9040aa6e2deca81c3a449803942c0b7668d1caeb00ae842e3107e0ce0cf0ca31",
+  "prior_finding_corrections": [
+    {
+      "id": "CIR-01",
+      "source_status": "addressed; runtime/control results pending",
+      "evidence": "checked_write requires exact full positive byte count and raises on short/zero/non-int result. Journal event memory is appended only after file and directory fsync. publish checks its buffered write count; native audit append uses checked write and directory fsync. finalize/reconcile compares strict canonical disk records with accepted memory, per-transition spool hashes/order/bindings/counts and exact spool membership; clean runner result and scratch deletion require journal_reconciled.",
+      "refs": [
+        "custody.py:41-73",
+        "custody.py:231-256",
+        "custody.py:418-533",
+        "openssl-custody-wrapper.py:15-30",
+        "runner.py:299-317,383-394"
+      ]
+    },
+    {
+      "id": "CIR-02",
+      "source_status": "addressed; runtime/control results pending",
+      "evidence": "Full validated completion/hash acceptance is journaled/fsynced before setting accepted completion state and before journaling/publishing exit grant. Reconciliation rejects exit grant before accepted completion. Prospective completion-short-write and exit-grant-fsync-failure controls demand no exit grant, exact native wait, uncertainty and no clean reconciliation.",
+      "refs": [
+        "custody.py:365-380,485-487",
+        "custody-controls.py:134-156,224-234"
+      ]
+    },
+    {
+      "id": "CIR-03",
+      "source_status": "targeted coverage added; explicit residual paths remain pending",
+      "evidence": "18 prospective cases include actual short/zero writes, fsync errors, terminal truncation, completion/exit acceptance faults, a real TERM to the exact wrapper with active acknowledged fake child, and malformed/replayed full ACKs delivered through the real wrapper validation path. This is source/control-plan coverage, not execution evidence. Output overflow, missing completion, late/partial registration and INT/HUP are expressly unclaimed/pending.",
+      "refs": [
+        "custody-controls.py:17-21,134-164,178-244",
+        "control-plan.json:pending_unclaimed_control_paths"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "CIR5-01",
+      "priority": 2,
+      "status": "blocks exact current control plan release",
+      "title": "Enforce the artifact cap declared by the control plan",
+      "file": "/Users/andreyyurlov/Documents/dev/mixer/verification/console-key-owner-inflight-lifecycle-implementation/prepared-5/custody-controls.py",
+      "lines": [
+        310,
+        316
+      ],
+      "finding": "Control code allows total_bytes up to2097152, while frozen control-plan.json limits.combined_artifact_bytes remains1048576. The executable therefore permits twice the advertised combined artifact budget. The per-file cap is stricter than plan, but the combined cap is broader.",
+      "requested_change": "Read/enforce the selected plan limit or freeze an explicitly amended plan with the intended cap; keep source and exact reviewed release bounds consistent. Retain correct separate 40/46/52/55 deadlines and ten-ACK/eight-fake-launch caps."
+    },
+    {
+      "id": "CIR5-02",
+      "priority": 1,
+      "status": "blocks exact current real runtime plan release",
+      "title": "Do not signal a completed VM leader solely because its numeric group remains",
+      "file": "/Users/andreyyurlov/Documents/dev/mixer/verification/console-key-owner-inflight-lifecycle-implementation/prepared-5/runner.py",
+      "lines": [
+        140,
+        168
+      ],
+      "finding": "Normal phase code calls child.wait at line282 before finally invoking reap. reap then probes numeric PGID and can send TERM and later KILL without first checking that the direct VM child is still running or preserving a proven live leader identity. This is conditional on group existence, not literal unconditional signaling, but it still permits forced group signals after normal direct-child completion. It is therefore not a clean normal-exit observe/reap path and can act on a leader-lost numeric group. No claim is made that this would reproduce the separate Swift EPERM observation.",
+      "related_sources": [
+        "runner.py:282-288"
+      ],
+      "requested_change": "Split clean completion/reaping from timeout/error retirement. For an already completed/reaped direct child, observe exact group absence and fail/preserve scratch if unresolved; do not TERM/KILL solely by saved PGID. Signal only while a retained live owned leader identity still authorizes it, rechecking before escalation, and retain uncertainty/errors. Add a focused clean-completion control that records no termination signal plus a still-running timeout path that confirms owned cleanup."
+    }
+  ],
+  "normal_exit_cleanup_review": {
+    "real_VM_runner": "Finding CIR5-02: group-existence probe exists, but completed direct-child state is not a signal gate.",
+    "control_direct_wrapper_fallback": "custody-controls.py279-288 sends terminate/kill only if child.poll() is None; completed direct children are not unconditionally signaled. It then samples exact group absence and records an error if unresolved.",
+    "registered_wrapper_groups": "custody.py.inspect returns before signaling for terminal absence or sticky identity loss and requires current exact PID/PGID/SID; drain signals only when inspect authorizes. A released but still-live wrapper can be retired under current custody; absent or lost identity is not re-armed.",
+    "separate_Swift_observation": "No controller source/probe reviewed here; no inference about which syscall produced EPERM."
+  },
+  "coverage_boundary": "Ten ACKs/eight fake launches are maxima across18 source-defined controls. No case has executed. TERM coverage is distinct from manager cancellation; INT/HUP/output-overflow/missing-completion/late-partial-registration remain pending exactly as declared.",
+  "root_next_step": "Preserve prepared5 and resolve CIR5-01 in a successor exact control plan/source freeze; independently review that plan for one bounded control release. Resolve CIR5-02 before separately considering any real prod/test runtime release. Review actual control terminal I/O fault, TERM/ACK, reconciliation, group/wait and scratch evidence before real runtime selection. No new execution grant is made here.",
+  "control_execution_recommended_for_current_plan": false,
+  "real_execution_recommended_for_current_plan": false,
+  "producer_code_imported_or_executed": false,
+  "probes_runtime_or_native_executed": false,
+  "GA_acceptance": false
+}

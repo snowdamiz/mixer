@@ -1,0 +1,1 @@
+use corrected_envelope::*; fn need<T:Clone>(){} fn main(){need::<FixtureEnvelopeObservationV1>();}

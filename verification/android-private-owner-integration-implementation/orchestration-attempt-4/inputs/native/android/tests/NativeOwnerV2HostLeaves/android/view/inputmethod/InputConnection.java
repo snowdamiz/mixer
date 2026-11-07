@@ -1,0 +1,24 @@
+package android.view.inputmethod;public interface InputConnection {int HANDWRITING_GESTURE_RESULT_UNSUPPORTED=2;
+boolean commitText(CharSequence text,int position);
+boolean setComposingText(CharSequence text,int position);
+boolean commitText(CharSequence text,int position,TextAttribute attributes);
+boolean setComposingText(CharSequence text,int position,TextAttribute attributes);
+boolean setComposingRegion(int start,int end);
+boolean setComposingRegion(int start,int end,TextAttribute attributes);
+boolean finishComposingText();
+boolean deleteSurroundingText(int before,int after);
+boolean deleteSurroundingTextInCodePoints(int before,int after);
+boolean setSelection(int start,int end);
+boolean performEditorAction(int action);
+boolean sendKeyEvent(android.view.KeyEvent event);
+boolean replaceText(int start,int end,CharSequence text,int position,TextAttribute attributes);
+boolean performPrivateCommand(String action,android.os.Bundle data);
+boolean setImeConsumesInput(boolean consumes);
+boolean previewHandwritingGesture(PreviewableHandwritingGesture gesture,android.os.CancellationSignal cancellation);
+boolean commitCompletion(CompletionInfo value);
+boolean commitCorrection(CorrectionInfo value);
+boolean commitContent(InputContentInfo content,int flags,android.os.Bundle options);
+boolean beginBatchEdit();
+boolean endBatchEdit();
+boolean clearMetaKeyStates(int states);
+void performHandwritingGesture(HandwritingGesture gesture,java.util.concurrent.Executor executor,java.util.function.IntConsumer result);void closeConnection();}

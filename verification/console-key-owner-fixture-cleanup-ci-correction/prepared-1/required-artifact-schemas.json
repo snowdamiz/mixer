@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "required_artifacts": 8,
+  "schemas": {
+    "corrected/runtime.json": {
+      "elixir": {
+        "type": "string",
+        "value": "1.20.4"
+      },
+      "otp_release": {
+        "type": "string",
+        "value": "29"
+      },
+      "node": {
+        "type": "string",
+        "value": "nonode@nohost"
+      },
+      "schedulers_online": {
+        "type": "integer",
+        "value": 2
+      },
+      "product_application_started": {
+        "type": "boolean",
+        "value": false
+      }
+    },
+    "corrected/exunit-result.json": {
+      "total": {
+        "type": "integer",
+        "value": 29
+      },
+      "failures": {
+        "type": "integer",
+        "value": 0
+      },
+      "skipped": {
+        "type": "integer",
+        "value": 0
+      },
+      "excluded": {
+        "type": "integer",
+        "value": 22
+      }
+    },
+    "corrected/selection.json": {
+      "compiled_methods": {
+        "type": "integer",
+        "value": 29
+      },
+      "selected_methods": {
+        "type": "integer",
+        "value": 7
+      },
+      "unselected_methods": {
+        "type": "integer",
+        "value": 22
+      },
+      "executed_methods": {
+        "type": "integer",
+        "value": 7
+      },
+      "exact_names_present_once": {
+        "type": "boolean",
+        "value": true
+      },
+      "selection_is_full_suite": {
+        "type": "boolean",
+        "value": false
+      }
+    },
+    "corrected/postconditions.json": {
+      "fixture_owner_absent": {
+        "type": "boolean",
+        "value": true
+      },
+      "fixture_workers_absent": {
+        "type": "boolean",
+        "value": true
+      },
+      "fixture_admission_absent": {
+        "type": "boolean",
+        "value": true
+      },
+      "default_owner_absent": {
+        "type": "boolean",
+        "value": true
+      },
+      "default_repo_absent": {
+        "type": "boolean",
+        "value": true
+      },
+      "product_application_not_started": {
+        "type": "boolean",
+        "value": true
+      },
+      "ephemeral_fixture_key_directories_removed": {
+        "type": "boolean",
+        "value": true
+      }
+    }
+  },
+  "openssl_commands": [
+    [
+      "/opt/homebrew/Cellar/openssl@3/3.6.5/bin/openssl",
+      "version"
+    ],
+    [
+      "/opt/homebrew/Cellar/openssl@3/3.6.5/bin/openssl",
+      "req",
+      "-x509",
+      "-newkey",
+      "rsa:2048",
+      "-nodes",
+      "-keyout",
+      "{fixture}/ca.key",
+      "-out",
+      "{fixture}/ca.pem",
+      "-days",
+      "1",
+      "-subj",
+      "/CN=Mixer Fixture CA"
+    ],
+    [
+      "/opt/homebrew/Cellar/openssl@3/3.6.5/bin/openssl",
+      "req",
+      "-new",
+      "-newkey",
+      "rsa:2048",
+      "-nodes",
+      "-keyout",
+      "{fixture}/leaf.key",
+      "-out",
+      "{fixture}/leaf.csr",
+      "-subj",
+      "/CN=jwks.fixture.invalid"
+    ],
+    [
+      "/opt/homebrew/Cellar/openssl@3/3.6.5/bin/openssl",
+      "x509",
+      "-req",
+      "-in",
+      "{fixture}/leaf.csr",
+      "-CA",
+      "{fixture}/ca.pem",
+      "-CAkey",
+      "{fixture}/ca.key",
+      "-CAcreateserial",
+      "-out",
+      "{fixture}/leaf.pem",
+      "-days",
+      "1",
+      "-extfile",
+      "{fixture}/leaf.ext"
+    ]
+  ]
+}

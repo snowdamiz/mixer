@@ -1,0 +1,10 @@
+{
+  "source": "Root coordinating message for proposal2; source implementation still not authorized",
+  "eligibility": "Private input-observation success plus explicit complete/limited state and all final metadata checks, never Decision::Unavailable.",
+  "input_error": "Every returned input/framing error suppresses state; BINDING maps FramingUnavailable, BUDGET maps FramingLimited, other maps FramingInvalid. Failed drain has no partial claim.",
+  "complete": "Absent unavailable; observed poison-first finish may close/CAP/refuse incomplete; latched refusal stays refused with safe extent; poison yields InternalPoisoned and zero extent.",
+  "limited": "Successful structural drain+metadata only: absent unavailable; observed limited with safe partial extent; refusal limited with first reason and safe partial extent; poison limited with poison reason and zero extent. No normal non-CAP finish.",
+  "debit": "Cumulative reserved envelope charges:534 per successful main setup charge;8 per successful main finish/report reservation;128 per successful main combined B record charge even read/framing failure, latched skip or suppressed final result. No refund.",
+  "budget": "8192 preflight stays fixed. Atomic B=22+128+W charge before decoding; W derived from named actual wrapper/helper groups, B<=8192; no generic8042padding or selected32155capacity.",
+  "ownership": "Explicitly proposed private progress holder expected144 bytes: initialized8+debit8+fixed reply128, full source/destination/move/zero-reply/borrow/Option roles pending actual source/layout inventory."
+}

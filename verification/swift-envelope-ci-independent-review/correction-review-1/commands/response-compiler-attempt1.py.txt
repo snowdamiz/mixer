@@ -1,0 +1,38 @@
+#!/opt/homebrew/opt/python@3.14/bin/python3.14
+"""Synthetic compiler protocol fixture; its success is not host qualification."""
+import json
+import os
+from pathlib import Path
+import sys
+
+ROUND=Path('/Users/andreyyurlov/Documents/dev/mixer/verification/swift-envelope-ci-independent-review/correction-review-1')
+cfg=json.loads((ROUND/'response-settings.json').read_bytes())
+args=sys.argv[1:]
+with (ROUND/'response-invocations.jsonl').open('a') as stream:stream.write(json.dumps({'case':cfg['case'],'argv':args,'argv0':sys.argv[0],'cwd':os.getcwd(),'environment':dict(os.environ)},sort_keys=True)+'\n')
+if args==['--print','sysroot']:print(ROUND/'response-toolchain');sys.exit(0)
+if args==['--version','--verbose']:
+    print(json.loads((ROUND/'parser-originals/versions.json').read_bytes())['1.99.0'],end='');sys.exit(0)
+target=Path(args[args.index('-o')+1])
+source=next(x for x in args if x.endswith('.rs'))
+if '-Dwarnings' not in args:sys.exit(72)
+if source=='source/independent/source/analyzer.rs':
+    if '-A' not in args or args[args.index('-A')+1]!='non_snake_case':sys.exit(73)
+elif any(x.startswith('-A') for x in args):sys.exit(74)
+mode=cfg['mode']
+if '--test' in args:
+    if mode=='independent-other-warning' and source=='source/independent/source/analyzer.rs':print('error: independent additional warning',file=sys.stderr);sys.exit(1)
+    data=(ROUND/'commands/response-binary.py').read_text().replace("ROUND=Path('/Users/andreyyurlov/Documents/dev/mixer/verification/swift-envelope-ci-independent-review/correction-review-1')",'ROUND=Path('+repr(str(ROUND))+')')
+    target.write_text('#!'+sys.executable+'\n'+'\n'.join(data.splitlines()[1:])+'\n');target.chmod(0o755);sys.exit(0)
+if source=='source/library/analyzer.rs':target.write_bytes(b'SYNTHETIC-RLIB-NOT-PRODUCT');sys.exit(0)
+if source=='api/positive.rs':
+    if mode=='positive-fails':print('error: independent positive compile failure',file=sys.stderr);sys.exit(7)
+    target.write_bytes(b'SYNTHETIC-API-POSITIVE');sys.exit(0)
+name=Path(source).stem
+original=(ROUND/'parser-originals/diagnostics'/('api-negative-'+name+'.stderr')).read_bytes()
+if mode=='negative-missing-library':
+    print(json.dumps({'level':'error','code':{'code':'E0463'},'message':'cannot find crate mixer_absence','spans':[]}),file=sys.stderr);sys.exit(1)
+if mode=='negative-malformed-json':print('{broken',file=sys.stderr);sys.exit(1)
+if mode=='negative-crash':print('independent compiler crash',file=sys.stderr);sys.exit(101)
+if mode=='negative-success':target.write_bytes(b'UNEXPECTED-EXECUTABLE');sys.exit(0)
+if mode=='negative-produced-executable':target.write_bytes(b'UNEXPECTED-EXECUTABLE')
+sys.stderr.buffer.write(original);sys.exit(1)

@@ -1,0 +1,122 @@
+{
+  "checks": [
+    {
+      "name": "Python AST hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py",
+      "passed": true
+    },
+    {
+      "name": "Python AST verification/hosted-browser-callback-ci/check_runner.py",
+      "passed": true
+    },
+    {
+      "name": "Python AST verification/hosted-browser-callback-ci/check_integration.py",
+      "passed": true
+    },
+    {
+      "name": "Both triggers select the hosted runner and selected fixture inputs",
+      "passed": true
+    },
+    {
+      "name": "Existing checks retained with selected PG16 step and evidence artifact",
+      "passed": true
+    },
+    {
+      "name": "Workflow whitespace check",
+      "passed": true
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "revision",
+      "stderr": "",
+      "stdout": "68468f8fb73f21d2e4b388c41ad15fd01bfd0d93\n",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "git-tree",
+      "stderr": "",
+      "stdout": "5d454399dc31bc1515222abec859a59df7276c19\n",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "ruby",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "ruby-version",
+      "stderr": "",
+      "stdout": "ruby 4.0.7 (2026-09-15 revision 229531a6cf) +PRISM [arm64-darwin27]\n",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "ruby",
+        "-e",
+        "require 'yaml'; require 'json'; puts JSON.generate(YAML.load_file('.github/workflows/hosted.yml'))"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "workflow-parse",
+      "stderr": "",
+      "stdout": "{\"name\":\"Phoenix foundation checks\",\"true\":{\"push\":{\"paths\":[\"hosted/**\",\"services/protocol/testdata/signed-release-v3.json\",\"services/protocol/testdata/release-v3-cases.json\",\".github/workflows/hosted.yml\",\"console/src/api/**\",\"console/src/domain/workspace-directory.ts\",\"console/package.json\",\"console/package-lock.json\",\"verification/hosted-customer-workspace-http-integration/node-client-driver.mjs\",\"verification/hosted-browser-auth-protocol/run.py\",\"verification/hosted-browser-callback-ci/selected-methods.json\",\"verification/hosted-browser-callback-storage/*.exs\",\"verification/hosted-browser-preauth-store/live.exs\",\"verification/hosted-browser-begin-login/*.exs\"]},\"pull_request\":{\"paths\":[\"hosted/**\",\"services/protocol/testdata/signed-release-v3.json\",\"services/protocol/testdata/release-v3-cases.json\",\".github/workflows/hosted.yml\",\"console/src/api/**\",\"console/src/domain/workspace-directory.ts\",\"console/package.json\",\"console/package-lock.json\",\"verification/hosted-customer-workspace-http-integration/node-client-driver.mjs\",\"verification/hosted-browser-auth-protocol/run.py\",\"verification/hosted-browser-callback-ci/selected-methods.json\",\"verification/hosted-browser-callback-storage/*.exs\",\"verification/hosted-browser-preauth-store/live.exs\",\"verification/hosted-browser-begin-login/*.exs\"]}},\"permissions\":{\"contents\":\"read\"},\"jobs\":{\"phoenix\":{\"runs-on\":\"ubuntu-24.04\",\"timeout-minutes\":15,\"steps\":[{\"uses\":\"actions/checkout@v4\"},{\"uses\":\"actions/setup-node@v4\",\"with\":{\"node-version\":\"22.23.3\"}},{\"uses\":\"erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124\",\"with\":{\"version-file\":\"hosted/.tool-versions\",\"version-type\":\"strict\"}},{\"name\":\"Resolve locked dependencies\",\"working-directory\":\"hosted\",\"run\":\"mix deps.get --check-locked\"},{\"name\":\"Browser auth protocol host checks\",\"working-directory\":\"hosted\",\"env\":{\"MIX_ENV\":\"test\"},\"run\":\"mix deps.compile jason\\npython3 ../verification/hosted-browser-auth-protocol/run.py\\n\"},{\"name\":\"Compile workspace client for real HTTP integration\",\"working-directory\":\"console\",\"run\":\"node --version\\nnpm --version\\nnpm ci --ignore-scripts --no-audit --no-fund\\nnode node_modules/typescript/bin/tsc --version\\nnode node_modules/typescript/bin/tsc src/api/workspace-client.ts \\\\\\n  --target ES2022 --module ES2022 --moduleResolution bundler \\\\\\n  --strict --skipLibCheck --lib ES2022,DOM \\\\\\n  --outDir \\\"$RUNNER_TEMP/workspace-client\\\"\\ncp ../verification/hosted-customer-workspace-http-integration/node-client-driver.mjs \\\\\\n  \\\"$RUNNER_TEMP/workspace-client/driver.mjs\\\"\\nprintf '%s\\\\n' '{\\\"type\\\":\\\"module\\\"}' > \\\"$RUNNER_TEMP/workspace-client/package.json\\\"\\nprintf 'MIXER_WORKSPACE_HTTP_NODE_DRIVER=%s/driver.mjs\\\\n' \\\"$RUNNER_TEMP/workspace-client\\\" >> \\\"$GITHUB_ENV\\\"\\n\"},{\"name\":\"Browser session storage and migration checks\",\"working-directory\":\"hosted\",\"env\":{\"MIX_ENV\":\"test\"},\"run\":\"mix deps.compile\\npython3 test/mixer_hosted/browser_auth/run_storage_fixture.py \\\\\\n  --pg-bin /usr/lib/postgresql/16/bin\\npython3 test/mixer_hosted/browser_auth/run_migration_fixture.py \\\\\\n  --pg-bin /usr/lib/postgresql/16/bin \\\\\\n  --output \\\"$RUNNER_TEMP/browser-migrations\\\"\\n\"},{\"name\":\"Selected browser callback, preauth and begin checks\",\"working-directory\":\"hosted\",\"env\":{\"MIX_ENV\":\"test\"},\"run\":\"python3 -B test/mixer_hosted/browser_auth/run_callback_fixture.py \\\\\\n  --pg-bin /usr/lib/postgresql/16/bin \\\\\\n  --output \\\"$RUNNER_TEMP/browser-callback\\\"\\n\"},{\"name\":\"Phoenix and disposable PostgreSQL host checks\",\"working-directory\":\"hosted\",\"run\":\"python3 scripts/test-local.py \\\\\\n  --pg-bin /usr/lib/postgresql/16/bin \\\\\\n  --output \\\"$RUNNER_TEMP/phoenix-foundation\\\"\\n\"},{\"name\":\"Preserve host evidence\",\"if\":\"always()\",\"uses\":\"actions/upload-artifact@v4\",\"with\":{\"name\":\"phoenix-foundation-${{ github.sha }}\",\"retention-days\":14,\"if-no-files-found\":\"ignore\",\"path\":\"${{ runner.temp }}/phoenix-foundation/\\nverification/hosted-browser-auth-protocol/attempts/\\nverification/hosted-browser-session-storage/attempts/\\n${{ runner.temp }}/browser-migrations/\\n${{ runner.temp }}/browser-callback/\\n\"}}]}}}\n",
+      "timeout_seconds": 15
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        ".github/workflows/hosted.yml"
+      ],
+      "cwd": "/Users/andreyyurlov/Documents/dev/mixer",
+      "exit": 0,
+      "label": "workflow-diff-check",
+      "stderr": "",
+      "stdout": "",
+      "timeout_seconds": 15
+    }
+  ],
+  "git_tree": "5d454399dc31bc1515222abec859a59df7276c19",
+  "invocation": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "verification/hosted-browser-callback-ci/check_integration.py"
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "revision": "68468f8fb73f21d2e4b388c41ad15fd01bfd0d93",
+  "schema": 1,
+  "scope": "Static syntax/workflow integration evidence; no product or Linux CI execution.",
+  "sources": {
+    ".github/workflows/hosted.yml": "be2a9746f0d18b52109173969e042d88253ccbcffbde788821436067549c4560",
+    "docs/hosted-browser-callback-ci.md": "9872f29d6ac23b39fa2e88f780d423e5fac11c77ec276c11f54e6d5a2d1aaf24",
+    "hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py": "fa67d47fd9c6e57958353b24f58506ab20e6355abdddf2e365862e8d9e24ca94",
+    "verification/hosted-browser-callback-ci/check_integration.py": "706cea66424376deb089a6b906dd3958807bbcb37cb6c1a53966be2b7a06cd7a",
+    "verification/hosted-browser-callback-ci/check_runner.py": "7198ca9b1a5b226d4fc7f8c47fcfa7a281299c647dfacf798e0e34090216c9d2",
+    "verification/hosted-browser-callback-ci/selected-methods.json": "b74e83c45746e3988189575d808196115ff3d619c1a8613febd628e23f91a0bc"
+  },
+  "sources_after": {
+    ".github/workflows/hosted.yml": "be2a9746f0d18b52109173969e042d88253ccbcffbde788821436067549c4560",
+    "docs/hosted-browser-callback-ci.md": "9872f29d6ac23b39fa2e88f780d423e5fac11c77ec276c11f54e6d5a2d1aaf24",
+    "hosted/test/mixer_hosted/browser_auth/run_callback_fixture.py": "fa67d47fd9c6e57958353b24f58506ab20e6355abdddf2e365862e8d9e24ca94",
+    "verification/hosted-browser-callback-ci/check_integration.py": "706cea66424376deb089a6b906dd3958807bbcb37cb6c1a53966be2b7a06cd7a",
+    "verification/hosted-browser-callback-ci/check_runner.py": "7198ca9b1a5b226d4fc7f8c47fcfa7a281299c647dfacf798e0e34090216c9d2",
+    "verification/hosted-browser-callback-ci/selected-methods.json": "b74e83c45746e3988189575d808196115ff3d619c1a8613febd628e23f91a0bc"
+  },
+  "success": true
+}

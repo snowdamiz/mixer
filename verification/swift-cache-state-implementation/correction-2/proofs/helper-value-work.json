@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "source_sha256": "6f128e861478c4c871460115397976b39e6cd3a4807a8825b5b04959e1930a00",
+  "helpers": {
+    "st": {
+      "range": [
+        156,
+        158
+      ],
+      "array_moves": [
+        {
+          "from": "n.to_le_bytes returned array8 source",
+          "to": "received LE temporary8",
+          "copy_units": 1
+        },
+        {
+          "from": "LE temporary8 shared source",
+          "to": "checked b[at..at+8]8 destination",
+          "copy_units": 1
+        }
+      ],
+      "scalar_edges": [
+        "caller b complete slice source->received parameter",
+        "caller at usize source->received parameter",
+        "caller n u64 source->received parameter",
+        "at+8",
+        "Range16 constructor/index source->received",
+        "destination start<=end",
+        "destination end<=b length",
+        "exclusive destination view/receiver",
+        "n8 source->to_le_bytes self received",
+        "LE conversion",
+        "shared LE-array view/source argument",
+        "copy length guard",
+        "copy method returned/received unit0 and actual control return",
+        "st returned/received unit0 and control return"
+      ],
+      "caller_work_not_omitted": "every caller indexed word/field read, cast, arithmetic and conditional expression is separate from these helper edges; G6 event/final rows must own it",
+      "closed_scalar_blocks": false
+    },
+    "sq": {
+      "range": [
+        162,
+        164
+      ],
+      "reuses": "st two distinct array movements exactly once; no third LE-array return from sq",
+      "scalar_edges": [
+        "caller c8 source->sq received",
+        "caller i usize8 source->sq received",
+        "caller n u64 source->sq received",
+        "8*i",
+        "SC+offset",
+        "Candidate shared/exclusive slice coercion/borrow into forwarded st b16",
+        "forwarded at usize8 source->st received",
+        "forwarded n u64 source->st received",
+        "st returned/received unit0 and control return",
+        "sq returned/received unit0 and control return"
+      ],
+      "separate_caller_work": "index/field/conditional arithmetic evaluated for sq i/n arguments at each call site, not counted by declaring st<=16",
+      "closed_scalar_blocks": false
+    },
+    "ld": {
+      "range": [
+        149,
+        155
+      ],
+      "array_moves": [
+        {
+          "from": "dereferenced checked array8 source",
+          "to": "from_le_bytes by-value argument8",
+          "copy_units": 1
+        }
+      ],
+      "scalar_edges": [
+        "caller offset arithmetic/cast",
+        "b complete slice argument source->ld received",
+        "at usize argument source->ld received",
+        "at+8 and complete Range16 source/index received",
+        "both ordered range predicates",
+        "shared slice view/first_chunk receiver",
+        "first_chunk length predicate",
+        "Option<&[u8;8]>8 source->expect self received",
+        "explicit static str16 source->expect msg received",
+        "Some tag test",
+        "array reference8 source->received",
+        "LE conversion",
+        "conversion returned u64->ld designated output",
+        "ld returned u64->caller initializer/operand",
+        "A/B initializer temporary->identifier binding where actual let occurs"
+      ],
+      "G3_status": "unchanged current comparator lacks complete<=64 map; proposal2 is source-only, unselected",
+      "closed_G3_8": false
+    }
+  },
+  "direct_literal_copy_distinction": "no LE array or ld/decode exists at literal transfers; source and destination already contain canonical LE bytes",
+  "source_accounting_accepted": false
+}

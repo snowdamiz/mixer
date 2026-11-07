@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "at": "2026-10-29T00:00:27.257Z",
+  "attempt": 1,
+  "exitCode": 1,
+  "output": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-capacity-window/ci-review/review.py\", line 280, in <module>\n    main()\n    ~~~~^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-capacity-window/ci-review/review.py\", line 233, in main\n    check(\"cumulative counters \" + arm + \" \" + str(observed[\"instructions\"]), all(type(observed[k]) is int and 0 <= previous[k] <= observed[k] < 2**64 for k in previous) and observed[\"instruction_fuel\"] - previous[\"instruction_fuel\"] >= observed[\"instructions\"] - previous[\"instructions\"])\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/Documents/dev/mixer/verification/github-delivery-capacity-window/ci-review/review.py\", line 90, in check\n    raise AssertionError(label)\nAssertionError: cumulative counters dense-256-window 100000000\n",
+  "classification": "Reviewer bookkeeping error: previous cumulative-key set accidentally expanded to cursor and threshold fields after first prefix. Campaign parser and validate_prefix had passed. Corrected to retain the six intended cumulative counter keys. No runtime or artifact failure inferred."
+}

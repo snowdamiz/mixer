@@ -1,0 +1,90 @@
+Running ExUnit with seed: 0, max_cases: 30
+
+............
+12:04:28.559 [error] Postgrex.Protocol (#PID<0.238.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) ERROR 23514 (check_violation) browser vault transition invalid
+
+12:04:28.558 [error] Postgrex.Protocol (#PID<0.240.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) ERROR 23514 (check_violation) browser audit transition missing
+
+12:04:28.563 [error] Postgrex.Protocol (#PID<0.237.0> ({Postgrex.Protocol, "browser_storage"})) disconnected: ** (Postgrex.Error) ERROR 23514 (check_violation) browser attempt event missing
+....
+
+  1) test independent review rechecks activation expiry after a rolled-back unique cookie update wait (MixerHosted.BrowserAuth.StorageTest)
+     hosted/test/mixer_hosted/browser_auth/storage_spec.exs:907
+     match (=) failed
+     code:  assert {:error, :raise_exception} = Task.await(task)
+     left:  {:error, :raise_exception}
+     right: {:ok,
+             %{
+               "attempt" => %{
+                 "browser_epoch" => 2,
+                 "browser_id" => "\\xc9b8c116fa910682b6c22d9bcfe707be",
+                 "browser_revision" => 2,
+                 "ciphertext" => nil,
+                 "ciphertext_version" => 1,
+                 "claim_digest" => "\\x358b3bb6624639ef7323877882950b0cc9aa99b711c71694bd321c9c54e944cf",
+                 "claim_expires_at" => 1792944274,
+                 "claimed_at" => 1792944272,
+                 "client_id" => "console",
+                 "completion_reason" => "completed",
+                 "config_digest" => "\\x893eb9e37b47b8d1497337a4c077dd34f74a64ea7da8c563ddc8fbcd4ed359ae",
+                 "cookie_digest" => "\\x98c29e2715ff4df6caa280997148ad93fbaa399112c76c9737fcc211cf0d3760",
+                 "created_at" => 1792944272,
+                 "expires_at" => 1792944422,
+                 "generation" => "3UWsul9RTCpYoDzO1hBzGBsS75xR8sdr7dllLZ7F6hs",
+                 "issuer" => "https://issuer.fixture",
+                 "iv" => nil,
+                 "key_id" => nil,
+                 "nonce_digest" => "\\xfaddef9cd6be2a818103e1ff6e9589a5f3bc0c7243af15ab99755fa9e7b5826f",
+                 "profile_id" => "humans",
+                 "profile_version" => 1,
+                 "redirect_uri" => "https://console.fixture/auth/callback",
+                 "return_route" => "workspace",
+                 "state_digest" => "\\xa450d478fbaab429c400697df9ab863bf4522ab1108e56b16ec1f3960c4cdd62",
+                 "status" => "completed",
+                 "tag" => nil
+               },
+               "browser" => %{
+                 "absolute_expires_at" => 1792944773,
+                 "audit_sequence" => 4,
+                 "config_digest" => "\\x893eb9e37b47b8d1497337a4c077dd34f74a64ea7da8c563ddc8fbcd4ed359ae",
+                 "cookie_digest" => "\\x9f7500070d0b32bfc41366f70d37ac695f20d399b6c69ff64ebe284fead0b47e",
+                 "created_at" => 1792944272,
+                 "credential_ref" => "OWv1kWdx8fKjdkgRb4UoNpAyQH4iuPkPpUActd82ETA",
+                 "credential_revision" => 1,
+                 "csrf_digest" => "\\x236f9447b7ca10c30feb12d3363e3d6635bf348f587a755518d48a5fdde7fe8d",
+                 "epoch" => 3,
+                 "expected_profile_id" => "humans",
+                 "expected_profile_version" => 1,
+                 "family_id" => "browser_tweej5tbg7KV-2bBbb2US5xhSXQ3Zl3a3ptGRL-rTWU",
+                 "generation" => "nbnW0rrD8mG-UayCIvsJR4JQU8NqFABWWmmb4k6VNOE",
+                 "id" => "\\xc9b8c116fa910682b6c22d9bcfe707be",
+                 "idle_expires_at" => 1792944773,
+                 "initial_config_digest" => "\\x893eb9e37b47b8d1497337a4c077dd34f74a64ea7da8c563ddc8fbcd4ed359ae",
+                 "last_seen_at" => 1792944273,
+                 "principal_id" => "person-1",
+                 "profile_id" => "humans",
+                 "profile_version" => 1,
+                 "revision" => 3,
+                 "status" => "active"
+               },
+               "vault" => %{
+                 "browser_id" => "\\xc9b8c116fa910682b6c22d9bcfe707be",
+                 "ciphertext" => "\\x1c666d6ddf3db5cd33547e672de98224fcfd633d71768bcbe65020628ac36c8b85d237c5bc98e1d77fa9aa4e8a002493",
+                 "ciphertext_version" => 1,
+                 "envelope_kind" => "active",
+                 "epoch" => 3,
+                 "iv" => "\\x51531eca31190419ac2d062c",
+                 "key_id" => "fixture-v1",
+                 "session_revision" => 3,
+                 "tag" => "\\x8b7553ef804a43e9f0f5816523a5ea45",
+                 "vault_generation" => 3
+               }
+             }}
+     stacktrace:
+       hosted/test/mixer_hosted/browser_auth/storage_spec.exs:940: (test)
+
+......
+Finished in 10.9 seconds (0.7s on load, 0.00s async, 10.2s sync)
+
+Result: 22/23 passed
+Failed: 1 test
