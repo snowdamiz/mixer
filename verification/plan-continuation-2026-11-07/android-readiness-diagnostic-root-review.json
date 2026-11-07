@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "at": "2026-11-07T22:43:02.645489+00:00",
+  "reviewer": "root",
+  "scope": "failure-only private native smoke diagnostics",
+  "decision": "accept diagnostics; original runtime failure remains failed",
+  "sources": {
+    "native/android/tests/NativeCoordinatorV2IntegrationActivity.java": {
+      "bytes": 5325,
+      "sha256": "84ee31e64c52a3215545887f8b83baf0245b6a24d70913407212199e80ae170c"
+    },
+    "native/android/tests/NativeCoordinatorV2IntegrationInstrumentation.java": {
+      "bytes": 8732,
+      "sha256": "6596bf0d6c30c6ffadc296fb2eb19578d3a2effc1df20f92026b1ef20a68c09b"
+    }
+  },
+  "sourceObservations": [
+    "All three readiness waits retain 100 attempts and20ms sleep; only stage identifiers added.",
+    "Original platform floor, attachment, packet identity, exact bytes, revision, toggle, lifecycle and cleanup assertions retained.",
+    "Owner/core/fence/cleanup observations occur on main thread only after failure, before existing cleanup.",
+    "Observation failures are separately recorded; original failure remains in result.",
+    "No production source or sourcepair changed."
+  ],
+  "actualEvidence": "verification/plan-continuation-2026-11-07/android-readiness-diagnostic/result.json",
+  "actual": {
+    "status": "diagnostic-complete-canonical-smoke-failed",
+    "stage": "initial-presentation",
+    "strictCompile": [
+      "production-java17-sdk37.log",
+      "canonical-instrumentation-java17-sdk37.log"
+    ],
+    "nativeAttempts": 1,
+    "cleanup": {
+      "allOwnedGroupsClosed": true,
+      "disposableAVDRemoved": true,
+      "ports": {
+        "52577": "released",
+        "5570": "released",
+        "5571": "released"
+      },
+      "recoveredHelperPermissionError": true,
+      "scratchRemoved": true,
+      "unknownCustodyMaterialRemoved": false
+    }
+  },
+  "limits": [
+    "Diagnostic product behavior is not fixed by this slice.",
+    "JNI create/load observed; prepare/commit/toggle remain unexecuted.",
+    "Public effective-scale correction is under isolated implementation and validation."
+  ]
+}

@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Switch;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
@@ -12,7 +13,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * FUTURE NATIVE TEST ONLY, compiled but NOT RUN during the computer-use/native-runtime pause.
+ * Private native smoke with failure-only readiness diagnostics.
  * Requires a separate private APK with the real JNI/Swift registry, native classes and descriptor
  * asset. No substitute renderer, engine, installed capture or environment is accepted here.
  * This is a narrow smoke test, not native rollback/IME/lifecycle/physical-device acceptance.
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @SuppressWarnings("deprecation")
 public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrumentation {
     private int checks;
+    private String stage = "api-floor";
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -35,13 +37,14 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
         try {Field field=NativeOwnerV2.class.getDeclaredField("coordinator");field.setAccessible(true);return (NativeCoordinatorV2)field.get(owner);}
         catch(ReflectiveOperationException failure){throw new AssertionError(failure);}
     }
-    private void awaitPresentation(NativeOwnerV2 owner) {
+    private void awaitPresentation(String readinessStage, NativeOwnerV2 owner) {
+        stage = readinessStage;
         for(int attempt=0;attempt<100;attempt++){
             boolean[] ready={false};onMain(()->ready[0]=owner.hasCommittedPresentation());if(ready[0])return;
             try{Thread.sleep(20);}catch(InterruptedException failure){Thread.currentThread().interrupt();throw new AssertionError(failure);}
             waitForIdleSync();
         }
-        throw new AssertionError("actual owner readiness did not publish");
+        throw new AssertionError("actual owner readiness did not publish; stage=" + stage);
     }
     private static byte[] retained(NativeCoordinatorV2 coordinator) {
         try {
@@ -69,12 +72,14 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
         int resultCode = Activity.RESULT_CANCELED;
         try {
             check(Build.VERSION.SDK_INT >= 36, "private V2 runtime floor is API36");
+            stage = "activity-startup";
             Intent intent = new Intent(getTargetContext(), NativeCoordinatorV2IntegrationActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             activity = (NativeCoordinatorV2IntegrationActivity) startActivitySync(intent);
             waitForIdleSync();
             NativeCoordinatorV2IntegrationActivity window = activity;
-            awaitPresentation(window.owner);
+            awaitPresentation("initial-presentation", window.owner);
+            stage = "initial-packet-and-pause";
             byte[][] initialHolder=new byte[2][];
             onMain(() -> {
                 check(window.root.isAttachedToWindow() && window.root.getWidth() > 0
@@ -87,12 +92,14 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
                 // Refresh is driven through the owner and its real queued drain below.
                 window.owner.onPause();
             });
-            waitForIdleSync();awaitPresentation(window.owner);
+            waitForIdleSync();awaitPresentation("post-pause-presentation", window.owner);
+            stage = "owner-resume";
             onMain(() -> {
                 NativeCoordinatorV2 joined=coordinator(window.owner);
                 window.owner.onResume();
             });
-            waitForIdleSync();awaitPresentation(window.owner);
+            waitForIdleSync();awaitPresentation("post-resume-presentation", window.owner);
+            stage = "runtime-toggle-oracle";
             onMain(() -> {
                 NativeCoordinatorV2 joined=coordinator(window.owner);
                 byte[] initial=initialHolder[0];UiPacket initialPacket=UiPacket.decode(initial);
@@ -118,6 +125,19 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
             resultCode = Activity.RESULT_OK;
         } catch (RuntimeException | Error failure) {
             result.putString("failure", failure.toString());
+            result.putString("failureStage", stage);
+            result.putString("failureTrace", NativeCoordinatorV2IntegrationActivity.trace(failure));
+            Log.e("MixerReadinessDiagnostic", "instrumentation stage=" + stage, failure);
+            if (activity != null) {
+                NativeCoordinatorV2IntegrationActivity window = activity;
+                try {
+                    onMain(() -> result.putString("failureDiagnostics", window.failureDiagnostics()));
+                    Log.e("MixerReadinessDiagnostic", result.getString("failureDiagnostics"));
+                } catch (RuntimeException | Error observationFailure) {
+                    result.putString("diagnosticFailureTrace", NativeCoordinatorV2IntegrationActivity.trace(observationFailure));
+                    Log.e("MixerReadinessDiagnostic", "failure observation", observationFailure);
+                }
+            }
         } finally {
             if (activity != null) {
                 NativeCoordinatorV2IntegrationActivity window = activity;
@@ -131,6 +151,8 @@ public final class NativeCoordinatorV2IntegrationInstrumentation extends Instrum
                     });
                 } catch (RuntimeException | Error failure) {
                     result.putString("cleanupFailure", failure.toString());
+                    result.putString("cleanupFailureTrace", NativeCoordinatorV2IntegrationActivity.trace(failure));
+                    Log.e("MixerReadinessDiagnostic", "test cleanup", failure);
                     resultCode = Activity.RESULT_CANCELED;
                 }
             }

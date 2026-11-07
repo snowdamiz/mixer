@@ -1,0 +1,41 @@
+--- baseline/settings_telemetry.py
++++ candidate/settings_telemetry.py
+@@ -190,6 +190,7 @@
+         self.enabled_samples = []
+         self.invalid_enabled_samples = []
+         self.last_capture_finished = None
++        self.completed_png = None
+ 
+     def request(self, value):
+         # Validate and assemble a complete intent without persistent side effects.
+@@ -250,6 +251,8 @@
+                     text = payload.decode('utf-8')
+                     require(text and '\x00' not in text, 'AX text payload')
+                 self.persist_file(slot, item['format'], payload)
++                if item['format'] == 'png':
++                    self.completed_png = (slot, payload)
+                 item['complete'] = True
+                 item['parts'] = []
+                 self.pending.pop(0)
+@@ -325,7 +328,20 @@
+                 require(self.total <= MAX_TOTAL and len(self.uploads) < MAX_UPLOADS, 'Aggregate upload bound')
+                 slot = f"settings-{value['sequence']:04d}-{form}"
+                 self.uploads[slot] = {**descriptor, 'format': form, 'count': (descriptor['bytes'] + CHUNK - 1) // CHUNK, 'parts': [], 'complete': False}
+-                self.pending.append(slot)
++                reused = False
++                if stage == 'terminal' and form == 'png' and self.completed_png is not None:
++                    prior_slot, payload = self.completed_png
++                    prior = self.uploads[prior_slot]
++                    if prior['bytes'] == descriptor['bytes'] and prior['sha256'] == descriptor['sha256']:
++                        require(prior['complete'] is True and prior['format'] == 'png'
++                                and len(payload) == descriptor['bytes'] and sha(payload) == descriptor['sha256'],
++                                'Completed terminal PNG reuse identity')
++                        png(payload)
++                        self.persist_file(slot, form, payload)
++                        self.uploads[slot]['complete'] = True
++                        reused = True
++                if not reused:
++                    self.pending.append(slot)
+             self.events.append(value)
+         elif kind == 'mark':
+             require(set(value) == FIELDS | {'stage', 'detail'} and not self.pending and len(self.events) < MAX_EVENTS, 'Marker shape')

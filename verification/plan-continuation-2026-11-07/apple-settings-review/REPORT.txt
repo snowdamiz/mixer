@@ -1,0 +1,46 @@
+ACCEPT — diagnostic transport correction for a fresh root dispatch packet.
+No blocking findings. This is not a native Settings, Tab, physical-device or GA pass.
+
+Reviewed exact candidate packet: 76d499c09102741e1975ef6dd8a48b7c4b4897c3dc6a5a8fa64dfb7dd2345618
+Candidate settings_telemetry.py: 0638a7c8d506625942a68544a2baa7369683e9d685928cd88e08a03c586ff738
+Baseline settings_telemetry.py: d80d1dbc1af7a79b743f2c76a4d6fac311aeef9cd7675492c4ea3926cf6a9f78
+Candidate runtime archive: 4adaecd0194bfef54f293c0939d7489c19f81c8fe5df03dff83439445dacc7e9
+Candidate selection template: 4468517e8ad7b6e8ad7914fe725db1115dbfc0987a15f1fa8f60c9d5009cd202
+Compiled source tree: f402eba7b6fa8abf2671e3a95441351dace37f291a9d55024232c9112b2720fb
+Retained product archive: 495f83c4702f7b229be495756f0a524c700f07159c5e21975dea471d118a8904
+Source authority is exact archive/manifest bytes. Checkout HEAD in the command receipt is context only.
+
+Source findings (paths below are relative to ../apple-settings-fix/):
+
+1. candidate/settings_telemetry.py:193,195-213,245-255,260-272,299-345.
+The cache is initialized per Session and populated only after complete payload identity and PNG validation. Immutable bytes are stored on the transactional draft; rejected commits cannot publish draft state. Terminal reuse requires matching byte count and SHA-256, a completed prior PNG, rehashed cached bytes, and repeated PNG validation. The fresh terminal snapshot, timestamps, witness, sequence, case and generation still pass the original observation gates. The journal retains the fresh terminal record exactly. The new filename gets independently written bytes, not a path alias or copied old metadata. Reuse stays inside aggregate byte/upload bounds. Missing cache or different bytes retains ordinary upload; nonterminal stages never reuse.
+
+2. baseline-compile/harness/UITests/ToggleUITests.swift:92-119,216-223,310-312.
+The unchanged client captures the terminal screenshot afresh and hashes its actual bytes. It uploads only the response's pending slots. Therefore the retained client supports this receiver optimization without rebuilding. The retained terminal descriptor matches the completed after-switch PNG (219465 bytes); the review does not invent missing original terminal chunk receipts.
+
+3. baseline-runtime/inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/durable_settings.py:139-226 and replay.py:9-35.
+The copied terminal PNG and fresh journal record enter the same guarded durable transaction. Payload/journal publication and publication-directory failures remove introduced artifacts and preserve the accepted cursor. Postcommit retirement failure leaves the ACK accepted while blocking later requests/replay until positively resolved. Existing targets cannot be overwritten. Replay reconstructs the cached content from original chunk records and verifies the new terminal file, fresh journal identity and records. It rejects tampered prior/terminal files and unresolved guards. No durability/error implementation changed.
+
+4. baseline-runtime/composition.py:62-95, runtime_bindings.py:10-79, and inputs/runtime/verification/apple-toggle-pan-origin-correction/bridge.py:196-235.
+The full original Settings-before-Tab handoff remains exact: complete measured evidence, ordered termination, test-case-finished and resolved persistence are all required. Source bytes and module origins remain checked before requests, and binding failure remains latched. Capability comparison, loopback-only framing, 8192-byte body cap and duplicate-header/JSON rejection are byte-identical; these HTTP guards were source-reviewed, not exercised through a new socket. All original Settings and reference-first Tab oracle sources are unchanged. The 29-second budget, three-second observation window and 4992-byte chunk contract remain exact.
+
+Independent execution:
+- 23 host Python behavior tests passed: submitted 12 reexecuted, plus 11 independent tests. Cases include metadata/timing rejection, copied-byte identity and fresh inode, PNG validation, aggregate limits, missing cache, nonterminal behavior, complete differing-valid-PNG fallback upload/replay, publication rollback, postcommit retirement and collision protection.
+- Exact archived baseline composition replayed 158 retained requests and preserved the original incomplete 23/44 terminal PNG result.
+- Exact candidate archive/selection composition replayed 135 retained requests, reproduced exact durable terminal bytes and offline summary, and still refused Tab for absent completion markers. Both compositions rejected altered source/module origins and retained the first binding failure.
+- All 111 handoff members, seven packet artifact bindings, 32 runtime members, 42 compile sources and 55 retained product members verified. Only settings_telemetry.py changed; the other 31 runtime files and all compiled inputs/products remain exact. Selection differs only at the candidate source hash. The template's literal historical absolute product archive was independently rehashed and matched.
+
+Commands (Python 3.14.8; full argv, source hashes, timestamps, stdout/stderr and exit codes in receipts):
+PYTHONDONTWRITEBYTECODE=1 python3 -B verification/plan-continuation-2026-11-07/apple-settings-review/review_controls.py
+PYTHONDONTWRITEBYTECODE=1 python3 -B verification/plan-continuation-2026-11-07/apple-settings-review/composition_controls.py baseline
+PYTHONDONTWRITEBYTECODE=1 python3 -B verification/plan-continuation-2026-11-07/apple-settings-review/composition_controls.py candidate
+PYTHONDONTWRITEBYTECODE=1 python3 -B verification/plan-continuation-2026-11-07/apple-settings-review/audit_packet.py
+Receipts: host-controls-r2-command.json, composition-baseline-command.json, composition-candidate-command.json, packet-audit-r2-command.json.
+The first reviewer archive scanner rejected a normal root directory, then was corrected. Its failed output and original script are retained. No candidate change was needed.
+
+Exact next test unlocked:
+Root binds this accepted candidate packet, candidate-runtime-sources.tar.gz and candidate-selection-template.json into a fresh exact-source dispatch successor with the unchanged product archive. On one fresh owned iOS 26.5 (23F77) simulator, run test000PublicSettingsFullKeyboardAccess followed by the original test010ReferenceFirstTab (keyboard-enabled-off), test-without-building, preserving runtime/product checks, actual XCTest import, one-attempt marker and all five cleanup operations. The historical V9 dispatcher remains bound to the old packet and must not be reused as authorization for changed source.
+Use the accepted successor packet hash in fresh root selection, not the baseline packet hash. Bind this review and the accepted archive/template identities during root materialization. Preserve the original cleanup for loopback shutdown, socket close, thread join, ephemeral capability workspace removal and owned simulator/baseline reconciliation. This is one executable Settings-then-reference-first-Tab attempt with retained products, not another preparation campaign. This reviewer consumed zero of the original two native attempts.
+
+Limits and custody:
+Native timing adequacy is unresolved; no timeout increase or native success is claimed. No compilers, simulator/native commands, UI, capture, listeners, process probes, held-process signals, commits, pushes or delegation ran. All review scratch was created inside this new review directory and removed; sealed candidate members were rehashed unchanged after controls. Physical phones, historical held processes, held V5 startup and frozen hosted lanes remained untouched. The producer's first default-host-scratch exception remains recorded in its result.json. No production/public FieldLog/GA qualification is implied.

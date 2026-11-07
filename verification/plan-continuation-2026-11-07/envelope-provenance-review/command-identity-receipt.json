@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "workspace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+  "scope": "Pure file reads, JSON parsing, SHA-256 checks and writes only to new envelope-provenance-review; no artifact/runner/guard/wrapper execution, process probe, compiler, network, native session, child task, commit or push",
+  "preliminaryCommand": {
+    "tool": "functions.exec -> exec_command",
+    "cmd": "pwd",
+    "exit": 0,
+    "output": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4"
+  },
+  "mainCommand": {
+    "tool": "mcp__node_repl__js",
+    "code": "var checkerModule = await import('file:///Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-provenance-review/check.mjs'); var checked = await checkerModule.runChecks('/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4');",
+    "toolVersion": "Tool/Node engine build version not exposed by interface; no version process requested",
+    "checkerSHA256": "2fa55b7cd968aaaa7a132d9a6bdf34e9c1e5dfe26ae7e71d30789021e775d8be",
+    "started": "2026-11-07T22:42:23.436Z",
+    "completed": "2026-11-07T22:42:23.590Z",
+    "outcome": {
+      "passed": true,
+      "assertions": 372,
+      "failures": 0
+    }
+  },
+  "manualInspection": {
+    "file": "../envelope-provenance/acquire_bounded.py",
+    "sha256": "d78b383d349444a32e9907b0dd251d813b5a59583f30c701de999b24a9b65599",
+    "executed": false,
+    "findings": [
+      "Popen starts an owned new session and reads separate nonblocking stdout/stderr pipes",
+      "15-second active read/wait budget, 2000000-byte stdout cap, 65536-byte stderr cap and 5-second cleanup wait",
+      "EOF flags follow zero-byte reads; bodyCompleted follows exact length/hash after successful exact child wait",
+      "Finalization waits the same child, records owned-group absence, closes both pipe readers and checks closed flags",
+      "This successful record has zero signals/errors, both EOFs, exit 0 and 0.701941792 seconds elapsed; no failure-path/general supervisor qualification is claimed"
+    ]
+  },
+  "recordedAcquisition": {
+    "argv": [
+      "gh",
+      "api",
+      "repos/snowdamiz/mixer/actions/artifacts/13592908052/zip"
+    ],
+    "scriptSHA256": "d78b383d349444a32e9907b0dd251d813b5a59583f30c701de999b24a9b65599",
+    "launcherCommand": "Not retained in supplied acquisition JSON; do not infer",
+    "ghVersion": "Not retained",
+    "pythonVersion": "Not retained",
+    "rerun": false
+  },
+  "source": {
+    "repository": "snowdamiz/mixer",
+    "run": 42419571138,
+    "attempt": 1,
+    "swiftJob": 128544872058,
+    "revision": "df7b67ace3441707049d47c289cefaed83dcdc6c",
+    "gitTree": "c78ef17a48852e31f70da4dbf9b84a11926164fa",
+    "artifact": 13592908052,
+    "archiveBytes": 770713,
+    "archiveSHA256": "9a837ebd67d865b2bc4f5cc7e53f6e245ecdd1b49731f2be49e68279384890af",
+    "compiler": {
+      "binary": "rustc",
+      "commit_date": "2026-10-13",
+      "commit_hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+      "host": "aarch64-apple-darwin",
+      "llvm_version": "23.1.1",
+      "release": "1.99.1"
+    },
+    "recordedCompilerSHA256": "1ba7bb8e273bd64125f4048d2ecce530e0a6470e565ab1b3aecf0b82b532f7b1"
+  },
+  "outputFiles": [
+    "check.mjs",
+    "checks.json",
+    "command-identity-receipt.json",
+    "review.json",
+    "REVIEW.md",
+    "seal.json"
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "schema": "mixer.apple-settings-escalation-result.1",
+  "status": "concrete-source-candidate-and-host-proof-ready-for-fresh-independent-review",
+  "startedAtUTC": "2026-11-07T22:13:10Z",
+  "finishedAtUTC": "2026-11-07T22:26:13.998044+00:00",
+  "currentCheckoutRevisionContext": "df7b67ace3441707049d47c289cefaed83dcdc6c",
+  "sourceAuthority": "Exact retained compile/product/runtime archives; current checkout HEAD is context only and changed in another lane during work.",
+  "baseline": {
+    "v9": "29-second diagnostic begin-deadline, switch enabled, 23/44 terminal PNG chunks, Tab skipped; unchanged",
+    "v5": "historical Settings timeout preserved; not probed/retried",
+    "v8": "historical Settings pass/Tab failure preserved; not rerun"
+  },
+  "findings": {
+    "causeEstablished": "Cumulative bounded work exhausted the overall diagnostic deadline before the next POST; no in-flight network/provider timeout is recorded. Terminal PNG duplicates a complete prior capture byte for byte.",
+    "rootCauseLimits": "No fresh native profile isolates every millisecond; 29 seconds may still be too small after the correction. Host measurements are not an iOS timing qualification.",
+    "redundantBytes": 219465,
+    "redundantTerminalChunkRequests": 44,
+    "baselineTerminalMedianInterarrivalSeconds": 0.04422893750597723,
+    "sourceBindingCostHost158ChecksSeconds": 2.52604595531011,
+    "jsonSerializationHost158RequestsSeconds": 0.008752416877541691,
+    "http11NotSelected": "Only ~0.066s overall improvement in the host durable comparison; adds connection lifecycle changes without evidence of solving the native deficit."
+  },
+  "correction": {
+    "path": "candidate/settings_telemetry.py",
+    "runtimeTarget": "inputs/runtime/verification/apple-toggle-keyboard-focus-v9-preparation/settings_telemetry.py",
+    "behavior": "Cache the last fully validated PNG in the same Session. Fresh terminal metadata with the same byte count and SHA-256 revalidates and durably publishes the identical payload under its new terminal filename in the original transaction; unmatched bytes keep the original chunk path.",
+    "runtimeFilesChanged": 1,
+    "runtimeFilesUnchanged": 31,
+    "compileFilesUnchanged": 42,
+    "settingsBudgetSeconds": 29,
+    "withinWindowObservationSeconds": 3,
+    "chunkBytes": 4992,
+    "requestBodyLimitBytes": 8192,
+    "appAndRunnerProducts": "byte-identical retained archive; no rebuild needed",
+    "sourceChecks": "all original per-request RuntimeBindings checks preserved",
+    "oracleChanges": 0,
+    "persistenceOrCapabilityGuardChanges": 0
+  },
+  "verification": {
+    "hostTests": {
+      "passed": 12,
+      "failed": 0,
+      "errors": 0
+    },
+    "fullCompositionReplay": "Baseline keeps the 23/44 incomplete terminal upload. Candidate publishes complete terminal evidence through the exact composition and durable offline replay. Missing termination/completion still refuses Tab begin; source mutation still rejects.",
+    "candidatePrefixRequests": 135,
+    "baselineReceivedPrefixRequests": 158,
+    "comparisonCaveat": "Candidate eliminates all 44 planned terminal PNG requests; only 23 were present in the failed original prefix. Timing totals use different request counts and are not a native speedup claim.",
+    "nativeAttempts": 0,
+    "nativeBuilds": 0,
+    "hostSwiftProbeCompilations": 2,
+    "physicalDeviceRuns": 0
+  },
+  "custody": {
+    "ownedSimulatorInstancesCreated": 0,
+    "simulatorCommands": 0,
+    "uiOrCaptureCalls": 0,
+    "oldHeldProcessesTouched": false,
+    "otherLanesModified": false,
+    "commits": 0,
+    "pushes": 0,
+    "rootMetadataModified": false,
+    "sourceAndEvidenceOriginalsModified": false,
+    "loopbackServersClosed": true,
+    "allOwnedHostScratchRemoved": true,
+    "initialScratchException": "First host probe used the macOS default /var/folders temporary root instead of the requested /tmp prefix. It failed at the first durable request (HTTP 400), was removed in finally, and the next probe used canonical /private/tmp/mixer-20261107-apple-settings-* paths. The first failure response body was not retained. No native attempt occurred.",
+    "hostCommandRecordingLimit": "Host probe receipts redact the ephemeral URL port; all bodies came from retained input records and capability values were environment-only. The benchmark loader path was later relocated from candidate/bridge.py to experiments/http11_bridge.py; that experiment source is byte-identical."
+  },
+  "authorizationChanges": [
+    {
+      "state": "initial native resumed",
+      "nativeAttemptsBeforeSteer": 0
+    },
+    {
+      "state": "temporary user pause observed",
+      "nativeAttemptsDuringPause": 0
+    },
+    {
+      "state": "latest user reauthorization and updated AGENTS read",
+      "nativeAttemptsAfterResumption": 0
+    }
+  ],
+  "mandatoryGate": {
+    "kind": "fresh independent source/runtime review, then fresh root selection",
+    "reason": "Changed runtime source has no independent acceptance. The original packet is exact-source bound and cannot authorize this candidate.",
+    "source": "verification/apple-passive-lifecycle-runtime-preparation/prepare.py:410",
+    "quote": "Host preparation only; separate source review and fresh root selection required",
+    "reviewPacket": "candidate-packet.json",
+    "packetSHA256": "76d499c09102741e1975ef6dd8a48b7c4b4897c3dc6a5a8fa64dfb7dd2345618",
+    "reviewScope": "Review the one-file reuse delta, same-session byte identity, durable rollback/replay, fixed budgets, unchanged full composition/source bindings/oracles, and rerun the bounded host commands.",
+    "nativeDispatchPerformed": false
+  },
+  "namedNextIntegration": "After the fresh review, root materializes candidate-runtime-sources.tar.gz with candidate-selection-template.json and the unchanged retained product archive in a fresh selected namespace, binds the new packet digest, then runs test000PublicSettingsFullKeyboardAccess followed by original test010ReferenceFirstTab on one owned iOS26.5 simulator. Preserve all original source/product checks, actual XCTest import and five cleanup operations. At most two native attempts from the original brief remain; no automatic retry or timeout promotion.",
+  "experimentalBudgetChange": null,
+  "nativeValidationPending": true,
+  "settingsNativeAcceptance": false,
+  "tabOracleRan": false,
+  "gaAccepted": false,
+  "publicFieldLogQualification": false
+}

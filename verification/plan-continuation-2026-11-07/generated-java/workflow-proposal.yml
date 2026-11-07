@@ -1,0 +1,39 @@
+# Proposed block under jobs:. NOT INSTALLED.
+# Prerequisite: root registers an actual macOS worker with this label and the
+# full canonical Swift6.3.3 Android/NDKr27d/JDK25/SDK37/build-tools37 closure.
+# Configure the five repository variables below to absolute installed paths.
+# Existing macos-15 hosted inventory does not establish these prerequisites.
+  android-generated-java:
+    runs-on: [self-hosted, macOS, ARM64, mixer-android-6.3.3-sdk37]
+    timeout-minutes: 45
+    env:
+      MIXER_SWIFT: ${{ vars.MIXER_SWIFT }}
+      MIXER_SWIFT_SDKS_PATH: ${{ vars.MIXER_SWIFT_SDKS_PATH }}
+      MIXER_ANDROID_ARTIFACT_PATH: ${{ vars.MIXER_ANDROID_ARTIFACT_PATH }}
+      MIXER_JDK: ${{ vars.MIXER_JDK }}
+      ANDROID_HOME: ${{ vars.MIXER_ANDROID_HOME }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Actual Debug and Release CLI Android Java consumers
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${MIXER_SWIFT:?Full pinned official Swift6.3.3 required}"
+          : "${MIXER_SWIFT_SDKS_PATH:?Installed full Android Swift SDK required}"
+          : "${MIXER_ANDROID_ARTIFACT_PATH:?Full Swift Android artifact with NDKr27d required}"
+          : "${MIXER_JDK:?Installed JDK25 required}"
+          : "${ANDROID_HOME:?Installed platform37.0 and build-tools37.0.0 required}"
+          python3 -B scripts/ci/check-android-generated-java.py \
+            --swift "$MIXER_SWIFT" \
+            --swift-sdks "$MIXER_SWIFT_SDKS_PATH" \
+            --android-artifact "$MIXER_ANDROID_ARTIFACT_PATH" \
+            --jdk "$MIXER_JDK" --android-sdk "$ANDROID_HOME" \
+            --output "$RUNNER_TEMP/android-generated-java" --execute-toolchains
+      - name: Preserve generated Java diagnostics, classes and DEX
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-generated-java-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/android-generated-java/

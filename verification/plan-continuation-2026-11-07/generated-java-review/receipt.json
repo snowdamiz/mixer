@@ -1,0 +1,238 @@
+{
+  "artifacts": {
+    "REVIEW.md": {
+      "bytes": 7120,
+      "sha256": "07d01cb81956ddabe46889da835d368c1dd9eae8762f5fb7716387e1079cd974"
+    },
+    "python-test-commands.json": {
+      "bytes": 824,
+      "sha256": "c69eacaaf50f68c7cfb6d5a678accf036fd93c208a47664a0143957aa0ecdbc2"
+    },
+    "reproduce_review_findings.py": {
+      "bytes": 6089,
+      "sha256": "0789ba2187ab55ab5331530599d9d637e7600264ee07cc07b80cc63bf0954224"
+    },
+    "reproduction-commands.json": {
+      "bytes": 834,
+      "sha256": "63c87d5b9517be96fa7633b2e416bb2b9421612824c5b62d20b397b36190394f"
+    },
+    "reproductions-normal.log": {
+      "bytes": 1532,
+      "sha256": "2e026fadb99f513f1427d32b7713aa521f9d6d335527f954a3aa9c8f9549140d"
+    },
+    "reproductions-optimized.log": {
+      "bytes": 1532,
+      "sha256": "c69e3283643456378f05c34b8c89d383563252d7e79e10414158c461fb25966e"
+    },
+    "tests-normal.log": {
+      "bytes": 4321,
+      "sha256": "935f5e1154efc16346112b7aea86c28aa83fb2a22e8fe0320904045625e7f048"
+    },
+    "tests-optimized.log": {
+      "bytes": 4321,
+      "sha256": "13bbc400deb8e8410e6524cf7e077005e8fe975a9188d7edf777902182f1f6f3"
+    }
+  },
+  "cleanup": {
+    "injected_cleanup_child": "Each reproduction manually SIGKILLed and reaped only its created Python process, closed both pipes, and observed its process group absent.",
+    "review_owned_temporary_directories_remaining": [],
+    "unrelated_processes": "not inspected or signalled"
+  },
+  "findings": [
+    {
+      "blocks_execution_approval": true,
+      "id": "GJ-R1",
+      "lines": [
+        211,
+        228,
+        459,
+        469
+      ],
+      "severity": "P1",
+      "summary": "Owned group absence/EOF/reap terminal facts not persisted; cleanup exceptions lose diagnostics and execute still deletes scratch."
+    },
+    {
+      "blocks_execution_approval": true,
+      "id": "GJ-R2",
+      "lines": [
+        407,
+        410
+      ],
+      "severity": "P2",
+      "summary": "SwiftPM producer job count lacks explicit bound."
+    },
+    {
+      "blocks_complete_evidence_claim": true,
+      "id": "GJ-R3",
+      "lines": [
+        257,
+        265
+      ],
+      "severity": "P2",
+      "summary": "DEX verification is descriptor-only; explicit retained member-reference observation is missing."
+    }
+  ],
+  "git_revision": "df7b67ace3441707049d47c289cefaed83dcdc6c",
+  "git_tree": "c78ef17a48852e31f70da4dbf9b84a11926164fa",
+  "independent_reproductions": {
+    "commands": [
+      {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-review/reproduce_review_findings.py"
+        ],
+        "bytes": 1532,
+        "exit_code": 0,
+        "log": "reproductions-normal.log",
+        "sha256": "2e026fadb99f513f1427d32b7713aa521f9d6d335527f954a3aa9c8f9549140d"
+      },
+      {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "-O",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-review/reproduce_review_findings.py"
+        ],
+        "bytes": 1532,
+        "exit_code": 0,
+        "log": "reproductions-optimized.log",
+        "sha256": "c69e3283643456378f05c34b8c89d383563252d7e79e10414158c461fb25966e"
+      }
+    ],
+    "interpretation": "Passing reproductions establish the reviewed gaps, not that fixes passed. Commands.run cleanup exception was injected for an actual owned Python child. Execute cleanup and producer argv controls used mocks and never invoked a compiler.",
+    "normal": {
+      "exit_code": 0,
+      "tests_run": 4
+    },
+    "optimized": {
+      "exit_code": 0,
+      "tests_run": 4
+    }
+  },
+  "limitations": [
+    "No APK/native/runtime/UI/device/signing validation",
+    "No complete API28 floor or linkage qualification",
+    "No immutable published-package or separate-repository FieldLog evidence",
+    "No GA gate qualification"
+  ],
+  "mutations": "Only generated-java-review/ review artifacts; no runner/product/test/workflow edits, commits, pushes, merge, child tasks or CI dispatch",
+  "observed_utc": "2026-11-07T22:17:13.424286+00:00",
+  "prior_pure_control_receipt_inputs_match": {
+    "cli/Sources/MixerBuild/AndroidSDKCompatibility.swift": true,
+    "cli/Sources/MixerBuild/Resources/android-build.py": true,
+    "scripts/ci/check-android-binding.py": true,
+    "scripts/ci/check-android-generated-java.py": true,
+    "scripts/ci/tests/test_android_generated_java_runner.py": true
+  },
+  "python": {
+    "bytes": 34640,
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+    "version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "python_suite": {
+    "commands": [
+      {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "scripts/ci/tests",
+          "-p",
+          "test_android_generated_java_runner.py",
+          "-v"
+        ],
+        "bytes": 4321,
+        "exit_code": 0,
+        "log": "tests-normal.log",
+        "sha256": "935f5e1154efc16346112b7aea86c28aa83fb2a22e8fe0320904045625e7f048"
+      },
+      {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "-O",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "scripts/ci/tests",
+          "-p",
+          "test_android_generated_java_runner.py",
+          "-v"
+        ],
+        "bytes": 4321,
+        "exit_code": 0,
+        "log": "tests-optimized.log",
+        "sha256": "13bbc400deb8e8410e6524cf7e077005e8fe975a9188d7edf777902182f1f6f3"
+      }
+    ],
+    "normal": {
+      "exit_code": 0,
+      "tests_run": 26
+    },
+    "optimized": {
+      "exit_code": 0,
+      "tests_run": 26
+    }
+  },
+  "real_toolchains": "unrun in this review; root also reports unrun",
+  "reviewed_inputs": {
+    "cli/Sources/MixerBuild/AndroidProject.swift": {
+      "bytes": 19161,
+      "sha256": "10a2072858257b4687bf357f216af4ca9e0906062838f7cffcd7782c3999557c"
+    },
+    "cli/Sources/MixerBuild/AndroidSDKCompatibility.swift": {
+      "bytes": 25690,
+      "sha256": "78e6d139344484e3cf3268f49774c6fa13e8d48d3027f7aa0d3ccc9b6db12b49"
+    },
+    "cli/Sources/MixerBuild/ProcessRunner.swift": {
+      "bytes": 5417,
+      "sha256": "bde517817640e72db75b9573cc887ce226547f2e46c382a2326d1743da4ba852"
+    },
+    "cli/Sources/MixerBuild/ProjectGenerator.swift": {
+      "bytes": 18421,
+      "sha256": "85fa6be92d689565dd69c870afbdf74353f2c9b64153da1875dd67fdeaa4dd86"
+    },
+    "cli/Sources/MixerBuild/Resources/android-build.py": {
+      "bytes": 30613,
+      "sha256": "cfb7981faec31f9ac9d277b3e2c93f20a5236f632eae51caa62d19248a07fe27"
+    },
+    "scripts/ci/check-android-binding.py": {
+      "bytes": 13929,
+      "sha256": "bee9291b5496f5645d4acafafd329bd42bc921e292ad440d94fe3b021bbe5442"
+    },
+    "scripts/ci/check-android-generated-java.py": {
+      "bytes": 27262,
+      "sha256": "0a7012aff27567e2cae09bf2333b33a7a9b77d4d39bfa89d2dd14ade5ca4633d"
+    },
+    "scripts/ci/tests/test_android_generated_java_runner.py": {
+      "bytes": 20335,
+      "sha256": "45ab19d51015947f3b724ce9c03d915439ab01b1945cc11afe5c3fb452d5b3dd"
+    },
+    "verification/plan-continuation-2026-11-07/generated-java/README.md": {
+      "bytes": 5652,
+      "sha256": "03ba6bd68633814ba867125d3c99f0f74e3f75739f1dae8e775d7038b5310061"
+    },
+    "verification/plan-continuation-2026-11-07/generated-java/pure-controls.json": {
+      "bytes": 2830,
+      "sha256": "7719f18b3c4d31618f7f43724fc263a0bcf29a4341c87ac08f3c1284f62517d8"
+    },
+    "verification/plan-continuation-2026-11-07/generated-java/workflow-proposal.yml": {
+      "bytes": 1999,
+      "sha256": "c0329c77d049b40c7be756b555f3d8fda84a98952066f7da5916aeb44bd5d1bd"
+    }
+  },
+  "reviewed_runner_and_tests_unchanged": true,
+  "reviewer": {
+    "independent": true,
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "schema": 1,
+  "verdict": "changes-required-before-real-toolchain-execution"
+}

@@ -1,0 +1,128 @@
+{
+  "cleanup": {
+    "allOwnedGroupsClosed": true,
+    "disposableAVDRemoved": true,
+    "ports": {
+      "52577": "released",
+      "5570": "released",
+      "5571": "released"
+    },
+    "recoveredHelperPermissionError": true,
+    "scratchRemoved": true,
+    "unknownCustodyMaterialRemoved": false
+  },
+  "descriptorSHA256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3",
+  "diagnosticAPKExternalScratchPath": "/tmp/mixer-20261107-android-readiness-2r2ed7ed/build/diagnostic-smoke.apk",
+  "diagnosticAPKRetained": false,
+  "diagnosticAPKSHA256": "ec3aa5a67fb05cdb1b15509e9740f9dfeeb642a1f27ef28968aa00f561a2885d",
+  "elapsedSeconds": 185.77,
+  "emulatorAttempts": 1,
+  "evidence": {
+    "appUIDFilteredLogs": "app-logcat-before-startup.log",
+    "coordinator": {
+      "abort": "NOT_REQUESTED",
+      "disposed": true,
+      "engineCleanup": "RETURNED",
+      "rendererCleanup": "FAILED_UNCERTAIN",
+      "retired": true,
+      "sessionAtObservation": 0
+    },
+    "corePhase": "RETIRED",
+    "coreTerminalReason": "CLOSED",
+    "instrumentationLog": "canonical-instrumentation.log",
+    "jniSwift": "Successful JNI load is logged. renderInitial reached transact after NativeBridge.create and a nonzero session check; JNI maps create to Swift mixer_android_create. Session create/destroy ran; packet prepare/commit and native toggle did not run.",
+    "logCaptureStartedBeforeInstrumentation": true,
+    "ownerCause": "RENDERER_TERMINAL",
+    "ownerCleanup": {
+      "coordinator": "FAILED_UNCERTAIN",
+      "coreCompletionUnreported": false,
+      "handler": "RETURNED",
+      "input": "FAILED_UNCERTAIN",
+      "unregister": "FAILED_UNCERTAIN"
+    },
+    "packaging": "packaging-validation.json",
+    "rendererCause": "CAPTURE_FAILED",
+    "stack": [
+      "NativeEnvironmentV2.unsupported:44",
+      "NativeEnvironmentV2$Observer.requireKnown:263",
+      "NativeEnvironmentV2$Observer.read:246",
+      "NativeEnvironmentV2$Observer.capture:232",
+      "NativeRenderer.captureEnvironmentV2:294",
+      "NativeCoordinatorV2.transact:76",
+      "NativeCoordinatorV2.renderInitial:57"
+    ],
+    "statusInference": "read line246 requires observed.animator; requireKnown line263 rejects non-KNOWN. Animator snapshot has only KNOWN, READ_FAILED or UNDEFINED branches; READ_FAILED would throw at line262. Thus this is UNDEFINED, without asserting whether its value was missing, nonnumeric or invalid.",
+    "strictCompile": [
+      "production-java17-sdk37.log",
+      "canonical-instrumentation-java17-sdk37.log"
+    ],
+    "window": {
+      "attached": true,
+      "focused": true,
+      "height": 2400,
+      "insetsPresent": true,
+      "width": 1080
+    }
+  },
+  "failure": "java.lang.AssertionError: actual owner readiness did not publish; stage=initial-presentation",
+  "failureStage": "initial-presentation",
+  "limits": [
+    "Raw animator setting value/reason was not captured: missing/nonnumeric versus nonfinite/negative is unresolved.",
+    "Public effective-scale correction is a source/specification-supported proposal, not an implemented or runtime-verified fix.",
+    "Pause/resume waits, toggle/packet oracle and complete native/IME/lifecycle/physical/GA acceptance remain unexecuted or unqualified.",
+    "Original runtime command runner exited 1 during cleanup; targeted cleanup recovery and final custody verification succeeded."
+  ],
+  "nativeReuse": {
+    "matchingNativeLibraries": 18,
+    "matchingNonDiagnosticInputs": 103,
+    "matchingTools": 33,
+    "nativeRebuilds": 0,
+    "receipt": "native-reuse.json"
+  },
+  "noCommitsPushesTrackersDelegation": true,
+  "physicalTargetsQueried": false,
+  "proposedParentCorrection": {
+    "change": "Evaluate ValueAnimator.getDurationScale() for the effective system animator scale on the supported API36+ capture path instead of requiring a raw Settings.Global animator_duration_scale row. Validate finite nonnegative values, preserve reduced-motion mapping and fail-closed error handling; keep below36 unsupported guards.",
+    "contractFollowup": "Review the motion invalidation subscription against DurationScaleChangeListener on API33+, with ownership/cleanup accounting, rather than silently assuming raw-row observation covers every effective-scale change.",
+    "file": "native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java",
+    "officialSpecification": "https://developer.android.com/reference/android/animation/ValueAnimator#getDurationScale()",
+    "requiredTests": [
+      "missing raw setting with a known effective system scale",
+      "effective scale 0, .25, 1 and 100",
+      "nonfinite/negative/read failure remain rejected",
+      "API guards remain unchanged",
+      "listener acquisition/removal and change invalidation",
+      "fresh canonical API37 smoke retaining original three readiness waits and toggle oracle"
+    ],
+    "scope": "Proposal only; no product edits or fix validation performed.",
+    "specificationVerified": "Public from API33, reports system-wide animator scaling factor, default 1.0f; verified also against SDK37 android.jar javap. No constant default fallback is proposed."
+  },
+  "receipt": "receipt.json",
+  "rootCauseEstablished": "Initial environment capture rejects the animator observation as non-KNOWN (UNDEFINED); owner retires before packet preparation. The window is already attached, sized, focused and inset-bearing.",
+  "runtime": {
+    "ro.boot.qemu.avd_name": "mixer_20261107_readiness_2r2ed7ed",
+    "ro.build.fingerprint": "google/sdk_gphone64_arm64/emu64a:17/CE2A.260420.019/15611780:userdebug/dev-keys",
+    "ro.build.version.release": "17",
+    "ro.build.version.sdk": "37",
+    "ro.kernel.qemu": "1",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.product.model": "sdk_gphone64_arm64"
+  },
+  "smokePassed": false,
+  "sourceClosureSHA256": "56fa2dd01487e7f329b1f9af8c5186c9d77eb72ec7304200577b42036a24454e",
+  "sourceRevision": "df7b67ace3441707049d47c289cefaed83dcdc6c",
+  "status": "diagnostic-complete-canonical-smoke-failed",
+  "unchanged": {
+    "baselineByteForBytePreserved": true,
+    "below36Guards": true,
+    "descriptor": true,
+    "nonDiagnosticSourceInputs": 103,
+    "priorAndroidRuntimeBaselineFiles": 106,
+    "productSources": true,
+    "readinessAttemptsPerWait": 100,
+    "readinessWaits": 3,
+    "runtimeTogglePacketOracle": true,
+    "sleepMilliseconds": 20,
+    "sourcepairs": "No sourcepair files edited; no product or sourcepair mutation commands issued."
+  }
+}
