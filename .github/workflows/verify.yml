@@ -40,6 +40,22 @@ jobs:
           python3 -B native/android/tests/run-environment-platform-host.py \
             --jdk "$JAVA_HOME_17_X64" \
             --evidence "$RUNNER_TEMP/android-owner-environment"
+      - name: Show retained Android host failure diagnostics
+        if: failure()
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"])
+          for group in ("orchestration", "renderer", "environment"):
+              folder = root / ("android-owner-" + group)
+              for name in ("compile.stderr", "host.stderr", "receipt.json"):
+                  path = folder / name
+                  if path.is_file():
+                      with path.open("rb") as stream:
+                          data = stream.read(16384)
+                      print(f"--- {group}/{name} (first 16 KiB) ---")
+                      print(data.decode("utf-8", errors="replace"))
       # Controlled Android/JNI leaves on the JVM, with no native runtime launch.
       - name: Preserve private Android owner host evidence
         if: always()
@@ -504,6 +520,7 @@ jobs:
             /verification/cache-fixture-shared-input-review/
             /verification/shared-fixture-default-ci-adoption/
             /verification/shared-fixture-clock-controls-correction/
+            /verification/plan-continuation-2026-11-07/cache-fix/
             /.github/workflows/verify.yml
       - name: Bind shared fixture adoption and materialize the thin overlay
         timeout-minutes: 2
@@ -512,12 +529,12 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
-          mkdir -p "$MIXER_ADOPTION_DIR/logs" "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs"
+          mkdir -p "$MIXER_ADOPTION_DIR/logs" "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs" "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs"
           {
             git rev-parse HEAD HEAD^{tree}
             python3 --version
             uname -srm
-            python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" verify --workflow-installed
+            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/adopt_fixture.py" verify --workflow-installed
             python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
           } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
@@ -537,7 +554,10 @@ jobs:
           python3 -B "$MIXER_ADOPTION_DIR/test_runner.py" -v \
             > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
             2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
-      - name: One complete shared fixture on the existing admitted compiler
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/test_selection.py" -v \
+            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stdout" \
+            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stderr"
+      - name: One complete shared fixture with exact prospective Rust 1.99.1 admission
         timeout-minutes: 12
         shell: bash
         run: |
@@ -546,7 +566,7 @@ jobs:
           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
           {
             MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
-            python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" run \
+            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/adopt_fixture.py" run \
               --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
               --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
@@ -559,7 +579,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/adopt_fixture.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
       - name: Preserve complete shared fixture evidence and adoption proof
@@ -578,4 +598,5 @@ jobs:
             ${{ github.workspace }}/verification/shared-fixture-clock-controls-correction/
             ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-fix/
             ${{ github.workspace }}/.github/workflows/verify.yml

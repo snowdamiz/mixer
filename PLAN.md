@@ -9,7 +9,17 @@ This index does not narrow or replace that specification. Use
 is preserved byte for byte in [the prior index](PLAN.history-2026-10-25.md);
 its older pending/selected statements do not override the current state.
 
-## Current delivered checkpoint
+## Current continuation: November 7, 2026
+
+Live inspection confirms `origin/main` at `5da968ea`. [Engine CI 40974383080](https://github.com/snowdamiz/mixer/actions/runs/40974383080) completed with four successful and two failed jobs. The [retained baseline](verification/plan-continuation-2026-11-07/baseline/observation.json) binds the actual artifacts to this revision. Android closure A passes 231 cases and 1,250 assertions. Closure B fails compilation because the controlled Android editor substitutes are incomplete; its host assertions and subsequent environment checks did not run. The two closures' 191 recorded input entries match the checkout. The cache-state fixture refuses Rust 1.99.1 before workload compilation; only its sysroot and compiler-identity commands ran, with recorded cleanup. Neither failure is a native runtime result.
+
+The [exact Rust 1.99.1 fixture selection](verification/plan-continuation-2026-11-07/cache-selection.json) is installed for fresh ordinary CI after 16 producer and 26 independent guarded controls. It requires the observed compiler identity and binary SHA-256 while retaining the original 103-command workload, controls and limits. Actual matching execution and independent artifact qualification remain pending. The workflow also exposes bounded Android failure diagnostics.
+
+Fresh local validation of all 21 canonical Android Java sources passes strict SDK37 compilation and D8 minAPI28 conversion (253 classes, one DEX). [The receipt](verification/plan-continuation-2026-11-07/android-product-compile/receipt.json) records all six commands, source stability and owned cleanup. This is canonical source compilation, not generated-consumer, APK or native acceptance. The local host-fixture repair now compiles both groups and passes owner A (231 cases / 1,250 assertions); renderer B reaches its callback matrix but fails a stale dynamic helper anchor after the retained-fatal cleanup correction. That uncommitted repair remains under bounded Astra correction and separate review, excluded from this delivery. Generated-consumer validation and fresh iOS/Android native attempts are active in separate lanes.
+
+The [November 7 user resumption](verification/plan-continuation-2026-11-07/native-resumption.json) permits fresh bounded simulator/emulator tests, necessary owned builds and related UI/capture verification. Specifically held historical processes, the v5 startup, frozen hosted lanes and disconnected phones remain untouched. GA remains **8 running, 30 planned, 0 verified**.
+
+## Previous checkpoint before the November 7 CI inspection
 
 Mixer `a3967100` delivered the exact 202-path `mixer.android-source-pair.7` slice. [The command record](verification/github-delivery-android-pair7/root-closed-command-series.json) closes all 38 new target commands with exit zero and zero signals. The original delivery controller separately exited 1 after push because one root-delegated review namespace became nonempty after preflight. [Independent post-push review](verification/github-delivery-android-pair7/review/post-push-preservation/seal.json) and [explicit data recovery](verification/github-delivery-android-pair7/post-push-recovery-decision.json) verified the 202 changed objects, sole parent, non-force remote result and empty index while retaining that controller failure. Both protected files and all 2,435 prior collapsed identities remain preserved. This establishes no recursive untracked-content proof. The historical target-command series totals 147 commands, with 146 exit-zero results and one older closed staging failure. The new outer controller failure is separate.
 
@@ -1016,12 +1026,12 @@ The plan requests parallel agents using fresh context, `gpt-6.1-sol`, `xhigh`,
 and bounded file ownership. Coordinate contracts before dependent changes; do
 not edit another active lane's files or claim to change the controlling model.
 
-The latest user-supplied AGENTS override pauses computer use, screen capture and
-native simulator/emulator runtime tests until further notice. Continue source,
-host tests, cross-compilation, offline review and authorized delivery. The earlier
-resumption receipt remains historical. No native instance was started for this
-HTTP checkpoint. When resumed, preserve the bounded one-instance-per-lane and
-cleanup rules, including unrelated projects' instances, data and processes.
+The November 7 direct user instruction resumes native simulator/emulator tests,
+necessary owned builds and related UI/capture verification. Use one active owned
+instance per lane and shut down disposable instances after collecting evidence,
+including failed attempts. Preserve unrelated projects and all specifically held
+historical processes, the v5 startup and frozen hosted lanes. Record fresh
+attempts separately; earlier pauses and receipts remain historical.
 
 Phones remain disconnected. Do not query/retry phones or request reconnection.
 The user accepts simulator/emulator tests for development slices and advancing
