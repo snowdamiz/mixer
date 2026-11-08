@@ -26,17 +26,22 @@ Requirements: Xcode/Swift 6.2+, Rust, Go 1.26.4, Python 3.12+. Node is used only
 development test oracle. See `release/toolchain-candidate.json` for cross-target
 compiler candidates; the default Xcode compiler does not match Android/Wasm SDKs.
 
+The CLI tests require the `mixer` executable built with the same Swift toolchain.
+
 ```sh
 swift test
-swift test --package-path cli
+swift build --package-path cli --product mixer -j 2
+MIXER_STORE_CLI_BIN_DIR="$(swift build --package-path cli --product mixer -j 2 --show-bin-path)"
+test -x "$MIXER_STORE_CLI_BIN_DIR/mixer"
+MIXER_STORE_TEST_CLI="$MIXER_STORE_CLI_BIN_DIR/mixer" swift test --package-path cli
 swift test --package-path updates
 swift test --package-path capabilities
 cargo test --manifest-path vm/Cargo.toml
 cd services && go test -race ./...
 ```
 
-Run the source CLI with `scripts/mixer`, or build `cli/` and use
-`cli/.build/debug/mixer` directly:
+Run the source CLI with `scripts/mixer`, or use
+`"$MIXER_STORE_CLI_BIN_DIR/mixer"` after the build above:
 
 ```sh
 scripts/mixer doctor

@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "at": "2026-11-07T22:02:59.931406+00:00",
+  "authorization": "Direct user instruction: also, you can continue native sim tests and such",
+  "scope": [
+    "fresh bounded native simulator/emulator tests",
+    "necessary owned builds",
+    "related UI verification and screen capture"
+  ],
+  "limits": [
+    "one active owned instance per native lane",
+    "shut down disposable owned instances after evidence collection including failures",
+    "preserve other projects devices/data/processes",
+    "phones disconnected; no discovery/runs/reconnect requests",
+    "no probe/signal/retry of specifically held historical process groups or v5 startup",
+    "frozen hosted lanes remain frozen"
+  ],
+  "baselineBootedUnrelatedDevices": [
+    "CE7E80FC-64BF-41A0-B07B-60F4D8711808",
+    "D55C87E9-F349-49AC-BCD3-3B4B5BE9E010"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/xcrun",
+        "simctl",
+        "list",
+        "devices",
+        "booted",
+        "--json"
+      ],
+      "exit": 0,
+      "scope": "baseline simulator inventory only; neither existing device is Mixer-owned"
+    }
+  ],
+  "nativeInstancesStarted": 0,
+  "runtimeAcceptance": false,
+  "freshAttemptRecords": [
+    {
+      "recordedAt": "2026-11-08T02:11:59.376786+00:00",
+      "scope": "Single reviewed iOS R3 setup; fresh permission passed; no XCTest reached",
+      "receipt": "verification/plan-continuation-2026-11-07/apple-safe-keyboard-root-runtime/result.json",
+      "ownedDevice": "4CE0ECC9-1EDA-4543-80FF-9B011DF9044F",
+      "ownedSetupInstancesCreated": 1,
+      "xctestAttempts": 0,
+      "cleanupComplete": false,
+      "rootRecoveryObservation": "verification/plan-continuation-2026-11-07/apple-window-recovery/inspection-1/result.json",
+      "historicalHoldsReleased": false
+    },
+    {
+      "recordedAt": "2026-11-08T02:36:16.094378+00:00",
+      "scope": "Reviewed existing-instance adoption: identity/trust passed, keyboard false; XCTest not invoked",
+      "receipt": "verification/plan-continuation-2026-11-07/apple-window-identity-campaign/adoption-attempt-1/result.json",
+      "xctestAttempts": 0,
+      "remainingOriginalXCTestAttempts": 1,
+      "originalCleanupPassed": false,
+      "recoveryReceipt": "verification/plan-continuation-2026-11-07/apple-adoption-recovery/attempt-1/result.json",
+      "recoveryCleanupPassed": true,
+      "ownedDeviceAbsent": true,
+      "protectedDevicesBooted": true,
+      "historicalHoldsReleased": false
+    },
+    {
+      "recordedAt": "2026-11-08T02:44:05.037220+00:00",
+      "scope": "One API28 arm64 attempt; boot passed, AVD identity property absent; no APK install or instrumentation",
+      "receipt": "verification/plan-continuation-2026-11-07/api28-root-observation/result.json",
+      "nativeInstancesStarted": 1,
+      "instrumentationAttempts": 0,
+      "cleanupComplete": true,
+      "historicalHoldsReleased": false
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+ACCEPT — exact three-caller patch for parent application and fresh ordinary CI
+
+Patch SHA256: f71834ec81bebaaf3ca736cb3bca897731b77433f2b4b170e7aeccd13a042af5
+Source revision: 3e2f0907a259a73e7fa96c43f18bbe02c0a46921
+Accepted 103-input product digest: eda43c6bb96bfeb15ab31731858c7388a7ba52329c8ba8e48ed52505bfe86158
+Full 115-input digest: 0770fdb22032911f199c9c61c26d1e9a4e50b20bf96f0a187d2a1bde1be1b83d
+
+One real CLI build and one full unfiltered CLI test command passed. All 74 test definitions passed, including all 31 StoreSubmissionReconciliationTests and 48 real concurrent CLI children (two rounds of 24). Zero issues. The eight definitions responsible for all 81 prior fixture errors now pass with unchanged source/test bytes. Every old issue is preserved in prior-81-issues.json; original CI failure and prior attempt logs remain unchanged.
+
+Binary: 4855920 bytes; SHA256 c15b2513eeeded2da0f1b7e69a13e085606151b55f1d2471d87dd8d3b69c3e3f. Identical before/after tests.
+Compiler: Apple Swift version 6.3.3 (swift-6.3.3-RELEASE); Target: arm64-apple-macosx28.0. Xcode 26.6; Build version 17F113. SDK 26.5.
+
+Ten owned command groups have separate stdout EOF, stderr EOF, direct-child reaping and group-absence facts. No signals delivered, no UNKNOWN custody, owned scratch removed. Historical holds unchanged.
+
+The three paths preserve other commands and use one shell/toolchain for build, SwiftPM path discovery, executable guard and command-local test binding. Fresh git apply --check passed. Reused pure controls were verified by hash; actual runtime qualification is new.
+
+Parent next step: apply only the exact workflow/script/README patch and run fresh ordinary CI. Canonical files remain untouched here. Local host result does not establish hosted CI, native/device, published-package dogfood or GA acceptance. See review.json, receipt.json and exact-commands.txt for complete identities, commands, raw output links and limits.

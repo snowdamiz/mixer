@@ -1,0 +1,121 @@
+{
+  "status": "PROPOSAL_ONLY_UNEXECUTED",
+  "nativeEligible": false,
+  "selectedAlternative": "B: dedicated existing macOS login/session and home; private set alone insufficient",
+  "rejectedA": {
+    "reason": "simDeviceSelected: persists CurrentDeviceUDID in standard application defaults even with command-line overrides",
+    "argv": [
+      "/usr/bin/open",
+      "-n",
+      "-a",
+      "/Applications/Xcode_26.6.app/Contents/Developer/Applications/Simulator.app",
+      "--args",
+      "-DeviceSetPath",
+      "{OWNED_SET}",
+      "-CurrentDeviceUDID",
+      "{NEW_UUID}",
+      "-ConnectHardwareKeyboard",
+      "YES"
+    ]
+  },
+  "bindings": {
+    "OWNED_SET": "Fresh canonical nonsymlink directory under the distinct login home; recorded in a new root reservation. Never substitute the current shared default set.",
+    "NEW_UUID": "Exact UUID returned by the one create command and positively verified within OWNED_SET; never reuse 4CE0ECC9.",
+    "DEVICE_TYPE": "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro, subject to fresh availability verification",
+    "RUNTIME": "com.apple.CoreSimulator.SimRuntime.iOS-26-5, subject to fresh availability verification"
+  },
+  "requiredBeforeCreation": [
+    "Root establishes distinct actual login UID/home/per-user preferences and service/session boundary without logging out or changing the shared session. No HOME override.",
+    "Fresh public Accessibility trust for exact helper route and Acid.app attribution in the target login; denial stops before create/boot.",
+    "Capture fresh outside device/window baseline and raw plus effective relevant defaults, including CurrentDeviceUDID, ConnectHardwareKeyboard and per-device preference dictionaries; no querying held PIDs/groups.",
+    "Version-check direct native simctl and Simulator; avoid the discovered setup-capable wrapper. Re-review exact binary hashes if changed.",
+    "Prove the private set is newly owned, contains no unrelated devices and cannot fall back to the default set; coordinate one active native instance.",
+    "Root supplies a reviewed controller with exact PID/executable/lstart and window custody; these argv templates are not a runnable reservation."
+  ],
+  "payloads": [
+    {
+      "label": "create-one",
+      "argv": [
+        "/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl",
+        "--set",
+        "{OWNED_SET}",
+        "create",
+        "MixerPrivateKeyboardPremise-01",
+        "{DEVICE_TYPE}",
+        "{RUNTIME}"
+      ]
+    },
+    {
+      "label": "verify-membership-before-boot",
+      "argv": [
+        "/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl",
+        "--set",
+        "{OWNED_SET}",
+        "list",
+        "devices",
+        "--json"
+      ]
+    },
+    {
+      "label": "boot-one",
+      "argv": [
+        "/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl",
+        "--set",
+        "{OWNED_SET}",
+        "boot",
+        "{NEW_UUID}"
+      ]
+    },
+    {
+      "label": "launch-owned-frontend",
+      "argv": [
+        "/Applications/Xcode_26.6.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator",
+        "-DeviceSetPath",
+        "{OWNED_SET}",
+        "-CurrentDeviceUDID",
+        "{NEW_UUID}",
+        "-ConnectHardwareKeyboard",
+        "YES"
+      ],
+      "note": "Direct executable under an owned-child supervisor to retain identity. No shared Simulator open/quit or frontend discovery by process enumeration."
+    }
+  ],
+  "oracles": [
+    "One fresh frontend whose retained identity and exact owned window match NEW_UUID; no extra device memberships/windows.",
+    "The exact frontend public Connect Hardware Keyboard menu mark is recognized checked without pressing it. This is an effective UI observation plus static read-path evidence, not direct extraction of another process NSArgumentDomain.",
+    "Do not use a separate defaults-read process as proof of the frontend volatile argument domain.",
+    "Run unchanged Settings -> first Tab readiness oracle only; do not execute or consume original XCTest packet in this mechanism probe.",
+    "Recheck outside raw/effective preference and device/window baselines during and after each material step; any drift is a cleanup failure, not a restorable PASS.",
+    "If direct process-local NSArgumentDomain evidence is required beyond the effective UI witness, this proposal does not provide it: stop pending a separately reviewed observation mechanism."
+  ],
+  "cleanup": [
+    {
+      "argv": [
+        "/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl",
+        "--set",
+        "{OWNED_SET}",
+        "shutdown",
+        "{NEW_UUID}"
+      ],
+      "condition": "Exact owned UUID only; no all operation."
+    },
+    {
+      "operation": "Wait for positive Shutdown with bounded accepted repair; close only retained owned window; no application-wide quit, including for a newly owned frontend."
+    },
+    {
+      "argv": [
+        "/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl",
+        "--set",
+        "{OWNED_SET}",
+        "delete",
+        "{NEW_UUID}"
+      ],
+      "condition": "Only after positive Shutdown, owned-window absence, preserved outside baseline and known custody."
+    },
+    {
+      "operation": "Verify exact deletion, outside baseline unchanged, owned-child reaping/EOF/group absence. On UNKNOWN stop, retain scratch and coordinate recovery; no retry or global restoration."
+    }
+  ],
+  "bounds": "One instance, one probe, root-reviewed finite run/controller budgets; preserve historical 29-second Settings and all original native/custody limits. This research does not extend them.",
+  "originalXCTestAttemptsConsumed": 0
+}

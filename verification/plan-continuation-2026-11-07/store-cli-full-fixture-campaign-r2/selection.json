@@ -1,0 +1,22 @@
+{
+  "role": "independent test/review subagent",
+  "model": "gpt-6-astra",
+  "reasoningEffort": "xhigh",
+  "trigger": "Two setup failures: nested manifest sandbox; incomplete test fixture export",
+  "hypotheses": [
+    "Input closure omission explains all 81 prior errors",
+    "A product or test regression survives complete checkout inputs"
+  ],
+  "selectedExperiment": "One real CLI build and one unfiltered full CLI suite against unchanged actual checkout",
+  "bounds": {
+    "workerSeconds": 900,
+    "activeSeconds": 600,
+    "buildCommands": 1,
+    "testCommands": 1,
+    "jobs": 2,
+    "commandOutputBytes": 8388608,
+    "aggregateOutputBytes": 67108864
+  },
+  "stop": "New failure or UNKNOWN custody: no retry; retain scratch",
+  "decision": "Full pass plus source/input stability and terminal owned custody supports three-path parent application and fresh ordinary CI; else preserve decisive failure"
+}

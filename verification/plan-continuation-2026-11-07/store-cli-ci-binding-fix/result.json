@@ -1,0 +1,151 @@
+{
+  "allChildCustodyFacts": {
+    "direct_child_reaped": true,
+    "owned_group_absent": true,
+    "stderr_eof": true,
+    "stdout_eof": true,
+    "terminal_custody": true
+  },
+  "allEvidenceOutputBytes": 6971,
+  "appleEnvironment": {
+    "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
+    "SDKROOT": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+    "TOOLCHAINS": "unset",
+    "resolvedSDKROOT": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+    "sdkSettingsSHA256": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe",
+    "sdkVersion": "26.5",
+    "xcodeVersion": "Xcode 26.6\nBuild version 17F113"
+  },
+  "callerCheckExactCommandsSHA256": "676122277580b2efef765ea93f65b9af82e4b9941898f186ee5e1fe4f0eec0c7",
+  "campaign": {
+    "aggregateBytes": 5338,
+    "automaticReruns": 0,
+    "binaryHashUnavailableReason": "Build failed during SwiftPM manifest processing before product compilation/linking; bin-path query and CLI suite not admitted.",
+    "binarySHA256": null,
+    "bounds": {
+      "activeSeconds": 600,
+      "aggregateBytes": 67108864,
+      "buildCommands": 1,
+      "campaigns": 1,
+      "cleanupSecondsPerCommand": 5,
+      "commandBytes": 8388608,
+      "jobs": 2,
+      "testCommands": 1
+    },
+    "buildCommandsAttempted": 1,
+    "buildExitCode": 1,
+    "compilerAttemptsAfterScopeExtension": 0,
+    "diagnosis": "Outer network-denying sandbox added by this candidate runner appears incompatible with SwiftPM nested manifest sandbox; no claim of product/test regression from this failed local attempt.",
+    "elapsedSeconds": 9.02050370798679,
+    "executedTests": 0,
+    "observedError": "sandbox-exec: sandbox_apply: Operation not permitted",
+    "testCommandsAttempted": 0,
+    "testPass": false
+  },
+  "candidate": {
+    "applicableAtRequestedHEAD": true,
+    "combinedPatchApplicability": "git apply --check succeeded against all current canonical targets; canonical targets left unchanged",
+    "existingScriptCommandsPreserved": true,
+    "historicalDesignRecipeEdited": false,
+    "patch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/store-cli-ci-binding-fix/caller-binding.patch",
+    "patchSHA256": "f71834ec81bebaaf3ca736cb3bca897731b77433f2b4b170e7aeccd13a042af5",
+    "paths": [
+      ".github/workflows/verify.yml",
+      "scripts/verify.sh",
+      "README.md"
+    ],
+    "pureActiveCallerChecks": {
+      "activeCallers": {
+        "README.md": {
+          "allExistingCommandsPreserved": true,
+          "beforeSHA256": "0527a9a296311332dbfd2142832ff6c02bc2bf0ddf9267891b83efa589685024",
+          "candidateSHA256": "5bdd8f41ff830a59d7226137a255f749ff517e8475eaf844cef97d2c28fdb2e9",
+          "commandLocalCLIEnvironment": true
+        },
+        "scripts/verify.sh": {
+          "allExistingCommandsPreserved": true,
+          "beforeSHA256": "f64dc6eff1667083d2ea34ded0b63f562c1b0b358d5d4f34491c67bf1eb8cc4a",
+          "candidateSHA256": "a7815c4dc52374374afd453450d2051d233941242173b6f9d7d0e1417f08d720",
+          "commandLocalCLIEnvironment": true
+        }
+      },
+      "actualCompilerCommands": 0,
+      "compiledBinaryValidation": "Not established: the sole local build campaign failed before product build; no new compiler attempt",
+      "historicalDesignRecipeEdited": false,
+      "status": "passed",
+      "workflow": {
+        "actualBinaryExecutionEvidence": "receipt.json and the unfiltered CLI suite logs; this pure check alone is not runtime evidence",
+        "binaryLocation": "SwiftPM --show-bin-path with the same package/product/jobs",
+        "buildJobs": 2,
+        "buildProduct": "mixer",
+        "cliEnvironmentCommandLocal": true,
+        "cliTestArgumentsUnchanged": true,
+        "onlyChange": "Replace the original CLI test line with product build, SwiftPM path query, executable guard and command-local environment binding",
+        "sdkCoreAndOtherCommandsUnchanged": true,
+        "status": "passed",
+        "workflowBeforeSHA256": "99993998b7babd9b85c2c7f8e662720b87b5be82eb8ea787d1effd6191fb5b73",
+        "workflowCandidateSHA256": "beb73702c2fca021f15a88dc7989d73c2863169404cc195b8988b8ece6649c96"
+      }
+    },
+    "pureChecksReceiptSHA256": "290ca907254264c8b2305f89da70627ba96c290e8362315e4fe70d8fb9de6d3d",
+    "pureWorkflowCheck": {
+      "actualBinaryExecutionEvidence": "receipt.json and the unfiltered CLI suite logs; this pure check alone is not runtime evidence",
+      "binaryLocation": "SwiftPM --show-bin-path with the same package/product/jobs",
+      "buildJobs": 2,
+      "buildProduct": "mixer",
+      "cliEnvironmentCommandLocal": true,
+      "cliTestArgumentsUnchanged": true,
+      "onlyChange": "Replace the original CLI test line with product build, SwiftPM path query, executable guard and command-local environment binding",
+      "sdkCoreAndOtherCommandsUnchanged": true,
+      "status": "passed",
+      "workflowBeforeSHA256": "99993998b7babd9b85c2c7f8e662720b87b5be82eb8ea787d1effd6191fb5b73",
+      "workflowCandidateSHA256": "beb73702c2fca021f15a88dc7989d73c2863169404cc195b8988b8ece6649c96"
+    },
+    "rationale": "All three active test callers lacked MIXER_STORE_TEST_CLI. Build the actual mixer product with the same Swift toolchain, query SwiftPM for the binary directory, require the executable, and bind its path only to the original unfiltered CLI test command. Preserve all other workflow/script commands and product/test bytes. README also uses the discovered executable path for direct CLI use.",
+    "shellSyntaxCheckPassed": true,
+    "workflowOnlyPatch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/store-cli-ci-binding-fix/workflow.patch",
+    "workflowOnlyPatchSHA256": "cb98c4bcc89fdf30ff217ad766116f2cd0dcf5ac91c48b307c8ec4dda28be94b"
+  },
+  "canonicalWrites": false,
+  "cleanup": {
+    "allTerminalCustody": true,
+    "hold": null,
+    "reason": "Failed single campaign preserved; no automatic rerun",
+    "retainedScratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/store-cli-ci-binding-fix/scratch",
+    "scratchRemoved": false
+  },
+  "cleanupErrors": 0,
+  "cleanupModule": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py",
+    "sha256": "8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df"
+  },
+  "commitOrPushOrCIDispatch": false,
+  "decision": "THREE_ACTIVE_CALLER_CANDIDATE_PREPARED_LOCAL_COMPILER_VALIDATION_FAILED_STOPPED",
+  "exactCommandsSHA256": "eb573872bed8bb41fecbb575cca5ce8c417c780860bddba0bfadc286380fe0be",
+  "gitTree": "c7cf1573ee43c696c3f6667b84ad0db3bf869733",
+  "head": "3e2f0907a259a73e7fa96c43f18bbe02c0a46921",
+  "holds": "All historical held process groups, FieldLog custody, v5, frozen hosted lanes, phones and prior scratch left unqueried and untouched.",
+  "nextStep": "Parent reviews and applies caller-binding.patch to the three canonical paths and handles fresh ordinary CI. Local actual-binary CLI suite remains unexecuted after the single failed compiler campaign; failed scratch is preserved. No rerun is inferred from the caller-scope extension.",
+  "pureCheckCleanup": {
+    "aggregateBytes": 1633,
+    "aggregateLimit": 67108864,
+    "allTerminalCustody": true,
+    "hold": null,
+    "scratchRemoved": true
+  },
+  "receiptSHA256": "1a9dd2fd76140663ba0ad662744e28b3d07023ca87816b06488a282009cb11cd",
+  "source103": {
+    "allCanonicalCLITestsStable": true,
+    "allOwningHashesFrozenBeforeAfter": true,
+    "count": 103,
+    "exactCommittedSnapshotStable": true,
+    "sha256": "eda43c6bb96bfeb15ab31731858c7388a7ba52329c8ba8e48ed52505bfe86158"
+  },
+  "swift": {
+    "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+    "resolvedPath": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-driver",
+    "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f",
+    "stable": true,
+    "version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0"
+  }
+}
