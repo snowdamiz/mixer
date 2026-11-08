@@ -14,6 +14,35 @@ spec = importlib.util.spec_from_file_location('bootstrap_control', HERE / 'boots
 B = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(B)
 
+# Exact stdout from run 42427563693/job 128569025677, artifact 13595593211.
+# Kept inline so the existing sparse CI checkout can run these controls.
+OFFICIAL_SIGNATURE = '''Package "swift.pkg":
+   Status: signed by a developer certificate issued by Apple for distribution
+   Notarization: trusted by the Apple notary service
+   Signed with a trusted timestamp on: 2026-06-26 22:34:23 +0000
+   Certificate Chain:
+    1. Developer ID Installer: Swift Open Source (V9AUD2URP3)
+       Expires: 2027-02-01 22:12:15 +0000
+       SHA256 Fingerprint:
+           AC 12 31 0F AD C4 90 4F 89 20 34 18 BE 58 01 B6 EE 79 DE 3A 0D F2\x20
+           23 A1 F1 F4 12 7B AB 97 B1 A5
+       ------------------------------------------------------------------------
+    2. Developer ID Certification Authority
+       Expires: 2027-02-01 22:12:15 +0000
+       SHA256 Fingerprint:
+           7A FC 9D 01 A6 2F 03 A2 DE 96 37 93 6D 4A FE 68 09 0D 2D E1 8D 03\x20
+           F2 9C 88 CF B0 B1 BA 63 58 7F
+       ------------------------------------------------------------------------
+    3. Apple Root CA
+       Expires: 2035-02-09 21:40:36 +0000
+       SHA256 Fingerprint:
+           B0 B1 73 0E CB C7 FF 45 05 14 2C 49 F1 29 5E 6E DA 6B CA ED 7E 2C\x20
+           68 C5 BE 91 B5 A1 10 01 F0 24
+
+'''
+MODERN_STATUS = 'signed by a developer certificate issued by Apple for distribution'
+LEGACY_STATUS = 'signed by a certificate trusted by macOS'
+
 
 def good_result():
     outcomes = [dict(case=c, refusal={'status': 'error'}, driver_refusal='control refusal',
@@ -94,21 +123,116 @@ class BootstrapControls(unittest.TestCase):
         self.assertEqual(run.call_count, 1)
 
     def test_signature_child_failure_never_expands(self):
-        run = Mock(side_effect=RuntimeError('fake child nonzero'))
-        with self.assertRaisesRegex(RuntimeError, 'nonzero'):
-            B.extract_host(run, Path('/control/p'), Path('/control/e'), Path('/control/t'))
-        self.assertEqual(run.call_count, 1)
+        for code in (1, 2, 3, 64, 127, -9):
+            run = Mock(side_effect=RuntimeError(f'fake pkgutil nonzero {code}'))
+            with self.subTest(code=code), self.assertRaisesRegex(RuntimeError, 'nonzero'):
+                B.extract_host(run, Path('/control/p'), Path('/control/e'), Path('/control/t'))
+            self.assertEqual(run.call_count, 1)
+
+    def test_signature_refusals_never_expand(self):
+        variants = []
+        for status in ('no signature', 'unsigned', 'signed', 'revoked signature',
+                       'signed by an untrusted certificate',
+                       'signed by a certificate that has since expired',
+                       MODERN_STATUS + ' (untrusted)', LEGACY_STATUS + ' (revoked)',
+                       'signed by a certificate trusted by attacker'):
+            variants.append(OFFICIAL_SIGNATURE.replace(MODERN_STATUS, status))
+        for extra_status in (MODERN_STATUS, LEGACY_STATUS, 'no signature', 'revoked signature'):
+            for status in (MODERN_STATUS, LEGACY_STATUS):
+                signature = OFFICIAL_SIGNATURE.replace(MODERN_STATUS, status)
+                variants.extend((signature + '   Status: ' + extra_status + '\n',
+                                 signature.replace('   Certificate Chain:',
+                                                   '   Status: ' + extra_status + '\n   Certificate Chain:')))
+        variants.extend((
+            '', 'Status: ' + LEGACY_STATUS,
+            OFFICIAL_SIGNATURE + OFFICIAL_SIGNATURE,
+            OFFICIAL_SIGNATURE.replace('Notarization: trusted by the Apple notary service',
+                                       'Notarization: not trusted'),
+            OFFICIAL_SIGNATURE.replace('   Notarization: trusted by the Apple notary service\n', ''),
+            OFFICIAL_SIGNATURE.replace('   Certificate Chain:',
+                '   Notarization: trusted by the Apple notary service\n   Certificate Chain:'),
+            OFFICIAL_SIGNATURE.replace('Swift Open Source (V9AUD2URP3)', 'Other Signer (V9AUD2URP3)'),
+            OFFICIAL_SIGNATURE.replace('V9AUD2URP3', 'AAAAAAAAAA'),
+            OFFICIAL_SIGNATURE.replace('Developer ID Installer:', 'Developer ID Application:'),
+            OFFICIAL_SIGNATURE.replace('Developer ID Certification Authority', 'Untrusted Authority'),
+            OFFICIAL_SIGNATURE.replace('Apple Root CA', 'Untrusted Root CA'),
+            OFFICIAL_SIGNATURE.replace('AC 12 31 0F', '00 12 31 0F'),
+            OFFICIAL_SIGNATURE.replace('7A FC 9D 01', '00 FC 9D 01'),
+            OFFICIAL_SIGNATURE.replace('B0 B1 73 0E', '00 B1 73 0E'),
+            OFFICIAL_SIGNATURE.replace('SHA256 Fingerprint:', 'SHA1 Fingerprint:'),
+            OFFICIAL_SIGNATURE.replace('2027-02-01', '2027-02-31'),
+            OFFICIAL_SIGNATURE.replace('2026-06-26', '2036-06-26'),
+            OFFICIAL_SIGNATURE.replace('   Signed with a trusted timestamp on: 2026-06-26 22:34:23 +0000\n', ''),
+            OFFICIAL_SIGNATURE.replace('Certificate Chain:', 'Certificate Chain:\n    1. Other Signer'),
+            OFFICIAL_SIGNATURE + 'warning: untrusted certificate\n',
+            OFFICIAL_SIGNATURE + 'error: revoked certificate\n',
+            OFFICIAL_SIGNATURE + 'pkgutil: fatal verification failure\n',
+            OFFICIAL_SIGNATURE + '\x00',
+        ))
+        for index, signature in enumerate(variants):
+            run = Mock(return_value=signature)
+            with self.subTest(index=index), self.assertRaisesRegex(RuntimeError, 'trust'):
+                B.extract_host(run, Path('/control/p'), Path('/control/e'), Path('/control/t'))
+            self.assertEqual(run.call_count, 1)
+
+    def test_observed_official_signature_expands_private_payload(self):
+        self.check_fake_expansion(OFFICIAL_SIGNATURE)
 
     def test_trusted_fake_children_expand_private_payload(self):
+        self.check_fake_expansion(OFFICIAL_SIGNATURE.replace(MODERN_STATUS, LEGACY_STATUS))
+
+    def test_every_status_without_notarization_refuses_before_expansion(self):
+        for status in (MODERN_STATUS, LEGACY_STATUS, 'signed by a certificate trusted by Mac OS X'):
+            signature = OFFICIAL_SIGNATURE.replace(MODERN_STATUS, status)
+            signature = signature.replace('   Notarization: trusted by the Apple notary service\n', '')
+            run = Mock(return_value=signature)
+            with self.subTest(status=status), self.assertRaisesRegex(RuntimeError, 'trust'):
+                B.extract_host(run, Path('/control/p'), Path('/control/e'), Path('/control/t'))
+            self.assertEqual(run.call_count, 1)
+
+    def test_mac_os_x_legacy_status_preserves_trusted_chain(self):
+        self.check_fake_expansion(OFFICIAL_SIGNATURE.replace(
+            MODERN_STATUS, 'signed by a certificate trusted by Mac OS X'))
+
+    def test_every_required_line_missing_or_duplicated_never_expands(self):
+        lines = OFFICIAL_SIGNATURE.splitlines(keepends=True)
+        for index, line in enumerate(lines):
+            if not line.strip():
+                continue
+            for variant in (''.join(lines[:index] + lines[index+1:]),
+                            ''.join(lines[:index] + [line] + lines[index:])):
+                run = Mock(return_value=variant)
+                with self.subTest(index=index, variant=variant), self.assertRaisesRegex(RuntimeError, 'trust'):
+                    B.extract_host(run, Path('/control/p'), Path('/control/e'), Path('/control/t'))
+                self.assertEqual(run.call_count, 1)
+
+    def test_legacy_status_does_not_override_conflicting_evidence(self):
+        signature = OFFICIAL_SIGNATURE.replace(MODERN_STATUS, LEGACY_STATUS)
+        variants = (signature + 'Status: no signature\n',
+                    signature.replace('trusted by the Apple notary service', 'not trusted'),
+                    signature.replace('V9AUD2URP3', 'AAAAAAAAAA'),
+                    signature.replace('Apple Root CA', 'Locally Trusted Root CA'),
+                    signature + 'warning: certificate revoked\n')
+        for variant in variants:
+            run = Mock(return_value=variant)
+            with self.subTest(variant=variant), self.assertRaisesRegex(RuntimeError, 'trust'):
+                B.extract_host(run, Path('/control/p'), Path('/control/e'), Path('/control/t'))
+            self.assertEqual(run.call_count, 1)
+
+    def check_fake_expansion(self, signature):
         with tempfile.TemporaryDirectory(dir=HERE) as td:
             root = Path(td)
             archive, expanded, toolchain = root/'swift.pkg', root/'expanded', root/'swift.xctoolchain'
             archive.write_bytes(b'control package')
             events = []
-            def run(label, argv):
+            signature_options = []
+            def run(label, argv, **kwargs):
                 events.append(label)
                 if label == 'swift-package-signature':
-                    return 'Status: signed by a certificate trusted by macOS'
+                    self.assertEqual(list(map(str, argv)), ['/usr/sbin/pkgutil', '--check-signature', str(archive)])
+                    signature_options.append(kwargs)
+                    return signature
+                self.assertNotIn('--ignore-signature', list(map(str, argv)))
                 if label == 'swift-package-expand':
                     expanded.mkdir()
                     (expanded/'Payload').write_bytes(b'control payload')
@@ -119,6 +243,7 @@ class BootstrapControls(unittest.TestCase):
                     swift.chmod(0o700)
                 return ''
             result = B.extract_host(run, archive, expanded, toolchain)
+            self.assertEqual(signature_options, [{'diagnostics': True}])
             self.assertTrue(result.is_file())
             self.assertFalse(archive.exists())
             self.assertFalse(expanded.exists())

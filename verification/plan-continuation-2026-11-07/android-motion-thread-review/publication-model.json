@@ -1,0 +1,69 @@
+{
+  "status": "PASS finite HB counterexample/control",
+  "coalescedPathEdges": [
+    [
+      "A.writeScale",
+      "A.casSuccess"
+    ],
+    [
+      "A.casSuccess",
+      "A.enqueueRelease"
+    ],
+    [
+      "B.writeScale",
+      "B.phaseRead"
+    ],
+    [
+      "B.phaseRead",
+      "B.casFailureRead"
+    ],
+    [
+      "M.dequeueAcquire",
+      "M.queuedSetFalse"
+    ],
+    [
+      "M.queuedSetFalse",
+      "M.phaseRead"
+    ],
+    [
+      "M.phaseRead",
+      "M.getterRead"
+    ],
+    [
+      "A.enqueueRelease",
+      "M.dequeueAcquire"
+    ],
+    [
+      "A.casSuccess",
+      "B.casFailureRead"
+    ],
+    [
+      "M.activationWrite",
+      "B.phaseRead"
+    ],
+    [
+      "M.activationWrite",
+      "M.phaseRead"
+    ]
+  ],
+  "firstUpdatePublished": true,
+  "coalescedUpdatePublished": false,
+  "releaseAcquireControlPublished": true,
+  "limits": "A source/specification argument only. No stale getter was observed on JVM or Android. Other unspecified framework synchronization is not assumed. This is not a memory-model checker for all Java executions.",
+  "sources": [
+    {
+      "url": "https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/java/android/animation/ValueAnimator.java",
+      "blob": "492c2ffc561f45adf0afe32f5e2a95bb6cb43eb6",
+      "lines": "99,316-343",
+      "use": "plain scalar write/getter; source behavior is not an exact API37 image binding"
+    },
+    {
+      "url": "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html#compareAndSet(java.lang.Object...)",
+      "use": "failed compareAndSet reads witness; conditional set does not occur"
+    },
+    {
+      "url": "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicBoolean.html#set(boolean)",
+      "use": "set(false) is a volatile write, not an acquire read"
+    }
+  ]
+}

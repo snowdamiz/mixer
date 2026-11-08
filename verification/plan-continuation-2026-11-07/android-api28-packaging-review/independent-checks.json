@@ -1,0 +1,136 @@
+{
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "command": "python3 -B /Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/android-api28-packaging-review/check.py",
+  "checks": {
+    "frozenFiles": 298,
+    "compile-1": {
+      "commandsVerified": 11,
+      "classfiles": 215,
+      "harnessClassfilesJava17": 2,
+      "status": "FAILED PREPARATION"
+    },
+    "compile-2": {
+      "commandsVerified": 19,
+      "classfiles": 215,
+      "harnessClassfilesJava17": 12,
+      "status": "PREPARED PACKAGING ONLY; runtime NOT AUTHORIZED"
+    },
+    "dex": {
+      "product": {
+        "bytes": 417304,
+        "sha256": "5ab1fbfcb805ee0ce43a8c131ffe51ef66f64d4614d9c13bffe7f86283e65c67"
+      },
+      "rejected": {
+        "bytes": 17168,
+        "sha256": "50f5475989bb58c224217b0d9d670d451855b1044c63feb925c69c630e2e7acb"
+      },
+      "fixed": {
+        "bytes": 16200,
+        "sha256": "d2d08ac0066dcdef724a8979e4b472743b9631bc105c14549957af2bd263b8f1"
+      },
+      "definitions": [
+        387,
+        13,
+        12
+      ],
+      "reproducedOverlap": [
+        "Lcom/android/tools/r8/annotations/LambdaMethod;"
+      ],
+      "fixedOverlap": [],
+      "sharedReferencedTypes": 54,
+      "testDefinitions": [
+        "Ldev/mixer/android/NativeLowerApiCompatibilityActivity;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$1;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$2;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$3;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$4;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$5;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$6;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$7$1;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$7$2;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$7$3;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$7;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation;"
+      ]
+    },
+    "binaryManifest": [
+      {
+        "tag": "manifest",
+        "attrs": {
+          "compileSdkVersion": 37,
+          "compileSdkVersionCodename": "17",
+          "package": "dev.mixer.android.lowerapi.test",
+          "platformBuildVersionCode": 37,
+          "platformBuildVersionName": 17
+        }
+      },
+      {
+        "tag": "uses-sdk",
+        "attrs": {
+          "minSdkVersion": 28,
+          "targetSdkVersion": 28
+        }
+      },
+      {
+        "tag": "application",
+        "attrs": {
+          "theme": 16974401,
+          "label": "Mixer private API28 linkage",
+          "hasCode": true,
+          "debuggable": true,
+          "extractNativeLibs": true
+        }
+      },
+      {
+        "tag": "activity",
+        "attrs": {
+          "name": "dev.mixer.android.MixerActivity",
+          "exported": false
+        }
+      },
+      {
+        "tag": "activity",
+        "attrs": {
+          "name": "dev.mixer.android.NativeLowerApiCompatibilityActivity",
+          "exported": false
+        }
+      },
+      {
+        "tag": "instrumentation",
+        "attrs": {
+          "name": "dev.mixer.android.NativeLowerApiCompatibilityInstrumentation",
+          "targetPackage": "dev.mixer.android.lowerapi.test"
+        }
+      }
+    ],
+    "apk": {
+      "bytes": 86284162,
+      "sha256": "faf04e63ea21fc36c43657b8420e7281522d960b3b2d3bbc5fe28f3a48858dc3",
+      "v3RSA2048SHA256Signature": true,
+      "chunkedContentDigest": "28af540f570e70d179f5022ba892818a41fc1c503736031ee5636d371fca5e46",
+      "certificateSHA256": "997bcdaa0749d8c34316c4537a6f2d31cbece3f2a22c11deb69f30abc81fb0ee",
+      "signerSDKRange": [
+        24,
+        2147483647
+      ],
+      "nativeLibrariesStored16KiBAligned": 18
+    },
+    "sixRetainedControls": {
+      "duplicate-zip-member": "duplicate ZIP member",
+      "native-tamper": "native library binding mismatch: lib/arm64-v8a/libBlocksRuntime.so",
+      "product-tamper": "product DEX binding mismatch",
+      "reproduced-overlap": "overlapping defined classes: ['Lcom/android/tools/r8/annotations/LambdaMethod;']",
+      "test-checksum-tamper": "DEX SHA1 mismatch",
+      "unexpected-third-dex": "unexpected DEX inventory"
+    },
+    "provenance": {
+      "nativeSourceFiles": 57,
+      "nativeReuseTools": 33,
+      "compilerTools": 9,
+      "priorEvidenceFiles": 5,
+      "pair8ReceiptHashBound": true
+    }
+  },
+  "finishedUTC": "2026-11-07T23:53:36.755229+00:00",
+  "status": "PASS"
+}

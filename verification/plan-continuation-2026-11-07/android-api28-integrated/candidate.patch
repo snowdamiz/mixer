@@ -1,0 +1,285 @@
+diff --git a/native/android/tests/NativeLowerApiCompatibilityActivity.java b/native/android/tests/NativeLowerApiCompatibilityActivity.java
+new file mode 100644
+index 000000000..508c6d25e
+--- /dev/null
++++ b/native/android/tests/NativeLowerApiCompatibilityActivity.java
+@@ -0,0 +1,16 @@
++package dev.mixer.android;
++
++import android.app.Activity;
++import android.os.Bundle;
++import android.widget.FrameLayout;
++
++/** Private ordinary window; all rendering and platform reads use the retained product DEX. */
++public final class NativeLowerApiCompatibilityActivity extends Activity {
++    FrameLayout root;
++
++    @Override public void onCreate(Bundle state) {
++        super.onCreate(state);
++        root = new FrameLayout(this);
++        setContentView(root);
++    }
++}
+diff --git a/native/android/tests/NativeLowerApiCompatibilityInstrumentation.java b/native/android/tests/NativeLowerApiCompatibilityInstrumentation.java
+new file mode 100644
+index 000000000..0cf0af823
+--- /dev/null
++++ b/native/android/tests/NativeLowerApiCompatibilityInstrumentation.java
+@@ -0,0 +1,237 @@
++package dev.mixer.android;
++
++import android.app.Activity;
++import android.app.Instrumentation;
++import android.content.Intent;
++import android.graphics.Bitmap;
++import android.os.Build;
++import android.os.Bundle;
++import android.util.Log;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.Button;
++import android.widget.EditText;
++import android.widget.Switch;
++import java.io.File;
++import java.io.FileOutputStream;
++import java.io.IOException;
++import java.util.concurrent.atomic.AtomicReference;
++
++/** Exact pair8 ART/JNI linkage gate, deliberately retaining the below36 V2 refusal. */
++@SuppressWarnings("deprecation")
++public final class NativeLowerApiCompatibilityInstrumentation extends Instrumentation {
++    private int checks;
++    private String stage = "runtime-identity";
++
++    @Override public void onCreate(Bundle arguments) {
++        super.onCreate(arguments);
++        start();
++    }
++
++    private void check(boolean condition, String message) {
++        if (!condition) throw new AssertionError(message);
++        checks++;
++        Log.i("MixerLowerApi", "PASS " + message);
++    }
++
++    private void onMain(Runnable action) {
++        AtomicReference<Throwable> failure = new AtomicReference<>();
++        runOnMainSync(new Runnable() { @Override public void run() {
++            try { action.run(); }
++            catch (RuntimeException | Error rejected) { failure.set(rejected); }
++        }});
++        if (failure.get() instanceof RuntimeException rejected) throw rejected;
++        if (failure.get() instanceof Error rejected) throw rejected;
++    }
++
++    private void awaitWindow(Activity activity) {
++        for (int i = 0; i < 150; i++) {
++            boolean[] ready = {false};
++            onMain(new Runnable() { @Override public void run() {
++                View decor = activity.getWindow().getDecorView();
++                ready[0] = decor.isAttachedToWindow() && decor.hasWindowFocus()
++                    && decor.getWidth() > 0 && decor.getHeight() > 0;
++            }});
++            if (ready[0]) return;
++            android.os.SystemClock.sleep(20);
++        }
++        throw new AssertionError("actual window did not attach/focus within three seconds");
++    }
++
++    private void finishActivity(Activity activity) {
++        onMain(new Runnable() { @Override public void run() { activity.finish(); }});
++        for (int i = 0; i < 150; i++) {
++            boolean[] destroyed = {false};
++            onMain(new Runnable() { @Override public void run() {
++                destroyed[0] = activity.isDestroyed();
++            }});
++            if (destroyed[0]) return;
++            android.os.SystemClock.sleep(20);
++        }
++        throw new AssertionError("Activity destruction did not finish within three seconds");
++    }
++
++    private static boolean contains(View root, Class<?> type) {
++        if (type.isInstance(root)) return true;
++        if (root instanceof ViewGroup group) {
++            for (int i = 0; i < group.getChildCount(); i++) {
++                if (contains(group.getChildAt(i), type)) return true;
++            }
++        }
++        return false;
++    }
++
++    private void screenshot(String name) {
++        Bitmap bitmap = getUiAutomation().takeScreenshot();
++        check(bitmap != null, "actual window screenshot " + name);
++        try (FileOutputStream output = new FileOutputStream(new File(getTargetContext().getFilesDir(), name))) {
++            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output), "PNG capture " + name);
++        } catch (IOException failure) {
++            throw new AssertionError("window screenshot storage", failure);
++        } finally {
++            bitmap.recycle();
++        }
++    }
++
++    private void status(NativeEnvironmentPlatformV2.Observed<?> observed,
++                        NativeEnvironmentPlatformV2.Status expected, String name, Bundle result) {
++        check(observed.status == expected && observed.failure == null,
++            name + "=" + expected);
++        if (expected != NativeEnvironmentPlatformV2.Status.KNOWN) {
++            check(observed.value == null, name + " has no fabricated value");
++        }
++        result.putString(name, observed.status.name() + ": " + observed.reason);
++    }
++
++    @Override public void onStart() {
++        Bundle result = new Bundle();
++        int code = Activity.RESULT_CANCELED;
++        MixerActivity real = null;
++        NativeLowerApiCompatibilityActivity harness = null;
++        try {
++            check(Build.VERSION.SDK_INT == 28, "actual runtime API28");
++            check(Build.SUPPORTED_ABIS.length > 0 && "arm64-v8a".equals(Build.SUPPORTED_ABIS[0]),
++                "actual runtime arm64-v8a");
++            result.putInt("sdk", Build.VERSION.SDK_INT);
++            result.putString("abi", Build.SUPPORTED_ABIS[0]);
++
++            stage = "real-MixerActivity-cold-start";
++            real = (MixerActivity) startActivitySync(new Intent(getTargetContext(), MixerActivity.class)
++                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
++            awaitWindow(real);
++            MixerActivity window = real;
++            UiPacket[] packet = new UiPacket[1];
++            onMain(new Runnable() { @Override public void run() {
++                check(window.session != 0, "real JNI/Swift session is nonzero");
++                check(window.renderer != null && window.renderer.packet != null,
++                    "real MixerActivity renderer committed a native packet");
++                byte[] bytes = NativeBridge.exchange(window.session, 0, null);
++                check(bytes != null && bytes.length > 0, "ordinary NativeBridge.exchange observes real packet");
++                packet[0] = UiPacket.decode(bytes);
++                check(packet[0].nodes.containsKey("task.1"), "real Swift default checklist packet");
++                check(window.renderer.packet.nodes.keySet().equals(packet[0].nodes.keySet()),
++                    "real activity rendered the ordinary native packet");
++                View content = window.renderer.view(window.renderer.packet.root.id);
++                check(content.isAttachedToWindow() && content.isShown() && content.getWidth() > 0
++                    && content.getHeight() > 0, "real renderer default content attached and visible");
++                check(contains(content, Switch.class) && contains(content, EditText.class)
++                    && contains(content, Button.class), "real default native Switch/EditText/Button");
++                result.putInt("nativePacketBytes", bytes.length);
++                result.putInt("nativePacketNodes", packet[0].nodes.size());
++                result.putString("nativeRevision", packet[0].revision);
++            }});
++            screenshot("real-mixer-api28.png");
++            stage = "real-MixerActivity-lifecycle-cleanup";
++            finishActivity(real);
++            onMain(new Runnable() { @Override public void run() {
++                check(window.session == 0 && window.isDestroyed(),
++                    "real Activity onDestroy released JNI/Swift session");
++            }});
++            real = null;
++
++            stage = "legacy-renderer-and-platform-snapshot";
++            harness = (NativeLowerApiCompatibilityActivity) startActivitySync(
++                new Intent(getTargetContext(), NativeLowerApiCompatibilityActivity.class)
++                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
++            awaitWindow(harness);
++            NativeLowerApiCompatibilityActivity test = harness;
++            onMain(new Runnable() { @Override public void run() {
++                check(test.root.isAttachedToWindow() && test.root.hasWindowFocus()
++                    && test.root.getWidth() > 0 && test.root.getHeight() > 0,
++                    "actual FrameLayout attached/focused on main thread");
++                NativeRenderer renderer = new NativeRenderer(test, new NativeRenderer.Events() {
++                    @Override public void send(byte[] ignored) {
++                        throw new AssertionError("unexpected input during read-only rendering");
++                    }
++                });
++                View content = renderer.apply(packet[0]);
++                test.root.addView(content, new android.widget.FrameLayout.LayoutParams(-1, -1));
++                check(contains(content, Switch.class) && contains(content, EditText.class)
++                    && contains(content, Button.class), "separate real legacy renderer builds ordinary native widgets");
++                NativeEnvironmentPlatformV2.Snapshot snapshot = NativeEnvironmentPlatformV2.snapshot(test, test.root);
++                status(snapshot.frame, NativeEnvironmentPlatformV2.Status.KNOWN, "frame", result);
++                status(snapshot.rtl, NativeEnvironmentPlatformV2.Status.KNOWN, "rtl", result);
++                status(snapshot.locale, NativeEnvironmentPlatformV2.Status.KNOWN, "locale", result);
++                status(snapshot.density1024, NativeEnvironmentPlatformV2.Status.KNOWN, "density", result);
++                status(snapshot.bodyProfile, NativeEnvironmentPlatformV2.Status.KNOWN, "bodyProfile", result);
++                status(snapshot.insets, NativeEnvironmentPlatformV2.Status.UNAVAILABLE_SEMANTICS, "insets", result);
++                status(snapshot.fontAdjustment, NativeEnvironmentPlatformV2.Status.UNAVAILABLE_API, "fontAdjustment", result);
++                status(snapshot.contrast, NativeEnvironmentPlatformV2.Status.UNAVAILABLE_API, "contrast", result);
++                status(snapshot.highContrast, NativeEnvironmentPlatformV2.Status.UNAVAILABLE_API, "highContrast", result);
++                status(snapshot.animator, NativeEnvironmentPlatformV2.Status.UNAVAILABLE_API, "animator", result);
++                try {
++                    NativeEnvironmentPlatformV2.motionListener(new Runnable() {
++                        @Override public void run() {
++                            throw new AssertionError("unavailable motion callback");
++                        }
++                    });
++                    throw new AssertionError("API28 motion listener unexpectedly constructed");
++                } catch (IllegalStateException refusal) {
++                    check("effective animator listener requires API33".equals(refusal.getMessage()),
++                        "motion factory exactly refuses below33 without linkage failure");
++                }
++                try {
++                    NativeEnvironmentV2.Observer observer = new NativeEnvironmentV2.Observer(test, test.root,
++                        new NativeEnvironmentV2.Sink() {
++                            @Override public void changed(NativeEnvironmentV2.Observer source,
++                                    NativeEnvironmentV2.Change change, NativeEnvironmentV2.RendererCause cause,
++                                    Throwable primary, Error fatal) {
++                                throw new AssertionError("unsupported observer emitted a callback");
++                            }
++                        });
++                    observer.close();
++                    throw new AssertionError("API28 Observer unexpectedly constructed");
++                } catch (AppearanceDescriptorV2.Failure refusal) {
++                    check(refusal.getClass() == AppearanceDescriptorV2.Failure.class
++                        && refusal.code == AppearanceDescriptorV2.Error.unsupportedNativeOperation
++                        && "unsupportedNativeOperation".equals(refusal.getMessage()),
++                        "real Observer exactly refuses below36");
++                }
++            }});
++            waitForIdleSync();
++            screenshot("legacy-harness-api28.png");
++            stage = "harness-lifecycle-cleanup";
++            finishActivity(harness);
++            harness = null;
++            check(true, "all exercised paths completed without ART linkage errors");
++            result.putString("gate", "PAIR8-LOWER-API-ART-LINKAGE");
++            result.putString("scope", "exact pair8 API28 legacy ART/JNI gate; full V2 remains refused below36");
++            code = Activity.RESULT_OK;
++        } catch (RuntimeException | Error failure) {
++            result.putString("failure", failure.toString());
++            result.putString("failureStage", stage);
++            result.putString("failureTrace", Log.getStackTraceString(failure));
++            Log.e("MixerLowerApi", "FAIL " + stage, failure);
++        } finally {
++            try {
++                if (real != null && !real.isDestroyed()) finishActivity(real);
++                if (harness != null && !harness.isDestroyed()) finishActivity(harness);
++            } catch (RuntimeException | Error failure) {
++                result.putString("cleanupFailure", Log.getStackTraceString(failure));
++                code = Activity.RESULT_CANCELED;
++            }
++            result.putInt("checks", checks);
++            finish(code, result);
++        }
++    }
++}
+diff --git a/native/android/tests/lower-api/AndroidManifest.xml b/native/android/tests/lower-api/AndroidManifest.xml
+new file mode 100644
+index 000000000..e0d697832
+--- /dev/null
++++ b/native/android/tests/lower-api/AndroidManifest.xml
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="dev.mixer.android.lowerapi.test">
++    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="28" />
++    <application android:theme="@android:style/Theme.Material.Light.NoActionBar"
++        android:label="Mixer private API28 linkage" android:hasCode="true"
++        android:debuggable="true" android:extractNativeLibs="true">
++        <activity android:name="dev.mixer.android.MixerActivity" android:exported="false" />
++        <activity android:name="dev.mixer.android.NativeLowerApiCompatibilityActivity"
++            android:exported="false" />
++    </application>
++    <instrumentation android:name="dev.mixer.android.NativeLowerApiCompatibilityInstrumentation"
++        android:targetPackage="dev.mixer.android.lowerapi.test" />
++</manifest>

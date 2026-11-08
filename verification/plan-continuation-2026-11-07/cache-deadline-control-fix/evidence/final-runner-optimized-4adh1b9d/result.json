@@ -1,0 +1,68 @@
+{
+  "adoption": {
+    "compiler_qualified": false,
+    "control_derivative_sha256": "1ec5eeb5a80d257aaebd22544f715abdaa0765daa24a45f077554422ff770ab2",
+    "correction_sources_sha256": "8f8f3880b023c62eaaa12bb53911ce2dccb5ee85817a9371f006978f52b3dd59",
+    "installed_job_verified": false,
+    "previous_adoption": {
+      "compiler_qualified": false,
+      "historical_adoption": {
+        "adoption_seal_sha256": "2c4b7f295d275694b5541113f17f0e9216a073a864b01b95b0078632d4145d71",
+        "adoption_tree_sha256": "011d72c29325468570761b0a527886f2abb5e99ee1e89dcb41fe9e80073cd9a7",
+        "compiler_policy": {
+          "RUSTUP_AUTO_INSTALL": "0",
+          "allowlist": [
+            [
+              "aarch64-apple-darwin",
+              "1.99.0"
+            ],
+            [
+              "aarch64-apple-darwin",
+              "1.98.1"
+            ]
+          ],
+          "automatic_retry": false,
+          "fallback": false,
+          "installation": false,
+          "selection": "existing command -v rustc, resolved once through unchanged v2 launcher/sysroot/hash/verbose checks",
+          "sha256": "162b34dcf64fee840c53ead9ff0ee9ab7241741ac9708fbed8ccb697caff2bf3",
+          "source": "verification/swift-cache-state-ci/check_cache_state.py"
+        },
+        "dependencies_sha256": "ff8fd32a351612e6885e0de43e17d826ef4cac89150ad880dacb62d685a2f80c",
+        "fixture_source": {
+          "accepted_shared_input_source_sha256": "f7d62c01e251642677e22f7595af9683f9c451f1db43683be5d2ef86fedba141",
+          "effective_manifest_sha256": "e8a74a521ddbc01f0fc1274a32838cab57c60d63ee7924b5b830b56686836c3d",
+          "effective_pack_tree_sha256": "ac3263770d66a981bc20ee859fb0081bb28d5001ff550163b0a8030a355a505b",
+          "overlay_manifest_sha256": "c7c4ecd65f4a92f1edd2b36fcbb54bc8e233662b9a673d6555fd36b284d201a6",
+          "runner_sha256": "5b29269988838c8af4fdfd4858645b17837bddd8812a133ef4e6aaa709ba55ad"
+        },
+        "installed_job_verified": false,
+        "schema": 1,
+        "workflow_job_sha256": "884089b0b31b14dc3e16c5416df9c742dfdb05b9e46547e8c6db59f7cf172d47"
+      },
+      "installed_job_verified": false,
+      "schema": 1,
+      "scope": "Exact prospective shared-fixture proposal; no envelope qualification inherited",
+      "selection_sha256": "016e72f66035b98811e653f36eec6351e89cf983fb55e70820c8f8f0a1ffde1e",
+      "sources_sha256": "7581e2b8b6200e227655d62f1011493c24aa62ef80e2e223cf7ec06b4203cc3b",
+      "workflow_job_sha256": "fcca4d2c83c97d7fb286e6c35115fe2c9d45cafc8bda68197e8242536daebd75"
+    },
+    "schema": 1,
+    "scope": "Exact prospective controls and job binding; all previous seals, 103 commands, compiler profile and finite fixture limits preserved.",
+    "workflow_job_sha256": "fc47ba0f9201f0ccb88081cbbf0c010d9f60c7dec3b4ab37cb77cbc72699f129"
+  },
+  "errors": [],
+  "failures": [
+    [
+      "test_owned_descendant_group_is_stopped (deadline_controls_final_runner_optimized.RunnerControls.test_owned_descendant_group_is_stopped)",
+      "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-controls.py\", line 102, in test_owned_descendant_group_is_stopped\n    row=c.receipt['commands'][-1];diagnostic=json.dumps(evidence,sort_keys=True);self.assertTrue(row['timed_out'],diagnostic);self.assertTrue(row['owned_group_gone'],diagnostic);self.assertTrue(row['child_returned'],diagnostic);self.assertIn('descendant-ready',(c.out/'commands/descendant.stdout').read_text(),diagnostic)\n                                                                                                                              ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : {\"custody_hold\": true, \"exception\": {\"errno\": 1, \"message\": \"[Errno 1] Operation not permitted\", \"type\": \"PermissionError\"}, \"outputs\": [{\"bytes\": 2877, \"path\": \"descendant.json\", \"sha256\": \"1193d490c9e8599a5687ddf4b61dc4709e397cdd0c8bdf689aeb602f8a77b20a\"}, {\"bytes\": 17, \"path\": \"descendant.stdout\", \"sha256\": \"1e2e88b72b4a7cfa4f7e299bffb4bcbebf9d672d273b4f421269526b3c122c21\"}, {\"bytes\": 0, \"path\": \"descendant.stderr\", \"sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}], \"receipt\": {\"commands\": [{\"argv\": [\"/opt/homebrew/opt/python@3.14/bin/python3.14\", \"-c\", \"import subprocess,sys,time;subprocess.Popen([sys.executable,\\\"-c\\\",\\\"import time;time.sleep(20)\\\"]);print(\\\"descendant-ready\\\",flush=True);time.sleep(20)\"], \"child_resource_usage\": {\"after\": {\"ru_majflt\": 214, \"ru_minflt\": 10090, \"ru_stime\": 0.045863999999999995, \"ru_utime\": 0.107995}, \"aggregate_delta\": null, \"before\": {\"ru_majflt\": 172, \"ru_minflt\": 8164, \"ru_stime\": 0.03761, \"ru_utime\": 0.094689}, \"scope\": \"reaped-child aggregate in a sequential trusted runner; not isolated process accounting\", \"terminal_facts_verified\": false, \"unavailable_reason\": \"spawn absent, child reap failure or owned-group custody hold; aggregate delta withheld\"}, \"child_returned\": true, \"context_phase_progress\": [], \"custody_hold\": true, \"cwd\": \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/evidence/final-runner-optimized-4adh1b9d/scratch/mixer-cache-runner-controls-ndhkqvc5\", \"effective_timeout_seconds\": 0.7, \"elapsed_seconds\": 0.7023, \"environment_overrides\": {\"TEMP\": \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/evidence/final-runner-optimized-4adh1b9d/scratch/mixer-cache-runner-controls-ndhkqvc5/out/scratch/command-tmp\", \"TMP\": \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/evidence/final-runner-optimized-4adh1b9d/scratch/mixer-cache-runner-controls-ndhkqvc5/out/scratch/command-tmp\", \"TMPDIR\": \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/evidence/final-runner-optimized-4adh1b9d/scratch/mixer-cache-runner-controls-ndhkqvc5/out/scratch/command-tmp\"}, \"errors\": [{\"errno\": 1, \"message\": \"[Errno 1] Operation not permitted\", \"phase\": \"active\", \"type\": \"PermissionError\"}, {\"errno\": 1, \"message\": \"[Errno 1] Operation not permitted\", \"phase\": \"stop-owned-group\", \"type\": \"PermissionError\"}], \"exit\": null, \"finished_utc\": \"2026-11-08T00:10:15.054723+00:00\", \"name\": \"descendant\", \"new_session\": true, \"output_capped\": false, \"owned_group_gone\": false, \"owned_group_gone_before_cleanup_error\": false, \"owned_group_killed\": true, \"per_child_limit_seconds\": 0.7, \"per_stream_cap_bytes\": 8388608, \"pgid\": 23663, \"pid\": 23663, \"started_utc\": \"2026-11-08T00:10:14.352551+00:00\", \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"stdout_sha256\": \"1e2e88b72b4a7cfa4f7e299bffb4bcbebf9d672d273b4f421269526b3c122c21\", \"timed_out\": true}]}, \"scope\": \"Focused runner command control; original exception and current command output retained before assertions/teardown. No cleanup success inferred.\", \"scratch\": \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/evidence/final-runner-optimized-4adh1b9d/scratch/mixer-cache-runner-controls-ndhkqvc5/out/scratch\"}\n"
+    ]
+  ],
+  "remaining_test_scratch": [
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/evidence/final-runner-optimized-4adh1b9d/scratch/mixer-cache-runner-controls-ndhkqvc5"
+  ],
+  "scope": "Python fake children/pure controls on this Mac. No compiler fixture, native or GA qualification.",
+  "successful": false,
+  "tests": 36,
+  "timer_disarmed": true
+}

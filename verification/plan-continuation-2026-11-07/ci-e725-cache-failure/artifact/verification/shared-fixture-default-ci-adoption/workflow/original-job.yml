@@ -1,0 +1,56 @@
+  swift-cache-state-fixture:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      RUSTUP_AUTO_INSTALL: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: /verification/swift-cache-state-ci/
+      - name: Prepare owned closed fixture evidence
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_CACHE_FIXTURE_DIR="$GITHUB_WORKSPACE/verification/swift-cache-state-ci"
+          mkdir -p "$MIXER_CACHE_FIXTURE_DIR/logs" "$MIXER_CACHE_FIXTURE_DIR/runs"
+          {
+            git rev-parse HEAD HEAD^{tree}
+            python3 --version
+            uname -srm
+          } > "$MIXER_CACHE_FIXTURE_DIR/logs/host.stdout" \
+            2> "$MIXER_CACHE_FIXTURE_DIR/logs/host.stderr"
+      - name: Closed cache-state runner focused controls
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_CACHE_FIXTURE_DIR="$GITHUB_WORKSPACE/verification/swift-cache-state-ci"
+          python3 -B "$MIXER_CACHE_FIXTURE_DIR/test_runner.py" -v \
+            > "$MIXER_CACHE_FIXTURE_DIR/logs/runner-controls.stdout" \
+            2> "$MIXER_CACHE_FIXTURE_DIR/logs/runner-controls.stderr"
+      - name: Closed cache-state fixture on the existing compiler
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_CACHE_FIXTURE_DIR="$GITHUB_WORKSPACE/verification/swift-cache-state-ci"
+          {
+            MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+            python3 -B "$MIXER_CACHE_FIXTURE_DIR/check_cache_state.py" \
+              --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
+              --out "$MIXER_CACHE_FIXTURE_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          } > "$MIXER_CACHE_FIXTURE_DIR/logs/cache-state.stdout" \
+            2> "$MIXER_CACHE_FIXTURE_DIR/logs/cache-state.stderr"
+      - name: Preserve complete closed cache-state evidence
+        if: always()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-cache-state-fixture-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: ${{ github.workspace }}/verification/swift-cache-state-ci/

@@ -1,0 +1,139 @@
+{
+  "verdict": "REQUEST_CHANGES",
+  "reviewer": "gpt-6-astra xhigh independent child review",
+  "startedUTC": "2026-11-07T23:57:01Z",
+  "finishedUTC": "2026-11-08T00:09:59.970483+00:00",
+  "candidateBase": "c531cfc81cf89cdd591835fedd1dba5a414d31c9",
+  "parentHeadAtApplyCheck": "e7254f3703d5b8191aa72ec2fb11fa91b5ea99ba",
+  "candidateTree": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9ff4db6c",
+  "patch": {
+    "bytes": 63092,
+    "sha256": "ada7cd6d8b59f826d7d938511cfa9e27e3e0ae465841f06aa2d8021daebb0e64"
+  },
+  "profile": {
+    "id": "mixer.android-source-pair.9",
+    "sdkCount": 22,
+    "adapterCount": 24,
+    "sdkSHA256": "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0",
+    "adapterSHA256": "b8aad7b23e2917176d4ab1da2912e2acc098265609ffd40741283607496225b3"
+  },
+  "canonicalInputs": {
+    "count": 101,
+    "sha256": "b6c180006dedda9abbae19007cd53fb7e8584ae0a9ff86f8099763153b946e0f"
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "severity": "P2",
+      "file": "native/android/tests/NativeCoordinatorV2IntegrationInstrumentation.java",
+      "lines": [
+        132,
+        136
+      ],
+      "title": "Sideband callback requires owner drain to remain pending",
+      "basis": "Reproduced exact candidate product host control/counterexample; both schedules refresh correctly, only one satisfies native line134",
+      "evidence": [
+        "targeted-ordering.stdout",
+        "targeted-result.json",
+        "MotionOrderingProbe.java"
+      ],
+      "nativeReproduction": false
+    },
+    {
+      "id": "R2",
+      "severity": "P2",
+      "file": "native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java",
+      "lines": [
+        198,
+        205
+      ],
+      "title": "Coalesced callback omits producer-to-main getter publication",
+      "basis": "Source/Java memory-model inference; failed CAS does not publish, drain set(false) does not acquire; inspected framework scalar is nonvolatile",
+      "evidence": [
+        "publication-model.json",
+        "publication-model.py",
+        "host-replay/javap-NativeEnvironmentPlatformV2$Api33.stdout"
+      ],
+      "nativeOrJVMStaleReadReproduction": false,
+      "limit": "Current AOSP source is not bound to exact API37 image; finite manually stated HB model is not a complete Java verifier"
+    }
+  ],
+  "notFindings": [
+    {
+      "topic": "Queued closure retention after remove",
+      "conclusion": "No demonstrated retirement/retention contract violation",
+      "observed": "One entry retained after close, zero after drain; late callback cannot enqueue; closed epoch unchanged; no resurrection",
+      "limits": "No immediate reclamation contract found; no GC timing or indefinitely stalled-queue test",
+      "evidence": "lifetime-control.stdout"
+    },
+    {
+      "topic": "Handler.post false on Binder",
+      "conclusion": "No admitted-platform stale-authority failure demonstrated",
+      "observed": "Injected refusal throws and resets reservation without Binder owner mutation; main current check rejects stale tuple and ordinary owner drain recovers",
+      "platformReasoning": "Inspected queue enqueue false is quitting; normal main Looper disallows quit",
+      "limits": "Injected live-queue refusal exceeds standard inspected semantics; not exact API37 image qualification",
+      "evidence": [
+        "lifetime-control.stdout",
+        "official-source.json"
+      ]
+    }
+  ],
+  "freshExecution": {
+    "focusedObserverPlatformReplays": 1,
+    "observerCases": 187,
+    "platformCases": 134,
+    "platformAssertions": 699,
+    "independentOrderingSchedules": 2,
+    "independentLifetimeRefusalControls": 2,
+    "fullBMatrices": 0,
+    "swiftBuilds": 0,
+    "nativeRuns": 0,
+    "pureChecks": [
+      "source/hash/patch/profile/canonical inventory/baseline custody",
+      "1364-file producer manifest",
+      "finite HB model with publication positive control"
+    ]
+  },
+  "inspectedNotRepeated": [
+    "recorded1323-case14675-check fullB",
+    "recorded1157-check focused B",
+    "18 Python admission tests",
+    "22 Swift tests",
+    "strict SDK37 Java17 and D8 compilation"
+  ],
+  "nativeHarness": {
+    "originalSmokeAssertions": 11,
+    "originalReadinessBudgets": "three unchanged100x20ms",
+    "motionBudgets": "300x20ms and25x20ms quiet flush",
+    "twoStageEffectiveAndRawRestoration": "present; unrun; R1 applies to restoration oracle too",
+    "manualCallbackSubstitution": false
+  },
+  "parentOwnedWork": {
+    "CIRebind": "Recompute corrected integrated source hashes; replace bootstrap pair8 digest and test/wording with final pair9; preserve all safeguards",
+    "sixConsumerRun": "Parent reported in progress at /tmp/mixer-20261107-generated-java-pair9-01; not inspected/polled here; no inherited acceptance"
+  },
+  "pending": [
+    "R1 native oracle correction",
+    "R2 explicit coalesced publication and matching source identity updates",
+    "parent actual pair9 six-consumer result and final integrated CI rebind",
+    "API37 callback/removal/two-stage restoration",
+    "API28/32/33 runtime",
+    "physical phones",
+    "published external FieldLog",
+    "signing/store/GA"
+  ],
+  "ownership": {
+    "newFilesOnly": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/android-motion-thread-review",
+    "productCandidateCanonicalCIOrOldEvidenceEdits": false,
+    "commitPushCloudChildrenDeviceUIADBOrHeldProcessProbe": false
+  },
+  "cleanup": {
+    "hostReceipt": "host-replay/receipt.json",
+    "targeted": "targeted-cleanup.json",
+    "lifetime": "lifetime-cleanup.json",
+    "ownedScratchRemoved": true,
+    "ownedHostChildrenReaped": true
+  },
+  "scope": "independent read-only product review with permitted host executions; no native or GA qualification",
+  "report": "REVIEW.md"
+}

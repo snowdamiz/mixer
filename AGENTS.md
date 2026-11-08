@@ -55,7 +55,7 @@ booted: even a newly owned frontend can shut them down. Use exact owned-device
 UUIDs and individually owned windows for cleanup. A changed external baseline
 is a cleanup failure; record it and coordinate recovery before further actions.
 
-Latest direct user instruction on November 7 — “you can do native stuff, update
+Earlier direct user instruction on November 7 — “you can do native stuff, update
 agents file” — resumes native simulator/emulator tests and related UI verification
 and screen capture, superseding the previously supplied pause. Fresh bounded
 owned builds and runtime attempts may proceed under the one-instance-per-lane and cleanup
@@ -65,6 +65,18 @@ retrying the specifically held historical processes, the held v5 startup, or
 frozen hosted lanes. The October 24 shutdown and pause remain historical evidence.
 Record fresh attempts separately in
 verification/plan-continuation-2026-11-07/native-resumption.json.
+
+A later user-supplied AGENTS block states that native simulator/emulator runtime,
+UI automation and screen capture are paused. Clarification of that conflict is
+pending. Until resolved, continue source work, host tests, cross-compilation,
+offline evidence review and authorized delivery; do not start new native/UI/capture
+attempts. This preserves the earlier resumption as historical authorization.
+
+The cache deadline control's optimized run left unresolved custody for PGID
+23663. Preserve that group and its retained scratch; do not probe, signal, or
+retry it, and do not infer absence from the direct child's return or elapsed
+time. See verification/plan-continuation-2026-11-07/cache-deadline-custody-hold/receipt.json.
+All earlier process and custody holds remain in force.
 
 Record command, tool version, source revision/tree digest, output, and scope.
 Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually

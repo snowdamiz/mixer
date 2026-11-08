@@ -1,0 +1,65 @@
+--- a/.github/workflows/verify.yml
++++ b/.github/workflows/verify.yml
+@@ -521,6 +521,7 @@
+             /verification/shared-fixture-default-ci-adoption/
+             /verification/shared-fixture-clock-controls-correction/
+             /verification/plan-continuation-2026-11-07/cache-fix/
++            /verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+             /.github/workflows/verify.yml
+       - name: Bind shared fixture adoption and materialize the thin overlay
+         timeout-minutes: 2
+@@ -534,7 +535,7 @@
+             git rev-parse HEAD HEAD^{tree}
+             python3 --version
+             uname -srm
+-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/adopt_fixture.py" verify --workflow-installed
++            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/adopt_fixture.py" verify --workflow-installed
+             python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
+           } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
+             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
+@@ -551,9 +552,18 @@
+           python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+-          python3 -B "$MIXER_ADOPTION_DIR/test_runner.py" -v \
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_runner.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
++          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_runner.py" -v \
++            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stdout" \
++            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stderr"
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
++            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-normal.stdout" \
++            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-normal.stderr"
++          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
++            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-optimized.stdout" \
++            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-optimized.stderr"
+           python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/test_selection.py" -v \
+             > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stdout" \
+             2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stderr"
+@@ -566,7 +576,7 @@
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           {
+             MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/adopt_fixture.py" run \
++            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/adopt_fixture.py" run \
+               --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
+               --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+           } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
+@@ -579,7 +589,7 @@
+           set -euo pipefail
+           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+           mkdir -p "$MIXER_ADOPTION_DIR/logs"
+-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/adopt_fixture.py" verify --workflow-installed \
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/adopt_fixture.py" verify --workflow-installed \
+             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
+             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
+       - name: Preserve complete shared fixture evidence and adoption proof
+@@ -599,6 +609,7 @@
+             ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
+             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-fix/
++            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+             ${{ github.workspace }}/.github/workflows/verify.yml
+   android-generated-java:
+     runs-on: macos-26-intel

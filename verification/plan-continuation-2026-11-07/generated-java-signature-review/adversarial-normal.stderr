@@ -1,0 +1,49 @@
+test_control_characters_non_ascii_and_report_budget (__main__.Adversarial.test_control_characters_non_ascii_and_report_budget) ... ok
+test_each_pin_byte_is_required_in_every_status (__main__.Adversarial.test_each_pin_byte_is_required_in_every_status) ... ok
+test_filename_is_not_a_credential (__main__.Adversarial.test_filename_is_not_a_credential) ... ok
+test_legacy_missing_notary_must_not_downgrade_policy (__main__.Adversarial.test_legacy_missing_notary_must_not_downgrade_policy) ... 
+  test_legacy_missing_notary_must_not_downgrade_policy (__main__.Adversarial.test_legacy_missing_notary_must_not_downgrade_policy) (status='signed by a certificate trusted by macOS') ... FAIL
+  test_legacy_missing_notary_must_not_downgrade_policy (__main__.Adversarial.test_legacy_missing_notary_must_not_downgrade_policy) (status='signed by a certificate trusted by Mac OS X') ... FAIL
+test_negative_notary_never_admitted_in_any_branch (__main__.Adversarial.test_negative_notary_never_admitted_in_any_branch) ... ok
+test_observed_report_and_all_statuses_with_notary (__main__.Adversarial.test_observed_report_and_all_statuses_with_notary) ... ok
+test_original_source_refuses_exact_observation (__main__.Adversarial.test_original_source_refuses_exact_observation) ... ok
+test_real_command_runner_fake_child_exits_block_parser_and_expansion (__main__.Adversarial.test_real_command_runner_fake_child_exits_block_parser_and_expansion) ... ok
+test_real_command_runner_fake_child_spawn_custody_and_stderr (__main__.Adversarial.test_real_command_runner_fake_child_spawn_custody_and_stderr) ... ok
+test_wrong_publisher_and_contradictions_in_every_branch (__main__.Adversarial.test_wrong_publisher_and_contradictions_in_every_branch) ... ok
+
+======================================================================
+FAIL: test_legacy_missing_notary_must_not_downgrade_policy (__main__.Adversarial.test_legacy_missing_notary_must_not_downgrade_policy) (status='signed by a certificate trusted by macOS')
+----------------------------------------------------------------------
+RuntimeError: Official Swift package Payload topology changed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-signature-review/verify.py", line 123, in test_legacy_missing_notary_must_not_downgrade_policy
+    self.refuse(OBSERVED.replace(MODERN, status).replace(NOTARY, ''))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-signature-review/verify.py", line 68, in refuse
+    with self.assertRaisesRegex(RuntimeError, 'trust'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "trust" does not match "Official Swift package Payload topology changed"
+
+======================================================================
+FAIL: test_legacy_missing_notary_must_not_downgrade_policy (__main__.Adversarial.test_legacy_missing_notary_must_not_downgrade_policy) (status='signed by a certificate trusted by Mac OS X')
+----------------------------------------------------------------------
+RuntimeError: Official Swift package Payload topology changed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-signature-review/verify.py", line 123, in test_legacy_missing_notary_must_not_downgrade_policy
+    self.refuse(OBSERVED.replace(MODERN, status).replace(NOTARY, ''))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/generated-java-signature-review/verify.py", line 68, in refuse
+    with self.assertRaisesRegex(RuntimeError, 'trust'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "trust" does not match "Official Swift package Payload topology changed"
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.080s
+
+FAILED (failures=2)

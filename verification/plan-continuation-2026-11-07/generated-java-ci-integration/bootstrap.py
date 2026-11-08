@@ -6,10 +6,12 @@ The canonical runner remains the sole six-consumer compiler/admission authority.
 """
 import argparse
 from datetime import datetime, timezone
+from enum import Enum
 import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import sys
 import tempfile
@@ -28,6 +30,24 @@ SDKROOT = DEVELOPER / 'Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk'
 SOURCE_INPUT_COUNT = 101
 SOURCE_INPUT_SHA256 = '53ad5501dcaa0168ec8196c8816d07a246e6b04bcd0160edadd22ecafd4ff815'
 MINIMUM_FREE_BYTES = 12 * 1024**3
+
+
+class PackageTrustStatus(Enum):
+    DEVELOPER_ID = 'signed by a developer certificate issued by Apple for distribution'
+    TRUSTED_MACOS = 'signed by a certificate trusted by macOS'
+    TRUSTED_MAC_OS_X = 'signed by a certificate trusted by Mac OS X'
+
+
+# Swift.org documents this installer identity. Fingerprints pin the reviewed
+# official 6.3.3 package's chain, not an arbitrary locally trusted developer.
+HOST_CERTIFICATES = (
+    ('Developer ID Installer: Swift Open Source (V9AUD2URP3)',
+     'AC12310FADC4904F89203418BE5801B6EE79DE3A0DF223A1F1F4127BAB97B1A5'),
+    ('Developer ID Certification Authority',
+     '7AFC9D01A62F03A2DE9637936D4AFE68090D2DE18D03F29C88CFB0B1BA63587F'),
+    ('Apple Root CA',
+     'B0B1730ECBC7FF4505142C49F1295E6EDA6BCAED7E2C68C5BE91B5A11001F024'),
+)
 
 
 def require(ok, message):
@@ -97,10 +117,60 @@ def download(run, identity, label, url, path, size, checksum=None):
     return dict(result, url=url, effective_url=effective)
 
 
+def validate_host_signature(signature):
+    """Admit only reviewed pkgutil reports, after Commands.run verifies exit 0.
+
+    This is an output-policy check, not independent signature verification.
+    Consume the entire combined stdout/stderr report to reject ambiguity.
+    """
+    refusal = 'Swift package is not admitted by macOS package trust'
+    require(len(signature) <= 16384 and all(c in '\n\r\t' or ' ' <= c <= '~' for c in signature), refusal)
+    lines = [line.strip() for line in signature.splitlines() if line.strip()]
+
+    def take():
+        require(bool(lines), refusal)
+        return lines.pop(0)
+
+    def date(value):
+        require(re.fullmatch(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \+0000', value) is not None, refusal)
+        try:
+            return datetime.strptime(value, '%Y-%m-%d %H:%M:%S %z')
+        except ValueError as error:
+            raise RuntimeError(refusal) from error
+
+    require(re.fullmatch(r'Package "[^"\r\n]+":', take()) is not None, refusal)
+    status_line = take()
+    statuses = {'Status: ' + status.value: status for status in PackageTrustStatus}
+    require(status_line in statuses, refusal)
+    status = statuses[status_line]
+    require(take() == 'Notarization: trusted by the Apple notary service', refusal)
+    timestamp = take()
+    prefix = 'Signed with a trusted timestamp on: '
+    require(timestamp.startswith(prefix), refusal)
+    signed_at = date(timestamp[len(prefix):])
+    require(take() == 'Certificate Chain:', refusal)
+    for index, (identity, fingerprint) in enumerate(HOST_CERTIFICATES, 1):
+        require(take() == f'{index}. {identity}', refusal)
+        expiry = take()
+        require(expiry.startswith('Expires: '), refusal)
+        require(signed_at <= date(expiry[len('Expires: '):]), refusal)
+        require(take() == 'SHA256 Fingerprint:', refusal)
+        octets = []
+        while lines and re.fullmatch(r'[0-9A-F]{2}(?: [0-9A-F]{2})*', lines[0]):
+            octets.extend(take().split())
+        require(''.join(octets) == fingerprint, refusal)
+        if index < len(HOST_CERTIFICATES):
+            require(take() == '-' * 72, refusal)
+    require(not lines, refusal)
+    return status
+
+
 def extract_host(run, archive, expanded, toolchain):
-    signature = run('swift-package-signature', ['/usr/sbin/pkgutil', '--check-signature', archive])
-    require('Status: signed by a certificate trusted by' in signature,
-            'Swift package is not admitted by macOS package trust')
+    # Commands.run requires successful exit and terminal custody before returning;
+    # include stderr so a contradictory diagnostic cannot be silently ignored.
+    signature = run('swift-package-signature', ['/usr/sbin/pkgutil', '--check-signature', archive],
+                    diagnostics=True)
+    validate_host_signature(signature)
     run('swift-package-expand', ['/usr/sbin/pkgutil', '--expand', archive, expanded])
     candidates = [p for p in (expanded / 'Payload', expanded / f'{TAG}-osx-package.pkg/Payload') if p.is_file()]
     require(len(candidates) == 1, 'Official Swift package Payload topology changed')

@@ -1,0 +1,48 @@
+--- previous-exact-clock-corrected-controls
++++ new/runner-controls.py
+@@ -165,43 +165,8 @@
+   out=self.base/'unbound-parent';out.mkdir();unbound=r.Commands(out,{'commands':[]},time.monotonic()+20)
+   self.bad(unbound.bind_scratch,out/'..');self.assertIsNone(unbound.scratch);self.assertFalse((self.base/'command-tmp').exists())
+  def deadline_control(self,stage):
+-  runs=self.base/'runs';runs.mkdir();state={'pack_calls':0,'cleanup_entered':False,'after_delay':False};original_verify=r.verify_pack;original_cleanup=r.cleanup
+-  clock={'held':None,'offset':0.0,'last':None};timers=[];pending=[]
+-  def monotonic():
+-   clock['last']=clock['held']if clock['held']is not None else time.monotonic()-clock['offset']
+-   return clock['last']
+-  def setitimer(which,seconds,interval=0):
+-   if seconds>0:
+-    timers.append(seconds)
+-    if len(timers)==2:
+-     # Hold only the test cleanup clock until its target stage is ready.
+-     # Keep the runner's actual timer registration and installed handler.
+-     self.assertEqual(which,signal.ITIMER_REAL);self.assertEqual(interval,0)
+-     self.assertGreater(seconds,0);self.assertLessEqual(seconds,.05)
+-     clock['held']=clock['last'];pending.append(seconds)
+-     return signal.setitimer(which,0)
+-   return signal.setitimer(which,seconds,interval)
+-  def delay():
+-   self.assertEqual(len(timers),2);self.assertEqual(len(pending),1)
+-   self.assertIsNotNone(clock['held'])
+-   clock['offset']=time.monotonic()-clock['held'];clock['held']=None
+-   state['stage_timer_started']=True
+-   signal.setitimer(signal.ITIMER_REAL,pending.pop())
+-   time.sleep(.25);state['after_delay']=True
+-  test_signal=types.SimpleNamespace(**{name:getattr(signal,name)for name in ['SIGALRM','SIGINT','SIGTERM','ITIMER_REAL','signal','getsignal']},setitimer=setitimer)
+-  def verify(base):
+-   state['pack_calls']+=1
+-   if stage=='postflight'and state['pack_calls']==3:delay()
+-   return original_verify(base)
+-  def clean(*args):
+-   state['cleanup_entered']=True
+-   if stage=='retention':delay()
+-   return original_cleanup(*args)
+-  with mock.patch.object(r,'RUNS',runs),mock.patch.object(r,'CLEANUP_SECONDS',.05),mock.patch.object(r,'time',types.SimpleNamespace(monotonic=monotonic)),mock.patch.object(r,'signal',test_signal),mock.patch.object(r,'verify_pack',verify),mock.patch.object(r.overlay,'verify_materialized',return_value={'control':'overlay pre/postflight isolated'}),mock.patch.object(r,'cleanup',clean):
+-   out=r.fresh_output(runs/'deadline');status=r.execute(out,'mixer-no-such-official-compiler-control')
+-  receipt=json.loads((out/'receipt.json').read_bytes());self.assertEqual(status,1);self.assertTrue(receipt['cleanup']['deadline_expired']);self.assertFalse(receipt['cleanup']['removed']);self.assertTrue((out/'scratch/ownership.json').is_file());self.assertEqual(receipt['commands'],[]);self.assertFalse(state['after_delay']);self.assertTrue(state['stage_timer_started']);self.assertEqual(state['cleanup_entered'],stage=='retention');self.assertLess(receipt['cleanup_elapsed_seconds'],.20)
+-  if stage=='postflight':self.assertEqual(state['pack_calls'],3);self.assertEqual(receipt['postflight'],{})
+-  r.save(HERE/'logs'/('deadline-'+stage+'-control.json'),{'scope':'Actual runner handler and registered real timer with test-only stage readiness and 50ms logical cleanup allowance; deliberately slow hook and missing compiler, zero child commands. Preceding postflight wall time is excluded from this injected-stage control.','state':state,'receipt':receipt,'scratch_preserved_at_assertion':True,'owned_test_directory_removed_by_tearDown':True})
++  from deadline_control import run
++  run(self,r,HERE,stage)
+  def test_postflight_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('postflight')
+  def test_retention_deadline_is_terminal_and_preserves_scratch(self):self.deadline_control('retention')
+  def accounting_row(self,name,exit_code=0,timed_out=False,custody_hold=False):

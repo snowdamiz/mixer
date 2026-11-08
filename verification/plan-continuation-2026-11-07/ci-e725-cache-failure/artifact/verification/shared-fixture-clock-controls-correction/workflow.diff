@@ -1,0 +1,62 @@
+--- original/swift-cache-state-fixture
++++ corrected/swift-cache-state-fixture
+@@ -14,13 +14,14 @@
+             /verification/cache-fixture-shared-input-candidate-v2/
+             /verification/cache-fixture-shared-input-review/
+             /verification/shared-fixture-default-ci-adoption/
++            /verification/shared-fixture-clock-controls-correction/
+             /.github/workflows/verify.yml
+       - name: Bind shared fixture adoption and materialize the thin overlay
+         timeout-minutes: 2
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-default-ci-adoption"
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           mkdir -p "$MIXER_ADOPTION_DIR/logs" "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs"
+           {
+@@ -36,7 +37,7 @@
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-default-ci-adoption"
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
+             > "$MIXER_ADOPTION_DIR/logs/adoption-controls.stdout" \
+@@ -44,7 +45,7 @@
+           python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+-          python3 -B "$MIXER_SHARED_INPUT_DIR/test_runner.py" -v \
++          python3 -B "$MIXER_ADOPTION_DIR/test_runner.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
+       - name: One complete shared fixture on the existing admitted compiler
+@@ -52,7 +53,7 @@
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-default-ci-adoption"
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           {
+             MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+@@ -67,7 +68,7 @@
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-default-ci-adoption"
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+           mkdir -p "$MIXER_ADOPTION_DIR/logs"
+           python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" verify --workflow-installed \
+             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
+@@ -85,6 +86,7 @@
+             ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
+             ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
+             ${{ github.workspace }}/verification/shared-fixture-default-ci-adoption/
++            ${{ github.workspace }}/verification/shared-fixture-clock-controls-correction/
+             ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
+             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+             ${{ github.workspace }}/.github/workflows/verify.yml

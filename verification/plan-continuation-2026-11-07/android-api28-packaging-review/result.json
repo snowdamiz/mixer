@@ -1,0 +1,387 @@
+{
+  "schema": 1,
+  "verdict": "ACCEPT",
+  "scope": "Exact pair8 packaging/source and prospective runtime input packet only",
+  "blockingFindings": [],
+  "runtimeAuthorized": false,
+  "runtimeAttempts": 0,
+  "sourceRevision": "c531cfc81cf89cdd591835fedd1dba5a414d31c9",
+  "sourceTree": "66b94c7f77e1bc5b8efc3a8f455d48bac9b5885a",
+  "candidate": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-53f259fe",
+  "checks": {
+    "frozenFiles": 298,
+    "compile-1": {
+      "commandsVerified": 11,
+      "classfiles": 215,
+      "harnessClassfilesJava17": 2,
+      "status": "FAILED PREPARATION"
+    },
+    "compile-2": {
+      "commandsVerified": 19,
+      "classfiles": 215,
+      "harnessClassfilesJava17": 12,
+      "status": "PREPARED PACKAGING ONLY; runtime NOT AUTHORIZED"
+    },
+    "dex": {
+      "product": {
+        "bytes": 417304,
+        "sha256": "5ab1fbfcb805ee0ce43a8c131ffe51ef66f64d4614d9c13bffe7f86283e65c67"
+      },
+      "rejected": {
+        "bytes": 17168,
+        "sha256": "50f5475989bb58c224217b0d9d670d451855b1044c63feb925c69c630e2e7acb"
+      },
+      "fixed": {
+        "bytes": 16200,
+        "sha256": "d2d08ac0066dcdef724a8979e4b472743b9631bc105c14549957af2bd263b8f1"
+      },
+      "definitions": [
+        387,
+        13,
+        12
+      ],
+      "reproducedOverlap": [
+        "Lcom/android/tools/r8/annotations/LambdaMethod;"
+      ],
+      "fixedOverlap": [],
+      "sharedReferencedTypes": 54,
+      "testDefinitions": [
+        "Ldev/mixer/android/NativeLowerApiCompatibilityActivity;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$1;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$2;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$3;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$4;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$5;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$6;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$7$1;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$7$2;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$7$3;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation$7;",
+        "Ldev/mixer/android/NativeLowerApiCompatibilityInstrumentation;"
+      ]
+    },
+    "binaryManifest": [
+      {
+        "tag": "manifest",
+        "attrs": {
+          "compileSdkVersion": 37,
+          "compileSdkVersionCodename": "17",
+          "package": "dev.mixer.android.lowerapi.test",
+          "platformBuildVersionCode": 37,
+          "platformBuildVersionName": 17
+        }
+      },
+      {
+        "tag": "uses-sdk",
+        "attrs": {
+          "minSdkVersion": 28,
+          "targetSdkVersion": 28
+        }
+      },
+      {
+        "tag": "application",
+        "attrs": {
+          "theme": 16974401,
+          "label": "Mixer private API28 linkage",
+          "hasCode": true,
+          "debuggable": true,
+          "extractNativeLibs": true
+        }
+      },
+      {
+        "tag": "activity",
+        "attrs": {
+          "name": "dev.mixer.android.MixerActivity",
+          "exported": false
+        }
+      },
+      {
+        "tag": "activity",
+        "attrs": {
+          "name": "dev.mixer.android.NativeLowerApiCompatibilityActivity",
+          "exported": false
+        }
+      },
+      {
+        "tag": "instrumentation",
+        "attrs": {
+          "name": "dev.mixer.android.NativeLowerApiCompatibilityInstrumentation",
+          "targetPackage": "dev.mixer.android.lowerapi.test"
+        }
+      }
+    ],
+    "apk": {
+      "bytes": 86284162,
+      "sha256": "faf04e63ea21fc36c43657b8420e7281522d960b3b2d3bbc5fe28f3a48858dc3",
+      "v3RSA2048SHA256Signature": true,
+      "chunkedContentDigest": "28af540f570e70d179f5022ba892818a41fc1c503736031ee5636d371fca5e46",
+      "certificateSHA256": "997bcdaa0749d8c34316c4537a6f2d31cbece3f2a22c11deb69f30abc81fb0ee",
+      "signerSDKRange": [
+        24,
+        2147483647
+      ],
+      "nativeLibrariesStored16KiBAligned": 18
+    },
+    "sixRetainedControls": {
+      "duplicate-zip-member": "duplicate ZIP member",
+      "native-tamper": "native library binding mismatch: lib/arm64-v8a/libBlocksRuntime.so",
+      "product-tamper": "product DEX binding mismatch",
+      "reproduced-overlap": "overlapping defined classes: ['Lcom/android/tools/r8/annotations/LambdaMethod;']",
+      "test-checksum-tamper": "DEX SHA1 mismatch",
+      "unexpected-third-dex": "unexpected DEX inventory"
+    },
+    "provenance": {
+      "nativeSourceFiles": 57,
+      "nativeReuseTools": 33,
+      "compilerTools": 9,
+      "priorEvidenceFiles": 5,
+      "pair8ReceiptHashBound": true
+    }
+  },
+  "sourceChecks": {
+    "pair8OwningSources": 101,
+    "sourceInputsSHA256": "53ad5501dcaa0168ec8196c8816d07a246e6b04bcd0160edadd22ecafd4ff815",
+    "checkExpressionsUnchanged": 20,
+    "statusExpressionsUnchanged": 11,
+    "stringLiteralsUnchanged": 68,
+    "patchReconstructsAllThreeSources": true,
+    "productGuards": {
+      "NativeEnvironmentV2.java": {
+        "line": 88,
+        "source": "if (Build.VERSION.SDK_INT < 36 || root.getContext() != activity) unsupported();",
+        "identity": {
+          "bytes": 15229,
+          "sha256": "7a072fbf56ed128ffe2f580195a6856afc8cf34c31585e1a61443c0f7d84e119"
+        }
+      },
+      "NativeRenderer.java": {
+        "line": 925,
+        "source": "if(Build.VERSION.SDK_INT<36)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);",
+        "identity": {
+          "bytes": 83197,
+          "sha256": "af71e35ed21673ec01648cce73c9eab0a3b0cf2ba7c7594422b2fe5e04752b3e"
+        }
+      },
+      "NativeEnvironmentPlatformV2.java": {
+        "line": 158,
+        "source": "if(Build.VERSION.SDK_INT<33) throw new IllegalStateException(\"effective animator listener requires API33\");",
+        "identity": {
+          "bytes": 15032,
+          "sha256": "04173e90ffb79ea87f9553691c95e26dbf627f5d269b60630daa7871eec793c6"
+        }
+      }
+    },
+    "fakeCustody-success": {
+      "refusal": null,
+      "cleanup": {
+        "pid": 900000001,
+        "ownedPGID": 900000001,
+        "leaderReaped": true,
+        "groupAbsent": true
+      },
+      "simulatedSignalCalls": [
+        0,
+        0
+      ],
+      "realOSCalls": 0
+    },
+    "fakeCustody-timeout": {
+      "refusal": "fake-only failed; see /Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/android-api28-packaging-review/fake-timeout/fake-only.log",
+      "cleanup": {
+        "pid": 900000001,
+        "ownedPGID": 900000001,
+        "leaderReaped": true,
+        "groupAbsent": true
+      },
+      "simulatedSignalCalls": [
+        0,
+        15,
+        0,
+        0
+      ],
+      "realOSCalls": 0
+    },
+    "fakeCustody-leftover-group": {
+      "refusal": "fake-only failed; see /Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/android-api28-packaging-review/fake-leftover-group/fake-only.log",
+      "cleanup": {
+        "pid": 900000001,
+        "ownedPGID": 900000001,
+        "leaderReaped": true,
+        "groupAbsent": true
+      },
+      "simulatedSignalCalls": [
+        0,
+        15,
+        0,
+        0
+      ],
+      "realOSCalls": 0
+    },
+    "fakeCustody-nonterminal": {
+      "refusal": "fake-only failed; see /Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/android-api28-packaging-review/fake-nonterminal/fake-only.log",
+      "cleanup": {
+        "pid": 900000001,
+        "ownedPGID": 900000001,
+        "leaderReaped": false,
+        "groupAbsent": false
+      },
+      "simulatedSignalCalls": [
+        0,
+        15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "realOSCalls": 0
+    }
+  },
+  "stability": {
+    "status": "PASS",
+    "candidateFileCount": 560,
+    "boundManifestFileCount": 298,
+    "externalFileCount": 146,
+    "installedImageFileCount": 15,
+    "candidateFilesChanged": [],
+    "externalFilesChanged": [],
+    "imageFilesChanged": [],
+    "finishedUTC": "2026-11-07T23:56:48.791129+00:00",
+    "startedUTC": "2026-11-07T23:51:07.564982+00:00",
+    "elapsedSeconds": 341.226295
+  },
+  "historicalRejectedDEX": "lost; fresh reproduction is not original-byte recovery",
+  "remainingGates": [
+    "Resolve runtime authority and review bounded controller before launch",
+    "Actual API28 ART/JNI and Activity lifecycle execution plus actual owned runtime cleanup",
+    "API32/33 motion transition/listener callback/removal and additional observation boundaries",
+    "Physical phone final acceptance",
+    "Immutable published packages, FieldLog, release and GA"
+  ],
+  "limits": [
+    "No general bytecode/ART verifier proof",
+    "Signature verification is scoped to this actual APK, not production signing approval",
+    "No full per-widget visual/interaction acceptance",
+    "Preparation process absence uses historical receipts; fake simulations do not prove live custody",
+    "Second below36 guard is source/baseline only; no fabricated Observer",
+    "No acceptance transfers to pair9/.9 product changes"
+  ],
+  "artifacts": {
+    "REVIEW.md": {
+      "bytes": 11396,
+      "sha256": "f7e0a1758880fccdd122229a2edcfc03a7a2fe1f951ce4297ddddafee623f428"
+    },
+    "check.py": {
+      "bytes": 11658,
+      "sha256": "4f9d96f54c9f95d0f9e7c70a10ffd2a1aae6c11213c1f7c6e57dfaf7d3ae5f41"
+    },
+    "source-check.py": {
+      "bytes": 6240,
+      "sha256": "e357f4aef5c4c21da7e16f92d892b8d700c8566c5f461b4af38c348751acb3f8"
+    },
+    "independent-checks.json": {
+      "bytes": 4675,
+      "sha256": "b2f29bf8c6217454e22ddd42cde65ce048d385e4e1959833655dd123814bcaf6"
+    },
+    "source-checks.json": {
+      "bytes": 4057,
+      "sha256": "7657acd6dcd95821bdc54e50ae12d47288c65ed3b0e95a20537310f0f2b328eb"
+    },
+    "image-check.json": {
+      "bytes": 2433,
+      "sha256": "09e889bce4b154a2c450f62e0fca99681880bf656ba446d4809777c769100144"
+    },
+    "frozen-before.json": {
+      "bytes": 177473,
+      "sha256": "d95c754cd819672aa6c46cd090f35254b1f841bca75925a71c6b3aae29e5f7f8"
+    },
+    "frozen-after.json": {
+      "bytes": 213421,
+      "sha256": "fe65ea726e0758d0de75d3d6c0d1df7f25a961f4e3185402e7ff819b61176627"
+    },
+    "reviewer-check-correction.txt": {
+      "bytes": 188,
+      "sha256": "a7802039769165d8ba68679a5be219546f73abf2d352f6d37e12ad45f94c8fe3"
+    }
+  },
+  "finishedUTC": "2026-11-07T23:58:18.354686+00:00",
+  "prohibitedActionsPerformed": false,
+  "privateKeyAbsent": true
+}

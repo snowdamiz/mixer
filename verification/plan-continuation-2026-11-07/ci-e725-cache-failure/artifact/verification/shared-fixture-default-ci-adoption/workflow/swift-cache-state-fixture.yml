@@ -1,0 +1,90 @@
+  swift-cache-state-fixture:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      RUSTUP_AUTO_INSTALL: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /verification/swift-cache-state-ci/pack/
+            /verification/swift-cache-state-ci/check_cache_state.py
+            /verification/cache-fixture-shared-input-candidate-v2/
+            /verification/cache-fixture-shared-input-review/
+            /verification/shared-fixture-default-ci-adoption/
+            /.github/workflows/verify.yml
+      - name: Bind shared fixture adoption and materialize the thin overlay
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-default-ci-adoption"
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          mkdir -p "$MIXER_ADOPTION_DIR/logs" "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs"
+          {
+            git rev-parse HEAD HEAD^{tree}
+            python3 --version
+            uname -srm
+            python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" verify --workflow-installed
+            python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
+          } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
+      - name: Shared fixture runner, materializer and adoption focused controls
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-default-ci-adoption"
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
+            > "$MIXER_ADOPTION_DIR/logs/adoption-controls.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/adoption-controls.stderr"
+          python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+            > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+          python3 -B "$MIXER_SHARED_INPUT_DIR/test_runner.py" -v \
+            > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
+      - name: One complete shared fixture on the existing admitted compiler
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-default-ci-adoption"
+          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+          {
+            MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+            python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" run \
+              --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
+              --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
+            2> "$MIXER_SHARED_INPUT_DIR/logs/fixture.stderr"
+      - name: Verify shared fixture adoption postflight
+        if: always()
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-default-ci-adoption"
+          mkdir -p "$MIXER_ADOPTION_DIR/logs"
+          python3 -B "$MIXER_ADOPTION_DIR/adopt_fixture.py" verify --workflow-installed \
+            > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
+      - name: Preserve complete shared fixture evidence and adoption proof
+        if: always()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-cache-state-fixture-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: |
+            ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
+            ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
+            ${{ github.workspace }}/verification/shared-fixture-default-ci-adoption/
+            ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
+            ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+            ${{ github.workspace }}/.github/workflows/verify.yml
