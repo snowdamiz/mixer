@@ -1,0 +1,798 @@
+--- verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/baseline-source/commands.py
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/commands.py
+@@ -1,8 +1,9 @@
+-"""Bounded host commands: private groups, separate EOF, reaping and receipts."""
++"""Bounded commands; unknown custody is sticky, including exceptional exits."""
+ import hashlib, json, os, selectors, signal, subprocess, time
+ from pathlib import Path
+-HELD = {23663,20745,20770,20780,20817,20842,20851,20866,2424,2621}
++from holds import HELD
+ LIMIT = 4*1024*1024
++DISPATCH_SECONDS = 950
+ 
+ def digest(raw): return hashlib.sha256(raw).hexdigest()
+ def write(path, value):
+@@ -12,53 +13,87 @@
+     def __init__(self, directory):
+         self.directory=Path(directory); self.directory.mkdir(exist_ok=True)
+         self.total=0; self.events=[]; self.unresolved=False
+-    def run(self, label, argv, timeout=45):
++    def run(self, label, argv, timeout=45, *, operation='command'):
+         if self.unresolved: raise RuntimeError('Prior command custody unresolved; no further commands')
+-        if not 0 < timeout <= 120: raise ValueError('Deadline outside bound')
++        if operation not in ('command','native-dispatch'): raise ValueError('Unknown operation')
++        native=operation=='native-dispatch'
++        if not (timeout==DISPATCH_SECONDS if native else 0 < timeout <= 120):
++            raise ValueError('Deadline outside bound')
+         started=time.monotonic(); streams={'stdout':bytearray(),'stderr':bytearray()}; eof={k:False for k in streams}
+-        p=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True,
+-            env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1','DEVELOPER_DIR':'/Applications/Xcode_26.6.app/Contents/Developer'})
+-        if p.pid in HELD: raise RuntimeError('Unexpected held PID collision; no probing/signalling')
+-        sel=selectors.DefaultSelector()
+-        for name,pipe in [('stdout',p.stdout),('stderr',p.stderr)]:
+-            os.set_blocking(pipe.fileno(),False); sel.register(pipe,selectors.EVENT_READ,name)
+-        failure=None; sent=[]; termination=None
+-        while True:
+-            now=time.monotonic()
+-            if failure is None and now-started>=timeout: failure='deadline'
+-            if failure and termination is None:
+-                try: os.killpg(p.pid,signal.SIGTERM); sent.append('TERM')
+-                except ProcessLookupError: pass
+-                termination=now
+-            if termination is not None and now-termination>=2 and 'KILL' not in sent:
+-                try: os.killpg(p.pid,signal.SIGKILL)
+-                except ProcessLookupError: pass
+-                sent.append('KILL')
+-            for key,_ in sel.select(0.02):
+-                chunk=os.read(key.fileobj.fileno(),65536); name=key.data
+-                if not chunk:
+-                    eof[name]=True; sel.unregister(key.fileobj); key.fileobj.close(); continue
+-                room=min(LIMIT-len(streams[name]),32*1024*1024-self.total)
+-                retained=chunk[:max(0,room)]; streams[name].extend(retained); self.total+=len(retained)
+-                if len(retained)!=len(chunk): failure=failure or 'output-limit'
+-            if p.poll() is not None and all(eof.values()): break
+-            if termination is not None and now-termination>=5: break
+-        sel.close()
+-        for pipe in [p.stdout,p.stderr]:
+-            if not pipe.closed: pipe.close()
+-        reaped=p.poll() is not None
+-        if reaped: p.wait()
+-        try: os.killpg(p.pid,0); absent=False
+-        except ProcessLookupError: absent=True
+         row=dict(argv=argv,argvSHA256=digest(json.dumps(argv,separators=(',',':')).encode()),
+-            executableSHA256=digest(Path(argv[0]).resolve().read_bytes()),cwd=os.getcwd(),pid=p.pid,pgid=p.pid,
+-            timeoutSeconds=timeout,elapsedSeconds=time.monotonic()-started,exitCode=p.returncode,
+-            failure=failure,reaped=reaped,ownedGroupAbsent=absent,signals=sent,streams={})
+-        for name,raw in streams.items():
+-            (self.directory/(label+'.'+name)).write_bytes(raw)
+-            row['streams'][name]=dict(bytes=len(raw),sha256=digest(raw),eof=eof[name])
+-        write(self.directory/(label+'.command.json'),row); self.events.append(row)
+-        self.unresolved=not reaped or not absent or not all(eof.values())
+-        if failure or not reaped or not absent or not all(eof.values()) or p.returncode:
++                 executableSHA256=digest(Path(argv[0]).resolve().read_bytes()),cwd=os.getcwd(),
++                 operation=operation,timeoutSeconds=timeout,reaped=False,ownedGroupAbsent=False,
++                 exitCode=None,failure=None,signals=[],streams={},unknownCustody=True)
++        p=None; sel=None; termination=None; error=None
++        # Popen itself can raise after acquisition: never infer no child from that exception.
++        self.unresolved=True
++        try:
++            p=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True,
++                env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1','DEVELOPER_DIR':'/Applications/Xcode_26.6.app/Contents/Developer'})
++            row.update(pid=p.pid,pgid=p.pid)
++            if p.pid in HELD: raise RuntimeError('Unexpected held PID collision; no probing/signalling')
++            sel=selectors.DefaultSelector()
++            for name,pipe in [('stdout',p.stdout),('stderr',p.stderr)]:
++                os.set_blocking(pipe.fileno(),False); sel.register(pipe,selectors.EVENT_READ,name)
++            while True:
++                # Reap before signals: Darwin can return EPERM for a zombie-only group.
++                if p.poll() is not None:
++                    p.wait(); row.update(reaped=True,exitCode=p.returncode)
++                now=time.monotonic()
++                if row['failure'] is None and now-started>=timeout: row['failure']='deadline'
++                if row['failure'] and termination is None:
++                    try: os.killpg(p.pid,signal.SIGTERM); row['signals'].append('TERM')
++                    except ProcessLookupError: pass
++                    termination=now
++                if termination is not None and now-termination>=2 and 'KILL' not in row['signals']:
++                    try: os.killpg(p.pid,signal.SIGKILL)
++                    except ProcessLookupError: pass
++                    row['signals'].append('KILL')
++                for key,_ in sel.select(0.02):
++                    chunk=os.read(key.fileobj.fileno(),65536); name=key.data
++                    if not chunk:
++                        eof[name]=True; sel.unregister(key.fileobj); key.fileobj.close(); continue
++                    room=min(LIMIT-len(streams[name]),32*1024*1024-self.total)
++                    retained=chunk[:max(0,room)]; streams[name].extend(retained); self.total+=len(retained)
++                    if len(retained)!=len(chunk): row['failure']=row['failure'] or 'output-limit'
++                if row['reaped'] and all(eof.values()): break
++                if termination is not None and now-termination>=5: break
++            if not row['reaped'] and p.poll() is not None:
++                p.wait(); row.update(reaped=True,exitCode=p.returncode)
++            if row['reaped']:
++                try: os.killpg(p.pid,0)
++                except ProcessLookupError: row['ownedGroupAbsent']=True
++        except BaseException as exc:
++            error=exc; row['exception']=dict(type=type(exc).__name__,message=str(exc))
++        finally:
++            # Local descriptors only. No poll, wait, signal, AX or new child after an exception.
++            try:
++                if sel is not None: sel.close()
++                if p is not None:
++                    for pipe in (p.stdout,p.stderr):
++                        if pipe is not None and not pipe.closed: pipe.close()
++                row['elapsedSeconds']=time.monotonic()-started
++            except BaseException as exc:
++                error=error or exc; row['localCleanupException']=str(exc)
++            terminal=row['reaped'] and row['ownedGroupAbsent'] and all(eof.values())
++            row['nestedCustodyUnknown']=native and bool(error or row['failure'] or row['exitCode']!=0 or not terminal)
++            row['unknownCustody']=bool(error or not terminal or row['nestedCustodyUnknown'])
++            try:
++                for name,raw in streams.items():
++                    row['streams'][name]=dict(bytes=len(raw),sha256=digest(raw),eof=eof[name])
++                    (self.directory/(label+'.'+name)).write_bytes(raw)
++                write(self.directory/(label+'.command.json'),row)
++            except BaseException as exc:
++                row['unknownCustody']=True; row['receiptException']=str(exc); error=error or exc
++                # Best effort exception receipt; a failed primary write always retains the latch.
++                try: write(self.directory/(label+'.exception.json'),row)
++                except BaseException: pass
++            self.events.append(row)
++            self.unresolved=row['unknownCustody']
++        if error is not None: raise error
++        if row['failure'] or self.unresolved or row['exitCode']:
+             raise RuntimeError('Command failed or custody unresolved: '+label)
+-        return bytes(streams['stdout']).decode()
++        try: return bytes(streams['stdout']).decode()
++        except BaseException:
++            self.unresolved=True
++            raise
+--- verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/baseline-source/controller.py
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/controller.py
+@@ -6,7 +6,7 @@
+ from dataclasses import dataclass
+ import uuid
+ PROTECTED={'CE7E80FC-64BF-41A0-B07B-60F4D8711808','D55C87E9-F349-49AC-BCD3-3B4B5BE9E010'}
+-HELD={23663,20745,20770,20780,20817,20842,20851,20866,2424,2621}
++from holds import HELD
+ 
+ class Refused(RuntimeError): pass
+ 
+@@ -43,7 +43,10 @@
+ 
+ 
+ def check_snapshot(backend, owned, baseline):
++    guard_custody(backend)
+     now=backend.devices()
++    window_check=getattr(backend, 'verify_outside_windows', None)
++    if window_check is not None: window_check()
+     require(external(now,owned.uuid)==baseline, 'External baseline changed; stop and coordinate recovery')
+     row=now.get(owned.uuid)
+     if row:
+@@ -52,8 +55,14 @@
+     return row
+ 
+ 
++def guard_custody(backend):
++    guard=getattr(backend, "assert_custody", None)
++    if guard is not None: guard()
++
++
+ def cleanup(backend, owned, baseline):
+     """Any unknown identity/drift stops further mutation. Never quits Simulator."""
++    guard_custody(backend)
+     validate_owned(owned,baseline)
+     check_snapshot(backend,owned,baseline)
+     if owned.window is None:
+@@ -80,16 +89,19 @@
+ 
+ def setup(backend):
+     """Permission and exact packet verification precede first mutation."""
++    guard_custody(backend)
+     require(backend.ax_trusted(), 'Accessibility prerequisite unavailable; no setup allowed')
+     backend.verify_bindings()
+     baseline=backend.devices()
+     owned=backend.create_owned()
++    guard_custody(backend)
+     validate_owned(owned,baseline)
+     try:
+         check_snapshot(backend,owned,baseline)
+         backend.boot(owned.uuid)
+         require(backend.ax_trusted(),'Accessibility revoked before frontend creation')
+         owned=backend.open_owned_window(owned)
++        guard_custody(backend)
+         validate_owned(owned,baseline)
+         check_snapshot(backend,owned,baseline)
+         require(backend.windows_for_device(owned.uuid)==[owned.window] and owned.window is not None,
+@@ -104,6 +116,7 @@
+ 
+ 
+ def dispatch(backend, owned, baseline):
++    guard_custody(backend)
+     validate_owned(owned,baseline)
+     require(backend.ax_trusted(),'Accessibility revoked before dispatch')
+     check_snapshot(backend,owned,baseline)
+--- verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/baseline-source/future_run.py
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/future_run.py
+@@ -28,9 +28,18 @@
+         write(folder/'external-baseline.json',baseline)
+         plan=dispatch(backend,owned,baseline)
+         write(folder/'exact-dispatch-command.json',plan)
+-        backend.command('unchanged-native-dispatch',plan['argv'],120)
++        backend.native_dispatch(plan['argv'])
+         outcome['native']=json.loads((folder/'dispatch-result.json').read_text())
++        native=outcome['native']
++        gates=native.get('cleanupResults', [])
++        expected={'loopback-server-shutdown','loopback-server-close','loopback-thread-join',
++                  'ephemeral-capability-workspace-removal','owned-simulator-and-baseline-reconciliation'}
++        require(len(gates)==5 and {g.get('resource') for g in gates}==expected and
++                all(g.get('passed') is True for g in gates) and native.get('sessionFailure') is None and
++                native.get('xcodebuildExitCode') in (0,65) and native.get('reportingFailures')==[],
++                'Inner terminal evidence incomplete; retain nested custody')
+     except BaseException as error:
++        backend.c.unresolved=True
+         outcome['failure']=dict(type=type(error).__name__,message=str(error),traceback=traceback.format_exc())
+     finally:
+         if owned is not None and baseline is not None:
+--- /dev/null
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/holds.py
+@@ -0,0 +1,2 @@
++"""Shared deny set: neither probe nor signal these historical identities."""
++HELD = frozenset({40708,40709,40711,23663,20745,20770,20780,20817,20842,20851,20866,2424,2621})
+--- verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/baseline-source/mac_backend.py
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/mac_backend.py
+@@ -74,16 +74,31 @@
+ class MacBackend:
+     def __init__(self,folder):
+         self.folder=Path(folder); self.c=Commands(self.folder/'commands'); self.ax=AX(); self.index=0
+-        self.owned=None; self.baseline_windows=[]
++        self.owned=None; self.baseline_windows=None; self.baseline_frontends=None; self.unknown=False
++    def assert_custody(self):
++        require(not getattr(self, 'unknown', False) and not (getattr(self, 'c', None) and self.c.unresolved),
++                'Unknown custody; no further probes, launches or cleanup')
++    def record(self,path,value):
++        try: write(path,value)
++        except BaseException:
++            self.unknown=True
++            raise
++    def native_dispatch(self,argv):
++        self.assert_custody()
++        self.index+=1
++        return self.c.run('%03d-unchanged-native-dispatch'%self.index,argv,950,operation='native-dispatch')
+     def command(self,label,argv,timeout=45):
++        self.assert_custody()
+         self.index+=1; return self.c.run('%03d-%s'%(self.index,label),argv,timeout)
+     def ax_trusted(self):
++        self.assert_custody()
+         current=self.ax.trusted()
+         # Keep the historical requesting route visible; no permission bypass by
+         # switching interpreters. Both checks are public, nonprompting queries.
+         original=json.loads(self.command('ax', ['/usr/bin/osascript','-l','JavaScript',str(HERE/'ax_probe.js')],30))
+         return current is True and original['trusted'] is True
+     def verify_bindings(self):
++        self.assert_custody()
+         result=verify()
+         runtimes=json.loads(self.command('runtimes',['/usr/bin/xcrun','simctl','list','runtimes','--json']))
+         matched=[r for r in runtimes['runtimes'] if r['identifier']==RUNTIME]
+@@ -91,12 +106,14 @@
+                 'Exact available runtime build required before creation')
+         return result
+     def devices(self):
++        self.assert_custody()
+         raw=json.loads(self.command('devices',['/usr/bin/xcrun','simctl','list','devices','--json']))
+         fields=['name','state','deviceTypeIdentifier','dataPath','logPath']
+         return {r['udid']:{**{k:r.get(k) for k in fields},'runtime':rt,'deviceType':r['deviceTypeIdentifier']}
+                 for rt,rows in raw['devices'].items() for r in rows}
+     def frontends(self):
+-        script="""ObjC.import('AppKit'); function run(args) { return JSON.stringify(ObjC.unwrap($.NSWorkspace.sharedWorkspace.runningApplications).filter(a=>ObjC.unwrap(a.executableURL.path)===args[0]).map(a=>Number(a.processIdentifier))); }"""
++        self.assert_custody()
++        script="""ObjC.import('AppKit'); function run(args) { return JSON.stringify(ObjC.unwrap($.NSWorkspace.sharedWorkspace.runningApplications).filter(a=>ObjC.unwrap(a.bundleIdentifier)==='com.apple.iphonesimulator'||ObjC.unwrap(a.executableURL.path)===args[0]).map(a=>Number(a.processIdentifier))); }"""
+         pids=json.loads(self.command('frontend-pids',['/usr/bin/osascript','-l','JavaScript','-e',script,EXE]))
+         result={}
+         for pid in sorted(pids):
+@@ -105,61 +122,125 @@
+             require(row.endswith(EXE),'Unexpected frontend executable'); result[pid]=row
+         return result
+     def inventory(self):
+-        require(self.ax.trusted(),'AX permission absent')
+-        identities=self.frontends(); rows=[]
+-        try:
++        self.assert_custody()
++        try:
++            require(self.ax.trusted(),'AX permission absent')
++            identities=self.frontends(); self.inventory_frontends=identities; rows=[]
+             for pid,identity in identities.items():
+                 app=self.ax.app(pid)
+                 for window in self.ax.children(app,'AXWindows',False):
+                     rows.append((pid,identity,self.ax.text(window,'AXIdentifier',True),self.ax.text(window,'AXTitle'),window))
+             return rows
+         except BaseException:
+-            self.ax.release(); raise
++            self.unknown=True
++            release=getattr(self.ax, "release", None)
++            if release is not None: release()
++            raise
++    def verify_outside_windows(self):
++        self.assert_custody()
++        if self.baseline_windows is not None:
++            self.windows_for_device(self.owned.uuid)
++    def classify_windows(self,rows):
++        keys=[tuple(row[:4]) for row in rows]
++        require(len(keys)==len(set(keys)), 'Duplicate public window identity')
++        require(all(pid>1 and pid not in HELD and identity and token and title
++                    for pid,identity,token,title in keys), 'Public window identifier unavailable; retain custody')
++        require(self.baseline_windows is not None and self.baseline_frontends is not None,
++                'Complete pre-open inventory unavailable')
++        before=set(self.baseline_windows); now=set(keys)
++        require(before<=now, 'Outside window changed/disappeared; retain custody')
++        current=self.inventory_frontends
++        require(all(current.get(pid)==identity for pid,identity in self.baseline_frontends.items()),
++                'Outside frontend changed/disappeared; retain custody')
++        added=now-before
++        require(len(added)<=1, 'Unclassified new windows; retain custody')
++        found=[]
++        for pid,identity,token,title in added:
++            window=Window(pid,identity,token,title,self.owned.uuid)
++            if self.owned.window is not None:
++                require(window==self.owned.window, 'Exact window identity changed; retain custody')
++            else:
++                name=self.owned.name
++                require(title==name or title.startswith(name+' – ') or title.startswith(name+' - '),
++                        'Unclassified new window; retain custody')
++            found.append(window)
++        allowed=dict(self.baseline_frontends)
++        if self.owned.window:
++            allowed[self.owned.window.pid]=self.owned.window.process_identity
++        for w in found: allowed[w.pid]=w.process_identity
++        require(all(allowed.get(pid)==identity for pid,identity in current.items()),
++                'Unclassified frontend; retain custody')
++        return found
+     def windows_for_device(self,uid):
++        self.assert_custody()
+         require(self.owned is not None and self.owned.uuid==uid,'Unowned UUID query refused')
+         try:
+-            rows=self.inventory(); found=[]
+-            for pid,identity,token,title,_ in rows:
+-                if title==self.owned.name or title.startswith(self.owned.name+' – ') or title.startswith(self.owned.name+' - '):
+-                    require(bool(token),'Public window identifier unavailable; retain custody')
+-                    found.append(Window(pid,identity,token,title,uid))
+-                elif self.owned.window and pid==self.owned.window.pid and token==self.owned.window.identifier:
+-                    # A known token with an unexpected title cannot be treated as absence.
+-                    found.append(Window(pid,identity,token,title,uid))
+-            return found
++            return self.classify_windows(self.inventory())
++        except BaseException:
++            self.unknown=True
++            raise
++        finally: self.ax.release()
++    def capture_window_baseline(self):
++        self.assert_custody()
++        try:
++            rows=self.inventory()
++            keys=[tuple(row[:4]) for row in rows]
++            require(len(keys)==len(set(keys)) and all(pid not in HELD and pid>1 and identity and token and title
++                    for pid,identity,token,title in keys), 'Unclassified baseline window')
++            require(not any(title==self.owned.name or title.startswith(self.owned.name+' – ') or
++                            title.startswith(self.owned.name+' - ') for _,_,_,title in keys), 'Owned window already exists')
++            self.baseline_windows=keys; self.baseline_frontends=dict(self.inventory_frontends)
++            self.record(self.folder/'window-baseline.json',dict(windows=keys,frontends=self.baseline_frontends))
++        except BaseException:
++            self.unknown=True
++            raise
+         finally: self.ax.release()
+     def create_owned(self):
++        self.assert_custody()
+         run=str(uuid.uuid4()); name='MixerFocusReferenceV9-'+run
+-        write(self.folder/'creation-intent.json',dict(runID=run,name=name,runtime=RUNTIME,deviceType=DEVICE))
++        self.record(self.folder/'creation-intent.json',dict(runID=run,name=name,runtime=RUNTIME,deviceType=DEVICE))
+         uid=self.command('create',['/usr/bin/xcrun','simctl','create',name,DEVICE,RUNTIME]).strip()
+         require(str(uuid.UUID(uid)).upper()==uid,'Invalid new UUID')
+         self.owned=Owned(uid,name,RUNTIME,DEVICE,None)
+-        write(self.folder/'owned-device.json',dataclasses.asdict(self.owned)); return self.owned
++        self.record(self.folder/'owned-device.json',dataclasses.asdict(self.owned)); return self.owned
+     def boot(self,uid):
++        self.assert_custody()
+         require(self.owned and self.owned.uuid==uid,'Unowned UUID')
+         self.command('boot',['/usr/bin/xcrun','simctl','boot',uid])
+         self.command('bootstatus',['/usr/bin/xcrun','simctl','bootstatus',uid,'-b'],120)
+     def open_owned_window(self,owned):
++        self.assert_custody()
+         require(self.owned==owned,'Owned record mismatch')
+-        self.baseline_windows=self.windows_for_device(owned.uuid)
+-        require(self.baseline_windows==[],'Window already exists before owned open')
+-        self.command('open-owned-window',['/usr/bin/open','-a',DEV+'/Applications/Simulator.app','--args','-CurrentDeviceUDID',owned.uuid])
++        self.capture_window_baseline()
++        try:
++            self.command('open-owned-window',['/usr/bin/open','-a',DEV+'/Applications/Simulator.app','--args','-CurrentDeviceUDID',owned.uuid])
++        except BaseException:
++            self.unknown=True
++            raise
+         # Finite discovery; a missing/ambiguous public identity is a custody hold.
+         for _ in range(5):
+             matches=self.windows_for_device(owned.uuid)
+             if len(matches)==1:
+                 self.owned=dataclasses.replace(owned,window=matches[0])
+-                write(self.folder/'owned-window.json',dataclasses.asdict(self.owned)); return self.owned
++                self.record(self.folder/'owned-window.json',dataclasses.asdict(self.owned)); return self.owned
+             require(len(matches)==0,'Ambiguous new windows'); time.sleep(0.2)
++        self.unknown=True
+         raise RuntimeError('Owned window identity unavailable; never quit frontend')
+     def exact_element(self,expected):
++        self.assert_custody()
+         require(self.owned and self.owned.uuid==expected.device_uuid,'Unowned window')
+         rows=self.inventory()
++        try:
++            require(self.classify_windows(rows)==[expected], "Exact window identity unavailable")
++        except BaseException:
++            self.unknown=True
++            raise
+         matches=[element for pid,identity,token,title,element in rows
+                  if (pid,identity,token,title)==(expected.pid,expected.process_identity,expected.identifier,expected.title)]
+         require(len(matches)==1 and bool(expected.identifier),'Exact window identity unavailable')
+         return matches[0]
+     def close_window(self,expected):
++        self.assert_custody()
+         try:
+             window=self.exact_element(expected)
+             require(self.ax.text(window,'AXRole')=='AXWindow','Not a public window')
+@@ -167,8 +248,9 @@
+             require(self.ax.flag(close,'AXEnabled'),'Close button disabled')
+             self.ax.press(close)
+         finally: self.ax.release()
+-        write(self.folder/'window-close-request.json',dict(window=dataclasses.asdict(expected),action='AXPress AXCloseButton',frontendQuit=False))
++        self.record(self.folder/'window-close-request.json',dict(window=dataclasses.asdict(expected),action='AXPress AXCloseButton',frontendQuit=False))
+     def keyboard_connected(self,expected):
++        self.assert_custody()
+         try:
+             window=self.exact_element(expected)
+             require(self.ax.flag(window,'AXMain'),'Owned window is not the menu target')
+@@ -183,16 +265,19 @@
+             require(len(matches)==1,'Unique public keyboard menu item required')
+             item=matches[0]; mark=self.ax.text(item,'AXMenuItemMarkChar',True)
+             connected=self.ax.flag(item,'AXEnabled') and mark=='✓'
+-            write(self.folder/('keyboard-observation-%03d.json'%self.index),dict(window=dataclasses.asdict(expected),mark=mark,connected=connected,menuMutation=False))
++            self.record(self.folder/('keyboard-observation-%03d.json'%self.index),dict(window=dataclasses.asdict(expected),mark=mark,connected=connected,menuMutation=False))
+             return connected
+         finally:self.ax.release()
+     def shutdown(self,uid):
++        self.assert_custody()
+         require(self.owned and self.owned.uuid==uid,'Unowned UUID')
+         self.command('shutdown-owned',['/usr/bin/xcrun','simctl','shutdown',uid])
+     def delete(self,uid):
++        self.assert_custody()
+         require(self.owned and self.owned.uuid==uid,'Unowned UUID')
+         self.command('delete-owned',['/usr/bin/xcrun','simctl','delete',uid])
+     def dispatch_unchanged(self,owned,baseline):
++        self.assert_custody()
+         # This is the sole handoff to accepted source: no patched module globals,
+         # no argv/oracle/timeout rewrite, and no retry of an old run ID.
+         old=json.loads((OLD/'root-selection.json').read_text())
+@@ -204,9 +289,9 @@
+               'baselineDevices':raw,'baselineFrontends':list(self.frontends().values())}
+         import datetime
+         root['selectedAtUTC']=datetime.datetime.now(datetime.timezone.utc).isoformat()
+-        write(self.folder/'root-selection.json',root)
++        self.record(self.folder/'root-selection.json',root)
+         path=self.folder/'root-selection.json'; selected_sha=digest(path.read_bytes())
+-        write(self.folder/'dispatch-intent.json',dict(packetSHA256=PACKET_SHA,selectionSHA256=selected_sha,dispatcher=str(OLD/'dispatch_successor.py'),maximumNativeAttempts=1))
++        self.record(self.folder/'dispatch-intent.json',dict(packetSHA256=PACKET_SHA,selectionSHA256=selected_sha,dispatcher=str(OLD/'dispatch_successor.py'),maximumNativeAttempts=1))
+         # Native dispatch must be invoked in its own observed command by root.
+         argv=[sys.executable,'-B',str(HERE/'dispatch_once.py'),str(path),selected_sha]
+         return dict(argv=argv,packetSHA256=PACKET_SHA,selectionSHA256=selected_sha,
+--- /dev/null
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/repair_tests.py
+@@ -0,0 +1,203 @@
++"""Behavior controls over final outer code; all process and AX boundaries are fake."""
++import contextlib, errno, json, sys, unittest
++from dataclasses import replace
++from pathlib import Path
++from types import SimpleNamespace
++from unittest.mock import patch
++import commands, controller, mac_backend, future_run, holds
++from review_tests import Process, Selector, OUT, W, O, UID, BASE, Fake
++
++class RepairCommands(unittest.TestCase):
++    def runner(self):
++        return commands.Commands(OUT/('repair-'+self._testMethodName))
++    @contextlib.contextmanager
++    def fake(self, *, clock=None, read_error=None, spawn_error=None, held=None):
++        p=Process(); events=[]
++        if held is not None:p.pid=held
++        p.poll=lambda:events.append('poll') or 0
++        p.wait=lambda:events.append('wait') or 0
++        def kill(pid,sig):
++            events.append(('killpg',pid,sig)); raise ProcessLookupError()
++        with contextlib.ExitStack() as s:
++            spawn=s.enter_context(patch.object(commands.subprocess,'Popen',return_value=p,side_effect=spawn_error))
++            s.enter_context(patch.object(commands.selectors,'DefaultSelector',Selector))
++            s.enter_context(patch.object(commands.os,'set_blocking'))
++            s.enter_context(patch.object(commands.os,'killpg',side_effect=kill))
++            s.enter_context(patch.object(commands.os,'read',return_value=b'',side_effect=read_error))
++            if clock is not None:s.enter_context(patch.object(commands.time,'monotonic',side_effect=clock))
++            yield p,spawn,events
++    def test_reap_before_initial_signal_and_absence_probe(self):
++        c=self.runner()
++        with self.fake(clock=[0,121,121]) as (_,spawn,events):
++            with self.assertRaises(RuntimeError):c.run('timeout',[sys.executable],120)
++        self.assertLess(events.index('wait'),next(i for i,e in enumerate(events) if isinstance(e,tuple)))
++        self.assertFalse(c.unresolved)
++        self.assertTrue(c.events[0]['reaped'] and c.events[0]['ownedGroupAbsent'])
++    def test_popen_exception_latches_and_records(self):
++        c=self.runner()
++        with self.fake(spawn_error=OSError('possible acquisition')) as (_,spawn,events):
++            with self.assertRaises(OSError):c.run('spawn',[sys.executable])
++            with self.assertRaises(RuntimeError):c.run('again',[sys.executable])
++            self.assertEqual(spawn.call_count,1);self.assertEqual(events,[])
++        self.assertTrue(c.unresolved);self.assertTrue((c.directory/'spawn.command.json').is_file())
++    def test_read_exception_stops_before_any_signal_or_probe(self):
++        c=self.runner()
++        with self.fake(read_error=OSError('read failed')) as (_,spawn,events):
++            with self.assertRaises(OSError):c.run('read',[sys.executable])
++            self.assertFalse(any(isinstance(x,tuple) for x in events))
++        row=c.events[0];self.assertTrue(c.unresolved)
++        self.assertFalse(row['streams']['stdout']['eof']);self.assertFalse(row['streams']['stderr']['eof'])
++    def test_receipt_write_failure_cannot_clear_latch(self):
++        c=self.runner(); actual=commands.write
++        def write(path,row):
++            if str(path).endswith('.command.json'):raise OSError('receipt write failed')
++            return actual(path,row)
++        with self.fake() as (_,spawn,events),patch.object(commands,'write',side_effect=write):
++            with self.assertRaises(OSError):c.run('write',[sys.executable])
++            count=len(events)
++            with self.assertRaises(RuntimeError):c.run('again',[sys.executable])
++            self.assertEqual(len(events),count);self.assertEqual(spawn.call_count,1)
++        self.assertTrue(c.unresolved);self.assertTrue((c.directory/'write.exception.json').exists())
++    def test_all_receipt_writes_fail_still_stops(self):
++        c=self.runner()
++        with self.fake() as (_,spawn,events),patch.object(commands,'write',side_effect=OSError('disk')):
++            with self.assertRaises(OSError):c.run('write',[sys.executable])
++            with self.assertRaises(RuntimeError):c.run('again',[sys.executable])
++            self.assertEqual(spawn.call_count,1)
++        self.assertTrue(c.unresolved)
++    def test_each_held_identity_refused_without_probe(self):
++        for held in holds.HELD:
++            c=commands.Commands(OUT/('held-'+str(held)))
++            with self.fake(held=held) as (_,spawn,events):
++                with self.assertRaises(RuntimeError):c.run('collision',[sys.executable])
++                self.assertEqual(events,[]);self.assertTrue(c.unresolved)
++    def test_hold_set_is_one_object(self):
++        self.assertIs(commands.HELD,controller.HELD);self.assertIs(mac_backend.HELD,holds.HELD)
++    def test_950_requires_explicit_dispatch_operation(self):
++        c=self.runner()
++        with patch.object(commands.subprocess,'Popen') as spawn:
++            for label in ['host','unchanged-native-dispatch']:
++                with self.assertRaises(ValueError):c.run(label,[sys.executable],950)
++            for timeout in [120,951]:
++                with self.assertRaises(ValueError):c.run('native',[sys.executable],timeout,operation='native-dispatch')
++            spawn.assert_not_called()
++        with self.fake():self.assertEqual(c.run('native',[sys.executable],950,operation='native-dispatch'),'')
++        self.assertFalse(c.unresolved)
++    def test_native_timeout_retains_nested_custody_despite_outer_absence(self):
++        c=self.runner()
++        with self.fake(clock=[0,951,951]) as (_,spawn,events):
++            with self.assertRaises(RuntimeError):c.run('native',[sys.executable],950,operation='native-dispatch')
++            with self.assertRaises(RuntimeError):c.run('cleanup',[sys.executable])
++            self.assertEqual(spawn.call_count,1)
++        row=c.events[0]
++        self.assertTrue(row['reaped'] and row['ownedGroupAbsent'] and all(x['eof'] for x in row['streams'].values()))
++        self.assertTrue(c.unresolved and row['nestedCustodyUnknown'])
++    def test_interrupted_native_exit_retains_nested_custody(self):
++        c=self.runner()
++        with self.fake() as (p,spawn,events):
++            p.returncode=-9
++            with self.assertRaises(RuntimeError):c.run('native',[sys.executable],950,operation='native-dispatch')
++        self.assertTrue(c.unresolved and c.events[0]['nestedCustodyUnknown'])
++    def test_cleanup_and_ax_stop_without_queries_after_unknown(self):
++        b=object.__new__(mac_backend.MacBackend);b.c=SimpleNamespace(unresolved=True)
++        b.ax=SimpleNamespace(trusted=lambda:self.fail('AX queried'))
++        b.devices=lambda:self.fail('devices queried')
++        for action in [lambda:controller.cleanup(b,O,BASE),b.ax_trusted,b.inventory,lambda:b.close_window(W),lambda:b.native_dispatch([])]:
++            with self.assertRaises(controller.Refused):action()
++
++class WindowRepair(unittest.TestCase):
++    outside=(90124,'90124 outside identity','outside-id','Other project')
++    def backend(self,owned=O):
++        b=object.__new__(mac_backend.MacBackend);b.owned=owned;b.unknown=False;b.c=SimpleNamespace(unresolved=False)
++        b.folder=OUT;b.baseline_windows=[self.outside];b.baseline_frontends={90124:self.outside[1]}
++        b.inventory_frontends={**b.baseline_frontends,W.pid:W.process_identity}
++        b.ax=SimpleNamespace(release=lambda:None)
++        return b
++    def rows(self,*keys):return [(*k,object()) for k in keys]
++    def owned_key(self):return (W.pid,W.process_identity,W.identifier,W.title)
++    def test_absent_owned_preserves_all_outside_windows(self):
++        b=self.backend();b.inventory=lambda:self.rows(self.outside)
++        self.assertEqual(b.windows_for_device(UID),[]);self.assertFalse(b.unknown)
++    def test_changed_title_and_token_latches(self):
++        b=self.backend();b.inventory=lambda:self.rows(self.outside,(W.pid,W.process_identity,'new','new'))
++        with self.assertRaises(controller.Refused):b.windows_for_device(UID)
++        b.inventory=lambda:self.fail('reprobe after unknown')
++        with self.assertRaises(controller.Refused):b.windows_for_device(UID)
++    def test_partial_open_unclassified_latches(self):
++        b=self.backend(replace(O,window=None));b.inventory=lambda:self.rows(self.outside,(W.pid,W.process_identity,'new','new'))
++        with self.assertRaises(controller.Refused):b.windows_for_device(UID)
++        self.assertTrue(b.unknown)
++    def test_changed_or_missing_outside_window_latches(self):
++        for outside in [[],[(90124,self.outside[1],'outside-id','renamed')]]:
++            b=self.backend();b.inventory=lambda:self.rows(*outside,self.owned_key())
++            with self.assertRaises(controller.Refused):b.windows_for_device(UID)
++    def test_extra_unclassified_window_latches(self):
++        b=self.backend();b.inventory=lambda:self.rows(self.outside,self.owned_key(),(90123,W.process_identity,'extra','Other'))
++        with self.assertRaises(controller.Refused):b.windows_for_device(UID)
++    def test_changed_frontend_identity_latches(self):
++        b=self.backend();b.inventory_frontends[90124]='new start';b.inventory=lambda:self.rows(self.outside)
++        with self.assertRaises(controller.Refused):b.windows_for_device(UID)
++    def test_unknown_empty_frontend_latches(self):
++        b=self.backend();b.inventory_frontends[90125]='new frontend';b.inventory=lambda:self.rows(self.outside)
++        with self.assertRaises(controller.Refused):b.windows_for_device(UID)
++    def test_full_backend_inventory_and_capture(self):
++        b=self.backend(replace(O,window=None));b.baseline_windows=None;b.baseline_frontends=None
++        b.frontends=lambda:{90124:self.outside[1]}
++        b.ax=SimpleNamespace(trusted=lambda:True,app=lambda pid:pid,children=lambda *args:[self.outside],
++            text=lambda obj,name,*args:obj[2] if name=='AXIdentifier' else obj[3],release=lambda:None)
++        with patch.object(mac_backend,'write'):b.capture_window_baseline()
++        self.assertEqual(b.baseline_windows,[self.outside]);self.assertEqual(b.baseline_frontends,{90124:self.outside[1]})
++        self.assertEqual(b.windows_for_device(UID),[])
++    def test_exact_close_reconciles_outside_before_press(self):
++        b=self.backend();b.inventory=lambda:self.rows(self.owned_key())
++        b.ax.press=lambda _:self.fail('close after outside disappeared')
++        with self.assertRaises(controller.Refused):b.close_window(W)
++        self.assertTrue(b.unknown)
++    def test_open_command_failure_never_reprobes_for_cleanup(self):
++        b=self.backend(replace(O,window=None));b.capture_window_baseline=lambda:None
++        b.command=lambda *args:(_ for _ in ()).throw(RuntimeError('partial open'))
++        with self.assertRaises(RuntimeError):b.open_owned_window(b.owned)
++        b.devices=lambda:self.fail('cleanup query')
++        with self.assertRaises(controller.Refused):controller.cleanup(b,b.owned,BASE)
++
++class FutureDispatch(unittest.TestCase):
++    def test_future_dispatch_wires_only_explicit_950(self):
++        b=object.__new__(mac_backend.MacBackend);b.index=0;b.c=SimpleNamespace(unresolved=False,run=lambda *args,**kw:(args,kw))
++        args,kw=b.native_dispatch(['exact-accepted-wrapper'])
++        self.assertEqual(args[2],950);self.assertEqual(kw,dict(operation='native-dispatch'))
++    def test_future_finally_skips_cleanup_probes_on_interrupted_dispatch(self):
++        folder=OUT/'future-interrupted'
++        b=object.__new__(mac_backend.MacBackend);b.c=SimpleNamespace(unresolved=False)
++        b.ax_trusted=lambda:True
++        def run(argv):b.c.unresolved=True;raise RuntimeError('outer exited; nested unknown')
++        b.native_dispatch=run;b.devices=lambda:self.fail('cleanup probe after interrupted dispatch')
++        seal=commands.digest((future_run.HERE/'candidate-seal.json').read_bytes())
++        # Only the folder-parent binding is adjusted for this fake run. No real native operations.
++        with patch.object(future_run,'HERE',OUT),patch.object(future_run,'MacBackend',return_value=b),patch.object(future_run,'setup',return_value=(O,BASE)),patch.object(future_run,'dispatch',return_value={'argv':['fake']}):
++            source=json.loads((Path(__file__).parent/'candidate-seal.json').read_bytes())
++            (OUT/'candidate-seal.json').write_text(json.dumps({'sourceFiles':{}}))
++            seal=commands.digest((OUT/'candidate-seal.json').read_bytes())
++            with self.assertRaises(controller.Refused):future_run.run(folder.resolve(),seal)
++        result=json.loads((folder/'result.json').read_text())
++        self.assertIn('Unknown custody',result['cleanupFailure']);self.assertTrue(b.c.unresolved)
++
++class ReceiptAndInventoryGuards(unittest.TestCase):
++    def test_backend_receipt_failure_blocks_all_followup(self):
++        b=object.__new__(mac_backend.MacBackend);b.unknown=False;b.c=SimpleNamespace(unresolved=False)
++        with patch.object(mac_backend,'write',side_effect=OSError('disk full')):
++            with self.assertRaises(OSError):b.record(OUT/'fake-receipt',{})
++        b.ax=SimpleNamespace(trusted=lambda:self.fail('AX after receipt failure'))
++        with self.assertRaises(controller.Refused):b.ax_trusted()
++    def test_cleanup_rechecks_outside_windows_after_device_mutation(self):
++        b=Fake();checks=[]
++        b.verify_outside_windows=lambda:checks.append('windows')
++        controller.cleanup(b,O,BASE)
++        self.assertGreaterEqual(len(checks),4)
++    def test_setup_command_unknown_blocks_finally_cleanup(self):
++        b=Fake();del b.rows[UID];b.windows=[];b.unknown=False
++        def guard():controller.require(not b.unknown,'Unknown custody')
++        b.assert_custody=guard
++        def boot(uid):b.unknown=True;raise OSError('EPERM')
++        b.boot=boot
++        with self.assertRaises(controller.Refused):controller.setup(b)
++        self.assertFalse(any(isinstance(a,tuple) and a[0] in ('shutdown','delete') for a in b.actions))
+--- verification/plan-continuation-2026-11-07/apple-safe-keyboard-review/review_tests.py
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/review_tests.py
+@@ -5,7 +5,7 @@
+ from unittest.mock import patch
+ 
+ HERE = Path(__file__).resolve().parent
+-CANDIDATE = HERE.parent / 'apple-safe-keyboard-controller'
++CANDIDATE = HERE
+ MODE = 'optimized' if sys.flags.optimize else 'normal'
+ OUT = HERE / MODE
+ OUT.mkdir(exist_ok=True)
+@@ -38,12 +38,12 @@
+         tree = hashlib.sha256(json.dumps(actual,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+         put('source.json',dict(sealSHA256=sha(CANDIDATE/'candidate-seal.json'),sourceFiles=actual,sourceTreeSHA256=tree))
+         self.assertEqual(actual, seal['sourceFiles'])
+-        self.assertEqual(tree, '9c0fd93c6bfce174c605f909d6d1841581820b3bca388a126e182c0c6c50647d')
+-        self.assertEqual(sha(CANDIDATE/'candidate-seal.json'), '51d42199a60518870fbdad4eb4bca4d2c2b13b1efd1874aefff0613c7334cbe2')
++        self.assertEqual(tree, seal['sourceTreeSHA256'])
++        self.assertEqual(sha(CANDIDATE/'baseline-source/candidate-seal.json'), '51d42199a60518870fbdad4eb4bca4d2c2b13b1efd1874aefff0613c7334cbe2')
+     def test_handoff_all_files_unchanged(self):
+-        handoff=json.loads((CANDIDATE/'handoff.json').read_text())
+-        actual={n:verify_bindings.identity(CANDIDATE/n) for n in handoff['files']}
+-        self.assertEqual(actual,handoff['files'])
++        seal=json.loads((CANDIDATE/'baseline-source/candidate-seal.json').read_text())
++        actual={n:sha(CANDIDATE/'baseline-source'/n) for n in seal['sourceFiles']}
++        self.assertEqual(actual,seal['sourceFiles'])
+     def test_unchanged_accepted_verifier_readonly(self):
+         result=verify_bindings.verify()
+         put('bindings.json', result)
+@@ -54,7 +54,7 @@
+ class FinalBackendControls(unittest.TestCase):
+     def backend(self):
+         b=object.__new__(mac_backend.MacBackend)
+-        b.owned=O; b.index=0; b.folder=OUT; b.calls=[]
++        b.owned=O; b.index=0; b.folder=OUT; b.calls=[]; b.baseline_windows=[]; b.baseline_frontends={}; b.inventory_frontends={W.pid:W.process_identity}
+         return b
+     def test_correct_v9_name(self):
+         b=self.backend()
+@@ -168,8 +168,11 @@
+             spawn.assert_not_called()
+ 
+ if __name__=='__main__':
++    sys.modules['review_tests']=sys.modules[__name__]
+     suite=unittest.TestSuite()
+     suite.addTests(unittest.defaultTestLoader.loadTestsFromModule(test_controller))
++    import repair_tests
++    suite.addTests(unittest.defaultTestLoader.loadTestsFromModule(repair_tests))
+     for cls in [BindingControls,FinalBackendControls,PolicyFailureControls,CustodyFailureControls]:
+         suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(cls))
+     result=unittest.TextTestRunner(verbosity=2).run(suite)
+--- verification/plan-continuation-2026-11-07/apple-safe-keyboard-review/run_host_controls.py
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/run_host_controls.py
+@@ -4,11 +4,13 @@
+ HERE=Path(__file__).resolve().parent
+ HELD={40708,40709,40711,23663,20745,20770,20780,20817,20842,20851,20866,2424,2621}
+ LIMIT=4*1024*1024
+-START=time.monotonic()
++START=json.loads((HERE/'baseline-verification.json').read_text())['startedMonotonic']
++TOTAL=0
+ def sha(raw):return hashlib.sha256(raw).hexdigest()
+ def put(path,value):
+     with path.open('x') as f:json.dump(value,f,indent=2,sort_keys=True);f.write('\n')
+ def child(mode):
++    global TOTAL
+     folder=HERE/('command-'+mode);folder.mkdir()
+     argv=[sys.executable,'-B']+(['-O'] if mode=='optimized' else [])+[str(HERE/'review_tests.py')]
+     began=time.monotonic(); streams={n:bytearray() for n in ['stdout','stderr']};eof={n:False for n in streams}
+@@ -22,11 +24,11 @@
+         for n in streams:
+             pipe=getattr(p,n);os.set_blocking(pipe.fileno(),False);selector.register(pipe,selectors.EVENT_READ,n)
+         while True:
+-            if time.monotonic()-began>=120:raise RuntimeError('Deadline reached; retain unknown custody without followup')
++            if time.monotonic()-began>=120 or time.monotonic()-START>=900:raise RuntimeError('Deadline reached; retain unknown custody without followup')
+             for key,_ in selector.select(.02):
+                 raw=os.read(key.fileobj.fileno(),65536);n=key.data
+                 if not raw:eof[n]=True;selector.unregister(key.fileobj);key.fileobj.close();continue
+-                remaining=LIMIT-len(streams[n]);streams[n].extend(raw[:max(0,remaining)])
++                remaining=min(LIMIT-len(streams[n]),32*1024*1024-TOTAL);retained=raw[:max(0,remaining)];streams[n].extend(retained);TOTAL+=len(retained)
+                 if len(raw)>remaining:raise RuntimeError('Stream limit; stop lane and retain custody')
+             if p.poll() is not None and all(eof.values()):break
+         p.wait();row.update(reaped=True,exitCode=p.returncode)
+@@ -37,6 +39,9 @@
+     finally:
+         if selector:selector.close()
+         row['elapsedSeconds']=time.monotonic()-began;row['streams']={}
++        row['sourceRevision']='96f03ab65966a6374e958e780fa09a3eed814c0b'
++        row['sourceTreeSHA256']=json.loads((HERE/'candidate-seal.json').read_text())['sourceTreeSHA256']
++        row['candidateSealSHA256']=sha((HERE/'candidate-seal.json').read_bytes())
+         for n,raw in streams.items():
+             (folder/(n+'.log')).write_bytes(raw);row['streams'][n]=dict(bytes=len(raw),sha256=sha(raw),eof=eof[n])
+         put(folder/'receipt.json',row)
+--- verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/baseline-source/test_controller.py
++++ verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/test_controller.py
+@@ -107,7 +107,7 @@
+     def backend(self):
+         from mac_backend import MacBackend
+         b=object.__new__(MacBackend)
+-        b.owned=O; b.index=0; b.calls=[]
++        b.owned=O; b.index=0; b.calls=[]; b.baseline_windows=[]; b.baseline_frontends={}; b.inventory_frontends={W.pid:W.process_identity}
+         b.command=lambda label,argv,*args: b.calls.append(argv) or ''
+         return b
+     def test_real_backend_shutdown_exact_uuid(self):
+@@ -134,7 +134,8 @@
+             def release(self): pass
+         b.ax=AXFake()
+         b.inventory=lambda:[(W.pid,W.process_identity,W.identifier,'renamed',object())]
+-        self.assertEqual(b.windows_for_device(UID),[replace(W,title='renamed')])
++        with self.assertRaises(Refused): b.windows_for_device(UID)
++        self.assertTrue(b.unknown)
+     def test_real_close_refuses_reused_pid(self):
+         b=self.backend()
+         b.inventory=lambda:[(W.pid,'different start',W.identifier,W.title,object())]

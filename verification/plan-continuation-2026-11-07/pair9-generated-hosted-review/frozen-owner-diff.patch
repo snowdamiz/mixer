@@ -1,0 +1,52 @@
+diff --git a/scripts/ci/check-android-generated-java.py b/scripts/ci/check-android-generated-java.py
+index 51edcd387..bed0d87a0 100644
+--- a/scripts/ci/check-android-generated-java.py
++++ b/scripts/ci/check-android-generated-java.py
+@@ -99,7 +99,7 @@ def load_profile(root=ROOT):
+     text = (root / POLICY).read_text()
+     require(text.count('Data(#"""\n') == 1, 'Ambiguous canonical source policy')
+     profile = unique_json(text.split('Data(#"""\n', 1)[1].split('\n        """#.utf8)', 1)[0])
+-    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.8',
++    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.9',
+             'Unsupported canonical source pair')
+     for kind, count in (('sdk', 22), ('adapter', 24)):
+         files = profile[kind + '_files']
+diff --git a/verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py b/verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
+index 2362fb488..a58ceb8dc 100644
+--- a/verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
++++ b/verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
+@@ -28,7 +28,7 @@ SDK_BYTES = 333223533
+ DEVELOPER = Path('/Applications/Xcode_26.6.app/Contents/Developer')
+ SDKROOT = DEVELOPER / 'Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk'
+ SOURCE_INPUT_COUNT = 101
+-SOURCE_INPUT_SHA256 = '53ad5501dcaa0168ec8196c8816d07a246e6b04bcd0160edadd22ecafd4ff815'
++SOURCE_INPUT_SHA256 = 'a10a62cc79145bc80bfd780257589f437cc82e2f1ebaad6ccde39c134d56e0ca'
+ MINIMUM_FREE_BYTES = 12 * 1024**3
+ 
+ 
+@@ -66,7 +66,7 @@ def admit_source_inputs(authority, profile):
+     inputs = authority.source_inputs(profile)
+     require(len(inputs) == SOURCE_INPUT_COUNT and
+             authority.source_digest(inputs) == SOURCE_INPUT_SHA256,
+-            'Sparse checkout owning inputs differ from reviewed pair8 closure')
++            'Sparse checkout owning inputs differ from reviewed pair9 closure')
+     return inputs
+ 
+ 
+diff --git a/verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py b/verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py
+index 59ad36f31..3cb84b9c3 100644
+--- a/verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py
++++ b/verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py
+@@ -56,10 +56,10 @@ def good_result():
+ 
+ 
+ class BootstrapControls(unittest.TestCase):
+-    def test_real_pair8_policy_and_all_sources(self):
++    def test_real_pair9_policy_and_all_sources(self):
+         a = B.canonical()
+         p = a.load_profile()
+-        self.assertEqual(p['id'], 'mixer.android-source-pair.8')
++        self.assertEqual(p['id'], 'mixer.android-source-pair.9')
+         self.assertEqual((len(p['sdk_files']), len(p['adapter_files']), len(a.java_roster(p))), (22, 24, 18))
+         self.assertGreater(len(a.source_inputs(p)), 90)
+ 

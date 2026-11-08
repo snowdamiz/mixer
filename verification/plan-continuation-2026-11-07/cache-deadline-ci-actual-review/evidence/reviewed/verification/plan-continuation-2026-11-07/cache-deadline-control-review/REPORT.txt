@@ -1,0 +1,119 @@
+ACCEPT — exact prospective parent adoption plus fresh ordinary CI.
+
+Reviewed HEAD e7254f3703d5b8191aa72ec2fb11fa91b5ea99ba, tree
+482fb5b41a203edfd517627b0e014d31eb7f02e2, on 2026-11-08 UTC
+(November 7 local time). Independent gpt-6-astra / xhigh review.
+No blocking source defect found in this candidate's stated functional scope.
+This is not acceptance of a new compiler fixture, wall-clock deadline guarantee,
+native runtime, release, or GA gate. Canonical adoption has not occurred.
+
+Source findings and evidence
+
+1. The old final wall assertion conflated interruption with terminal processing.
+   Frozen verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py
+   lines 354–358 start cleanup timing and install cleanup_alarm; lines 388–395
+   include exception bookkeeping, timer cancellation and handler restoration in
+   cleanup_elapsed_seconds. The historical helper's final .20 assertion follows
+   all functional assertions (test_runner.py:202); its receipt is written later
+   (:204). The retained CI log has the sole failure 0.200852 not less than 0.2.
+   Archive size/hash and failure-log hash independently match acquisition.json.
+   That evidence does NOT reveal the historical delivery/terminal phase split.
+   The historical latency cause remains unproven.
+
+2. Candidate deadline_control.py:56–81 observes and rethrows the actual frozen
+   cleanup handler's exception and preserves the runner's real timer registration.
+   Lines 83–93 arm that pending <=50ms ITIMER_REAL for the unchanged 250ms hook.
+   Lines 111–120 freeze only the runner's injected logic clock and prohibit child
+   creation. remaining() therefore cannot manufacture a deadline exception after
+   the hook returns. The helper still requires actual handler-raise, stopped hook
+   work, terminal deadline failure, zero commands, unchanged scratch directory
+   identity/ownership bytes, restored handlers, and a disarmed timer (:15–39).
+   Observations precede validation and test teardown (:125–148).
+
+   Independent controls passed in both normal and optimized Python:
+   - 30/30 original pure/fake-child methods, including both real-alarm deadlines.
+   - 11/11 candidate contracts, including the 49/50/51ms deterministic boundary.
+   - Eight independent cases: both stages with terminal delay accepted; both
+     stages with actual timer disabled, post-handler work, or scratch deletion
+     rejected. Zero attempted forbidden actions were observed by the audit guard.
+
+   A 160ms delay inserted only during terminal timer cancellation leaves both
+   stages accepted, with observed arm-to-handler intervals 0.053235–0.056376s
+   and total helper times 0.264396–0.285316s across the four runs. These are raw
+   observations, not latency qualification or performance statistics. In these
+   controls cleanup_elapsed_seconds is intentionally 0.0. The correction proves
+   interruption and preservation; it does not prove a <200ms wall deadline.
+
+3. Exact method bodies and historical inputs are preserved. review_controls.py
+   independently compares complete source-line bytes for all 36 test methods,
+   with per-method hashes in controls-{normal,optimized}.json. The sole derivative
+   edit is the shared helper at runner-controls.py:167–169, verified against the
+   previous hash-bound clock-corrected source. All 163 historical rows pass size
+   and SHA-256 comparison before and after both executions and again in data-audit.
+   No original runner, control, fixture, compiler-selection or baseline file was
+   edited. The six real-child methods were explicitly excluded from review runs;
+   their exact names are recorded, not represented as skipped passes.
+
+4. Adoption/workflow scope is sound for the next ordinary run.
+   adopt_fixture.py:33–49 pins and invokes the old compiler adapter and all its
+   source/seal checks; :52–58 binds the old job preimage and exact new job.
+   :67–84 delegates fixture execution to that old adapter, substituting only the
+   installed-job comparison and checking the new seal again afterward.
+   test_contracts.py:131–171 exercises job rejection, source tampering, and adapter
+   reuse without executing a compiler. Independent exact patch reconstruction and
+   git apply --check pass. The full prospective workflow differs only by replacing
+   swift-cache-state-fixture; all other jobs remain byte-identical.
+
+   Preserved: 103 fixture commands; 600s active; 60s cleanup; 60s per child;
+   8MiB per output stream; Rust 1.99.1 exact verbose identity and binary hash
+   1ba7bb8e273bd64125f4048d2ecce530e0a6470e565ab1b3aecf0b82b532f7b1.
+   Old adoption/materializer/selection controls remain; normal/-O runner and
+   contract controls precede the one original fixture invocation. Workflow and
+   step timeouts remain unchanged. No continue-on-error bypass is introduced.
+
+Acceptance identity
+
+sources.json SHA-256:
+  8f8f3880b023c62eaaa12bb53911ce2dccb5ee85817a9371f006978f52b3dd59
+11-member shipping tree:
+  be46b1c87d1971505d58622a8e189e29f0b5895e15bbd325065e4f24fa2cacb7
+runner-controls.py:
+  1ec5eeb5a80d257aaebd22544f715abdaa0765daa24a45f077554422ff770ab2
+deadline_control.py:
+  1efb2177c9159d84962979b2f06fbc75c3eabe9f16caf4e4cc26e52317544283
+workflow.diff:
+  b5cba142d464b9fff8cb9a3d55e68c7f29b0c56a6ecf8dd9b4c21cbd77bf34e2
+prospective cache job:
+  fc47ba0f9201f0ccb88081cbbf0c010d9f60c7dec3b4ab37cb77cbc72699f129
+
+Retained failures and next executable gate
+
+The candidate's final full normal run is 36/36. Its final full optimized run is
+35/36: unchanged test_owned_descendant_group_is_stopped fails with EPERM and
+owned_group_gone=false. Both corrected deadline methods passed. Prior development
+passes do not supersede that final failure. PGID23663 and retained scratch stay
+held. No probe, signal, retry, scratch read or cleanup was performed on that hold.
+Earlier held PGIDs20745/20770/20780/20817/20842/20851/20866, FieldLog
+run40802230894 PGID2424/PID2621, v5 and frozen hosted lanes remain untouched.
+
+This decision unlocks parent adoption of the exact 11 shipping members, manifest
+and patch, followed by a NEW ordinary verify.yml / swift-cache-state-fixture job
+on the accepted new commit. That job must pass its complete normal/-O suites and
+one unchanged 103-command fixture with matching identity, raw outputs, terminal
+custody and source postflight before actual fixture acceptance. Do not rerun
+42427563693 attempt1/job128569025491. No CI action was dispatched by this review.
+
+Receipts and limits
+
+commands.json records exact primary commands, exit status, environment scope and
+output. controls-normal.json, controls-optimized.json and their logs retain every
+selected test and mutation result. data-audit.json records all 163 rows, archive
+provenance, preserved failure logs, workflow and compiler bindings. cleanup.json
+records removal of four exact review-owned materializations after retaining their
+copy receipts; all review test scratch directories are empty. Candidate evidence,
+prior report and custody receipt remain immutable. No compiler/native/device/UI,
+full actual-child suite, delegation, commit, push, merge, or process probing ran.
+The review used Python3.14.8 on Darwin27.0.0 arm64 and git2.56.0. It completed
+within the 15-minute bound; captured control stdout/stderr totals 27,714 bytes,
+below the 2MiB cap. Disposable input copies were not control output and were
+removed. No environment-qualified claim beyond this local functional scope is made.

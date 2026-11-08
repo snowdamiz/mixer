@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "verdict": "REQUESTCHANGES",
+  "sourceRevisionContext": "96f03ab65966a6374e958e780fa09a3eed814c0b",
+  "candidateSourceTreeSHA256": "9c0fd93c6bfce174c605f909d6d1841581820b3bca388a126e182c0c6c50647d",
+  "candidateSealSHA256": "51d42199a60518870fbdad4eb4bca4d2c2b13b1efd1874aefff0613c7334cbe2",
+  "acceptedPacketSHA256": "38850f4a1f9fe8326c101d398823249ad25711c9e5113e6ac3bc95891624cef5",
+  "unchangedAcceptedVerifierPassed": true,
+  "watchedInputsUnchanged": 2944,
+  "report": "REPORT.txt",
+  "receipt": "host-receipt.json",
+  "tests": {
+    "invocations": 2,
+    "normal": {"total": 46, "passed": 40, "failed": 6, "errors": 0, "result": "normal/test-result.json"},
+    "optimized": {"total": 46, "passed": 40, "failed": 6, "errors": 0, "result": "optimized/test-result.json"},
+    "originalCandidateControlsPassedPerMode": 28,
+    "perInvocationSeconds": 120,
+    "allActualChildCustodyResolved": true,
+    "ownedChildPGIDs": [6995, 7047],
+    "actualSignals": [],
+    "retainedStreamBytes": 22804
+  },
+  "blockingFindings": [
+    {"id": "R1", "summary": "EPERM/read errors escape without a custody latch or receipt; subsequent launches remain possible", "evidence": "normal/test-result.json"},
+    {"id": "R2", "summary": "Changed and unclassified live windows become an empty list interpreted as owned-window absence", "evidence": "normal/test-result.json"},
+    {"id": "R3", "summary": "Current held PGIDs 40708/40709/40711 missing from both outer hold sets", "evidence": "normal/test-result.json"},
+    {"id": "R4", "summary": "120s dispatch cap conflicts with nested timed scope; killing/reaping outer group does not resolve separately sessioned native children", "evidence": "REPORT.txt"}
+  ],
+  "prospectiveSelection": {
+    "authorizedToRunCurrentCandidate": false,
+    "reviewedOuterDispatchSeconds": 950,
+    "basis": "Restore prior dispatch ceiling; prior dispatch child was 109.048799125s, full supervisor 112.984754833s; inner XCTest remains 600s",
+    "boundsAreOperationalHypotheses": true,
+    "requiresOuterCustodyFixAndReseal": true,
+    "innerBudgetChanges": false,
+    "maximumNativeAttempts": 1,
+    "automaticRetries": 0,
+    "tests": ["test000PublicSettingsFullKeyboardAccess", "test010ReferenceFirstTab"],
+    "commandFormIn": "REPORT.txt",
+    "AXPrerequisite": "Root resolves actual T3 OS Accessibility attribution separately; require fresh same-path Python and osascript trust true before setup",
+    "AXLastRecorded": {"python": false, "osascript": false},
+    "AXQueriedByReview": false
+  },
+  "scope": {
+    "writesOnlyUnder": "verification/plan-continuation-2026-11-07/apple-safe-keyboard-review",
+    "candidateEdits": 0,
+    "nativeAttempts": 0,
+    "remainingNativeAttempts": 1,
+    "builds": 0,
+    "deviceOperations": 0,
+    "frontendOperations": 0,
+    "UIActions": 0,
+    "AXProbes": 0,
+    "heldProcessOperations": 0,
+    "delegatedChildren": 0,
+    "commits": 0,
+    "pushes": 0,
+    "trackingEdits": 0,
+    "gaAccepted": false
+  }
+}

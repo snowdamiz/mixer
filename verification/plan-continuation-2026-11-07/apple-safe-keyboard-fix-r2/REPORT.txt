@@ -1,0 +1,143 @@
+READY FOR FRESH INDEPENDENT REVIEW — HOST CONTROLS PASS; NATIVE NOT RUN
+
+Scope: only /Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2
+Parent product revision: 96f03ab65966a6374e958e780fa09a3eed814c0b
+Parent tree: 6dacea5d2f5cd55d6934142cce556a4bd0fcd1c0
+Source tree SHA256: 01bc39b821036919edd0743a5f0124dc79025f5acc0bca1d49be788051513051
+Candidate seal SHA256: e7bb3b08bb6a2b2d2d1f880b8387687242862a7827d238214c08ef5c70d8c727
+
+Verified the requested original source aggregate
+9c0fd93c6bfce174c605f909d6d1841581820b3bca388a126e182c0c6c50647d
+and seal 51d42199a60518870fbdad4eb4bca4d2c2b13b1efd1874aefff0613c7334cbe2
+before copying every selected source byte and mode. baseline-source/ retains that
+exact candidate. Original source, seal and all original handoff file identities
+still match. Original review, accepted packet/source, and root metadata untouched.
+Full incremental source and test-harness diff: incremental.diff. Final source-file
+identities and normal/-O binding comparison: final-freeze.json. No source changes
+occurred after the executed tests. No further test commands remain in this budget.
+
+R1 — implemented and behavior-tested
+Commands latches unresolved immediately before possible Popen acquisition, including
+Popen exceptions. It clears only after positive direct-child reap, independent
+stdout and stderr EOF, observed owned-group absence, and successful receipt writes.
+EPERM, selector/read/receipt errors retain the latch. Exception receipts are best
+-effort, including a distinct fallback when primary receipt writing fails. Failure
+to write either receipt still blocks every later command. Backend and policy guards
+run before device, frontend, AX, dispatch and cleanup work. Backend receipt errors
+also latch. Poll/wait precede the initial group signal and final absence probe;
+EPERM remains unknown, never absence. Only local descriptor release and evidence
+writing follow an exception; no process reprobe occurs. The native-custody-premise
+packet supplied the ordering rationale, not evidence about any historical group.
+
+R2 — implemented and actual backend classification tested
+Capture full public AXWindow identities and Simulator frontend identities before
+open. Frontend discovery includes the Simulator bundle identifier and the selected
+executable; an unexpected executable refuses the operation. Every outside window
+and frontend identity must remain unchanged. A sole newly classified owned window
+requires its exact owned name and public token; after adoption, PID, process start
+identity, token, title and device identity must match. Changed title AND token,
+partial-open unclassified windows, extra windows, outside disappearance/drift,
+and unknown frontends latch and block all followup. No unmatched window can become
+an empty result. Exact AXCloseButton action rechecks the full inventory; device
+reconciliation also rechecks outside windows after mutations. Positively absent
+owned windows can leave their known frontend running. A partial-open command error
+or missing/ambiguous discovery retains custody. No global quit, terminate, shutdown,
+preference changes, touch/focus preconditioning, or permission bypass was added.
+
+R3 — implemented and all held identities exercised with fake processes only
+holds.py owns the shared immutable deny set used by commands, controller and AX/
+frontend guards: 40708,40709,40711,23663,20745,20770,20780,20817,20842,20851,20866,
+FieldLog PGID 2424 and PID 2621. Actual historical groups and scratch were not probed,
+signalled, retried, or inferred absent. Supervisor retains its independent complete
+hold set. The fake collision controls check no poll/wait/signal on these identities.
+
+R4 — implemented and interrupted-dispatch behavior tested
+The explicit native-dispatch operation selects exactly 950 seconds. All ordinary
+commands (even when their display label contains 'dispatch') reject values above
+120 seconds. future_run.py calls the explicit backend entrypoint; all accepted
+inner source/packet bytes and budgets remain unchanged. Timeout, nonzero/interrupted
+exit, exceptions, stream/custody uncertainty or failed receipts retain nested
+custody even if the outer child is reaped, both streams EOF and outer group absent.
+Future orchestration stops all probes/cleanup on any outer exception, including
+missing/invalid terminal result. Successful uninterrupted dispatch additionally
+requires the existing five named passing cleanup gates, no session/reporting
+failure, and a supported XCTest terminal code before outer cleanup. There is no
+automatic recovery/release path after interrupted dispatch: even subsequently
+available receipts require root review. Outer-group absence never grants nested
+process absence. The wrapper does not remove nested scratch on interruption.
+No change to 29-second Settings, original first Tab, 20 predicates or five inner
+cleanup gates. 950 seconds is a finite operational ceiling, not a worst-case
+native timing proof or native acceptance.
+
+Executed controls and supervision
+Exactly two fake-host invocations: Python 3.14.8 normal and -O. Each ran 72 tests,
+72 passed, zero failures/errors. Original baseline had 28 passing controls; the
+independent review had 18 added controls with six failures (46 total, 40 passed).
+This candidate includes those 28 controls with the changed-title expectation
+strengthened to refusal and backend fixtures supplying the required baseline;
+all 18 review controls are retained with source/handoff binding adapted to this
+new candidate; 26 new controls cover the repairs. Original review artifacts were
+not altered. full stdout/stderr and command/source/tool hashes are in command-*/.
+run_host_controls.py is adapted from the independent review supervisor, not the
+candidate Commands runner. Audit hooks in both children prohibit real subprocess,
+signal, socket and AX-library use and writes outside this namespace. All Popen/
+killpg/AX failure scenarios inside the suites use fakes. No internal real-child
+campaign or delegated child agent was launched. The future entrypoint is exercised
+only with fake setup/dispatch/backend and a test-local seal; the native CLI was not
+executed. Source binding independently validates the real final seal.
+
+Actual test-child groups: 361 and 386.
+Both direct children reaped, both independent streams reached EOF, both fresh
+groups observed absent; no signals. Elapsed child times 1.261516333s
+and 0.852731000s. Per command limit 120s, per stream
+4 MiB, aggregate 32 MiB; retained output 17480 bytes. No new unknown
+real-process custody. Retained all test scratch/receipts. No devices or frontends
+were created, so no native cleanup was needed or attempted. No external device
+queries: preservation means zero interaction, not a new external-baseline claim.
+Preparation/supervision timer starts at verified-copy receipt (initial read-only
+review precedes it); host-receipt.json records 365.461s from that point.
+The whole-task selection is 900s; final-freeze.json records the later elapsed value.
+
+Accepted source binding and unchanged baseline
+The unchanged dispatch_successor.py verify() passed in both modes. 2944 watched
+inputs and attempt markers remained unchanged. Packet SHA256:
+38850f4a1f9fe8326c101d398823249ad25711c9e5113e6ac3bc95891624cef5
+Dispatcher SHA256:
+5e87b80df1ffef80a1bae0d8f74f0d6291ad45a73a38054df0ef8980e01c40f0
+Original restored prepare.py SHA256:
+a9ba93faf8ced6820a1f982de22b827e675074a1fb06209db4ddbed3eb53bdf2
+No dispatcher dispatch(), build, XCTest, native/UI/AX action or device query ran.
+Historical result remains Settings Passed, original Tab Failed,
+actualNativeFocusTraversal=false, other 19 predicates true. Zero native attempts
+consumed; one original Settings -> first Tab attempt remains. Phones disconnected;
+v5, frozen hosted lanes and every historical process/custody hold remain held.
+Protected UUIDs CE7E80FC-64BF-41A0-B07B-60F4D8711808 and
+D55C87E9-F349-49AC-BCD3-3B4B5BE9E010 and their data received zero interaction.
+No product engine edits, root tracking edits, commits, pushes, merge, publication,
+Android actions, or package/FieldLog/full-matrix/GA acceptance.
+
+Separate permission prerequisite and next owner
+Latest authorization remains 'Keep native testing resumed'; this lane's scope was
+zero native attempts. Existing public trust observations are Python=false and
+osascript=false. The newer root attribution.json identifies responsible
+com.t3tools.t3code / Acid.app and Accessibility denial, superseding the review's
+older statement that the responsible app was not established. User screenshot
+shows Acid enabled; root already asked for toggle refresh. macOS 27.0.1 installed
+loctable receipt names the pane 'Device Control and Data Access'. This lane made
+no trust query or permission/TCC/reset/restart action and guessed no helper app.
+Fresh true public Python AND osascript trust through the same requesting route is
+required before any future device creation. Parent must freshly review and accept
+these exact bytes before selecting one real original Settings -> first Tab run.
+prospective-command.txt contains the exact new seal-bound command and unused output
+path; it is conditional planning, not execution or authority from this packet.
+
+Limits for fresh reviewer
+Strict full-window reconciliation deliberately refuses unidentified public tokens,
+new empty/unclassified frontends, changed titles, or outside app churn. It may
+retain resources conservatively; no fallback narrows the inventory. No real AX
+classification or runtime timing was validated here. Normal native completion
+requires existing terminal result; interruption never auto-releases the hold even
+if later evidence appears. Root owns any review of those retained receipts. The
+finite dispatch limit cannot prove private-session containment. Product remains
+at the stated parent revision; parent may deliver accepted verification metadata
+and evidence only. This is a tested repair candidate, not an independent approval.

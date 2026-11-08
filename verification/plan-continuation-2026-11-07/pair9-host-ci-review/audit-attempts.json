@@ -1,0 +1,18 @@
+[
+  {
+    "command": "python3 -B verification/plan-continuation-2026-11-07/pair9-host-ci-review/audit.py",
+    "exit": 1,
+    "error": "owning Git blob native/android/Sources/MixerAndroidRuntime/DocumentSession.swift",
+    "cause": "Reviewer initially mapped engine Sources/ profile paths to native/android instead of native/android/engine.",
+    "correction": "Resolve Sources/ under native/android/engine; preserve other adapter paths under native/android.",
+    "subjectExecution": false
+  },
+  {
+    "command": "python3 -B verification/plan-continuation-2026-11-07/pair9-host-ci-review/audit.py",
+    "exit": 1,
+    "error": "closed class inventory",
+    "cause": "Reviewer assumed the environment runner retained class bytes. Its ZIP retains the class identity manifest and javap reports only; A/B retain full class bytes.",
+    "correction": "Verify A/B class bytes; check environment manifest and command-bound javap reports, and explicitly deny independent environment class rehashing.",
+    "subjectExecution": false
+  }
+]

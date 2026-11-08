@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "completedAt": "2026-11-08T01:36:02.417218+00:00",
+  "verdict": "Running-versus-installed designated code identity mismatch rejected for this observation. Stored-consent identity mismatch remains untested.",
+  "evidence": {
+    "pid": 72920,
+    "bundleIdentifier": "com.t3tools.t3code",
+    "bundleURL": "/Users/andreyyurlov/Applications/Acid.app",
+    "executableURL": "/Users/andreyyurlov/Applications/Acid.app/Contents/MacOS/Acid (Beta)",
+    "launchDate": "2026-11-08 01:26:49 +0000",
+    "installedPlistVersion": "0.2.46",
+    "runningRuntimeVersion": "Not independently measured; installed Info.plist is not a runtime version receipt",
+    "installedDesignatedRequirement": "cdhash H\"9caddb68d5f6f84d975f27951fe601e4fb6415c8\"",
+    "dynamicValidationAgainstThatRequirementOSStatus": 0,
+    "dynamicValidationError": null,
+    "signingInfoUnique": "9caddb68d5f6f84d975f27951fe601e4fb6415c8",
+    "teamIdentifier": null,
+    "priorFailedTrustCommandFinishedByUTC": "2026-11-08T01:26:14.982287+00:00",
+    "launchAfterPriorFailureSeconds": 34.018,
+    "priorTrustValue": false,
+    "currentLaunchTrustValue": "Not measured in this task"
+  },
+  "interpretation": [
+    "The Security API dynamically validated the identified running process against the installed app's exact cdhash requirement. Matching signing-information strings alone were not treated as proof.",
+    "No TCC consent requirement was read. The prior authValue=0/authReason=5 observations remain uninterpreted private numeric diagnostics.",
+    "NSRunningApplication reports the observed Acid launch about 34 seconds after both prior failed trust commands. Those failures do not establish trust under the newly observed process context.",
+    "No cause or actor is assigned to that later launch. This task did not launch, quit, or signal Acid.",
+    "The older supervisor version discrepancy does not establish that the currently running code differs from installed code."
+  ],
+  "nextStep": {
+    "action": "Parent should run exactly one same-path nonprompting AXIsProcessTrustedWithOptions(NULL) check in the current Acid context, recording its time and responsible attribution.",
+    "reason": "The previous failed check predates the observed current Acid launch; this tests a changed process context rather than repeating an unchanged failure.",
+    "performed": false,
+    "restartHypothesis": "Running old code after an on-disk update is not supported for PID 72920. Do not request another restart based on this result; first determine trust in the already-new launch.",
+    "conditionalUserAction": "If current-context trust is still false, a later coordinated user removal and re-addition of this exact Acid.app permission entry is a stored-consent hypothesis, not a demonstrated remedy. No request or permission change was made here."
+  },
+  "execution": {
+    "identityProbeCount": 1,
+    "maximumCommandSeconds": 20,
+    "cleanupSeconds": 5,
+    "stdoutAndStderrLimitEachBytes": 65536,
+    "aggregateLimitBytes": 131072,
+    "elapsedSeconds": 0.093,
+    "ownedPGID": 10854,
+    "exitCode": 0,
+    "terminalCustody": true,
+    "cleanup": "Direct child reaped; both pipes EOF; owned group absent. Cleanup SIGKILL attempt returned already-absent; no Acid or held process signal.",
+    "newNativeOrSimulatorAttempts": 0,
+    "canonicalEdits": false,
+    "commitOrPush": false
+  },
+  "lifecyclePointerCorrection": {
+    "requestedInitialPath": "native-custody-premise/bounded_lifecycle.py (absent)",
+    "runnerActuallyUsed": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/scripts/ci/check-android-generated-java.py",
+    "explanation": "The completed probe reused the existing canonical Commands class after reading its exact implementation. No lifecycle was recreated. User correction arrived after completion.",
+    "correctedPath": "verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py",
+    "correctedAPIReadAfterCompletion": true,
+    "api": "Commands(out, env, deadline=..., output_bytes=..., total_output_bytes=..., cleanup_seconds=...); run(label, argv, cwd, timeout=120, allowed=(0,)); finish(commands, scratch, before, read_after, write_restoration).",
+    "correctedLifecycleProperties": "Reaps direct child before group operation; unknown custody closes admission; finish records restoration before cleanup. No corrected runner execution or probe retry occurred."
+  },
+  "officialSources": [
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Security.framework/Headers/SecCode.h",
+      "lines": "215-254, 333-385, 456-478",
+      "supports": "Dynamic validation checks identity and supplied requirement; signing-information static fields may originate on disk."
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSRunningApplication.h",
+      "lines": "94-112, 161",
+      "supports": "Public bundle-scoped application lookup, executable path, PID and launchDate."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/security/seccodecopysigninginformation(_:_:_:)",
+      "supports": "Disk-origin caveat and need for successful validity check."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/appkit/nsrunningapplication/runningapplications(withbundleidentifier:)",
+      "supports": "Returns only applications matching specified bundle identifier."
+    }
+  ],
+  "referenceSHA256": {
+    "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Security.framework/Headers/SecCode.h": "293ccef2de6c872a4f5a4862a74bf96a9ade0f897f898813cd33e8e1d00459c4",
+    "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSRunningApplication.h": "b7fa5d5b933aef2165268305c631c2e8c617ba55234f83250b37cd9db1899f5e",
+    "verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py": "8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df",
+    "verification/plan-continuation-2026-11-07/native-custody-premise/run_native_probe.py": "4c582cea9e208f42212e55c185d0332748958f2a7a6028b1a116219e8c6c7f2a",
+    "verification/plan-continuation-2026-11-07/apple-accessibility-after-toggle/receipt.json": "afd4c0934d13ae1117d6b1d81cba68ef5cda6afe9ed0c9f0d3881d0c43cc6e7c",
+    "verification/plan-continuation-2026-11-07/apple-accessibility-after-toggle/commands/commands.json": "2ee7a1ed0725899577f4441ca0b7bc59318c404df3ed2182154c0c741cad7a1a",
+    "verification/plan-continuation-2026-11-07/apple-acid-code-identity/receipt.json": "143ecb9d94fcbe5d7c036b7285472c556828113bdc59e7ce1f5317d3f1c212a9"
+  },
+  "artifacts": [
+    "receipt.json",
+    "commands/commands.json",
+    "commands/000-public-acid-identity.stdout",
+    "commands/000-public-acid-identity.stderr",
+    "probe.py",
+    "run.py"
+  ]
+}

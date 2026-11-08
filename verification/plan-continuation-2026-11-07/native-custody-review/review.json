@@ -1,0 +1,379 @@
+{
+  "verdict": "ACCEPT",
+  "createdUTC": "2026-11-08T01:25:51.132023+00:00",
+  "scope": "Independent exact-final-source admission for ONE pair9 R2 API37 arm64 native attempt, dispatched by root. This review executed no native main, compiler, emulator, ADB, UI, phone or additional real-child experiment.",
+  "reviewedWorkingDirectory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+  "observedHEAD": "96f03ab65966a6374e958e780fa09a3eed814c0b",
+  "productOwningRevision": "96f03ab65966a6374e958e780fa09a3eed814c0b",
+  "productOwningTree": "6dacea5d2f5cd55d6934142cce556a4bd0fcd1c0",
+  "source101": {
+    "count": 101,
+    "sha256": "a10a62cc79145bc80bfd780257589f437cc82e2f1ebaad6ccde39c134d56e0ca",
+    "sdkProjectionFiles": 22,
+    "adapterProjectionFiles": 24
+  },
+  "instrumentation": {
+    "sha256": "8c39ced4bb13da30be10f97b567d4007cead9a9ff02c0477ef9e07074faaaf67",
+    "bytes": 22055
+  },
+  "candidateIdentities": {
+    "cleanup_control.py": {
+      "sha256": "8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df",
+      "bytes": 12654
+    },
+    "run_native_probe.py": {
+      "sha256": "4c582cea9e208f42212e55c185d0332748958f2a7a6028b1a116219e8c6c7f2a",
+      "bytes": 25878
+    },
+    "host_controls.py": {
+      "sha256": "8cb5bade1d43aae798e2128165e4a652f1806ab13b8dbc15e9a391af54030081",
+      "bytes": 18741
+    },
+    "optimized_fake_controls.py": {
+      "sha256": "744a156f5c2238553063368eb22c883eea6b1e35debc41caf5b39d2e710896db",
+      "bytes": 4625
+    },
+    "fresh_host_experiments.py": {
+      "sha256": "80ba32c77bd1943434a710e531716c96d8e2281937fdca1c9413b1a19ce81300",
+      "bytes": 5007
+    },
+    "test_premise.py": {
+      "sha256": "7ba3984279557e36526cd48289e4075306846dbdf75fe0cc5299d510ef78a3f1",
+      "bytes": 2938
+    },
+    "prepared-source-binding.json": {
+      "sha256": "6c21c45c5c5053453e0ad0bf9f0801c4201d1a4371c301f41ee9492ec6a9cc01",
+      "bytes": 29372
+    },
+    "prepared-native-reuse.json": {
+      "sha256": "6345d4aba0232f12d5ff28ab9181759a4b71161683bb02181d0077c5fad0d32f",
+      "bytes": 32669
+    },
+    "prepared-controller-review.json": {
+      "sha256": "922ea0f2837172ae1efa2f7b917c99826232973fcbb9014b1dcb060bf0551095",
+      "bytes": 3055
+    }
+  },
+  "blockingFindings": [],
+  "reviewedPaths": [
+    {
+      "issue": "C1 / strict unknown latch",
+      "files": {
+        "cleanup_control.py": [
+          [
+            33,
+            43
+          ],
+          [
+            106,
+            117
+          ],
+          [
+            119,
+            149
+          ],
+          [
+            221,
+            232
+          ],
+          [
+            252,
+            265
+          ]
+        ]
+      },
+      "conclusion": "EPERM from either initial signal or observation latches UNKNOWN; no alternate census, second signal/probe, child launch or restoration read is admitted. Cleanup stops processing other owned groups and retains scratch. Normal and optimized supplied fake controls exercise both EPERM sites and cleanup propagation."
+    },
+    {
+      "issue": "Selected ordering / both old direct-child failure shapes",
+      "files": {
+        "cleanup_control.py": [
+          [
+            123,
+            149
+          ]
+        ],
+        "host_controls.py": [
+          [
+            283,
+            319
+          ]
+        ]
+      },
+      "conclusion": "Poll/reap precedes initial SIGKILL; explicit zero-signal absence observations wait for direct-child reap. Both ordering controls pass in both reviewer modes. This removes the demonstrated deterministic windows without changing EPERM interpretation; it does not eliminate the exit race."
+    },
+    {
+      "issue": "C2 / live services, shared output and time bounds",
+      "files": {
+        "cleanup_control.py": [
+          [
+            18,
+            28
+          ],
+          [
+            45,
+            70
+          ],
+          [
+            77,
+            104
+          ],
+          [
+            183,
+            215
+          ]
+        ],
+        "run_native_probe.py": [
+          [
+            60,
+            66
+          ],
+          [
+            217,
+            232
+          ],
+          [
+            244,
+            249
+          ]
+        ]
+      },
+      "conclusion": "One selector services short commands and the three owned services; retained stdout plus stderr share each command budget and a manager-wide aggregate. Long-service flood and mixed aggregate fake controls pass. Boot temporarily tightens the manager deadline and restores it in finally; no instrumentation retry was added."
+    },
+    {
+      "issue": "C3 / terminal facts, caching and deletion",
+      "files": {
+        "cleanup_control.py": [
+          [
+            119,
+            168
+          ],
+          [
+            221,
+            242
+          ]
+        ]
+      },
+      "conclusion": "Terminal state requires direct-child reap, separate stdout/stderr EOF and positive group absence. Subsequent stop calls return cached terminal state. Scratch deletion requires all records terminal and no hold; missing EOF or cleanup failure retains scratch."
+    },
+    {
+      "issue": "C4 / failed instrumentation restoration and diagnostics",
+      "files": {
+        "cleanup_control.py": [
+          [
+            183,
+            208
+          ],
+          [
+            245,
+            285
+          ]
+        ],
+        "run_native_probe.py": [
+          [
+            248,
+            265
+          ],
+          [
+            284,
+            291
+          ]
+        ]
+      },
+      "conclusion": "Native main reaches restoration capture through finally even when instrumentation returns nonzero or times out. Captured output is retained, raw read is attempted only while admissible, effective restoration requires instrumentation evidence, unavailable remains explicit, and the report precedes service cleanup. Nonzero/timeout/missing-before/output-limit/unknown/reader-failure controls pass; no instrumentation replay or setting write is introduced."
+    },
+    {
+      "issue": "Exact API37 admission / reuse before compile",
+      "files": {
+        "run_native_probe.py": [
+          [
+            54,
+            99
+          ],
+          [
+            118,
+            156
+          ]
+        ]
+      },
+      "conclusion": "Controller self-hash, new optimized 26-test receipt, both real-host receipts, source101/projections, tool identities, prior locks and all 18 native ZIP entries are checked before javac. Independent data checks matched 101 canonical files, 22 SDK/24 adapter projections, 33 tool identities, 79 native source identities and 18 retained libraries. Instrumentation hash is unchanged, preserving the existing 11-smoke oracle and three readiness waits."
+    },
+    {
+      "issue": "Owned runtime / external preservation",
+      "files": {
+        "run_native_probe.py": [
+          [
+            51,
+            52
+          ],
+          [
+            190,
+            220
+          ],
+          [
+            234,
+            249
+          ],
+          [
+            263,
+            287
+          ]
+        ],
+        "cleanup_control.py": [
+          [
+            63,
+            70
+          ],
+          [
+            119,
+            149
+          ],
+          [
+            221,
+            242
+          ]
+        ]
+      },
+      "conclusion": "One private AVD uses new scratch, a private adb port, serial-specific clients, one-device server and explicit emulator ports. Target qemu/AVD/API/ABI checks precede install; cleanup signals exact newly started session groups. Source and baseline postflight comparisons gate success. No blanket emulator/ADB teardown or held-process operation appears in these reviewed paths."
+    }
+  ],
+  "independentVerification": {
+    "fakeNormal": {
+      "tests": 26,
+      "passed": 26,
+      "receipt": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review/normal/replay.json",
+        "bytes": 27274,
+        "sha256": "cc795182179f8a1dd402656525dc2b950ce538c0b1a73a0ea39dfb269118f6c6"
+      }
+    },
+    "fakeOptimized": {
+      "tests": 26,
+      "passed": 26,
+      "receipt": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review/optimized/replay.json",
+        "bytes": 27666,
+        "sha256": "143ee3cff9adceccad08fe82a334a975bbaa89f53b113ea17af79f6e31acddea"
+      }
+    },
+    "method": "Exact supplied host_controls.Controls and supplied optimized_fake_controls.Child/group/pump simulation, imported without either executable main. Only tempfile output ownership was redirected into the review directory. Popen/killpg/helper subprocess.run remained patched inside each suite; no raw real-child host_controls execution.",
+    "driver": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review/replay_fake.py",
+      "bytes": 2794,
+      "sha256": "eea16c061cc9e43e66c0fac1708f57c403502293d4cd78bc120bd0eea86913b2"
+    },
+    "outerDriver": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review/run_bounded_replays.py",
+      "bytes": 1642,
+      "sha256": "b23f237c67e7e199df70c24e4b46d613b8597ed0cca7bb7b06496cf760aca04a"
+    },
+    "outerInvocation": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-B",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review/run_bounded_replays.py"
+    ],
+    "maximumTestCommands": 2,
+    "executedTestCommands": 2,
+    "maximumSecondsPerCommand": 120,
+    "outerGroups": [
+      50577,
+      50596
+    ],
+    "outerCustody": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review/outer-custody.json",
+      "bytes": 3767,
+      "sha256": "1e845ec88629f748ad8851242094eeca130a553a2848d18c77e6f8a6bcacd8bf"
+    },
+    "outerCleanup": "Both direct children reaped with exit 0, both streams EOF, positive owned-group absence, TERMINAL cached and outer scratch removed. No unknown custody or new hold.",
+    "bindingCheck": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review/binding-check.json",
+      "bytes": 2436,
+      "sha256": "1dede3ff7e031d4adab311662ad99f50d0f0e898fdaa608b8925e7c56599846a"
+    },
+    "bindingDriver": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review/check_bindings.py",
+      "bytes": 5345,
+      "sha256": "b7b8d57688cdf3161c42a1f4f3d69aec35d7443cf78740c7d296c694901c4254"
+    },
+    "candidateAdmissionReceipt": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/host-controls-optimized.json",
+      "bytes": 27606,
+      "sha256": "344d7d701021ba35988e773f68ff22d9a06adeed12b097f8f7e5ff3e21b5f1fe"
+    },
+    "candidateFreshHostReceipt": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/fresh-host-experiments.json",
+      "bytes": 5541,
+      "sha256": "94ebcd41d13d48e62501a682353fac72070550d93e225d8e610c0847f8b4f1d5"
+    },
+    "candidatePremiseReceipt": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/premise-results.json",
+      "bytes": 2158,
+      "sha256": "6ede92f628cbd3531f2cf8500970b12628a51ce6fcddeda982e356fd187a798e"
+    },
+    "candidateFinalHashes": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/final-tested-hashes.json",
+      "bytes": 2630,
+      "sha256": "e1ad08583bd20545fd82ceed72e7b12d5beed6b0ab93cd05741df203a80950eb"
+    }
+  },
+  "rootDispatch": {
+    "acceptedAttempts": 1,
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-B",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/run_native_probe.py",
+      "--reviewed-controller-sha256",
+      "4c582cea9e208f42212e55c185d0332748958f2a7a6028b1a116219e8c6c7f2a"
+    ],
+    "entryOutput": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/runtime-attempt",
+    "entryOutputCurrentlyAbsent": true,
+    "bounds": {
+      "wholeControllerDeadlineSeconds": 600,
+      "bootSeconds": 180,
+      "instrumentationSeconds": 120,
+      "individualCommandMaximumSeconds": 120,
+      "cleanupSecondsPerGroup": 5,
+      "perCommandCombinedOutputBytes": 8388608,
+      "aggregateOutputBytes": 67108864,
+      "maximumCommandRecords": 160,
+      "maximumOwnedLongLivedServices": 3,
+      "maximumFreshOwnedAVDs": 1
+    },
+    "onUnknown": "Stop without fallback, probe, signal or retry; retain scratch and publish custody facts. All historical holds remain in force.",
+    "metadataNote": "Current HEAD equals 96f03ab. Exact controller line 85 still enforces this HEAD, so dispatch this accepted artifact before any metadata/evidence commit advances HEAD. A metadata-only HEAD advance is not product drift, but the current implementation would refuse it and consume its runtime-attempt directory; do not bypass that guard or automatically retry. Source edits require review of their new exact identity."
+  },
+  "limitations": [
+    "Acceptance unlocks one bounded development attempt; it is not a native runtime pass, actual-service containment proof, physical-device receipt, FieldLog release qualification or GA acceptance.",
+    "Recorded candidate real experiments contain only two non-descendant children. They were inspected, not rerun, and cannot establish emulator/ADB behavior.",
+    "The exit-between-poll-and-signal race and zombie descendants can still produce EPERM. UNKNOWN remains a fail-closed retained-custody outcome, never absence.",
+    "The historical failed normal real-child suite and failed earlier optimized receipt are not promoted. Reviewer normal-mode success is fake-only; new candidate admission remains the explicitly selected optimized suite plus two recorded real experiments.",
+    "The 600-second value is a cooperative command/deadline budget; synchronous local file hashing, ZIP I/O and final receipt writes are not independently preempted.",
+    "No fresh Apple-kernel mechanism claim was established by this review; admission rests on exact source behavior, fake discriminants and the narrowly recorded current-host facts."
+  ],
+  "preservation": {
+    "onlyWrittenDirectory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-review",
+    "heldProcessOperations": 0,
+    "heldScratchReads": 0,
+    "nativeAttempts": 0,
+    "childAgents": 0,
+    "commits": 0,
+    "pushes": 0,
+    "heldGroupsUntouched": [
+      40708,
+      40709,
+      40711,
+      23663,
+      20745,
+      20770,
+      20780,
+      20817,
+      20842,
+      20851,
+      20866,
+      2424
+    ],
+    "heldFieldLogPIDUntouched": 2621,
+    "heldFieldLogRunUntouched": "40802230894",
+    "heldV5FrozenLanesAndPhonesUnchanged": true
+  }
+}

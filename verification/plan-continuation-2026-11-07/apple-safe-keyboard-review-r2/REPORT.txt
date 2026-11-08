@@ -1,0 +1,176 @@
+REQUESTCHANGES
+
+Fresh independent review of exact iOS safe-controller R2, 2026-11-08 UTC.
+This verdict is prospective only. It does not authorize the remaining native
+attempt or promote any native, package, FieldLog, full-matrix or GA gate.
+
+EXACT CANDIDATE
+Directory: verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r2/
+Source aggregate SHA256:
+01bc39b821036919edd0743a5f0124dc79025f5acc0bca1d49be788051513051
+Candidate seal SHA256:
+e7bb3b08bb6a2b2d2d1f880b8387687242862a7827d238214c08ef5c70d8c727
+Checkout revision: 96f03ab65966a6374e958e780fa09a3eed814c0b
+Checkout tree: 6dacea5d2f5cd55d6934142cce556a4bd0fcd1c0
+
+All 13 sealed source hashes, their aggregate, final-freeze source identities,
+and all 209 handoff file identities matched. Rechecked after both test runs:
+zero candidate changes. input-audit.json and final-audit.json retain bindings.
+Reviewed REPORT.txt, handoff.json, final-freeze.json, incremental.diff, seal,
+actual controller/backend/command runner, and both dispatch entrypoints.
+
+R2-1 — BLOCKING: observed external-device drift is not sticky inside setup.
+Source: controller.py:45-54, 99-115; future_run.py:27, 41-42.
+Controller SHA256:
+4c9bc7d9986268844ac05fb72163e5a40ac2750366a6988c8b3384c7fd703bce
+
+check_snapshot raises on changed external baseline without setting either custody
+latch. setup catches that exception and calls cleanup before the outer entrypoint
+can set backend.c.unresolved. Thus an observed baseline failure permits another
+device/window query. If the next snapshot again matches the baseline, cleanup can
+close the owned window, shut down the device, and delete it, despite the explicit
+instruction to stop and coordinate recovery after any external-baseline change.
+The original failure is ultimately reported, but that is too late to prevent the
+intervening actions. No native dispatch is necessary to reach this path.
+
+Both modes reproduced this through unchanged future_run.run -> setup -> cleanup.
+The fixture changed one protected device's state on the post-open snapshot, then
+returned the original baseline on subsequent observations. After detecting drift,
+the real policy made five further device observations and invoked the fake close,
+shutdown and delete boundaries. The final outer latch became true only after
+these actions. A separate MacBackend-guard fixture reproduced a further device
+query and close boundary before refusal.
+
+Evidence in normal/ and optimized/:
+  test_setup_external_baseline_drift_is_sticky_at_real_entrypoint.json
+  test_changed_external_device_stops_setup_before_followup_command.json
+Executable controls: independent_tests.py:83-111.
+
+Required repair: latch external-baseline/identity preservation failures at the
+point they are observed, before unwinding into setup cleanup. A later matching
+snapshot must not erase the observed incident or authorize cleanup. Preserve the
+ability to clean up a positively known owned resource after an ordinary failed
+keyboard prerequisite; distinguish that case from failed preservation/custody.
+Keep a durable failure receipt and require root recovery review after drift.
+Exercise this path through the outer entrypoint, including transient drift and
+persisting drift. Do not change accepted inner source to fix this outer policy.
+
+R2-2 — TERMINAL-RECEIPT VALIDATION GAP: malformed completion data allows cleanup.
+Source: future_run.py:32-40, 44-46.
+future_run.py SHA256:
+a9b7df9f137542f76fe03033f6de6509227454122b095868cf56d16582c4d3b7
+
+The new validation treats a missing sessionFailure field as explicit successful
+session completion because get(...) returns None. It also accepts JSON false as
+an XCTest terminal code because False compares equal to zero in Python. Either
+malformation independently passed the actual outer entrypoint with the other
+five named cleanup gates and reportingFailures fields present. The entrypoint
+returned normally, did not latch, and recorded outerCleanup.cleanupPassed=true.
+This conflicts with refusing missing/invalid terminal evidence before cleanup.
+
+Evidence in both mode directories:
+  test_missing_session_terminal_field_fails_closed.json
+  test_boolean_exit_code_fails_closed.json
+Executable controls: independent_tests.py:77-82.
+
+Required repair: require presence of the session outcome field and its explicit
+null success value; require type(xcodebuildExitCode) is int before accepting 0/65.
+Validate the expected result shape/schema at this boundary and retain custody
+when it is incomplete or malformed. Preserve all five exact named passing gates.
+The accepted importer already uses strict integer terminal-code checks.
+
+Scope of this finding: the sealed inner producer normally emits explicit null
+and integer fields. These are malformed-boundary injections, not evidence that
+the real producer emitted such data or that a live native process escaped custody.
+R2-1 independently blocks approval even without this boundary-hardening finding.
+
+REPAIRS THAT PASSED
+All 72 producer controls passed independently in both modes. The command runner
+latches before possible Popen acquisition and retains unknown custody on spawn,
+selector/read/probe/receipt exceptions; no followup fake Popen escaped the latch.
+Window/title/token drift, unknown windows/frontends, outside-window disappearance
+and frontend identity changes were refused. The shared hold set includes every
+identity specified in this task. The 950-second ceiling requires the explicit
+native-dispatch operation; ordinary commands retain their 120-second maximum.
+Interrupted native dispatch retains nested custody despite outer-group absence.
+
+Seven of eleven new controls passed in each mode. They exercised the actual
+future_run.run with unchanged setup/dispatch/cleanup policy and fake host/native
+boundaries. A normal complete terminal summary with XCTest code 65 and runPassed
+false permits cleanup without promoting native success. Interrupted dispatch,
+missing result file, failed/duplicate cleanup gate, reported session failure and
+reporting failure all latch and prevent actual cleanup entrypoint queries.
+
+ACCEPTED INNER CONTRACT AUDIT
+The unchanged accepted dispatch_successor.py verify() passed in both modes.
+All 2,944 watched inputs and attempt markers remained unchanged. No dispatch()
+call, native CLI, compiler or build was executed.
+Packet SHA256:
+38850f4a1f9fe8326c101d398823249ad25711c9e5113e6ac3bc95891624cef5
+Dispatcher SHA256:
+5e87b80df1ffef80a1bae0d8f74f0d6291ad45a73a38054df0ef8980e01c40f0
+Restored prepare.py SHA256:
+a9ba93faf8ced6820a1f982de22b827e675074a1fb06209db4ddbed3eb53bdf2
+
+Read the actual accepted archive, without extraction or execution, to trace the
+success boundary. dispatch_successor.py:229 returns composition's h.run result;
+selected/composition.py:137 binds it to selected/orchestration.py. Orchestration
+registers the five cleanup operations at lines 76-85, reports them at 94-108,
+raises its first failure at 113, and otherwise returns the runtime summary at 114.
+selected/join_support.py requires the selected XCTest observer's terminal exit,
+two EOFs and owned-group absence, with strict final importer checks. The summary
+shape matches the outer entrypoint's intended success path. The preserved inner
+29-second Settings and 600-second XCTest budgets, original first Tab oracle,
+20 predicates and five cleanup gates were not changed or requalified here.
+accepted-source-audit.json records archive/member and dispatcher hashes.
+
+INDEPENDENT EXECUTION AND CUSTODY
+Exactly two fake-host invocations: Python 3.14.8 normal and -O, each limited to
+120 seconds by review-owned run_host_controls.py, adapted from the prior independent
+review supervisor, not candidate Commands. Each ran 83 tests: 79 passed, four
+failed, zero errors. Producer controls: 72/72; new controls: 7/11. The four failed
+assertions reproduce the two findings above; no failed harness setup was counted
+as a product finding. Full output is in command-normal/ and command-optimized/.
+
+Owned test groups 33265 and 33273: both direct children reaped, both independent
+streams EOF, both groups observed absent. No signals. Elapsed child times:
+1.390881750s and 0.888845291s. Total retained stream bytes: 36,430, below 4 MiB per
+stream and 32 MiB aggregate. No new unresolved real-process custody. Scratch and
+receipts retained. The review completed within its ten-minute bound.
+
+Child audit hooks prohibit real subprocess/signal/socket/AX-library operations
+and filesystem mutations outside this review directory. All inner process, device,
+window and native-dispatch boundaries were fake; no internal real child campaign.
+The entrypoint controls import the actual candidate modules, copy exact sealed
+source bytes into review-owned fixture folders, and redirect only future_run.HERE
+and the backend constructor so reservation/results stay in review ownership.
+They do not run the actual native dispatcher. The additional MacBackend fixture
+uses its real custody guard with observation/action methods replaced; it does
+not validate real AX window enumeration. These limitations are material: this is
+an executable outer-policy review, not macOS runtime or native qualification.
+
+PERMISSION, BASELINE AND HOLDS
+No Accessibility query, UI/capture action, device query/create/boot, app restart,
+socket action, build, physical-phone operation, delegated child agent, commit,
+push, root-metadata edit or candidate edit occurred. External state was not
+queried: zero interaction is not a fresh proof that unrelated live state stayed
+unchanged. No native cleanup was needed because no native resource was created.
+
+Latest supplied permission state remains Python=false and osascript=false after
+the user's Acid-only toggle. Responsible TCC subject is com.t3tools.t3code; no
+new attribution or permission claim was made. Fresh true checks through both
+request routes are still required before any later device creation. These are
+separate from correcting and freshly reviewing R2-1/R2-2.
+
+Historical baseline remains Settings PASS, original Tab FAIL,
+actualNativeFocusTraversal=false and the other 19 predicates passed. Zero native
+attempts consumed here; one original attempt remains. The earlier shutdown of
+CE7E80FC-64BF-41A0-B07B-60F4D8711808 and D55C87E9-F349-49AC-BCD3-3B4B5BE9E010
+remains a failed preservation incident. User-authorized restoration to Booted
+does not recover their lost in-memory sessions or convert that incident to pass.
+
+Preserved without probes, signals, retries or held-scratch access: PGIDs 40708,
+40709, 40711, 23663, 20745, 20770, 20780, 20817, 20842, 20851, 20866 and FieldLog
+40802230894 PGID 2424/PID 2621; held v5, frozen hosted lanes and disconnected
+physical phones remain held. Only the two newly owned host-test groups were
+observed by the independent supervisor. No prospective native command is approved.

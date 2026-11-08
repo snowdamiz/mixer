@@ -1,0 +1,33 @@
+--- /Users/andreyyurlov/.t3/worktrees/mixer/t3-c7acc756/verification/plan-continuation-2026-11-07/android-motion-controller-repair/optimized_fake_controls.py
++++ verification/plan-continuation-2026-11-07/native-custody-premise/optimized_fake_controls.py
+@@ -5,6 +5,7 @@
+ unresolved groups and retained scratch are never accessed.
+ """
+ import json
++import resource
+ import os
+ from pathlib import Path
+ import runpy
+@@ -94,17 +95,20 @@
+ 
+ 
+ if __name__=='__main__':
++    resource.setrlimit(resource.RLIMIT_CPU,(110,115))
++    signal.signal(signal.SIGALRM,lambda *_: (_ for _ in ()).throw(RuntimeError('120s fake suite deadline')))
++    signal.alarm(120)
+     original_pump=c.Commands.pump
+     def pump(manager,seconds=.02):
+         for child in children.values():child.tick()
+         return original_pump(manager,seconds)
+-    with patch.object(c.subprocess,'Popen',side_effect=Child),patch.object(c.os,'killpg',side_effect=group),patch.object(c.Commands,'pump',pump):
++    with patch.object(c.subprocess,'Popen',side_effect=Child),patch.object(c.os,'killpg',side_effect=group),patch.object(c.Commands,'pump',pump),patch.object(c.subprocess,'run',side_effect=RuntimeError('helper launch forbidden')):
+         try:runpy.run_path(str(OUT/'host_controls.py'),run_name='__main__')
+         except SystemExit as result:code=result.code
+     path=OUT/'host-controls-optimized.json'
+     receipt=json.loads(path.read_text())
+     receipt.update(processMode='FAKE_ONLY_WITH_REAL_PIPES',realProcessLaunches=0,realGroupCalls=0,
+                    entryCommand=[sys.executable,'-B','-O',str(Path(__file__).resolve())],
+-                   scope='Same 23 controls with fake process lifetimes and positive absence; real pipe EOF/output collection. Does not qualify OS custody or supersede the failed normal pass.')
++                   scope='26 controls with fake process lifetimes and positive absence; real pipe EOF/output collection. Does not qualify OS custody or supersede the failed normal pass.')
+     path.write_text(json.dumps(receipt,indent=2)+'\n')
+     sys.exit(code)

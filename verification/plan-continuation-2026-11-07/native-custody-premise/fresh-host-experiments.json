@@ -1,0 +1,129 @@
+{
+  "status": "passed",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/fresh_host_experiments.py"
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "hostUname": [
+    "Darwin",
+    "Andreys-MacBook-Pro.local",
+    "27.0.0",
+    "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+    "arm64"
+  ],
+  "controllerSHA256": "4c582cea9e208f42212e55c185d0332748958f2a7a6028b1a116219e8c6c7f2a",
+  "lifecycleSHA256": "8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df",
+  "driverSHA256": "80ba32c77bd1943434a710e531716c96d8e2281937fdca1c9413b1a19ce81300",
+  "sourceRevision": "96f03ab65966a6374e958e780fa09a3eed814c0b",
+  "source101": "a10a62cc79145bc80bfd780257589f437cc82e2f1ebaad6ccde39c134d56e0ca",
+  "experiments": [
+    {
+      "name": "natural-exit",
+      "childSource": "import os,time;os.close(1);time.sleep(.04);os.write(2,b'err')",
+      "childMaximumSeconds": 2,
+      "totalCleanupBoundSeconds": 4.5,
+      "hypothesis": "Reaping an already exited child removes the zombie-only ordering hazard; positive ESRCH remains required.",
+      "counterfactual": "Any wrapper permission denial or unknown custody halts this whole campaign, retains scratch, and admits no second experiment.",
+      "predicted": "terminal custody with independent reap, two EOFs and ESRCH; no EPERM",
+      "records": [
+        {
+          "label": "natural-exit",
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "-c",
+            "import os,time;os.close(1);time.sleep(.04);os.write(2,b'err')"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/fresh-natural-exit/scratch",
+          "long_lived": true,
+          "state": "TERMINAL",
+          "exit_code": 0,
+          "direct_child_reaped": true,
+          "stdout_eof": true,
+          "stderr_eof": true,
+          "owned_group_absent": true,
+          "terminal_custody": true,
+          "cleanup_errors": [],
+          "signals": [],
+          "group_probes": 0,
+          "output_bytes": 3,
+          "output_limit": 4194304,
+          "aggregate_limit": 33554432,
+          "stop": null,
+          "started_monotonic": 333083.174705083,
+          "pid": 7998,
+          "owned_pgid": 7998,
+          "logs": {
+            "stdout": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/fresh-natural-exit/000-natural-exit.stdout",
+            "stderr": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/fresh-natural-exit/000-natural-exit.stderr"
+          }
+        }
+      ],
+      "cleanup": {
+        "allTerminalCustody": true,
+        "hold": null,
+        "scratchRemoved": true,
+        "aggregateBytes": 3,
+        "aggregateLimit": 33554432
+      },
+      "elapsedSeconds": 0.15430916601326317
+    },
+    {
+      "name": "live-termination",
+      "childSource": "import os,time;os.write(1,b'ready');time.sleep(2)",
+      "childMaximumSeconds": 2,
+      "totalCleanupBoundSeconds": 4.5,
+      "hypothesis": "This wrapper permits signalling a fresh owned live group; waiting for reap before absence probing avoids the exit window.",
+      "counterfactual": "Any wrapper permission denial or unknown custody halts this whole campaign, retains scratch, and admits no second experiment.",
+      "predicted": "terminal custody with independent reap, two EOFs and ESRCH; no EPERM",
+      "records": [
+        {
+          "label": "live-termination",
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "-c",
+            "import os,time;os.write(1,b'ready');time.sleep(2)"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/fresh-live-termination/scratch",
+          "long_lived": true,
+          "state": "TERMINAL",
+          "exit_code": -9,
+          "direct_child_reaped": true,
+          "stdout_eof": true,
+          "stderr_eof": true,
+          "owned_group_absent": true,
+          "terminal_custody": true,
+          "cleanup_errors": [],
+          "signals": [
+            "SIGKILL"
+          ],
+          "group_probes": 1,
+          "output_bytes": 5,
+          "output_limit": 4194304,
+          "aggregate_limit": 33554432,
+          "stop": null,
+          "started_monotonic": 333083.329424625,
+          "pid": 8006,
+          "owned_pgid": 8006,
+          "logs": {
+            "stdout": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/fresh-live-termination/000-live-termination.stdout",
+            "stderr": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/fresh-live-termination/000-live-termination.stderr"
+          }
+        }
+      ],
+      "cleanup": {
+        "allTerminalCustody": true,
+        "hold": null,
+        "scratchRemoved": true,
+        "aggregateBytes": 5,
+        "aggregateLimit": 33554432
+      },
+      "elapsedSeconds": 0.028259415994398296
+    }
+  ],
+  "nativeAttempts": 0,
+  "heldGroupOperations": 0
+}

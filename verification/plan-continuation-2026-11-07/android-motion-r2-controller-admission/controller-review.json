@@ -1,0 +1,76 @@
+{
+  "blockers": [
+    {
+      "file": "cleanup_control.py",
+      "id": "C1",
+      "lines": [
+        14,
+        18,
+        47
+      ],
+      "needed": "Fail closed terminal unknown state and propagate it without reprobe or further launch",
+      "observed": "EPERM triggers pgrep; pgrep exit 1 converts EPERM to absent; stop can probe again",
+      "proof": "controller-EPERM-control.json",
+      "required": "EPERM/unknown means retain and stop without any additional probe"
+    },
+    {
+      "file": "run_native_probe.py",
+      "id": "C2",
+      "lines": [
+        31,
+        44,
+        182
+      ],
+      "needed": "Central bounded output collection for every child and boot deadline <=180s",
+      "observed": "16MiB check only in run loop; long-lived launch logs unbounded; no aggregate cap; boot limit240s",
+      "required": "8MiB per command, 64MiB aggregate, boot <=180s"
+    },
+    {
+      "file": "run_native_probe.py",
+      "id": "C3",
+      "lines": [
+        31,
+        33,
+        44,
+        226,
+        243
+      ],
+      "needed": "Drain and record stream EOF, cache terminal group custody, require all terminal facts before removal",
+      "observed": "stdout/stderr redirected into a regular file, no EOF record; finally repeats stop on every historical owned tuple; deletion checks only groupAbsent",
+      "required": "Per-owned-group direct-child reap, pipe EOF, group absence; remove scratch only after terminal custody"
+    },
+    {
+      "file": "run_native_probe.py",
+      "id": "C4",
+      "lines": [
+        211,
+        215,
+        222
+      ],
+      "needed": "Record restoration and diagnostics as unavailable or verified on every exit path without extending instrumentation budgets or retrying",
+      "observed": "run raises on command timeout/nonzero before host after-setting read; finally begins emulator shutdown without a restoration receipt for that path",
+      "required": "Raw/effective restoration and failure diagnostics before cleanup on failed run"
+    }
+  ],
+  "candidate": "run_native_probe.py.candidate",
+  "candidateExecuted": false,
+  "decision": "STOP_BEFORE_NATIVE_ATTEMPT",
+  "notApprovedForExecution": true,
+  "priorCleanup": {
+    "bytes": 1924,
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-c9ee386d/verification/plan-continuation-2026-11-07/android-motion-callback-runtime/cleanup_control.py",
+    "sha256": "96240cd3ae2f17701fbdcaefb8cb47d59e2f9169717f806fbb75f48b23902391"
+  },
+  "priorController": {
+    "bytes": 23132,
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-c9ee386d/verification/plan-continuation-2026-11-07/android-motion-callback-runtime/run_native_probe.py",
+    "sha256": "370d23ff6ea775c15dc85f3c1342b4eea549f7d567af42e3387a38602f3d433b"
+  },
+  "reason": "Controller needs changes beyond source/revision binding; explicit task requires stopping before attempt.",
+  "retainedTighterBounds": {
+    "compileSeconds": 120,
+    "instrumentationSeconds": 120,
+    "wholeControllerSeconds": 600
+  },
+  "sourceBindingOnlyDiff": "launcher-binding.diff"
+}

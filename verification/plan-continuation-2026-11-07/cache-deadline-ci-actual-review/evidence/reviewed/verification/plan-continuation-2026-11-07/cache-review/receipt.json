@@ -1,0 +1,116 @@
+{
+  "actions": {
+    "commit": 0,
+    "compiler_or_rustup": 0,
+    "dispatch": 0,
+    "native_or_UI": 0,
+    "push": 0,
+    "real_fixture": 0,
+    "source_or_workflow_edits": 0,
+    "subagents": 0
+  },
+  "actual_fixture_qualified": false,
+  "artifacts_sha256": {
+    "attempt-1-controls-result.json": "7b367f3d6c6e35dcb3510c1cd0eb9840bb36b7be41199d0ce63a380cdb7df37c",
+    "attempt-1-controls.stderr": "1c725ca5ababef598486441153d85c15aae4ec111fc24e321476b2081a4f9555",
+    "attempt-1-controls.stdout": "6fae0aabf539ce1fcb9773a04f6e87da633adaf0371855a4f9d03c5f9a1acff2",
+    "attempt-1-review_controls.py": "5334590b1a08af1a00a275eba31418e3569a229907f94cca7beeb11d80d2ea9f",
+    "baseline-dependency-binding.json": "eb14f0b7bbf140ef31c690d1c38c713ccda5d0c6492447c446008605244e5601",
+    "controls-result.json": "c9a6257cf77b08e45de4031de3aa45db81ffa4aeaf7666ede1793481f564458b",
+    "controls.stderr": "cc86a0b7774ac3da44dbbe4110cf22a427cd3f863a960c04b1050ba55a1dcbd4",
+    "controls.stdout": "e619a8e57131bb0dd72818eaab6966d44434ec1624b6bec29cd8806cf76d320b",
+    "prospective-workflow.yml": "5cc067d90adaadbb4741e8e0e25bf1ecace4fa2d5ce87cbe13cfddb92fc67325",
+    "review_controls.py": "821c5b6f51f03122786d18f61d7147c3c8c78175b356569bf922ca8483b533e4",
+    "verdict.md": "a58130bcc3a7e1f4548a66e78bcab5638839f8206ba6fcdb2415bc2121d5cb02"
+  },
+  "baseline": {
+    "attempt": 1,
+    "command_count": 2,
+    "error": "Actual compiler host/release not selected",
+    "historical_control_counts": {
+      "adoption": 16,
+      "materializer": 9,
+      "runner": 36
+    },
+    "historical_control_scope": "Read retained stderr OK results only; no rerun",
+    "old_evidence_changed": false,
+    "receipt_sha256": "225732b76d54f583a2570ca1692e6c397c98c4124dce4c0d6d43edc3032f7491",
+    "run_id": 40974383080,
+    "scratch_removed_recorded": true,
+    "status": "failed"
+  },
+  "blocking_findings": [],
+  "cleanup": {
+    "native_instances_started": 0,
+    "process_probes_or_signals": 0,
+    "scratch_absent": true
+  },
+  "commands": [
+    {
+      "all_passed": true,
+      "command": "python3 -I -B -S verification/plan-continuation-2026-11-07/cache-review/review_controls.py > verification/plan-continuation-2026-11-07/cache-review/controls.stdout 2> verification/plan-continuation-2026-11-07/cache-review/controls.stderr",
+      "exit": 0,
+      "independent_tests": 10,
+      "scope": "Guarded pure/fake-child controls, including exact in-memory workflow patch and historical evidence joins; no real compiler/fixture execution",
+      "stderr_sha256": "cc86a0b7774ac3da44dbbe4110cf22a427cd3f863a960c04b1050ba55a1dcbd4",
+      "stdout_sha256": "e619a8e57131bb0dd72818eaab6966d44434ec1624b6bec29cd8806cf76d320b",
+      "supplied_tests": 16
+    },
+    {
+      "command": "git apply --check verification/plan-continuation-2026-11-07/cache-fix/workflow.diff",
+      "exit": 0,
+      "scope": "Read-only applicability against parent workflow including Android diagnostic",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": "GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD HEAD^{tree}",
+      "exit": 0,
+      "stdout": "5da968ea668ea0c319538321488b98ecda4db0bb\nf0eb0243d72a500d197b8d34e2c774d67774f910\n"
+    }
+  ],
+  "compiler_qualified": false,
+  "decision": "accept-prospective-exact-compiler-admission",
+  "environment": {
+    "git": "2.56.0",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "python_executable": "/opt/homebrew/bin/python3",
+    "python_sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a",
+    "uname": "Darwin 27.0.0 arm64"
+  },
+  "guard": {
+    "installed_before_subject_imports": true,
+    "provided_test_scratch_relocated": true,
+    "runtime_denials": [],
+    "write_denials": [],
+    "write_root": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-review"
+  },
+  "initial_review_harness_attempt": {
+    "causes": [
+      "Missing receipt correctly raises RuntimeError, not the expected FileNotFoundError",
+      "86 original base files are bound through their uploaded manifest; raw originals were not uploaded"
+    ],
+    "exit": 1,
+    "independent_errors": 87,
+    "retained_prefix": "attempt-1-",
+    "subject_changed": false,
+    "subject_failure": false,
+    "supplied_tests_passed": 16
+  },
+  "recorded_at": "2026-11-07T22:09:53.047522+00:00",
+  "remaining": [
+    "Root applies exact shared-fixture selection/workflow",
+    "Complete matching 103-command ordinary-CI fixture plus all original controls",
+    "Independent actual artifact qualification"
+  ],
+  "schema": 1,
+  "source": {
+    "correction_sources_manifest_sha256": "7581e2b8b6200e227655d62f1011493c24aa62ef80e2e223cf7ec06b4203cc3b",
+    "git_tree": "f0eb0243d72a500d197b8d34e2c774d67774f910",
+    "inputs_unchanged_during_controls": true,
+    "installed_workflow_sha256_at_review": "28865d8e1f5795e04f096ec9f9665be6840ad5edfa640f6653ab2258b28a223a",
+    "reviewed_input_count": 169,
+    "reviewed_input_hashes_sha256": "991b427f9184b596e27d7b586d0160f3daec3ea0149211c387e3991ac7620f8b",
+    "revision": "5da968ea668ea0c319538321488b98ecda4db0bb"
+  }
+}

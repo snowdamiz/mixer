@@ -1,0 +1,24 @@
+--- /Users/andreyyurlov/.t3/worktrees/mixer/t3-c7acc756/verification/plan-continuation-2026-11-07/android-motion-controller-repair/run_native_probe.py
++++ verification/plan-continuation-2026-11-07/native-custody-premise/run_native_probe.py
+@@ -66,9 +66,18 @@
+     COMMANDS=Commands(OUT,ENV,deadline=DEADLINE)
+     flush()
+     try:
+-        for mode in ('normal','optimized'):
+-            control=json.loads((PACKET/('host-controls-'+mode+'.json')).read_text())
+-            require(control['status']=='passed' and control['controllerSHA256']==sha(__file__) and control['lifecycleSHA256']==sha(PACKET/'cleanup_control.py'), 'host control binding mismatch')
++        control=json.loads((PACKET/'host-controls-optimized.json').read_text())
++        require(control['status']=='passed' and control['tests']==26
++            and control['controllerSHA256']==sha(__file__)
++            and control['lifecycleSHA256']==sha(PACKET/'cleanup_control.py')
++            and control['controlsSHA256']==sha(PACKET/'host_controls.py')
++            and control['fakeDriverSHA256']==sha(PACKET/'optimized_fake_controls.py'), 'host control binding mismatch')
++        real=json.loads((PACKET/'fresh-host-experiments.json').read_text())
++        require(real['status']=='passed' and real['controllerSHA256']==sha(__file__)
++            and real['lifecycleSHA256']==sha(PACKET/'cleanup_control.py')
++            and real['driverSHA256']==sha(PACKET/'fresh_host_experiments.py')
++            and len(real['experiments'])==2
++            and all(e['cleanup']['allTerminalCustody'] for e in real['experiments']), 'fresh host admission mismatch')
+         baseline=PARENT/'verification/plan-continuation-2026-11-07/android-runtime'
+         save(OUT/'baseline-manifest.json',{'files':{str(p.relative_to(baseline)):{'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(baseline.rglob('*')) if p.is_file()}})
+         RECEIPT['sourceRevision']=run('source-revision',['git','-C',ROOT,'rev-parse','HEAD'])

@@ -1,0 +1,101 @@
+--- /Users/andreyyurlov/.t3/worktrees/mixer/t3-c7acc756/verification/plan-continuation-2026-11-07/android-motion-controller-repair/host_controls.py
++++ verification/plan-continuation-2026-11-07/native-custody-premise/host_controls.py
+@@ -6,7 +6,6 @@
+ import json
+ import os
+ from pathlib import Path
+-import platform
+ import signal
+ import subprocess
+ import sys
+@@ -43,7 +42,7 @@
+     def setUp(self):
+         self.root=Path(tempfile.mkdtemp(prefix='host-'+MODE+'-',dir=OUT))
+         self.scratch=self.root/'scratch';self.scratch.mkdir()
+-        self.manager=c.Commands(self.root,dict(os.environ),deadline=time.monotonic()+8,cleanup_seconds=.5)
++        self.manager=c.Commands(self.root,dict(os.environ),deadline=time.monotonic()+8,cleanup_seconds=.5,output_bytes=4*c.MIB,total_output_bytes=32*c.MIB)
+ 
+     def tearDown(self):
+         # Only controls that started real children reach this cleanup. Fake holds are reset
+@@ -61,7 +60,7 @@
+     def fake(self):
+         class Fake:
+             pid=99999991
+-            def poll(self):raise AssertionError('post-unknown poll')
++            def poll(self):return None
+         r={'label':'fake','state':'RUNNING','owned_pgid':Fake.pid,'direct_child_reaped':False,
+            'stdout_eof':False,'stderr_eof':False,'owned_group_absent':False,
+            'terminal_custody':False,'cleanup_errors':[],'signals':[],'group_probes':0}
+@@ -231,10 +230,12 @@
+ 
+     def test_cleanup_reap_exception_is_terminal_unknown(self):
+         item=self.fake()
++        def fail():raise OSError('synthetic reap error')
++        item['process'].poll=fail
+         with patch.object(c.os,'killpg',return_value=None) as group:
+             r=self.manager.stop(item)
+             self.assertEqual(r['state'],'UNKNOWN')
+-            self.assertEqual(group.call_count,1)
++            self.assertEqual(group.call_count,0)
+         self.manager.hold=None
+ 
+     def test_cleanup_pipe_close_exception_is_unknown(self):
+@@ -278,6 +279,47 @@
+             self.assertEqual(len(profile[kind+'_files']),count)
+             self.assertEqual(profile[kind+'_files'],binding['projections'][kind]['files'])
+         for rel,expected in binding['implementationFiles'].items():self.assertEqual(identity(ROOT/rel),expected)
++
++    def test_reap_before_signal_avoids_zombie_only_group(self):
++        item=self.fake();events=[]
++        def poll():events.append('reap');return 0
++        item['process'].poll=poll
++        class Pipe:
++            def close(self):pass
++        item['process'].stdout=Pipe();item['process'].stderr=Pipe()
++        item['record']['stdout_eof']=item['record']['stderr_eof']=True
++        item['record']['output_bytes']=0
++        self.manager.records=[item['record']];self.manager.owned=[item]
++        def group(pid,sig):
++            events.append('signal')
++            if events[0]!='reap':raise PermissionError('synthetic zombie-only EPERM')
++            raise ProcessLookupError('synthetic absence after reap')
++        with patch.object(c.os,'killpg',side_effect=group):self.manager.stop(item)
++        self.assertTrue(item['record']['terminal_custody'])
++        self.assertEqual(events,['reap','signal'])
++
++    def test_no_group_probe_between_signal_and_reap(self):
++        item=self.fake();events=[];polls=[None,None,0]
++        class Pipe:
++            def close(self):pass
++        item['process'].stdout=Pipe();item['process'].stderr=Pipe()
++        item['record']['stdout_eof']=item['record']['stderr_eof']=True
++        item['record']['output_bytes']=0
++        self.manager.records=[item['record']];self.manager.owned=[item]
++        def poll():
++            value=polls.pop(0);events.append(('poll',value));return value
++        item['process'].poll=poll
++        def group(pid,sig):
++            events.append(('group',sig))
++            if sig==0:
++                if polls:raise PermissionError('synthetic exit-in-progress EPERM')
++                raise ProcessLookupError('synthetic positive absence')
++        with patch.object(c.os,'killpg',side_effect=group):self.manager.stop(item)
++        self.assertTrue(item['record']['terminal_custody'])
++        self.assertEqual(events,[('poll',None),('group',signal.SIGKILL),('poll',None),('poll',0),('group',0)])
++
++    def test_fake_campaign_cannot_launch_helpers(self):
++        with self.assertRaises(RuntimeError):subprocess.run(['forbidden-helper'])
+ 
+ 
+ if __name__=='__main__':
+@@ -295,7 +337,9 @@
+              'lifecycleSHA256':identity(OUT/'cleanup_control.py')['sha256'],
+              'controlsSHA256':identity(__file__)['sha256'],
+              'commands':Controls.all_records,'cleanup':Controls.cleanups,
++             'fakeDriverSHA256':identity(OUT/'optimized_fake_controls.py')['sha256'],
++             'realProcessLaunches':0,'realGroupCalls':0,'processMode':'FAKE_ONLY_WITH_REAL_PIPES',
+              'nativeAttempts':0,'physicalOrDefaultADBContact':False,'historicalGroupProbes':0,
+-             'scope':'host Python children <=8 seconds; EPERM and cleanup faults entirely synthetic'}
++             'scope':'FAKE ONLY: simulated lifetimes and errors, real separate pipes; no OS child, group or native calls'}
+     target.write_text(json.dumps(receipt,indent=2)+'\n')
+     sys.exit(0 if result.wasSuccessful() else 1)

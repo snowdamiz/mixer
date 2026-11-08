@@ -1,0 +1,82 @@
+{
+  "status": "passed",
+  "tests": 2,
+  "realChildren": 0,
+  "realGroupCalls": 0,
+  "results": [
+    {
+      "scenario": "already-zombie",
+      "expectedOldResult": "UNKNOWN",
+      "record": {
+        "label": "already-zombie",
+        "state": "UNKNOWN",
+        "owned_pgid": 90000001,
+        "direct_child_reaped": false,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "owned_group_absent": false,
+        "terminal_custody": false,
+        "cleanup_errors": [
+          {
+            "operation": "signal-owned-group",
+            "error": "PermissionError(1, 'fake zombie-only group')"
+          }
+        ],
+        "signals": [],
+        "group_probes": 0
+      },
+      "calls": [
+        [
+          90000001,
+          9,
+          0
+        ]
+      ],
+      "mockRestored": true
+    },
+    {
+      "scenario": "exit-during-signal",
+      "expectedOldResult": "UNKNOWN",
+      "record": {
+        "label": "exit-during-signal",
+        "state": "UNKNOWN",
+        "owned_pgid": 90000001,
+        "direct_child_reaped": false,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "owned_group_absent": false,
+        "terminal_custody": false,
+        "cleanup_errors": [
+          {
+            "operation": "observe-owned-group",
+            "error": "PermissionError(1, 'fake zombie-only group')"
+          }
+        ],
+        "signals": [
+          "SIGKILL"
+        ],
+        "group_probes": 1
+      },
+      "calls": [
+        [
+          90000001,
+          9,
+          0
+        ],
+        [
+          90000001,
+          0,
+          0
+        ]
+      ],
+      "mockRestored": true
+    }
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/native-custody-premise/test_premise.py"
+  ],
+  "decision": "Old ordering reproduces both failure shapes with scoped mocks restored. Repair reaping order; persistent permission denial must remain UNKNOWN. Actual host policy not determined by fake."
+}

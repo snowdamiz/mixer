@@ -1,0 +1,59 @@
+--- /Users/andreyyurlov/.t3/worktrees/mixer/t3-c9ee386d/verification/plan-continuation-2026-11-07/android-motion-callback-runtime/run_native_probe.py
++++ run_native_probe.py.candidate
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""One bounded API37 pair8 settings-driven motion callback gate, retaining the canonical smoke oracle."""
++"""One bounded API37 pair9 R2 settings-driven motion callback gate, retaining the canonical smoke oracle."""
+ import datetime, hashlib, importlib.util, json, os, pathlib, re, secrets, shutil, signal, socket, subprocess, sys, tempfile, time, traceback, zipfile
+ P=pathlib.Path
+ ROOT=P(__file__).resolve().parents[3]
+@@ -18,9 +18,9 @@
+ MANIFEST='verification/android-native-v2-coordinator/AndroidManifest.future-test.xml'
+ TESTS=['native/android/tests/NativeCoordinatorV2IntegrationActivity.java','native/android/tests/NativeCoordinatorV2IntegrationInstrumentation.java']
+ START=time.monotonic(); DEADLINE=START+600
+-WORK=P(tempfile.mkdtemp(prefix='mixer-20261107-motion-callback-',dir='/tmp'))
++WORK=P(tempfile.mkdtemp(prefix='mixer-20261107-motion-r2-native-',dir='/tmp'))
+ ENV=dict(os.environ,JAVA_HOME=str(JDK),DEVELOPER_DIR='/Applications/Xcode_26.6.app/Contents/Developer',ANDROID_HOME=str(SDK),ANDROID_SDK_ROOT=str(SDK),PATH=str(JDK/'bin')+os.pathsep+os.environ['PATH'],PYTHONDONTWRITEBYTECODE='1')
+-RECEIPT={'schema':1,'startedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'building','scratch':str(WORK),'commands':[],'tools':{},'nativeInstancesStarted':0,'physicalTargetsQueried':False,'scope':'PAIR8-MOTION-CALLBACK-NATIVE: API37 arm64 settings-only platform callback, owner drain, exact restoration/removal plus original 11-check JNI/Swift smoke','nativeAcceptance':False,'gaAcceptance':False,'buildJobs':2,'maximumSeconds':600,'runtime':{'status':'NOT RUN'},'cleanup':{},'limitations':['API37 arm64 only; API28/32/33 loading and motion boundary gates remain pending','one emulator smoke does not establish complete V2 fault/IME/lifecycle coverage','no physical-phone, external immutable FieldLog, public release, store, customer, operational or GA qualification']}
++RECEIPT={'schema':1,'startedUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'building','scratch':str(WORK),'commands':[],'tools':{},'nativeInstancesStarted':0,'physicalTargetsQueried':False,'scope':'PAIR9-R2-MOTION-CALLBACK-NATIVE: API37 arm64 settings-only platform callback, owner drain, exact restoration/removal plus original 11-check JNI/Swift smoke','nativeAcceptance':False,'gaAcceptance':False,'buildJobs':2,'maximumSeconds':600,'runtime':{'status':'NOT RUN'},'cleanup':{},'limitations':['API37 arm64 only; API28/32/33 loading and motion boundary gates remain pending','one emulator smoke does not establish complete V2 fault/IME/lifecycle coverage','no physical-phone, external immutable FieldLog, public release, store, customer, operational or GA qualification']}
+ OWNED=[]; EMULATOR=None; SERVER=None; PORT=None; RESERVATIONS=[]; SOURCES={}
+ 
+ def sha(p): return hashlib.sha256(P(p).read_bytes()).hexdigest()
+@@ -65,6 +65,10 @@
+     save(OUT/'baseline-manifest.json',{'files':{str(p.relative_to(baseline)):{'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(baseline.rglob('*')) if p.is_file()}})
+     RECEIPT['sourceRevision']=run('source-revision',['git','-C',ROOT,'rev-parse','HEAD'])
+     RECEIPT['sourceTree']=run('source-tree',['git','-C',ROOT,'rev-parse','HEAD^{tree}'])
++    assert RECEIPT['sourceRevision']=='96f03ab65966a6374e958e780fa09a3eed814c0b','R2 base revision mismatch'
++    binding=json.loads((OUT/'source-binding.json').read_text())
++    for rel,expected in {**binding['canonicalInputs'],**binding['implementationFiles']}.items():
++        assert sha(ROOT/rel)==expected['sha256'] and (ROOT/rel).stat().st_size==expected['bytes'],rel
+     run('source-status',['git','-C',ROOT,'status','--short'])
+     products=sorted((ROOT/'native/android/app/src').rglob('*.java'))
+     inputs=set(str(p.relative_to(ROOT)) for p in products)
+@@ -88,7 +92,7 @@
+     accepted_lock=json.loads((accepted/'source-lock.json').read_text())
+     accepted_receipt=json.loads((accepted/'receipt.json').read_text())
+     test_rel=TESTS[1]
+-    source_mismatches={rel:{'expected':expected,'actual':sha(ROOT/rel)} for rel,expected in accepted_lock['files'].items() if rel!=test_rel and sha(ROOT/rel)!=expected}
++    source_mismatches={rel:{'expected':expected,'actual':sha(ROOT/rel)} for rel,expected in accepted_lock['files'].items() if rel not in {test_rel,'native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'} and sha(ROOT/rel)!=expected}
+     tool_mismatches={path:identity for path,identity in accepted_receipt['tools'].items() if not P(path).is_file() or sha(path)!=identity['sha256'] or str(P(path).resolve())!=identity['realPath']}
+     assert accepted_receipt['runtime']['passed'] and 'checks=11' in accepted_receipt['runtime']['instrumentationOutput']
+     assert not source_mismatches,source_mismatches
+@@ -174,7 +178,7 @@
+     ENV.update(ANDROID_AVD_HOME=str(WORK/'avds'),ANDROID_EMULATOR_HOME=str(WORK/'android'),ANDROID_USER_HOME=str(WORK/'android'),TMPDIR=str(WORK/'tmp'),ANDROID_ADB_SERVER_PORT=str(serverport),ADB_SERVER_PORT=str(serverport),ADB_LIBUSB='0')
+     ENV['ADB_VENDOR_KEYS']=str(WORK/'android/adbkey')
+     run('disposable-adb-key',[SDK/'platform-tools/adb','keygen',WORK/'android/adbkey'],30)
+-    avdname='mixer_20261107_motion_callback_'+WORK.name.rsplit('-',1)[-1];avdpath=WORK/'avds'/str(avdname+'.avd')
++    avdname='mixer_20261107_motion_r2_native_'+WORK.name.rsplit('-',1)[-1];avdpath=WORK/'avds'/str(avdname+'.avd')
+     RECEIPT['avd']={'name':avdname,'path':str(avdpath),'systemImage':'system-images;android-37.0;google_apis;arm64-v8a'}
+     run('create-owned-avd',[SDK/'cmdline-tools/latest/bin/avdmanager','--verbose','create','avd','--name',avdname,'--path',avdpath,'--package','system-images;android-37.0;google_apis;arm64-v8a','--device','pixel_6'],120)
+     with (avdpath/'config.ini').open('a') as f:f.write('\nhw.cpu.ncore=2\nhw.ramSize=2048\ndisk.dataPartition.size=2G\n')
+@@ -248,7 +252,7 @@
+     RECEIPT['baselineByteForBytePreserved']=current==frozen
+     save(OUT/'baseline-postflight.json',{'byteForBytePreserved':current==frozen,'fileCount':len(current),'changed':[p for p in set(current)|set(frozen) if current.get(p)!=frozen.get(p)]})
+     RECEIPT['apkRetained']=False
+-    RECEIPT['gate']='PAIR8-MOTION-CALLBACK-NATIVE'
++    RECEIPT['gate']='PAIR9-R2-MOTION-CALLBACK-NATIVE'
+     RECEIPT['cleanup']['privateADBKeysRemoved']=not (WORK/'android/adbkey').exists()
+     RECEIPT['finishedUTC']=now();RECEIPT['elapsedSeconds']=round(time.monotonic()-START,2);flush()
+     print(json.dumps({k:RECEIPT.get(k) for k in ['status','failure','elapsedSeconds','sourceStable','nativeInstancesStarted']}),flush=True)

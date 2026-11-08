@@ -49,13 +49,17 @@ failed runs. Record cleanup; preserve other projects' active instances and their
 data. The user explicitly requested cleanup of unused simulators.
 
 Before frontend-dependent Simulator tests, verify macOS Accessibility access
-before creating or booting a device. If access is unavailable, keep that test
+before creating or booting a device. On this macOS 27 host the pane is named
+Device Control and Data Access; the requesting helpers are attributed to
+`/Users/andreyyurlov/Applications/Acid.app`. Re-adding that exact app resolved
+the observed denial; see verification/plan-continuation-2026-11-07/apple-accessibility-after-readd/receipt.json.
+Fresh public trust checks remain required. If access is unavailable, keep that test
 pending. Never quit or terminate Simulator.app while unrelated devices are
 booted: even a newly owned frontend can shut them down. Use exact owned-device
 UUIDs and individually owned windows for cleanup. A changed external baseline
 is a cleanup failure; record it and coordinate recovery before further actions.
 
-Earlier direct user instruction on November 7 — “you can do native stuff, update
+Direct user instruction on November 7 — “you can do native stuff, update
 agents file” — resumes native simulator/emulator tests and related UI verification
 and screen capture, superseding the previously supplied pause. Fresh bounded
 owned builds and runtime attempts may proceed under the one-instance-per-lane and cleanup
@@ -66,16 +70,20 @@ frozen hosted lanes. The October 24 shutdown and pause remain historical evidenc
 Record fresh attempts separately in
 verification/plan-continuation-2026-11-07/native-resumption.json.
 
-A later user-supplied AGENTS block states that native simulator/emulator runtime,
-UI automation and screen capture are paused. Clarification of that conflict is
-pending. Until resolved, continue source work, host tests, cross-compilation,
-offline evidence review and authorized delivery; do not start new native/UI/capture
-attempts. This preserves the earlier resumption as historical authorization.
+The user subsequently resolved the conflicting pasted pause with “Keep native
+testing resumed.” That explicit clarification governs new bounded native/UI/capture
+attempts. Preserve the one-instance-per-lane, exact owned-device cleanup and
+Accessibility preflight rules above. It does not release any specific historical
+process, custody, v5, frozen-hosted-lane or physical-phone hold.
 
 The cache deadline control's optimized run left unresolved custody for PGID
 23663. Preserve that group and its retained scratch; do not probe, signal, or
 retry it, and do not infer absence from the direct child's return or elapsed
 time. See verification/plan-continuation-2026-11-07/cache-deadline-custody-hold/receipt.json.
+The Android controller host controls also left PGIDs 40708, 40709, and 40711
+with unresolved custody. Preserve both retained scratch directories; do not
+probe, signal, or retry these groups. The receipt is
+verification/plan-continuation-2026-11-07/android-controller-custody-holds/receipt.json.
 All earlier process and custody holds remain in force.
 
 Record command, tool version, source revision/tree digest, output, and scope.

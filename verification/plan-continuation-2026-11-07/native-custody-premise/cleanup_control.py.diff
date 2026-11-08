@@ -1,0 +1,23 @@
+--- /Users/andreyyurlov/.t3/worktrees/mixer/t3-c7acc756/verification/plan-continuation-2026-11-07/android-motion-controller-repair/cleanup_control.py
++++ verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
+@@ -123,6 +123,11 @@
+         until = min(self.deadline, time.monotonic()+self.cleanup_seconds)
+         if time.monotonic() >= until:
+             return self.unknown(item, 'cleanup-deadline', 'no remaining time')
++        # Reap an already exited direct child before any group operation. Darwin
++        # can report EPERM for a group whose only member is an unreaped zombie.
++        self.reaped(item)
++        if self.hold:
++            return r
+         try:
+             os.killpg(r['owned_pgid'], signal.SIGKILL)
+             r['signals'].append('SIGKILL')
+@@ -134,7 +139,7 @@
+             self.reaped(item)
+             if self.hold:
+                 break
+-            if not r['owned_group_absent']:
++            if r['direct_child_reaped'] and not r['owned_group_absent']:
+                 try:
+                     r['group_probes'] += 1
+                     os.killpg(r['owned_pgid'], 0)
