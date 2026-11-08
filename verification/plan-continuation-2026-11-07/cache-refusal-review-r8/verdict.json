@@ -1,0 +1,223 @@
+{
+  "verdict": "ACCEPT",
+  "sourceSealSHA": "19af15d0fcb485957e2cb459c2a654e07f34f71ee52163f01a5336b17b09ec9b",
+  "treeSHA": "236f014f315b6e4b1f439fd6a2dad2a4121063507b1861ac5b0a2129faa1613b",
+  "preflightSHA": "9ad4b85d17f4f2bf2bb58d0388aad005866406c0b8239dcb102cc93fabd7bca5",
+  "workflowSHA": "46ca5c468d416e4c19502c43c16b1e7e97125bba37a0cd2b0913f5edef6a588c",
+  "controlSealSHA": "1422fc0b994415ae4e87d39360dd3a0472c053f1438ac6d3907d294cec615814",
+  "guardSHA": "3a342652f1903233a1e77a4752f0017c985094386ee59482dd69dac621a7bdb3",
+  "commandsSHA": "f1766fb3bd025fff5ea5a4c5c0b71932a468e505588cedd064bcc70f63f9d745",
+  "findings": [],
+  "resolvedFindings": [
+    {
+      "priority": "P2",
+      "title": "Rejected malformed handles aborted cleanup and failed receipt",
+      "status": "CLOSED",
+      "file": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/descriptor_preflight.py",
+      "lines": [
+        80,
+        81,
+        82,
+        83,
+        84,
+        88,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98
+      ],
+      "basis": "Exact nonnegative integer filtering precedes hashing/sorting; each valid returned/cached FD is attempted once; original refusal persists through cleanup errors and failed receipt serialization completes",
+      "evidence": [
+        "evidence-normal/result.json",
+        "evidence-optimized/result.json",
+        "evidence-normal/fresh-result.json",
+        "evidence-optimized/fresh-result.json",
+        "campaign-audit.json"
+      ],
+      "injectedNegative": true,
+      "actualPythonMalformedLayoutClaimed": false
+    }
+  ],
+  "boundaryReview": {
+    "fiveDistinctLiveFDsBeforeIO": {
+      "file": "descriptor_preflight.py",
+      "lines": [
+        54,
+        56,
+        57,
+        58,
+        59,
+        60,
+        63,
+        66
+      ],
+      "verified": true
+    },
+    "cachedStdinBinding": true,
+    "aliasRefusal": true,
+    "capabilityRevocation": {
+      "file": "stdin_guard.py",
+      "lines": [
+        19,
+        21,
+        22,
+        25,
+        26,
+        27,
+        34,
+        38,
+        39,
+        40,
+        41,
+        42
+      ],
+      "verified": true
+    },
+    "commandsByteExact": true,
+    "original36BodiesPreserved": true,
+    "full103FixturePreserved": true
+  },
+  "shipping": {
+    "members": 20,
+    "allMatch": true,
+    "allExecutedSnapshotsMatch": true,
+    "changedFromR7": [
+      "descriptor_preflight.py",
+      "workflow-job.yml"
+    ],
+    "unchangedFromR7": 18
+  },
+  "tests": {
+    "perMode": {
+      "normal": {
+        "retained": 70,
+        "retainedPassed": 70,
+        "independentMethods": 4,
+        "independentPassed": 4,
+        "independentCases": 54,
+        "failures": 0,
+        "errors": 0
+      },
+      "optimized": {
+        "retained": 70,
+        "retainedPassed": 70,
+        "independentMethods": 4,
+        "independentPassed": 4,
+        "independentCases": 54,
+        "failures": 0,
+        "errors": 0
+      }
+    },
+    "retained64Unchanged": true,
+    "retained70OnlyAbsoluteCandidateBindingChanged": true,
+    "realInnerChildren": 0,
+    "actualOriginal36Rerun": false,
+    "scope": "Pure fake controls and actual child-free local descriptor setup; fake36 plumbing excluded from method counts"
+  },
+  "custody": {
+    "acceptedControllerSHA256": "8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df",
+    "campaigns": 1,
+    "supervisedChildren": 2,
+    "maximumSecondsPerCampaign": 60,
+    "totalSecondsBudget": 120,
+    "elapsedSeconds": 15.90533704200061,
+    "perCommandCap": 8388608,
+    "aggregateCap": 67108864,
+    "rawOutputBytes": 26108,
+    "ownedPIDs": [
+      1123,
+      1167
+    ],
+    "ownedPGIDs": [
+      1123,
+      1167
+    ],
+    "allTerminal": true,
+    "directReap": true,
+    "bothEOF": true,
+    "positiveGroupAbsence": true,
+    "signals": [],
+    "cleanupErrors": [],
+    "scratchRemoved": true,
+    "newUNKNOWN": false,
+    "receipt": "campaign/result.json",
+    "audit": "campaign-audit.json"
+  },
+  "workflow": {
+    "canonicalSHA": "8bf1fd43cffa8a4b04c38e6318f1c1e3407a3426b946dc6d52d9384f52cf9f05",
+    "previousJobSHA": "c9c3dd45cd7090136fa4b1f50e1873ad66e42e569d0538966c3736eca640e93b",
+    "preimageOccurrences": 1,
+    "namespaceOnlyChange": true,
+    "declaredSparsePaths": 329,
+    "bothProjectedInstalledVerifiersPassed": true,
+    "correctProjectedSourceSeal": true,
+    "exactSingleSpanProjection": true,
+    "normalPreflightLine": 47,
+    "optimizedPreflightLine": 50,
+    "original36Lines": [
+      66,
+      69
+    ],
+    "fullFixtureLine": 90,
+    "alwaysPostflightAndUploadPreserved": true,
+    "budgets": {
+      "activeSeconds": 600,
+      "cleanupSeconds": 60,
+      "childSeconds": 60,
+      "outputCapBytes": 8388608,
+      "source": "adopt_fixture.py:74-80"
+    },
+    "canonicalModified": false,
+    "actualInstalledVerifierRun": false
+  },
+  "preservation": {
+    "protectedInputs": 402,
+    "allUnchanged": true,
+    "postflight": "postflight.json",
+    "rootTrackersBound": false,
+    "heldScratchInspected": false,
+    "heldProcessesProbedOrSignalled": false,
+    "allHistoricalHoldsPreserved": true
+  },
+  "implementationEvidence": {
+    "rootFinal70PerModeVerified": true,
+    "allRootControlSealRowsMatch": true,
+    "baselineNoneAndStringFailuresBothModesPreserved": true,
+    "rootCampaignsTerminal": true,
+    "actualR6Original36ReadOnly": true,
+    "audit": "implementation-evidence-audit.json"
+  },
+  "rootAdoptionUnlocked": true,
+  "rootAdoptionConditions": [
+    {
+      "step": 1,
+      "requirement": "Recheck exact R8 seals and unique previous-job preimage; replace only the reviewed canonical workflow span"
+    },
+    {
+      "step": 2,
+      "requirement": "Run the installed adoption verifier on actual installed bytes under accepted bounded supervision"
+    },
+    {
+      "step": 3,
+      "requirement": "Parent/root owns prospective R8 delivery and fresh ordinary verify.yml / swift-cache-state-fixture on the adopted commit"
+    }
+  ],
+  "pendingQualification": {
+    "hostedPython3152BothDescriptorPreflights": true,
+    "actualOriginal36BothModesOnAdoptedHostedCommit": true,
+    "complete103CommandFixture": true
+  },
+  "R7DeliveryBlocked": true,
+  "R8DeliveryOwner": "parent/root",
+  "mergeAuthorizedByReview": false,
+  "hostedExecutionPerformed": false,
+  "compilerOrNativeRun": false,
+  "broaderRustNativeOrGAQualification": false,
+  "productionQualified": false,
+  "reportSHA256": "46217637c62bdefc9aa5ba0217e74c0b9c4b0b9cf507ab0653d30e1bbfe3458f",
+  "report": "REPORT.md"
+}

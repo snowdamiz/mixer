@@ -1,0 +1,665 @@
+--- /dev/null
++++ b/cache-stdin-lifetime-fix-r6/descriptor_preflight.py
+@@ -0,0 +1,93 @@
++"""Bounded, child-free DEVNULL setup on the selected interpreter, before original36."""
++import errno
++import hashlib
++import json
++import os
++from pathlib import Path
++import signal
++import subprocess
++import sys
++import tempfile
++import types
++import stdin_guard as guard
++HERE = Path(__file__).resolve().parent
++
++def no_children(event, args):
++    if event in {'subprocess.Popen','os.system','os.fork','os.forkpty','os.posix_spawn','os.kill','os.killpg','os.exec','os.spawn'} or event.startswith('socket.'):
++        raise RuntimeError('Descriptor preflight forbids process/network operations: ' + event)
++
++def require(value, message):
++    if not value:
++        raise RuntimeError(message)
++
++def main():
++    guard.write_guard(HERE)
++    sys.addaudithook(no_children)
++    evidence = HERE / 'evidence'
++    evidence.mkdir(exist_ok=True)
++    mode = 'optimized' if sys.flags.optimize else 'normal'
++    destination = Path(tempfile.mkdtemp(prefix='preflight-' + mode + '-', dir=evidence))
++    report = {'passed': False, 'mode': mode, 'python': sys.version, 'argv': sys.argv,
++              'executable': sys.executable, 'executable_sha256': hashlib.sha256(Path(sys.executable).read_bytes()).hexdigest(),
++              'stdlib': subprocess.__file__, 'stdlib_sha256': hashlib.sha256(Path(subprocess.__file__).read_bytes()).hexdigest(),
++              'guard_sha256': hashlib.sha256((HERE / 'stdin_guard.py').read_bytes()).hexdigest(),
++              'actual_get_handles': True, 'actual_get_devnull': True, 'private_methods_patched': False,
++              'real_inner_children': 0, 'timeout_seconds': 5, 'events': [], 'closed_descriptors': []}
++    active = [True]
++    def observer(event, args):
++        if active[0] and event == 'open' and args[0] == '/dev/null':
++            report['events'].append({'path': args[0], 'flags': args[2],
++                'original_code': sys._getframe(1).f_code is guard._devnull_code})
++    sys.addaudithook(observer)
++    def expired(*args):
++        raise TimeoutError('Descriptor preflight exceeded five seconds')
++    handler = signal.signal(signal.SIGALRM, expired)
++    signal.setitimer(signal.ITIMER_REAL, 5)
++    obj = object.__new__(subprocess.Popen)
++    obj._closed_child_pipe_fds = False
++    obj.pipesize = -1
++    handles = []
++    try:
++        def setup(*args, **kwargs):
++            nonlocal handles
++            handles = list(obj._get_handles(subprocess.DEVNULL, subprocess.PIPE, subprocess.PIPE))
++            require(len(handles) == 6 and handles[1] == -1, 'Unexpected selected-interpreter handle layout')
++            require(os.read(handles[0], 1) == b'', 'DEVNULL read differs')
++            require(os.write(handles[0], b'preflight') == 9, 'DEVNULL write differs')
++            for read_fd, write_fd in [(handles[2], handles[3]), (handles[4], handles[5])]:
++                require(os.write(write_fd, b'x') == 1 and os.read(read_fd, 1) == b'x', 'Pipe roundtrip differs')
++        guard.run_direct(types.SimpleNamespace(run=setup), [], HERE)
++        require(guard._stdin_scope.get() is None, 'Capability leaked into caller')
++        require(report['events'] == [{'path': '/dev/null', 'flags': os.O_RDWR | getattr(os, 'O_CLOEXEC', 0),
++                                     'original_code': True}], 'Selected-interpreter audit boundary differs')
++        report['passed'] = True
++    except BaseException as error:
++        report['error'] = repr(error)
++    finally:
++        active[0] = False
++        signal.setitimer(signal.ITIMER_REAL, 0)
++        signal.signal(signal.SIGALRM, handler)
++        # _get_handles closes partial pipe allocation itself on setup failure.
++        # Close returned handles and the cached DEVNULL exactly once.
++        for fd in sorted(set(handles + ([obj._devnull] if hasattr(obj, '_devnull') else []))):
++            if fd < 0:
++                continue
++            try:
++                os.close(fd)
++                try:
++                    os.fstat(fd)
++                except OSError as error:
++                    require(error.errno == errno.EBADF, 'Descriptor close not confirmed')
++                else:
++                    raise RuntimeError('Descriptor remains open')
++                report['closed_descriptors'].append(fd)
++            except BaseException as error:
++                report['passed'] = False
++                report.setdefault('cleanup_errors', []).append(repr(error))
++        report['timer_disarmed'] = signal.getitimer(signal.ITIMER_REAL) == (0.0, 0.0)
++        (destination / 'result.json').write_text(json.dumps(report, indent=2) + '\n')
++    print(json.dumps({'descriptor_preflight': str(destination / 'result.json'), **report}, sort_keys=True))
++    return 0 if report['passed'] and report['timer_disarmed'] else 1
++
++if __name__ == '__main__':
++    sys.exit(main())
+--- a/cache-supervision-premise-r5/inputs-before.json
++++ b/cache-stdin-lifetime-fix-r6/inputs-before.json
+@@ -1,5 +1,5 @@
+ {
+-  "revision": "0f30624df2edcd50ee7f1b069afb96c0ae263791",
++  "revision": "9300126060041015bf0b6cd4d13c63d79b879f9b",
+   "members": [
+     {
+       "path": "verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py",
+@@ -38,8 +38,8 @@
+     },
+     {
+       "path": ".github/workflows/verify.yml",
+-      "bytes": 36358,
+-      "sha256": "beb73702c2fca021f15a88dc7989d73c2863169404cc195b8988b8ece6649c96"
++      "bytes": 37417,
++      "sha256": "8bf1fd43cffa8a4b04c38e6318f1c1e3407a3426b946dc6d52d9384f52cf9f05"
+     },
+     {
+       "path": "verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py",
+--- a/cache-supervision-premise-r5/source-revision.json
++++ b/cache-stdin-lifetime-fix-r6/source-revision.json
+@@ -1,5 +1,7 @@
+ {
+   "observed_head": "9300126060041015bf0b6cd4d13c63d79b879f9b",
+-  "root_delivered_revision": "9300126060041015bf0b6cd4d13c63d79b879f9b",
+-  "recorded": "2026-11-08T04:35:54.028Z"
++  "head": "ref: refs/heads/t3/84a22cd4",
++  "gitdir": "/Users/andreyyurlov/Documents/dev/mixer/.git/worktrees/t3-84a22cd4",
++  "read_method": "direct filesystem API; no git command",
++  "recorded": "2026-11-08T05:12:20.473Z"
+ }
+--- a/cache-supervision-premise-r5/stdin_guard.py
++++ b/cache-stdin-lifetime-fix-r6/stdin_guard.py
+@@ -6,15 +6,24 @@
+ import subprocess
+ import sys
+ 
+-_stdin_scope = contextvars.ContextVar('accepted_controller_stdin', default=False)
++class _StdinCapability:
++    __slots__ = ('active',)
++
++    def __init__(self):
++        self.active = True
++
++
++_stdin_scope = contextvars.ContextVar('accepted_controller_stdin', default=None)
+ _devnull_code = subprocess.Popen._get_devnull.__code__
+ 
+ @contextlib.contextmanager
+ def accepted_stdin():
+-    token = _stdin_scope.set(True)
++    capability = _StdinCapability()
++    token = _stdin_scope.set(capability)
+     try:
+         yield
+     finally:
++        capability.active = False
+         _stdin_scope.reset(token)
+ 
+ def write_guard(root):
+@@ -25,7 +34,9 @@
+         if event == 'open' and isinstance(args[0], (str, bytes, os.PathLike)):
+             if args[2] & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND):
+                 # Only the unchanged stdlib stdin setup can consume this capability.
+-                if (_stdin_scope.get() and os.fsdecode(args[0]) == '/dev/null'
++                capability = _stdin_scope.get()
++                if (capability is not None and capability.active
++                        and os.fsdecode(args[0]) == '/dev/null'
+                         and args[2] == os.O_RDWR | getattr(os, 'O_CLOEXEC', 0)
+                         and sys._getframe(1).f_code is _devnull_code):
+                     return
+--- a/cache-supervision-premise-r5/supervise.py
++++ b/cache-stdin-lifetime-fix-r6/supervise.py
+@@ -1,4 +1,4 @@
+-"""Three one-use supervised campaigns; stop and retain on any real UNKNOWN."""
++"""Two one-use campaigns using only the accepted controller; UNKNOWN is sticky."""
+ import argparse
+ import hashlib
+ import importlib.util
+@@ -7,83 +7,98 @@
+ from pathlib import Path
+ import sys
+ import time
+-sys.dont_write_bytecode=True
+-HERE=Path(__file__).resolve().parent
+-ROOT=HERE.parents[2]
+-CONTROL=HERE.parent/'native-custody-premise/cleanup_control.py'
+-def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+-def save(p,x):p.write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+-parser=argparse.ArgumentParser();parser.add_argument('mode',choices=['premise','normal','optimized','final']);args=parser.parse_args()
+-if (HERE/'HOLD.json').exists():raise RuntimeError('Inner UNKNOWN: no retry/probe/signal')
+-if args.mode=='final':
+-    for previous in ['premise','normal']:
+-        receipt=json.loads((HERE/('campaign-'+previous)/'result.json').read_bytes())
+-        if not receipt['outer_cleanup']['allTerminalCustody']:
+-            raise RuntimeError('Prior outer custody not terminal')
+-    failure=json.loads((HERE/'premise-result-normal.json').read_bytes())
+-    if not (failure['tests']==6 and not failure['failures'] and len(failure['errors'])==1
+-            and 'can only concatenate tuple' in failure['errors'][0][1]):
+-        raise RuntimeError('Only observed pure fixture cleanup defect admits this final campaign')
+-prior={'normal':'premise','optimized':'normal'}.get(args.mode)
+-if prior:
+-    first=json.loads((HERE/('campaign-'+prior)/'result.json').read_bytes())
+-    if not first['all_passed']:
+-        if args.mode != 'normal' or not first['outer_cleanup']['allTerminalCustody']:
+-            raise RuntimeError('Prior campaign failed; no next admission')
+-        premise=json.loads((HERE/'premise-result.json').read_bytes())
+-        if not (premise['tests']==6 and not premise['failures'] and len(premise['errors'])==1
+-                and "AttributeError: 'Popen' object has no attribute 'pipesize'" in premise['errors'][0][1]):
+-            raise RuntimeError('Only the observed prelaunch fixture initialization defect may proceed to normal preflight')
+-if sha(CONTROL)!='8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df':raise RuntimeError('Controller drift')
+-seal=json.loads((HERE/'sources.json').read_bytes())
+-for row in seal['members']:
+-    if sha(HERE/row['path'])!=row['sha256']:raise RuntimeError('Sealed source drift')
+-    if row['path'].endswith('.py'):compile((HERE/row['path']).read_bytes(),str(HERE/row['path']),'exec')
+-spec=importlib.util.spec_from_file_location('accepted_outer',CONTROL)
+-module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+-destination=HERE/('campaign-'+args.mode);destination.mkdir()
+-scratch=destination/'scratch';scratch.mkdir()
+-start=time.monotonic()
+-active=35 if args.mode=='premise' else 120
+-overall=45 if args.mode=='premise' else 180
+-cleanup_seconds=overall-active
+-env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',TMPDIR=str(scratch),TMP=str(scratch),TEMP=str(scratch))
+-controller=module.Commands(destination,env,deadline=start+overall,output_bytes=8*1024*1024,total_output_bytes=64*1024*1024,cleanup_seconds=cleanup_seconds)
+-flags=['-O'] if args.mode=='optimized' else []
+-fakes=('fakes',[str(HERE/'fake_replay.py'),'fake-'+args.mode,sha(HERE/'sources.json'),seal['tree_sha256']])
+-commands=([('stdin-premise',[str(HERE/'test_stdin_premise.py')]),('baseline',[str(HERE/'baseline.py')]),fakes] if args.mode=='premise' else [('stdin-guard',[str(HERE/'test_stdin_premise.py')]),('baseline',[str(HERE/'baseline.py')]),fakes,('original36',[str(HERE/'test_original.py'),'-v'])])
+-if args.mode=='final':
+-    commands=[]
+-    for mode in ['normal','optimized']:
+-        mode_flags=['-O'] if mode=='optimized' else []
+-        commands.extend([(mode+'-stdin-guard',mode_flags+[str(HERE/'test_stdin_premise.py')]),
+-                         (mode+'-baseline',mode_flags+[str(HERE/'baseline.py')]),
+-                         (mode+'-fakes',mode_flags+[str(HERE/'fake_replay.py'),'final-fake-'+mode,sha(HERE/'sources.json'),seal['tree_sha256']]),
+-                         (mode+'-original36',mode_flags+[str(HERE/'test_original.py'),'-v'])])
+-save(destination/'host.json',{'argv':sys.argv,'python':sys.version,'executable':sys.executable,
+- 'executable_sha256':sha(Path(sys.executable).resolve()),'uname':list(os.uname()),
+- 'revision':json.loads((HERE/'source-revision.json').read_bytes()),'source_seal_sha256':sha(HERE/'sources.json'),
+- 'source_tree_sha256':seal['tree_sha256'],'controller_sha256':sha(CONTROL),
+- 'active_seconds':active,'overall_seconds':overall,'output_cap_bytes':8*1024*1024,'aggregate_cap_bytes':64*1024*1024})
+-results=[]
+-for label,arguments in commands:
+-    argv=[sys.executable,'-B',*flags,*arguments]
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++ROOT = HERE.parents[2]
++CONTROL = HERE.parent / 'native-custody-premise/cleanup_control.py'
++CONTROL_SHA = '8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df'
++def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
++def save(p, x): p.write_text(json.dumps(x, indent=2, sort_keys=True) + '\n')
++parser = argparse.ArgumentParser()
++parser.add_argument('campaign', choices=['baseline', 'final'])
++args = parser.parse_args()
++if (HERE / 'HOLD.json').exists():
++    raise RuntimeError('Inner or outer UNKNOWN: no further process operations')
++if sha(CONTROL) != CONTROL_SHA:
++    raise RuntimeError('Accepted controller changed')
++if args.campaign == 'baseline':
++    manifest = json.loads((HERE / 'baseline-sources.json').read_bytes())
++    commands = [(mode + '-R5-baseline', flags + [str(HERE / 'baseline_context.py')])
++                for mode, flags in [('normal', []), ('optimized', ['-O'])]]
++    overall = 60
++else:
++    prior = json.loads((HERE / 'campaign-baseline/result.json').read_bytes())
++    if not prior['all_passed'] or not prior['outer_cleanup']['allTerminalCustody']:
++        raise RuntimeError('Baseline did not complete with expected counterexample and custody')
++    manifest = json.loads((HERE / 'sources.json').read_bytes())
++    commands = []
++    # Both interpreter modes pass the pure guards before either real suite starts.
++    for mode, flags in [('normal', []), ('optimized', ['-O'])]:
++        commands.extend([
++            (mode + '-descriptor-preflight', flags + [str(HERE / 'descriptor_preflight.py')]),
++            (mode + '-scope-controls', flags + [str(HERE / 'test_scope.py')]),
++            (mode + '-prior-guards', flags + [str(HERE / 'test_stdin_premise.py')]),
++            (mode + '-fakes', flags + [str(HERE / 'fake_replay.py'), 'fake-' + mode,
++                                      sha(HERE / 'sources.json'), manifest['tree_sha256']])])
++    for mode, flags in [('normal', []), ('optimized', ['-O'])]:
++        commands.append((mode + '-original36', flags + [str(HERE / 'test_original.py'), '-v']))
++    overall = 180
++for row in manifest['members']:
++    if sha(HERE / row['path']) != row['sha256']:
++        raise RuntimeError('Sealed source drift: ' + row['path'])
++    if row['path'].endswith('.py'):
++        compile((HERE / row['path']).read_bytes(), str(HERE / row['path']), 'exec')
++# Creating this directory is the one-use claim. Never reuse an output.
++destination = HERE / ('campaign-' + args.campaign)
++destination.mkdir()
++scratch = destination / 'scratch'
++scratch.mkdir()
++for row in manifest['members']:
++    target = destination / 'executed-sources' / row['path']
++    target.parent.mkdir(parents=True, exist_ok=True)
++    target.write_bytes((HERE / row['path']).read_bytes())
++spec = importlib.util.spec_from_file_location('accepted_outer', CONTROL)
++control = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(control)
++start = time.monotonic()
++active = overall - 10
++env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', TMPDIR=str(scratch), TMP=str(scratch), TEMP=str(scratch))
++controller = control.Commands(destination, env, deadline=start+overall,
++                              output_bytes=8*1024*1024, total_output_bytes=64*1024*1024, cleanup_seconds=10)
++save(destination / 'host.json', {
++    'argv': sys.argv, 'python': sys.version, 'executable': sys.executable,
++    'executable_sha256': sha(Path(sys.executable).resolve()), 'uname': list(os.uname()),
++    'revision': json.loads((HERE / 'source-revision.json').read_bytes()),
++    'manifest': manifest, 'controller_sha256': sha(CONTROL),
++    'active_seconds': active, 'overall_seconds': overall, 'cleanup_seconds': 10,
++    'output_cap_bytes': 8*1024*1024, 'aggregate_cap_bytes': 64*1024*1024,
++    'planned_total_campaign_bound_seconds': 240, 'scope': 'Python controls only; no compiler/native/network'})
++results = []
++for label, arguments in commands:
++    argv = [sys.executable, '-B', *arguments]
+     try:
+-        controller.run(label,argv,ROOT,timeout=max(0,active-(time.monotonic()-start)),allowed=(0,1))
+-        results.append({'label':label,'exit':controller.records[-1]['exit_code'],'argv':argv})
++        controller.run(label, argv, ROOT, timeout=max(0, active-(time.monotonic()-start)), allowed=(0,1))
++        results.append({'label': label, 'exit': controller.records[-1]['exit_code'], 'argv': argv})
+     except BaseException as error:
+-        results.append({'label':label,'error':repr(error),'argv':argv})
+-    if controller.hold or (HERE/'HOLD.json').exists():
+-        hold={'outer':controller.hold,'outer_records':controller.records,'outer_scratch':str(scratch),'inner_hold_record':'HOLD.json','no_further_operations':True}
+-        if controller.hold:save(HERE/'HOLD.json',hold)
+-        save(destination/'result.json',{'all_passed':False,'hold':hold,'results':results})
+-        print(json.dumps({'UNKNOWN':True,'mode':args.mode,'results':results,'hold':'HOLD.json'}));sys.exit(2)
+-    if results[-1].get('exit')!=0:break
+-cleanup=controller.cleanup(scratch)
++        results.append({'label': label, 'error': repr(error), 'argv': argv})
++    if controller.hold or (HERE / 'HOLD.json').exists():
++        hold = {'outer': controller.hold, 'outer_records': controller.records,
++                'outer_scratch': str(scratch), 'inner_hold_record': 'HOLD.json', 'no_further_operations': True}
++        if controller.hold and not (HERE / 'HOLD.json').exists(): save(HERE / 'HOLD.json', hold)
++        save(destination / 'result.json', {'all_passed': False, 'hold': hold, 'results': results})
++        print(json.dumps({'UNKNOWN': True, 'campaign': args.campaign, 'hold': 'HOLD.json'}))
++        sys.exit(2)
++    if results[-1].get('exit') != 0:
++        break
++cleanup = controller.cleanup(scratch)
+ if controller.hold:
+-    save(HERE/'HOLD.json',{'outer':controller.hold,'records':controller.records,'scratch':str(scratch)})
+-    print(json.dumps({'UNKNOWN':True,'mode':args.mode,'hold':'HOLD.json'}));sys.exit(2)
+-unchanged=all(sha(HERE/row['path'])==row['sha256']for row in seal['members'])
+-passed=len(results)==len(commands)and all(r.get('exit')==0 for r in results)and cleanup['allTerminalCustody']and unchanged
+-result={'mode':args.mode,'results':results,'all_passed':passed,'outer_cleanup':cleanup,'source_unchanged':unchanged,'elapsed_seconds':time.monotonic()-start}
+-save(destination/'result.json',result);print(json.dumps(result));sys.exit(0 if passed else 1)
++    save(HERE / 'HOLD.json', {'outer': controller.hold, 'records': controller.records, 'scratch': str(scratch)})
++    print(json.dumps({'UNKNOWN': True, 'campaign': args.campaign, 'hold': 'HOLD.json'}))
++    sys.exit(2)
++unchanged = all(sha(HERE / row['path']) == row['sha256'] for row in manifest['members'])
++passed = (len(results) == len(commands) and all(r.get('exit') == 0 for r in results)
++          and cleanup['allTerminalCustody'] and cleanup['scratchRemoved'] and unchanged)
++save(destination / 'result.json', {'all_passed': passed, 'results': results,
++    'outer_cleanup': cleanup, 'unchanged': unchanged, 'elapsed_seconds': time.monotonic()-start})
++print(json.dumps({'campaign': args.campaign, 'all_passed': passed, 'results': results, 'outer_cleanup': cleanup}))
++sys.exit(0 if passed else 1)
+--- /dev/null
++++ b/cache-stdin-lifetime-fix-r6/test_scope.py
+@@ -0,0 +1,156 @@
++"""Actual stdlib descriptor checks for revocation, nesting, and unchanged boundaries."""
++import contextvars
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import types
++import unittest
++import stdin_guard as guard
++from descriptor_preflight import no_children
++HERE = Path(__file__).resolve().parent
++MODE = 'optimized' if sys.flags.optimize else 'normal'
++OUT = HERE / ('scope-' + MODE)
++OUT.mkdir()
++sys.addaudithook(no_children)
++guard.write_guard(HERE)
++observations = []
++
++class ScopeControls(unittest.TestCase):
++    def devnull(self, method=None):
++        obj = object.__new__(subprocess.Popen)
++        try:
++            fd = (method or subprocess.Popen._get_devnull)(obj)
++            self.assertEqual(os.read(fd, 1), b'')
++        finally:
++            if hasattr(obj, '_devnull'):
++                os.close(obj._devnull)
++
++    def denied(self, context):
++        with self.assertRaisesRegex(RuntimeError, 'Write outside owned correction'):
++            context.run(self.devnull)
++
++    def call(self, fn):
++        return guard.run_direct(types.SimpleNamespace(run=fn), [], HERE)
++
++    def test_copied_context_cannot_outlive_run_direct(self):
++        captured = []
++        def run(*args, **kwargs):
++            captured.append(contextvars.copy_context())
++            captured[0].run(self.devnull)
++        self.call(run)
++        self.assertIsNone(guard._stdin_scope.get())
++        self.assertFalse(captured[0].get(guard._stdin_scope).active)
++        self.denied(captured[0])
++        observations.append({'case': self._testMethodName, 'caller_active': False,
++                             'captured_active': False, 'devnull_open_after_run_direct_allowed': False})
++
++    def test_nested_inner_exit_keeps_outer_active_then_revokes_both(self):
++        captured = {}
++        def inner(*args, **kwargs):
++            captured['inner'] = contextvars.copy_context()
++            self.devnull()
++        def outer(*args, **kwargs):
++            captured['outer'] = contextvars.copy_context()
++            outer_capability = guard._stdin_scope.get()
++            self.call(inner)
++            self.assertIs(guard._stdin_scope.get(), outer_capability)
++            self.assertTrue(outer_capability.active)
++            self.denied(captured['inner'])
++            captured['outer'].run(self.devnull)
++            self.devnull()
++            self.denied(contextvars.Context())
++        self.call(outer)
++        self.assertIsNot(captured['inner'].get(guard._stdin_scope), captured['outer'].get(guard._stdin_scope))
++        for context in captured.values():
++            self.assertFalse(context.get(guard._stdin_scope).active)
++            self.denied(context)
++        observations.append({'case': self._testMethodName, 'inner_revoked_while_outer_active': True,
++                             'outer_admitted_after_inner_exit': True, 'both_denied_after_outer_exit': True})
++
++    def test_exception_exit_revokes_copied_contexts(self):
++        for error in [ValueError('synthetic'), KeyboardInterrupt('synthetic'), SystemExit('synthetic')]:
++            with self.subTest(error=type(error).__name__):
++                captured = []
++                def fail(*args, **kwargs):
++                    captured.append(contextvars.copy_context())
++                    raise error
++                with self.assertRaises(type(error)) as raised:
++                    self.call(fail)
++                self.assertIs(raised.exception, error)
++                self.assertIsNone(guard._stdin_scope.get())
++                self.denied(captured[0])
++                self.assertFalse(captured[0].get(guard._stdin_scope).active)
++
++    def test_nested_exception_preserves_outer_and_revokes_inner(self):
++        captured = []
++        def inner(*args, **kwargs):
++            captured.append(contextvars.copy_context())
++            raise ValueError('synthetic inner failure')
++        def outer(*args, **kwargs):
++            captured.append(contextvars.copy_context())
++            with self.assertRaises(ValueError):
++                self.call(inner)
++            self.denied(captured[1])
++            captured[0].run(self.devnull)
++            self.devnull()
++        self.call(outer)
++        for context in captured:
++            self.denied(context)
++
++    def test_fresh_sibling_denied_and_old_copies_never_revived(self):
++        captured = []
++        self.call(lambda *a, **k: captured.append(contextvars.copy_context()))
++        copied_again = captured[0].copy()
++        def next_entry(*args, **kwargs):
++            self.denied(contextvars.Context())
++            self.denied(captured[0])
++            self.denied(copied_again)
++            self.devnull()
++        self.call(next_entry)
++        for context in [captured[0], copied_again, contextvars.copy_context()]:
++            self.denied(context)
++
++    def test_exact_original_code_path_and_flags(self):
++        original = subprocess.Popen._get_devnull
++        variants = [('/dev/null', os.O_WRONLY), ('/dev/null', os.O_RDWR | os.O_TRUNC),
++                    ('/dev/null', os.O_RDWR | os.O_CREAT), ('/dev/null', os.O_RDWR | os.O_APPEND),
++                    ('/dev/./null', os.O_RDWR), (str(HERE.parent / 'forbidden-r6'), os.O_RDWR | os.O_CREAT)]
++        def check(*args, **kwargs):
++            self.devnull()
++            for path, flags in variants:
++                with self.subTest(path=path, flags=flags):
++                    globals_copy = dict(original.__globals__, os=types.SimpleNamespace(devnull=path, O_RDWR=flags, open=os.open))
++                    method = types.FunctionType(original.__code__, globals_copy)
++                    self.assertIs(method.__code__, guard._devnull_code)
++                    with self.assertRaisesRegex(RuntimeError, 'Write outside owned correction'):
++                        self.devnull(method)
++        self.call(check)
++        self.assertIs(subprocess.Popen._get_devnull, original)
++
++    def test_impostor_code_and_direct_open_refused(self):
++        space = {'os': os}
++        exec(compile('def _get_devnull(obj): return os.open(os.devnull, os.O_RDWR)', subprocess.__file__, 'exec'), space)
++        def check(*args, **kwargs):
++            with self.assertRaisesRegex(RuntimeError, 'Write outside owned correction'):
++                self.devnull(space['_get_devnull'])
++            with self.assertRaisesRegex(RuntimeError, 'Write outside owned correction'):
++                os.open('/dev/null', os.O_RDWR)
++        self.call(check)
++
++    def test_descriptor_failure_revokes_capability(self):
++        captured = []
++        def fail(*args, **kwargs):
++            captured.append(contextvars.copy_context())
++            os.open('/dev/null', os.O_RDWR)  # Direct open must remain forbidden.
++        with self.assertRaisesRegex(RuntimeError, 'Write outside owned correction'):
++            self.call(fail)
++        self.denied(captured[0])
++        self.assertIsNone(guard._stdin_scope.get())
++
++result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(ScopeControls))
++(OUT / 'result.json').write_text(json.dumps({'tests': result.testsRun, 'successful': result.wasSuccessful(),
++    'failures': [(str(t),e) for t,e in result.failures], 'errors': [(str(t),e) for t,e in result.errors],
++    'observations': observations, 'real_inner_children': 0, 'stdlib_modified': False}, indent=2) + '\n')
++sys.exit(0 if result.wasSuccessful() else 1)
+--- a/cache-supervision-premise-r5/workflow-job.yml
++++ b/cache-stdin-lifetime-fix-r6/workflow-job.yml
+@@ -18,7 +18,7 @@
+             /verification/plan-continuation-2026-11-07/cache-fix/
+             /verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+             /verification/plan-continuation-2026-11-07/cache-custody-fix-r3/
+-            /verification/plan-continuation-2026-11-07/cache-supervision-premise-r5/
++            /verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/
+             /verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
+             /.github/workflows/verify.yml
+       - name: Bind shared fixture adoption and materialize the thin overlay
+@@ -33,10 +33,23 @@
+             git rev-parse HEAD HEAD^{tree}
+             python3 --version
+             uname -srm
+-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-supervision-premise-r5/adopt_fixture.py" verify --workflow-installed
++            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/adopt_fixture.py" verify --workflow-installed
+             python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
+           } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
+             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
++      - name: Pure descriptor preflight on selected Python in both modes
++        timeout-minutes: 1
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_STDIN_DIR="$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6"
++          mkdir -p "$MIXER_STDIN_DIR/logs"
++          python3 -B "$MIXER_STDIN_DIR/descriptor_preflight.py" \
++            > "$MIXER_STDIN_DIR/logs/descriptor-normal.stdout" \
++            2> "$MIXER_STDIN_DIR/logs/descriptor-normal.stderr"
++          python3 -B -O "$MIXER_STDIN_DIR/descriptor_preflight.py" \
++            > "$MIXER_STDIN_DIR/logs/descriptor-optimized.stdout" \
++            2> "$MIXER_STDIN_DIR/logs/descriptor-optimized.stderr"
+       - name: Shared fixture runner, materializer and adoption focused controls
+         timeout-minutes: 3
+         shell: bash
+@@ -50,10 +63,10 @@
+           python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-supervision-premise-r5/test_original.py" -v \
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/test_original.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
+-          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-supervision-premise-r5/test_original.py" -v \
++          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/test_original.py" -v \
+             > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stdout" \
+             2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stderr"
+           python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
+@@ -74,7 +87,7 @@
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           {
+             MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-supervision-premise-r5/adopt_fixture.py" run \
++            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/adopt_fixture.py" run \
+               --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
+               --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+           } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
+@@ -87,7 +100,7 @@
+           set -euo pipefail
+           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+           mkdir -p "$MIXER_ADOPTION_DIR/logs"
+-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-supervision-premise-r5/adopt_fixture.py" verify --workflow-installed \
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/adopt_fixture.py" verify --workflow-installed \
+             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
+             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
+       - name: Preserve complete shared fixture evidence and adoption proof
+@@ -108,6 +121,6 @@
+             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-fix/
+             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+-            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-supervision-premise-r5/
++            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/
+             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
+             ${{ github.workspace }}/.github/workflows/verify.yml
+--- a/cache-supervision-premise-r5/sources.json
++++ b/cache-stdin-lifetime-fix-r6/sources.json
+@@ -1,5 +1,5 @@
+ {
+-  "member_count": 18,
++  "member_count": 20,
+   "members": [
+     {
+       "path": "adopt_fixture.py",
+@@ -22,6 +22,11 @@
+       "sha256": "f1766fb3bd025fff5ea5a4c5c0b71932a468e505588cedd064bcc70f63f9d745"
+     },
+     {
++      "path": "descriptor_preflight.py",
++      "bytes": 4716,
++      "sha256": "e6ca7b8483e75b6dfe260dbc3ac4253fd57058e23d0857aadcb6306161ea5132"
++    },
++    {
+       "path": "fake_replay.py",
+       "bytes": 7622,
+       "sha256": "bebe9430ad5b05560b8e618b18a95b9294e26336990c07c25cdecf0f89646ed5"
+@@ -29,7 +34,7 @@
+     {
+       "path": "inputs-before.json",
+       "bytes": 2610,
+-      "sha256": "93467f68e6f698dcdc7b02c496d29234feaf2569d093c065ff3b35c61fedc28b"
++      "sha256": "00f3d91912266ac4cfc2a04518f49810b1c34e9fd85f5498d3449917c242f964"
+     },
+     {
+       "path": "original-commands.py",
+@@ -58,18 +63,18 @@
+     },
+     {
+       "path": "source-revision.json",
+-      "bytes": 181,
+-      "sha256": "39ec8ad9d4f896cf0290f1dd1d82ad66db61033ceeea91ca877bc67136287645"
++      "bytes": 289,
++      "sha256": "025e373cc3f64fbf8e896584c02671b298e45bba757a77df993c531bb17e6cba"
+     },
+     {
+       "path": "stdin_guard.py",
+-      "bytes": 1934,
+-      "sha256": "1feffbb14910048211171e8f3aca256f54c069c7490fba198071389f3884bce8"
++      "bytes": 2213,
++      "sha256": "3a342652f1903233a1e77a4752f0017c985094386ee59482dd69dac621a7bdb3"
+     },
+     {
+       "path": "supervise.py",
+-      "bytes": 6223,
+-      "sha256": "66dbfc4d7482dfb1610f8cf0cee520e33510620ac73a55089c60917c56d0ba24"
++      "bytes": 5970,
++      "sha256": "4094b19485431129683b988b49decbed75fa6b5430986b60af1dba9af427783e"
+     },
+     {
+       "path": "test_fakes.py",
+@@ -82,15 +87,20 @@
+       "sha256": "9c82168832d97d006a7c99c084e8a5973a392a66c5e59ad388804a503a2ce77b"
+     },
+     {
++      "path": "test_scope.py",
++      "bytes": 7294,
++      "sha256": "46b33cfad08ecc46f765410a039bffeeb43452630a465ccf49cbf1d86091c69a"
++    },
++    {
+       "path": "test_stdin_premise.py",
+       "bytes": 3913,
+       "sha256": "aa31eb7efebd4bfba00b25234cc05184b34998046e3994999e7570a569e2e24c"
+     },
+     {
+       "path": "workflow-job.yml",
+-      "bytes": 7617,
+-      "sha256": "950f3ba6c1504eb0f88f81b538caf534ff0e05559a6e4bc405066f9b92c8d35e"
++      "bytes": 8331,
++      "sha256": "a07dfa2f5789cad8f9ac88bca174df2cad2e74e29a417a1107eb5845fc615fd2"
+     }
+   ],
+-  "tree_sha256": "c0451dbee17e5998edd3d589862018a3644b9cc2894a758c0c2a29a508eeec8a"
++  "tree_sha256": "6fa03d58aaf2c34bb3586e1d666b521b4ae9a38e6649a35fd03a975f88aee726"
+ }

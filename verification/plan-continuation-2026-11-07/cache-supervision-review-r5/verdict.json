@@ -1,0 +1,160 @@
+{
+  "verdict": "REQUEST_CHANGES",
+  "scope": "Exact R5 DEVNULL lifetime contract; production runner and retained original36 evidence reviewed, not compiler/runtime/GA qualification",
+  "blockers": [
+    {
+      "priority": "P2",
+      "title": "Copied Context keeps DEVNULL allowance after run_direct exits",
+      "source": "verification/plan-continuation-2026-11-07/cache-supervision-premise-r5/stdin_guard.py",
+      "lines": [
+        [
+          9,
+          18
+        ],
+        [
+          28,
+          31
+        ],
+        [
+          46,
+          48
+        ]
+      ],
+      "source_sha256": "1feffbb14910048211171e8f3aca256f54c069c7490fba198071389f3884bce8",
+      "normal_evidence": "evidence-normal/copied-context.json",
+      "optimized_evidence": "evidence-optimized/copied-context.json",
+      "scope_limit": "No arbitrary write/network escape shown; current synchronous accepted controller does not copy contexts"
+    }
+  ],
+  "candidate": {
+    "sources_sha256": "5e38bdec14c6e00a4b9361a0d91f9e1df54d62d92157bcf03afa5fb347d47f08",
+    "tree_sha256": "c0451dbee17e5998edd3d589862018a3644b9cc2894a758c0c2a29a508eeec8a",
+    "commands_sha256": "f1766fb3bd025fff5ea5a4c5c0b71932a468e505588cedd064bcc70f63f9d745",
+    "workflow_sha256": "950f3ba6c1504eb0f88f81b538caf534ff0e05559a6e4bc405066f9b92c8d35e",
+    "all_inputs_unchanged": true
+  },
+  "executed": [
+    {
+      "mode": "normal",
+      "tests": 41,
+      "passed": 38,
+      "failures": [
+        "test_outside_writes_refuse_without_scope (retained_stdin_tests.Controls.test_outside_writes_refuse_without_scope)",
+        "test_scoped_actual_controller_stdin_path (retained_stdin_tests.Controls.test_scoped_actual_controller_stdin_path)",
+        "test_copied_context_cannot_outlive_run_direct (__main__.Independent.test_copied_context_cannot_outlive_run_direct)"
+      ],
+      "errors": [],
+      "elapsed_seconds": 2.559010250028223,
+      "commands": [
+        {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-supervision-review-r5/review.py",
+            "normal",
+            "5e38bdec14c6e00a4b9361a0d91f9e1df54d62d92157bcf03afa5fb347d47f08",
+            "c0451dbee17e5998edd3d589862018a3644b9cc2894a758c0c2a29a508eeec8a"
+          ],
+          "pid": 15862,
+          "pgid": 15862,
+          "exit": 1,
+          "custody": true,
+          "signals": [],
+          "cleanup_errors": [],
+          "output_bytes": 12042,
+          "independent_log_sum": 12042,
+          "stream_hashes": [
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "9ca9775bc8b148678d180390aabe0a5e78caf49befb842bb55e62129a5f4e73c"
+          ],
+          "review_sha256": "fc99545fbed7735f93079b9a5c9a9e97918791137a81dba383e5754578769175"
+        }
+      ],
+      "cleanup": {
+        "aggregateBytes": 12042,
+        "aggregateLimit": 8388608,
+        "allTerminalCustody": true,
+        "hold": null,
+        "scratchRemoved": true
+      }
+    },
+    {
+      "mode": "optimized",
+      "tests": 41,
+      "passed": 40,
+      "failures": [
+        "test_copied_context_cannot_outlive_run_direct (__main__.Independent.test_copied_context_cannot_outlive_run_direct)"
+      ],
+      "errors": [],
+      "elapsed_seconds": 2.6245387090020813,
+      "commands": [
+        {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "-O",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/cache-supervision-review-r5/review.py",
+            "optimized",
+            "5e38bdec14c6e00a4b9361a0d91f9e1df54d62d92157bcf03afa5fb347d47f08",
+            "c0451dbee17e5998edd3d589862018a3644b9cc2894a758c0c2a29a508eeec8a"
+          ],
+          "pid": 16269,
+          "pgid": 16269,
+          "exit": 1,
+          "custody": true,
+          "signals": [],
+          "cleanup_errors": [],
+          "output_bytes": 9432,
+          "independent_log_sum": 9432,
+          "stream_hashes": [
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "4101dbeddcf2d0ac917ea5e5e19bb653ba693805f7b8f03792b3f2b08b73c9b5"
+          ],
+          "review_sha256": "be427c9ff26987602f014e4c9973fef888b2f5722cc900fa1804f1e87cbd7d5b"
+        }
+      ],
+      "cleanup": {
+        "aggregateBytes": 9432,
+        "aggregateLimit": 8388608,
+        "allTerminalCustody": true,
+        "hold": null,
+        "scratchRemoved": true
+      }
+    }
+  ],
+  "retained_original36": {
+    "normal": 36,
+    "optimized": 36,
+    "rerun_by_reviewer": 0,
+    "successful": true,
+    "body_preservation": true,
+    "all_spawned_inner_terminal": true,
+    "direct_control_terminal": true,
+    "outer_terminal": 8,
+    "verified_output_bytes": 34892,
+    "evidence": "retained-evidence-audit.json"
+  },
+  "limits": {
+    "campaigns_used": 2,
+    "campaigns_max": 2,
+    "overall_each_seconds": 120,
+    "total_max_seconds": 300,
+    "observed_total_seconds": 5.183548959030304,
+    "each_active_seconds": 115,
+    "each_cleanup_seconds": 5,
+    "each_command_output_bytes": 8388608,
+    "each_campaign_aggregate_output_bytes": 8388608,
+    "fixture_commands": 103,
+    "fixture_active_seconds": 600,
+    "fixture_cleanup_seconds": 60,
+    "fixture_child_seconds": 60,
+    "fixture_per_stream_bytes": 8388608
+  },
+  "reviewer_failures_preserved": "reviewer-failure.json",
+  "new_real_unknown": 0,
+  "historical_holds_released": false,
+  "adoption_unlocked": false,
+  "root_recipe": "ROOT_RECIPE.md",
+  "source_line_hashes": "source-lines.json",
+  "hosted_python_portability": "Not qualified; local3.14.8, archived hosted3.15.2; private boundary must be checked on selected hosted interpreter"
+}

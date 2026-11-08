@@ -1,0 +1,15 @@
+[
+  {
+    "path": "descriptor_preflight.py",
+    "before": "da60ab642ed1c5053f11ff96d00612ce934976b78420356f6b8d94c2e0c6ad27",
+    "old": "        for fd in sorted(set(handles + ([obj._devnull] if hasattr(obj, '_devnull') else []))):\n            if fd < 0:\n                continue\n",
+    "new": "        cleanup_descriptors = {fd for fd in handles + [getattr(obj, '_devnull', None)]\n                               if type(fd) is int and fd >= 0}\n        for fd in sorted(cleanup_descriptors):\n"
+  },
+  {
+    "path": "workflow-job.yml",
+    "before": "70d54d8294410c7aac230f48d4c550a4db0361f274c263d445c0802a8677bc5c",
+    "old": "cache-descriptor-layout-fix-r7",
+    "new": "cache-refusal-cleanup-r8",
+    "all": true
+  }
+]

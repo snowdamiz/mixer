@@ -1,0 +1,670 @@
+diff --git a/descriptor_preflight.py b/descriptor_preflight.py
+--- a/descriptor_preflight.py
++++ b/descriptor_preflight.py
+@@ -1,93 +1,101 @@
+-"""Bounded, child-free DEVNULL setup on the selected interpreter, before original36."""
+-import errno
+-import hashlib
+-import json
+-import os
+-from pathlib import Path
+-import signal
+-import subprocess
+-import sys
+-import tempfile
+-import types
+-import stdin_guard as guard
+-HERE = Path(__file__).resolve().parent
+-
+-def no_children(event, args):
+-    if event in {'subprocess.Popen','os.system','os.fork','os.forkpty','os.posix_spawn','os.kill','os.killpg','os.exec','os.spawn'} or event.startswith('socket.'):
+-        raise RuntimeError('Descriptor preflight forbids process/network operations: ' + event)
+-
+-def require(value, message):
+-    if not value:
+-        raise RuntimeError(message)
+-
+-def main():
+-    guard.write_guard(HERE)
+-    sys.addaudithook(no_children)
+-    evidence = HERE / 'evidence'
+-    evidence.mkdir(exist_ok=True)
+-    mode = 'optimized' if sys.flags.optimize else 'normal'
+-    destination = Path(tempfile.mkdtemp(prefix='preflight-' + mode + '-', dir=evidence))
+-    report = {'passed': False, 'mode': mode, 'python': sys.version, 'argv': sys.argv,
+-              'executable': sys.executable, 'executable_sha256': hashlib.sha256(Path(sys.executable).read_bytes()).hexdigest(),
+-              'stdlib': subprocess.__file__, 'stdlib_sha256': hashlib.sha256(Path(subprocess.__file__).read_bytes()).hexdigest(),
+-              'guard_sha256': hashlib.sha256((HERE / 'stdin_guard.py').read_bytes()).hexdigest(),
+-              'actual_get_handles': True, 'actual_get_devnull': True, 'private_methods_patched': False,
+-              'real_inner_children': 0, 'timeout_seconds': 5, 'events': [], 'closed_descriptors': []}
+-    active = [True]
+-    def observer(event, args):
+-        if active[0] and event == 'open' and args[0] == '/dev/null':
+-            report['events'].append({'path': args[0], 'flags': args[2],
+-                'original_code': sys._getframe(1).f_code is guard._devnull_code})
+-    sys.addaudithook(observer)
+-    def expired(*args):
+-        raise TimeoutError('Descriptor preflight exceeded five seconds')
+-    handler = signal.signal(signal.SIGALRM, expired)
+-    signal.setitimer(signal.ITIMER_REAL, 5)
+-    obj = object.__new__(subprocess.Popen)
+-    obj._closed_child_pipe_fds = False
+-    obj.pipesize = -1
+-    handles = []
+-    try:
+-        def setup(*args, **kwargs):
+-            nonlocal handles
+-            handles = list(obj._get_handles(subprocess.DEVNULL, subprocess.PIPE, subprocess.PIPE))
+-            require(len(handles) == 6 and handles[1] == -1, 'Unexpected selected-interpreter handle layout')
+-            require(os.read(handles[0], 1) == b'', 'DEVNULL read differs')
+-            require(os.write(handles[0], b'preflight') == 9, 'DEVNULL write differs')
+-            for read_fd, write_fd in [(handles[2], handles[3]), (handles[4], handles[5])]:
+-                require(os.write(write_fd, b'x') == 1 and os.read(read_fd, 1) == b'x', 'Pipe roundtrip differs')
+-        guard.run_direct(types.SimpleNamespace(run=setup), [], HERE)
+-        require(guard._stdin_scope.get() is None, 'Capability leaked into caller')
+-        require(report['events'] == [{'path': '/dev/null', 'flags': os.O_RDWR | getattr(os, 'O_CLOEXEC', 0),
+-                                     'original_code': True}], 'Selected-interpreter audit boundary differs')
+-        report['passed'] = True
+-    except BaseException as error:
+-        report['error'] = repr(error)
+-    finally:
+-        active[0] = False
+-        signal.setitimer(signal.ITIMER_REAL, 0)
+-        signal.signal(signal.SIGALRM, handler)
+-        # _get_handles closes partial pipe allocation itself on setup failure.
+-        # Close returned handles and the cached DEVNULL exactly once.
+-        for fd in sorted(set(handles + ([obj._devnull] if hasattr(obj, '_devnull') else []))):
+-            if fd < 0:
+-                continue
+-            try:
+-                os.close(fd)
+-                try:
+-                    os.fstat(fd)
+-                except OSError as error:
+-                    require(error.errno == errno.EBADF, 'Descriptor close not confirmed')
+-                else:
+-                    raise RuntimeError('Descriptor remains open')
+-                report['closed_descriptors'].append(fd)
+-            except BaseException as error:
+-                report['passed'] = False
+-                report.setdefault('cleanup_errors', []).append(repr(error))
+-        report['timer_disarmed'] = signal.getitimer(signal.ITIMER_REAL) == (0.0, 0.0)
+-        (destination / 'result.json').write_text(json.dumps(report, indent=2) + '\n')
+-    print(json.dumps({'descriptor_preflight': str(destination / 'result.json'), **report}, sort_keys=True))
+-    return 0 if report['passed'] and report['timer_disarmed'] else 1
+-
+-if __name__ == '__main__':
+-    sys.exit(main())
++"""Bounded, child-free DEVNULL setup on the selected interpreter, before original36."""
++import errno
++import hashlib
++import json
++import os
++from pathlib import Path
++import signal
++import subprocess
++import sys
++import tempfile
++import types
++import stdin_guard as guard
++HERE = Path(__file__).resolve().parent
++
++def no_children(event, args):
++    if event in {'subprocess.Popen','os.system','os.fork','os.forkpty','os.posix_spawn','os.kill','os.killpg','os.exec','os.spawn'} or event.startswith('socket.'):
++        raise RuntimeError('Descriptor preflight forbids process/network operations: ' + event)
++
++def require(value, message):
++    if not value:
++        raise RuntimeError(message)
++
++def main():
++    guard.write_guard(HERE)
++    sys.addaudithook(no_children)
++    evidence = HERE / 'evidence'
++    evidence.mkdir(exist_ok=True)
++    mode = 'optimized' if sys.flags.optimize else 'normal'
++    destination = Path(tempfile.mkdtemp(prefix='preflight-' + mode + '-', dir=evidence))
++    report = {'passed': False, 'mode': mode, 'python': sys.version, 'argv': sys.argv,
++              'executable': sys.executable, 'executable_sha256': hashlib.sha256(Path(sys.executable).read_bytes()).hexdigest(),
++              'stdlib': subprocess.__file__, 'stdlib_sha256': hashlib.sha256(Path(subprocess.__file__).read_bytes()).hexdigest(),
++              'guard_sha256': hashlib.sha256((HERE / 'stdin_guard.py').read_bytes()).hexdigest(),
++              'actual_get_handles': True, 'actual_get_devnull': True, 'private_methods_patched': False,
++              'real_inner_children': 0, 'timeout_seconds': 5, 'events': [], 'closed_descriptors': []}
++    active = [True]
++    def observer(event, args):
++        if active[0] and event == 'open' and args[0] == '/dev/null':
++            report['events'].append({'path': args[0], 'flags': args[2],
++                'original_code': sys._getframe(1).f_code is guard._devnull_code})
++    sys.addaudithook(observer)
++    def expired(*args):
++        raise TimeoutError('Descriptor preflight exceeded five seconds')
++    handler = signal.signal(signal.SIGALRM, expired)
++    signal.setitimer(signal.ITIMER_REAL, 5)
++    obj = object.__new__(subprocess.Popen)
++    obj._closed_child_pipe_fds = False
++    obj.pipesize = -1
++    handles = []
++    try:
++        def setup(*args, **kwargs):
++            nonlocal handles
++            handles = list(obj._get_handles(subprocess.DEVNULL, subprocess.PIPE, subprocess.PIPE))
++            require(len(handles) == 6 and handles[1] == -1, 'Unexpected selected-interpreter handle layout')
++            descriptors = [handles[0], *handles[2:]]
++            require(all(type(fd) is int and fd >= 0 for fd in descriptors)
++                    and len(set(descriptors)) == 5, 'Five distinct nonnegative descriptors required')
++            require(handles[0] == getattr(obj, '_devnull', None), 'Stdin must be the cached DEVNULL descriptor')
++            for fd in descriptors:
++                os.fstat(fd)
++            report['validated_descriptors'] = descriptors
++            report['stdin_matches_cached_devnull'] = True
++            require(os.read(handles[0], 1) == b'', 'DEVNULL read differs')
++            require(os.write(handles[0], b'preflight') == 9, 'DEVNULL write differs')
++            for read_fd, write_fd in [(handles[2], handles[3]), (handles[4], handles[5])]:
++                require(os.write(write_fd, b'x') == 1 and os.read(read_fd, 1) == b'x', 'Pipe roundtrip differs')
++        guard.run_direct(types.SimpleNamespace(run=setup), [], HERE)
++        require(guard._stdin_scope.get() is None, 'Capability leaked into caller')
++        require(report['events'] == [{'path': '/dev/null', 'flags': os.O_RDWR | getattr(os, 'O_CLOEXEC', 0),
++                                     'original_code': True}], 'Selected-interpreter audit boundary differs')
++        report['passed'] = True
++    except BaseException as error:
++        report['error'] = repr(error)
++    finally:
++        active[0] = False
++        signal.setitimer(signal.ITIMER_REAL, 0)
++        signal.signal(signal.SIGALRM, handler)
++        # _get_handles closes partial pipe allocation itself on setup failure.
++        # Close returned handles and the cached DEVNULL exactly once.
++        for fd in sorted(set(handles + ([obj._devnull] if hasattr(obj, '_devnull') else []))):
++            if fd < 0:
++                continue
++            try:
++                os.close(fd)
++                try:
++                    os.fstat(fd)
++                except OSError as error:
++                    require(error.errno == errno.EBADF, 'Descriptor close not confirmed')
++                else:
++                    raise RuntimeError('Descriptor remains open')
++                report['closed_descriptors'].append(fd)
++            except BaseException as error:
++                report['passed'] = False
++                report.setdefault('cleanup_errors', []).append(repr(error))
++        report['timer_disarmed'] = signal.getitimer(signal.ITIMER_REAL) == (0.0, 0.0)
++        (destination / 'result.json').write_text(json.dumps(report, indent=2) + '\n')
++    print(json.dumps({'descriptor_preflight': str(destination / 'result.json'), **report}, sort_keys=True))
++    return 0 if report['passed'] and report['timer_disarmed'] else 1
++
++if __name__ == '__main__':
++    sys.exit(main())
+diff --git a/workflow-job.yml b/workflow-job.yml
+--- a/workflow-job.yml
++++ b/workflow-job.yml
+@@ -1,126 +1,126 @@
+-  swift-cache-state-fixture:
+-    runs-on: macos-15
+-    timeout-minutes: 30
+-    env:
+-      RUSTUP_AUTO_INSTALL: '0'
+-    steps:
+-      - uses: actions/checkout@v4
+-        with:
+-          fetch-depth: 1
+-          sparse-checkout-cone-mode: false
+-          sparse-checkout: |
+-            /verification/swift-cache-state-ci/pack/
+-            /verification/swift-cache-state-ci/check_cache_state.py
+-            /verification/cache-fixture-shared-input-candidate-v2/
+-            /verification/cache-fixture-shared-input-review/
+-            /verification/shared-fixture-default-ci-adoption/
+-            /verification/shared-fixture-clock-controls-correction/
+-            /verification/plan-continuation-2026-11-07/cache-fix/
+-            /verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+-            /verification/plan-continuation-2026-11-07/cache-custody-fix-r3/
+-            /verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/
+-            /verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
+-            /.github/workflows/verify.yml
+-      - name: Bind shared fixture adoption and materialize the thin overlay
+-        timeout-minutes: 2
+-        shell: bash
+-        run: |
+-          set -euo pipefail
+-          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+-          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+-          mkdir -p "$MIXER_ADOPTION_DIR/logs" "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs" "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs"
+-          {
+-            git rev-parse HEAD HEAD^{tree}
+-            python3 --version
+-            uname -srm
+-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/adopt_fixture.py" verify --workflow-installed
+-            python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
+-          } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
+-            2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
+-      - name: Pure descriptor preflight on selected Python in both modes
+-        timeout-minutes: 1
+-        shell: bash
+-        run: |
+-          set -euo pipefail
+-          MIXER_STDIN_DIR="$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6"
+-          mkdir -p "$MIXER_STDIN_DIR/logs"
+-          python3 -B "$MIXER_STDIN_DIR/descriptor_preflight.py" \
+-            > "$MIXER_STDIN_DIR/logs/descriptor-normal.stdout" \
+-            2> "$MIXER_STDIN_DIR/logs/descriptor-normal.stderr"
+-          python3 -B -O "$MIXER_STDIN_DIR/descriptor_preflight.py" \
+-            > "$MIXER_STDIN_DIR/logs/descriptor-optimized.stdout" \
+-            2> "$MIXER_STDIN_DIR/logs/descriptor-optimized.stderr"
+-      - name: Shared fixture runner, materializer and adoption focused controls
+-        timeout-minutes: 3
+-        shell: bash
+-        run: |
+-          set -euo pipefail
+-          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+-          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+-          python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
+-            > "$MIXER_ADOPTION_DIR/logs/adoption-controls.stdout" \
+-            2> "$MIXER_ADOPTION_DIR/logs/adoption-controls.stderr"
+-          python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+-            > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+-            2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/test_original.py" -v \
+-            > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+-            2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
+-          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/test_original.py" -v \
+-            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stdout" \
+-            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stderr"
+-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
+-            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-normal.stdout" \
+-            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-normal.stderr"
+-          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
+-            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-optimized.stdout" \
+-            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-optimized.stderr"
+-          python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/test_selection.py" -v \
+-            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stdout" \
+-            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stderr"
+-      - name: One complete shared fixture with exact prospective Rust 1.99.1 admission
+-        timeout-minutes: 12
+-        shell: bash
+-        run: |
+-          set -euo pipefail
+-          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+-          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+-          {
+-            MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/adopt_fixture.py" run \
+-              --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
+-              --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+-          } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
+-            2> "$MIXER_SHARED_INPUT_DIR/logs/fixture.stderr"
+-      - name: Verify shared fixture adoption postflight
+-        if: always()
+-        timeout-minutes: 2
+-        shell: bash
+-        run: |
+-          set -euo pipefail
+-          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+-          mkdir -p "$MIXER_ADOPTION_DIR/logs"
+-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/adopt_fixture.py" verify --workflow-installed \
+-            > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
+-            2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
+-      - name: Preserve complete shared fixture evidence and adoption proof
+-        if: always()
+-        timeout-minutes: 5
+-        uses: actions/upload-artifact@v4
+-        with:
+-          name: swift-cache-state-fixture-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+-          retention-days: 14
+-          if-no-files-found: warn
+-          include-hidden-files: true
+-          path: |
+-            ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
+-            ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
+-            ${{ github.workspace }}/verification/shared-fixture-default-ci-adoption/
+-            ${{ github.workspace }}/verification/shared-fixture-clock-controls-correction/
+-            ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
+-            ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+-            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-fix/
+-            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+-            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-stdin-lifetime-fix-r6/
+-            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
+-            ${{ github.workspace }}/.github/workflows/verify.yml
++  swift-cache-state-fixture:
++    runs-on: macos-15
++    timeout-minutes: 30
++    env:
++      RUSTUP_AUTO_INSTALL: '0'
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 1
++          sparse-checkout-cone-mode: false
++          sparse-checkout: |
++            /verification/swift-cache-state-ci/pack/
++            /verification/swift-cache-state-ci/check_cache_state.py
++            /verification/cache-fixture-shared-input-candidate-v2/
++            /verification/cache-fixture-shared-input-review/
++            /verification/shared-fixture-default-ci-adoption/
++            /verification/shared-fixture-clock-controls-correction/
++            /verification/plan-continuation-2026-11-07/cache-fix/
++            /verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
++            /verification/plan-continuation-2026-11-07/cache-custody-fix-r3/
++            /verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/
++            /verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
++            /.github/workflows/verify.yml
++      - name: Bind shared fixture adoption and materialize the thin overlay
++        timeout-minutes: 2
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
++          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
++          mkdir -p "$MIXER_ADOPTION_DIR/logs" "$MIXER_SHARED_INPUT_DIR/logs" "$MIXER_SHARED_INPUT_DIR/runs" "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs"
++          {
++            git rev-parse HEAD HEAD^{tree}
++            python3 --version
++            uname -srm
++            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/adopt_fixture.py" verify --workflow-installed
++            python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
++          } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
++            2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
++      - name: Pure descriptor preflight on selected Python in both modes
++        timeout-minutes: 1
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_STDIN_DIR="$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7"
++          mkdir -p "$MIXER_STDIN_DIR/logs"
++          python3 -B "$MIXER_STDIN_DIR/descriptor_preflight.py" \
++            > "$MIXER_STDIN_DIR/logs/descriptor-normal.stdout" \
++            2> "$MIXER_STDIN_DIR/logs/descriptor-normal.stderr"
++          python3 -B -O "$MIXER_STDIN_DIR/descriptor_preflight.py" \
++            > "$MIXER_STDIN_DIR/logs/descriptor-optimized.stdout" \
++            2> "$MIXER_STDIN_DIR/logs/descriptor-optimized.stderr"
++      - name: Shared fixture runner, materializer and adoption focused controls
++        timeout-minutes: 3
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
++          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
++          python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
++            > "$MIXER_ADOPTION_DIR/logs/adoption-controls.stdout" \
++            2> "$MIXER_ADOPTION_DIR/logs/adoption-controls.stderr"
++          python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
++            > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
++            2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/test_original.py" -v \
++            > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
++            2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
++          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/test_original.py" -v \
++            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stdout" \
++            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stderr"
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
++            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-normal.stdout" \
++            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-normal.stderr"
++          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
++            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-optimized.stdout" \
++            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/contracts-optimized.stderr"
++          python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/test_selection.py" -v \
++            > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stdout" \
++            2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stderr"
++      - name: One complete shared fixture with exact prospective Rust 1.99.1 admission
++        timeout-minutes: 12
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
++          MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
++          {
++            MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
++            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/adopt_fixture.py" run \
++              --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
++              --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
++          } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
++            2> "$MIXER_SHARED_INPUT_DIR/logs/fixture.stderr"
++      - name: Verify shared fixture adoption postflight
++        if: always()
++        timeout-minutes: 2
++        shell: bash
++        run: |
++          set -euo pipefail
++          MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
++          mkdir -p "$MIXER_ADOPTION_DIR/logs"
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/adopt_fixture.py" verify --workflow-installed \
++            > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
++            2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
++      - name: Preserve complete shared fixture evidence and adoption proof
++        if: always()
++        timeout-minutes: 5
++        uses: actions/upload-artifact@v4
++        with:
++          name: swift-cache-state-fixture-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
++          retention-days: 14
++          if-no-files-found: warn
++          include-hidden-files: true
++          path: |
++            ${{ github.workspace }}/verification/cache-fixture-shared-input-candidate-v2/
++            ${{ github.workspace }}/verification/cache-fixture-shared-input-review/
++            ${{ github.workspace }}/verification/shared-fixture-default-ci-adoption/
++            ${{ github.workspace }}/verification/shared-fixture-clock-controls-correction/
++            ${{ github.workspace }}/verification/swift-cache-state-ci/pack/manifest.json
++            ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
++            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-fix/
++            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
++            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/
++            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
++            ${{ github.workspace }}/.github/workflows/verify.yml
+diff --git a/sources.json b/sources.json
+--- a/sources.json
++++ b/sources.json
+@@ -1,106 +1,106 @@
+-{
+-  "member_count": 20,
+-  "members": [
+-    {
+-      "path": "adopt_fixture.py",
+-      "bytes": 5978,
+-      "sha256": "9ada7e4b63a60d87ef7831c187044155526f90179304959e0972aee0938def30"
+-    },
+-    {
+-      "path": "baseline.py",
+-      "bytes": 1736,
+-      "sha256": "9ea46df3f0d32e1839a5aea2e4e9001bb02654f5b468a3ecf0fefcd1c4c4232f"
+-    },
+-    {
+-      "path": "combined_fakes.py",
+-      "bytes": 14091,
+-      "sha256": "b3cec9994ba1d8a5122d3ecbeb9d1899491d847251079c1b6f13a8d5077efdb6"
+-    },
+-    {
+-      "path": "commands.py",
+-      "bytes": 7928,
+-      "sha256": "f1766fb3bd025fff5ea5a4c5c0b71932a468e505588cedd064bcc70f63f9d745"
+-    },
+-    {
+-      "path": "descriptor_preflight.py",
+-      "bytes": 4716,
+-      "sha256": "e6ca7b8483e75b6dfe260dbc3ac4253fd57058e23d0857aadcb6306161ea5132"
+-    },
+-    {
+-      "path": "fake_replay.py",
+-      "bytes": 7622,
+-      "sha256": "bebe9430ad5b05560b8e618b18a95b9294e26336990c07c25cdecf0f89646ed5"
+-    },
+-    {
+-      "path": "inputs-before.json",
+-      "bytes": 2610,
+-      "sha256": "00f3d91912266ac4cfc2a04518f49810b1c34e9fd85f5498d3449917c242f964"
+-    },
+-    {
+-      "path": "original-commands.py",
+-      "bytes": 5854,
+-      "sha256": "ce1e5f5cf179c74f5675f48a234d50656d0c9fc03cb761724c4d08189e3ef415"
+-    },
+-    {
+-      "path": "original_adapter.py",
+-      "bytes": 1349,
+-      "sha256": "a17233453a90cfa2c1edc66329593f7b1c72f0efdbd0ec754760a5750e385404"
+-    },
+-    {
+-      "path": "original_safety.py",
+-      "bytes": 4253,
+-      "sha256": "6450e9c3cb804c8000b242f6e0a939933694a3599fcb63c99a3323bac99f8fbc"
+-    },
+-    {
+-      "path": "previous-job.yml",
+-      "bytes": 7484,
+-      "sha256": "c9c3dd45cd7090136fa4b1f50e1873ad66e42e569d0538966c3736eca640e93b"
+-    },
+-    {
+-      "path": "projection-paths.json",
+-      "bytes": 33001,
+-      "sha256": "4d1c2ca998c35ffacf77a9cda85012b505bb1f7233d062e1393a4b102289752a"
+-    },
+-    {
+-      "path": "source-revision.json",
+-      "bytes": 289,
+-      "sha256": "025e373cc3f64fbf8e896584c02671b298e45bba757a77df993c531bb17e6cba"
+-    },
+-    {
+-      "path": "stdin_guard.py",
+-      "bytes": 2213,
+-      "sha256": "3a342652f1903233a1e77a4752f0017c985094386ee59482dd69dac621a7bdb3"
+-    },
+-    {
+-      "path": "supervise.py",
+-      "bytes": 5970,
+-      "sha256": "4094b19485431129683b988b49decbed75fa6b5430986b60af1dba9af427783e"
+-    },
+-    {
+-      "path": "test_fakes.py",
+-      "bytes": 14532,
+-      "sha256": "4958987f5db7fde0ee3dc6eaa4f39615db613b086ba4c96a886ca6f8021bf4ec"
+-    },
+-    {
+-      "path": "test_original.py",
+-      "bytes": 2372,
+-      "sha256": "9c82168832d97d006a7c99c084e8a5973a392a66c5e59ad388804a503a2ce77b"
+-    },
+-    {
+-      "path": "test_scope.py",
+-      "bytes": 7294,
+-      "sha256": "46b33cfad08ecc46f765410a039bffeeb43452630a465ccf49cbf1d86091c69a"
+-    },
+-    {
+-      "path": "test_stdin_premise.py",
+-      "bytes": 3913,
+-      "sha256": "aa31eb7efebd4bfba00b25234cc05184b34998046e3994999e7570a569e2e24c"
+-    },
+-    {
+-      "path": "workflow-job.yml",
+-      "bytes": 8331,
+-      "sha256": "a07dfa2f5789cad8f9ac88bca174df2cad2e74e29a417a1107eb5845fc615fd2"
+-    }
+-  ],
+-  "tree_sha256": "6fa03d58aaf2c34bb3586e1d666b521b4ae9a38e6649a35fd03a975f88aee726"
+-}
++{
++  "member_count": 20,
++  "members": [
++    {
++      "path": "adopt_fixture.py",
++      "bytes": 5978,
++      "sha256": "9ada7e4b63a60d87ef7831c187044155526f90179304959e0972aee0938def30"
++    },
++    {
++      "path": "baseline.py",
++      "bytes": 1736,
++      "sha256": "9ea46df3f0d32e1839a5aea2e4e9001bb02654f5b468a3ecf0fefcd1c4c4232f"
++    },
++    {
++      "path": "combined_fakes.py",
++      "bytes": 14091,
++      "sha256": "b3cec9994ba1d8a5122d3ecbeb9d1899491d847251079c1b6f13a8d5077efdb6"
++    },
++    {
++      "path": "commands.py",
++      "bytes": 7928,
++      "sha256": "f1766fb3bd025fff5ea5a4c5c0b71932a468e505588cedd064bcc70f63f9d745"
++    },
++    {
++      "path": "descriptor_preflight.py",
++      "bytes": 5239,
++      "sha256": "da60ab642ed1c5053f11ff96d00612ce934976b78420356f6b8d94c2e0c6ad27"
++    },
++    {
++      "path": "fake_replay.py",
++      "bytes": 7622,
++      "sha256": "bebe9430ad5b05560b8e618b18a95b9294e26336990c07c25cdecf0f89646ed5"
++    },
++    {
++      "path": "inputs-before.json",
++      "bytes": 2610,
++      "sha256": "00f3d91912266ac4cfc2a04518f49810b1c34e9fd85f5498d3449917c242f964"
++    },
++    {
++      "path": "original-commands.py",
++      "bytes": 5854,
++      "sha256": "ce1e5f5cf179c74f5675f48a234d50656d0c9fc03cb761724c4d08189e3ef415"
++    },
++    {
++      "path": "original_adapter.py",
++      "bytes": 1349,
++      "sha256": "a17233453a90cfa2c1edc66329593f7b1c72f0efdbd0ec754760a5750e385404"
++    },
++    {
++      "path": "original_safety.py",
++      "bytes": 4253,
++      "sha256": "6450e9c3cb804c8000b242f6e0a939933694a3599fcb63c99a3323bac99f8fbc"
++    },
++    {
++      "path": "previous-job.yml",
++      "bytes": 7484,
++      "sha256": "c9c3dd45cd7090136fa4b1f50e1873ad66e42e569d0538966c3736eca640e93b"
++    },
++    {
++      "path": "projection-paths.json",
++      "bytes": 33001,
++      "sha256": "4d1c2ca998c35ffacf77a9cda85012b505bb1f7233d062e1393a4b102289752a"
++    },
++    {
++      "path": "source-revision.json",
++      "bytes": 289,
++      "sha256": "025e373cc3f64fbf8e896584c02671b298e45bba757a77df993c531bb17e6cba"
++    },
++    {
++      "path": "stdin_guard.py",
++      "bytes": 2213,
++      "sha256": "3a342652f1903233a1e77a4752f0017c985094386ee59482dd69dac621a7bdb3"
++    },
++    {
++      "path": "supervise.py",
++      "bytes": 5970,
++      "sha256": "4094b19485431129683b988b49decbed75fa6b5430986b60af1dba9af427783e"
++    },
++    {
++      "path": "test_fakes.py",
++      "bytes": 14532,
++      "sha256": "4958987f5db7fde0ee3dc6eaa4f39615db613b086ba4c96a886ca6f8021bf4ec"
++    },
++    {
++      "path": "test_original.py",
++      "bytes": 2372,
++      "sha256": "9c82168832d97d006a7c99c084e8a5973a392a66c5e59ad388804a503a2ce77b"
++    },
++    {
++      "path": "test_scope.py",
++      "bytes": 7294,
++      "sha256": "46b33cfad08ecc46f765410a039bffeeb43452630a465ccf49cbf1d86091c69a"
++    },
++    {
++      "path": "test_stdin_premise.py",
++      "bytes": 3913,
++      "sha256": "aa31eb7efebd4bfba00b25234cc05184b34998046e3994999e7570a569e2e24c"
++    },
++    {
++      "path": "workflow-job.yml",
++      "bytes": 8355,
++      "sha256": "70d54d8294410c7aac230f48d4c550a4db0361f274c263d445c0802a8677bc5c"
++    }
++  ],
++  "tree_sha256": "8361cc10d0026c1bb832f5cde012aa8cedc5baf48d4c26105e1845c63be549d3"
++}

@@ -86,6 +86,14 @@ probe, signal, or retry these groups. The receipt is
 verification/plan-continuation-2026-11-07/android-controller-custody-holds/receipt.json.
 All earlier process and custody holds remain in force.
 
+The cache R4 test adapter stopped with UNKNOWN during launch/pipe setup before
+recording any inner PID or PGID. Preserve its direct-control scratch without
+inspection, cleanup or retry; no process absence is inferred. The exact held path
+and launch record are in
+verification/plan-continuation-2026-11-07/cache-custody-actual-controls-fix-r4/HOLD.json.
+Outer command custody does not release this inner hold.
+
+
 The fresh iOS setup and adoption failures remain preserved. Root's separately
 selected recovery positively observed owned simulator
 `4CE0ECC9-1EDA-4543-80FF-9B011DF9044F` Shutdown, deleted only that disposable

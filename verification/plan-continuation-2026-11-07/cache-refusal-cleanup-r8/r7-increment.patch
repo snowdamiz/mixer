@@ -1,0 +1,83 @@
+--- cache-descriptor-layout-fix-r7/descriptor_preflight.py
++++ cache-refusal-cleanup-r8/descriptor_preflight.py
+@@ -77,9 +77,9 @@
+         signal.signal(signal.SIGALRM, handler)
+         # _get_handles closes partial pipe allocation itself on setup failure.
+         # Close returned handles and the cached DEVNULL exactly once.
+-        for fd in sorted(set(handles + ([obj._devnull] if hasattr(obj, '_devnull') else []))):
+-            if fd < 0:
+-                continue
++        cleanup_descriptors = {fd for fd in handles + [getattr(obj, '_devnull', None)]
++                               if type(fd) is int and fd >= 0}
++        for fd in sorted(cleanup_descriptors):
+             try:
+                 os.close(fd)
+                 try:
+--- cache-descriptor-layout-fix-r7/workflow-job.yml
++++ cache-refusal-cleanup-r8/workflow-job.yml
+@@ -18,7 +18,7 @@
+             /verification/plan-continuation-2026-11-07/cache-fix/
+             /verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+             /verification/plan-continuation-2026-11-07/cache-custody-fix-r3/
+-            /verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/
++            /verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/
+             /verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
+             /.github/workflows/verify.yml
+       - name: Bind shared fixture adoption and materialize the thin overlay
+@@ -33,7 +33,7 @@
+             git rev-parse HEAD HEAD^{tree}
+             python3 --version
+             uname -srm
+-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/adopt_fixture.py" verify --workflow-installed
++            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/adopt_fixture.py" verify --workflow-installed
+             python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
+           } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
+             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
+@@ -42,7 +42,7 @@
+         shell: bash
+         run: |
+           set -euo pipefail
+-          MIXER_STDIN_DIR="$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7"
++          MIXER_STDIN_DIR="$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8"
+           mkdir -p "$MIXER_STDIN_DIR/logs"
+           python3 -B "$MIXER_STDIN_DIR/descriptor_preflight.py" \
+             > "$MIXER_STDIN_DIR/logs/descriptor-normal.stdout" \
+@@ -63,10 +63,10 @@
+           python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
+-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/test_original.py" -v \
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/test_original.py" -v \
+             > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
+             2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
+-          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/test_original.py" -v \
++          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/test_original.py" -v \
+             > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stdout" \
+             2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stderr"
+           python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
+@@ -87,7 +87,7 @@
+           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
+           {
+             MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/adopt_fixture.py" run \
++            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/adopt_fixture.py" run \
+               --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
+               --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+           } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
+@@ -100,7 +100,7 @@
+           set -euo pipefail
+           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
+           mkdir -p "$MIXER_ADOPTION_DIR/logs"
+-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/adopt_fixture.py" verify --workflow-installed \
++          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/adopt_fixture.py" verify --workflow-installed \
+             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
+             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
+       - name: Preserve complete shared fixture evidence and adoption proof
+@@ -121,6 +121,6 @@
+             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
+             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-fix/
+             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+-            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-descriptor-layout-fix-r7/
++            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/
+             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
+             ${{ github.workspace }}/.github/workflows/verify.yml
