@@ -28,7 +28,7 @@ SDK_BYTES = 333223533
 DEVELOPER = Path('/Applications/Xcode_26.6.app/Contents/Developer')
 SDKROOT = DEVELOPER / 'Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk'
 SOURCE_INPUT_COUNT = 101
-SOURCE_INPUT_SHA256 = '53ad5501dcaa0168ec8196c8816d07a246e6b04bcd0160edadd22ecafd4ff815'
+SOURCE_INPUT_SHA256 = 'a10a62cc79145bc80bfd780257589f437cc82e2f1ebaad6ccde39c134d56e0ca'
 MINIMUM_FREE_BYTES = 12 * 1024**3
 
 
@@ -66,7 +66,7 @@ def admit_source_inputs(authority, profile):
     inputs = authority.source_inputs(profile)
     require(len(inputs) == SOURCE_INPUT_COUNT and
             authority.source_digest(inputs) == SOURCE_INPUT_SHA256,
-            'Sparse checkout owning inputs differ from reviewed pair8 closure')
+            'Sparse checkout owning inputs differ from reviewed pair9 closure')
     return inputs
 
 

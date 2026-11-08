@@ -5,6 +5,8 @@ import android.app.UiModeManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.widget.FrameLayout;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Public observations only. Neither snapshots nor listener handles confer capture authority. */
 final class NativeEnvironmentPlatformV2 {
@@ -183,19 +186,75 @@ final class NativeEnvironmentPlatformV2 {
         }
     }
     private static final class Api33 implements Listener {
+        private enum Phase { NEW, REGISTERING, ACTIVE, CLOSED }
+        private final Handler main = new Handler(Looper.getMainLooper());
+        private final AtomicBoolean queued = new AtomicBoolean();
+        private volatile Phase phase = Phase.NEW;
+        private boolean started, registering, removeRequested, removalAttempted;
         private final android.animation.ValueAnimator.DurationScaleChangeListener listener;
-        private Api33(Runnable changed) { listener=ignored -> changed.run(); }
+        private Api33(Runnable changed) {
+            Runnable delivery = () -> {
+                NativeEnvironmentV2.requireMain();
+                // Acquire every notice coalesced before this drain, before rereading the getter.
+                queued.getAndSet(false);
+                if (phase == Phase.ACTIVE) changed.run();
+            };
+            listener = ignored -> {
+                Phase observed = phase;
+                if (observed != Phase.REGISTERING && observed != Phase.ACTIVE) return;
+                // Even true -> true publishes the producer's effective-scale write. A notice
+                // after the drain's exchange reserves a new delivery instead of being lost.
+                if (queued.getAndSet(true)) return;
+                try {
+                    if (!main.post(delivery)) throw new IllegalStateException("effective animator UI dispatch failed");
+                } catch (RuntimeException | Error failure) {
+                    queued.set(false);
+                    throw failure;
+                }
+            };
+        }
         static Observed<Float> animator() {
             float value=android.animation.ValueAnimator.getDurationScale();
             return Float.isFinite(value) && value>=0 ? known(value) : absent(Status.UNDEFINED,"invalid effective animator scale");
         }
         public void add() {
             NativeEnvironmentV2.requireMain();
-            if(!android.animation.ValueAnimator.registerDurationScaleChangeListener(listener))
-                throw new IllegalStateException("effective animator listener registration failed");
+            if (phase != Phase.NEW) throw new IllegalStateException("effective animator listener is one shot");
+            started = true; phase = Phase.REGISTERING; registering = true;
+            Throwable failure = null;
+            try {
+                if (!android.animation.ValueAnimator.registerDurationScaleChangeListener(listener))
+                    throw new IllegalStateException("effective animator listener registration failed");
+            } catch (RuntimeException | Error caught) { failure = caught; }
+            finally {
+                registering = false;
+                if (phase != Phase.CLOSED) phase = failure == null ? Phase.ACTIVE : Phase.CLOSED;
+            }
+            // Reentrant removal cannot precede the platform's final acquisition side effect.
+            if (removeRequested) {
+                try { unregister(); }
+                catch (RuntimeException | Error cleanup) {
+                    if (failure == null) failure = cleanup;
+                    else if (cleanup != failure) {
+                        if (cleanup instanceof Error && !(failure instanceof Error)) {
+                            cleanup.addSuppressed(failure); failure = cleanup;
+                        } else failure.addSuppressed(cleanup);
+                    }
+                }
+            }
+            if (failure instanceof Error) throw (Error)failure;
+            if (failure != null) throw (RuntimeException)failure;
         }
         public void remove() {
             NativeEnvironmentV2.requireMain();
+            phase = Phase.CLOSED;
+            if (!started || removeRequested) return;
+            removeRequested = true;
+            if (!registering) unregister();
+        }
+        private void unregister() {
+            if (removalAttempted) return;
+            removalAttempted = true;
             if(!android.animation.ValueAnimator.unregisterDurationScaleChangeListener(listener))
                 throw new IllegalStateException("effective animator listener removal failed");
         }

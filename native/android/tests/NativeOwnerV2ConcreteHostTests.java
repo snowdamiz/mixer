@@ -701,12 +701,52 @@ public final class NativeOwnerV2ConcreteHostTests {
         StringBuilder report=new StringBuilder();write(report,Json.map("scope","actual sixteen product subjects with explicit mechanical leaves; lifecycle dirty is separate from actual observer invalidation","baselineSites",new Json.Num("184"),"introducedSites",new Json.Num(Integer.toString(barriers.size()-184)),"missing",missed,"cases",results));Files.writeString(output,report);
         check(missed.isEmpty(),"missing actual baseline sites "+missed);
     }
+    private static void motionAPIFloors() {
+        try(Fixture f=new Fixture()) {
+            f.ready();NativeRenderer renderer=f.renderer();
+            for(int sdk=28;sdk<36;sdk++) {
+                android.os.Build.VERSION.SDK_INT=sdk;
+                check(captureFailure(()->new NativeEnvironmentV2.Observer(f.activity,f.root,(source,change,cause,primary,fatal)->{})) instanceof AppearanceDescriptorV2.Failure,"Observer admitted API"+sdk);
+                check(captureFailure(()->renderer.captureEnvironmentV2(f.activity,f.root)) instanceof AppearanceDescriptorV2.Failure,"renderer admitted API"+sdk);
+            }
+        } finally {android.os.Build.VERSION.SDK_INT=36;ConcreteHostProbe.reset();}
+    }
+    private static void motionThreadControls() throws InterruptedException {
+        try(Fixture f=new Fixture()) {
+            f.ready(); NativeEnvironmentV2.Observer observer=(NativeEnvironmentV2.Observer)field(f.owner,"observer");
+            Object motion=field(observer,"motion"); Handler dispatch=(Handler)field(motion,"main");
+            android.animation.ValueAnimator.DurationScaleChangeListener listener=(android.animation.ValueAnimator.DurationScaleChangeListener)field(motion,"listener");
+            OwnerLifecycleV2 core=(OwnerLifecycleV2)field(f.owner,"core");var before=core.snapshot();
+            Object packet=field(field(f.owner,"coordinator"),"committedPacket");
+            java.util.concurrent.atomic.AtomicReference<Throwable> failure=new java.util.concurrent.atomic.AtomicReference<>();
+            android.animation.ValueAnimator.effectiveScale=0;
+            Runnable notice=()->{try{check(android.os.Looper.myLooper()!=android.os.Looper.getMainLooper(),"real background thread required");listener.onChanged(Float.NaN);}catch(Throwable caught){failure.set(caught);}};
+            Thread thread=new Thread(notice,"concrete-motion-binder");thread.setDaemon(true);thread.start();thread.join(2000);
+            check(!thread.isAlive()&&failure.get()==null,"Binder escaped "+failure.get());
+            check(core.snapshot().epoch()==before.epoch()&&dispatch.queued()==1,"background mutated owner");
+            dispatch.drainAll(4);
+            check(core.snapshot().epoch()>before.epoch()&&core.snapshot().dirty()&&f.queue.queued()==1,"UI callback did not invalidate owner");
+            f.queue.drainAll(4);
+            check(f.owner.hasCommittedPresentation()&&core.snapshot().presentation()!=before.presentation()&&!core.snapshot().dirty(),"motion drain did not publish");
+            check(field(field(f.owner,"coordinator"),"committedPacket")==packet,"motion replaced retained document");
+            NativeEnvironmentV2 committed=(NativeEnvironmentV2)field(f.renderer(),"v2CommittedEnvironment");
+            check(committed.value.accessibility().reduceMotion(),"effective getter not committed");
+            thread=new Thread(notice,"concrete-motion-before-close");thread.setDaemon(true);thread.start();thread.join(2000);
+            check(!thread.isAlive()&&failure.get()==null,"pending Binder failed");
+            f.owner.close();long epoch=core.snapshot().epoch();dispatch.drainAll(4);
+            thread=new Thread(notice,"concrete-motion-after-close");thread.setDaemon(true);thread.start();thread.join(2000);
+            check(!thread.isAlive()&&failure.get()==null,"late Binder failed");dispatch.drainAll(4);
+            check(core.snapshot().epoch()==epoch&&dispatch.queued()==0&&f.queue.queued()==0,"late motion changed closed owner");
+        } finally {android.animation.ValueAnimator.effectiveScale=1;ConcreteHostProbe.reset();}
+    }
     public static void main(String[] args)throws Exception{
         checks+=NativeAndroidFixtureHostTests.run();
         descriptor=Files.readAllBytes(Path.of(args[0]));if(args.length>2)loadBarriers(Path.of(args[2]));
         for(String selected:List.of("smoke","positive","hierarchy","rollback","rollbackState","imeSuccessor","imeClose"))runScenario(selected);
         scenario="imeControls";imeControls();scenario="v1";v1Baselines();scenario="cancellation";cancellationControls();scenario="rendererReports";rendererReportControls();scenario="actualObserver";actualObserverControls();scenario="reportTail";reportTailControls();scenario="pendingRosters";pendingRosterControls();scenario="fatalDeferred";concreteFatalAndDeferredControls();scenario="cancellationLedger";cancellationLedgerControls();scenario="focusAdmission";focusAdmissionControls();scenario="explicitScopes";explicitScopeControls();scenario="terminalContinuation";terminalContinuationControls();scenario="latePost";latePostControls();scenario="completionPublication";completionPublicationControls();collect();
         if(args.length>3)runMatrix(Path.of(args[3]));
+        motionThreadControls();
+        motionAPIFloors();
 
         if(args.length>1){StringBuilder report=new StringBuilder();for(var e:sites.entrySet())report.append(e.getKey()).append('|').append(e.getValue()).append('\n');Files.writeString(Path.of(args[1]),report);}
 

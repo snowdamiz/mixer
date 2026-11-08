@@ -26,7 +26,8 @@ MARKER = '__MIXER_ANDROID_SOURCE_PROFILE_HEX__'
 def load_driver(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    # Rewritten historical drivers can have equal sizes and timestamp granularity.
+    exec(compile(path.read_bytes(), str(path), "exec"), module.__dict__)
     return module
 
 
@@ -149,7 +150,7 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
             renamed.rename(path)
 
     def test_profile_missing_unknown_mismatched_and_configuration_missing_android_lock(self):
-        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'profile-5-current', 'profile-5-prior', 'broader-6-axis', 'profile-6-current', 'profile-7-current', 'pair8-old-tuple', 'proposal-6-suffixed', 'mixed-axis-only', 'mixed-sdk', 'mixed-adapter', 'unknown', 'digest', 'default']:
+        for change in ['missing-android', 'legacy', 'profile-1', 'profile-2', 'profile-3', 'profile-4', 'profile-5-current', 'profile-5-prior', 'broader-6-axis', 'profile-6-current', 'profile-7-current', 'profile-8-current', 'pair8-old-tuple', 'pair9-old-tuple', 'pair9-r1-tuple', 'proposal-6-suffixed', 'mixed-axis-only', 'mixed-sdk', 'mixed-adapter', 'unknown', 'digest', 'default']:
             with self.subTest(change=change):
                 self.refresh_lock()
                 value = self.lock_value
@@ -177,8 +178,14 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
                     value['android']['profile'].update(id='mixer.android-source-pair.6', adapter_compatibility_sha256='7765667bc3e4b1d45a58ac122ff61b2fbfd7bcfe09b2172ffced62189fb00885')
                 elif change == 'profile-7-current':
                     value['android']['profile'].update(id='mixer.android-source-pair.7', adapter_compatibility_sha256='ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e')
+                elif change == 'profile-8-current':
+                    value['android']['profile'].update(id='mixer.android-source-pair.8', adapter_compatibility_sha256='a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015')
                 elif change == 'pair8-old-tuple':
-                    value['android']['profile']['adapter_compatibility_sha256'] = 'ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e'
+                    value['android']['profile'].update(id='mixer.android-source-pair.8', adapter_compatibility_sha256='ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e')
+                elif change == 'pair9-old-tuple':
+                    value['android']['profile']['adapter_compatibility_sha256'] = 'a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015'
+                elif change == 'pair9-r1-tuple':
+                    value['android']['profile']['adapter_compatibility_sha256'] = 'b8aad7b23e2917176d4ab1da2912e2acc098265609ffd40741283607496225b3'
                 elif change == 'proposal-6-suffixed':
                     value['android']['profile'].update(id='mixer.android-source-pair.6-editor-view-api29-30-bc03288599ec-8cd611a5b07f',
                         adapter_compatibility_sha256='8cd611a5b07fbf96adb270fa30042577789d4b87b252108697003809f00599b4')
@@ -251,12 +258,12 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         self.assertFalse((self.root / '.mixer').exists())
 
 
-    def test_effective_motion_pair8_preserves_exact_axis_session(self):
-        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.8')
+    def test_effective_motion_pair9_preserves_exact_axis_session(self):
+        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.9')
         self.assertEqual(len(PROFILE['sdk_files']), 22)
         self.assertEqual(len(PROFILE['adapter_files']), 24)
         self.assertEqual(PROFILE['sdk_compatibility_sha256'], 'bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0')
-        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015')
+        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'ee9414d3b68f9d66ba275c93339018e5eaebb161a7dc25d7056538c652305d89')
         session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
         candidate = session.read_bytes()
         self.assertEqual(len(candidate), 4328)
@@ -286,13 +293,55 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
                     self.refresh_lock()
 
 
+    def test_r1_pair9_driver_refuses_r2_sources(self):
+        previous = json.loads(json.dumps(PROFILE))
+        previous['adapter_compatibility_sha256'] = 'b8aad7b23e2917176d4ab1da2912e2acc098265609ffd40741283607496225b3'
+        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'] = {'bytes': 17696, 'sha256': '8396a3f5b923a40f3fd1a9121b8d5feaddd88583675e6596c1812c9c76520e1a'}
+        self.rendered.write_text(RAW.replace(MARKER, json.dumps(previous).encode().hex()))
+        self.module = load_driver(self.rendered, 'stale_r1_' + self.root.name.replace('-', '_'))
+        self.assertEqual(self.module.source_profile(), previous)
+        self.refresh_lock()
+        self.lock_value['android']['profile'] = self.module.profile_lock(previous)
+        (self.root / 'mixer.lock').write_text(json.dumps(self.lock_value))
+        self.reject()
+
+    def test_r2_refuses_exact_r1_source_with_recomputed_generic_lock(self):
+        source = self.adapter / 'app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'
+        r1 = source.read_text().replace(
+            '                // Acquire every notice coalesced before this drain, before rereading the getter.\n'
+            '                queued.getAndSet(false);', '                queued.set(false);').replace(
+            '                if (observed != Phase.REGISTERING && observed != Phase.ACTIVE) return;\n'
+            "                // Even true -> true publishes the producer's effective-scale write. A notice\n"
+            "                // after the drain's exchange reserves a new delivery instead of being lost.\n"
+            '                if (queued.getAndSet(true)) return;',
+            '                if ((observed != Phase.REGISTERING && observed != Phase.ACTIVE) || !queued.compareAndSet(false, true)) return;').encode()
+        self.assertEqual(len(r1), 17696)
+        self.assertEqual(hashlib.sha256(r1).hexdigest(), '8396a3f5b923a40f3fd1a9121b8d5feaddd88583675e6596c1812c9c76520e1a')
+        source.write_bytes(r1)
+        self.refresh_lock()
+        self.reject()
+
+    def test_previous_pair8_driver_refuses_thread_fixed_sources(self):
+        previous = json.loads(json.dumps(PROFILE))
+        previous['id'] = 'mixer.android-source-pair.8'
+        previous['adapter_compatibility_sha256'] = 'a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015'
+        previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'] = {'bytes': 15032, 'sha256': '04173e90ffb79ea87f9553691c95e26dbf627f5d269b60630daa7871eec793c6'}
+        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.9'", "value['id'] != 'mixer.android-source-pair.8'")
+        self.rendered.write_text(previous_raw.replace(MARKER, json.dumps(previous).encode().hex()))
+        self.module = load_driver(self.rendered, 'stale_pair8_' + self.root.name.replace('-', '_'))
+        self.assertEqual(self.module.source_profile(), previous)
+        self.refresh_lock()
+        self.lock_value['android']['profile'] = self.module.profile_lock(previous)
+        (self.root / 'mixer.lock').write_text(json.dumps(self.lock_value))
+        self.reject()
+
     def test_previous_pair7_driver_refuses_effective_motion_sources(self):
         previous = json.loads(json.dumps(PROFILE))
         previous['id'] = 'mixer.android-source-pair.7'
         previous['adapter_compatibility_sha256'] = 'ae18d494f768a280600dbefcad0cd55fb9a4b9b993c6cd441f084a08fbf6e03e'
         previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentV2.java'] = {'bytes': 15696, 'sha256': '2cff6cc20d1c3c9ae751e217bba3192e315125f438312f29e933d0c79d339eb1'}
         previous['adapter_files']['app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'] = {'bytes': 14154, 'sha256': '2f871e9813380b2d645b3ee636f67a7b3eae072f140163e14c7ec7ed60c562b2'}
-        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.8'", "value['id'] != 'mixer.android-source-pair.7'")
+        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.9'", "value['id'] != 'mixer.android-source-pair.7'")
         self.rendered.write_text(previous_raw.replace(MARKER, json.dumps(previous).encode().hex()))
         self.module = load_driver(self.rendered, 'stale_pair7_' + self.root.name.replace('-', '_'))
         self.refresh_lock()
@@ -302,7 +351,7 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
 
     def test_previous_pair6_rendered_driver_refuses_broader_sources_before_output(self):
         # Reconstruct exact canonical6 template/map as data, then reach its stale-map admission.
-        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.8'", "value['id'] != 'mixer.android-source-pair.6'")
+        previous_raw = RAW.replace("value['id'] != 'mixer.android-source-pair.9'", "value['id'] != 'mixer.android-source-pair.6'")
         previous_raw = previous_raw.replace("('adapter', 24)", "('adapter', 23)")
         previous_raw = previous_raw.replace("'-proc:none', '-sourcepath', '', ", "")
         self.assertEqual(hashlib.sha256(previous_raw.encode()).hexdigest(), 'e1e1c57e56d71fe2cadcf9e0b43d8760a5745587f76a8326068a7b8363493a13')

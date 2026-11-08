@@ -25,6 +25,7 @@ public final class ObserverHostProbe {
     }
     public static int reads, tokenReads;
     public static void reset() {
+        android.os.Handler.reset();
         calls.clear(); reads = tokenReads = 0;
         readCounts.clear();failingRead=null;readFailure=null;readHook=null;
         motionAdd=motionRemove=true;

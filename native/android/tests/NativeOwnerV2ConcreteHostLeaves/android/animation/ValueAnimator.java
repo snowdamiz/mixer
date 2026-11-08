@@ -4,10 +4,12 @@ import java.util.List;
 import dev.mixer.android.ConcreteHostProbe;
 public final class ValueAnimator {
     public interface DurationScaleChangeListener { void onChanged(float scale); }
+    public static float effectiveScale=1;
     private static final List<DurationScaleChangeListener> listeners=new ArrayList<>();
     public static float getDurationScale() {
         ConcreteHostProbe.hit("ValueAnimator.getDurationScale");
-        float value=1;
+        if(android.os.Looper.myLooper()!=android.os.Looper.getMainLooper())throw new AssertionError("background effective getter");
+        float value=effectiveScale;
         ConcreteHostProbe.hit("ValueAnimator.getDurationScale","beforeReturn");
         return value;
     }

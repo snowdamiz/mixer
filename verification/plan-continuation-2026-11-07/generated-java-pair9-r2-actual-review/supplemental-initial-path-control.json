@@ -1,0 +1,8 @@
+{
+  "status": "AUDIT_ASSERTION_REFINED",
+  "initialScriptSHA256": "851373639856cce4b68a786404cef691b7ec2dd4cfba290163bc6e74ba27e154",
+  "initialFailedCheck": "debug-original: directory topology exact; no unaccounted empty directories",
+  "observed": "Original and relocated forms retain one empty top-level Resources directory; exported forms omit it. All six file inventories are identical.",
+  "sourceExplanation": "ProjectGenerator.swift:34 explicitly creates Resources; export at :283-291 creates only file parents. AndroidProject.swift:100 requires resource files empty. No protected SDK/adapter closure difference.",
+  "action": "Require exactly this observed, source-supported empty-directory difference; keep all closed subtree topology checks and all byte comparisons."
+}

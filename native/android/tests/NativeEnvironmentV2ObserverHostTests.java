@@ -5,6 +5,7 @@ import android.content.ComponentCallbacks;
 import android.content.res.Configuration;
 import android.animation.ValueAnimator;
 import android.os.Looper;
+import android.os.Handler;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
@@ -155,7 +156,7 @@ public final class NativeEnvironmentV2ObserverHostTests {
         long epoch=(Long)field(o,"generation");int notifications=f.renderer.invalidations,reads=ObserverHostProbe.reads,tokens=ObserverHostProbe.tokenReads;
         for(Runnable callback:callbacks(o))callback.run();check(!capture.current(f.renderer),"retired capture admitted");
         check((Long)field(o,"generation")==epoch&&notifications==f.renderer.invalidations&&reads==ObserverHostProbe.reads&&tokens==ObserverHostProbe.tokenReads,"late callback read/changed state");
-        List<Runnable> entries=new ArrayList<>(callbacks(o));entries.add(o::close);entries.add(o::capture);entries.add(o::read);entries.add(()->capture.current(f.renderer));entries.add(capture::root);
+        List<Runnable> entries=new ArrayList<>(callbacks(o));entries.remove(10);entries.add(o::close);entries.add(o::capture);entries.add(o::read);entries.add(()->capture.current(f.renderer));entries.add(capture::root);
         Looper.mainThread=false;
         try {for(Runnable entry:entries)check(thrown(entry) instanceof IllegalStateException,"stale guard preceded thread assertion");check(thrown(f::open) instanceof IllegalStateException,"constructor thread assertion");}
         finally {Looper.mainThread=true;}
@@ -194,7 +195,7 @@ public final class NativeEnvironmentV2ObserverHostTests {
         NativeEnvironmentV2 capture=o.capture();
         ValueAnimator.DurationScaleChangeListener listener=(ValueAnimator.DurationScaleChangeListener)ObserverHostProbe.live[7];
         check(field(field(o,"motion"),"listener")==listener,"listener not strongly owned");
-        ObserverHostProbe.animator=0;listener.onChanged(0);
+        ObserverHostProbe.animator=0;listener.onChanged(0);Handler.drain();
         check(!capture.current(f.renderer),"effective motion callback did not invalidate capture");
         check(f.renderer.invalidations==1,"effective change notification missing");cases++;
         ObserverHostProbe.motionRemove=false;
@@ -202,8 +203,171 @@ public final class NativeEnvironmentV2ObserverHostTests {
         check(o.cleanupLedger().state(7)==NativeEnvironmentV2.Observer.FAILED_UNCERTAIN,"false removal claimed returned");
         removed(7);check(thrown(o::close)==failure,"uncertain removal retried/lost");removed(7);cases++;
     }
+    private static Throwable background(Runnable action) {
+        java.util.concurrent.atomic.AtomicReference<Throwable> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        Thread thread = new Thread(() -> {
+            try {
+                check(Looper.myLooper() != Looper.getMainLooper(), "background impersonated UI");
+                action.run();
+            } catch (RuntimeException | Error caught) { failure.set(caught); }
+        }, "motion-binder-host");
+        thread.setDaemon(true); thread.start();
+        try { thread.join(2000); }
+        catch (InterruptedException caught) { Thread.currentThread().interrupt(); throw new AssertionError(caught); }
+        check(!thread.isAlive(), "bounded background callback did not return");
+        return failure.get();
+    }
+    private static ValueAnimator.DurationScaleChangeListener motion() {
+        return (ValueAnimator.DurationScaleChangeListener)ObserverHostProbe.last[7];
+    }
+    private static void producerPublication() {
+        for (float effective : new float[]{0, 2, Float.NaN}) {
+            ObserverHostProbe.reset(); Fixture f = new Fixture(); NativeEnvironmentV2.Observer o = f.open();
+            NativeEnvironmentV2 old = o.capture(); int reads = ObserverHostProbe.readCounts.get("animator");
+            ValueAnimator.DurationScaleChangeListener listener = motion();
+            // Opaque flags schedule the test without a release/acquire edge that would
+            // accidentally publish the producer's plain getter state before delivery.
+            java.util.concurrent.atomic.AtomicInteger done = new java.util.concurrent.atomic.AtomicInteger();
+            java.util.concurrent.atomic.AtomicInteger finish = new java.util.concurrent.atomic.AtomicInteger();
+            Throwable[] failure = {null};
+            Thread producer = new Thread(() -> {
+                try {
+                    ValueAnimator.changeFromProducer(1, Float.NaN, listener);
+                    for (int i=0; i<64; i++) ValueAnimator.changeFromProducer(effective, -1, listener);
+                } catch (RuntimeException | Error caught) { failure[0] = caught; }
+                finally { done.setOpaque(1); }
+                long deadline = System.nanoTime() + 2_000_000_000L;
+                while (finish.getOpaque() == 0 && System.nanoTime() < deadline) Thread.onSpinWait();
+            }, "motion-effective-producer");
+            producer.setDaemon(true); producer.start();
+            try {
+                long deadline = System.nanoTime() + 2_000_000_000L;
+                while (done.getOpaque() == 0 && System.nanoTime() < deadline) Thread.onSpinWait();
+                check(done.getOpaque() == 1, "producer did not reach coalesced notice bound");
+                check(Handler.pending() == 1 && f.renderer.invalidations == 0, "producer did UI work or failed coalescing");
+                check(ObserverHostProbe.readCounts.get("animator") == reads, "producer read the effective getter");
+                Handler.drain();
+                check(f.renderer.invalidations == 1 && Handler.pending() == 0, "coalesced producer delivery missing");
+                check(Float.compare(ValueAnimator.getDurationScale(), effective) == 0,
+                    "main did not observe the exact coalesced producer value");
+                if (Float.isNaN(effective)) unsupported(o::capture);
+                else check(!old.current(f.renderer)
+                    && o.capture().value.accessibility().reduceMotion() == (effective == 0),
+                    "coalesced producer value was not validated and captured");
+            } finally {
+                // Join only AFTER all getter/result observations, solely for owned cleanup.
+                finish.setOpaque(1);
+                try { producer.join(2000); }
+                catch (InterruptedException caught) { Thread.currentThread().interrupt(); throw new AssertionError(caught); }
+                check(!producer.isAlive() && failure[0] == null, "producer cleanup/failure");
+                o.close();
+            }
+            cases++;
+        }
+    }
+    private static void motionThreads() {
+        ObserverHostProbe.reset(); Fixture f = new Fixture(); NativeEnvironmentV2.Observer o = f.open();
+        NativeEnvironmentV2 old = o.capture(); int reads = ObserverHostProbe.readCounts.get("animator");
+        ObserverHostProbe.animator = 0;
+        check(background(() -> { for (int i=0;i<64;i++) motion().onChanged(Float.NaN); }) == null, "Binder callback escaped");
+        check(f.renderer.invalidations == 0 && Handler.pending() == 1, "callback did UI work or unbounded posting");
+        check(ObserverHostProbe.readCounts.get("animator") == reads, "background getter read");
+        check(background(o::invalidate) instanceof IllegalStateException, "production UI guard weakened");
+        Handler.drain(); check(f.renderer.invalidations == 1, "UI callback missing");
+        check(!old.current(f.renderer) && o.capture().value.accessibility().reduceMotion(), "validated effective reread missing");
+        ObserverHostProbe.animator = Float.NaN;
+        check(background(() -> motion().onChanged(1)) == null, "invalid getter callback escaped");
+        Handler.drain(); unsupported(o::capture); o.close(); cases++;
+
+        ObserverHostProbe.reset(); f = new Fixture(); o = f.open();
+        check(background(() -> motion().onChanged(0)) == null, "pending callback escaped");
+        o.close(); Handler.drain();
+        check(background(() -> motion().onChanged(0)) == null, "late Binder callback escaped");
+        Handler.drain(); check(f.renderer.invalidations == 0 && Handler.pending() == 0, "removed listener delivered");
+        removed(7); cases++;
+
+        ObserverHostProbe.reset(); f = new Fixture(); o = f.open();
+        java.util.concurrent.CountDownLatch posting = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch removed = new java.util.concurrent.CountDownLatch(1);
+        Handler.beforeEnqueue = () -> {
+            posting.countDown();
+            try { check(removed.await(2, java.util.concurrent.TimeUnit.SECONDS), "remove did not release posting"); }
+            catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new AssertionError(e); }
+        };
+        java.util.concurrent.atomic.AtomicReference<Throwable> raced = new java.util.concurrent.atomic.AtomicReference<>();
+        Thread racing = new Thread(() -> { try {motion().onChanged(0);}catch(Throwable e){raced.set(e);}}, "motion-post-remove-race");
+        racing.setDaemon(true); racing.start();
+        try {
+            check(posting.await(2, java.util.concurrent.TimeUnit.SECONDS), "post boundary not reached");
+            o.close();
+        } catch (InterruptedException e) {Thread.currentThread().interrupt();throw new AssertionError(e);}
+        finally {removed.countDown();}
+        try {racing.join(2000);}catch(InterruptedException e){Thread.currentThread().interrupt();throw new AssertionError(e);}
+        check(!racing.isAlive() && raced.get()==null && Handler.pending()==1, "late enqueue race not exercised");
+        Handler.beforeEnqueue=null;Handler.drain();check(f.renderer.invalidations==0,"post admitted before remove delivered after remove");cases++;
+
+        for (int phase=0;phase<4;phase++) {
+            ObserverHostProbe.reset(); Fixture each = new Fixture();
+            ObserverHostProbe.hooks[phase][7] = () -> check(background(() -> motion().onChanged(0)) == null, "racing callback escaped");
+            NativeEnvironmentV2.Observer observer = each.open();
+            if (phase<2) { check(each.renderer.invalidations == 0, "add callback ran inline"); Handler.drain(); check(each.renderer.invalidations == 1, "add callback lost"); }
+            observer.close(); Handler.drain();
+            check(each.renderer.invalidations == (phase<2?1:0), "remove callback delivered"); removed(7); cases++;
+        }
+        for (boolean fatal:new boolean[]{false,true}) {
+            ObserverHostProbe.reset(); Fixture each = new Fixture(); Throwable fault=fault(fatal,"queued registration failure");
+            ObserverHostProbe.hooks[1][7]=()->check(background(()->motion().onChanged(0))==null,"add callback escaped");
+            ObserverHostProbe.faults[1][7]=fault;
+            check(thrown(each::open)==fault,"registration identity changed"); Handler.drain();
+            check(each.renderer.invalidations==1,"queued registration notice escaped terminal report"); removed(7); cases++;
+
+            ObserverHostProbe.reset(); each=new Fixture(); NativeEnvironmentV2.Observer observer=each.open();
+            Throwable notification=fault(fatal,"queued UI sink");
+            each.renderer.notification=()->{if(notification instanceof Error)throw (Error)notification;throw (RuntimeException)notification;};
+            check(background(()->motion().onChanged(0))==null,"sink ran on Binder");
+            check(thrown(Handler::drain)==notification,"UI sink failure identity changed"); retired(observer);removed(7); cases++;
+        }
+        ObserverHostProbe.reset(); f=new Fixture(); ObserverHostProbe.motionAdd=false;
+        ObserverHostProbe.hooks[1][7]=()->check(background(()->motion().onChanged(0))==null,"false registration callback");
+        thrown(f::open); Handler.drain(); check(f.renderer.invalidations==1,"false registration delivered queued notice");cases++;
+
+        for(int phase=0;phase<2;phase++) {
+            ObserverHostProbe.reset(); int[] notices={0};
+            NativeEnvironmentPlatformV2.Listener handle=NativeEnvironmentPlatformV2.motionListener(()->notices[0]++);
+            ObserverHostProbe.hooks[phase][7]=()->{
+                check(background(()->motion().onChanged(0))==null,"reentrant add callback");
+                handle.remove(); handle.remove();
+                check(thrown(handle::add) instanceof IllegalStateException,"reentrant add reopened");
+            };
+            handle.add(); Handler.drain();handle.remove();
+            check(notices[0]==0 && ObserverHostProbe.live[7]==null,"reentrant remove leaked/delivered");
+            check(java.util.Collections.frequency(ObserverHostProbe.calls,"remove7")==1,"reentrant removal not once");cases++;
+        }
+        for(boolean addFatal:new boolean[]{false,true})for(boolean removeFatal:new boolean[]{false,true}) {
+            ObserverHostProbe.reset(); int[] notices={0};
+            NativeEnvironmentPlatformV2.Listener handle=NativeEnvironmentPlatformV2.motionListener(()->notices[0]++);
+            Throwable primary=fault(addFatal,"direct reentrant add");Throwable cleanup=fault(removeFatal,"direct deferred remove");
+            ObserverHostProbe.hooks[0][7]=()->{motion().onChanged(0);handle.remove();};
+            ObserverHostProbe.faults[1][7]=primary;ObserverHostProbe.faults[2][7]=cleanup;
+            Throwable escaped=thrown(handle::add);Throwable expected=removeFatal&&!addFatal?cleanup:primary;
+            check(escaped==expected,"deferred cleanup changed fatal priority/identity");
+            check(List.of(escaped.getSuppressed()).contains(escaped==primary?cleanup:primary),"deferred diagnostic missing");
+            Handler.drain();check(notices[0]==0,"failed reentrant add delivered");handle.remove();
+            check(java.util.Collections.frequency(ObserverHostProbe.calls,"remove7")==1,"failed direct cleanup retried");cases++;
+        }
+        for(int failureKind=0;failureKind<3;failureKind++) {
+            ObserverHostProbe.reset(); f=new Fixture();o=f.open();
+            Throwable fault=failureKind==0?null:fault(failureKind==2,"dispatch failure");
+            Handler.postResult=false;Handler.postFailure=fault;
+            Throwable escaped=background(()->motion().onChanged(0));
+            check(fault==null?escaped instanceof IllegalStateException:escaped==fault,"dispatch failure identity lost");
+            Handler.postResult=true;Handler.postFailure=null;
+            check(background(()->motion().onChanged(0))==null,"dispatch did not recover");Handler.drain();
+            check(f.renderer.invalidations==1,"failed dispatch kept queue reservation");o.close();cases++;
+        }
+    }
     public static void main(String[] args) {
-        motionResults();twoPhase();clean();acquisitionFailures();cleanupFailures();reentry();lateAndThreads();terminalsAndTargets();
+        producerPublication();motionThreads();motionResults();twoPhase();clean();acquisitionFailures();cleanupFailures();reentry();lateAndThreads();terminalsAndTargets();
         System.out.println("PASS " + cases + " production Observer host cases; faulting Android leaves only; native runtime pending");
     }
 }
