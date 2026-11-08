@@ -1,0 +1,75 @@
+--- accepted/controller.py
++++ candidate/controller.py
+@@ -5,6 +5,7 @@
+ """
+ from dataclasses import dataclass
+ import uuid
++import time
+ PROTECTED={'CE7E80FC-64BF-41A0-B07B-60F4D8711808','D55C87E9-F349-49AC-BCD3-3B4B5BE9E010'}
+ from holds import HELD
+ 
+@@ -77,6 +78,42 @@
+     if guard is not None: guard()
+ 
+ 
++def wait_for_shutdown(backend, owned, baseline, row):
++    """Only a positively observed asynchronous shutdown may be waited on.
++
++    Ten seconds and twenty observations are experimental bounds, not readiness
++    evidence. Each observation rechecks outside devices and retained windows.
++    """
++    if row is None or row['state'] != 'Shutting Down':
++        return row
++    deadline = time.monotonic() + 10
++    previous_deadline = getattr(backend, '_observation_deadline', None)
++    backend._observation_deadline = min(deadline, previous_deadline) if previous_deadline else deadline
++    try:
++        for _ in range(20):
++            guard_custody(backend)
++            require(time.monotonic() < deadline, 'Owned device not positively Shutdown within bound')
++            row = check_snapshot(backend, owned, baseline)
++            require(time.monotonic() < deadline, 'Owned device not positively Shutdown within bound')
++            require(row is not None, 'Owned device disappeared during shutdown transition')
++            if row['state'] == 'Shutdown':
++                require(backend.windows_for_device(owned.uuid) == [], 'Owned window reappeared during shutdown')
++                return row
++            require(row['state'] == 'Shutting Down', 'Owned device not positively Shutdown; invalid transition')
++            require(backend.windows_for_device(owned.uuid) == [], 'Owned window reappeared during shutdown')
++            time.sleep(min(.25, max(0, deadline-time.monotonic())))
++        raise Refused('Owned device not positively Shutdown within observation bound')
++    except BaseException as error:
++        backend.unknown = True
++        if getattr(backend, 'c', None) is not None:
++            backend.c.unresolved = True
++        backend.preservation_failure = dict(type=type(error).__name__, message=str(error),
++            ownedUUID=owned.uuid, rootRecoveryRequired=True)
++        raise
++    finally:
++        backend._observation_deadline = previous_deadline
++
++
+ def cleanup(backend, owned, baseline):
+     """Any unknown identity/drift stops further mutation. Never quits Simulator."""
+     guard_custody(backend)
+@@ -96,6 +133,7 @@
+     if row and row['state']=='Booted':
+         backend.shutdown(owned.uuid)
+         row=check_snapshot(backend,owned,baseline)
++    row=wait_for_shutdown(backend,owned,baseline,row)
+     if row:
+         require(row['state']=='Shutdown','Owned device not positively Shutdown')
+         backend.delete(owned.uuid)
+--- accepted/mac_backend.py
++++ candidate/mac_backend.py
+@@ -89,6 +89,11 @@
+         return self.c.run('%03d-unchanged-native-dispatch'%self.index,argv,950,operation='native-dispatch')
+     def command(self,label,argv,timeout=45):
+         self.assert_custody()
++        deadline=getattr(self, '_observation_deadline', None)
++        if deadline is not None:
++            remaining=deadline-time.monotonic()
++            require(remaining>0, 'Shutdown observation deadline expired')
++            timeout=min(timeout,remaining)
+         self.index+=1; return self.c.run('%03d-%s'%(self.index,label),argv,timeout)
+     def ax_trusted(self):
+         self.assert_custody()

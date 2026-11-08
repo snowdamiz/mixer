@@ -1,0 +1,15 @@
+Read-only Git capture from /Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4:
+
+review=verification/plan-continuation-2026-11-07/store-journal-six-consumers-review
+inputs=("${(@f)$(jq -r 'keys[]' verification/plan-continuation-2026-11-07/store-journal-delivery/current-source101.json)}")
+git archive --format=tar HEAD "${inputs[@]}" verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py > "$review/frozen-head.tar"
+git rev-parse HEAD HEAD^{tree} > "$review/git-head.txt"
+git status --short -- cli/Sources/MixerBuild/AppStoreConnectBuildStatus.swift cli/Sources/MixerBuild/StoreReconciliation.swift cli/Sources/MixerCLI/main.swift cli/Tests/MixerBuildTests/StoreReconciliationTests.swift verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py > "$review/git-status.txt"
+git --version > "$review/git-version.txt"
+
+Two sequential child-free control invocations (initial script/result preserved):
+/opt/homebrew/opt/python@3.14/bin/python3.14 -I -B -S verification/plan-continuation-2026-11-07/store-journal-six-consumers-review/audit.py
+
+Final Git postflight (exit 0):
+git rev-parse HEAD HEAD^{tree} > "$review/git-head-postflight.txt"
+cmp "$review/git-head.txt" "$review/git-head-postflight.txt"

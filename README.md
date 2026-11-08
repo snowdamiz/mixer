@@ -47,12 +47,20 @@ scripts/mixer run ios --device YOUR_BOOTED_SIMULATOR_UUID --directory MyApp
 scripts/mixer import /path/to/existing/swift/project
 scripts/mixer release inspect --directory MyApp
 scripts/mixer export /path/to/export --directory MyApp
+scripts/mixer submit status --provider app-store-connect --app-id ASC_APP_ID --build-id BUILD_ID --directory MyApp
 ```
 
 Commands return JSON and nonzero status for failed operations. `doctor` returns 2
 when required inventory is incomplete. `release inspect` returns a blocked report
 until native/guest compiler closure, signed artifacts, and recovery evidence exist.
 The importer is advisory and read-only; lexical findings never authorize OTA.
+
+`submit status` queries an existing App Store Connect build using a short-lived
+`MIXER_ASC_BEARER_TOKEN` supplied through the launch environment. It checks the
+provider app/build identity against the project's bundle ID and retains a local
+observation under `.mixer/store`. Exit 0 means build processing succeeded; exit 2
+means processing is pending. TestFlight readiness, review approval and availability
+remain unverified. Live App Store Connect qualification is still pending.
 
 Generated projects bundle an exact SDK source snapshot and compiler identity in
 `mixer.lock`. They use JSON syntax in `mixer.yml` (a YAML 1.2 subset); general YAML
@@ -80,7 +88,7 @@ consumption remain pending. See the generated Android README and
 | Component | Implemented scope | Remaining acceptance |
 | --- | --- | --- |
 | `sdk/` | Swift state/effects, bounded UI protocol, reconciliation, native Apple controls, guest codecs | Broad UI/navigation/plugins, physical behavior/accessibility, full guest parity |
-| `cli/` | Creation, doctor, locked source snapshots, host tests, iOS Simulator build/run, unsigned Android APK generation/build, read-only inventory, export | Full Android lifecycle/resources/plugins, compiler semantic inventory, signing/distribution/debug tooling |
+| `cli/` | Creation, doctor, locked source snapshots, host tests, iOS Simulator build/run, unsigned Android APK generation/build, read-only inventory, export, existing App Store Connect build status | Full Android lifecycle/resources/plugins, compiler semantic inventory, signing/distribution/debug tooling |
 | `vm/` | Owned bounded integer/numeric/table-memory profiles, validation, execution, persistent C sessions, inventory | Full emitted Swift profile/imports, aggregate memory design, fuzz campaigns, independent audit |
 | `runtime/` | Typed native Swift sessions and complete validation without session allocation | Immutable published native artifacts and full runtime identity |
 | `activation/` | Signed cold-start selection into owned VM, signed limits, retained state, health and fallback | Full Swift/UI/capability integration, physical lifecycle/recovery and FieldLog adoption |
@@ -93,6 +101,10 @@ consumption remain pending. See the generated Android README and
 Each component documents its exact limitations. A local backend reference is not
 a hosted product. A Wasm run in a development oracle is not a MixerVM pass. Host
 unit tests and simulator builds are not physical-device qualification.
+
+For store preparation, use the [reviewer information template](docs/store-reviewer-information-template.md)
+to disclose the actual interpreter, update boundary, native fallback and review
+steps for each submitted build. Store and FieldLog release qualification remain pending.
 
 Native session/activation tests need the owned static VM archive. Follow
 [`runtime/README.md`](runtime/README.md) and [`activation/README.md`](activation/README.md)

@@ -1,0 +1,1723 @@
+diff --git a/cli/Sources/MixerBuild/AppStoreConnectBuildStatus.swift b/cli/Sources/MixerBuild/AppStoreConnectBuildStatus.swift
+new file mode 100644
+--- /dev/null
++++ b/cli/Sources/MixerBuild/AppStoreConnectBuildStatus.swift
+@@ -0,0 +1,131 @@
++import Foundation
++import MixerCore
++
++// Official contract: developer.apple.com/documentation/appstoreconnectapi/get-v1-builds-_id_
++// Numeric limits are development hypotheses, not provider guarantees.
++public struct AppStoreConnectBuildStatus: Sendable {
++    public static let maximumResponseBytes = 262_144
++    public static let timeoutSeconds: TimeInterval = 30
++    private let configuration: URLSessionConfiguration
++
++    public init() { configuration = .ephemeral }
++    init(configuration: URLSessionConfiguration) { self.configuration = configuration }
++
++    func read(buildID: String, appID: String, bundleID: String, token: String) throws -> StoreBuildObservation.ProviderValue {
++        guard !token.isEmpty, token.utf8.count <= 16_384,
++              token.utf8.allSatisfy({ (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || [45, 46, 95, 126, 43, 47, 61].contains($0) }) else {
++            throw StoreQueryFailure.credentialRequired
++        }
++        guard ![buildID, appID, bundleID].contains(where: { $0.contains(token) }) else { throw StoreQueryFailure.redactedResponse }
++        var components = URLComponents(string: "https://api.appstoreconnect.apple.com/v1/builds/\(buildID)")!
++        components.queryItems = [URLQueryItem(name: "fields[builds]", value: "version,processingState,app"), URLQueryItem(name: "include", value: "app"), URLQueryItem(name: "fields[apps]", value: "bundleId")]
++        let url = components.url!
++        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: Self.timeoutSeconds)
++        request.httpMethod = "GET"
++        request.setValue("application/json", forHTTPHeaderField: "Accept")
++        request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
++        let config = configuration.copy() as! URLSessionConfiguration
++        config.urlCache = nil; config.httpCookieStorage = nil; config.urlCredentialStorage = nil
++        config.httpShouldSetCookies = false; config.httpAdditionalHeaders = [:]
++        config.timeoutIntervalForRequest = Self.timeoutSeconds
++        config.timeoutIntervalForResource = Self.timeoutSeconds
++        config.waitsForConnectivity = false
++        let receiver = ASCResponseReceiver(expectedURL: url)
++        let session = URLSession(configuration: config, delegate: receiver, delegateQueue: nil)
++        defer { session.invalidateAndCancel() }
++        session.dataTask(with: request).resume()
++        guard receiver.finished.wait(timeout: .now() + Self.timeoutSeconds) == .success else { throw StoreQueryFailure.timeout }
++        let bytes = try receiver.result()
++        do {
++            try JSONInputGuard.validate(bytes, limits: JSONInputLimits(maximumBytes: Self.maximumResponseBytes, maximumDepth: 16, maximumValues: 4096, maximumStringBytes: 4096))
++            let response = try JSONDecoder().decode(ASCBuildResponse.self, from: bytes)
++            guard response.data.type == "builds", response.data.id == buildID,
++                  response.data.relationships.app.data.type == "apps", response.data.relationships.app.data.id == appID else { throw StoreQueryFailure.identityMismatch }
++            let apps = response.included.filter { $0.type == "apps" }
++            guard apps.count == 1, let app = apps.first, app.id == appID, app.attributes.bundleId == bundleID else { throw StoreQueryFailure.identityMismatch }
++            let version = response.data.attributes.version, state = response.data.attributes.processingState
++            guard !version.isEmpty, version.utf8.count <= 256, !version.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }),
++                  !state.isEmpty, state.utf8.count <= 128, !state.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else { throw StoreQueryFailure.malformedResponse }
++            guard ![version, state, app.id, app.attributes.bundleId, response.data.id].contains(where: { $0.contains(token) }) else { throw StoreQueryFailure.redactedResponse }
++            return .init(version: version, processingState: state)
++        } catch let failure as StoreQueryFailure { throw failure }
++        catch { throw StoreQueryFailure.malformedResponse }
++    }
++}
++
++private struct ASCBuildResponse: Decodable {
++    struct Linkage: Decodable { let type: String; let id: String }
++    struct Build: Decodable {
++        struct Attributes: Decodable { let version: String; let processingState: String }
++        struct Relationships: Decodable {
++            struct App: Decodable { let data: Linkage }
++            let app: App
++        }
++        let type: String; let id: String; let attributes: Attributes; let relationships: Relationships
++    }
++    struct App: Decodable {
++        struct Attributes: Decodable { let bundleId: String }
++        let type: String; let id: String; let attributes: Attributes
++    }
++    let data: Build
++    let included: [App]
++}
++
++// Delegate callbacks are serialized by URLSession; result access is fenced by the semaphore.
++private final class ASCResponseReceiver: NSObject, URLSessionDataDelegate, @unchecked Sendable {
++    let finished = DispatchSemaphore(value: 0)
++    private let expectedURL: URL
++    private var body = Data()
++    private var failure: StoreQueryFailure?
++    init(expectedURL: URL) { self.expectedURL = expectedURL }
++    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
++        guard let http = response as? HTTPURLResponse, http.url == expectedURL else {
++            failure = .invalidResponse; completionHandler(.cancel); return
++        }
++        switch http.statusCode {
++        case 200: break
++        case 300...399: failure = .redirectRefused
++        case 401: failure = .authenticationRejected
++        case 403: failure = .accessForbidden
++        case 404: failure = .notFound
++        case 429: failure = .rateLimited
++        default: failure = .providerRejected
++        }
++        if response.expectedContentLength > Int64(AppStoreConnectBuildStatus.maximumResponseBytes) { failure = .responseTooLarge }
++        if failure == nil, http.mimeType?.lowercased() != "application/json" { failure = .invalidResponse }
++        completionHandler(failure == nil ? .allow : .cancel)
++    }
++    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
++        guard failure == nil else { return }
++        guard data.count <= AppStoreConnectBuildStatus.maximumResponseBytes - body.count else { failure = .responseTooLarge; dataTask.cancel(); return }
++        body.append(data)
++    }
++    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
++        failure = .redirectRefused; completionHandler(nil)
++    }
++    func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
++        completionHandler(challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust ? .performDefaultHandling : .cancelAuthenticationChallenge, nil)
++    }
++    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
++        if failure == nil, let error { failure = (error as? URLError)?.code == .timedOut ? .timeout : .transportFailed }
++        finished.signal()
++    }
++    func result() throws -> Data { if let failure { throw failure }; return body }
++}
++
++public enum StoreQueryFailure: String, Error, Codable, Sendable {
++    case credentialRequired = "store.credential-required"
++    case authenticationRejected = "store.authentication-rejected"
++    case accessForbidden = "store.access-forbidden"
++    case notFound = "store.not-found"
++    case rateLimited = "store.rate-limited"
++    case providerRejected = "store.provider-rejected"
++    case timeout = "store.timeout"
++    case transportFailed = "store.transport-failed"
++    case redirectRefused = "store.redirect-refused"
++    case responseTooLarge = "store.response-too-large"
++    case malformedResponse = "store.malformed-response"
++    case invalidResponse = "store.invalid-response"
++    case identityMismatch = "store.identity-mismatch"
++    case redactedResponse = "store.redacted-response"
++}
+diff --git a/cli/Sources/MixerBuild/StoreReconciliation.swift b/cli/Sources/MixerBuild/StoreReconciliation.swift
+new file mode 100644
+--- /dev/null
++++ b/cli/Sources/MixerBuild/StoreReconciliation.swift
+@@ -0,0 +1,453 @@
++import Darwin
++import Foundation
++import MixerCore
++
++public struct StoreStatusRequest: Sendable {
++    let buildID: String
++    let appID: String
++    public static func parse(words: [String], options: [String: String]) throws -> Self {
++        guard words == ["submit", "status"] else {
++            throw MixerFailure("workflow.not-qualified", "submit requires native/guest/store integration that is still in progress. No build, release or submission has been performed. See mixer gates.")
++        }
++        guard Set(options.keys).isSubset(of: ["--provider", "--build-id", "--app-id", "--directory"]),
++              options["--provider"] == "app-store-connect", let buildID = options["--build-id"], let appID = options["--app-id"],
++              validID(buildID), validID(appID) else {
++            throw MixerFailure("arguments.submit-status", "Usage: mixer submit status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID [--directory PROJECT]")
++        }
++        return Self(buildID: buildID, appID: appID)
++    }
++    // Deliberately narrower than an arbitrary opaque string, so identity cannot alter URL paths.
++    private static func validID(_ value: String) -> Bool {
++        !value.isEmpty && value.utf8.count <= 200 && value.utf8.allSatisfy { (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || $0 == 45 || $0 == 95 }
++    }
++}
++
++public struct StoreBuildObservation: Codable, Sendable {
++    struct ProviderValue: Codable, Sendable { let version: String; let processingState: String }
++    let generation: UInt64
++    public let observedAt: Date
++    let providerValue: ProviderValue
++    public var version: String { providerValue.version }
++    public var processingState: String { providerValue.processingState }
++    public var outcome: String {
++        switch processingState {
++        case "PROCESSING": "processing-pending"
++        case "FAILED", "INVALID": "processing-failed"
++        case "VALID": "processing-succeeded"
++        default: "unresolved"
++        }
++    }
++}
++
++public struct StoreReconciliationReport: Encodable, Sendable {
++    public let provider = "app-store-connect"
++    public let qualification = "local-observation-only"
++    public let buildID: String
++    public let appID: String
++    public let bundleID: String
++    public let query: String
++    public let code: StoreQueryFailure?
++    public let observation: StoreBuildObservation?
++    public let observationUpdated: Bool
++    public let testFlightReadiness = "unverified"
++    public let reviewApproval = "unverified"
++    public let availability = "unverified"
++    public var status: String { query == "observed" ? observation?.outcome ?? "unresolved" : "unresolved" }
++    public var exitCode: Int32 { status == "processing-succeeded" ? 0 : status == "processing-pending" ? 2 : 1 }
++    public var nextStep: String {
++        if code == .credentialRequired || code == .authenticationRejected { return "Supply a valid short-lived MIXER_ASC_BEARER_TOKEN and query this existing build again." }
++        if code == .accessForbidden { return "Check App Store Connect access and any account action in Apple's interface; this response does not identify an agreement or verification requirement." }
++        if status == "processing-failed" { return "Inspect this build's processing diagnostics in App Store Connect; no upload was attempted." }
++        return "Reconcile this existing build as needed. Testing, review, and release require separate evidence."
++    }
++    enum CodingKeys: String, CodingKey { case provider, qualification, buildID, appID, bundleID, query, code, observation, observationUpdated, testFlightReadiness, reviewApproval, availability, status, nextStep }
++    public func encode(to encoder: Encoder) throws {
++        var c = encoder.container(keyedBy: CodingKeys.self)
++        try c.encode(provider, forKey: .provider); try c.encode(qualification, forKey: .qualification)
++        try c.encode(buildID, forKey: .buildID); try c.encode(appID, forKey: .appID); try c.encode(bundleID, forKey: .bundleID)
++        try c.encode(query, forKey: .query); try c.encodeIfPresent(code, forKey: .code); try c.encodeIfPresent(observation, forKey: .observation)
++        try c.encode(observationUpdated, forKey: .observationUpdated); try c.encode(testFlightReadiness, forKey: .testFlightReadiness)
++        try c.encode(reviewApproval, forKey: .reviewApproval); try c.encode(availability, forKey: .availability)
++        try c.encode(status, forKey: .status); try c.encode(nextStep, forKey: .nextStep)
++    }
++}
++
++public enum StoreReconciliation {
++    public static func status(request: StoreStatusRequest, directory: URL, environment: [String: String] = ProcessInfo.processInfo.environment, reader: AppStoreConnectBuildStatus = .init()) throws -> StoreReconciliationReport {
++        let config: ApplicationConfiguration
++        do { config = try ApplicationConfiguration.load(directory) }
++        catch { throw MixerFailure("store.project", "Cannot load a valid project application identity from mixer.yml.") }
++        let identity = StoreObservationFile.Identity(buildID: request.buildID, appID: request.appID, bundleID: config.application)
++        let token = environment["MIXER_ASC_BEARER_TOKEN"] ?? ""
++        guard token.isEmpty || ![identity.buildID, identity.appID, identity.bundleID].contains(where: { $0.contains(token) }) else {
++            throw MixerFailure("store.credential-reflection", "The credential overlaps an application identity; refusing to persist or emit it.")
++        }
++        guard identity.bundleID.utf8.count <= 256 else { throw MixerFailure("store.project", "Project application identity exceeds the status reader limit.") }
++        let file = try StoreObservationFile(root: directory, identity: identity, token: token)
++        defer { file.close() }
++        let generation = try file.reserve()
++        let observation: StoreBuildObservation?
++        let query: String
++        let failure: StoreQueryFailure?
++        let updated: Bool
++        do {
++            let value = try reader.read(buildID: request.buildID, appID: request.appID, bundleID: config.application, token: token)
++            let result = try file.commit(.init(generation: generation, observedAt: Date(), providerValue: value))
++            observation = result.0; updated = result.1; query = updated ? "observed" : "superseded"; failure = nil
++        } catch let error as StoreQueryFailure {
++            observation = try file.observation(); updated = false; query = "unresolved"; failure = error
++        }
++        return .init(buildID: identity.buildID, appID: identity.appID, bundleID: identity.bundleID, query: query, code: failure, observation: observation, observationUpdated: updated)
++    }
++}
++
++// One descriptor-anchored directory, bounded nonblocking flock, atomic rename and fsync.
++// Generation reservation happens before HTTP, so completion order cannot regress observations.
++final class StoreObservationFile {
++    struct Identity: Codable, Equatable { let buildID: String; let appID: String; let bundleID: String }
++    private struct CredentialFingerprint: Codable, Equatable {
++        let bytes: Int
++        let sha256: String
++    }
++    private struct Record: Codable {
++        var schema: Int
++        let identity: Identity
++        var issued: UInt64
++        var observation: StoreBuildObservation?
++        var discardedThrough: UInt64?
++        var redactions: [CredentialFingerprint]?
++        var redactionsExhausted: Bool?
++    }
++    private let directory: Int32
++    private let lock: Int32
++    private let name: String
++    private let identity: Identity
++    private let token: String
++    init(root: URL, identity: Identity, token: String) throws {
++        self.identity = identity
++        self.token = token
++        name = SourceDigest.sha256(Data((identity.bundleID + "\u{0}" + identity.appID + "\u{0}" + identity.buildID).utf8)) + ".json"
++        var descriptor = Darwin.open(root.path, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
++        guard descriptor >= 0 else { throw Self.failure() }
++        do {
++            for component in [".mixer", "store"] {
++                if mkdirat(descriptor, component, 0o700) != 0 && errno != EEXIST { throw Self.failure() }
++                let next = openat(descriptor, component, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
++                guard next >= 0 else { throw Self.failure() }
++                guard fsync(descriptor) == 0 else { let e = errno; Darwin.close(next); throw MixerFailure("store.local-record", "constructor-parent-fsync errno \(e)") }
++                Darwin.close(descriptor); descriptor = next
++            }
++            let flags = O_RDWR | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC
++            var opened = openat(descriptor, name + ".lock", flags | O_CREAT | O_EXCL, 0o600)
++            if opened < 0 && errno == EEXIST { opened = openat(descriptor, name + ".lock", flags) }
++            guard opened >= 0 else { throw Self.failure() }
++            var info = stat()
++            guard fstat(opened, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1 else { Darwin.close(opened); throw Self.failure() }
++            directory = descriptor; lock = opened
++        } catch { Darwin.close(descriptor); throw error }
++    }
++    func close() { Darwin.close(lock); Darwin.close(directory) }
++    private static func failure(line: UInt = #line) -> MixerFailure { .init("store.local-record", "Cannot safely read or atomically retain the local store observation (step \(line), errno \(errno)); no provider mutation was attempted.") }
++    private func locked<T>(_ body: () throws -> T) throws -> T {
++        let deadline = DispatchTime.now().uptimeNanoseconds + 2_000_000_000
++        while flock(lock, LOCK_EX | LOCK_NB) != 0 {
++            guard errno == EWOULDBLOCK || errno == EAGAIN, DispatchTime.now().uptimeNanoseconds < deadline else { throw Self.failure() }
++            usleep(10_000)
++        }
++        defer { flock(lock, LOCK_UN) }
++        return try body()
++    }
++    private func read() throws -> Record {
++        let fd = openat(directory, name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
++        guard fd >= 0 else {
++            if errno == ENOENT { return .init(schema: 1, identity: identity, issued: 0, observation: nil) }
++            throw Self.failure()
++        }
++        let handle = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
++        defer { try? handle.close() }
++        var info = stat()
++        guard fstat(fd, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1, info.st_size <= 16_384 else { throw Self.failure() }
++        do {
++            let data = try handle.read(upToCount: 16_385) ?? Data()
++            try JSONInputGuard.validate(data, limits: JSONInputLimits(maximumBytes: 16_384, maximumDepth: 8, maximumValues: 100))
++            let record = try JSONDecoder().decode(Record.self, from: data)
++            guard (record.schema == 1 || record.schema == 2), record.identity == identity,
++                  record.observation.map({ !$0.version.isEmpty && $0.version.utf8.count <= 256 && !$0.processingState.isEmpty && $0.processingState.utf8.count <= 128 }) ?? true,
++                  record.schema == 1 || (record.redactions == nil && record.redactionsExhausted == nil),
++                  record.observation.map({ $0.generation > 0 && $0.generation <= record.issued }) ?? true,
++                  record.discardedThrough.map({ $0 > 0 && $0 <= record.issued }) ?? true,
++                  (record.redactions?.count ?? 0) <= 16,
++                  record.redactions?.allSatisfy({ $0.bytes > 0 && $0.bytes <= 256 && $0.sha256.utf8.count == 64 && $0.sha256.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) } }) ?? true else { throw Self.failure() }
++            return record
++        } catch let error as MixerFailure { throw error }
++        catch { throw Self.failure() }
++    }
++    private func write(_ record: Record) throws {
++        let temporary = ".observation-" + UUID().uuidString
++        let fd = openat(directory, temporary, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
++        guard fd >= 0 else { throw Self.failure() }
++        let handle = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
++        defer { try? handle.close(); unlinkat(directory, temporary, 0) }
++        do {
++            let data = try JSONFile.data(record)
++            try JSONInputGuard.validate(data, limits: JSONInputLimits(maximumBytes: 16_384, maximumDepth: 8, maximumValues: 100))
++            try handle.write(contentsOf: data)
++            guard fsync(fd) == 0, renameat(directory, temporary, directory, name) == 0, fsync(directory) == 0 else { throw Self.failure() }
++        } catch let error as MixerFailure { throw error }
++        catch { throw Self.failure() }
++    }
++    private static func indexFailure() -> MixerFailure {
++        .init("store.credential-index", "Credential recognition storage is unavailable, corrupt, or unwritable. Restore its integrity and retry; no provider mutation was attempted.")
++    }
++
++    // Fixed 256 length roots and compressed SHA-256 paths bound reads and memory.
++    // Immutable child hashes distinguish non-membership from lost referenced nodes.
++    // All calls occur under the observation identity's flock.
++    private final class CredentialIndex {
++        private let directory: Int32
++        private var roots = [String](repeating: "", count: 256)
++        private var cache: [String: Node] = [:]
++        private struct Node {
++            let key: String
++            let bit: Int
++            let left: String
++            let right: String
++            var data: Data {
++                Data((bit == 256 ? "L\n\(key)\n" : "B\n\(bit)\n\(key)\n\(left)\n\(right)\n").utf8)
++            }
++        }
++        private static func hash(_ value: String) -> Bool {
++            value.utf8.count == 64 && value.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
++        }
++        private static func header(_ roots: [String]) -> Data {
++            let body = Data(("mixer-credential-tree-v1\n" + roots.joined(separator: "\n") + "\n").utf8)
++            return body + Data((SourceDigest.sha256(body) + "\n").utf8)
++        }
++        init(parent: Int32, name: String, create: Bool) throws {
++            var created = false
++            if create {
++                if mkdirat(parent, name, 0o700) == 0 { created = true }
++                else if errno != EEXIST { throw StoreObservationFile.indexFailure() }
++            }
++            let fd = openat(parent, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
++            guard fd >= 0 else { throw StoreObservationFile.indexFailure() }
++            directory = fd
++            do {
++                if created { try atomic(Self.header(roots), name: "roots") }
++                guard let data = try read("roots", maximum: 17_000) else { throw StoreObservationFile.indexFailure() }
++                let lines = String(decoding: data, as: UTF8.self).components(separatedBy: "\n")
++                guard lines.count == 259 else { throw StoreObservationFile.indexFailure() }
++                let decoded = Array(lines[1...256])
++                guard decoded.allSatisfy({ $0.isEmpty || Self.hash($0) }), data == Self.header(decoded) else { throw StoreObservationFile.indexFailure() }
++                roots = decoded
++                if let pending = try read("pending", maximum: Self.maximumPendingBytes) { try finishRecognition(Self.decodePending(pending)) }
++                guard fsync(directory) == 0, fsync(parent) == 0 else { throw StoreObservationFile.indexFailure() }
++            } catch { Darwin.close(fd); throw error }
++        }
++        deinit { Darwin.close(directory) }
++        private func read(_ name: String, maximum: Int, synchronize: Bool = false) throws -> Data? {
++            let fd = openat(directory, name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
++            guard fd >= 0 else {
++                if errno == ENOENT { return nil }
++                throw StoreObservationFile.indexFailure()
++            }
++            let file = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
++            defer { try? file.close() }
++            var info = stat()
++            guard fstat(fd, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1,
++                  info.st_size >= 0, info.st_size <= maximum else { throw StoreObservationFile.indexFailure() }
++            do {
++                let data = try file.read(upToCount: maximum + 1) ?? Data()
++                guard data.count == info.st_size, data.count <= maximum,
++                      !synchronize || fsync(fd) == 0 else { throw StoreObservationFile.indexFailure() }
++                return data
++            } catch { throw StoreObservationFile.indexFailure() }
++        }
++        private func atomic(_ data: Data, name: String) throws {
++            let temporary = ".credential-" + UUID().uuidString
++            let fd = openat(directory, temporary, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
++            guard fd >= 0 else { throw StoreObservationFile.indexFailure() }
++            let file = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
++            defer { try? file.close(); unlinkat(directory, temporary, 0) }
++            do {
++                try file.write(contentsOf: data)
++                guard fsync(fd) == 0, renameat(directory, temporary, directory, name) == 0,
++                      fsync(directory) == 0 else { throw StoreObservationFile.indexFailure() }
++            } catch { throw StoreObservationFile.indexFailure() }
++        }
++        private static let pendingHeader = "mixer-credential-v2\n"
++        // Header, 1...256 byte length, separator, fingerprint, checksum and newlines.
++        private static let maximumPendingBytes = pendingHeader.utf8.count + 3 + 1 + 64 + 1 + 64 + 1
++        private static func entry(_ fingerprint: CredentialFingerprint) -> Data {
++            let body = Data((pendingHeader + "\(fingerprint.bytes)-\(fingerprint.sha256)\n").utf8)
++            return body + Data((SourceDigest.sha256(body) + "\n").utf8)
++        }
++        private static func decodePending(_ data: Data) throws -> CredentialFingerprint {
++            let lines = String(decoding: data, as: UTF8.self).components(separatedBy: "\n")
++            // Unchecked v1 history cannot be certified by rewriting it as v2.
++            guard lines.count == 4, lines[0] + "\n" == pendingHeader,
++                  Self.hash(lines[2]), lines[3].isEmpty else { throw StoreObservationFile.indexFailure() }
++            let parts = lines[1].split(separator: "-", maxSplits: 1)
++            guard parts.count == 2, let bytes = Int(parts[0]), (1...256).contains(bytes), String(bytes) == parts[0], Self.hash(String(parts[1])) else { throw StoreObservationFile.indexFailure() }
++            let fingerprint = CredentialFingerprint(bytes: bytes, sha256: String(parts[1]))
++            guard data == Self.entry(fingerprint) else { throw StoreObservationFile.indexFailure() }
++            return fingerprint
++        }
++        private func load(_ reference: String) throws -> Node {
++            if let node = cache[reference] { return node }
++            guard Self.hash(reference), let data = try read(reference + ".node", maximum: 256), SourceDigest.sha256(data) == reference else { throw StoreObservationFile.indexFailure() }
++            let parts = String(decoding: data, as: UTF8.self).components(separatedBy: "\n")
++            let node: Node
++            if parts.count == 3, parts[0] == "L", Self.hash(parts[1]), parts[2].isEmpty {
++                node = .init(key: parts[1], bit: 256, left: "", right: "")
++            } else if parts.count == 6, parts[0] == "B", let bit = Int(parts[1]), (0..<256).contains(bit),
++                      Self.hash(parts[2]), Self.hash(parts[3]), Self.hash(parts[4]), parts[3] != parts[4], parts[5].isEmpty {
++                node = .init(key: parts[2], bit: bit, left: parts[3], right: parts[4])
++            } else { throw StoreObservationFile.indexFailure() }
++            guard data == node.data else { throw StoreObservationFile.indexFailure() }
++            // Cache eviction never changes durable recognition. Bound memory independently of history.
++            if cache.count >= 512 { cache.removeAll(keepingCapacity: true) }
++            cache[reference] = node
++            return node
++        }
++        private func save(_ node: Node) throws -> String {
++            let data = node.data, reference = SourceDigest.sha256(node.data)
++            if let existing = try read(reference + ".node", maximum: 256, synchronize: true) {
++                guard existing == data else { throw StoreObservationFile.indexFailure() }
++            } else { try atomic(data, name: reference + ".node") }
++            return reference
++        }
++        private func nibble(_ byte: UInt8) -> UInt8 { byte <= 57 ? byte - 48 : byte - 87 }
++        private func bit(_ key: String, _ position: Int) -> Int {
++            let byte = key.utf8[key.utf8.index(key.utf8.startIndex, offsetBy: position / 4)]
++            return Int((nibble(byte) >> (3 - position % 4)) & 1)
++        }
++        private func common(_ a: String, _ b: String) -> Int {
++            for (i, pair) in zip(a.utf8, b.utf8).enumerated() {
++                let difference = nibble(pair.0) ^ nibble(pair.1)
++                if difference != 0 {
++                    for j in 0..<4 where difference & (8 >> j) != 0 { return i * 4 + j }
++                }
++            }
++            return 256
++        }
++        private func child(_ node: Node, direction: Int) throws -> (String, Node) {
++            let reference = direction == 0 ? node.left : node.right
++            let next = try load(reference)
++            guard next.bit > node.bit, common(next.key, node.key) >= node.bit, bit(next.key, node.bit) == direction else { throw StoreObservationFile.indexFailure() }
++            return (reference, next)
++        }
++        private func containsHash(_ hash: String, root: String) throws -> Bool {
++            if root.isEmpty { return false }
++            var node = try load(root)
++            while true {
++                if common(hash, node.key) < node.bit { return false }
++                if node.bit == 256 { return true }
++                node = try child(node, direction: bit(hash, node.bit)).1
++            }
++        }
++        private func insert(_ hash: String, reference: String, node: Node) throws -> String {
++            let shared = common(hash, node.key)
++            if shared < node.bit {
++                let leaf = try save(.init(key: hash, bit: 256, left: "", right: ""))
++                let zero = bit(hash, shared) == 0
++                return try save(.init(key: hash, bit: shared, left: zero ? leaf : reference, right: zero ? reference : leaf))
++            }
++            if node.bit == 256 { return reference }
++            let direction = bit(hash, node.bit), next = try child(node, direction: bit(hash, node.bit))
++            let changed = try insert(hash, reference: next.0, node: next.1)
++            if changed == next.0 { return reference }
++            return try save(.init(key: node.key, bit: node.bit, left: direction == 0 ? changed : node.left, right: direction == 1 ? changed : node.right))
++        }
++        private func finishRecognition(_ fingerprint: CredentialFingerprint) throws {
++            let old = roots[fingerprint.bytes - 1]
++            let updated: String
++            if old.isEmpty { updated = try save(.init(key: fingerprint.sha256, bit: 256, left: "", right: "")) }
++            else { updated = try insert(fingerprint.sha256, reference: old, node: load(old)) }
++            if updated != old {
++                roots[fingerprint.bytes - 1] = updated
++                try atomic(Self.header(roots), name: "roots")
++            }
++            guard fsync(directory) == 0, unlinkat(directory, "pending", 0) == 0, fsync(directory) == 0 else { throw StoreObservationFile.indexFailure() }
++        }
++        func recognize(_ fingerprint: CredentialFingerprint) throws {
++            if try containsHash(fingerprint.sha256, root: roots[fingerprint.bytes - 1]) { return }
++            try atomic(Self.entry(fingerprint), name: "pending")
++            try finishRecognition(fingerprint)
++        }
++        func contains(_ value: String) throws -> Bool {
++            let bytes = Array(value.utf8)
++            guard !bytes.isEmpty else { return false }
++            for length in 1...min(bytes.count, 256) where !roots[length - 1].isEmpty {
++                for offset in 0...(bytes.count - length) {
++                    let hash = SourceDigest.sha256(Data(bytes[offset..<(offset + length)]))
++                    if try containsHash(hash, root: roots[length - 1]) { return true }
++                }
++            }
++            return false
++        }
++    }
++    private func prepare(_ record: inout Record) throws -> (CredentialIndex, Bool) {
++        // R2 saturation discarded unknown later fingerprints. Clearing it would
++        // falsely claim complete history; this unreleased schema needs explicit recovery.
++        guard record.redactionsExhausted != true else {
++            throw MixerFailure("store.credential-history-incomplete", "This unreleased record discarded credential history. Automatic migration cannot safely reconstruct it; restore complete recognition evidence before migration.")
++        }
++        let index = try CredentialIndex(parent: directory, name: name + ".credentials", create: record.schema == 1)
++        for fingerprint in record.redactions ?? [] { try index.recognize(fingerprint) }
++        if !token.isEmpty && token.utf8.count <= 256 {
++            try index.recognize(.init(bytes: token.utf8.count, sha256: SourceDigest.sha256(Data(token.utf8))))
++        }
++        let migrated = record.schema == 1
++        record.schema = 2; record.redactions = nil; record.redactionsExhausted = nil
++        let sanitized = try sanitize(&record, index: index)
++        return (index, migrated || sanitized)
++    }
++    private func reflectsCredential(_ observation: StoreBuildObservation, index: CredentialIndex) throws -> Bool {
++        for value in [observation.version, observation.processingState] {
++            if !token.isEmpty && value.contains(token) { return true }
++            if try index.contains(value) { return true }
++        }
++        return false
++    }
++    private func sanitize(_ record: inout Record, index: CredentialIndex) throws -> Bool {
++        if let observation = record.observation, try reflectsCredential(observation, index: index) {
++            record.discardedThrough = max(record.discardedThrough ?? 0, observation.generation)
++            record.observation = nil
++            return true
++        }
++        return false
++    }
++    func reserve() throws -> UInt64 {
++        try locked {
++            var record = try read()
++            let (_, sanitized) = try prepare(&record)
++            guard record.issued < UInt64.max else {
++                if sanitized { try write(record) }
++                throw Self.failure()
++            }
++            record.issued += 1
++            try write(record)
++            return record.issued
++        }
++    }
++    func commit(_ observation: StoreBuildObservation) throws -> (StoreBuildObservation?, Bool) {
++        try locked {
++            var record = try read()
++            let (index, sanitized) = try prepare(&record)
++            if sanitized { try write(record) }
++            guard observation.generation <= record.issued else { throw Self.failure() }
++            guard observation.generation > max(record.observation?.generation ?? 0, record.discardedThrough ?? 0) else { return (record.observation, false) }
++            guard try !reflectsCredential(observation, index: index) else { throw StoreQueryFailure.redactedResponse }
++            record.observation = observation; try write(record); return (observation, true)
++        }
++    }
++    func observation() throws -> StoreBuildObservation? {
++        try locked {
++            var record = try read()
++            let (_, sanitized) = try prepare(&record)
++            if sanitized { try write(record) }
++            return record.observation
++        }
++    }
++}
+diff --git a/cli/Sources/MixerCLI/main.swift b/cli/Sources/MixerCLI/main.swift
+--- a/cli/Sources/MixerCLI/main.swift
++++ b/cli/Sources/MixerCLI/main.swift
+@@ -12,7 +12,7 @@
+             if value == "--help" { positional.append("help") }
+             else if value == "--json" { json = true }
+             else if value.hasPrefix("--") {
+-                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--platform", "--output", "--device"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
++                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+                 index += 1; options[value] = values[index]
+             } else { positional.append(value) }
+             index += 1
+@@ -44,6 +44,8 @@
+   mixer vm validate|inventory|invoke FILE [EXPORT [i32:N|i64:N ...]]
+   mixer update verify --manifest FILE --payload FILE --host FILE --roots FILE
+     --assignment FILE --channel NAME --installation ID --last-sequence N --now UNIX
++  mixer submit status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID
++    [--directory PROJECT]
+   mixer gates
+ 
+ All commands emit structured JSON. Build/test errors preserve compiler diagnostics.
+@@ -67,7 +69,8 @@
+         "create": ["--directory", "--application", "--sdk-path", "--platform", "--android-adapter-path"], "config": ["--directory"],
+         "build": ["--directory", "--platform"], "test": ["--directory", "--platform"],
+         "run": ["--directory", "--device"], "import": ["--output"],
+-        "release": ["--directory"], "export": ["--directory"]
++        "release": ["--directory"], "export": ["--directory"],
++        "submit": ["--provider", "--build-id", "--app-id", "--directory"]
+     ]
+     guard Set(arguments.options.keys).isSubset(of: allowedOptions[words.first ?? "help"] ?? []) else { throw MixerFailure("arguments.unused-option", "An option does not apply to this command.") }
+     let root = path(arguments.options["--directory"] ?? ".")
+@@ -124,7 +127,11 @@
+         let result = try AppleProject.run(root: root, simulator: device)
+         try output(result)
+         if !result.succeeded { exit(1) }
+-    case "update", "submit":
++    case "submit":
++        let request = try StoreStatusRequest.parse(words: words, options: arguments.options)
++        let report = try StoreReconciliation.status(request: request, directory: root)
++        try output(report); exit(report.exitCode)
++    case "update":
+         throw MixerFailure("workflow.not-qualified", "\(words[0]) requires native/guest/store integration that is still in progress. No build, release or submission has been performed. See mixer gates.")
+     default: throw MixerFailure("arguments.command", "Unknown command: \(words[0]). Run mixer help.")
+     }
+diff --git a/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift b/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift
+new file mode 100644
+--- /dev/null
++++ b/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift
+@@ -0,0 +1,1080 @@
++import Darwin
++import CryptoKit
++import Foundation
++import Testing
++@testable import MixerBuild
++
++private let dummyToken = "dummy-token-for-offline-test"
++private let validOptions = ["--provider": "app-store-connect", "--build-id": "build-1", "--app-id": "12345"]
++private func payload(_ state: String = "PROCESSING", build: String = "build-1", app: String = "12345", bundle: String = "com.example.Store", version: String = "42") -> Data {
++    Data("""
++    {"data":{"type":"builds","id":"\(build)","attributes":{"version":"\(version)","processingState":"\(state)"},"relationships":{"app":{"data":{"type":"apps","id":"\(app)"}}}},"included":[{"type":"apps","id":"\(app)","attributes":{"bundleId":"\(bundle)"}}]}
++    """.utf8)
++}
++
++private final class Gate: @unchecked Sendable {
++    let started = DispatchSemaphore(value: 0)
++    let release = DispatchSemaphore(value: 0)
++}
++private struct Reply: Sendable {
++    var body: Data = payload()
++    var status: Int = 200
++    var headers: [String: String] = ["Content-Type": "application/json"]
++    var error: URLError?
++    var redirect = false
++    var gate: Gate?
++}
++private final class Script: @unchecked Sendable {
++    let lock = NSLock()
++    var replies: [Reply] = []
++    var trace: [URLRequest] = []
++    func set(_ replies: [Reply]) { lock.lock(); defer { lock.unlock() }; self.replies = replies; trace = [] }
++    func take(_ request: URLRequest) -> Reply? { lock.lock(); defer { lock.unlock() }; trace.append(request); return replies.isEmpty ? nil : replies.removeFirst() }
++    func requests() -> [URLRequest] { lock.lock(); defer { lock.unlock() }; return trace }
++}
++private final class ScriptedASC: URLProtocol, @unchecked Sendable {
++    static let script = Script()
++    override class func canInit(with request: URLRequest) -> Bool { true }
++    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
++    override func startLoading() {
++        guard let reply = Self.script.take(request) else { client?.urlProtocol(self, didFailWithError: URLError(.resourceUnavailable)); return }
++        if let gate = reply.gate {
++            gate.started.signal()
++            DispatchQueue.global().async { [self] in
++                guard gate.release.wait(timeout: .now() + 5) == .success else { client?.urlProtocol(self, didFailWithError: URLError(.timedOut)); return }
++                respond(reply)
++            }
++        } else { respond(reply) }
++    }
++    private func respond(_ reply: Reply) {
++        if let error = reply.error { client?.urlProtocol(self, didFailWithError: error); return }
++        let response = HTTPURLResponse(url: request.url!, statusCode: reply.status, httpVersion: "HTTP/1.1", headerFields: reply.headers)!
++        if reply.redirect {
++            client?.urlProtocol(self, wasRedirectedTo: URLRequest(url: URL(string: "https://untrusted.invalid/leak")!), redirectResponse: response)
++            client?.urlProtocolDidFinishLoading(self)
++            return
++        }
++        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
++        // Separate chunks exercise the production streaming size bound.
++        for offset in stride(from: 0, to: reply.body.count, by: 8192) {
++            client?.urlProtocol(self, didLoad: reply.body.subdata(in: offset..<min(offset + 8192, reply.body.count)))
++        }
++        client?.urlProtocolDidFinishLoading(self)
++    }
++    override func stopLoading() {}
++}
++private func reader() -> AppStoreConnectBuildStatus {
++    let config = URLSessionConfiguration.ephemeral
++    config.protocolClasses = [ScriptedASC.self]
++    return AppStoreConnectBuildStatus(configuration: config)
++}
++private func project(_ body: (URL) throws -> Void) throws {
++    let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-store-test-" + UUID().uuidString)
++    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
++    defer { try? FileManager.default.removeItem(at: root) }
++    try JSONFile.write(ApplicationConfiguration(name: "Store", application: "com.example.Store"), to: root.appendingPathComponent("mixer.yml"))
++    try body(root)
++}
++private func query(_ root: URL, token: String = dummyToken) throws -> StoreReconciliationReport {
++    try StoreReconciliation.status(request: StoreStatusRequest.parse(words: ["submit", "status"], options: validOptions), directory: root, environment: ["MIXER_ASC_BEARER_TOKEN": token], reader: reader())
++}
++private func record(_ root: URL) throws -> Data {
++    let dir = root.appendingPathComponent(".mixer/store")
++    let files = try FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil).filter { $0.pathExtension == "json" }
++    #expect(files.count == 1)
++    return try Data(contentsOf: #require(files.first))
++}
++private func assertReads(_ count: Int) throws {
++    let trace = ScriptedASC.script.requests()
++    #expect(trace.count == count)
++    for r in trace {
++        #expect(r.httpMethod == "GET" && r.httpBody == nil && r.httpBodyStream == nil)
++        #expect(r.url?.scheme == "https" && r.url?.host == "api.appstoreconnect.apple.com")
++        #expect(r.url?.path == "/v1/builds/build-1")
++        let url = try #require(r.url)
++        let items = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
++        #expect(Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") }) == ["fields[builds]": "version,processingState,app", "include": "app", "fields[apps]": "bundleId"])
++        #expect(r.value(forHTTPHeaderField: "Authorization") == "Bearer " + dummyToken)
++        #expect(r.value(forHTTPHeaderField: "Accept") == "application/json")
++        #expect(r.timeoutInterval == 30)
++    }
++}
++
++@Suite(.serialized) struct StoreSubmissionReconciliationTests {
++    @Test func referencedLeafAndBranchLossRefusesAndExactRestorationRecovers() throws {
++        for branch in [false, true] {
++            try project { root in
++                let secret = "deleted-history-secret", other = "another-history-secret"
++                ScriptedASC.script.set([Reply(status: 401), Reply(status: 401)])
++                _ = try query(root, token: secret)
++                if branch { _ = try query(root, token: other) }
++                let index = try indexPath(root)
++                let header = try String(contentsOf: index.appendingPathComponent("roots"), encoding: .utf8).components(separatedBy: "\n")
++                let victim = index.appendingPathComponent(branch ? header[secret.utf8.count] + ".node" : fingerprintName(secret))
++                let backup = try Data(contentsOf: victim), before = try record(root)
++                if branch { #expect(String(decoding: backup, as: UTF8.self).hasPrefix("B\n")) }
++                for malformed in [false, true] {
++                    if malformed { try Data("broken".utf8).write(to: victim) }
++                    else { try FileManager.default.removeItem(at: victim) }
++                    ScriptedASC.script.set([Reply(body: payload("VALID", version: secret))])
++                    expectStorageError { _ = try query(root) }
++                    #expect(try record(root) == before || !String(decoding: try record(root), as: UTF8.self).contains(secret))
++                    try backup.write(to: victim)
++                    ScriptedASC.script.set([Reply(body: payload("VALID", version: secret))])
++                    #expect(try query(root).code == .redactedResponse)
++                    #expect(try query(root, token: "").observation == nil)
++                }
++                print("TREE referenced deletion/malformed branch=\(branch) refused; exact restoration recovers")
++            }
++        }
++    }
++    @Test func recognizedCredentialIsRemovedBefore401AndMissingToken() throws {
++        for inState in [false, true] {
++            try project { root in
++                let futureToken = "newly-supplied-offline-token"
++                let reflected = "prefix-" + futureToken + "-suffix"
++                ScriptedASC.script.set([Reply(body: payload(inState ? reflected : "VALID", version: inState ? "42" : reflected)), Reply(status: 401)])
++                let admitted = try query(root)
++                #expect(admitted.observationUpdated && admitted.observation != nil)
++                #expect(String(decoding: try record(root), as: UTF8.self).contains(futureToken))
++                let rejected = try query(root, token: futureToken)
++                #expect(rejected.code == .authenticationRejected && rejected.observation == nil && !rejected.observationUpdated)
++                #expect(!String(decoding: try record(root), as: UTF8.self).contains(futureToken))
++                #expect(!String(decoding: try JSONFile.data(rejected), as: UTF8.self).contains(futureToken))
++                let missing = try query(root, token: "")
++                #expect(missing.code == .credentialRequired && missing.observation == nil)
++                #expect(!String(decoding: try record(root), as: UTF8.self).contains(futureToken))
++                #expect(!String(decoding: try JSONFile.data(missing), as: UTF8.self).contains(futureToken))
++                let stored = try #require(JSONSerialization.jsonObject(with: record(root)) as? [String: Any])
++                let identity = try #require(stored["identity"] as? [String: String])
++                #expect(identity == ["buildID": "build-1", "appID": "12345", "bundleID": "com.example.Store"])
++                #expect((stored["issued"] as? NSNumber)?.uint64Value == 3)
++                #expect(ScriptedASC.script.requests().count == 2)
++                let executable = try #require(ProcessInfo.processInfo.environment["MIXER_STORE_TEST_CLI"])
++                let cli = try runCLI(executable, ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path])
++                #expect(cli.0 == 1 && cli.1.contains("store.credential-required") && !cli.1.contains(futureToken))
++            }
++        }
++    }
++    @Test func inFlightAndRotatedWritersCannotRestoreRecognizedCredential() throws {
++        for inState in [false, true] {
++            try project { root in
++                let futureToken = "newly-supplied-offline-token", gate = Gate(), done = DispatchSemaphore(value: 0)
++                let result = ResultBox()
++                let body = payload(inState ? futureToken : "VALID", version: inState ? "42" : futureToken)
++                ScriptedASC.script.set([Reply(body: body, gate: gate), Reply(status: 401), Reply(body: body), Reply(body: payload("VALID", version: "43"))])
++                DispatchQueue.global().async { result.set(Result { try query(root) }); done.signal() }
++                guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
++                defer { gate.release.signal() }
++                let rejected = try query(root, token: futureToken)
++                #expect(rejected.code == .authenticationRejected && rejected.observation == nil)
++                gate.release.signal()
++                #expect(done.wait(timeout: .now() + 5) == .success)
++                let old = try #require(result.get()).get()
++                #expect(old.code == .redactedResponse && !old.observationUpdated && old.observation == nil)
++                let rotated = try query(root, token: "third-offline-token")
++                #expect(rotated.code == .redactedResponse && rotated.observation == nil)
++                let missing = try query(root, token: "")
++                for report in [old, rotated, missing] {
++                    #expect(!String(decoding: try JSONFile.data(report), as: UTF8.self).contains(futureToken))
++                }
++                #expect(!String(decoding: try record(root), as: UTF8.self).contains(futureToken))
++                let recovered = try query(root, token: "third-offline-token")
++                #expect(recovered.observationUpdated && recovered.observation?.version == "43" && recovered.observation?.generation == 5)
++                #expect(ScriptedASC.script.requests().count == 4)
++            }
++        }
++    }
++    @Test func invalidationRetainsGenerationOrderingAgainstOlderSafeWriter() throws {
++        try project { root in
++            let futureToken = "newly-supplied-offline-token", gate = Gate(), done = DispatchSemaphore(value: 0)
++            let result = ResultBox()
++            ScriptedASC.script.set([Reply(body: payload("VALID")), Reply(body: payload("VALID", version: "old-safe"), gate: gate), Reply(body: payload("VALID", version: futureToken)), Reply(status: 401), Reply(body: payload("VALID", version: "new-safe"))])
++            _ = try query(root)
++            DispatchQueue.global().async { result.set(Result { try query(root) }); done.signal() }
++            guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
++            defer { gate.release.signal() }
++            #expect(try query(root).observation?.generation == 3)
++            #expect(try query(root, token: futureToken).observation == nil)
++            gate.release.signal()
++            #expect(done.wait(timeout: .now() + 5) == .success)
++            let old = try #require(result.get()).get()
++            #expect(old.query == "superseded" && !old.observationUpdated && old.observation == nil)
++            #expect(try query(root, token: "").observation == nil)
++            let recovered = try query(root)
++            #expect(recovered.observation?.version == "new-safe" && recovered.observation?.generation == 6)
++            #expect(!String(decoding: try record(root), as: UTF8.self).contains(futureToken))
++        }
++    }
++    @Test func rotatedCredentialFailurePreservesSafeObservationBytes() throws {
++        try project { root in
++            ScriptedASC.script.set([Reply(body: payload("VALID")), Reply(status: 401)])
++            _ = try query(root)
++            func observationBytes() throws -> Data {
++                let stored = try #require(JSONSerialization.jsonObject(with: record(root)) as? [String: Any])
++                return try JSONSerialization.data(withJSONObject: #require(stored["observation"]), options: [.sortedKeys])
++            }
++            let before = try observationBytes()
++            let rejected = try query(root, token: "newly-supplied-offline-token")
++            #expect(rejected.code == .authenticationRejected && rejected.observation?.version == "42")
++            #expect(try observationBytes() == before)
++            #expect(try query(root, token: "").observation?.version == "42")
++            #expect(try observationBytes() == before)
++        }
++    }
++    private func compact(_ data: Data) -> String {
++        data.base64EncodedString().replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
++    }
++    private func jwt(_ index: Int, key: P256.Signing.PrivateKey, team: Bool = false) throws -> String {
++        let header = Data(#"{"alg":"ES256","kid":"TESTKEY123","typ":"JWT"}"#.utf8)
++        let identity = team ? #""iss":"00000000-0000-0000-0000-000000000000""# : #""sub":"user""#
++        let body = Data("{\(identity),\"iat\":\(1794099600 + index),\"exp\":\(1794100800 + index),\"aud\":\"appstoreconnect-v1\"}".utf8)
++        let message = compact(header) + "." + compact(body)
++        let signature = try key.signature(for: Data(message.utf8))
++        #expect(key.publicKey.isValidSignature(signature, for: Data(message.utf8)))
++        return message + "." + compact(signature.rawRepresentation)
++    }
++    private func recordPath(_ root: URL) throws -> URL {
++        try #require(FileManager.default.contentsOfDirectory(at: root.appendingPathComponent(".mixer/store"), includingPropertiesForKeys: nil).first { $0.pathExtension == "json" })
++    }
++    private func indexPath(_ root: URL) throws -> URL {
++        URL(fileURLWithPath: try recordPath(root).path + ".credentials", isDirectory: true)
++    }
++    private func fingerprintName(_ token: String) -> String {
++        SourceDigest.sha256(Data(("L\n" + SourceDigest.sha256(Data(token.utf8)) + "\n").utf8)) + ".node"
++    }
++    private func indexEntries(_ root: URL) throws -> [URL] {
++        try FileManager.default.contentsOfDirectory(at: indexPath(root), includingPropertiesForKeys: nil).filter { url in
++            guard url.pathExtension == "node" else { return false }
++            return try Data(contentsOf: url).starts(with: Data("L\n".utf8))
++        }
++    }
++    private func expectStorageError(_ operation: () throws -> Void) {
++        do { try operation(); Issue.record("Expected recoverable credential storage refusal") }
++        catch let error as MixerFailure { #expect(error.code == "store.credential-index") }
++        catch { Issue.record("Unexpected error type") }
++    }
++    @Test func credentialHistoryRotationContinuesBeyond32AndRetainsEverySecret() throws {
++        try project { root in
++            let key = P256.Signing.PrivateKey()
++            var tokens: [String] = []
++            for i in 0..<40 { tokens.append(try jwt(i, key: key)) }
++            tokens += (0..<40).map { "offline-rotation-token-\($0)" }
++            #expect(tokens.prefix(40).allSatisfy { $0.utf8.count == 250 })
++            #expect(Set(tokens).count == 80)
++            for (i, token) in tokens.enumerated() {
++                ScriptedASC.script.set([Reply(body: payload(i == 79 ? "VALID" : "PROCESSING", version: "\(i)"))])
++                let result = try query(root, token: token)
++                try #require(result.observationUpdated && result.observation?.version == "\(i)")
++            }
++            // The original R2 failure used rejected credentials. They also cannot
++            // impose a lifetime quota on later successful observations.
++            for i in 0..<40 {
++                ScriptedASC.script.set([Reply(status: 401)])
++                #expect(try query(root, token: "rejected-rotation-token-\(i)").code == .authenticationRejected)
++            }
++            let entries = try indexEntries(root)
++            #expect(entries.count == 120)
++            for old in [tokens[0], tokens[39], tokens[40], tokens[79], "rejected-rotation-token-0"] {
++                ScriptedASC.script.set([Reply(body: payload("VALID", version: old))])
++                let result = try query(root, token: tokens[1])
++                #expect(result.code == .redactedResponse && !result.observationUpdated && result.observation?.version == "79")
++            }
++            let team = try jwt(90, key: key, team: true)
++            #expect(team.utf8.count == 293)
++            for token in [tokens[0], tokens[0], team] {
++                ScriptedASC.script.set([Reply(body: payload("VALID", version: "continued"))])
++                #expect(try query(root, token: token).observationUpdated)
++            }
++            #expect(try indexEntries(root).count == 120)
++            #expect(try query(root, token: "").observation?.version == "continued")
++            let data = try record(root)
++            #expect(data.count <= 16_384)
++            let saved = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
++            #expect((saved["schema"] as? NSNumber)?.intValue == 2 && saved["redactions"] == nil && saved["redactionsExhausted"] == nil)
++            for entry in entries {
++                let bytes = try Data(contentsOf: entry)
++                #expect(bytes.count <= 128)
++                #expect(!tokens.contains { String(decoding: bytes, as: UTF8.self).contains($0) })
++            }
++            let nodes = try FileManager.default.contentsOfDirectory(at: indexPath(root), includingPropertiesForKeys: nil).filter { $0.pathExtension == "node" }
++            #expect(nodes.count < 120 * 16)
++            print("TREE rotation successfulDistinct=80 individuallySigned250ByteJWTs=40 rejectedDistinct=40 deduplicatedLeaves=120 totalImmutableNodes=\(nodes.count) progress=true")
++        }
++    }
++    @Test func storageCorruptionUnavailabilityAndWriteFailureRecoverWithoutPoison() throws {
++        try project { root in
++            ScriptedASC.script.set([Reply(body: payload("VALID"))])
++            _ = try query(root)
++            let index = try indexPath(root), before = try record(root)
++            let header = index.appendingPathComponent("roots"), originalHeader = try Data(contentsOf: header)
++            let entry = index.appendingPathComponent(fingerprintName(dummyToken)), originalEntry = try Data(contentsOf: entry)
++            ScriptedASC.script.set([])
++            for path in [header, entry] {
++                let good = try Data(contentsOf: path)
++                try Data("partial".utf8).write(to: path)
++                expectStorageError { _ = try query(root) }
++                #expect(try record(root) == before)
++                try good.write(to: path)
++            }
++            let parked = index.appendingPathExtension("parked")
++            try FileManager.default.moveItem(at: index, to: parked)
++            expectStorageError { _ = try query(root, token: "") }
++            #expect(!FileManager.default.fileExists(atPath: index.path))
++            try FileManager.default.moveItem(at: parked, to: index)
++            try FileManager.default.setAttributes([.posixPermissions: 0o500], ofItemAtPath: index.path)
++            expectStorageError { _ = try query(root, token: "new-storage-failure-token") }
++            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: index.path)
++            #expect(try record(root) == before)
++            #expect(ScriptedASC.script.requests().isEmpty)
++            #expect(try Data(contentsOf: header) == originalHeader)
++            #expect(try Data(contentsOf: entry) == originalEntry)
++            ScriptedASC.script.set([Reply(body: payload("VALID", version: "recovered"))])
++            #expect(try query(root, token: "new-storage-failure-token").observationUpdated)
++            #expect(try query(root, token: "").observation?.version == "recovered")
++            #expect(try indexEntries(root).allSatisfy { !$0.lastPathComponent.hasPrefix(".") && $0.lastPathComponent != "pending" })
++        }
++    }
++    @Test func indexRejectsSymlinksHardlinksAndCorruptPendingWithoutChangingOutside() throws {
++        try project { root in
++            ScriptedASC.script.set([Reply(body: payload("VALID"))]); _ = try query(root)
++            let index = try indexPath(root), entry = index.appendingPathComponent(fingerprintName(dummyToken))
++            let bytes = try Data(contentsOf: entry), outside = root.appendingPathComponent("outside")
++            try bytes.write(to: outside)
++            try FileManager.default.removeItem(at: entry)
++            try FileManager.default.createSymbolicLink(at: entry, withDestinationURL: outside)
++            ScriptedASC.script.set([])
++            expectStorageError { _ = try query(root) }
++            try FileManager.default.removeItem(at: entry)
++            try FileManager.default.linkItem(at: outside, to: entry)
++            expectStorageError { _ = try query(root) }
++            #expect(try Data(contentsOf: outside) == bytes)
++            try FileManager.default.removeItem(at: entry); try bytes.write(to: entry)
++            let pending = index.appendingPathComponent("pending")
++            try Data("partial".utf8).write(to: pending)
++            expectStorageError { _ = try query(root, token: "") }
++            #expect(ScriptedASC.script.requests().isEmpty)
++            try FileManager.default.removeItem(at: pending)
++            #expect(try query(root, token: "").observation?.version == "42")
++        }
++    }
++    @Test func interruptedRecognitionReplaysBeforeCredentialFreeOutput() throws {
++        for stage in 0..<3 {
++            try project { root in
++                let future = "journal-recovery-secret"
++                ScriptedASC.script.set([Reply(body: payload("VALID", version: future))])
++                _ = try query(root)
++                let index = try indexPath(root), name = fingerprintName(future)
++                let digest = SourceDigest.sha256(Data(future.utf8))
++                let pending = reviewPendingData(future)
++                try pending.write(to: index.appendingPathComponent("pending"))
++                if stage >= 1 { try Data(("L\n" + digest + "\n").utf8).write(to: index.appendingPathComponent(name)) }
++                if stage >= 2 {
++                    let header = index.appendingPathComponent("roots")
++                    var lines = try String(contentsOf: header, encoding: .utf8).components(separatedBy: "\n")
++                    lines[future.utf8.count] = String(name.dropLast(5))
++                    let body = Data((lines.prefix(257).joined(separator: "\n") + "\n").utf8)
++                    try (body + Data((SourceDigest.sha256(body) + "\n").utf8)).write(to: header)
++                }
++                let report = try query(root, token: "")
++                #expect(report.code == .credentialRequired && report.observation == nil)
++                #expect(!String(decoding: try record(root), as: UTF8.self).contains(future))
++                #expect(!FileManager.default.fileExists(atPath: index.appendingPathComponent("pending").path))
++                #expect(try indexEntries(root).count == 2)
++                ScriptedASC.script.set([Reply(body: payload("VALID", version: future)), Reply(body: payload("VALID", version: "after-replay"))])
++                #expect(try query(root).code == .redactedResponse)
++                #expect(try query(root).observation?.version == "after-replay")
++            }
++        }
++    }
++    @Test func legacyAndUnsaturatedR2MigrateButExhaustedR2IsExplicitlyRefused() throws {
++        for mode in ["r1", "r2", "exhausted"] {
++            try project { root in
++                let future = String(repeating: "Z", count: 256)
++                ScriptedASC.script.set([Reply(body: payload("VALID", version: future))]); _ = try query(root)
++                var old = try #require(JSONSerialization.jsonObject(with: record(root)) as? [String: Any])
++                old["schema"] = 1
++                if mode != "r1" {
++                    old["redactions"] = [["bytes": future.utf8.count, "sha256": SourceDigest.sha256(Data(future.utf8))]]
++                    old["redactionsExhausted"] = mode == "exhausted"
++                }
++                try JSONSerialization.data(withJSONObject: old, options: [.sortedKeys]).write(to: recordPath(root))
++                try FileManager.default.removeItem(at: indexPath(root))
++                let before = try record(root)
++                ScriptedASC.script.set([])
++                if mode == "exhausted" {
++                    do { _ = try query(root, token: ""); Issue.record("Lossy R2 migration admitted") }
++                    catch let error as MixerFailure { #expect(error.code == "store.credential-history-incomplete") }
++                    #expect(try record(root) == before)
++                    #expect(!FileManager.default.fileExists(atPath: try indexPath(root).path))
++                } else {
++                    if mode == "r1" { ScriptedASC.script.set([Reply(status: 401)]) }
++                    #expect(try query(root, token: mode == "r1" ? future : "").observation == nil)
++                    #expect(try query(root, token: "").observation == nil)
++                    let migrated = try #require(JSONSerialization.jsonObject(with: record(root)) as? [String: Any])
++                    #expect((migrated["schema"] as? NSNumber)?.intValue == 2)
++                    #expect((migrated["discardedThrough"] as? NSNumber)?.intValue == 1)
++                    #expect(try indexEntries(root).count == 1)
++                    ScriptedASC.script.set([Reply(body: payload("VALID", version: future))])
++                    #expect(try query(root).code == .redactedResponse)
++                }
++            }
++        }
++    }
++    @Test func concurrentWritersRetainAllGenerationsWithoutDuplicateIndexEntries() throws {
++        for _ in 0..<5 {
++        try project { root in
++            let results = (0..<24).map { _ in ResultBox() }
++            ScriptedASC.script.set([])
++            DispatchQueue.concurrentPerform(iterations: 24) { i in
++                results[i].set(Result { try query(root, token: "invalid offline token \(i % 8)") })
++            }
++            for result in results {
++                do { #expect(try #require(result.get()).get().code == .credentialRequired) }
++                catch { print("PREMISE writer failure: \(error)"); Issue.record("writer failed") }
++            }
++            let stored = try #require(JSONSerialization.jsonObject(with: record(root)) as? [String: Any])
++            #expect((stored["issued"] as? NSNumber)?.intValue == 24)
++            let entries = try indexEntries(root)
++            #expect(entries.count == 8 && Set(entries.map { $0.lastPathComponent }).count == 8)
++            #expect(ScriptedASC.script.requests().isEmpty)
++            ScriptedASC.script.set([Reply(body: payload("VALID", version: "invalid offline token 0")), Reply(body: payload("VALID", version: "concurrent-progress"))])
++            #expect(try query(root).code == .redactedResponse)
++            #expect(try query(root).observation?.version == "concurrent-progress")
++        }
++        }
++    }
++    @Test func all256CredentialLengthsKeepLookupBoundedByFieldSizes() throws {
++        try project { (root: URL) throws -> Void in
++            for length in 1...256 {
++                ScriptedASC.script.set([Reply(status: 401)])
++                #expect(try query(root, token: String(repeating: "~", count: length)).code == .authenticationRejected)
++            }
++            let version = String(repeating: "X", count: 256), state = String(repeating: "Y", count: 128)
++            ScriptedASC.script.set([Reply(body: payload(state, version: version))])
++            #expect(try query(root).observationUpdated)
++            #expect(try query(root, token: "").observation?.version == version)
++            #expect(try indexEntries(root).count == 257)
++            #expect(try record(root).count < 16_384)
++            let index = try indexPath(root)
++            let roots = try String(contentsOf: index.appendingPathComponent("roots"), encoding: .utf8).components(separatedBy: "\n")
++            #expect(try Data(contentsOf: index.appendingPathComponent("roots")).count <= 17_000)
++            func depth(_ reference: String) throws -> Int {
++                let data = try Data(contentsOf: index.appendingPathComponent(reference + ".node"))
++                #expect(data.count <= 256 && SourceDigest.sha256(data) == reference)
++                let lines = String(decoding: data, as: UTF8.self).components(separatedBy: "\n")
++                if lines[0] == "L" { return 1 }
++                return 1 + max(try depth(lines[3]), try depth(lines[4]))
++            }
++            let maximumDepth = try roots[1...256].filter { !$0.isEmpty }.map { try depth($0) }.max() ?? 0
++            #expect(maximumDepth <= 257)
++            print("TREE allLengths=256 maximumFieldBytes=256+128 maximumObservedDepth=\(maximumDepth) progress=true")
++        }
++    }
++    @Test func heldLockAdmissionIsBoundedAndLeavesObservationUnchanged() throws {
++        try project { (root: URL) throws -> Void in
++            ScriptedASC.script.set([Reply(body: payload("VALID"))]); _ = try query(root)
++            let before = try record(root), path = try recordPath(root).path + ".lock"
++            let descriptor = Darwin.open(path, O_RDWR | O_NOFOLLOW | O_CLOEXEC)
++            try #require(descriptor >= 0)
++            defer { flock(descriptor, LOCK_UN); Darwin.close(descriptor) }
++            try #require(flock(descriptor, LOCK_EX | LOCK_NB) == 0)
++            ScriptedASC.script.set([])
++            let start = DispatchTime.now().uptimeNanoseconds
++            do { _ = try query(root); Issue.record("Held identity lock admitted") }
++            catch let error as MixerFailure { #expect(error.code == "store.local-record") }
++            let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
++            #expect(elapsed >= 1.9 && elapsed < 5)
++            #expect(try record(root) == before)
++            #expect(ScriptedASC.script.requests().isEmpty)
++            print("TREE heldLock admissionSeconds=\(elapsed) observationUnchanged=true")
++        }
++    }
++    @Test func maximum256BitPathFindsRecognizedLeafAndDetectsLoss() throws {
++        try project { (root: URL) throws -> Void in
++            let secret = "maximum-path-secret"
++            ScriptedASC.script.set([Reply(status: 401)]); _ = try query(root, token: secret)
++            let index = try indexPath(root), digest = SourceDigest.sha256(Data(secret.utf8))
++            func writeNode(_ body: String) throws -> String {
++                let data = Data(body.utf8), reference = SourceDigest.sha256(Data(body.utf8))
++                try data.write(to: index.appendingPathComponent(reference + ".node"))
++                return reference
++            }
++            let leaf = try writeNode("L\n\(digest)\n")
++            var reference = leaf
++            let hex = Array("0123456789abcdef".utf8), target = Array(digest.utf8)
++            for position in (0..<256).reversed() {
++                var sibling = target
++                let value = Int(try #require(hex.firstIndex(of: target[position / 4])))
++                let mask = 1 << (3 - position % 4)
++                sibling[position / 4] = hex[value ^ mask]
++                let other = try writeNode("L\n\(String(decoding: sibling, as: UTF8.self))\n")
++                let zero = value & mask == 0
++                reference = try writeNode("B\n\(position)\n\(digest)\n\(zero ? reference : other)\n\(zero ? other : reference)\n")
++            }
++            let rootFile = index.appendingPathComponent("roots")
++            var lines = try String(contentsOf: rootFile, encoding: .utf8).components(separatedBy: "\n")
++            lines[secret.utf8.count] = reference
++            let body = Data((lines.prefix(257).joined(separator: "\n") + "\n").utf8)
++            try (body + Data((SourceDigest.sha256(body) + "\n").utf8)).write(to: rootFile)
++            ScriptedASC.script.set([Reply(body: payload("VALID", version: secret))])
++            #expect(try query(root).code == .redactedResponse)
++            let leafFile = index.appendingPathComponent(leaf + ".node"), intact = try Data(contentsOf: leafFile)
++            try FileManager.default.removeItem(at: leafFile)
++            ScriptedASC.script.set([Reply(body: payload("VALID", version: secret))])
++            expectStorageError { _ = try query(root) }
++            try intact.write(to: leafFile)
++            ScriptedASC.script.set([Reply(body: payload("VALID", version: secret))])
++            #expect(try query(root).code == .redactedResponse)
++            #expect(try query(root, token: "").observation == nil)
++            print("TREE maximumConstructedPathNodes=257 lookupAndMissingLeafRefusal=true")
++        }
++    }
++    @Test func crossProcessCredentialRecognitionFencesOlderWriter() throws {
++        try project { root in
++            let secret = "synthetic credential with spaces", gate = Gate(), done = DispatchSemaphore(value: 0), result = ResultBox()
++            ScriptedASC.script.set([Reply(body: payload("VALID", version: secret), gate: gate)])
++            DispatchQueue.global().async { result.set(Result { try query(root) }); done.signal() }
++            guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
++            defer { gate.release.signal() }
++            let process = Process(), pipe = Pipe()
++            process.executableURL = URL(fileURLWithPath: try #require(ProcessInfo.processInfo.environment["MIXER_STORE_TEST_CLI"]))
++            process.arguments = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
++            var environment = ProcessInfo.processInfo.environment
++            environment["MIXER_ASC_BEARER_TOKEN"] = secret
++            process.environment = environment; process.standardOutput = pipe; process.standardError = pipe
++            try process.run()
++            let data = pipe.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
++            #expect(process.terminationStatus == 1 && String(decoding: data, as: UTF8.self).contains("store.credential-required"))
++            gate.release.signal()
++            try #require(done.wait(timeout: .now() + 5) == .success)
++            let older = try #require(result.get()).get()
++            #expect(older.code == .redactedResponse && older.observation == nil)
++            #expect(try query(root, token: "").observation == nil)
++            #expect(!String(decoding: try record(root), as: UTF8.self).contains(secret))
++            print("REVIEW crossProcess childExit=\(process.terminationStatus) oldWriter=\(older.code?.rawValue ?? "nil") noReemission=true")
++        }
++    }
++    @Test func processingStatesAndRepeatedInvocationPreserveVersionWithoutReadiness() throws {
++        try project { root in
++            ScriptedASC.script.set([Reply(body: payload()), Reply(body: payload("FAILED")), Reply(body: payload("INVALID")), Reply(body: payload("VALID")), Reply(body: payload("NEW_STATE"))])
++            for (state, outcome) in [("PROCESSING", "processing-pending"), ("FAILED", "processing-failed"), ("INVALID", "processing-failed"), ("VALID", "processing-succeeded"), ("NEW_STATE", "unresolved")] {
++                let result = try query(root)
++                #expect(result.status == outcome && result.observation?.processingState == state)
++                #expect(result.observation?.version == "42" && result.observationUpdated)
++                #expect(result.testFlightReadiness == "unverified" && result.reviewApproval == "unverified" && result.availability == "unverified")
++                #expect(!String(decoding: try JSONFile.data(result), as: UTF8.self).contains(dummyToken))
++                #expect(!String(decoding: try record(root), as: UTF8.self).contains(dummyToken))
++            }
++            try assertReads(5)
++        }
++    }
++    @Test func timeoutMalformedAndAuthenticationAfterValidRetainObservation() throws {
++        try project { root in
++            ScriptedASC.script.set([Reply(body: payload("VALID")), Reply(error: URLError(.timedOut, userInfo: [NSLocalizedDescriptionKey: dummyToken])), Reply(body: Data("{".utf8)), Reply(body: Data(dummyToken.utf8), status: 401), Reply(body: Data(dummyToken.utf8), status: 403)])
++            let first = try query(root)
++            for code in [StoreQueryFailure.timeout, .malformedResponse, .authenticationRejected, .accessForbidden] {
++                let result = try query(root)
++                #expect(result.status == "unresolved" && result.code == code && !result.observationUpdated)
++                #expect(result.observation?.observedAt == first.observation?.observedAt)
++                #expect(result.observation?.processingState == "VALID")
++                let bytes = try record(root)
++                #expect(!String(decoding: bytes, as: UTF8.self).contains(dummyToken))
++                #expect(!String(decoding: try JSONFile.data(result), as: UTF8.self).contains(dummyToken))
++            }
++            try assertReads(5)
++        }
++    }
++    @Test func identityAndAmbiguousJSONCannotProduceObservation() throws {
++        let mismatches = [payload(build: "other"), payload(app: "9999"), payload(bundle: "com.other.App"), payload().replacing(Data("\"version\":\"42\"".utf8), with: Data("\"version\":\"42\",\"version\":\"43\"".utf8)), Data("{bad}".utf8), payload().replacing(Data("\"included\":[".utf8), with: Data("\"included\":null,\"ignored\":[".utf8))]
++        for (index, bytes) in mismatches.enumerated() {
++            try project { root in
++                ScriptedASC.script.set([Reply(body: bytes)])
++                let result = try query(root)
++                #expect(result.status == "unresolved" && result.observation == nil)
++                #expect(result.code == (index < 3 ? .identityMismatch : .malformedResponse))
++                try assertReads(1)
++            }
++        }
++    }
++    @Test func boundsRedirectsErrorsAndReflectedTokenAreRedacted() throws {
++        let cases: [(Reply, StoreQueryFailure)] = [
++            (Reply(body: Data(repeating: 65, count: 262_145)), .responseTooLarge),
++            (Reply(headers: ["Content-Type": "application/json", "Content-Length": "262145"]), .responseTooLarge),
++            (Reply(status: 302, headers: ["Location": "https://untrusted.invalid/"], redirect: true), .redirectRefused),
++            (Reply(status: 307), .redirectRefused),
++            (Reply(status: 404), .notFound), (Reply(status: 429), .rateLimited), (Reply(status: 500), .providerRejected),
++            (Reply(headers: ["Content-Type": "text/html"]), .invalidResponse),
++            (Reply(body: payload(version: dummyToken)), .redactedResponse),
++            (Reply(error: URLError(.cannotConnectToHost, userInfo: [NSLocalizedDescriptionKey: "Authorization: Bearer " + dummyToken])), .transportFailed)
++        ]
++        for (reply, code) in cases {
++            try project { root in
++                ScriptedASC.script.set([reply])
++                let result = try query(root)
++                #expect(result.code == code && result.observation == nil)
++                #expect(!String(decoding: try JSONFile.data(result), as: UTF8.self).contains(dummyToken))
++                #expect(!String(decoding: try record(root), as: UTF8.self).contains(dummyToken))
++                try assertReads(1)
++            }
++        }
++    }
++    @Test func missingOrInvalidCredentialNeverSendsARequest() throws {
++        try project { root in
++            ScriptedASC.script.set([])
++            for token in ["", "x\r\nInjected: yes"] {
++                let result = try query(root, token: token)
++                #expect(result.code == .credentialRequired && result.observation == nil)
++            }
++            #expect(ScriptedASC.script.requests().isEmpty)
++        }
++    }
++    @Test func olderConcurrentResponseCannotOverwriteNewerObservation() throws {
++        try project { root in
++            let gate = Gate(), done = DispatchSemaphore(value: 0)
++            let result = ResultBox()
++            ScriptedASC.script.set([Reply(body: payload("PROCESSING"), gate: gate), Reply(body: payload("VALID", version: "43"))])
++            DispatchQueue.global().async {
++                result.set(Result { try query(root) }); done.signal()
++            }
++            guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
++            let newer = try query(root)
++            gate.release.signal()
++            #expect(done.wait(timeout: .now() + 5) == .success)
++            let older = try #require(result.get()).get()
++            #expect(newer.status == "processing-succeeded")
++            #expect(older.query == "superseded" && !older.observationUpdated)
++            #expect(older.observation?.version == "43")
++            let persisted = String(decoding: try record(root), as: UTF8.self)
++            #expect(persisted.contains("VALID") && !persisted.contains("PROCESSING"))
++            try assertReads(2)
++        }
++    }
++    @Test func localRecordRejectsSymlinkAndRebindsProjectIdentity() throws {
++        try project { root in
++            let outside = root.appendingPathComponent("outside")
++            try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: false)
++            try FileManager.default.createSymbolicLink(at: root.appendingPathComponent(".mixer"), withDestinationURL: outside)
++            ScriptedASC.script.set([])
++            #expect(throws: MixerFailure.self) { try query(root) }
++            #expect(ScriptedASC.script.requests().isEmpty)
++        }
++        try project { root in
++            ScriptedASC.script.set([Reply(body: payload("VALID")), Reply(body: payload("VALID"))])
++            _ = try query(root)
++            try JSONFile.write(ApplicationConfiguration(name: "Store", application: "com.changed.Store"), to: root.appendingPathComponent("mixer.yml"))
++            let result = try query(root)
++            #expect(result.code == .identityMismatch && result.observation == nil)
++            try assertReads(2)
++        }
++    }
++    @Test func argumentAdmissionAndActualCLIRefusals() throws {
++        for words in [["submit"], ["submit", "upload"], ["submit", "status", "extra"]] {
++            do { _ = try StoreStatusRequest.parse(words: words, options: validOptions); Issue.record("Unexpected admission") }
++            catch let error as MixerFailure { #expect(error.code == "workflow.not-qualified") }
++        }
++        for options in [[:], ["--provider": "play"], validOptions.merging(["--build-id": "../escape"]) { _, new in new }, validOptions.merging(["--output": "x"]) { _, new in new }] {
++            #expect(throws: MixerFailure.self) { try StoreStatusRequest.parse(words: ["submit", "status"], options: options) }
++        }
++        let executable = try #require(ProcessInfo.processInfo.environment["MIXER_STORE_TEST_CLI"])
++        try project { root in
++            for (arguments, code) in [(["submit"], "workflow.not-qualified"), (["submit", "upload"], "workflow.not-qualified"), (["submit", "status"], "arguments.submit-status"), (["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--build-id", "duplicate"], "arguments.option"), (["config", "validate", "--build-id", "build-1"], "arguments.unused-option")] {
++                let result = try runCLI(executable, arguments)
++                #expect(result.0 == 1 && result.1.contains(code))
++            }
++            let args = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
++            for _ in 0..<2 {
++                let result = try runCLI(executable, args)
++                #expect(result.0 == 1 && result.1.contains("store.credential-required"))
++            }
++            let help = try runCLI(executable, ["help"])
++            #expect(help.0 == 0 && help.1.contains("mixer submit status"))
++        }
++    }
++}
++private final class ResultBox: @unchecked Sendable {
++    private let lock = NSLock()
++    private var value: Result<StoreReconciliationReport, Error>?
++    func set(_ value: Result<StoreReconciliationReport, Error>) { lock.lock(); defer { lock.unlock() }; self.value = value }
++    func get() -> Result<StoreReconciliationReport, Error>? { lock.lock(); defer { lock.unlock() }; return value }
++}
++private func runCLI(_ executable: String, _ arguments: [String]) throws -> (Int32, String) {
++    let process = Process(), pipe = Pipe()
++    process.executableURL = URL(fileURLWithPath: executable); process.arguments = arguments
++    process.environment = ProcessInfo.processInfo.environment.filter { $0.key != "MIXER_ASC_BEARER_TOKEN" }
++    process.standardOutput = pipe; process.standardError = pipe
++    try process.run()
++    let data = pipe.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
++    return (process.terminationStatus, String(decoding: data, as: UTF8.self))
++}
++private extension Data {
++    func replacing(_ search: Data, with replacement: Data) -> Data {
++        guard let range = range(of: search) else { return self }
++        var result = self; result.replaceSubrange(range, with: replacement); return result
++    }
++}
++
++private let reviewIdentity = StoreObservationFile.Identity(buildID: "build-1", appID: "12345", bundleID: "com.example.Store")
++private func reviewProject(_ body: (URL) throws -> Void) throws {
++    let root = FileManager.default.temporaryDirectory.appendingPathComponent("independent-store-" + UUID().uuidString)
++    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
++    defer { try? FileManager.default.removeItem(at: root) }
++    try JSONFile.write(ApplicationConfiguration(name: "Store", application: reviewIdentity.bundleID), to: root.appendingPathComponent("mixer.yml"))
++    try body(root)
++}
++private func reviewFile(_ root: URL, _ token: String = "") throws -> StoreObservationFile {
++    try StoreObservationFile(root: root, identity: reviewIdentity, token: token)
++}
++private func reviewRecord(_ root: URL) -> URL {
++    let key = SourceDigest.sha256(Data((reviewIdentity.bundleID + "\u{0}" + reviewIdentity.appID + "\u{0}" + reviewIdentity.buildID).utf8))
++    return root.appendingPathComponent(".mixer/store/" + key + ".json")
++}
++private func reviewIndex(_ root: URL) -> URL { URL(fileURLWithPath: reviewRecord(root).path + ".credentials", isDirectory: true) }
++private func reviewRecognize(_ root: URL, _ token: String) throws {
++    let file = try reviewFile(root, token); defer { file.close() }; _ = try file.reserve()
++}
++private func reviewValue(_ generation: UInt64, _ value: String) -> StoreBuildObservation {
++    .init(generation: generation, observedAt: Date(timeIntervalSince1970: 1), providerValue: .init(version: value, processingState: "VALID"))
++}
++private func reviewReject(_ file: StoreObservationFile, _ value: String) throws {
++    let generation = try file.reserve()
++    do { _ = try file.commit(reviewValue(generation, value)); Issue.record("Recognized credential admitted") }
++    catch let failure as StoreQueryFailure { #expect(failure == .redactedResponse) }
++}
++private func reviewNode(_ index: URL, _ text: String) throws -> String {
++    let bytes = Data(text.utf8), hash = SourceDigest.sha256(Data(text.utf8))
++    try bytes.write(to: index.appendingPathComponent(hash + ".node")); return hash
++}
++private func reviewRoots(_ index: URL, length: Int, reference: String) throws {
++    let path = index.appendingPathComponent("roots")
++    var lines = try String(contentsOf: path, encoding: .utf8).components(separatedBy: "\n")
++    lines[length] = reference
++    let body = Data((lines.prefix(257).joined(separator: "\n") + "\n").utf8)
++    try (body + Data((SourceDigest.sha256(body) + "\n").utf8)).write(to: path)
++}
++private func reviewPendingData(_ token: String) -> Data {
++    let hash = SourceDigest.sha256(Data(token.utf8))
++    let body = Data("mixer-credential-v2\n\(token.utf8.count)-\(hash)\n".utf8)
++    return body + Data((SourceDigest.sha256(body) + "\n").utf8)
++}
++private func reviewPending(_ index: URL, _ token: String) throws {
++    try reviewPendingData(token).write(to: index.appendingPathComponent("pending"))
++}
++
++extension StoreSubmissionReconciliationTests {
++    @Test func independentSingleBytePendingCorruptionMustNotReemitCredential() throws {
++        try reviewProject { root in
++            let secret = "pending-integrity-secret"
++            let file = try reviewFile(root); defer { file.close() }
++            let generation = try file.reserve()
++            _ = try file.commit(reviewValue(generation, secret))
++            let index = reviewIndex(root)
++            try reviewPending(index, secret)
++            let pending = index.appendingPathComponent("pending")
++            let intact = try Data(contentsOf: pending), priorRecord = try Data(contentsOf: reviewRecord(root))
++            let priorRoots = try Data(contentsOf: index.appendingPathComponent("roots"))
++            var bytes = Array(intact)
++            let prefixCount = "mixer-credential-v2\n\(secret.utf8.count)-".utf8.count
++            let original = bytes[prefixCount]
++            bytes[prefixCount] = original == 48 ? 49 : 48
++            try Data(bytes).write(to: pending)
++            do {
++                let observation = try file.observation()
++                let leaked = observation?.version == secret
++                let journalRemoved = !FileManager.default.fileExists(atPath: pending.path)
++                print("INDEPENDENT pendingSingleHexByteCorruption reemitted=\(leaked) journalRemoved=\(journalRemoved)")
++                #expect(!leaked, "A one-byte corrupt pending fingerprint must not permit old credential output")
++                Issue.record("Corrupt pending fingerprint was accepted instead of refusing")
++            } catch let failure as MixerFailure {
++                #expect(failure.code == "store.credential-index")
++            }
++            #expect(try Data(contentsOf: pending) == Data(bytes))
++            #expect(try Data(contentsOf: reviewRecord(root)) == priorRecord)
++            #expect(try Data(contentsOf: index.appendingPathComponent("roots")) == priorRoots)
++            try intact.write(to: pending)
++            #expect(try file.observation() == nil)
++            #expect(!FileManager.default.fileExists(atPath: pending.path))
++            try reviewReject(file, secret)
++            print("INDEPENDENT pendingSingleHexByteCorruption refused=true journalPreserved=true exactRecovery=true")
++        }
++    }
++
++    @Test func independentMembershipMatchesDirectSetAcrossInsertionOrders() throws {
++        let tokens = (0..<48).map { "review-" + String(SourceDigest.sha256(Data("credential-\($0)".utf8)).prefix(24)) }
++        let orders = [Array(0..<48), Array((0..<48).reversed()), (0..<48).map { ($0 * 17) % 48 }]
++        for order in orders {
++            try reviewProject { root in
++                let reader = try reviewFile(root); defer { reader.close() }
++                for i in order { try reviewRecognize(root, tokens[i]) }
++                for i in order.prefix(8) { try reviewRecognize(root, tokens[i]) }
++                let values = tokens.map { "α[" + $0 + "]ω" } + (0..<48).map { "review-" + String(SourceDigest.sha256(Data("absent-\($0)".utf8)).prefix(24)) }
++                var rejected = 0, accepted = 0
++                for value in values {
++                    let expected = tokens.contains { value.contains($0) }
++                    let generation = try reader.reserve()
++                    do {
++                        let result = try reader.commit(reviewValue(generation, value))
++                        #expect(!expected && result.1 && result.0?.version == value); accepted += 1
++                    } catch let failure as StoreQueryFailure {
++                        #expect(expected && failure == .redactedResponse); rejected += 1
++                    }
++                }
++                #expect(rejected == 48 && accepted == 48)
++            }
++        }
++        print("INDEPENDENT directSet orders=3 recognized=144 negative=144 duplicates=24 staleReaderReread=true")
++    }
++
++    @Test func independentBranchingJournalReplayPreservesTombstone() throws {
++        for stage in 0..<3 {
++            try reviewProject { root in
++                let prior = (0..<12).map { String(format: "journal-secret-%04d", $0) }
++                let future = "journal-secret-9999"
++                for token in prior { try reviewRecognize(root, token) }
++                let old = try reviewFile(root); defer { old.close() }
++                let staleGeneration = try old.reserve()
++                let newer = try old.reserve()
++                _ = try old.commit(reviewValue(newer, future))
++                let index = reviewIndex(root), record = reviewRecord(root)
++                let beforeRecord = try Data(contentsOf: record), beforeRoots = try Data(contentsOf: index.appendingPathComponent("roots"))
++                let beforeNames = Set(try FileManager.default.contentsOfDirectory(atPath: index.path))
++                try reviewRecognize(root, future)
++                try beforeRecord.write(to: record)
++                if stage < 2 { try beforeRoots.write(to: index.appendingPathComponent("roots")) }
++                if stage == 0 {
++                    for name in try FileManager.default.contentsOfDirectory(atPath: index.path) where !beforeNames.contains(name) {
++                        try FileManager.default.removeItem(at: index.appendingPathComponent(name))
++                    }
++                }
++                try reviewPending(index, future)
++                let reopened = try reviewFile(root); defer { reopened.close() }
++                #expect(try reopened.observation() == nil)
++                #expect(!FileManager.default.fileExists(atPath: index.appendingPathComponent("pending").path))
++                let stale = try old.commit(reviewValue(staleGeneration, "older-safe-value"))
++                #expect(!stale.1 && stale.0 == nil)
++                for secret in prior + [future] { try reviewReject(reopened, secret) }
++                let generation = try reopened.reserve()
++                #expect(try reopened.commit(reviewValue(generation, "replay-progress")).1)
++                let final = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: record)) as? [String: Any])
++                #expect((final["discardedThrough"] as? NSNumber)?.uint64Value == newer)
++            }
++        }
++        print("INDEPENDENT nonemptyTreeReplay stages=3 retainedMembers=39 staleGenerationFenced=3")
++    }
++
++    @Test func independentFullR2MigrationResumesPartialIndexAndMaxGeneration() throws {
++        try reviewProject { root in
++            let tokens = (0..<16).map { String(format: "migration-secret-%04d", $0) }
++            for token in tokens.prefix(8) { try reviewRecognize(root, token) }
++            let file = try reviewFile(root); defer { file.close() }
++            let generation = try file.reserve()
++            _ = try file.commit(reviewValue(generation, tokens[15]))
++            let path = reviewRecord(root)
++            var record = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: path)) as? [String: Any])
++            record["schema"] = 1
++            record["redactions"] = tokens.map { ["bytes": $0.utf8.count, "sha256": SourceDigest.sha256(Data($0.utf8))] as [String: Any] }
++            record["redactionsExhausted"] = false
++            try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys]).write(to: path)
++            try reviewPending(reviewIndex(root), tokens[8])
++            #expect(try file.observation() == nil)
++            for secret in tokens { try reviewReject(file, secret) }
++            try reviewRecognize(root, "migration-secret-0017")
++            let future = "max-generation-secret"
++            let fresh = try file.reserve(); _ = try file.commit(reviewValue(fresh, future))
++            record = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: path)) as? [String: Any])
++            record["issued"] = NSNumber(value: UInt64.max)
++            try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys]).write(to: path)
++            let exhausted = try reviewFile(root, future); defer { exhausted.close() }
++            do { _ = try exhausted.reserve(); Issue.record("Generation overflow admitted") }
++            catch let failure as MixerFailure { #expect(failure.code == "store.local-record") }
++            #expect(try file.observation() == nil)
++            let final = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: path)) as? [String: Any])
++            #expect((final["discardedThrough"] as? NSNumber)?.uint64Value == fresh)
++        }
++        print("INDEPENDENT R2migration full16 partial8 pendingReplay=true rotation17=true overflowSanitizes=true")
++    }
++
++    @Test func independentHashConsistentMalformedEdgesRefuse() throws {
++        try reviewProject { root in
++            let token = "edge-validation-secret", hash = SourceDigest.sha256(Data(token.utf8))
++            try reviewRecognize(root, token)
++            let file = try reviewFile(root); defer { file.close() }
++            let index = reviewIndex(root), roots = index.appendingPathComponent("roots"), original = try Data(contentsOf: roots)
++            let hex = Array("0123456789abcdef")
++            let first = try #require(hex.firstIndex(of: hash.first!))
++            let opposite = String(hex[first ^ 8]) + hash.dropFirst()
++            let leaf = try reviewNode(index, "L\n\(hash)\n")
++            let wrong = try reviewNode(index, "L\n\(opposite)\n")
++            for mode in 0..<3 {
++                let bit = mode == 2 ? 4 : 0
++                let nibble = try #require(hex.firstIndex(of: Array(hash)[bit / 4]))
++                let direction = (nibble >> (3 - bit % 4)) & 1
++                let bad = mode == 1 ? try reviewNode(index, "B\n0\n\(hash)\n\(leaf)\n\(wrong)\n") : wrong
++                let rootRef = try reviewNode(index, "B\n\(bit)\n\(hash)\n\(direction == 0 ? bad : leaf)\n\(direction == 1 ? bad : leaf)\n")
++                try reviewRoots(index, length: token.utf8.count, reference: rootRef)
++                let generation = try file.reserve()
++                do { _ = try file.commit(reviewValue(generation, token)); Issue.record("Malformed consulted edge admitted") }
++                catch let failure as MixerFailure { #expect(failure.code == "store.credential-index") }
++                try original.write(to: roots)
++                try reviewReject(file, token)
++            }
++        }
++        print("INDEPENDENT hashConsistentBadEdges wrongDirection=1 nonIncreasingBit=1 wrongPrefix=1 exactRecovery=3")
++    }
++
++    @Test func independentConcurrentCLIConstructorsRetainEveryGeneration() throws {
++        let executable = try #require(ProcessInfo.processInfo.environment["MIXER_STORE_TEST_CLI"])
++        for _ in 0..<2 {
++            try reviewProject { root in
++                let results = (0..<24).map { _ in ReviewCLIResult() }
++                DispatchQueue.concurrentPerform(iterations: 24) { i in
++                    results[i].result = Result {
++                        let process = Process(), pipe = Pipe()
++                        process.executableURL = URL(fileURLWithPath: executable)
++                        process.arguments = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
++                        var environment = ProcessInfo.processInfo.environment
++                        environment["MIXER_ASC_BEARER_TOKEN"] = "invalid process credential \(i)"
++                        process.environment = environment; process.standardOutput = pipe; process.standardError = pipe
++                        try process.run()
++                        let data = pipe.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
++                        return (process.terminationStatus, String(decoding: data, as: UTF8.self))
++                    }
++                }
++                for box in results {
++                    let result = try #require(box.result).get()
++                    #expect(result.0 == 1 && result.1.contains("store.credential-required"))
++                }
++                let record = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: reviewRecord(root))) as? [String: Any])
++                #expect((record["issued"] as? NSNumber)?.intValue == 24)
++                let reader = try reviewFile(root); defer { reader.close() }
++                for i in 0..<24 { try reviewReject(reader, "invalid process credential \(i)") }
++            }
++        }
++        print("INDEPENDENT concurrentRealCLI rounds=2 processes=48 issued=48 retainedCredentials=48")
++    }
++}
++private final class ReviewCLIResult: @unchecked Sendable {
++    var result: Result<(Int32, String), Error>?
++}
++
++private func reviewIndexSnapshot(_ index: URL) throws -> [String: Data] {
++    var snapshot: [String: Data] = [:]
++    for name in try FileManager.default.contentsOfDirectory(atPath: index.path) {
++        snapshot[name] = try Data(contentsOf: index.appendingPathComponent(name))
++    }
++    return snapshot
++}
++
++extension StoreSubmissionReconciliationTests {
++    @Test func pendingIntegrityRefusesEveryDamagedLayoutAndRestoresExactly() throws {
++        for stage in 0..<3 {
++            try reviewProject { root in
++                let prior = (0..<12).map { String(format: "integrity-prior-%04d", $0) }
++                let secret = "pending-integrity-secret"
++                for token in prior { try reviewRecognize(root, token) }
++                let old = try reviewFile(root); defer { old.close() }
++                let stale = try old.reserve(), retained = try old.reserve()
++                _ = try old.commit(reviewValue(retained, secret))
++                let index = reviewIndex(root), record = reviewRecord(root)
++                let priorRecord = try Data(contentsOf: record)
++                let before = try reviewIndexSnapshot(index)
++                try reviewRecognize(root, secret)
++                try priorRecord.write(to: record)
++                if stage < 2 { try #require(before["roots"]).write(to: index.appendingPathComponent("roots")) }
++                if stage == 0 {
++                    for name in try FileManager.default.contentsOfDirectory(atPath: index.path) where before[name] == nil {
++                        try FileManager.default.removeItem(at: index.appendingPathComponent(name))
++                    }
++                }
++                let pending = index.appendingPathComponent("pending"), intact = reviewPendingData(secret)
++                let headerCount = "mixer-credential-v2\n".utf8.count
++                let fingerprintStart = headerCount + String(secret.utf8.count).utf8.count + 1
++                let checksumStart = fingerprintStart + 65
++                var changes: [(String, Data)] = []
++                for (name, offset) in [("fingerprint", fingerprintStart), ("length", headerCount + 1), ("checksum", checksumStart), ("framing", headerCount - 2)] {
++                    var bytes = Array(intact)
++                    bytes[offset] = bytes[offset] == 48 ? 49 : 48
++                    #expect(zip(bytes, intact).filter { $0.0 != $0.1 }.count == 1)
++                    changes.append((name, Data(bytes)))
++                }
++                var malformed = Array(intact); malformed[checksumStart] = 122
++                changes.append(("malformed-checksum", Data(malformed)))
++                changes.append(("trailing", intact + Data([10])))
++                changes.append(("truncated", Data(intact.dropLast())))
++                changes.append(("oversize", intact + Data(repeating: 48, count: 155 - intact.count)))
++                let unchecked = Data("mixer-credential-v1\n\(secret.utf8.count)-\(SourceDigest.sha256(Data(secret.utf8)))\n".utf8)
++                changes.append(("unchecked-v1", unchecked))
++                var uncheckedCorrupt = Array(unchecked)
++                uncheckedCorrupt[fingerprintStart] = uncheckedCorrupt[fingerprintStart] == 48 ? 49 : 48
++                changes.append(("unchecked-v1-corrupt", Data(uncheckedCorrupt)))
++                for (name, corrupt) in changes {
++                    try corrupt.write(to: pending)
++                    let snapshot = try reviewIndexSnapshot(index)
++                    let reopened = try reviewFile(root); defer { reopened.close() }
++                    for operation in 0..<3 {
++                        do {
++                            switch operation {
++                            case 0: _ = try reopened.observation()
++                            case 1: _ = try reopened.reserve()
++                            default: _ = try reopened.commit(reviewValue(stale, "older-safe-value"))
++                            }
++                            Issue.record("Damaged journal admitted: \(name), stage \(stage), operation \(operation)")
++                        } catch let failure as MixerFailure {
++                            #expect(failure.code == "store.credential-index")
++                            #expect(!String(describing: failure).contains(secret))
++                        }
++                        #expect(try Data(contentsOf: record) == priorRecord)
++                        #expect(try reviewIndexSnapshot(index) == snapshot)
++                        #expect(!String(decoding: corrupt, as: UTF8.self).contains(secret))
++                    }
++                }
++                try intact.write(to: pending)
++                let restored = try reviewFile(root); defer { restored.close() }
++                #expect(try restored.observation() == nil)
++                #expect(!FileManager.default.fileExists(atPath: pending.path))
++                #expect(!String(decoding: try Data(contentsOf: record), as: UTF8.self).contains(secret))
++                let result = try old.commit(reviewValue(stale, "older-safe-value"))
++                #expect(!result.1 && result.0 == nil)
++                for token in prior + [secret] { try reviewReject(restored, token) }
++                let final = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: record)) as? [String: Any])
++                #expect((final["discardedThrough"] as? NSNumber)?.uint64Value == retained)
++            }
++        }
++        print("JOURNAL integrity stages=3 variants=10 operations=90 unchangedOnRefusal=true exactReplayAndFence=3")
++    }
++
++    @Test func checkedPendingMaximumAndCanonicalEncoding() throws {
++        for length in [1, 99, 100, 256] {
++            try reviewProject { root in
++                let secret = String(repeating: "q", count: length)
++                let file = try reviewFile(root); defer { file.close() }
++                let generation = try file.reserve()
++                _ = try file.commit(reviewValue(generation, secret))
++                let index = reviewIndex(root), pending = index.appendingPathComponent("pending")
++                let intact = reviewPendingData(secret)
++                #expect(intact.count <= 154)
++                if length == 256 { #expect(intact.count == 154) }
++                try intact.write(to: pending)
++                #expect(try file.observation() == nil)
++                #expect(!FileManager.default.fileExists(atPath: pending.path))
++                try reviewReject(file, secret)
++            }
++        }
++        try reviewProject { root in
++            let file = try reviewFile(root); defer { file.close() }; _ = try file.reserve()
++            let index = reviewIndex(root), pending = index.appendingPathComponent("pending")
++            let hash = SourceDigest.sha256(Data("x".utf8))
++            for body in ["mixer-credential-v2\n01-\(hash)\n", "mixer-credential-v2\n0-\(hash)\n", "mixer-credential-v2\n257-\(hash)\n", "mixer-credential-v3\n1-\(hash)\n", "mixer-credential-v2\n1-\(hash.uppercased())\n"] {
++                let data = Data(body.utf8)
++                let checked = data + Data((SourceDigest.sha256(data) + "\n").utf8)
++                try checked.write(to: pending)
++                let record = try Data(contentsOf: reviewRecord(root)), snapshot = try reviewIndexSnapshot(index)
++                do { _ = try file.observation(); Issue.record("Noncanonical checked journal admitted") }
++                catch let failure as MixerFailure { #expect(failure.code == "store.credential-index") }
++                #expect(try Data(contentsOf: reviewRecord(root)) == record)
++                #expect(try reviewIndexSnapshot(index) == snapshot)
++            }
++        }
++        print("JOURNAL maximumBytes=154 boundaryLengths=1,99,100,256 noncanonicalCheckedRefusals=5")
++    }
++}

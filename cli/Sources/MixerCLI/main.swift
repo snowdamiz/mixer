@@ -12,7 +12,7 @@ struct Arguments {
             if value == "--help" { positional.append("help") }
             else if value == "--json" { json = true }
             else if value.hasPrefix("--") {
-                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--platform", "--output", "--device"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
                 index += 1; options[value] = values[index]
             } else { positional.append(value) }
             index += 1
@@ -44,6 +44,8 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
   mixer vm validate|inventory|invoke FILE [EXPORT [i32:N|i64:N ...]]
   mixer update verify --manifest FILE --payload FILE --host FILE --roots FILE
     --assignment FILE --channel NAME --installation ID --last-sequence N --now UNIX
+  mixer submit status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID
+    [--directory PROJECT]
   mixer gates
 
 All commands emit structured JSON. Build/test errors preserve compiler diagnostics.
@@ -67,7 +69,8 @@ do {
         "create": ["--directory", "--application", "--sdk-path", "--platform", "--android-adapter-path"], "config": ["--directory"],
         "build": ["--directory", "--platform"], "test": ["--directory", "--platform"],
         "run": ["--directory", "--device"], "import": ["--output"],
-        "release": ["--directory"], "export": ["--directory"]
+        "release": ["--directory"], "export": ["--directory"],
+        "submit": ["--provider", "--build-id", "--app-id", "--directory"]
     ]
     guard Set(arguments.options.keys).isSubset(of: allowedOptions[words.first ?? "help"] ?? []) else { throw MixerFailure("arguments.unused-option", "An option does not apply to this command.") }
     let root = path(arguments.options["--directory"] ?? ".")
@@ -124,7 +127,11 @@ do {
         let result = try AppleProject.run(root: root, simulator: device)
         try output(result)
         if !result.succeeded { exit(1) }
-    case "update", "submit":
+    case "submit":
+        let request = try StoreStatusRequest.parse(words: words, options: arguments.options)
+        let report = try StoreReconciliation.status(request: request, directory: root)
+        try output(report); exit(report.exitCode)
+    case "update":
         throw MixerFailure("workflow.not-qualified", "\(words[0]) requires native/guest/store integration that is still in progress. No build, release or submission has been performed. See mixer gates.")
     default: throw MixerFailure("arguments.command", "Unknown command: \(words[0]). Run mixer help.")
     }

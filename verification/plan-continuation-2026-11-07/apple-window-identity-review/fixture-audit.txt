@@ -1,0 +1,38 @@
+Pre-execution fixture audit, 2026-11-08 UTC
+
+Only this review directory is writable. Candidate imports use the frozen campaign
+directory; review harness imports resolve locally before candidate modules. The
+actual adopt_once.py is executed with runpy(..., run_name='__main__'). Constructor
+and HERE overrides supply a fake backend and review-owned output, while all real
+entrypoint seal/source/interpreter validation remains enabled. No candidate edit.
+
+Original 127 tests retained. The proposal corrects the two drift inputs by
+selecting an external row whose state is actually Booted. The scheduled device
+read correction excludes adoption.UID and has an explicit runtime precondition;
+the inner-baseline test selects from the external baseline and assertEqual checks
+Booted before assigning Shutdown. All original assertions remain intact.
+
+Call paths: controller.check_snapshot -> devices -> AdoptionBackend.command ->
+fake MemoryCommands.run -> changed row -> external mismatch -> both custody
+latches, before verify_outside_windows. Inner-baseline invokes the actual guarded
+AdoptionBackend.command and checks its native-selection preservation condition.
+stopped() checks further adoption/window/close/cleanup entry makes no command,
+AX read or mutation after the failure. Original failed files/logs remain untouched.
+
+Two additional methods add 21 actual-new-entrypoint scenarios: malformed terminal
+bytes/strict terminal fields (10); changed selection digest or terminal command
+operation/argv/timeout/custody/reap/group/strict exit/EOF evidence (11). Each must
+reach the fake native boundary once, refuse cleanup, latch both custody flags and
+leave allow_owned_absent false. Constructor mock never dispatches a real command.
+The existing five successor __main__ scenarios and four R4 methods remain active.
+
+Independent supervisor inherited from campaign/R3, with ownership/candidate
+routes adjusted, a 720-second ceiling, protected PID75452 added to collision
+refusal, and before/after read-only source/evidence audits. Child supervision is
+unchanged: two commands maximum; 120s each; 4MiB/stream,32MiB aggregate; direct
+reap plus both EOFs then own-group absence; UNKNOWN/EPERM stops without retry.
+Children retain audit hooks forbidding subprocess/signal/socket/AX frameworks and
+writes outside this directory. No real frontend/device/held-process observation.
+
+Exact launcher (the only supervisor launch; its two children are normal and -O):
+/opt/homebrew/opt/python@3.14/bin/python3.14 -B /Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/apple-window-identity-review/run_host_controls.py

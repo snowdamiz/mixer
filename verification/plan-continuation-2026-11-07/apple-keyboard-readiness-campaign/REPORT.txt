@@ -1,0 +1,137 @@
+BLOCKED SCOPE / TESTED CLEANUP CANDIDATE
+
+Candidate seal: 536918b1fecfef0fbc1267fc2292c93672a6b775e68b46c47259b5587aac60a6
+Source aggregate: f0cac412c5de7489204490191ff33fa9abc3ce0200276469198301c7bd0f2faf
+Source revision: 62ce9b76840b2fa56306736fc4c4fe2962780adf
+Scope: apple-keyboard-readiness-campaign/ only. No canonical tracking edits.
+
+DECISION
+The public API inspected does not establish whether Connect Hardware Keyboard
+changes only the selected device, all live devices, or a shared default. Do not
+claim that AXMain or a retained window reference proves action effect scope.
+The accepted reader traverses Simulator's application AXMenuBar. The exact
+window is checked as AXMain, but no public action-scope contract is observed.
+The installed Simulator.sdef contains no keyboard scripting contract. Apple's
+public Simulator documentation describes the menu operation without promising
+per-device preference or effect isolation. This is insufficient evidence, not a
+claim that the action is definitely global. Opaque nib parsing failed as recorded
+in preparation-errors.json; no behavior was inferred from it.
+
+No fresh AX discovery was used. A read-only current menu mark or main-window
+reference would not determine the effects of a future toggle; collecting it
+would not resolve the named scope blocker. PID75452 was not queried.
+
+The requested live create/boot/connect/Settings->Tab successor is NOT delivered
+as native-ready. No safe toggle or shared-state restoration implementation is
+claimed. Unconditional restoration after a toggle would not undo a transient
+change to an unrelated running device. A disconnected keyboard remains false;
+there is no bypass of the first-Tab oracle and no claim that a fake scope test
+proves Apple's runtime semantics.
+
+CONCRETE ALTERNATIVE FOR ROOT
+Use a dedicated local macOS login session with a separate home directory,
+Simulator preference domain and CoreSimulator device set. Prefer an existing
+isolated test account if available. Root must first establish those ownership
+boundaries and a baseline with no unrelated devices/windows in that session.
+Account/session provisioning and switching are not performed or authorized by
+this candidate. Do not log out, stop, signal, or change the current session's
+protected devices to create isolation. No cloud launch is requested here.
+
+The next implementation on that isolated boundary is one disposable instance,
+with fresh same-route Python/osascript trust and exact frontend lstart/executable,
+public retained window identity, and an exact unique enabled menu item. Capture
+the isolated session's original keyboard mark. If disconnected, press that exact
+item once, positively reread checked state before the unchanged original packet,
+and restore/verify the original mark before exact-window close. Unknown identity
+or restoration must stop and retain custody. This design removes unrelated
+users' active devices and preferences from the mutation scope; it still needs
+root to verify the proposed session isolation before selecting a native command.
+The one-instance and bounded cleanup rules, immutable packet and one original
+native attempt remain. This is a concrete environment/isolation decision, not a
+request to keep reviewing the same unproved per-device-toggle premise.
+
+IMPLEMENTED AND EXERCISED
+controller.py adds wait_for_shutdown only after positive Shutting Down. It
+rechecks the full external device baseline and inherited outside-window checks
+on every observation, then requires positive Shutdown and owned-window absence
+before deletion. Booted after a shutdown request is not retried. Disappearance,
+identity loss, external drift, window reappearance, read error, or exhausted wait
+latches custody. Later matching observations cannot clear it. There is no global
+quit or new device operation in this repair.
+
+The experimental wait limits are 20 observations and a 10-second admission
+window, with 0.25-second pauses. mac_backend.py clamps each ordinary subprocess
+observation to the remaining window. Existing public AX requests have their
+inherited per-request timeout; the 10 seconds is not claimed as a measured hard
+wall-clock bound over synchronous AX work. Root review must assess that limit
+before adopting it for live cleanup. No original 29-second Settings, 600-second
+XCTest, 950-second native-dispatch-only, or 120-second ordinary limit is widened.
+
+keyboard.py is a separately tested, READ-ONLY observation policy. It requires
+fresh same-route trust, the retained exact window, AXMain and matching public
+AXMainWindow, a unique enabled AXMenuItem with the correct PID, and a recognized
+mark. It rechecks main-window identity after traversal. Disabled, ambiguous,
+wrong-PID/role, unknown-mark, stale/focus-switched, denied, and unknown-custody
+states fail closed. A known unchecked mark remains false without a mutation.
+It does not replace the inherited live reader or supply a native entrypoint;
+integration belongs to the isolated successor after root's environment decision.
+
+Inherited adopt_once.py/future_run.py/dispatch_once.py and their old hard-coded
+resource bindings are retained solely for original fake-host regression controls.
+They are NOT prospective live commands. Old UUID4CE0ECC9-1EDA-4543-80FF-9B011DF9044F
+was deleted by root's completed recovery. It must never be adopted again. The old
+reservation remains immutable. candidate-seal.json selects no native entrypoint.
+
+EXECUTED TESTS
+Exactly two fake-host commands ran under the unchanged accepted supervisor
+cleanup_control.py SHA2568885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df:
+['/opt/homebrew/opt/python@3.14/bin/python3.14', '-B', '/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/apple-keyboard-readiness-campaign/harness/review_tests.py']
+['/opt/homebrew/opt/python@3.14/bin/python3.14', '-B', '-O', '/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/apple-keyboard-readiness-campaign/harness/review_tests.py']
+150/150 methods passed per mode: all 129 corrected reviewed methods plus 21 new
+keyboard/Shutdown methods. Both exit codes are 0; zero failures/errors. Test
+hooks forbid actual subprocess/signals/network/AX framework loading and writes
+outside this owned campaign directory. No third invocation occurred.
+
+Corrected reviewed fixtures are preserved byte-for-byte in reviewed-fixtures/.
+The only inherited harness change is output/source routing and adding the new
+suite. All 200 assertion/fail call sites in those five files are unchanged;
+assertion-audit.json records the structural comparison. The inherited root
+unit/repair tests are copied unchanged. accepted-source/ and baseline-source/
+preserve historical source bytes and seals. All 9,719 historical file hashes
+were checked before and after controls; all 2,944 watched accepted inputs and
+historical dispatch markers are unchanged, with dispatchCalled=false.
+
+BASELINE FAILURES RETAINED
+The original cleanup source was executed against the same Shutting Down fake
+transition and reproduced 'Owned device not positively Shutdown' with the
+owned row retained and no delete. normal/original-shutdown-failure.json and the
+optimized counterpart preserve it. The original live keyboard false/cleanup
+failure remains untouched in apple-window-identity-campaign/adoption-attempt-1.
+Root's apple-adoption-recovery/attempt-1 separately records positive Shutdown,
+exact deletion, and the unchanged outside baseline. Historical Settings PASS /
+original first Tab FAIL remains; none of these host controls alters that result.
+
+CUSTODY
+Fresh fake-host PGIDs47769 and47787 reached TERMINAL: direct child reaped,
+stdout/stderr EOF, owned group absent, no signals, no hold. 38,022 aggregate
+stream bytes. Supervisor scratch removed; all evidence retained. No real device,
+frontend, menu/window action, setting, compiler/native operation, screen capture,
+physical phone interaction, agent, commit or push occurred. No canonical tracking
+files were edited. Held PGIDs40708,40709,40711,23663,20745,20770,20780,20817,20842,
+20851,20866, FieldLog40802230894 PGID2424/PID2621, v5, frozen hosted lanes, phones
+and retained scratch were untouched. Protected CE7E80FC-64BF-41A0-B07B-60F4D8711808
+and D55C87E9-F349-49AC-BCD3-3B4B5BE9E010 were not inspected or mutated here.
+
+NEXT NAMED UNLOCK / EXACT PROSPECTIVE ROOT COMMAND
+/opt/homebrew/opt/python@3.14/bin/python3.14 -B /Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/apple-keyboard-readiness-campaign/review_candidate.py check-candidate 536918b1fecfef0fbc1267fc2292c93672a6b775e68b46c47259b5587aac60a6
+
+This is a read-only seal/input verification command, NOT a native command. It
+prints nativeEligible=false. Root review of the tested repair plus the explicit
+isolated-session decision is next. There is no eligible live native command
+while the shared keyboard scope is unproved. The normal/-O host test budget of
+this campaign is exhausted; do not rerun its supervisor reservation. No review
+acceptance, runtime pass, package/FieldLog release or GA qualification is claimed.
+
+PUBLIC REFERENCES
+https://developer.apple.com/library/archive/documentation/IDEs/Conceptual/iOS_Simulator_Guide/InteractingwiththeiOSSimulator/InteractingwiththeiOSSimulator.html
+https://developer.apple.com/library/archive/documentation/IDEs/Conceptual/simulator_help_topics/Chapter/Chapter.html

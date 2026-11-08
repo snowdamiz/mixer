@@ -1,0 +1,430 @@
+diff --git a/cli/Sources/MixerBuild/StoreReconciliation.swift b/cli/Sources/MixerBuild/StoreReconciliation.swift
+--- a/cli/Sources/MixerBuild/StoreReconciliation.swift
++++ b/cli/Sources/MixerBuild/StoreReconciliation.swift
+@@ -240,7 +240,7 @@
+                 let decoded = Array(lines[1...256])
+                 guard decoded.allSatisfy({ $0.isEmpty || Self.hash($0) }), data == Self.header(decoded) else { throw StoreObservationFile.indexFailure() }
+                 roots = decoded
+-                if let pending = try read("pending", maximum: 128) { try finishRecognition(Self.decodePending(pending)) }
++                if let pending = try read("pending", maximum: Self.maximumPendingBytes) { try finishRecognition(Self.decodePending(pending)) }
+                 guard fsync(directory) == 0, fsync(parent) == 0 else { throw StoreObservationFile.indexFailure() }
+             } catch { Darwin.close(fd); throw error }
+         }
+@@ -275,14 +275,23 @@
+                       fsync(directory) == 0 else { throw StoreObservationFile.indexFailure() }
+             } catch { throw StoreObservationFile.indexFailure() }
+         }
+-        private func key(_ fingerprint: CredentialFingerprint) -> String { "\(fingerprint.bytes)-\(fingerprint.sha256)" }
+-        private func entry(_ fingerprint: CredentialFingerprint) -> Data { Data(("mixer-credential-v1\n" + key(fingerprint) + "\n").utf8) }
++        private static let pendingHeader = "mixer-credential-v2\n"
++        // Header, 1...256 byte length, separator, fingerprint, checksum and newlines.
++        private static let maximumPendingBytes = pendingHeader.utf8.count + 3 + 1 + 64 + 1 + 64 + 1
++        private static func entry(_ fingerprint: CredentialFingerprint) -> Data {
++            let body = Data((pendingHeader + "\(fingerprint.bytes)-\(fingerprint.sha256)\n").utf8)
++            return body + Data((SourceDigest.sha256(body) + "\n").utf8)
++        }
+         private static func decodePending(_ data: Data) throws -> CredentialFingerprint {
+             let lines = String(decoding: data, as: UTF8.self).components(separatedBy: "\n")
+-            guard lines.count == 3, lines[0] == "mixer-credential-v1", lines[2].isEmpty else { throw StoreObservationFile.indexFailure() }
++            // Unchecked v1 history cannot be certified by rewriting it as v2.
++            guard lines.count == 4, lines[0] + "\n" == pendingHeader,
++                  Self.hash(lines[2]), lines[3].isEmpty else { throw StoreObservationFile.indexFailure() }
+             let parts = lines[1].split(separator: "-", maxSplits: 1)
+             guard parts.count == 2, let bytes = Int(parts[0]), (1...256).contains(bytes), String(bytes) == parts[0], Self.hash(String(parts[1])) else { throw StoreObservationFile.indexFailure() }
+-            return .init(bytes: bytes, sha256: String(parts[1]))
++            let fingerprint = CredentialFingerprint(bytes: bytes, sha256: String(parts[1]))
++            guard data == Self.entry(fingerprint) else { throw StoreObservationFile.indexFailure() }
++            return fingerprint
+         }
+         private func load(_ reference: String) throws -> Node {
+             if let node = cache[reference] { return node }
+@@ -363,7 +372,7 @@
+         }
+         func recognize(_ fingerprint: CredentialFingerprint) throws {
+             if try containsHash(fingerprint.sha256, root: roots[fingerprint.bytes - 1]) { return }
+-            try atomic(entry(fingerprint), name: "pending")
++            try atomic(Self.entry(fingerprint), name: "pending")
+             try finishRecognition(fingerprint)
+         }
+         func contains(_ value: String) throws -> Bool {
+diff --git a/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift b/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift
+--- a/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift
++++ b/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift
+@@ -366,7 +366,7 @@
+                 _ = try query(root)
+                 let index = try indexPath(root), name = fingerprintName(future)
+                 let digest = SourceDigest.sha256(Data(future.utf8))
+-                let pending = Data(("mixer-credential-v1\n\(future.utf8.count)-\(digest)\n").utf8)
++                let pending = reviewPendingData(future)
+                 try pending.write(to: index.appendingPathComponent("pending"))
+                 if stage >= 1 { try Data(("L\n" + digest + "\n").utf8).write(to: index.appendingPathComponent(name)) }
+                 if stage >= 2 {
+@@ -713,3 +713,368 @@
+         var result = self; result.replaceSubrange(range, with: replacement); return result
+     }
+ }
++
++private let reviewIdentity = StoreObservationFile.Identity(buildID: "build-1", appID: "12345", bundleID: "com.example.Store")
++private func reviewProject(_ body: (URL) throws -> Void) throws {
++    let root = FileManager.default.temporaryDirectory.appendingPathComponent("independent-store-" + UUID().uuidString)
++    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
++    defer { try? FileManager.default.removeItem(at: root) }
++    try JSONFile.write(ApplicationConfiguration(name: "Store", application: reviewIdentity.bundleID), to: root.appendingPathComponent("mixer.yml"))
++    try body(root)
++}
++private func reviewFile(_ root: URL, _ token: String = "") throws -> StoreObservationFile {
++    try StoreObservationFile(root: root, identity: reviewIdentity, token: token)
++}
++private func reviewRecord(_ root: URL) -> URL {
++    let key = SourceDigest.sha256(Data((reviewIdentity.bundleID + "\u{0}" + reviewIdentity.appID + "\u{0}" + reviewIdentity.buildID).utf8))
++    return root.appendingPathComponent(".mixer/store/" + key + ".json")
++}
++private func reviewIndex(_ root: URL) -> URL { URL(fileURLWithPath: reviewRecord(root).path + ".credentials", isDirectory: true) }
++private func reviewRecognize(_ root: URL, _ token: String) throws {
++    let file = try reviewFile(root, token); defer { file.close() }; _ = try file.reserve()
++}
++private func reviewValue(_ generation: UInt64, _ value: String) -> StoreBuildObservation {
++    .init(generation: generation, observedAt: Date(timeIntervalSince1970: 1), providerValue: .init(version: value, processingState: "VALID"))
++}
++private func reviewReject(_ file: StoreObservationFile, _ value: String) throws {
++    let generation = try file.reserve()
++    do { _ = try file.commit(reviewValue(generation, value)); Issue.record("Recognized credential admitted") }
++    catch let failure as StoreQueryFailure { #expect(failure == .redactedResponse) }
++}
++private func reviewNode(_ index: URL, _ text: String) throws -> String {
++    let bytes = Data(text.utf8), hash = SourceDigest.sha256(Data(text.utf8))
++    try bytes.write(to: index.appendingPathComponent(hash + ".node")); return hash
++}
++private func reviewRoots(_ index: URL, length: Int, reference: String) throws {
++    let path = index.appendingPathComponent("roots")
++    var lines = try String(contentsOf: path, encoding: .utf8).components(separatedBy: "\n")
++    lines[length] = reference
++    let body = Data((lines.prefix(257).joined(separator: "\n") + "\n").utf8)
++    try (body + Data((SourceDigest.sha256(body) + "\n").utf8)).write(to: path)
++}
++private func reviewPendingData(_ token: String) -> Data {
++    let hash = SourceDigest.sha256(Data(token.utf8))
++    let body = Data("mixer-credential-v2\n\(token.utf8.count)-\(hash)\n".utf8)
++    return body + Data((SourceDigest.sha256(body) + "\n").utf8)
++}
++private func reviewPending(_ index: URL, _ token: String) throws {
++    try reviewPendingData(token).write(to: index.appendingPathComponent("pending"))
++}
++
++extension StoreSubmissionReconciliationTests {
++    @Test func independentSingleBytePendingCorruptionMustNotReemitCredential() throws {
++        try reviewProject { root in
++            let secret = "pending-integrity-secret"
++            let file = try reviewFile(root); defer { file.close() }
++            let generation = try file.reserve()
++            _ = try file.commit(reviewValue(generation, secret))
++            let index = reviewIndex(root)
++            try reviewPending(index, secret)
++            let pending = index.appendingPathComponent("pending")
++            let intact = try Data(contentsOf: pending), priorRecord = try Data(contentsOf: reviewRecord(root))
++            let priorRoots = try Data(contentsOf: index.appendingPathComponent("roots"))
++            var bytes = Array(intact)
++            let prefixCount = "mixer-credential-v2\n\(secret.utf8.count)-".utf8.count
++            let original = bytes[prefixCount]
++            bytes[prefixCount] = original == 48 ? 49 : 48
++            try Data(bytes).write(to: pending)
++            do {
++                let observation = try file.observation()
++                let leaked = observation?.version == secret
++                let journalRemoved = !FileManager.default.fileExists(atPath: pending.path)
++                print("INDEPENDENT pendingSingleHexByteCorruption reemitted=\(leaked) journalRemoved=\(journalRemoved)")
++                #expect(!leaked, "A one-byte corrupt pending fingerprint must not permit old credential output")
++                Issue.record("Corrupt pending fingerprint was accepted instead of refusing")
++            } catch let failure as MixerFailure {
++                #expect(failure.code == "store.credential-index")
++            }
++            #expect(try Data(contentsOf: pending) == Data(bytes))
++            #expect(try Data(contentsOf: reviewRecord(root)) == priorRecord)
++            #expect(try Data(contentsOf: index.appendingPathComponent("roots")) == priorRoots)
++            try intact.write(to: pending)
++            #expect(try file.observation() == nil)
++            #expect(!FileManager.default.fileExists(atPath: pending.path))
++            try reviewReject(file, secret)
++            print("INDEPENDENT pendingSingleHexByteCorruption refused=true journalPreserved=true exactRecovery=true")
++        }
++    }
++
++    @Test func independentMembershipMatchesDirectSetAcrossInsertionOrders() throws {
++        let tokens = (0..<48).map { "review-" + String(SourceDigest.sha256(Data("credential-\($0)".utf8)).prefix(24)) }
++        let orders = [Array(0..<48), Array((0..<48).reversed()), (0..<48).map { ($0 * 17) % 48 }]
++        for order in orders {
++            try reviewProject { root in
++                let reader = try reviewFile(root); defer { reader.close() }
++                for i in order { try reviewRecognize(root, tokens[i]) }
++                for i in order.prefix(8) { try reviewRecognize(root, tokens[i]) }
++                let values = tokens.map { "α[" + $0 + "]ω" } + (0..<48).map { "review-" + String(SourceDigest.sha256(Data("absent-\($0)".utf8)).prefix(24)) }
++                var rejected = 0, accepted = 0
++                for value in values {
++                    let expected = tokens.contains { value.contains($0) }
++                    let generation = try reader.reserve()
++                    do {
++                        let result = try reader.commit(reviewValue(generation, value))
++                        #expect(!expected && result.1 && result.0?.version == value); accepted += 1
++                    } catch let failure as StoreQueryFailure {
++                        #expect(expected && failure == .redactedResponse); rejected += 1
++                    }
++                }
++                #expect(rejected == 48 && accepted == 48)
++            }
++        }
++        print("INDEPENDENT directSet orders=3 recognized=144 negative=144 duplicates=24 staleReaderReread=true")
++    }
++
++    @Test func independentBranchingJournalReplayPreservesTombstone() throws {
++        for stage in 0..<3 {
++            try reviewProject { root in
++                let prior = (0..<12).map { String(format: "journal-secret-%04d", $0) }
++                let future = "journal-secret-9999"
++                for token in prior { try reviewRecognize(root, token) }
++                let old = try reviewFile(root); defer { old.close() }
++                let staleGeneration = try old.reserve()
++                let newer = try old.reserve()
++                _ = try old.commit(reviewValue(newer, future))
++                let index = reviewIndex(root), record = reviewRecord(root)
++                let beforeRecord = try Data(contentsOf: record), beforeRoots = try Data(contentsOf: index.appendingPathComponent("roots"))
++                let beforeNames = Set(try FileManager.default.contentsOfDirectory(atPath: index.path))
++                try reviewRecognize(root, future)
++                try beforeRecord.write(to: record)
++                if stage < 2 { try beforeRoots.write(to: index.appendingPathComponent("roots")) }
++                if stage == 0 {
++                    for name in try FileManager.default.contentsOfDirectory(atPath: index.path) where !beforeNames.contains(name) {
++                        try FileManager.default.removeItem(at: index.appendingPathComponent(name))
++                    }
++                }
++                try reviewPending(index, future)
++                let reopened = try reviewFile(root); defer { reopened.close() }
++                #expect(try reopened.observation() == nil)
++                #expect(!FileManager.default.fileExists(atPath: index.appendingPathComponent("pending").path))
++                let stale = try old.commit(reviewValue(staleGeneration, "older-safe-value"))
++                #expect(!stale.1 && stale.0 == nil)
++                for secret in prior + [future] { try reviewReject(reopened, secret) }
++                let generation = try reopened.reserve()
++                #expect(try reopened.commit(reviewValue(generation, "replay-progress")).1)
++                let final = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: record)) as? [String: Any])
++                #expect((final["discardedThrough"] as? NSNumber)?.uint64Value == newer)
++            }
++        }
++        print("INDEPENDENT nonemptyTreeReplay stages=3 retainedMembers=39 staleGenerationFenced=3")
++    }
++
++    @Test func independentFullR2MigrationResumesPartialIndexAndMaxGeneration() throws {
++        try reviewProject { root in
++            let tokens = (0..<16).map { String(format: "migration-secret-%04d", $0) }
++            for token in tokens.prefix(8) { try reviewRecognize(root, token) }
++            let file = try reviewFile(root); defer { file.close() }
++            let generation = try file.reserve()
++            _ = try file.commit(reviewValue(generation, tokens[15]))
++            let path = reviewRecord(root)
++            var record = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: path)) as? [String: Any])
++            record["schema"] = 1
++            record["redactions"] = tokens.map { ["bytes": $0.utf8.count, "sha256": SourceDigest.sha256(Data($0.utf8))] as [String: Any] }
++            record["redactionsExhausted"] = false
++            try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys]).write(to: path)
++            try reviewPending(reviewIndex(root), tokens[8])
++            #expect(try file.observation() == nil)
++            for secret in tokens { try reviewReject(file, secret) }
++            try reviewRecognize(root, "migration-secret-0017")
++            let future = "max-generation-secret"
++            let fresh = try file.reserve(); _ = try file.commit(reviewValue(fresh, future))
++            record = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: path)) as? [String: Any])
++            record["issued"] = NSNumber(value: UInt64.max)
++            try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys]).write(to: path)
++            let exhausted = try reviewFile(root, future); defer { exhausted.close() }
++            do { _ = try exhausted.reserve(); Issue.record("Generation overflow admitted") }
++            catch let failure as MixerFailure { #expect(failure.code == "store.local-record") }
++            #expect(try file.observation() == nil)
++            let final = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: path)) as? [String: Any])
++            #expect((final["discardedThrough"] as? NSNumber)?.uint64Value == fresh)
++        }
++        print("INDEPENDENT R2migration full16 partial8 pendingReplay=true rotation17=true overflowSanitizes=true")
++    }
++
++    @Test func independentHashConsistentMalformedEdgesRefuse() throws {
++        try reviewProject { root in
++            let token = "edge-validation-secret", hash = SourceDigest.sha256(Data(token.utf8))
++            try reviewRecognize(root, token)
++            let file = try reviewFile(root); defer { file.close() }
++            let index = reviewIndex(root), roots = index.appendingPathComponent("roots"), original = try Data(contentsOf: roots)
++            let hex = Array("0123456789abcdef")
++            let first = try #require(hex.firstIndex(of: hash.first!))
++            let opposite = String(hex[first ^ 8]) + hash.dropFirst()
++            let leaf = try reviewNode(index, "L\n\(hash)\n")
++            let wrong = try reviewNode(index, "L\n\(opposite)\n")
++            for mode in 0..<3 {
++                let bit = mode == 2 ? 4 : 0
++                let nibble = try #require(hex.firstIndex(of: Array(hash)[bit / 4]))
++                let direction = (nibble >> (3 - bit % 4)) & 1
++                let bad = mode == 1 ? try reviewNode(index, "B\n0\n\(hash)\n\(leaf)\n\(wrong)\n") : wrong
++                let rootRef = try reviewNode(index, "B\n\(bit)\n\(hash)\n\(direction == 0 ? bad : leaf)\n\(direction == 1 ? bad : leaf)\n")
++                try reviewRoots(index, length: token.utf8.count, reference: rootRef)
++                let generation = try file.reserve()
++                do { _ = try file.commit(reviewValue(generation, token)); Issue.record("Malformed consulted edge admitted") }
++                catch let failure as MixerFailure { #expect(failure.code == "store.credential-index") }
++                try original.write(to: roots)
++                try reviewReject(file, token)
++            }
++        }
++        print("INDEPENDENT hashConsistentBadEdges wrongDirection=1 nonIncreasingBit=1 wrongPrefix=1 exactRecovery=3")
++    }
++
++    @Test func independentConcurrentCLIConstructorsRetainEveryGeneration() throws {
++        let executable = try #require(ProcessInfo.processInfo.environment["MIXER_STORE_TEST_CLI"])
++        for _ in 0..<2 {
++            try reviewProject { root in
++                let results = (0..<24).map { _ in ReviewCLIResult() }
++                DispatchQueue.concurrentPerform(iterations: 24) { i in
++                    results[i].result = Result {
++                        let process = Process(), pipe = Pipe()
++                        process.executableURL = URL(fileURLWithPath: executable)
++                        process.arguments = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
++                        var environment = ProcessInfo.processInfo.environment
++                        environment["MIXER_ASC_BEARER_TOKEN"] = "invalid process credential \(i)"
++                        process.environment = environment; process.standardOutput = pipe; process.standardError = pipe
++                        try process.run()
++                        let data = pipe.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
++                        return (process.terminationStatus, String(decoding: data, as: UTF8.self))
++                    }
++                }
++                for box in results {
++                    let result = try #require(box.result).get()
++                    #expect(result.0 == 1 && result.1.contains("store.credential-required"))
++                }
++                let record = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: reviewRecord(root))) as? [String: Any])
++                #expect((record["issued"] as? NSNumber)?.intValue == 24)
++                let reader = try reviewFile(root); defer { reader.close() }
++                for i in 0..<24 { try reviewReject(reader, "invalid process credential \(i)") }
++            }
++        }
++        print("INDEPENDENT concurrentRealCLI rounds=2 processes=48 issued=48 retainedCredentials=48")
++    }
++}
++private final class ReviewCLIResult: @unchecked Sendable {
++    var result: Result<(Int32, String), Error>?
++}
++
++private func reviewIndexSnapshot(_ index: URL) throws -> [String: Data] {
++    var snapshot: [String: Data] = [:]
++    for name in try FileManager.default.contentsOfDirectory(atPath: index.path) {
++        snapshot[name] = try Data(contentsOf: index.appendingPathComponent(name))
++    }
++    return snapshot
++}
++
++extension StoreSubmissionReconciliationTests {
++    @Test func pendingIntegrityRefusesEveryDamagedLayoutAndRestoresExactly() throws {
++        for stage in 0..<3 {
++            try reviewProject { root in
++                let prior = (0..<12).map { String(format: "integrity-prior-%04d", $0) }
++                let secret = "pending-integrity-secret"
++                for token in prior { try reviewRecognize(root, token) }
++                let old = try reviewFile(root); defer { old.close() }
++                let stale = try old.reserve(), retained = try old.reserve()
++                _ = try old.commit(reviewValue(retained, secret))
++                let index = reviewIndex(root), record = reviewRecord(root)
++                let priorRecord = try Data(contentsOf: record)
++                let before = try reviewIndexSnapshot(index)
++                try reviewRecognize(root, secret)
++                try priorRecord.write(to: record)
++                if stage < 2 { try #require(before["roots"]).write(to: index.appendingPathComponent("roots")) }
++                if stage == 0 {
++                    for name in try FileManager.default.contentsOfDirectory(atPath: index.path) where before[name] == nil {
++                        try FileManager.default.removeItem(at: index.appendingPathComponent(name))
++                    }
++                }
++                let pending = index.appendingPathComponent("pending"), intact = reviewPendingData(secret)
++                let headerCount = "mixer-credential-v2\n".utf8.count
++                let fingerprintStart = headerCount + String(secret.utf8.count).utf8.count + 1
++                let checksumStart = fingerprintStart + 65
++                var changes: [(String, Data)] = []
++                for (name, offset) in [("fingerprint", fingerprintStart), ("length", headerCount + 1), ("checksum", checksumStart), ("framing", headerCount - 2)] {
++                    var bytes = Array(intact)
++                    bytes[offset] = bytes[offset] == 48 ? 49 : 48
++                    #expect(zip(bytes, intact).filter { $0.0 != $0.1 }.count == 1)
++                    changes.append((name, Data(bytes)))
++                }
++                var malformed = Array(intact); malformed[checksumStart] = 122
++                changes.append(("malformed-checksum", Data(malformed)))
++                changes.append(("trailing", intact + Data([10])))
++                changes.append(("truncated", Data(intact.dropLast())))
++                changes.append(("oversize", intact + Data(repeating: 48, count: 155 - intact.count)))
++                let unchecked = Data("mixer-credential-v1\n\(secret.utf8.count)-\(SourceDigest.sha256(Data(secret.utf8)))\n".utf8)
++                changes.append(("unchecked-v1", unchecked))
++                var uncheckedCorrupt = Array(unchecked)
++                uncheckedCorrupt[fingerprintStart] = uncheckedCorrupt[fingerprintStart] == 48 ? 49 : 48
++                changes.append(("unchecked-v1-corrupt", Data(uncheckedCorrupt)))
++                for (name, corrupt) in changes {
++                    try corrupt.write(to: pending)
++                    let snapshot = try reviewIndexSnapshot(index)
++                    let reopened = try reviewFile(root); defer { reopened.close() }
++                    for operation in 0..<3 {
++                        do {
++                            switch operation {
++                            case 0: _ = try reopened.observation()
++                            case 1: _ = try reopened.reserve()
++                            default: _ = try reopened.commit(reviewValue(stale, "older-safe-value"))
++                            }
++                            Issue.record("Damaged journal admitted: \(name), stage \(stage), operation \(operation)")
++                        } catch let failure as MixerFailure {
++                            #expect(failure.code == "store.credential-index")
++                            #expect(!String(describing: failure).contains(secret))
++                        }
++                        #expect(try Data(contentsOf: record) == priorRecord)
++                        #expect(try reviewIndexSnapshot(index) == snapshot)
++                        #expect(!String(decoding: corrupt, as: UTF8.self).contains(secret))
++                    }
++                }
++                try intact.write(to: pending)
++                let restored = try reviewFile(root); defer { restored.close() }
++                #expect(try restored.observation() == nil)
++                #expect(!FileManager.default.fileExists(atPath: pending.path))
++                #expect(!String(decoding: try Data(contentsOf: record), as: UTF8.self).contains(secret))
++                let result = try old.commit(reviewValue(stale, "older-safe-value"))
++                #expect(!result.1 && result.0 == nil)
++                for token in prior + [secret] { try reviewReject(restored, token) }
++                let final = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: record)) as? [String: Any])
++                #expect((final["discardedThrough"] as? NSNumber)?.uint64Value == retained)
++            }
++        }
++        print("JOURNAL integrity stages=3 variants=10 operations=90 unchangedOnRefusal=true exactReplayAndFence=3")
++    }
++
++    @Test func checkedPendingMaximumAndCanonicalEncoding() throws {
++        for length in [1, 99, 100, 256] {
++            try reviewProject { root in
++                let secret = String(repeating: "q", count: length)
++                let file = try reviewFile(root); defer { file.close() }
++                let generation = try file.reserve()
++                _ = try file.commit(reviewValue(generation, secret))
++                let index = reviewIndex(root), pending = index.appendingPathComponent("pending")
++                let intact = reviewPendingData(secret)
++                #expect(intact.count <= 154)
++                if length == 256 { #expect(intact.count == 154) }
++                try intact.write(to: pending)
++                #expect(try file.observation() == nil)
++                #expect(!FileManager.default.fileExists(atPath: pending.path))
++                try reviewReject(file, secret)
++            }
++        }
++        try reviewProject { root in
++            let file = try reviewFile(root); defer { file.close() }; _ = try file.reserve()
++            let index = reviewIndex(root), pending = index.appendingPathComponent("pending")
++            let hash = SourceDigest.sha256(Data("x".utf8))
++            for body in ["mixer-credential-v2\n01-\(hash)\n", "mixer-credential-v2\n0-\(hash)\n", "mixer-credential-v2\n257-\(hash)\n", "mixer-credential-v3\n1-\(hash)\n", "mixer-credential-v2\n1-\(hash.uppercased())\n"] {
++                let data = Data(body.utf8)
++                let checked = data + Data((SourceDigest.sha256(data) + "\n").utf8)
++                try checked.write(to: pending)
++                let record = try Data(contentsOf: reviewRecord(root)), snapshot = try reviewIndexSnapshot(index)
++                do { _ = try file.observation(); Issue.record("Noncanonical checked journal admitted") }
++                catch let failure as MixerFailure { #expect(failure.code == "store.credential-index") }
++                #expect(try Data(contentsOf: reviewRecord(root)) == record)
++                #expect(try reviewIndexSnapshot(index) == snapshot)
++            }
++        }
++        print("JOURNAL maximumBytes=154 boundaryLengths=1,99,100,256 noncanonicalCheckedRefusals=5")
++    }
++}

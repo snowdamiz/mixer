@@ -1,0 +1,102 @@
+--- verification/plan-continuation-2026-11-07/apple-window-identity-campaign/harness/adoption_tests.py	2026-11-07 21:16:49
++++ verification/plan-continuation-2026-11-07/apple-window-identity-review/adoption_tests.py	2026-11-07 21:24:27
+@@ -129,7 +129,10 @@
+         if argv[1:4] == ['simctl', 'list', 'devices']:
+             self.device_reads += 1
+             if self.drift_at == self.device_reads:
+-                row = self.rows[next(iter(self.rows))]
++                row = next(value for uid, value in self.rows.items()
++                           if uid != adoption.UID and value['state'] == 'Booted')
++                if row['state'] != 'Booted':
++                    raise AssertionError('Drift fixture must start Booted')
+                 row['state'] = 'Shutdown'
+             return self.raw_devices()
+         if argv[1:3] == ['simctl', 'shutdown'] and argv[-1] == adoption.UID:
+@@ -299,7 +302,9 @@
+ 
+     def test_inner_baseline_drift_is_latched(self):
+         b, _, _ = self.adopted()
+-        b.c.rows[next(iter(b.external_baseline))]['state'] = 'Shutdown'
++        changed_uid = next(uid for uid, row in b.external_baseline.items() if row['state'] == 'Booted')
++        self.assertEqual(b.c.rows[changed_uid]['state'], 'Booted')
++        b.c.rows[changed_uid]['state'] = 'Shutdown'
+         self.stopped(b, lambda: b.command('inner-baseline', ['/usr/bin/xcrun', 'simctl', 'list', 'devices', '--json']))
+ 
+     def test_frozen_thirteen_receipts_and_failure(self):
+@@ -322,14 +327,15 @@
+             with self.subTest(case=case), self.assertRaises(controller.Refused):
+                 adopt_once.validate_terminal(case)
+ 
+-    def wrapper(self, *, mode='adopt-reviewed-once', terminal=None, keyboard=True, tamper_marker=False):
+-        root = OUT/('wrapper-' + self._testMethodName)
++    def wrapper(self, *, mode='adopt-reviewed-once', terminal=None, keyboard=True, tamper_marker=False,
++                suffix='', terminal_bytes=None, tamper_selection=False, event_change=None):
++        root = OUT/('wrapper-' + self._testMethodName + suffix)
+         root.mkdir()
+         seal = json.loads((CANDIDATE/'candidate-seal.json').read_text())
+         for name in [*seal['sourceFiles'], 'candidate-seal.json']:
+             (root/name).write_bytes((CANDIDATE/name).read_bytes())
+         folder = root/'attempt'
+-        b = self.backend('-wrapper-backend')
++        b = self.backend('-wrapper-backend' + suffix)
+         b.folder = folder
+         b.ax.connected = keyboard
+         called = []
+@@ -343,9 +349,15 @@
+             p = json.loads((folder/'exact-dispatch-command.json').read_text())
+             (folder/'native-invocation-once.json').write_text(json.dumps(dict(packetSHA256='bad' if tamper_marker else 'packet', selectionSHA256=p['selectionSHA256'])))
+             (folder/'dispatch-result.json').write_text(json.dumps(terminal))
++            if terminal_bytes is not None:
++                (folder/'dispatch-result.json').write_bytes(terminal_bytes)
++            if tamper_selection:
++                (folder/'root-selection.json').write_text('{"changed":true}')
+             b.c.events.append(dict(operation='native-dispatch', argv=argv, timeoutSeconds=950,
+                                    unknownCustody=False, nestedCustodyUnknown=False, reaped=True,
+                                    ownedGroupAbsent=True, exitCode=0, streams=dict(stdout=dict(eof=True), stderr=dict(eof=True))))
++            if event_change:
++                b.c.events[-1].update(event_change)
+             # Accepted producer's terminal cleanup removed the owned device/window.
+             b.c.rows.pop(adoption.UID)
+             b.ax.windows = [w for w in b.ax.windows if w.title != adoption.TITLE]
+@@ -396,3 +408,41 @@
+         self.assertEqual(called, [])
+         self.assertEqual(b.ax.actions, ['owned-close'])
+         self.assertEqual(result['nativeAttempts'], 0)
++
++    def test_review_actual_main_malformed_bytes_and_terminal_fields(self):
++        valid = independent_tests.terminal()
++        missing = dict(valid)
++        del missing['sessionFailure']
++        invalid = [b'', b'{', b'{} trailing', b'\xff', b'[]', b'1',
++                   json.dumps(missing).encode(),
++                   json.dumps({**valid, 'xcodebuildExitCode': False}).encode(),
++                   json.dumps({**valid, 'xcodebuildExitCode': 0.0}).encode(),
++                   json.dumps({**valid, 'cleanupResults': [valid['cleanupResults'][0]] * 5}).encode()]
++        for i, raw in enumerate(invalid):
++            with self.subTest(case=i):
++                b, called, result, error = self.wrapper(terminal=valid, terminal_bytes=raw, suffix='-'+str(i))
++                self.assertIsNotNone(error)
++                self.assertEqual(called, ['native'])
++                self.assertTrue(b.c.unresolved and b.unknown)
++                self.assertNotIn('outerCleanup', result)
++                self.assertEqual(b.ax.actions, [])
++                self.assertFalse(b.allow_owned_absent)
++                self.assertTrue(b.ax.finished)
++                put('review-malformed-'+str(i)+'.json', result)
++
++    def test_review_actual_main_selection_and_command_binding(self):
++        changes = [dict(operation='command'), dict(argv=['unbound']), dict(timeoutSeconds=120),
++                   dict(unknownCustody=True), dict(nestedCustodyUnknown=True), dict(reaped=False),
++                   dict(ownedGroupAbsent=False), dict(exitCode=False), dict(exitCode=65),
++                   dict(streams=dict(stdout=dict(eof=True), stderr=dict(eof=False)))]
++        for i, change in enumerate([None] + changes):
++            with self.subTest(case=i):
++                b, called, result, error = self.wrapper(terminal=independent_tests.terminal(),
++                    tamper_selection=change is None, event_change=change, suffix='-'+str(i))
++                self.assertIsNotNone(error)
++                self.assertEqual(called, ['native'])
++                self.assertTrue(b.c.unresolved and b.unknown)
++                self.assertNotIn('outerCleanup', result)
++                self.assertEqual(b.ax.actions, [])
++                self.assertFalse(b.allow_owned_absent)
++                put('review-native-binding-'+str(i)+'.json', result)

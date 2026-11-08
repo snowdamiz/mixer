@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "owner": "root controlling thread; this implementation sub-agent owns preparation directory only",
+  "state": "PROPOSED_NOT_RUN",
+  "requiresNewApproval": false,
+  "sequencing": "Root intentionally waits for completion and receipt capture of the current API28 attempt pinned to canonical101 before any canonical mutation.",
+  "steps": [
+    {
+      "order": 1,
+      "action": "Re-run preparation against canonical101; all four path preconditions, accepted patch, metadata baseline and owning digest must still match.",
+      "argv": [
+        "python3",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/store-journal-delivery/prepare.py"
+      ]
+    },
+    {
+      "order": 2,
+      "action": "Root applies the accepted four-path patch only after the API28 attempt is finished. Preserve all unrelated changes.",
+      "commands": [
+        "git apply --check verification/plan-continuation-2026-11-07/store-journal-integrity-fix/implementation.patch",
+        "git apply verification/plan-continuation-2026-11-07/store-journal-integrity-fix/implementation.patch"
+      ]
+    },
+    {
+      "order": 3,
+      "action": "Root applies the three metadata line replacements, preserving all package signature/notarization and sparse checkout behavior.",
+      "commands": [
+        "git apply --check verification/plan-continuation-2026-11-07/store-journal-delivery/proposed-metadata.patch",
+        "git apply verification/plan-continuation-2026-11-07/store-journal-delivery/proposed-metadata.patch"
+      ]
+    },
+    {
+      "order": 4,
+      "action": "Run check-integrated.py. Require all four candidate hashes, metadata hashes, protected bindings and exact103 inventory. No compiler needed.",
+      "argv": [
+        "python3",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/store-journal-delivery/check-integrated.py"
+      ]
+    },
+    {
+      "order": 5,
+      "action": "Root records each of the six proposed Python controls separately using its existing accepted owned-command cleanup controller. Normal and optimized commands are in controls.command.txt. Stop on first failure or unknown custody.",
+      "controlSecondsEach": 60,
+      "controlCommandCount": 6,
+      "maxTotalControlSeconds": 360,
+      "cleanupReserveSeconds": 5,
+      "controller": "verification/plan-continuation-2026-11-07/store-journal-integrity-fix/cleanup_control.py",
+      "controllerSHA256": "8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df"
+    },
+    {
+      "order": 6,
+      "action": "Run the exact parent six-consumer command once under root ownership. Existing canonical runner owns all compiler children and cleanup. Preserve its current implementation and defaults.",
+      "commandFile": "six-consumers.command.txt",
+      "namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/store-journal-six-consumers",
+      "bounds": {
+        "aggregateOutputBytes": 67108864,
+        "cleanupSeconds": 5,
+        "commandCountMaximum": 160,
+        "commandSeconds": 600,
+        "explicitJavapStdoutMaximum": 8388608,
+        "perStreamBytes": 4194304,
+        "producerJobs": 2,
+        "runnerSeconds": 2400
+      },
+      "retryPolicy": "No automatic retry after failure or unknown custody. Retain the failed receipt and scratch. A later attempt needs a fresh unique namespace and a tested cause."
+    },
+    {
+      "order": 7,
+      "action": "Root re-runs check-integrated.py and inspects actual receipt.json and commands/commands.json. Require actual103 digest, both producers, all six consumers, negative controls, terminal custody and cleanup. Update current root ledgers from observed results."
+    }
+  ],
+  "cleanup": {
+    "controlOwner": "root only; reuse accepted start/pump/reaped/stop controller and no separate cleanup agent",
+    "actualConsumerOwner": "unchanged canonical check-android-generated-java.py Commands",
+    "requiredFacts": [
+      "direct_child_reaped",
+      "stdout_eof",
+      "stderr_eof",
+      "owned_group_absent",
+      "terminal_custody",
+      "no cleanup_errors"
+    ],
+    "scratchRemoval": "Only the exact newly owned scratch after every required custody fact is positive. Preserve receipts, logs and binary artifacts retained by the canonical runner.",
+    "onUnknown": "Stop admission, record the owned identity and retain scratch. Do not infer absence from parent exit or elapsed time. Do not probe or signal historical held groups.",
+    "outerDeadline": "Allow the canonical runner to enforce its own2400-second budget and600-second command limits. Do not force-kill its outer process and strand separately owned child sessions."
+  },
+  "unchanged": [
+    "canonical generated-Java runner",
+    "source-pair9 policy",
+    "Android copied driver",
+    "current101 until API28 finishes",
+    "trusted notarization admission",
+    "workflow non-cone sparse checkout",
+    "sealed historical evidence",
+    "all process/custody/simulator/v5/frozen-hosted/phone holds"
+  ],
+  "redundantSwiftTestsRequiredBeforeConsumers": false,
+  "allCommandsExecutedByThisDelivery": false,
+  "releaseQualificationGranted": false
+}

@@ -1,0 +1,22 @@
+--- retained-first-fixture
++++ final-fixture
+@@ -421,15 +421,15 @@
+ 
+     def test_key_and_private_server_share_sanitized_numeric_environment(self):
+         class Manager(FakeCommands):
+-            captured = None
++            key_environment = None
+             def run(self, label, argv, cwd, timeout=120, allowed=(0,)):
+-                if label == 'owned-adb-key': self.captured = dict(self.env)
++                if label == 'owned-adb-key': self.key_environment = dict(self.env)
+                 return super().run(label, argv, cwd, timeout, allowed)
+         manager = Manager()
+         receipt, error, _ = R2Controls.flow(self, manager)
+         self.assertIsNone(error)
+-        self.assertEqual(manager.captured['ADB_SERVER_SOCKET'], 'tcp:127.0.0.1:64321')
+-        self.assertEqual(manager.captured['ANDROID_ADB_SERVER_ADDRESS'], '127.0.0.1')
++        self.assertEqual(manager.key_environment['ADB_SERVER_SOCKET'], 'tcp:127.0.0.1:64321')
++        self.assertEqual(manager.key_environment['ANDROID_ADB_SERVER_ADDRESS'], '127.0.0.1')
+ 
+ 
+ PNG_BYTES = b'\x89PNG\r\n\x1a\n' + bytes(range(256)) + b'\x00\x00\x00\x00IEND\xaeB`\x82'

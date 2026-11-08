@@ -86,6 +86,17 @@ probe, signal, or retry these groups. The receipt is
 verification/plan-continuation-2026-11-07/android-controller-custody-holds/receipt.json.
 All earlier process and custody holds remain in force.
 
+The fresh iOS setup and adoption failures remain preserved. Root's separately
+selected recovery positively observed owned simulator
+`4CE0ECC9-1EDA-4543-80FF-9B011DF9044F` Shutdown, deleted only that disposable
+device, and verified the external device baseline unchanged with both protected
+devices Booted. See verification/plan-continuation-2026-11-07/apple-adoption-recovery/attempt-1/result.json.
+No iOS test instance remains owned by that experiment. Do not resume either old
+one-use reservation or quit the shared Simulator frontend. The keyboard-readiness
+successor owns preparation for the one remaining original XCTest attempt; root
+coordinates any newly reviewed disposable instance. The failed setup/adoption
+receipts remain historical failures; all earlier process holds remain active.
+
 Record command, tool version, source revision/tree digest, output, and scope.
 Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually
 consume immutable published packages from a separate repository. Local checkout

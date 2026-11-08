@@ -1,0 +1,11 @@
+--- a/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift
++++ b/cli/Tests/MixerBuildTests/StoreReconciliationTests.swift
+@@ -994,7 +994,7 @@
+                 for (name, offset) in [("fingerprint", fingerprintStart), ("length", headerCount + 1), ("checksum", checksumStart), ("framing", headerCount - 2)] {
+                     var bytes = Array(intact)
+                     bytes[offset] = bytes[offset] == 48 ? 49 : 48
+-                    if name == "length" { bytes[offset] = 52 } // 23 -> 24, still a valid length.
++                    #expect(zip(bytes, intact).filter { $0.0 != $0.1 }.count == 1)
+                     changes.append((name, Data(bytes)))
+                 }
+                 var malformed = Array(intact); malformed[checksumStart] = 122

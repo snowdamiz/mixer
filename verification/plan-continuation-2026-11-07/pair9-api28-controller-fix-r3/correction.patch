@@ -1,0 +1,112 @@
+--- a/run_api28.py
++++ b/run_api28.py
+@@ -271,6 +271,8 @@
+         env.update(ANDROID_HOME=str(SDK), ANDROID_SDK_ROOT=str(SDK),
+                    ANDROID_AVD_HOME=str(work / 'avds'), ANDROID_EMULATOR_HOME=str(work / 'android'),
+                    ANDROID_USER_HOME=str(work / 'android'), TMPDIR=str(work / 'tmp'),
++                   ADB_SERVER_SOCKET='tcp:127.0.0.1:' + str(serverport),
++                   ANDROID_ADB_SERVER_ADDRESS='127.0.0.1',
+                    ANDROID_ADB_SERVER_PORT=str(serverport), ADB_SERVER_PORT=str(serverport),
+                    ADB_VENDOR_KEYS=str(work / 'android/adbkey'), ADB_LIBUSB='0', ADB_USB='0')
+         receipt.update(targetSerial=serial, adbServerPort=serverport, emulatorPort=port,
+--- a/host_controls.py
++++ b/host_controls.py
+@@ -226,8 +226,9 @@
+         receipt, error, _ = self.flow(manager)
+         self.assertIsNone(error)
+         self.assertEqual(receipt['status'], 'passed-development-runtime')
+-        for name in ('ADB_SERVER_SOCKET', 'ANDROID_ADB_SERVER_ADDRESS', 'ANDROID_SERIAL'):
+-            self.assertNotIn(name, manager.env)
++        self.assertNotIn('ANDROID_SERIAL', manager.env)
++        self.assertEqual(manager.env['ADB_SERVER_SOCKET'], 'tcp:127.0.0.1:64321')
++        self.assertEqual(manager.env['ANDROID_ADB_SERVER_ADDRESS'], '127.0.0.1')
+         self.assertEqual(manager.env['ANDROID_ADB_SERVER_PORT'], '64321')
+         for command in manager.records:
+             if Path(command['argv'][0]).name == 'adb' and command['label'] != 'owned-adb-key':
+@@ -381,6 +382,56 @@
+         self.assertEqual(fd_exec.receive(channel, 'token'), 72)
+ 
+ 
++class R3Controls(unittest.TestCase):
++    def descendant_environment(self, failure=None):
++        class Manager(FakeCommands):
++            inherited = None
++            def start(self, label, argv, cwd, long_lived=False):
++                value = super().start(label, argv, cwd, long_lived)
++                if label == 'owned-emulator':
++                    self.inherited = dict(self.env)
++                return value
++        manager = Manager(failure)
++        manager.env.update(ADB_SERVER_SOCKET='tcp:localhost:5037',
++                           ANDROID_ADB_SERVER_ADDRESS='foreign', ANDROID_SERIAL='foreign')
++        receipt, error, files = R2Controls.flow(self, manager)
++        self.assertIsNotNone(manager.inherited)
++        self.assertEqual(manager.inherited['ADB_SERVER_SOCKET'], 'tcp:127.0.0.1:64321')
++        self.assertEqual(manager.inherited['ANDROID_ADB_SERVER_ADDRESS'], '127.0.0.1')
++        self.assertEqual(manager.inherited['ANDROID_ADB_SERVER_PORT'], '64321')
++        self.assertNotIn('ANDROID_SERIAL', manager.inherited)
++        return manager, receipt, error, files
++
++    def test_emulator_descendant_inherits_numeric_socket_at_start(self):
++        manager, receipt, error, _ = self.descendant_environment()
++        self.assertIsNone(error)
++        self.assertEqual(receipt['status'], 'passed-development-runtime')
++        self.assertEqual(manager.inherited['ADB_SERVER_SOCKET'], manager.env['ADB_SERVER_SOCKET'])
++
++    def test_queued_descendant_keeps_numeric_selection_after_unknown_exit(self):
++        manager, receipt, error, _ = self.descendant_environment('exact-api28-instrumentation')
++        self.assertIsNotNone(error)
++        inherited = dict(manager.inherited)
++        manager.env.clear()
++        manager.api28_listener.close()
++        # A previously launched child's environment survives parent teardown.
++        self.assertEqual(inherited['ADB_SERVER_SOCKET'], 'tcp:127.0.0.1:64321')
++        self.assertEqual(manager.records[-1]['label'], 'exact-api28-instrumentation')
++        self.assertEqual(receipt['status'], 'failed')
++
++    def test_key_and_private_server_share_sanitized_numeric_environment(self):
++        class Manager(FakeCommands):
++            key_environment = None
++            def run(self, label, argv, cwd, timeout=120, allowed=(0,)):
++                if label == 'owned-adb-key': self.key_environment = dict(self.env)
++                return super().run(label, argv, cwd, timeout, allowed)
++        manager = Manager()
++        receipt, error, _ = R2Controls.flow(self, manager)
++        self.assertIsNone(error)
++        self.assertEqual(manager.key_environment['ADB_SERVER_SOCKET'], 'tcp:127.0.0.1:64321')
++        self.assertEqual(manager.key_environment['ANDROID_ADB_SERVER_ADDRESS'], '127.0.0.1')
++
++
+ PNG_BYTES = b'\x89PNG\r\n\x1a\n' + bytes(range(256)) + b'\x00\x00\x00\x00IEND\xaeB`\x82'
+ 
+ 
+@@ -400,6 +451,7 @@
+     suite = unittest.TestSuite([existing.Controls(name) for name in names])
+     suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(ControllerControls))
+     suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(R2Controls))
++    suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(R3Controls))
+     original_pump = c.Commands.pump
+     def pump(manager, seconds=.02):
+         for child in fake.children.values(): child.tick()
+@@ -416,7 +468,7 @@
+         'packetSHA256':r.identity(HERE/'controller-packet.json')['sha256'],
+         'controlsSHA256':r.identity(__file__)['sha256'],'realNativeCommands':0,
+         'realChildren':0,'realGroupOperations':0,
+-        'baselineControlsRetained':34,'r2Controls':unittest.defaultTestLoader.getTestCaseNames(R2Controls),
++        'baselineControlsRetained':34,'r2ControlsRetained':16,'r3Controls':3,'r2Controls':unittest.defaultTestLoader.getTestCaseNames(R2Controls),
+         'baselineControls':names + unittest.defaultTestLoader.getTestCaseNames(ControllerControls),
+         'descriptorHelperSHA256':r.identity(HERE/'server_fd_exec.py')['sha256'],
+         'command':[sys.executable,'-B',*(['-O'] if sys.flags.optimize else []),str(Path(__file__).resolve())],
+--- a/freeze_packet.py
++++ b/freeze_packet.py
+@@ -14,7 +14,9 @@
+     frozen['bindings'][str(path)] = {**r.identity(path), 'realPath': str(path.resolve())}
+     frozen['controllerSHA256'] = r.identity(r.HERE / 'run_api28.py')['sha256']
+     frozen['r2Transport'] = {'numericClientHost': '127.0.0.1', 'serverListener': 'parent retained; SCM_RIGHTS; official acceptfd',
+-                             'sameServerClientSHA256': r.ADB_SHA, 'reviewRequired': True}
++                             'sameServerClientSHA256': r.ADB_SHA, 'reviewRequired': True,
++                             'emulatorDescendantSocket': 'tcp:127.0.0.1:<owned-port>',
++                             'emulatorDescendantAddress': '127.0.0.1'}
+     r.require(r.identity(r.HERE / 'cleanup_control.py')['sha256'] == r.LIFECYCLE_SHA, 'lifecycle changed')
+     r.verify_bindings(frozen)
+     r.save(r.HERE / 'controller-packet.json', frozen)

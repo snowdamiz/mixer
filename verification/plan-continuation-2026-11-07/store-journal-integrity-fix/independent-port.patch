@@ -1,0 +1,46 @@
+--- review/StoreCredentialIndependentTests.swift
++++ ported-into/StoreReconciliationTests.swift
+@@ -41,9 +41,13 @@
+     let body = Data((lines.prefix(257).joined(separator: "\n") + "\n").utf8)
+     try (body + Data((SourceDigest.sha256(body) + "\n").utf8)).write(to: path)
+ }
++private func reviewPendingData(_ token: String) -> Data {
++    let hash = SourceDigest.sha256(Data(token.utf8))
++    let body = Data("mixer-credential-v2\n\(token.utf8.count)-\(hash)\n".utf8)
++    return body + Data((SourceDigest.sha256(body) + "\n").utf8)
++}
+ private func reviewPending(_ index: URL, _ token: String) throws {
+-    let hash = SourceDigest.sha256(Data(token.utf8))
+-    try Data("mixer-credential-v1\n\(token.utf8.count)-\(hash)\n".utf8).write(to: index.appendingPathComponent("pending"))
++    try reviewPendingData(token).write(to: index.appendingPathComponent("pending"))
+ }
+ 
+ extension StoreSubmissionReconciliationTests {
+@@ -56,8 +60,10 @@
+             let index = reviewIndex(root)
+             try reviewPending(index, secret)
+             let pending = index.appendingPathComponent("pending")
+-            var bytes = Array(try Data(contentsOf: pending))
+-            let prefixCount = "mixer-credential-v1\n\(secret.utf8.count)-".utf8.count
++            let intact = try Data(contentsOf: pending), priorRecord = try Data(contentsOf: reviewRecord(root))
++            let priorRoots = try Data(contentsOf: index.appendingPathComponent("roots"))
++            var bytes = Array(intact)
++            let prefixCount = "mixer-credential-v2\n\(secret.utf8.count)-".utf8.count
+             let original = bytes[prefixCount]
+             bytes[prefixCount] = original == 48 ? 49 : 48
+             try Data(bytes).write(to: pending)
+@@ -71,6 +77,14 @@
+             } catch let failure as MixerFailure {
+                 #expect(failure.code == "store.credential-index")
+             }
++            #expect(try Data(contentsOf: pending) == Data(bytes))
++            #expect(try Data(contentsOf: reviewRecord(root)) == priorRecord)
++            #expect(try Data(contentsOf: index.appendingPathComponent("roots")) == priorRoots)
++            try intact.write(to: pending)
++            #expect(try file.observation() == nil)
++            #expect(!FileManager.default.fileExists(atPath: pending.path))
++            try reviewReject(file, secret)
++            print("INDEPENDENT pendingSingleHexByteCorruption refused=true journalPreserved=true exactRecovery=true")
+         }
+     }
+ 

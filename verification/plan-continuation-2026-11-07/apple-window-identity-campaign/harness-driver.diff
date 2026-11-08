@@ -1,0 +1,13 @@
+--- verification/plan-continuation-2026-11-07/apple-safe-keyboard-fix-r3/harness/review_tests.py	2026-11-07 20:45:19
++++ verification/plan-continuation-2026-11-07/apple-window-identity-campaign/harness/review_tests.py	2026-11-07 21:15:39
+@@ -190,6 +190,10 @@
+     else:
+         import r3_tests
+         suite.addTests(unittest.defaultTestLoader.loadTestsFromModule(r3_tests))
++    import fresh_tests
++    suite.addTests(unittest.defaultTestLoader.loadTestsFromModule(fresh_tests))
++    import adoption_tests
++    suite.addTests(unittest.defaultTestLoader.loadTestsFromModule(adoption_tests))
+     result=unittest.TextTestRunner(verbosity=2).run(suite)
+     put('test-result.json',dict(testsRun=result.testsRun,failures=[dict(test=str(t),traceback=e) for t,e in result.failures],errors=[dict(test=str(t),traceback=e) for t,e in result.errors],python=sys.version,optimize=sys.flags.optimize,nativeAttempts=0,builds=0,UIActions=0))
+     sys.exit(0 if result.wasSuccessful() else 1)
