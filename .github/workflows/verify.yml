@@ -105,6 +105,7 @@ jobs:
             /verification/envelope-producer-timeout-experiment/producer-partition.json
             /verification/envelope-partition-default-ci-adoption/
             /verification/envelope-rust-1991-default-ci-adoption/
+            /verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/
             /verification/swift-envelope-ci-root-review/compiler-qualification-selection-amendment.json
             /verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json
             /verification/android-default-appearance-packaging/run-2/created-descriptor.json
@@ -147,7 +148,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
       - name: Guarded envelope and prospective compiler adoption controls
@@ -159,6 +160,9 @@ jobs:
           python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
             > "$MIXER_ADOPTION_DIR/logs/controls.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/controls.stderr"
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/test_binding.py" \
+            > "$MIXER_ADOPTION_DIR/logs/caller-controls.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/caller-controls.stderr"
       - name: Standalone analyzer envelope with prospectively selected compiler
         # 480 active + 60 retention/cleanup seconds; 180 seconds startup margin.
         timeout-minutes: 12
@@ -168,7 +172,7 @@ jobs:
           export RUSTUP_AUTO_INSTALL=0
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           MIXER_ENVELOPE_RUSTC_LAUNCHER="$(command -v rustc)"
-          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" run \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py" run \
             --rustc "$MIXER_ENVELOPE_RUSTC_LAUNCHER" \
             --out "$RUNNER_TEMP/analyzer-envelope" \
             > "$MIXER_ADOPTION_DIR/logs/fixture.stdout" \
@@ -181,7 +185,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$MIXER_ADOPTION_DIR/adopt_envelope.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
       - name: Preserve standalone analyzer envelope receipts
@@ -197,6 +201,7 @@ jobs:
             ${{ runner.temp }}/analyzer-envelope/
             ${{ github.workspace }}/verification/envelope-partition-default-ci-adoption/
             ${{ github.workspace }}/verification/envelope-rust-1991-default-ci-adoption/
+            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/
             ${{ github.workspace }}/.github/workflows/verify.yml
       - name: Generated capability schema and host lifecycle
         run: |
@@ -525,6 +530,8 @@ jobs:
             /verification/shared-fixture-clock-controls-correction/
             /verification/plan-continuation-2026-11-07/cache-fix/
             /verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+            /verification/plan-continuation-2026-11-07/cache-custody-fix-r3/
+            /verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
             /.github/workflows/verify.yml
       - name: Bind shared fixture adoption and materialize the thin overlay
         timeout-minutes: 2
@@ -538,7 +545,7 @@ jobs:
             git rev-parse HEAD HEAD^{tree}
             python3 --version
             uname -srm
-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/adopt_fixture.py" verify --workflow-installed
+            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-custody-fix-r3/adopt_fixture.py" verify --workflow-installed
             python3 -B "$MIXER_SHARED_INPUT_DIR/materialize_pack.py"
           } > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
@@ -555,10 +562,10 @@ jobs:
           python3 -B "$MIXER_SHARED_INPUT_DIR/test_materializer.py" -v \
             > "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stdout" \
             2> "$MIXER_SHARED_INPUT_DIR/logs/materializer-controls.stderr"
-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_runner.py" -v \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-custody-fix-r3/test_original.py" -v \
             > "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stdout" \
             2> "$MIXER_SHARED_INPUT_DIR/logs/runner-controls.stderr"
-          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_runner.py" -v \
+          python3 -B -O "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-custody-fix-r3/test_original.py" -v \
             > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stdout" \
             2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-optimized.stderr"
           python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/test_contracts.py" -v \
@@ -579,7 +586,7 @@ jobs:
           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
           {
             MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
-            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/adopt_fixture.py" run \
+            python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-custody-fix-r3/adopt_fixture.py" run \
               --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
               --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           } > "$MIXER_SHARED_INPUT_DIR/logs/fixture.stdout" \
@@ -592,7 +599,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/adopt_fixture.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-custody-fix-r3/adopt_fixture.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
       - name: Preserve complete shared fixture evidence and adoption proof
@@ -613,6 +620,8 @@ jobs:
             ${{ github.workspace }}/verification/swift-cache-state-ci/check_cache_state.py
             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-fix/
             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-deadline-control-fix/
+            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/cache-custody-fix-r3/
+            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/native-custody-premise/cleanup_control.py
             ${{ github.workspace }}/.github/workflows/verify.yml
   android-generated-java:
     runs-on: macos-26-intel

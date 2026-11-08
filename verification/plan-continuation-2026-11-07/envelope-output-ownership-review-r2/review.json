@@ -1,0 +1,482 @@
+{
+  "verdict": "ACCEPT",
+  "scope": "Exact-byte successor source adoption by parent, followed by fresh ordinary CI only; no compiler, native, runtime, artifact, release, FieldLog, phone or GA qualification",
+  "reviewed_at_utc": "2026-11-08T04:02:29.951Z",
+  "candidate_directory": "verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2",
+  "candidate_sha256": {
+    "adopt_envelope.py": "198fe84210e104cc9c7b7b4a14ef33525bcecad8a2d95a553a9c983c85a018b5",
+    "current-swift-job.yml": "ecc601a2b3245284687a6642bb79e750c01a462fd4f4ee2be3ac6346faee995c",
+    "current-verify.yml": "beb73702c2fca021f15a88dc7989d73c2863169404cc195b8988b8ece6649c96",
+    "failure-evidence.json": "d80ab96896da018f6f46b3512d9f4cb81ed9b9485a452fc8c1a3207435f94737",
+    "full.patch": "02ea37d50333854ede168f1513e6d4848180da55625a0b61a6d42106f3f673cf",
+    "incremental.patch": "387503e53f6b36e781fedababf6476c62b944987eca05442deff777ee25092a1",
+    "job-changes.json": "b58be31faeecbf401c2b213767ac9a1c9e21e996f3c62d5bd27736bde24153af",
+    "ownership_cases.py": "0fe66f593de404e5ce01072b2fadb606615753636b92778228b2f5cce49111f3",
+    "prepare_and_test.py": "6e7f9a406c9cbacaebc1d8f62711382dc90426b4278a8d0dbd55d18481452eb9",
+    "review_tests.py": "c3095bcf8d3990886590885b77bb1002b8eb68854978c28b6f8c58dd1d416264",
+    "seal.json": "6a9e51a01bb36c604e12c2a5569e5f21cc8b48974de071430e1d8265c10c4076",
+    "source103.json": "22286cc28dd71f45724aef820f0e9cd575b6d81e9b4006780378ad47d604d735",
+    "swift-job.yml": "1f2375eac50ff661b3d7678e9b114d651d22c82676bcd1024f92b480f865c6c2",
+    "test_binding.py": "df421b58a8a15d9fb90d1bde52c74cb9720fdb519056feaeba801393eacb7784",
+    "verify.yml.candidate": "29d4d97f09a705d9cf7e22c65cfca5953fa54404612a8aa85e47466dd2621205",
+    "workflow.patch": "4edc1e7f6af421734e8a084aa9be7cf9457c71ffab8d79b46acc5769e7759093"
+  },
+  "source_revision": "0f30624df2edcd50ee7f1b069afb96c0ae263791",
+  "source_tree": "ad8066ea6ff9a8e97a162b357bd4cfcb3fee7d13",
+  "findings": [],
+  "resolved_prior_findings": [
+    {
+      "id": "R1",
+      "priority": "P1",
+      "status": "RESOLVED",
+      "path": "verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py",
+      "lines": {
+        "start": 73,
+        "end": 124
+      },
+      "evidence": "Only actual successful historical fresh_output return establishes authority; capture retains directory FD, dev/inode/uid, ancestry and marker. validate runs before each exclusive dir_fd write. Retained existing-directory and symlink-parent reproductions pass normal and -O without extra writes."
+    }
+  ],
+  "review_observations": [
+    {
+      "path": "verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py",
+      "lines": {
+        "start": 29,
+        "end": 59
+      },
+      "assessment": "Historical verify(False), seals, dependencies, source103, exact four-line CLI caller delta and explicit successor job transformations are preserved. Installed verification requires exact successor Swift job; other jobs are outside that binding and unchanged by workflow.patch."
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py",
+      "lines": {
+        "start": 133,
+        "end": 174
+      },
+      "assessment": "Actual historical loader/admission is observed and restored. Historical exceptions, source-postflight errors and original adapter receipts remain available; auxiliary failure is emitted on stderr and forces failure. Preflight exceptions occur before observation or persistence. Descriptor is closed on the tested admitted failure path."
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/test_binding.py",
+      "lines": {
+        "start": 125,
+        "end": 150
+      },
+      "assessment": "Two synthetic callbacks now obtain real historical fresh-output admission; all original assertions remain. os.chdir(HERE) places fd-relative test paths within the unchanged offline guard root. No production behavior was weakened by these fixture changes."
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/swift-job.yml",
+      "lines": {
+        "start": 78,
+        "end": 161
+      },
+      "assessment": "Pre/postflight and single run select successor. Original test_adoption controls, Rust 1.99.1 profile/selection, 40 commands, 480 active/60 retention-cleanup/120 per-producer seconds, 8/64 MiB caps, RUNNER_TEMP/analyzer-envelope and CLI caller remain unchanged."
+    }
+  ],
+  "source_and_history": {
+    "source103_count": 103,
+    "source103_manifest_sha256": "22286cc28dd71f45724aef820f0e9cd575b6d81e9b4006780378ad47d604d735",
+    "owning_bytes_unchanged": true,
+    "prior_candidate_manifest_byte_identical": true,
+    "review_specific_compact_sorted_map_digest": "b9064a10904c508e006393fefc671bc783e5f03ee969e0dd17a3d2b3cbc5dcab",
+    "digest_note": "This review-specific map serialization is not a reproduction of the prior eda43...e86158 roster checksum; equality is independently established per path/byte count/SHA256 and by the exact manifest file hash.",
+    "historical_sealed_members_and_seals": 38,
+    "historical_unchanged": true,
+    "baseline_files": 272,
+    "baseline_drift": [],
+    "candidate_drift": [],
+    "prior_rejected_path_failures_preserved": true,
+    "original_normal_failure_preserved": true,
+    "failed_ci": {
+      "run": 42442717964,
+      "job": 128615156054,
+      "head": "0f30624df2edcd50ee7f1b069afb96c0ae263791",
+      "status": "Historical failure preserved; no rerun or status reinterpretation",
+      "reason": "Old sealed entire-job equality rejected the accepted four-line real-CLI caller change before CLI tests"
+    }
+  },
+  "workflow_transport": {
+    "canonical_workflow_patch_applies_as_exact_data": true,
+    "implementation_diff_exact": true,
+    "test_fixture_diff_exact": true,
+    "full.patch": {
+      "sections": 12,
+      "allExact": true
+    },
+    "incremental.patch": {
+      "sections": 12,
+      "allExact": true
+    },
+    "other_jobs_unchanged": true,
+    "shipping_files": 11
+  },
+  "tests": {
+    "invocations": 2,
+    "limit": 2,
+    "per_invocation_seconds": 120,
+    "controller_sha256": "8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "executable": "/opt/homebrew/bin/python3",
+    "all_review_tests_passed": false,
+    "retained_controls_per_mode": {
+      "original": 10,
+      "prior_independent": 12,
+      "r2_ownership": 5,
+      "all_passed": true
+    },
+    "additional_controls_per_mode": {
+      "fully_passed": 4,
+      "partial_method": 1,
+      "first_regular_collision_case_passed": true,
+      "harness_failure_subtests": 11,
+      "unexecuted_intended_collision_cases": 11
+    },
+    "runs": [
+      {
+        "mode": "normal",
+        "groups": {
+          "original": {
+            "tests": 10,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "passed": true
+          },
+          "independent": {
+            "tests": 12,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "passed": true
+          },
+          "ownership": {
+            "tests": 5,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "passed": true
+          },
+          "r2review": {
+            "tests": 5,
+            "failures": 11,
+            "errors": 0,
+            "skipped": 0,
+            "passed": false
+          }
+        },
+        "failedCases": [
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-adopt_envelope.py', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-seal.json', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-seal.json', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-swift-job.yml', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-swift-job.yml', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-job-changes.json', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-job-changes.json', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-source103.json', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-source103.json', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='caller-binding-result.json', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='caller-binding-result.json', kind='symlink')",
+            "knownHarnessTypeError": true
+          }
+        ],
+        "newPassingTests": [
+          "test_callbacks_restored_and_owned_descriptor_closed_on_failure (__main__.R2Review.test_callbacks_restored_and_owned_descriptor_closed_on_failure) ... ok",
+          "test_collision_inserted_after_precheck_cannot_be_overwritten (__main__.R2Review.test_collision_inserted_after_precheck_cannot_be_overwritten) ... ok",
+          "test_directory_swap_at_open_cannot_redirect_auxiliary_write (__main__.R2Review.test_directory_swap_at_open_cannot_redirect_auxiliary_write) ... ok",
+          "test_marker_changed_during_first_write_stops_remaining_writes (__main__.R2Review.test_marker_changed_during_first_write_stops_remaining_writes) ... ok"
+        ],
+        "denied": []
+      },
+      {
+        "mode": "optimized",
+        "groups": {
+          "original": {
+            "tests": 10,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "passed": true
+          },
+          "independent": {
+            "tests": 12,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "passed": true
+          },
+          "ownership": {
+            "tests": 5,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "passed": true
+          },
+          "r2review": {
+            "tests": 5,
+            "failures": 11,
+            "errors": 0,
+            "skipped": 0,
+            "passed": false
+          }
+        },
+        "failedCases": [
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-adopt_envelope.py', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-seal.json', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-seal.json', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-swift-job.yml', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-swift-job.yml', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-job-changes.json', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-job-changes.json', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-source103.json', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='executed-caller-binding-source103.json', kind='symlink')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='caller-binding-result.json', kind='regular')",
+            "knownHarnessTypeError": true
+          },
+          {
+            "test": "test_all_auxiliary_collisions_preserve_existing_files_and_exception (__main__.R2Review.test_all_auxiliary_collisions_preserve_existing_files_and_exception) (name='caller-binding-result.json', kind='symlink')",
+            "knownHarnessTypeError": true
+          }
+        ],
+        "newPassingTests": [
+          "test_callbacks_restored_and_owned_descriptor_closed_on_failure (__main__.R2Review.test_callbacks_restored_and_owned_descriptor_closed_on_failure) ... ok",
+          "test_collision_inserted_after_precheck_cannot_be_overwritten (__main__.R2Review.test_collision_inserted_after_precheck_cannot_be_overwritten) ... ok",
+          "test_directory_swap_at_open_cannot_redirect_auxiliary_write (__main__.R2Review.test_directory_swap_at_open_cannot_redirect_auxiliary_write) ... ok",
+          "test_marker_changed_during_first_write_stops_remaining_writes (__main__.R2Review.test_marker_changed_during_first_write_stops_remaining_writes) ... ok"
+        ],
+        "denied": []
+      }
+    ],
+    "commands": [
+      {
+        "label": "normal",
+        "argv": [
+          "/opt/homebrew/bin/python3",
+          "-I",
+          "-B",
+          "-S",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/review_tests.py",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/scratch/normal",
+          "normal"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+        "long_lived": false,
+        "state": "TERMINAL",
+        "exit_code": 1,
+        "direct_child_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "owned_group_absent": true,
+        "terminal_custody": true,
+        "cleanup_errors": [],
+        "signals": [],
+        "group_probes": 0,
+        "output_bytes": 97797,
+        "output_limit": 8388608,
+        "aggregate_limit": 67108864,
+        "stop": null,
+        "started_monotonic": 342980.15098375,
+        "pid": 30349,
+        "owned_pgid": 30349,
+        "logs": {
+          "stdout": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/commands/000-normal.stdout",
+          "stderr": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/commands/000-normal.stderr"
+        }
+      },
+      {
+        "label": "optimized",
+        "argv": [
+          "/opt/homebrew/bin/python3",
+          "-I",
+          "-B",
+          "-S",
+          "-O",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/review_tests.py",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/scratch/optimized",
+          "optimized"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+        "long_lived": false,
+        "state": "TERMINAL",
+        "exit_code": 1,
+        "direct_child_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "owned_group_absent": true,
+        "terminal_custody": true,
+        "cleanup_errors": [],
+        "signals": [],
+        "group_probes": 0,
+        "output_bytes": 97806,
+        "output_limit": 8388608,
+        "aggregate_limit": 67108864,
+        "stop": null,
+        "started_monotonic": 342985.015439583,
+        "pid": 30438,
+        "owned_pgid": 30438,
+        "logs": {
+          "stdout": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/commands/001-optimized.stdout",
+          "stderr": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/commands/001-optimized.stderr"
+        }
+      }
+    ],
+    "raw_receipts": [
+      "result.json",
+      "normal-tests-result.json",
+      "optimized-tests-result.json"
+    ],
+    "evidence_sha256": {
+      "commands/000-normal.stdout": "c2852317de456a8a12572c64c90c70570b5e7834c5feaeb04dc41756ce21b668",
+      "commands/000-normal.stderr": "980b4828512a80ee3a2b13a69ce183bd357688b0f240ce67140fd61732fd5b41",
+      "commands/001-optimized.stdout": "31d69ddae4fcd30df58403a30233c86b9b22ad7ac7c3e86f0156694e6c4aa4e2",
+      "commands/001-optimized.stderr": "f8a91b168d5641263e47753b702e2eb0dd4c583fc374b3108882f8c8985764a6",
+      "normal-tests-result.json": "cb2e0960d997182563c5c7d80ece7a213efa52914d87204f0077be1b2ce9b4e9",
+      "optimized-tests-result.json": "13ded998a98b491f1d9a01533702ec697ef3190ee85d51bb2b3a7f5cc43bcf3e",
+      "review_tests.py": "ea7446a6a20e574c5a55b9ad1ed648c71144b1d5390a14cd83b7b190b7a6e259",
+      "additional_cases.py": "41c555898fe964dc73899521b832d77594441b6ba351e6147468dcbaa327e38d",
+      "supervise.py": "ccbdccee35824aa44b70abb694a59d28ede7ca7cf5f5f926106962babd83a48b",
+      "result.json": "142d0e153e82269a2b66ce3823826937f658a4c051a43397f74c58e722786275"
+    }
+  },
+  "reviewer_harness_findings": [
+    {
+      "id": "H1",
+      "blocking_candidate": false,
+      "path": "verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/review_tests.py",
+      "lines": {
+        "start": 290,
+        "end": 300
+      },
+      "helper_lines": {
+        "start": 44,
+        "end": 54
+      },
+      "cause": "The loop calls actual_adapter repeatedly while the shared ExitStack retains each patch. On iteration two load_runner returns the already patched runner, so fresh captures a one-argument lambda and the new lambda calls it with two arguments. This produces TypeError before fresh admission. The first regular collision case and the other four independent methods pass in both modes.",
+      "effect": "Both composite invocations exit 1. Eleven intended collision cases per mode remain unverified by this extra method; no candidate failure was reproduced.",
+      "action": "Keep raw failures and scratch. Do not rerun within this two-invocation review. If separately authorized later, isolate each collision case in a fresh adapter/ExitStack before testing."
+    }
+  ],
+  "custody": {
+    "all_terminal": true,
+    "owned_pgids": [
+      30349,
+      30438
+    ],
+    "direct_children_reaped": true,
+    "both_streams_eof": true,
+    "positive_group_absence": true,
+    "signals": [],
+    "unknown": false,
+    "cleanup_errors": [],
+    "scratch_removed": false,
+    "scratch_retained_reason": "Preserve reviewer harness failure evidence; no live owned child remains",
+    "scratch_directory": "verification/plan-continuation-2026-11-07/envelope-output-ownership-review-r2/scratch"
+  },
+  "limits": [
+    "No compiler/runtime/process/network operations inside tests; denied-runtime lists empty.",
+    "Terminal validator/replay success controls use fakes and prove dispatch only.",
+    "Historical adapters own persistence remains unchanged; successor is not a redesign of historical output writers.",
+    "Auxiliary files may be partially retained in the originally admitted inode if identity/marker changes during a write; tests establish no redirect into replacement output, remaining writes stop, and return status fails.",
+    "The two-invocation limit is exhausted. All failure logs and projections remain retained."
+  ],
+  "unlock": {
+    "accepted": "Parent may adopt the exact eleven shipping files and apply workflow.patch to this current checkout, then obtain a fresh ordinary CI result.",
+    "not_accepted": [
+      "native/compiler/artifact qualification",
+      "merge authorization",
+      "commit/push by reviewer",
+      "rerunning held historical processes"
+    ],
+    "apply_note": "Files already exist in this checkout: apply only workflow.patch. full.patch and incremental.patch are exact transports for corresponding clean baselines and would conflict with existing additions."
+  },
+  "holds_preserved": {
+    "local_pgids": [
+      40708,
+      40709,
+      40711,
+      23663,
+      20745,
+      20770,
+      20780,
+      20817,
+      20842,
+      20851,
+      20866
+    ],
+    "fieldlog": {
+      "run": 40802230894,
+      "pgid": 2424,
+      "pid": 2621
+    },
+    "v5": true,
+    "frozen_hosted_lanes": true,
+    "phones": true,
+    "remote2331_not_a_local_target": true
+  },
+  "actions": {
+    "candidate_or_canonical_edits": false,
+    "commits": false,
+    "pushes": false,
+    "native": false,
+    "delegation": false,
+    "network": false,
+    "held_process_operations": false
+  },
+  "duration_seconds": 352
+}

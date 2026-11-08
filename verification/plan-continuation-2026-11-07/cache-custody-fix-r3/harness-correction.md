@@ -1,0 +1,3 @@
+Both consumed child invocations failed during review-module initialization, before the unittest runner. A broad replacement altered both the actual review hook registration and the nested string literal that disables the reused R2 fake hook. The R2 hook therefore remained installed and rejected the successor evidence directory.
+
+The final harness changes that replacement to count=1, preserving the nested original substitution. This is a direct source correction only. No permitted invocation remains; no retry or alternate execution was performed. executed-shipping/ retains the exact prior sources and seal. Final shipping sources must pass a separately authorized fresh pure/fake campaign before any tiny real control.

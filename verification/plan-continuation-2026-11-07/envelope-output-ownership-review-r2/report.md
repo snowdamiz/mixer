@@ -1,0 +1,27 @@
+ACCEPT for parent adoption of the exact R2 candidate followed by fresh ordinary CI. No blocking candidate finding remains. This is not compiler, native, runtime, published-artifact, FieldLog, release or GA acceptance.
+
+The prior P1 is resolved. In adopt_envelope.py:73–98, authority follows the actual historical fresh_output call returning successfully; neither directory existence nor a pre-existing marker grants admission. Lines 102–124 revalidate the admitted directory identity/owner, full ancestry and marker and create each fixed auxiliary filename exclusively relative to the retained descriptor. Existing-directory and symlink-parent regressions pass in both modes. Independent injection after validation confirms replacement output receives no auxiliary files; the first write stays on the originally admitted inode and subsequent validation stops persistence. Exclusive creation also preserves a file introduced after the collision precheck. Marker mutation during the first write stops later writes. Partial evidence in the originally admitted directory on such failure is possible and is not presented as success.
+
+Lines 133–174 preserve historical dispatch and errors, run source postflight, restore the loader and admission callback, close the descriptor, and force failure when auxiliary evidence cannot be persisted. Actual historical execute failure/exception receipts and fake success validator/replay delegation pass retained tests. Original historical writers remain unchanged and outside the ownership redesign.
+
+Lines 29–59 continue checking historical seals/dependencies, all 103 owning source files, the exact accepted four-line real-CLI caller delta, explicit job changes and exact successor installed Swift job. workflow.patch applies as pure file data to the current canonical workflow; full.patch and incremental.patch each contain 12 exact sections (workflow plus eleven shipping files). Non-Swift jobs are unchanged. The Rust 1.99.1 profile and selection, 40 commands, 480 active/60 retention-cleanup/120 per-producer seconds, 8/64 MiB limits, fixed RUNNER_TEMP/analyzer-envelope output, original controls and historical outputs remain intact.
+
+The two changed callbacks in test_binding.py:125–150 now use real historical admission rather than bare mkdir. Every original assertion remains; the fixture diff contains only these changes plus os import and the owned cwd needed by the unchanged offline guard. Both original failure/exception tests pass. The workflow's retained historical test_adoption.py uses its proposed historical job in the relevant identity tests; it does not newly require the actual installed job to remain the old one.
+
+Verification is qualified, not an all-green composite suite: normal and -O each passed all 27 retained controls (10 original, 12 prior independent, 5 R2 ownership) and four added methods. The first case in a fifth added method also passed. The remaining eleven collision subcases in that method failed because my test helper repeatedly wrapped an already patched one-argument fresh callback, then invoked it with two arguments. This is identifiable at review_tests.py:44–54 and :290–300; failure precedes admission. Both composite processes therefore exited 1. These eleven additional cases remain unverified, and I do not count them as passes or candidate defects. No third invocation was attempted. The four fully passing additions check descriptor closure/callback restoration, a collision injected at open, a directory swap at open, and marker mutation between writes.
+
+Both children (PGIDs 30349 and 30438) were reaped, reached stdout/stderr EOF, and had positive owned-group absence under the unchanged accepted controller. No signals, UNKNOWN custody, cleanup errors or denied child runtime operations occurred. Raw argv, logs, hashes and custody records are in result.json and postflight.json. Both failed composite receipts and owned scratch projections are retained. There is no live owned test child requiring cleanup.
+
+All 272 baseline files and the pinned candidate files remain unchanged. All 38 historical sealed members/seals and all 103 source rows match their byte counts and hashes. source103.json is byte-identical to R1. Historical failed normal controls and the prior rejected-path failures remain preserved. CI run 42442717964 / Swift job 128615156054 remains historical failed evidence from old entire-job equality, not compiler qualification. No fresh CI or native work ran here.
+
+Exact SHA256:
+
+- adopt_envelope.py: 198fe84210e104cc9c7b7b4a14ef33525bcecad8a2d95a553a9c983c85a018b5
+- seal.json: 6a9e51a01bb36c604e12c2a5569e5f21cc8b48974de071430e1d8265c10c4076
+- workflow.patch: 4edc1e7f6af421734e8a084aa9be7cf9457c71ffab8d79b46acc5769e7759093
+- full.patch: 02ea37d50333854ede168f1513e6d4848180da55625a0b61a6d42106f3f673cf
+- incremental.patch: 387503e53f6b36e781fedababf6476c62b944987eca05442deff777ee25092a1
+- source103.json: 22286cc28dd71f45724aef820f0e9cd575b6d81e9b4006780378ad47d604d735
+- custody controller: 8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df
+
+The checked local HEAD is 0f30624df2edcd50ee7f1b069afb96c0ae263791, tree ad8066ea6ff9a8e97a162b357bd4cfcb3fee7d13. Parent owns coherent adoption and fresh ordinary CI. Since successor shipping files already exist here, apply only workflow.patch; preserve sealed R1. No commit, push, merge, delegation, network, native action or held-process operation occurred. All named local/FieldLog/v5/frozen/phone holds remain intact.

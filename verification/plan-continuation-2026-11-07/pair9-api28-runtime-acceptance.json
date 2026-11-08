@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-11-08T03:56:25.631Z",
+  "decision": "ACCEPT",
+  "scope": "NARROW_API28_ARM64_DEVELOPMENT_RUNTIME_ONLY",
+  "review": {
+    "path": "verification/plan-continuation-2026-11-07/api28-r6-actual-review/review.json",
+    "sha256": "ba80b027f28d485ab400062bba3af42e17bb541ac256f95c33eed50f7fb1b52e",
+    "checks": 61
+  },
+  "source": {
+    "head": "0f30624df2edcd50ee7f1b069afb96c0ae263791",
+    "tree": "ad8066ea6ff9a8e97a162b357bd4cfcb3fee7d13",
+    "frozen101": "a10a62cc79145bc80bfd780257589f437cc82e2f1ebaad6ccde39c134d56e0ca",
+    "live103": "eda43c6bb96bfeb15ab31731858c7388a7ba52329c8ba8e48ed52505bfe86158",
+    "packageSourceRevision": "96f03ab65966a6374e958e780fa09a3eed814c0b",
+    "packageSourceTree": "6dacea5d2f5cd55d6934142cce556a4bd0fcd1c0"
+  },
+  "identities": {
+    "controller": {
+      "bytes": 25272,
+      "sha256": "948c7fe0c42ad083b0665d4ea97c1fc741e92974d70888e1983cc3aa24f236ef"
+    },
+    "packet": {
+      "bytes": 895142,
+      "sha256": "ee19358e0d32f4c3b58dfe6bb37c2bcde70b831dd2dac76517d4d54722f827ac"
+    },
+    "lifecycle": {
+      "bytes": 12654,
+      "sha256": "8885f85a8d49ffbce813dd4221dc381ca88feef98f0f3905e67f4610381365df"
+    },
+    "receipt": {
+      "bytes": 835186,
+      "sha256": "ce14d9a3039b4fe5ba288f39dbc1bef89348473cf807bee9841c46d8b5f55680"
+    },
+    "rootObservation": {
+      "bytes": 2226,
+      "sha256": "ddb11343d730bd57caa6cf834d9f7b91c6de1884fbbe2afc4dc92c0d245ab4df"
+    },
+    "acceptedControllerReview": {
+      "bytes": 5213,
+      "sha256": "ec250772e32bbcde570681d9903a6a0286f67a0729fc5eaca74565197ee22a37"
+    },
+    "apk": {
+      "bytes": 86284162,
+      "sha256": "5d092e8e78ed1a2c8c32c9330f7d6b6d52932a2311aa2ccb30e2709902fbb258"
+    }
+  },
+  "runtime": {
+    "sdk": 28,
+    "abi": "arm64-v8a",
+    "fingerprint": "Android/sdk_phone_arm64/generic_arm64:9/PSR1.210301.009.B6/9767327:userdebug/test-keys",
+    "assertions": 34,
+    "assertionCountCaveat": "34 includes four screenshot capture/PNG-storage checks and one completion marker, not 34 independent features or a visual gate.",
+    "commands": 29,
+    "elapsedSeconds": 21.586129124974832,
+    "actualJNIAndSwiftExecution": true,
+    "scope": "Ordinary MixerActivity creates nonzero JNI/Swift session; NativeBridge.exchange returns and decodes real checklist packet; native Switch/EditText/Button exist; Activity.onDestroy clears session. Tested paths only, not all API28 paths or interactive input.",
+    "rawHarnessLabelsPreserved": true,
+    "actualAPKSourcePair": 9,
+    "rawEmittedPair": 8
+  },
+  "cleanup": {
+    "aggregateBytes": 2180681,
+    "aggregateLimit": 67108864,
+    "allTerminalCustody": true,
+    "hold": null,
+    "retainedListenerClosed": true,
+    "scratchRemoved": true,
+    "privateADBKeysRemoved": true,
+    "postflightStable": true,
+    "commandsTerminal": 29,
+    "outputLimitObserved": false,
+    "aggregateRawLogBytes": 2180681,
+    "scope": "Recorded reaping, group absence and both EOFs verified on every command; no fresh process/listener/scratch probes. Three owned long-lived records end -9 after cleanup SIGKILL; boot-0 exits 1 before successful boot-5."
+  },
+  "externalPreservation": {
+    "before": {
+      "bytes": 4542,
+      "sha256": "35e3792cccb05c525f163cffe43fc75be2f7c9e3d08850bf6da0bdcdb6220511"
+    },
+    "after": {
+      "bytes": 4793,
+      "sha256": "c5adef8977cecb6c0f2a4c0984c4479049affb6769da3797c7f77092739a4aef"
+    },
+    "allEightDeviceStatesUnchanged": true,
+    "protectedBothBooted": true,
+    "rawDeviceListsVerified": true
+  },
+  "visual": {
+    "decision": "INCONCLUSIVE",
+    "images": {
+      "real-mixer-api28.png": {
+        "bytes": 244487,
+        "sha256": "ca83a3b077757727fb324ca2fec9b593840d13bd6f280418b1e152f397dceaff",
+        "width": 1080,
+        "height": 2400,
+        "rawStdout": {
+          "bytes": 244487,
+          "sha256": "ca83a3b077757727fb324ca2fec9b593840d13bd6f280418b1e152f397dceaff"
+        }
+      },
+      "legacy-harness-api28.png": {
+        "bytes": 366975,
+        "sha256": "eb81a3d94cf77b5a4b01e056dce5d5cf6c19d4d05b377b1e39bfe80abbb519ef",
+        "width": 1080,
+        "height": 2400,
+        "rawStdout": {
+          "bytes": 366975,
+          "sha256": "eb81a3d94cf77b5a4b01e056dce5d5cf6c19d4d05b377b1e39bfe80abbb519ef"
+        }
+      }
+    },
+    "finding": "Both PNGs show translucent, scaled app surfaces over launcher wallpaper/icons. The legacy capture still visibly contains the checklist surface, and does not prove stable presentation of its intended Activity.",
+    "next": "Bounded instrumentation capture-settling successor, exact new package/controller review, fresh screenshots and independent visual review."
+  },
+  "acceptedForDependentDevelopment": true,
+  "fullAPI28Compatibility": false,
+  "fullNativeAcceptance": false,
+  "physicalPhones": false,
+  "FieldLog": false,
+  "release": false,
+  "GA": false,
+  "historicalFailuresAndHoldsPreserved": true
+}
