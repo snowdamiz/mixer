@@ -46,6 +46,19 @@ def same_json(actual, expected):
 APPLE_ACCESSIBILITY_TRANSITION = json.loads("{\"schema\":1,\"type\":\"EXACT_APPLE_ACCESSIBILITY_CONTAINER_SOURCE\",\"path\":\"sdk/Sources/MixerApple/MixerNativeView.swift\",\"before\":{\"bytes\":7611,\"sha256\":\"6f8ddefbf8be4a8a9aaf149e18afe09164de3a1f76c967263c3afba2dc5826df\"},\"after\":{\"bytes\":7934,\"sha256\":\"184547e4e5e11c336b0e9e968bd94eb4607eb1dca08bbfe79caa9abacd8c4d8f\"},\"sourceBefore\":\"1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854\",\"sourceAfter\":\"30344a0c5b00023cbc27fc793e67db7dec85d72a5aef0cd76573e2512f0b2ef8\",\"review\":{\"member\":\"apple-accessibility-review.md\",\"bytes\":4100,\"sha256\":\"e0376ab4d853ab934a87c1851cecdccb609deaf774b9896a9c7807adecdc785d\"},\"scope\":\"reviewed iOS headless FieldLog child-identity and save/reopen development fix; no qualification transfer\"}")
 
 
+SWIFT_IDENTITY_DIAGNOSTIC_TRANSITION = {'schema': 1, 'path': 'cli/Sources/MixerBuild/ProjectGenerator.swift', 'before': {'bytes': 18498, 'sha256': 'f83039fcea6fd247c8731209aef7791879a2def7769408e24a440ff1ff46e29b'}, 'after': {'bytes': 19380, 'sha256': '9c11859175f9f165c1a01f6743d3c6411b64fd0a9d18e55f8e0fe029223e3c40'}, 'sourceBefore': '30344a0c5b00023cbc27fc793e67db7dec85d72a5aef0cd76573e2512f0b2ef8', 'sourceAfter': '175886e354c66a8589579b2b7be486c5ef35f4b78b2a5d8a4a6fce277c7e7be5', 'scope': 'opt-in exact Swift lock comparison diagnostics only; strict comparison unchanged; hosted cause unproven', 'qualification': False}
+
+
+def swift_identity_diagnostic_predecessor(base, binding, actual, owner):
+    transition = SWIFT_IDENTITY_DIAGNOSTIC_TRANSITION
+    base.need(same_json(binding.get('swift_identity_diagnostic_transition'), transition), 'Swift diagnostic transition differs')
+    base.need(actual.get(transition['path']) == transition['after'] and owner.source_digest(actual) == transition['sourceAfter'], 'Swift diagnostic current source differs')
+    predecessor = dict(actual)
+    predecessor[transition['path']] = transition['before']
+    base.need(owner.source_digest(predecessor) == transition['sourceBefore'], 'Swift diagnostic predecessor differs')
+    return predecessor
+
+
 def apple_accessibility_successor(base, binding, actual, owner):
     transition = APPLE_ACCESSIBILITY_TRANSITION
     base.need(same_json(binding.get("apple_accessibility_transition"), transition), "Apple accessibility transition differs")
@@ -135,7 +148,7 @@ def bind():
         base.need(binding.get('upstream_inspection') == {'member':'inspection-review.json', 'sha256':hashlib.sha256(raw_review).hexdigest(), 'source113':baseline_digest, 'patchSHA256':accepted['patchSHA256'], 'checkerSHA256':accepted['checkerSHA256'], 'scope':'accepted R5 real-tool temporary-directory source protocol only; no qualification transfer'}, 'Upstream inspection binding differs')
         transition = json.loads("{\"schema\":1,\"type\":\"EXACT_COMBINED_CLI_INSPECTION_LIFETIME_FIXTURE_SOURCE_CALLER\",\"baseline_source113\":\"524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292\",\"current_source113\":\"0647086ea204e5a3c9b89f11303df933cd426fb5ff81cb001cce0ca1ed493d71\",\"source_count\":113,\"owning_changes\":[{\"path\":\"cli/Sources/MixerBuild/Resources/android-build.py\",\"preimage\":{\"bytes\":30638,\"sha256\":\"df87f377dee8a167f559eb43ea22d15e692f299dc715aff74454ea5747573cf2\"},\"candidate\":{\"bytes\":32563,\"sha256\":\"7c1e092c8d2123b9ee4868db1146349fa2a15e8d16463f546337bb71af6aee55\"}},{\"path\":\"scripts/ci/check-android-generated-java.py\",\"preimage\":{\"bytes\":63363,\"sha256\":\"6103a13c065181ccd5dd76d6c6ee7d827dd091354b1aed3eea11887895bc2822\"},\"candidate\":{\"bytes\":65563,\"sha256\":\"917750f95ca0d02780324a9ef255ef0426eab79ee84ed4f330990d43a9026866\"}}],\"fixture\":{\"path\":\"scripts/ci/tests/test_android_generated_java_runner.py\",\"preimage\":{\"bytes\":50168,\"sha256\":\"9bccedc54d7590a8190142e5fa63e6370efb11e8b0d2869aef46c6a6cc47bc91\"},\"candidate\":{\"bytes\":59496,\"sha256\":\"492c7a8539b1cb52cc55b1a45ca93e9042670840b45132d2935b406bbe2bf1e9\"},\"outside_source113\":true},\"reviews\":[{\"member\":\"inspection-digest-review.json\",\"sha256\":\"059cfcea9fc7d1d63bf3812ce4ca2950fb978665b348f92c90f255e301f90055\",\"scope\":\"ACCEPT_EXACT_OPERATION_SCOPED_ANDROID_INSPECTION_DIGEST_SOURCE\"},{\"member\":\"command-lifetime-review.json\",\"sha256\":\"cf75c00076de578dd0ded073a6c2aff9c8e0986c7f41c84ff088272f3038c233\",\"scope\":\"EXACT_OUTER_COMMAND_LIFETIME_SOURCE_HOST\"},{\"member\":\"runner-fixture-review.json\",\"sha256\":\"49ef08e13d303f42dc6d933f92a166a85e1bde16ed28efce30ceeac0afccd193\",\"scope\":\"SAFE_CI_SELECTION_NEGATIVE_CONTROL_FIXTURE\"}],\"profile\":{\"id\":\"mixer.android-source-pair.10\",\"sdk_count\":24,\"sdk_sha256\":\"dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47\",\"adapter_count\":25,\"adapter_sha256\":\"b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e\",\"java_sources\":19},\"baseline_runtime_seal\":{\"bytes\":3815,\"sha256\":\"a4037e0c171fdac8ca003971aeba2d23c65f37c54349e6529fc6b3e176646626\"},\"combinedAccepted\":false,\"canonicalApplied\":false,\"actualSixConsumers\":false,\"hostedTimeoutResolved\":false,\"runtimePass\":false,\"gaPass\":false}")
         base.need(same_json(binding.get('combined_cli_transition'), transition), 'Combined transition binding differs')
-        predecessor_inputs = sdk_fixture_successor(base, binding, apple_accessibility_successor(base, binding, actual, owner), owner)
+        predecessor_inputs = sdk_fixture_successor(base, binding, apple_accessibility_successor(base, binding, swift_identity_diagnostic_predecessor(base, binding, actual, owner), owner), owner)
         baseline_inputs = dict(predecessor_inputs)
         base.need(len(actual) == 113 and set(actual) == set(frozen), 'Combined owning roster differs')
         for change in transition['owning_changes']:
@@ -192,10 +205,10 @@ def bind():
         base.need(same_json(binding.get('fixture_dispatch'), {'host_rust_fixture_after_exact_checks':True, 'scope':'host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch', 'combinedAccepted':False, 'runtime':False, 'GA':False, 'exactWindow':False}), 'Host-only fixture dispatch contract differs')
         base.need(same_json(binding.get('adoption'), {'allowed':False, 'status':'CANDIDATE_PENDING_COMBINED_REVIEW', 'canonicalAdopted':False})
                   and same_json(binding.get('qualification'), {'compiler':False, 'native':False, 'CLI87':False, 'TestFlight':False, 'release':False, 'GA':False}), 'Candidate authority must remain pending')
-        base.need(len(actual) == 113 and digest == '30344a0c5b00023cbc27fc793e67db7dec85d72a5aef0cd76573e2512f0b2ef8' and binding['source']['count'] == 113 and binding['source']['sha256'] == digest, 'Bound source closure differs')
+        base.need(len(actual) == 113 and digest == '175886e354c66a8589579b2b7be486c5ef35f4b78b2a5d8a4a6fce277c7e7be5' and binding['source']['count'] == 113 and binding['source']['sha256'] == digest, 'Bound source closure differs')
         base.need(binding['profile'] == {'id':profile['id'], 'sdk_count':len(profile['sdk_files']), 'sdk_sha256':profile['sdk_compatibility_sha256'], 'adapter_count':len(profile['adapter_files']), 'adapter_sha256':profile['adapter_compatibility_sha256'], 'java_sources':len(owner.java_roster(profile))}, 'Accepted profile binding differs')
         caller_raw = base.regular(HERE / 'caller-inputs.json').read_bytes()
-        base.need(len(caller_raw) == 1666 and hashlib.sha256(caller_raw).hexdigest() == 'abeb436445aad13ac9d175907031b004304971ee70f2959a3b675d7f7881340f', 'Accepted caller authority bytes differ')
+        base.need(len(caller_raw) == 1666 and hashlib.sha256(caller_raw).hexdigest() == 'cb770ada2227f4027775931c34d9cc2cd90a0ba3625f40fc037b062b54389b0a', 'Accepted caller authority bytes differ')
         callers = json.loads(caller_raw, object_pairs_hook=base.unique_object)
         base.check_rows(ROOT, callers)
         expected = base.regular(HERE / 'current-swift-job.yml').read_text()

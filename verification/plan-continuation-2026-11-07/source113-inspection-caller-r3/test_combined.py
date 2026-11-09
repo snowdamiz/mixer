@@ -20,7 +20,7 @@ class MetadataDiagnostics(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory(dir=HERE/'control-scratch');self.addCleanup(self.temp.cleanup);self.work=Path(self.temp.name);self.base=a.bind()
  def test_projected_installed_whole_job_is_exact_without_qualification(self):
   p=self.base.verify(True)
-  self.assertEqual((p['source_count'],p['source_sha256']),(113,'30344a0c5b00023cbc27fc793e67db7dec85d72a5aef0cd76573e2512f0b2ef8'))
+  self.assertEqual((p['source_count'],p['source_sha256']),(113,'175886e354c66a8589579b2b7be486c5ef35f4b78b2a5d8a4a6fce277c7e7be5'))
   self.assertTrue(p['installed_job_verified']);self.assertFalse(p['exact_compiler_qualified'])
  def test_actual_owner_bootstrap_113_and_profile24_25(self):
   s=importlib.util.spec_from_file_location('rebound_bootstrap',HERE.parent/'generated-java-ci-integration/bootstrap.py');b=importlib.util.module_from_spec(s);s.loader.exec_module(b)
@@ -172,3 +172,29 @@ class MetadataDiagnostics(unittest.TestCase):
    with self.subTest(mutation=label):execute(raw,installed_boot,True)
   with self.subTest(mutation='unchanged authority detects changed installed bootstrap'):
    execute(callers_raw,changed_boot,True)
+
+ def test_diagnostic_reverse_precedes_exact_apple_and_guest_history(self):
+  binding=json.loads((HERE/'binding.json').read_bytes())
+  owner=self.base.module_at('diagnostic_history_owner',ROOT/'scripts/ci/check-android-generated-java.py')
+  actual=owner.source_inputs(owner.load_profile(ROOT))
+  source303=a.swift_identity_diagnostic_predecessor(self.base,binding,actual,owner)
+  self.assertEqual(owner.source_digest(source303),binding['swift_identity_diagnostic_transition']['sourceBefore'])
+  source1b=a.apple_accessibility_successor(self.base,binding,source303,owner)
+  self.assertEqual(owner.source_digest(source1b),binding['apple_accessibility_transition']['sourceBefore'])
+  source0647=a.sdk_fixture_successor(self.base,binding,source1b,owner)
+  self.assertEqual(owner.source_digest(source0647),binding['sdk_fixture_transition']['predecessor']['source113'])
+  with self.assertRaisesRegex(RuntimeError,'Apple accessibility current source differs'):a.apple_accessibility_successor(self.base,binding,actual,owner)
+ def test_qualification_boolean_types_refuse_resealed_numeric_aliases(self):
+  import copy
+  original=self.base.regular
+  baseline=json.loads((HERE/'binding.json').read_bytes())
+  paths=[('qualification',key) for key in baseline['qualification']]+[('adoption','allowed'),('adoption','canonicalAdopted'),('fixture_dispatch','runtime'),('fixture_dispatch','GA'),('swift_identity_diagnostic_transition','qualification')]
+  for section,key in paths:
+   changed=copy.deepcopy(baseline);changed[section][key]=0
+   raw=(json.dumps(changed,indent=2)+'\n').encode();fake=self.work/'binding';fake.write_bytes(raw)
+   seal=json.loads((HERE/'seal.json').read_bytes())
+   for row in seal['members']:
+    if row['path']=='binding.json':row.update(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
+   seal['tree_sha256']=self.base.tree(seal['members']);fake_seal=self.work/'seal';fake_seal.write_text(json.dumps(seal))
+   def redirect(p):return original(fake if p==HERE/'binding.json' else fake_seal if p==HERE/'seal.json' else p)
+   with self.subTest(section=section,key=key),patched(self.base,'regular',redirect),self.assertRaises(RuntimeError):self.base.verify(True)

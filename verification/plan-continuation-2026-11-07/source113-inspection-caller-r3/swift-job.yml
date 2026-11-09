@@ -207,6 +207,8 @@
           swift test --package-path activation -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
           swift test --package-path verification/runtime-review -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
       - name: Generated consumer integration
+        env:
+          MIXER_SWIFT_IDENTITY_DIAGNOSTICS: "1"
         run: |
           swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"
           swift run --package-path cli mixer test --directory "$RUNNER_TEMP/VerificationApp"
@@ -221,3 +223,4 @@
           path: |
             ${{ runner.temp }}/apple-toolchain.json
             ${{ runner.temp }}/native-vm/receipt.json
+            ${{ runner.temp }}/VerificationApp/mixer.lock

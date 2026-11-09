@@ -264,6 +264,19 @@ public enum ProjectBuild {
             guard try SourceDigest.tree(root.appendingPathComponent("Generated/MixerAndroid")) == android.adapterDigest else { throw MixerFailure("lock.android-drift", "Bundled Android adapter source differs from mixer.lock. Restore the original locked adapter snapshot.") }
         }
         let version = try ProcessRunner.run(["swift", "--version"], policy: .toolInspection)
+        if ProcessInfo.processInfo.environment["MIXER_SWIFT_IDENTITY_DIAGNOSTICS"] == "1" {
+            let environment = ProcessInfo.processInfo.environment
+            let observation: [String: Any] = [
+                "event": "mixer.swift-lock-comparison", "argv": version.command,
+                "expected": lock.swiftVersion, "observed": version.output,
+                "exitCode": version.exitCode, "outputTruncated": version.outputTruncated,
+                "cwd": FileManager.default.currentDirectoryPath,
+                "environment": environment.filter { ["PATH", "DEVELOPER_DIR", "TOOLCHAINS", "SWIFT_EXEC", "SDKROOT", "MIXER_SWIFT"].contains($0.key) }
+            ]
+            if let bytes = try? JSONSerialization.data(withJSONObject: observation, options: [.sortedKeys]) {
+                FileHandle.standardError.write(bytes + Data([10]))
+            }
+        }
         guard version.succeeded, version.output.trimmingCharacters(in: .whitespacesAndNewlines) == lock.swiftVersion else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
         return lock
     }
