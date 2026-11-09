@@ -43,7 +43,7 @@ class Rebinding(unittest.TestCase):
     def test_successor_binds_current_source_and_actual_cli(self):
         proof = self.base.verify(False)
         self.assertEqual((proof['source_count'], proof['source_sha256']),
-                         (113, '524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292'))
+                         (113, '1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854'))
         self.assertFalse(proof['exact_compiler_qualified'])
         flow = self.work / 'verify.yml'
         flow.write_bytes((HERE / 'verify.yml.candidate').read_bytes())
@@ -61,7 +61,7 @@ class Rebinding(unittest.TestCase):
         before = json.loads((HERE.parent / 'envelope-output-ownership-fix-r2/source103.json').read_text())
         after = json.loads((HERE / 'source-inputs.json').read_text())
         changed = [p for p in before if before[p] != after[p]]
-        self.assertEqual(len(changed), 19)
+        self.assertEqual(len(changed), 21)
         original = self.base.regular
         for name in changed:
             fake = self.work / 'wrong-source'

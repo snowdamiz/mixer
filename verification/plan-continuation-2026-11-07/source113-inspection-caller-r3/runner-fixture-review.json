@@ -1,0 +1,281 @@
+{
+  "schema": 1,
+  "at": "2026-11-09T12:00:04.500Z",
+  "role": "independent review sub-agent",
+  "verdict": "ACCEPT_EXACT_SYNTHETIC_RUNNER_FIXTURE_SOURCE",
+  "gate": "SAFE_CI_SELECTION_NEGATIVE_CONTROL_FIXTURE",
+  "architecture": "B: public marker-only process proxy plus private path-only exact writer code",
+  "blockingFindings": [],
+  "nonblockingFindings": [],
+  "candidate": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/runner-fixture-io-separation-campaign-r3/candidate/scripts/ci/tests/test_android_generated_java_runner.py",
+    "bytes": 59496,
+    "sha256": "492c7a8539b1cb52cc55b1a45ca93e9042670840b45132d2935b406bbe2bf1e9"
+  },
+  "patches": [
+    {
+      "name": "canonical full patch",
+      "requiredBeforeSHA256": "9bccedc54d7590a8190142e5fa63e6370efb11e8b0d2869aef46c6a6cc47bc91",
+      "patch": "reviewed-artifacts/test-only.patch",
+      "patchSHA256": "852ea46271a5a3d7b23fe1cbeaf56d397aafdc8725c9f6efa8fb0d3c623f5309",
+      "exactReplayVerified": true
+    },
+    {
+      "name": "R2 incremental patch",
+      "requiredBeforeSHA256": "569bb0f4e4cc5a016c983fd0da0d4a8550eb9d925ffae82cd3d6890131b3fdfd",
+      "patch": "reviewed-artifacts/incremental.patch",
+      "patchSHA256": "2dac9bfe9dcc4b744a1aa1d2411789ba39f1963683580a76cf978d721d1ea6d0",
+      "exactReplayVerified": true
+    }
+  ],
+  "subjects": {
+    "canonicalOwningDigest": "524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292",
+    "modernExecutedOwningDigest": "aede2b4db8202a0bfbc1db87e00e82b4e02617bb3fc72e278f0130af675ade46",
+    "canonicalCheckerSHA256": "6103a13c065181ccd5dd76d6c6ee7d827dd091354b1aed3eea11887895bc2822",
+    "modernCheckerSHA256": "917750f95ca0d02780324a9ef255ef0426eab79ee84ed4f330990d43a9026866",
+    "fixtureSHA256": "492c7a8539b1cb52cc55b1a45ca93e9042670840b45132d2935b406bbe2bf1e9",
+    "fixtureBytes": 59496
+  },
+  "sourceMembership": {
+    "byteExact": 48,
+    "changed": [
+      "test_denied_signal_retains_receipt_even_after_child_exits",
+      "test_denied_or_unknown_group_observation_cannot_pass",
+      "test_live_child_denied_cleanup_still_persists_unknown_terminal_facts",
+      "test_one_stream_read_error_cannot_be_reported_as_eof",
+      "test_nested_reap_and_selector_cleanup_errors_still_persist",
+      "test_command_receipt_write_failure_retains_in_memory_facts",
+      "execute_to_producer"
+    ],
+    "fullPatchReplay": true,
+    "incrementReplay": true,
+    "methods": 55,
+    "protectedByteExact": [
+      "execute_fake_pipeline",
+      "test_producer_failure_preserves_receipt_and_retains_owned_scratch",
+      "test_scratch_removal_denial_retains_path_and_failure_receipt"
+    ]
+  },
+  "sourceAssessments": [
+    {
+      "candidateLines": [
+        136,
+        170
+      ],
+      "subject": "Handle validation permits only exact owned synthetic pipes/groups for marker operations.",
+      "evidence": [
+        "evidence-O0/legacy/test_public_descriptor_isolation/observed.json",
+        "evidence-O1/modern917/test_public_descriptor_isolation/observed.json"
+      ]
+    },
+    {
+      "candidateLines": [
+        180,
+        202
+      ],
+      "subject": "Private writer input rejects foreign, symlinked, noncanonical, staging and wrong-type paths before body dispatch.",
+      "evidence": [
+        "evidence-O0/modern917/test_private_path_and_code_boundary/observed.json",
+        "evidence-O1/legacy/test_private_path_and_code_boundary/observed.json"
+      ]
+    },
+    {
+      "candidateLines": [
+        204,
+        250
+      ],
+      "subject": "Captured exact writer code objects and isolated COMMAND_PROCESS/all three pools restore on normal and ten partial-entry failures.",
+      "evidence": [
+        "evidence-O0/modern917/test_factory_pool_and_entry_rollback/observed.json",
+        "evidence-O1/legacy/test_factory_pool_and_entry_rollback/observed.json"
+      ]
+    },
+    {
+      "candidateLines": [
+        635,
+        736
+      ],
+      "subject": "Seven mapped deltas preserve refusal, receipts, diagnostics and union of cleanup obligations while splitting permitted stages.",
+      "evidence": [
+        "evidence-O0/result.json",
+        "evidence-O1/result.json"
+      ]
+    },
+    {
+      "candidateLines": [
+        738,
+        804
+      ],
+      "subject": "Dual-writer injection stays inside fake boundary; actual subject run/execute compatibility is exercised.",
+      "evidence": [
+        "evidence-O0/modern917/result.json",
+        "evidence-O1/legacy/result.json"
+      ]
+    },
+    {
+      "candidateLines": [
+        806,
+        920
+      ],
+      "subject": "execute_fake_pipeline and protected producer cleanup test remain byte-exact; FakeCommands scope retained.",
+      "evidence": [
+        "evidence-O0/result.json"
+      ]
+    },
+    {
+      "candidateLines": [
+        934,
+        960
+      ],
+      "subject": "Protected scratch-removal cleanup body remains byte-exact.",
+      "evidence": [
+        "evidence-O1/result.json"
+      ]
+    }
+  ],
+  "independentExecution": {
+    "modes": [
+      0,
+      1
+    ],
+    "sameMembership": true,
+    "perSubjectPerMode": {
+      "selected": 13,
+      "independent": 7,
+      "passingTopLevel": 20,
+      "expectedMissingInjectionAssertions": 5,
+      "unexpectedFailures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "totalPassingTopLevel": 80,
+    "totalExpectedMissingInjectionAssertions": 20,
+    "forbiddenRealSubjectProcessAttempts": [],
+    "actualRunExecuteInstrumentation": "34 run and 7 execute calls within selected tests per subject/mode; independent direct actual run calls are additional.",
+    "protectedTwoUseFakeCommands": true,
+    "normal": "evidence-O0/result.json",
+    "actualOptimized": "evidence-O1/result.json",
+    "independentOldFailureReplays": [
+      "evidence-O0/old-premises.json",
+      "evidence-O1/old-premises.json"
+    ],
+    "oldFailureReplayScope": "e619 dispatch, R2 first-fstat allocation leak and stream-close retirement leak independently reproduced using inert callbacks only."
+  },
+  "faultCoverage": {
+    "realResourceCases": [
+      "exclusive allocation rejection with existing owned staging file",
+      "partial JSON serialization after actual stream allocation",
+      "file fsync failure",
+      "replace failure",
+      "directory open failure",
+      "directory fsync failure"
+    ],
+    "closure": "All observed real streams closed; every allocated owned directory FD closed and rejected fstat afterward.",
+    "inertOnlyCases": [
+      "write",
+      "flush",
+      "stream close",
+      "directory close"
+    ],
+    "plainSaveCases": [
+      "actual persistence",
+      "serialization failure before allocation",
+      "allocation denial"
+    ],
+    "evidence": [
+      "evidence-O0/modern917/test_real_writer_single_fault_closure/observed.json",
+      "evidence-O1/modern917/test_real_writer_single_fault_closure/observed.json",
+      "evidence-O0/legacy/test_inert_writer_close_and_flush_controls/observed.json"
+    ]
+  },
+  "custody": {
+    "supervisor": "managed/supervisor-result.json",
+    "payloadsUsed": 2,
+    "maxPayloads": 4,
+    "harnessCorrectionsUsed": 0,
+    "maxHarnessCorrections": 1,
+    "allocatedActiveSeconds": 200,
+    "allocatedCleanupSeconds": 20,
+    "hardActiveLimitSeconds": 240,
+    "hardCleanupLimitSeconds": 30,
+    "pidsPgids": [
+      {
+        "pid": 56028,
+        "pgid": 56028,
+        "directReaped": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "ownedGroupAbsent": true,
+        "terminal": true
+      },
+      {
+        "pid": 56034,
+        "pgid": 56034,
+        "directReaped": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "ownedGroupAbsent": true,
+        "terminal": true
+      }
+    ],
+    "allManagedFDsClosed": true,
+    "selectorClosed": true,
+    "successfulManagedScratchRemoved": true,
+    "failedFaultScratchRetained": true,
+    "newUNKNOWN": false,
+    "primaryProviderEscapedDescendantAbsence": "unproven"
+  },
+  "producerEvidence": {
+    "declaredCountsVerified": true,
+    "perSubjectPerMode": "13 selected + 4 retained boundary + 6 new = 23 passes; 5 expected nested assertions, no errors/skips",
+    "historicalFailureCopiesVerified": [
+      {
+        "producerCopy": "raw-known-failures/O0-independent-open-unwind.json",
+        "sha256": "a1f52d72d1a27ac665118b01f337553b5728d051b5b19c89202617557a75128d",
+        "bytes": 280
+      },
+      {
+        "producerCopy": "raw-known-failures/O0-independent-stream-unwind.json",
+        "sha256": "6742c5754aed1c3831f16e83fe6cf0fe8fc70105bf58f8a84a91ffec7d4c63e2",
+        "bytes": 242
+      },
+      {
+        "producerCopy": "raw-known-failures/O1-independent-open-unwind.json",
+        "sha256": "a1f52d72d1a27ac665118b01f337553b5728d051b5b19c89202617557a75128d",
+        "bytes": 280
+      },
+      {
+        "producerCopy": "raw-known-failures/O1-independent-stream-unwind.json",
+        "sha256": "6742c5754aed1c3831f16e83fe6cf0fe8fc70105bf58f8a84a91ffec7d4c63e2",
+        "bytes": 242
+      }
+    ],
+    "bootstrapDeviationPreserved": "First COMMON/CONTRACT/FIXTURE reads used exec_command before learning direct-node bootstrap requirement; subsequent bootstrap uses node_repl FS only.",
+    "rawCopies": "producer-evidence/",
+    "reviewBootstrapDeviation": false
+  },
+  "integrity": {
+    "all113CanonicalInputsUnchanged": true,
+    "canonicalTargetUnchanged": true,
+    "allPinnedInputsUnchanged": true,
+    "allWritesUnder": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/runner-fixture-io-separation-review-r3"
+  },
+  "applicationPreconditions": "application-preconditions.json",
+  "artifactSeal": "artifact-seal.json",
+  "limitations": [
+    "Reflection and concurrent hostile filesystem mutation are outside this path validation claim.",
+    "Writer close/write/flush failure stages use inert injected streams/descriptors with zero real allocation; real allocated streams and directory FDs were independently checked closed for allocation, partial serialization, fsync, replace and directory-open/fsync cases. No actual failing kernel close syscall was induced.",
+    "The protected two cleanup tests intentionally use the accepted FakeCommands helper and do not establish actual Commands.run behavior. Other selected methods and independent controls invoke the actual subject Commands.run/execute under a fake factory."
+  ],
+  "notQualified": [
+    "production command lifetime",
+    "whole CI",
+    "actual real negative or positive selections",
+    "full55/full109",
+    "canonical adoption",
+    "shipping or merging",
+    "native/physical devices/signing/store/customer/operational gates",
+    "source/profile/GA"
+  ],
+  "historicalHoldsTouched": false
+}

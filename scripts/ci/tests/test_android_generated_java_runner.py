@@ -1,5 +1,6 @@
 """Pure Python runner controls. Fake children never qualify Java/Swift or DEX."""
 import copy
+from contextlib import ExitStack, nullcontext
 import hashlib
 import importlib.util
 import json
@@ -10,7 +11,7 @@ import signal
 import subprocess
 import sys
 import tempfile
-from types import SimpleNamespace
+from types import FunctionType, SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -22,6 +23,231 @@ SPEC.loader.exec_module(M)
 
 def data_identity(value):
     return {'bytes': len(value), 'sha256': hashlib.sha256(value).hexdigest()}
+
+
+
+class FakeCommandBoundary:
+    """Synthetic uncertainty only; no real process, descriptor or finalizer exists."""
+    def __init__(self, root, *, stdout=b'', live=False, denied_signal=False,
+                 observation='absent', read_error=False, reap_error=False,
+                 pipe_close_error=False, selector_close_error=False):
+        self.root = root
+        self.stdout = stdout
+        self.live = live
+        self.signal_error = 'fake live-child denial' if live else 'fake denied owned signal'
+        self.observation_error = 'fake live-child denial' if live else 'fake denied observation'
+        self.denied_signal = denied_signal
+        self.observation = observation
+        self.read_error = read_error
+        self.reap_error = reap_error
+        self.pipe_close_error = pipe_close_error
+        self.selector_close_error = selector_close_error
+        self.exit_code = 0
+        self.now = 1000.0
+        self.events, self.children, self.selectors = [], [], []
+        self.pipes = {}
+        self.stack = ExitStack()
+
+    def event(self, operation, *args):
+        self.events.append([operation, *args])
+
+    def monotonic(self):
+        self.now += 0.001
+        return self.now
+
+    def sleep(self, seconds):
+        if seconds < 0:
+            raise AssertionError('negative fake sleep')
+        self.event('sleep', seconds)
+        self.now += seconds
+
+    def popen(self, argv, **kwargs):
+        if kwargs.get('start_new_session') is not True:
+            raise AssertionError('fake launch must own its group')
+        self.event('Popen', list(argv))
+        boundary = self
+        class Pipe:
+            def __init__(self, name, fd, data):
+                self.name, self.fd, self.data, self.closed = name, fd, data, False
+            def fileno(self):
+                boundary.event('fileno', self.name)
+                return self.fd
+            def close(self):
+                boundary.event('close-pipe', self.name)
+                if boundary.pipe_close_error and self.name == 'stdout':
+                    raise OSError('fake stdout close failure')
+                self.closed = True
+        class Process:
+            def __init__(self):
+                self.pid = -100001 - len(boundary.children)
+                self.live, self.returncode = boundary.live, None
+                offset = 2 * len(boundary.children)
+                self.stdout = Pipe('stdout', -200001-offset, boundary.stdout)
+                self.stderr = Pipe('stderr', -200002-offset, b'')
+                for pipe in (self.stdout, self.stderr):
+                    boundary.pipes[pipe.fd] = (self, pipe)
+            def poll(self):
+                boundary.event('poll', self.pid)
+                if not self.live:
+                    self.returncode = boundary.exit_code
+                return self.returncode
+            def wait(self, timeout=None):
+                boundary.event('wait', self.pid, timeout)
+                if self.live or boundary.reap_error:
+                    raise subprocess.TimeoutExpired('fake', 0.2 if boundary.reap_error else timeout)
+                self.returncode = boundary.exit_code
+                return self.returncode
+        child = Process()
+        self.children.append(child)
+        M._PROCESS_OWNERS[id(child)] = child
+        return child
+
+    def selector(self):
+        boundary = self
+        boundary.event('selector-create')
+        class Selector:
+            def __init__(self):
+                self.mapping, self.closed = {}, False
+            def register(self, pipe, events, data):
+                if boundary.pipes.get(pipe.fd, (None, None))[1] is not pipe:
+                    raise AssertionError('foreign fake pipe')
+                boundary.event('register', data)
+                key = SimpleNamespace(fileobj=pipe, fd=pipe.fd, data=data)
+                self.mapping[pipe.fd] = key
+                return key
+            def unregister(self, pipe):
+                boundary.event('unregister', pipe.name)
+                return self.mapping.pop(pipe.fd)
+            def get_map(self):
+                return self.mapping
+            def select(self, timeout=None):
+                boundary.event('select', timeout)
+                boundary.now += timeout or 0
+                return [(key, 1) for key in list(self.mapping.values())]
+            def close(self):
+                boundary.event('close-selector')
+                if boundary.selector_close_error:
+                    raise OSError('fake selector close failure')
+                self.closed = True
+        selected = Selector()
+        self.selectors.append(selected)
+        return selected
+
+    def read(self, fd, size):
+        if type(fd) is not int or fd not in self.pipes:
+            raise AssertionError('foreign fake descriptor')
+        child, pipe = self.pipes[fd]
+        self.event('read', pipe.name, size)
+        if self.read_error and pipe.name == 'stderr':
+            raise OSError('fake stderr read failure')
+        if pipe.data:
+            data, pipe.data = pipe.data[:size], pipe.data[size:]
+            return data
+        if child.live:
+            raise BlockingIOError('fake live pipe')
+        return b''
+
+    def set_blocking(self, fd, blocking):
+        if type(fd) is not int or fd not in self.pipes or blocking is not False:
+            raise AssertionError('foreign fake nonblocking request')
+        self.event('set-blocking', fd, blocking)
+
+    def killpg(self, pgid, sig):
+        child = self.children[-1] if self.children else None
+        if type(pgid) is not int or child is None or child.pid != pgid or sig not in (0, signal.SIGKILL):
+            raise AssertionError('foreign fake group or signal')
+        self.event('killpg', pgid, int(sig))
+        if sig == signal.SIGKILL:
+            if self.denied_signal:
+                raise PermissionError(self.signal_error)
+            if child.live:
+                child.live = False
+                return
+        elif self.observation == 'denied':
+            raise PermissionError(self.observation_error)
+        elif self.observation == 'present' or child.live:
+            return
+        raise ProcessLookupError('fake owned group absent')
+
+    def cleanup_markers(self):
+        # These are plain Python markers, with no __del__ or OS ownership.
+        self.event('test-finally-marker-cleanup')
+        for child in self.children:
+            child.stdout.closed = child.stderr.closed = True
+        for selected in self.selectors:
+            selected.closed = True
+
+    def reject_descriptor(self, *args, **kwargs):
+        raise AssertionError('public fake process OS never forwards receipt descriptors')
+
+    def receipt_path(self, path):
+        # Ordinary canonical paths only. No path subclass, symlink traversal,
+        # descriptor argument, or target outside this explicitly owned root.
+        if type(path) is not type(Path()) or not path.is_absolute():
+            raise AssertionError('receipt requires an ordinary absolute Path')
+        if path == self.root or not path.is_relative_to(self.root):
+            raise AssertionError('receipt path outside owned root')
+        if path.resolve() != path:
+            raise AssertionError('receipt path is not canonical')
+        parent = path.parent
+        while True:
+            if parent.is_symlink() or not parent.is_dir():
+                raise AssertionError('receipt parent is not an ordinary directory')
+            if parent == self.root:
+                break
+            parent = parent.parent
+        for target in (path, path.with_name(path.name + '.next')):
+            if target.is_symlink() or target.exists() and not target.is_file():
+                raise AssertionError('receipt target is not an ordinary file')
+        return path
+
+    def __enter__(self):
+        # Capture exact project writer code before replacing any module globals.
+        if (type(self.root) is not type(Path()) or not self.root.is_absolute()
+                or self.root.resolve(strict=True) != self.root or not self.root.is_dir()):
+            raise AssertionError('explicit ordinary owned root required')
+        names = ('os', 'subprocess', 'selectors', 'time', 'save', 'durable_save',
+                 'COMMAND_PROCESS', '_PROCESS_OWNERS', '_COMMAND_OWNERS', '_CLI_OWNERS')
+        self.missing = object()
+        self.originals = {name: getattr(M, name, self.missing) for name in names}
+        filesystem = SimpleNamespace(**{name: getattr(M.os, name) for name in
+            ('open', 'fsync', 'close', 'replace', 'O_RDONLY', 'O_DIRECTORY')})
+        self._receipt_writers = {}
+        def writer(name):
+            source = self.originals[name]
+            bound = FunctionType(source.__code__,
+                {'__builtins__': source.__globals__['__builtins__'],
+                 'json': source.__globals__['json'], 'os': filesystem},
+                source.__name__, source.__defaults__, source.__closure__)
+            self._receipt_writers[name] = bound
+            def persist(path, value):
+                return bound(self.receipt_path(path), value)
+            return persist
+        fake_os = SimpleNamespace(environ=os.environ, pathsep=os.pathsep,
+            read=self.read, set_blocking=self.set_blocking, killpg=self.killpg,
+            **{name: self.reject_descriptor for name in
+               ('open', 'fdopen', 'fstat', 'fsync', 'close', 'dup', 'dup2',
+                'write', 'lseek', 'ftruncate', 'fchmod', 'replace')})
+        fake_subprocess = SimpleNamespace(Popen=self.popen, PIPE=subprocess.PIPE,
+            DEVNULL=subprocess.DEVNULL, TimeoutExpired=subprocess.TimeoutExpired)
+        fake_selectors = SimpleNamespace(DefaultSelector=self.selector, EVENT_READ=1)
+        fake_time = SimpleNamespace(monotonic=self.monotonic, sleep=self.sleep)
+        try:
+            for name, value in (('os', fake_os), ('subprocess', fake_subprocess),
+                    ('selectors', fake_selectors), ('time', fake_time),
+                    ('save', writer('save')), ('durable_save', writer('durable_save')),
+                    ('COMMAND_PROCESS', self.popen), ('_PROCESS_OWNERS', {}),
+                    ('_COMMAND_OWNERS', []), ('_CLI_OWNERS', [])):
+                self.stack.enter_context(mock.patch.object(M, name, value, create=True))
+        except BaseException:
+            self.stack.close()
+            raise
+        return self
+
+    def __exit__(self, *exc):
+        self.stack.close()
+        if any(getattr(M, name, self.missing) is not value for name, value in self.originals.items()):
+            raise AssertionError('fake boundary patch restoration failed')
 
 
 class RunnerControls(unittest.TestCase):
@@ -396,48 +622,105 @@ class RunnerControls(unittest.TestCase):
         self.assertEqual(commands.records, [])
 
     def test_exited_fake_parent_with_inherited_pipes_cannot_hang_runner(self):
-        commands = M.Commands(self.root, os.environ.copy(), seconds=3, command_seconds=0.3, cleanup_seconds=0.2)
-        script = ('import subprocess,sys; subprocess.Popen([sys.executable,"-B","-c",'
-                  '"import time; time.sleep(10)"])')
-        with self.assertRaisesRegex(RuntimeError, 'timeout|terminal custody'):
-            commands.run('python-owned-descendant', [sys.executable, '-B', '-c', script])
+        # The orphan edge is synthetic: parent already exited, inherited pipes
+        # stay open until the owned-group signal, then all terminal facts release.
+        class InheritedPipes(FakeCommandBoundary):
+            def __init__(boundary, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                boundary.descendant_open = True
+
+            def popen(boundary, *args, **kwargs):
+                child = super().popen(*args, **kwargs)
+                if child.poll() is None:
+                    raise AssertionError('synthetic parent must already be reaped')
+                boundary.event('parent-already-reaped', child.pid)
+                return child
+
+            def read(boundary, fd, size):
+                if (fd in boundary.pipes and not boundary.pipes[fd][1].data
+                        and boundary.descendant_open):
+                    boundary.event('read-descendant-open', fd)
+                    raise BlockingIOError('synthetic inherited pipe remains open')
+                return super().read(fd, size)
+
+            def killpg(boundary, pgid, sig):
+                if (type(pgid) is int and boundary.children
+                        and pgid == boundary.children[-1].pid
+                        and sig == signal.SIGKILL and not boundary.denied_signal):
+                    boundary.event('killpg', pgid, int(sig))
+                    boundary.descendant_open = False
+                    return
+                return super().killpg(pgid, sig)
+
+        with InheritedPipes(self.root, stdout=b'inherited-pipe diagnostic\n') as boundary:
+            commands = M.Commands(self.root, os.environ.copy(), seconds=3,
+                                  command_seconds=0.3, cleanup_seconds=0.2)
+            with self.assertRaisesRegex(RuntimeError, 'timeout|terminal custody'):
+                commands.run('python-owned-descendant', ['synthetic-exited-parent'])
+            record = commands.records[0]
+            self.assertEqual(record['stop'], 'timeout')
+            self.assertEqual(record['signal']['outcome'], 'sent')
+            self.terminal_record(record)
+            self.assertTrue(record['descriptors_closed'])
+            self.assertTrue(commands.custody_terminal())
+            self.assertIsNone(commands.hold)
+            self.assertLess(record['elapsed_seconds'], 1)
+            self.assertEqual((self.root / '000-python-owned-descendant.stdout').read_text(),
+                             'inherited-pipe diagnostic\n')
+            signal_index = next(i for i, event in enumerate(boundary.events)
+                                if event[0] == 'killpg' and event[2] == signal.SIGKILL)
+            self.assertTrue(any(event[0] == 'poll' for event in boundary.events[:signal_index]))
+            self.assertTrue(any(event[0] == 'read-descendant-open'
+                                for event in boundary.events[:signal_index]))
+            self.assertTrue(all(pipe.closed for child in boundary.children
+                                for pipe in (child.stdout, child.stderr)))
+            self.assertTrue(all(selected.closed for selected in boundary.selectors))
+            self.assertEqual((M._PROCESS_OWNERS, M._COMMAND_OWNERS, M._CLI_OWNERS), ({}, [], []))
+
+    def test_cooperative_parent_waits_for_descendant_and_releases_custody(self):
+        commands = self.commands()
+        child = ('import sys,time; time.sleep(0.02); print("child finished"); '
+                 'print("child diagnostic",file=sys.stderr)')
+        parent = ('import subprocess,sys; child=subprocess.Popen([sys.executable,"-B","-c",'
+                  + repr(child) + ']); code=child.wait(); '
+                  'sys.exit(code) if code else None; print("parent waited")')
+        launched, factory = [], M.COMMAND_PROCESS
+        def observe_launch(*args, **kwargs):
+            process = factory(*args, **kwargs)
+            launched.append(process)
+            return process
+        with mock.patch.object(M, 'COMMAND_PROCESS', observe_launch):
+            self.assertEqual(commands.run('cooperative-descendant',
+                [sys.executable, '-B', '-c', parent]), 'child finished\nparent waited\n')
+        self.assertEqual(len(launched), 1)
+        self.assertTrue(all(pipe.closed for pipe in (launched[0].stdout, launched[0].stderr)))
         record = commands.records[0]
-        self.assertEqual(record['signal']['outcome'], 'sent')
-        self.assertTrue(record['stdout_eof'])
-        self.assertTrue(record['stderr_eof'])
+        self.terminal_record(record)
+        self.assertTrue(record['descriptors_closed'])
+        self.assertTrue(commands.custody_terminal())
+        self.assertIsNone(commands.hold)
+        self.assertEqual((self.root / '000-cooperative-descendant.stderr').read_text(),
+                         'child diagnostic\n')
+        self.assertEqual((M._PROCESS_OWNERS, M._COMMAND_OWNERS, M._CLI_OWNERS), ({}, [], []))
 
     def test_denied_signal_retains_receipt_even_after_child_exits(self):
-        commands = self.commands()
-        real_killpg = os.killpg
-        def killpg(pgid, sig):
-            self.assertEqual(pgid, commands.records[-1]['owned_pgid'])
-            if sig == signal.SIGKILL:
-                raise PermissionError('fake denied owned signal')
-            return real_killpg(pgid, sig)
-        with mock.patch.object(M.os, 'killpg', side_effect=killpg):
+        with FakeCommandBoundary(root=self.root, stdout=b'retained\n', denied_signal=True):
+            commands = self.commands()
             with self.assertRaisesRegex(RuntimeError, 'terminal custody'):
                 commands.run('denied-signal', [sys.executable, '-B', '-c', 'print("retained")'])
-        record = json.loads((self.root / 'commands.json').read_text())[0]
-        self.assertTrue(record['direct_child_reaped'])
-        self.assertTrue(record['owned_group_absent'])
-        self.assertFalse(record['terminal_custody'])
-        self.assertEqual(record['signal']['outcome'], 'denied')
-        self.assertEqual((self.root / '000-denied-signal.stdout').read_text(), 'retained\n')
-        with self.assertRaisesRegex(RuntimeError, 'Prior command custody'):
-            commands.run('no-followup', [sys.executable, '-B', '-c', 'pass'])
+            record = json.loads((self.root / 'commands.json').read_text())[0]
+            self.assertTrue(record['direct_child_reaped'])
+            self.assertTrue(record['owned_group_absent'])
+            self.assertFalse(record['terminal_custody'])
+            self.assertEqual(record['signal']['outcome'], 'denied')
+            self.assertEqual((self.root / '000-denied-signal.stdout').read_text(), 'retained\n')
+            with self.assertRaisesRegex(RuntimeError, 'Prior command custody|Sticky inner custody hold'):
+                commands.run('no-followup', [sys.executable, '-B', '-c', 'pass'])
 
     def test_denied_or_unknown_group_observation_cannot_pass(self):
-        real_killpg = os.killpg
         for denied in (True, False):
-            commands = self.commands()
-            def killpg(pgid, sig):
-                self.assertEqual(pgid, commands.records[-1]['owned_pgid'])
-                if sig == 0:
-                    if denied:
-                        raise PermissionError('fake denied observation')
-                    return None  # Inject a group that never becomes observably absent.
-                return real_killpg(pgid, sig)
-            with mock.patch.object(M.os, 'killpg', side_effect=killpg):
+            with FakeCommandBoundary(root=self.root, observation='denied' if denied else 'present'):
+                commands = self.commands()
                 with self.assertRaisesRegex(RuntimeError, 'terminal custody'):
                     commands.run('unknown-group', [sys.executable, '-B', '-c', 'pass'])
             record = json.loads((self.root / 'commands.json').read_text())[0]
@@ -448,57 +731,31 @@ class RunnerControls(unittest.TestCase):
             self.assertTrue(record['stdout_eof'] and record['stderr_eof'])
 
     def test_live_child_denied_cleanup_still_persists_unknown_terminal_facts(self):
-        commands = M.Commands(self.root, os.environ.copy(), seconds=2,
-                              command_seconds=0.03, cleanup_seconds=0.03)
-        children = []
-        real_popen, real_killpg = M.subprocess.Popen, os.killpg
-        def popen(*args, **kwargs):
-            child = real_popen(*args, **kwargs)
-            children.append(child)
-            return child
-        try:
-            with mock.patch.object(M.subprocess, 'Popen', side_effect=popen), \
-                 mock.patch.object(M.os, 'killpg', side_effect=PermissionError('fake live-child denial')):
+        with FakeCommandBoundary(root=self.root, stdout=b'owned\n', live=True, denied_signal=True,
+                                 observation='denied') as boundary:
+            commands = M.Commands(self.root, os.environ.copy(), seconds=2,
+                                  command_seconds=0.03, cleanup_seconds=0.03)
+            try:
                 with self.assertRaisesRegex(RuntimeError, 'terminal custody'):
                     commands.run('denied-live', [sys.executable, '-B', '-c',
                         'import time; print("owned",flush=True); time.sleep(3)'])
-            record = json.loads((self.root / 'commands.json').read_text())[0]
-            self.assertEqual(record['pid'], children[0].pid)
-            self.assertFalse(record['direct_child_reaped'])
-            self.assertFalse(record['stdout_eof'])
-            self.assertFalse(record['stderr_eof'])
-            self.assertFalse(record['owned_group_absent'])
-            self.assertFalse(record['terminal_custody'])
-            self.assertEqual(record['signal']['outcome'], 'denied')
-            self.assertEqual({e['operation'] for e in record['cleanup_errors']},
-                             {'signal-owned-group', 'reap-direct-child', 'observe-owned-group'})
-            self.assertEqual(set(record['logs']), {'stdout', 'stderr'})
-        finally:
-            for child in children:
-                try:
-                    real_killpg(child.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-                child.wait(timeout=1)
-                child.stdout.close()
-                child.stderr.close()
-                with self.assertRaises(ProcessLookupError):
-                    real_killpg(child.pid, 0)
+                record = json.loads((self.root / 'commands.json').read_text())[0]
+                self.assertEqual(record['pid'], boundary.children[0].pid)
+                self.assertFalse(record['direct_child_reaped'])
+                self.assertFalse(record['stdout_eof'])
+                self.assertFalse(record['stderr_eof'])
+                self.assertFalse(record['owned_group_absent'])
+                self.assertFalse(record['terminal_custody'])
+                self.assertEqual(record['signal']['outcome'], 'denied')
+                self.assertEqual({e['operation'] for e in record['cleanup_errors']},
+                                 {'signal-owned-group', 'reap-direct-child', 'observe-owned-group'})
+                self.assertEqual(set(record['logs']), {'stdout', 'stderr'})
+            finally:
+                boundary.cleanup_markers()
 
     def test_one_stream_read_error_cannot_be_reported_as_eof(self):
-        commands = self.commands()
-        children = []
-        real_popen, real_read = M.subprocess.Popen, os.read
-        def popen(*args, **kwargs):
-            child = real_popen(*args, **kwargs)
-            children.append(child)
-            return child
-        def read(fd, size):
-            if children and fd == children[0].stderr.fileno():
-                raise OSError('fake stderr read failure')
-            return real_read(fd, size)
-        with mock.patch.object(M.subprocess, 'Popen', side_effect=popen), \
-             mock.patch.object(M.os, 'read', side_effect=read):
+        with FakeCommandBoundary(root=self.root, stdout=b'owned\n', read_error=True):
+            commands = self.commands()
             with self.assertRaisesRegex(RuntimeError, 'stderr read failure'):
                 commands.run('stream-error', [sys.executable, '-B', '-c', 'print("owned")'])
         record = json.loads((self.root / 'commands.json').read_text())[0]
@@ -509,52 +766,37 @@ class RunnerControls(unittest.TestCase):
         self.assertIn('drain-stderr', {e['operation'] for e in record['cleanup_errors']})
 
     def test_nested_reap_and_selector_cleanup_errors_still_persist(self):
-        commands = self.commands()
-        children, selectors = [], []
-        real_popen, real_selector = M.subprocess.Popen, M.selectors.DefaultSelector
-        patches = []
-        def popen(*args, **kwargs):
-            child = real_popen(*args, **kwargs)
-            children.append(child)
-            patch = mock.patch.object(child, 'wait', side_effect=subprocess.TimeoutExpired('fake', 0.2))
-            patch.start()
-            patches.append(patch)
-            patch = mock.patch.object(child.stdout, 'close', side_effect=OSError('fake stdout close failure'))
-            patch.start()
-            patches.append(patch)
-            return child
-        def selector():
-            selected = real_selector()
-            selectors.append(selected)
-            patch = mock.patch.object(selected, 'close', side_effect=OSError('fake selector close failure'))
-            patch.start()
-            patches.append(patch)
-            return selected
-        try:
-            with mock.patch.object(M.subprocess, 'Popen', side_effect=popen), \
-                 mock.patch.object(M.selectors, 'DefaultSelector', side_effect=selector):
-                with self.assertRaisesRegex(RuntimeError, 'terminal custody'):
-                    commands.run('nested-errors', [sys.executable, '-B', '-c', 'print("diagnostic")'])
-            record = json.loads((self.root / 'commands.json').read_text())[0]
-            self.assertEqual({e['operation'] for e in record['cleanup_errors']},
-                             {'reap-direct-child', 'close-stdout', 'close-selector'})
-            self.assertFalse(record['direct_child_reaped'])
-            self.assertFalse(record['terminal_custody'])
-            self.assertTrue(record['stdout_eof'] and record['stderr_eof'])
-            self.assertEqual((self.root / '000-nested-errors.stdout').read_text(), 'diagnostic\n')
-        finally:
-            for patch in reversed(patches):
-                patch.stop()
-            for child in children:
-                child.wait(timeout=1)
-                child.stdout.close()
-                child.stderr.close()
-            for selected in selectors:
-                selected.close()
+        # Each error occurs at its permitted cleanup stage. UNKNOWN from reap
+        # must not require a subsequent pipe or selector close on the successor.
+        observed = set()
+        for stage, options, operation in (
+                ('reap', {'reap_error': True}, 'reap-direct-child'),
+                ('pipe', {'pipe_close_error': True}, 'close-stdout'),
+                ('selector', {'selector_close_error': True}, 'close-selector')):
+            folder = self.root / stage
+            folder.mkdir()
+            with FakeCommandBoundary(root=self.root, stdout=b'diagnostic\n', **options) as boundary:
+                commands = M.Commands(folder, {}, seconds=5, cleanup_seconds=0.2)
+                try:
+                    with self.assertRaisesRegex(RuntimeError, 'terminal custody'):
+                        commands.run('nested-errors', ['synthetic-only'])
+                    record = json.loads((folder / 'commands.json').read_text())[0]
+                    operations = {e['operation'] for e in record['cleanup_errors']}
+                    self.assertEqual(operations, {operation})
+                    observed.update(operations)
+                    self.assertEqual(record['direct_child_reaped'], stage != 'reap')
+                    self.assertFalse(record['terminal_custody'])
+                    self.assertTrue(record['stdout_eof'] and record['stderr_eof'])
+                    self.assertEqual((folder / '000-nested-errors.stdout').read_text(), 'diagnostic\n')
+                finally:
+                    boundary.cleanup_markers()
+        self.assertEqual(observed, {'reap-direct-child', 'close-stdout', 'close-selector'})
 
     def test_command_receipt_write_failure_retains_in_memory_facts(self):
-        commands = self.commands()
-        with mock.patch.object(M, 'save', side_effect=PermissionError('fake receipt write denial')):
+        with FakeCommandBoundary(root=self.root, stdout=b'owned\n'), \
+             mock.patch.object(M, 'save', side_effect=PermissionError('fake receipt write denial')), \
+             mock.patch.object(M, 'durable_save', side_effect=PermissionError('fake receipt write denial')):
+            commands = self.commands()
             with self.assertRaisesRegex(RuntimeError, 'terminal custody'):
                 commands.run('receipt-denied', [sys.executable, '-B', '-c', 'print("owned")'])
         record = commands.records[0]
@@ -580,7 +822,9 @@ class RunnerControls(unittest.TestCase):
         sentinel = self.root / 'unowned-sentinel'
         sentinel.write_text('preserve')
         calls = []
-        real_run, real_killpg, real_save = M.Commands.run, os.killpg, M.save
+        real_run = M.Commands.run
+        synthetic = cleanup_outcome in ('denied-signal', 'denied-observation', 'unknown', 'receipt-denied')
+        boundary = FakeCommandBoundary(root=self.root) if synthetic else nullcontext()
         def run(commands, label, argv, **kwargs):
             calls.append((label, list(map(str, argv))))
             if label == 'official-inspect':
@@ -594,27 +838,34 @@ class RunnerControls(unittest.TestCase):
                 scratch = Path(argv[argv.index('--scratch-path') + 1]).parent
                 (scratch / 'custody-sentinel').write_text('retain on uncertain cleanup')
                 script = 'import sys; print("fake compiler failure"); sys.exit(3)'
-                def killpg(pgid, sig):
-                    self.assertEqual(pgid, commands.records[-1]['owned_pgid'])
-                    if sig == signal.SIGKILL and cleanup_outcome == 'denied-signal':
-                        raise PermissionError('fake denied signal')
-                    if sig == 0 and cleanup_outcome == 'denied-observation':
-                        raise PermissionError('fake denied observation')
-                    if sig == 0 and cleanup_outcome == 'unknown':
-                        return None
-                    return real_killpg(pgid, sig)
+                if synthetic:
+                    boundary.stdout = b'fake compiler failure\n'
+                    boundary.exit_code = 3
+                    boundary.denied_signal = cleanup_outcome == 'denied-signal'
+                    boundary.signal_error = 'fake denied signal'
+                    boundary.observation = ('denied' if cleanup_outcome == 'denied-observation'
+                                            else 'present' if cleanup_outcome == 'unknown' else 'absent')
+                real_save, real_durable_save = M.save, M.durable_save
                 def save(path, value):
                     if path.name == 'commands.json' and cleanup_outcome == 'receipt-denied':
                         raise PermissionError('fake command receipt write denied')
                     return real_save(path, value)
-                with mock.patch.object(M.os, 'killpg', side_effect=killpg), \
-                     mock.patch.object(M, 'save', side_effect=save):
+                def durable_save(path, value):
+                    if path.name == 'commands.json' and cleanup_outcome == 'receipt-denied':
+                        raise PermissionError('fake command receipt write denied')
+                    return real_durable_save(path, value)
+                with mock.patch.object(M, 'save', side_effect=save), \
+                     mock.patch.object(M, 'durable_save', side_effect=durable_save):
                     return real_run(commands, label, [sys.executable, '-B', '-c', script], **kwargs)
+            if synthetic:
+                boundary.stdout = (output + '\n').encode()
+                boundary.exit_code = 0
             return real_run(commands, label, [sys.executable, '-B', '-c', script], **kwargs)
         real_commands = M.Commands
         def commands(*args, **kwargs):
             return real_commands(*args, **kwargs, cleanup_seconds=0.1)
-        with mock.patch.object(M, 'tool_environment', return_value=(paths, {})), \
+        with boundary, \
+             mock.patch.object(M, 'tool_environment', return_value=(paths, {})), \
              mock.patch.object(M, 'apple_producer_provenance', return_value={'fake_boundary': True}), \
              mock.patch.object(M.sys, 'platform', 'darwin'), \
              mock.patch.object(M.Commands, 'run', run), \
@@ -623,14 +874,118 @@ class RunnerControls(unittest.TestCase):
         self.assertEqual(sentinel.read_text(), 'preserve')
         return receipt, calls
 
-    def test_producer_failure_preserves_receipt_and_removes_only_owned_scratch(self):
-        receipt, calls = self.execute_to_producer()
+    def execute_fake_pipeline(self, *, producer_failure=False):
+        """Exercise execute's retention/deletion branches without launching children."""
+        paths = {k: self.root / k for k in ('swift', 'jdk', 'android_sdk')}
+        inspection = {'schema': 1, 'sdk_id': 'aarch64-unknown-linux-android28',
+                      'min_api': 28, 'target_api': 37, 'javac_version': 'javac 25.fake-control',
+                      'tools': {'swift': {'path': str(paths['swift'])},
+                                'javac': {'path': str(paths['jdk'] / 'bin/javac')}},
+                      'distributions': {'android_platform': {
+                          'path': str(paths['android_sdk'] / 'platforms/android-37.0')}}}
+        for path in (paths['jdk'] / 'bin/javap',
+                     paths['android_sdk'] / 'platforms/android-37.0/android.jar'):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'pure-fake-never-executed')
+        sentinel = self.root / 'unowned-sentinel'
+        sentinel.write_text('preserve')
+        calls = []
+
+        class FakeCommands:
+            def __init__(self, out, env):
+                self.records, self.hold = [], None
+
+            def custody_terminal(self):
+                return True
+
+            def run(self, label, argv, **kwargs):
+                argv = list(map(str, argv))
+                calls.append((label, argv))
+                record = {'label': label, 'exit_code': 0, 'terminal_custody': True,
+                          'inner_receipts': [], 'direct_child_reaped': True,
+                          'stdout_eof': True, 'stderr_eof': True,
+                          'owned_group_absent': True, 'descriptors_closed': True}
+                self.records.append(record)
+                if label in ('revision', 'git-tree'):
+                    return 'pure-fake-git-identity'
+                if label in ('official-inspect', 'official-inspect-postflight'):
+                    return json.dumps(inspection)
+                if label == 'd8-version':
+                    return 'pure-fake D8'
+                if label in ('javap-version', 'javap-version-postflight'):
+                    return '25.fake-control'
+                if label.endswith('-producer-build'):
+                    scratch = Path(argv[argv.index('--scratch-path') + 1]).parent
+                    (scratch / 'custody-sentinel').write_text('retain integration evidence')
+                    if producer_failure:
+                        record['exit_code'] = 3
+                        raise RuntimeError(label + ': unexpected exit 3')
+                    return ''
+                if label.endswith('-producer-bin'):
+                    binary = Path(argv[argv.index('--scratch-path') + 1]) / 'bin'
+                    binary.mkdir(parents=True)
+                    (binary / 'mixer').write_bytes(b'pure-fake CLI never executed')
+                    return str(binary)
+                if label.endswith('-create'):
+                    consumer = Path(argv[argv.index('--directory') + 1])
+                    consumer.mkdir()
+                    (consumer / 'mixer.lock').write_text('{}')
+                    descriptor = consumer / 'Generated/MixerAndroid' / M.DESCRIPTOR
+                    descriptor.parent.mkdir(parents=True)
+                    descriptor.write_text('{}')
+                    record['inner_required'] = ('version', 'inspect')
+                    return ''
+                if label.endswith('-export'):
+                    M.shutil.copytree(Path(argv[-1]), Path(argv[2]))
+                    return ''
+                raise AssertionError('unexpected fake command: ' + label)
+
+        class Loader:
+            def create_module(self, spec):
+                return None
+
+            def exec_module(self, module):
+                module.dependency_checkouts = lambda *args: {}
+
+        def compile_consumer(consumer, artifact, *args):
+            artifact.mkdir()
+            return {'sources': list(range(19)), 'classes': ['Fake'], 'member_references': {}}
+
+        spec = importlib.util.spec_from_loader('generated_java_dependencies', Loader())
+        with mock.patch.object(M, 'tool_environment', return_value=(paths, {})), \
+             mock.patch.object(M, 'apple_producer_provenance', return_value={'fake_boundary': True}), \
+             mock.patch.object(M.sys, 'platform', 'darwin'), \
+             mock.patch.object(M, 'Commands', FakeCommands), \
+             mock.patch.object(M, 'load_profile', return_value={}), \
+             mock.patch.object(M, 'source_inputs', return_value={'fake': data_identity(b'fixture')}), \
+             mock.patch.object(M.importlib.util, 'spec_from_file_location', return_value=spec), \
+             mock.patch.object(M, 'validate_consumer', return_value={}), \
+             mock.patch.object(M, 'inventory', return_value={}), \
+             mock.patch.object(M, 'compile_consumer', side_effect=compile_consumer), \
+             mock.patch.object(M, 'tamper_consumers', return_value={}):
+            receipt = M.execute(SimpleNamespace(output=self.root / 'evidence', execute_toolchains=True))
+        self.assertEqual(sentinel.read_text(), 'preserve')
+        return receipt, calls
+
+    def test_producer_failure_preserves_receipt_and_retains_owned_scratch(self):
+        with mock.patch.object(M.shutil, 'rmtree', side_effect=AssertionError('unsafe failure cleanup')) as remove:
+            receipt, calls = self.execute_fake_pipeline(producer_failure=True)
+        remove.assert_not_called()
         self.assertEqual(receipt['status'], 'failed')
         self.assertEqual(receipt['error'], 'debug-producer-build: unexpected exit 3')
-        self.assertTrue(receipt['cleanup']['owned_scratch_removed'])
+        self.assertFalse(receipt['cleanup']['owned_scratch_removed'])
         self.assertTrue(receipt['cleanup']['command_custody_terminal'])
-        self.assertEqual(list((self.root / 'evidence').glob('generated-java-owned-*')), [])
+        scratch = Path(receipt['cleanup']['owned_scratch_path'])
+        self.assertEqual(list((self.root / 'evidence').glob('generated-java-owned-*')), [scratch])
+        self.assertEqual((scratch / 'custody-sentinel').read_text(), 'retain integration evidence')
+        self.assertIn('Failed integration', receipt['cleanup']['retention_reason'])
+        self.assertNotIn('error', receipt['cleanup'])
         self.assertTrue(all(r['terminal_custody'] for r in receipt['command_records']))
+        self.assertEqual(receipt['command_records'][-1]['exit_code'], 3)
+        self.assertEqual(json.loads((self.root / 'evidence/receipt.json').read_text()), receipt)
+        before = json.loads((self.root / 'evidence/receipt-before-cleanup.json').read_text())
+        self.assertEqual(before['error'], receipt['error'])
+        self.assertEqual(before['command_records'], receipt['command_records'])
         argv = next(a for label, a in calls if label == 'debug-producer-build')
         self.assertEqual(argv[argv.index('-j') + 1], '2')
         self.assertEqual(receipt['producer_jobs'], 2)
@@ -649,17 +1004,31 @@ class RunnerControls(unittest.TestCase):
 
     def test_scratch_removal_denial_retains_path_and_failure_receipt(self):
         real_rmtree = M.shutil.rmtree
+        attempted = []
         def rmtree(path, *args, **kwargs):
             if Path(path).name.startswith('generated-java-owned-'):
+                attempted.append(Path(path))
                 raise PermissionError('fake scratch deletion denied')
             return real_rmtree(path, *args, **kwargs)
         with mock.patch.object(M.shutil, 'rmtree', side_effect=rmtree):
-            receipt, _ = self.execute_to_producer()
+            receipt, calls = self.execute_fake_pipeline()
         self.assertEqual(receipt['status'], 'failed')
         self.assertTrue(receipt['cleanup']['command_custody_terminal'])
         self.assertFalse(receipt['cleanup']['owned_scratch_removed'])
         self.assertIn('scratch deletion denied', receipt['cleanup']['error'])
-        self.assertTrue(Path(receipt['cleanup']['owned_scratch_path']).exists())
+        scratch = Path(receipt['cleanup']['owned_scratch_path'])
+        self.assertEqual(attempted, [scratch])
+        self.assertEqual((scratch / 'custody-sentinel').read_text(), 'retain integration evidence')
+        self.assertNotIn('error', receipt)
+        self.assertNotIn('retention_reason', receipt['cleanup'])
+        self.assertEqual(set(receipt['consumers']), {m + '-' + f for m in M.MODES for f in M.FORMS})
+        self.assertTrue(all(r['terminal_custody'] and r['exit_code'] == 0 for r in receipt['command_records']))
+        self.assertEqual(calls[-1][0], 'javap-version-postflight')
+        before = json.loads((self.root / 'evidence/receipt-before-cleanup.json').read_text())
+        self.assertEqual(before['status'], 'passed-java-crosscompile-only')
+        self.assertEqual(before['consumers'], receipt['consumers'])
+        self.assertNotIn('error', before['cleanup'])
+        self.assertEqual(json.loads((self.root / 'evidence/receipt.json').read_text()), json.loads(json.dumps(receipt)))
 
     def retained_scratch(self, outcome):
         receipt, _ = self.execute_to_producer(outcome)

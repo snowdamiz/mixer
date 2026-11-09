@@ -49,7 +49,7 @@ class Source113(unittest.TestCase):
         actual = owner.source_inputs(owner.load_profile(ROOT))
         self.assertEqual(actual, self.frozen)
         self.assertEqual((len(actual), owner.source_digest(actual)),
-                         (113, '524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292'))
+                         (113, '1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854'))
         self.assertEqual(proof['source_sha256'], owner.source_digest(actual))
         with patched(a, 'WORKFLOW', HERE/'verify.yml.candidate'):
             self.assertTrue(self.base.verify(True)['installed_job_verified'])

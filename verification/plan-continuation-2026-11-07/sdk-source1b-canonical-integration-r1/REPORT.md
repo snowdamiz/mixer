@@ -1,0 +1,3 @@
+Applied the accepted CLI inspection/lifetime/fixture and Guest SDK readiness fixes with their exact caller bindings. The installed source guard and all 142 ordinary CI unit tests pass in both normal and optimized Python. The original failed temp-root run is retained; moving its test-owned temporary directory outside verification corrected the harness location. Successful temporary roots were removed.
+
+The 51-method SDK source/host review and Debug/Release package tests are reused unchanged. Fresh six-consumer integration and hosted CI for source1b remain pending. Physical-phone, published-package and GA acceptance remain pending. All historical held resources remain untouched. See receipt.json and retained raw unit outputs.

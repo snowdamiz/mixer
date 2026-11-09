@@ -38,11 +38,50 @@ def digest(path):
     return h.hexdigest()
 
 
-def tree(path):
+class InspectionDigests:
+    """Reuse stable file bytes within one inspect; every path still opens its target."""
+    def __init__(self):
+        self._files = {}
+
+    @staticmethod
+    def _identity(info):
+        return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink,
+                info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+    def __call__(self, path):
+        before = self._identity(path.stat())
+        if not stat.S_ISREG(before[2]):
+            raise RuntimeError('Unsupported installed tool file: ' + str(path))
+        descriptor = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+        try:
+            with os.fdopen(descriptor, 'rb', closefd=False) as stream:
+                if before != self._identity(os.fstat(descriptor)):
+                    raise RuntimeError('Installed tool file changed during inspection: ' + str(path))
+                cached = self._files.get(before[:2])
+                if cached is not None:
+                    if cached[0] != before:
+                        raise RuntimeError('Installed tool file changed during inspection: ' + str(path))
+                    value = cached[1]
+                else:
+                    h = hashlib.sha256()
+                    for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                        h.update(chunk)
+                    value = h.hexdigest()
+                if (before != self._identity(os.fstat(descriptor)) or
+                        before != self._identity(path.stat())):
+                    raise RuntimeError('Installed tool file changed during inspection: ' + str(path))
+        finally:
+            os.close(descriptor)
+        self._files[before[:2]] = (before, value)
+        return value
+
+
+def tree(path, digest_file=None):
     """Hash installed tool distributions, including symlink text and target file bytes."""
     path = path.resolve(strict=True)
     if not path.is_dir():
         raise RuntimeError('Missing installed tool distribution: ' + str(path))
+    digest_file = digest if digest_file is None else digest_file
     h = hashlib.sha256()
     for base, dirs, names in os.walk(path, followlinks=False):
         dirs.sort()
@@ -55,9 +94,9 @@ def tree(path):
                     raise RuntimeError('Installed distribution directory symlink escapes hashed root: ' + str(item))
                 value = 'symlink:' + os.readlink(item)
                 if item.is_file():
-                    value += ':' + digest(item)
+                    value += ':' + digest_file(item)
             elif item.is_file():
-                value = digest(item)
+                value = digest_file(item)
             else:
                 raise RuntimeError('Unsupported installed tool file: ' + str(item))
             h.update((relative + '\0' + value + '\n').encode())
@@ -355,6 +394,7 @@ def checked_output(root, create=False):
 
 
 def inspect():
+    digest_file = InspectionDigests()
     swift_version = probe([SWIFT, '--version'])
     if 'Swift version 6.3.3 ' not in swift_version:
         raise RuntimeError('Supported Android compiler is official Swift 6.3.3; set MIXER_SWIFT.')
@@ -384,14 +424,14 @@ def inspect():
         'swift_version': swift_version, 'javac_version': probe([JDK / 'bin/javac', '--version']),
         'java_version': probe([JDK / 'bin/java', '--version']),
         'python_version': sys.version,
-        'tools': {key: {'path': str(path), 'sha256': digest(path)} for key, path in tools.items()},
-        'metadata': {key: {'path': str(path), 'sha256': digest(path)} for key, path in metadata.items()},
+        'tools': {key: {'path': str(path), 'sha256': digest_file(path)} for key, path in tools.items()},
+        'metadata': {key: {'path': str(path), 'sha256': digest_file(path)} for key, path in metadata.items()},
         'distributions': {
-            'swift_toolchain': {'path': str(SWIFT.parent.parent.parent), 'sha256': tree(SWIFT.parent.parent.parent)},
-            'swift_android_sdk': {'path': str(ART.parent), 'sha256': tree(ART.parent)},
-            'android_platform': {'path': str(JAR.parent), 'sha256': tree(JAR.parent)},
-            'android_build_tools': {'path': str(BT), 'sha256': tree(BT)},
-            'jdk': {'path': str(JDK), 'sha256': tree(JDK)},
+            'swift_toolchain': {'path': str(SWIFT.parent.parent.parent), 'sha256': tree(SWIFT.parent.parent.parent, digest_file)},
+            'swift_android_sdk': {'path': str(ART.parent), 'sha256': tree(ART.parent, digest_file)},
+            'android_platform': {'path': str(JAR.parent), 'sha256': tree(JAR.parent, digest_file)},
+            'android_build_tools': {'path': str(BT), 'sha256': tree(BT, digest_file)},
+            'jdk': {'path': str(JDK), 'sha256': tree(JDK, digest_file)},
         },
         'sdk_search_path': str(SWIFT_SDKS),
     }

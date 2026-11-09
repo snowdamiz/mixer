@@ -27,6 +27,13 @@ public final class GuestUIPresentation: ObservableObject {
         inputReady && attachment != nil && !pendingAttachmentInvariant && exchange?.snapshot().stop == nil
     }
 
+    private struct PendingNativeInput {
+        let envelope: UIEventEnvelope
+        let binding: CapabilityGuestUIBindingIdentity
+        let attachment: CapabilityGuestUIAttachmentIdentity
+        let ticket: GuestUIPresentationTicketV1
+    }
+    private var pendingInput: PendingNativeInput?
     private var exchange: GuestUIExchangeV1?
     private var bindingIdentity: CapabilityGuestUIBindingIdentity?
     private var ticket: GuestUIPresentationTicketV1?
@@ -35,6 +42,8 @@ public final class GuestUIPresentation: ObservableObject {
     private var pendingAttachmentInvariant = false
     private weak var attachmentObserver: (any CapabilityGuestUIAttachmentObserver)?
     internal private(set) var lastEventResult: GuestUIEventResultV1?
+    // Read-only lifecycle observation for host tests; grants no event or health authority.
+    internal var lifecycleObservation: GuestUIExchangeSnapshotV1? { exchange?.snapshot() }
 
     internal init() {}
 
@@ -46,7 +55,7 @@ public final class GuestUIPresentation: ObservableObject {
                           identity: CapabilityGuestUIBindingIdentity) throws {
         guard bindingIdentity == nil else { throw GuestUIControlRejectionV1.busy }
         attachmentObserver?.invalidatePresentationProbe()
-        renderHost = nil; ticket = nil; lastEventResult = nil
+        pendingInput = nil; renderHost = nil; ticket = nil; lastEventResult = nil
         inputReady = false; observedNativeDisplay = false
         self.exchange = exchange; bindingIdentity = identity; state = .waiting
         if pendingAttachmentInvariant {
@@ -65,7 +74,7 @@ public final class GuestUIPresentation: ObservableObject {
         guard let model = box.model, model.bindingIdentity === box.identity,
               let exchange = model.exchange else { return }
         guard let claim = exchange.claimPresentation(generation: exchange.snapshot().generation) else { return }
-        if let result = claim.eventResult { model.lastEventResult = result }
+        if let result = claim.eventResult { model.pendingInput = nil; model.lastEventResult = result }
         if claim.stop != nil {
             _ = exchange.completePresentation(claim, snapshot: nil)
             model.retire(identity: box.identity)
@@ -73,6 +82,7 @@ public final class GuestUIPresentation: ObservableObject {
         }
         do {
             if let frame = claim.frame {
+                model.pendingInput = nil
                 model.attachmentObserver?.invalidatePresentationProbe()
                 model.ticket = nil
                 if let host = model.renderHost {
@@ -124,7 +134,7 @@ public final class GuestUIPresentation: ObservableObject {
 
     private func retireView() {
         attachmentObserver?.invalidatePresentationProbe()
-        inputReady = false; ticket = nil; renderHost = nil
+        pendingInput = nil; inputReady = false; ticket = nil; renderHost = nil
         state = .stopped
     }
 
@@ -133,10 +143,45 @@ public final class GuestUIPresentation: ObservableObject {
         retireView(); return true
     }
 
+    fileprivate static func readinessChanged(_ box: CapabilityGuestUIWeakPresentation) {
+        guard let model = box.model, model.bindingIdentity === box.identity else { return }
+        model.refreshInput()
+        model.attachmentObserver?.presentationChanged()
+    }
+
+    private func isCurrent(_ pending: PendingNativeInput, _ snapshot: GuestUIExchangeSnapshotV1) -> Bool {
+        guard pending.binding === bindingIdentity, pending.attachment === attachment,
+              let host = renderHost, let ticket, !pendingAttachmentInvariant,
+              ticket.generation == pending.ticket.generation, ticket.frameSerial == pending.ticket.frameSerial,
+              ticket.revision == pending.ticket.revision, snapshot.generation == ticket.generation,
+              snapshot.stop == nil, snapshot.effectsConfirmed,
+              snapshot.latestRevision == ticket.revision, snapshot.displayedRevision == ticket.revision,
+              !snapshot.eventOutstanding, !snapshot.presentationInFlight else { return false }
+        return (try? host.snapshot.route(pending.envelope)) != nil
+    }
+
+    private func invalidatePendingInput() {
+        guard pendingInput != nil else { return }
+        pendingInput = nil
+        refreshInput()
+    }
+
     private func refreshInput() {
-        guard let exchange, renderHost != nil else { inputReady = false; return }
+        guard let exchange, renderHost != nil else { pendingInput = nil; inputReady = false; return }
+        if let pending = pendingInput {
+            let snapshot = exchange.snapshot()
+            if !isCurrent(pending, snapshot) { pendingInput = nil }
+            else if !snapshot.guestTurnInFlight {
+                // Clear before ordinary admission. Only another ready-only
+                // refusal can retain this same unaccepted intent.
+                pendingInput = nil
+                if exchange.offerNativeInput(pending.envelope, generation: pending.ticket.generation) == .readyBusy {
+                    pendingInput = pending
+                }
+            }
+        }
         let snapshot = exchange.snapshot()
-        inputReady = snapshot.stop == nil && snapshot.effectsConfirmed && !snapshot.guestTurnInFlight &&
+        inputReady = pendingInput == nil && snapshot.stop == nil && snapshot.effectsConfirmed && !snapshot.guestTurnInFlight &&
             !snapshot.eventOutstanding && snapshot.displayedRevision != nil &&
             snapshot.displayedRevision == snapshot.latestRevision
     }
@@ -144,6 +189,7 @@ public final class GuestUIPresentation: ObservableObject {
     /// Claim before constructing a hosting controller or a platform probe.
     internal func claimNativeAttachment() -> CapabilityGuestUIAttachmentIdentity? {
         guard attachment == nil else {
+            pendingInput = nil
             if let exchange {
                 if exchange.snapshot().stop == nil {
                     exchange.recordProtocolFailure(GuestUIProtocolFailureV1(phase: .presentation, code: .presentationInvariant))
@@ -170,7 +216,7 @@ public final class GuestUIPresentation: ObservableObject {
     internal func detachNativeAttachment(_ identity: CapabilityGuestUIAttachmentIdentity) {
         guard attachment === identity else { return }
         attachmentObserver?.invalidatePresentationProbe()
-        attachmentObserver = nil; attachment = nil
+        pendingInput = nil; attachmentObserver = nil; attachment = nil
     }
 
     internal func nativeDisplayTicket(attachment identity: CapabilityGuestUIAttachmentIdentity)
@@ -201,17 +247,27 @@ public final class GuestUIPresentation: ObservableObject {
 
     internal func actionHandler(host: MixerUIHost, attachment identity: CapabilityGuestUIAttachmentIdentity)
         -> @MainActor (RoutedUIAction) -> Void {
-        guard let exchange else { return { _ in } }
-        // Each callback retains its exact data-only exchange. It never rebuilds
-        // an old callback against a host installed by a later binding.
+        guard let exchange, let bindingIdentity, let ticket else { return { _ in } }
         return { [weak self, weak host, exchange] action in
-            guard let self, let host, self.exchange === exchange, self.renderHost === host,
-                  self.attachment === identity else { return }
-            guard let node = host.snapshot.identity(for: action.nodeID) else { return }
+            guard let self else { return }
+            guard let host, self.exchange === exchange, self.renderHost === host,
+                  self.bindingIdentity === bindingIdentity, self.attachment === identity,
+                  self.ticket?.generation == ticket.generation,
+                  self.ticket?.frameSerial == ticket.frameSerial, self.ticket?.revision == ticket.revision,
+                  action.revision == ticket.revision,
+                  let node = host.snapshot.identity(for: action.nodeID) else {
+                self.invalidatePendingInput(); return
+            }
             let envelope = UIEventEnvelope(revision: action.revision, identity: node,
                                            event: action.event, value: action.value)
-            guard (try? host.route(envelope)) == action else { return }
-            _ = exchange.offer(envelope, generation: exchange.snapshot().generation)
+            guard (try? host.route(envelope)) == action else {
+                self.invalidatePendingInput(); return
+            }
+            guard self.pendingInput == nil else { return }
+            if exchange.offerNativeInput(envelope, generation: ticket.generation) == .readyBusy {
+                self.pendingInput = PendingNativeInput(envelope: envelope, binding: bindingIdentity,
+                    attachment: identity, ticket: ticket)
+            }
             self.refreshInput()
         }
     }
@@ -275,18 +331,30 @@ internal final class CapabilityGuestUIPresentationBinding: Sendable, CapabilityP
         do {
             try presentation.requireBindable()
             let reader = try exchange.deliveryWake.takeConsumer()
+            let readiness = try exchange.takeNativeInputReadinessConsumer()
             let identity = CapabilityGuestUIBindingIdentity()
             try presentation.bind(exchange, identity: identity)
             let box = CapabilityGuestUIWeakPresentation(presentation, identity: identity)
-            let task = Task.detached { [reader, box] in
-                while true {
-                    do {
-                        guard try await reader.next() else { break }
-                        await GuestUIPresentation.consume(box)
-                    } catch {
-                        // Keep this sole existing reader for the bounded terminal hint.
-                        await GuestUIPresentation.consumerFailed(box)
+            let task = Task.detached { [reader, readiness, box] in
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        defer { readiness.cancel() }
+                        while true {
+                            do {
+                                guard try await reader.next() else { break }
+                                await GuestUIPresentation.consume(box)
+                            } catch { await GuestUIPresentation.consumerFailed(box) }
+                        }
                     }
+                    group.addTask {
+                        while true {
+                            do {
+                                guard try await readiness.next() else { break }
+                                await GuestUIPresentation.readinessChanged(box)
+                            } catch { await GuestUIPresentation.consumerFailed(box) }
+                        }
+                    }
+                    await group.waitForAll()
                 }
                 await GuestUIPresentation.finish(box)
             }

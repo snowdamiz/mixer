@@ -58,6 +58,15 @@ final class GuestUIIssuerV1: Sendable {}
     public let serial: UInt64
     public let document: ValidatedUIDocument
 }
+/// Native-owner admission adds one typed refusal; legacy offer remains busy.
+@_spi(GuestUIV1) public enum GuestUINativeInputAdmissionV1: Sendable, Equatable {
+    case offered(GuestUIEventAdmissionV1)
+    case readyBusy
+    internal var ordinaryAdmission: GuestUIEventAdmissionV1 {
+        switch self { case .offered(let value): value; case .readyBusy: .busy }
+    }
+}
+
 @_spi(GuestUIV1) public enum GuestUIEventAdmissionV1: Sendable, Equatable {
     case accepted(sequence: UInt64), busy, stale, closed, invalid(UIRoutingError)
 }

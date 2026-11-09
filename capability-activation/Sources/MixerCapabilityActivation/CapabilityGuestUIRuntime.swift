@@ -93,6 +93,7 @@ public final class CapabilityGuestUIRuntime: Sendable {
     /// Admission and local cause stop synchronously before native cancellation.
     /// Awaiting close joins coordinator work/fds; actual native exit may remain
     /// counted indefinitely and is exposed by cleanupPending.
+    internal var ownerRetired: Bool { core.control.ownerRetired }
     public func close() async { core.requestClose(.closed); await core.waitForClose() }
     deinit { core.requestClose(.closed) }
     private static func snapshot(_ bytes: Data) -> Data {

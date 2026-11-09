@@ -20,7 +20,7 @@ class MetadataDiagnostics(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory(dir=HERE/'control-scratch');self.addCleanup(self.temp.cleanup);self.work=Path(self.temp.name);self.base=a.bind()
  def test_projected_installed_whole_job_is_exact_without_qualification(self):
   p=self.base.verify(True)
-  self.assertEqual((p['source_count'],p['source_sha256']),(113,'524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292'))
+  self.assertEqual((p['source_count'],p['source_sha256']),(113,'1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854'))
   self.assertTrue(p['installed_job_verified']);self.assertFalse(p['exact_compiler_qualified'])
  def test_actual_owner_bootstrap_113_and_profile24_25(self):
   s=importlib.util.spec_from_file_location('rebound_bootstrap',HERE.parent/'generated-java-ci-integration/bootstrap.py');b=importlib.util.module_from_spec(s);s.loader.exec_module(b)
@@ -118,3 +118,57 @@ class MetadataDiagnostics(unittest.TestCase):
    with self.subTest(variant=index):self.refused_main(redirect,'Accepted R3 raw review hash differs')
  def test_explicit_focused_test_and_accepted_helper_hashes(self):
   for name,digest in [('cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift','c8ec4accc3a436c449f8c836e9763423a9cb08fe7fca2af549a76fa4e7b17488'),('scripts/ci/prepare-cli-host-tests.py','77aebba7edd46e3d06dfcf91fa4a9cbd016efc7b06e9dac9b447a32755bf1214')]:self.assertEqual(hashlib.sha256((ROOT/name).read_bytes()).hexdigest(),digest)
+
+ def test_caller_authority_reseal_rejects_before_acquisition(self):
+  import copy
+  callers_raw=(HERE/'caller-inputs.json').read_bytes()
+  callers=json.loads(callers_raw)
+  bootstrap=HERE.parent/'generated-java-ci-integration/bootstrap.py'
+  boot=bootstrap.relative_to(ROOT).as_posix()
+  original_boot=bootstrap.read_bytes()
+  changed_boot=original_boot+b'\n# caller authority regression\n'
+  encode=lambda value:(json.dumps(value,indent=2)+'\n').encode()
+  identity=lambda raw:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+  variants=[('omitted '+row['path'],encode([r for r in callers if r!=row]),None) for row in callers]
+  rebased=copy.deepcopy(callers)
+  for row in rebased:
+   if row['path']==boot:row.update(identity(changed_boot))
+  foreign={'path':'.github/workflows/verify.yml',**identity((ROOT/'.github/workflows/verify.yml').read_bytes())}
+  variants.extend([
+   ('omitted bootstrap and changed installed bytes',encode([r for r in callers if r['path']!=boot]),changed_boot),
+   ('same eight paths and rebased bootstrap identity',encode(rebased),changed_boot),
+   ('empty roster',encode([]),None),
+   ('foreign extra row',encode(sorted(callers+[foreign],key=lambda r:r['path'])),None),
+   ('duplicate caller row',encode(callers+[callers[0]]),None),
+   ('foreign roster',encode([foreign]),None),
+   ('reordered rows',encode(list(reversed(callers))),None),
+   ('same data different raw bytes',callers_raw+b' ',None),
+  ])
+  for field,value in [('bytes',callers[0]['bytes']+1),('sha256','0'*64)]:
+   altered=copy.deepcopy(callers);altered[0][field]=value
+   variants.append(('same eight paths wrong '+field,encode(altered),None))
+  variants.append(('caller identity carries foreign count',encode({'count':8,'rows':callers}),None))
+  original=self.base.regular
+  def execute(raw,installed_boot,refuse):
+   seal=json.loads((HERE/'seal.json').read_bytes())
+   for row in seal['members']:
+    if row['path']=='caller-inputs.json':row.update(identity(raw))
+   seal['tree_sha256']=self.base.tree(seal['members'])
+   if 'total_bytes' in seal:seal['total_bytes']=sum(row['bytes'] for row in seal['members'])
+   fake=self.work/'caller';fake.write_bytes(raw)
+   fake_seal=self.work/'seal';fake_seal.write_bytes(encode(seal))
+   fake_boot=self.work/'bootstrap';fake_boot.write_bytes(installed_boot or original_boot)
+   def redirect(p):
+    return original(fake if p==HERE/'caller-inputs.json' else fake_seal if p==HERE/'seal.json' else fake_boot if p==bootstrap else p)
+   calls=[]
+   with patched(self.base,'regular',redirect),patched(self.base,'load_runner',lambda:calls.append('resource')),patched(a,'bind',lambda:self.base),patched(a,'run_fixture',lambda *args:calls.append('dispatch') or 0),patched(sys,'argv',['adopt_envelope.py','run','--out',str(self.work/'never'),'--rustc','/never']):
+    if refuse:
+     with self.assertRaises((RuntimeError,FileNotFoundError,ValueError,TypeError)):a.main()
+    else:self.assertEqual(a.main(),0)
+   self.assertEqual(calls,[] if refuse else ['dispatch'])
+   self.assertFalse((self.work/'never').exists())
+  execute(callers_raw,None,False)
+  for label,raw,installed_boot in variants:
+   with self.subTest(mutation=label):execute(raw,installed_boot,True)
+  with self.subTest(mutation='unchanged authority detects changed installed bootstrap'):
+   execute(callers_raw,changed_boot,True)

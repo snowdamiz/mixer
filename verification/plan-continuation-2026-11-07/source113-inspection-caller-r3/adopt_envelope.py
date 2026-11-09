@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -22,6 +23,57 @@ def load():
     return module
 
 
+
+SDK_FIXTURE_TRANSITION = json.loads("{\"schema\":1,\"type\":\"EXACT_SDK_READY_INPUT_AND_FULL_CI_FIXTURE_SUCCESSOR\",\"scope\":\"exact seven accepted SDK/capability afterimages and independently accepted full-CI fixture; source/caller composition only\",\"predecessor\":{\"source113\":\"0647086ea204e5a3c9b89f11303df933cd426fb5ff81cb001cce0ca1ed493d71\",\"sourceCount\":113,\"bootstrap\":{\"bytes\":18124,\"sha256\":\"365f94581903eeec3978b2c1e905f334bbf9c7ca04ae4a1f4889a9d143fb4305\"},\"callerAuthority\":{\"bytes\":1666,\"sha256\":\"ea6720c24905f48167eee34e977039e1a66835c75e9e97b36e539a6348bb0a3c\"},\"runtimeSeal\":{\"bytes\":4466,\"sha256\":\"fd4dff20b830a3b9734107cb1ccd727c6b281bdeb04d84c5df034fe663a8d412\"},\"runtimeMembers\":28},\"current\":{\"source113\":\"1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854\",\"sourceCount\":113,\"bootstrap\":{\"bytes\":18124,\"sha256\":\"81cfebd96cca0bbae8bb503842f2216c62d6208fdbbd0f4bd5821923a17f3b89\"},\"callerAuthority\":{\"bytes\":1666,\"sha256\":\"2cff3508e0c461a7cefddcd773cd58d5df9e74e0c1ff1a3248ff27eb56464178\"}},\"sdk\":[{\"path\":\"capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift\",\"before\":{\"bytes\":16078,\"sha256\":\"68bdac5bbe63a48599aec58186242a58515b5dd5fa736c01d3305e6d882756e6\"},\"after\":{\"bytes\":16252,\"sha256\":\"786cff00121906ddc6ada800526c84ac6be3375cf4406998a4a5e5351000eb7e\"},\"owning113\":false},{\"path\":\"capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift\",\"before\":{\"bytes\":16789,\"sha256\":\"2fe7404fa6a27e59a59d4c91bfd6f250156a0666ad91da50a36c8eb2578577b7\"},\"after\":{\"bytes\":20283,\"sha256\":\"2cbffaba4792ad78b22250a4810474149b9c595241eae872400f68650452110b\"},\"owning113\":false},{\"path\":\"capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift\",\"before\":{\"bytes\":6313,\"sha256\":\"b3295dc6d1f97b5f13bc55b8038483814c66f66c262983fda32607da1ee4e29f\"},\"after\":{\"bytes\":6379,\"sha256\":\"796dc7e4167aea60a1e77150574802ebadea28b2c831478b91506a39cec07b92\"},\"owning113\":false},{\"path\":\"capability-activation/Tests/MixerCapabilityActivationTests/GuestUIReadyInputTests.swift\",\"before\":null,\"after\":{\"bytes\":25403,\"sha256\":\"549109d75a25ce46c0a44587710772a1d9e1038262d0f4071973a89cacc410f1\"},\"owning113\":false},{\"path\":\"capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedRuntimeTests.swift\",\"before\":{\"bytes\":15600,\"sha256\":\"37846a30df32bbc56ae909e99f4fb504cc3e7aac0c91c59e917482d175117bcf\"},\"after\":{\"bytes\":20041,\"sha256\":\"0af2d69a886d53c01c3923138c11d634421c1b4e5be43932717a4e75d99071b9\"},\"owning113\":false},{\"path\":\"sdk/Sources/MixerGuest/GuestUIExchangeV1.swift\",\"before\":{\"bytes\":20951,\"sha256\":\"54665138a14e94292eddb838140feaf9dae673134aecc391dbb02b046e1b35a4\"},\"after\":{\"bytes\":23389,\"sha256\":\"ab3b988e83d24348224353c043a1b2697219d9410899c883725e483f93aac42e\"},\"owning113\":true},{\"path\":\"sdk/Sources/MixerGuest/GuestUIProtocolV1.swift\",\"before\":{\"bytes\":5302,\"sha256\":\"8192ec89236e2b799a25b05eba3913af5fea6a73e96129335f28546c7029f277\"},\"after\":{\"bytes\":5674,\"sha256\":\"e60b6e3ee4e9ab378fef4758bd5342e56ff049f976802400f08e88a75ecd2461\"},\"owning113\":true}],\"sdkPatch\":{\"sha256\":\"3b55f27e6b0358e11a1fa21f7fe77263a038fe1129c9f4dc2b1184b5c35fefc1\"},\"fixture\":{\"path\":\"scripts/ci/tests/test_android_generated_java_runner.py\",\"before\":{\"bytes\":59496,\"sha256\":\"492c7a8539b1cb52cc55b1a45ca93e9042670840b45132d2935b406bbe2bf1e9\"},\"after\":{\"bytes\":63620,\"sha256\":\"04c22f2170953fdb303de18b8d7bd83c35652c07becaf980f85f635e2a212b04\"},\"patch\":{\"bytes\":5844,\"sha256\":\"bf8831eb896ad22ed87a057a57c76d8f2685ea2877a51bb87d3dba7c9b16a686\"},\"outsideSource113\":true},\"reviews\":[{\"member\":\"sdk-ready-input-review.json\",\"identity\":{\"bytes\":4190,\"sha256\":\"d5a62c0ae7edf53135e7a4c5279ff5a6f154d3d6c88dac6b4efcf592cf258532\"},\"semantic\":{\"decision\":\"ACCEPT_EXACT_SDK_READY_INPUT_OWNER_RETIREMENT_SOURCE_HOST\",\"scope\":\"Exact seven R6 afterimages and exact existing R6 debug macOS host binaries only\",\"sourceDecision\":\"CLEAN_EXACT_SOURCE_INSPECTION\",\"exactSubject\":{\"producer\":\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/capability-foreign-callback-invalidation-fix-r6\",\"fullPatchSHA256\":\"3b55f27e6b0358e11a1fa21f7fe77263a038fe1129c9f4dc2b1184b5c35fefc1\",\"incrementSHA256\":\"a52daeda76df442bc8a111c4af6badb5e0ad52703075d2b342a805abd755b32b\",\"R4PatchSHA256\":\"2cd9dc04fae50febd70465ffa82253ae9b96aea434ae4294eb3a6fe157acb803\",\"XCTestSHA256\":\"838f95cf9be1c0ad361121ac9f1da46b9184aa3d4407bbf1b970a8acdf965fb5\",\"SwiftTestingSHA256\":\"d20f4406eb46417b3734fca118eb515b961efb343f7ac0ff49e38472f9d47c07\"},\"canonicalAdoptionAuthorized\":false,\"historicalHostedCause\":\"UNPROVEN\",\"primaryProviderEscapedAbsenceProven\":false}},{\"member\":\"full-ci-fixture-review.json\",\"identity\":{\"bytes\":7576,\"sha256\":\"3ad9c4f36df6509b9ffe88a6f16315065b974372d57b2bf218f643d4ed46de31\"},\"semantic\":{\"verdict\":\"ACCEPT_EXACT_FULL_CI_CUSTODY_FIXTURE_SOURCE_HOST\",\"gate\":\"EXACT_FULL_CI_CUSTODY_FIXTURE_SOURCE_HOST\",\"scope\":\"Exact fixture source and focused host behavior only. Root typed binding and all subsequent complete-suite/integration gates remain pending.\",\"candidate\":{\"path\":\"scripts/ci/tests/test_android_generated_java_runner.py\",\"bytes\":63620,\"sha256\":\"04c22f2170953fdb303de18b8d7bd83c35652c07becaf980f85f635e2a212b04\"},\"parent\":{\"bytes\":59496,\"sha256\":\"492c7a8539b1cb52cc55b1a45ca93e9042670840b45132d2935b406bbe2bf1e9\"},\"patch\":{\"path\":\"test-only.patch\",\"bytes\":5844,\"sha256\":\"bf8831eb896ad22ed87a057a57c76d8f2685ea2877a51bb87d3dba7c9b16a686\",\"exactGeneratedDiffVerifiedInBothModes\":true},\"checker\":{\"path\":\"scripts/ci/check-android-generated-java.py\",\"bytes\":65563,\"sha256\":\"917750f95ca0d02780324a9ef255ef0426eab79ee84ed4f330990d43a9026866\"},\"source113\":{\"count\":113,\"sha256\":\"0647086ea204e5a3c9b89f11303df933cd426fb5ff81cb001cce0ca1ed493d71\"},\"profile\":{\"id\":\"mixer.android-source-pair.10\",\"sdkCount\":24,\"adapterCount\":25,\"javaCount\":19,\"sdkDigest\":\"dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47\",\"adapterDigest\":\"b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e\"},\"namedUnlock\":\"Root minimal typed fixture-binding followup preserving historical49ef review/current ea6720 caller authority; then separately admitted fresh complete affected units and consumers/CI after exact bindings match.\"}}],\"profile\":{\"id\":\"mixer.android-source-pair.10\",\"sdk_count\":24,\"sdk_sha256\":\"dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47\",\"adapter_count\":25,\"adapter_sha256\":\"b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e\",\"java_sources\":19},\"combinedAccepted\":false,\"canonicalApplied\":false,\"actualSixConsumers\":false,\"completeAffectedUnits\":false,\"ordinaryCI\":false,\"compilerPass\":false,\"nativePass\":false,\"runtimePass\":false,\"releaseQualified\":false,\"gaPass\":false,\"historicalHoldsReleased\":false,\"wholeCopiedSDKDigestRecreationRequired\":true}")
+
+def same_json(actual, expected):
+    """Match a closed JSON literal without Python boolean/number aliases."""
+    if type(actual) is not type(expected):
+        return False
+    if type(expected) is dict:
+        return (all(type(key) is str for key in actual)
+                and actual.keys() == expected.keys()
+                and all(same_json(actual[key], value) for key, value in expected.items()))
+    if type(expected) is list:
+        return len(actual) == len(expected) and all(same_json(a, e) for a, e in zip(actual, expected))
+    if type(expected) is bool or expected is None:
+        return actual is expected
+    if type(expected) is float:
+        return math.isfinite(actual) and math.isfinite(expected) and actual == expected
+    return type(expected) in (str, int) and actual == expected
+
+
+def sdk_fixture_successor(base, binding, actual, owner):
+    transition = SDK_FIXTURE_TRANSITION
+    base.need(same_json(binding.get('sdk_fixture_transition'), transition), 'SDK fixture typed transition differs')
+    predecessor = base.regular(HERE / 'predecessor-runtime-seal.json').read_bytes()
+    base.need({'bytes':len(predecessor),'sha256':hashlib.sha256(predecessor).hexdigest()} == transition['predecessor']['runtimeSeal'], 'Frozen predecessor runtime identity differs')
+    frozen_seal = json.loads(predecessor, object_pairs_hook=base.unique_object)
+    base.need(frozen_seal['member_count'] == 28 and frozen_seal['tree_sha256'] == base.tree(frozen_seal['members']), 'Frozen predecessor runtime closure differs')
+    caller_row = next(r for r in frozen_seal['members'] if r['path'] == 'caller-inputs.json')
+    base.need({k:caller_row[k] for k in ('bytes','sha256')} == transition['predecessor']['callerAuthority'], 'Frozen predecessor caller authority differs')
+    for spec in transition['reviews']:
+        raw = base.regular(HERE / spec['member']).read_bytes()
+        base.need({'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} == spec['identity'], 'Accepted SDK fixture raw review identity differs: ' + spec['member'])
+        review = json.loads(raw, object_pairs_hook=base.unique_object)
+        base.need(all(review.get(k) == v for k,v in spec['semantic'].items()), 'Accepted SDK fixture review semantic scope differs')
+    predecessor_inputs = dict(actual)
+    for row in transition['sdk']:
+        raw = base.regular(ROOT / row['path']).read_bytes()
+        base.need({'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} == row['after'], 'Accepted SDK afterimage differs: ' + row['path'])
+        if row['owning113']:
+            base.need(actual.get(row['path']) == row['after'] and row['before'] is not None, 'SDK owning transition differs')
+            predecessor_inputs[row['path']] = row['before']
+        else:
+            base.need(row['path'] not in actual, 'Capability input entered source113')
+    base.need(len(actual) == 113 and owner.source_digest(actual) == transition['current']['source113'], 'SDK current owning digest differs')
+    base.need(owner.source_digest(predecessor_inputs) == transition['predecessor']['source113'], 'SDK reverse Guest2 predecessor differs')
+    fixture = transition['fixture']
+    raw = base.regular(ROOT / fixture['path']).read_bytes()
+    base.need({'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} == fixture['after'] and fixture['path'] not in actual, 'Accepted full CI fixture afterimage differs')
+    return predecessor_inputs
+
+
 def bind():
     base = load()
     historical_verify = base.verify
@@ -29,7 +81,7 @@ def bind():
         proof = historical_verify(False)
         seal = json.loads(base.regular(HERE / 'seal.json').read_bytes(), object_pairs_hook=base.unique_object)
         base.check_rows(HERE, seal['members'])
-        base.need(seal['member_count'] == len(seal['members']) and seal['tree_sha256'] == base.tree(seal['members']), 'Successor seal differs')
+        base.need(seal['member_count'] == 31 and [r['path'] for r in seal['members']] == ["accepted-swift-job.yml","adopt_envelope.py","baseline-runtime-seal.json","binding.json","caller-inputs.json","command-lifetime-review.json","current-swift-job.yml","current-verify.yml","failure-current.json","failure-evidence.json","full-ci-fixture-review.json","full.patch","historical-closure.json","identity-deltas.json","incremental.patch","inspection-digest-review.json","inspection-review.json","job-changes.json","metadata_guard.py","predecessor-runtime-seal.json","runner-fixture-review.json","sdk-ready-input-review.json","source-inputs.json","swift-job.yml","test_binding.py","test_combined.py","test_ownership.py","test_rebind.py","test_source113.py","verify.yml.candidate","workflow.patch"] and seal['tree_sha256'] == base.tree(seal['members']), 'Successor seal differs')
         ignored = {'control-scratch', '__pycache__'}
         base.need(not any(p.is_symlink() for p in HERE.rglob('*') if p.relative_to(HERE).parts[0] not in ignored), 'Successor shipping symlink forbidden')
         observed = sorted(p.relative_to(HERE).as_posix() for p in HERE.rglob('*') if p.is_file() and p.relative_to(HERE).parts[0] not in ignored and p.relative_to(HERE).as_posix() != 'seal.json')
@@ -47,22 +99,83 @@ def bind():
         actual = owner.source_inputs(profile)
         base.need(actual == frozen, 'Current owning source closure differs')
         binding = json.loads(base.regular(HERE / 'binding.json').read_bytes(), object_pairs_hook=base.unique_object)
+        base.need(same_json(binding.get('schema'), 1), 'Binding schema differs')
         digest = owner.source_digest(actual)
         raw_review = base.regular(HERE / 'inspection-review.json').read_bytes()
         base.need(hashlib.sha256(raw_review).hexdigest() == '6b51eafe93f29e05c9bf527a5d39625e8a2cffbcdfd1fbb4799ac80adb7a3de6', 'Accepted R3 raw review hash differs')
         review = json.loads(raw_review, object_pairs_hook=base.unique_object)
         accepted = review.get('candidate', {})
-        base.need(review.get('verdict') == 'ACCEPT' and accepted.get('source113Proposed') == digest
-                  and accepted.get('patchSHA256') == 'da94deb88a987e294c7ac830ecae32dd060e2a25035001ae92977e2a91236b04'
-                  and accepted.get('checkerSHA256') == '6103a13c065181ccd5dd76d6c6ee7d827dd091354b1aed3eea11887895bc2822'
-                  and base.sha(ROOT / 'scripts/ci/check-android-generated-java.py') == accepted.get('checkerSHA256'), 'Accepted R3 inspection identity differs')
-        base.need(binding.get('upstream_inspection') == {'member':'inspection-review.json', 'sha256':hashlib.sha256(raw_review).hexdigest(), 'source113':digest, 'patchSHA256':accepted['patchSHA256'], 'checkerSHA256':accepted['checkerSHA256'], 'scope':'accepted R5 real-tool temporary-directory source protocol only; no qualification transfer'}, 'Upstream inspection binding differs')
-        base.need(binding.get('fixture_dispatch') == {'host_rust_fixture_after_exact_checks':True, 'scope':'host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch', 'combinedAccepted':False, 'runtime':False, 'GA':False, 'exactWindow':False}, 'Host-only fixture dispatch contract differs')
-        base.need(binding.get('adoption') == {'allowed':False, 'status':'CANDIDATE_PENDING_COMBINED_REVIEW', 'canonicalAdopted':False}
-                  and not any(binding['qualification'].values()), 'Candidate authority must remain pending')
-        base.need(len(actual) == 113 and digest == '524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292' and binding['source']['count'] == 113 and binding['source']['sha256'] == digest, 'Bound source closure differs')
+        baseline_digest = '524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292'
+        base.need(review.get('verdict') == 'ACCEPT'
+                  and review.get('scope') == 'EXACT_R5_CHECKER_REAL_TOOL_TMP_SOURCE_PROTOCOL_ONLY'
+                  and accepted == {'source113Proposed': baseline_digest,
+                                   'patchSHA256': 'da94deb88a987e294c7ac830ecae32dd060e2a25035001ae92977e2a91236b04',
+                                   'checkerSHA256': '6103a13c065181ccd5dd76d6c6ee7d827dd091354b1aed3eea11887895bc2822'}, 'Accepted R3 inspection identity differs')
+        base.need(binding.get('upstream_inspection') == {'member':'inspection-review.json', 'sha256':hashlib.sha256(raw_review).hexdigest(), 'source113':baseline_digest, 'patchSHA256':accepted['patchSHA256'], 'checkerSHA256':accepted['checkerSHA256'], 'scope':'accepted R5 real-tool temporary-directory source protocol only; no qualification transfer'}, 'Upstream inspection binding differs')
+        transition = json.loads("{\"schema\":1,\"type\":\"EXACT_COMBINED_CLI_INSPECTION_LIFETIME_FIXTURE_SOURCE_CALLER\",\"baseline_source113\":\"524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292\",\"current_source113\":\"0647086ea204e5a3c9b89f11303df933cd426fb5ff81cb001cce0ca1ed493d71\",\"source_count\":113,\"owning_changes\":[{\"path\":\"cli/Sources/MixerBuild/Resources/android-build.py\",\"preimage\":{\"bytes\":30638,\"sha256\":\"df87f377dee8a167f559eb43ea22d15e692f299dc715aff74454ea5747573cf2\"},\"candidate\":{\"bytes\":32563,\"sha256\":\"7c1e092c8d2123b9ee4868db1146349fa2a15e8d16463f546337bb71af6aee55\"}},{\"path\":\"scripts/ci/check-android-generated-java.py\",\"preimage\":{\"bytes\":63363,\"sha256\":\"6103a13c065181ccd5dd76d6c6ee7d827dd091354b1aed3eea11887895bc2822\"},\"candidate\":{\"bytes\":65563,\"sha256\":\"917750f95ca0d02780324a9ef255ef0426eab79ee84ed4f330990d43a9026866\"}}],\"fixture\":{\"path\":\"scripts/ci/tests/test_android_generated_java_runner.py\",\"preimage\":{\"bytes\":50168,\"sha256\":\"9bccedc54d7590a8190142e5fa63e6370efb11e8b0d2869aef46c6a6cc47bc91\"},\"candidate\":{\"bytes\":59496,\"sha256\":\"492c7a8539b1cb52cc55b1a45ca93e9042670840b45132d2935b406bbe2bf1e9\"},\"outside_source113\":true},\"reviews\":[{\"member\":\"inspection-digest-review.json\",\"sha256\":\"059cfcea9fc7d1d63bf3812ce4ca2950fb978665b348f92c90f255e301f90055\",\"scope\":\"ACCEPT_EXACT_OPERATION_SCOPED_ANDROID_INSPECTION_DIGEST_SOURCE\"},{\"member\":\"command-lifetime-review.json\",\"sha256\":\"cf75c00076de578dd0ded073a6c2aff9c8e0986c7f41c84ff088272f3038c233\",\"scope\":\"EXACT_OUTER_COMMAND_LIFETIME_SOURCE_HOST\"},{\"member\":\"runner-fixture-review.json\",\"sha256\":\"49ef08e13d303f42dc6d933f92a166a85e1bde16ed28efce30ceeac0afccd193\",\"scope\":\"SAFE_CI_SELECTION_NEGATIVE_CONTROL_FIXTURE\"}],\"profile\":{\"id\":\"mixer.android-source-pair.10\",\"sdk_count\":24,\"sdk_sha256\":\"dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47\",\"adapter_count\":25,\"adapter_sha256\":\"b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e\",\"java_sources\":19},\"baseline_runtime_seal\":{\"bytes\":3815,\"sha256\":\"a4037e0c171fdac8ca003971aeba2d23c65f37c54349e6529fc6b3e176646626\"},\"combinedAccepted\":false,\"canonicalApplied\":false,\"actualSixConsumers\":false,\"hostedTimeoutResolved\":false,\"runtimePass\":false,\"gaPass\":false}")
+        base.need(same_json(binding.get('combined_cli_transition'), transition), 'Combined transition binding differs')
+        predecessor_inputs = sdk_fixture_successor(base, binding, actual, owner)
+        baseline_inputs = dict(predecessor_inputs)
+        base.need(len(actual) == 113 and set(actual) == set(frozen), 'Combined owning roster differs')
+        for change in transition['owning_changes']:
+            base.need(actual.get(change['path']) == change['candidate'], 'Combined candidate owning row differs')
+            baseline_inputs[change['path']] = change['preimage']
+        base.need(owner.source_digest(baseline_inputs) == baseline_digest, 'Combined two-row baseline differs')
+        base.need(owner.source_digest(predecessor_inputs) == transition['current_source113'], 'Combined current source differs')
+        baseline_seal = base.regular(HERE / 'baseline-runtime-seal.json').read_bytes()
+        base.need({'bytes':len(baseline_seal), 'sha256':hashlib.sha256(baseline_seal).hexdigest()} == transition['baseline_runtime_seal']
+                  and json.loads(baseline_seal)['member_count'] == 24, 'Baseline runtime seal history differs')
+        reviews = {}
+        for spec in transition['reviews']:
+            raw = base.regular(HERE / spec['member']).read_bytes()
+            base.need(hashlib.sha256(raw).hexdigest() == spec['sha256'], 'Accepted combined raw review hash differs: ' + spec['member'])
+            reviews[spec['member']] = json.loads(raw, object_pairs_hook=base.unique_object)
+        resource_review = reviews['inspection-digest-review.json']
+        resource_change, checker_change = transition['owning_changes']
+        base.need(base.sha(ROOT / checker_change['path']) == checker_change['candidate']['sha256'], 'Accepted current checker identity differs')
+        base.need(resource_review.get('decision') == 'ACCEPT_EXACT_OPERATION_SCOPED_ANDROID_INSPECTION_DIGEST_SOURCE'
+                  and resource_review.get('status') == 'PASS'
+                  and resource_review.get('target') == resource_change['path']
+                  and resource_review.get('baselineRevision') == '4a4dd6ce5c92e06ac6e49c97df8db6a59e67495b'
+                  and resource_review.get('baselineSource113') == baseline_digest
+                  and resource_review.get('currentPreimage') == resource_change['preimage']
+                  and resource_review.get('candidate') == resource_change['candidate']
+                  and resource_review.get('patch') == {'bytes':4955,'sha256':'89dac947f6e1cb88297bf16f1b34e3a4ff7beb9d061fe1f3f6434708fc53f733'}
+                  and resource_review.get('canonicalApplied') is False
+                  and resource_review.get('hostedTimeoutResolved') is False
+                  and resource_review.get('nextSource113') is None
+                  and resource_review.get('nativeDeviceGAQualified') is False, 'Accepted resource review scope differs')
+        lifetime_review = reviews['command-lifetime-review.json']
+        base.need(lifetime_review.get('verdict') == 'ACCEPT'
+                  and lifetime_review.get('scope') == 'EXACT_OUTER_COMMAND_LIFETIME_SOURCE_HOST'
+                  and lifetime_review.get('decision') == 'ACCEPT_EXACT_OUTER_COMMAND_LIFETIME_SOURCE_HOST'
+                  and lifetime_review.get('candidate') == {'checkerSHA256':checker_change['candidate']['sha256'],'bytes':checker_change['candidate']['bytes'],'patchSHA256':'65db5e9b1c43ae71b7277e4127b0b46fb5424e56ee61914597964196c74bfc25','source113Proposed':'aede2b4db8202a0bfbc1db87e00e82b4e02617bb3fc72e278f0130af675ade46'}
+                  and lifetime_review.get('preimage') == {'checkerSHA256':checker_change['preimage']['sha256'],'bytes':checker_change['preimage']['bytes'],'source113':baseline_digest,'rows':113}
+                  and all(lifetime_review.get(k) is False for k in ('canonicalAdopted','actualSixConsumersPassed','runtimePass','gaPass')), 'Accepted lifetime review scope differs')
+        checker_only = dict(baseline_inputs)
+        checker_only[checker_change['path']] = checker_change['candidate']
+        base.need(owner.source_digest(checker_only) == lifetime_review['candidate']['source113Proposed'], 'Lifetime checker-only context differs')
+        fixture_review = reviews['runner-fixture-review.json']
+        fixture = transition['fixture']
+        fixture_raw = base.regular(ROOT / fixture['path']).read_bytes()
+        base.need({'bytes':len(fixture_raw),'sha256':hashlib.sha256(fixture_raw).hexdigest()} == SDK_FIXTURE_TRANSITION['fixture']['after']
+                  and fixture['path'] not in actual, 'Accepted fixture candidate differs')
+        base.need(fixture_review.get('verdict') == 'ACCEPT_EXACT_SYNTHETIC_RUNNER_FIXTURE_SOURCE'
+                  and fixture_review.get('gate') == 'SAFE_CI_SELECTION_NEGATIVE_CONTROL_FIXTURE'
+                  and {k:fixture_review.get('candidate',{}).get(k) for k in ('bytes','sha256')} == fixture['candidate']
+                  and fixture_review.get('patches',[{}])[0] == {'name':'canonical full patch','requiredBeforeSHA256':fixture['preimage']['sha256'],'patch':'reviewed-artifacts/test-only.patch','patchSHA256':'852ea46271a5a3d7b23fe1cbeaf56d397aafdc8725c9f6efa8fb0d3c623f5309','exactReplayVerified':True}
+                  and fixture_review.get('subjects') == {'canonicalOwningDigest':baseline_digest,'modernExecutedOwningDigest':lifetime_review['candidate']['source113Proposed'],'canonicalCheckerSHA256':checker_change['preimage']['sha256'],'modernCheckerSHA256':checker_change['candidate']['sha256'],'fixtureSHA256':fixture['candidate']['sha256'],'fixtureBytes':fixture['candidate']['bytes']}, 'Accepted fixture review scope differs')
+        base.need(len(profile['sdk_files']) == 24 and profile['sdk_compatibility_sha256'] == 'dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47'
+                  and len(profile['adapter_files']) == 25 and profile['adapter_compatibility_sha256'] == 'b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e'
+                  and len(owner.java_roster(profile)) == 19, 'Combined profile differs')
+        base.need(same_json(binding.get('fixture_dispatch'), {'host_rust_fixture_after_exact_checks':True, 'scope':'host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch', 'combinedAccepted':False, 'runtime':False, 'GA':False, 'exactWindow':False}), 'Host-only fixture dispatch contract differs')
+        base.need(same_json(binding.get('adoption'), {'allowed':False, 'status':'CANDIDATE_PENDING_COMBINED_REVIEW', 'canonicalAdopted':False})
+                  and same_json(binding.get('qualification'), {'compiler':False, 'native':False, 'CLI87':False, 'TestFlight':False, 'release':False, 'GA':False}), 'Candidate authority must remain pending')
+        base.need(len(actual) == 113 and digest == '1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854' and binding['source']['count'] == 113 and binding['source']['sha256'] == digest, 'Bound source closure differs')
         base.need(binding['profile'] == {'id':profile['id'], 'sdk_count':len(profile['sdk_files']), 'sdk_sha256':profile['sdk_compatibility_sha256'], 'adapter_count':len(profile['adapter_files']), 'adapter_sha256':profile['adapter_compatibility_sha256'], 'java_sources':len(owner.java_roster(profile))}, 'Accepted profile binding differs')
-        callers = json.loads(base.regular(HERE / 'caller-inputs.json').read_bytes(), object_pairs_hook=base.unique_object)
+        caller_raw = base.regular(HERE / 'caller-inputs.json').read_bytes()
+        base.need(len(caller_raw) == 1666 and hashlib.sha256(caller_raw).hexdigest() == '2cff3508e0c461a7cefddcd773cd58d5df9e74e0c1ff1a3248ff27eb56464178', 'Accepted caller authority bytes differ')
+        callers = json.loads(caller_raw, object_pairs_hook=base.unique_object)
         base.check_rows(ROOT, callers)
         expected = base.regular(HERE / 'current-swift-job.yml').read_text()
         base.need(expected == base.regular(prior / 'swift-job.yml').read_text(), 'Historical predecessor job differs')

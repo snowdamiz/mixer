@@ -410,7 +410,17 @@ def retain_inner(record, tmp, required, *, successful):
     return retained
 
 
+_PROCESS_OWNERS = {}
+_COMMAND_OWNERS = []
+
+
 class OwnedCLIPopen(subprocess.Popen):
+    def __new__(cls, *args, **kwargs):
+        instance = object.__new__(cls)
+        # Retain before Popen.__init__: it can raise without returning the child.
+        _PROCESS_OWNERS[id(instance)] = instance
+        return instance
+
     # CPython Popen.__del__ polls and may enlist the object in _active. Neither
     # action belongs to a finalizer: all observations are owned by run_cli.
     def __del__(self):
@@ -418,6 +428,7 @@ class OwnedCLIPopen(subprocess.Popen):
 
 
 CLI_PROCESS = OwnedCLIPopen
+COMMAND_PROCESS = OwnedCLIPopen
 _CLI_OWNERS = []
 
 
@@ -431,6 +442,7 @@ class CLIResources:
     def release_terminal(self):
         require(self.record['terminal_custody'] is True, 'Nonterminal CLI resource release')
         _CLI_OWNERS.remove(self)
+        _PROCESS_OWNERS.pop(id(self.child), None)
 
 
 def cli_exit_boundary(code=74, owners=_CLI_OWNERS, exit_now=os._exit):
@@ -442,6 +454,17 @@ def cli_exit_boundary(code=74, owners=_CLI_OWNERS, exit_now=os._exit):
 
 
 atexit.register(cli_exit_boundary)
+
+
+def command_exit_boundary(code=74, owners=_COMMAND_OWNERS,
+                          processes=_PROCESS_OWNERS, exit_now=os._exit):
+    # Includes constructor-incomplete objects, even if no caller received them.
+    # Retained resources must not reach Python teardown while custody is unknown.
+    if owners or processes:
+        exit_now(code)
+
+
+atexit.register(command_exit_boundary)
 
 
 class Commands:
@@ -637,13 +660,16 @@ class Commands:
                   'stdout_eof': False, 'stderr_eof': False, 'owned_group_absent': False,
                   'signal': {'name': 'SIGKILL', 'attempted': False, 'outcome': 'not-started'},
                   'group_observation': {'outcome': 'not-started', 'attempts': 0},
-                  'cleanup_errors': [], 'terminal_custody': False}
+                  'cleanup_errors': [], 'descriptors_closed': False, 'terminal_custody': False}
         self.records.append(record)
         logs = {k: self.out / f'{number:03}-{label}.{k}' for k in ('stdout', 'stderr')}
         buffers = {k: bytearray() for k in logs}
         child = None
         start = time.monotonic()
         selector = None
+        resources = {'commands': self, 'record': record, 'child': None,
+                     'selector': None, 'logs': logs, 'buffers': buffers}
+        _COMMAND_OWNERS.append(resources)
 
         def cleanup_error(operation, error):
             record['cleanup_errors'].append({'operation': operation,
@@ -669,9 +695,10 @@ class Commands:
                 record['stop'] = 'output-limit'
 
         try:
-            selector = selectors.DefaultSelector()
-            child = subprocess.Popen(argv, cwd=cwd, env=self.env, stdin=subprocess.DEVNULL,
-                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+            selector = resources['selector'] = selectors.DefaultSelector()
+            child = resources['child'] = COMMAND_PROCESS(
+                argv, cwd=cwd, env=self.env, stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
             record['pid'] = record['owned_pgid'] = child.pid
             for name in logs:
                 pipe = getattr(child, name)
@@ -748,16 +775,22 @@ class Commands:
                 if observation['outcome'] == 'present':
                     observation['outcome'] = 'present-at-deadline'
                 observation['elapsed_seconds'] = round(time.monotonic() - (cleanup_deadline - self.cleanup_seconds), 3)
-                for name in logs:
-                    try:
-                        getattr(child, name).close()
-                    except BaseException as error:
-                        cleanup_error('close-' + name, error)
-            if selector is not None:
-                try:
-                    selector.close()
-                except BaseException as error:
-                    cleanup_error('close-selector', error)
+                # Incomplete custody retains the exact streams and selector.
+                # Only explicit terminal cleanup may close them.
+                if (record['direct_child_reaped'] and record['stdout_eof'] and
+                        record['stderr_eof'] and record['owned_group_absent'] and
+                        not record['cleanup_errors']):
+                    for name in logs:
+                        try:
+                            getattr(child, name).close()
+                        except BaseException as error:
+                            cleanup_error('close-' + name, error)
+                    if not record['cleanup_errors']:
+                        try:
+                            selector.close()
+                        except BaseException as error:
+                            cleanup_error('close-selector', error)
+                    record['descriptors_closed'] = not record['cleanup_errors']
             record['elapsed_seconds'] = round(time.monotonic() - start, 3)
             record['logs'] = {}
             for name, path in logs.items():
@@ -767,12 +800,24 @@ class Commands:
                 except BaseException as error:
                     cleanup_error('persist-' + name, error)
             record['terminal_custody'] = (record['direct_child_reaped'] and record['stdout_eof']
-                and record['stderr_eof'] and record['owned_group_absent'] and not record['cleanup_errors'])
+                and record['stderr_eof'] and record['owned_group_absent']
+                and record['descriptors_closed'] and not record['cleanup_errors'])
             try:
-                save(self.out / 'commands.json', self.records)
+                durable_save(self.out / 'commands.json', self.records)
             except BaseException as error:
                 cleanup_error('persist-command-receipt', error)
                 record['terminal_custody'] = False
+            if record['terminal_custody']:
+                # Receipt durability is part of release, including failure exits.
+                _COMMAND_OWNERS.remove(resources)
+                _PROCESS_OWNERS.pop(id(child), None)
+            else:
+                self.hold = self.hold or {'parent_label': label,
+                    'operation': 'command-terminal-custody', 'record': record}
+                try:
+                    durable_save(self.out / 'COMMAND-HOLD.json', self.hold)
+                except BaseException as error:
+                    record['hold_persistence_error'] = repr(error)
         require('execution_error' not in record, label + ': ' + str(record.get('execution_error')))
         require(record['terminal_custody'], label + ': terminal custody unknown or cleanup failed')
         require(record['stop'] is None, label + ': ' + str(record['stop']))
@@ -1130,4 +1175,5 @@ if __name__ == '__main__':
     try:
         sys.exit(main())
     finally:
+        command_exit_boundary()
         cli_exit_boundary()

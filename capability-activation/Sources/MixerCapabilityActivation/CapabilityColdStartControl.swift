@@ -206,6 +206,8 @@ final class CapabilityColdStartControl: @unchecked Sendable {
     func finishNotification() { lock.lock(); notificationBusy = false; lock.unlock() }
     func clearPendingWake() { lock.lock(); pendingWake = false; lock.unlock() }
     var timerFired: Bool { lock.lock(); let timer = observation?.timer; lock.unlock(); return timer?.fired == true }
+    /// Owner-local retirement; a global pool count cannot identify this owner.
+    var ownerRetired: Bool { isClosed && reservation.isReleased && !snapshot.cleanupPending }
     var isClosed: Bool { lock.lock(); defer { lock.unlock() }; return closed }
     func stopConcrete(cause: CapabilityAttemptLocalStop = .closed) -> CapabilityConcreteRetirement? {
         stopConcreteOwned(cause)

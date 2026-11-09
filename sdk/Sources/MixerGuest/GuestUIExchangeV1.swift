@@ -6,6 +6,11 @@ import MixerUI
 @_spi(GuestUIV1) public final class GuestUIExchangeV1: @unchecked Sendable {
     public let deliveryWake = GuestUIWakeV1()
     public let coordinatorWake = GuestUIWakeV1()
+    private let nativeInputReadinessWake = GuestUIWakeV1()
+    /// Sole native owner reader; document-only delivery remains unchanged.
+    public func takeNativeInputReadinessConsumer() throws -> GuestUINativeInputReadinessConsumerV1 {
+        try GuestUINativeInputReadinessConsumerV1(wake: nativeInputReadinessWake)
+    }
     private let generation: UInt64
     private let issuer = GuestUIIssuerV1()
     private let lock = NSLock()
@@ -16,6 +21,8 @@ import MixerUI
         static let delivery = Notices(rawValue: 1)
         static let coordinator = Notices(rawValue: 2)
         static let finishDelivery = Notices(rawValue: 4)
+        static let nativeInputReadiness = Notices(rawValue: 8)
+        static let finishNativeInputReadiness = Notices(rawValue: 16)
     }
     private enum Event {
         case preparing(UInt64), queued(UInt64, Data), running(UInt64)
@@ -72,6 +79,8 @@ import MixerUI
         // No continuation can resume under the exchange or wake-state lock.
         if notices.contains(.delivery) { deliveryWake.signal() }
         if notices.contains(.coordinator) { coordinatorWake.signal() }
+        if notices.contains(.nativeInputReadiness) { nativeInputReadinessWake.signal() }
+        if notices.contains(.finishNativeInputReadiness) { nativeInputReadinessWake.finish() }
         if notices.contains(.finishDelivery) { deliveryWake.finish() }
     }
     private func requireLive(_ s: State, generation expected: UInt64) throws {
@@ -105,7 +114,7 @@ import MixerUI
         }
         s.turn = nil; s.pending = nil; s.lastBytes = nil; s.lastDocument = nil
         s.displayed = nil; s.displayedFrameSerial = nil; s.receipt = nil; s.refresh = true
-        notices.formUnion([.delivery, .coordinator, .finishDelivery])
+        notices.formUnion([.delivery, .coordinator, .finishDelivery, .finishNativeInputReadiness])
     }
     private func failure(_ claim: GuestUITurnClaimV1, _ code: GuestUIProtocolCodeV1) -> GuestUIProtocolFailureV1 {
         let phase: GuestUIProtocolPhaseV1
@@ -147,10 +156,10 @@ import MixerUI
         }
     }
     public func finishReadyWithoutInvocation(_ claim: GuestUITurnClaimV1) throws {
-        try mutate { s, _ in
+        try mutate { s, notices in
             try requireTurn(claim, s)
             guard case .ready = claim.kind else { throw GuestUIControlRejectionV1.staleClaim }
-            s.turn = nil
+            s.turn = nil; notices.insert(.nativeInputReadiness)
         }
     }
     public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data) throws {
@@ -205,15 +214,27 @@ import MixerUI
                 bump(&s.counters.deliveredEvents); s.refresh = true; notices.insert(.delivery)
             }
             s.turn = nil; bump(&s.counters.successfulTurns)
+            if case .ready = claim.kind { notices.insert(.nativeInputReadiness) }
         }
     }
 
     public func offer(_ envelope: UIEventEnvelope, generation expected: UInt64) -> GuestUIEventAdmissionV1 {
-        enum Preparation { case rejected(GuestUIEventAdmissionV1), encode(UInt64, RoutedUIAction) }
+        offerNativeInput(envelope, generation: expected, classifyReady: false).ordinaryAdmission
+    }
+    /// A ready-only classification is a refusal, never event admission.
+    public func offerNativeInput(_ envelope: UIEventEnvelope, generation expected: UInt64) -> GuestUINativeInputAdmissionV1 {
+        offerNativeInput(envelope, generation: expected, classifyReady: true)
+    }
+    private func offerNativeInput(_ envelope: UIEventEnvelope, generation expected: UInt64,
+                                  classifyReady: Bool) -> GuestUINativeInputAdmissionV1 {
+        enum Preparation { case rejected(GuestUIEventAdmissionV1), readyBusy, encode(UInt64, RoutedUIAction) }
         let preparation: Preparation = mutate { s, notices in
             guard expected == generation else { return .rejected(.stale) }
             guard s.stop == nil else { return .rejected(.closed) }
-            guard s.confirmed, s.turn == nil, s.event == nil else { return .rejected(.busy) }
+            guard s.confirmed else { return .rejected(.busy) }
+            // Preserve legacy refusal ordering and behavior. The native path
+            // validates before classifying the sole transient ready conflict.
+            if !classifyReady, s.turn != nil || s.event != nil { return .rejected(.busy) }
             guard let displayed = s.displayed, displayed.document.revision == s.latestRevision,
                   envelope.revision == displayed.document.revision else { return .rejected(.stale) }
             let action: RoutedUIAction
@@ -221,6 +242,10 @@ import MixerUI
             catch let error as UIRoutingError { return .rejected(.invalid(error)) }
             catch { return .rejected(.invalid(.invalidValue)) }
             guard action.event == .activate, action.value == .null else { return .rejected(.invalid(.invalidValue)) }
+            if classifyReady, s.turn != nil || s.event != nil || s.presentation != nil {
+                if case .ready? = s.turn?.kind, s.event == nil, s.presentation == nil { return .readyBusy }
+                return .rejected(.busy)
+            }
             guard s.eventSequence < .max else {
                 protocolStop(GuestUIProtocolFailureV1(phase: .event, code: .sequenceExhausted), &s, &notices)
                 return .rejected(.closed)
@@ -231,26 +256,27 @@ import MixerUI
             return .encode(sequence, action)
         }
         guard case .encode(let sequence, let action) = preparation else {
-            if case .rejected(let result) = preparation { return result }
-            return .closed
+            if case .rejected(let result) = preparation { return .offered(result) }
+            if case .readyBusy = preparation { return .readyBusy }
+            return .offered(.closed)
         }
         let bytes: Data
         do {
             bytes = try GuestUIEventCodecV1.encode(GuestUIEventV1(sequence: sequence, revision: action.revision,
                 nodeID: action.nodeID, actionID: action.actionID))
         } catch {
-            return mutate { s, notices in
+            return .offered(mutate { s, notices in
                 guard s.stop == nil, case .preparing(sequence)? = s.event else { return .closed }
                 protocolStop(GuestUIProtocolFailureV1(phase: .event, code: .eventEncoding), &s, &notices)
                 return .closed
-            }
+            })
         }
-        return mutate { s, notices in
+        return .offered(mutate { s, notices in
             guard s.stop == nil, case .preparing(let current)? = s.event, current == sequence else { return .closed }
             s.event = .queued(sequence, bytes); s.eventSequence = sequence
             bump(&s.counters.acceptedEvents); s.counters.maximumEventBytes = max(s.counters.maximumEventBytes, UInt64(bytes.count))
             s.refresh = true; notices.insert(.delivery); return .accepted(sequence: sequence)
-        }
+        })
     }
     public func claimPresentation(generation expected: UInt64) -> GuestUIPresentationClaimV1? {
         mutate { s, notices in
@@ -388,3 +414,14 @@ import MixerUI
 }
 
 private func bump(_ value: inout UInt64) { if value < .max { value += 1 } }
+
+/// Data-only owned observation. Cancellation releases its sole parked waiter.
+@_spi(GuestUIV1) public final class GuestUINativeInputReadinessConsumerV1: Sendable {
+    private let wake: GuestUIWakeV1
+    private let consumer: GuestUIWakeConsumerV1
+    fileprivate init(wake: GuestUIWakeV1) throws {
+        self.wake = wake; consumer = try wake.takeConsumer()
+    }
+    public func next() async throws -> Bool { try await consumer.next() }
+    public func cancel() { wake.finish() }
+}
