@@ -11,7 +11,7 @@ public struct AppStoreConnectBuildStatus: Sendable {
     public init() { configuration = .ephemeral }
     init(configuration: URLSessionConfiguration) { self.configuration = configuration }
 
-    func read(buildID: String, appID: String, bundleID: String, token: String) throws -> StoreBuildObservation.ProviderValue {
+    func read(buildID: String, appID: String, bundleID: String, token: String, testing: Bool = false) throws -> StoreBuildObservation.ProviderValue {
         guard !token.isEmpty, token.utf8.count <= 16_384,
               token.utf8.allSatisfy({ (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || [45, 46, 95, 126, 43, 47, 61].contains($0) }) else {
             throw StoreQueryFailure.credentialRequired
@@ -19,6 +19,14 @@ public struct AppStoreConnectBuildStatus: Sendable {
         guard ![buildID, appID, bundleID].contains(where: { $0.contains(token) }) else { throw StoreQueryFailure.redactedResponse }
         var components = URLComponents(string: "https://api.appstoreconnect.apple.com/v1/builds/\(buildID)")!
         components.queryItems = [URLQueryItem(name: "fields[builds]", value: "version,processingState,app"), URLQueryItem(name: "include", value: "app"), URLQueryItem(name: "fields[apps]", value: "bundleId")]
+        if testing {
+            components.queryItems = [
+                URLQueryItem(name: "fields[builds]", value: "version,processingState,expired,app,buildBetaDetail"),
+                URLQueryItem(name: "include", value: "app,buildBetaDetail"),
+                URLQueryItem(name: "fields[apps]", value: "bundleId"),
+                URLQueryItem(name: "fields[buildBetaDetails]", value: "internalBuildState,externalBuildState,build")
+            ]
+        }
         let url = components.url!
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: Self.timeoutSeconds)
         request.httpMethod = "GET"
@@ -38,6 +46,7 @@ public struct AppStoreConnectBuildStatus: Sendable {
         let bytes = try receiver.result()
         do {
             try JSONInputGuard.validate(bytes, limits: JSONInputLimits(maximumBytes: Self.maximumResponseBytes, maximumDepth: 16, maximumValues: 4096, maximumStringBytes: 4096))
+            if testing { return try ASCTestingResponse.value(bytes, buildID: buildID, appID: appID, bundleID: bundleID, token: token) }
             let response = try JSONDecoder().decode(ASCBuildResponse.self, from: bytes)
             guard response.data.type == "builds", response.data.id == buildID,
                   response.data.relationships.app.data.type == "apps", response.data.relationships.app.data.id == appID else { throw StoreQueryFailure.identityMismatch }

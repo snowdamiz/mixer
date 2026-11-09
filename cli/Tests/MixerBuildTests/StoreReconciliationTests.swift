@@ -537,22 +537,19 @@ private func assertReads(_ count: Int) throws {
             DispatchQueue.global().async { result.set(Result { try query(root) }); done.signal() }
             guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
             defer { gate.release.signal() }
-            let process = Process(), pipe = Pipe()
-            process.executableURL = URL(fileURLWithPath: try #require(ProcessInfo.processInfo.environment["MIXER_STORE_TEST_CLI"]))
-            process.arguments = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
+            let executable = try #require(ProcessInfo.processInfo.environment["MIXER_STORE_TEST_CLI"])
+            let arguments = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
             var environment = ProcessInfo.processInfo.environment
             environment["MIXER_ASC_BEARER_TOKEN"] = secret
-            process.environment = environment; process.standardOutput = pipe; process.standardError = pipe
-            try process.run()
-            let data = pipe.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
-            #expect(process.terminationStatus == 1 && String(decoding: data, as: UTF8.self).contains("store.credential-required"))
+            let child = try StoreCLIChild.run(executable, arguments, environment: environment)
+            #expect(child.0 == 1 && child.1.contains("store.credential-required"))
             gate.release.signal()
             try #require(done.wait(timeout: .now() + 5) == .success)
             let older = try #require(result.get()).get()
             #expect(older.code == .redactedResponse && older.observation == nil)
             #expect(try query(root, token: "").observation == nil)
             #expect(!String(decoding: try record(root), as: UTF8.self).contains(secret))
-            print("REVIEW crossProcess childExit=\(process.terminationStatus) oldWriter=\(older.code?.rawValue ?? "nil") noReemission=true")
+            print("REVIEW crossProcess childExit=\(child.0) oldWriter=\(older.code?.rawValue ?? "nil") noReemission=true")
         }
     }
     @Test func processingStatesAndRepeatedInvocationPreserveVersionWithoutReadiness() throws {
@@ -699,13 +696,8 @@ private final class ResultBox: @unchecked Sendable {
     func get() -> Result<StoreReconciliationReport, Error>? { lock.lock(); defer { lock.unlock() }; return value }
 }
 private func runCLI(_ executable: String, _ arguments: [String]) throws -> (Int32, String) {
-    let process = Process(), pipe = Pipe()
-    process.executableURL = URL(fileURLWithPath: executable); process.arguments = arguments
-    process.environment = ProcessInfo.processInfo.environment.filter { $0.key != "MIXER_ASC_BEARER_TOKEN" }
-    process.standardOutput = pipe; process.standardError = pipe
-    try process.run()
-    let data = pipe.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
-    return (process.terminationStatus, String(decoding: data, as: UTF8.self))
+    try StoreCLIChild.run(executable, arguments, environment:
+        ProcessInfo.processInfo.environment.filter { $0.key != "MIXER_ASC_BEARER_TOKEN" })
 }
 private extension Data {
     func replacing(_ search: Data, with replacement: Data) -> Data {
@@ -929,15 +921,10 @@ extension StoreSubmissionReconciliationTests {
                 let results = (0..<24).map { _ in ReviewCLIResult() }
                 DispatchQueue.concurrentPerform(iterations: 24) { i in
                     results[i].result = Result {
-                        let process = Process(), pipe = Pipe()
-                        process.executableURL = URL(fileURLWithPath: executable)
-                        process.arguments = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
+                        let arguments = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
                         var environment = ProcessInfo.processInfo.environment
                         environment["MIXER_ASC_BEARER_TOKEN"] = "invalid process credential \(i)"
-                        process.environment = environment; process.standardOutput = pipe; process.standardError = pipe
-                        try process.run()
-                        let data = pipe.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
-                        return (process.terminationStatus, String(decoding: data, as: UTF8.self))
+                        return try StoreCLIChild.run(executable, arguments, environment: environment)
                     }
                 }
                 for box in results {

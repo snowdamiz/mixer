@@ -60,8 +60,11 @@ private func toolReceipt<T: Decodable>(_ type: T.Type, from output: String, fiel
 }
 
 public enum LocalUpdateValidation {
-    public static func verify(arguments: [String], verifier: String, vm: String) throws -> LocalUpdateReport {
-        try verify(arguments: arguments, verifier: verifier, vm: vm, runner: { try ProcessRunner.run($0) })
+    public static func verify(arguments: [String], verifier: String, vm: String,
+                              context: ProcessExecutionContext = .localDevelopment) throws -> LocalUpdateReport {
+        try verify(arguments: arguments, verifier: verifier, vm: vm, context: context, runSnapshotCommand: { command, inputs in
+            try ProcessRunner.run(command, policy: .localValidation, context: context, retaining: inputs)
+        })
     }
 
     // Both verifiers consume the same private snapshot. Reading caller paths again
@@ -69,6 +72,12 @@ public enum LocalUpdateValidation {
     // different payloads. No artifact is activated or published by this command.
     static func verify(arguments: [String], verifier: String, vm: String,
                        runner: ([String]) throws -> CommandResult) throws -> LocalUpdateReport {
+        try verify(arguments: arguments, verifier: verifier, vm: vm, context: .localDevelopment,
+                   runSnapshotCommand: { command, _ in try runner(command) })
+    }
+
+    static func verify(arguments: [String], verifier: String, vm: String, context: ProcessExecutionContext,
+                       runSnapshotCommand: ([String], [URL]) throws -> CommandResult) throws -> LocalUpdateReport {
         let keys: Set<String> = ["--manifest", "--payload", "--host", "--roots", "--assignment", "--channel", "--installation", "--last-sequence", "--now"]
         guard arguments.count == keys.count * 2 else { throw MixerFailure("update.arguments", "Expected all nine update verify options exactly once.") }
         var values: [String: String] = [:]
@@ -77,9 +86,9 @@ public enum LocalUpdateValidation {
             values[arguments[index]] = arguments[index + 1]
         }
         guard Set(values.keys) == keys else { throw MixerFailure("update.arguments", "Missing update verify option.") }
-        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-verify-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
-        defer { try? FileManager.default.removeItem(at: folder) }
+        let snapshot = try context.makeInputSnapshot()
+        let folder = snapshot.directory
+        defer { snapshot.removeIfUnheld() }
         var payloadDigest = ""
         var snapshots: [String: Data] = [:]
         for key in ["--manifest", "--payload", "--host", "--roots", "--assignment"] {
@@ -107,7 +116,7 @@ public enum LocalUpdateValidation {
         }
         let linkedReceipt = LinkedProtocolReceipt(artifactSHA256: artifact.artifactSHA256, payloadBytes: artifact.payloadBytes, assignmentSequence: assignment.sequence, cohortBucket: assignment.cohortBucket)
         let protocolIdentity = try VerificationFile.tool(verifier), vmIdentity = try VerificationFile.tool(vm)
-        let protocolResult = try runner([protocolIdentity.path, "verify"] + keys.sorted().flatMap { [$0, values[$0]!] })
+        let protocolResult = try runSnapshotCommand([protocolIdentity.path, "verify"] + keys.sorted().flatMap { [$0, values[$0]!] }, snapshot.retainedInputDirectories)
         guard try VerificationFile.tool(protocolIdentity.path) == protocolIdentity else { throw MixerFailure("update.tool-changed", "Protocol verification executable changed during validation.") }
         guard protocolResult.succeeded, !protocolResult.outputTruncated else {
             return LocalUpdateReport(status: "protocol-rejected", payloadSHA256: payloadDigest, protocolVerification: protocolResult, executableVerification: nil, linkedProtocolVerification: linkedReceipt, protocolTool: protocolIdentity, executableTool: vmIdentity, rejectionReason: "Protocol tool rejected the candidate.")
@@ -123,7 +132,7 @@ public enum LocalUpdateValidation {
         }
         guard try VerificationFile.read(URL(fileURLWithPath: values["--payload"]!), maximumBytes: 16_777_216) == snapshots["--payload"]! else { throw MixerFailure("update.snapshot-changed", "Private payload snapshot changed during verification.") }
         guard let limits = artifact.manifest.object?["limits"]?.object, let memory = limits["memory_bytes"]?.uint, let fuel = limits["fuel"]?.uint else { throw MixerFailure("update.limits", "Missing verified resource limits.") }
-        let vmResult = try runner([vmIdentity.path, "validate", values["--payload"]!, "--fuel", String(fuel), "--memory-pages", String(memory / 65_536)])
+        let vmResult = try runSnapshotCommand([vmIdentity.path, "validate", values["--payload"]!, "--fuel", String(fuel), "--memory-pages", String(memory / 65_536)], snapshot.retainedInputDirectories)
         guard try VerificationFile.tool(vmIdentity.path) == vmIdentity,
               try VerificationFile.read(URL(fileURLWithPath: values["--payload"]!), maximumBytes: 16_777_216) == snapshots["--payload"]! else { throw MixerFailure("update.snapshot-changed", "Verification executable or payload changed during validation.") }
         var valid = false, rejection: String? = vmResult.succeeded ? nil : "Owned VM rejected the executable profile."

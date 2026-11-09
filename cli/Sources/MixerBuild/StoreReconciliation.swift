@@ -5,16 +5,17 @@ import MixerCore
 public struct StoreStatusRequest: Sendable {
     let buildID: String
     let appID: String
+    let testing: Bool
     public static func parse(words: [String], options: [String: String]) throws -> Self {
-        guard words == ["submit", "status"] else {
+        guard words == ["submit", "status"] || words == ["submit", "testing-status"] else {
             throw MixerFailure("workflow.not-qualified", "submit requires native/guest/store integration that is still in progress. No build, release or submission has been performed. See mixer gates.")
         }
         guard Set(options.keys).isSubset(of: ["--provider", "--build-id", "--app-id", "--directory"]),
               options["--provider"] == "app-store-connect", let buildID = options["--build-id"], let appID = options["--app-id"],
               validID(buildID), validID(appID) else {
-            throw MixerFailure("arguments.submit-status", "Usage: mixer submit status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID [--directory PROJECT]")
+            throw MixerFailure(words.last == "testing-status" ? "arguments.submit-testing-status" : "arguments.submit-status", "Usage: mixer submit \(words.last ?? "status") --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID [--directory PROJECT]")
         }
-        return Self(buildID: buildID, appID: appID)
+        return Self(buildID: buildID, appID: appID, testing: words.last == "testing-status")
     }
     // Deliberately narrower than an arbitrary opaque string, so identity cannot alter URL paths.
     private static func validID(_ value: String) -> Bool {
@@ -23,7 +24,11 @@ public struct StoreStatusRequest: Sendable {
 }
 
 public struct StoreBuildObservation: Codable, Sendable {
-    struct ProviderValue: Codable, Sendable { let version: String; let processingState: String }
+    struct ProviderValue: Codable, Sendable {
+        let version: String
+        let processingState: String
+        var testing: StoreTestingValue? = nil
+    }
     let generation: UInt64
     public let observedAt: Date
     let providerValue: ProviderValue
@@ -74,6 +79,17 @@ public struct StoreReconciliationReport: Encodable, Sendable {
 
 public enum StoreReconciliation {
     public static func status(request: StoreStatusRequest, directory: URL, environment: [String: String] = ProcessInfo.processInfo.environment, reader: AppStoreConnectBuildStatus = .init()) throws -> StoreReconciliationReport {
+        guard !request.testing else { throw MixerFailure("arguments.submit-status", "Use testingStatus for a testing-status request.") }
+        let result = try reconcile(request: request, directory: directory, environment: environment, reader: reader)
+        return .init(buildID: result.buildID, appID: result.appID, bundleID: result.bundleID, query: result.query, code: result.code, observation: result.observation.map {
+            .init(generation: $0.generation, observedAt: $0.observedAt, providerValue: .init(version: $0.version, processingState: $0.processingState))
+        }, observationUpdated: result.observationUpdated)
+    }
+    public static func testingStatus(request: StoreStatusRequest, directory: URL, environment: [String: String] = ProcessInfo.processInfo.environment, reader: AppStoreConnectBuildStatus = .init()) throws -> StoreTestingReconciliationReport {
+        guard request.testing else { throw MixerFailure("arguments.submit-testing-status", "Use status for a processing-only request.") }
+        return .init(reconciliation: try reconcile(request: request, directory: directory, environment: environment, reader: reader))
+    }
+    private static func reconcile(request: StoreStatusRequest, directory: URL, environment: [String: String] = ProcessInfo.processInfo.environment, reader: AppStoreConnectBuildStatus) throws -> StoreReconciliationReport {
         let config: ApplicationConfiguration
         do { config = try ApplicationConfiguration.load(directory) }
         catch { throw MixerFailure("store.project", "Cannot load a valid project application identity from mixer.yml.") }
@@ -91,7 +107,7 @@ public enum StoreReconciliation {
         let failure: StoreQueryFailure?
         let updated: Bool
         do {
-            let value = try reader.read(buildID: request.buildID, appID: request.appID, bundleID: config.application, token: token)
+            let value = try reader.read(buildID: request.buildID, appID: request.appID, bundleID: config.application, token: token, testing: request.testing)
             let result = try file.commit(.init(generation: generation, observedAt: Date(), providerValue: value))
             observation = result.0; updated = result.1; query = updated ? "observed" : "superseded"; failure = nil
         } catch let error as StoreQueryFailure {
@@ -172,7 +188,7 @@ final class StoreObservationFile {
             try JSONInputGuard.validate(data, limits: JSONInputLimits(maximumBytes: 16_384, maximumDepth: 8, maximumValues: 100))
             let record = try JSONDecoder().decode(Record.self, from: data)
             guard (record.schema == 1 || record.schema == 2), record.identity == identity,
-                  record.observation.map({ !$0.version.isEmpty && $0.version.utf8.count <= 256 && !$0.processingState.isEmpty && $0.processingState.utf8.count <= 128 }) ?? true,
+                  record.observation.map({ !$0.version.isEmpty && $0.version.utf8.count <= 256 && !$0.processingState.isEmpty && $0.processingState.utf8.count <= 128 && ($0.providerValue.testing?.valid ?? true) }) ?? true,
                   record.schema == 1 || (record.redactions == nil && record.redactionsExhausted == nil),
                   record.observation.map({ $0.generation > 0 && $0.generation <= record.issued }) ?? true,
                   record.discardedThrough.map({ $0 > 0 && $0 <= record.issued }) ?? true,
@@ -404,7 +420,7 @@ final class StoreObservationFile {
         return (index, migrated || sanitized)
     }
     private func reflectsCredential(_ observation: StoreBuildObservation, index: CredentialIndex) throws -> Bool {
-        for value in [observation.version, observation.processingState] {
+        for value in [observation.version, observation.processingState] + (observation.providerValue.testing?.rawStates ?? []) {
             if !token.isEmpty && value.contains(token) { return true }
             if try index.contains(value) { return true }
         }
@@ -432,7 +448,8 @@ final class StoreObservationFile {
         }
     }
     func commit(_ observation: StoreBuildObservation) throws -> (StoreBuildObservation?, Bool) {
-        try locked {
+        guard observation.providerValue.testing?.valid ?? true else { throw Self.failure() }
+        return try locked {
             var record = try read()
             let (index, sanitized) = try prepare(&record)
             if sanitized { try write(record) }

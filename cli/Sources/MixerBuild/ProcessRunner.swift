@@ -9,30 +9,18 @@ public struct CommandResult: Codable, Sendable {
 }
 
 public enum ProcessRunner {
-    // Output is spooled to a private temporary file so compiler diagnostics cannot
-    // deadlock a full pipe while the parent waits for termination.
-    public static func run(_ command: [String], at directory: URL? = nil, environment: [String: String]? = nil) throws -> CommandResult {
+    /// Runs a literal argv through /usr/bin/env, with explicit local-development limits and durable custody receipts.
+    public static func run(_ command: [String], at directory: URL? = nil, environment: [String: String]? = nil,
+                           policy: ProcessPolicy = .developmentBuild,
+                           context: ProcessExecutionContext = .localDevelopment, retaining inputs: [URL] = []) throws -> CommandResult {
         guard !command.isEmpty else { throw MixerFailure("command.empty", "Empty command") }
-        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-process-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let log = folder.appendingPathComponent("output")
-        FileManager.default.createFile(atPath: log.path, contents: nil, attributes: [.posixPermissions: 0o600])
-        let handle = try FileHandle(forWritingTo: log)
-        defer { try? handle.close() }
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = command; process.currentDirectoryURL = directory
-        process.environment = environment ?? ProcessInfo.processInfo.environment
-        process.standardOutput = handle; process.standardError = handle
-        try process.run(); process.waitUntilExit()
-        try handle.synchronize()
-        let reader = try FileHandle(forReadingFrom: log)
-        defer { try? reader.close() }
-        let length = try reader.seekToEnd(), maximum: UInt64 = 8 * 1_048_576
-        try reader.seek(toOffset: length > maximum ? length - maximum : 0)
-        let bytes = try reader.read(upToCount: Int(maximum)) ?? Data()
-        return CommandResult(command: command, exitCode: process.terminationStatus, output: String(decoding: bytes, as: UTF8.self), outputTruncated: length > maximum)
+        let selectedEnvironment = environment ?? ProcessInfo.processInfo.environment
+        guard command.allSatisfy({ !$0.utf8.contains(0) }), directory?.path.utf8.contains(0) != true,
+              selectedEnvironment.allSatisfy({ !$0.key.isEmpty && !$0.key.contains("=") && !$0.key.utf8.contains(0) && !$0.value.utf8.contains(0) }),
+              policy.runtimeSeconds > 0, policy.cleanupSeconds > 0, policy.generatedOutputBytes > 0 else {
+            throw MixerFailure("command.invalid", "Invalid argv, cwd, environment or command limits")
+        }
+        return try context.run(command: command, directory: directory, environment: selectedEnvironment, policy: policy, retainedInputs: inputs + (directory.map { [$0] } ?? []))
     }
 }
 
@@ -56,13 +44,13 @@ public enum Doctor {
             ("iOS devices", ["xcrun", "devicectl", "list", "devices"], "Pair a physical iPhone and enable Developer Mode.")
         ]
         var checks = probes.map { name, command, remediation in
-            let result = try? ProcessRunner.run(command)
+            let result = try? ProcessRunner.run(command, policy: .toolInspection)
             var ready = result?.succeeded == true
             if name == "Android devices" { ready = ready && result?.output.range(of: "(?m)^\\S+\\s+device\\s", options: .regularExpression) != nil }
             if name == "iOS devices" { ready = ready && result?.output.contains("physical") == true }
             return DoctorCheck(name: name, ready: ready, detail: result?.output.trimmingCharacters(in: .whitespacesAndNewlines) ?? "Command could not start", remediation: remediation)
         }
-        let sdk = try? ProcessRunner.run(["swift", "sdk", "list"])
+        let sdk = try? ProcessRunner.run(["swift", "sdk", "list"], policy: .toolInspection)
         for (name, marker) in [("Android Swift SDK", "_android"), ("Wasm Swift SDK", "_wasm")] {
             checks.append(DoctorCheck(name: name, ready: sdk?.succeeded == true && sdk?.output.contains(marker) == true, detail: sdk?.output ?? "SDK inventory unavailable", remediation: "Install the official SDK matching the open-source host Swift compiler exactly. Xcode Swift is not interchangeable."))
         }

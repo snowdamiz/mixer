@@ -16,8 +16,8 @@ public enum AppleProject {
         var commands = [try build(root: root)]
         guard commands.last?.succeeded == true else { return RunReport(device: simulator, application: config.application, commands: commands) }
         let binary = root.appendingPathComponent(".mixer/ios-build/Build/Products/Debug-iphonesimulator/\(config.name).app")
-        commands.append(try ProcessRunner.run(["xcrun", "simctl", "install", simulator, binary.path]))
-        if commands.last?.succeeded == true { commands.append(try ProcessRunner.run(["xcrun", "simctl", "launch", simulator, config.application])) }
+        commands.append(try ProcessRunner.run(["xcrun", "simctl", "install", simulator, binary.path], policy: .simulatorManagement))
+        if commands.last?.succeeded == true { commands.append(try ProcessRunner.run(["xcrun", "simctl", "launch", simulator, config.application], policy: .simulatorManagement)) }
         return RunReport(device: simulator, application: config.application, commands: commands)
     }
 
@@ -49,7 +49,7 @@ public enum AppleProject {
             "-destination", simulator ? "generic/platform=iOS Simulator" : "generic/platform=iOS",
             "-derivedDataPath", root.appendingPathComponent(".mixer/ios-build").path,
             "CODE_SIGNING_ALLOWED=NO", "build"
-        ], at: root)
+        ], at: root, policy: .developmentBuild)
     }
 
     static func source(name: String, application: String) -> String {

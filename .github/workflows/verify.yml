@@ -106,6 +106,10 @@ jobs:
             /verification/envelope-partition-default-ci-adoption/
             /verification/envelope-rust-1991-default-ci-adoption/
             /verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/
+            /verification/plan-continuation-2026-11-07/envelope-profile10-rebind-r3/
+            /verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
+            /verification/plan-continuation-2026-11-07/envelope-r2-hosted-actual-review/review.json
             /verification/swift-envelope-ci-root-review/compiler-qualification-selection-amendment.json
             /verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json
             /verification/android-default-appearance-packaging/run-2/created-descriptor.json
@@ -148,7 +152,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/adopt_envelope.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
       - name: Guarded envelope and prospective compiler adoption controls
@@ -160,9 +164,15 @@ jobs:
           python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
             > "$MIXER_ADOPTION_DIR/logs/controls.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/controls.stderr"
-          python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/test_binding.py" \
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/test_binding.py" \
             > "$MIXER_ADOPTION_DIR/logs/caller-controls.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/caller-controls.stderr"
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/test_rebind.py" \
+            > "$MIXER_ADOPTION_DIR/logs/rebind-controls.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/rebind-controls.stderr"
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/test_source113.py" \
+            > "$MIXER_ADOPTION_DIR/logs/source113-controls.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/source113-controls.stderr"
       - name: Standalone analyzer envelope with prospectively selected compiler
         # 480 active + 60 retention/cleanup seconds; 180 seconds startup margin.
         timeout-minutes: 12
@@ -172,7 +182,7 @@ jobs:
           export RUSTUP_AUTO_INSTALL=0
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           MIXER_ENVELOPE_RUSTC_LAUNCHER="$(command -v rustc)"
-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py" run \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/adopt_envelope.py" run \
             --rustc "$MIXER_ENVELOPE_RUSTC_LAUNCHER" \
             --out "$RUNNER_TEMP/analyzer-envelope" \
             > "$MIXER_ADOPTION_DIR/logs/fixture.stdout" \
@@ -185,7 +195,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/adopt_envelope.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/adopt_envelope.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
       - name: Preserve standalone analyzer envelope receipts
@@ -202,6 +212,8 @@ jobs:
             ${{ github.workspace }}/verification/envelope-partition-default-ci-adoption/
             ${{ github.workspace }}/verification/envelope-rust-1991-default-ci-adoption/
             ${{ github.workspace }}/verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/
+            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/envelope-profile10-rebind-r3/
+            ${{ github.workspace }}/verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/
             ${{ github.workspace }}/.github/workflows/verify.yml
       - name: Generated capability schema and host lifecycle
         run: |

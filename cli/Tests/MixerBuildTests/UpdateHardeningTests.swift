@@ -119,7 +119,7 @@ private func signedFixture(_ body: ([String], URL, Data, String) throws -> Void)
 
 @Test func processOutputLimitDoesNotRequireReadingWholeLogIntoMemory() throws {
     let script = "import sys; sys.stdout.buffer.write(b'x' * (9 * 1024 * 1024)); sys.stdout.write('tail')"
-    let result = try ProcessRunner.run(["python3", "-c", script])
+    let result = try SuiteOwnedRunner.run(["python3", "-c", script])
     #expect(result.succeeded && result.output.utf8.count == 8 * 1_048_576)
     #expect(result.outputTruncated)
     #expect(result.output.hasSuffix("tail"))

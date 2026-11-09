@@ -46,6 +46,8 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
     --assignment FILE --channel NAME --installation ID --last-sequence N --now UNIX
   mixer submit status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID
     [--directory PROJECT]
+  mixer submit testing-status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID
+    [--directory PROJECT]
   mixer gates
 
 All commands emit structured JSON. Build/test errors preserve compiler diagnostics.
@@ -117,7 +119,7 @@ do {
         guard words.count >= 3, ["validate", "inventory", "invoke"].contains(words[1]) else { throw MixerFailure("arguments.vm", "Usage: mixer vm validate|inventory|invoke FILE [EXPORT [ARGS...]]") }
         let vm = ProcessInfo.processInfo.environment["MIXER_VM"] ?? repository.appendingPathComponent("vm/target/debug/mixer-vm").path
         guard FileManager.default.isExecutableFile(atPath: vm) else { throw MixerFailure("vm.unavailable", "Build vm/ with cargo build or set MIXER_VM to the owned interpreter executable.") }
-        let result = try ProcessRunner.run([vm] + words.dropFirst())
+        let result = try ProcessRunner.run([vm] + words.dropFirst(), policy: .localValidation)
         FileHandle.standardOutput.write(Data(result.output.utf8))
         if !result.succeeded { exit(result.exitCode) }
     case "gates":
@@ -129,6 +131,10 @@ do {
         if !result.succeeded { exit(1) }
     case "submit":
         let request = try StoreStatusRequest.parse(words: words, options: arguments.options)
+        if words == ["submit", "testing-status"] {
+            let report = try StoreReconciliation.testingStatus(request: request, directory: root)
+            try output(report); exit(report.exitCode)
+        }
         let report = try StoreReconciliation.status(request: request, directory: root)
         try output(report); exit(report.exitCode)
     case "update":

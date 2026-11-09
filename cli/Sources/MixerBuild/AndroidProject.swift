@@ -73,7 +73,7 @@ public enum AndroidProject {
         return resource
     }
     static func inspectToolchain() throws -> AndroidToolchainIdentity {
-        let result = try ProcessRunner.run(["python3", try buildDriver().path, "inspect"])
+        let result = try ProcessRunner.run(["python3", try buildDriver().path, "inspect"], policy: .toolInspection)
         guard result.succeeded, !result.outputTruncated else { throw MixerFailure("android.toolchain", result.output) }
         do { return try JSONDecoder().decode(AndroidToolchainIdentity.self, from: Data(result.output.utf8)) }
         catch { throw MixerFailure("android.toolchain", "Android tool inventory was not a complete structured identity: \(error)") }
@@ -98,7 +98,7 @@ public enum AndroidProject {
         let config = try ApplicationConfiguration.load(root)
         guard config.targets.contains("android"), config.capabilities.isEmpty else { throw MixerFailure("android.unsupported-capability", "Android local consumer requires an android target and no declared native capabilities; capability hosts are not integrated in this slice.") }
         guard try SourceDigest.files(in: root.appendingPathComponent("Resources")).isEmpty else { throw MixerFailure("android.unsupported-resources", "Android resource packaging is not integrated. App resources cannot be silently omitted.") }
-        return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root)
+        return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root, policy: .developmentBuild)
     }
 
     private static let runtimePackage = """

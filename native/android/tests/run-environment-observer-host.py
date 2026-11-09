@@ -2,16 +2,10 @@
 """Compile actual Observer plus a frozen, explicit independently authored leaf list."""
 import argparse
 import datetime
-import sys
-import hashlib
-import json
 import os
 from pathlib import Path
-import shutil
-import signal
-import subprocess
-import tempfile
-import time
+import sys
+from environment_host_commands import HostCommands, PROFILE, SUPPORT, STRIP, check, freeze_sources, ident, save
 
 REPOSITORY = Path(__file__).resolve().parents[3]
 BASE = 'native/android/tests/NativeEnvironmentV2ObserverHostLeaves/'
@@ -30,101 +24,55 @@ LEAVES = (
     'dev/mixer/android/AppearanceResolverV2.java', 'dev/mixer/android/NativeRenderer.java',
     'dev/mixer/android/ObserverHostProbe.java',
 )
-SOURCES = ('native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java',
+SOURCES = (PROFILE, 'native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java',
            'native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java',
            'native/android/tests/NativeEnvironmentV2ObserverHostTests.java') + tuple(BASE + p for p in LEAVES)
+
 SELF = 'native/android/tests/run-environment-observer-host.py'
-MANIFEST = REPOSITORY / 'verification/android-environment-observer-lifecycle/host-source-freeze.json'
-STRIP = ('_JAVA_OPTIONS', 'JAVA_TOOL_OPTIONS', 'JDK_JAVA_OPTIONS', 'CLASSPATH', 'JAVA_OPTS', 'JDK_JAVAC_OPTIONS')
 
-def identity(data):
-    return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
-
-def save(path, value):
-    path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--evidence', required=True, type=Path)
-    parser.add_argument('--jdk', type=Path, default=Path('/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home'))
-    args = parser.parse_args()
-    evidence = args.evidence.resolve()
-    evidence.mkdir(parents=True, exist_ok=False)
-    expected = set(SOURCES + (SELF,))
-    snapshots = {relative: (REPOSITORY/relative).read_bytes() for relative in sorted(expected)}
-    freeze = {'context_revision': subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPOSITORY,text=True).strip(),
-              'files': {relative:identity(data) for relative,data in snapshots.items()}}
-    save(evidence/'source-freeze.json',freeze)
-    for relative, data in snapshots.items():
-        target=evidence/'inputs'/relative
-        target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(data)
-    env = dict(os.environ)
-    stripped = {name: name in env for name in STRIP}
-    for name in STRIP:
-        env.pop(name, None)
-    scratch = Path(tempfile.mkdtemp(prefix='observer-owned-', dir=evidence))
-    commands = []
-    def run(label, argv, timeout=45):
-        start = time.time()
-        process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                   env=env, cwd=REPOSITORY, start_new_session=True)
-        timed_out = False
-        try:
-            out, err = process.communicate(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            os.killpg(process.pid, signal.SIGKILL)
-            out, err = process.communicate()
-        (evidence / (label + '.stdout')).write_bytes(out)
-        (evidence / (label + '.stderr')).write_bytes(err)
-        entry = {'label': label, 'argv': [str(p) for p in argv], 'exit': process.returncode,
-                 'timed_out': timed_out, 'child_reaped': True, 'elapsed_seconds': time.time()-start,
-                 'stdout': identity(out), 'stderr': identity(err)}
-        commands.append(entry)
-        save(evidence/'commands.json', commands)
-        if timed_out or process.returncode:
-            raise RuntimeError(label + ' failed; retained streams: ' + str(evidence))
-        return out
-    status = 'failed'
-    receipt = {'schema': 1, 'at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-               'argv': [sys.executable, *sys.argv], 'python_version': sys.version, 'scope': 'Java17 host execution of actual Observer with faulting Android/renderer leaves; no native behavior',
-               'source_freeze': identity((evidence/'source-freeze.json').read_bytes()), 'source_revision': freeze['context_revision'],
-               'environment': {'platform': os.uname().sysname, 'machine': os.uname().machine,
-                               'stripped_implicit_jvm_variables': stripped}, 'native_or_capture_processes_started_or_queried': False,
-               'new_dependencies': [], 'commands': 'commands.json'}
+def main(argv=None):
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--evidence',required=True,type=Path)
+    parser.add_argument('--jdk',type=Path,default=Path('/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home'))
+    parser.add_argument('--active-seconds',type=float,default=240)
+    args=parser.parse_args(argv)
+    check(0 < args.active_seconds <= 240, 'finite active budget required')
+    evidence=args.evidence.resolve();evidence.mkdir(parents=True,exist_ok=False)
+    scratch=evidence/'scratch';scratch.mkdir()
+    env=dict(os.environ)
+    stripped={key:key in env for key in STRIP}
+    for key in STRIP:env.pop(key,None)
+    env.update(TMPDIR=str(scratch),PYTHONDONTWRITEBYTECODE='1')
+    commands=HostCommands(evidence,scratch,env,active_seconds=args.active_seconds)
+    receipt={'schema':2,'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'argv':list(argv) if argv is not None else sys.argv[1:],'python':sys.version,'scope':'Java17 host execution of actual Observer with faulting Android/renderer leaves; no native behavior','status':'failed','ci_revision':os.environ.get('GITHUB_SHA'),'environment':{'platform':os.uname().sysname,'machine':os.uname().machine,'stripped_implicit_jvm_variables':stripped},'native_or_capture_processes_started_or_queried':False,'new_dependencies':[]}
+    frozen={}
     try:
-        java_home = args.jdk.resolve(strict=True)
-        javac, java = java_home/'bin/javac', java_home/'bin/java'
-        receipt['tools'] = {str(p): identity(p.resolve().read_bytes()) for p in (javac,java)}
-        run('javac-version', [str(javac), '-version'])
-        run('java-version', [str(java), '-version'])
-        run('revision', ['git', 'rev-parse', 'HEAD'])
-        files = []
-        for relative in SOURCES:
-            target = scratch/'source'/relative
-            target.parent.mkdir(parents=True,exist_ok=True)
-            target.write_bytes(snapshots[relative]); files.append(str(target))
-        classes, empty = scratch/'classes', scratch/'empty'
-        classes.mkdir(); empty.mkdir()
-        run('compile', [str(javac), '--release', '17', '-Xlint:all', '-Werror', '-proc:none',
-                        '-classpath', str(empty), '-sourcepath', str(empty), '-d', str(classes)] + files)
-        receipt['classes'] = {str(p.relative_to(classes)):identity(p.read_bytes()) for p in sorted(classes.rglob('*.class'))}
-        result = run('host', [str(java), '-ea', '-Xmx128m', '-cp', str(classes),
-                             'dev.mixer.android.NativeEnvironmentV2ObserverHostTests'], timeout=30)
-        if not result.startswith(b'PASS '):
-            raise RuntimeError('missing explicit host success')
-        status='passed-host-only'
-        print(result.decode().strip())
-    except BaseException as failure:
-        receipt['failure'] = {'type': type(failure).__name__, 'message': str(failure)}
-        raise
+        frozen,fqcn=freeze_sources(REPOSITORY,SOURCES)
+        for source in (SELF,*SUPPORT):frozen[source]=(REPOSITORY/source).read_bytes()
+        freeze={'ci_revision':os.environ.get('GITHUB_SHA'),'revision_query':'no subprocess; exact frozen bytes below','files':{s:ident(data) for s,data in frozen.items()}}
+        save(evidence/'source-freeze.json',freeze)
+        save(evidence/'source-closure.json',{'sources':SOURCES,'fqcn':fqcn})
+        for source,data in frozen.items():
+            target=evidence/'inputs'/source;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
+        classes=scratch/'classes';empty=scratch/'empty';classes.mkdir();empty.mkdir()
+        jdk=args.jdk.resolve(strict=True)
+        tools={name:(jdk/'bin'/name).resolve(strict=True) for name in ('java','javac')}
+        env['JAVA_HOME']=str(jdk)
+        plans={name+'-version':([tool,'-version'],10) for name,tool in tools.items()}
+        plans['compile']=([tools['javac'],'-J-Xmx256m','-J-XX:ActiveProcessorCount=2','--release','17','-Xlint:all','-Werror','-proc:none','-classpath',empty,'-sourcepath',empty,'-d',classes,*[evidence/'inputs'/s for s in SOURCES]],60)
+        plans['host']=([tools['java'],'-ea','-Xmx128m','-XX:ActiveProcessorCount=2','-cp',classes,'dev.mixer.android.NativeEnvironmentV2ObserverHostTests'],30)
+        commands.prepare(frozen,tools,plans)
+        receipt['status']='PREPARED';save(evidence/'receipt.json',receipt)
+        for name in tools:commands.run(name+'-version')
+        commands.run('compile')
+        receipt['classes']={str(p.relative_to(classes)):ident(p.read_bytes()) for p in sorted(classes.rglob('*.class'))}
+        result=commands.run('host');check(result.startswith(b'PASS '),'missing explicit host success')
+        receipt['host_stdout']=result.decode().strip();receipt['status']='passed-host-only';print(result.decode().strip())
+    except BaseException as error:
+        receipt['failure']={'type':type(error).__name__,'message':str(error)};receipt['status']='failed'
     finally:
-        shutil.rmtree(scratch)
-        receipt.update(status=status, cleanup={'owned_scratch_removed': not scratch.exists(),
-            'owned_children_reaped': all(c['child_reaped'] for c in commands),
-            'native_or_capture_instances_created': False},
-            pending=['Native Android runtime and final phones', 'Public V2 integration', 'GA qualification'])
-        save(evidence/'receipt.json',receipt)
+        receipt['pending']=['Native Android runtime and final phones','Public V2 integration','GA qualification']
+        commands.finalize(REPOSITORY,frozen,receipt,success_statuses=('passed-host-only',))
+    return 0 if receipt['status']=='passed-host-only' else 1
 
-if __name__ == '__main__':
-    main()
+if __name__=='__main__':sys.exit(main())

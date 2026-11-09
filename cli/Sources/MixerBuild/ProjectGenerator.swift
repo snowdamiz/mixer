@@ -48,7 +48,7 @@ public enum ProjectGenerator {
             adapterDigest = try AndroidProject.snapshot(adapter: androidAdapter, destination: staging.appendingPathComponent("Generated/MixerAndroid"))
             try AndroidSDKCompatibility.admitProject(staging)
         }
-        let version = try ProcessRunner.run(["swift", "--version"])
+        let version = try ProcessRunner.run(["swift", "--version"], policy: .toolInspection)
         guard version.succeeded else { throw MixerFailure("create.swift", version.output) }
         try JSONFile.write(config, to: staging.appendingPathComponent("mixer.yml"))
         var lock = ToolchainLock(sdkDigest: digest, swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -263,7 +263,7 @@ public enum ProjectBuild {
         if let android = lock.android {
             guard try SourceDigest.tree(root.appendingPathComponent("Generated/MixerAndroid")) == android.adapterDigest else { throw MixerFailure("lock.android-drift", "Bundled Android adapter source differs from mixer.lock. Restore the original locked adapter snapshot.") }
         }
-        let version = try ProcessRunner.run(["swift", "--version"])
+        let version = try ProcessRunner.run(["swift", "--version"], policy: .toolInspection)
         guard version.succeeded, version.output.trimmingCharacters(in: .whitespacesAndNewlines) == lock.swiftVersion else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
         return lock
     }
@@ -272,7 +272,7 @@ public enum ProjectBuild {
         if platform == "ios", !test { return try AppleProject.build(root: root) }
         if platform == "android", !test { return try AndroidProject.build(root: root) }
         guard platform == "host" else { throw MixerFailure("build.unqualified-target", "\(platform) \(test ? "tests" : "build") requires pending native integration; no platform result is reported as passed. Available: host package build/test, unsigned iOS Simulator build.") }
-        return try ProcessRunner.run(["swift", test ? "test" : "build", "--package-path", root.path], at: root)
+        return try ProcessRunner.run(["swift", test ? "test" : "build", "--package-path", root.path], at: root, policy: .developmentBuild)
     }
     public static func export(root: URL, destination: URL) throws -> String {
         let lock = try verifyLock(root: root)

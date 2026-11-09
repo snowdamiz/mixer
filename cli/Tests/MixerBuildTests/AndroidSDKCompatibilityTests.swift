@@ -38,13 +38,13 @@ private func expectCompatibilityFailure(_ operation: () throws -> Void, code: St
     catch { Issue.record("Expected actionable MixerFailure, received \(error)") }
 }
 private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-compatibility") {
-    expectCompatibilityFailure({ _ = try ProjectBuild.verifyLock(root: root) }, code: code)
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.verifyLock(root: root) }, code: code)
     for platform in ["android", "host", "ios"] {
-        expectCompatibilityFailure({ _ = try ProjectBuild.run(root: root, test: false, platform: platform) }, code: code)
+        expectCompatibilityFailure({ _ = try SuiteOwnedRunner.projectRun(root: root, test: false, platform: platform) }, code: code)
     }
     expectCompatibilityFailure({ _ = try AndroidProject.build(root: root) }, code: code)
     let destination = root.deletingLastPathComponent().appendingPathComponent("Export-\(UUID().uuidString)")
-    expectCompatibilityFailure({ _ = try ProjectBuild.export(root: root, destination: destination) }, code: code)
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.export(root: root, destination: destination) }, code: code)
     #expect(!FileManager.default.fileExists(atPath: destination.path))
     #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".mixer").path))
 }
@@ -92,7 +92,7 @@ func androidCompatibilityManifestNamespaceRejectsInputAndEveryGeneratedEntrypoin
     try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
     allAdmissionEntrypoints(root)
     let target = base.appendingPathComponent("Created")
-    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: target, sdk: sdk, platform: "android", androidAdapter: compatibilityRepository.appendingPathComponent("native/android")) }, code: "create.android-sdk-compatibility")
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.create(name: "Created", application: "dev.example.created", destination: target, sdk: sdk, platform: "android", androidAdapter: compatibilityRepository.appendingPathComponent("native/android")) }, code: "create.android-sdk-compatibility")
     #expect(!FileManager.default.fileExists(atPath: target.path))
     #expect(try !FileManager.default.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
 }
@@ -141,7 +141,7 @@ func androidCompatibilityExactInventoryTypeLengthAndHashRefuseBeforeGenericSourc
     allAdmissionEntrypoints(root)
     if !change.hasPrefix("adapter-") && !change.hasPrefix("asset-") {
         let target = base.appendingPathComponent("Created")
-        expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: target, sdk: sdk, platform: "android", androidAdapter: compatibilityRepository.appendingPathComponent("native/android")) }, code: "create.android-sdk-compatibility")
+        expectCompatibilityFailure({ _ = try SuiteOwnedRunner.create(name: "Created", application: "dev.example.created", destination: target, sdk: sdk, platform: "android", androidAdapter: compatibilityRepository.appendingPathComponent("native/android")) }, code: "create.android-sdk-compatibility")
         #expect(!FileManager.default.fileExists(atPath: target.path))
         #expect(try !FileManager.default.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
     }
@@ -211,13 +211,13 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
     defer { try? FileManager.default.removeItem(at: base) }
     let root = base.appendingPathComponent("Original")
     var lock = try compatibilityProject(root)
-    lock.swiftVersion = try ProcessRunner.run(["swift", "--version"]).output.trimmingCharacters(in: .whitespacesAndNewlines)
+    lock.swiftVersion = try SuiteOwnedRunner.run(["swift", "--version"]).output.trimmingCharacters(in: .whitespacesAndNewlines)
     try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
     let moved = base.appendingPathComponent("Relocated"); try FileManager.default.moveItem(at: root, to: moved)
-    #expect(try ProjectBuild.verifyLock(root: moved).android?.profile == AndroidSDKCompatibility.profile.lock)
+    #expect(try SuiteOwnedRunner.verifyLock(root: moved).android?.profile == AndroidSDKCompatibility.profile.lock)
     let exported = base.appendingPathComponent("Export")
-    _ = try ProjectBuild.export(root: moved, destination: exported)
-    #expect(try ProjectBuild.verifyLock(root: exported).android?.profile == AndroidSDKCompatibility.profile.lock)
+    _ = try SuiteOwnedRunner.export(root: moved, destination: exported)
+    #expect(try SuiteOwnedRunner.verifyLock(root: exported).android?.profile == AndroidSDKCompatibility.profile.lock)
     try AndroidSDKCompatibility.admitProject(exported)
     let canonicalSession = try Data(contentsOf: compatibilityRepository.appendingPathComponent("native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift"))
     #expect(canonicalSession.count == 4328)
@@ -237,7 +237,7 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
     // Excluded from compatibility closure; existing whole-snapshot rule refuses.
     try FileManager.default.createSymbolicLink(at: sdk.appendingPathComponent("UnrelatedLink"), withDestinationURL: base.appendingPathComponent("missing"))
     let target = base.appendingPathComponent("Created")
-    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: target, sdk: sdk, platform: "android", androidAdapter: compatibilityRepository.appendingPathComponent("native/android")) }, code: "files.symlink")
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.create(name: "Created", application: "dev.example.created", destination: target, sdk: sdk, platform: "android", androidAdapter: compatibilityRepository.appendingPathComponent("native/android")) }, code: "files.symlink")
     #expect(!FileManager.default.fileExists(atPath: target.path))
     #expect(try !FileManager.default.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
 }
@@ -253,7 +253,7 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
     allAdmissionEntrypoints(root, code: "android.sdk-profile-required")
     lock.android = nil
     try JSONFile.write(lock, to: root.appendingPathComponent("mixer.lock"))
-    expectCompatibilityFailure({ _ = try ProjectBuild.run(root: root, test: false, platform: "android") }, code: "android.sdk-profile-required")
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.projectRun(root: root, test: false, platform: "android") }, code: "android.sdk-profile-required")
     expectCompatibilityFailure({ _ = try AndroidProject.build(root: root) }, code: "android.sdk-profile-required")
 }
 
@@ -306,7 +306,7 @@ func androidCompatibilityInputAdapterAdmissionRefusesBeforeStagingAndSnapshotRea
         let file = runtime.appendingPathComponent("DocumentSession.swift"); try fm.removeItem(at: file); #expect(mkfifo(file.path, 0o600) == 0)
     }
     let target = base.appendingPathComponent("Created")
-    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: target, sdk: sdk, platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.create(name: "Created", application: "dev.example.created", destination: target, sdk: sdk, platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
     #expect(!fm.fileExists(atPath: target.path))
     let snapshot = base.appendingPathComponent("Snapshot")
     expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: snapshot) })
@@ -372,7 +372,7 @@ func androidCompatibilityEditorSourceRefusalsAtInputAndCopiedEntrypoints(_ name:
     try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("Generated/MixerSDK/GenericHasherSentinel"), withDestinationURL: base.appendingPathComponent("missing"))
     allAdmissionEntrypoints(root)
     expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("Snapshot")) })
-    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
     #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Created").path))
     #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Snapshot").path))
     #expect(try !FileManager.default.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
@@ -407,7 +407,7 @@ func androidCompatibilityCanonicalOptionalCorruptionRefusesBeforeSnapshotAndCrea
     try copyCompatibilityAdapter(to: adapter, extras: optionalSources)
     try changeCompatibilitySource(adapter.appendingPathComponent("app/src/dev/mixer/android/" + name), change)
     expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("Snapshot")) })
-    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
     #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Snapshot").path))
     #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Created").path))
     #expect(try !FileManager.default.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
@@ -444,7 +444,7 @@ func androidCompatibilityCanonicalExtrasNeverReplaceMissingProduct(_ relative: S
     try copyCompatibilityAdapter(to: adapter, extras: optionalSources)
     try FileManager.default.removeItem(at: adapter.appendingPathComponent(relative))
     expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("Snapshot")) })
-    expectCompatibilityFailure({ _ = try ProjectGenerator.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
+    expectCompatibilityFailure({ _ = try SuiteOwnedRunner.create(name: "Created", application: "dev.example.created", destination: base.appendingPathComponent("Created"), sdk: compatibilityRepository.appendingPathComponent("sdk"), platform: "android", androidAdapter: adapter) }, code: "create.android-sdk-compatibility")
     #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Snapshot").path))
     #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("Created").path))
 }
@@ -502,13 +502,13 @@ func androidCompatibilityCanonicalUnknownInputRefusesBeforePinnedHash(_ name: St
 
 @Test(arguments: optionalSources)
 func androidCompatibilityCanonicalOptionalSocketRefusesWithoutOpen(_ name: String) throws {
-    let base = URL(fileURLWithPath: "/tmp").appendingPathComponent("mos-\(UUID().uuidString)")
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent("mos-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: base) }
     let adapter = base.appendingPathComponent("A")
     try copyCompatibilityAdapter(to: adapter, extras: [name])
     let file = adapter.appendingPathComponent("app/src/dev/mixer/android/" + name)
     try FileManager.default.removeItem(at: file)
-    let result = try ProcessRunner.run(["python3", "-c", "import socket,sys; s=socket.socket(socket.AF_UNIX); s.bind(sys.argv[1])", file.path])
+    let result = try SuiteOwnedRunner.run(["python3", "-c", "import os,socket,sys; os.chdir(os.path.dirname(sys.argv[1])); s=socket.socket(socket.AF_UNIX); s.bind(os.path.basename(sys.argv[1]))", file.path])
     #expect(result.succeeded)
     expectCompatibilityFailure({ _ = try AndroidProject.snapshot(adapter: adapter, destination: base.appendingPathComponent("S")) })
     #expect(!FileManager.default.fileExists(atPath: base.appendingPathComponent("S").path))

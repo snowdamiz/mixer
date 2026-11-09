@@ -62,14 +62,14 @@ private func temporary(_ body: (URL) throws -> Void) throws {
         try FileManager.default.createDirectory(at: sdk, withIntermediateDirectories: true)
         try "// test SDK fixture".write(to: sdk.appendingPathComponent("Package.swift"), atomically: true, encoding: .utf8)
         let project = root.appendingPathComponent("App")
-        let result = try ProjectGenerator.create(name: "App", application: "com.example.app", destination: project, sdk: sdk)
+        let result = try SuiteOwnedRunner.create(name: "App", application: "com.example.app", destination: project, sdk: sdk)
         let expectedDigest = try SourceDigest.tree(sdk)
         #expect(result.sdkDigest == expectedDigest)
-        #expect(try ProjectBuild.verifyLock(root: project).sdkDigest == result.sdkDigest)
-        #expect(throws: MixerFailure.self) { try ProjectGenerator.create(name: "App", application: "com.example.app", destination: project, sdk: sdk) }
+        #expect(try SuiteOwnedRunner.verifyLock(root: project).sdkDigest == result.sdkDigest)
+        #expect(throws: MixerFailure.self) { try SuiteOwnedRunner.create(name: "App", application: "com.example.app", destination: project, sdk: sdk) }
         let exported = root.appendingPathComponent("Export")
         try "development-secret".write(to: project.appendingPathComponent(".env"), atomically: true, encoding: .utf8)
-        let exportDigest = try ProjectBuild.export(root: project, destination: exported)
+        let exportDigest = try SuiteOwnedRunner.export(root: project, destination: exported)
         let projectDigest = try SourceDigest.tree(project)
         #expect(exportDigest == projectDigest)
         #expect(!FileManager.default.fileExists(atPath: exported.appendingPathComponent(".env").path))
@@ -77,7 +77,7 @@ private func temporary(_ body: (URL) throws -> Void) throws {
         try "// user edit".write(to: xcode, atomically: true, encoding: .utf8)
         #expect(throws: MixerFailure.self) { try AppleProject.generate(root: project) }
         try "changed".write(to: project.appendingPathComponent("Generated/MixerSDK/Package.swift"), atomically: true, encoding: .utf8)
-        #expect(throws: MixerFailure.self) { try ProjectBuild.verifyLock(root: project) }
+        #expect(throws: MixerFailure.self) { try SuiteOwnedRunner.verifyLock(root: project) }
     }
 }
 
@@ -94,9 +94,9 @@ private func temporary(_ body: (URL) throws -> Void) throws {
 }
 
 @Test func processPreservesFailureDiagnosticsWithoutShellExpansion() throws {
-    let result = try ProcessRunner.run(["/usr/bin/printf", "%s", "$(echo secret); `pwd`"])
+    let result = try SuiteOwnedRunner.run(["/usr/bin/printf", "%s", "$(echo secret); `pwd`"])
     #expect(result.succeeded)
     #expect(result.output == "$(echo secret); `pwd`")
-    let failure = try ProcessRunner.run(["/usr/bin/false"])
+    let failure = try SuiteOwnedRunner.run(["/usr/bin/false"])
     #expect(!failure.succeeded)
 }

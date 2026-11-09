@@ -141,3 +141,14 @@ OUTER-HOLD.json in that campaign directory. Inner receipts do not release it.
 The profile10 host-entrypoint review introduced UNKNOWN custody during a missing-executable launch before an inner identity was recorded. Preserve its workflow-files/scratch namespace without inspection or process operations; see verification/plan-continuation-2026-11-07/profile10-host-entrypoint-review-r1/REVIEW-HOLD.json.
 
 The CF phase packaging continuation has UNKNOWN inner custody with no recorded identity. Preserve verification/plan-continuation-2026-11-07/mainactor-cf-phase-validation-package-r2/package-completion without inspection, probing, signalling, retry or cleanup. Its terminal outer PID/PGID1022 does not release the inner hold; see that campaign's HOLD.json and handoff.json.
+
+The CF phase controller R4 validation was interrupted with UNKNOWN custody for
+managed PID/PGID 35671 and uncollected primary exec session 87367 (primary PID
+not recorded). Preserve both retained campaign namespaces without inspection,
+probing, signalling, retry or cleanup:
+verification/plan-continuation-2026-11-07/mainactor-cf-phase-controller-r4/campaign-1/scratch
+and verification/plan-continuation-2026-11-07/mainactor-cf-phase-controller-r4/campaign-1/normal.
+Do not poll session 87367 or reuse its campaign/deadline. See the exact
+mainactor-cf-phase-controller-r4/interruption-HOLD.json and handoff. A later
+receipt or terminal outer result does not release this hold. No native attempt
+was consumed; fresh separate work does not authorize touching this chain.
