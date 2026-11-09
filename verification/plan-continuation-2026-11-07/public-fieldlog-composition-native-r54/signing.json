@@ -1,0 +1,59 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/keytool",
+        "-genkeypair",
+        "-keystore",
+        "/Users/andreyyurlov/.t3/userdata/mixer-r54-debug-key-tyfwa4j0/debug.keystore",
+        "-storepass:env",
+        "MIXER_R29_DEV_PASSWORD",
+        "-keypass:env",
+        "MIXER_R29_DEV_PASSWORD",
+        "-alias",
+        "mixer-local-debug",
+        "-keyalg",
+        "RSA",
+        "-keysize",
+        "2048",
+        "-validity",
+        "30",
+        "-dname",
+        "CN=Mixer local development,O=Mixer,C=US"
+      ],
+      "exitCode": 0
+    },
+    {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/apksigner",
+        "sign",
+        "--ks",
+        "/Users/andreyyurlov/.t3/userdata/mixer-r54-debug-key-tyfwa4j0/debug.keystore",
+        "--ks-key-alias",
+        "mixer-local-debug",
+        "--ks-pass",
+        "env:MIXER_R29_DEV_PASSWORD",
+        "--key-pass",
+        "env:MIXER_R29_DEV_PASSWORD",
+        "--v4-signing-enabled",
+        "false",
+        "--out",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/public-fieldlog-composition-native-r54/FieldLog-native-composition-r53-debug.apk",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/public-fieldlog-native-composition-r53/FieldLog-native-composition-r53-unsigned.apk"
+      ],
+      "exitCode": 0
+    },
+    {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/apksigner",
+        "verify",
+        "--verbose",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/public-fieldlog-composition-native-r54/FieldLog-native-composition-r53-debug.apk"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "privateDevelopmentKeyRemoved": true,
+  "productionSigning": false,
+  "signedAPKSHA256": "31132e004f53ff14f3b495a7c2f78898349fffd1c6e2329a35fe430e978de874"
+}

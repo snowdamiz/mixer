@@ -216,7 +216,7 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         observer.write_bytes(original)
 
     def test_owner_core_and_environment_edits_removals_and_renames_refuse_recomputed_locks(self):
-        for filename in ['ExternalFrameSourceV2.java', 'NativeOwnerV2.java', 'OwnerLifecycleV2.java', 'NativeEnvironmentV2.java', 'NativeEnvironmentPlatformV2.java']:
+        for filename in ['AndroidUINativeSurface.java', 'ExternalFrameSourceV2.java', 'NativeOwnerV2.java', 'OwnerLifecycleV2.java', 'NativeEnvironmentV2.java', 'NativeEnvironmentPlatformV2.java']:
             source = self.adapter / 'app/src/dev/mixer/android' / filename
             original = source.read_bytes()
             renamed = source.with_suffix('.renamed')
@@ -265,12 +265,12 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         self.assertFalse((self.root / '.mixer').exists())
 
 
-    def test_profile12_preserves_exact_profile_session(self):
-        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.12')
+    def test_profile13_preserves_exact_profile_session(self):
+        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.13')
         self.assertEqual(len(PROFILE['sdk_files']), 24)
-        self.assertEqual(len(PROFILE['adapter_files']), 26)
+        self.assertEqual(len(PROFILE['adapter_files']), 27)
         self.assertEqual(PROFILE['sdk_compatibility_sha256'], 'dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47')
-        self.assertEqual(PROFILE['adapter_compatibility_sha256'], '4e5bdb15d663edd3bf81c8629af4fbb990e35943aa0a5473aa64e0dd8f274187')
+        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'abbffb821c9d7b5acc8123b7bbd452d07afa7dbfff2693bb316ad73cc3249473')
         session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
         candidate = session.read_bytes()
         self.assertEqual(len(candidate), 5338)

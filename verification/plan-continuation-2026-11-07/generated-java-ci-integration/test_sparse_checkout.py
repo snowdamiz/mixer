@@ -66,7 +66,7 @@ class SparseControls(unittest.TestCase):
         patterns = proposal_patterns((HERE / 'workflow-proposal.yml').read_text())
         a = B.canonical()
         inputs = B.admit_source_inputs(a, a.load_profile())
-        self.assertEqual(len(inputs), 114)
+        self.assertEqual(len(inputs), 115)
         self.assertEqual(a.source_digest(inputs), B.SOURCE_INPUT_SHA256)
         require_coverage(inputs, git_selected(list(inputs), patterns))
 

@@ -28,6 +28,7 @@ final class OwnerLifecycleV2 {
     private final ThreadCheck thread;
     private final Object activity;
     private final Object root;
+    private final boolean requiresInteractiveWindow;
     private final Token lifetime = new Token();
     private Phase phase = Phase.WAITING_WINDOW;
     private WindowFacts facts;
@@ -55,12 +56,20 @@ final class OwnerLifecycleV2 {
     private Object closeFailure;
 
     OwnerLifecycleV2(ThreadCheck thread, Object activity, Object root) { this(thread, activity, root, 0); }
+    OwnerLifecycleV2(ThreadCheck thread, Object activity, Object root, boolean requiresInteractiveWindow) {
+        this(thread, activity, root, 0, requiresInteractiveWindow);
+    }
     /** Package-private epoch seed for deterministic exhaustion tests; normal construction uses zero. */
     OwnerLifecycleV2(ThreadCheck thread, Object activity, Object root, long initialEpoch) {
+        this(thread, activity, root, initialEpoch, false);
+    }
+    private OwnerLifecycleV2(ThreadCheck thread, Object activity, Object root, long initialEpoch,
+                             boolean requiresInteractiveWindow) {
         Objects.requireNonNull(thread).requireOwner();
         this.thread = thread;
         this.activity = Objects.requireNonNull(activity);
         this.root = Objects.requireNonNull(root);
+        this.requiresInteractiveWindow = requiresInteractiveWindow;
         if (initialEpoch < 0) throw new IllegalArgumentException("negative owner epoch");
         epoch = initialEpoch;
     }
@@ -99,7 +108,7 @@ final class OwnerLifecycleV2 {
         drain = null;
         var out = new ArrayList<Decision>();
         observe(fresh, out);
-        if (phase == Phase.RETIRED || operation != null || facts == null || !facts.ready()) return batch(out);
+        if (phase == Phase.RETIRED || operation != null || !admitsRender()) return batch(out);
         if (phase == Phase.WAITING_WINDOW) {
             window = facts.window();
             begin(Kind.OPEN_INITIAL, Phase.OPENING, out);
@@ -227,11 +236,14 @@ final class OwnerLifecycleV2 {
         out.add(new Decision(Kind.SEAL, lifetime, null, false));
     }
     private void schedule(List<Decision> out) {
-        if (phase == Phase.RETIRED || operation != null || drain != null || facts == null || !facts.ready()) return;
+        if (phase == Phase.RETIRED || operation != null || drain != null || !admitsRender()) return;
         if (phase == Phase.WAITING_WINDOW || phase == Phase.LIVE && dirty) {
             drain = new Token();
             out.add(new Decision(Kind.QUEUE_DRAIN, drain, null, false));
         }
+    }
+    private boolean admitsRender() {
+        return facts != null && facts.ready() && (!requiresInteractiveWindow || foreground && focused);
     }
     private void begin(Kind kind, Phase next, List<Decision> out) {
         operation = new Token();

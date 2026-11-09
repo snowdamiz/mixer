@@ -40,6 +40,13 @@ jobs:
           python3 -B native/android/tests/run-environment-platform-host.py \
             --jdk "$JAVA_HOME_17_X64" \
             --evidence "$RUNNER_TEMP/android-owner-environment"
+      - name: Public Android surface cleanup and focus admission
+        timeout-minutes: 2
+        run: |
+          : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
+          python3 -B native/android/tests/run-public-surface-host.py \
+            --java-home "$JAVA_HOME_17_X64" \
+            --evidence "$RUNNER_TEMP/android-owner-public-surface"
       - name: Show retained Android host failure diagnostics
         if: failure()
         shell: python
@@ -47,9 +54,9 @@ jobs:
           import os
           from pathlib import Path
           root = Path(os.environ["RUNNER_TEMP"])
-          for group in ("orchestration", "renderer", "environment"):
+          for group in ("orchestration", "renderer", "environment", "public-surface"):
               folder = root / ("android-owner-" + group)
-              for name in ("compile.stderr", "host.stderr", "receipt.json"):
+              for name in ("compile.stderr", "host.stderr", "receipt.json", "result.json", "observer-settlement.stdout", "focus-admission.stdout"):
                   path = folder / name
                   if path.is_file():
                       with path.open("rb") as stream:

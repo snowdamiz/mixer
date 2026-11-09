@@ -1,0 +1,11 @@
+# ROOT ONLY — this child did not run ADB, sign, or operate a device.
+# Use the existing root-owned API37 arm64 emulator and root-owned signing input.
+# ROOT_SIGNED_R53_APK is the signed derivative of FieldLog-native-composition-r53-unsigned.apk.
+# Run under root's active120s + cleanup20s bounds. Preserve every named failure and full raw instrumentation/logcat output.
+/opt/homebrew/share/android-commandlinetools/platform-tools/adb -s "$ROOT_OWNED_ANDROID_SERIAL" install -t --no-streaming "$ROOT_SIGNED_R53_APK"
+/opt/homebrew/share/android-commandlinetools/platform-tools/adb -s "$ROOT_OWNED_ANDROID_SERIAL" shell am instrument -w -r dev.fieldlog.publiccomposition53/dev.mixer.android.FieldLogInstrumentation
+
+# Expected instrumentation result: exact text in expected-PASS.txt, with normal complete instrumentation termination.
+# FAIL or timeout is not a pass. No accessibility fallback replaces a refused R53 InputConnection route.
+# Log tag FieldLogCompositionR53 records EditorInfo and the actual captured envelopes.
+# The R53 save expectation assumes the existing FieldLog append-order task ledger; all original assertions remain present.

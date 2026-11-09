@@ -109,7 +109,8 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         this.root = Objects.requireNonNull(root);
         if (root.getContext() != activity) throw new IllegalArgumentException("foreign V2 root context");
         handler = new Handler(Looper.getMainLooper());
-        core = new OwnerLifecycleV2(NativeOwnerV2::requireMain, activity, root);
+        core = new OwnerLifecycleV2(NativeOwnerV2::requireMain, activity, root,
+            profile == AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3);
         lifetime = core.lifetime();
     }
     static NativeOwnerV2 external(Activity activity, FrameLayout root, ExternalFrameSourceV2 source) {
