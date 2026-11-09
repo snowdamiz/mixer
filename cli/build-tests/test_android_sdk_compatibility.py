@@ -265,12 +265,12 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         self.assertFalse((self.root / '.mixer').exists())
 
 
-    def test_profile13_preserves_exact_profile_session(self):
-        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.13')
+    def test_profile14_preserves_exact_profile_session(self):
+        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.14')
         self.assertEqual(len(PROFILE['sdk_files']), 24)
         self.assertEqual(len(PROFILE['adapter_files']), 27)
         self.assertEqual(PROFILE['sdk_compatibility_sha256'], 'dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47')
-        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'abbffb821c9d7b5acc8123b7bbd452d07afa7dbfff2693bb316ad73cc3249473')
+        self.assertEqual(PROFILE['adapter_compatibility_sha256'], '510186310f3135078e66f73c976f49c758daf6599af2f21f2cbf090b90e5145c')
         session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
         candidate = session.read_bytes()
         self.assertEqual(len(candidate), 5338)

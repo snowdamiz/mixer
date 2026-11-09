@@ -544,7 +544,7 @@ final class NativeRenderer {
             if(frameRetirementV3(previous,c.next.nodes.get(previous.id)))continue;
             var shadow=c.detached.get(previous.id);
             if(c.targets.get(previous.id)!=previous||shadow==null||!sameEditorBindingV2(previous,shadow)||!sameAncestorsV2(c,previous.id)||
-                !sameFrameV2(previous.view,shadow.view,v2Profile!=AndroidUIProfile.LEGACY_HORIZONTAL&&previous.verticalInput))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+                !sameFrameV2(previous.view,shadow.view,previous.verticalInput?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
         }
     }
     private static boolean sameEditorBindingV2(NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
@@ -561,10 +561,17 @@ final class NativeRenderer {
             a.plan().environment.direction()==b.plan().environment.direction()&&a.plan().environment.density1024()==b.plan().environment.density1024()&&
             a.plan().environment.localeIdentifier().equals(b.plan().environment.localeIdentifier())&&a.theme().equals(b.theme());
     }
-    // Only the explicitly admitted vertical profile can resize height in place.
-    // Width, position, compatible binding and exact ancestry remain required.
-    private static boolean sameFrameV2(View a,View b,boolean verticalReflow){
-        int[] ap=positionV2(a),bp=positionV2(b);return Arrays.equals(ap,bp)&&a.getWidth()==b.getWidth()&&(verticalReflow||a.getHeight()==b.getHeight());
+    // Called only after exact target reuse, current-buffer echo, binding and ancestry checks.
+    // V3 multiline layout may translate vertically as its measured height changes.
+    // Horizontal fields and earlier profiles retain their existing frame policy.
+    private static boolean sameFrameV2(View a,View b,AndroidUIProfile fieldProfile){
+        int[] ap=positionV2(a),bp=positionV2(b);
+        if(ap[0]!=bp[0]||a.getWidth()!=b.getWidth())return false;
+        return switch(fieldProfile){
+            case LEGACY_HORIZONTAL -> ap[1]==bp[1]&&a.getHeight()==b.getHeight();
+            case MEASURED_MULTILINE_V2 -> ap[1]==bp[1];
+            case MEASURED_MULTILINE_RETIREMENT_V3 -> true;
+        };
     }
     private static int[] positionV2(View view){int x=view.getLeft(),y=view.getTop();for(var parent=view.getParent();parent instanceof View v;parent=v.getParent()){
         if(v instanceof NativeAppearanceViewsV2.Gate||v instanceof FrameLayout)break;x+=v.getLeft();y+=v.getTop();}return new int[]{x,y};}
