@@ -1,0 +1,11 @@
+--- R36/FieldLogInstrumentation.java
++++ R39/FieldLogInstrumentation.java
+@@ -179,7 +179,7 @@
+  @Override public void onStart() {
+   Bundle result=new Bundle();FieldLogActivity activity=null;
+   try {
+-   Intent intent=new Intent(getTargetContext(),FieldLogActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++   Intent intent=new Intent(getTargetContext(),FieldLogActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+    handoffRegression(intent);
+    activity=(FieldLogActivity)startActivitySync(intent);FieldLogActivity app=activity;
+    await(app::ready,app);

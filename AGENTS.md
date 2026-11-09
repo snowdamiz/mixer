@@ -183,3 +183,11 @@ The CLI receipt-layout R5 independent review left UNKNOWN custody for PID/PGID81
 The root source0647 full Python CI validation exited 74 after installed source/entry admission passed. Outer PID/PGIDs 80712 and 80713 are recorded terminal, but the unit worker may have retained inner ownership without an identity recorded at root. Preserve verification/plan-continuation-2026-11-07/cli-source0647-canonical-adoption-r1/validation-r1 in full without inspection, probing, signalling, retry or cleanup. Its outer custody does not release the potential inner hold. Use only the copied top-level summary verification/plan-continuation-2026-11-07/cli-source0647-unit-validation-hold.json for fresh independent source-only diagnosis; no held log or scratch access is authorized.
 
 The hosted source303 cache focused controls in run 42666503150, job 129331452787, recorded UNKNOWN descendant custody after EPERM, with owned_group_gone=false and incomplete pipe EOF facts. Preserve that exact hosted command group and its retained scratch; do not retry, probe, signal or clean it, and do not infer absence from the direct child return or later GitHub job cleanup. Root has only the copied top-level diagnosis in verification/plan-continuation-2026-11-07/source303-cache-ci-diagnosis-r1/REPORT.md; use that summary for fresh source-only work. This hold is scoped to that command/resources and does not pause unrelated jobs or new isolated native development.
+
+The fresh hosted cache controls in run 42697826753, job 129434287580, recorded
+UNKNOWN custody for descendant PGID 1222 after EPERM while observing group
+absence. Preserve that exact hosted command group and its retained scratch;
+do not retry, probe, signal, wait on or clean those resources. The direct child
+return and later GitHub cleanup do not release custody. The copied source-only
+diagnosis is verification/plan-continuation-2026-11-07/cache-current-hosted-diagnosis-r34/REPORT.md.
+This scoped hold does not pause independent native, source or other CI work.

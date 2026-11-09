@@ -31,6 +31,7 @@ final class NativeCoordinatorV2 {
     private final NativeRenderer renderer;
     private final NativeOwnerV2.Fence fence;
     private final CleanupLedger ledger = new CleanupLedger();
+    private ExternalFrameSourceV2 external;
     private long session;
     private byte[] committedPacket;
     private boolean active, retired, disposed, cancellation;
@@ -51,7 +52,16 @@ final class NativeCoordinatorV2 {
         renderer = new NativeRenderer(activity, nativeInput, observer, fence, profile);
         observer.bindRenderer(renderer);
     }
+    NativeCoordinatorV2(Activity activity, FrameLayout root, NativeEnvironmentV2.Observer observer,
+                        NativeOwnerV2.Fence fence, NativeRenderer.Events input, AndroidUIProfile profile,
+                        ExternalFrameSourceV2 external) {
+        this(activity,root,observer,fence,input,profile);
+        this.external=external;
+    }
+    android.view.View view(String id) { return renderer.view(id); }
+    boolean presentationCurrent() { return renderer.presentationCurrentV2(); }
     void renderInitial() {
+        if(external!=null) { refreshEnvironment(); return; }
         enter();
         try {
             if (session != 0 || committedPacket != null) throw new IllegalStateException("V2 already initialized");
@@ -135,15 +145,20 @@ final class NativeCoordinatorV2 {
         NativeRenderer.AttachmentJournal journal = null;
         boolean attachAttempted = false;
         try {
-            if (committedPacket == null) throw new IllegalStateException("V2 requires initial render");
+            if (committedPacket == null && external == null) throw new IllegalStateException("V2 requires initial render");
+            ExternalFrameSourceV2.Frame frame=external==null?null:external.current();
+            byte[] installing=frame==null?committedPacket:frame.packet;
             InstalledAppearanceV2 installed = renderer.captureInstalledV2(); checkOperation();
             NativeEnvironmentV2 environment = renderer.captureEnvironmentV2(activity, root); checkOperation();
-            candidate = renderer.prepareV2(committedPacket, installed, environment); checkOperation();
+            if(frame!=null&&!java.util.Arrays.equals(frame.descriptor,installed.descriptorCopy()))throw new IllegalStateException("Swift/native appearance mismatch");
+            candidate = renderer.prepareV2(installing, installed, environment); checkOperation();
             if (!environment.current(renderer)) throw new IllegalStateException("V2 environment changed during refresh");
             attachAttempted = true;
             journal = renderer.attachV2(candidate, root); checkOperation();
             renderer.validateAttachedV2(candidate, journal); checkOperation();
-            renderer.finishV2(candidate, journal);
+            fence.commitFinish=true;
+            try { renderer.finishV2(candidate, journal); committedPacket=installing; }
+            finally { fence.commitFinish=false; }
         } catch (RuntimeException | Error failure) {
             remember(failure);
             if (!fence.terminal && candidate != null) {

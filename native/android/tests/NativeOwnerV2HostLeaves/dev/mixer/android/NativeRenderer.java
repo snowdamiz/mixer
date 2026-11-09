@@ -12,6 +12,8 @@ final class NativeRenderer {
  final AndroidUIProfile profile;
  NativeRenderer(Context context,Events events,NativeEnvironmentV2.Observer observer,NativeOwnerV2.Fence fence){this(context,events,observer,fence,AndroidUIProfile.LEGACY_HORIZONTAL);}
  NativeRenderer(Context context,Events events,NativeEnvironmentV2.Observer observer,NativeOwnerV2.Fence fence,AndroidUIProfile profile){this.context=context;this.events=events;this.observer=observer;this.fence=fence;this.profile=java.util.Objects.requireNonNull(profile);}
+ android.view.View view(String id){return null;}
+ boolean presentationCurrentV2(){return currentOpen&&!disposed&&fence.drawAllowed&&preparedCandidate!=null&&preparedCandidate.environment.current(this);}
  boolean belongsToV2(Context context,NativeEnvironmentV2.Observer observer){return this.context==context&&this.observer==observer;}
  static final class Candidate {final NativeRenderer owner;final OwnerLifecycleV2.Token operation;final NativeEnvironmentV2 environment;boolean finished,failedCompleted;private Candidate(NativeRenderer owner,NativeEnvironmentV2 environment){this.owner=owner;this.environment=environment;operation=owner.fence.operation;}}
  static final class AttachmentJournal {}

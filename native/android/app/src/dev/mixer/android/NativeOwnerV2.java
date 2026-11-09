@@ -71,6 +71,8 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
             throwFatal();
         }
     }
+    private ExternalFrameSourceV2 external;
+    private String lastNotice="none";
     private final Activity activity;
     private final FrameLayout root;
     private final AndroidUIProfile profile;
@@ -109,6 +111,50 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         handler = new Handler(Looper.getMainLooper());
         core = new OwnerLifecycleV2(NativeOwnerV2::requireMain, activity, root);
         lifetime = core.lifetime();
+    }
+    static NativeOwnerV2 external(Activity activity, FrameLayout root, ExternalFrameSourceV2 source) {
+        NativeOwnerV2 owner=forProfile(activity,root,AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3);
+        owner.external=Objects.requireNonNull(source); return owner;
+    }
+    void installExternal(byte[] packet,byte[] descriptor) {
+        requireMain();
+        if(external==null||fence.terminal||activeOperation!=null)throw new IllegalStateException("external install unavailable: "+diagnostic());
+        external.offer(packet,descriptor);
+        if(!started) { start(); onResume(); }
+        else {
+            seal(false); seedFocus();
+            process(core.invalidate(lifetime),null);
+            process(core.windowChanged(lifetime,probeWindow()),null);
+        }
+        Work work=queued;
+        if(work!=null&&work.kind==WorkKind.DRAIN&&!work.posting) {
+            handler.removeCallbacks(work);
+            work.run(); // consumes the exact queued slot, using the ordinary effect runner
+        }
+        OwnerLifecycleV2.Snapshot state=core.snapshot();
+        if(!hasCommittedPresentation()||state.phase()!=OwnerLifecycleV2.Phase.LIVE||state.dirty()||
+            state.pendingDrain()!=null||state.operation()!=null||!coordinator.presentationCurrent()) {
+            IllegalStateException failure=new IllegalStateException("external synchronous installation incomplete: "+diagnostic(),ledger.primary);
+            fail(failure,Cause.OPERATION_FAILED);settle();throw failure;
+        }
+        external.openInput();publish();
+        android.util.Log.i("FieldLogOwnerR17","INSTALL "+diagnostic());
+    }
+    android.view.View externalView(String id) { requireMain();return coordinator==null?null:coordinator.view(id); }
+    NativeEnvironmentV2.Observer externalObserver() { requireMain();return observer; }
+    void gateExternalInput() { requireMain();external.gateInput();fence.inputAllowed=false; }
+    boolean externalCurrent() {
+        requireMain();OwnerLifecycleV2.Snapshot s=core.snapshot();
+        return !fence.terminal&&s.phase()==OwnerLifecycleV2.Phase.LIVE&&!s.dirty()&&s.pendingDrain()==null&&
+            s.operation()==null&&coordinator!=null&&coordinator.presentationCurrent();
+    }
+    String diagnostic() {
+        requireMain();OwnerLifecycleV2.Snapshot s=core.snapshot();
+        return "phase="+s.phase()+" epoch="+s.epoch()+" dirty="+s.dirty()+" presentation="+s.presentation()+
+            " pending="+s.pendingDrain()+" operation="+s.operation()+" fence.operation="+fence.operation+
+            " fence.presentation="+fence.presentation+" terminal="+fence.terminal+" draw="+fence.drawAllowed+
+            " input="+fence.inputAllowed+" reason="+s.terminalReason()+" lastNotice="+lastNotice+
+            " cleanup="+ledger.coordinator+" primary="+ledger.primary;
     }
     void start() {
         requireMain();
@@ -163,6 +209,8 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         requireMain();
         if (source != observer || change == null) throw new IllegalArgumentException("foreign V2 observer notice");
         if (terminalProcessed) return;
+        lastNotice=change+"/"+rendererCause+" primary="+primary;
+        if(external!=null)android.util.Log.i("FieldLogOwnerR17","NOTICE "+diagnostic(),new Throwable("exact invalidation origin"));
         if (change != NativeEnvironmentV2.Change.INVALIDATED) {
             Cause cause = switch (change) {
                 case DETACHED -> Cause.DETACHED;
@@ -186,6 +234,11 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
 
     private void nativeInput(byte[] envelope) {
         requireMain();
+        if(external!=null) {
+            if(!fence.terminal&&activeOperation==null&&fence.inputAllowed&&core.admitsInput(lifetime,fence.presentation))
+                external.input(envelope); // immutable app queue only; captured native lease stays untouched
+            return;
+        }
         if (fence.terminal || activeOperation != null || !fence.inputAllowed) return;
         try {
             OwnerLifecycleV2.Token admitted = fence.presentation;
@@ -307,7 +360,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         effectDepth++;
         try {
             if (decision.kind() == OwnerLifecycleV2.Kind.OPEN_INITIAL) {
-                owned = new NativeCoordinatorV2(activity, root, observer, fence, this::nativeInput, profile);
+                owned = new NativeCoordinatorV2(activity, root, observer, fence, this::nativeInput, profile, external);
                 opening = owned;
                 owned.sealGatesScalar();
                 if (!fence.terminal) owned.renderInitial();
@@ -339,7 +392,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
             state.operation() == null && state.pendingDrain() == null && state.presentation() != null &&
             coordinator != null && state.resource() == coordinator) {
             fence.presentation = state.presentation(); fence.drawAllowed = true;
-            fence.inputAllowed = state.foreground() && state.focused();
+            fence.inputAllowed = state.foreground() && state.focused() && (external==null||external.inputEnabled());
             coordinator.publishGatesScalar(state.presentation());
         } else {
             fence.drawAllowed = false; fence.inputAllowed = false;

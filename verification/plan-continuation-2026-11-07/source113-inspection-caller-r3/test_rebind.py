@@ -43,7 +43,7 @@ class Rebinding(unittest.TestCase):
     def test_successor_binds_current_source_and_actual_cli(self):
         proof = self.base.verify(False)
         self.assertEqual((proof['source_count'], proof['source_sha256']),
-                         (113, '8f0223f272a2976a4a5885a671702d1b48f8925f1f702e6aaa0ad64dd3f96fe5'))
+                         (114, '5814b0dab60dfe3fdbce2791644499fc0362072a99bf9034c7f28ea266577608'))
         self.assertFalse(proof['exact_compiler_qualified'])
         flow = self.work / 'verify.yml'
         flow.write_bytes((HERE / 'verify.yml.candidate').read_bytes())

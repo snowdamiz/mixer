@@ -1,0 +1,11 @@
+--- a/.github/workflows/verify.yml
++++ b/.github/workflows/verify.yml
+@@ -277,6 +277,8 @@
+         env:
+           MIXER_SWIFT_IDENTITY_DIAGNOSTICS: "1"
+         run: |
++          MIXER_CLI_HOST_ROOT="$RUNNER_TEMP/cli-host-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}"
++          source "$MIXER_CLI_HOST_ROOT/environment.sh"
+           swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"
+           swift run --package-path cli mixer test --directory "$RUNNER_TEMP/VerificationApp"
+           swift run --package-path cli mixer build --platform ios --directory "$RUNNER_TEMP/VerificationApp"

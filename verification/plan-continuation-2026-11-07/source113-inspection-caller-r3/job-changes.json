@@ -13,5 +13,10 @@
     "before": "            ${{ runner.temp }}/native-vm/receipt.json\n",
     "after": "            ${{ runner.temp }}/native-vm/receipt.json\n            ${{ runner.temp }}/VerificationApp/mixer.lock\n",
     "count": 1
+  },
+  {
+    "before": "          swift run --package-path cli mixer create VerificationApp --directory \"$RUNNER_TEMP/VerificationApp\"\n",
+    "after": "          MIXER_CLI_HOST_ROOT=\"$RUNNER_TEMP/cli-host-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}\"\n          source \"$MIXER_CLI_HOST_ROOT/environment.sh\"\n          swift run --package-path cli mixer create VerificationApp --directory \"$RUNNER_TEMP/VerificationApp\"\n",
+    "count": 1
   }
 ]

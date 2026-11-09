@@ -825,6 +825,7 @@ return;
     static final class Gate extends FrameLayout {
         boolean open;int canvasColor;final NativeRenderer owner;
         Gate(Context context,NativeRenderer owner){super(context);this.owner=owner;Mutation mutation=owner.mutationV2();mutation.require();setClipChildren(false);mutation.require();setClipToPadding(false);mutation.require();setWillNotDraw(false);mutation.require();}
+        @Override protected void onMeasure(int width,int height){NativeEnvironmentV2.requireMain();setMeasuredDimension(View.MeasureSpec.getSize(width),View.MeasureSpec.getSize(height));}
         private boolean current(){NativeEnvironmentV2.requireMain();return owner!=null&&owner.drawAllowedV2()&&open&&owner.presentationCurrentV2();}
         @Override protected void onDraw(Canvas canvas){NativeEnvironmentV2.requireMain();if(current())canvas.drawColor(canvasColor);}
         @Override protected void dispatchDraw(Canvas canvas){NativeEnvironmentV2.requireMain();if(!current())return;Mutation mutation=owner.mutationV2();mutation.require();super.dispatchDraw(canvas);mutation.require();}

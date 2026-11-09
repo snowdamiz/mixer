@@ -101,9 +101,9 @@ def load_profile(root=ROOT):
     text = (root / POLICY).read_text()
     require(text.count('Data(#"""\n') == 1, 'Ambiguous canonical source policy')
     profile = unique_json(text.split('Data(#"""\n', 1)[1].split('\n        """#.utf8)', 1)[0])
-    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.11',
+    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.12',
             'Unsupported canonical source pair')
-    for kind, count in (('sdk', 24), ('adapter', 25)):
+    for kind, count in (('sdk', 24), ('adapter', 26)):
         files = profile[kind + '_files']
         require(len(files) == count and source_digest(files) == profile[kind + '_compatibility_sha256'],
                 'Canonical projection differs: ' + kind)
@@ -112,8 +112,8 @@ def load_profile(root=ROOT):
 
 def java_roster(profile):
     paths = sorted(p for p in profile['adapter_files'] if p.endswith('.java'))
-    require(len(paths) == 19 and all(p.startswith('app/src/dev/mixer/android/') for p in paths),
-            'Expected all 19 product Java sources')
+    require(len(paths) == 20 and all(p.startswith('app/src/dev/mixer/android/') for p in paths),
+            'Expected all 20 product Java sources')
     return paths
 
 

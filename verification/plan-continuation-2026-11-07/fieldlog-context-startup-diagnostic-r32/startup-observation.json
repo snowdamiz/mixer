@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "scope": "actual cold startup and native FieldLog form observation only; full handoff/cleanup test did not complete",
+  "sourceAPK_SHA256": "ea9e1bce035a761106fbb7d704b31b77f68fbe667bba611972d46021426bf117",
+  "coldLaunchStatus": "ok",
+  "expectedVisibleTextsObserved": [
+    "What needs to happen?",
+    "Responsible person (optional)",
+    "Add",
+    "FieldLog public host ready"
+  ],
+  "hierarchySHA256": "7d2bc6da574983655e1be00fcec668b8f774a4720a045f8c0916771e51daa44f",
+  "startupCommands": [
+    {
+      "name": "startup",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5584",
+        "shell",
+        "am",
+        "start",
+        "-W",
+        "-n",
+        "dev.mixer.fieldlog.contextscope/dev.mixer.android.FieldLogActivity"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.3373995830188505
+    },
+    {
+      "name": "startup-log",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5584",
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "-s",
+        "FieldLogContextR24:D",
+        "FieldLogOwnerR17:D",
+        "FieldLogHostR12:E",
+        "AndroidRuntime:E",
+        "*:S"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.35511670901905745
+    },
+    {
+      "name": "startup-ui-dump",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5584",
+        "shell",
+        "uiautomator",
+        "dump",
+        "/data/local/tmp/fieldlog-r32-startup.xml"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.101180999947246
+    },
+    {
+      "name": "startup-ui-copy",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5584",
+        "pull",
+        "/data/local/tmp/fieldlog-r32-startup.xml",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/fieldlog-context-startup-diagnostic-r32/startup-ui.xml"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.03847016702638939
+    },
+    {
+      "name": "startup-stop",
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-s",
+        "emulator-5584",
+        "shell",
+        "am",
+        "force-stop",
+        "dev.mixer.fieldlog.contextscope"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.49220966699067503
+    }
+  ],
+  "fullInstrumentationPassed": false,
+  "error": "TimeoutExpired(['/opt/homebrew/share/android-commandlinetools/platform-tools/adb', '-s', 'emulator-5584', 'shell', 'am', 'instrument', '-w', 'dev.mixer.fieldlog.contextscope/dev.mixer.android.FieldLogInstrumentation'], 89.99995162501)",
+  "ownedEmulatorExitCode": 0,
+  "externalBaselineUnchanged": true,
+  "physicalDeviceTargetedCommands": 0,
+  "next": "phase-only synchronous Activity wait premise probe; no product exception added"
+}

@@ -27,8 +27,8 @@ HOST_BYTES = 1503529808
 SDK_BYTES = 333223533
 DEVELOPER = Path('/Applications/Xcode_26.6.app/Contents/Developer')
 SDKROOT = DEVELOPER / 'Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk'
-SOURCE_INPUT_COUNT = 113
-SOURCE_INPUT_SHA256 = '8f0223f272a2976a4a5885a671702d1b48f8925f1f702e6aaa0ad64dd3f96fe5'
+SOURCE_INPUT_COUNT = 114
+SOURCE_INPUT_SHA256 = '5814b0dab60dfe3fdbce2791644499fc0362072a99bf9034c7f28ea266577608'
 MINIMUM_FREE_BYTES = 12 * 1024**3
 
 
@@ -66,7 +66,7 @@ def admit_source_inputs(authority, profile):
     inputs = authority.source_inputs(profile)
     require(len(inputs) == SOURCE_INPUT_COUNT and
             authority.source_digest(inputs) == SOURCE_INPUT_SHA256,
-            'Sparse checkout owning inputs differ from reviewed pair11 closure')
+            'Sparse checkout owning inputs differ from reviewed pair12 closure')
     return inputs
 
 
@@ -227,7 +227,7 @@ def validate_result(value):
     require(value['status'] == 'passed-java-crosscompile-only', 'Actual integration did not pass')
     expected = {m + '-' + f for m in ('debug', 'release') for f in ('original', 'relocated', 'exported')}
     require(set(value['consumers']) == expected and
-            all(v['java_count'] == 19 for v in value['consumers'].values()), 'Incomplete actual six-consumer result')
+            all(v['java_count'] == 20 for v in value['consumers'].values()), 'Incomplete actual six-consumer result')
     cases = {'sdk', 'adapter', 'descriptor', 'extra-java', 'profile', 'missing-lock'}
     require(set(value['tamper']) == {'debug', 'release'}, 'Missing actual tamper modes')
     for mode in ('debug', 'release'):
