@@ -43,6 +43,24 @@ def same_json(actual, expected):
     return type(expected) in (str, int) and actual == expected
 
 
+APPLE_ACCESSIBILITY_TRANSITION = json.loads("{\"schema\":1,\"type\":\"EXACT_APPLE_ACCESSIBILITY_CONTAINER_SOURCE\",\"path\":\"sdk/Sources/MixerApple/MixerNativeView.swift\",\"before\":{\"bytes\":7611,\"sha256\":\"6f8ddefbf8be4a8a9aaf149e18afe09164de3a1f76c967263c3afba2dc5826df\"},\"after\":{\"bytes\":7934,\"sha256\":\"184547e4e5e11c336b0e9e968bd94eb4607eb1dca08bbfe79caa9abacd8c4d8f\"},\"sourceBefore\":\"1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854\",\"sourceAfter\":\"30344a0c5b00023cbc27fc793e67db7dec85d72a5aef0cd76573e2512f0b2ef8\",\"review\":{\"member\":\"apple-accessibility-review.md\",\"bytes\":4100,\"sha256\":\"e0376ab4d853ab934a87c1851cecdccb609deaf774b9896a9c7807adecdc785d\"},\"scope\":\"reviewed iOS headless FieldLog child-identity and save/reopen development fix; no qualification transfer\"}")
+
+
+def apple_accessibility_successor(base, binding, actual, owner):
+    transition = APPLE_ACCESSIBILITY_TRANSITION
+    base.need(same_json(binding.get("apple_accessibility_transition"), transition), "Apple accessibility transition differs")
+    base.need(actual.get(transition["path"]) == transition["after"] and owner.source_digest(actual) == transition["sourceAfter"], "Apple accessibility current source differs")
+    review = base.regular(HERE / transition["review"]["member"]).read_bytes()
+    base.need({"bytes":len(review), "sha256":hashlib.sha256(review).hexdigest()} == {k:transition["review"][k] for k in ("bytes", "sha256")}, "Apple accessibility review identity differs")
+    predecessor = dict(actual)
+    predecessor[transition["path"]] = transition["before"]
+    base.need(owner.source_digest(predecessor) == transition["sourceBefore"], "Apple accessibility predecessor differs")
+    return predecessor
+
+
+CI_TEMP_ROOT_FIXTURE = json.loads("{\"schema\":1,\"path\":\"scripts/ci/tests/test_android_generated_java_runner.py\",\"before\":{\"bytes\":63620,\"sha256\":\"04c22f2170953fdb303de18b8d7bd83c35652c07becaf980f85f635e2a212b04\"},\"after\":{\"bytes\":63641,\"sha256\":\"7583cf6ca11a669eadf21be4a3e949218b633b1938819fdb4799e0a83e431b18\"},\"scope\":\"test-only: canonicalize the owned TemporaryDirectory path before entering the private receipt writer boundary; production checker unchanged\"}")
+
+
 def sdk_fixture_successor(base, binding, actual, owner):
     transition = SDK_FIXTURE_TRANSITION
     base.need(same_json(binding.get('sdk_fixture_transition'), transition), 'SDK fixture typed transition differs')
@@ -69,8 +87,11 @@ def sdk_fixture_successor(base, binding, actual, owner):
     base.need(len(actual) == 113 and owner.source_digest(actual) == transition['current']['source113'], 'SDK current owning digest differs')
     base.need(owner.source_digest(predecessor_inputs) == transition['predecessor']['source113'], 'SDK reverse Guest2 predecessor differs')
     fixture = transition['fixture']
+    base.need(same_json(binding.get('ci_temp_root_transition'), CI_TEMP_ROOT_FIXTURE)
+              and fixture['path'] == CI_TEMP_ROOT_FIXTURE['path']
+              and fixture['after'] == CI_TEMP_ROOT_FIXTURE['before'], 'Owned temp-root fixture transition differs')
     raw = base.regular(ROOT / fixture['path']).read_bytes()
-    base.need({'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} == fixture['after'] and fixture['path'] not in actual, 'Accepted full CI fixture afterimage differs')
+    base.need({'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} == CI_TEMP_ROOT_FIXTURE['after'] and fixture['path'] not in actual, 'Accepted full CI fixture afterimage differs')
     return predecessor_inputs
 
 
@@ -81,7 +102,7 @@ def bind():
         proof = historical_verify(False)
         seal = json.loads(base.regular(HERE / 'seal.json').read_bytes(), object_pairs_hook=base.unique_object)
         base.check_rows(HERE, seal['members'])
-        base.need(seal['member_count'] == 31 and [r['path'] for r in seal['members']] == ["accepted-swift-job.yml","adopt_envelope.py","baseline-runtime-seal.json","binding.json","caller-inputs.json","command-lifetime-review.json","current-swift-job.yml","current-verify.yml","failure-current.json","failure-evidence.json","full-ci-fixture-review.json","full.patch","historical-closure.json","identity-deltas.json","incremental.patch","inspection-digest-review.json","inspection-review.json","job-changes.json","metadata_guard.py","predecessor-runtime-seal.json","runner-fixture-review.json","sdk-ready-input-review.json","source-inputs.json","swift-job.yml","test_binding.py","test_combined.py","test_ownership.py","test_rebind.py","test_source113.py","verify.yml.candidate","workflow.patch"] and seal['tree_sha256'] == base.tree(seal['members']), 'Successor seal differs')
+        base.need(seal['member_count'] == 32 and [r['path'] for r in seal['members']] == ["accepted-swift-job.yml","adopt_envelope.py","apple-accessibility-review.md","baseline-runtime-seal.json","binding.json","caller-inputs.json","command-lifetime-review.json","current-swift-job.yml","current-verify.yml","failure-current.json","failure-evidence.json","full-ci-fixture-review.json","full.patch","historical-closure.json","identity-deltas.json","incremental.patch","inspection-digest-review.json","inspection-review.json","job-changes.json","metadata_guard.py","predecessor-runtime-seal.json","runner-fixture-review.json","sdk-ready-input-review.json","source-inputs.json","swift-job.yml","test_binding.py","test_combined.py","test_ownership.py","test_rebind.py","test_source113.py","verify.yml.candidate","workflow.patch"] and seal['tree_sha256'] == base.tree(seal['members']), 'Successor seal differs')
         ignored = {'control-scratch', '__pycache__'}
         base.need(not any(p.is_symlink() for p in HERE.rglob('*') if p.relative_to(HERE).parts[0] not in ignored), 'Successor shipping symlink forbidden')
         observed = sorted(p.relative_to(HERE).as_posix() for p in HERE.rglob('*') if p.is_file() and p.relative_to(HERE).parts[0] not in ignored and p.relative_to(HERE).as_posix() != 'seal.json')
@@ -114,7 +135,7 @@ def bind():
         base.need(binding.get('upstream_inspection') == {'member':'inspection-review.json', 'sha256':hashlib.sha256(raw_review).hexdigest(), 'source113':baseline_digest, 'patchSHA256':accepted['patchSHA256'], 'checkerSHA256':accepted['checkerSHA256'], 'scope':'accepted R5 real-tool temporary-directory source protocol only; no qualification transfer'}, 'Upstream inspection binding differs')
         transition = json.loads("{\"schema\":1,\"type\":\"EXACT_COMBINED_CLI_INSPECTION_LIFETIME_FIXTURE_SOURCE_CALLER\",\"baseline_source113\":\"524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292\",\"current_source113\":\"0647086ea204e5a3c9b89f11303df933cd426fb5ff81cb001cce0ca1ed493d71\",\"source_count\":113,\"owning_changes\":[{\"path\":\"cli/Sources/MixerBuild/Resources/android-build.py\",\"preimage\":{\"bytes\":30638,\"sha256\":\"df87f377dee8a167f559eb43ea22d15e692f299dc715aff74454ea5747573cf2\"},\"candidate\":{\"bytes\":32563,\"sha256\":\"7c1e092c8d2123b9ee4868db1146349fa2a15e8d16463f546337bb71af6aee55\"}},{\"path\":\"scripts/ci/check-android-generated-java.py\",\"preimage\":{\"bytes\":63363,\"sha256\":\"6103a13c065181ccd5dd76d6c6ee7d827dd091354b1aed3eea11887895bc2822\"},\"candidate\":{\"bytes\":65563,\"sha256\":\"917750f95ca0d02780324a9ef255ef0426eab79ee84ed4f330990d43a9026866\"}}],\"fixture\":{\"path\":\"scripts/ci/tests/test_android_generated_java_runner.py\",\"preimage\":{\"bytes\":50168,\"sha256\":\"9bccedc54d7590a8190142e5fa63e6370efb11e8b0d2869aef46c6a6cc47bc91\"},\"candidate\":{\"bytes\":59496,\"sha256\":\"492c7a8539b1cb52cc55b1a45ca93e9042670840b45132d2935b406bbe2bf1e9\"},\"outside_source113\":true},\"reviews\":[{\"member\":\"inspection-digest-review.json\",\"sha256\":\"059cfcea9fc7d1d63bf3812ce4ca2950fb978665b348f92c90f255e301f90055\",\"scope\":\"ACCEPT_EXACT_OPERATION_SCOPED_ANDROID_INSPECTION_DIGEST_SOURCE\"},{\"member\":\"command-lifetime-review.json\",\"sha256\":\"cf75c00076de578dd0ded073a6c2aff9c8e0986c7f41c84ff088272f3038c233\",\"scope\":\"EXACT_OUTER_COMMAND_LIFETIME_SOURCE_HOST\"},{\"member\":\"runner-fixture-review.json\",\"sha256\":\"49ef08e13d303f42dc6d933f92a166a85e1bde16ed28efce30ceeac0afccd193\",\"scope\":\"SAFE_CI_SELECTION_NEGATIVE_CONTROL_FIXTURE\"}],\"profile\":{\"id\":\"mixer.android-source-pair.10\",\"sdk_count\":24,\"sdk_sha256\":\"dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47\",\"adapter_count\":25,\"adapter_sha256\":\"b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e\",\"java_sources\":19},\"baseline_runtime_seal\":{\"bytes\":3815,\"sha256\":\"a4037e0c171fdac8ca003971aeba2d23c65f37c54349e6529fc6b3e176646626\"},\"combinedAccepted\":false,\"canonicalApplied\":false,\"actualSixConsumers\":false,\"hostedTimeoutResolved\":false,\"runtimePass\":false,\"gaPass\":false}")
         base.need(same_json(binding.get('combined_cli_transition'), transition), 'Combined transition binding differs')
-        predecessor_inputs = sdk_fixture_successor(base, binding, actual, owner)
+        predecessor_inputs = sdk_fixture_successor(base, binding, apple_accessibility_successor(base, binding, actual, owner), owner)
         baseline_inputs = dict(predecessor_inputs)
         base.need(len(actual) == 113 and set(actual) == set(frozen), 'Combined owning roster differs')
         for change in transition['owning_changes']:
@@ -158,7 +179,7 @@ def bind():
         fixture_review = reviews['runner-fixture-review.json']
         fixture = transition['fixture']
         fixture_raw = base.regular(ROOT / fixture['path']).read_bytes()
-        base.need({'bytes':len(fixture_raw),'sha256':hashlib.sha256(fixture_raw).hexdigest()} == SDK_FIXTURE_TRANSITION['fixture']['after']
+        base.need({'bytes':len(fixture_raw),'sha256':hashlib.sha256(fixture_raw).hexdigest()} == CI_TEMP_ROOT_FIXTURE['after']
                   and fixture['path'] not in actual, 'Accepted fixture candidate differs')
         base.need(fixture_review.get('verdict') == 'ACCEPT_EXACT_SYNTHETIC_RUNNER_FIXTURE_SOURCE'
                   and fixture_review.get('gate') == 'SAFE_CI_SELECTION_NEGATIVE_CONTROL_FIXTURE'
@@ -171,10 +192,10 @@ def bind():
         base.need(same_json(binding.get('fixture_dispatch'), {'host_rust_fixture_after_exact_checks':True, 'scope':'host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch', 'combinedAccepted':False, 'runtime':False, 'GA':False, 'exactWindow':False}), 'Host-only fixture dispatch contract differs')
         base.need(same_json(binding.get('adoption'), {'allowed':False, 'status':'CANDIDATE_PENDING_COMBINED_REVIEW', 'canonicalAdopted':False})
                   and same_json(binding.get('qualification'), {'compiler':False, 'native':False, 'CLI87':False, 'TestFlight':False, 'release':False, 'GA':False}), 'Candidate authority must remain pending')
-        base.need(len(actual) == 113 and digest == '1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854' and binding['source']['count'] == 113 and binding['source']['sha256'] == digest, 'Bound source closure differs')
+        base.need(len(actual) == 113 and digest == '30344a0c5b00023cbc27fc793e67db7dec85d72a5aef0cd76573e2512f0b2ef8' and binding['source']['count'] == 113 and binding['source']['sha256'] == digest, 'Bound source closure differs')
         base.need(binding['profile'] == {'id':profile['id'], 'sdk_count':len(profile['sdk_files']), 'sdk_sha256':profile['sdk_compatibility_sha256'], 'adapter_count':len(profile['adapter_files']), 'adapter_sha256':profile['adapter_compatibility_sha256'], 'java_sources':len(owner.java_roster(profile))}, 'Accepted profile binding differs')
         caller_raw = base.regular(HERE / 'caller-inputs.json').read_bytes()
-        base.need(len(caller_raw) == 1666 and hashlib.sha256(caller_raw).hexdigest() == '2cff3508e0c461a7cefddcd773cd58d5df9e74e0c1ff1a3248ff27eb56464178', 'Accepted caller authority bytes differ')
+        base.need(len(caller_raw) == 1666 and hashlib.sha256(caller_raw).hexdigest() == 'abeb436445aad13ac9d175907031b004304971ee70f2959a3b675d7f7881340f', 'Accepted caller authority bytes differ')
         callers = json.loads(caller_raw, object_pairs_hook=base.unique_object)
         base.check_rows(ROOT, callers)
         expected = base.regular(HERE / 'current-swift-job.yml').read_text()

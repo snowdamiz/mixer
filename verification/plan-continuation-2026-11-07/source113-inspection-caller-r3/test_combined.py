@@ -20,7 +20,7 @@ class MetadataDiagnostics(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory(dir=HERE/'control-scratch');self.addCleanup(self.temp.cleanup);self.work=Path(self.temp.name);self.base=a.bind()
  def test_projected_installed_whole_job_is_exact_without_qualification(self):
   p=self.base.verify(True)
-  self.assertEqual((p['source_count'],p['source_sha256']),(113,'1b7562e0f209d973ae5a1b0bf96e9545c7c5d333cfc44da0b0538a8e5cfcf854'))
+  self.assertEqual((p['source_count'],p['source_sha256']),(113,'30344a0c5b00023cbc27fc793e67db7dec85d72a5aef0cd76573e2512f0b2ef8'))
   self.assertTrue(p['installed_job_verified']);self.assertFalse(p['exact_compiler_qualified'])
  def test_actual_owner_bootstrap_113_and_profile24_25(self):
   s=importlib.util.spec_from_file_location('rebound_bootstrap',HERE.parent/'generated-java-ci-integration/bootstrap.py');b=importlib.util.module_from_spec(s);s.loader.exec_module(b)

@@ -58,9 +58,18 @@ private struct NativeNode: SwiftUI.View {
     let dispatch: @MainActor (UIEventEnvelope) -> Void
 
     var body: some SwiftUI.View {
-        accessibility(render())
+        accessibility(accessibilityContainer(render()))
             .disabled(node.properties["disabled"]?.bool == true)
             .accessibilityIdentifier(node.properties["accessibilityIdentifier"]?.string ?? node.id)
+    }
+
+    private func accessibilityContainer(_ view: AnyView) -> AnyView {
+        switch node.kind {
+        case .vStack, .hStack, .zStack, .list, .section, .navigation:
+            return AnyView(view.accessibilityElement(children: .contain))
+        default:
+            return view
+        }
     }
 
     private var children: some SwiftUI.View {

@@ -198,6 +198,27 @@
       "terminalCleanup": true,
       "externalBaselineUnchanged": true,
       "independentReviewPending": true
+    },
+    {
+      "recordedAt": "2026-11-09T07:51:20.698Z",
+      "lane": "android-api37-cf-phase-r8",
+      "scope": "One separately admitted diagnostic; actual refusal preserved, independent audit found pending-successor cutoff contract defect",
+      "rootReceipt": "verification/plan-continuation-2026-11-07/native-r8-root-execution-r1/receipt.json",
+      "actualReceipt": "verification/plan-continuation-2026-11-07/native-owned-popen-adapter-r8/runtime-cf-phase/receipt.json",
+      "independentReview": "verification/plan-continuation-2026-11-07/cf-phase-r8-actual-review-r1/review.json",
+      "nativeInstancesStarted": 1,
+      "instrumentationAttempts": 1,
+      "actualOutcome": "REFUSED",
+      "reason": "legacy oracle: incomplete pump chain",
+      "runtimePass": false,
+      "gaPass": false,
+      "terminalInnerCommands": 29,
+      "cleanupComplete": true,
+      "protectedDeviceFieldsUnchanged": true,
+      "protectedDevicesCompared": 10,
+      "androidMetadataUnchanged": true,
+      "historicalHoldsReleased": false,
+      "nativeRetrySelected": false
     }
   ],
   "latestReviewedOutcomes": {
@@ -224,6 +245,82 @@
       "retiredUUIDReuseAllowed": false,
       "nativeTestingGenerallyResumed": true,
       "evidenceIsHistoricalNotFreshDeviceProbe": true
+    },
+    "CFPhase": {
+      "schema": 1,
+      "at": "2026-11-09T07:51:20.698Z",
+      "decision": "REQUEST_CHANGES_ORACLE_CONTRACT_ACTUAL_REFUSAL_PRESERVED",
+      "review": "verification/plan-continuation-2026-11-07/cf-phase-r8-actual-review-r1/review.json",
+      "reviewSHA256": "acc76d46baad1e60e4b508658e2fe510c82f7edbaba83f355ead92c8b3ca3ac3",
+      "actualReceipt": "verification/plan-continuation-2026-11-07/native-owned-popen-adapter-r8/runtime-cf-phase/receipt.json",
+      "rootReceipt": "verification/plan-continuation-2026-11-07/native-r8-root-execution-r1/receipt.json",
+      "actualOutcome": "REFUSED",
+      "enteredCompletedPumps": 237,
+      "unenteredPendingSuccessor": 238,
+      "pendingDueAfterCutoffNs": 9474209,
+      "scopedPass": false,
+      "phaseQualified": false,
+      "runtimePass": false,
+      "gaPass": false,
+      "exactWindowProven": false,
+      "attemptsConsumed": 1,
+      "nativeRetrySelected": false,
+      "terminalInnerCommands": 29,
+      "cleanupComplete": true,
+      "externalBaseline": {
+        "devices": 10,
+        "fields": [
+          "udid",
+          "runtime",
+          "name",
+          "state",
+          "isAvailable"
+        ],
+        "matched": true,
+        "androidMetadataStable": true,
+        "dataIntegrityProven": false
+      },
+      "nextExecutableTest": "test_cutoff_pending_successor_after_window",
+      "nextScope": "Offline candidate oracle replay and independent review only; never rewrite actual REFUSED evidence",
+      "activeFix": "node:delegated-task:command%3Amcp%3Ae7fa603c-ec06-4be0-a81c-30ff7dfff0ef%3Adelegate-task%3Amixer-20261109-cf-cutoff-pending-post-fix-r1-sol61",
+      "allHistoricalHoldsPreserved": true,
+      "offlineDerivedAnalysisAcceptance": {
+        "schema": 1,
+        "at": "2026-11-09T08:20:02.330Z",
+        "decision": "ACCEPT_DERIVED_OFFLINE_CF_CUTOFF_ORACLE_CONTRACT",
+        "review": "verification/plan-continuation-2026-11-07/cf-cutoff-pending-post-review-r1/review.json",
+        "reviewSHA256": "deb63c51dc1ac03b029bcaeaa1265a5d7554a39cf3787bbd6a987357069bd353",
+        "candidatePatchSHA256": "8a92ac9f8bfa5ee3921e17079449c234053af209c56f49fb9dc14c13b6df470d",
+        "analysisTools": [
+          {
+            "path": "verification/plan-continuation-2026-11-07/cf-cutoff-pending-post-fix-r1/candidate/cf_oracle.py",
+            "sha256": "ff6b66e298abc33cf5aa6904af61f5566033d24f0fdff947403c0eb2645c4f98"
+          },
+          {
+            "path": "verification/plan-continuation-2026-11-07/cf-cutoff-pending-post-fix-r1/candidate/phase_oracle.py",
+            "sha256": "4e87b3f19f2f49b80d3d0dd7172d9847f22ac61c3fe4e89a12675eccd07ea8d5"
+          }
+        ],
+        "independentControls": {
+          "functionsPerMode": 17,
+          "checksPerMode": 99,
+          "retainedAuthorBodiesAudited": 126,
+          "inputsUnchanged": 301
+        },
+        "originalNativeReceipt": "verification/plan-continuation-2026-11-07/native-owned-popen-adapter-r8/runtime-cf-phase/receipt.json",
+        "originalNativeReceiptSHA256": "688d02ad11dff53c9fd01be65444b1d8dbc9911c45bdd15ded88f6b22658273e",
+        "originalOutcome": "REFUSED",
+        "runtimePass": false,
+        "gaPass": false,
+        "exactWindowProven": false,
+        "scopedPass": false,
+        "phaseQualified": false,
+        "executorMappingQualified": false,
+        "packageAuthorityInherited": false,
+        "nativeRetrySelected": false,
+        "scope": "Root adopts only the exact two offline analysis tools and their derived cutoff interpretation. No original runtime evidence or source/package/controller seal is changed.",
+        "allHistoricalHoldsPreserved": true
+      }
     }
   },
   "latestUserContinuation": {
@@ -272,11 +369,82 @@
     "nativeAttempts": 0
   },
   "latestHostFollowups": {
-    "at": "2026-11-09T04:07:04.486Z",
-    "fieldlogHostAcceptance": "verification/plan-continuation-2026-11-07/fieldlog-failclosed-host-acceptance.json",
-    "fieldlogNativeAdmitted": false,
-    "CF": "R6 empty-log fix passed actual host admission; trace-write UNKNOWN persistence remains red; isolated R7 active",
-    "freshNativeAttemptsThisContinuation": 0,
-    "historicalHoldsReleased": false
+    "at": "2026-11-09T10:13:37.722Z",
+    "CF": "DERIVED_OFFLINE_CUTOFF_CONTRACT_ACCEPTED_ORIGINAL_NATIVE_REFUSED_ALL_FLAGS_FALSE",
+    "FieldLog": "Typed host boundary accepted; safe UI/actual wire blocked",
+    "freshNativeAttemptsThisContinuation": 1,
+    "historicalHoldsReleased": false,
+    "hostAcceptance": "verification/plan-continuation-2026-11-07/native-r8-host-acceptance.json",
+    "nativeOwnerProfile": "ACCEPT_EXACT_PRIVATE_NATIVE_OWNER_PROFILE_TRANSPORT_HOST_SOURCE_UNADOPTED",
+    "nativeOwnerProfileReview": "verification/plan-continuation-2026-11-07/profile10-native-profile-review-outcomes-r3/review.json",
+    "newNativeAttemptsSinceDelivery": 0
+  },
+  "latestAdditionalCustodyHold": {
+    "state": "UNKNOWN",
+    "PID": null,
+    "PGID": null,
+    "operation": "launch-or-pipe-setup",
+    "heldScratch": "verification/plan-continuation-2026-11-07/mainactor-cf-r7-isolated-final-review/campaign/scratch",
+    "receipt": "verification/plan-continuation-2026-11-07/mainactor-cf-r7-isolated-final-review/campaign/HOLD.json",
+    "inspected": false,
+    "released": false
+  },
+  "latestAdditionalRootCommandHold": {
+    "state": "UNKNOWN",
+    "pid": 60657,
+    "owned_pgid": 60657,
+    "namespace": "verification/plan-continuation-2026-11-07/generated-swift-version-control-r1",
+    "hold": "verification/plan-continuation-2026-11-07/generated-swift-version-control-r1/HOLD.json",
+    "released": false
+  },
+  "nativeInstancesStartedScope": "Historical initial-resumption field only; freshAttemptRecords records later attempts individually. No whole-history total inferred.",
+  "latestHostResultProtocolObservation": {
+    "status": "ACTUAL_SYNTHETIC_HOST_OBSERVATION_INCOMPLETE_PENDING_FRESH_SOURCE_WIRE_REVIEW",
+    "receipt": "verification/plan-continuation-2026-11-07/fieldlog-actual-host-protocol-observation-r1.json",
+    "regularArtifactFilesRehashed": 57,
+    "xcresultFilesRehashed": 63,
+    "actualSyntheticSelectors": 2,
+    "actualIterations": 2,
+    "actualPassedRuns": 4,
+    "exportedSyntheticPNGs": 5,
+    "wireArraysObserved": true,
+    "selectorVersusRunCountDifferenceObserved": true,
+    "argumentsObserved": false,
+    "activityOriginsObserved": false,
+    "failureSessionEncodingObserved": false,
+    "FieldLogAdmission": "Unknown",
+    "originalFieldLogReservationConsumed": false
+  },
+  "latestScopedHostWireAcceptance": {
+    "decision": "ACCEPT_SCOPED_ACTUAL_SYNTHETIC_HOST_XCRESULT_OBSERVATION",
+    "receipt": "verification/plan-continuation-2026-11-07/fieldlog-actual-host-wire-scoped-acceptance-r2.json",
+    "sealedFilesRechecked": 95,
+    "UUIDOriginJoins": 5,
+    "negativeControls": 50,
+    "orderingControls": 4,
+    "actualLaunchArguments": "Unknown",
+    "completeSessionFailureAbsence": "Unknown",
+    "FieldLogAdmission": "Unknown"
+  },
+  "latestPair11PartialHostObservation": "verification/plan-continuation-2026-11-07/pair11-partial-host-observation-r2.json",
+  "latestPublicSDKDevelopment": {
+    "publicSDKSaveReopen": "PASS",
+    "evidence": "verification/plan-continuation-2026-11-07/fieldlog-public-sdk-save-reopen-r1/receipt.json",
+    "sourceReview": "ACCEPT",
+    "ownedDevice": "E228481B-3441-4FE6-8A12-7411004B2CBD",
+    "cleanup": "Shutdown; protected external baseline unchanged",
+    "hostKeyboardFocusWindowParity": false,
+    "publishedPackage": false
+  },
+  "latestAndroidDevelopment": {
+    "hostIMEChecks": 48,
+    "hostAccessibilityChecks": 42,
+    "bothFieldOrdersPassed": true,
+    "pythonNormal": 19,
+    "pythonOptimized": 19,
+    "evidence": "verification/plan-continuation-2026-11-07/pair11-input-route-discriminator-r4/receipt.json",
+    "nativeRuntime": "PENDING",
+    "activeTask": "mixer-20261109-pair11-real-android-package-r4-sol61",
+    "nextTest": "actual JNI-backed V3 widget IME/save/reopen on one root-owned emulator"
   }
 }

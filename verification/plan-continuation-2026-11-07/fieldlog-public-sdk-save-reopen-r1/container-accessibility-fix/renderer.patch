@@ -1,0 +1,17 @@
+diff --git a/sdk/Sources/MixerApple/MixerNativeView.swift b/sdk/Sources/MixerApple/MixerNativeView.swift
+index 4ecebd479..94bb07d5b 100644
+--- a/sdk/Sources/MixerApple/MixerNativeView.swift
++++ b/sdk/Sources/MixerApple/MixerNativeView.swift
+@@ -61 +61 @@ private struct NativeNode: SwiftUI.View {
+-        accessibility(render())
++        accessibility(accessibilityContainer(render()))
+@@ -65,0 +66,9 @@ private struct NativeNode: SwiftUI.View {
++    private func accessibilityContainer(_ view: AnyView) -> AnyView {
++        switch node.kind {
++        case .vStack, .hStack, .zStack, .list, .section, .navigation:
++            return AnyView(view.accessibilityElement(children: .contain))
++        default:
++            return view
++        }
++    }
++

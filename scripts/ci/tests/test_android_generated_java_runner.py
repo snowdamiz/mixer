@@ -254,7 +254,7 @@ class RunnerControls(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix='generated-java-python-controls-')
         self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name)
+        self.root = Path(self.temporary.name).resolve(strict=True)
 
     def consumer(self):
         root = self.root / 'consumer'

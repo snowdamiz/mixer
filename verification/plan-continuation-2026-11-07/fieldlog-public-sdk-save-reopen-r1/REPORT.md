@@ -1,0 +1,5 @@
+The public-SDK FieldLog create/edit/save/terminate/relaunch test passes on the owned iOS 26.5 Simulator after the native renderer accessibility-container fix. It preserves the exact multiline café title, double spaces and Zoë, one saved row, and completion toggles. The saved workspace independently contains the same task.
+
+The retained baseline failed because the section identifier propagated to both native text fields. Wrapping structural native nodes in an accessibility container preserves field identifiers. The unchanged focused XCTest passed after a fresh build; an independent source/evidence review accepted the development slice. Raw commands, outputs, before/after app data and the patch are retained.
+
+The exact owned Simulator was shut down; both protected Simulators remain Booted and external device metadata is unchanged. No shared frontend quit or physical-phone action occurred. This was headless device-side XCTest. Host keyboard/focus/window parity, VoiceOver, published-package and final GA qualification remain pending. See receipt.json and cleanup.json.
