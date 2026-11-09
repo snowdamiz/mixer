@@ -1,5 +1,11 @@
 # Execution index
 
+## Development execution update: November 9, 2026
+
+The user authorized removing verification bottlenecks. [Product-plan section 24.5](mixer-product-plan.md#245-development-tests-must-advance-application-behavior) governs fresh development: standard tools, compact raw evidence, concrete isolation, one independent slice review, and executable application progress instead of recursive controller preparation. Pinned public-SDK checkout integration may advance while immutable-package and final launch qualification remain pending. All explicit historical holds remain active. The next development behavior is FieldLog open/edit/save/close/reopen with preserved state on each platform; root coordinates native resources and source delivery. [Policy evidence](verification/development-unblock-2026-11-09/receipt.json).
+
+The continuation below is the retained November 8 checkpoint; its uncommitted/pending-CI statements are historical. This policy change does not promote any GA gate.
+
 The binding scope is [mixer-product-plan.md](mixer-product-plan.md): all W01–W18
 packages, G01–G38 launch gates and D0–D8 dogfood milestones remain required.
 This index does not narrow or replace that specification. Use

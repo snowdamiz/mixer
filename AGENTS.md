@@ -21,6 +21,18 @@ it does not replace or narrow that scope. Keep `STATUS.md`, `work-graph.json`,
   After two failed approaches or two preparation-only cycles, launch the bounded
   escalation campaign. Each prerequisite must unlock a named executable test or
   integration; avoid endless accounting/review preparation without a decision.
+- The November 9 user instruction authorizes removing development bottlenecks.
+  Apply product-plan section 24.5: use standard tools and compact raw evidence
+  for bounded development diagnostics. Do not require a new generalized controller,
+  transitive artifact seal, universal result parser, or recursive review before
+  every test. Keep concrete isolation/cleanup safeguards and all explicit holds.
+  After two preparation-only cycles, change the experiment or implementation and
+  run the smallest permitted discriminating test; another preparation campaign
+  does not reset that count. Local app integration can use pinned public SDK
+  checkout inputs while immutable published-package qualification stays pending.
+  Unrelated CI failures, VM completion and final GA requirements do not block
+  dependency-ready development. One independent slice review is sufficient unless
+  a concrete new defect or changed contract requires another.
 - Coordinate public contracts before dependent changes. Never edit another active
   lane's files without coordination. Do not undo user work.
 - Each meaningful slice needs executable tests and accurate limitations. A skipped

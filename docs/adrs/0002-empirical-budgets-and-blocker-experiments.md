@@ -1,5 +1,25 @@
 # ADR 0002: Empirical budgets and decisive blocker experiments
 
+## Current execution policy, November 9, 2026
+
+The user authorized removing verification bottlenecks. Product-plan
+[section 24.5](../../mixer-product-plan.md#245-development-tests-must-advance-application-behavior)
+now governs development execution. Use standard tools, test-specific isolation,
+compact raw evidence and one independent review at the implementation-slice
+boundary. Repeated preparation requires changing and executing the experiment,
+not another controller framework or recursive review. Native public-SDK app work
+may advance with pinned checkout dependencies while immutable package, VM,
+store and final launch qualification remain separately pending.
+
+The user's November 8 model selection supersedes the historical Astra settings
+below: use Sol 6.1 at xhigh for implementation, difficult review and blocker
+work, and Grok 4.7 only for easier nonvisual tasks. No fast mode. All explicit
+holds, isolation requirements, production budgets and final gate criteria remain
+in force. The following October 28 decision and campaign are historical evidence;
+they do not require replaying an exhausted or held experiment.
+
+## Original decision, October 28, 2026
+
 Status: accepted execution policy, October 28, 2026, following the user's direct
 request to revise the plan, experiment aggressively on blockers, and escalate to
 Astra 6 Extra High agents. This decision changes planning and delegation policy;

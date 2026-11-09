@@ -1,5 +1,11 @@
 # Implementation status
 
+## Development execution update: November 9, 2026
+
+The user authorized removing verification bottlenecks. [Product-plan section 24.5](mixer-product-plan.md#245-development-tests-must-advance-application-behavior) governs fresh development: standard tools, compact raw evidence, concrete isolation, one independent slice review, and executable application progress instead of recursive controller preparation. Pinned public-SDK checkout integration may advance while immutable-package and final launch qualification remain pending. All explicit historical holds remain active. The next development behavior is FieldLog open/edit/save/close/reopen with preserved state on each platform; root coordinates native resources and source delivery. [Policy evidence](verification/development-unblock-2026-11-09/receipt.json).
+
+The continuation below is the retained November 8 checkpoint; its uncommitted/pending-CI statements are historical. This policy change does not promote any GA gate.
+
 ## Current continuation: November 8, 2026
 
 Profile10 source106 was delivered to origin/main at `924b155`. The working tree now contains the independently accepted CLI/TestFlight and owned-process change, yielding source113 digest `c92cd273b5a9b11846375784f9763a3da82d5df9ed15c2efd3fb589007e1d5c1`. Source113 remains uncommitted.

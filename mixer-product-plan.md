@@ -1,6 +1,6 @@
 # mixer — Swift-First Mobile Platform Product and Engineering Plan
 
-Version: 1.4 — updated October 28, 2026 (empirical resource budgets, blocker experiments, and Astra escalation; hosted stack retained).
+Version: 1.5 — updated November 9, 2026 (direct development tests, bounded preparation, current model selection; full product scope retained).
 
 Prepared: October 22, 2026  
 Status: Proposed implementation plan; no implementation or release evidence is claimed by this document.  
@@ -23,7 +23,7 @@ The user's decisions govern the plan:
 3. **Dogfood continuously.** Build and operate a real Swift application throughout development. Every major milestone requires evidence from that application on physical devices and, once distribution is ready, through real store builds.
 4. **Deliver both platforms.** iOS-only success does not satisfy a milestone whose scope includes Android, and Android emulator success does not establish physical-device qualification.
 5. **Make limitations explicit.** The service must explain which changes are OTA-compatible, which require a store release, and which APIs are platform-specific.
-6. **Use the specified agent models.** The user selects the main controlling agent when launching development. The coordinator directs and integrates the work, using **Sol 6.1 Extra High** for ordinary parallel tasks and fresh-context **Astra 6 Extra High** agents for stalled blockers, competing designs and difficult independent review. Section 25 defines the explicit model settings; spawning a child does not change the controller.
+6. **Use the specified agent models.** The user selects the main controlling agent when launching development. The coordinator directs and integrates the work, using **Sol 6.1 Extra High** for implementation, stalled blockers and difficult independent review, and **Grok 4.7** for easier nonvisual tasks. Section 25 defines the explicit model settings; spawning a child does not change the controller.
 
 ### 1.1 Meaning of “our own engine for everything”
 
@@ -764,7 +764,7 @@ Subscriptions are tested as a platform capability; whether FieldLog itself charg
 
 Use a separate repository, separate CI pipeline, real app identities, a simple production backend, and the same published packages, CLI, console, quotas, release permissions, and support channel available to customers. Prefer the selected Elixir/Phoenix, Neon PostgreSQL, and Cloudflare R2 stack for this backend, with separately qualified Cloudflare deployment; customer app code remains Swift.
 
-The app must not import engine internals, use unpublished checkout paths, bypass compatibility validation, access release-service databases, or rely on privileged distribution endpoints. Every discovered SDK gap becomes an engine issue or a documented supported extension. An app-only workaround that violates the advertised platform contract does not close that issue. The FieldLog backend may share the selected Phoenix/Neon/R2 technology, but uses separate application credentials/data and never the platform control-plane database or administrative identity.
+The app must not import engine internals, bypass compatibility validation, access release-service databases, or rely on privileged distribution endpoints. Release and final dogfood qualification must use published packages. Development debugging and slice acceptance may use a pinned checkout through public interfaces under section 24.5, with published-package acceptance explicitly pending. Every discovered SDK gap becomes an engine issue or a documented supported extension. An app-only workaround that violates the advertised platform contract does not close that issue. The FieldLog backend may share the selected Phoenix/Neon/R2 technology, but uses separate application credentials/data and never the platform control-plane database or administrative identity.
 
 Dogfood releases include ordinary product fixes unrelated to demonstrating the platform. Track weekly active use, task completion, saved records, successful uploads, support requests, and usability feedback. Measure whether the platform helps app work, not how many sample buttons can be rendered.
 
@@ -868,7 +868,7 @@ mixer/
 fieldlog/                     # separate consumer repository and release cycle
 ```
 
-SDK/engine changes use contract tests to protect deployed binaries. FieldLog upgrades only after packages are published to the same registry path as customer packages. Release train artifacts are immutable and signed. A local filesystem link into the engine repository is acceptable for debugging, never for an acceptance run.
+SDK/engine changes use contract tests to protect deployed binaries. FieldLog release qualification uses packages published to the same registry path as customer packages. Release train artifacts are immutable and signed. Development debugging and slice acceptance may use a pinned checkout through public interfaces under section 24.5; this does not establish published-package or final dogfood acceptance.
 
 ## 24. Delivery sequence and dependency graph
 
@@ -921,9 +921,9 @@ Every failed gate produces a reproducible issue with an owning agent lane, affec
 
 Escalate immediately when a hardcoded assumption contradicts the observed workload, or when an ownership/security boundary needs stronger review. Otherwise escalate after two distinct failed solution attempts, recurrence of the same failure after an accepted correction, or two consecutive work cycles that produce only preparation/review artifacts without executing a decisive test or advancing the blocked behavior. A cycle is a substantive proposed correction or experiment, not a chat turn. Repeating the same approach with more documentation is not a new hypothesis. Record the trigger in the work graph and start a bounded experiment campaign in the next cycle.
 
-The coordinator assigns fresh-context Astra 6 Extra High agents to challenge assumptions, develop competing solutions and independently interpret results. Normally assign two bounded independent roles when slots permit; with fewer slots, run them sequentially and keep implementation/review ownership distinct. Each campaign identifies the user-visible milestone, known failures, baseline, at least two competing explanations, the smallest discriminating executable tests, finite resource/run bounds, stop conditions and the decision the results will make. Prefer actual unchanged-workload execution over another model when the former is permitted and informative. Run cheap probes first, then the strongest surviving candidate against the real workload. Never execute a rejected security action or bypass an active process/custody hold to gather evidence.
+The coordinator uses fresh-context Sol 6.1 at xhigh for difficult diagnosis and independent review, following the user's November 8 model selection. Grok 4.7 may handle easier nonvisual work. State the user-visible milestone, preserved failure, competing explanations, smallest discriminating test, finite bounds and resulting decision in one compact record. Prefer running that test over creating more planning or review artifacts. Never execute a rejected security action or bypass an active process/custody hold to gather evidence.
 
-At campaign close, choose and integrate a candidate, revise the hypothesis/profile with evidence, or name the concrete external condition preventing a useful experiment. A failed, dominated or uninformative candidate is retired; do not keep elaborating it because its review packet is large. A repeat needs a stated purpose and finite count: baseline comparability, independent reproduction, variance measurement or a concrete correction. Do not rerun an unchanged failure without such a purpose. If two campaigns fail to advance the milestone, require an Astra architecture review comparing an algorithm change, a resource-policy change and a different implementation approach. Preserve independent engine ownership and supported behavior in every alternative.
+At campaign close, integrate a demonstrated correction, change the hypothesis or implementation, or identify the concrete external condition preventing execution. Retire failed or uninformative approaches. A bounded repeat needs a reason such as comparability, reproduction or a concrete correction. Two preparation-only cycles, including cycles across renamed campaigns, require changing the experiment shape before another controller or evidence-system extension. Compare an algorithm change, an experimental resource-policy change and a different implementation approach, then execute the smallest permitted discriminating test. A review is useful when it resolves a named uncertainty; it is not an additional default prerequisite. Preserve independent engine ownership and supported behavior in every alternative.
 
 Prioritize the first complete public-SDK FieldLog feature flow on native iOS and Android, then broaden shared UI/capabilities and complete interpreted/OTA parity. Native shared-app work can advance independently of VM execution; hosted workflow work should proceed in parallel without consuming every available lane. Keep a lane on the next executable application integration when its dependencies permit. Unavailable environments retain their pending status. The user resumed bounded native simulator/emulator tests and related UI verification and capture on November 7, and confirmed “Keep native testing resumed.” Physical phones remain disconnected; specific historical process, custody, held-v5 and frozen-hosted-lane holds remain in force.
 
@@ -931,23 +931,37 @@ Keep experimental verification proportional and decisive. Use one compact campai
 
 Define required review and executable acceptance before implementation. Once they pass and the coordinator reconciles the result, integrate the scoped slice. Reopen it only for a concrete counterexample, changed source/contract/environment, missing mandatory evidence or an unresolved safety finding. A review of another review must address an identified evidence-validity defect; do not create a recursive acceptance chain by default.
 
+### 24.5 Development tests must advance application behavior
+
+Adopted November 9 after the user's instruction to remove verification bottlenecks. This section governs development execution when older campaign documents impose broader preparation requirements. It does not release an explicit process, scratch, device, security or frozen-lane hold, or change G01–G38 acceptance criteria.
+
+1. **Use the simplest executable path.** Run source inspection, Git/CI reads and pure tests through normal tools. For builds and runtime diagnostics, prefer the existing platform tools and a small test-specific runner. A new general controller, all-input seal chain, universal result parser, or proof about unrelated host services is not a default prerequisite. Add machinery only for a reproduced failure that prevents the named test from running safely or its result from being understood.
+2. **Keep concrete isolation.** Select exact owned devices, destinations, output paths and cleanup targets. Bound execution and output. Preserve unrelated devices, preferences, processes and data. Record uncertain cleanup as Unknown and do not reuse the affected resources. A new directory name alone does not establish isolation from a held dependency. Accessibility preflight remains mandatory for frontend-dependent Simulator tests; headless execution does not establish keyboard, focus, visual or accessibility parity.
+3. **Read actual results directly.** Retain the command, source revision plus relevant working diff, tool versions, environment/destination, raw output, observed behavior and owned-resource cleanup in one compact record. A human-readable test log or direct inspection of platform results can support a development conclusion without an automated universal adapter. Ambiguous, missing or contradictory evidence remains Unknown. Never turn a partial result into a pass.
+4. **Separate development from release prerequisites.** Public-SDK integration may use an explicitly pinned local checkout through its public interfaces while published-package qualification remains pending. A native shared-app flow does not depend on VM completion, complete hosted deployment, store approval, final physical-phone evidence, or unrelated CI jobs. Execute dependency-ready tests and fixes now. Keep relevant failing tests visible; require the specified checks before release or any separately authorized merge.
+5. **Review once at the slice boundary.** A meaningful implementation slice receives executable acceptance and one independent review. Read-only diagnostics and routine low-impact documentation edits do not need separate prospective reviews. Review an additional time only for a concrete unresolved finding, changed contract or source, missing necessary evidence, or a reproduced defect in the prior review. Reuse unchanged accepted artifacts and findings.
+6. **Stop preparation loops.** After two preparation-only cycles, simplify or replace the experiment and execute its next permitted discriminating test. Do not satisfy escalation by commissioning another plan, controller framework or review of a review. If every useful path is blocked, name the exact held resource or missing capability, the smallest condition that would unblock it, and advance another dependency-ready product slice.
+7. **Scope budgets and failures.** Preserve exhausted historical run allowances and failures. A coordinator may select a distinct fresh bounded diagnostic with a named hypothesis, finite attempt count and independent owned resources; no extra user confirmation is needed within existing authorization. This never authorizes retrying a specifically held chain. Experimental performance limits may be compared as hypotheses while original failures and production budgets remain intact. A larger diagnostic budget establishes only its actual scope.
+8. **Report behavior before accounting.** The next development milestone is a public-SDK FieldLog open/edit/save/close/reopen flow with preserved state on iOS Simulator and Android emulator. Track each platform's actual result separately. Keep a lane executing or fixing that flow when dependencies permit, alongside runtime and hosted work. Report the next command and concrete blocker, rather than artifact counts. These checkpoints advance implementation; D0–D8 and GA retain their complete final evidence requirements.
+
 ## 25. AI-agent execution model
 
 ### Controlling model and subagent configuration
 
 | Responsibility | Required model | Model identifier | Reasoning effort |
 | --- | --- | --- | --- |
-| Main controlling agent | **User-selected**; Astra 6 Extra High is the established recommended controller | User's actual selection; do not infer or change it from a child | User-selected |
+| Main controlling agent | **User-selected** | User's actual selection; do not infer or change it from a child | User-selected |
 | Ordinary implementation, research, testing, and review subagents | **Sol 6.1 Extra High**, explicitly selected by the coordinator | `gpt-6.1-sol` | `xhigh` |
-| Stalled-blocker experiments, architecture challenge and difficult independent review | **Astra 6 Extra High**, explicitly selected by the coordinator | `gpt-6-astra` | `xhigh` |
+| Stalled-blocker experiments, architecture challenge and difficult independent review | **Sol 6.1 Extra High**, selected by the user on November 8 | `gpt-6.1-sol` | `xhigh` |
+| Easier nonvisual tasks and reviews | **Grok 4.7**, within the user's November 8 restriction | `grok-4.7` | Use supported standard-speed options |
 
 The user-selected coordinator owns the complete product objective, architecture decisions, dependency graph, task assignment, integration, verification status, and final acceptance. It also implements work on the critical path while subagents handle independent tasks. The main model is set by the user at launch; the development workflow uses that selection.
 
-Every delegated task explicitly selects its role's model and `reasoning_effort: "xhigh"`; do not rely on inherited models or default effort. Ordinary tasks use `gpt-6.1-sol`; Section 24.4 escalation tasks use `gpt-6-astra`. Use `fork_turns: "none"` and include the complete bounded task contract, relevant file paths, decisions, interfaces, known failed hypotheses and verification requirements. Record the actual model and reasoning level with each task's completion evidence. Use Astra escalation proactively when the trigger is met; do not wait for another user request to try a stronger agent.
+Use app-owned delegation with an explicit supported model and options. Sol implementation, difficult review and blocker tasks use `gpt-6.1-sol` with `reasoningEffort: "xhigh"` and standard speed. Grok 4.7 is restricted to easier nonvisual tasks and reviews. Include the bounded task, owned files, relevant interfaces, known failures and required executable result. Record the actual selection. Older Astra escalation instructions are historical and do not require an unavailable or unauthorized model. Apply section 24.5 when the escalation trigger is reached.
 
 If the requested model or reasoning setting is unavailable, report the specific limitation and keep the affected task accurately marked. Do not silently substitute a different model or effort level. Continue independent work that remains executable within the specified configuration.
 
-**Parallel execution is the default.** The coordinator continuously identifies dependency-ready work and dispatches ordinary tasks to Sol 6.1 Extra High and escalation roles to Astra 6 Extra High, up to the practical concurrency supported by the environment. Keep available capacity occupied when useful independent work exists. Practical limits are shared-file ownership, interface readiness, build/device contention, and verification dependencies. Do not force independent work into a serial sequence; do not create conflicting edits merely to increase agent count.
+**Parallel execution is the default.** The coordinator continuously identifies dependency-ready work and dispatches implementation and difficult review to Sol 6.1 Extra High, and easier nonvisual work to Grok 4.7, up to the practical concurrency supported by the environment. Keep available capacity occupied when useful independent work exists. Practical limits are shared-file ownership, interface readiness, build/device contention, and verification dependencies. Do not force independent work into a serial sequence; do not create conflicting edits merely to increase agent count.
 
 ### 25.1 Agent lanes and ownership
 
@@ -955,8 +969,8 @@ The lanes below describe responsibilities, not required headcount. Activate as m
 
 | Lane | Owns | Completion artifact |
 | --- | --- | --- |
-| Coordinator/integrator — user-selected main model | Dependency graph, requirements, Sol/Astra task allocation, integration branch, gate status | Current work graph, integrated release candidate, evidence index. |
-| Blocker experiment/architecture challenge — Astra 6 Extra High | Competing hypotheses, minimal decisive experiments, resource-policy calibration, integration decision | Bounded comparison results and a concrete next implementation or external blocker. |
+| Coordinator/integrator — user-selected main model | Dependency graph, requirements, Sol/Grok task allocation, integration branch, gate status | Current work graph, integrated release candidate, evidence index. |
+| Blocker experiment/architecture challenge — Sol 6.1 Extra High | Competing hypotheses, minimal decisive experiments, resource-policy calibration, integration decision | Bounded comparison results and a concrete next implementation or external blocker. |
 | Compiler/toolchain | Swift SDK locking, native/guest build, API validation, source maps | Reproducible compilation and original-source diagnostics. |
 | VM/runtime | Our parser, validator, interpreter, Swift runtime imports, limits | Conformance/fuzzing/differential receipts and real guest execution. |
 | Shared framework | Core state/effects, MixerUI semantics, capability schemas | Versioned contracts and cross-mode behavior tests. |
@@ -984,19 +998,19 @@ Tasks must be concrete enough for another agent to reproduce their results. Do n
 
 ### 25.3 Parallel work and integration
 
-- The coordinator decomposes ready packages into implementation, test, review and dogfood tasks, using Sol 6.1 Extra High ordinarily and Astra 6 Extra High for Section 24.4 escalation. Prioritize completed vertical slices and discriminating experiments over additional disconnected preparation.
+- The coordinator decomposes ready packages into implementation, test, review and dogfood tasks, using Sol 6.1 Extra High for implementation and Section 24.4 escalation, and Grok 4.7 for easier nonvisual tasks. Prioritize completed vertical slices and discriminating experiments over additional disconnected preparation.
 - As a subagent completes, the coordinator reviews its evidence, integrates or requests corrections, and assigns the next dependency-ready task. Keep the work graph current and proceed on independent work while other agents run.
 - Give concurrent implementation tasks isolated branches/worktrees and non-overlapping ownership where possible.
 - Freeze versioned UI, capability, guest, and release schemas before dependent agents implement against them. Schema changes require updating all affected consumers and tests in the same integration unit.
 - Land small complete vertical slices with real app coverage. Avoid giant disconnected components that first meet at the end.
 - The integrator reconciles interfaces, resolves conflicts, runs the relevant native/guest/device checks, and publishes an SDK candidate.
-- FieldLog consumes the published candidate from its separate repository. Its acceptance run cannot import the integrator's unpublished local state.
+- FieldLog consumes the published candidate from its separate repository for release qualification. Development debugging may use pinned checkout dependencies through public interfaces under section 24.5; record that environment and keep published-package acceptance pending.
 - Serialize changes to shared protocol registries, release metadata, signing configuration, and production assignments.
 - Preserve user changes and repository instructions; never reset unrelated work to simplify integration.
 
 ### 25.4 Verification independent of implementation claims
 
-An implementation agent saying a task is complete is not acceptance evidence. A separate verifier reproduces the required behavior from the committed state, checks actual outputs, and records failed or blocked environments. Ordinary verification uses Sol 6.1 Extra High; difficult, repeatedly stalled or architectural verification escalates to a fresh Astra 6 Extra High agent. The coordinator remains responsible for integration and gate acceptance. Review assumptions, boundary conditions, unsafe code, data migrations and recovery targets rather than merely rereading the implementation. Bounded diagnostic experiments retain honest feasibility evidence without claiming production acceptance.
+An implementation agent saying a task is complete is not acceptance evidence. One independent reviewer checks the meaningful slice and its actual test outputs, reproducing behavior when needed. Development source may be identified by revision plus relevant diff; release evidence retains its specified immutable inputs. Use Sol 6.1 Extra High for difficult verification and Grok 4.7 only for easier nonvisual review. Record failed or blocked environments. Apply section 24.5 instead of adding recursive prospective reviews. The coordinator remains responsible for integration and gate acceptance. Review assumptions, boundary conditions, unsafe code, data migrations and recovery targets rather than merely rereading the implementation. Bounded diagnostic experiments retain honest feasibility evidence without claiming production acceptance.
 
 Use automated language/VM/bridge tests for broad coverage, native UI automation for interaction, and physical devices for hardware/lifecycle/performance. Keep signed builds, logs, source maps, recordings, and metric samples traceable to exact commits. A code change that passes unit tests but breaks FieldLog remains incomplete.
 
@@ -1241,9 +1255,9 @@ Potential later expansions include richer tablet/desktop support, a wider plugin
 | Decision | Status | Rationale / resolution rule |
 | --- | --- | --- |
 | Project name: mixer | Fixed by user | CLI `mixer`, configuration `mixer.yml`/`mixer.lock`, owned modules `Mixer*`. |
-| Controlling agent: user-selected main model | User controls selection | Owns coordination, integration and acceptance; Astra 6 Extra High is the established recommendation, and a child agent cannot change the controller. |
+| Controlling agent: user-selected main model | User controls selection | Owns coordination, integration and acceptance; a child agent cannot change the controller. |
 | Ordinary subagents: Sol 6.1 Extra High | Retained user selection | Explicit `gpt-6.1-sol` with `xhigh` and fresh bounded context; parallelize independent work. |
-| Blocker escalation: Astra 6 Extra High | Selected under October 28 user instruction | Explicit `gpt-6-astra` with `xhigh` and fresh context for competing experiments, architecture challenge and difficult review under Section 24.4. |
+| Blocker escalation: Sol 6.1 Extra High | November 8 selection supersedes October 28 Astra selection | Explicit `gpt-6.1-sol` with `xhigh`, standard speed and fresh context. Execute discriminating tests under sections 24.4–24.5. |
 | Experimental resource ceilings | Empirical hypotheses under Sections 20.3/24.4 | Preserve failed baselines and enforce finite safeguards; compare candidate profiles before selecting measured production budgets. |
 | Independent engine; no Patch/Skip implementation | Fixed by user | Applies to source, tests, generated output, and indirect dependencies. |
 | Swift as customer application language | Fixed | Engine adapters and cloud can use suitable other languages. |
