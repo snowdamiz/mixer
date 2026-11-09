@@ -55,6 +55,7 @@ import android.content.Context;import android.content.res.ColorStateList;import 
  public void setEllipsize(TextUtils.TruncateAt value){hit("TextView.setEllipsize");ellipsize=value;done("TextView.setEllipsize");}
  public void setHorizontallyScrolling(boolean value){hit("TextView.setHorizontallyScrolling");horizontallyScrolling=value;done("TextView.setHorizontallyScrolling");}
  public void setInputType(int value){hit("TextView.setInputType");inputType=value;done("TextView.setInputType");}
+ public int getInputType(){return inputType;}
  public void setImeOptions(int value){hit("TextView.setImeOptions");imeOptions=value;done("TextView.setImeOptions");}
  public void setHighlightColor(int value){hit("TextView.setHighlightColor");highlightColor=value;done("TextView.setHighlightColor");}
  public void setMinWidth(int value){hit("TextView.setMinWidth");minWidth=value;done("TextView.setMinWidth");}

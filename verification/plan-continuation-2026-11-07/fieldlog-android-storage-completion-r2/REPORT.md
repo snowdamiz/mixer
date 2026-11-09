@@ -1,0 +1,3 @@
+The exact WorkspaceRepository.swift Android-overlay afterimage compiled and linked for Android arm64 in 6.491 seconds. Both output libraries are ELF64/AArch64. The same source passed all 14 macOS storage tests, including lossless draft reopen, faulted atomic commits, lock ownership, and concurrent operations.
+
+The public actor API and storage protocol are unchanged. This permits the app-specific FieldLog Android diagnostic; it does not claim Android runtime, public UI host, immutable package, or GA acceptance. Raw commands and output are in android-result.json and host-tests-result.json / host-tests.stdout. The original two failed build attempts remain preserved in the R1 namespace.

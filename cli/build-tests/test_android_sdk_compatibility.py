@@ -265,16 +265,16 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         self.assertFalse((self.root / '.mixer').exists())
 
 
-    def test_profile10_preserves_exact_axis_session(self):
-        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.10')
+    def test_profile11_preserves_exact_profile_session(self):
+        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.11')
         self.assertEqual(len(PROFILE['sdk_files']), 24)
         self.assertEqual(len(PROFILE['adapter_files']), 25)
         self.assertEqual(PROFILE['sdk_compatibility_sha256'], 'dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47')
-        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e')
+        self.assertEqual(PROFILE['adapter_compatibility_sha256'], 'ddb3bef7321325158fd031aca960ac072e2c39f3429e21e00652fb21071599c2')
         session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
         candidate = session.read_bytes()
-        self.assertEqual(len(candidate), 4328)
-        self.assertEqual(hashlib.sha256(candidate).hexdigest(), 'cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7')
+        self.assertEqual(len(candidate), 5338)
+        self.assertEqual(hashlib.sha256(candidate).hexdigest(), '3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02')
         self.assertEqual(candidate, (REPOSITORY / 'native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift').read_bytes())
         self.assertEqual(self.module.source_profile(), PROFILE)
         self.assertEqual(self.module.admit_source_pair(self.root, PROFILE), self.descriptor.read_bytes())
@@ -283,12 +283,11 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
     def test_axis_session_baseline_and_drift_refuse_recomputed_generic_locks(self):
         session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
         candidate = session.read_bytes()
-        axis_guard = (b"            // Android's native packet decoder does not admit an explicit axis key.\n"
-                      b'            if node.kind == .textField, node.properties["axis"] != nil { throw AndroidDocumentError.unsupportedUI }\n')
+        axis_guard = b'            // The legacy decoder rejects every explicit axis key, including horizontal.\n            if profile == .legacyHorizontal, node.kind == .textField, node.properties["axis"] != nil { throw AndroidDocumentError.unsupportedUI }\n'
         self.assertEqual(candidate.count(axis_guard), 1)
         baseline = candidate.replace(axis_guard, b'')
-        self.assertEqual(len(baseline), 4128)
-        self.assertEqual(hashlib.sha256(baseline).hexdigest(), '701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c')
+        self.assertEqual(len(baseline), 5103)
+        self.assertEqual(hashlib.sha256(baseline).hexdigest(), 'e5eb19409e0075438627d3d180b3f62bb6880048bfd24158619e8e2f633ff356')
         for changed in [baseline, b'x' * len(candidate), candidate + b'\n// drift']:
             with self.subTest(length=len(changed)):
                 try:

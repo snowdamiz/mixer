@@ -89,6 +89,11 @@ final class AppearanceGeometryV2 {
         coordinate(coordinate64,density1024);
         return (int)((coordinate64 * density1024 + 32768L) / 65536L);
     }
+    /** AT_MOST capacity must round down; measured extents round up. */
+    static int measurementCapacity(long extent64, int density1024) {
+        coordinate(extent64,density1024);
+        return (int)(extent64 * density1024 / 65536L);
+    }
     static double pixelCoordinate(long coordinate64, int density1024) {
         coordinate(coordinate64,density1024);
         return (double)(coordinate64 * density1024) / 65536;

@@ -39,12 +39,16 @@ final class NativeCoordinatorV2 {
 
     NativeCoordinatorV2(Activity activity, FrameLayout root, NativeEnvironmentV2.Observer observer,
                         NativeOwnerV2.Fence fence, NativeRenderer.Events nativeInput) {
+        this(activity,root,observer,fence,nativeInput,AndroidUIProfile.LEGACY_HORIZONTAL);
+    }
+    NativeCoordinatorV2(Activity activity, FrameLayout root, NativeEnvironmentV2.Observer observer,
+                        NativeOwnerV2.Fence fence, NativeRenderer.Events nativeInput, AndroidUIProfile profile) {
         requireMain();
-        if (activity == null || root == null || observer == null || fence == null || nativeInput == null ||
+        if (profile == null || activity == null || root == null || observer == null || fence == null || nativeInput == null ||
             observer.activity != activity || observer.root != root)
             throw new IllegalArgumentException("V2 bound window required");
         this.activity = activity; this.root = root; this.fence = fence;
-        renderer = new NativeRenderer(activity, nativeInput, observer, fence);
+        renderer = new NativeRenderer(activity, nativeInput, observer, fence, profile);
         observer.bindRenderer(renderer);
     }
     void renderInitial() {

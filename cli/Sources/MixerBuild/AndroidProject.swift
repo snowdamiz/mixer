@@ -110,7 +110,8 @@ public enum AndroidProject {
         products: [.library(name: "MixerAndroidRuntime", targets: ["MixerAndroidRuntime"])],
         dependencies: [.package(path: "../MixerSDK")],
         targets: [.target(name: "MixerAndroidRuntime", dependencies: [
-            .product(name: "MixerCore", package: "MixerSDK"), .product(name: "MixerUI", package: "MixerSDK")])],
+            .product(name: "MixerCore", package: "MixerSDK"), .product(name: "MixerUI", package: "MixerSDK"),
+            .product(name: "MixerAndroid", package: "MixerSDK")])],
         swiftLanguageModes: [.v6])
     """ + "\n"
 

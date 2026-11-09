@@ -51,11 +51,11 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.10")
+    #expect(p.id == "mixer.android-source-pair.11")
     #expect(p.sdk_compatibility_sha256 == "dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47")
-    #expect(p.adapter_compatibility_sha256 == "b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e")
+    #expect(p.adapter_compatibility_sha256 == "ddb3bef7321325158fd031aca960ac072e2c39f3429e21e00652fb21071599c2")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 4328)
-    #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
+    #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02")
     #expect(p.sdk_files.count == 24); #expect(p.adapter_files.count == 25)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))
     let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
@@ -221,7 +221,7 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
     try AndroidSDKCompatibility.admitProject(exported)
     let canonicalSession = try Data(contentsOf: compatibilityRepository.appendingPathComponent("native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift"))
     #expect(canonicalSession.count == 4328)
-    #expect(SourceDigest.sha256(canonicalSession) == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
+    #expect(SourceDigest.sha256(canonicalSession) == "3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02")
     for project in [moved, exported] {
         let copied = try Data(contentsOf: project.appendingPathComponent("Generated/MixerAndroid/Sources/MixerAndroidRuntime/DocumentSession.swift"))
         #expect(copied == canonicalSession)
@@ -548,11 +548,11 @@ func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSour
     let file = adapter.appendingPathComponent("Sources/MixerAndroidRuntime/DocumentSession.swift")
     let candidate = try Data(contentsOf: file)
     #expect(candidate.count == 4328)
-    #expect(SourceDigest.sha256(candidate) == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
-    let axisGuard = "            // Android's native packet decoder does not admit an explicit axis key.\n            if node.kind == .textField, node.properties[\"axis\"] != nil { throw AndroidDocumentError.unsupportedUI }\n"
+    #expect(SourceDigest.sha256(candidate) == "3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02")
+    let axisGuard = "            // The legacy decoder rejects every explicit axis key, including horizontal.\n            if profile == .legacyHorizontal, node.kind == .textField, node.properties[\"axis\"] != nil { throw AndroidDocumentError.unsupportedUI }\n"
     let baseline = Data(try #require(String(data: candidate, encoding: .utf8)).replacingOccurrences(of: axisGuard, with: "").utf8)
-    #expect(baseline.count == 4128)
-    #expect(SourceDigest.sha256(baseline) == "701b3d82add793a2b425bfc9673583afa8be4112406071242099da7da252bd0c")
+    #expect(baseline.count == 5103)
+    #expect(SourceDigest.sha256(baseline) == "e5eb19409e0075438627d3d180b3f62bb6880048bfd24158619e8e2f633ff356")
     switch change {
     case "baseline": try baseline.write(to: file)
     case "same-size": try Data(repeating: 32, count: candidate.count).write(to: file)

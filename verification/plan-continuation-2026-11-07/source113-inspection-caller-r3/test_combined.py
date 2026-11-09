@@ -20,7 +20,7 @@ class MetadataDiagnostics(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory(dir=HERE/'control-scratch');self.addCleanup(self.temp.cleanup);self.work=Path(self.temp.name);self.base=a.bind()
  def test_projected_installed_whole_job_is_exact_without_qualification(self):
   p=self.base.verify(True)
-  self.assertEqual((p['source_count'],p['source_sha256']),(113,'175886e354c66a8589579b2b7be486c5ef35f4b78b2a5d8a4a6fce277c7e7be5'))
+  self.assertEqual((p['source_count'],p['source_sha256']),(113,'8f0223f272a2976a4a5885a671702d1b48f8925f1f702e6aaa0ad64dd3f96fe5'))
   self.assertTrue(p['installed_job_verified']);self.assertFalse(p['exact_compiler_qualified'])
  def test_actual_owner_bootstrap_113_and_profile24_25(self):
   s=importlib.util.spec_from_file_location('rebound_bootstrap',HERE.parent/'generated-java-ci-integration/bootstrap.py');b=importlib.util.module_from_spec(s);s.loader.exec_module(b)
@@ -28,7 +28,7 @@ class MetadataDiagnostics(unittest.TestCase):
   self.assertEqual(actual,json.loads((HERE/'source-inputs.json').read_bytes()))
   self.assertEqual((len(profile['sdk_files']),len(profile['adapter_files'])),(24,25))
   self.assertEqual(owner.source_digest(profile['sdk_files']),'dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47')
-  self.assertEqual(owner.source_digest(profile['adapter_files']),'b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e')
+  self.assertEqual(owner.source_digest(profile['adapter_files']),'ddb3bef7321325158fd031aca960ac072e2c39f3429e21e00652fb21071599c2')
  def test_full_job_mutations_refuse(self):
   text=(HERE/'verify.yml.candidate').read_text();p=self.work/'verify.yml'
   for old,new in [('timeout-minutes: 12','timeout-minutes: 13'),('--product mixer -j 2','--product mixer -j 3'),('scripts/ci/prepare-cli-host-tests.py','scripts/ci/other.py'),('swift test --package-path cli -j 2','swift test --package-path cli -j 3'),('export RUSTUP_AUTO_INSTALL=0','export RUSTUP_AUTO_INSTALL=1')]:
@@ -177,7 +177,9 @@ class MetadataDiagnostics(unittest.TestCase):
   binding=json.loads((HERE/'binding.json').read_bytes())
   owner=self.base.module_at('diagnostic_history_owner',ROOT/'scripts/ci/check-android-generated-java.py')
   actual=owner.source_inputs(owner.load_profile(ROOT))
-  source303=a.swift_identity_diagnostic_predecessor(self.base,binding,actual,owner)
+  source175=a.pair11_predecessor(self.base,binding,actual,owner)
+  self.assertEqual(owner.source_digest(source175),binding['pair11_transition']['sourceBefore'])
+  source303=a.swift_identity_diagnostic_predecessor(self.base,binding,source175,owner)
   self.assertEqual(owner.source_digest(source303),binding['swift_identity_diagnostic_transition']['sourceBefore'])
   source1b=a.apple_accessibility_successor(self.base,binding,source303,owner)
   self.assertEqual(owner.source_digest(source1b),binding['apple_accessibility_transition']['sourceBefore'])

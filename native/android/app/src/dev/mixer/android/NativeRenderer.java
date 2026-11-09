@@ -994,13 +994,62 @@ r.view.setPressed(state.pressed);mutation.require();
 parent.addView(view,i);mutation.require();
 }
     }
+    static final class DisposalEffect {
+        final View gate;final NativeAppearanceViewsV2.Record[] roster;final int count;final Candidate pending;
+        final NativeAppearanceViewsV2.Record[] targets,detached;final int targetCount,detachedCount;
+        DisposalEffect(View gate,NativeRenderer renderer){
+            this.gate=gate;roster=renderer.v2Roster;count=renderer.v2RosterCount;pending=renderer.v2Pending;
+            targets=pending==null?null:pending.targetRoster;targetCount=pending==null?0:pending.targetCount;
+            detached=pending==null?null:pending.detachedRoster;detachedCount=pending==null?0:pending.detachedCount;
+        }
+    }
+    private DisposalEffect disposalEffect;
+    boolean fieldDisposalCurrent(NativeAppearanceViewsV2.FieldDisposal scope) {
+        DisposalEffect effect=disposalEffect;
+        if(effect==null||scope.effect!=effect||scope.renderer!=this||scope.record.editorFence!=v2Fence||scope.record.input!=v2Input||
+            !v2Disposed||!v2Retired||!v2Fence.terminal||v2Fence.drawAllowed||v2Fence.inputAllowed||
+            effect.roster!=v2Roster||effect.count!=v2RosterCount||effect.pending!=v2Pending||
+            effect.pending!=null&&(effect.targets!=effect.pending.targetRoster||effect.targetCount!=effect.pending.targetCount||
+                effect.detached!=effect.pending.detachedRoster||effect.detachedCount!=effect.pending.detachedCount)||
+            effect.gate!=v2Gate&&(v2Pending==null||effect.gate!=v2Pending.gate)||!retainedEditorV2(scope.record))return false;
+        View cursor=scope.field;
+        for(int i=0;i<effect.count+effect.targetCount+effect.detachedCount+2;i++){
+            if(cursor==effect.gate)return true;
+            if(!(cursor.getParent() instanceof View parent))return false;cursor=parent;
+        }
+        return false;
+    }
+    private void hideDisposedGateV2(View gate) {
+        if(gate==null)return;
+        if(disposalEffect!=null||outstandingEditorNativeCalls!=0)throw Json.bad("disposal effect already active");
+        DisposalEffect effect=new DisposalEffect(gate,this);
+        ArrayList<NativeAppearanceViewsV2.FieldDisposal> scopes=new ArrayList<>();
+        addDisposalFieldsV2(scopes,effect,effect.roster,effect.count);
+        addDisposalFieldsV2(scopes,effect,effect.targets,effect.targetCount);
+        addDisposalFieldsV2(scopes,effect,effect.detached,effect.detachedCount);
+        disposalEffect=effect;outstandingEditorNativeCalls++;
+        try {
+            for(var scope:scopes)scope.record.fieldDisposal=scope;
+            gate.setVisibility(View.INVISIBLE);
+        }finally{
+            for(var scope:scopes){scope.ended=true;if(scope.record.fieldDisposal==scope)scope.record.fieldDisposal=null;}
+            disposalEffect=null;outstandingEditorNativeCalls--;
+        }
+    }
+    private void addDisposalFieldsV2(ArrayList<NativeAppearanceViewsV2.FieldDisposal> scopes,DisposalEffect effect,NativeAppearanceViewsV2.Record[] roster,int count){
+        for(int i=0;i<count;i++){
+            var record=roster[i];if(record==null||!(record.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.disposalEligible())continue;
+            boolean duplicate=false;for(var prior:scopes)if(prior.record==record){duplicate=true;break;}
+            if(!duplicate)scopes.add(new NativeAppearanceViewsV2.FieldDisposal(this,effect,record));
+        }
+    }
     void disposeV2(){
         NativeEnvironmentV2.requireMain();if(v2Disposed)return;v2Disposed=true;
         v2Retired=true;v2Fence.terminal=true;v2Fence.drawAllowed=false;v2Fence.inputAllowed=false;sealScalarV2();
         Throwable failure=null;
         try{cancelInputV2(v2Fence.sealSerial);}catch(RuntimeException|java.lang.Error cleanup){failure=cleanup;rememberV2(cleanup);}
-        try{if(v2Gate!=null)v2Gate.setVisibility(View.INVISIBLE);}catch(RuntimeException|java.lang.Error cleanup){rememberV2(cleanup);if(failure==null)failure=cleanup;}
-        try{if(v2Pending!=null&&v2Pending.gate!=v2Gate)v2Pending.gate.setVisibility(View.INVISIBLE);}catch(RuntimeException|java.lang.Error cleanup){rememberV2(cleanup);if(failure==null)failure=cleanup;}
+        try{hideDisposedGateV2(v2Gate);}catch(RuntimeException|java.lang.Error cleanup){rememberV2(cleanup);if(failure==null)failure=cleanup;}
+        try{if(v2Pending!=null&&v2Pending.gate!=v2Gate)hideDisposedGateV2(v2Pending.gate);}catch(RuntimeException|java.lang.Error cleanup){rememberV2(cleanup);if(failure==null)failure=cleanup;}
         if(v2Cleanup.firstFatal!=null)throw v2Cleanup.firstFatal;
         if(v2Cleanup.primary instanceof RuntimeException ordinary)throw ordinary;
     }

@@ -73,6 +73,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
     }
     private final Activity activity;
     private final FrameLayout root;
+    private final AndroidUIProfile profile;
     private final Handler handler;
     private final Runnable completionFault;
     private final OwnerLifecycleV2 core;
@@ -88,10 +89,19 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
     private boolean started, registering, terminalProcessed, focusKnown, lastFocus, emergency;
     private int effectDepth;
 
-    NativeOwnerV2(Activity activity, FrameLayout root) { this(activity,root,null); }
+    NativeOwnerV2(Activity activity, FrameLayout root) { this(activity,root,null,AndroidUIProfile.LEGACY_HORIZONTAL); }
+    static NativeOwnerV2 forProfile(Activity activity, FrameLayout root, AndroidUIProfile profile) {
+        return new NativeOwnerV2(activity,root,null,profile);
+    }
     /** Host-only fault at the completion-bookkeeping boundary; production always supplies null. */
     NativeOwnerV2(Activity activity, FrameLayout root, Runnable completionFault) {
+        this(activity,root,completionFault,AndroidUIProfile.LEGACY_HORIZONTAL);
+    }
+    private NativeOwnerV2(Activity activity, FrameLayout root, Runnable completionFault, AndroidUIProfile profile) {
         requireMain();
+        this.profile = switch (Objects.requireNonNull(profile)) {
+            case LEGACY_HORIZONTAL, MEASURED_MULTILINE_V2, MEASURED_MULTILINE_RETIREMENT_V3 -> profile;
+        };
         this.completionFault=completionFault;
         this.activity = Objects.requireNonNull(activity);
         this.root = Objects.requireNonNull(root);
@@ -297,7 +307,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         effectDepth++;
         try {
             if (decision.kind() == OwnerLifecycleV2.Kind.OPEN_INITIAL) {
-                owned = new NativeCoordinatorV2(activity, root, observer, fence, this::nativeInput);
+                owned = new NativeCoordinatorV2(activity, root, observer, fence, this::nativeInput, profile);
                 opening = owned;
                 owned.sealGatesScalar();
                 if (!fence.terminal) owned.renderInitial();

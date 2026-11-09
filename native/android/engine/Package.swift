@@ -7,8 +7,8 @@ let package = Package(
     .library(name: "MixerAndroidRuntime", targets: ["MixerAndroidRuntime"])],
   dependencies: [.package(path: "../../../sdk")],
   targets: [
-    .target(name: "MixerAndroidRuntime", dependencies: [.product(name: "MixerCore", package: "sdk"), .product(name: "MixerUI", package: "sdk")]),
+    .target(name: "MixerAndroidRuntime", dependencies: [.product(name: "MixerCore", package: "sdk"), .product(name: "MixerUI", package: "sdk"), .product(name: "MixerAndroid", package: "sdk")]),
     .target(name: "MixerAndroidEngine", dependencies: ["MixerAndroidRuntime", .product(name: "MixerUI", package: "sdk")]),
     .testTarget(name: "MixerAndroidEngineTests", dependencies: ["MixerAndroidEngine"]),
-    .testTarget(name: "MixerAndroidRuntimeTests", dependencies: ["MixerAndroidRuntime", .product(name: "MixerUI", package: "sdk")]),
+    .testTarget(name: "MixerAndroidRuntimeTests", dependencies: ["MixerAndroidRuntime", .product(name: "MixerUI", package: "sdk"), .product(name: "MixerAndroid", package: "sdk")]),
   ], swiftLanguageModes: [.v6])
