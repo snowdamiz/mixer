@@ -72,8 +72,10 @@ public enum AndroidProject {
         guard let resource = Bundle.module.url(forResource: "android-build", withExtension: "py", subdirectory: "Resources") else { throw MixerFailure("android.driver", "Installed CLI is missing its owned Android build driver.") }
         return resource
     }
-    static func inspectToolchain() throws -> AndroidToolchainIdentity {
-        let result = try ProcessRunner.run(["python3", try buildDriver().path, "inspect"], policy: .toolInspection)
+    static func inspectToolchain(
+        run: ([String], ProcessPolicy) throws -> CommandResult = { try ProcessRunner.run($0, policy: $1) }
+    ) throws -> AndroidToolchainIdentity {
+        let result = try run(["python3", try buildDriver().path, "inspect"], .fullAndroidToolchainInspection)
         guard result.succeeded, !result.outputTruncated else { throw MixerFailure("android.toolchain", result.output) }
         do { return try JSONDecoder().decode(AndroidToolchainIdentity.self, from: Data(result.output.utf8)) }
         catch { throw MixerFailure("android.toolchain", "Android tool inventory was not a complete structured identity: \(error)") }

@@ -11,6 +11,7 @@ public struct ProcessPolicy: Codable, Sendable {
         self.cleanupSeconds = cleanupSeconds; self.generatedOutputBytes = generatedOutputBytes
     }
     public static let toolInspection = ProcessPolicy(name: "local-tool-inspection", runtimeSeconds: 30, cleanupSeconds: 60, generatedOutputBytes: 64 << 20)
+    public static let fullAndroidToolchainInspection = ProcessPolicy(name: "local-full-android-toolchain-inspection", runtimeSeconds: 180, cleanupSeconds: 60, generatedOutputBytes: 64 << 20)
     public static let developmentBuild = ProcessPolicy(name: "local-development-build", runtimeSeconds: 1800, cleanupSeconds: 60, generatedOutputBytes: 1 << 30)
     public static let localValidation = ProcessPolicy(name: "local-validation", runtimeSeconds: 120, cleanupSeconds: 60, generatedOutputBytes: 256 << 20)
     public static let simulatorManagement = ProcessPolicy(name: "local-simulator-management", runtimeSeconds: 120, cleanupSeconds: 60, generatedOutputBytes: 64 << 20)

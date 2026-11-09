@@ -5,6 +5,7 @@ Requires explicit installed tool paths. Never downloads tools, builds an APK,
 signs, installs, launches a runtime, or queries devices. Importing is inert.
 """
 import argparse
+import atexit
 import ast
 from datetime import datetime, timezone
 import hashlib
@@ -21,6 +22,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = 'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift'
@@ -161,6 +163,287 @@ def validate_consumer(root, profile, toolchain, template):
     return files
 
 
+
+def durable_save(path, value):
+    staging = path.with_name(path.name + '.next')
+    with staging.open('x', encoding='utf-8') as stream:
+        json.dump(value, stream, indent=2, sort_keys=True)
+        stream.write('\n')
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(staging, path)
+    fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+INNER_FACTS = ('released', 'directChildReaped', 'stdoutEOF', 'stderrEOF',
+               'ownedGroupAbsent', 'descriptorsClosed', 'terminalCustody')
+INNER_POLICIES = {
+    'version': {'name': 'local-tool-inspection', 'runtimeSeconds': 30,
+                'cleanupSeconds': 60, 'generatedOutputBytes': 64 << 20},
+    'inspect': {'name': 'local-full-android-toolchain-inspection', 'runtimeSeconds': 180,
+                'cleanupSeconds': 60, 'generatedOutputBytes': 64 << 20},
+}
+
+
+def inner_contract(argv, contract):
+    # ProjectGenerator.create, ProjectBuild.export/verifyLock, and the six
+    # tamper_consumers refusals before verifyLock's version probe.
+    if contract == 'create':
+        require(len(argv) > 4 and argv[1] == 'create' and '--platform' in argv and
+                argv[argv.index('--platform') + 1] == 'android', 'Foreign create contract')
+        return ('version', 'inspect')
+    if contract == 'export':
+        require(len(argv) == 5 and argv[1] == 'export' and argv[3] == '--directory',
+                'Foreign export contract')
+        return ('version',)
+    require(contract == 'prelaunch-refusal' and len(argv) == 6 and
+            argv[1:5] == ['build', '--platform', 'android', '--directory'],
+            'Foreign zero-child contract')
+    return ()
+
+
+def private_directory(path):
+    info = path.lstat()
+    require(stat.S_ISDIR(info.st_mode) and info.st_uid == os.geteuid() and
+            stat.S_IMODE(info.st_mode) == 0o700, 'Inner receipt directory is not private: ' + str(path))
+    return {'path': str(path), 'device': info.st_dev, 'inode': info.st_ino,
+            'uid': info.st_uid, 'mode': stat.S_IMODE(info.st_mode)}
+
+
+def uuid_name(name, prefix):
+    if not name.startswith(prefix):
+        return False
+    value = name[len(prefix):]
+    try:
+        return str(uuid.UUID(value)).upper() == value
+    except (ValueError, AttributeError):
+        return False
+
+
+def bounded_entries(folder, limit):
+    # scandir is consumed incrementally; no glob/list allocation before the cap.
+    result = []
+    with os.scandir(folder) as entries:
+        for entry in entries:
+            require(len(result) < limit, 'Inner evidence entry limit')
+            result.append(Path(entry.path))
+    return sorted(result)
+
+
+def scan_snapshot(folder):
+    # These create/export/refusal callers retain no input snapshots. Inspect any
+    # unexpected snapshot for UNKNOWN before refusing its unsupported context.
+    pending, count, size = [(folder, 0)], 0, 0
+    while pending:
+        current, depth = pending.pop()
+        require(depth <= 32, 'Snapshot depth limit')
+        for child in bounded_entries(current, 10000 - count):
+            count += 1
+            require(child.name not in ('HOLD.json', 'HOLD.json.next'), 'Inner UNKNOWN in snapshot')
+            info = child.lstat()
+            require(info.st_uid == os.geteuid(), 'Foreign snapshot owner')
+            if stat.S_ISDIR(info.st_mode):
+                pending.append((child, depth + 1))
+            else:
+                require(stat.S_ISREG(info.st_mode), 'Unsupported snapshot object')
+                size += info.st_size
+                require(size <= 64 << 20, 'Snapshot byte limit')
+    raise RuntimeError('Unexpected snapshot for nil-directory inspection context')
+
+
+def scan_live_receipt(folder):
+    # CommandReceiptStore.persist / mx_persist publish normal updates through
+    # receipt.json.next. The staging bytes may be partial; published bytes may
+    # be atomically replaced. Live admission checks objects, not terminal JSON.
+    def names():
+        found = {p.name for p in bounded_entries(folder, 4)}
+        require(not found.intersection(('HOLD.json', 'HOLD.json.next')), 'Inner UNKNOWN command')
+        require(found <= {'receipt.json', 'receipt.json.next'}, 'Unsupported command evidence')
+        return found
+
+    for name in sorted(names()):
+        path = folder / name
+        try:
+            info = path.lstat()
+        except FileNotFoundError:
+            # Only staging disappears during the canonical atomic rename. A
+            # missing published counterpart is deletion, not that transition.
+            require(name == 'receipt.json.next', 'Published inner receipt disappeared')
+            info = (folder / 'receipt.json').lstat()
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == os.geteuid() and
+                info.st_size <= 1_048_576, 'Oversize, nonregular or foreign-owned live receipt')
+    # Observe HOLD publication during the object checks before any process op.
+    names()
+
+
+def tool_temporary(path, *, live):
+    # The selected Swift --version writer creates one private mkdtemp directory
+    # with an empty .keep-directory marker. Create invokes that writer twice:
+    # ProjectGenerator's version probe and android-build.py inspect's probe.
+    # These tool objects are separate from CommandReceiptStore evidence.
+    suffix = path.name.removeprefix('TemporaryDirectory.')
+    require(path.name.startswith('TemporaryDirectory.') and len(suffix) == 6 and
+            all(c in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' for c in suffix),
+            'Foreign tool temporary directory')
+    result = private_directory(path)
+    entries = bounded_entries(path, 2)
+    names = {p.name for p in entries}
+    require(not names.intersection(('HOLD.json', 'HOLD.json.next')), 'Inner UNKNOWN in tool temporary')
+    require(names <= {'.keep-directory'} and (live or names == {'.keep-directory'}),
+            'Unsupported tool temporary contents')
+    result['writer'] = 'swift --version'
+    result['marker'] = None
+    if entries:
+        info = entries[0].lstat()
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == os.geteuid() and
+                stat.S_IMODE(info.st_mode) == 0o644 and info.st_nlink == 1 and info.st_size == 0,
+                'Foreign tool temporary marker')
+        result['marker'] = {'name': '.keep-directory', 'device': info.st_dev,
+                            'inode': info.st_ino, 'uid': info.st_uid, 'mode': 0o644, 'bytes': 0}
+    return result
+
+
+def inner_paths(tmp, *, live=False, tool_tmp_limit=0, tool_tmp_evidence=None):
+    private_directory(tmp)
+    require(type(tool_tmp_limit) is int and 0 <= tool_tmp_limit <= 2, 'Foreign tool temporary allowance')
+    roots, tool_objects = [], []
+    for entry in bounded_entries(tmp, 3):
+        if uuid_name(entry.name, 'mixer-command-receipts-'):
+            roots.append(entry)
+        else:
+            require(len(tool_objects) < tool_tmp_limit, 'Unexpected tool temporary directory')
+            tool_objects.append(tool_temporary(entry, live=live))
+    require(len(roots) <= 1, 'Unexpected receipt context count')
+    if tool_tmp_evidence is not None:
+        tool_tmp_evidence.extend(tool_objects)
+    result = []
+    for root in roots:
+        require(uuid_name(root.name, 'mixer-command-receipts-'), 'Foreign receipt root')
+        private_directory(root)
+        for child in bounded_entries(root, 3):
+            private_directory(child)
+            if uuid_name(child.name, 'mixer-verify-'):
+                scan_snapshot(child)
+            require(uuid_name(child.name, 'command-'), 'Foreign receipt directory')
+            if live:
+                scan_live_receipt(child)
+            else:
+                names = {p.name for p in bounded_entries(child, 2)}
+                require('HOLD.json' not in names and 'HOLD.json.next' not in names, 'Inner UNKNOWN command')
+                require(names <= {'receipt.json'}, 'Unsupported command evidence')
+            result.append(child)
+    require(len(result) <= 2, 'Unexpected inner command count')
+    return result
+
+
+def retain_inner(record, tmp, required, *, successful):
+    require(private_directory(tmp) == record['inner_tmp_identity'], 'Per-CLI TMPDIR identity changed')
+    retained = []
+    record['inner_receipts'] = retained
+    record['inner_tool_tmp'] = []
+    for folder in inner_paths(tmp, tool_tmp_limit=len(required), tool_tmp_evidence=record['inner_tool_tmp']):
+        names = {p.name for p in bounded_entries(folder, 2)}
+        require(names == {'receipt.json'}, 'Missing, incomplete or UNKNOWN inner receipt: ' + str(folder))
+        p = folder / 'receipt.json'
+        info = p.lstat()
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == os.geteuid() and info.st_size <= 1_048_576,
+                'Oversize, nonregular or foreign-owned inner receipt')
+        with p.open('rb') as stream:
+            raw = stream.read(1_048_577)
+        require(len(raw) == info.st_size and len(raw) <= 1_048_576, 'Inner receipt changed while retaining')
+        pin = {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+        after = p.lstat()
+        require(all(getattr(after, k) == getattr(info, k) for k in (
+            'st_dev', 'st_ino', 'st_uid', 'st_mode', 'st_size', 'st_mtime_ns', 'st_ctime_ns')),
+            'Inner receipt identity changed while retaining')
+        item = {'parent_label': record['label'], 'path': str(p), **pin}
+        retained.append(item)
+        r = unique_json(raw.decode('utf-8'))
+        item['receipt'] = r
+        require(r.get('schema') == 'mixer.owned-command.2' and r.get('state') == 'TERMINAL' and
+                all(r.get(k) is True for k in INNER_FACTS) and r.get('uncertainty') is None,
+                'Inner terminal custody incomplete: ' + str(p))
+        require(all(type(r.get(k)) is int and 1 < r[k] <= 2_147_483_647 for k in ('pid', 'ownedPGID', 'ownedSession')) and
+                r['pid'] == r['ownedPGID'] == r['ownedSession'], 'Inner ownership identity differs')
+        require(all(type(r.get(k)) is int and 0 <= r[k] <= 18_446_744_073_709_551_615 for k in (
+            'runtimeStartedNS', 'cleanupStartedNS', 'terminalNS', 'generatedBytes', 'stdoutBytes',
+            'stderrBytes', 'aggregateLimit', 'aggregatePreviouslyGenerated')) and
+            0 < r['runtimeStartedNS'] <= r['cleanupStartedNS'] <= r['terminalNS'],
+            'Malformed inner monotonic/accounting facts')
+        require(type(r.get('exitCode')) is int and -2_147_483_648 <= r['exitCode'] <= 2_147_483_647 and type(r.get('groupKillSent')) is bool and
+                type(r.get('outputTruncated')) is bool and
+                r['generatedBytes'] == r['stdoutBytes'] + r['stderrBytes'] and
+                r['aggregateLimit'] == 8 << 30 and
+                isinstance(r.get('retainedInputDirectories'), list) and
+                all(type(v) is str for v in r['retainedInputDirectories']) and
+                r.get('directory') is None and r.get('retainedInputDirectories') == [] and
+                (r.get('stopReason') is None or type(r['stopReason']) is str),
+                'Malformed inner result facts')
+        argv = r.get('command')
+        require(type(argv) is list and all(type(v) is str for v in argv), 'Malformed inner argv')
+        kind = 'version' if argv == ['swift', '--version'] else 'inspect'
+        require(kind == 'version' or len(argv) == 3 and argv[0] == 'python3' and
+                argv[2] == 'inspect' and Path(argv[1]).is_absolute() and
+                Path(argv[1]) == Path(record['argv'][0]).parent / 'MixerCLI_MixerBuild.bundle/Resources/android-build.py', 'Foreign inner command')
+        policy = r.get('policy')
+        require(type(policy) is dict and policy == INNER_POLICIES[kind] and
+                all(type(policy[k]) is int for k in ('runtimeSeconds', 'cleanupSeconds', 'generatedOutputBytes')),
+                'Wrong typed inner policy')
+        item['kind'] = kind
+        if successful:
+            require(r['exitCode'] == 0 and r.get('stopReason') is None and
+                    not r['outputTruncated'] and r['generatedBytes'] <= policy['generatedOutputBytes'] and
+                    r['aggregatePreviouslyGenerated'] + r['generatedBytes'] <= r['aggregateLimit'],
+                    'Successful CLI contains failed or truncated inner command')
+    retained.sort(key=lambda v: v['receipt']['runtimeStartedNS'])
+    if retained:
+        require(retained[0]['receipt']['aggregatePreviouslyGenerated'] == 0, 'Foreign initial context accounting')
+    require(tuple(v['kind'] for v in retained) == required, 'Missing or foreign required inner command')
+    for previous, current in zip(retained, retained[1:]):
+        require(previous['receipt']['terminalNS'] <= current['receipt']['runtimeStartedNS'] and
+                current['receipt']['aggregatePreviouslyGenerated'] == previous['receipt']['aggregatePreviouslyGenerated'] + previous['receipt']['generatedBytes'],
+                'Inner command overlap or ordering differs')
+    return retained
+
+
+class OwnedCLIPopen(subprocess.Popen):
+    # CPython Popen.__del__ polls and may enlist the object in _active. Neither
+    # action belongs to a finalizer: all observations are owned by run_cli.
+    def __del__(self):
+        pass
+
+
+CLI_PROCESS = OwnedCLIPopen
+_CLI_OWNERS = []
+
+
+class CLIResources:
+    def __init__(self, record):
+        self.record = record
+        self.child = None
+        self.selector = None
+        _CLI_OWNERS.append(self)
+
+    def release_terminal(self):
+        require(self.record['terminal_custody'] is True, 'Nonterminal CLI resource release')
+        _CLI_OWNERS.remove(self)
+
+
+def cli_exit_boundary(code=74, owners=_CLI_OWNERS, exit_now=os._exit):
+    # Runs before interpreter teardown (also for imported callers). UNKNOWN keeps
+    # the exact child, selector and pipes alive until kernel process exit. No
+    # Python resource destructor, atexit poll, wait or close is allowed afterward.
+    if owners:
+        exit_now(code)
+
+
+atexit.register(cli_exit_boundary)
+
+
 class Commands:
     """Bounded pipes and only owned process-group cleanup, including failures."""
     def __init__(self, out, env, *, seconds=2400, command_seconds=600,
@@ -172,12 +455,171 @@ class Commands:
         self.used_output = 0
         self.records = []
         self.cleanup_seconds = cleanup_seconds
+        self.hold = None
 
     def custody_terminal(self):
-        return bool(self.records) and all(r['terminal_custody'] for r in self.records)
+        return not self.hold and bool(self.records) and all(r['terminal_custody'] for r in self.records)
+
+
+    def hold_inner(self, record, operation, error):
+        self.hold = self.hold or {'parent_label': record['label'], 'operation': operation,
+                                  'error': repr(error), 'retained_cli_tmp': record.get('inner_tmp')}
+        record['inner_hold'] = self.hold
+        record['terminal_custody'] = False
+        try:
+            durable_save(self.out / 'INNER-HOLD.json', self.hold)
+        except BaseException as persistence_error:
+            record['hold_persistence_error'] = repr(persistence_error)
+
+    def run_cli(self, label, argv, *, cwd=ROOT, expected_failure=False, diagnostics=False, contract):
+        require(not self.hold and (not self.records or self.custody_terminal()), 'Prior custody held')
+        require(len(self.records) < 160 and time.monotonic() < self.deadline, 'Command budget exhausted')
+        argv = list(map(str, argv))
+        required = inner_contract(argv, contract)
+        record = {'label': label, 'argv': argv, 'cwd': str(cwd), 'exit_code': None,
+                  'terminal_custody': False, 'direct_child_reaped': False,
+                  'stdout_eof': False, 'stderr_eof': False, 'owned_group_absent': False,
+                  'descriptors_closed': False, 'cleanup_errors': [], 'stop': None,
+                  'started_monotonic': time.monotonic(), 'inner_required': required}
+        number = len(self.records)
+        self.records.append(record)
+        child, selector, tmp, resources = None, None, None, None
+        buffers = {k: bytearray() for k in ('stdout', 'stderr')}
+        env = dict(self.env)
+        def scan_hold():
+            if self.hold:
+                raise RuntimeError('Sticky custody hold')
+            require(private_directory(tmp) == record['inner_tmp_identity'], 'Per-CLI TMPDIR identity changed')
+            for folder in inner_paths(tmp, live=True, tool_tmp_limit=len(required)):
+                if (folder / 'HOLD.json').exists():
+                    raise RuntimeError('Inner UNKNOWN: ' + str(folder / 'HOLD.json'))
+        def pump(seconds):
+            scan_hold()
+            for key, _ in selector.select(seconds):
+                scan_hold()
+                name = key.data
+                try:
+                    chunk = os.read(key.fd, 65536)
+                except BlockingIOError:
+                    continue
+                if not chunk:
+                    record[name + '_eof'] = True
+                    selector.unregister(key.fileobj)
+                    continue
+                room = max(0, min(self.output_bytes - len(buffers[name]), self.total_output_bytes - self.used_output))
+                buffers[name].extend(chunk[:room])
+                self.used_output += len(chunk[:room])
+                if len(chunk) > room:
+                    record['stop'] = 'output-limit'
+        try:
+            evidence = self.out.parent / 'inner-cli'
+            evidence.mkdir(mode=0o700, exist_ok=True)
+            private_directory(evidence)
+            folder = Path(tempfile.mkdtemp(prefix=f'{number:03}-{label}-', dir=evidence))
+            tmp = folder / 'tmp'
+            tmp.mkdir(mode=0o700)
+            tmp = tmp.resolve(strict=True)
+            record['inner_tmp'] = str(tmp)
+            record['inner_tmp_identity'] = private_directory(tmp)
+            env['TMPDIR'] = str(tmp) + '/'
+            record['command_deadline_monotonic'] = min(self.deadline, time.monotonic() + self.command_seconds)
+            record['cli_identity'] = identity(Path(argv[0]))
+            # Persist each newly allocated directory entry before dispatch.
+            for parent in (self.out.parent, evidence):
+                fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY)
+                try:
+                    os.fsync(fd)
+                finally:
+                    os.close(fd)
+            durable_save(folder / 'intent.json', record)
+            durable_save(self.out / 'commands.json', self.records)
+            resources = CLIResources(record)
+            selector = resources.selector = selectors.DefaultSelector()
+            child = resources.child = CLI_PROCESS.__new__(CLI_PROCESS)
+            child.__init__(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+            record['pid'] = record['owned_pgid'] = child.pid
+            durable_save(folder / 'launch.json', record)
+            for name in buffers:
+                pipe = getattr(child, name)
+                os.set_blocking(pipe.fileno(), False)
+                selector.register(pipe, selectors.EVENT_READ, name)
+            while True:
+                scan_hold()
+                code = child.poll()
+                if code is not None:
+                    record['exit_code'], record['direct_child_reaped'] = code, True
+                if record['direct_child_reaped'] and not selector.get_map():
+                    break
+                if time.monotonic() >= record['command_deadline_monotonic']:
+                    record['stop'] = 'timeout'
+                    break
+                pump(.02)
+                if record['stop']:
+                    break
+            scan_hold()
+            retain_inner(record, tmp, required, successful=record['exit_code'] == 0 and not expected_failure)
+            # Required nested identities are now terminal; only then clean the
+            # exact outer group. Outer terminal facts never waive inner proof.
+            cleanup_end = time.monotonic() + self.cleanup_seconds
+            if not record['direct_child_reaped']:
+                scan_hold()
+                os.killpg(child.pid, signal.SIGKILL)
+            while True:
+                scan_hold()
+                if not record['direct_child_reaped']:
+                    code = child.poll()
+                    if code is not None:
+                        record['exit_code'], record['direct_child_reaped'] = code, True
+                if record['direct_child_reaped'] and not record['owned_group_absent']:
+                    try:
+                        os.killpg(child.pid, 0)
+                    except ProcessLookupError:
+                        record['owned_group_absent'] = True
+                pump(0)
+                if record['direct_child_reaped'] and record['owned_group_absent'] and not selector.get_map():
+                    break
+                require(time.monotonic() < cleanup_end, 'Outer cleanup deadline without terminal custody')
+                pump(.02)
+            scan_hold()
+            for name in buffers:
+                getattr(child, name).close()
+            selector.close()
+            record['descriptors_closed'] = True
+            record['terminal_custody'] = all(record[k] is True for k in (
+                'direct_child_reaped', 'stdout_eof', 'stderr_eof', 'owned_group_absent', 'descriptors_closed'))
+        except BaseException as error:
+            self.hold_inner(record, 'cli-execution-or-receipt', error)
+        finally:
+            # Filesystem evidence only after uncertainty: no group/pipe/process
+            # operation, guessed absence, or deletion follows a hold.
+            record['elapsed_seconds'] = time.monotonic() - record['started_monotonic']
+            record['logs'] = {}
+            for name, data in buffers.items():
+                try:
+                    target = self.out / f'{number:03}-{label}.{name}'
+                    target.write_bytes(data)
+                    record['logs'][name] = {'path': str(target), **identity(target)}
+                except BaseException as error:
+                    self.hold_inner(record, 'persist-cli-output', error)
+            try:
+                durable_save(self.out / 'commands.json', self.records)
+            except BaseException as error:
+                self.hold_inner(record, 'persist-cli-receipts', error)
+        require(not self.hold and record['terminal_custody'], label + ': inner/outer custody held')
+        resources.release_terminal()
+        require(record['stop'] is None, label + ': ' + str(record['stop']))
+        require(record['exit_code'] > 0 if expected_failure else record['exit_code'] == 0,
+                label + ': unexpected CLI exit')
+        data = buffers['stdout'] + buffers['stderr'] if diagnostics else buffers['stdout']
+        return bytes(data).decode('utf-8')
 
     def run(self, label, argv, *, cwd=ROOT, expected_failure=False, diagnostics=False,
-            stdout_bytes=None):
+            stdout_bytes=None, inner_contract=None):
+        require(not self.hold, 'Sticky inner custody hold')
+        if inner_contract is not None:
+            require(stdout_bytes is None, 'CLI stdout override unsupported')
+            return self.run_cli(label, argv, cwd=cwd, expected_failure=expected_failure, diagnostics=diagnostics, contract=inner_contract)
         require(stdout_bytes is None or type(stdout_bytes) is int and 0 < stdout_bytes <= JAVAP_STDOUT_BYTES,
                 'Invalid explicit stdout budget')
         stream_limits = {'stdout': self.output_bytes if stdout_bytes is None else stdout_bytes,
@@ -447,7 +889,7 @@ def tamper_consumers(source, scratch, cli, profile, run, label):
             save(root / 'mixer.lock', lock)
         report = unique_json(run(label + '-tamper-' + name,
                                  [cli, 'build', '--platform', 'android', '--directory', root],
-                                 expected_failure=True))
+                                 expected_failure=True, inner_contract='prelaunch-refusal'))
         require(report.get('status') == 'error' and report.get('code') == code,
                 'Unexpected tamper refusal: ' + name)
         require(not (root / '.mixer').exists(), 'Tamper reached build staging: ' + name)
@@ -566,9 +1008,6 @@ def execute(args):
         receipt['android_jar'] = identity(paths['android_sdk'] / 'platforms/android-37.0/android.jar')
         template = (ROOT / DRIVER).read_bytes().decode('utf-8')
         scratch = Path(tempfile.mkdtemp(prefix='generated-java-owned-', dir=out))
-        # Keep all child temporary state inside the one removable owned directory.
-        (scratch / 'tmp').mkdir()
-        env['TMPDIR'] = str(scratch / 'tmp')
         spec = importlib.util.spec_from_file_location('generated_java_dependencies', ROOT / 'scripts/ci/check-android-binding.py')
         dependencies = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(dependencies)
@@ -590,13 +1029,13 @@ def execute(args):
             original = mode_root / 'original'
             run(mode + '-create', [cli, 'create', 'GeneratedJavaApp', '--platform', 'android',
                 '--directory', original, '--application', 'dev.mixer.generatedjava',
-                '--sdk-path', ROOT / 'sdk', '--android-adapter-path', ROOT / 'native/android'])
+                '--sdk-path', ROOT / 'sdk', '--android-adapter-path', ROOT / 'native/android'], inner_contract='create')
             original_files = validate_consumer(original, profile, inspection, template)
             if baseline is None:
                 baseline = original_files
             require(original_files == baseline, 'Debug/Release emitted consumer identity differs')
             exported, relocated = mode_root / 'exported', mode_root / 'relocated'
-            run(mode + '-export', [cli, 'export', exported, '--directory', original])
+            run(mode + '-export', [cli, 'export', exported, '--directory', original], inner_contract='export')
             # Move the actual original after its compilation, so relocation has
             # no surviving original path to fall back on.
             for form in FORMS:
@@ -633,6 +1072,13 @@ def execute(args):
                 'Installed javap changed during integration')
         require(set(receipt['consumers']) == {m + '-' + f for m in MODES for f in FORMS}, 'Incomplete consumer matrix')
         require(commands.custody_terminal(), 'Command custody remains unknown')
+        require({r['label'] for r in commands.records if r.get('inner_required') == ('version', 'inspect')
+                 and r['exit_code'] == 0 and r['terminal_custody']} == {'debug-create', 'release-create'},
+                'Missing named successful CLI create receipts')
+        for record in commands.records:
+            for retained in record.get('inner_receipts', []):
+                require(identity(Path(retained['path'])) == {k: retained[k] for k in ('bytes', 'sha256')},
+                        'Retained inner receipt bytes changed')
         receipt['status'] = 'passed-java-crosscompile-only'
     except Exception as error:
         receipt['error'] = str(error)
@@ -641,11 +1087,20 @@ def execute(args):
         receipt['command_records'] = commands.records if commands is not None else []
         receipt['cleanup'] = {'owned_scratch_started': scratch is not None,
             'command_custody_terminal': terminal, 'owned_scratch_removed': False}
+        try:
+            durable_save(out / 'receipt-before-cleanup.json', receipt)
+        except BaseException as error:
+            terminal = False
+            receipt['status'] = 'failed'
+            receipt['cleanup']['evidence_persistence_error'] = repr(error)
+            receipt['cleanup']['command_custody_terminal'] = False
+            if commands is not None:
+                commands.hold = commands.hold or {'operation': 'persist-before-scratch-cleanup', 'error': repr(error), 'retained_scratch': str(scratch)}
         if scratch is not None:
             receipt['cleanup']['owned_scratch_path'] = str(scratch)
-            if not terminal:
+            if not terminal or receipt['status'] != 'passed-java-crosscompile-only':
                 receipt['status'] = 'failed'
-                receipt['cleanup']['retention_reason'] = 'Terminal command custody not positively observed or cleanup denied/failed'
+                receipt['cleanup']['retention_reason'] = 'Failed integration or missing terminal custody; exact scratch retained'
             else:
                 try:
                     shutil.rmtree(scratch)
@@ -672,4 +1127,7 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    finally:
+        cli_exit_boundary()

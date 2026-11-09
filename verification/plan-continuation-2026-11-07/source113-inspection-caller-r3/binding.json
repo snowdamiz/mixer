@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "status": "CANDIDATE_PENDING_COMBINED_REVIEW",
+  "base_revision": "953dd09bfcc9b1d9c404221dce3c18bd75e67051",
+  "source": {
+    "count": 113,
+    "sha256": "524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292",
+    "algorithm": "sha256 of sorted path + NUL + file sha256 + newline; scripts/ci/check-android-generated-java.py:source_inputs",
+    "manifest": "source-inputs.json"
+  },
+  "profile": {
+    "id": "mixer.android-source-pair.10",
+    "sdk_count": 24,
+    "sdk_sha256": "dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47",
+    "adapter_count": 25,
+    "adapter_sha256": "b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e",
+    "java_sources": 19
+  },
+  "cli": {
+    "build": "swift build --package-path cli --product mixer -j 2",
+    "binary": "$MIXER_STORE_CLI_BIN_DIR/mixer",
+    "test": "MIXER_STORE_TEST_CLI=\"$MIXER_STORE_CLI_BIN_DIR/mixer\" swift test --package-path cli"
+  },
+  "qualification": {
+    "compiler": false,
+    "native": false,
+    "CLI87": false,
+    "TestFlight": false,
+    "release": false,
+    "GA": false
+  },
+  "failed_attempt": {
+    "run": 42545709402,
+    "job": 128930148206,
+    "head": "924b155f9d319bb9bbee2b4e082960706edbfb25",
+    "preserved": true,
+    "rerun_authorized": false,
+    "archive": {
+      "path": "verification/plan-continuation-2026-11-07/profile10-delivery-r1/ci-failure/envelope-artifact.zip",
+      "bytes": 146124,
+      "sha256": "a871d386ce958821990d0d01b835dcbd0cc8697800989794073b848ae2f595f1",
+      "members": 54
+    },
+    "swift_log_sha256": "0ed3567c985103904be0135eabb5ba9e6e093318bbd6900fc4b56ababa900e0f"
+  },
+  "unchanged_policy": {
+    "compiler": "Rust 1.99.1",
+    "compiler_sha256": "1ba7bb8e273bd64125f4048d2ecce530e0a6470e565ab1b3aecf0b82b532f7b1",
+    "commands": 40,
+    "methods": 92,
+    "layouts": 32,
+    "comparisons": 21714,
+    "API_refusals": 8,
+    "original_controls": 33,
+    "caller_controls": 10,
+    "output_ownership_review_controls": 27,
+    "active_seconds": 480,
+    "cleanup_seconds": 60,
+    "per_group_seconds": 120,
+    "compile_seconds": 60,
+    "per_stream_bytes": 8388608,
+    "aggregate_bytes": 67108864
+  },
+  "dependency": {
+    "source106_R3": {
+      "path": "verification/plan-continuation-2026-11-07/envelope-profile10-rebind-r3",
+      "seal_sha256": "8eb1cf1219a99d78170ccfc2eb3bd86fad5f8a2e063ddfc703ba54bac377f3ff",
+      "independently_accepted": false,
+      "review": "envelope-profile10-review-r3",
+      "fresh_combined_review_required": true,
+      "unresolved_findings_must_be_resolved": true
+    },
+    "source113_cli_review": {
+      "report": "verification/plan-continuation-2026-11-07/cli88-profile10-fixture-review-r2/REPORT.md",
+      "sha256": "44b58bc8a3b3bcb7ebfa46cbe5aa90f22fd6a740624a8f3ab65a097f27b7042c"
+    },
+    "source113_six_consumers": "pending root execution; source106 receipts do not qualify source113"
+  },
+  "accepted_caller_job_sha256": "9cd9bd2210307731c0decf9d44696adecd1238c926466785082f96776cc6d263",
+  "accepted_caller_patch_sha256": "e21c4ca44bf9c138007bc064b0d0d594e230f18a288c8b81bf12dc98fc2604df",
+  "adoption_requires": [
+    "independent combined exact-byte review",
+    "root canonical whole-job/source/absent-target checks",
+    "actual six-consumer integration",
+    "fresh ordinary hosted CI"
+  ],
+  "adoption": {
+    "allowed": false,
+    "status": "CANDIDATE_PENDING_COMBINED_REVIEW",
+    "canonicalAdopted": false
+  },
+  "fixture_dispatch": {
+    "host_rust_fixture_after_exact_checks": true,
+    "scope": "host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch",
+    "combinedAccepted": false,
+    "runtime": false,
+    "GA": false,
+    "exactWindow": false
+  },
+  "upstream_inspection": {
+    "member": "inspection-review.json",
+    "sha256": "6b51eafe93f29e05c9bf527a5d39625e8a2cffbcdfd1fbb4799ac80adb7a3de6",
+    "source113": "524e7e2934c34501ff23dae13e448cc13ae53a874d78e86fefeba556e2a65292",
+    "patchSHA256": "da94deb88a987e294c7ac830ecae32dd060e2a25035001ae92977e2a91236b04",
+    "checkerSHA256": "6103a13c065181ccd5dd76d6c6ee7d827dd091354b1aed3eea11887895bc2822",
+    "scope": "accepted R5 real-tool temporary-directory source protocol only; no qualification transfer"
+  }
+}
