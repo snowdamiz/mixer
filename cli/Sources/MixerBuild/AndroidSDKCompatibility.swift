@@ -68,12 +68,12 @@ struct AndroidSDKProfile: Codable, Sendable {
 }
 
 enum AndroidSDKCompatibility {
-    // Selected frozen 22 + 24 map. Never infer or refresh from a selected SDK,
+    // Selected frozen 24 + 25 map. Never infer or refresh from a selected SDK,
     // mutable lock, resource, environment, or successful local build.
     static let profile: AndroidSDKProfile = {
         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
         {
-          "adapter_compatibility_sha256": "ee9414d3b68f9d66ba275c93339018e5eaebb161a7dc25d7056538c652305d89",
+          "adapter_compatibility_sha256": "b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e",
           "adapter_files": {
             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
               "bytes": 4328,
@@ -82,6 +82,10 @@ enum AndroidSDKCompatibility {
             "Sources/MixerAndroidRuntime/SessionRegistry.swift": {
               "bytes": 7730,
               "sha256": "977bb8790cb822467c31c7a24ffebe96ea364067a3637bf90464ba4060b77b67"
+            },
+            "app/src/dev/mixer/android/AndroidUIProfile.java": {
+              "bytes": 306,
+              "sha256": "b051e01864a6dc02a01e59a4ba9620e37b48178643cbd8cc4d683462634dc3d5"
             },
             "app/src/dev/mixer/android/AppearanceDescriptorV2.java": {
               "bytes": 31281,
@@ -96,8 +100,8 @@ enum AndroidSDKCompatibility {
               "sha256": "afe8e7fd29d4d460fb3f457687a3334d7dfdc8eec872c3ad5a6052e224a18648"
             },
             "app/src/dev/mixer/android/AppearanceResolverV2.java": {
-              "bytes": 24607,
-              "sha256": "04237c1ffdcc777294fa70e0d7c7ecbdd4bee882ca19ce50fac795ef883ace9f"
+              "bytes": 25094,
+              "sha256": "e75b8cda341d3370ce49446631e24a726c98a119dc5f499d60dee33ff0adf079"
             },
             "app/src/dev/mixer/android/AuthoredToggleInputV2.java": {
               "bytes": 6514,
@@ -116,8 +120,8 @@ enum AndroidSDKCompatibility {
               "sha256": "cc383f5f358714de5a55c65f205fd7e296ab8166657160c38059ca8ac7f4351c"
             },
             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java": {
-              "bytes": 127820,
-              "sha256": "d9704dab54d22347faf4d4724568db0a8aca8388b002aee8b45f896997a8d259"
+              "bytes": 141100,
+              "sha256": "d1187601f1c26dc716041e1d06bb71a91cabe553e141a460dd95fc120a12bfa6"
             },
             "app/src/dev/mixer/android/NativeBridge.java": {
               "bytes": 1076,
@@ -144,16 +148,16 @@ enum AndroidSDKCompatibility {
               "sha256": "056aa51d07e765b59a3859ce76090477a24211c973b63336406ff4b0d4102269"
             },
             "app/src/dev/mixer/android/NativeRenderer.java": {
-              "bytes": 83197,
-              "sha256": "af71e35ed21673ec01648cce73c9eab0a3b0cf2ba7c7594422b2fe5e04752b3e"
+              "bytes": 94833,
+              "sha256": "6e5d33fb1030fe59b0353fa8213339d3a2b928093690d80e44abcce2081f3521"
             },
             "app/src/dev/mixer/android/OwnerLifecycleV2.java": {
               "bytes": 12473,
               "sha256": "4282e8284212fb042a139f597d9f34f061f6f27673e918a52f1f784e6fe9ebb6"
             },
             "app/src/dev/mixer/android/UiPacket.java": {
-              "bytes": 8877,
-              "sha256": "251577a7ce42c6931b694510cb5af0f418521ba9b0ef15c163da4b4bb0416c02"
+              "bytes": 9263,
+              "sha256": "baf05a53c2ef2d2d6307fb51a05dc4bc2827641439fef5ba5b4584086a0cff91"
             },
             "bridge/jni.c": {
               "bytes": 6072,
@@ -176,13 +180,21 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.9",
+          "id": "mixer.android-source-pair.10",
           "schema": 1,
-          "sdk_compatibility_sha256": "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0",
+          "sdk_compatibility_sha256": "dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47",
           "sdk_files": {
             "Package.swift": {
-              "bytes": 1334,
-              "sha256": "ef1fda010474ab15208b413ffbac9723f87d3eb8ecffe752e6e578baa8cf6713"
+              "bytes": 1621,
+              "sha256": "425bd9c285a06a5ba524c98cfda8bd8c6c064975202fcd3625a4414677807c92"
+            },
+            "Sources/MixerAndroid/AndroidUIHost.swift": {
+              "bytes": 12117,
+              "sha256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db"
+            },
+            "Sources/MixerAndroid/AndroidUIProfile.swift": {
+              "bytes": 1218,
+              "sha256": "1f0f6e7659e2b2286a233d3dcb0303d09dac185947923c474947cd7efa0adb48"
             },
             "Sources/MixerCore/FeatureStore.swift": {
               "bytes": 4358,
@@ -233,8 +245,8 @@ enum AndroidSDKCompatibility {
               "sha256": "cbaaeebad2ef3c4015ab4f917df3a35ed68541e52b8b12c8a27a3be07211fcf0"
             },
             "Sources/MixerUI/AppearanceResolutionV2.swift": {
-              "bytes": 26464,
-              "sha256": "4d416c443953c43ab3aab0500c392369fe369fa5ac95f086aa328da64885d50b"
+              "bytes": 27188,
+              "sha256": "a94e5c274d30470df744acc638d26c2c8d6a530136d0a1382be402f41f35a510"
             },
             "Sources/MixerUI/AppearanceValuesV1.swift": {
               "bytes": 12170,
@@ -249,8 +261,8 @@ enum AndroidSDKCompatibility {
               "sha256": "ef313b4f153199ce2b18d4cea75be7a61b82350dd4b17e7e3be84757898482c6"
             },
             "Sources/MixerUI/NativePacketV1.swift": {
-              "bytes": 4703,
-              "sha256": "ff099c2a1a57bd48c1cb7ed4fc6991dda7571d69457b0a3c7feb1cacb2cec18f"
+              "bytes": 5084,
+              "sha256": "3a285c83087e4c50b8e0d7bea4ac20c4a0db4b1425517b0ef94e61e28fb05a2f"
             },
             "Sources/MixerUI/Protocol.swift": {
               "bytes": 9315,
@@ -347,7 +359,7 @@ enum AndroidSDKCompatibility {
             guard name == "Package.swift" else { throw failure("Reserved SDK manifest namespace \(name)") }
         }
         _ = try path(root, "Package.swift", identity: profile.sdk_files["Package.swift"]!)
-        for target in ["Sources/MixerCore", "Sources/MixerUI"] { try closed(root, target, files: profile.sdk_files) }
+        for target in ["Sources/MixerCore", "Sources/MixerUI", "Sources/MixerAndroid"] { try closed(root, target, files: profile.sdk_files) }
     }
     // Canonical-only optional inputs. These identities are deliberately excluded
     // from the serialized product profile, projection, export and generated tree.

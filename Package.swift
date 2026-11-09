@@ -8,12 +8,15 @@ let package = Package(
     platforms: [.iOS("26.0"), .macOS(.v14)],
     products: [
         .library(name: "MixerCore", targets: ["MixerCore"]),
+        .library(name: "MixerAndroid", targets: ["MixerAndroid"]),
         .library(name: "MixerUI", targets: ["MixerUI"]),
         .library(name: "MixerApple", targets: ["MixerApple"]),
         .library(name: "MixerGuest", targets: ["MixerGuest"]),
         .library(name: "MixerCapabilities", targets: ["MixerCapabilities"]),
     ],
     targets: [
+        .target(name: "MixerAndroid", dependencies: ["MixerUI"], path: "sdk/Sources/MixerAndroid"),
+        .testTarget(name: "MixerAndroidTests", dependencies: ["MixerAndroid", "MixerUI"], path: "sdk/Tests/MixerAndroidTests"),
         .target(name: "MixerCore", path: "sdk/Sources/MixerCore"),
         .target(name: "MixerCapabilityIO", path: "sdk/Sources/MixerCapabilities/NativeIO"),
         .target(name: "MixerCapabilities", dependencies: ["MixerCore", .target(name: "MixerCapabilityIO", condition: .when(platforms: [.iOS, .macOS, .linux, .android]))], path: "sdk/Sources/MixerCapabilities", exclude: ["NativeIO"]),

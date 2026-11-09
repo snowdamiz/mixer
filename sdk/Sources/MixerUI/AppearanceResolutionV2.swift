@@ -234,9 +234,18 @@ public enum UIAppearanceResolverV2 {
     public static func prepare(snapshot: UIRenderSnapshot, configuration: UIAppearanceConfigurationV2,
                                environment: UIAppearanceEnvironmentV2,
                                platform: UIAppearancePlatformV2) throws -> UIResolvedAppearancePlanV2 {
+        try prepare(snapshot: snapshot, configuration: configuration, environment: environment,
+                    platform: platform, supportedTextFieldAxes: [.horizontal])
+    }
+
+    /// Explicit data admission only; the selected native profile must independently
+    /// validate and implement these axes. Existing callers retain horizontal admission.
+    public static func prepare(snapshot: UIRenderSnapshot, configuration: UIAppearanceConfigurationV2,
+                               environment: UIAppearanceEnvironmentV2, platform: UIAppearancePlatformV2,
+                               supportedTextFieldAxes: Set<TextFieldAxis>) throws -> UIResolvedAppearancePlanV2 {
         try UIAppearanceDescriptorCodecV2.validate(configuration)
         try validate(environment)
-        let validated = try UIValidator().validate(snapshot.document)
+        let validated = try UIValidator(supportedTextFieldAxes: supportedTextFieldAxes).validate(snapshot.document)
         guard validated.nodeCount == snapshot.nodeCount else { throw UIAppearanceErrorV2.shape }
         try preflight(snapshot)
         let theme: UIThemeV2

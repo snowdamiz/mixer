@@ -114,8 +114,13 @@ final class NativeAppearanceViewsV2 {
             this(mode,fence,token,editorLease,replacementLease,null);
         }
         private Mutation(Mode mode,NativeOwnerV2.Fence fence,OwnerLifecycleV2.Token token,EditorLease editorLease,Replacement replacementLease,FieldPreservation fieldLease){
-            this.mode=mode;this.fence=fence;this.token=token;this.editorLease=editorLease;this.replacementLease=replacementLease;this.fieldLease=fieldLease;
+            this(mode,fence,token,editorLease,replacementLease,fieldLease,null);
         }
+        final FieldTransition transitionLease;
+        private Mutation(Mode mode,NativeOwnerV2.Fence fence,OwnerLifecycleV2.Token token,EditorLease editorLease,Replacement replacementLease,FieldPreservation fieldLease,FieldTransition transitionLease){
+            this.mode=mode;this.fence=fence;this.token=token;this.editorLease=editorLease;this.replacementLease=replacementLease;this.fieldLease=fieldLease;this.transitionLease=transitionLease;
+        }
+        static Mutation transition(Mutation original,FieldTransition lease){return new Mutation(original.mode,original.fence,original.token,null,null,null,lease);}
         static Mutation fieldContinuation(Mutation original,FieldPreservation lease){return new Mutation(original.mode,original.fence,original.token,null,null,lease);}
         static Mutation replacement(Mutation original,Replacement lease,boolean cleanup){return new Mutation(cleanup?Mode.CLEANUP:original.mode,original.fence,cleanup?null:original.token,null,lease);}
         static Mutation editorContinuation(Mutation original,EditorLease lease){return new Mutation(original.mode,original.fence,original.token,lease);}
@@ -131,6 +136,7 @@ final class NativeAppearanceViewsV2 {
             if(editorLease!=null)editorLease.exact();
             if(replacementLease!=null)replacementLease.exact();
             if(fieldLease!=null)fieldLease.exact();
+            if(transitionLease!=null)transitionLease.exact();
             return mode==Mode.CLEANUP ? !fence.drawAllowed&&!fence.inputAllowed :
                 !fence.terminal&&token!=null&&(mode==Mode.TRANSACTION ? token==fence.operation : token==fence.presentation&&fence.drawAllowed);
         }
@@ -138,6 +144,7 @@ final class NativeAppearanceViewsV2 {
             if(editorLease!=null)editorLease.exact();
             if(replacementLease!=null)replacementLease.exact();
             if(fieldLease!=null)fieldLease.exact();
+            if(transitionLease!=null)transitionLease.exact();
             if(mode==Mode.CLEANUP) {
                 if(fence.drawAllowed||fence.inputAllowed)throw new IllegalStateException("cleanup requires sealed authority");
             } else if(fence.terminal||token==null||(mode==Mode.TRANSACTION ? token!=fence.operation :
@@ -153,6 +160,7 @@ final class NativeAppearanceViewsV2 {
             if(editorLease!=null)editorLease.exact();
             if(replacementLease!=null)replacementLease.exact();
             if(fieldLease!=null)fieldLease.exact();
+            if(transitionLease!=null)transitionLease.exact();
             // Observe the original captured scope after the delegate. A completed result is not a new mutation.
             if(mode!=Mode.LIVE_PRESENTATION){require();return result;}
             boolean same=!fence.terminal&&token!=null&&token==fence.presentation&&fence.drawAllowed;
@@ -218,7 +226,11 @@ final class NativeAppearanceViewsV2 {
         EditorLease editorCallbackLease;
         Replacement replacementCallback;
         FieldPreservation fieldPreservation;
+        FieldTransition fieldTransition;
+        boolean modelSettled;
         InputFilter editorFilter;
+        final boolean verticalInput;
+        final int expectedInputType,expectedImeOptions;
         boolean editorEventsAllowed() {
             NativeEnvironmentV2.requireMain();
             return !(view instanceof NativeField field)||field.eventsAllowed();
@@ -227,6 +239,7 @@ final class NativeAppearanceViewsV2 {
         Mutation mutation() {
             NativeEnvironmentV2.requireMain();
             if(replacementCallback!=null)return replacementCallback.continuation();
+            if(fieldTransition!=null)return fieldTransition.continuation();
             if(fieldPreservation!=null)return fieldPreservation.continuation();
             if(editorCallbackLease!=null)return editorCallbackLease.continuation();
             return scoped!=null?scoped:input.mutation();
@@ -241,6 +254,9 @@ final class NativeAppearanceViewsV2 {
         Record(Context context, UiPacket.Node source, Input input, Mutation mutation) {
             mutation.requireMutation();requireViewOperations(source);scoped=mutation;
             id=source.id; generation=source.generation; kind=source.kind; this.input=input;editorFence=mutation.fence;
+            verticalInput=kind.equals("textField")&&source.text("axis","horizontal").equals("vertical");
+            expectedInputType=InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES|(verticalInput?InputType.TYPE_TEXT_FLAG_MULTI_LINE:0);
+            expectedImeOptions=verticalInput?EditorInfo.IME_ACTION_NONE|EditorInfo.IME_FLAG_NO_ENTER_ACTION:EditorInfo.IME_ACTION_DONE;
             try {
             Group container=null; TextView title=null, small=null;
             switch(kind) {
@@ -286,12 +302,11 @@ view.setBackgroundTintMode(null);mutation.require();
             if(kind.equals("button")&&view instanceof Button button) button.setOnClickListener(ignored -> { if(input.open(this)) input.event(this,"activate",null); });mutation.require();
 
             if(view instanceof EditText edit) {
-                edit.setSingleLine(true);mutation.require();
- edit.setHorizontallyScrolling(true);mutation.require();
-
-                edit.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);mutation.require();
-
-                edit.setImeOptions(EditorInfo.IME_ACTION_DONE);mutation.require();
+                boolean vertical=verticalInput;
+                edit.setSingleLine(!vertical);mutation.require();
+                edit.setHorizontallyScrolling(!vertical);mutation.require();
+                edit.setInputType(expectedInputType);mutation.require();
+                edit.setImeOptions(expectedImeOptions);mutation.require();
 
                 editorFilter=(src,start,end,dst,dstart,dend)-> {
                     if(replacementCallback!=null)return replacementCallback.filter(src,start,end,dst,dstart,dend);
@@ -357,7 +372,7 @@ button.setTextColor(buttonColors(next,r));mutation.require();
                     } else if(next.node.recipe() instanceof FieldRecipe r) {
                         NativeField field=(NativeField)view;Text value=r.text();text(field,new Text(next.nativeFieldValue(),value.role(),value.metrics(),value.selectable(),value.maximumLines()),next,mutation);field.setHint(r.label());mutation.require();
 
-                        field.setGravity((next.rtl()?Gravity.RIGHT:Gravity.LEFT)|Gravity.CENTER_VERTICAL);mutation.require();
+                        field.setGravity((next.rtl()?Gravity.RIGHT:Gravity.LEFT)|(next.source.text("axis","horizontal").equals("vertical")?Gravity.TOP:Gravity.CENTER_VERTICAL));mutation.require();
 
                         Insets in=r.metrics().insets64();field.setPadding(px(next.rtl()?in.trailing():in.leading(),next),px(in.top(),next),
                             px(next.rtl()?in.leading():in.trailing(),next),px(in.bottom(),next));mutation.require();
@@ -505,7 +520,8 @@ text.setPadding(px(b.rtl()?in.trailing():in.leading(),b),px(in.top(),b),px(b.rtl
             if(availableWidth<=reserve)fail();
             // Switch's native layout reserves its actual authored drawable width and gap.
             int maximum=px(availableWidth,b);if(maximum<=0)fail();
-            text.measure(View.MeasureSpec.makeMeasureSpec(maximum,View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));mutation.require();
+            boolean vertical=b.node.recipe() instanceof FieldRecipe&&b.source.text("axis","horizontal").equals("vertical");
+            text.measure(View.MeasureSpec.makeMeasureSpec(maximum,vertical?View.MeasureSpec.EXACTLY:View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));mutation.require();
 
             if(text.getLayout()==null)fail();
             long nativeHeight=logical(text.getLayout().getHeight(),b);
@@ -865,7 +881,123 @@ return;
             return text.equals(next.text)&&start==next.start&&end==next.end&&sameSpans(next.spans)&&java.util.Arrays.equals(bounds,next.bounds);
         }
     }
-    /** Exact compatible transaction callbacks for a settled field; never an old target lease. */
+    /** A frame-derived, exact attachment permit. It grants no application or old-IME entry. */
+    static final class FieldTransition {
+        static final int CAPTURED=0,FINISHING=1,CLOSING=2,FOCUS=3,ATTACHING=4,RESTORING=5,READY=6;
+        final NativeRenderer renderer;final NativeRenderer.Candidate candidate;final NativeRenderer.AttachmentJournal journal;
+        final Record record;final NativeField field;final Mutation original,mutation;
+        final Binding before,selected;final NativeField.Attempt predecessor;final android.view.inputmethod.InputConnection target;
+        final Editable editable;final EditorSnapshot snapshot;final boolean removal,retire,wasSettled;
+        final OwnerLifecycleV2.Token presentation;
+        int phase=CAPTURED;boolean registered,ended,checking,irreversible,focusClaimed,detachClaimed;
+        Editable currentEditable,readyEditable;boolean settingText,adoptedText;
+        final java.util.ArrayDeque<String> hooks=new java.util.ArrayDeque<>();
+        FieldTransition(NativeRenderer renderer,NativeRenderer.Candidate candidate,NativeRenderer.AttachmentJournal journal,
+                        Record record,Binding selected,Mutation original,boolean retire){
+            this.renderer=renderer;this.candidate=candidate;this.journal=journal;this.record=record;field=(NativeField)record.view;
+            this.original=original;this.selected=selected;this.retire=retire;removal=selected==null;before=record.binding;
+            predecessor=field.attempt;target=predecessor==null?null:predecessor.target;editable=field.nativeEditable();
+            snapshot=new EditorSnapshot(field,editable);currentEditable=editable;presentation=original.fence.presentation;
+            wasSettled=record.modelSettled;mutation=Mutation.transition(original,this);
+        }
+        boolean identityScalar(){return registered&&!ended&&record.fieldTransition==this&&record.view==field&&field.record==record&&
+            original.mode==Mutation.Mode.TRANSACTION&&original.editorLease==null&&original.replacementLease==null&&original.fieldLease==null&&original.transitionLease==null&&original.current()&&
+            original.fence.presentation==presentation&&record.binding!=null&&(record.binding==before||record.binding==selected)&&field.attempt==predecessor&&
+            record.generation.equals(before.source.generation)&&(predecessor==null||predecessor.target==target&&predecessor.editable==editable)&&
+            field.replacement==null&&field.depth==0&&record.editorCallbackLease==null&&record.replacementCallback==null&&!field.permanent&&
+            !field.windowFocusLost&&!field.windowHidden&&!field.aggregateHidden&&!field.viewHidden&&(!field.detached||removal&&detachClaimed);}
+        boolean scalar(){return identityScalar()&&renderer.fieldTransitionCurrent(candidate,journal,record,this)&&renderer.transitionLossCurrentV3(journal);}
+        boolean readyScalar(){return scalar()&&!checking&&!settingText&&hooks.isEmpty()&&phase==READY&&currentEditable!=null&&currentEditable==readyEditable&&
+            (removal?record.binding==before:record.binding==selected)&&field.phase==NativeField.Phase.IDLE&&
+            (predecessor==null||predecessor.revoked&&(predecessor.close==NativeField.Close.RETURNED||predecessor.close==NativeField.Close.NO_TARGET));}
+        void exact(){
+            if(checking||!scalar())throw new IllegalStateException("lost frame-derived editor permit");
+            checking=true;
+            try{
+                Editable actual=field.nativeEditable();
+                if(actual!=currentEditable&&settingText&&!adoptedText&&actual!=null){currentEditable=actual;adoptedText=true;}
+                if(actual==null||actual!=currentEditable||phase<=FOCUS&&actual!=editable||!scalar())throw new IllegalStateException("changed retirement editor identity");
+                if(phase==CAPTURED&&!snapshot.same(field,editable))throw new IllegalStateException("changed retirement snapshot");
+                if(phase>=ATTACHING&&predecessor!=null&&(!predecessor.revoked||predecessor.close!=NativeField.Close.RETURNED&&predecessor.close!=NativeField.Close.NO_TARGET))
+                    throw new IllegalStateException("unconsumed settled predecessor");
+            }finally{checking=false;}
+        }
+        Mutation continuation(){exact();return mutation;}
+        void callback(String hook,Runnable nativeCall){
+            exact();if(hooks.size()>=16||hooks.contains(hook))throw new IllegalStateException("recursive settled callback");
+            hooks.push(hook);try{nativeCall.run();exact();}finally{hooks.pop();}
+        }
+        void lifecycle(String hook,boolean losing,Runnable denial,Runnable gain,Runnable nativeCall){
+            exact();if(hooks.size()>=16||hooks.contains(hook))throw new IllegalStateException("recursive settled lifecycle");
+            hooks.push(hook);
+            try{
+                if(losing){
+                    boolean expected=hook.equals("focus")&&retire&&phase==FOCUS&&!focusClaimed||hook.equals("detach")&&removal&&phase==ATTACHING&&!detachClaimed;
+                    long prior=record.input.editorLossObservation();field.actualLoss(denial);
+                    if(expected){if(hook.equals("focus"))focusClaimed=true;else detachClaimed=true;renderer.accountTransitionLossV3(this,prior,hook);}
+                    nativeCall.run();
+                    if(!expected)throw new IllegalStateException("unexpected loss during editor transition: "+hook);
+                    if(field.consumedPredecessor())field.phase=NativeField.Phase.IDLE;
+                }else{
+                    boolean expected=phase==RESTORING&&(hook.equals("focus")||hook.equals("attach"));
+                    gain.run();nativeCall.run();if(!expected)throw new IllegalStateException("unexpected gain during editor transition: "+hook);
+                }
+                exact();
+            }finally{hooks.pop();}
+        }
+        void setter(CharSequence value,Runnable nativeCall){
+            exact();Binding binding=phase==RESTORING?before:selected;
+            if(settingText||!hooks.isEmpty()||phase!=ATTACHING&&phase!=RESTORING||record.scoped!=mutation||!record.changing||binding==null||
+                value==null||!(binding.nativeFieldValue().contentEquals(value)||phase==RESTORING&&snapshot.text.contentEquals(value)))throw new IllegalStateException("unowned transition text replacement");
+            settingText=true;adoptedText=false;
+            try{nativeCall.run();exact();if(!currentEditable.toString().contentEquals(value))throw new IllegalStateException("changed transition text result");exact();}
+            finally{settingText=false;}
+        }
+        void externalClose(NativeField.Attempt attempt){
+            if(attempt!=predecessor)return;
+            if(attempt.close==NativeField.Close.ATTEMPTED||attempt.close==NativeField.Close.RETURNED||attempt.close==NativeField.Close.NO_TARGET)return;
+            throw new IllegalStateException("external close during frame retirement");
+        }
+        void prepareAttachment(){
+            exact();
+            if(retire){
+                if(target!=null&&predecessor.close==NativeField.Close.NOT_REQUESTED){
+                    phase=FINISHING;irreversible=true;
+                    if(!target.finishComposingText())throw new IllegalStateException("native composition finish refused");exact();
+                    if(!snapshot.text.equals(editable.toString())||snapshot.start!=field.getSelectionStart()||snapshot.end!=field.getSelectionEnd())throw new IllegalStateException("composition finish changed draft");exact();
+                    predecessor.revoked=true;predecessor.close=NativeField.Close.ATTEMPTED;field.phase=NativeField.Phase.CLOSING;phase=CLOSING;
+                    try{target.closeConnection();exact();predecessor.close=NativeField.Close.RETURNED;field.phase=NativeField.Phase.IDLE;}
+                    catch(RuntimeException|java.lang.Error failure){predecessor.close=NativeField.Close.FAILED_UNCERTAIN;throw failure;}
+                }else{
+                    phase=FINISHING;
+                    android.view.inputmethod.BaseInputConnection.removeComposingSpans(editable);exact();
+                }
+                if(android.view.inputmethod.BaseInputConnection.getComposingSpanStart(editable)>=0)throw new IllegalStateException("composition remains after retirement");exact();
+                phase=FOCUS;if(field.hasFocus()){exact();field.clearFocus();exact();}
+                if(field.hasFocus())throw new IllegalStateException("retired editor retained focus");exact();
+            }
+            phase=ATTACHING;exact();
+        }
+        void validateAttached(){
+            exact();
+            if(field.hasFocus()||android.view.inputmethod.BaseInputConnection.getComposingSpanStart(field.nativeEditable())>=0)throw new IllegalStateException("settled field became active");
+            if(!removal&&(record.binding!=selected||field.isEnabled()==selected.node.disabled()||!field.nativeEditable().toString().equals(selected.nativeFieldValue())))throw new IllegalStateException("settled model binding mismatch");
+            exact();readyEditable=currentEditable;phase=READY;
+        }
+        void restoreText(){
+            if(phase!=RESTORING)throw new IllegalStateException("unowned restore text");exact();
+            if(!snapshot.text.equals(currentEditable.toString())){Mutation previous=record.scoped;record.scoped=mutation;
+                try{field.setText(snapshot.text);exact();}finally{record.scoped=previous;}
+            }
+        }
+        void restoreSnapshot(){
+            phase=RESTORING;exact();Editable current=field.nativeEditable();
+            android.view.inputmethod.BaseInputConnection.removeComposingSpans(current);exact();
+            for(int i=0;i<snapshot.spans.length;i++){current.setSpan(snapshot.spans[i],snapshot.bounds[i*3],snapshot.bounds[i*3+1],snapshot.bounds[i*3+2]);exact();}
+            if(snapshot.start>=0){field.setSelection(snapshot.start,snapshot.end);exact();}
+        }
+    }
+    /** Exact compatible transaction callbacks for settled or quiescent vertical fields; never an old target lease. */
     static final class FieldPreservation {
         final NativeField field;final Record record;final Mutation original;final Editable editable;
         final Binding before,selected;final NativeField.Attempt predecessor;final NativeField.Close disposition;
@@ -883,7 +1015,7 @@ return;
         }
         boolean tuple(){return entered&&counted&&!ended&&record.fieldPreservation==this&&record.view==field&&renderer.fieldPreservationCurrent(candidate,journal,record,this)&&
             original.mode==Mutation.Mode.TRANSACTION&&original.editorLease==null&&original.replacementLease==null&&original.fieldLease==null&&
-            original.current()&&record.input.editorRetained(record)&&field.settledField()&&field.depth==0&&record.editorCallbackLease==null&&
+            original.current()&&record.input.editorRetained(record)&&field.preservableField()&&field.depth==0&&record.editorCallbackLease==null&&
             field.attempt==predecessor&&(predecessor==null||predecessor.close==disposition)&&
             (record.binding==before||record.binding==selected)&&record.input.editorLossObservation()==lossObservation;}
         void capture(){if(!tuple())throw new IllegalStateException("invalid preserved field entry");snapshot=new EditorSnapshot(field,editable);exact();}
@@ -995,7 +1127,7 @@ return;
         }
         final Record record;
         private Phase phase=Phase.IDLE;
-        private Attempt attempt;
+        Attempt attempt;
         private Replacement replacement;
         private int depth;
         private boolean permanent,focusLost,windowFocusLost,windowHidden,aggregateHidden,viewHidden,detached;
@@ -1038,18 +1170,25 @@ return;
         private boolean consumedPredecessor(){return attempt==null||attempt.revoked&&(attempt.close==Close.RETURNED||attempt.close==Close.NO_TARGET);}
         private boolean settledField(){return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!finishing&&!fieldDenied()&&
             replacement==null&&phase==Phase.IDLE&&consumedPredecessor();}
-        boolean needsFieldPreservation(){return focusLost&&settledField();}
+        private boolean preservableField(){
+            return settledField()||record!=null&&record.verticalInput&&record.view==this&&record.constructed&&record.binding!=null&&
+                !finishing&&!denied()&&replacement==null&&depth==0&&record.editorCallbackLease==null&&
+                (phase==Phase.IDLE&&consumedPredecessor()||phase==Phase.ACTIVE&&hasLiveTarget());
+        }
+        boolean transitionEligible(){return record!=null&&record.verticalInput&&record.view==this&&record.constructed&&record.binding!=null&&!finishing&&!fieldDenied()&&replacement==null&&depth==0&&record.editorCallbackLease==null&&record.fieldPreservation==null&&record.fieldTransition==null&&(phase==Phase.IDLE&&consumedPredecessor()||phase==Phase.ACTIVE&&hasLiveTarget());}
+        boolean transitionInactive(){return transitionEligible()&&consumedPredecessor()&&!hasFocus()&&android.view.inputmethod.BaseInputConnection.getComposingSpanStart(nativeEditable())<0;}
+        boolean needsFieldPreservation(){return focusLost&&settledField()||record.verticalInput&&preservableField();}
         boolean completedReplacementEligible(Replacement operation){return operation!=null&&operation.field==this&&operation.record==record&&
             operation.completed&&operation.stage==Replacement.Stage.DONE&&operation.endReady()&&operation.eventValue!=null&&!operation.eventClaimed&&
             replacement==null&&record.fieldPreservation==null&&depth==0&&settledField()&&!record.changing&&
             record.input.editorRetained(record)&&operation.unchangedLoss()&&operation.original.current();}
         boolean eventsAllowed() {
             NativeEnvironmentV2.requireMain();
-            return record!=null&&replacement==null&&!finishing&&!denied()&&phase!=Phase.CREATING&&phase!=Phase.DRAINING&&phase!=Phase.CLOSING&&phase!=Phase.QUARANTINED&&
+            return record!=null&&record.fieldTransition==null&&replacement==null&&!finishing&&!denied()&&phase!=Phase.CREATING&&phase!=Phase.DRAINING&&phase!=Phase.CLOSING&&phase!=Phase.QUARANTINED&&
                 (attempt==null||!attempt.revoked);
         }
         private boolean live() {
-            return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!record.changing&&replacement==null&&!finishing&&!denied()&&
+            return record!=null&&record.fieldTransition==null&&record.view==this&&record.constructed&&record.binding!=null&&!record.changing&&replacement==null&&!finishing&&!denied()&&
                 phase!=Phase.CREATING&&phase!=Phase.DRAINING&&phase!=Phase.CLOSING&&phase!=Phase.QUARANTINED&&
                 record.input.editorDispatchAvailable(record)&&record.input.editorRetained(record)&&record.input.open(record)&&hasFocus();
         }
@@ -1063,7 +1202,8 @@ return;
         void available(boolean preserve) {
             NativeEnvironmentV2.requireMain();
             if(construction())return;
-            if(replacement!=null||finishing||(preserve?fieldDenied()||focusLost&&!settledField():denied())||phase==Phase.CREATING||phase==Phase.DRAINING||phase==Phase.CLOSING||phase==Phase.QUARANTINED)
+            if(record.fieldTransition!=null){record.fieldTransition.exact();return;}
+            if(replacement!=null||finishing||(preserve?fieldDenied()||focusLost&&!settledField():denied()&&!(record.modelSettled&&settledField()))||phase==Phase.CREATING||phase==Phase.DRAINING||phase==Phase.CLOSING||phase==Phase.QUARANTINED)
                 throw new IllegalStateException("editor replacement unavailable");
             if(preserve&&focusLost&&!record.input.editorRetained(record))throw new IllegalStateException("foreign preserved field");
             if(depth!=0&&!preserve)throw new IllegalStateException("editor native frame active");
@@ -1164,6 +1304,7 @@ return;
         void close(Attempt expected) {
             NativeEnvironmentV2.requireMain();
             if(expected!=attempt||expected==null||expected.close==Close.RETURNED||expected.close==Close.NO_TARGET)return;
+            if(record.fieldTransition!=null){record.fieldTransition.externalClose(expected);return;}
             revoke(false);if(depth==0)drain();surface();
         }
         boolean proposal(CharSequence value,boolean composing) {
@@ -1180,7 +1321,7 @@ return;
             if(attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET){revoke(false);drain();surface();if(phase!=Phase.IDLE)return null;}
             Mutation mutation=entryMutation();mutation.require();Editable editable=nativeEditable();
             if(editable==null)return null;
-            Attempt fresh=new Attempt(editable,info);attempt=fresh;phase=Phase.CREATING;
+            Attempt fresh=new Attempt(editable,info);record.modelSettled=false;attempt=fresh;phase=Phase.CREATING;
             EditorLease lease=begin(fresh,mutation,"create",false);if(lease==null){fresh.revoked=true;fresh.close=Close.NO_TARGET;phase=Phase.QUARANTINED;surface();return null;}
             android.view.inputmethod.InputConnection result=null;boolean populated=false;
             try {
@@ -1191,8 +1332,8 @@ return;
                     if(fresh.revoked||denied()||!record.input.open(record)||!hasFocus()||!validBuffer(editable.toString())||
                         info.initialSelStart!=getSelectionStart()||info.initialSelEnd!=getSelectionEnd()||
                         info.initialSelStart<0||info.initialSelEnd<0||info.initialSelStart>editable.length()||info.initialSelEnd>editable.length()||
-                        info.inputType!=(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)||
-                        (info.imeOptions&EditorInfo.IME_MASK_ACTION)!=EditorInfo.IME_ACTION_DONE)
+                        info.inputType!=record.expectedInputType||
+                        (info.imeOptions&(EditorInfo.IME_MASK_ACTION|EditorInfo.IME_FLAG_NO_ENTER_ACTION))!=record.expectedImeOptions)
                         revoke(false);
                     else {
                         EditorSnapshot outputSnapshot=new EditorSnapshot(this,editable);
@@ -1203,8 +1344,8 @@ return;
                         info.setSupportedHandwritingGesturePreviews(java.util.Collections.emptySet());lease.check();mutation.require();
                         if(fresh.revoked||denied()||!record.input.open(record)||!hasFocus()||!outputSnapshot.same(this,editable)||
                             info.initialSelStart!=getSelectionStart()||info.initialSelEnd!=getSelectionEnd()||
-                            info.inputType!=(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)||
-                            (info.imeOptions&EditorInfo.IME_MASK_ACTION)!=EditorInfo.IME_ACTION_DONE||
+                            info.inputType!=record.expectedInputType||
+                            (info.imeOptions&(EditorInfo.IME_MASK_ACTION|EditorInfo.IME_FLAG_NO_ENTER_ACTION))!=record.expectedImeOptions||
                             (info.imeOptions&(EditorInfo.IME_FLAG_NAVIGATE_NEXT|EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS))!=0||
                             (info.imeOptions&(EditorInfo.IME_FLAG_NO_EXTRACT_UI|EditorInfo.IME_FLAG_NO_FULLSCREEN))!=(EditorInfo.IME_FLAG_NO_EXTRACT_UI|EditorInfo.IME_FLAG_NO_FULLSCREEN)||
                             !info.getSupportedHandwritingGestures().isEmpty()||!info.getSupportedHandwritingGesturePreviews().isEmpty())revoke(false);
@@ -1260,6 +1401,7 @@ return;
             NativeEnvironmentV2.requireMain();
             if(record==null){nativeCall.run();return;}
             if(replacement!=null&&replacement.nativeExecuting){try{replacement.callback(hook,nativeCall);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;}
+            if(record.fieldTransition!=null){record.fieldTransition.callback(hook,nativeCall);return;}
             if(record.fieldPreservation!=null){try{record.fieldPreservation.callback(hook,nativeCall);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;}
             if(construction()){Mutation mutation=record.scoped;mutation.requireMutation();nativeCall.run();mutation.require();return;}
             if(replacement!=null&&!replacement.nativeExecuting&&record.editorCallbackLease==null){uncertain(new IllegalStateException("unknown replacement pre-native callback"));surface();return;}
@@ -1289,6 +1431,7 @@ return;
                 try{if(loss){replacement.lost=true;actualLoss(denial);}else gain.run();replacement.callback(hook,nativeCall);}
                 catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;
             }
+            if(record.fieldTransition!=null){record.fieldTransition.lifecycle(hook,loss,denial,gain,nativeCall);return;}
             if(record.fieldPreservation!=null){try{record.fieldPreservation.lifecycle(hook,loss,denial,gain,nativeCall);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;}
             if(!record.constructed&&construction()){Mutation mutation=record.scoped;mutation.requireMutation();if(loss)try{record.input.editorLossObserved(record);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}nativeCall.run();mutation.require();surface();return;}
             EditorLease parent=record.editorCallbackLease;
@@ -1327,6 +1470,7 @@ return;
             NativeEnvironmentV2.requireMain();
             if(record==null){super.setText(value,type);return;}
             if(replacement!=null){replacement.setter(value,type,()->super.setText(value,type));return;}
+            if(record.fieldTransition!=null){record.fieldTransition.setter(value,()->super.setText(value,type));return;}
             if(construction()){Mutation mutation=record.scoped;mutation.requireMutation();super.setText(value,type);mutation.require();return;}
             if(attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET) {
                 revoke(false);

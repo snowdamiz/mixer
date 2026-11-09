@@ -33,11 +33,12 @@ class RunnerControls(unittest.TestCase):
     def consumer(self):
         root = self.root / 'consumer'
         sdk = {'Package.swift': b'owned package', 'Sources/MixerCore/Lifecycle.swift': b'owned core',
-               'Sources/MixerUI/UI.swift': b'owned UI'}
-        adapter = {f'app/src/dev/mixer/android/Product{i:02}.java': b'owned input' for i in range(18)}
+               'Sources/MixerUI/UI.swift': b'owned UI',
+               'Sources/MixerAndroid/AndroidUIHost.swift': b'owned public host'}
+        adapter = {f'app/src/dev/mixer/android/Product{i:02}.java': b'owned input' for i in range(19)}
         adapter.update({'Sources/MixerAndroidRuntime/Entry.swift': b'owned runtime',
                         'bridge/jni.c': b'owned JNI', 'contracts/ui.json': b'owned contract'})
-        profile = {'schema': 1, 'id': 'mixer.android-source-pair.7',
+        profile = {'schema': 1, 'id': 'mixer.android-source-pair.10',
                    'default_descriptor': data_identity(b'owned descriptor'),
                    'sdk_files': {p: data_identity(v) for p, v in sdk.items()},
                    'adapter_files': {p: data_identity(v) for p, v in adapter.items()}}
@@ -73,10 +74,10 @@ class RunnerControls(unittest.TestCase):
         lock['android']['adapterDigest'] = M.source_digest(M.inventory(root / 'Generated/MixerAndroid'))
         M.save(root / 'mixer.lock', lock)
 
-    def test_canonical_live_policy_selects_all_18_not_instrumentation(self):
+    def test_canonical_live_policy_selects_all_19_not_instrumentation(self):
         profile = M.load_profile()
         roster = M.java_roster(profile)
-        self.assertEqual(len(roster), 18)
+        self.assertEqual(len(roster), 19)
         self.assertNotIn('app/src/dev/mixer/android/AdapterInstrumentation.java', roster)
         for kind, prefix in (('sdk', 'sdk/'), ('adapter', 'native/android/')):
             for path, expected in profile[kind + '_files'].items():
@@ -87,7 +88,7 @@ class RunnerControls(unittest.TestCase):
         consumer = self.consumer()
         result = self.validate(consumer)
         self.assertIn('mixer.lock', result)
-        self.assertEqual(len([p for p in result if p.endswith('.java')]), 18)
+        self.assertEqual(len([p for p in result if p.endswith('.java')]), 19)
 
     def test_same_size_sdk_or_adapter_drift_refused_with_recomputed_tree_locks(self):
         consumer = self.consumer()
@@ -129,7 +130,7 @@ class RunnerControls(unittest.TestCase):
             self.validate(consumer)
         short = copy.deepcopy(consumer[1])
         short['adapter_files'].pop(M.java_roster(short)[0])
-        with self.assertRaisesRegex(RuntimeError, 'all 18'):
+        with self.assertRaisesRegex(RuntimeError, 'all 19'):
             M.java_roster(short)
 
     def test_rendered_profile_cannot_hide_other_driver_edits(self):
@@ -189,13 +190,13 @@ class RunnerControls(unittest.TestCase):
                     target.write_bytes(b'fake-child-output-not-a-class')
             elif label.endswith('-d8'):
                 self.assertEqual(argv[1:5], ['--min-api', '28', '--lib', self.root / 'sdk/platforms/android-37.0/android.jar'])
-                self.assertEqual(len(argv[7:]), 18)
+                self.assertEqual(len(argv[7:]), 19)
                 if fail_d8:
                     raise RuntimeError('fake D8 failure')
                 (Path(argv[6]) / 'classes.dex').write_bytes(b'dex\n035\0fake-control')
             elif label.endswith('-javap-members'):
                 self.assertEqual(argv[:5], [self.root / 'jdk/bin/javap', '-v', '-p', '-c', '-s'])
-                self.assertEqual(len(argv[5:]), 18)
+                self.assertEqual(len(argv[5:]), 19)
                 return '\n'.join('Classfile ' + str(path) + '\n' + ('' if omit_members else
                     '  #1 = Methodref          #2.#3 // java/lang/Object."<init>":()V\n'
                     '  #4 = Fieldref           #5.#6 // android/os/Build.VERSION:I\n'
@@ -213,15 +214,15 @@ class RunnerControls(unittest.TestCase):
     def test_compiler_selection_includes_all_sources_and_min_api28(self):
         calls, result = self.compile_fake()
         self.assertEqual(len(calls), 4)
-        self.assertEqual(len(result['sources']), 18)
-        self.assertEqual(len(result['classes']), 18)
-        self.assertEqual(result['member_references']['count'], 54)
+        self.assertEqual(len(result['sources']), 19)
+        self.assertEqual(len(result['classes']), 19)
+        self.assertEqual(result['member_references']['count'], 57)
         self.assertIn('No API28 floor/linkage approval', result['member_references']['scope'])
         raw = self.root / 'compile/member-references.javap.txt'
         self.assertEqual(M.identity(raw), {k: result['member_references']['raw_output'][k] for k in ('bytes', 'sha256')})
         members = json.loads((self.root / 'compile/member-references.json').read_text())
         self.assertEqual({r['kind'] for r in members['references']}, {'Methodref', 'Fieldref', 'InterfaceMethodref'})
-        self.assertEqual(len({r['class_file'] for r in members['references']}), 18)
+        self.assertEqual(len({r['class_file'] for r in members['references']}), 19)
 
     def test_missing_class_member_scope_refused(self):
         with self.assertRaisesRegex(RuntimeError, 'Missing emitted class in javap member inventory'):

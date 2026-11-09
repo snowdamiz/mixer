@@ -1,0 +1,278 @@
+{
+  "schema": 1,
+  "status": "ACCEPT",
+  "closedSourceAccepted": true,
+  "scope": "exact public profile10 host/source and five-file metadata adoption by root only",
+  "reviewedAt": "2026-11-08T22:17:20.834Z",
+  "revision": "7bf0854eec31e063b06df6958c93e11d275ed3b1",
+  "candidate": "verification/plan-continuation-2026-11-07/public-android-profile10-fix-r2",
+  "fullIntegrationPatchSHA256": "f3889c849edc0757ecdefd831ca5d27205cc62f8dd7eec0a97d69b608ae0ac1b",
+  "productPatchSHA256": "4c7ff228714aaa1e9fdd298e73cb32f76306f78a6e987ccf8be760b2916bd7d2",
+  "metadataPatchSHA256": "2f07305d1bb79a1bb975e26782680420f4821f54a19504eda42c840c72a8ba2d",
+  "productPaths": 28,
+  "metadataPaths": 5,
+  "completeCandidateFiles": 406,
+  "source": {
+    "sourceCount": 106,
+    "sourceDigest": "e950183b094e735904aa8dc277bf5c18a42aa326160493dfc8b97353498aa8fe",
+    "profiles": [
+      {
+        "kind": "sdk",
+        "count": 24,
+        "digest": "dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47",
+        "expected": "dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47",
+        "matches": true
+      },
+      {
+        "kind": "adapter",
+        "count": 25,
+        "digest": "b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e",
+        "expected": "b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e",
+        "matches": true
+      }
+    ],
+    "id": "mixer.android-source-pair.10",
+    "packetPolicySchema": 1,
+    "javaProducts": 19,
+    "defaultDescriptor": {
+      "bytes": 9587,
+      "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
+    }
+  },
+  "closedFindings": [
+    {
+      "id": "R1",
+      "priorPriority": "P1",
+      "status": "CLOSED",
+      "sourceSHA256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db",
+      "evidence": [
+        "unchanged original five independent tests pass in each public manifest",
+        "nine producer regression functions / 13 expanded cases pass in each public manifest",
+        "11 fresh independent functions / 25 cases pass in each public manifest"
+      ],
+      "reason": "Exact profile revalidated after capabilities and external callbacks; requireBinding checks closed/owner/source after getter reentrancy; profile drift revokes the exact token and observation. Same-profile errors preserve original identity, valid newer pending frames survive retries and no native retry calls the app sink."
+    },
+    {
+      "id": "R2",
+      "priorPriority": "P2",
+      "status": "CLOSED",
+      "path": "scripts/ci/tests/test_android_generated_java_runner.py",
+      "line": 219,
+      "sourceSHA256": "3cb4775428dbc1195cc8aa9b027e90416dd5f7e529069be9a59b7a0be98e7864",
+      "reason": "Only the stale count changed from 54 to 57; 19 classes and all three reference kinds remain checked. Exact pure suite passes in normal and optimized mode."
+    }
+  ],
+  "newFindings": [],
+  "freshExecuted": {
+    "swift": [
+      {
+        "kind": "root",
+        "functions": 46,
+        "expandedCases": 64,
+        "independentFunctions": 11,
+        "independentExpandedCases": 25,
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/public-android-profile10-review-r2/campaign-2/001-root-targeted-public.stdout",
+        "sha256": "e57a92107f09d78f264718c383d6f77d811f9491236aaf234723cd454bd490f9"
+      },
+      {
+        "kind": "sdk",
+        "functions": 46,
+        "expandedCases": 64,
+        "independentFunctions": 11,
+        "independentExpandedCases": 25,
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/public-android-profile10-review-r2/campaign-2/002-sdk-targeted-public.stdout",
+        "sha256": "2e44948f41cd7e2cd05b3d82b5f6769127bf0d5bda01886072ee77a2e19b9205"
+      }
+    ],
+    "python": [
+      {
+        "kind": "bootstrap",
+        "mode": "normal",
+        "tests": 28,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "kind": "bootstrap",
+        "mode": "optimized",
+        "tests": 28,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "kind": "runner",
+        "mode": "normal",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "kind": "runner",
+        "mode": "optimized",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "kind": "sparse",
+        "mode": "normal",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "kind": "sparse",
+        "mode": "optimized",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0
+      }
+    ],
+    "pythonExecutions": 120,
+    "realGitCheckRulesChildren": 18,
+    "xctest": 0,
+    "CLIProcesses": 0,
+    "nativeRuntimeAttempts": 0
+  },
+  "auditedReuse": {
+    "producerFullManifests": "199 functions / 203 expanded Swift cases plus 8 XCTest each",
+    "prior185FunctionsPlus8XCTestPreserved": true,
+    "unchangedSwiftTestFiles": 22,
+    "producerContainedCLI": "20 functions / 215 cases, two ProcessRunner tests excluded; no fresh CLI execution in this review",
+    "producerPython": "164 executions, all modes and original failures preserved",
+    "nativeAcceptedInputs": 17,
+    "frozenNativeAndVerticalInputs": 264,
+    "barrierAnchors": 189,
+    "barrierCases": 1323,
+    "barrierHelpers": 15,
+    "bytecodeSHA256": "0ba05dfefa75f85764b8384405da052af1aad6597e65fda02048656dc03af6b1",
+    "strictJava": "exact 19 product Java sources + 3 official SDK tests; Java17 strict SDK37 and D8 min28 historical reuse only",
+    "defaultDescriptorBytes": 9587,
+    "pair9FixturesUnchanged": true,
+    "packetAndDescriptorSchema": 1
+  },
+  "verified": {
+    "fullAndSplitPatchReplay": true,
+    "sourceProfileDigests": true,
+    "candidateEqualsTestedOverlay": true,
+    "sourceAndHarnessPinsUnchanged": 1610,
+    "canonicalProductInputsUnchanged": 386,
+    "all300ProducerSupervisedRecordsTerminal": true,
+    "sealedProducerArtifacts": 64,
+    "rawProducerOutputs": 600
+  },
+  "custody": {
+    "commands": 29,
+    "activeSeconds": 169.16838654095773,
+    "outputBytes": 64539,
+    "allTerminal": true,
+    "unknown": 0,
+    "limits": {
+      "activeSeconds": 360,
+      "jobs": 2,
+      "cleanupSeconds": 60,
+      "perCommandBytes": 8388608,
+      "totalBytes": 67108864
+    },
+    "setupFailurePreserved": true,
+    "wholeProceduralPass": false
+  },
+  "cleanup": {
+    "removedOwnedPaths": 8,
+    "scratchRemoved": true,
+    "externalOrPredecessorOperations": 0,
+    "sourceOverlayAndLogsRetained": true
+  },
+  "limitations": [
+    "Native installation continues to own synchronous validation/attachment and event gating; host revalidation at completion fences returned authority, not arbitrary internal native effects.",
+    "No general hostile-getter purity or side-effect freedom is assumed; tests use concrete getter-triggered close and observer-publication schedules.",
+    "Producer unsupervised pwd remains a protocol failure; this review cannot synthesize its missing custody receipt.",
+    "First review campaign stopped on supervised driver SyntaxError before compiler/tests; second campaign completed."
+  ],
+  "notRun": [
+    "actual six consumer CLI create/export and generated consumers",
+    "full CLI87 and any product ProcessRunner execution",
+    "Java/D8 fresh execution",
+    "executor/CF/JNI and Android/iOS native runtime or UI",
+    "physical phones, devices/ADB/process queries, held processes and scratch",
+    "immutable published-package FieldLog, CI dispatch, release or GA"
+  ],
+  "mutations": {
+    "onlyOwnedReviewFolder": true,
+    "canonicalAdopted": false,
+    "producerEdited": false,
+    "delegations": 0,
+    "commits": 0,
+    "pushes": 0,
+    "merges": 0
+  },
+  "rootAction": "Apply either exact combined 33-path patch or product+metadata split pair after checking current parent-owned changes. Preserve all failures/holds. Perform root-owned integration and later consumers under repaired ProcessRunner admission; this acceptance does not release those gates.",
+  "lineBindings": [
+    {
+      "path": "sdk/Sources/MixerAndroid/AndroidUIHost.swift",
+      "sourceSHA256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db",
+      "start": 4,
+      "end": 12,
+      "label": "presentation publication contract",
+      "rangeSHA256": "e57e6afa1f5e0083a915d228e4d57148a15804ec8960d70c02772b33ed876e78"
+    },
+    {
+      "path": "sdk/Sources/MixerAndroid/AndroidUIHost.swift",
+      "sourceSHA256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db",
+      "start": 38,
+      "end": 51,
+      "label": "surface synchronous contract",
+      "rangeSHA256": "56f29ba2f501c07c273280ae6336d8daddcbba363c2027f8b5a0fbab9d8f6083"
+    },
+    {
+      "path": "sdk/Sources/MixerAndroid/AndroidUIHost.swift",
+      "sourceSHA256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db",
+      "start": 83,
+      "end": 98,
+      "label": "construction and scheduler contract",
+      "rangeSHA256": "8ea6d1a91cb63248c8831e55b796efa0540f2ba7172aca5678ddce4865d3b074"
+    },
+    {
+      "path": "sdk/Sources/MixerAndroid/AndroidUIHost.swift",
+      "sourceSHA256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db",
+      "start": 104,
+      "end": 126,
+      "label": "replacement boundaries",
+      "rangeSHA256": "7963b611c48dbfba636912d5ee7e9bb55c37f42d7797c41d82307db0034f7036"
+    },
+    {
+      "path": "sdk/Sources/MixerAndroid/AndroidUIHost.swift",
+      "sourceSHA256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db",
+      "start": 131,
+      "end": 151,
+      "label": "installation boundaries",
+      "rangeSHA256": "de25efa37ad9c0b7b72d4eeece7ed12f3c77eb32bf536025ca8220b2b5d67655"
+    },
+    {
+      "path": "sdk/Sources/MixerAndroid/AndroidUIHost.swift",
+      "sourceSHA256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db",
+      "start": 157,
+      "end": 175,
+      "label": "event admission and sink error",
+      "rangeSHA256": "fdc63306250d2dd639db75956427e217007e0eeb475946777df594e94cf36d23"
+    },
+    {
+      "path": "sdk/Sources/MixerAndroid/AndroidUIHost.swift",
+      "sourceSHA256": "3dbf039ab9fab7890f7b86450a78706d10852b6c9b9e3992057e8dcadf89e3db",
+      "start": 193,
+      "end": 223,
+      "label": "profile getter then binding; exact token revocation",
+      "rangeSHA256": "f8681262c87d14dd073baa58f723a65ab1900625d6f0f3a67a3ae15d2badda78"
+    },
+    {
+      "path": "scripts/ci/tests/test_android_generated_java_runner.py",
+      "sourceSHA256": "3cb4775428dbc1195cc8aa9b027e90416dd5f7e529069be9a59b7a0be98e7864",
+      "start": 199,
+      "end": 225,
+      "label": "19 classes / three member kinds / 57 references",
+      "rangeSHA256": "12605a87ba00ee5c269f23704b2d995eb9470bf9a200211e6b6a158f31edcc76"
+    }
+  ],
+  "reportingErrorPreserved": true,
+  "proceduralObservations": "audit-harness-observations.json"
+}

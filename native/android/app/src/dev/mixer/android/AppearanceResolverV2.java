@@ -150,10 +150,16 @@ final class AppearanceResolverV2 {
      * accepting fabricated packet Nodes or app-supplied native support. */
     static Plan prepare(byte[] packetBytes, byte[] canonicalDescriptorBytes,
                         Environment environment, Platform platform) {
+        return prepare(packetBytes, canonicalDescriptorBytes, environment, platform, AndroidUIProfile.LEGACY_HORIZONTAL);
+    }
+    static Plan prepare(byte[] packetBytes, byte[] canonicalDescriptorBytes,
+                        Environment environment, Platform platform, AndroidUIProfile profile) {
+        if (profile == null || (profile != AndroidUIProfile.LEGACY_HORIZONTAL && platform != Platform.android))
+            throw new Failure(Error.unsupportedNativeOperation);
         AppearanceDescriptorV2 configuration = AppearanceDescriptorV2.decode(canonicalDescriptorBytes);
         validate(environment); admit(platform != null, Error.shape);
         UiPacket packet;
-        try { packet = UiPacket.decode(packetBytes); }
+        try { packet = UiPacket.decode(packetBytes, profile); }
         catch (IllegalArgumentException failure) {
             Failure rejected = new Failure(Error.shape); rejected.initCause(failure); throw rejected;
         }

@@ -9,12 +9,12 @@ it does not replace or narrow that scope. Keep `STATUS.md`, `work-graph.json`,
 - Independently implement all product engine code. No Patch/Skip implementation,
   generated source, tests, fixtures, or dependencies. Official specifications and
   platform tools are permitted. Record general-purpose dependencies in THIRD_PARTY.yml.
-- The plan explicitly requests parallel agents: use `gpt-6.1-sol`, `xhigh`, fresh
-  context with bounded ownership for ordinary work. Escalate stalled blockers,
-  competing experiments and difficult review to fresh `gpt-6-astra`, `xhigh`
-  agents (Astra 6 Extra High), following product-plan sections 20.3 and 24.4.
-  The main controlling model is selected by the user; do not claim to change it
-  via a child agent.
+- The user resumed work on November 8 and restricts subagents to `gpt-6.1-sol`
+  and `grok-4.7`. Use Sol 6.1 at `xhigh` for implementation, difficult review
+  and blocker campaigns. Use Grok 4.7 only for easier, nonvisual tasks and reviews.
+  This explicit selection supersedes the earlier Astra escalation model; preserve
+  the finite campaign and independent-review requirements. Do not use fast mode.
+  The main controlling model is selected by the user; a child does not change it.
 - Aggressively test competing blocker hypotheses within finite resource/run bounds.
   Treat experimental numeric limits as hypotheses; preserve baseline failures,
   validation/capability safeguards and all active native/process/custody holds.
@@ -110,3 +110,34 @@ Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually
 consume immutable published packages from a separate repository. Local checkout
 debugging is not dogfood release qualification. Never mark a GA gate verified
 without its specified evidence and accountable reviewer.
+
+The resumed root repository-observation wrapper failed while persisting its log
+directory, before a reliable inner identity/scratch receipt was saved. Preserve
+the uninspected `/tmp/mixer-resume-inspect-*` namespace; do not enumerate, probe,
+signal, clean up, or retry it. See
+verification/plan-continuation-2026-11-07/resumption-2026-11-08/inspection-HOLD.json.
+The later explicit resume does not release this or any historical custody hold.
+
+The resumed CLI containment probe disproved shared-group containment. Preserve
+inner PGIDs 76556, 76573, 76598 and bootstrap PGIDs 54277, 76155 without
+probing, signalling, retrying, or cleaning their retained scratch. Exact paths
+and limitations are in
+verification/plan-continuation-2026-11-07/store-full-suite-containment-r4/HOLD.json.
+Full CLI87 remains unrun; outer custody does not release these holds.
+
+FieldLog filtered transport R3 left UNKNOWN nested Git custody after Xcode
+bypassed the adapter. Direct Xcode PID/PGID 52096 is recorded terminal, but no
+inner Git identity or absence proof exists. Preserve the exact retained paths
+and the uninspected automatic xcresult listed in
+verification/plan-continuation-2026-11-07/fieldlog-filtered-transport-r3/HOLD.json.
+Do not inspect, probe, signal, retry, or clean this held build namespace.
+
+The profile10 host-entrypoint campaign was interrupted after its inner A/B
+commands completed. Outer custody is UNKNOWN for PGID 87240. Preserve
+verification/plan-continuation-2026-11-07/profile10-host-entrypoint-r1/outer-2/scratch
+without inspection, probing, signalling, retry or deletion. See the exact
+OUTER-HOLD.json in that campaign directory. Inner receipts do not release it.
+
+The profile10 host-entrypoint review introduced UNKNOWN custody during a missing-executable launch before an inner identity was recorded. Preserve its workflow-files/scratch namespace without inspection or process operations; see verification/plan-continuation-2026-11-07/profile10-host-entrypoint-review-r1/REVIEW-HOLD.json.
+
+The CF phase packaging continuation has UNKNOWN inner custody with no recorded identity. Preserve verification/plan-continuation-2026-11-07/mainactor-cf-phase-validation-package-r2/package-completion without inspection, probing, signalling, retry or cleanup. Its terminal outer PID/PGID1022 does not release the inner hold; see that campaign's HOLD.json and handoff.json.

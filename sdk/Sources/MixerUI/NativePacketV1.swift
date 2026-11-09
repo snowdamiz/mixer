@@ -12,7 +12,13 @@ public extension UIRenderSnapshot {
     /// Custom reconciler limits cannot widen the standard native packet bounds.
     /// The UI document, revision and generations are never changed or regenerated.
     func encodeNativePacketV1() throws -> Data {
-        _ = try UIValidator().validate(document)
+        try encodeNativePacketV1(supportedTextFieldAxes: [.horizontal])
+    }
+
+    /// Explicit adapter capability admission; default packet behavior is unchanged.
+    /// This only encodes data and does not establish native rendering support.
+    func encodeNativePacketV1(supportedTextFieldAxes: Set<TextFieldAxis>) throws -> Data {
+        _ = try UIValidator(supportedTextFieldAxes: supportedTextFieldAxes).validate(document)
         var measurement = NativePacketWriterV1()
         try measurement.packet(self)
         var output = NativePacketWriterV1(capacity: measurement.count)

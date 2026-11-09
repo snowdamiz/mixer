@@ -99,9 +99,9 @@ def load_profile(root=ROOT):
     text = (root / POLICY).read_text()
     require(text.count('Data(#"""\n') == 1, 'Ambiguous canonical source policy')
     profile = unique_json(text.split('Data(#"""\n', 1)[1].split('\n        """#.utf8)', 1)[0])
-    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.9',
+    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.10',
             'Unsupported canonical source pair')
-    for kind, count in (('sdk', 22), ('adapter', 24)):
+    for kind, count in (('sdk', 24), ('adapter', 25)):
         files = profile[kind + '_files']
         require(len(files) == count and source_digest(files) == profile[kind + '_compatibility_sha256'],
                 'Canonical projection differs: ' + kind)
@@ -110,8 +110,8 @@ def load_profile(root=ROOT):
 
 def java_roster(profile):
     paths = sorted(p for p in profile['adapter_files'] if p.endswith('.java'))
-    require(len(paths) == 18 and all(p.startswith('app/src/dev/mixer/android/') for p in paths),
-            'Expected all 18 product Java sources')
+    require(len(paths) == 19 and all(p.startswith('app/src/dev/mixer/android/') for p in paths),
+            'Expected all 19 product Java sources')
     return paths
 
 
@@ -132,7 +132,7 @@ def validate_consumer(root, profile, toolchain, template):
         require(source_digest(actual) == expected_digest, 'Consumer tree lock differs: ' + kind)
         for path, value in profile[kind + '_files'].items():
             require(actual.get(path) == value, 'Consumer pinned source differs: ' + path)
-        closed = ('Sources/MixerCore/', 'Sources/MixerUI/') if kind == 'sdk' else (
+        closed = ('Sources/MixerCore/', 'Sources/MixerUI/', 'Sources/MixerAndroid/') if kind == 'sdk' else (
             'Sources/MixerAndroidRuntime/', 'app/src/', 'bridge/', 'contracts/')
         require({p for p in actual if p.startswith(closed)} ==
                 {p for p in profile[kind + '_files'] if p.startswith(closed)},

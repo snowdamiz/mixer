@@ -49,7 +49,7 @@ def good_result():
                      build_staging_created=False)
                 for c in ('sdk', 'adapter', 'descriptor', 'extra-java', 'profile', 'missing-lock')]
     return {'status': 'passed-java-crosscompile-only', 'producer_jobs': 2,
-            'consumers': {m + '-' + f: {'java_count': 18} for m in ('debug', 'release')
+            'consumers': {m + '-' + f: {'java_count': 19} for m in ('debug', 'release')
                           for f in ('original', 'relocated', 'exported')},
             'tamper': {m: copy.deepcopy(outcomes) for m in ('debug', 'release')},
             'cleanup': {'command_custody_terminal': True, 'owned_scratch_removed': True}}
@@ -59,8 +59,8 @@ class BootstrapControls(unittest.TestCase):
     def test_real_pair9_policy_and_all_sources(self):
         a = B.canonical()
         p = a.load_profile()
-        self.assertEqual(p['id'], 'mixer.android-source-pair.9')
-        self.assertEqual((len(p['sdk_files']), len(p['adapter_files']), len(a.java_roster(p))), (22, 24, 18))
+        self.assertEqual(p['id'], 'mixer.android-source-pair.10')
+        self.assertEqual((len(p['sdk_files']), len(p['adapter_files']), len(a.java_roster(p))), (24, 25, 19))
         self.assertGreater(len(a.source_inputs(p)), 90)
 
     def test_non_hosted_cannot_admit(self):

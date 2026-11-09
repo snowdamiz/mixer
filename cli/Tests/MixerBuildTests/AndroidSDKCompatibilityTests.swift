@@ -51,12 +51,12 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.9")
-    #expect(p.sdk_compatibility_sha256 == "bc03288599ece5612cc4dce8b80fc404942584e0477ec9333bd39c0fa7d352d0")
-    #expect(p.adapter_compatibility_sha256 == "ee9414d3b68f9d66ba275c93339018e5eaebb161a7dc25d7056538c652305d89")
+    #expect(p.id == "mixer.android-source-pair.10")
+    #expect(p.sdk_compatibility_sha256 == "dd67ffdb0458b2a546dcac8660e039364668f15c3a270ab417db7e7c2181ce47")
+    #expect(p.adapter_compatibility_sha256 == "b6d5d6ae71227373cbffa862cc691aaa52f4ea81b8e4f85cf74ee612c5f15a3e")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 4328)
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "cf1954af12e316bcd7cf8ea4def41d2dc6b26921fffa60177bce477c7f0749b7")
-    #expect(p.sdk_files.count == 22); #expect(p.adapter_files.count == 24)
+    #expect(p.sdk_files.count == 24); #expect(p.adapter_files.count == 25)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))
     let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
     let bytes = try UIAppearanceDescriptorCodecV2.canonicalData(value)
@@ -314,7 +314,7 @@ func androidCompatibilityInputAdapterAdmissionRefusesBeforeStagingAndSnapshotRea
     #expect(try !fm.contentsOfDirectory(atPath: base.path).contains { $0.hasPrefix(".mixer-create-") })
 }
 
-private let editorSources = ["NativeEditorConnectionV2.java", "NativeAppearanceViewsV2.java", "NativeRenderer.java", "NativeCoordinatorV2.java"]
+private let editorSources = ["NativeEditorConnectionV2.java", "NativeAppearanceViewsV2.java", "NativeRenderer.java", "NativeCoordinatorV2.java", "AndroidUIProfile.java"]
 private let sourceChanges = ["same-size", "append", "remove", "rename", "case", "symlink", "fifo", "directory", "extra", "oversized"]
 private let optionalSources = ["AppearanceDescriptorV1.java", "AppearanceResolutionV1.java", "AdapterInstrumentation.java"]
 
@@ -388,7 +388,7 @@ func androidCompatibilityCanonicalOptionalSubsetsExportOnlyExactProducts(_ mask:
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: adapter)
     _ = try AndroidProject.snapshot(adapter: adapter, destination: snapshot)
     let java = try SourceDigest.files(in: snapshot.appendingPathComponent("app/src"))
-    #expect(java.count == 18)
+    #expect(java.count == 19)
     let expected = Set(AndroidSDKCompatibility.profile.adapter_files.keys.filter { $0.hasSuffix(".java") }.map { URL(fileURLWithPath: $0).lastPathComponent })
     #expect(Set(java.map(\.lastPathComponent)) == expected)
     for relative in AndroidSDKCompatibility.profile.adapter_files.keys {
@@ -396,7 +396,7 @@ func androidCompatibilityCanonicalOptionalSubsetsExportOnlyExactProducts(_ mask:
         #expect(try Data(contentsOf: snapshot.appendingPathComponent(relative)) == Data(contentsOf: adapter.appendingPathComponent(canonical)))
     }
     for name in optionalSources { #expect(!FileManager.default.fileExists(atPath: snapshot.appendingPathComponent("app/src/dev/mixer/android/" + name).path)) }
-    #expect(AndroidSDKCompatibility.profile.adapter_files.count == 24)
+    #expect(AndroidSDKCompatibility.profile.adapter_files.count == 25)
 }
 
 @Test(arguments: optionalSources, sourceChanges.filter { $0 != "remove" } + ["zero", "short"])

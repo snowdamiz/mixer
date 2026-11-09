@@ -1,1 +1,1 @@
-package android.text;public final class InputType {private InputType(){}public static final int TYPE_CLASS_TEXT=1,TYPE_TEXT_FLAG_CAP_SENTENCES=16384;}
+package android.text;public final class InputType {private InputType(){}public static final int TYPE_TEXT_FLAG_MULTI_LINE=0x20000,TYPE_CLASS_TEXT=1,TYPE_TEXT_FLAG_CAP_SENTENCES=16384;}
