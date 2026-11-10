@@ -111,6 +111,35 @@ pub struct SwiftReactorObservations {
     pub table_declared_maximum: Option<u32>,
 }
 
+/// Experimental native-selected command authority. No conversion to a public
+/// production module or the fixed reactor authority is available.
+pub struct ValidatedSwiftCommand {
+    proof: ValidatedSwiftReactor,
+}
+impl ValidatedSwiftCommand {
+    pub fn observations(&self) -> SwiftReactorObservations { self.proof.observations() }
+    pub fn usage(&self) -> SwiftValidationUsage { self.proof.usage() }
+    pub fn policy_identity(&self) -> &'static str { self.proof.policy_identity() }
+    pub fn entry_function(&self) -> u32 { self.proof.command_entry.expect("sealed command ABI") }
+    pub(crate) fn into_parts(self) -> (ValidatedSwiftReactor, u32) {
+        let entry = self.entry_function();
+        (self.proof, entry)
+    }
+}
+
+/// Validate the entire module under a distinct finite command diagnostic policy.
+/// Source, metadata, scratch, work, deadline and cancellation remain independently
+/// bounded by SwiftValidationBudget. Unknown instructions/imports are refused.
+#[allow(clippy::result_large_err)]
+pub fn validate_swift_command(
+    input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation,
+) -> Result<ValidatedSwiftCommand, SwiftValidationFailure> {
+    let started = Instant::now();
+    validate(input, budget, cancellation, started, policy::Policy::SwiftCommandDiagnosticV1)
+        .map(|proof| ValidatedSwiftCommand { proof })
+        .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
+}
+
 /// Complete validation under a fixed experimental policy and exact structural ABI.
 /// It does not attest a digest, origin, behavior, package admission or execution.
 /// There is no mutable accessor, Clone, deserializer or executable conversion.
@@ -149,6 +178,7 @@ pub struct ValidatedSwiftReactor {
     imports: [WasiFunction; 34],
     usage: SwiftValidationUsage,
     observations: SwiftReactorObservations,
+    command_entry: Option<u32>,
 }
 impl ValidatedSwiftReactor {
     pub const VALIDATOR_REVISION: u32 = 1;
@@ -158,6 +188,7 @@ impl ValidatedSwiftReactor {
     pub fn policy_identity(&self) -> &'static str {
         match self.policy {
             policy::Policy::SwiftReactorExperimentV1 => "swift-reactor-experiment-v1",
+            policy::Policy::SwiftCommandDiagnosticV1 => "swift-command-diagnostic-v1",
             policy::Policy::Frozen(_) => unreachable!("sealed Swift policy"),
         }
     }
@@ -370,7 +401,7 @@ pub fn validate_swift_reactor(
     cancellation: &Cancellation,
 ) -> Result<ValidatedSwiftReactor, SwiftValidationFailure> {
     let started = Instant::now();
-    validate(input, budget, cancellation, started)
+    validate(input, budget, cancellation, started, policy::Policy::swift())
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
 
@@ -379,6 +410,7 @@ fn validate(
     budget: SwiftValidationBudget,
     cancellation: &Cancellation,
     started: Instant,
+    policy: policy::Policy<'static>,
 ) -> Result<ValidatedSwiftReactor, Failure> {
     let max = SwiftValidationBudget::default();
     let deadline = started.checked_add(Duration::from_millis(budget.deadline_ms));
@@ -413,7 +445,6 @@ fn validate(
     );
     let cursor = Cursor::default();
     meter.check(cursor)?;
-    let policy = policy::Policy::swift();
     let scratch_fixed = std::mem::size_of::<Meter<'_, account::SwiftControl>>()
         + 3 * std::mem::size_of::<reader::Reader<'_>>()
         + std::mem::size_of::<validate::BodyState>()
@@ -463,7 +494,13 @@ fn validate(
     meter.check(cursor)?;
     let source = source.into_boxed_slice(); // exact capacity: no shrink allocation
     let mut metadata: SwiftMetadata = metadata::read(&source, &policy, &mut meter)?;
-    let imports = exact_abi(&source, &metadata, &mut meter)?;
+    let (imports, command_entry) = match policy {
+        policy::Policy::SwiftCommandDiagnosticV1 => {
+            let (imports, entry) = command_abi(&source, &metadata, &mut meter)?;
+            (imports, Some(entry))
+        }
+        _ => (exact_abi(&source, &metadata, &mut meter)?, None),
+    };
     segments_fit(&metadata, &mut meter)?;
     validate::all(&source, &policy, &mut metadata, &mut meter)?;
     meter.check(cursor)?;
@@ -499,10 +536,11 @@ fn validate(
         imports,
         usage,
         observations,
+        command_entry,
     })
 }
 
-fn exact_abi(
+fn exact_imports(
     source: &[u8],
     m: &SwiftMetadata,
     meter: &mut Meter<'_, account::SwiftControl>,
@@ -538,6 +576,16 @@ fn exact_abi(
         }
         resolved[index] = actual;
     }
+    Ok(resolved)
+}
+
+fn exact_abi(
+    source: &[u8],
+    m: &SwiftMetadata,
+    meter: &mut Meter<'_, account::SwiftControl>,
+) -> Result<[WasiFunction; 34], Failure> {
+    let resolved = exact_imports(source, m, meter)?;
+    let cursor = Cursor::default();
     if m.memory != Some((584, 768)) || m.declarations.memory_maximum.is_some() {
         return Err(meter.error(
             FailureKind::Validation,
@@ -597,6 +645,38 @@ fn exact_abi(
         }
     }
     Ok(resolved)
+}
+
+fn command_abi(
+    source: &[u8], m: &SwiftMetadata, meter: &mut Meter<'_, account::SwiftControl>,
+) -> Result<([WasiFunction; 34], u32), Failure> {
+    let imports = exact_imports(source, m, meter)?;
+    let cursor = Cursor::default();
+    if m.memory.is_none() || m.table.is_none() {
+        return Err(meter.error(FailureKind::Validation, "swift_command_memory_table", cursor));
+    }
+    if m.exports.len() != 2 {
+        return Err(meter.error(FailureKind::Validation, "swift_command_export_count", cursor));
+    }
+    let mut memory = false;
+    let mut start = None;
+    for export in m.exports.as_slice() {
+        let cursor = Cursor { function: None, offset: export.name.offset as usize };
+        meter.work(export.name.bytes as u64 + 1, cursor)?;
+        match export.name.slice(source) {
+            b"memory" if export.kind == 2 && export.index == 0 => memory = true,
+            b"_start" if export.kind == 0
+                && export.index as usize >= m.imports.len()
+                && m.signature(export.index).is_some_and(|s| s.count == 0 && s.result.is_none()) => {
+                    start = Some(export.index);
+                }
+            _ => return Err(meter.error(FailureKind::Validation, "swift_command_export_abi", cursor)),
+        }
+    }
+    if !memory || start.is_none() {
+        return Err(meter.error(FailureKind::Validation, "swift_command_export_abi", cursor));
+    }
+    Ok((imports, start.unwrap()))
 }
 
 fn segments_fit(

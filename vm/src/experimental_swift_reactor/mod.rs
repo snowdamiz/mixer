@@ -15,6 +15,11 @@ pub use crate::experimental::swift::{
     SwiftValidationUsage, ValidatedSwiftReactor,
 };
 
+pub use crate::experimental::swift::{validate_swift_command, ValidatedSwiftCommand};
+mod command;
+pub use command::{execute_swift_command, SwiftCommandReport};
+pub use control::{SwiftRunBudget, SwiftRunFailure, SwiftRunFailureKind, SwiftRunUsage};
+
 mod execution;
 #[cfg(test)]
 mod execution_tests;

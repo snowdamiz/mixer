@@ -175,6 +175,7 @@ pub struct WasiContext {
     stdout_open: bool,
     stderr_open: bool,
     iovec_scratch: [Span; 64],
+    calls_by_function: [u64; 34],
     #[cfg(test)]
     test: tests::TestState,
 }
@@ -235,6 +236,7 @@ impl WasiContext {
             stdout_open: grants.stdout,
             stderr_open: grants.stderr,
             iovec_scratch: [Span::default(); 64],
+            calls_by_function: [0; 34],
             #[cfg(test)]
             test: tests::TestState::default(),
         })
@@ -410,6 +412,7 @@ impl WasiContext {
             return Err(WasiFailure::Budget(Resource::Calls).into());
         }
         self.usage.calls += 1;
+        self.calls_by_function[WasiFunction::ALL.iter().position(|f| *f == function).expect("closed WASI vocabulary")] += 1;
         self.work(args.len() as u64 + 1)?;
         self.check()?;
         if memory.len() as u64 > 1u64 << 32 {

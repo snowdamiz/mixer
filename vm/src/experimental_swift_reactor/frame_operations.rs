@@ -4,6 +4,8 @@
 // The reservation map spells complete concrete transfer types deliberately.
 #![allow(clippy::type_complexity)]
 use super::*;
+#[path = "command_execution.rs"]
+pub(crate) mod command_execution;
 use std::convert::Infallible;
 use std::ops::ControlFlow;
 
@@ -27517,6 +27519,7 @@ pub(super) const FRAME_OPERATION_BYTES: Option<usize> =
 pub(super) mod host_runtime_import {
 //! Private imported-call operation; no complete dispatcher or public route.
 use super::*;
+
 use crate::experimental_wasi::WasiFunction;
 
 impl FrameOperationPhase<'_> {

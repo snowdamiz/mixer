@@ -5,6 +5,8 @@ pub(crate) enum Policy<'a> {
     Frozen(&'a Limits),
     #[cfg(feature = "experimental-swift-reactor")]
     SwiftReactorExperimentV1,
+    #[cfg(feature = "experimental-swift-reactor")]
+    SwiftCommandDiagnosticV1,
 }
 impl<'a> Policy<'a> {
     pub fn frozen(limits: &'a Limits) -> Self {
@@ -17,21 +19,21 @@ impl<'a> Policy<'a> {
         match self {
             Self::Frozen(l) => l.profile.floats(),
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => true,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => true,
         }
     }
     pub fn tables(&self) -> bool {
         match self {
             Self::Frozen(l) => l.profile == Profile::TableMemoryV3,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => true,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => true,
         }
     }
     pub fn module_bytes(&self) -> usize {
         match self {
             Self::Frozen(l) => l.module_bytes,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 64 * 1024 * 1024,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 64 * 1024 * 1024,
         }
     }
     pub fn functions(&self) -> usize {
@@ -39,41 +41,43 @@ impl<'a> Policy<'a> {
             Self::Frozen(l) => l.functions,
             #[cfg(feature = "experimental-swift-reactor")]
             Self::SwiftReactorExperimentV1 => 80_000,
+            #[cfg(feature = "experimental-swift-reactor")]
+            Self::SwiftCommandDiagnosticV1 => 131_072,
         }
     }
     pub fn types(&self) -> usize {
         match self {
             Self::Frozen(l) => l.types,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 512,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 512,
         }
     }
     pub fn type_parameters_total(&self) -> usize {
         match self {
             Self::Frozen(_) => usize::MAX,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 8192,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 8192,
         }
     }
     pub fn parameters_per_signature(&self) -> usize {
         match self {
             Self::Frozen(l) => l.locals,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 128,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 128,
         }
     }
     pub fn parameters_plus_locals(&self) -> usize {
         match self {
             Self::Frozen(l) => l.locals,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 256,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 256,
         }
     }
     pub fn local_groups(&self) -> usize {
         match self {
             Self::Frozen(l) => l.locals,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 256,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 256,
         }
     }
     pub fn instructions(&self) -> usize {
@@ -81,27 +85,29 @@ impl<'a> Policy<'a> {
             Self::Frozen(l) => l.instructions,
             #[cfg(feature = "experimental-swift-reactor")]
             Self::SwiftReactorExperimentV1 => 8_000_000,
+            #[cfg(feature = "experimental-swift-reactor")]
+            Self::SwiftCommandDiagnosticV1 => 16_000_000,
         }
     }
     pub fn operand_stack(&self) -> usize {
         match self {
             Self::Frozen(l) => l.operand_stack,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 128,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 128,
         }
     }
     pub fn control_depth(&self) -> usize {
         match self {
             Self::Frozen(l) => l.control_depth,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 512,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 512,
         }
     }
     pub fn globals(&self) -> usize {
         match self {
             Self::Frozen(_) => 1024,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 8192,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 8192,
         }
     }
     pub fn exports(&self) -> usize {
@@ -120,14 +126,14 @@ impl<'a> Policy<'a> {
         match self {
             Self::Frozen(l) => l.table_elements,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 65_536,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 65_536,
         }
     }
     pub fn memory_pages(&self) -> u32 {
         match self {
             Self::Frozen(l) => l.memory_pages,
             #[cfg(feature = "experimental-swift-reactor")]
-            Self::SwiftReactorExperimentV1 => 768,
+            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 768,
         }
     }
 }

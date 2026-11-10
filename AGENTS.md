@@ -191,3 +191,21 @@ do not retry, probe, signal, wait on or clean those resources. The direct child
 return and later GitHub cleanup do not release custody. The copied source-only
 diagnosis is verification/plan-continuation-2026-11-07/cache-current-hosted-diagnosis-r34/REPORT.md.
 This scoped hold does not pause independent native, source or other CI work.
+
+The root R118 broad VM regression timed out and then received EPERM while observing
+process-group absence. PGID4463 remains UNKNOWN. Preserve the exact group and
+`/Users/andreyyurlov/.t3/userdata/mixer-owned-command-r118-q3pzd_gl`, including its
+retained target/scratch, without probing, signalling, waiting, retry or cleanup.
+The direct Cargo exit -15 does not establish descendant absence. Its raw command
+outputs remain preserved; only copied top-level command/HOLD metadata may guide
+new work. See verification/plan-continuation-2026-11-07/owned-taskeditor-command-integration-r118/HOLD.json.
+Static canonical VM source is outside this scoped hold; independent fresh tests
+and app work remain authorized.
+
+The root R125 worktree-add timed out before recording a reliable process-group
+identity. Preserve `/Users/andreyyurlov/.t3/userdata/mixer-owned-command-delivery-r125-svgl7xu3`
+and its incomplete worktree registration/locks in the R104 delivery bare database.
+Do not probe, retry, delete locks or clean this exact chain. The short launcher
+reaped its direct child after timeout; descendant custody remains unobserved.
+Use the copied metadata in owned-taskeditor-focused-integration-r124/git-delivery-timeout.json.
+This does not hold static canonical source or revision-pinned GitHub API delivery.

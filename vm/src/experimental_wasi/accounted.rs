@@ -149,6 +149,7 @@ impl AccountedWasi {
         control.check_reservation_owner(header, cursor, observation)?;
         Ok(self.context.usage())
     }
+    pub(crate) fn calls_by_function(&self) -> [u64; 34] { self.context.calls_by_function }
     pub(crate) fn stdout(&self) -> &[u8] {
         self.context.stdout()
     }
@@ -346,6 +347,7 @@ impl WasiConstructionPhase<'_> {
                 stdout_open: grants.stdout,
                 stderr_open: grants.stderr,
                 iovec_scratch: [Span::default(); 64],
+                calls_by_function: [0; 34],
                 #[cfg(test)]
                 test: super::tests::TestState::default(),
             },

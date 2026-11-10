@@ -130,3 +130,18 @@ capacity, generation retirement, panic cleanup, concurrency and terminal state.
 The nondefault `experimental-stream-validation` feature exposes `experimental::validate_spans` for complete validation of the existing integer-v1, numeric-v2 and table-memory-v3 subsets. It owns an immutable exact-length source snapshot and retains compact spans while type-checking every body without decoded instruction/branch-target vectors. Additional metadata, scratch and validation-work budgets fail closed; all existing executable ceilings and import restrictions remain. A successful result is a sealed validation-only owner with borrowed inspection methods and has no interpreter, cache, C ABI or activation route.
 
 The [experimental contract and accounting notes](experimental-stream-validation.md) describe the fixed-state and growth-overlap reservations, static diagnostics, source lifetime, cooperative cancellation and intentionally additional work-budget rejection. Reproduce host evidence with `python3 -B vm/verify-stream-validation.py --name FRESH_NAME`. The verifier pins original production files/contracts to the frozen session-fix revision and separately checks the default and feature C ABI. This is a bounded host experiment; full Swift/FieldLog admission/execution, devices, cache routing, independent review and release qualification remain open.
+
+## Experimental Swift command diagnostic
+
+The nondefault `experimental-swift-reactor` feature also exposes a native-selected, one-shot command route: `validate_swift_command` validates every body and returns a sealed `ValidatedSwiftCommand`; `execute_swift_command` consumes it once. The distinct `swift-command-diagnostic-v1` policy accepts bounded command modules with exactly the supported 34 WASI Preview1 imports, memory and a defined `_start: () -> ()`. Default profiles and the fixed reactor contract retain their original limits.
+
+The command uses the owned dispatcher, accounted WASI adapter, bounded output, cancellation, fuel/work/deadline checks and consuming cleanup. Success requires a normal return or `proc_exit(0)`, completed cleanup and successful native output writes. It has no filesystem/preopens, receives fixed argv and an empty environment, and requires explicit capability grants. Native input buffers and output sinks remain the caller's responsibility.
+
+The [integrated development receipt](../verification/plan-continuation-2026-11-07/owned-taskeditor-focused-integration-r124/receipt.json) records actual execution of the shared FieldLog TaskEditor: complete validation of 80,514 bodies and a byte-identical 439-byte native result. This is experimental feature-semantic evidence; full W07/W08, mobile integration and GA remain open. To execute an explicitly selected bounded development module:
+
+```sh
+MIXER_R110_MODULE=/path/to/fixture.wasm \
+MIXER_R110_STDOUT=guest.json MIXER_R110_STDERR=guest.stderr \
+  cargo run --locked --release --manifest-path vm/Cargo.toml \
+  --features experimental-swift-reactor --example taskeditor_owned_command
+```
