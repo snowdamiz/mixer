@@ -1,0 +1,7 @@
+PASS for the exact public/legacy Android packaging driver slice, within host/build scope.
+
+Root reviewed the production diff: explicit closed host selection, generated app-owned source inventory, selected JNI/C ABI, separate external Java compilation, DEX/activity checks, exact locked appearance asset, dependency resolution and existing alignment/source/toolchain checks. The default and explicit legacy selection retain their build path. The route removes only the prospective refusal after exact public selection agreement; it leaves existing configuration, source, resource, capability and toolchain checks in place. No concrete driver finding was reproduced.
+
+All 50 retained controls passed under actual Python -O in 10.50 seconds, with the direct process group absent. The author's normal 50-control run and actual unsigned production APK build remain separate raw evidence in ../public-v3-android-packager-r66. source-identities.json matches the frozen three afterimages. No extra APK, signing or native run was required for this driver review.
+
+The generated application is NOT runtime accepted: R68/R71 separately reproduce its app eventPending queue failure during ordinary typing. This review does not waive that failure or accept the unbuilt full Swift CLI route. Root must validate the corrected host and execute the installed generator/build path before source delivery. No source application, publication, historical hold release or GA promotion occurred.

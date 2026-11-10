@@ -9,9 +9,10 @@ public struct GeneratedProject: Codable, Sendable {
 }
 
 public enum ProjectGenerator {
-    public static func create(name: String, application: String, destination: URL, sdk: URL, platform: String = "ios", androidAdapter: URL? = nil) throws -> GeneratedProject {
+    public static func create(name: String, application: String, destination: URL, sdk: URL, platform: String = "ios", androidAdapter: URL? = nil, androidHost: AndroidApplicationHost? = nil) throws -> GeneratedProject {
         guard ["ios", "android"].contains(platform) else { throw MixerFailure("create.platform", "Create supports ios (default) or android (both native hosts).") }
         var config = ApplicationConfiguration(name: name, application: application)
+        config.androidHost = androidHost == .legacyV1 ? nil : androidHost
         config.targets = platform == "android" ? ["ios", "android"] : ["ios"]
         // The starter requests no native capabilities. Adding one requires an
         // implemented native host and a new binary, never a successful stub.

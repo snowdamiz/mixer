@@ -1219,7 +1219,9 @@ return;
                 !finishing&&!denied()&&replacement==null&&depth==0&&record.editorCallbackLease==null&&
                 (phase==Phase.IDLE&&consumedPredecessor()||phase==Phase.ACTIVE&&hasLiveTarget());
         }
-        boolean transitionEligible(){return record!=null&&record.verticalInput&&record.view==this&&record.constructed&&record.binding!=null&&!finishing&&!fieldDenied()&&replacement==null&&depth==0&&record.editorCallbackLease==null&&record.fieldPreservation==null&&record.fieldTransition==null&&(phase==Phase.IDLE&&consumedPredecessor()||phase==Phase.ACTIVE&&hasLiveTarget());}
+        boolean transitionEligible(){return record!=null&&record.verticalInput&&transitionSourceEligible();}
+        boolean programmaticClearEligible(){return transitionSourceEligible();}
+        private boolean transitionSourceEligible(){return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!finishing&&!fieldDenied()&&replacement==null&&depth==0&&record.editorCallbackLease==null&&record.fieldPreservation==null&&record.fieldTransition==null&&(phase==Phase.IDLE&&consumedPredecessor()||phase==Phase.ACTIVE&&hasLiveTarget());}
         boolean transitionInactive(){return transitionEligible()&&consumedPredecessor()&&!hasFocus()&&android.view.inputmethod.BaseInputConnection.getComposingSpanStart(nativeEditable())<0;}
         boolean needsFieldPreservation(){return focusLost&&settledField()||record.verticalInput&&preservableField();}
         boolean completedReplacementEligible(Replacement operation){return operation!=null&&operation.field==this&&operation.record==record&&

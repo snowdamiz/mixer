@@ -101,7 +101,7 @@ def load_profile(root=ROOT):
     text = (root / POLICY).read_text()
     require(text.count('Data(#"""\n') == 1, 'Ambiguous canonical source policy')
     profile = unique_json(text.split('Data(#"""\n', 1)[1].split('\n        """#.utf8)', 1)[0])
-    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.14',
+    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.15',
             'Unsupported canonical source pair')
     for kind, count in (('sdk', 24), ('adapter', 27)):
         files = profile[kind + '_files']

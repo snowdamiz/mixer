@@ -33,7 +33,10 @@ swift test
 swift build --package-path cli --product mixer -j 2
 MIXER_STORE_CLI_BIN_DIR="$(swift build --package-path cli --product mixer -j 2 --show-bin-path)"
 test -x "$MIXER_STORE_CLI_BIN_DIR/mixer"
-MIXER_STORE_TEST_CLI="$MIXER_STORE_CLI_BIN_DIR/mixer" swift test --package-path cli
+MIXER_STORE_CUSTODY_DIR="$(mktemp -d "${TMPDIR:-/tmp}/mixer-cli-tests.XXXXXX")"
+MIXER_STORE_TEST_CLI="$MIXER_STORE_CLI_BIN_DIR/mixer" \
+	MIXER_STORE_CUSTODY_DIR="$MIXER_STORE_CUSTODY_DIR" \
+	MIXER_SUITE_HOLD="$MIXER_STORE_CUSTODY_DIR/SUITE-HOLD.json" swift test --package-path cli
 swift test --package-path updates
 swift test --package-path capabilities
 cargo test --manifest-path vm/Cargo.toml
@@ -82,10 +85,25 @@ scripts/mixer create MyAndroidApp --platform android
 scripts/mixer build --platform android --directory MyAndroidApp
 ```
 
+To generate an app-owned Activity using the public V3 Swift host and Java native
+renderer, select the host explicitly:
+
+```sh
+scripts/mixer create NativeAndroidApp --platform android --android-host public-v3
+scripts/mixer build --platform android --directory NativeAndroidApp
+```
+
+The generated starter batches native input against one installed snapshot and
+publishes one model revision per batch. It preserves the original event bytes and
+refuses stale owners or revisions. Omitting `--android-host` keeps the legacy starter.
+API37 emulator tests cover native typing, Add with draft reset, and Toggle.
+OS IME service behavior, keyboard/window parity, physical devices, and immutable
+published-package qualification remain pending.
+
 The build compiles the application's shared Swift feature and app-owned Android
 entry into an unsigned arm64 APK. It preserves native edits and rejects unsupported
-resources/capabilities. Signing, installation, lifecycle and published native SDK
-consumption remain pending. See the generated Android README and
+resources/capabilities. Release signing, distribution, broader lifecycle/device
+coverage, and immutable published SDK consumption remain pending. See the generated Android README and
 [`verification/android-generated-consumer/README.md`](verification/android-generated-consumer/README.md).
 
 ## Current components

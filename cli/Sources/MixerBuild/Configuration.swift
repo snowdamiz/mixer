@@ -8,6 +8,11 @@ public struct MixerFailure: Error, CustomStringConvertible, Sendable {
     public init(_ code: String, _ description: String) { self.code = code; self.description = description }
 }
 
+public enum AndroidApplicationHost: String, Codable, Sendable {
+    case legacyV1 = "legacy-v1"
+    case publicV3 = "public-v3"
+}
+
 public struct ApplicationConfiguration: Codable, Equatable, Sendable {
     public var schema: Int = 1
     public var application: String
@@ -16,6 +21,7 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
     public var targets: [String] = ["ios", "android"]
     public var toolchainLock: String = "mixer.lock"
     public var capabilities: [String] = ["storage.files"]
+    public var androidHost: AndroidApplicationHost? = nil
     public var updates = UpdateConfiguration()
     public init(name: String, application: String) { self.name = name; self.application = application }
     public func validate() throws {
@@ -27,6 +33,16 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
             throw MixerFailure("config.application", "Application must be a reverse-DNS identifier, for example com.example.fieldlog.")
         }
         guard Set(targets).count == targets.count, !targets.isEmpty, Set(targets).isSubset(of: ["ios", "android"]) else { throw MixerFailure("config.targets", "Targets must be unique ios/android entries.") }
+        if let androidHost {
+            guard targets.contains("android") else { throw MixerFailure("config.android-host", "androidHost requires an android target.") }
+            if androidHost == .publicV3 {
+                let reserved: Set<String> = ["abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true", "false", "null", "_"]
+                guard application != "dev.mixer.android", !application.hasPrefix("dev.mixer.android."),
+                      application.split(separator: ".").allSatisfy({ !reserved.contains(String($0)) }) else {
+                    throw MixerFailure("config.android-host", "The public Android host requires an app-owned Java package outside dev.mixer.android, with no Java keyword segments.")
+                }
+            }
+        }
         guard toolchainLock == "mixer.lock" else { throw MixerFailure("config.lock", "The current schema requires mixer.lock beside mixer.yml.") }
         guard updates.activation == "cold-start", updates.compatibility == "exact-runtime-fingerprint", updates.requireArtifactSignature, updates.requireAssignmentSignature else { throw MixerFailure("config.updates", "Cold-start activation, exact runtime identity, and both signatures are required.") }
         guard Set(capabilities).count == capabilities.count, capabilities.allSatisfy({ $0.range(of: "^[a-z][a-z0-9.-]{1,95}$", options: .regularExpression) != nil }) else { throw MixerFailure("config.capabilities", "Capabilities must be unique bounded identifiers.") }
@@ -44,7 +60,7 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
         do { raw = try JSONSerialization.jsonObject(with: data) }
         catch { throw MixerFailure("config.encoding", "This preview reads the JSON subset of YAML 1.2 in mixer.yml. Use the generated configuration; block-style YAML support is not yet implemented.") }
         guard let fields = raw as? [String: Any] else { throw MixerFailure("config.shape", "mixer.yml must be an object.") }
-        let known: Set<String> = ["schema", "application", "name", "language", "targets", "toolchainLock", "capabilities", "updates"]
+        let known: Set<String> = ["schema", "application", "name", "language", "targets", "toolchainLock", "capabilities", "updates", "androidHost"]
         let unknown = Set(fields.keys).subtracting(known)
         guard unknown.isEmpty else { throw MixerFailure("config.unknown", "Unknown configuration keys: \(unknown.sorted().joined(separator: ", ")).") }
         if let updateFields = fields["updates"] as? [String: Any] {

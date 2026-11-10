@@ -12,7 +12,7 @@ struct Arguments {
             if value == "--help" { positional.append("help") }
             else if value == "--json" { json = true }
             else if value.hasPrefix("--") {
-                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
                 index += 1; options[value] = values[index]
             } else { positional.append(value) }
             index += 1
@@ -32,7 +32,7 @@ let help = """
 mixer 0.1.0-dev — owned Swift mobile platform (development preview)
 
   mixer create NAME [--directory PATH] [--application ID] [--sdk-path PATH]
-    [--platform ios|android] [--android-adapter-path PATH]
+    [--platform ios|android] [--android-adapter-path PATH] [--android-host legacy-v1|public-v3]
   mixer doctor [--json]
   mixer config validate [--directory PATH]
   mixer build [--platform host|ios|android] [--directory PATH]
@@ -68,7 +68,7 @@ do {
     let arguments = try Arguments(Array(CommandLine.arguments.dropFirst()))
     let words = arguments.positional
     let allowedOptions: [String: Set<String>] = [
-        "create": ["--directory", "--application", "--sdk-path", "--platform", "--android-adapter-path"], "config": ["--directory"],
+        "create": ["--directory", "--application", "--sdk-path", "--platform", "--android-adapter-path", "--android-host"], "config": ["--directory"],
         "build": ["--directory", "--platform"], "test": ["--directory", "--platform"],
         "run": ["--directory", "--device"], "import": ["--output"],
         "release": ["--directory"], "export": ["--directory"],
@@ -86,8 +86,13 @@ do {
         let sdk = path(arguments.options["--sdk-path"] ?? ProcessInfo.processInfo.environment["MIXER_SDK_PATH"] ?? repository.appendingPathComponent("sdk").path)
         let platform = arguments.options["--platform"] ?? "ios"
         guard platform == "android" || arguments.options["--android-adapter-path"] == nil else { throw MixerFailure("arguments.unused-option", "--android-adapter-path requires --platform android.") }
+        let androidHost: AndroidApplicationHost?
+        if let value = arguments.options["--android-host"] {
+            guard platform == "android", let selected = AndroidApplicationHost(rawValue: value) else { throw MixerFailure("arguments.android-host", "--android-host requires --platform android and legacy-v1 or public-v3.") }
+            androidHost = selected
+        } else { androidHost = nil }
         let adapter = path(arguments.options["--android-adapter-path"] ?? ProcessInfo.processInfo.environment["MIXER_ANDROID_ADAPTER_PATH"] ?? repository.appendingPathComponent("native/android").path)
-        try output(ProjectGenerator.create(name: name, application: arguments.options["--application"] ?? "com.example.\(name.lowercased())", destination: target, sdk: sdk, platform: platform, androidAdapter: platform == "android" ? adapter : nil))
+        try output(ProjectGenerator.create(name: name, application: arguments.options["--application"] ?? "com.example.\(name.lowercased())", destination: target, sdk: sdk, platform: platform, androidAdapter: platform == "android" ? adapter : nil, androidHost: androidHost))
     case "doctor":
         let checks = Doctor.inspect()
         let ready = checks.allSatisfy(\.ready)

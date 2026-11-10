@@ -87,14 +87,18 @@ try:
             if f.name in concrete_sources:
                 concrete_sources[f.name] = f
     concrete_leaves = sorted((tests / 'NativeOwnerV2ConcreteHostLeaves').rglob('*.java'))
-    reflow_inputs = sorted(set(concrete_sources.values()) | set(concrete_leaves) | {tests / 'VerticalReflowHostTests.java'})
+    reflow_inputs = sorted(set(concrete_sources.values()) | set(concrete_leaves) | {tests / 'VerticalReflowHostTests.java', tests / 'GeneratedAddTransitionHostTests.java'})
     (args.evidence / 'vertical-reflow-inputs.json').write_text(json.dumps({str(f.relative_to(root)) if f.is_relative_to(root) else str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in reflow_inputs}, indent=2) + '\n')
     reflow_classes = scratch / 'vertical-reflow-classes'
     reflow_classes.mkdir()
     run('vertical-reflow-compile', [args.java_home / 'bin/javac', '--release', '17', '-Xlint:all', '-Werror', '-proc:none', '-sourcepath', '', '-classpath', '', '-d', reflow_classes, *reflow_inputs])
     run('vertical-reflow', [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.VerticalReflowHostTests', descriptor, 'candidate'])
+    packets = tests / 'GeneratedAddTransitionPackets'
+    packet_inputs = [packets / name for name in ('opened.packet.json', 'typed.packet.json', 'added.packet.json', 'descriptor.json')]
+    (args.evidence / 'generated-add-packet-inputs.json').write_text(json.dumps({str(f.relative_to(root)): hashlib.sha256(f.read_bytes()).hexdigest() for f in packet_inputs}, indent=2) + '\n')
+    run('generated-add-transition', [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.GeneratedAddTransitionHostTests', packets, 'candidate'])
     passed = True
 finally:
     if passed:
         shutil.rmtree(scratch)
-    (args.evidence / 'result.json').write_text(json.dumps({'passed': passed, 'scope': 'JVM public suites with controlled renderer; vertical reflow with actual renderer/owner/views and controlled Android/JNI leaves; no device qualification', 'scratch': str(scratch), 'scratchRemoved': passed, 'commands': len(commands)}, indent=2) + '\n')
+    (args.evidence / 'result.json').write_text(json.dumps({'passed': passed, 'scope': 'JVM public suites with controlled renderer; vertical reflow and production-packet Add/clear with actual renderer/owner/views and controlled Android/JNI leaves; no device qualification', 'scratch': str(scratch), 'scratchRemoved': passed, 'commands': len(commands)}, indent=2) + '\n')

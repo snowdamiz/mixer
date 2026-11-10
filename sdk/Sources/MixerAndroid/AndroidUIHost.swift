@@ -12,6 +12,15 @@ public protocol AndroidUIPresentation: AnyObject {
     func send(_ event: UIEventEnvelope) throws
 }
 
+/// Optional app-owned atomic transaction for events from one installed frame.
+/// Route every event against `snapshot`, apply ordered actions to local state,
+/// and publish at most once. Throwing must leave app state and effects unchanged.
+/// The host validates admission; it cannot roll back arbitrary app side effects.
+@MainActor
+public protocol AndroidUIBatchPresentation: AndroidUIPresentation {
+    func sendBatch(_ events: [UIEventEnvelope], from snapshot: UIRenderSnapshot) throws
+}
+
 /// Negotiated by the native adapter, never inferred from the Android API level.
 /// Native installation must still validate geometry, environment and operations.
 public struct AndroidUICapabilities: Sendable {
@@ -53,7 +62,7 @@ public protocol AndroidUINativeSurface: AnyObject {
 
 public enum AndroidUIHostError: Error, Equatable, Sendable {
     case closed, busy, staleOwner, noInstalledFrame, sourceChanged, revisionNotIncreasing
-    case appearanceUnsupported, profileMismatch
+    case appearanceUnsupported, profileMismatch, invalidBatch, batchUnsupported
 }
 
 /// Owns presentation delivery, not app transactions. All callbacks execute on
@@ -171,6 +180,37 @@ public final class AndroidUIHost {
         guard current.document == installed.snapshot.document else { throw AndroidUIHostError.sourceChanged }
         _ = try current.route(event)
         do { try source.send(event) }
+        catch { try requireSurfaceProfile(); throw error }
+        try requireSurfaceProfile()
+    }
+
+    public static let maximumBatchEvents = 32
+    public static let maximumBatchBytes = 131_072
+
+    /// Every original envelope is admitted against the same installed receipt
+    /// before the one app transaction. No scalar fallback, revision or ID rebasing.
+    public func sendBatch(owner token: UUID, events: [UIEventEnvelope]) throws {
+        try enter(); defer { busy = false }
+        try requireSurfaceProfile()
+        guard token == owner else { throw AndroidUIHostError.staleOwner }
+        if let sourceFailure { throw sourceFailure }
+        guard !events.isEmpty, events.count <= Self.maximumBatchEvents,
+              try JSONEncoder().encode(events).count <= Self.maximumBatchBytes else {
+            throw AndroidUIHostError.invalidBatch
+        }
+        guard let installed, let source else { throw AndroidUIHostError.noInstalledFrame }
+        guard let batchSource = source as? any AndroidUIBatchPresentation else {
+            throw AndroidUIHostError.batchUnsupported
+        }
+        let snapshot = source.snapshot
+        try requireAdmission(source, owner: token, frame: installed)
+        guard snapshot.document == installed.snapshot.document else { throw AndroidUIHostError.sourceChanged }
+        for event in events { _ = try installed.snapshot.route(event) }
+        let current = source.snapshot
+        try requireAdmission(source, owner: token, frame: installed)
+        guard current.document == installed.snapshot.document else { throw AndroidUIHostError.sourceChanged }
+        for event in events { _ = try current.route(event) }
+        do { try batchSource.sendBatch(events, from: installed.snapshot) }
         catch { try requireSurfaceProfile(); throw error }
         try requireSurfaceProfile()
     }

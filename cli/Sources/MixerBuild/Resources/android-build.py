@@ -138,7 +138,7 @@ def source_profile():
         value = json.loads(bytes.fromhex(SOURCE_PROFILE_HEX), object_pairs_hook=unique)
         keys = {'schema', 'id', 'sdk_compatibility_sha256', 'adapter_compatibility_sha256',
                 'default_descriptor', 'sdk_files', 'adapter_files', 'wire'}
-        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.14':
+        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.15':
             raise ValueError('unsupported profile shape/id')
         def identity(item):
             return (isinstance(item, dict) and set(item) == {'bytes', 'sha256'} and
@@ -286,8 +286,10 @@ def read_json(path):
 
 def configuration(value):
     known = {'schema', 'name', 'application', 'language', 'targets', 'toolchainLock', 'capabilities', 'updates'}
-    if not isinstance(value, dict) or set(value) != known or type(value.get('schema')) is not int or value['schema'] != 1 or value['language'] != 'swift' or value['toolchainLock'] != 'mixer.lock':
+    if not isinstance(value, dict) or set(value) not in (known, known | {'androidHost'}) or type(value.get('schema')) is not int or value['schema'] != 1 or value['language'] != 'swift' or value['toolchainLock'] != 'mixer.lock':
         raise RuntimeError('Unsupported Android local configuration schema/fields.')
+    if 'androidHost' in value and (not isinstance(value['androidHost'], str) or value['androidHost'] not in ('public-v3', 'legacy-v1')):
+        raise RuntimeError('Unsupported Android host; expected public-v3 or legacy-v1.')
     if not isinstance(value['name'], str) or re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,63}', value['name']) is None:
         raise RuntimeError('Invalid Android application name; expected a bounded Swift identifier without path components.')
     if not isinstance(value['application'], str) or re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+', value['application']) is None:
@@ -298,9 +300,52 @@ def configuration(value):
     if value['capabilities'] != []:
         raise RuntimeError('Android host supports an empty capability list only in this slice.')
     expected_updates = {'activation': 'cold-start', 'compatibility': 'exact-runtime-fingerprint', 'requireArtifactSignature': True, 'requireAssignmentSignature': True}
-    if value['updates'] != expected_updates or type(value['updates'].get('requireArtifactSignature')) is not bool or type(value['updates'].get('requireAssignmentSignature')) is not bool:
+    if not isinstance(value['updates'], dict) or value['updates'] != expected_updates or type(value['updates'].get('requireArtifactSignature')) is not bool or type(value['updates'].get('requireAssignmentSignature')) is not bool:
         raise RuntimeError('Unsupported Android update policy configuration.')
     return value
+
+
+def public_host(root, config):
+    """Select app-owned inputs explicitly; never infer a public host from sources."""
+    package = root / 'Platforms/Android'
+    selection = package / 'public-host-v3.json'
+    selected = config.get('androidHost', 'legacy-v1') == 'public-v3'
+    present = selection.exists() or selection.is_symlink()
+    if not selected:
+        if present:
+            raise RuntimeError('Android host mismatch: public host requires explicit public-v3 configuration.')
+        return False
+    application = config['application']
+    reserved = set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _').split())
+    if (application == 'dev.mixer.android' or application.startswith('dev.mixer.android.') or
+            any(part in reserved for part in application.split('.'))):
+        raise RuntimeError('Public Android host requires an app-owned Java package without Java keyword segments.')
+    if not present:
+        raise RuntimeError('Android host mismatch: generated public-v3 selection is missing.')
+    required = ['public-host-v3.json', 'Bridge/PublicBridge.c',
+                'Sources/AppAndroid/NativeEntry.swift', 'Sources/AppAndroid/PublicFactory.swift']
+    java_base = 'Java/' + application.replace('.', '/') + '/androidhost/'
+    required += [java_base + name + '.java' for name in ('PublicActivity', 'PublicBridge')]
+    for relative in required:
+        path = exact_path(root, 'Platforms/Android/' + relative)
+        info = path.lstat()
+        if not stat.S_ISREG(info.st_mode) or not 0 < info.st_size <= 1_048_576:
+            raise RuntimeError('Public Android host requires a bounded ordinary input: ' + relative)
+    if read_json(selection) != {'host': 'public-v3', 'profile': 'MEASURED_MULTILINE_RETIREMENT_V3'}:
+        raise RuntimeError('Android host mismatch: unsupported public host selection/profile.')
+    # An external app is compiled against the SDK classes, never inside their
+    # package or with SDK source discovery. Keep the generated Java closure exact.
+    java = package / 'Java'
+    expected = {str(package / relative) for relative in required if relative.endswith('.java')}
+    actual = set()
+    for base, dirs, names in os.walk(java, followlinks=False):
+        for name in dirs:
+            ordinary_directory(pathlib.Path(base) / name)
+        for name in names:
+            actual.add(str(pathlib.Path(base) / name))
+    if actual != expected:
+        raise RuntimeError('Public Android host Java inventory differs from its generated app-owned closure.')
+    return True
 
 
 def appearance_layout(adapter):
@@ -438,6 +483,10 @@ def inspect():
 
 
 def build(root):
+    config = read_json(root / 'mixer.yml')
+    if not isinstance(config, dict) or config.get('androidHost', 'legacy-v1') != 'legacy-v1':
+        config = configuration(config)
+    public = public_host(root, config)
     profile = source_profile()
     lock = read_json(root / 'mixer.lock')
     if not isinstance(lock, dict) or type(lock.get('schema')) is not int or lock['schema'] != 1:
@@ -448,7 +497,7 @@ def build(root):
     appearance = admit_source_pair(root, profile)
     if source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
         raise RuntimeError('Bundled SDK or Android adapter source differs from mixer.lock.')
-    config = configuration(read_json(root / 'mixer.yml'))
+    config = configuration(config)
     if any(p.is_file() for p in (root / 'Resources').rglob('*')):
         raise RuntimeError('Android resource packaging is not integrated; resources cannot be omitted.')
     output = checked_output(root, create=True)
@@ -477,6 +526,8 @@ def build(root):
         return p.stdout
     package = root / 'Platforms/Android'
     swift_args = [SWIFT, 'build', '--package-path', package, '--scratch-path', output / 'swift', '--swift-sdks-path', SWIFT_SDKS, '--swift-sdk', SDK_ID, '-c', 'release', '--product', 'AppAndroid', '-Xlinker', '-z', '-Xlinker', 'max-page-size=16384']
+    if public:
+        swift_args += ['--jobs', '2']
     run(swift_args)
     bin_path = pathlib.Path(run(swift_args + ['--show-bin-path']).strip())
     engine = bin_path / 'libAppAndroid.so'
@@ -489,7 +540,9 @@ def build(root):
         path.mkdir()
     libdir = output / 'apk/lib/arm64-v8a'
     libdir.mkdir(parents=True)
-    run([NDK / 'bin/aarch64-linux-android28-clang', '-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-I', adapter / 'bridge', adapter / 'bridge/jni.c', '-L', bin_path, '-lAppAndroid', '-Wl,--no-undefined', '-Wl,-z,max-page-size=16384', '-o', libdir / 'libmixer_android_jni.so'])
+    jni = package / 'Bridge/PublicBridge.c' if public else adapter / 'bridge/jni.c'
+    jni_library = 'libmixer_public_android_jni.so' if public else 'libmixer_android_jni.so'
+    run([NDK / 'bin/aarch64-linux-android28-clang', '-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-I', adapter / 'bridge', jni, '-L', bin_path, '-lAppAndroid', '-Wl,--no-undefined', '-Wl,-z,max-page-size=16384', '-o', libdir / jni_library])
     shutil.copy2(engine, libdir / engine.name)
     system = {'libc.so', 'libdl.so', 'libm.so', 'liblog.so', 'libandroid.so'}
     pending = list(libdir.glob('*.so'))
@@ -513,7 +566,25 @@ def build(root):
             pending.append(libdir / name)
     classes, dex = output / 'classes', output / 'dex'
     sources = sorted((adapter / 'app/src').rglob('*.java')) + sorted((package / 'Java').rglob('*.java'))
-    run([JDK / 'bin/javac', '--release', '17', '-Xlint:all', '-Werror', '-proc:none', '-sourcepath', '', '-classpath', JAR, '-d', classes, *sources])
+    if public:
+        sdk_classes, app_classes = classes / 'sdk', classes / 'app'
+        sdk_classes.mkdir(); app_classes.mkdir()
+        java_flags = ['--release', '17', '-Xlint:all', '-Werror', '-proc:none', '-sourcepath', '']
+        sdk_java = sorted((adapter / 'app/src').rglob('*.java'))
+        # The legacy Activity is not part of the public host. NativeBridge stays
+        # an unmodified SDK implementation detail of its dual-mode coordinator.
+        sdk_java = [p for p in sdk_java if p.name != 'MixerActivity.java']
+        run([JDK / 'bin/javac', *java_flags, '-classpath', JAR, '-d', sdk_classes, *sdk_java])
+        run([JDK / 'bin/javac', *java_flags, '-classpath', str(JAR) + os.pathsep + str(sdk_classes), '-d', app_classes, *sorted((package / 'Java').rglob('*.java'))])
+        prefix = config['application'].replace('.', '/') + '/androidhost/'
+        for item in app_classes.rglob('*.class'):
+            relative = item.relative_to(app_classes).as_posix()
+            if not any(relative == prefix + name + '.class' or
+                       (relative.startswith(prefix + name + '$') and '/' not in relative[len(prefix):])
+                       for name in ('PublicActivity', 'PublicBridge')):
+                raise RuntimeError('Public Android app emitted a class outside its generated namespace: ' + relative)
+    else:
+        run([JDK / 'bin/javac', '--release', '17', '-Xlint:all', '-Werror', '-proc:none', '-sourcepath', '', '-classpath', JAR, '-d', classes, *sources])
     run([BT / 'd8', '--min-api', '28', '--lib', JAR, '--output', dex, *sorted(classes.rglob('*.class'))])
     unsigned = output / 'unaligned.apk'
     if admit_source_pair(root, profile) != appearance or source_tree(adapter) != android['adapterDigest']:
@@ -529,14 +600,30 @@ def build(root):
     run([BT / 'zipalign', '-f', '-P', '16', '4', unsigned, apk_path])
     run([BT / 'zipalign', '-c', '-P', '16', '4', apk_path])
     badging = run([BT / 'aapt2', 'dump', 'badging', apk_path])
-    if "package: name='" + config['application'] + "'" not in badging or 'dev.mixer.android.MixerActivity' not in badging or "native-code: 'arm64-v8a'" not in badging:
+    activity = config['application'] + '.androidhost.PublicActivity' if public else 'dev.mixer.android.MixerActivity'
+    if "package: name='" + config['application'] + "'" not in badging or activity not in badging or "native-code: 'arm64-v8a'" not in badging:
         raise RuntimeError('APK identity, native activity or ABI does not match generated app.')
     dex_dump = run([BT / 'dexdump', '-f', dex / 'classes.dex'])
-    for descriptor in ['Ldev/mixer/android/MixerActivity;', 'Ldev/mixer/android/NativeBridge;', 'Ldev/mixer/android/NativeRenderer;']:
+    descriptors = ['Ldev/mixer/android/MixerActivity;', 'Ldev/mixer/android/NativeBridge;', 'Ldev/mixer/android/NativeRenderer;']
+    if public:
+        app = config['application'].replace('.', '/') + '/androidhost/'
+        descriptors = ['L' + app + name + ';' for name in ('PublicActivity', 'PublicBridge')] + ['Ldev/mixer/android/AndroidUINativeSurface;', 'Ldev/mixer/android/NativeRenderer;']
+        if 'Ldev/mixer/android/MixerActivity;' in dex_dump:
+            raise RuntimeError('Public Android APK unexpectedly contains the legacy Activity.')
+    for descriptor in descriptors:
         if descriptor not in dex_dump:
             raise RuntimeError('Required owned Android class absent from dex: ' + descriptor)
     symbols = run([NDK / 'bin/llvm-nm', '-D', '--defined-only', engine])
-    for symbol in ['mixer_android_create', 'mixer_android_exchange', 'mixer_android_destroy', 'mixer_android_prepare_v2', 'mixer_android_commit_v2', 'mixer_android_abort_v2', 'AppFeatures', 'AppModels']:
+    required_symbols = ['mixer_android_create', 'mixer_android_exchange', 'mixer_android_destroy', 'mixer_android_prepare_v2', 'mixer_android_commit_v2', 'mixer_android_abort_v2', 'AppFeatures', 'AppModels']
+    if public:
+        required_symbols = ['mixer_public_android_submit', 'mixer_public_android_poll', 'AppFeatures', 'AppModels']
+        exported = {line.split()[-1] for line in symbols.splitlines() if line.split()}
+        if not {'mixer_public_android_submit', 'mixer_public_android_poll'}.issubset(exported) or any(name.startswith('mixer_android_') for name in exported):
+            raise RuntimeError('Public Android C ABI is missing or contains private legacy exports.')
+        jni_symbols = run([NDK / 'bin/llvm-nm', '-D', '--defined-only', libdir / jni_library])
+        if 'JNI_OnLoad' not in {line.split()[-1] for line in jni_symbols.splitlines() if line.split()}:
+            raise RuntimeError('Public Android JNI registration entry is missing.')
+    for symbol in required_symbols:
         if symbol not in symbols:
             raise RuntimeError('App shared feature/model or ABI symbol missing: ' + symbol)
     with zipfile.ZipFile(apk_path) as archive:
@@ -555,7 +642,7 @@ def build(root):
         raise RuntimeError('Application/SDK/adapter source changed during the Android build; result rejected. Restore stable inputs and rebuild.')
     receipt = {
         'schema_version': 1, 'qualification': 'local-unsigned-cross-build-only',
-        'application': config['application'], 'apk': str(apk_path), 'apk_sha256': digest(apk_path), 'apk_bytes': apk_path.stat().st_size,
+        'application': config['application'], 'android_host': 'public-v3' if public else 'legacy-v1', 'activity': activity, 'jni_library': jni_library, 'apk': str(apk_path), 'apk_sha256': digest(apk_path), 'apk_bytes': apk_path.stat().st_size,
         'apk_content_sha256': normalized, 'apk_entries': content,
         'source_tree_sha256': source_before, 'source_tree_after_sha256': source_after,
         'source_observation_scope': 'Before/after local mutation detection only; inputs are not isolated or immutably captured.',

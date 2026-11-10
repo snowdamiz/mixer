@@ -1,0 +1,7 @@
+PASS for the actual API37 arm64 generated public starter: startup through app-owned JNI and Swift MainActor, normal native typing with exact model echo, Add, visible draft clear, and Toggle. Runtime: 38.33 seconds. The prior eventPending and Add editor-preflight failures remain preserved.
+
+The rendered Add result shows one unchecked switch with the exact entry label, an unfocused draft displaying its empty-state hint, and Add disabled. Toggle then shows a checked switch and 1 of 1 completed. These observations come from the saved native accessibility trees, not host models. Two Back actions request closure; this run does not inspect the full private owner cleanup ledgers.
+
+The exact two R81 product Java afterimages compiled with actual JDK25 --release 17, strict SDK37 flags and the external application. D8 and 16KiB zip alignment pass. All 18 native libraries and the manifest remain byte-identical to the actual full-CLI-built R83 APK. The locked prospective source pair is SDK24/adapter27; canonical application and source116 caller refresh remain separate.
+
+The owned emulator exited 0. Fresh transport observation confirms the owned serial absent and the external baseline unchanged. The ephemeral development key was removed, and no physical device was targeted. Historical holds remain active. This is pinned-checkout development evidence; broad OS IME service, keyboard/window parity, API floor, phones, immutable packages and GA remain pending.

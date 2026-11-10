@@ -543,6 +543,7 @@ final class NativeRenderer {
             if(!active&&!selecting)continue;
             if(frameRetirementV3(previous,c.next.nodes.get(previous.id)))continue;
             var shadow=c.detached.get(previous.id);
+            if(programmaticClearV3(c,previous,shadow))continue;
             if(c.targets.get(previous.id)!=previous||shadow==null||!sameEditorBindingV2(previous,shadow)||!sameAncestorsV2(c,previous.id)||
                 !sameFrameV2(previous.view,shadow.view,previous.verticalInput?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
         }
@@ -550,6 +551,9 @@ final class NativeRenderer {
     private static boolean sameEditorBindingV2(NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
         // Engine echo can acknowledge the current native buffer without calling setText or replacing Editable.
         if(!(old.view instanceof TextView text)||!text.getText().toString().equals(((TextView)next.view).getText().toString()))return false;
+        return sameEditorConfigurationV2(old,next);
+    }
+    private static boolean sameEditorConfigurationV2(NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
         var a=old.binding;var b=next.binding;
         if(old.view instanceof Switch value&&value.isChecked()!=b.nativeToggleValue())return false;
         boolean recipe=a.node().recipe().equals(b.node().recipe());
@@ -560,6 +564,17 @@ final class NativeRenderer {
             a.plan().environment.scheme()==b.plan().environment.scheme()&&a.plan().environment.profile()==b.plan().environment.profile()&&
             a.plan().environment.direction()==b.plan().environment.direction()&&a.plan().environment.density1024()==b.plan().environment.density1024()&&
             a.plan().environment.localeIdentifier().equals(b.plan().environment.localeIdentifier())&&a.theme().equals(b.theme());
+    }
+    // Only an acknowledged model draft may be cleared through the owner transaction.
+    // The captured FieldTransition consumes its predecessor before any text replacement.
+    private boolean programmaticClearV3(Candidate c,NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
+        if(v2Profile!=AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3||c.targets.get(old.id)!=old||next==null||
+            !old.kind.equals(next.kind)||!old.generation.equals(next.generation)||
+            !(old.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.programmaticClearEligible()||
+            !next.binding.nativeFieldValue().isEmpty()||old.binding.nativeFieldValue().isEmpty()||
+            !old.binding.nativeFieldValue().equals(field.nativeEditable().toString()))return false;
+        return sameEditorConfigurationV2(old,next)&&old.binding.source().actions.equals(next.binding.source().actions)&&
+            sameAncestorsV2(c,old.id)&&sameFrameV2(old.view,next.view,old.verticalInput?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL);
     }
     // Called only after exact target reuse, current-buffer echo, binding and ancestry checks.
     // V3 multiline layout may translate vertically as its measured height changes.
@@ -695,15 +710,17 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         if(j.transitionsStarted||j.transitionsSealed||j.transitionCount!=0||outstandingFieldTransitions!=0||!transitionMembershipV3(j))throw Json.bad("reentered transition capture");
         j.transitionsStarted=true;j.transitionLoss=editorLossSerial;
         for(var state:j.previous){
-            var record=state.record;if(!(record.view instanceof NativeAppearanceViewsV2.NativeField field)||!record.verticalInput)continue;
-            boolean retire=frameRetirementV3(record,c.next.nodes.get(record.id));
-            if(!retire&&!field.transitionInactive())continue;
+            var record=state.record;if(!(record.view instanceof NativeAppearanceViewsV2.NativeField field))continue;
             var shadow=c.detached.get(record.id);
+            boolean clear=programmaticClearV3(c,record,shadow);
+            if(!record.verticalInput&&!clear)continue;
+            boolean retire=clear||frameRetirementV3(record,c.next.nodes.get(record.id));
+            if(!retire&&!field.transitionInactive())continue;
             if(record.fieldTransition!=null||record.fieldPreservation!=null||state.transition!=null||!sameNativeBaseV2(state)||
                 shadow!=null&&c.targets.get(record.id)!=record||outstandingEditorNativeCalls==Integer.MAX_VALUE)
                 throw Json.bad("invalid settled attachment source");
             var scope=new NativeAppearanceViewsV2.FieldTransition(this,c,j,record,shadow==null?null:shadow.binding,mutation,retire);
-            if(!sameNativeBaseV2(state)||!field.transitionEligible()||!transitionLossCurrentV3(j)||!transitionMembershipV3(j))throw Json.bad("settled attachment changed during capture");
+            if(!sameNativeBaseV2(state)||!(clear?field.programmaticClearEligible():field.transitionEligible())||!transitionLossCurrentV3(j)||!transitionMembershipV3(j))throw Json.bad("settled attachment changed during capture");
             var member=new TransitionMembership(state,scope);
             state.transitionMembership=member;j.transitionRoster[state.position]=member;j.transitionCount++;
             state.transition=scope;record.fieldTransition=scope;scope.registered=true;outstandingFieldTransitions++;outstandingEditorNativeCalls++;
