@@ -1,0 +1,3 @@
+Public V4 starter startup is NONPASS on Android API28. Root observed NativeEnvironmentV2.Observer reject construction because its public high-contrast capability requires API36; no field or Add input ran. Source admission correction is assigned R346, preserving fail-closed platform capability handling.
+
+The exact R304 APK was signed without source changes. Original native failure and cleanup diagnostics remain in final-log.stdout. The owned emulator/group/serial exited, external device baseline remained unchanged, and the exact disposable AVD was deleted. This result does not contradict stock Legacy API28 R334; it exposes a distinct public-profile floor mismatch.

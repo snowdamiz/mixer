@@ -38,7 +38,7 @@ test("Solid client runtime checks synthetic lifecycle events, epoch fences and a
     if (error.stderr) process.stderr.write(error.stderr);
     throw error;
   }
-  assert.match(result, /# tests 10\b/); assert.match(result, /# fail 0\b/); process.stdout.write(result);
+  assert.match(result, /# tests 14\b/); assert.match(result, /# fail 0\b/); process.stdout.write(result);
 });
 
 test("actual App SSR accepts the session seam without requesting or serializing private metadata", async () => {

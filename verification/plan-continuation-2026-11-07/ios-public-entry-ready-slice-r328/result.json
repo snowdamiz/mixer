@@ -1,0 +1,99 @@
+{
+  "status": "implementation-and-host-ios-build-pass; independent-review-pending-at-root",
+  "changed_files": [
+    "Sources/FieldLogFeatures/EntryEditorAppleHost.swift",
+    "ios/FieldLog/EntryEditor.swift",
+    "Tests/FieldLogTests/EntryEditorApplePublicFieldsTests.swift"
+  ],
+  "source_basis": "R290 app archive plus exact copied canonical public SDK sources; no root Git used",
+  "inputs": "input-source-digests.json",
+  "app_source_zip": "FieldLog-r328-app-source.zip",
+  "app_source_zip_sha256": "c473401ccb5e169b7564b3ea3ab48be8dad8c2a19478eeee748c6345b9f743ad",
+  "sdk_development_zip_sha256": "49c68b91c3b54764f50fcb28ead0a5e428f3a18414f9e3f9e2b9c847001d9092",
+  "implementation_patch_sha256": "b242b8593a9a312af991c3b79bcc4fb4e3b248898ff1adde8d92fecef123ec5d",
+  "toolchain": {
+    "os": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "xcode": "27.2 build 27B52",
+    "ios_sdk": "iPhoneOS27.2.sdk",
+    "deployment_target": "26.0"
+  },
+  "host": {
+    "command": "xcrun swift test --package-path verification/plan-continuation-2026-11-07/ios-public-entry-ready-slice-r328/scratch/FieldLog --scratch-path verification/plan-continuation-2026-11-07/ios-public-entry-ready-slice-r328/scratch/host-build -j 4",
+    "exit_code": 0,
+    "swift_testing_tests": 61,
+    "xctest_tests": 0,
+    "new_tests": 4,
+    "log": "host-tests.log",
+    "environment": "macOS arm64 host; no Simulator/device"
+  },
+  "ios": {
+    "command": "xcodebuild -project verification/plan-continuation-2026-11-07/ios-public-entry-ready-slice-r328/scratch/FieldLog/ios/FieldLog.xcodeproj -scheme FieldLog -configuration Debug -sdk iphoneos -destination generic/platform=iOS -derivedDataPath verification/plan-continuation-2026-11-07/ios-public-entry-ready-slice-r328/scratch/ios-derived -clonedSourcePackagesDirPath verification/plan-continuation-2026-11-07/ios-public-entry-ready-slice-r328/scratch/ios-packages -disableAutomaticPackageResolution -jobs 3 CODE_SIGNING_ALLOWED=NO build",
+    "exit_code": 0,
+    "result": "BUILD SUCCEEDED",
+    "log": "ios-build.log",
+    "target": "arm64-apple-ios26.0",
+    "product_executable_sha256": "cc7b4daac8131501c72af6137e3b1eeaca87a71c550fc53f24659bb4ca1d2928",
+    "scope": "generic iOS app compile and link; unsigned, not device runtime"
+  },
+  "prior_attempts": [
+    {
+      "log": "host-tests-initial-manifest-failure.log",
+      "exit_code": 1,
+      "cause": "Isolated manifest preparation put products before platforms; fixed argument order before source compile."
+    },
+    {
+      "log": "host-tests-initial-pass.log",
+      "exit_code": 0,
+      "swift_testing_tests": 60
+    },
+    {
+      "log": "exact-byte-dirty-regression-before.log",
+      "exit_code": 0,
+      "swift_testing_tests": 1,
+      "finding": "Normalization dirty-state suspicion disproved because the domain edit updates updatedAt; no dirty-state source change."
+    }
+  ],
+  "limitations": [
+    "SwiftUI public MixerUIHost/MixerNativeView integration; does not qualify V4 UIKit long-note rendering.",
+    "No Simulator, PhotosUI interaction, AX, keyboard, focus, IME, screenshots, phone or physical-device run. Root R318 Accessibility preflight remains false.",
+    "Only pinned copied local public SDK interfaces used. Published package, separate-repository release/dogfood and GA qualification remain pending.",
+    "App archive retains the R290 dependency pin; development manifests and exact SDK source ZIP record the actual tested local dependency.",
+    "No shared domain, Android, canonical product/policy/index changes; no remote or root Git operations."
+  ],
+  "cleanup": {
+    "native_devices_created_or_booted": 0,
+    "native_devices_or_unrelated_processes_touched": 0,
+    "known_exec_sessions_collected": [
+      12311,
+      8618,
+      42555,
+      83018
+    ],
+    "retained": "raw logs, source scratch, afterimages, patch, ZIPs",
+    "build_scratch": {
+      "removed": [
+        "scratch/host-build",
+        "scratch/ios-derived",
+        "scratch/ios-packages",
+        "scratch/patch-check"
+      ],
+      "retained_source_scratch": [
+        "scratch/FieldLog",
+        "scratch/sdk"
+      ],
+      "status": "completed; terminal commands collected, no native resources created"
+    }
+  },
+  "patch_validation": {
+    "command": "patch -p1 -d scratch/patch-check < implementation.patch",
+    "exit_code": 0,
+    "afterimages_byte_equal": true,
+    "log": "patch-apply.log"
+  },
+  "afterimage_sha256": {
+    "Sources/FieldLogFeatures/EntryEditorAppleHost.swift": "c457bd01f4f582cc43e0f7eb43496bd03632f79f4c6662444de55d22051f756b",
+    "ios/FieldLog/EntryEditor.swift": "623065a324b65f29d5ec0b86d4109a55df4fa92ee52575d076f2f1df9b691f1b",
+    "Tests/FieldLogTests/EntryEditorApplePublicFieldsTests.swift": "e53e793e0fb38e4b07d1e6ad7cafdc823689a1cc44c6bf15b04efe5437c90cbd"
+  }
+}

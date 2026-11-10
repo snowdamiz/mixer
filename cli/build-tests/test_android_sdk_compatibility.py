@@ -1,6 +1,7 @@
 """Host admission regressions. Actual CLI rendering/codec evidence lives in the packet.
 
-Fixtures read the one committed Swift policy literal; no duplicate expected map.
+Fixtures render the committed Swift policy; CURRENT expectations independently
+read the prospective caller binding through current_android_profile.py.
 This test convenience is never imported by shipped product code.
 """
 import hashlib
@@ -19,6 +20,9 @@ REPOSITORY = pathlib.Path(__file__).resolve().parents[2]
 DRIVER = REPOSITORY / 'cli/Sources/MixerBuild/Resources/android-build.py'
 POLICY_SOURCE = REPOSITORY / 'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift'
 PROFILE = json.loads(POLICY_SOURCE.read_text().split('Data(#"""\n', 1)[1].split('\n        """#.utf8)', 1)[0])
+current_spec = importlib.util.spec_from_file_location('current_profile_oracle', pathlib.Path(__file__).with_name('current_android_profile.py'))
+CURRENT = importlib.util.module_from_spec(current_spec)
+current_spec.loader.exec_module(CURRENT)
 RAW = DRIVER.read_text()
 MARKER = '__MIXER_ANDROID_SOURCE_PROFILE_HEX__'
 HISTORICAL = pathlib.Path(__file__).parent / 'fixtures'
@@ -265,19 +269,16 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         self.assertFalse((self.root / '.mixer').exists())
 
 
-    def test_profile19_preserves_exact_profile_session(self):
-        self.assertEqual(PROFILE['id'], 'mixer.android-source-pair.19')
-        self.assertEqual(len(PROFILE['sdk_files']), 24)
-        self.assertEqual(len(PROFILE['adapter_files']), 27)
-        self.assertEqual(PROFILE['sdk_compatibility_sha256'], '1aff4a8c3b9c8b25f6457a0b43617ec19f9a34b7b678029859c4ae220d7076d6')
-        self.assertEqual(PROFILE['adapter_compatibility_sha256'], '7cd791c7cda6f3231eae19079a133662b84b862ddd04bce3cfa25495ebea0d38')
-        session = self.adapter / 'Sources/MixerAndroidRuntime/DocumentSession.swift'
-        candidate = session.read_bytes()
-        self.assertEqual(len(candidate), 5338)
-        self.assertEqual(hashlib.sha256(candidate).hexdigest(), '3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02')
-        self.assertEqual(candidate, (REPOSITORY / 'native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift').read_bytes())
-        self.assertEqual(self.module.source_profile(), PROFILE)
-        self.assertEqual(self.module.admit_source_pair(self.root, PROFILE), self.descriptor.read_bytes())
+    def test_current_profile_preserves_exact_profile_session(self):
+        expected = CURRENT.load_current_profile(REPOSITORY)
+        self.assertEqual(json.dumps(PROFILE, sort_keys=True), json.dumps(expected, sort_keys=True))
+        session_path = 'Sources/MixerAndroidRuntime/DocumentSession.swift'
+        candidate = (self.adapter / session_path).read_bytes()
+        self.assertEqual({'bytes': len(candidate), 'sha256': hashlib.sha256(candidate).hexdigest()},
+                         expected['adapter_files'][session_path])
+        self.assertEqual(candidate, (REPOSITORY / 'native/android/engine' / session_path).read_bytes())
+        self.assertEqual(self.module.source_profile(), expected)
+        self.assertEqual(self.module.admit_source_pair(self.root, expected), self.descriptor.read_bytes())
 
 
     def test_axis_session_baseline_and_drift_refuse_recomputed_generic_locks(self):

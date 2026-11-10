@@ -1,0 +1,31 @@
+{
+  "status": "ready_for_independent_root_review",
+  "change": "test-only in isolated copy",
+  "new_control": "in-flight terminal callback after SQL lease replacement; exact operation recovery and tenant isolation",
+  "tests": {
+    "build_domain": {
+      "passed": 107,
+      "seed": 338,
+      "log": "build-domain-tests.log"
+    },
+    "missing_ownership_negative_control": {
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "failed_tests": 1,
+      "log": "fault-missing-ownership.log"
+    },
+    "restored_fence": {
+      "passed": 1,
+      "excluded": 19,
+      "log": "restored-fence.log"
+    }
+  },
+  "baseline_compile_failure": "compile.log: hard-coded hosted/deps/oban path absent; isolated symlink fixed it without source changes",
+  "production_source_changed": false,
+  "schema_contract_changes": false,
+  "pending": [
+    "independent root slice review",
+    "external durable dispatch adapter/runtime and production qualification"
+  ],
+  "cleanup": "fresh loopback PostgreSQL stopped; exact owned data removed; no held resources touched"
+}

@@ -7,7 +7,7 @@ const container = document.getElementById("app");
 if (!container) throw new Error("Missing Mixer console container");
 function ConsoleRoot() {
   const binding = createBrowserSessionBinding();
-  return <App workspaceSession={binding.workspaceSession()} />;
+  return <App workspaceSession={binding.workspaceSession()} onRetrySession={binding.revalidate} />;
 }
 
 render(() => <ConsoleRoot />, container);

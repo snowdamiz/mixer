@@ -1,5 +1,11 @@
 # Execution index
 
+Current November 10 source checkpoint follows the main parallel-execution policy at `21d5917153`. The reviewed console retry fix passes all 149 installed tests, production build and a real synthetic-session browser flow. Current-profile tests now derive from independent binding metadata, retaining historical and hostile cases; both installed entry guards pass. New updater and worker controls cover real storage/reopen and stale-lease fencing. The cache diagnostic preserves existing tracers and adds error-origin evidence for fresh CI without touching held resources.
+
+Actual native progress: stock Legacy API28 and generated public V4 API37 pass input, Add, cleared draft and completion toggle. Both FieldLog stores remain unchanged and owned emulators are off. Public V4 API28 refuses its required API36 high-contrast capability; the explicit floor correction is a separate candidate, not adopted here. The separate FieldLog public Entries source is reviewed and tests/builds against public Mixer21d591; native iOS remains pending because the fresh R358 Accessibility check is false. The real EntryEditor also passes native/owned-Wasm full-output comparison under the existing diagnostic policy, with in-memory storage only. Immutable packages, physical phones and GA remain pending.
+
+The completed policy-head CI run42892290656 passes six jobs; generated Java stops on a Swift-package connection reset (curl56), with terminal command custody. Historical EPERM holds remain unchanged. [Current execution evidence](verification/plan-continuation-2026-11-07/current-development-progress-r158/receipt.json).
+
 The November 10 execution rule is [maximum useful parallel work across product domains](mixer-product-plan.md#253-parallel-work-and-integration). Refill available agent capacity when tasks complete or block; preserve concrete shared-resource limits, native ownership, model selection and historical holds.
 
 ## Development execution update: November 9, 2026

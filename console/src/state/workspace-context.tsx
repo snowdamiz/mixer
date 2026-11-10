@@ -6,8 +6,8 @@ import type { WorkspaceSession } from "./workspace-controller.js";
 
 const WorkspaceContext = createContext<WorkspaceBinding>();
 
-export function WorkspaceProvider(props: ParentProps<{ readonly session: WorkspaceSession | undefined }>) {
-  const binding = createWorkspaceBinding(() => props.session);
+export function WorkspaceProvider(props: ParentProps<{ readonly session: WorkspaceSession | undefined; readonly onRetrySession?: () => void }>) {
+  const binding = createWorkspaceBinding(() => props.session, { onRetrySession: () => props.onRetrySession?.() });
   return <WorkspaceContext.Provider value={binding}>{props.children}</WorkspaceContext.Provider>;
 }
 

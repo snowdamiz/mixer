@@ -18,7 +18,10 @@ const unauthenticated = pending("unauthenticated");
 const unavailable = pending("unavailable");
 
 /** Own inside a Solid root. Each immutable session value is one account/session epoch. */
-export function createWorkspaceBinding(session: Accessor<WorkspaceSession | undefined>): WorkspaceBinding {
+export function createWorkspaceBinding(
+  session: Accessor<WorkspaceSession | undefined>,
+  options: { readonly onRetrySession?: () => void } = {},
+): WorkspaceBinding {
   const controller = createWorkspaceController();
   const [snapshot, setSnapshot] = createSignal(controller.getState());
   const [admitted, setAdmitted] = createSignal<{ readonly session: WorkspaceSession | undefined }>();
@@ -46,7 +49,11 @@ export function createWorkspaceBinding(session: Accessor<WorkspaceSession | unde
     nextProjects(page: { organizationId: string; cursor: string }) { if (current()) controller.nextProjects(page); },
     firstOrganizations() { if (current()) controller.firstOrganizations(); },
     firstProjects(organizationId: string) { if (current()) controller.firstProjects(organizationId); },
-    retryOrganizations() { if (current()) controller.retryOrganizations(); },
+    retryOrganizations() {
+      if (!current()) return;
+      if (session()?.kind === "unavailable") options.onRetrySession?.();
+      else controller.retryOrganizations();
+    },
     retryProjects(organizationId: string) { if (current()) controller.retryProjects(organizationId); },
   });
   onCleanup(() => {

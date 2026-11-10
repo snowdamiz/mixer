@@ -1,0 +1,18 @@
+# R338 worker completion recovery control
+
+Ready for independent root review. The existing coordinator/admission implementation satisfies the tested lease-replacement race. The deliverable adds one deterministic regression test in an isolated hosted source copy; no production implementation, migration, shared contract, canonical file, billing source, or gate metadata changed.
+
+Apply [worker-recovery.patch](worker-recovery.patch) to `hosted/test/mixer_hosted/builds/coordinator_test.exs`. The [afterimage](source/hosted/test/mixer_hosted/builds/coordinator_test.exs) starts the new control at line 276. [source-identity.json](source-identity.json) and [baseline-inputs.json](baseline-inputs.json) identify the captured source without Git operations. Baseline tree SHA-256: `6a0fe755e55fc2ef7f1341f40c28dcefd65553d1ad4a047e939f30014ff5bae4`. Candidate: `1fce7f48eb6fecf3c0fe517c77fd2e6fea7491e520efa684652f31177bcbb174`.
+
+The test starts one operation, completes it in the dispatch fixture, and pauses its terminal query reply. A separate actual Ecto transaction expires and replaces the SQL coordinator lease. Returning the old reply must leave the journal, replacement lease, held reservation and Oban rows unchanged. A forged intent for an existing second tenant must not reach dispatch or change that tenant. After yielding the replacement lease, a fresh coordinator observes the same immutable operation/ref, commits terminal state and releases exactly once, without creating another operation. Both owned BEAM callback/coordinator processes are observed terminated; failure cleanup also terminates the owned coordinator.
+
+Validation used Elixir 1.20.4, Erlang/OTP 29 and PostgreSQL 17.11 on macOS, with a fresh loopback-only synthetic cluster. These are actual Ecto/PostgreSQL admission, journal, reservation and Oban row transactions; the external worker provider is the existing in-process modeled dispatch fixture.
+
+- `mix compile --warnings-as-errors`: passed. The first compile failed because the existing relation manifest reads `hosted/deps/oban` directly; `source/hosted/deps` now links only to this bundle's isolated dependency cache. Original [failure](compile.log) retained; [successful compile](compile-r2.log).
+- `mix test test/mixer_hosted/builds --seed 338`: **107 passed**, including the new race. [Raw output](build-domain-tests.log), [commands](commands.json).
+- Removing owner/epoch checks from `Admission.guard` only in the isolated source made the new test fail: the old callback returned `:ok` instead of snoozing. [Exact deliberate fault](fault-control.patch), [expected failure](fault-missing-ownership.log).
+- Restoring the original admission source and rerunning the final test, including its failure-cleanup addition: **1 passed**, 19 excluded. [Raw output](restored-fence.log), [commands](fault-control-commands.json).
+
+The full-suite log contains existing migration-module redefinition warnings and manual-fixture Oban Postgres notifier configuration errors. Passing assertions establish the tested transactions and direct coordinator calls; they do not establish production Oban notifier delivery, an external durable worker adapter, deployment, RLS authorization or GA acceptance. Independent root slice review is pending.
+
+[run-tests.py](run-tests.py) and [fault-control.py](fault-control.py) reproduce the bounded experiment in a fresh owned copy of this bundle. No remote service is used except retrieving the already pinned public dependencies. Both PostgreSQL starts received successful exact-data-directory stops. Only this slice's stopped synthetic data directory was removed; source, caches and raw logs remain. [Final cleanup](final-cleanup.json). Historical resources, devices and concurrent lanes were untouched.

@@ -66,8 +66,8 @@ export function ConsoleRoutes() {
   </>;
 }
 
-export default function App(props: { readonly workspaceSession?: WorkspaceSession } = {}) {
-  return <WorkspaceProvider session={props.workspaceSession}>
+export default function App(props: { readonly workspaceSession?: WorkspaceSession; readonly onRetrySession?: () => void } = {}) {
+  return <WorkspaceProvider session={props.workspaceSession} onRetrySession={() => props.onRetrySession?.()}>
     <Router root={ConsoleShell}><ConsoleRoutes /></Router>
   </WorkspaceProvider>;
 }

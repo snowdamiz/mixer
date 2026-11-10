@@ -17,7 +17,13 @@ spec = importlib.util.spec_from_file_location('sparse_bootstrap', HERE / 'bootst
 B = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(B)
 PATTERNS = ('/cli/', '/sdk/', '/updates/', '/native/android/', '/scripts/ci/',
-            '/verification/plan-continuation-2026-11-07/generated-java-ci-integration/')
+            '/verification/plan-continuation-2026-11-07/generated-java-ci-integration/',
+            '/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/binding.json')
+CURRENT_BINDING = B.ROOT.joinpath('cli/build-tests/current_android_profile.py')
+current_spec = importlib.util.spec_from_file_location('sparse_current_profile', CURRENT_BINDING)
+current_module = importlib.util.module_from_spec(current_spec)
+current_spec.loader.exec_module(current_module)
+CURRENT_BINDING = current_module.BINDING.as_posix()
 GIT_COMMANDS = []
 
 
@@ -36,7 +42,7 @@ def proposal_patterns(text):
         '          sparse-checkout: |'], 'Unadmitted checkout settings; preserve implicit blob:none')
     B.require(all(line.startswith('            /') for line in block[5:]), 'Invalid non-cone pattern block')
     patterns = tuple(line.strip() for line in block[5:])
-    B.require(patterns == PATTERNS, 'Sparse selection differs from reviewed six-directory closure')
+    B.require(patterns == PATTERNS, 'Sparse selection differs from reviewed checkout closure')
     return patterns
 
 
@@ -80,7 +86,8 @@ class SparseControls(unittest.TestCase):
     def test_each_selected_directory_is_necessary_for_complete_dependency_closure(self):
         paths = ['cli/Package.swift', 'sdk/Package.swift', 'updates/Package.swift',
                  'native/android/engine/Package.swift', 'scripts/ci/check-android-binding.py',
-                 HERE.relative_to(ROOT).as_posix() + '/test_bootstrap.py']
+                 HERE.relative_to(ROOT).as_posix() + '/test_bootstrap.py',
+                 CURRENT_BINDING]
         require_coverage(paths, git_selected(paths))
         for omitted in PATTERNS:
             with self.subTest(omitted=omitted), self.assertRaisesRegex(RuntimeError, 'omits'):

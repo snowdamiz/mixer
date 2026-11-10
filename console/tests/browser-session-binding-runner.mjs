@@ -51,7 +51,7 @@ function owner({ workspace = false, before } = {}) {
     const [trigger, setTrigger] = createSignal(0); poke = () => setTrigger(value => value + 1);
     if (before) createComputed(() => { trigger(); if (binding) before(binding, directory); });
     binding = createBrowserSessionBinding();
-    if (workspace) directory = createWorkspaceBinding(binding.workspaceSession);
+    if (workspace) directory = createWorkspaceBinding(binding.workspaceSession, { onRetrySession: binding.revalidate });
   });
   return { binding, directory, dispose, poke };
 }
@@ -212,6 +212,90 @@ test("cleanup cancels queued checks, session and workspace requests, owned liste
 test("production main constructs one owner and passes a reactive App prop; no fake readiness or login UI", () => {
   const main = readFileSync(new URL("../src/main.tsx", import.meta.url), "utf8");
   assert.match(main, /function ConsoleRoot\(\)/); assert.match(main, /const binding = createBrowserSessionBinding\(\)/);
-  assert.match(main, /<App workspaceSession=\{binding\.workspaceSession\(\)\} \/>/); assert.match(main, /render\(\(\) => <ConsoleRoot \/>, container\)/);
+  assert.match(main, /<App workspaceSession=\{binding\.workspaceSession\(\)\} onRetrySession=\{binding\.revalidate\} \/>/); assert.match(main, /render\(\(\) => <ConsoleRoot \/>, container\)/);
   assert.doesNotMatch(main, /kind:|csrf|generation|accessToken|login|localStorage|sessionStorage/);
+});
+
+
+test("workspace retry recovers a failed session check through the existing same-origin endpoint", async () => {
+  const env = environment(), app = owner({ workspace: true });
+  try {
+    await flush();
+    env.calls[0].resolve(new Response(null, { status: 503 })); await flush();
+    assert.equal(app.directory.state().organizations.kind, "unavailable");
+    app.directory.controller.retryOrganizations(); await flush();
+    assert.equal(env.calls.length, 2, "Try again must start a fresh session check");
+    assert.equal(env.calls[1].path, "/auth/session");
+    assert.equal(env.calls[1].credentials, "same-origin");
+    assert.deepEqual(env.calls[1].headers, { accept: "application/json" });
+    env.calls[1].resolve(response(metadata())); await flush();
+    assert.equal(env.calls.at(-1).path, "/console-api/v1/orgs");
+    assert.equal(app.directory.state().organizations.kind, "loading");
+    env.calls.at(-1).resolve(response(orgs)); await flush();
+    assert.equal(app.directory.state().organizations.kind, "ready");
+    app.directory.controller.selectOrganization("a"); await flush();
+    env.calls.at(-1).resolve(response(projects)); await flush();
+    app.directory.controller.selectProject({ organizationId: "a", projectId: "p" });
+    assert.equal(app.directory.state().selectedProjectId, "p");
+  } finally { app.dispose(); env.cleanup(); }
+});
+
+test("ready-session directory retries preserve the failed cursor without rechecking the session", async () => {
+  const env = environment(), app = owner({ workspace: true });
+  try {
+    await ready(app, env); env.calls.at(-1).resolve(response(orgs)); await flush();
+    app.directory.controller.nextOrganizations("NEXT"); await flush();
+    const failedPath = env.calls.at(-1).path;
+    env.calls.at(-1).resolve(new Response(null, { status: 503 })); await flush();
+    assert.equal(app.directory.state().organizations.kind, "unavailable");
+    app.directory.controller.retryOrganizations(); await flush();
+    assert.equal(env.calls.at(-1).path, failedPath);
+    assert.equal(failedPath, "/console-api/v1/orgs?cursor=NEXT");
+    assert.equal(env.calls.filter(call => call.path === "/auth/session").length, 1);
+    env.calls.at(-1).resolve(response({ ...orgs, next_cursor: null })); await flush();
+    assert.equal(app.directory.state().organizations.kind, "ready");
+    assert.equal(app.directory.state().canReturnToFirstOrganizations, true);
+  } finally { app.dispose(); env.cleanup(); }
+});
+
+test("retried session results cannot revive a hidden or disposed workspace", async () => {
+  const env = environment(), app = owner({ workspace: true });
+  try {
+    await flush(); env.calls[0].reject(Error("offline")); await flush();
+    app.directory.controller.retryOrganizations(); await flush();
+    assert.equal(env.calls.length, 2);
+    const retry = env.calls.at(-1);
+    env.event("pagehide"); assert.equal(retry.signal.aborted, true);
+    retry.resolve(response(metadata())); await flush();
+    assert.equal(app.directory.state().organizations.kind, "unavailable");
+    assert.equal(env.calls.length, 2);
+    app.directory.controller.retryOrganizations(); await flush();
+    assert.equal(env.calls.length, 2, "hidden retry must not perform network work");
+    env.event("pageshow"); await flush();
+    assert.equal(env.calls.length, 3);
+    const resumed = env.calls.at(-1);
+    app.dispose(); assert.equal(resumed.signal.aborted, true);
+    resumed.resolve(response(metadata())); await flush();
+    app.directory.controller.retryOrganizations(); await flush();
+    assert.equal(env.calls.length, 3);
+    assert.equal(app.directory.state().organizations.kind, "unavailable");
+  } finally { app.dispose(); env.cleanup(); }
+});
+
+
+test("failed manual checks remain retryable and a signed-out answer never retries automatically", async () => {
+  const env = environment(), app = owner({ workspace: true });
+  try {
+    await flush(); env.calls[0].resolve(new Response(null, { status: 503 })); await flush();
+    app.directory.controller.retryOrganizations(); await flush();
+    assert.equal(env.calls.length, 2);
+    env.calls.at(-1).resolve(new Response(null, { status: 503 })); await flush();
+    assert.equal(app.directory.state().organizations.kind, "unavailable");
+    app.directory.controller.retryOrganizations(); await flush();
+    assert.equal(env.calls.length, 3);
+    env.calls.at(-1).resolve(response({ state: "unauthenticated", csrf_token: csrf })); await flush();
+    assert.equal(app.directory.state().organizations.kind, "unauthenticated");
+    app.directory.controller.retryOrganizations(); await flush();
+    assert.equal(env.calls.length, 3);
+  } finally { app.dispose(); env.cleanup(); }
 });

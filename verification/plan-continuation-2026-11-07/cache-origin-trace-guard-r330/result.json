@@ -1,0 +1,207 @@
+{
+  "status": "PASS_INERT_TRACER_GUARD_PROSPECTIVE_ONLY",
+  "recorded_utc": "2026-11-10T20:20:44.349365+00:00",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+  "selection": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "xhigh",
+    "fastMode": false
+  },
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/plan-continuation-2026-11-07/cache-origin-trace-guard-r330/prepare.py"
+      ],
+      "exit_code": 0,
+      "stdout": "prepare.stdout",
+      "stderr": "prepare.stderr"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/plan-continuation-2026-11-07/cache-origin-trace-guard-r330/test_inert.py"
+      ],
+      "exit_code": 0,
+      "stdout": "inert-normal.stdout",
+      "stderr": "inert-normal.stderr"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-O",
+        "verification/plan-continuation-2026-11-07/cache-origin-trace-guard-r330/test_inert.py"
+      ],
+      "exit_code": 0,
+      "stdout": "inert-optimized.stdout",
+      "stderr": "inert-optimized.stderr"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "verification/plan-continuation-2026-11-07/cache-origin-trace-guard-r330/adoption_guard.py"
+      ],
+      "exit_code": 0,
+      "stdout": "adoption-guard.stdout",
+      "stderr": "adoption-guard.stderr"
+    }
+  ],
+  "final_normal": {
+    "status": "PASS",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "optimize": 0,
+    "debug": true,
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "denied_io_events": [],
+    "scope": "Only AST-extracted helper and fake in-process controls; no canonical module imports, real descendant, process/device/remote or held resource operations"
+  },
+  "final_optimized": {
+    "status": "PASS",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "optimize": 1,
+    "debug": false,
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "denied_io_events": [],
+    "scope": "Only AST-extracted helper and fake in-process controls; no canonical module imports, real descendant, process/device/remote or held resource operations"
+  },
+  "adoption_guard": {
+    "canonical_image_checked": "before",
+    "changed_source_map_member": "test_original.py",
+    "guard_writes_canonical_files": false,
+    "historical_verdicts_reused_as_approval": false,
+    "live_caller_rebinding_required": false,
+    "patch_paths": [
+      "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/test_original.py",
+      "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/sources.json"
+    ],
+    "retained_original_controls_executed": 0,
+    "source116_rebinding_required": false,
+    "status": "PASS_SOURCE_ONLY_PROSPECTIVE_GUARD"
+  },
+  "initial_failure": {
+    "receipt": "inert-normal.initial.json",
+    "reason": "Harness counted CPython automatic trace clearing as an explicit settrace call",
+    "resolution": "Separate explicit call recording and direct-versus-wrapped throwing-tracer comparison"
+  },
+  "canonical_changes": {
+    "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/test_original.py": {
+      "before": {
+        "bytes": 2372,
+        "sha256": "9c82168832d97d006a7c99c084e8a5973a392a66c5e59ad388804a503a2ce77b"
+      },
+      "after": {
+        "bytes": 4052,
+        "sha256": "338ccbc6842bb02286cbfe206842120cc071f37a76205e6970bbb92a4212c404"
+      }
+    },
+    "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/sources.json": {
+      "before": {
+        "bytes": 3160,
+        "sha256": "19af15d0fcb485957e2cb459c2a654e07f34f71ee52163f01a5336b17b09ec9b"
+      },
+      "after": {
+        "bytes": 3160,
+        "sha256": "b203fb9baa8ce322a29ef1b8ff6d15ae4de3057f4ddebb01aff59c8dab1e7d28"
+      }
+    }
+  },
+  "source_map": {
+    "changed_member_only": "test_original.py",
+    "member_count": 20,
+    "tree_sha256_before": "236f014f315b6e4b1f439fd6a2dad2a4121063507b1861ac5b0a2129faa1613b",
+    "tree_sha256_after": "6d86513b0763799b7960814152d1f8b0f014b56d300d11edcd41c94580596333",
+    "serialization": "json.dumps(seal, indent=2) + newline"
+  },
+  "source116_rebinding_required": false,
+  "source116_inventory_remeasured": false,
+  "live_caller_rebinding_required": false,
+  "artifacts": {
+    "prepare.py": {
+      "bytes": 5955,
+      "sha256": "8bbecb8b622c96c427443d5551a1a2225afb95cb05e9c13a5375175ce4cce7ba"
+    },
+    "adoption_guard.py": {
+      "bytes": 4682,
+      "sha256": "9498745081467f6ac2a29b07fbd0f94fc757cf298e17fcf83db5058a888cc1eb"
+    },
+    "test_inert.py": {
+      "bytes": 11824,
+      "sha256": "7d25b55795f6d2b1aa711bd4006c5e6b070955bb37b77bc3da52cb588519721a"
+    },
+    "diagnostic.patch": {
+      "bytes": 3244,
+      "sha256": "46b9dbfa30ecd4cded6a1bdad03965308f555a91445ba72b75283f5feb1f092a"
+    },
+    "test_original.before.py": {
+      "bytes": 2372,
+      "sha256": "9c82168832d97d006a7c99c084e8a5973a392a66c5e59ad388804a503a2ce77b"
+    },
+    "test_original.after.py": {
+      "bytes": 4052,
+      "sha256": "338ccbc6842bb02286cbfe206842120cc071f37a76205e6970bbb92a4212c404"
+    },
+    "sources.before.json": {
+      "bytes": 3160,
+      "sha256": "19af15d0fcb485957e2cb459c2a654e07f34f71ee52163f01a5336b17b09ec9b"
+    },
+    "sources.after.json": {
+      "bytes": 3160,
+      "sha256": "b203fb9baa8ce322a29ef1b8ff6d15ae4de3057f4ddebb01aff59c8dab1e7d28"
+    },
+    "prospective-bindings.json": {
+      "bytes": 4653,
+      "sha256": "58ec9d17eaa263e26981603d285bf52be6d4459d28fb1d0dbcd850c6b1a91162"
+    },
+    "REPORT.md": {
+      "bytes": 6285,
+      "sha256": "a87f16065877791cd545a54a14f4bb07bc94f32a3811a8dc9641c1a131dc284b"
+    },
+    "inert-normal.json": {
+      "bytes": 447,
+      "sha256": "09082640bfc71935420d2cf010f58fd779fab39e01a6c083b8efbeda54dac796"
+    },
+    "inert-optimized.json": {
+      "bytes": 448,
+      "sha256": "4789a8edfa77bf47632072a8961f7211cc0a7250d08f4ed4c9addc3d0af4a403"
+    },
+    "inert-normal.stderr": {
+      "bytes": 1739,
+      "sha256": "4299bb737590a946cefe1a047b6544380c55bc58d5d9874283b9a94aac5853d3"
+    },
+    "inert-optimized.stderr": {
+      "bytes": 1739,
+      "sha256": "a17ea5ec50f0d60b4a254436007f737a6413be1f8d6f5ba7b111165703ade43c"
+    },
+    "adoption-guard.stdout": {
+      "bytes": 532,
+      "sha256": "be24a580e4bd2a7b6542a92a5f357424c5705886c508ff02ac2c66d3b267f794"
+    },
+    "inert-normal.initial.json": {
+      "bytes": 447,
+      "sha256": "5fed107790629863fd6cd3a4923866be6ba14c145c3577858b1a566c5c205770"
+    },
+    "inert-normal.initial.stderr": {
+      "bytes": 3643,
+      "sha256": "b1397bd8c5e29d8a124ef9d1bbaac667254f73d55fbefa46fe00d6e7801e4b36"
+    }
+  },
+  "scope": "All writes restricted to R330; source-only reads and fake in-process controls only",
+  "canonical_adoption": "PENDING_ROOT_SELECTION",
+  "historical_records": "Unchanged; not reused as approval of this diagnostic",
+  "forbidden_operations_run": [],
+  "cleanup": "No real descendant, owned native instance, or runtime scratch created; no held resource accessed",
+  "next_named_test": "Future fresh ordinary swift-cache-state-fixture CI after root adoption; not dispatched here",
+  "historical_eperm_cause": "UNPROVEN",
+  "engine_fix_claimed": false
+}

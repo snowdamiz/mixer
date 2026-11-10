@@ -273,6 +273,99 @@ defmodule MixerHosted.Builds.CoordinatorTest do
     assert held?()
   end
 
+  test "completion already in flight cannot commit after lease replacement or escape its tenant" do
+    {_, started} = running()
+    assert {:snooze, 1} = Coordinator.perform(started)
+    operation_id = operation()
+    original_ref = current().build.active_ref
+    Fixture.complete(operation_id, failure(:compiler))
+
+    other_spec = %{spec() | organization_id: "other-org"}
+    other_scope = Map.take(other_spec, Map.keys(scope()))
+
+    assert {:ok, _} =
+             Storage.create_multi(
+               Multi.new(),
+               :other,
+               other_spec,
+               %{max_attempts: 1, timeout_ms: 100_000, retry_backoff_ms: 0},
+               "coordinator-request",
+               1,
+               &Coordinator.new/1
+             )
+             |> Repo.transaction()
+
+    assert {:ok, other_before} = Storage.read(other_scope)
+
+    Application.put_env(:mixer_hosted, :build_dispatch,
+      adapter: Fixture,
+      lease_ttl_ms: 30_000,
+      call_timeout_ms: 10_000,
+      poll_ms: 1
+    )
+
+    Fixture.mode(:query, {:block_after, self()})
+    parent = self()
+
+    {pid, monitor} =
+      spawn_monitor(fn -> send(parent, {:old_completion, Coordinator.perform(started)}) end)
+
+    on_exit(fn ->
+      if Process.alive?(pid), do: Process.exit(pid, :kill)
+    end)
+
+    assert_receive {:dispatch_blocked, transport}, 2_000
+    transport_monitor = Process.monitor(transport)
+    old_lease = Repo.one!(Lease)
+    before = current()
+    reservation = Repo.one!(Reservation)
+    jobs = Repo.aggregate(Oban.Job, :count)
+    expire_lease()
+
+    assert {:ok, %{replacement: replacement}} =
+             Admission.claim_multi(Multi.new(), :replacement, scope(), "replacement", 30_000)
+             |> Repo.transaction()
+
+    assert replacement.token.epoch == old_lease.epoch + 1
+    assert replacement.build.active_ref == original_ref
+    assert replacement.reservation == reservation
+    replacement_lease = Repo.one!(Lease)
+    send(transport, :resume)
+    assert_receive {:old_completion, {:snooze, 1}}, 2_000
+    assert_receive {:DOWN, ^monitor, :process, ^pid, :normal}, 2_000
+    assert_receive {:DOWN, ^transport_monitor, :process, ^transport, :normal}, 2_000
+
+    assert current() == before
+    assert Repo.one!(Lease) == replacement_lease
+    assert Repo.one!(Reservation) == reservation
+    assert Repo.aggregate(Oban.Job, :count) == jobs
+    assert Storage.read(other_scope) == {:ok, other_before}
+
+    # A forged same-build intent under another tenant must not reach dispatch.
+    calls = Fixture.snapshot().calls
+    forged = %{started | args: Map.put(started.args, "organization_id", "other-org")}
+    assert :ok = Coordinator.perform(forged)
+    assert Fixture.snapshot().calls == calls
+    assert Storage.read(other_scope) == {:ok, other_before}
+
+    assert {:ok, _} =
+             Admission.yield_multi(Multi.new(), :yield, replacement.token)
+             |> Repo.transaction()
+
+    assert :ok = Coordinator.perform(started)
+    assert current().build.state == :failed
+    assert current().build.active_ref == nil
+    assert not held?()
+    assert Fixture.snapshot().creations == 1
+    assert map_size(Fixture.snapshot().operations) == 1
+    assert List.last(Fixture.snapshot().calls).request.operation_id == operation_id
+    assert List.last(Fixture.snapshot().calls).request.ref == original_ref
+    released = Repo.one!(Reservation)
+    assert :ok = Coordinator.perform(started)
+    assert Repo.one!(Reservation) == released
+    assert Storage.read(other_scope) == {:ok, other_before}
+  end
+
   test "callback timeout after external effect kills transport process and retains reservation" do
     {_, started} = running()
     Fixture.mode(:ensure_started, :timeout_after)

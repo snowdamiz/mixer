@@ -3,6 +3,7 @@
 import argparse
 import copy
 import importlib.util
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -13,6 +14,9 @@ HERE = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location('bootstrap_control', HERE / 'bootstrap.py')
 B = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(B)
+current_spec = importlib.util.spec_from_file_location('current_profile_oracle', B.ROOT / 'cli/build-tests/current_android_profile.py')
+CURRENT = importlib.util.module_from_spec(current_spec)
+current_spec.loader.exec_module(CURRENT)
 
 # Exact stdout from run 42427563693/job 128569025677, artifact 13595593211.
 # Kept inline so the existing sparse CI checkout can run these controls.
@@ -56,12 +60,46 @@ def good_result():
 
 
 class BootstrapControls(unittest.TestCase):
-    def test_real_pair9_policy_and_all_sources(self):
+    def test_current_policy_and_all_sources(self):
         a = B.canonical()
+        expected = CURRENT.load_current_profile(B.ROOT)
         p = a.load_profile()
-        self.assertEqual(p['id'], 'mixer.android-source-pair.19')
-        self.assertEqual((len(p['sdk_files']), len(p['adapter_files']), len(a.java_roster(p))), (24, 27, 21))
-        self.assertGreater(len(a.source_inputs(p)), 90)
+        self.assertEqual(json.dumps(p, sort_keys=True), json.dumps(expected, sort_keys=True))
+        self.assertEqual(a.java_roster(p), sorted(path for path in expected['adapter_files'] if path.endswith('.java')))
+        # Keep the exact source116 admission independent of the profile oracle.
+        inputs = B.admit_source_inputs(a, p)
+        self.assertEqual(len(inputs), B.SOURCE_INPUT_COUNT)
+        self.assertEqual(a.source_digest(inputs), B.SOURCE_INPUT_SHA256)
+
+    def test_current_metadata_mismatches_and_duplicates_refuse(self):
+        import json
+        binding = json.loads((B.ROOT / CURRENT.BINDING).read_bytes())
+        current_id = binding['profile']['id']
+        selected = next(key for key, value in binding.items() if isinstance(value, dict)
+                        and value.get('profileAfter', {}).get('id') == current_id)
+        variants = []
+        for field, value in (('id', 'unknown'), ('sdk_count', 1), ('adapter_count', 1),
+                             ('sdk_sha256', '0' * 64), ('adapter_sha256', '0' * 64), ('java_sources', 1)):
+            changed = copy.deepcopy(binding)
+            changed['profile'][field] = value
+            variants.append(changed)
+        changed = copy.deepcopy(binding)
+        changed[selected]['profileAfter']['adapter_files'].pop(next(iter(changed[selected]['profileAfter']['adapter_files'])))
+        variants.append(changed)
+        changed = copy.deepcopy(binding)
+        changed['duplicate_transition'] = copy.deepcopy(changed[selected])
+        variants.append(changed)
+        with tempfile.TemporaryDirectory(dir=HERE) as td:
+            root = Path(td)
+            path = root / CURRENT.BINDING
+            path.parent.mkdir(parents=True)
+            for index, changed in enumerate(variants):
+                path.write_text(json.dumps(changed))
+                with self.subTest(index=index), self.assertRaisesRegex(RuntimeError, 'Current-profile metadata'):
+                    CURRENT.load_current_profile(root)
+            path.write_text('{"profile": {}, "profile": {}}')
+            with self.assertRaisesRegex(RuntimeError, 'Duplicate current-profile metadata key'):
+                CURRENT.load_current_profile(root)
 
     def test_non_hosted_cannot_admit(self):
         for env in ({}, {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'Linux', 'RUNNER_ARCH': 'X64'},
