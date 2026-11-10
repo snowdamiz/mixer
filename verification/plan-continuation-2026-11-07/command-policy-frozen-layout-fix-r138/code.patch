@@ -1,0 +1,390 @@
+--- a/vm/src/experimental/cache/borrowed.rs
++++ b/vm/src/experimental/cache/borrowed.rs
+@@ -56,7 +56,7 @@
+ impl sealed::Snapshot for crate::experimental_swift_reactor::ValidatedSwiftReactor {}
+ #[cfg(feature = "experimental-swift-reactor")]
+ impl SnapshotView for crate::experimental_swift_reactor::ValidatedSwiftReactor {
+-    type Policy = crate::experimental::policy::Policy<'static>;
++    type Policy = crate::experimental::policy::SwiftSelection;
+     fn policy(&self) -> &Self::Policy {
+         self.decode_policy()
+     }
+@@ -129,7 +129,7 @@
+ }
+ #[cfg(feature = "experimental-swift-reactor")]
+ pub(crate) struct SwiftPolicy<'a> {
+-    pub policy: &'a crate::experimental::policy::Policy<'static>,
++    pub policy: &'a crate::experimental::policy::SwiftSelection,
+     pub extent: usize,
+     pub parameters: usize,
+ }
+--- a/vm/src/experimental/metadata.rs
++++ b/vm/src/experimental/metadata.rs
+@@ -188,9 +188,9 @@
+     }
+     Ok(())
+ }
+-fn name(
++fn name<const COMMAND: bool>(
+     r: &mut Reader<'_>,
+-    policy: &policy::Policy<'_>,
++    policy: &policy::Policy<'_, COMMAND>,
+     meter: &mut Meter<'_, impl MeterControl>,
+ ) -> Result<Span, Failure> {
+     let n = r.count(policy.name_bytes(), meter)?;
+@@ -255,9 +255,9 @@
+     Ok((min, max, (flags == 1).then_some(max)))
+ }
+ 
+-pub(super) fn read<D: Declaration>(
++pub(super) fn read<D: Declaration, const COMMAND: bool>(
+     source: &[u8],
+-    policy: &policy::Policy<'_>,
++    policy: &policy::Policy<'_, COMMAND>,
+     meter: &mut Meter<'_, impl MeterControl>,
+ ) -> Result<Metadata<D>, Failure> {
+     let mut r = Reader::new(source, 0);
+--- a/vm/src/experimental/policy.rs
++++ b/vm/src/experimental/policy.rs
+@@ -1,17 +1,18 @@
+ //! Closed borrowed policies. Frozen validation never materializes widened Limits.
+ use crate::{Limits, Profile};
+ 
+-pub(crate) enum Policy<'a> {
++// Command ceilings are selected at compile time without another runtime tag.
++pub(crate) enum Policy<'a, const COMMAND: bool = false> {
+     Frozen(&'a Limits),
+     #[cfg(feature = "experimental-swift-reactor")]
+     SwiftReactorExperimentV1,
+-    #[cfg(feature = "experimental-swift-reactor")]
+-    SwiftCommandDiagnosticV1,
+ }
+ impl<'a> Policy<'a> {
+     pub fn frozen(limits: &'a Limits) -> Self {
+         Self::Frozen(limits)
+     }
++}
++impl<const COMMAND: bool> Policy<'_, COMMAND> {
+     pub fn legacy_imports(&self) -> bool {
+         matches!(self, Self::Frozen(_))
+     }
+@@ -19,95 +20,91 @@
+         match self {
+             Self::Frozen(l) => l.profile.floats(),
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => true,
++            Self::SwiftReactorExperimentV1 => true,
+         }
+     }
+     pub fn tables(&self) -> bool {
+         match self {
+             Self::Frozen(l) => l.profile == Profile::TableMemoryV3,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => true,
++            Self::SwiftReactorExperimentV1 => true,
+         }
+     }
+     pub fn module_bytes(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.module_bytes,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 64 * 1024 * 1024,
++            Self::SwiftReactorExperimentV1 => 64 * 1024 * 1024,
+         }
+     }
+     pub fn functions(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.functions,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 => 80_000,
+-            #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftCommandDiagnosticV1 => 131_072,
++            Self::SwiftReactorExperimentV1 => if COMMAND { 131_072 } else { 80_000 },
+         }
+     }
+     pub fn types(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.types,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 512,
++            Self::SwiftReactorExperimentV1 => 512,
+         }
+     }
+     pub fn type_parameters_total(&self) -> usize {
+         match self {
+             Self::Frozen(_) => usize::MAX,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 8192,
++            Self::SwiftReactorExperimentV1 => 8192,
+         }
+     }
+     pub fn parameters_per_signature(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.locals,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 128,
++            Self::SwiftReactorExperimentV1 => 128,
+         }
+     }
+     pub fn parameters_plus_locals(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.locals,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 256,
++            Self::SwiftReactorExperimentV1 => 256,
+         }
+     }
+     pub fn local_groups(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.locals,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 256,
++            Self::SwiftReactorExperimentV1 => 256,
+         }
+     }
+     pub fn instructions(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.instructions,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 => 8_000_000,
+-            #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftCommandDiagnosticV1 => 16_000_000,
++            Self::SwiftReactorExperimentV1 => if COMMAND { 16_000_000 } else { 8_000_000 },
+         }
+     }
+     pub fn operand_stack(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.operand_stack,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 128,
++            Self::SwiftReactorExperimentV1 => 128,
+         }
+     }
+     pub fn control_depth(&self) -> usize {
+         match self {
+             Self::Frozen(l) => l.control_depth,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 512,
++            Self::SwiftReactorExperimentV1 => 512,
+         }
+     }
+     pub fn globals(&self) -> usize {
+         match self {
+             Self::Frozen(_) => 1024,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 8192,
++            Self::SwiftReactorExperimentV1 => 8192,
+         }
+     }
+     pub fn exports(&self) -> usize {
+@@ -126,14 +123,14 @@
+         match self {
+             Self::Frozen(l) => l.table_elements,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 65_536,
++            Self::SwiftReactorExperimentV1 => 65_536,
+         }
+     }
+     pub fn memory_pages(&self) -> u32 {
+         match self {
+             Self::Frozen(l) => l.memory_pages,
+             #[cfg(feature = "experimental-swift-reactor")]
+-            Self::SwiftReactorExperimentV1 | Self::SwiftCommandDiagnosticV1 => 768,
++            Self::SwiftReactorExperimentV1 => 768,
+         }
+     }
+ }
+@@ -143,3 +140,65 @@
+         Self::SwiftReactorExperimentV1
+     }
+ }
++
++#[cfg(feature = "experimental-swift-reactor")]
++impl Policy<'static, true> {
++    pub fn command() -> Self {
++        Self::SwiftReactorExperimentV1
++    }
++}
++
++// Sealed ABI selection belongs to the Swift owner, not the frozen policy enum.
++// Command's entry index shares this eight-byte selection with the reactor case.
++#[cfg(feature = "experimental-swift-reactor")]
++pub(crate) enum SwiftSelection {
++    Reactor,
++    Command { entry: u32 },
++}
++#[cfg(feature = "experimental-swift-reactor")]
++impl SwiftSelection {
++    #[cfg(test)]
++    pub fn legacy_imports(&self) -> bool { Policy::swift().legacy_imports() }
++    #[cfg(test)]
++    pub fn module_bytes(&self) -> usize { Policy::swift().module_bytes() }
++    #[cfg(test)]
++    pub fn table_elements(&self) -> usize { Policy::swift().table_elements() }
++    #[cfg(test)]
++    pub fn memory_pages(&self) -> u32 { Policy::swift().memory_pages() }
++    pub fn floats(&self) -> bool { Policy::swift().floats() }
++    pub fn tables(&self) -> bool { Policy::swift().tables() }
++    pub fn parameters_per_signature(&self) -> usize { Policy::swift().parameters_per_signature() }
++    pub fn parameters_plus_locals(&self) -> usize { Policy::swift().parameters_plus_locals() }
++    pub fn local_groups(&self) -> usize { Policy::swift().local_groups() }
++    pub fn operand_stack(&self) -> usize { Policy::swift().operand_stack() }
++    pub fn control_depth(&self) -> usize { Policy::swift().control_depth() }
++    pub fn instructions(&self) -> usize {
++        match self {
++            Self::Reactor => Policy::swift().instructions(),
++            Self::Command { .. } => Policy::command().instructions(),
++        }
++    }
++}
++
++#[cfg(all(test, feature = "experimental-swift-reactor"))]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn command_selection_keeps_distinct_validation_and_decode_ceilings() {
++        let reactor = Policy::swift();
++        let command = Policy::command();
++        assert_eq!(reactor.functions(), 80_000);
++        assert_eq!(command.functions(), 131_072);
++        assert_eq!(reactor.instructions(), 8_000_000);
++        assert_eq!(command.instructions(), 16_000_000);
++        assert_eq!(SwiftSelection::Reactor.instructions(), reactor.instructions());
++        assert_eq!(SwiftSelection::Command { entry: 34 }.instructions(), command.instructions());
++        assert_eq!(command.module_bytes(), reactor.module_bytes());
++        assert_eq!(command.memory_pages(), reactor.memory_pages());
++        assert_eq!(command.table_elements(), reactor.table_elements());
++        assert_eq!(command.parameters_plus_locals(), reactor.parameters_plus_locals());
++        assert_eq!(command.control_depth(), reactor.control_depth());
++        assert!(!command.legacy_imports());
++    }
++}
+--- a/vm/src/experimental/swift.rs
++++ b/vm/src/experimental/swift.rs
+@@ -120,7 +120,12 @@
+     pub fn observations(&self) -> SwiftReactorObservations { self.proof.observations() }
+     pub fn usage(&self) -> SwiftValidationUsage { self.proof.usage() }
+     pub fn policy_identity(&self) -> &'static str { self.proof.policy_identity() }
+-    pub fn entry_function(&self) -> u32 { self.proof.command_entry.expect("sealed command ABI") }
++    pub fn entry_function(&self) -> u32 {
++        match self.proof.policy {
++            policy::SwiftSelection::Command { entry } => entry,
++            policy::SwiftSelection::Reactor => unreachable!("sealed command ABI"),
++        }
++    }
+     pub(crate) fn into_parts(self) -> (ValidatedSwiftReactor, u32) {
+         let entry = self.entry_function();
+         (self.proof, entry)
+@@ -135,7 +140,7 @@
+     input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation,
+ ) -> Result<ValidatedSwiftCommand, SwiftValidationFailure> {
+     let started = Instant::now();
+-    validate(input, budget, cancellation, started, policy::Policy::SwiftCommandDiagnosticV1)
++    validate(input, budget, cancellation, started, policy::Policy::command())
+         .map(|proof| ValidatedSwiftCommand { proof })
+         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
+ }
+@@ -174,11 +179,10 @@
+ pub struct ValidatedSwiftReactor {
+     source: Box<[u8]>,
+     metadata: SwiftMetadata,
+-    policy: policy::Policy<'static>,
++    policy: policy::SwiftSelection,
+     imports: [WasiFunction; 34],
+     usage: SwiftValidationUsage,
+     observations: SwiftReactorObservations,
+-    command_entry: Option<u32>,
+ }
+ impl ValidatedSwiftReactor {
+     pub const VALIDATOR_REVISION: u32 = 1;
+@@ -187,9 +191,8 @@
+     }
+     pub fn policy_identity(&self) -> &'static str {
+         match self.policy {
+-            policy::Policy::SwiftReactorExperimentV1 => "swift-reactor-experiment-v1",
+-            policy::Policy::SwiftCommandDiagnosticV1 => "swift-command-diagnostic-v1",
+-            policy::Policy::Frozen(_) => unreachable!("sealed Swift policy"),
++            policy::SwiftSelection::Reactor => "swift-reactor-experiment-v1",
++            policy::SwiftSelection::Command { .. } => "swift-command-diagnostic-v1",
+         }
+     }
+     pub fn usage(&self) -> SwiftValidationUsage {
+@@ -331,7 +334,7 @@
+         &self.imports
+     }
+ 
+-    pub(crate) fn decode_policy(&self) -> &policy::Policy<'static> {
++    pub(crate) fn decode_policy(&self) -> &policy::SwiftSelection {
+         &self.policy
+     }
+ }
+@@ -405,12 +408,12 @@
+         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
+ }
+ 
+-fn validate(
++fn validate<const COMMAND: bool>(
+     input: &[u8],
+     budget: SwiftValidationBudget,
+     cancellation: &Cancellation,
+     started: Instant,
+-    policy: policy::Policy<'static>,
++    policy: policy::Policy<'static, COMMAND>,
+ ) -> Result<ValidatedSwiftReactor, Failure> {
+     let max = SwiftValidationBudget::default();
+     let deadline = started.checked_add(Duration::from_millis(budget.deadline_ms));
+@@ -450,7 +453,7 @@
+         + std::mem::size_of::<validate::BodyState>()
+         + std::mem::size_of::<Buffer<u32>>()
+         + 2 * std::mem::size_of::<SwiftValidationFailure>()
+-        + std::mem::size_of::<policy::Policy<'_>>()
++        + std::mem::size_of::<policy::Policy<'_, COMMAND>>()
+         + 256;
+     meter.reserve(Resource::Scratch, scratch_fixed, cursor)?;
+     if input.len() > budget.source_bytes {
+@@ -494,12 +497,11 @@
+     meter.check(cursor)?;
+     let source = source.into_boxed_slice(); // exact capacity: no shrink allocation
+     let mut metadata: SwiftMetadata = metadata::read(&source, &policy, &mut meter)?;
+-    let (imports, command_entry) = match policy {
+-        policy::Policy::SwiftCommandDiagnosticV1 => {
+-            let (imports, entry) = command_abi(&source, &metadata, &mut meter)?;
+-            (imports, Some(entry))
+-        }
+-        _ => (exact_abi(&source, &metadata, &mut meter)?, None),
++    let (imports, selection) = if COMMAND {
++        let (imports, entry) = command_abi(&source, &metadata, &mut meter)?;
++        (imports, policy::SwiftSelection::Command { entry })
++    } else {
++        (exact_abi(&source, &metadata, &mut meter)?, policy::SwiftSelection::Reactor)
+     };
+     segments_fit(&metadata, &mut meter)?;
+     validate::all(&source, &policy, &mut metadata, &mut meter)?;
+@@ -532,11 +534,10 @@
+     Ok(ValidatedSwiftReactor {
+         source,
+         metadata,
+-        policy,
++        policy: selection,
+         imports,
+         usage,
+         observations,
+-        command_entry,
+     })
+ }
+ 
+--- a/vm/src/experimental/validate.rs
++++ b/vm/src/experimental/validate.rs
+@@ -144,9 +144,9 @@
+         self.controls.dispose(meter);
+     }
+ }
+-pub(super) fn all(
++pub(super) fn all<const COMMAND: bool>(
+     source: &[u8],
+-    limits: &policy::Policy<'_>,
++    limits: &policy::Policy<'_, COMMAND>,
+     m: &mut Metadata<impl metadata::Declaration>,
+     meter: &mut Meter<'_, impl MeterControl>,
+ ) -> Result<(), Failure> {

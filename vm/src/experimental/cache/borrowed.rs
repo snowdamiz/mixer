@@ -56,7 +56,7 @@ impl SnapshotView for ValidatedSpans {
 impl sealed::Snapshot for crate::experimental_swift_reactor::ValidatedSwiftReactor {}
 #[cfg(feature = "experimental-swift-reactor")]
 impl SnapshotView for crate::experimental_swift_reactor::ValidatedSwiftReactor {
-    type Policy = crate::experimental::policy::Policy<'static>;
+    type Policy = crate::experimental::policy::SwiftSelection;
     fn policy(&self) -> &Self::Policy {
         self.decode_policy()
     }
@@ -129,7 +129,7 @@ impl DecodePolicy for FrozenPolicy<'_> {
 }
 #[cfg(feature = "experimental-swift-reactor")]
 pub(crate) struct SwiftPolicy<'a> {
-    pub policy: &'a crate::experimental::policy::Policy<'static>,
+    pub policy: &'a crate::experimental::policy::SwiftSelection,
     pub extent: usize,
     pub parameters: usize,
 }

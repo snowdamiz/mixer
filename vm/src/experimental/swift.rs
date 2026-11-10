@@ -120,7 +120,12 @@ impl ValidatedSwiftCommand {
     pub fn observations(&self) -> SwiftReactorObservations { self.proof.observations() }
     pub fn usage(&self) -> SwiftValidationUsage { self.proof.usage() }
     pub fn policy_identity(&self) -> &'static str { self.proof.policy_identity() }
-    pub fn entry_function(&self) -> u32 { self.proof.command_entry.expect("sealed command ABI") }
+    pub fn entry_function(&self) -> u32 {
+        match self.proof.policy {
+            policy::SwiftSelection::Command { entry } => entry,
+            policy::SwiftSelection::Reactor => unreachable!("sealed command ABI"),
+        }
+    }
     pub(crate) fn into_parts(self) -> (ValidatedSwiftReactor, u32) {
         let entry = self.entry_function();
         (self.proof, entry)
@@ -135,7 +140,7 @@ pub fn validate_swift_command(
     input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation,
 ) -> Result<ValidatedSwiftCommand, SwiftValidationFailure> {
     let started = Instant::now();
-    validate(input, budget, cancellation, started, policy::Policy::SwiftCommandDiagnosticV1)
+    validate(input, budget, cancellation, started, policy::Policy::command())
         .map(|proof| ValidatedSwiftCommand { proof })
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
@@ -174,11 +179,10 @@ pub fn validate_swift_command(
 pub struct ValidatedSwiftReactor {
     source: Box<[u8]>,
     metadata: SwiftMetadata,
-    policy: policy::Policy<'static>,
+    policy: policy::SwiftSelection,
     imports: [WasiFunction; 34],
     usage: SwiftValidationUsage,
     observations: SwiftReactorObservations,
-    command_entry: Option<u32>,
 }
 impl ValidatedSwiftReactor {
     pub const VALIDATOR_REVISION: u32 = 1;
@@ -187,9 +191,8 @@ impl ValidatedSwiftReactor {
     }
     pub fn policy_identity(&self) -> &'static str {
         match self.policy {
-            policy::Policy::SwiftReactorExperimentV1 => "swift-reactor-experiment-v1",
-            policy::Policy::SwiftCommandDiagnosticV1 => "swift-command-diagnostic-v1",
-            policy::Policy::Frozen(_) => unreachable!("sealed Swift policy"),
+            policy::SwiftSelection::Reactor => "swift-reactor-experiment-v1",
+            policy::SwiftSelection::Command { .. } => "swift-command-diagnostic-v1",
         }
     }
     pub fn usage(&self) -> SwiftValidationUsage {
@@ -331,7 +334,7 @@ impl ValidatedSwiftReactor {
         &self.imports
     }
 
-    pub(crate) fn decode_policy(&self) -> &policy::Policy<'static> {
+    pub(crate) fn decode_policy(&self) -> &policy::SwiftSelection {
         &self.policy
     }
 }
@@ -405,12 +408,12 @@ pub fn validate_swift_reactor(
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
 
-fn validate(
+fn validate<const COMMAND: bool>(
     input: &[u8],
     budget: SwiftValidationBudget,
     cancellation: &Cancellation,
     started: Instant,
-    policy: policy::Policy<'static>,
+    policy: policy::Policy<'static, COMMAND>,
 ) -> Result<ValidatedSwiftReactor, Failure> {
     let max = SwiftValidationBudget::default();
     let deadline = started.checked_add(Duration::from_millis(budget.deadline_ms));
@@ -450,7 +453,7 @@ fn validate(
         + std::mem::size_of::<validate::BodyState>()
         + std::mem::size_of::<Buffer<u32>>()
         + 2 * std::mem::size_of::<SwiftValidationFailure>()
-        + std::mem::size_of::<policy::Policy<'_>>()
+        + std::mem::size_of::<policy::Policy<'_, COMMAND>>()
         + 256;
     meter.reserve(Resource::Scratch, scratch_fixed, cursor)?;
     if input.len() > budget.source_bytes {
@@ -494,12 +497,11 @@ fn validate(
     meter.check(cursor)?;
     let source = source.into_boxed_slice(); // exact capacity: no shrink allocation
     let mut metadata: SwiftMetadata = metadata::read(&source, &policy, &mut meter)?;
-    let (imports, command_entry) = match policy {
-        policy::Policy::SwiftCommandDiagnosticV1 => {
-            let (imports, entry) = command_abi(&source, &metadata, &mut meter)?;
-            (imports, Some(entry))
-        }
-        _ => (exact_abi(&source, &metadata, &mut meter)?, None),
+    let (imports, selection) = if COMMAND {
+        let (imports, entry) = command_abi(&source, &metadata, &mut meter)?;
+        (imports, policy::SwiftSelection::Command { entry })
+    } else {
+        (exact_abi(&source, &metadata, &mut meter)?, policy::SwiftSelection::Reactor)
     };
     segments_fit(&metadata, &mut meter)?;
     validate::all(&source, &policy, &mut metadata, &mut meter)?;
@@ -532,11 +534,10 @@ fn validate(
     Ok(ValidatedSwiftReactor {
         source,
         metadata,
-        policy,
+        policy: selection,
         imports,
         usage,
         observations,
-        command_entry,
     })
 }
 

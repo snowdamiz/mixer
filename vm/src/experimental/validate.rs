@@ -144,9 +144,9 @@ impl BodyState {
         self.controls.dispose(meter);
     }
 }
-pub(super) fn all(
+pub(super) fn all<const COMMAND: bool>(
     source: &[u8],
-    limits: &policy::Policy<'_>,
+    limits: &policy::Policy<'_, COMMAND>,
     m: &mut Metadata<impl metadata::Declaration>,
     meter: &mut Meter<'_, impl MeterControl>,
 ) -> Result<(), Failure> {
