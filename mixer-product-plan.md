@@ -933,6 +933,8 @@ Define required review and executable acceptance before implementation. Once the
 
 ### 24.5 Development tests must advance application behavior
 
+On November 10 the user explicitly resumed computer use and screen capture. Computer interaction, UI automation and screen capture are permitted for fresh implementation and verification work under the existing isolation, Accessibility preflight and cleanup rules. Prior general pauses are historical; physical phones and specifically held process, scratch, device and frozen-lane resources retain their existing restrictions.
+
 Adopted November 9 after the user's instruction to remove verification bottlenecks. This section governs development execution when older campaign documents impose broader preparation requirements. It does not release an explicit process, scratch, device, security or frozen-lane hold, or change G01–G38 acceptance criteria.
 
 1. **Use the simplest executable path.** Run source inspection, Git/CI reads and pure tests through normal tools. For builds and runtime diagnostics, prefer the existing platform tools and a small test-specific runner. A new general controller, all-input seal chain, universal result parser, or proof about unrelated host services is not a default prerequisite. Add machinery only for a reproduced failure that prevents the named test from running safely or its result from being understood.

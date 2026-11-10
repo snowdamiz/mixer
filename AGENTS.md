@@ -45,6 +45,8 @@ it does not replace or narrow that scope. Keep `STATUS.md`, `work-graph.json`,
 
 ## Verification
 
+Direct user instruction on November 10 — “you are allowed to use computer use and screen capture again” — resumes computer interaction, UI automation and screen capture for implementation and verification. Earlier general computer-use or capture pauses are historical. Apply the existing owned-device, Accessibility preflight and cleanup rules below; physical-phone restrictions and all specifically held processes, scratch and frozen lanes remain in force.
+
 The user authorized periodic commits and pushes to `snowdamiz/mixer`; see PLAN.md.
 Root coordinates pushes of coherent validated slices to `origin/main`, without
 force-pushing or sweeping other agents' unfinished files into commits. Inspect CI
