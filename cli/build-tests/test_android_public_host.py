@@ -206,5 +206,54 @@ class AndroidPublicHostTests(CompatibilityFixture, unittest.TestCase):
                 self.refusal(message)
 
 
+
+
+class NativeSymbolContractTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.module = load_driver(DRIVER, 'native_symbol_contract')
+
+    public_symbols = '0000 T mixer_public_android_submit\n0001 T mixer_public_android_poll\n0002 T $s16FieldLogFeatures5StateV\n0003 T $s14FieldLogModels5EntryV\n'
+    jni_symbols = '0000 T JNI_OnLoad\n'
+    legacy_names = ('mixer_android_create', 'mixer_android_exchange', 'mixer_android_destroy',
+                    'mixer_android_prepare_v2', 'mixer_android_commit_v2', 'mixer_android_abort_v2',
+                    'AppFeatures', 'AppModels')
+
+    def test_public_accepts_app_owned_domain_and_no_domain_markers(self):
+        self.module.check_native_symbols(self.public_symbols, True, self.jni_symbols)
+        self.module.check_native_symbols('0000 T mixer_public_android_submit\n0001 T mixer_public_android_poll\n', True, self.jni_symbols)
+
+    def test_public_requires_each_exact_c_export(self):
+        for name in ('mixer_public_android_submit', 'mixer_public_android_poll'):
+            for replacement in ('', name + '_suffix', 'prefix_' + name):
+                with self.subTest(name=name, replacement=replacement):
+                    with self.assertRaisesRegex(RuntimeError, 'Public Android C ABI'):
+                        self.module.check_native_symbols(self.public_symbols.replace(name, replacement), True, self.jni_symbols)
+
+    def test_public_rejects_every_legacy_export(self):
+        for name in self.legacy_names[:6] + ('mixer_android_future_private',):
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(RuntimeError, 'private legacy exports'):
+                    self.module.check_native_symbols(self.public_symbols + '0004 T ' + name + '\n', True, self.jni_symbols)
+
+    def test_public_requires_exact_jni_registration_entry(self):
+        for symbols in ('', '0000 T JNI_OnLoad_suffix\n', '0000 T prefix_JNI_OnLoad\n'):
+            with self.subTest(symbols=symbols):
+                with self.assertRaisesRegex(RuntimeError, 'JNI registration entry'):
+                    self.module.check_native_symbols(self.public_symbols, True, symbols)
+
+    def test_legacy_preserves_all_original_required_markers(self):
+        symbols = '\n'.join('0000 T ' + name for name in self.legacy_names)
+        self.module.check_native_symbols(symbols, False)
+        for name in self.legacy_names:
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(RuntimeError, 'App shared feature/model or ABI symbol missing: ' + name):
+                    self.module.check_native_symbols(symbols.replace(name, ''), False)
+
+    def test_legacy_still_accepts_swift_mangling_substrings(self):
+        symbols = '\n'.join('0000 T ' + name for name in self.legacy_names[:6])
+        self.module.check_native_symbols(symbols + '\n0000 T $s11AppFeatures5StateV\n0000 T $s9AppModels5EntryV', False)
+
+
 if __name__ == '__main__':
     unittest.main()

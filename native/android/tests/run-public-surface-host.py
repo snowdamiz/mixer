@@ -87,7 +87,7 @@ try:
             if f.name in concrete_sources:
                 concrete_sources[f.name] = f
     concrete_leaves = sorted((tests / 'NativeOwnerV2ConcreteHostLeaves').rglob('*.java'))
-    reflow_inputs = sorted(set(concrete_sources.values()) | set(concrete_leaves) | {tests / 'VerticalReflowHostTests.java', tests / 'GeneratedAddTransitionHostTests.java'})
+    reflow_inputs = sorted(set(concrete_sources.values()) | set(concrete_leaves) | {tests / 'VerticalReflowHostTests.java', tests / 'GeneratedAddTransitionHostTests.java', tests / 'FocusedDisableOwnerTransitionHostTests.java'})
     (args.evidence / 'vertical-reflow-inputs.json').write_text(json.dumps({str(f.relative_to(root)) if f.is_relative_to(root) else str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in reflow_inputs}, indent=2) + '\n')
     reflow_classes = scratch / 'vertical-reflow-classes'
     reflow_classes.mkdir()
@@ -97,8 +97,12 @@ try:
     packet_inputs = [packets / name for name in ('opened.packet.json', 'typed.packet.json', 'added.packet.json', 'descriptor.json')]
     (args.evidence / 'generated-add-packet-inputs.json').write_text(json.dumps({str(f.relative_to(root)): hashlib.sha256(f.read_bytes()).hexdigest() for f in packet_inputs}, indent=2) + '\n')
     run('generated-add-transition', [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.GeneratedAddTransitionHostTests', packets, 'candidate'])
+    focused_packets = tests / 'FocusedDisableOwnerTransitionPackets'
+    focused_inputs = [focused_packets / name for name in ('descriptor.json', 'synthesized-acknowledged-presave.json', '201-2.json', '201-3.json')]
+    (args.evidence / 'focused-disable-packet-inputs.json').write_text(json.dumps({str(f.relative_to(root)): hashlib.sha256(f.read_bytes()).hexdigest() for f in focused_inputs}, indent=2) + '\n')
+    run('focused-disable-transition', [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.FocusedDisableOwnerTransitionHostTests', focused_packets, 'candidate'])
     passed = True
 finally:
     if passed:
         shutil.rmtree(scratch)
-    (args.evidence / 'result.json').write_text(json.dumps({'passed': passed, 'scope': 'JVM public suites with controlled renderer; vertical reflow and production-packet Add/clear with actual renderer/owner/views and controlled Android/JNI leaves; no device qualification', 'scratch': str(scratch), 'scratchRemoved': passed, 'commands': len(commands)}, indent=2) + '\n')
+    (args.evidence / 'result.json').write_text(json.dumps({'passed': passed, 'scope': 'JVM public suites with controlled renderer; vertical reflow, production-packet Add/clear and focused model-disable with actual renderer/owner/views and controlled Android/JNI leaves; no device qualification', 'scratch': str(scratch), 'scratchRemoved': passed, 'commands': len(commands)}, indent=2) + '\n')

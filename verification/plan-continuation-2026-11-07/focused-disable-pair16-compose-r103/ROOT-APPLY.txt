@@ -1,0 +1,17 @@
+Run from the canonical repository root. These commands are for root; R103 did not apply them.
+
+python3 -B verification/plan-continuation-2026-11-07/focused-disable-pair16-compose-r103/check-application.py before
+patch --dry-run -p1 -i verification/plan-continuation-2026-11-07/focused-disable-pair16-compose-r103/product.patch
+patch -p1 -i verification/plan-continuation-2026-11-07/focused-disable-pair16-compose-r103/product.patch
+python3 -B verification/plan-continuation-2026-11-07/focused-disable-pair16-compose-r103/check-application.py after
+
+Installed guards (run both; no compiler/fixture dispatch):
+python3 -I -B -S verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/adopt_envelope.py verify --workflow-installed
+python3 -I -O -B -S verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/adopt_envelope.py verify --workflow-installed
+
+Then root runs the actual six consumers on these final bytes. No six-consumer,
+compiler, installed canonical, release, or GA acceptance is claimed by R103.
+The permanent Java regression runs through the existing CI public-surface runner:
+python3 -B native/android/tests/run-public-surface-host.py --java-home "$JAVA_HOME" --evidence "$RUNNER_TEMP/android-owner-public-surface"
+That command includes the existing two compilations and all seven suites; R103
+did not invoke it with a real compiler. R100's cleaned classes could not be reused.

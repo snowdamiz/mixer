@@ -138,7 +138,7 @@ def source_profile():
         value = json.loads(bytes.fromhex(SOURCE_PROFILE_HEX), object_pairs_hook=unique)
         keys = {'schema', 'id', 'sdk_compatibility_sha256', 'adapter_compatibility_sha256',
                 'default_descriptor', 'sdk_files', 'adapter_files', 'wire'}
-        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.15':
+        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.16':
             raise ValueError('unsupported profile shape/id')
         def identity(item):
             return (isinstance(item, dict) and set(item) == {'bytes', 'sha256'} and
@@ -482,6 +482,20 @@ def inspect():
     }
 
 
+def check_native_symbols(symbols, public, jni_symbols=''):
+    if public:
+        exported = {line.split()[-1] for line in symbols.splitlines() if line.split()}
+        if not {'mixer_public_android_submit', 'mixer_public_android_poll'}.issubset(exported) or any(name.startswith('mixer_android_') for name in exported):
+            raise RuntimeError('Public Android C ABI is missing or contains private legacy exports.')
+        if 'JNI_OnLoad' not in {line.split()[-1] for line in jni_symbols.splitlines() if line.split()}:
+            raise RuntimeError('Public Android JNI registration entry is missing.')
+        return
+    required_symbols = ['mixer_android_create', 'mixer_android_exchange', 'mixer_android_destroy', 'mixer_android_prepare_v2', 'mixer_android_commit_v2', 'mixer_android_abort_v2', 'AppFeatures', 'AppModels']
+    for symbol in required_symbols:
+        if symbol not in symbols:
+            raise RuntimeError('App shared feature/model or ABI symbol missing: ' + symbol)
+
+
 def build(root):
     config = read_json(root / 'mixer.yml')
     if not isinstance(config, dict) or config.get('androidHost', 'legacy-v1') != 'legacy-v1':
@@ -614,18 +628,8 @@ def build(root):
         if descriptor not in dex_dump:
             raise RuntimeError('Required owned Android class absent from dex: ' + descriptor)
     symbols = run([NDK / 'bin/llvm-nm', '-D', '--defined-only', engine])
-    required_symbols = ['mixer_android_create', 'mixer_android_exchange', 'mixer_android_destroy', 'mixer_android_prepare_v2', 'mixer_android_commit_v2', 'mixer_android_abort_v2', 'AppFeatures', 'AppModels']
-    if public:
-        required_symbols = ['mixer_public_android_submit', 'mixer_public_android_poll', 'AppFeatures', 'AppModels']
-        exported = {line.split()[-1] for line in symbols.splitlines() if line.split()}
-        if not {'mixer_public_android_submit', 'mixer_public_android_poll'}.issubset(exported) or any(name.startswith('mixer_android_') for name in exported):
-            raise RuntimeError('Public Android C ABI is missing or contains private legacy exports.')
-        jni_symbols = run([NDK / 'bin/llvm-nm', '-D', '--defined-only', libdir / jni_library])
-        if 'JNI_OnLoad' not in {line.split()[-1] for line in jni_symbols.splitlines() if line.split()}:
-            raise RuntimeError('Public Android JNI registration entry is missing.')
-    for symbol in required_symbols:
-        if symbol not in symbols:
-            raise RuntimeError('App shared feature/model or ABI symbol missing: ' + symbol)
+    jni_symbols = run([NDK / 'bin/llvm-nm', '-D', '--defined-only', libdir / jni_library]) if public else ''
+    check_native_symbols(symbols, public, jni_symbols)
     with zipfile.ZipFile(apk_path) as archive:
         names = archive.namelist()
         appearance_identity = appearance_archive(archive, appearance)
@@ -651,7 +655,7 @@ def build(root):
         'appearance_descriptor': appearance_identity,
         'toolchain': identity, 'native_dependencies': dependencies,
         'native_libraries': {p.name: digest(p) for p in sorted(libdir.glob('*.so'))}, 'commands': commands,
-        'scope': 'Actual generated AppModels/AppFeatures Swift, owned JNI/native widgets, arm64 Android APK inspected. Unsigned; no install, device interaction, lifecycle, accessibility, performance, published SDK, store or FieldLog qualification.',
+        'scope': ('App-owned Swift, public C ABI/JNI registration, owned native widgets, arm64 Android APK inspected.' if public else 'Actual generated AppModels/AppFeatures Swift, owned JNI/native widgets, arm64 Android APK inspected.') + ' Unsigned; no install, device interaction, lifecycle, accessibility, performance, published SDK, store or FieldLog qualification.',
     }
     checked_output(root)
     receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')

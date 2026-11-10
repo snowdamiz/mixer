@@ -521,9 +521,11 @@ final class NativeRenderer {
             if(!(a.node().recipe() instanceof AppearanceResolverV2.FieldRecipe before)||!(proposed.recipe() instanceof AppearanceResolverV2.FieldRecipe after))
                 throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
             Map<String,Object> left=new HashMap<>(a.source().properties),right=new HashMap<>(source.properties);left.remove("value");right.remove("value");
+            boolean disabling=modelDisableV3(old,source);
+            if(disabling){left.remove("disabled");right.remove("disabled");}
             boolean same=before.label().equals(after.label())&&before.metrics().equals(after.metrics())&&before.text().role()==after.text().role()&&
                 before.text().metrics().equals(after.text().metrics())&&before.text().selectable()==after.text().selectable()&&
-                Objects.equals(before.text().maximumLines(),after.text().maximumLines())&&a.node().disabled()==proposed.disabled()&&left.equals(right)&&
+                Objects.equals(before.text().maximumLines(),after.text().maximumLines())&&(disabling||a.node().disabled()==proposed.disabled())&&left.equals(right)&&
                 a.source().actions.equals(source.actions)&&a.plan().environment.scheme()==plan.environment.scheme()&&a.plan().environment.profile()==plan.environment.profile()&&
                 a.plan().environment.direction()==plan.environment.direction()&&a.plan().environment.density1024()==plan.environment.density1024()&&
                 a.plan().environment.localeIdentifier().equals(plan.environment.localeIdentifier())&&a.theme().equals(installed.configuration.android);
@@ -543,6 +545,7 @@ final class NativeRenderer {
             if(!active&&!selecting)continue;
             if(frameRetirementV3(previous,c.next.nodes.get(previous.id)))continue;
             var shadow=c.detached.get(previous.id);
+            if(modelDisableV3(c,previous,shadow))continue;
             if(programmaticClearV3(c,previous,shadow))continue;
             if(c.targets.get(previous.id)!=previous||shadow==null||!sameEditorBindingV2(previous,shadow)||!sameAncestorsV2(c,previous.id)||
                 !sameFrameV2(previous.view,shadow.view,previous.verticalInput?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
@@ -554,16 +557,32 @@ final class NativeRenderer {
         return sameEditorConfigurationV2(old,next);
     }
     private static boolean sameEditorConfigurationV2(NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
+        return sameEditorConfigurationV2(old,next,false);
+    }
+    private static boolean sameEditorConfigurationV2(NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next,boolean disabling){
         var a=old.binding;var b=next.binding;
         if(old.view instanceof Switch value&&value.isChecked()!=b.nativeToggleValue())return false;
         boolean recipe=a.node().recipe().equals(b.node().recipe());
         Map<String,Object> ap=new HashMap<>(a.source().properties),bp=new HashMap<>(b.source().properties);
         if(a.node().recipe() instanceof AppearanceResolverV2.FieldRecipe x&&b.node().recipe() instanceof AppearanceResolverV2.FieldRecipe y){
             recipe=x.label().equals(y.label())&&x.metrics().equals(y.metrics())&&x.text().role()==y.text().role()&&x.text().metrics().equals(y.text().metrics());ap.remove("value");bp.remove("value");}
-        return recipe&&a.node().disabled()==b.node().disabled()&&ap.equals(bp)&&
+        if(disabling){ap.remove("disabled");bp.remove("disabled");}
+        return recipe&&(disabling||a.node().disabled()==b.node().disabled())&&ap.equals(bp)&&
             a.plan().environment.scheme()==b.plan().environment.scheme()&&a.plan().environment.profile()==b.plan().environment.profile()&&
             a.plan().environment.direction()==b.plan().environment.direction()&&a.plan().environment.density1024()==b.plan().environment.density1024()&&
             a.plan().environment.localeIdentifier().equals(b.plan().environment.localeIdentifier())&&a.theme().equals(b.theme());
+    }
+    // A V3 model may disable an acknowledged horizontal editor; all other bindings stay exact.
+    private boolean modelDisableV3(NativeAppearanceViewsV2.Record old,UiPacket.Node source){
+        return v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&!old.verticalInput&&source!=null&&source.disabled&&
+            source.id.equals(old.id)&&source.kind.equals(old.kind)&&source.generation.equals(old.generation)&&
+            old.view instanceof NativeAppearanceViewsV2.NativeField field&&field.modelDisableEligible()&&
+            source.text("value","").equals(old.binding.nativeFieldValue());
+    }
+    private boolean modelDisableV3(Candidate c,NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
+        return c.owner==this&&c.targets.get(old.id)==old&&next!=null&&modelDisableV3(old,next.binding.source())&&
+            sameEditorConfigurationV2(old,next,true)&&old.binding.source().actions.equals(next.binding.source().actions)&&
+            sameAncestorsV2(c,old.id)&&sameFrameV2(old.view,next.view,AndroidUIProfile.LEGACY_HORIZONTAL);
     }
     // Only an acknowledged model draft may be cleared through the owner transaction.
     // The captured FieldTransition consumes its predecessor before any text replacement.
@@ -713,14 +732,15 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
             var record=state.record;if(!(record.view instanceof NativeAppearanceViewsV2.NativeField field))continue;
             var shadow=c.detached.get(record.id);
             boolean clear=programmaticClearV3(c,record,shadow);
-            if(!record.verticalInput&&!clear)continue;
-            boolean retire=clear||frameRetirementV3(record,c.next.nodes.get(record.id));
+            boolean disabling=modelDisableV3(c,record,shadow);
+            if(!record.verticalInput&&!clear&&!disabling)continue;
+            boolean retire=clear||disabling||frameRetirementV3(record,c.next.nodes.get(record.id));
             if(!retire&&!field.transitionInactive())continue;
             if(record.fieldTransition!=null||record.fieldPreservation!=null||state.transition!=null||!sameNativeBaseV2(state)||
                 shadow!=null&&c.targets.get(record.id)!=record||outstandingEditorNativeCalls==Integer.MAX_VALUE)
                 throw Json.bad("invalid settled attachment source");
             var scope=new NativeAppearanceViewsV2.FieldTransition(this,c,j,record,shadow==null?null:shadow.binding,mutation,retire);
-            if(!sameNativeBaseV2(state)||!(clear?field.programmaticClearEligible():field.transitionEligible())||!transitionLossCurrentV3(j)||!transitionMembershipV3(j))throw Json.bad("settled attachment changed during capture");
+            if(!sameNativeBaseV2(state)||!(disabling?field.modelDisableEligible():clear?field.programmaticClearEligible():field.transitionEligible())||!transitionLossCurrentV3(j)||!transitionMembershipV3(j))throw Json.bad("settled attachment changed during capture");
             var member=new TransitionMembership(state,scope);
             state.transitionMembership=member;j.transitionRoster[state.position]=member;j.transitionCount++;
             state.transition=scope;record.fieldTransition=scope;scope.registered=true;outstandingFieldTransitions++;outstandingEditorNativeCalls++;

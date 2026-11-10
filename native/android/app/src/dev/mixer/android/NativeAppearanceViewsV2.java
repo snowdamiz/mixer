@@ -1221,6 +1221,8 @@ return;
         }
         boolean transitionEligible(){return record!=null&&record.verticalInput&&transitionSourceEligible();}
         boolean programmaticClearEligible(){return transitionSourceEligible();}
+        boolean modelDisableEligible(){return transitionSourceEligible()&&hasLiveTarget()&&!record.binding.node.disabled()&&
+            record.binding.nativeFieldValue().equals(nativeEditable().toString());}
         private boolean transitionSourceEligible(){return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!finishing&&!fieldDenied()&&replacement==null&&depth==0&&record.editorCallbackLease==null&&record.fieldPreservation==null&&record.fieldTransition==null&&(phase==Phase.IDLE&&consumedPredecessor()||phase==Phase.ACTIVE&&hasLiveTarget());}
         boolean transitionInactive(){return transitionEligible()&&consumedPredecessor()&&!hasFocus()&&android.view.inputmethod.BaseInputConnection.getComposingSpanStart(nativeEditable())<0;}
         boolean needsFieldPreservation(){return focusLost&&settledField()||record.verticalInput&&preservableField();}
