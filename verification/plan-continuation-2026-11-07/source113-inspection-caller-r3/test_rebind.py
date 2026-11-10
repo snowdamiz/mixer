@@ -42,8 +42,15 @@ class Rebinding(unittest.TestCase):
 
     def test_successor_binds_current_source_and_actual_cli(self):
         proof = self.base.verify(False)
-        self.assertEqual((proof['source_count'], proof['source_sha256']),
-                         (116, 'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99'))
+        source = json.loads((HERE / 'binding.json').read_text())['source']
+        self.assertEqual(source['manifest'], 'source-inputs.json')
+        frozen = json.loads((HERE / source['manifest']).read_text())
+        digest = hashlib.sha256(''.join(
+            path + '\0' + row['sha256'] + '\n'
+            for path, row in sorted(frozen.items())).encode()).hexdigest()
+        expected = (source['count'], source['sha256'])
+        self.assertEqual((len(frozen), digest), expected)
+        self.assertEqual((proof['source_count'], proof['source_sha256']), expected)
         self.assertFalse(proof['exact_compiler_qualified'])
         flow = self.work / 'verify.yml'
         flow.write_bytes((HERE / 'verify.yml.candidate').read_bytes())
@@ -98,10 +105,15 @@ class Rebinding(unittest.TestCase):
     def test_source_manifest_and_metadata_mutations_fail_even_with_resealed_rows(self):
         original = self.base.regular
         seal = json.loads((HERE / 'seal.json').read_text())
-        for name in ('source-inputs.json', 'binding.json'):
+        for name, field in (('source-inputs.json', 'manifest'),
+                            ('binding.json', 'profile'),
+                            ('binding.json', 'source-count'),
+                            ('binding.json', 'source-digest')):
             value = json.loads((HERE / name).read_text())
-            if name == 'source-inputs.json': value.pop(next(iter(value)))
-            else: value['profile']['sdk_count'] = 23
+            if field == 'manifest': value.pop(next(iter(value)))
+            elif field == 'profile': value['profile']['sdk_count'] = 23
+            elif field == 'source-count': value['source']['count'] -= 1
+            else: value['source']['sha256'] = '0' * 64
             fake = self.work / name
             fake.write_text(json.dumps(value))
             changed = json.loads(json.dumps(seal))
@@ -113,7 +125,7 @@ class Rebinding(unittest.TestCase):
             seal_path.write_text(json.dumps(changed))
             def redirect(p):
                 return original(seal_path if p == HERE / 'seal.json' else fake if p == HERE / name else p)
-            with patched(self.base, 'regular', redirect), self.subTest(name=name), self.assertRaises(RuntimeError):
+            with patched(self.base, 'regular', redirect), self.subTest(name=name, field=field), self.assertRaises(RuntimeError):
                 self.base.verify(False)
 
     def test_standard_compiler_policy_and_fixture_body_are_unchanged(self):

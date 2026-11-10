@@ -226,3 +226,19 @@ The hosted Swift Python controls in run 42833959617, job 129891063070, recorded 
 The R248 callback-matrix JVM timed out with UNKNOWN custody for PID/PGID 93286. Preserve the entire `/Users/andreyyurlov/.t3/userdata/mixer-root-screen-r248-ksv0fdtm` scratch and the R248 outputs `full-189-callback-matrix.stdout`, `observed-sites.txt`, and `barrier-cases.json` without inspection, enumeration, probing, signalling, waiting, retry or cleanup. Only the top-level `verification/plan-continuation-2026-11-07/owned-root-screen-removal-r248/HOLD.json` and separately delivered source patch/result metadata are references. A terminal outer result does not release this hold. Fresh source builds and native development in distinct namespaces remain authorized.
 
 The fresh hosted cache job in run 42883750881, job 130066539843, recorded UNKNOWN custody for PID/PGID 1143 after PermissionError/EPERM in the descendant control. Preserve that exact hosted group and its recorded scratch without inspection, probing, signalling, waiting, retry or cleanup. Read only the copied top-level summaries and hold reference in verification/plan-continuation-2026-11-07/current-cache-ci-top-level-diagnosis-r310/REPORT.md. Child return and later GitHub job cleanup do not establish absence. The exact failing operation remains unproven; this scoped hold does not pause independent app/native work or fresh isolated source checks.
+
+The R442 separate Apple consumer recorded three new UNKNOWN custody chains.
+Preserve PID/PGID 22837, the entire
+`verification/plan-continuation-2026-11-07/fieldlog-delivered416-apple-consumer-r442/work`
+tree and its `public-identity.log`; read only the top-level `HOLD.json`.
+Preserve PID/PGID 45310, the entire R442 `work-r2` tree, its
+`r2-generic-ios-build.log`, and
+`/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/ResultBundle_2026-10-11_17-22-0037.xcresult`;
+read only top-level `HOLD-r2.json`. Preserve PID/PGID 64890 and the entire
+R442 `work-r3` chain, including its bare repository, launch/result and raw
+`r3-bare-init` outputs; read only top-level `HOLD-r3.json`.
+Do not enumerate, inspect, probe, signal, wait on, retry or clean any of those
+held chains. Direct child exits and unavailable process observers do not prove
+absence. Existing copied host-test observations remain scoped evidence;
+generic iOS build/resolution is incomplete. Independent source, Android and
+other fresh work remain authorized; no historical hold is released.

@@ -4,6 +4,7 @@ from pathlib import Path
 import importlib.util
 import sys
 import json
+import hashlib
 import tempfile
 import unittest
 from contextlib import contextmanager
@@ -48,9 +49,15 @@ class Source113(unittest.TestCase):
         owner = self.base.module_at('source113_actual', ROOT/'scripts/ci/check-android-generated-java.py')
         actual = owner.source_inputs(owner.load_profile(ROOT))
         self.assertEqual(actual, self.frozen)
-        self.assertEqual((len(actual), owner.source_digest(actual)),
-                         (116, 'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99'))
-        self.assertEqual(proof['source_sha256'], owner.source_digest(actual))
+        source = json.loads((HERE / 'binding.json').read_text())['source']
+        self.assertEqual(source['manifest'], 'source-inputs.json')
+        digest = hashlib.sha256(''.join(
+            path + '\0' + row['sha256'] + '\n'
+            for path, row in sorted(self.frozen.items())).encode()).hexdigest()
+        expected = (source['count'], source['sha256'])
+        self.assertEqual((len(self.frozen), digest), expected)
+        self.assertEqual((len(actual), owner.source_digest(actual)), expected)
+        self.assertEqual((proof['source_count'], proof['source_sha256']), expected)
         with patched(a, 'WORKFLOW', HERE/'verify.yml.candidate'):
             self.assertTrue(self.base.verify(True)['installed_job_verified'])
     def test_each_of_113_changed_owner_inputs_refuses_without_auxiliary_writes(self):

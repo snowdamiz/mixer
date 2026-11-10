@@ -1,0 +1,5 @@
+Actual FieldLog public416 V3 Save and fresh-process reopen pass on official API36. Both R452 phase markers/code0/cleanupComplete are present. The decoded multiline Unicode/decomposed title and responsible bytes match exactly; the complete workspace remains byte-identical with one task and two outbox records. Root force-stopped the first process and observed absence before reopening; platform logs identify the second process2820, distinct from first2544.
+
+Original result.json remains false: after all behavior/storage assertions passed, its final pidof expected the completed second instrumentation process to remain alive. Android logged killing that process due to finished instrumentation. acceptance.json records this narrower evidence-backed behavior pass without rerunning Save or changing the app/probe. The observation error is retained.
+
+The owned emulator exited0, its group and serial disappeared, the external baseline stayed unchanged, and the exact disposable AVD was deleted. Only a fresh owned workspace was used. No OSIME, V4 long-note, phones, immutable-package, performance or GA acceptance is implied.
