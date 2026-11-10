@@ -630,9 +630,63 @@ final class NativeRenderer {
             !sameEditorBindingV2(old,next)||!old.binding.source().actions.equals(next.binding.source().actions))return false;
         var field=(NativeAppearanceViewsV2.NativeField)old.view;
         if(!field.modelHandoffEligible())return false;
-        AndroidUIProfile geometry=old.verticalInput||field.modelHandoffConsumed()?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL;
         return (sameModelAncestorsV3(c,old.id,false)||sameModelAncestorsV3(c,old.id,true))&&
-            sameFrameV2(old.view,next.view,geometry)&&(old.verticalInput||old.view.getHeight()==next.view.getHeight());
+            (old.verticalInput? sameFrameV2(old.view,next.view,v2Profile):retainedMeasuredFrameV3(c,old,next));
+    }
+    // Both states must still occupy their own prepared source frames. A new
+    // native text measurement can change row centering and rounded edge height
+    // even when the logical hit envelope is unchanged.
+    private boolean retainedMeasuredFrameV3(Candidate c,NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
+        if(!completeCandidateV3(c)||!sourceFrameV3(c.base,c.baseRecords,old.id)||!sourceFrameV3(c.next,c.detached,next.id))return false;
+        String id=old.id;
+        while(id!=null){
+            var a=c.baseRecords.get(id).geometry.box;var b=c.detached.get(id).geometry.box;
+            if(a.x()!=b.x()||a.width()!=b.width())return false;
+            id=parentV2(c.base,id);
+        }
+        int[] a=positionV2(old.view),b=positionV2(next.view);
+        if(a[0]!=b[0]||old.view.getWidth()!=next.view.getWidth())return false;
+        if(a[1]==b[1]&&old.view.getHeight()==next.view.getHeight())return true;
+        for(var before:c.baseRecords.values()){
+            var after=c.detached.get(before.id);
+            if(after!=null&&sameSourceIdentityV3(before.binding.source(),after.binding.source())&&
+                before.geometry.nativeTextHeightPx>=0&&after.geometry.nativeTextHeightPx>=0&&
+                before.geometry.nativeTextHeightPx!=after.geometry.nativeTextHeightPx&&
+                !before.binding.source().properties.equals(after.binding.source().properties))return true;
+        }
+        return false;
+    }
+    private static boolean sourceFrameV3(UiPacket packet,Map<String,NativeAppearanceViewsV2.Record> records,String id){
+        while(id!=null){
+            var record=records.get(id);if(record==null||record.binding.source()!=packet.nodes.get(id))return false;
+            var g=record.geometry;var f=g.preparedFrame;if(f==null||!f.box().equals(g.box)||
+                f.nativeParent()!=record.view.getParent()||f.contentHeight()!=g.contentHeight)return false;
+            String parent=parentV2(packet,id);
+            if(parent==null){
+                if(f.absoluteX()!=g.box.x()||f.absoluteY()!=g.box.y()||f.parentX()!=0||f.parentY()!=0)return false;
+            }else{
+                var ancestor=records.get(parent);if(ancestor==null||ancestor.geometry.preparedFrame==null||
+                    ancestor.group==null||record.view.getParent()!=ancestor.group||
+                    !g.box.equals(ancestor.geometry.children.get(id)))return false;
+                var p=ancestor.geometry.preparedFrame;
+                if(f.parentX()!=p.absoluteX()||f.parentY()!=p.absoluteY()||
+                    f.absoluteX()!=p.absoluteX()+g.box.x()||f.absoluteY()!=p.absoluteY()+g.box.y())return false;
+            }
+            var binding=record.binding;
+            int left=NativeAppearanceViewsV2.px(f.absoluteX(),binding)-NativeAppearanceViewsV2.px(f.parentX(),binding);
+            int top=NativeAppearanceViewsV2.px(f.absoluteY(),binding)-NativeAppearanceViewsV2.px(f.parentY(),binding);
+            int width=NativeAppearanceViewsV2.px(f.absoluteX()+g.box.width(),binding)-NativeAppearanceViewsV2.px(f.absoluteX(),binding);
+            int height=NativeAppearanceViewsV2.px(f.absoluteY()+g.box.height(),binding)-NativeAppearanceViewsV2.px(f.absoluteY(),binding);
+            if(record.view.getLeft()!=left||record.view.getTop()!=top||record.view.getRight()!=left+width||record.view.getBottom()!=top+height)return false;
+            if(record.group!=null){
+                if(record.group.absoluteX!=f.absoluteX()||record.group.absoluteY!=f.absoluteY())return false;
+                if(record.group!=record.view&&(record.group.getParent()!=record.view||
+                    record.group.getLeft()!=0||record.group.getTop()!=0||record.group.getRight()!=width||
+                    record.group.getBottom()!=NativeAppearanceViewsV2.px(f.contentHeight(),binding)))return false;
+            }
+            id=parent;
+        }
+        return true;
     }
     private boolean completeCandidateV3(Candidate c){
         if(c.owner!=this||c.base!=packet||c.baseRecords!=v2Records||c.installed!=v2Installed||

@@ -59,7 +59,7 @@ class BootstrapControls(unittest.TestCase):
     def test_real_pair9_policy_and_all_sources(self):
         a = B.canonical()
         p = a.load_profile()
-        self.assertEqual(p['id'], 'mixer.android-source-pair.17')
+        self.assertEqual(p['id'], 'mixer.android-source-pair.18')
         self.assertEqual((len(p['sdk_files']), len(p['adapter_files']), len(a.java_roster(p))), (24, 27, 21))
         self.assertGreater(len(a.source_inputs(p)), 90)
 

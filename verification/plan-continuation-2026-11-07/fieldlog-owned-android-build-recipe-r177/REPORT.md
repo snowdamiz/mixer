@@ -1,0 +1,25 @@
+# R177 FieldLog Android build recipe
+
+PASS. The new app-owned `scripts/build-android.py` completed one actual public-v3 creation and unsigned Android build in 34.057 seconds, with 49/49 real pipeline commands exiting 0. No corrected build or additional host-test run was needed. The Swift build argv explicitly uses `--jobs 2`; the recipe also sets SwiftPM and OpenMP concurrency to two.
+
+The recipe replaces starter C/Java and Swift glue as one app-owned unit before building. All three materialized C/Java files match the exact R170 archive. NativeEntry.swift and PublicFactory.swift match both R167 and R170; the original 11-argument `mixer_public_android_submit` includes the directory pointer/count. No SDK generator, export name, NativeEntry, business behavior or pagination change was made. This is build/materialization evidence; R170's prior ABI experiment and root's runtime receipts are separate evidence.
+
+Actual command, with the pinned tool environment recorded in environment.json:
+
+```sh
+python3 /Users/andreyyurlov/.t3/userdata/fieldlog-android-recipe-r177-9uuohcww/FieldLog/scripts/build-android.py --mixer /Users/andreyyurlov/.t3/userdata/mixer-pair17-six-r152-bpualfom/cli-build/debug/mixer --sdk-checkout /Users/andreyyurlov/.t3/userdata/fieldlog-android-recipe-r177-9uuohcww/public-mixer --output /Users/andreyyurlov/.t3/userdata/fieldlog-android-recipe-r177-9uuohcww/FieldLogGenerated
+```
+
+The executable SHA256 is `ea73f382de3618ce4f6923a783d7638fff6957a515df984dc1b330e457052049`. It resolves the supplied R152 debug symlink to the same actual binary. The fresh full public Git checkout is `b898d3c3c284e4d2815c1b901b1280146d7d52d8`, tree `2ae40f48f18ef8bbe754a9caef8bd3b3b1e6bc5b`; its status was clean before and after the build. The generated SDK digest `bd41383e532a23b7655edaa5fccd768690439f6bd020684639ef43a05f6082fb`, adapter digest `e552f9e92cbd37c4a8a2efe53aac813726bf912a7e650c89ec2e2a74d57baf9e` and source-pair.17 profile equal the original R162 public build. No private R172 overlay was used. Toolchain evidence records Swift 6.3.3, Xcode 26.6 (17F113), MacOSX26.5 SDK, Android target API/build-tools 37, NDK r27d and JDK 25.0.4.1. The official tool argv, output and versions are in build-receipt.json and source-and-xcode.json.
+
+The source archive begins with exact R167 ZIP SHA256 `577da8808e3b67f403f8540662f205114bdb142a804d2e89ddd6a214b939e998`. The restored glue and generated-package manifests come from exact R170 ZIP SHA256 `050afeb291a52a2fc01b43dcf4e8382807c1baff81693e4510aea5427ef0dee8`. Every original R167 app source and test, the root Package.swift and Package.resolved, and the resolved Xcode lock remain byte exact. Only README.md changes among existing files; seven new files provide the recipe and app-owned Android platform inputs. The archive also retains empty Resources/. The materialized app business modules and Android tests are byte exact. The generated Resources/ is empty.
+
+The nonempty-output guard refused a sentinel directory before any output/log creation and preserved its data. The minimal patch applied to a fresh R167 extraction and reproduced all 58 files in the frozen ZIP exactly. Empty Resources/ is represented in the ZIP; the recipe creates it in the materialized project. The APK has neither v1 signature entries nor an APK signing block. Artifact hashes are in SHA256SUMS.
+
+Deliverables are FieldLog-r177-app-source.zip, FieldLog-r177.patch and FieldLog-r177-unsigned.apk. afterimages/ contains the short README addition, runnable recipe, platform glue/manifests and unchanged root/Xcode locks for local review. raw-commands/ contains unabridged create/build output and all 49 command outputs; pipeline-summary.json indexes their exact argv and exit codes.
+
+All recorded fresh Git, recipe, create and build command groups were positively observed absent after direct-child reaping. The adapter's 49 commands run synchronously inside the build group; no timeout or cleanup signal was needed. Fresh userdata `/Users/andreyyurlov/.t3/userdata/fieldlog-android-recipe-r177-9uuohcww` and build outputs are retained for root review. No device was created, booted or accessed. No signing, install, uninstall, remote upload/push, CI trigger, credential action or child delegation occurred. No canonical Mixer, original-root Git or R104 bare database write occurred. Root owns native integration and separate FieldLog delivery; this lane is ready for one independent local slice review.
+
+Scope deviation: the initial broad `rg --files` discovery scan over the verification parent was cancelled with exit 130 and no paths returned. Its traversal scope was too broad, so traversal into held namespaces cannot be ruled out. Subsequent reads used exact supplied campaign paths. No historical held-process probing, signalling, waiting, retry or cleanup followed. See discovery-scope-deviation.json.
+
+No runtime, phone, signing, immutable published-package or GA acceptance is claimed. No existing 39 Swift Testing plus 7 XCTest host tests were rerun because their source is unchanged.

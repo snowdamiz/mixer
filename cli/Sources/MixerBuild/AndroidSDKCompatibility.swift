@@ -73,7 +73,7 @@ enum AndroidSDKCompatibility {
     static let profile: AndroidSDKProfile = {
         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
         {
-          "adapter_compatibility_sha256": "1c1f685e13ff7465206d7518ba69f36804500c06aae2bb0d00a76b8b272780fc",
+          "adapter_compatibility_sha256": "b377710dcd2bf3704c8402643fe82caa0f2738aff2bae0a51a4aecca1ad9104c",
           "adapter_files": {
             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
               "bytes": 5338,
@@ -128,8 +128,8 @@ enum AndroidSDKCompatibility {
               "sha256": "cc383f5f358714de5a55c65f205fd7e296ab8166657160c38059ca8ac7f4351c"
             },
             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java": {
-              "bytes": 150417,
-              "sha256": "2d1abf727a5b8904fb15336f7fb81dcf51dd9da7dbf8ba6858a9e16746a2e9a1"
+              "bytes": 150860,
+              "sha256": "a247dd62d73af91716b9006198c8ae743d396288a5924b79675ac7e34b8d7d3e"
             },
             "app/src/dev/mixer/android/NativeBridge.java": {
               "bytes": 1076,
@@ -156,8 +156,8 @@ enum AndroidSDKCompatibility {
               "sha256": "0ce92151b26c7375071cf200d1808277c397feda53983aff2161a5d4df97dbf9"
             },
             "app/src/dev/mixer/android/NativeRenderer.java": {
-              "bytes": 109575,
-              "sha256": "2961bf901afa92308b6b1dde9b7c70fdc4f841de52d68d6b34fc079c69416f75"
+              "bytes": 113363,
+              "sha256": "4f3c305bce29d798156698e598df5d32137ba6c4c135a49a5bedec34b3e0e00b"
             },
             "app/src/dev/mixer/android/OwnerLifecycleV2.java": {
               "bytes": 13120,
@@ -188,7 +188,7 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.17",
+          "id": "mixer.android-source-pair.18",
           "schema": 1,
           "sdk_compatibility_sha256": "a689f5653ff2d353e3b0ae202ee6169d64c03448a56ec1d5fee389a9a8ff536f",
           "sdk_files": {

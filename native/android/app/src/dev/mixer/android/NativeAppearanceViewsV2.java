@@ -197,6 +197,8 @@ final class NativeAppearanceViewsV2 {
     }
     static final class Geometry {
         Box box = new Box(0,0,0,0);
+        int nativeTextHeightPx = -1;
+        PreparedFrame preparedFrame;
         long semanticHeight;
         long firstBaseline = -1, lastBaseline = -1;
         final Map<String,Box> children = new HashMap<>();
@@ -205,6 +207,8 @@ final class NativeAppearanceViewsV2 {
         Box header, compact;
         long contentHeight, expandedBar, compactBar, overflow;boolean collapsed;
     }
+    record PreparedFrame(Box box,long absoluteX,long absoluteY,long parentX,long parentY,
+                         android.view.ViewParent nativeParent,long contentHeight) {}
     static final class GroupDrawing {
         final Box box;
         final Path path;
@@ -534,7 +538,8 @@ text.setPadding(px(b.rtl()?in.trailing():in.leading(),b),px(in.top(),b),px(b.rtl
             text.measure(View.MeasureSpec.makeMeasureSpec(maximum,vertical?View.MeasureSpec.EXACTLY:View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));mutation.require();
 
             if(text.getLayout()==null)fail();
-            long nativeHeight=logical(text.getLayout().getHeight(),b);
+            g.nativeTextHeightPx=text.getLayout().getHeight();
+            long nativeHeight=logical(g.nativeTextHeightPx,b);
             long width=logical(text.getMeasuredWidth(),b),height=nativeHeight;
             if(b.node.recipe() instanceof ToggleRecipe t) {g.semanticHeight=nativeHeight;
                 width=Math.max(width,t.metrics().minimumHitWidth64());height=Math.max(Math.max(height,t.metrics().trackHeight64()),t.metrics().minimumHitHeight64());}
@@ -735,6 +740,7 @@ text.setPadding(px(b.rtl()?in.trailing():in.leading(),b),px(in.top(),b),px(b.rtl
         mutation.requireMutation();Mutation previous=r.scoped;r.scoped=mutation;
         try {
         Binding b=r.binding;Box frame=r.geometry.box;
+        r.geometry.preparedFrame=new PreparedFrame(frame,absoluteX,absoluteY,parentX,parentY,r.view.getParent(),r.geometry.contentHeight);
         if(r.group!=null){r.group.absoluteX=absoluteX;r.group.absoluteY=absoluteY;}
         int left=px(absoluteX,b)-px(parentX,b),top=px(absoluteY,b)-px(parentY,b);
         int width=px(sum(absoluteX,frame.width),b)-px(absoluteX,b),height=px(sum(absoluteY,frame.height),b)-px(absoluteY,b);

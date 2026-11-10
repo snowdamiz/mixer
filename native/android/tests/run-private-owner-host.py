@@ -199,7 +199,7 @@ def main(argv=None):
         roster_bytes = (ROOT/ROSTER).read_bytes()
         roster = json.loads(roster_bytes)
         closure = roster['closures']['A-orchestration' if args.closure == 'A' else 'B-concrete-renderer-views']
-        sources = closure['actual_production_sources']+['native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java']+[s['source'] for s in closure['substitutes']]+closure['test_support_sources']+[closure['test_source']]
+        sources = closure['actual_production_sources']+[s['source'] for s in closure['substitutes']]+closure['test_support_sources']+[closure['test_source']]
         check(len(set(sources)) == len(sources), 'duplicate explicit source')
         fqcn = []
         for source in sources:

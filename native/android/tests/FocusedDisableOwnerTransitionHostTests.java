@@ -96,8 +96,20 @@ public final class FocusedDisableOwnerTransitionHostTests {
         for(String label:List.of("captured-busy","synthesized-disabled-only","synthesized-busy-responsible-enabled")){
             byte[] next=label.equals("captured-busy")?busy:label.equals("synthesized-disabled-only")?variant(echo,"disableOnly"):variant(busy,"enabled");
             try(Fixture f=new Fixture(opened);Fixture shadow=new Fixture(next)){
-                f.acknowledged();NativeRenderer.Candidate c=candidate(f,shadow,"");
-                Throwable failure=preflight(f,c);var old=f.renderer.inspectV2().get("task.responsible");var proposed=shadow.renderer.inspectV2().get("task.responsible");
+                f.acknowledged();
+                // A detached candidate shares its renderer's input and editor fence.
+                // Borrow that context only for this read-only private preflight.
+                Field input=NativeAppearanceViewsV2.Record.class.getDeclaredField("input");input.setAccessible(true);
+                Field fence=NativeAppearanceViewsV2.Record.class.getDeclaredField("editorFence");fence.setAccessible(true);
+                List<Object[]> prior=new ArrayList<>();Throwable failure;
+                try{
+                    for(var record:shadow.renderer.inspectV2().values()){
+                        prior.add(new Object[]{record,input.get(record),fence.get(record)});
+                        input.set(record,get(f.renderer,"v2Input"));fence.set(record,get(f.renderer,"v2Fence"));
+                    }
+                    failure=preflight(f,candidate(f,shadow,""));
+                }finally{for(Object[] record:prior){input.set(record[0],record[1]);fence.set(record[0],record[2]);}}
+                var old=f.renderer.inspectV2().get("task.responsible");var proposed=shadow.renderer.inspectV2().get("task.responsible");
                 Map<String,Object> left=new LinkedHashMap<>(old.binding.source().properties),right=new LinkedHashMap<>(proposed.binding.source().properties);
                 left.remove("value");right.remove("value");left.remove("disabled");right.remove("disabled");
                 check(left.equals(right)&&old.binding.source().actions.equals(proposed.binding.source().actions),"configuration excluding disabled identical");
