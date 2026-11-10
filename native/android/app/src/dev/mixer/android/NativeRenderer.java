@@ -377,11 +377,14 @@ final class NativeRenderer {
             rootWidth=root.getWidth();rootHeight=root.getHeight();oldGate=candidate.owner.v2Gate;oldCanvas=oldGate==null?0:oldGate.canvasColor;if(oldGate!=null)parents.add(new ParentState(oldGate));
         }
     }
+    private enum FieldUpdateV3 { ORDINARY, PRESERVE, HANDOFF, RETIRE, SETTLED }
     private static final class NativeState {
         final AttachmentJournal journal;final int position;
         final NativeAppearanceViewsV2.Record record;
         final NativeAppearanceViewsV2.Binding binding;
         final NativeAppearanceViewsV2.Geometry geometry;
+        final FieldUpdateV3 update;
+        final NativeAppearanceViewsV2.NativeField.Attempt predecessor;
         final CharSequence text,nativeBuffer;
         final List<CompositionSpan> composition;
         final int[] drawableState,windowPosition;
@@ -405,6 +408,8 @@ final class NativeRenderer {
             selectionStart=record.view instanceof TextView t?t.getSelectionStart():-1;
             selectionEnd=record.view instanceof TextView t?t.getSelectionEnd():-1;
             scrollX=record.view.getScrollX();scrollY=record.view.getScrollY();checked=record.view instanceof Switch value&&value.isChecked();focused=record.view.hasFocus();pressed=record.view.isPressed();
+            predecessor=record.view instanceof NativeAppearanceViewsV2.NativeField field?field.attempt:null;
+            update=journal.candidate.owner.fieldUpdateV3(journal.candidate,record);
         }
     }
     /** Captured once before Begin, so replacing a mutable scope slot cannot grant custody. */
@@ -431,6 +436,7 @@ final class NativeRenderer {
             view.getLeft()!=state.left||view.getTop()!=state.top||view.getRight()!=state.right||view.getBottom()!=state.bottom||
             view.getMeasuredWidth()!=state.measuredWidth||view.getMeasuredHeight()!=state.measuredHeight||
             view.getScrollX()!=state.scrollX||view.getScrollY()!=state.scrollY||!Arrays.equals(position,state.windowPosition)||!Arrays.equals(view.getDrawableState(),state.drawableState))return false;
+        if(view instanceof NativeAppearanceViewsV2.NativeField field&&field.attempt!=state.predecessor)return false;
         if(view instanceof Switch toggle&&toggle.isChecked()!=state.checked)return false;
         if(view instanceof TextView text){
             if(text.getText()!=state.nativeBuffer||!text.getText().toString().contentEquals(state.text)||
@@ -512,8 +518,13 @@ final class NativeRenderer {
     private void preflightEditorPlanV2(UiPacket next,AppearanceResolverV2.Plan plan,InstalledAppearanceV2 installed){
         for(int i=0;i<v2RosterCount;i++){
             var old=v2Roster[i];
-            if(old==null||!(old.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.hasLiveTarget())continue;
+            if(old==null||!(old.view instanceof NativeAppearanceViewsV2.NativeField field))continue;
             UiPacket.Node source=next.nodes.get(old.id);
+            if(v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&source==null){
+                if(frameRetirementV3(old,null))continue;
+                throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+            }
+            if(!field.hasLiveTarget())continue;
             if(frameRetirementV3(old,source))continue;
             if(source==null||!source.kind.equals(old.kind)||!source.generation.equals(old.generation))
                 throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
@@ -521,7 +532,7 @@ final class NativeRenderer {
             if(!(a.node().recipe() instanceof AppearanceResolverV2.FieldRecipe before)||!(proposed.recipe() instanceof AppearanceResolverV2.FieldRecipe after))
                 throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
             Map<String,Object> left=new HashMap<>(a.source().properties),right=new HashMap<>(source.properties);left.remove("value");right.remove("value");
-            boolean disabling=modelDisableV3(old,source);
+            boolean disabling=modelHandoffValueV3(old,source);
             if(disabling){left.remove("disabled");right.remove("disabled");}
             boolean same=before.label().equals(after.label())&&before.metrics().equals(after.metrics())&&before.text().role()==after.text().role()&&
                 before.text().metrics().equals(after.text().metrics())&&before.text().selectable()==after.text().selectable()&&
@@ -533,20 +544,36 @@ final class NativeRenderer {
             while(same&&current!=null){String beforeParent=parentV2(packet,current),afterParent=parentV2(next,current);same=Objects.equals(beforeParent,afterParent);
                 if(beforeParent!=null){UiPacket.Node beforeNode=packet.nodes.get(beforeParent),afterNode=next.nodes.get(afterParent);
                     same=same&&afterNode!=null&&beforeNode.kind.equals(afterNode.kind)&&beforeNode.generation.equals(afterNode.generation);
-                    if(same){List<String> beforeChildren=new ArrayList<>(),afterChildren=new ArrayList<>();for(var child:beforeNode.children)beforeChildren.add(child.id);for(var child:afterNode.children)afterChildren.add(child.id);same=beforeChildren.equals(afterChildren);}}
+                    if(v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3){
+                        // Sibling reconciliation requires the complete measured candidate below.
+                        same=same&&beforeNode.properties.equals(afterNode.properties)&&beforeNode.actions.equals(afterNode.actions);
+                    }else if(same){List<String> beforeChildren=new ArrayList<>(),afterChildren=new ArrayList<>();for(var child:beforeNode.children)beforeChildren.add(child.id);for(var child:afterNode.children)afterChildren.add(child.id);same=beforeChildren.equals(afterChildren);}}
                 current=beforeParent;}
             if(!same)throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
         }
     }
     private void preflightEditorsV2(Candidate c){
-        for(var previous:v2Records.values()){
+        for(var state:c.journal.previous){
+            var previous=state.record;
+            if(v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&previous.view instanceof NativeAppearanceViewsV2.NativeField field&&
+                (field.attempt!=state.predecessor||fieldUpdateV3(c,previous)!=state.update||
+                 !c.next.nodes.containsKey(previous.id)&&state.update!=FieldUpdateV3.RETIRE))
+                throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+            if(state.update==FieldUpdateV3.HANDOFF||state.update==FieldUpdateV3.RETIRE||state.update==FieldUpdateV3.SETTLED)continue;
+            if(v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&previous.view instanceof NativeAppearanceViewsV2.NativeField){
+                if(!retainedFieldUpdateV3(c,previous,c.detached.get(previous.id)))
+                    throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+                continue;
+            }
+            if(state.update==FieldUpdateV3.PRESERVE){
+                var shadow=c.detached.get(previous.id);
+                if(c.targets.get(previous.id)!=previous||shadow==null||!sameEditorBindingV2(previous,shadow))
+                    throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
+            }
             boolean active=previous.view instanceof EditText edit&&(edit.hasFocus()||android.view.inputmethod.BaseInputConnection.getComposingSpanStart(edit.getText())>=0);
             boolean selecting=previous.view instanceof TextView text&&text.isTextSelectable()&&text.getSelectionStart()>=0;
             if(!active&&!selecting)continue;
-            if(frameRetirementV3(previous,c.next.nodes.get(previous.id)))continue;
             var shadow=c.detached.get(previous.id);
-            if(modelDisableV3(c,previous,shadow))continue;
-            if(programmaticClearV3(c,previous,shadow))continue;
             if(c.targets.get(previous.id)!=previous||shadow==null||!sameEditorBindingV2(previous,shadow)||!sameAncestorsV2(c,previous.id)||
                 !sameFrameV2(previous.view,shadow.view,previous.verticalInput?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL))throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
         }
@@ -572,28 +599,113 @@ final class NativeRenderer {
             a.plan().environment.direction()==b.plan().environment.direction()&&a.plan().environment.density1024()==b.plan().environment.density1024()&&
             a.plan().environment.localeIdentifier().equals(b.plan().environment.localeIdentifier())&&a.theme().equals(b.theme());
     }
-    // A V3 model may disable an acknowledged horizontal editor; all other bindings stay exact.
-    private boolean modelDisableV3(NativeAppearanceViewsV2.Record old,UiPacket.Node source){
-        return v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&!old.verticalInput&&source!=null&&source.disabled&&
-            source.id.equals(old.id)&&source.kind.equals(old.kind)&&source.generation.equals(old.generation)&&
-            old.view instanceof NativeAppearanceViewsV2.NativeField field&&field.modelDisableEligible()&&
-            source.text("value","").equals(old.binding.nativeFieldValue());
-    }
-    private boolean modelDisableV3(Candidate c,NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
-        return c.owner==this&&c.targets.get(old.id)==old&&next!=null&&modelDisableV3(old,next.binding.source())&&
-            sameEditorConfigurationV2(old,next,true)&&old.binding.source().actions.equals(next.binding.source().actions)&&
-            sameAncestorsV2(c,old.id)&&sameFrameV2(old.view,next.view,AndroidUIProfile.LEGACY_HORIZONTAL);
-    }
-    // Only an acknowledged model draft may be cleared through the owner transaction.
-    // The captured FieldTransition consumes its predecessor before any text replacement.
-    private boolean programmaticClearV3(Candidate c,NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
-        if(v2Profile!=AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3||c.targets.get(old.id)!=old||next==null||
-            !old.kind.equals(next.kind)||!old.generation.equals(next.generation)||
-            !(old.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.programmaticClearEligible()||
-            !next.binding.nativeFieldValue().isEmpty()||old.binding.nativeFieldValue().isEmpty()||
+    // Model authority acknowledges the complete native buffer, never an unreported edit.
+    private boolean modelHandoffValueV3(NativeAppearanceViewsV2.Record old,UiPacket.Node source){
+        if(v2Profile!=AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3||source==null||
+            !source.id.equals(old.id)||!source.kind.equals(old.kind)||!source.generation.equals(old.generation)||
+            !(old.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.modelHandoffEligible()||
             !old.binding.nativeFieldValue().equals(field.nativeEditable().toString()))return false;
-        return sameEditorConfigurationV2(old,next)&&old.binding.source().actions.equals(next.binding.source().actions)&&
-            sameAncestorsV2(c,old.id)&&sameFrameV2(old.view,next.view,old.verticalInput?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL);
+        String before=old.binding.nativeFieldValue(),after=source.text("value","");
+        return (before.equals(after)||!before.isEmpty()&&after.isEmpty())&&
+            (old.binding.node().disabled()!=source.disabled||!before.equals(after));
+    }
+    private boolean modelHandoffV3(Candidate c,NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
+        if(c.owner!=this||c.baseRecords.get(old.id)!=old||c.targets.get(old.id)!=old||next==null||
+            !modelHandoffValueV3(old,next.binding.source()))return false;
+        var field=(NativeAppearanceViewsV2.NativeField)old.view;
+        boolean consumed=field.modelHandoffConsumed();
+        // A consumed predecessor grants no live horizontal buffer authority. Its
+        // retained recipe still fixes X, width and horizontal height after reflow.
+        AndroidUIProfile geometry=old.verticalInput||consumed?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL;
+        return sameEditorConfigurationV2(old,next,true)&&old.binding.source().actions.equals(next.binding.source().actions)&&
+            (sameModelAncestorsV3(c,old.id,false)||consumed&&sameModelAncestorsV3(c,old.id,true))&&
+            sameFrameV2(old.view,next.view,geometry)&&(old.verticalInput||old.view.getHeight()==next.view.getHeight());
+    }
+    // A retained field acknowledges its own complete native buffer. Sibling edits
+    // grant no authority over its target, input contract or source lineage.
+    private boolean retainedFieldUpdateV3(Candidate c,NativeAppearanceViewsV2.Record old,NativeAppearanceViewsV2.Record next){
+        if(c.owner!=this||c.base!=packet||c.baseRecords!=v2Records||c.baseRecords.get(old.id)!=old||
+            old.editorFence!=v2Fence||old.input!=v2Input||old.binding.source()!=c.base.nodes.get(old.id)||
+            c.targets.get(old.id)!=old||next==null||!sameSourceIdentityV3(old.binding.source(),next.binding.source())||
+            !sameEditorBindingV2(old,next)||!old.binding.source().actions.equals(next.binding.source().actions))return false;
+        var field=(NativeAppearanceViewsV2.NativeField)old.view;
+        if(!field.modelHandoffEligible())return false;
+        AndroidUIProfile geometry=old.verticalInput||field.modelHandoffConsumed()?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL;
+        return (sameModelAncestorsV3(c,old.id,false)||sameModelAncestorsV3(c,old.id,true))&&
+            sameFrameV2(old.view,next.view,geometry)&&(old.verticalInput||old.view.getHeight()==next.view.getHeight());
+    }
+    private boolean completeCandidateV3(Candidate c){
+        if(c.owner!=this||c.base!=packet||c.baseRecords!=v2Records||c.installed!=v2Installed||
+            !c.targets.keySet().equals(c.next.nodes.keySet())||!c.detached.keySet().equals(c.next.nodes.keySet()))return false;
+        for(var source:c.next.nodes.values()){
+            var shadow=c.detached.get(source.id);var target=c.targets.get(source.id);var old=c.baseRecords.get(source.id);
+            if(shadow==null||target==null||shadow.binding.source()!=source||shadow.binding.plan()!=c.plan||
+                shadow.editorFence!=v2Fence||shadow.input!=v2Input)return false;
+            if(old!=null&&old.kind.equals(source.kind)&&old.generation.equals(source.generation)){
+                if(target!=old)return false;
+            }else if(target!=shadow)return false;
+        }
+        return true;
+    }
+    private static boolean sameSourceIdentityV3(UiPacket.Node a,UiPacket.Node b){
+        return a!=null&&b!=null&&a.id.equals(b.id)&&a.kind.equals(b.kind)&&a.generation.equals(b.generation);
+    }
+    // The ordered prefix through this editor's branch is immutable. A complete
+    // candidate may change its owned tail while retaining source lineage/order;
+    // every old editor still has its own journal plan and transition membership.
+    private boolean sameModelAncestorsV3(Candidate c,String id,boolean tail){
+        if(tail&&!completeCandidateV3(c))return false;
+        String current=id;
+        while(current!=null){
+            String before=parentV2(c.base,current),after=parentV2(c.next,current);
+            if(!Objects.equals(before,after))return false;
+            if(before!=null){
+                var a=c.base.nodes.get(before);var b=c.next.nodes.get(after);
+                if(!sameSourceIdentityV3(a,b)||!a.properties.equals(b.properties)||!a.actions.equals(b.actions))return false;
+                int prefix=0;
+                while(prefix<a.children.size()&&prefix<b.children.size()&&sameSourceIdentityV3(a.children.get(prefix),b.children.get(prefix))){
+                    prefix++;if(a.children.get(prefix-1).id.equals(current))break;
+                }
+                if(prefix==0||!a.children.get(prefix-1).id.equals(current))return false;
+                if(!tail){
+                    if(a.children.size()!=b.children.size())return false;
+                    for(int i=prefix;i<a.children.size();i++)if(!sameSourceIdentityV3(a.children.get(i),b.children.get(i)))return false;
+                }else{
+                    List<String> left=new ArrayList<>(),right=new ArrayList<>();
+                    for(int i=prefix;i<a.children.size();i++){
+                        var n=a.children.get(i);
+                        if(!ownedTailV3(c,n,true))return false;
+                        if(c.next.nodes.containsKey(n.id))left.add(n.id);
+                    }
+                    for(int i=prefix;i<b.children.size();i++){
+                        var n=b.children.get(i);
+                        if(!ownedTailV3(c,n,false))return false;
+                        if(c.base.nodes.containsKey(n.id))right.add(n.id);
+                    }
+                    if(!left.equals(right))return false;
+                }
+            }
+            current=before;
+        }
+        return true;
+    }
+    private boolean ownedTailV3(Candidate c,UiPacket.Node source,boolean old){
+        var other=(old?c.next:c.base).nodes.get(source.id);
+        if(other!=null&&(!sameSourceIdentityV3(source,other)||
+            !Objects.equals(parentV2(c.base,source.id),parentV2(c.next,source.id))))return false;
+        // Adding editor contracts is not authority derived from another editor.
+        if(!old&&other==null&&source.kind.equals("textField"))return false;
+        for(var child:source.children)if(!ownedTailV3(c,child,old))return false;
+        return true;
+    }
+    private FieldUpdateV3 fieldUpdateV3(Candidate c,NativeAppearanceViewsV2.Record record){
+        if(v2Profile!=AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3||!(record.view instanceof NativeAppearanceViewsV2.NativeField field))return FieldUpdateV3.ORDINARY;
+        var shadow=c.detached.get(record.id);
+        if(frameRetirementV3(record,c.next.nodes.get(record.id))&&c.baseRecords.get(record.id)==record&&
+            c.targets.get(record.id)==null&&c.detached.get(record.id)==null&&completeCandidateV3(c))return FieldUpdateV3.RETIRE;
+        if(modelHandoffV3(c,record,shadow))return FieldUpdateV3.HANDOFF;
+        if(record.verticalInput&&field.transitionInactive()&&retainedFieldUpdateV3(c,record,shadow))return FieldUpdateV3.SETTLED;
+        return field.needsFieldPreservation()?FieldUpdateV3.PRESERVE:FieldUpdateV3.ORDINARY;
     }
     // Called only after exact target reuse, current-buffer echo, binding and ancestry checks.
     // V3 multiline layout may translate vertically as its measured height changes.
@@ -678,9 +790,11 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         }finally{v2Mutation=previousMutation;}
     }
     private boolean frameRetirementV3(NativeAppearanceViewsV2.Record record,UiPacket.Node incoming){
-        return v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&record.verticalInput&&
-            record.view instanceof NativeAppearanceViewsV2.NativeField field&&field.transitionEligible()&&
-            (incoming==null||incoming.kind.equals(record.kind)&&incoming.generation.equals(record.generation)&&incoming.disabled);
+        return v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&incoming==null&&
+            v2Records.get(record.id)==record&&record.editorFence==v2Fence&&record.input==v2Input&&
+            packet.nodes.get(record.id)==record.binding.source()&&
+            record.view instanceof NativeAppearanceViewsV2.NativeField field&&field.modelHandoffEligible()&&
+            record.binding.nativeFieldValue().equals(field.nativeEditable().toString());
     }
     private boolean transitionMembershipV3(AttachmentJournal j){
         if(j==null||j.states==null||j.stateCount!=j.states.length||j.previous.size()!=j.stateCount||j.transitionRoster.length!=j.stateCount)return false;
@@ -707,20 +821,21 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
             (scope.removal?c.targets.get(r.id)==null:c.targets.get(r.id)==r&&c.detached.get(r.id)!=null&&c.detached.get(r.id).binding==scope.selected);
     }
     boolean transitionLossCurrentV3(AttachmentJournal j){return j!=null&&j.transitionLoss==editorLossSerial;}
-    void accountTransitionLossV3(NativeAppearanceViewsV2.FieldTransition scope,long prior,String hook){
+    void accountTransitionLossV3(NativeAppearanceViewsV2.FieldTransition scope,long prior,NativeAppearanceViewsV2.FieldLifecycle event,boolean ownedRemoval){
+        String hook=event.hook;
         Candidate c=scope.candidate;AttachmentJournal j=scope.journal;
         if(!fieldTransitionCurrent(c,j,scope.record,scope)||!j.transitionsSealed||j.transitionLoss!=prior||prior==Long.MAX_VALUE||editorLossSerial!=prior+1||
             scope.hooks.size()!=1||!hook.equals(scope.hooks.peek())||scope.checking||!scope.identityScalar()||lastEditorLossRecord!=scope.record)throw Json.bad("unowned transition loss");
         TransitionMembership claimed=null;
         for(var member:j.transitionRoster)if(member!=null&&member.scope==scope)claimed=member;
-        if(claimed==null||!(hook.equals("focus")&&scope.retire&&scope.phase==NativeAppearanceViewsV2.FieldTransition.FOCUS&&scope.focusClaimed&&!claimed.focusLossClaimed||
-            hook.equals("detach")&&scope.removal&&scope.phase==NativeAppearanceViewsV2.FieldTransition.ATTACHING&&scope.detachClaimed&&!claimed.detachLossClaimed))throw Json.bad("replayed transition loss");
+        if(claimed==null||!(event==NativeAppearanceViewsV2.FieldLifecycle.FOCUS&&scope.retire&&scope.phase==NativeAppearanceViewsV2.FieldTransition.FOCUS&&scope.focusClaimed&&!claimed.focusLossClaimed||
+            ownedRemoval&&scope.removalCall!=null&&scope.removalCall.owns(scope)&&scope.removalLoss(event)))throw Json.bad("replayed transition loss");
         int count=0;
         for(var member:j.transitionRoster)if(member!=null){var s=member.scope;count++;
             if(!fieldTransitionCurrent(c,j,s.record,s)||!s.identityScalar()||s.checking||s!=scope&&!s.hooks.isEmpty())throw Json.bad("changed transition loss cohort");
         }
         if(count!=outstandingFieldTransitions||outstandingEditorNativeCalls<count+c.heldPreservations)throw Json.bad("unfunded transition loss cohort");
-        if(hook.equals("focus"))claimed.focusLossClaimed=true;else claimed.detachLossClaimed=true;
+        if(!ownedRemoval)claimed.focusLossClaimed=true;
         j.transitionLoss=editorLossSerial;
     }
     private void beginFieldTransitionsV3(Candidate c,NativeAppearanceViewsV2.Mutation mutation){
@@ -731,16 +846,14 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         for(var state:j.previous){
             var record=state.record;if(!(record.view instanceof NativeAppearanceViewsV2.NativeField field))continue;
             var shadow=c.detached.get(record.id);
-            boolean clear=programmaticClearV3(c,record,shadow);
-            boolean disabling=modelDisableV3(c,record,shadow);
-            if(!record.verticalInput&&!clear&&!disabling)continue;
-            boolean retire=clear||disabling||frameRetirementV3(record,c.next.nodes.get(record.id));
-            if(!retire&&!field.transitionInactive())continue;
+            var update=state.update;
+            if(update!=FieldUpdateV3.HANDOFF&&update!=FieldUpdateV3.RETIRE&&update!=FieldUpdateV3.SETTLED)continue;
+            boolean retire=update!=FieldUpdateV3.SETTLED;
             if(record.fieldTransition!=null||record.fieldPreservation!=null||state.transition!=null||!sameNativeBaseV2(state)||
-                shadow!=null&&c.targets.get(record.id)!=record||outstandingEditorNativeCalls==Integer.MAX_VALUE)
+                shadow!=null&&c.targets.get(record.id)!=record||outstandingEditorNativeCalls==Integer.MAX_VALUE||fieldUpdateV3(c,record)!=update)
                 throw Json.bad("invalid settled attachment source");
             var scope=new NativeAppearanceViewsV2.FieldTransition(this,c,j,record,shadow==null?null:shadow.binding,mutation,retire);
-            if(!sameNativeBaseV2(state)||!(disabling?field.modelDisableEligible():clear?field.programmaticClearEligible():field.transitionEligible())||!transitionLossCurrentV3(j)||!transitionMembershipV3(j))throw Json.bad("settled attachment changed during capture");
+            if(!sameNativeBaseV2(state)||fieldUpdateV3(c,record)!=update||!transitionLossCurrentV3(j)||!transitionMembershipV3(j))throw Json.bad("settled attachment changed during capture");
             var member=new TransitionMembership(state,scope);
             state.transitionMembership=member;j.transitionRoster[state.position]=member;j.transitionCount++;
             state.transition=scope;record.fieldTransition=scope;scope.registered=true;outstandingFieldTransitions++;outstandingEditorNativeCalls++;
@@ -759,11 +872,11 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
     }
     private void failedTransitionsV3(Candidate c){
         AttachmentJournal j=c.journal;
-        for(var member:j.transitionRoster)if(member!=null&&member.scope.irreversible)nativeInstallFailure=true;
+        for(var member:j.transitionRoster)if(member!=null&&(member.scope.irreversible||member.scope.removalCall!=null))nativeInstallFailure=true;
         if(!transitionMembershipV3(j))throw Json.bad("changed failed transition roster");
         int count=0;
         for(var member:j.transitionRoster){if(member==null)continue;var s=member.scope;
-            if(s.ended||!fieldTransitionIdentity(c,j,s.record,s)||s.record.fieldTransition!=s||s.checking||!s.hooks.isEmpty()||!s.registered)throw Json.bad("unbalanced failed settled attachment");
+            if(s.ended||!fieldTransitionIdentity(c,j,s.record,s)||s.record.fieldTransition!=s||s.checking||!s.hooks.isEmpty()||!s.registered||!s.failedReleaseReady())throw Json.bad("unbalanced failed settled attachment");
             count++;
         }
         if(count!=outstandingFieldTransitions||outstandingEditorNativeCalls<count)throw Json.bad("unfunded failed transition cohort");

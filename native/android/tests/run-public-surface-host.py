@@ -87,7 +87,7 @@ try:
             if f.name in concrete_sources:
                 concrete_sources[f.name] = f
     concrete_leaves = sorted((tests / 'NativeOwnerV2ConcreteHostLeaves').rglob('*.java'))
-    reflow_inputs = sorted(set(concrete_sources.values()) | set(concrete_leaves) | {tests / 'VerticalReflowHostTests.java', tests / 'GeneratedAddTransitionHostTests.java', tests / 'FocusedDisableOwnerTransitionHostTests.java'})
+    reflow_inputs = sorted(set(concrete_sources.values()) | set(concrete_leaves) | {tests / 'VerticalReflowHostTests.java', tests / 'GeneratedAddTransitionHostTests.java', tests / 'FocusedDisableOwnerTransitionHostTests.java', tests / 'CompleteHandoffHostTests.java', tests / 'FailureDismissalHostTests.java', tests / 'CapturedPredecessorCustodyHostTests.java', tests / 'EditorTransactionHostTests.java'})
     (args.evidence / 'vertical-reflow-inputs.json').write_text(json.dumps({str(f.relative_to(root)) if f.is_relative_to(root) else str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in reflow_inputs}, indent=2) + '\n')
     reflow_classes = scratch / 'vertical-reflow-classes'
     reflow_classes.mkdir()
@@ -101,6 +101,15 @@ try:
     focused_inputs = [focused_packets / name for name in ('descriptor.json', 'synthesized-acknowledged-presave.json', '201-2.json', '201-3.json')]
     (args.evidence / 'focused-disable-packet-inputs.json').write_text(json.dumps({str(f.relative_to(root)): hashlib.sha256(f.read_bytes()).hexdigest() for f in focused_inputs}, indent=2) + '\n')
     run('focused-disable-transition', [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.FocusedDisableOwnerTransitionHostTests', focused_packets, 'candidate'])
+    editor_packets = tests / 'EditorTransactionPackets'
+    editor_pins = json.loads((editor_packets / 'inputs.json').read_bytes())
+    for name, expected in editor_pins.items():
+        raw = (editor_packets / name).read_bytes()
+        if {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()} != expected:
+            raise ValueError('editor packet identity differs: ' + name)
+    (args.evidence / 'editor-transaction-packet-inputs.json').write_text(json.dumps(editor_pins, indent=2) + '\n')
+    for main in ('CompleteHandoffHostTests', 'FailureDismissalHostTests', 'CapturedPredecessorCustodyHostTests', 'EditorTransactionHostTests'):
+        run(main, [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.' + main, editor_packets])
     passed = True
 finally:
     if passed:

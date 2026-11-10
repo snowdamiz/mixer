@@ -712,7 +712,7 @@ text.setPadding(px(b.rtl()?in.trailing():in.leading(),b),px(in.top(),b),px(b.rtl
         if(r.group==null)return;
         List<View> desired=new ArrayList<>();if(r.header!=null)desired.add(r.header);if(r.compact!=null)desired.add(r.compact);
         for(String id:r.binding.node.childIDs())desired.add(records.get(id).view);
-        for(int index=r.group.getChildCount()-1;index>=0;index--)if(!desired.contains(r.group.getChildAt(index))){r.group.removeViewAt(index);mutation.require();}
+        for(int index=r.group.getChildCount()-1;index>=0;index--)if(!desired.contains(r.group.getChildAt(index))){FieldRemoval.remove(r.group,index,mutation);mutation.require();}
 
         for(int index=0;index<desired.size();index++) {
             View child=desired.get(index);if(index<r.group.getChildCount()&&r.group.getChildAt(index)==child)continue;
@@ -924,6 +924,38 @@ return;
             return text.equals(next.text)&&start==next.start&&end==next.end&&sameSpans(next.spans)&&java.util.Arrays.equals(bounds,next.bounds);
         }
     }
+    enum FieldLifecycle {
+        FOCUS("focus"),WINDOW_FOCUS("windowFocus"),WINDOW_VISIBILITY("windowVisibility"),AGGREGATE("aggregate"),VISIBILITY("visibility"),DETACH("detach"),ATTACH("attach");
+        final String hook;FieldLifecycle(String hook){this.hook=hook;}
+        int bit(){return 1<<ordinal();}
+    }
+    /** Authority for one captured parent/child removal and its exact field descendants. */
+    static final class FieldRemoval {
+        final ViewGroup parent;final View child;final Mutation original;final FieldTransition[] scopes;
+        boolean executing,returned;
+        private FieldRemoval(ViewGroup parent,View child,Mutation original,FieldTransition[] scopes){this.parent=parent;this.child=child;this.original=original;this.scopes=scopes;}
+        private static void capture(View view,java.util.ArrayList<FieldTransition> scopes){
+            if(view instanceof NativeField field&&field.record.fieldTransition!=null)scopes.add(field.record.fieldTransition);
+            if(view instanceof ViewGroup group)for(int i=0;i<group.getChildCount();i++)capture(group.getChildAt(i),scopes);
+        }
+        static void remove(ViewGroup parent,int index,Mutation mutation){
+            View child=parent.getChildAt(index);java.util.ArrayList<FieldTransition> captured=new java.util.ArrayList<>();capture(child,captured);
+            if(captured.isEmpty()){parent.removeViewAt(index);return;}
+            FieldRemoval removal=new FieldRemoval(parent,child,mutation,captured.toArray(new FieldTransition[0]));
+            for(var scope:removal.scopes){scope.exact();if(!scope.removal||scope.phase!=FieldTransition.ATTACHING||scope.original!=mutation||scope.removalCall!=null)
+                throw new IllegalStateException("foreign model removal");}
+            mutation.requireMutation();if(parent.getChildAt(index)!=child||child.getParent()!=parent)throw new IllegalStateException("changed model removal child");
+            for(var scope:removal.scopes)scope.removalCall=removal;
+            removal.executing=true;
+            try{parent.removeViewAt(index);removal.returned=true;}finally{removal.executing=false;}
+            if(child.getParent()!=null||parent.indexOfChild(child)>=0)throw new IllegalStateException("model removal did not detach captured child");
+            for(var scope:removal.scopes)scope.exact();
+        }
+        boolean owns(FieldTransition scope){
+            if(!executing||returned||scope.removalCall!=this||scope.original!=original||!scope.removal||scope.phase!=FieldTransition.ATTACHING)return false;
+            for(var captured:scopes)if(captured==scope)return true;return false;
+        }
+    }
     /** A frame-derived, exact attachment permit. It grants no application or old-IME entry. */
     static final class FieldTransition {
         static final int CAPTURED=0,FINISHING=1,CLOSING=2,FOCUS=3,ATTACHING=4,RESTORING=5,READY=6;
@@ -932,7 +964,8 @@ return;
         final Binding before,selected;final NativeField.Attempt predecessor;final android.view.inputmethod.InputConnection target;
         final Editable editable;final EditorSnapshot snapshot;final boolean removal,retire,wasSettled;
         final OwnerLifecycleV2.Token presentation;
-        int phase=CAPTURED;boolean registered,ended,checking,irreversible,focusClaimed,detachClaimed;
+        int phase=CAPTURED;boolean registered,ended,checking,irreversible,closeReturned,focusClaimed,detachClaimed;
+        FieldRemoval removalCall;int removalLosses;
         Editable currentEditable,readyEditable;boolean settingText,adoptedText;
         final java.util.ArrayDeque<String> hooks=new java.util.ArrayDeque<>();
         FieldTransition(NativeRenderer renderer,NativeRenderer.Candidate candidate,NativeRenderer.AttachmentJournal journal,
@@ -948,7 +981,11 @@ return;
             original.fence.presentation==presentation&&record.binding!=null&&(record.binding==before||record.binding==selected)&&field.attempt==predecessor&&
             record.generation.equals(before.source.generation)&&(predecessor==null||predecessor.target==target&&predecessor.editable==editable)&&
             field.replacement==null&&field.depth==0&&record.editorCallbackLease==null&&record.replacementCallback==null&&!field.permanent&&
-            !field.windowFocusLost&&!field.windowHidden&&!field.aggregateHidden&&!field.viewHidden&&(!field.detached||removal&&detachClaimed);}
+            (!field.windowFocusLost||removalLoss(FieldLifecycle.WINDOW_FOCUS))&&(!field.windowHidden||removalLoss(FieldLifecycle.WINDOW_VISIBILITY))&&
+            (!field.aggregateHidden||removalLoss(FieldLifecycle.AGGREGATE))&&(!field.viewHidden||removalLoss(FieldLifecycle.VISIBILITY))&&(!field.detached||removalLoss(FieldLifecycle.DETACH));}
+        boolean removalLoss(FieldLifecycle event){return removalCall!=null&&(removalCall.executing||removalCall.returned)&&(removalLosses&event.bit())!=0;}
+        boolean failedReleaseReady(){return (removalCall==null||removalCall.returned)&&(!irreversible||closeReturned&&field.attempt==predecessor&&
+            predecessor!=null&&predecessor.target==target&&predecessor.editable==editable&&predecessor.revoked&&predecessor.close==NativeField.Close.RETURNED);}
         boolean scalar(){return identityScalar()&&renderer.fieldTransitionCurrent(candidate,journal,record,this)&&renderer.transitionLossCurrentV3(journal);}
         boolean readyScalar(){return scalar()&&!checking&&!settingText&&hooks.isEmpty()&&phase==READY&&currentEditable!=null&&currentEditable==readyEditable&&
             (removal?record.binding==before:record.binding==selected)&&field.phase==NativeField.Phase.IDLE&&
@@ -970,14 +1007,17 @@ return;
             exact();if(hooks.size()>=16||hooks.contains(hook))throw new IllegalStateException("recursive settled callback");
             hooks.push(hook);try{nativeCall.run();exact();}finally{hooks.pop();}
         }
-        void lifecycle(String hook,boolean losing,Runnable denial,Runnable gain,Runnable nativeCall){
+        void lifecycle(FieldLifecycle event,boolean losing,Runnable denial,Runnable gain,Runnable nativeCall){
+            String hook=event.hook;
             exact();if(hooks.size()>=16||hooks.contains(hook))throw new IllegalStateException("recursive settled lifecycle");
             hooks.push(hook);
             try{
                 if(losing){
-                    boolean expected=hook.equals("focus")&&retire&&phase==FOCUS&&!focusClaimed||hook.equals("detach")&&removal&&phase==ATTACHING&&!detachClaimed;
+                    boolean ownedRemoval=removalCall!=null&&removalCall.owns(this)&&hooks.size()==1&&!checking&&(removalLosses&event.bit())==0;
+                    boolean expected=event==FieldLifecycle.FOCUS&&retire&&phase==FOCUS&&!focusClaimed||ownedRemoval;
+                    if(ownedRemoval)removalLosses|=event.bit();
                     long prior=record.input.editorLossObservation();field.actualLoss(denial);
-                    if(expected){if(hook.equals("focus"))focusClaimed=true;else detachClaimed=true;renderer.accountTransitionLossV3(this,prior,hook);}
+                    if(expected){if(phase==FOCUS)focusClaimed=true;if(event==FieldLifecycle.DETACH)detachClaimed=true;renderer.accountTransitionLossV3(this,prior,event,ownedRemoval);}
                     nativeCall.run();
                     if(!expected)throw new IllegalStateException("unexpected loss during editor transition: "+hook);
                     if(field.consumedPredecessor())field.phase=NativeField.Phase.IDLE;
@@ -1009,8 +1049,9 @@ return;
                     if(!target.finishComposingText())throw new IllegalStateException("native composition finish refused");exact();
                     if(!snapshot.text.equals(editable.toString())||snapshot.start!=field.getSelectionStart()||snapshot.end!=field.getSelectionEnd())throw new IllegalStateException("composition finish changed draft");exact();
                     predecessor.revoked=true;predecessor.close=NativeField.Close.ATTEMPTED;field.phase=NativeField.Phase.CLOSING;phase=CLOSING;
-                    try{target.closeConnection();exact();predecessor.close=NativeField.Close.RETURNED;field.phase=NativeField.Phase.IDLE;}
+                    try{target.closeConnection();}
                     catch(RuntimeException|java.lang.Error failure){predecessor.close=NativeField.Close.FAILED_UNCERTAIN;throw failure;}
+                    closeReturned=true;predecessor.close=NativeField.Close.RETURNED;field.phase=NativeField.Phase.IDLE;exact();
                 }else{
                     phase=FINISHING;
                     android.view.inputmethod.BaseInputConnection.removeComposingSpans(editable);exact();
@@ -1220,9 +1261,9 @@ return;
                 (phase==Phase.IDLE&&consumedPredecessor()||phase==Phase.ACTIVE&&hasLiveTarget());
         }
         boolean transitionEligible(){return record!=null&&record.verticalInput&&transitionSourceEligible();}
-        boolean programmaticClearEligible(){return transitionSourceEligible();}
-        boolean modelDisableEligible(){return transitionSourceEligible()&&hasLiveTarget()&&!record.binding.node.disabled()&&
-            record.binding.nativeFieldValue().equals(nativeEditable().toString());}
+        boolean modelHandoffEligible(){return transitionSourceEligible();}
+        boolean modelHandoffConsumed(){return transitionSourceEligible()&&consumedPredecessor()&&!hasFocus()&&
+            android.view.inputmethod.BaseInputConnection.getComposingSpanStart(nativeEditable())<0;}
         private boolean transitionSourceEligible(){return record!=null&&record.view==this&&record.constructed&&record.binding!=null&&!finishing&&!fieldDenied()&&replacement==null&&depth==0&&record.editorCallbackLease==null&&record.fieldPreservation==null&&record.fieldTransition==null&&(phase==Phase.IDLE&&consumedPredecessor()||phase==Phase.ACTIVE&&hasLiveTarget());}
         boolean transitionInactive(){return transitionEligible()&&consumedPredecessor()&&!hasFocus()&&android.view.inputmethod.BaseInputConnection.getComposingSpanStart(nativeEditable())<0;}
         boolean needsFieldPreservation(){return focusLost&&settledField()||record.verticalInput&&preservableField();}
@@ -1492,14 +1533,15 @@ return;
             // Observation exhaustion cannot discard the exact already-entered native suffix.
             denial.run();revoke(false);
         }
-        private void lifecycle(String hook,boolean loss,Runnable denial,Runnable gain,Runnable nativeCall) {
+        private void lifecycle(FieldLifecycle event,boolean loss,Runnable denial,Runnable gain,Runnable nativeCall) {
+            String hook=event.hook;
             NativeEnvironmentV2.requireMain();
             if(record==null){nativeCall.run();return;}
             if(replacement!=null&&replacement.nativeExecuting){
                 try{if(loss){replacement.lost=true;actualLoss(denial);}else gain.run();replacement.callback(hook,nativeCall);}
                 catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;
             }
-            if(record.fieldTransition!=null){record.fieldTransition.lifecycle(hook,loss,denial,gain,nativeCall);return;}
+            if(record.fieldTransition!=null){record.fieldTransition.lifecycle(event,loss,denial,gain,nativeCall);return;}
             if(record.fieldPreservation!=null){try{record.fieldPreservation.lifecycle(hook,loss,denial,gain,nativeCall);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);surface();}return;}
             if(!record.constructed&&construction()){Mutation mutation=record.scoped;mutation.requireMutation();if(loss)try{record.input.editorLossObserved(record);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}nativeCall.run();mutation.require();surface();return;}
             EditorLease parent=record.editorCallbackLease;
@@ -1514,25 +1556,25 @@ return;
             surface();
         }
         @Override protected void onFocusChanged(boolean focused,int direction,android.graphics.Rect old) {
-            lifecycle("focus",!focused,()->focusLost=true,()->focusLost=false,()->super.onFocusChanged(focused,direction,old));
+            lifecycle(FieldLifecycle.FOCUS,!focused,()->focusLost=true,()->focusLost=false,()->super.onFocusChanged(focused,direction,old));
         }
         @Override public void onWindowFocusChanged(boolean focused) {
-            lifecycle("windowFocus",!focused,()->windowFocusLost=true,()->windowFocusLost=false,()->super.onWindowFocusChanged(focused));
+            lifecycle(FieldLifecycle.WINDOW_FOCUS,!focused,()->windowFocusLost=true,()->windowFocusLost=false,()->super.onWindowFocusChanged(focused));
         }
         @Override protected void onWindowVisibilityChanged(int visibility) {
-            lifecycle("windowVisibility",visibility!=View.VISIBLE,()->windowHidden=true,()->windowHidden=false,()->super.onWindowVisibilityChanged(visibility));
+            lifecycle(FieldLifecycle.WINDOW_VISIBILITY,visibility!=View.VISIBLE,()->windowHidden=true,()->windowHidden=false,()->super.onWindowVisibilityChanged(visibility));
         }
         @Override public void onVisibilityAggregated(boolean visible) {
-            lifecycle("aggregate",!visible,()->aggregateHidden=true,()->aggregateHidden=false,()->super.onVisibilityAggregated(visible));
+            lifecycle(FieldLifecycle.AGGREGATE,!visible,()->aggregateHidden=true,()->aggregateHidden=false,()->super.onVisibilityAggregated(visible));
         }
         @Override protected void onVisibilityChanged(View changed,int visibility) {
-            lifecycle("visibility",visibility!=View.VISIBLE,()->viewHidden=true,()->viewHidden=false,()->super.onVisibilityChanged(changed,visibility));
+            lifecycle(FieldLifecycle.VISIBILITY,visibility!=View.VISIBLE,()->viewHidden=true,()->viewHidden=false,()->super.onVisibilityChanged(changed,visibility));
         }
         @Override protected void onDetachedFromWindow() {
-            lifecycle("detach",true,()->detached=true,()->{},()->super.onDetachedFromWindow());
+            lifecycle(FieldLifecycle.DETACH,true,()->detached=true,()->{},()->super.onDetachedFromWindow());
         }
         @Override protected void onAttachedToWindow() {
-            lifecycle("attach",false,()->{},()->detached=false,()->super.onAttachedToWindow());
+            lifecycle(FieldLifecycle.ATTACH,false,()->{},()->detached=false,()->super.onAttachedToWindow());
         }
         @Override public void setText(CharSequence value,TextView.BufferType type) {
             NativeEnvironmentV2.requireMain();

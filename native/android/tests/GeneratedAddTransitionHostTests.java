@@ -31,6 +31,7 @@ public final class GeneratedAddTransitionHostTests {
         for(Method m:NativeRenderer.class.getDeclaredMethods())if(m.getName().equals(name)){m.setAccessible(true);return m.invoke(null,args);}throw new AssertionError(name);
     }
     static final class Fixture implements AutoCloseable {
+        boolean quarantined;
         final Activity activity=new Activity(); final FrameLayout root=new FrameLayout(activity);
         final List<byte[]> events=new ArrayList<>(); final NativeOwnerV2 owner; final Handler queue;
         final NativeRenderer renderer; final EditText edit;
@@ -52,7 +53,21 @@ public final class GeneratedAddTransitionHostTests {
             owner.installExternal(typed,descriptor);check(owner.hasCommittedPresentation(),"exact typed model echo");
             check(renderer.view("draft")==edit&&edit.getText()==editable&&edit.getSelectionStart()==s&&edit.getSelectionEnd()==e&&get(edit,"attempt")==attempt&&edit.lastConnection==target&&BaseInputConnection.getComposingSpanStart(editable)==cs&&BaseInputConnection.getComposingSpanEnd(editable)==ce,"echo View/Editable/selection/composition/connection identity");return c;
         }
-        @Override public void close(){ConcreteHostProbe.hook=null;owner.close();queue.drainAll(8);ConcreteHostProbe.reset();}
+        @Override public void close(){
+            ConcreteHostProbe.hook=null;owner.close();
+            if(quarantined){
+                check(!owner.hasCommittedPresentation()&&renderer.editorDisposalBusyV2(),"uncertain prefix retains transition custody");
+                int finishes=ConcreteHostProbe.count("BaseInputConnection.finishComposingText","entry");
+                int closes=ConcreteHostProbe.count("BaseInputConnection.closeConnection","entry");
+                Throwable primary=owner.cleanupLedger().primary();
+                check(queue.queued()==1&&queue.drainOne()&&queue.queued()==1,"one bounded deferred disposal remains");
+                check(ConcreteHostProbe.count("BaseInputConnection.finishComposingText","entry")==finishes&&ConcreteHostProbe.count("BaseInputConnection.closeConnection","entry")==closes,"deferred disposal never repeats native prefix");
+                check(owner.cleanupLedger().primary()==primary,"deferred disposal preserves primary error");
+                for(Runnable work:queue.snapshot())queue.removeCallbacks(work);
+                check(queue.queued()==0,"detach only fixture scheduled work; retain heap until JVM exit");
+            }else queue.drainAll(8);
+            ConcreteHostProbe.reset();
+        }
     }
     static NativeRenderer.Candidate candidate(Fixture base,Fixture shadow,String mutation)throws Exception{
         Map<String,NativeAppearanceViewsV2.Record> targets=new LinkedHashMap<>(base.renderer.inspectV2());
@@ -108,6 +123,7 @@ public final class GeneratedAddTransitionHostTests {
             Throwable failure=null;try{f.owner.installExternal(added,descriptor);}catch(RuntimeException e){failure=e;}
             ConcreteHostProbe.hook=null;
             if(baseline||!fault.isEmpty()){
+                f.quarantined=fault.equals("finish")||fault.equals("close");
                 check(failure!=null&&!f.owner.hasCommittedPresentation(),"refuse baseline/fault "+fault);
                 Throwable primary=f.owner.cleanupLedger().primary();check(primary!=null,"original primary kept");
                 if(baseline)check(primary instanceof AppearanceDescriptorV2.Failure,"baseline unsupportedNativeOperation");

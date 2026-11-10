@@ -1,0 +1,1 @@
+First-party public C-entry frames captured by R136 from synthetic data. inputs.json pins exact captured bytes. JVM replay uses the production owner/renderer/views with controlled Android/JNI leaves; it does not execute Swift storage, require a dylib, or qualify a device or published package. R136 raw public-frame receipts remain separate evidence.
