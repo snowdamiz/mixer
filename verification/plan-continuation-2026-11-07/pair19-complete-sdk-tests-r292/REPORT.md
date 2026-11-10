@@ -1,0 +1,7 @@
+# Complete Pair19 SDK package tests
+
+PASS with the complete declared SDK test tree and three exact golden fixtures: 208 Swift Testing tests and eight XCTest methods, zero failures. Swift 6.3.3 with MacOSX26.5.sdk, jobs=2. Full build/test invocation: 101.94 seconds; the owned group was observed absent and fresh build output removed. complete/source-check.json confirms all 76 SDK source/test/manifest inputs and all three fixtures against current canonical bytes.
+
+The first delegated R286 invocation used the consumer-only snapshot and stopped before compilation because it omitted three SDK test targets. The first root invocation here executed all 208 tests and exposed 15 missing-golden-fixture errors plus one stale exhaustive profile expectation. The corrected run supplies the exact three fixture files and extends that expected profile list to the explicit V4 case while retaining the V2/V3 distinctions and adding explicit V4/standard-policy checks. No test was removed. The original failure outputs and initial-failure-classification.json remain preserved.
+
+Direct final results: complete/result.json, complete/swift-test.stdout and complete/swift-test.stderr. The complete package snapshot remains in the exact owned userdata directory; no root Git, source publication, device or historical hold was touched. macOS tests do not qualify UIKit native branches, physical phones, immutable packages or GA.

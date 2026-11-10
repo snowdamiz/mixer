@@ -1,3 +1,17 @@
+/// Opt-in value semantics only. This policy grants no native or event authority.
+public enum UITextValuePolicy: String, Equatable, Sendable {
+    case standard, longNoteV1
+
+    public func accepts(_ value: String, for node: UINode, property: String = "value",
+                        maximumStringBytes: Int = 16_384) -> Bool {
+        if self == .longNoteV1, node.kind == .textField, property == "value",
+           node.properties["axis"]?.string == "vertical" {
+            return value.utf8.count <= 100_000
+        }
+        return value.utf8.count <= maximumStringBytes
+    }
+}
+
 public struct UIValidationLimits: Equatable, Sendable {
     public static let standard = UIValidationLimits()
     public let maximumMessageBytes: Int
@@ -51,12 +65,15 @@ public struct UIValidator: Sendable {
     /// The portable default admits only the existing single-line field contract.
     /// An adapter must opt in before a vertical field can reach reconciliation.
     public let supportedTextFieldAxes: Set<TextFieldAxis>
+    public let textValuePolicy: UITextValuePolicy
 
     public init(limits: UIValidationLimits = .standard,
                 supportedKinds: Set<NodeKind> = Set(NodeKind.allCases),
-                supportedTextFieldAxes: Set<TextFieldAxis> = [.horizontal]) {
+                supportedTextFieldAxes: Set<TextFieldAxis> = [.horizontal],
+                textValuePolicy: UITextValuePolicy = .standard) {
         self.limits = limits; self.supportedKinds = supportedKinds
         self.supportedTextFieldAxes = supportedTextFieldAxes
+        self.textValuePolicy = textValuePolicy
     }
 
     public func validate(_ document: UIDocument) throws -> ValidatedUIDocument {
@@ -81,7 +98,7 @@ public struct UIValidator: Sendable {
                 bytes += key.utf8.count
                 switch value {
                 case let .string(string):
-                    guard string.utf8.count <= limits.maximumStringBytes else { throw UIValidationError.limitExceeded("stringBytes") }
+                    guard textValuePolicy.accepts(string, for: node, property: key, maximumStringBytes: limits.maximumStringBytes) else { throw UIValidationError.limitExceeded("stringBytes") }
                     bytes += string.utf8.count
                 case let .number(number):
                     guard number.isFinite else { throw UIValidationError.invalidProperty(node: node.id, key: key) }

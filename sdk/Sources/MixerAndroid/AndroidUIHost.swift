@@ -195,7 +195,7 @@ public final class AndroidUIHost {
         guard token == owner else { throw AndroidUIHostError.staleOwner }
         if let sourceFailure { throw sourceFailure }
         guard !events.isEmpty, events.count <= Self.maximumBatchEvents,
-              try JSONEncoder().encode(events).count <= Self.maximumBatchBytes else {
+              try JSONEncoder().encode(events).count <= profile.maximumEventBytes else {
             throw AndroidUIHostError.invalidBatch
         }
         guard let installed, let source else { throw AndroidUIHostError.noInstalledFrame }
@@ -276,9 +276,10 @@ public final class AndroidUIHost {
             }
             let duplicate = highestRevision == snapshot.document.revision
             highestRevision = snapshot.document.revision
+            guard snapshot.textValuePolicy == profile.textValuePolicy else { throw AndroidUIHostError.profileMismatch }
             _ = try UIValidator(supportedKinds: capabilities.kinds,
-                                supportedTextFieldAxes: capabilities.textFieldAxes).validate(snapshot.document)
-            let packet = try snapshot.encodeNativePacketV1(supportedTextFieldAxes: capabilities.textFieldAxes)
+                                supportedTextFieldAxes: capabilities.textFieldAxes, textValuePolicy: profile.textValuePolicy).validate(snapshot.document)
+            let packet = try snapshot.encodeNativePacketV1(supportedTextFieldAxes: capabilities.textFieldAxes, textValuePolicy: profile.textValuePolicy)
             if duplicate {
                 guard let latest, latest.packet == packet else { throw AndroidUIHostError.revisionNotIncreasing }
                 return

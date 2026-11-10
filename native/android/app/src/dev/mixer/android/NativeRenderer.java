@@ -520,7 +520,7 @@ final class NativeRenderer {
             var old=v2Roster[i];
             if(old==null||!(old.view instanceof NativeAppearanceViewsV2.NativeField field))continue;
             UiPacket.Node source=next.nodes.get(old.id);
-            if(v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&source==null){
+            if(v2Profile.retirement()&&source==null){
                 if(frameRetirementV3(old,null))continue;
                 throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
             }
@@ -544,7 +544,7 @@ final class NativeRenderer {
             while(same&&current!=null){String beforeParent=parentV2(packet,current),afterParent=parentV2(next,current);same=Objects.equals(beforeParent,afterParent);
                 if(beforeParent!=null){UiPacket.Node beforeNode=packet.nodes.get(beforeParent),afterNode=next.nodes.get(afterParent);
                     same=same&&afterNode!=null&&beforeNode.kind.equals(afterNode.kind)&&beforeNode.generation.equals(afterNode.generation);
-                    if(v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3){
+                    if(v2Profile.retirement()){
                         // Sibling reconciliation requires the complete measured candidate below.
                         same=same&&beforeNode.properties.equals(afterNode.properties)&&beforeNode.actions.equals(afterNode.actions);
                     }else if(same){List<String> beforeChildren=new ArrayList<>(),afterChildren=new ArrayList<>();for(var child:beforeNode.children)beforeChildren.add(child.id);for(var child:afterNode.children)afterChildren.add(child.id);same=beforeChildren.equals(afterChildren);}}
@@ -555,12 +555,12 @@ final class NativeRenderer {
     private void preflightEditorsV2(Candidate c){
         for(var state:c.journal.previous){
             var previous=state.record;
-            if(v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&previous.view instanceof NativeAppearanceViewsV2.NativeField field&&
+            if(v2Profile.retirement()&&previous.view instanceof NativeAppearanceViewsV2.NativeField field&&
                 (field.attempt!=state.predecessor||fieldUpdateV3(c,previous)!=state.update||
                  !c.next.nodes.containsKey(previous.id)&&state.update!=FieldUpdateV3.RETIRE))
                 throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
             if(state.update==FieldUpdateV3.HANDOFF||state.update==FieldUpdateV3.RETIRE||state.update==FieldUpdateV3.SETTLED)continue;
-            if(v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&previous.view instanceof NativeAppearanceViewsV2.NativeField){
+            if(v2Profile.retirement()&&previous.view instanceof NativeAppearanceViewsV2.NativeField){
                 if(!retainedFieldUpdateV3(c,previous,c.detached.get(previous.id)))
                     throw new AppearanceDescriptorV2.Failure(AppearanceDescriptorV2.Error.unsupportedNativeOperation);
                 continue;
@@ -601,7 +601,7 @@ final class NativeRenderer {
     }
     // Model authority acknowledges the complete native buffer, never an unreported edit.
     private boolean modelHandoffValueV3(NativeAppearanceViewsV2.Record old,UiPacket.Node source){
-        if(v2Profile!=AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3||source==null||
+        if(!v2Profile.retirement()||source==null||
             !source.id.equals(old.id)||!source.kind.equals(old.kind)||!source.generation.equals(old.generation)||
             !(old.view instanceof NativeAppearanceViewsV2.NativeField field)||!field.modelHandoffEligible()||
             !old.binding.nativeFieldValue().equals(field.nativeEditable().toString()))return false;
@@ -753,7 +753,7 @@ final class NativeRenderer {
         return true;
     }
     private FieldUpdateV3 fieldUpdateV3(Candidate c,NativeAppearanceViewsV2.Record record){
-        if(v2Profile!=AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3||!(record.view instanceof NativeAppearanceViewsV2.NativeField field))return FieldUpdateV3.ORDINARY;
+        if(!v2Profile.retirement()||!(record.view instanceof NativeAppearanceViewsV2.NativeField field))return FieldUpdateV3.ORDINARY;
         var shadow=c.detached.get(record.id);
         if(frameRetirementV3(record,c.next.nodes.get(record.id))&&c.baseRecords.get(record.id)==record&&
             c.targets.get(record.id)==null&&c.detached.get(record.id)==null&&completeCandidateV3(c))return FieldUpdateV3.RETIRE;
@@ -770,7 +770,7 @@ final class NativeRenderer {
         return switch(fieldProfile){
             case LEGACY_HORIZONTAL -> ap[1]==bp[1]&&a.getHeight()==b.getHeight();
             case MEASURED_MULTILINE_V2 -> ap[1]==bp[1];
-            case MEASURED_MULTILINE_RETIREMENT_V3 -> true;
+            case MEASURED_MULTILINE_RETIREMENT_V3, MEASURED_MULTILINE_LONG_NOTES_V4 -> true;
         };
     }
     private static int[] positionV2(View view){int x=view.getLeft(),y=view.getTop();for(var parent=view.getParent();parent instanceof View v;parent=v.getParent()){
@@ -812,13 +812,13 @@ final class NativeRenderer {
             if(desired.getParent()!=c.gate){if(desired.getParent() instanceof ViewGroup previous)previous.removeView(desired);mutation.require();
 c.gate.addView(desired);mutation.require();
 }
-            for(int i=c.gate.getChildCount()-1;i>=0;i--)if(c.gate.getChildAt(i)!=desired){c.gate.removeViewAt(i);mutation.require();}
+            for(int i=c.gate.getChildCount()-1;i>=0;i--)if(c.gate.getChildAt(i)!=desired){NativeAppearanceViewsV2.FieldRemoval.remove(c.gate,i,mutation);mutation.require();}
 
             faultV2();
             if(c.gate.getParent()!=root){if(c.gate.getParent() instanceof ViewGroup previous)previous.removeView(c.gate);mutation.require();
 root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
 }
-            for(int i=root.getChildCount()-1;i>=0;i--)if(root.getChildAt(i)!=c.gate){root.removeViewAt(i);mutation.require();}
+            for(int i=root.getChildCount()-1;i>=0;i--)if(root.getChildAt(i)!=c.gate){NativeAppearanceViewsV2.FieldRemoval.remove(root,i,mutation);mutation.require();}
 
             c.gate.measure(View.MeasureSpec.makeMeasureSpec(root.getWidth(),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(root.getHeight(),View.MeasureSpec.EXACTLY));mutation.require();
 
@@ -844,7 +844,7 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         }finally{v2Mutation=previousMutation;}
     }
     private boolean frameRetirementV3(NativeAppearanceViewsV2.Record record,UiPacket.Node incoming){
-        return v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&incoming==null&&
+        return v2Profile.retirement()&&incoming==null&&
             v2Records.get(record.id)==record&&record.editorFence==v2Fence&&record.input==v2Input&&
             packet.nodes.get(record.id)==record.binding.source()&&
             record.view instanceof NativeAppearanceViewsV2.NativeField field&&field.modelHandoffEligible()&&
@@ -870,7 +870,7 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         return false;
     }
     boolean fieldTransitionCurrent(Candidate c,AttachmentJournal j,NativeAppearanceViewsV2.Record r,NativeAppearanceViewsV2.FieldTransition scope){
-        return fieldTransitionIdentity(c,j,r,scope)&&v2Profile==AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3&&v2Pending==c&&!c.used&&packet==c.base&&v2Records==c.baseRecords&&
+        return fieldTransitionIdentity(c,j,r,scope)&&v2Profile.retirement()&&v2Pending==c&&!c.used&&packet==c.base&&v2Records==c.baseRecords&&
             c.operation==v2Fence.operation&&!v2Fence.terminal&&j.completion==AttachmentJournal.OPEN&&
             (scope.removal?c.targets.get(r.id)==null:c.targets.get(r.id)==r&&c.detached.get(r.id)!=null&&c.detached.get(r.id).binding==scope.selected);
     }
@@ -893,7 +893,7 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         j.transitionLoss=editorLossSerial;
     }
     private void beginFieldTransitionsV3(Candidate c,NativeAppearanceViewsV2.Mutation mutation){
-        if(v2Profile!=AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3)return;
+        if(!v2Profile.retirement())return;
         AttachmentJournal j=c.journal;
         if(j.transitionsStarted||j.transitionsSealed||j.transitionCount!=0||outstandingFieldTransitions!=0||!transitionMembershipV3(j))throw Json.bad("reentered transition capture");
         j.transitionsStarted=true;j.transitionLoss=editorLossSerial;

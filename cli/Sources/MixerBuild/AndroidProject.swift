@@ -82,8 +82,9 @@ public enum AndroidProject {
     }
     static func generate(root: URL) throws {
         let config = try ApplicationConfiguration.load(root)
+        try AndroidSDKCompatibility.requireHost(config.androidHost)
         let directory = root.appendingPathComponent("Platforms/Android")
-        let files = config.androidHost == .publicV3 ? AndroidPublicHost.files(config) : ["Package.swift": package(config.name), "AndroidManifest.xml": manifest(config),
+        let files = config.androidHost?.isPublic == true ? AndroidPublicHost.files(config) : ["Package.swift": package(config.name), "AndroidManifest.xml": manifest(config),
                      "Sources/AppAndroid/NativeEntry.swift": entry,
                      "Tests/AppAndroidTests/SessionTests.swift": sessionTests,
                      "README.md": readme]
@@ -98,10 +99,15 @@ public enum AndroidProject {
         let lock = try ProjectBuild.verifyLock(root: root, androidRequired: true)
         guard lock.android != nil else { throw MixerFailure("android.not-generated", "This project has no locked Android host. Create a new project with --platform android; existing sources are never overwritten.") }
         let config = try ApplicationConfiguration.load(root)
-        let publicSelection = root.appendingPathComponent("Platforms/Android/public-host-v3.json")
-        if config.androidHost == .publicV3 || FileManager.default.fileExists(atPath: publicSelection.path) {
-            guard config.androidHost == .publicV3, FileManager.default.fileExists(atPath: publicSelection.path),
-                  try Data(contentsOf: publicSelection) == Data(AndroidPublicHost.selection.utf8) else {
+        try AndroidSDKCompatibility.requireHost(config.androidHost)
+        let publicSelections = ["public-host-v3.json", "public-host-v4.json"].map {
+            root.appendingPathComponent("Platforms/Android/" + $0)
+        }
+        let present = publicSelections.filter { FileManager.default.fileExists(atPath: $0.path) }
+        if config.androidHost?.isPublic == true || !present.isEmpty {
+            guard config.androidHost?.isPublic == true, present.count == 1,
+                  present[0].lastPathComponent == AndroidPublicHost.selectionFile(config),
+                  try Data(contentsOf: present[0]) == Data(AndroidPublicHost.selection(config).utf8) else {
                 throw MixerFailure("android.host-mismatch", "Configuration and generated Android host selection disagree. Create a fresh project with the intended host.")
             }
         }

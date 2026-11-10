@@ -33,6 +33,7 @@ public final class AndroidUINativeSurface implements AutoCloseable {
         }
     }
 
+    private final AndroidUIProfile profile;
     private final Activity activity;
     private final FrameLayout root;
     private final Events events;
@@ -44,15 +45,16 @@ public final class AndroidUINativeSurface implements AutoCloseable {
     public AndroidUINativeSurface(Activity activity, FrameLayout root,
                                   AndroidUIProfile profile, Events events) {
         NativeEnvironmentV2.requireMain();
-        if (profile != AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3)
+        if (!Objects.requireNonNull(profile).retirement())
             throw new IllegalArgumentException("external surface requires explicit retirement V3 profile");
+        this.profile = profile;
         this.activity = Objects.requireNonNull(activity);
         this.root = Objects.requireNonNull(root);
         if (root.getContext() != activity) throw new IllegalArgumentException("foreign surface root context");
         this.events = Objects.requireNonNull(events);
     }
 
-    public AndroidUIProfile profile() { return AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3; }
+    public AndroidUIProfile profile() { return profile; }
 
     public void activate(byte[] owner) {
         NativeEnvironmentV2.requireMain();
@@ -60,7 +62,7 @@ public final class AndroidUINativeSurface implements AutoCloseable {
         byte[] captured = copyOwner(owner);
         nativeOwner = NativeOwnerV2.external(activity, root, new ExternalFrameSourceV2(envelope -> {
             if (!closed) events.enqueue(captured.clone(), envelope.clone());
-        }));
+        }),profile);
         identity = captured;
     }
 

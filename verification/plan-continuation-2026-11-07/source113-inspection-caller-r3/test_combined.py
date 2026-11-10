@@ -20,15 +20,15 @@ class MetadataDiagnostics(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory(dir=HERE/'control-scratch');self.addCleanup(self.temp.cleanup);self.work=Path(self.temp.name);self.base=a.bind()
  def test_projected_installed_whole_job_is_exact_without_qualification(self):
   p=self.base.verify(True)
-  self.assertEqual((p['source_count'],p['source_sha256']),(116,'306221cc4d05bfd448deb5674162d1a79469ded6c047325eaf80df49c237187f'))
+  self.assertEqual((p['source_count'],p['source_sha256']),(116,'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99'))
   self.assertTrue(p['installed_job_verified']);self.assertFalse(p['exact_compiler_qualified'])
  def test_actual_owner_bootstrap_116_and_profile24_27(self):
   s=importlib.util.spec_from_file_location('rebound_bootstrap',HERE.parent/'generated-java-ci-integration/bootstrap.py');b=importlib.util.module_from_spec(s);s.loader.exec_module(b)
   owner=b.canonical();profile=owner.load_profile();actual=b.admit_source_inputs(owner,profile)
   self.assertEqual(actual,json.loads((HERE/'source-inputs.json').read_bytes()))
   self.assertEqual((len(profile['sdk_files']),len(profile['adapter_files'])),(24,27))
-  self.assertEqual(owner.source_digest(profile['sdk_files']),'a689f5653ff2d353e3b0ae202ee6169d64c03448a56ec1d5fee389a9a8ff536f')
-  self.assertEqual(owner.source_digest(profile['adapter_files']),'b377710dcd2bf3704c8402643fe82caa0f2738aff2bae0a51a4aecca1ad9104c')
+  self.assertEqual(owner.source_digest(profile['sdk_files']),'1aff4a8c3b9c8b25f6457a0b43617ec19f9a34b7b678029859c4ae220d7076d6')
+  self.assertEqual(owner.source_digest(profile['adapter_files']),'7cd791c7cda6f3231eae19079a133662b84b862ddd04bce3cfa25495ebea0d38')
  def test_full_job_mutations_refuse(self):
   text=(HERE/'verify.yml.candidate').read_text();p=self.work/'verify.yml'
   for old,new in [('timeout-minutes: 12','timeout-minutes: 13'),('--product mixer -j 2','--product mixer -j 3'),('scripts/ci/prepare-cli-host-tests.py','scripts/ci/other.py'),('swift test --package-path cli -j 2','swift test --package-path cli -j 3'),('export RUSTUP_AUTO_INSTALL=0','export RUSTUP_AUTO_INSTALL=1')]:
@@ -177,7 +177,9 @@ class MetadataDiagnostics(unittest.TestCase):
   binding=json.loads((HERE/'binding.json').read_bytes())
   owner=self.base.module_at('diagnostic_history_owner',ROOT/'scripts/ci/check-android-generated-java.py')
   actual=owner.source_inputs(owner.load_profile(ROOT))
-  source_pair17=a.pair18_predecessor(self.base,binding,actual,owner)
+  source_pair18=a.pair19_predecessor(self.base,binding,actual,owner)
+  self.assertEqual(owner.source_digest(source_pair18),binding['pair19_transition']['sourceBefore'])
+  source_pair17=a.pair18_predecessor(self.base,binding,source_pair18,owner)
   self.assertEqual(owner.source_digest(source_pair17),binding['pair18_transition']['sourceBefore'])
   source_pair16=a.pair17_predecessor(self.base,binding,source_pair17,owner)
   self.assertEqual(owner.source_digest(source_pair16),binding['pair17_transition']['sourceBefore'])
@@ -204,7 +206,7 @@ class MetadataDiagnostics(unittest.TestCase):
   import copy
   original=self.base.regular
   baseline=json.loads((HERE/'binding.json').read_bytes())
-  paths=[('qualification',key) for key in baseline['qualification']]+[('adoption','allowed'),('adoption','canonicalAdopted'),('fixture_dispatch','runtime'),('fixture_dispatch','GA'),('swift_identity_diagnostic_transition','qualification'),('pair12_transition','qualification')]+[('pair13_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair14_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair15_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair16_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair17_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair18_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]
+  paths=[('qualification',key) for key in baseline['qualification']]+[('adoption','allowed'),('adoption','canonicalAdopted'),('fixture_dispatch','runtime'),('fixture_dispatch','GA'),('swift_identity_diagnostic_transition','qualification'),('pair12_transition','qualification')]+[('pair13_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair14_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair15_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair16_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair17_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair18_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair19_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]+[('pair19_receipt_transition',key) for key in ('qualification','actualSixConsumers','nativePass','runtimePass','gaPass')]
   for section,key in paths:
    changed=copy.deepcopy(baseline);changed[section][key]=0
    raw=(json.dumps(changed,indent=2)+'\n').encode();fake=self.work/'binding';fake.write_bytes(raw)

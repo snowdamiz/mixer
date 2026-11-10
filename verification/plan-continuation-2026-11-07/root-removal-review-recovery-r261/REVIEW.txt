@@ -1,0 +1,60 @@
+PASS — the exact two-line attachV2 SDK routing correction.
+
+The changed gate-child and root-child loops pass their original parent, index and
+captured original transaction Mutation to the existing FieldRemoval.remove.
+Both retain the original post-call mutation.require(). The supplied unified patch
+is reproduced exactly against the canonical Renderer in memory; retained-child
+reparenting and every other source byte are unchanged.
+
+Parent/child: attachV2 first validates the candidate and exact environment root.
+FieldRemoval captures only transitions in the selected child's actual subtree,
+requires their exact identity, removal state, ATTACHING phase and original
+Mutation, then confirms the parent/index/child relationship before dispatch.
+It checks actual detachment and all captured scopes again after return. An
+unrelated parent cannot launder foreign field transitions into this transaction;
+no-scope removals retain the original platform removal and caller authority check.
+
+Reentry/membership/loss: a scope already carrying removalCall is rejected. owns()
+admits only a captured scope during this one executing, unreturned removal.
+FieldTransition lifecycle still requires outermost, nonrecursive entry and one
+claim per loss-event bit. Renderer identity, sealed roster, original operation,
+candidate/binding identity, cohort funding and exact loss serial accounting are
+unchanged. Unexpected losses and gains continue to throw. No callback exception
+or permission was added.
+
+Uncertain close/custody: prepareAttachment must consume any predecessor before
+ATTACHING. A thrown close remains FAILED_UNCERTAIN and cannot pass exact(). A
+thrown removal resets executing in finally but leaves returned false; failed
+transition release therefore cannot claim successful removal. Failed-transition
+cleanup validates the entire roster before decrementing holds. The existing
+renderer/coordinator/owner primary-failure and first-fatal retention is unchanged.
+Relevant source: NativeAppearanceViewsV2.java:938-1089;
+NativeRenderer.java:793-941,1033-1100,1166-1208,1299-1300;
+NativeCoordinatorV2.java:149-181,222-263; NativeOwnerV2.java:454-469.
+
+Legacy/V4: the patch edits no profile, capability, parser, native-operation or
+source guard. Legacy no-transition removals use the prior platform operation.
+The supplied R248 V4 merge map and R258 source roster agree on merged Renderer
+a065e2bef70d9ed886fd09fc29357318360a9ad14e4b98bb9d21f1784eb8c1d3
+and selected view/owner source hashes. This review does not qualify unrelated V4
+changes or independently reconstruct the merged V4 source bytes.
+
+Actual evidence: R244 final-log.stdout records whole-root detach failing at
+FieldTransition.lifecycle with unexpected windowVisibility loss. The supplied
+R252 result-draft.json records API37 whole-screen navigation, real OS IME input,
+durable Save of 100000 UTF8 bytes, prior 6 tasks/10 outbox unchanged, original IME
+restored, owned device absent and external baseline unchanged. Its completed
+phase is draft Save; fresh reopen/edit/Commit is not established by this receipt.
+Its staged combination includes V4 and viewport work, so it corroborates behavior
+without independently binding the native test binary to this exact source hash.
+R258 separately records a successful combined build, not a new native run.
+
+Independently reconstructed candidate Renderer SHA256:
+d2e06def2e8c0bbe27d1d72e55f355c83c37c1d9f8cae3aa9111f63f518f7744
+Patch SHA256:
+e7b37f489bfb4460cc430530780c901cc35dfa4348bc656a00b2260c53be9bc5
+
+No new runtime test, javac, child, device, Git operation or canonical edit. Source
+check output and all permitted input/source hashes are in raw-source-check.stdout
+and receipt.json. The full189 test remains unrun here; R248 PGID93286 and its
+scratch/output hold remain UNKNOWN and untouched. No adoption or release verdict.

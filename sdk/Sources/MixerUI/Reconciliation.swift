@@ -71,6 +71,13 @@ public struct UIRenderSnapshot: Sendable {
     public var nodeCount: Int { nodes.count }
     let nodes: [String: ReconciledNode]
     let maximumStringBytes: Int
+    public let textValuePolicy: UITextValuePolicy
+
+    init(document: UIDocument, nodes: [String: ReconciledNode], maximumStringBytes: Int,
+         textValuePolicy: UITextValuePolicy = .standard) {
+        self.document = document; self.nodes = nodes; self.maximumStringBytes = maximumStringBytes
+        self.textValuePolicy = textValuePolicy
+    }
 
     public func identity(for nodeID: String) -> UINodeIdentity? { nodes[nodeID]?.identity }
 
@@ -87,7 +94,7 @@ public struct UIRenderSnapshot: Sendable {
         switch (envelope.event, envelope.value) {
         case (.activate, .null), (.submit, .null), (.valueChange, .bool): break
         case let (.textChange, .string(text)):
-            guard text.utf8.count <= maximumStringBytes else { throw UIRoutingError.invalidValue }
+            guard textValuePolicy.accepts(text, for: record.node, maximumStringBytes: maximumStringBytes) else { throw UIRoutingError.invalidValue }
         default: throw UIRoutingError.invalidValue
         }
         return RoutedUIAction(revision: document.revision, nodeID: record.node.id,
@@ -147,7 +154,7 @@ public struct UIReconciler: Sendable {
         let removed = previous.keys.filter { records[$0] == nil }.sorted()
         nextGeneration = generation
         snapshot = UIRenderSnapshot(document: document, nodes: records,
-                                    maximumStringBytes: validator.limits.maximumStringBytes)
+                                    maximumStringBytes: validator.limits.maximumStringBytes, textValuePolicy: validator.textValuePolicy)
         return UIChangeSet(inserted: inserted, removed: removed, replaced: replaced, updated: updated, moved: moved)
     }
 }

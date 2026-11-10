@@ -32,7 +32,7 @@ let help = """
 mixer 0.1.0-dev — owned Swift mobile platform (development preview)
 
   mixer create NAME [--directory PATH] [--application ID] [--sdk-path PATH]
-    [--platform ios|android] [--android-adapter-path PATH] [--android-host legacy-v1|public-v3]
+    [--platform ios|android] [--android-adapter-path PATH] [--android-host legacy-v1|public-v3|public-v4]
   mixer doctor [--json]
   mixer config validate [--directory PATH]
   mixer build [--platform host|ios|android] [--directory PATH]
@@ -88,7 +88,7 @@ do {
         guard platform == "android" || arguments.options["--android-adapter-path"] == nil else { throw MixerFailure("arguments.unused-option", "--android-adapter-path requires --platform android.") }
         let androidHost: AndroidApplicationHost?
         if let value = arguments.options["--android-host"] {
-            guard platform == "android", let selected = AndroidApplicationHost(rawValue: value) else { throw MixerFailure("arguments.android-host", "--android-host requires --platform android and legacy-v1 or public-v3.") }
+            guard platform == "android", let selected = AndroidApplicationHost(rawValue: value) else { throw MixerFailure("arguments.android-host", "--android-host requires --platform android and legacy-v1, public-v3 or public-v4.") }
             androidHost = selected
         } else { androidHost = nil }
         let adapter = path(arguments.options["--android-adapter-path"] ?? ProcessInfo.processInfo.environment["MIXER_ANDROID_ADAPTER_PATH"] ?? repository.appendingPathComponent("native/android").path)

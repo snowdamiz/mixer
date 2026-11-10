@@ -138,7 +138,7 @@ def source_profile():
         value = json.loads(bytes.fromhex(SOURCE_PROFILE_HEX), object_pairs_hook=unique)
         keys = {'schema', 'id', 'sdk_compatibility_sha256', 'adapter_compatibility_sha256',
                 'default_descriptor', 'sdk_files', 'adapter_files', 'wire'}
-        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.18':
+        if not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int or value['schema'] != 1 or value['id'] != 'mixer.android-source-pair.19':
             raise ValueError('unsupported profile shape/id')
         def identity(item):
             return (isinstance(item, dict) and set(item) == {'bytes', 'sha256'} and
@@ -158,11 +158,13 @@ def source_profile():
             if projection != value[kind + '_compatibility_sha256']:
                 raise ValueError('unsupported projection digest')
         wire = value['wire']
-        if (not isinstance(wire, dict) or set(wire) != {'android_profile_id', 'appearance_format', 'appearance_recipe', 'document_schema', 'native_packet_schema', 'staged_C_ABI'} or
+        if (not isinstance(wire, dict) or set(wire) not in ({'android_profile_id', 'appearance_format', 'appearance_recipe', 'document_schema', 'native_packet_schema', 'staged_C_ABI'}, {'android_profile_id', 'appearance_format', 'appearance_recipe', 'document_schema', 'native_packet_schema', 'staged_C_ABI', 'public_host_profiles'}) or
             type(wire['document_schema']) is not int or type(wire['native_packet_schema']) is not int or
             wire['document_schema'] != 1 or wire['native_packet_schema'] != 1 or
-            not all(isinstance(item, str) and item for key, item in wire.items() if key not in ('document_schema', 'native_packet_schema'))):
+            not all(isinstance(item, str) and item for key, item in wire.items() if key not in ('document_schema', 'native_packet_schema', 'public_host_profiles'))):
             raise ValueError('unsupported wire shape')
+        if 'public_host_profiles' in wire and wire['public_host_profiles'] != ['MEASURED_MULTILINE_LONG_NOTES_V4']:
+            raise ValueError('unsupported public host authority')
         return value
     except (ValueError, TypeError, KeyError, UnicodeError) as error:
         raise RuntimeError(message) from error
@@ -288,8 +290,8 @@ def configuration(value):
     known = {'schema', 'name', 'application', 'language', 'targets', 'toolchainLock', 'capabilities', 'updates'}
     if not isinstance(value, dict) or set(value) not in (known, known | {'androidHost'}) or type(value.get('schema')) is not int or value['schema'] != 1 or value['language'] != 'swift' or value['toolchainLock'] != 'mixer.lock':
         raise RuntimeError('Unsupported Android local configuration schema/fields.')
-    if 'androidHost' in value and (not isinstance(value['androidHost'], str) or value['androidHost'] not in ('public-v3', 'legacy-v1')):
-        raise RuntimeError('Unsupported Android host; expected public-v3 or legacy-v1.')
+    if 'androidHost' in value and (not isinstance(value['androidHost'], str) or value['androidHost'] not in ('public-v3', 'public-v4', 'legacy-v1')):
+        raise RuntimeError('Unsupported Android host; expected public-v3, public-v4 or legacy-v1.')
     if not isinstance(value['name'], str) or re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,63}', value['name']) is None:
         raise RuntimeError('Invalid Android application name; expected a bounded Swift identifier without path components.')
     if not isinstance(value['application'], str) or re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+', value['application']) is None:
@@ -308,12 +310,20 @@ def configuration(value):
 def public_host(root, config):
     """Select app-owned inputs explicitly; never infer a public host from sources."""
     package = root / 'Platforms/Android'
-    selection = package / 'public-host-v3.json'
-    selected = config.get('androidHost', 'legacy-v1') == 'public-v3'
+    host = config.get('androidHost', 'legacy-v1')
+    v4 = host == 'public-v4'
+    if v4 and (source_profile()['id'] == 'mixer.android-source-pair.18' or 'MEASURED_MULTILINE_LONG_NOTES_V4' not in source_profile()['wire'].get('public_host_profiles', [])):
+        raise RuntimeError('public-v4 requires a reviewed V4 SDK/adapter source-pair binding; installed catalog does not authorize it.')
+    selection_name = 'public-host-v4.json' if v4 else 'public-host-v3.json'
+    selection = package / selection_name
+    other = package / ('public-host-v3.json' if v4 else 'public-host-v4.json')
+    if other.exists() or other.is_symlink():
+        raise RuntimeError('Android host mismatch: conflicting generated public host selection.')
+    selected = host in ('public-v3', 'public-v4')
     present = selection.exists() or selection.is_symlink()
     if not selected:
         if present:
-            raise RuntimeError('Android host mismatch: public host requires explicit public-v3 configuration.')
+            raise RuntimeError('Android host mismatch: public host requires explicit public-v3 or public-v4 configuration.')
         return False
     application = config['application']
     reserved = set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _').split())
@@ -321,8 +331,8 @@ def public_host(root, config):
             any(part in reserved for part in application.split('.'))):
         raise RuntimeError('Public Android host requires an app-owned Java package without Java keyword segments.')
     if not present:
-        raise RuntimeError('Android host mismatch: generated public-v3 selection is missing.')
-    required = ['public-host-v3.json', 'Bridge/PublicBridge.c',
+        raise RuntimeError('Android host mismatch: generated ' + host + ' selection is missing.')
+    required = [selection_name, 'Bridge/PublicBridge.c',
                 'Sources/AppAndroid/NativeEntry.swift', 'Sources/AppAndroid/PublicFactory.swift']
     java_base = 'Java/' + application.replace('.', '/') + '/androidhost/'
     required += [java_base + name + '.java' for name in ('PublicActivity', 'PublicBridge')]
@@ -331,7 +341,7 @@ def public_host(root, config):
         info = path.lstat()
         if not stat.S_ISREG(info.st_mode) or not 0 < info.st_size <= 1_048_576:
             raise RuntimeError('Public Android host requires a bounded ordinary input: ' + relative)
-    if read_json(selection) != {'host': 'public-v3', 'profile': 'MEASURED_MULTILINE_RETIREMENT_V3'}:
+    if read_json(selection) != {'host': host, 'profile': 'MEASURED_MULTILINE_LONG_NOTES_V4' if v4 else 'MEASURED_MULTILINE_RETIREMENT_V3'}:
         raise RuntimeError('Android host mismatch: unsupported public host selection/profile.')
     # An external app is compiled against the SDK classes, never inside their
     # package or with SDK source discovery. Keep the generated Java closure exact.
@@ -646,7 +656,7 @@ def build(root):
         raise RuntimeError('Application/SDK/adapter source changed during the Android build; result rejected. Restore stable inputs and rebuild.')
     receipt = {
         'schema_version': 1, 'qualification': 'local-unsigned-cross-build-only',
-        'application': config['application'], 'android_host': 'public-v3' if public else 'legacy-v1', 'activity': activity, 'jni_library': jni_library, 'apk': str(apk_path), 'apk_sha256': digest(apk_path), 'apk_bytes': apk_path.stat().st_size,
+        'application': config['application'], 'android_host': config.get('androidHost', 'legacy-v1'), 'activity': activity, 'jni_library': jni_library, 'apk': str(apk_path), 'apk_sha256': digest(apk_path), 'apk_bytes': apk_path.stat().st_size,
         'apk_content_sha256': normalized, 'apk_entries': content,
         'source_tree_sha256': source_before, 'source_tree_after_sha256': source_after,
         'source_observation_scope': 'Before/after local mutation detection only; inputs are not isolated or immutably captured.',

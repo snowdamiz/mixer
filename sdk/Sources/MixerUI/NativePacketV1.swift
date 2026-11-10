@@ -17,8 +17,9 @@ public extension UIRenderSnapshot {
 
     /// Explicit adapter capability admission; default packet behavior is unchanged.
     /// This only encodes data and does not establish native rendering support.
-    func encodeNativePacketV1(supportedTextFieldAxes: Set<TextFieldAxis>) throws -> Data {
-        _ = try UIValidator(supportedTextFieldAxes: supportedTextFieldAxes).validate(document)
+    func encodeNativePacketV1(supportedTextFieldAxes: Set<TextFieldAxis>,
+                              textValuePolicy: UITextValuePolicy = .standard) throws -> Data {
+        _ = try UIValidator(supportedTextFieldAxes: supportedTextFieldAxes, textValuePolicy: textValuePolicy).validate(document)
         var measurement = NativePacketWriterV1()
         try measurement.packet(self)
         var output = NativePacketWriterV1(capacity: measurement.count)

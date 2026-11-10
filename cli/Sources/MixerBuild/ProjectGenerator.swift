@@ -21,6 +21,7 @@ public enum ProjectGenerator {
         let fm = FileManager.default
         guard !fm.fileExists(atPath: destination.path) else { throw MixerFailure("create.exists", "Refusing to overwrite \(destination.path). Choose a new directory.") }
         guard platform == "android" || fm.fileExists(atPath: sdk.appendingPathComponent("Package.swift").path) else { throw MixerFailure("create.sdk", "SDK package not found at \(sdk.path). Supply --sdk-path to an installed Mixer SDK source distribution.") }
+        try AndroidSDKCompatibility.requireHost(config.androidHost)
         let sdk = sdk.resolvingSymlinksInPath().standardizedFileURL
         if platform == "android" {
             guard let androidAdapter else { throw MixerFailure("create.android-adapter", "Supply the owned Mixer Android adapter source distribution.") }
@@ -249,6 +250,7 @@ public enum ProjectGenerator {
 public enum ProjectBuild {
     public static func verifyLock(root: URL, androidRequired: Bool = false) throws -> ToolchainLock {
         let config = try ApplicationConfiguration.load(root)
+        try AndroidSDKCompatibility.requireHost(config.androidHost)
         let lockURL = root.appendingPathComponent("mixer.lock")
         if (androidRequired || config.targets.contains("android")), !FileManager.default.fileExists(atPath: lockURL.path) {
             try AndroidSDKCompatibility.require(nil)

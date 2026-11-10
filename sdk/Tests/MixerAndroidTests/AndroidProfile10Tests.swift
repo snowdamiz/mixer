@@ -36,8 +36,11 @@ private func profileEnvironment() -> UIAppearanceEnvironmentV2 {
         accessibility: UIAppearanceAccessibilityV2(boldText: false, increasedContrast: false, reduceMotion: false), generation: 1)
 }
 @Test func profile10MapsEveryNativeIdentityWithoutConflatingV2AndV3() {
-    #expect(AndroidUIProfile.allCases.map(\.rawValue) == ["LEGACY_HORIZONTAL", "MEASURED_MULTILINE_V2", "MEASURED_MULTILINE_RETIREMENT_V3"])
+    #expect(AndroidUIProfile.allCases.map(\.rawValue) == ["LEGACY_HORIZONTAL", "MEASURED_MULTILINE_V2", "MEASURED_MULTILINE_RETIREMENT_V3", "MEASURED_MULTILINE_LONG_NOTES_V4"])
     #expect(AndroidUIProfile.measuredMultilineV2 != .measuredMultilineRetirementV3)
+    #expect(AndroidUIProfile.measuredMultilineLongNotesV4 != .measuredMultilineRetirementV3)
+    #expect(AndroidUIProfile.measuredMultilineLongNotesV4.textValuePolicy == .longNoteV1)
+    #expect(AndroidUIProfile.measuredMultilineRetirementV3.textValuePolicy == .standard)
     #expect(AndroidUIProfile.measuredMultilineV2.capabilities.textFieldAxes == AndroidUIProfile.measuredMultilineRetirementV3.capabilities.textFieldAxes)
     #expect(AndroidUIProfile.legacyHorizontal.capabilities.textFieldAxes == [.horizontal])
 }

@@ -173,7 +173,7 @@ extension UIValidator {
             try JSONInputGuard.validate(data, limits: JSONInputLimits(
                 maximumBytes: limits.maximumMessageBytes, maximumDepth: limits.maximumDepth * 2 + 2,
                 maximumValues: limits.maximumNodes * 40 + 16,
-                maximumStringBytes: max(128, limits.maximumStringBytes), maximumKeyBytes: 128))
+                maximumStringBytes: textValuePolicy == .longNoteV1 ? max(100_000, limits.maximumStringBytes) : max(128, limits.maximumStringBytes), maximumKeyBytes: 128))
         } catch let error as JSONInputError {
             switch error.reason {
             case .depthLimit: throw UIValidationError.limitExceeded("depth")

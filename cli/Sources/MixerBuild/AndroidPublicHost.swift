@@ -3,10 +3,16 @@ import Foundation
 /// Explicit app-owned public V3 SDK consumer and Android host templates.
 enum AndroidPublicHost {
     static let selection = "{\"host\":\"public-v3\",\"profile\":\"MEASURED_MULTILINE_RETIREMENT_V3\"}\n"
+    static func selectionFile(_ config: ApplicationConfiguration) -> String {
+        config.androidHost == .publicV4 ? "public-host-v4.json" : "public-host-v3.json"
+    }
+    static func selection(_ config: ApplicationConfiguration) -> String {
+        config.androidHost == .publicV4 ? "{\"host\":\"public-v4\",\"profile\":\"MEASURED_MULTILINE_LONG_NOTES_V4\"}\n" : selection
+    }
     static func files(_ config: ApplicationConfiguration) -> [String: String] {
         let appPackage = config.application + ".androidhost"
         let base = "Java/" + appPackage.replacingOccurrences(of: ".", with: "/") + "/"
-        return ["Package.swift": package.replacingOccurrences(of: "__NAME__", with: config.name),
+        let files = ["Package.swift": package.replacingOccurrences(of: "__NAME__", with: config.name),
                 "AndroidManifest.xml": manifest.replacingOccurrences(of: "__APPLICATION__", with: config.application)
                     .replacingOccurrences(of: "__PACKAGE__", with: appPackage).replacingOccurrences(of: "__NAME__", with: config.name),
                 "Sources/AppAndroid/NativeEntry.swift": entry,
@@ -15,7 +21,22 @@ enum AndroidPublicHost {
                 base + "PublicActivity.java": activity.replacingOccurrences(of: "__PACKAGE__", with: appPackage),
                 base + "PublicBridge.java": bridge.replacingOccurrences(of: "__PACKAGE__", with: appPackage),
                 "Bridge/PublicBridge.c": jni.replacingOccurrences(of: "__BRIDGE_CLASS__", with: appPackage.replacingOccurrences(of: ".", with: "/") + "/PublicBridge").replacingOccurrences(of: "__ACTIVITY_CLASS__", with: appPackage.replacingOccurrences(of: ".", with: "/") + "/PublicActivity"),
-                "public-host-v3.json": selection, "README.md": readme]
+                selectionFile(config): selection(config), "README.md": readme]
+        guard config.androidHost == .publicV4 else { return files }
+        return files.mapValues { source in
+            source.replacingOccurrences(of: "measuredMultilineRetirementV3", with: "measuredMultilineLongNotesV4")
+                .replacingOccurrences(of: "MEASURED_MULTILINE_RETIREMENT_V3", with: "MEASURED_MULTILINE_LONG_NOTES_V4")
+                .replacingOccurrences(of: "131_072", with: "1_048_576")
+                .replacingOccurrences(of: "131072", with: "1048576")
+                .replacingOccurrences(of: "AndroidUIHost.maximumBatchBytes", with: "AndroidUIProfile.measuredMultilineLongNotesV4.maximumEventBytes")
+                .replacingOccurrences(of: "supportedTextFieldAxes: AndroidUIProfile.measuredMultilineLongNotesV4.capabilities.textFieldAxes)", with: "supportedTextFieldAxes: AndroidUIProfile.measuredMultilineLongNotesV4.capabilities.textFieldAxes, textValuePolicy: AndroidUIProfile.measuredMultilineLongNotesV4.textValuePolicy)")
+                .replacingOccurrences(of: "supportedTextFieldAxes: profile.capabilities.textFieldAxes)", with: "supportedTextFieldAxes: profile.capabilities.textFieldAxes, textValuePolicy: profile.textValuePolicy)")
+                .replacingOccurrences(of: "16_385", with: "100_001")
+                .replacingOccurrences(of: "131_073", with: "1_048_577")
+                .replacingOccurrences(of: "public-v3", with: "public-v4")
+                .replacingOccurrences(of: "Public Android V3", with: "Public Android V4")
+                .replacingOccurrences(of: "public V3", with: "public V4")
+        }
     }
     private static let package = #"""
     // swift-tools-version: 6.0

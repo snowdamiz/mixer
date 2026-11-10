@@ -1,0 +1,7 @@
+# Final public-V4 generation/build
+
+PASS. The CLI created an explicit public-v4 Android project and its actual generated driver completed all 49 Android commands. The final receipt correctly records android_host=public-v4; source and after-build tree digests match. Final source116 is ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99. Direct evidence: complete/result.json, complete/build-receipt.json and raw create/build output.
+
+The fully linked R284 CLI binary was reused after verifying all 80 selected compiled production Swift/C/header inputs remain byte-identical. All linked resource bundles were preserved; the one changed Python driver resource was replaced with the exact final canonical bytes before generation. This is an assembled distribution with reused compiled code, not a new compiler invocation. Its binary SHA and updated-resource SHA are in the result. The initial assembly wrapper assumed only one bundle; that pre-create failure is retained in assembly-initial-failure.json and the original result. The corrected assembly preserves every bundle.
+
+The R284 initial build succeeded but its receipt mislabeled V4 as V3. That concrete metadata defect is corrected and verified here through the actual production build. The final unsigned APK SHA is 04db9758aac50fb28aa9c36aff46010fa042a96a717bcccbf055d45a3864ccea. No signing or device run occurred here. Generated-starter native runtime, phones, immutable-package and GA qualification remain pending.

@@ -11,6 +11,8 @@ public struct MixerFailure: Error, CustomStringConvertible, Sendable {
 public enum AndroidApplicationHost: String, Codable, Sendable {
     case legacyV1 = "legacy-v1"
     case publicV3 = "public-v3"
+    case publicV4 = "public-v4"
+    var isPublic: Bool { self == .publicV3 || self == .publicV4 }
 }
 
 public struct ApplicationConfiguration: Codable, Equatable, Sendable {
@@ -35,7 +37,7 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
         guard Set(targets).count == targets.count, !targets.isEmpty, Set(targets).isSubset(of: ["ios", "android"]) else { throw MixerFailure("config.targets", "Targets must be unique ios/android entries.") }
         if let androidHost {
             guard targets.contains("android") else { throw MixerFailure("config.android-host", "androidHost requires an android target.") }
-            if androidHost == .publicV3 {
+            if androidHost.isPublic {
                 let reserved: Set<String> = ["abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true", "false", "null", "_"]
                 guard application != "dev.mixer.android", !application.hasPrefix("dev.mixer.android."),
                       application.split(separator: ".").allSatisfy({ !reserved.contains(String($0)) }) else {

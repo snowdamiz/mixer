@@ -329,7 +329,7 @@ view.setBackgroundTintMode(null);mutation.require();
                     if(!input.open(this))return dst.subSequence(dstart,dend);
                     String proposed=dst.subSequence(0,dstart).toString()+src.subSequence(start,end)+dst.subSequence(dend,dst.length());
                     // systemSans intentionally admits native script/emoji fallback.
-                    return validBuffer(proposed) ? null : dst.subSequence(dstart,dend);
+                    return validBuffer(proposed,source) ? null : dst.subSequence(dstart,dend);
                 };edit.setFilters(new InputFilter[]{editorFilter});mutation.require();
 
                 edit.addTextChangedListener(new TextWatcher(){
@@ -439,9 +439,9 @@ compact.setVisibility(measured.collapsed&&r.compactTitle()!=null?View.VISIBLE:Vi
             if(!(span instanceof android.text.Annotation)&&!(composing&&span.getClass()==android.text.style.UnderlineSpan.class))return false;
         return true;
     }
-    private static boolean validBuffer(String value){
+    private static boolean validBuffer(String value,UiPacket.Node node){
         for(int i=0;i<value.length();i++){char c=value.charAt(i);if(Character.isHighSurrogate(c)){if(++i>=value.length()||!Character.isLowSurrogate(value.charAt(i)))return false;}else if(Character.isLowSurrogate(c))return false;}
-        return value.getBytes(java.nio.charset.StandardCharsets.UTF_8).length<=16384;
+        return value.getBytes(java.nio.charset.StandardCharsets.UTF_8).length <= (node.longTextValue ? 100000 : 16384);
     }
     private static void defaults(TextView text,Mutation mutation) {mutation.requireMutation();
         text.setIncludeFontPadding(false);mutation.require();
@@ -783,11 +783,22 @@ view.layout(l,t,l+w,t+h);mutation.require();
         @Override protected boolean drawChild(Canvas canvas,View child,long time) {NativeEnvironmentV2.requireMain();
             if(record==null||!record.input.draw())return false;Mutation mutation=record.mutation();mutation.require();
             Integer clip=record.geometry==null?null:record.geometry.clips.get(childRecordID(child));
-            if(clip==null)return mutation.result(super.drawChild(canvas,child,time));
-            GroupDrawing group=record.geometry.groups.get(clip);int save=canvas.save();Binding b=record.binding;
-            int dx=px(sum(absoluteX,group.box.x),b)-px(absoluteX,b),dy=px(sum(absoluteY,group.box.y),b)-px(absoluteY,b);
-            canvas.translate(dx,dy);canvas.clipPath(group.path);canvas.translate(-dx,-dy);
-            boolean result=super.drawChild(canvas,child,time);mutation.require();canvas.restoreToCount(save);mutation.require();return result;
+            boolean viewport=child instanceof NativeScroll;
+            if(clip==null&&!viewport)return mutation.result(super.drawChild(canvas,child,time));
+            int save=canvas.save();Throwable primary=null;
+            try {
+                if(viewport)canvas.clipRect(child.getLeft(),child.getTop(),child.getRight(),child.getBottom());
+                if(clip!=null) {
+                    GroupDrawing group=record.geometry.groups.get(clip);Binding b=record.binding;
+                    int dx=px(sum(absoluteX,group.box.x),b)-px(absoluteX,b),dy=px(sum(absoluteY,group.box.y),b)-px(absoluteY,b);
+                    canvas.translate(dx,dy);canvas.clipPath(group.path);canvas.translate(-dx,-dy);
+                }
+                return mutation.result(super.drawChild(canvas,child,time));
+            } catch(RuntimeException|java.lang.Error failure) {primary=failure;throw failure;}
+            finally {
+                try {canvas.restoreToCount(save);}
+                catch(RuntimeException|java.lang.Error cleanup) {if(primary==null)throw cleanup;primary.addSuppressed(cleanup);}
+            }
         }
         private String childRecordID(View view){for(var entry:records.entrySet())if(entry.getValue().view==view)return entry.getKey();return null;}
         @Override protected void dispatchDraw(Canvas canvas) {NativeEnvironmentV2.requireMain();
@@ -1386,7 +1397,7 @@ return;
             try{
                 lease.before=new EditorSnapshot(this,expected.editable);lease.check();
                 result=action.get();lease.check();
-                if(!expected.revoked&&(!validBuffer(expected.editable.toString())||getSelectionStart()<0||getSelectionEnd()<0||
+                if(!expected.revoked&&(!validBuffer(expected.editable.toString(),record.binding.source)||getSelectionStart()<0||getSelectionEnd()<0||
                     getSelectionStart()>expected.editable.length()||getSelectionEnd()>expected.editable.length()))
                     throw new IllegalStateException("invalid native editor result");
                 if(!expected.revoked&&result instanceof Boolean completed)result=(T)Boolean.valueOf(lease.original.result(completed.booleanValue()));
@@ -1418,7 +1429,7 @@ return;
             int cs=android.view.inputmethod.BaseInputConnection.getComposingSpanStart(buffer),ce=android.view.inputmethod.BaseInputConnection.getComposingSpanEnd(buffer);
             if(cs>=0&&ce>=0){start=cs;end=ce;}if(start<0||end<0||start>buffer.length()||end>buffer.length())return false;
             int left=Math.min(start,end),right=Math.max(start,end);
-            return validBuffer(buffer.subSequence(0,left).toString()+value+buffer.subSequence(right,buffer.length()));
+            return validBuffer(buffer.subSequence(0,left).toString()+value+buffer.subSequence(right,buffer.length()),record.binding.source);
         }
         @Override public android.view.inputmethod.InputConnection onCreateInputConnection(EditorInfo info) {
             NativeEnvironmentV2.requireMain();
@@ -1434,7 +1445,7 @@ return;
                 if(fresh.target==null){fresh.close=Close.NO_TARGET;fresh.revoked=true;}
                 else {
                     lease.check();mutation.require();
-                    if(fresh.revoked||denied()||!record.input.open(record)||!hasFocus()||!validBuffer(editable.toString())||
+                    if(fresh.revoked||denied()||!record.input.open(record)||!hasFocus()||!validBuffer(editable.toString(),record.binding.source)||
                         info.initialSelStart!=getSelectionStart()||info.initialSelEnd!=getSelectionEnd()||
                         info.initialSelStart<0||info.initialSelEnd<0||info.initialSelStart>editable.length()||info.initialSelEnd>editable.length()||
                         !editorInputTypeSupported(android.os.Build.VERSION.SDK_INT,record.expectedInputType,getInputType(),info.inputType)||
@@ -1632,7 +1643,7 @@ return;
                 CharSequence source=arguments==null?null:arguments.getCharSequence(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE);
                 if(!plainProposal(source,false))return false;
                 operation.proposal=source instanceof android.text.Spanned?new android.text.SpannedString(source):source.toString();
-                if(!plainProposal(operation.proposal,false)||!validBuffer(operation.proposal.toString())||!snapshot.same(this,old)||
+                if(!plainProposal(operation.proposal,false)||!validBuffer(operation.proposal.toString(),record.binding.source)||!snapshot.same(this,old)||
                     nativeEditable()!=old||!operation.tuple()||!operation.unchangedLoss()||!original.current()||fieldDenied()||!record.input.open(record)||
                     !operation.tuple()||!operation.unchangedLoss()||!original.current()||fieldDenied())return false;
                 operation.premises();
@@ -1662,7 +1673,7 @@ return;
                 if(!operation.tuple()||actual==null)throw new IllegalStateException("replacement final tuple or authority lost");
                 if(!result&&operation.setterCalls==0&&actual==old&&postClose.same(this,old))return false;
                 if(!result||operation.setterCalls!=1||!operation.setterReturned||!operation.watcherSeen||operation.nextEditable==null||actual!=operation.nextEditable||
-                    !validBuffer(actual.toString())||!actual.toString().equals(operation.proposal.toString())||
+                    !validBuffer(actual.toString(),record.binding.source)||!actual.toString().equals(operation.proposal.toString())||
                     getSelectionStart()!=actual.length()||getSelectionEnd()!=actual.length())throw new IllegalStateException("incomplete native replacement result");
                 // Empty selection0 is supplied by native default ArrowKeyMovementMethod.initialize;
                 // nonempty end selection is supplied by TextView's accessibility suffix.
@@ -1693,7 +1704,7 @@ return;
             return widget("accessibility",()->{
                 if(action!=android.view.accessibility.AccessibilityNodeInfo.ACTION_SET_TEXT)return true;
                 CharSequence text=arguments==null?null:arguments.getCharSequence(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE);
-                return plainProposal(text,false)&&validBuffer(text.toString());
+                return plainProposal(text,false)&&validBuffer(text.toString(),record.binding.source);
             },()->super.performAccessibilityAction(action,arguments));
         }
         @Override public boolean onKeyDown(int code,android.view.KeyEvent event) {
