@@ -1,0 +1,7 @@
+# CLI fixture correction and native V4 entry evidence
+
+The four-line test-only R474 correction generates the declared Android application before each mutation/refusal fixture. No expectation, runtime compatibility rule, SDK/profile/source116 byte or production default changes. All seven baseline failures reproduce; eight corrected focused test functions pass, including four appearance and33 coordinator mutation cases. Root verifies169 first-party inputs, the exact preimage/afterimage, unchanged expectations and all116 owning source members before application.
+
+The coherent delivery also records R478 actual API36 V4 exact100000-byte draft Save/fresh-process reopen/Commit/verification,100001 refusal and valid recovery. Exactly one entrySaved effect persists. Positive owned emulator cleanup is recorded. R468's prior initial-form timeout remains failed and unattributed. The screenshot's separate system-bar contrast regression is an active app-private correction, excluded from this delivery.
+
+Only the named CLI test file, current plan/status/execution metadata and compact completed evidence are selected. No unfinished child implementation, billing worker/role candidate, GuestUI successor, FieldLog source/remote, signing material, historical held scratch or GA status is included. Main advances by one guarded normal fast-forward through Git-data API; root Git is not used. Source116 remains452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f. Fresh ordinary CI follows delivery.

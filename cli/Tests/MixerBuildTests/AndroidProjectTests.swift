@@ -51,6 +51,7 @@ func androidDefaultAppearanceSnapshotChangesInvalidateAdapterLock(_ change: Stri
     try copyCompatibilitySDK(to: sdk)
     let digest = try AndroidProject.snapshot(adapter: repository.appendingPathComponent("native/android"), destination: adapter)
     try JSONFile.write(ApplicationConfiguration(name: "App", application: "dev.example.app"), to: root.appendingPathComponent("mixer.yml"))
+    try AndroidProject.generate(root: root)
     let version = try SuiteOwnedRunner.run(["swift", "--version"])
     #expect(version.succeeded)
     var lock = ToolchainLock(sdkDigest: try SourceDigest.tree(sdk), swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -88,6 +89,7 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
     try copyCompatibilitySDK(to: sdk)
     let digest = try AndroidProject.snapshot(adapter: repository.appendingPathComponent("native/android"), destination: adapter)
     try JSONFile.write(ApplicationConfiguration(name: "App", application: "dev.example.app"), to: root.appendingPathComponent("mixer.yml"))
+    try AndroidProject.generate(root: root)
     let version = try SuiteOwnedRunner.run(["swift", "--version"])
     #expect(version.succeeded)
     var lock = ToolchainLock(sdkDigest: try SourceDigest.tree(sdk), swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -171,6 +173,8 @@ func androidCoordinatorAndAuthoredToggleSnapshotChangesInvalidateAdapterLock(_ f
     try JSONSerialization.data(withJSONObject: lock).write(to: root.appendingPathComponent("mixer.lock"))
     var config = ApplicationConfiguration(name: "App", application: "dev.example.app")
     config.capabilities = []
+    try JSONFile.write(config, to: root.appendingPathComponent("mixer.yml"))
+    try AndroidProject.generate(root: root)
     let sentinel = parent.appendingPathComponent("should-survive-unsigned.apk")
     try "sentinel".write(to: sentinel, atomically: true, encoding: .utf8)
     for unsafe in [parent.appendingPathComponent("should-survive").path, "../../should-survive", "bad/name", "App;command"] {

@@ -1,0 +1,100 @@
+{
+  "status": "test-only correction ready for root independent review and canonical integration",
+  "completed_utc": "2026-11-10T23:16:42.789214+00:00",
+  "provided_main": "4c2e327facf8b821c746d0ed7fddb11851de80ed",
+  "provided_owning_source": "116452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f",
+  "revision_limit": "Commit/source labels supplied by parent; no root Git command was run. Actual relevant source bytes are independently recorded in inputs.json.",
+  "profile": "mixer.android-source-pair.19",
+  "diagnosis": {
+    "first_refusal": "Android SDK source compatibility rejected (Platforms/Android/AndroidManifest.xml); install the matching first-party CLI/SDK distribution. Local locks cannot authorize changed sources.",
+    "flow": "build -> application_min_api -> exact_path; both fixtures omit the app-owned manifest, so admission stops before source_profile or appearance_layout.",
+    "classification": "stale incomplete test fixtures; the product correctly refuses the missing declared floor",
+    "public_and_legacy_contract": "Public V3/V4 retain API36 and legacy-v1 retains API28. The fixture uses AndroidProject.generate for its actual configuration, with no new numeric floor or source hash pin."
+  },
+  "patch": {
+    "file": "cli/Tests/MixerBuildTests/AndroidProjectTests.swift",
+    "added_lines": 4,
+    "deleted_lines": 0,
+    "behavior": "Generate app-owned Android files after writing valid config in both lock/mutation fixture families. In the unsafe-name test, write and generate the initial valid config before mutating names.",
+    "adjacent_fixture_reason": "The coordinator mutation family shared the missing manifest and accepted a generic source-compatibility message. Generating its declared host removes that unrelated early refusal.",
+    "expectations_preserved": true,
+    "historical_and_negative_controls": "Every original #expect line is byte-for-byte preserved, including edit/remove/rename/symlink, all coordinator mutations, unrendered-profile refusal, sentinel contents and absent .mixer output.",
+    "sha256": {
+      "before": "b973eb30ebeb7cccf652c95086950fb5922fb9ba7bf090f6485d34be82896b73",
+      "after": "5f06a9383179f20c87de325bf72e48f2cf5bd2549dd65c6204025395272ace09",
+      "patch": "c48e95449c44d375b9bc3dec1d1d90d6cb64fcd425d6bad7c9ca05bee4a82015",
+      "canonical_file": "cli/Tests/MixerBuildTests/AndroidProjectTests.swift",
+      "added_lines": 4,
+      "deleted_lines": 0
+    }
+  },
+  "verification": {
+    "baseline": {
+      "result": "expected failure",
+      "exit_code": 1,
+      "functions": 2,
+      "issues": 7,
+      "raw_log": "logs/baseline.log",
+      "command": "baseline-command.json"
+    },
+    "fixed": {
+      "result": "pass",
+      "exit_code": 0,
+      "functions": 8,
+      "appearance_argument_cases": 4,
+      "coordinator_argument_cases": 33,
+      "other_functions": 6,
+      "raw_log": "logs/fixed.log",
+      "command": "fixed-command.json"
+    },
+    "toolchain": "Apple Swift 6.4.2 on Darwin 27.0.0 arm64; Python 3.14.8",
+    "batches": "One fresh focused build/baseline and one incremental correction/expanded focused test run; build jobs 6 then 3. No extra compiler/test batch.",
+    "exact_first_party_inputs": 169,
+    "first_party_input_tree_sha256": "850254f51464081405b410fed72add8f86fcf5b51ea6e4bc9fbd3143aeb8df38",
+    "source_pair_admission": "Copied SDK24 and adapter27 inputs checked for byte count and SHA256 against the current compiled Pair19 map before compiling.",
+    "canonical_drift": [],
+    "copied_work_drift": [
+      "cli/Tests/MixerBuildTests/AndroidProjectTests.swift"
+    ]
+  },
+  "cleanup": {
+    "owned_outer_groups_absent": {
+      "baseline": {
+        "pgid": 67129,
+        "group_absent": true,
+        "observation": "killpg(pgid, 0) returned ESRCH"
+      },
+      "fixed": {
+        "pgid": 75674,
+        "group_absent": true,
+        "observation": "killpg(pgid, 0) returned ESRCH"
+      }
+    },
+    "terminal_inner_command_receipts": 136,
+    "remaining_test_fixture_directories": [],
+    "retained": "Task-owned build/cache, source copies and terminal receipts retained for review; no native device resource created.",
+    "historical_holds": "No historical held process, resource or namespace was inspected or touched, including R442 work/work-r2/work-r3/logs/xcresult."
+  },
+  "artifacts": {
+    "patch": "fixture.patch",
+    "afterimage": "after/cli/Tests/MixerBuildTests/AndroidProjectTests.swift",
+    "beforeimage": "before/cli/Tests/MixerBuildTests/AndroidProjectTests.swift",
+    "reproducer": "run-focused.py",
+    "inputs": "inputs.json",
+    "postflight": "postflight.json",
+    "versions": "tool-versions.json",
+    "hashes": "SHA256SUMS"
+  },
+  "review_reproduction": [
+    "Run phases sequentially within the assigned output: python3 run-focused.py baseline review-baseline (expected Swift test exit 1; wrapper exit 1).",
+    "Then: python3 run-focused.py fixed review-fixed (expected exit 0).",
+    "The small runner checks the copied owning bytes, installs the chosen before/afterimage, uses 3 jobs and owned output/cache paths, and refuses to overwrite historical command/log names. A bound expiration preserves the exact namespace as UNKNOWN."
+  ],
+  "limitations": [
+    "Root independent review and canonical adoption/delivery remain pending.",
+    "The full CLI suite and fresh hosted CI were not run.",
+    "Host CLI evidence only: no Android/iOS native build, emulator, simulator, device, signing, package release or GA acceptance.",
+    "No root Git, canonical write, remote change or delegated child task."
+  ],
+  "existing_dependencies": "Swift Crypto 5.0.3 and Swift ASN.1 1.7.3 from copied Package.resolved; already listed in canonical THIRD_PARTY.yml, no dependency change."
+}
