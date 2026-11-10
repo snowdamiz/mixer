@@ -356,5 +356,200 @@ class BootstrapControls(unittest.TestCase):
                          {'swift_host': B.HOST_BYTES, 'swift_android': B.SDK_BYTES})
 
 
+class PhaseActivationControls(unittest.TestCase):
+    def check_main(self, fail, inherited, mkdir_error=False, guard_error=False, result_failure=False):
+        import contextlib
+        import io
+        import stat
+        import sys
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        key = 'MIXER_ANDROID_INSPECTION_PHASE_DIR'
+        with tempfile.TemporaryDirectory(dir=HERE) as td:
+            root = Path(td).resolve()
+            output = root / 'bootstrap'
+            image = root / 'image'
+            jdk, android = image / 'jdk', image / 'android'
+            jdk.mkdir(parents=True)
+            android.mkdir()
+            a = Mock()
+            a.source_inputs.return_value = {'inert': 'source'}
+            a.source_digest.return_value = 'inert-digest'
+            a.identity.return_value = {'bytes': 0, 'sha256': '0' * 64}
+            a.unique_json.return_value = {'inert': 'inspection'}
+            a.save.side_effect = lambda path, value: path.write_text(json.dumps(value))
+            observations = []
+            class Commands:
+                records = []
+                def __init__(self, path, env, **limits):
+                    self.env = env
+                def custody_terminal(self):
+                    return True
+                def run(self, label, argv, **kwargs):
+                    # No subprocess, download, compiler, device or group probe.
+                    observations.append((label, dict(self.env)))
+                    if label == 'official-inspect':
+                        self_test.assertNotEqual(self.env.get(key), str(output / 'inspection-phases'))
+                    return 'inert'
+            self_test = self
+            a.Commands = Commands
+            def fake_download(run, identify, label, url, path, *args):
+                path.write_bytes(b'inert archive')
+                return {'inert': label}
+            def fake_extract(run, archive, expanded, toolchain):
+                swift = toolchain / 'usr/bin/swift'
+                swift.parent.mkdir(parents=True)
+                swift.write_bytes(b'inert executable, never launched')
+                return swift
+            def fake_paths(authority, swift, sdks, art, selected_jdk, selected_android):
+                roots = (swift.parent.parent.parent, art.parent,
+                         android / 'platforms/android-37.0', android / 'build-tools/37.0.0', jdk)
+                selected = argparse.Namespace(swift=swift, swift_sdks=sdks,
+                    android_artifact=art, jdk=jdk, android_sdk=android)
+                a.distribution_roots = roots
+                return selected, {}, {}
+            def execute(selected):
+                self.assertTrue(selected.execute_toolchains)
+                self.assertEqual(selected.output, output / 'integration')
+                if mkdir_error:
+                    self.assertNotIn(key, os.environ)
+                    self.assertFalse((output / 'inspection-phases').exists())
+                else:
+                    phase_dir = Path(os.environ[key])
+                    self.assertEqual(phase_dir.parent, output)
+                    self.assertTrue(phase_dir.is_dir())
+                    self.assertEqual(stat.S_IMODE(phase_dir.stat().st_mode), 0o700)
+                    self.assertEqual(phase_dir.stat().st_uid, os.getuid())
+                    for excluded in (*a.distribution_roots, selected.output, selected.output / 'inner-cli'):
+                        self.assertFalse(phase_dir.is_relative_to(excluded))
+                    phase_file = phase_dir / 'inert-child.jsonl'
+                    phase_file.write_text('{"phase":"inert.integration","state":"begin"}\n')
+                    self.assertFalse(phase_file.is_relative_to(selected.output))
+                # Child-side changes must not escape even on error.
+                os.environ[key] = 'child mutation'
+                os.environ['INERT_CHILD_ADDITION'] = 'must be removed'
+                if fail:
+                    raise RuntimeError('inert integration failure')
+                result = good_result()
+                result['official_toolchain'] = {'inert': 'inspection'}
+                if result_failure:
+                    result['status'] = 'failed'
+                return result
+            a.execute.side_effect = execute
+            original_mkdir = Path.mkdir
+            def mkdir(path, *args, **kwargs):
+                if mkdir_error and path == output / 'inspection-phases':
+                    import errno
+                    self.assertEqual(kwargs, {'mode': 0o700})
+                    raise PermissionError(errno.EACCES, 'inert diagnostic mkdir denied', str(path))
+                return original_mkdir(path, *args, **kwargs)
+            environment = {'RUNNER_TEMP': str(root), 'INERT_PARENT': 'preserved'}
+            if inherited is not None:
+                environment[key] = inherited
+            with patch.dict(os.environ, environment, clear=True), \
+                 patch.object(sys, 'argv', ['bootstrap.py', '--output', str(output), '--execute']), \
+                 patch.object(sys, 'platform', 'darwin'), \
+                 patch.object(B, 'canonical', return_value=a), \
+                 patch.object(B, 'disk_admission'), \
+                 patch.object(B, 'admit_source_inputs', return_value={'inert': 'source'}), \
+                 patch.object(B, 'hosted_environment', return_value=(jdk, android)), \
+                 patch.object(B, 'apple_environment', side_effect=lambda env, authority: (dict(env), {})), \
+                 patch.object(B, 'download', side_effect=fake_download), \
+                 patch.object(B, 'extract_host', side_effect=fake_extract), \
+                 patch.object(B, 'inspect_paths', side_effect=fake_paths), \
+                 patch.object(B, 'validate_inspection', side_effect=RuntimeError('inert inspection guard failure') if guard_error else None), \
+                 patch.object(Path, 'mkdir', mkdir), \
+                 contextlib.redirect_stdout(io.StringIO()) as stdout, \
+                 contextlib.redirect_stderr(io.StringIO()) as stderr:
+                before = dict(os.environ)
+                self.assertFalse(output.exists())
+                self.assertEqual(B.main(), 1 if fail or guard_error or result_failure else 0)
+                self.assertEqual(dict(os.environ), before)
+            if guard_error:
+                a.execute.assert_not_called()
+            else:
+                a.execute.assert_called_once()
+            self.assertEqual(stderr.getvalue(), '')
+            self.assertEqual(len(stdout.getvalue().splitlines()), 1)
+            json.loads(stdout.getvalue())
+            receipt = json.loads((output / 'bootstrap-receipt.json').read_text())
+            if mkdir_error or guard_error:
+                self.assertNotIn('inspection_phase_dir', receipt)
+                self.assertFalse((output / 'inspection-phases').exists())
+            else:
+                self.assertEqual(receipt['inspection_phase_dir'], str(output / 'inspection-phases'))
+                self.assertTrue((output / 'inspection-phases/inert-child.jsonl').is_file())
+            if guard_error:
+                self.assertEqual(receipt['error'], 'inert inspection guard failure')
+            elif fail:
+                self.assertEqual(receipt['error'], 'inert integration failure')
+            elif result_failure:
+                self.assertEqual(receipt['error'], 'Actual integration did not pass')
+            terminal = guard_error or not fail
+            self.assertEqual(receipt['cleanup']['terminal_custody'], terminal)
+            self.assertEqual(receipt['cleanup']['owned_removed'], terminal)
+            self.assertEqual(Path(receipt['cleanup']['owned_path']).exists(), not terminal)
+
+    def test_default_execute_activates_and_restores_absent_parent_flag(self):
+        self.check_main(False, None)
+
+    def test_default_execute_activates_and_restores_existing_parent_flag(self):
+        self.check_main(False, 'existing parent value')
+
+    def test_integration_failure_restores_absent_parent_flag(self):
+        self.check_main(True, None)
+
+    def test_integration_failure_restores_existing_parent_flag(self):
+        self.check_main(True, 'existing parent value')
+
+    def test_mkdir_failure_dispatches_without_absent_parent_flag(self):
+        self.check_main(False, None, mkdir_error=True)
+
+    def test_mkdir_failure_dispatches_without_inherited_parent_flag(self):
+        self.check_main(False, 'existing parent value', mkdir_error=True)
+
+    def test_mkdir_failure_preserves_integration_error_and_unknown_custody(self):
+        for inherited in (None, 'existing parent value'):
+            with self.subTest(inherited=inherited):
+                self.check_main(True, inherited, mkdir_error=True)
+
+    def test_predispatch_guard_failure_removes_owned_scratch(self):
+        for inherited in (None, 'existing parent value'):
+            with self.subTest(inherited=inherited):
+                self.check_main(False, inherited, guard_error=True)
+
+    def test_primary_result_failure_remains_failed_after_mkdir_error(self):
+        for inherited in (None, 'existing parent value'):
+            with self.subTest(inherited=inherited):
+                self.check_main(False, inherited, mkdir_error=True, result_failure=True)
+
+    def test_nonexecute_refuses_before_output_or_phase_creation(self):
+        import sys
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory(dir=HERE) as td:
+            output = Path(td) / 'fresh'
+            with patch.object(sys, 'argv', ['bootstrap.py', '--output', str(output)]), \
+                 patch.object(B, 'canonical') as authority:
+                with self.assertRaisesRegex(RuntimeError, 'Explicit --execute'):
+                    B.main()
+                authority.assert_not_called()
+            self.assertFalse(output.exists())
+
+    def test_nonfresh_output_refused_before_phase_creation(self):
+        import sys
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory(dir=HERE) as td:
+            root = Path(td).resolve()
+            output = root / 'existing'
+            output.mkdir()
+            with patch.dict(os.environ, {'RUNNER_TEMP': str(root)}), \
+                 patch.object(sys, 'argv', ['bootstrap.py', '--output', str(output), '--execute']), \
+                 patch.object(sys, 'platform', 'darwin'), \
+                 patch.object(B, 'canonical', return_value=Mock()):
+                with self.assertRaisesRegex(RuntimeError, 'fresh direct child'):
+                    B.main()
+            self.assertEqual(list(output.iterdir()), [])
+
+
 if __name__ == '__main__':
     unittest.main()

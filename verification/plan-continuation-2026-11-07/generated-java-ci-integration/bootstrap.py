@@ -28,7 +28,7 @@ SDK_BYTES = 333223533
 DEVELOPER = Path('/Applications/Xcode_26.6.app/Contents/Developer')
 SDKROOT = DEVELOPER / 'Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk'
 SOURCE_INPUT_COUNT = 116
-SOURCE_INPUT_SHA256 = 'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99'
+SOURCE_INPUT_SHA256 = '452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f'
 MINIMUM_FREE_BYTES = 12 * 1024**3
 
 
@@ -311,8 +311,19 @@ def main():
         authority.save(out / 'bootstrap-receipt.json', receipt)
         # The existing runner owns its own 40-minute budget and bounded children.
         receipt['integration_argv_equivalent'] = list(map(str, integration_argv(sys.executable, selected, out / 'integration')))
+        # Keep diagnostics outside receipt scanning and every inspected distribution.
+        integration_env = dict(env)
+        integration_env.pop('MIXER_ANDROID_INSPECTION_PHASE_DIR', None)
+        phase_dir = out / 'inspection-phases'
+        try:
+            phase_dir.mkdir(mode=0o700)
+        except OSError:
+            pass  # Optional diagnostics must not prevent integration.
+        else:
+            receipt['inspection_phase_dir'] = str(phase_dir)
+            integration_env['MIXER_ANDROID_INSPECTION_PHASE_DIR'] = str(phase_dir)
         integration_started = True
-        result = run_integration(authority, selected, env, out / 'integration')
+        result = run_integration(authority, selected, integration_env, out / 'integration')
         integration_terminal = result.get('cleanup', {}).get('command_custody_terminal') is True
         validate_result(result)
         require(result['official_toolchain'] == receipt['official_inspect'], 'Tool identity changed after bootstrap')

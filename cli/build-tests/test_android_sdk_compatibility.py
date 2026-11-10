@@ -70,6 +70,9 @@ class CompatibilityFixture:
                 'compatibility': 'exact-runtime-fingerprint',
                 'requireArtifactSignature': True, 'requireAssignmentSignature': True}}
         (root / 'mixer.yml').write_text(json.dumps(self.config))
+        manifest = self.adapter.parent.parent / 'Platforms/Android/AndroidManifest.xml'
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-sdk android:minSdkVersion="36" android:targetSdkVersion="37" /></manifest>')
         self.refresh_lock()
 
     def refresh_lock(self):

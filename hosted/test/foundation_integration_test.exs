@@ -42,23 +42,42 @@ defmodule MixerHosted.FoundationIntegrationTest do
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
   end
 
+  test "reviewed migration membership rejects missing and foreign migrations before execution" do
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "mixer-migration-membership-#{System.unique_integer([:positive])}"
+      )
+
+    File.mkdir!(path)
+    on_exit(fn -> File.rm_rf!(path) end)
+    source = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+
+    for file <- Path.wildcard(Path.join(source, "*.exs")),
+        do: File.cp!(file, Path.join(path, Path.basename(file)))
+
+    assert :ok = MixerHosted.Test.Migrations.check_files!(path)
+    extra = Path.join(path, "20261110000001_foreign.exs")
+    File.write!(extra, "raise \"foreign migration must never execute\"")
+
+    assert_raise RuntimeError, ~r/migration files differ/, fn ->
+      MixerHosted.Test.Migrations.up!(Repo, path)
+    end
+
+    File.rm!(extra)
+    [file | _] = Path.wildcard(Path.join(path, "*.exs"))
+    File.rm!(file)
+
+    assert_raise RuntimeError, ~r/migration files differ/, fn ->
+      MixerHosted.Test.Migrations.up!(Repo, path)
+    end
+  end
+
   setup_all do
     {:ok, repo} = Repo.start_link(local_repo())
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
 
-    assert [
-             20_261_024_000_000,
-             20_261_025_000_000,
-             20_261_025_000_001,
-             20_261_025_000_002,
-             20_261_025_000_003,
-             20_261_025_000_004,
-             20_261_025_000_005,
-             20_261_025_000_006,
-             20_261_025_000_007,
-             20_261_025_000_008
-           ] =
-             Ecto.Migrator.run(Repo, path, :up, all: true)
+    MixerHosted.Test.Migrations.up!(Repo, path)
 
     assert [] = Ecto.Migrator.run(Repo, path, :up, all: true)
 

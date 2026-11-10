@@ -30,7 +30,7 @@ defmodule MixerHosted.Builds.AggregateAdmissionTest do
     )
 
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 10
+    MixerHosted.Test.Migrations.up!(Repo, path)
     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true)
     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
     :ok
@@ -502,30 +502,21 @@ defmodule MixerHosted.Builds.AggregateAdmissionTest do
     before = {Repo.one!(Reservation), Repo.one!(Lease), Repo.get!(Record, a.record.id)}
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
 
-    assert [
-             20_261_025_000_008,
-             20_261_025_000_007,
-             20_261_025_000_006,
-             20_261_025_000_005,
-             20_261_025_000_004,
-             20_261_025_000_003,
-             @aggregate_migration
-           ] = Ecto.Migrator.run(Repo, path, :down, step: 7)
+    latest = Enum.filter(MixerHosted.Test.Migrations.versions(), &(&1 >= @aggregate_migration))
+    assert Enum.reverse(latest) == Ecto.Migrator.run(Repo, path, :down, step: length(latest))
+
+    assert %{rows: [[nil]]} =
+             Repo.query!("SELECT to_regclass('public.mixer_billing_usage_entries')::text")
 
     assert %{rows: [[nil]]} =
              Repo.query!("SELECT to_regclass('public.mixer_build_fleet_capacity')::text")
 
     assert {Repo.one!(Reservation), Repo.one!(Lease), Repo.get!(Record, a.record.id)} == before
 
-    assert [
-             @aggregate_migration,
-             20_261_025_000_003,
-             20_261_025_000_004,
-             20_261_025_000_005,
-             20_261_025_000_006,
-             20_261_025_000_007,
-             20_261_025_000_008
-           ] = Ecto.Migrator.run(Repo, path, :up, all: true)
+    assert latest == Ecto.Migrator.run(Repo, path, :up, all: true)
+
+    assert %{rows: [["mixer_billing_usage_entries"]]} =
+             Repo.query!("SELECT to_regclass('public.mixer_billing_usage_entries')::text")
 
     assert {Repo.one!(Reservation), Repo.one!(Lease), Repo.get!(Record, a.record.id)} == before
     assert %{configured: false, limit: 0, revision: 0} = Repo.one!(FleetCapacity)

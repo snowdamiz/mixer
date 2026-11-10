@@ -27,6 +27,14 @@ import uuid
 FROZEN_PRODUCT_DIGEST = "023df04c9a4599c3d5a6cdf2afb53a95e2faf37765d8b96ba2bcc0e1b007c92e"
 FIXTURE_SOURCE_DIGEST = "ab8f8dbec5894ca96dd673db828a01afdc39a54ad008a2a2d4e598c1c62ce2f7"
 SELECTED_SOURCE_DIGEST = "8d0139c8c64e02f29f42a96384661f60dd7b724fa5fb4d5f54f6e7c1b7b78cd3"
+CURRENT_SOURCE_BASE = 'verification/identity-network-current-source-v1/'
+CURRENT_SELECTION_SHA256 = '14868be39631a86c79f4ba7b6bfb9386c6d80062ef4d0ddebbf55aea833afc96'
+CURRENT_SOURCE_DIGEST = '07bb7b5d7b518f487e4981dc4aa0e911f16c99a5bbbf96ea0bdc204d9455ccd9'
+CURRENT_SOURCE_COUNT = 185
+SUCCESSOR_SOURCE_BASE = 'verification/identity-network-current-source-v2/'
+SUCCESSOR_SELECTION_SHA256 = 'bfeca22fb174a283206c8b9db0ffd858ba52849444384eeea62b728717b24272'
+SUCCESSOR_SOURCE_DIGEST = '4d2eefb1fe856f83507fc643c46ba9f2171b5f11810ffad3942c345b209e9eab'
+SUCCESSOR_SOURCE_COUNT = 190
 FORMAT_BASE = "verification/identity-network-fixture-amendment-v2/metadata/"
 FORMAT_SHA256 = "45f0c33f8f521ff43ed58b13c34466dea593ecd1c9e8aab166b1e075da07ef84"
 FORMAT_PACKET = "46d75ed1393db3250b5b7df2611b82bdc5c49f5c1ca7ec64ff8f40e24f179760"
@@ -384,6 +392,66 @@ def validate_source_manifest(manifest, expected_digest=SELECTED_SOURCE_DIGEST, e
     return _validate_source_manifest(manifest, SELECTED_SOURCE_DIGEST, 178)
 
 
+def validate_current_source_manifest(manifest, expected_digest=CURRENT_SOURCE_DIGEST, expected_count=CURRENT_SOURCE_COUNT):
+    """Only this explicitly selected successor can authorize current product bytes."""
+    require(expected_digest == CURRENT_SOURCE_DIGEST and type(expected_count) is int and expected_count == CURRENT_SOURCE_COUNT, "caller cannot replace current source authority")
+    return _validate_source_manifest(manifest, CURRENT_SOURCE_DIGEST, CURRENT_SOURCE_COUNT)
+
+
+def validate_current_source_metadata(metadata):
+    require(isinstance(metadata, dict) and set(metadata) == {CURRENT_SOURCE_BASE + "selection.json", CURRENT_SOURCE_BASE + "selected-source-manifest.json"}, "current source selection membership mismatch")
+    body = metadata[CURRENT_SOURCE_BASE + "selection.json"]
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == CURRENT_SELECTION_SHA256, "current source selection pin mismatch")
+    value = json.loads(body)
+    selected_body = metadata[CURRENT_SOURCE_BASE + "selected-source-manifest.json"]
+    require(isinstance(selected_body, bytes) and _file_row(selected_body) == {key: value["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "current source manifest bytes mismatch")
+    selected = json.loads(selected_body)
+    validate_current_source_manifest(selected)
+    require(selected == CURRENT_MANIFEST and value["predecessor"] == {"source_count": 178, "source_digest_sha256": SELECTED_SOURCE_DIGEST, "source_amendment_sha256": FORMAT_SHA256}, "current source predecessor mismatch")
+    delta = {path: {"before": FROZEN_MANIFEST.get(path), "after": row} for path, row in selected.items() if FROZEN_MANIFEST.get(path) != row}
+    require(set(FROZEN_MANIFEST) <= set(selected) and value["exact_delta"] == delta and value["runtime_or_GA_accepted"] is False, "current source delta mismatch")
+    return value
+
+
+def check_current_source(root):
+    """Pure source preflight: no Git, subprocess, container or network activity."""
+    metadata = {CURRENT_SOURCE_BASE + name: (root / CURRENT_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+    selection = validate_current_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in CURRENT_MANIFEST}
+    validate_current_source_manifest(observed)
+    return {"identity": selection["identity"], "source_count": len(observed), "source_digest_sha256": canonical_digest(observed), "selection_sha256": CURRENT_SELECTION_SHA256, "runtime_or_GA_accepted": False}
+
+
+def validate_successor_source_manifest(manifest, expected_digest=SUCCESSOR_SOURCE_DIGEST, expected_count=SUCCESSOR_SOURCE_COUNT):
+    """Only this explicitly selected successor can authorize current product bytes."""
+    require(expected_digest == SUCCESSOR_SOURCE_DIGEST and type(expected_count) is int and expected_count == SUCCESSOR_SOURCE_COUNT, "caller cannot replace successor source authority")
+    return _validate_source_manifest(manifest, SUCCESSOR_SOURCE_DIGEST, SUCCESSOR_SOURCE_COUNT)
+
+
+def validate_successor_source_metadata(metadata):
+    require(isinstance(metadata, dict) and set(metadata) == {SUCCESSOR_SOURCE_BASE + "selection.json", SUCCESSOR_SOURCE_BASE + "selected-source-manifest.json"}, "successor source selection membership mismatch")
+    body = metadata[SUCCESSOR_SOURCE_BASE + "selection.json"]
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == SUCCESSOR_SELECTION_SHA256, "successor source selection pin mismatch")
+    value = json.loads(body)
+    selected_body = metadata[SUCCESSOR_SOURCE_BASE + "selected-source-manifest.json"]
+    require(isinstance(selected_body, bytes) and _file_row(selected_body) == {key: value["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "successor source manifest bytes mismatch")
+    selected = json.loads(selected_body)
+    validate_successor_source_manifest(selected)
+    require(selected == SUCCESSOR_MANIFEST and value["predecessor"] == {"source_count": CURRENT_SOURCE_COUNT, "source_digest_sha256": CURRENT_SOURCE_DIGEST, "selection_sha256": CURRENT_SELECTION_SHA256}, "successor source predecessor mismatch")
+    delta = {path: {"before": CURRENT_MANIFEST.get(path), "after": row} for path, row in selected.items() if CURRENT_MANIFEST.get(path) != row}
+    require(set(CURRENT_MANIFEST) <= set(selected) and value["exact_delta"] == delta and value["runtime_or_GA_accepted"] is False, "successor source delta mismatch")
+    return value
+
+
+def check_successor_source(root):
+    """Pure source preflight: no Git, subprocess, container or network activity."""
+    metadata = {SUCCESSOR_SOURCE_BASE + name: (root / SUCCESSOR_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+    selection = validate_successor_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in SUCCESSOR_MANIFEST}
+    validate_successor_source_manifest(observed)
+    return {"identity": selection["identity"], "source_count": len(observed), "source_digest_sha256": canonical_digest(observed), "selection_sha256": SUCCESSOR_SELECTION_SHA256, "runtime_or_GA_accepted": False}
+
+
 def validate_fixture_manifest(body):
     require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == FIXTURE_PACKET_SHA256, "fixture amendment packet bytes mismatch")
     packet = json.loads(body)
@@ -514,7 +582,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_source_manifest(prepared["source"])
+    validate_successor_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -681,7 +749,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_source_manifest(manifest["source"])
+    validate_successor_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -704,7 +772,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(SUCCESSOR_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -1475,10 +1543,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_source_manifest(FROZEN_MANIFEST)
-        product = self.git_blobs(sorted(FROZEN_MANIFEST))
+        validate_successor_source_manifest(SUCCESSOR_MANIFEST)
+        product = self.git_blobs(sorted(SUCCESSOR_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_successor_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -1505,6 +1573,13 @@ class Collector:
         metadata.update(format_manifest)
         metadata.update(self.git_blobs([FORMAT_BASE + path for path in format_files]))
         validate_format_metadata(metadata)
+        predecessor_metadata = self.git_blobs([CURRENT_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_current_source_metadata(predecessor_metadata)
+        metadata.update(predecessor_metadata)
+        current_metadata = self.git_blobs([SUCCESSOR_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_successor_source_metadata(current_metadata)
+        metadata.update(current_metadata)
+        self.state["source"].update(current_source_selection_sha256=SUCCESSOR_SELECTION_SHA256, current_source_digest_sha256=SUCCESSOR_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -1522,7 +1597,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(FROZEN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(SUCCESSOR_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -1544,7 +1619,7 @@ class Collector:
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
-        require(prepared_manifest["source"] == FROZEN_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == SUCCESSOR_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -1642,8 +1717,8 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in FROZEN_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
-        require(len(expected_migrations) == 10 and applied == expected_migrations, "actual current ten migrations differ")
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in SUCCESSOR_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
         self.state["limitations"] = ["Ordinary remote synthetic fixture scope only; no syscall/child-command custody trace", "Existing TLSFixture discards successful OpenSSL child output; executable/parent trace/assertions retained", "No real provider/browser/Neon/Cloudflare/native/physical/GA qualification", "No new production release/exclusion run; root must separately accept exact unchanged-product evidence reuse", "Host loss/hard cancellation can prevent cleanup or upload; missing evidence is unqualified", "Independent root artifact download, digest validation and acceptance remain required"]
@@ -2024,6 +2099,24 @@ FROZEN_MANIFEST = {
 }
 
 
+CURRENT_MANIFEST = {
+    **FROZEN_MANIFEST,
+    'hosted/lib/mixer_hosted/billing/webhook_event.ex': {'bytes': 505, 'sha256': 'e353ab039a9b5d6a919888baf7e424bd126a208571019651764cf801d4d7955f'},
+    'hosted/lib/mixer_hosted/billing/webhook_inbox.ex': {'bytes': 6483, 'sha256': 'd498fa87642389a4351f195a94632e2b890881bcb803e5aeb7659080a2147f87'},
+    'hosted/lib/mixer_hosted_web/billing_webhook_controller.ex': {'bytes': 1547, 'sha256': 'e054af6025aacb4fa826129681fd958c2127d95bfd0ba4b6c71a979c401792a3'},
+    'hosted/lib/mixer_hosted_web/billing_webhook_endpoint.ex': {'bytes': 1903, 'sha256': '469f02425b201e9cf81c45f7da0a83fc8d92eae3e66b17d7f5b165eed8be9ff6'},
+    'hosted/priv/repo/migrations/20261110000000_add_billing_webhook_inbox.exs': {'bytes': 711, 'sha256': 'ac4cf0df76b0e7963b48d3a97a727d0a31f108a9267c32999ed7b852a393a2ff'},
+    'hosted/test/foundation_integration_test.exs': {'bytes': 6296, 'sha256': '852de2acd4dbf623925d5fb7eddc14856e4cd0dc0ed09ca87703e6b1f2294a1b'},
+    'hosted/test/mixer_hosted/billing/product_route_test.exs': {'bytes': 7937, 'sha256': '7eed8000a1c8d56950986e1ef67b56ee9511be9d4aff293891dc0cfdd547ca64'},
+    'hosted/test/mixer_hosted/billing/webhook_inbox_test.exs': {'bytes': 11307, 'sha256': '91f7f81881da4120cb940b565ae019c2a4a97376c1bdf98b652058420eb874bd'},
+    'hosted/test/mixer_hosted/builds/admission_test.exs': {'bytes': 21331, 'sha256': 'df5a64018692a9ddaefffb032d8ebec05824bd60035f5f08741d40e76c2bf1c7'},
+    'hosted/test/mixer_hosted/builds/aggregate_admission_test.exs': {'bytes': 30295, 'sha256': 'ea55f5d285ea1804238a577237fef1f0166e257ca3fa2d31d621f0324dbcc6df'},
+    'hosted/test/mixer_hosted/builds/coordinator_test.exs': {'bytes': 24996, 'sha256': '8750fcbdcc6b280b20bb68a44ef2df0f0617d77a47d32d8a5cbfd3adb6458ad3'},
+    'hosted/test/mixer_hosted/builds/storage_test.exs': {'bytes': 12763, 'sha256': '32ffb3afddbb34126ef63328c44f458c2310d9e107d7413c8bb95cb6c55735cd'},
+    'hosted/test/test_helper.exs': {'bytes': 1362, 'sha256': 'cbabda9a0df61675908367f4b7e74580070d9ae491d9aa1a29a30e88a06f0f0f'},
+}
+
+
 def finalize(root, output):
     """Always-step continuation, within the original budget and retained exact IDs."""
     output = Path(output)
@@ -2070,8 +2163,13 @@ def main(argv=None):
     parser.add_argument('--sha')
     parser.add_argument('--output')
     parser.add_argument('--finalize')
+    parser.add_argument('--check-source', action='store_true')
     options = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[2]
+    if options.check_source:
+        require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
+        print(json.dumps(check_successor_source(root), sort_keys=True))
+        return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
     require(selected_output.parent == root and selected_output.name == 'identity-network-evidence', 'output must be the one owned identity-network-evidence directory')
@@ -2086,6 +2184,21 @@ def main(argv=None):
     signal.signal(signal.SIGINT, cancelled)
     signal.signal(signal.SIGTERM, cancelled)
     return subject.run()
+
+
+SUCCESSOR_MANIFEST = {
+    **CURRENT_MANIFEST,
+    'hosted/lib/mixer_hosted/billing/usage_entry.ex': {'bytes': 559, 'sha256': '6b6a5b2acdcf8a2118d34ccc15345e63ac08e3d2e2676489366bf8ebbce1322f'},
+    'hosted/lib/mixer_hosted/billing/usage_ledger.ex': {'bytes': 7837, 'sha256': '4655ef30ec1efa001bf38194701c0f7e5785df55a7efb1889f27741cb5f6c266'},
+    'hosted/priv/repo/migrations/20261110000001_add_billing_usage_ledger.exs': {'bytes': 3732, 'sha256': '33d341c493b5ba7a0f170a5d4994972ba7666cc91c0cdcf64b943822b08af7c5'},
+    'hosted/scripts/test-local.py': {'bytes': 21806, 'sha256': '5c8d878c895866411bc34b42b6e38e7a5f8a73d1cd3a213773bc09a424420dd8'},
+    'hosted/test/mixer_hosted/billing/usage_ledger_test.exs': {'bytes': 15583, 'sha256': '71d5d292dbe025a45f4fc0b67121ac5354d55cb639c71b53de4ed6666e66ed1e'},
+    'hosted/test/mixer_hosted/browser_auth/migration_spec.exs': {'bytes': 8509, 'sha256': '17525dde0c58c997a7f1ba4e6d5f33106dae972a805d2611f84a24480d2151d1'},
+    'hosted/test/mixer_hosted/browser_auth/run_migration_fixture.py': {'bytes': 9339, 'sha256': '2e095ea7202cd7d7f72df6c30e961dafdcf848d63807a089da26abd5ae831e84'},
+    'hosted/test/mixer_hosted/builds/aggregate_admission_test.exs': {'bytes': 30144, 'sha256': '4dde515c2cb3805ac979b382a867eac56335c7bfda44ed6b8bfac235de6de3b6'},
+    'hosted/test/support/reviewed_migrations.json': {'bytes': 597, 'sha256': '588f54f76747be82713188547f41a3f04cdb18250faaa375b1ee65523e36d103'},
+    'hosted/test/test_helper.exs': {'bytes': 903, 'sha256': 'c8781a28fdc95e2556794163fa24036546be1959b04371f577a63418efbc503b'},
+}
 
 
 if __name__ == '__main__':

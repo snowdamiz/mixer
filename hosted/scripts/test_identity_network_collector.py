@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, FROZEN_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_successor_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, SUCCESSOR_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: metadata[path] if path.startswith("verification/") else (repository / path).read_bytes() for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_source_manifest", return_value=collector.FROZEN_MANIFEST), \
+                    mock.patch.object(collector, "validate_successor_source_manifest", return_value=collector.SUCCESSOR_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_source_manifest", return_value=collector.FROZEN_MANIFEST), \
+                    mock.patch.object(collector, "validate_successor_source_manifest", return_value=collector.SUCCESSOR_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_source_manifest", return_value=collector.FROZEN_MANIFEST), \
+                    mock.patch.object(collector, "validate_successor_source_manifest", return_value=collector.SUCCESSOR_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_source_manifest", return_value=collector.FROZEN_MANIFEST), \
+                            mock.patch.object(collector, "validate_successor_source_manifest", return_value=collector.SUCCESSOR_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_source_manifest", return_value=collector.FROZEN_MANIFEST), \
+                            mock.patch.object(collector, "validate_successor_source_manifest", return_value=collector.SUCCESSOR_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.FROZEN_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.SUCCESSOR_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -2273,6 +2273,147 @@ class BudgetAndCommandControls(unittest.TestCase):
                                                (0, b"", b"", True)):
             with self.subTest(returncode=returncode, oom=oom), self.assertRaises(collector.CollectorError):
                 collector.validate_command_result(returncode, stdout, stderr, limit=8, oom=oom)
+
+
+
+
+class CurrentSourceSelectionControls(unittest.TestCase):
+    DIGEST = "07bb7b5d7b518f487e4981dc4aa0e911f16c99a5bbbf96ea0bdc204d9455ccd9"
+    SELECTION = "14868be39631a86c79f4ba7b6bfb9386c6d80062ef4d0ddebbf55aea833afc96"
+
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.CURRENT_SOURCE_BASE + name: (root / collector.CURRENT_SOURCE_BASE / name).read_bytes()
+                for name in ("selection.json", "selected-source-manifest.json")}
+
+    def test_current_actual_source_has_independent_closed_root(self):
+        value = collector.validate_current_source_metadata(self.metadata())
+        result = {"source_count": value["selected"]["source_count"], "source_digest_sha256": value["selected"]["source_digest_sha256"], "selection_sha256": self.SELECTION, "runtime_or_GA_accepted": value["runtime_or_GA_accepted"]}
+        with self.assertRaises(collector.CollectorError):
+            collector.check_current_source(COLLECTOR_PATH.resolve().parents[2])
+        self.assertEqual((185, self.DIGEST, self.SELECTION),
+                         (result["source_count"], result["source_digest_sha256"], result["selection_sha256"]))
+        self.assertFalse(result["runtime_or_GA_accepted"])
+
+    def test_historical_and_current_source_authority_are_distinct(self):
+        collector.validate_source_manifest(copy.deepcopy(collector.FROZEN_MANIFEST))
+        collector.validate_current_source_manifest(copy.deepcopy(collector.CURRENT_MANIFEST))
+        with self.assertRaises(collector.CollectorError): collector.validate_current_source_manifest(collector.FROZEN_MANIFEST)
+        with self.assertRaises(collector.CollectorError): collector.validate_source_manifest(collector.CURRENT_MANIFEST)
+
+    def test_current_source_changed_missing_and_foreign_members_refuse(self):
+        for path in ("hosted/mix.lock", "hosted/lib/mixer_hosted/billing/webhook_inbox.ex",
+                     "hosted/test/mixer_hosted/builds/coordinator_test.exs", "hosted/test/test_helper.exs"):
+            value = copy.deepcopy(collector.CURRENT_MANIFEST)
+            value[path]["sha256"] = "0" * 64
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError): collector.validate_current_source_manifest(value)
+        value = copy.deepcopy(collector.CURRENT_MANIFEST)
+        value.pop("hosted/lib/mixer_hosted/billing/webhook_inbox.ex")
+        with self.assertRaises(collector.CollectorError): collector.validate_current_source_manifest(value)
+        value["hosted/priv/repo/migrations/20261110000001_foreign.exs"] = {"bytes": 0, "sha256": "0" * 64}
+        with self.assertRaises(collector.CollectorError): collector.validate_current_source_manifest(value)
+
+    def test_untrusted_source_digest_cannot_replace_current_authority(self):
+        value = copy.deepcopy(collector.CURRENT_MANIFEST)
+        value["hosted/mix.lock"]["sha256"] = "0" * 64
+        with self.assertRaises(collector.CollectorError):
+            collector.validate_current_source_manifest(value, expected_digest=canonical_digest(value), expected_count=185)
+
+    def test_current_metadata_exact_pin_and_membership(self):
+        metadata = self.metadata()
+        result = collector.validate_current_source_metadata(metadata)
+        self.assertEqual(185, result["selected"]["source_count"])
+        for path in metadata:
+            changed = dict(metadata)
+            changed[path] += b" "
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError): collector.validate_current_source_metadata(changed)
+        changed = dict(metadata)
+        changed[collector.CURRENT_SOURCE_BASE + "foreign.json"] = b"{}"
+        with self.assertRaises(collector.CollectorError): collector.validate_current_source_metadata(changed)
+
+    def test_current_metadata_refusal_precedes_any_docker_operation(self):
+        helper = CollectorMethodWiringControls()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
+            original = subject.git_blobs
+            def blobs(paths):
+                result = original(paths)
+                if collector.SUCCESSOR_SOURCE_BASE + "selection.json" in result:
+                    result[collector.SUCCESSOR_SOURCE_BASE + "selection.json"] += b" "
+                return result
+            subject.git_blobs = blobs
+            with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
+                    mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
+                with self.assertRaisesRegex(collector.CollectorError, "selection pin mismatch"): subject.collect()
+            self.assertFalse(any(argv[0] == "docker" for argv in calls))
+
+
+class SuccessorSourceSelectionControls(unittest.TestCase):
+    DIGEST = "4d2eefb1fe856f83507fc643c46ba9f2171b5f11810ffad3942c345b209e9eab"
+    SELECTION = "bfeca22fb174a283206c8b9db0ffd858ba52849444384eeea62b728717b24272"
+
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.SUCCESSOR_SOURCE_BASE + name: (root / collector.SUCCESSOR_SOURCE_BASE / name).read_bytes()
+                for name in ("selection.json", "selected-source-manifest.json")}
+
+    def test_current_actual_source_has_independent_closed_root(self):
+        result = collector.check_successor_source(COLLECTOR_PATH.resolve().parents[2])
+        self.assertEqual((190, self.DIGEST, self.SELECTION),
+                         (result["source_count"], result["source_digest_sha256"], result["selection_sha256"]))
+        self.assertFalse(result["runtime_or_GA_accepted"])
+
+    def test_historical_and_successor_source_authority_are_distinct(self):
+        collector.validate_source_manifest(copy.deepcopy(collector.FROZEN_MANIFEST))
+        collector.validate_successor_source_manifest(copy.deepcopy(collector.SUCCESSOR_MANIFEST))
+        with self.assertRaises(collector.CollectorError): collector.validate_successor_source_manifest(collector.FROZEN_MANIFEST)
+        with self.assertRaises(collector.CollectorError): collector.validate_source_manifest(collector.SUCCESSOR_MANIFEST)
+
+    def test_successor_source_changed_missing_and_foreign_members_refuse(self):
+        for path in ("hosted/lib/mixer_hosted/billing/usage_ledger.ex", "hosted/test/support/reviewed_migrations.json", "hosted/priv/repo/migrations/20261110000001_add_billing_usage_ledger.exs", "hosted/mix.lock", "hosted/lib/mixer_hosted/billing/webhook_inbox.ex",
+                     "hosted/test/mixer_hosted/builds/coordinator_test.exs", "hosted/test/test_helper.exs"):
+            value = copy.deepcopy(collector.SUCCESSOR_MANIFEST)
+            value[path]["sha256"] = "0" * 64
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError): collector.validate_successor_source_manifest(value)
+        value = copy.deepcopy(collector.SUCCESSOR_MANIFEST)
+        value.pop("hosted/lib/mixer_hosted/billing/webhook_inbox.ex")
+        with self.assertRaises(collector.CollectorError): collector.validate_successor_source_manifest(value)
+        value["hosted/priv/repo/migrations/20261110000001_foreign.exs"] = {"bytes": 0, "sha256": "0" * 64}
+        with self.assertRaises(collector.CollectorError): collector.validate_successor_source_manifest(value)
+
+    def test_untrusted_source_digest_cannot_replace_current_authority(self):
+        value = copy.deepcopy(collector.SUCCESSOR_MANIFEST)
+        value["hosted/mix.lock"]["sha256"] = "0" * 64
+        with self.assertRaises(collector.CollectorError):
+            collector.validate_successor_source_manifest(value, expected_digest=canonical_digest(value), expected_count=190)
+
+    def test_current_metadata_exact_pin_and_membership(self):
+        metadata = self.metadata()
+        result = collector.validate_successor_source_metadata(metadata)
+        self.assertEqual(190, result["selected"]["source_count"])
+        for path in metadata:
+            changed = dict(metadata)
+            changed[path] += b" "
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError): collector.validate_successor_source_metadata(changed)
+        changed = dict(metadata)
+        changed[collector.SUCCESSOR_SOURCE_BASE + "foreign.json"] = b"{}"
+        with self.assertRaises(collector.CollectorError): collector.validate_successor_source_metadata(changed)
+
+    def test_current_metadata_refusal_precedes_any_docker_operation(self):
+        helper = CollectorMethodWiringControls()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
+            original = subject.git_blobs
+            def blobs(paths):
+                result = original(paths)
+                if collector.SUCCESSOR_SOURCE_BASE + "selection.json" in result:
+                    result[collector.SUCCESSOR_SOURCE_BASE + "selection.json"] += b" "
+                return result
+            subject.git_blobs = blobs
+            with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
+                    mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
+                with self.assertRaisesRegex(collector.CollectorError, "selection pin mismatch"): subject.collect()
+            self.assertFalse(any(argv[0] == "docker" for argv in calls))
 
 
 if __name__ == "__main__":

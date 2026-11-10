@@ -334,6 +334,32 @@ def pair18_predecessor_raw(base, path):
 PAIR19_RECEIPT_TRANSITION = {'schema': 1, 'type': 'EXACT_PAIR19_ANDROID_HOST_RECEIPT_METADATA_CORRECTION', 'profile': 'mixer.android-source-pair.19', 'path': 'cli/Sources/MixerBuild/Resources/android-build.py', 'before': {'bytes': 40156, 'sha256': 'd4fc9fd95bd47eb95f7af84579408d30199343be38c462a201cb2ec5dd633b87'}, 'after': {'bytes': 40156, 'sha256': '04675e4b320a68ed89d4f06f7a232fdde87ff0316e9f569a0725c9a02c1fea28'}, 'sourceBefore': '5b733fc52b61ceb71d8e1aa3bdb3a66dcf40dde93a58f9090ca1a842bff9193c', 'sourceAfter': 'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99', 'sourceCount': 116, 'qualification': False, 'actualSixConsumers': False, 'nativePass': False, 'runtimePass': False, 'gaPass': False, 'scope': 'One receipt expression now records the admitted androidHost; Pair19 SDK24/adapter27/Java21 and wire maps unchanged. Final-source actual CLI/V4 build and six consumers remain pending at root.'}
 
 
+
+PUBLIC_ANDROID_FLOOR_TRANSITION = {'schema': 1, 'type': 'EXACT_PUBLIC_ANDROID_API_FLOOR_SOURCE_CORRECTION', 'sourceBefore': 'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99', 'sourceAfter': 'de5ca08c37cdca5307808a6732ffcbbe9dbeeb8057ceaa11b40e19f0be06cc6a', 'sourceCount': 116, 'owningChanges': [{'path': 'cli/Sources/MixerBuild/AndroidPublicHost.swift', 'before': {'bytes': 41354, 'sha256': 'ee2db2dfb606153bc7eb95a70e6e9d07ee75a11cfd9beb78547d3bb35cecaf0c'}, 'after': {'bytes': 42251, 'sha256': '49f8d5db5b14360792714bc25405d3cb3da8d627ce817d2fcaedbc0c916e2847'}}, {'path': 'cli/Sources/MixerBuild/Resources/android-build.py', 'before': {'bytes': 40156, 'sha256': '04675e4b320a68ed89d4f06f7a232fdde87ff0316e9f569a0725c9a02c1fea28'}, 'after': {'bytes': 42297, 'sha256': '5111372e8e0da0ba07f61dda99348805cf439860ca0cfdee8003a971f30c6073'}}], 'qualification': False, 'nativePass': False, 'runtimePass': False, 'gaPass': False, 'historicalHoldsReleased': False}
+
+ANDROID_INSPECTION_PHASE_TRANSITION = {'schema': 1, 'type': 'EXACT_ANDROID_INSPECTION_PHASE_DIAGNOSTIC', 'sourceBefore': 'de5ca08c37cdca5307808a6732ffcbbe9dbeeb8057ceaa11b40e19f0be06cc6a', 'sourceAfter': '452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f', 'sourceCount': 116, 'owningChanges': [{'path': 'cli/Sources/MixerBuild/Resources/android-build.py', 'before': {'bytes': 42297, 'sha256': '5111372e8e0da0ba07f61dda99348805cf439860ca0cfdee8003a971f30c6073'}, 'after': {'bytes': 45295, 'sha256': '6889b75958fdc2d2f4894072d180c8aa377c040cc4b1b22b3a8e3dfeff357ca2'}}], 'qualification': False, 'nativePass': False, 'runtimePass': False, 'gaPass': False, 'historicalHoldsReleased': False}
+def android_inspection_phase_predecessor(base, binding, actual, owner):
+    transition = ANDROID_INSPECTION_PHASE_TRANSITION
+    base.need(same_json(binding.get('android_inspection_phase_transition'), transition), 'Inspection phase typed transition differs')
+    base.need(len(actual) == transition['sourceCount'] and owner.source_digest(actual) == transition['sourceAfter'], 'Inspection phase current source differs')
+    predecessor = dict(actual)
+    for row in transition['owningChanges']:
+        base.need(same_json(actual.get(row['path']), row['after']), 'Inspection phase owning row differs')
+        predecessor[row['path']] = row['before']
+    base.need(owner.source_digest(predecessor) == transition['sourceBefore'], 'Inspection phase predecessor differs')
+    return predecessor
+
+def public_android_floor_predecessor(base, binding, actual, owner):
+    transition = PUBLIC_ANDROID_FLOOR_TRANSITION
+    base.need(same_json(binding.get('public_android_floor_transition'),transition), 'Public Android floor typed transition differs')
+    base.need(len(actual) == transition['sourceCount'] and owner.source_digest(actual) == transition['sourceAfter'], 'Public Android floor current source differs')
+    predecessor = dict(actual)
+    for row in transition['owningChanges']:
+        base.need(same_json(actual.get(row['path']), row['after']), 'Public Android floor owning row differs')
+        predecessor[row['path']] = row['before']
+    base.need(owner.source_digest(predecessor) == transition['sourceBefore'], 'Public Android floor predecessor differs')
+    return predecessor
+
 def pair19_predecessor(base, binding, actual, owner):
     receipt = PAIR19_RECEIPT_TRANSITION
     base.need(same_json(binding.get('pair19_receipt_transition'), receipt), 'Pair19 receipt typed transition differs')
@@ -397,6 +423,8 @@ def bind():
         base.need(same_json(binding.get('schema'), 1), 'Binding schema differs')
         digest = owner.source_digest(actual)
         current_actual = actual
+        actual = android_inspection_phase_predecessor(base, binding, actual, owner)
+        actual = public_android_floor_predecessor(base, binding, actual, owner)
         actual = pair19_predecessor(base, binding, actual, owner)
         actual = pair18_predecessor(base, binding, actual, owner)
         actual = pair17_predecessor(base, binding, actual, owner)
@@ -476,10 +504,10 @@ def bind():
         base.need(same_json(binding.get('fixture_dispatch'), {'host_rust_fixture_after_exact_checks':True, 'scope':'host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch', 'combinedAccepted':False, 'runtime':False, 'GA':False, 'exactWindow':False}), 'Host-only fixture dispatch contract differs')
         base.need(same_json(binding.get('adoption'), {'allowed':False, 'status':'CANDIDATE_PENDING_COMBINED_REVIEW', 'canonicalAdopted':False})
                   and same_json(binding.get('qualification'), {'compiler':False, 'native':False, 'CLI87':False, 'TestFlight':False, 'release':False, 'GA':False}), 'Candidate authority must remain pending')
-        base.need(len(current_actual) == 116 and digest == 'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99' and binding['source']['count'] == 116 and binding['source']['sha256'] == digest, 'Bound source closure differs')
+        base.need(len(current_actual) == 116 and digest == '452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f' and binding['source']['count'] == 116 and binding['source']['sha256'] == digest, 'Bound source closure differs')
         base.need(binding['profile'] == {'id':profile['id'], 'sdk_count':len(profile['sdk_files']), 'sdk_sha256':profile['sdk_compatibility_sha256'], 'adapter_count':len(profile['adapter_files']), 'adapter_sha256':profile['adapter_compatibility_sha256'], 'java_sources':len(owner.java_roster(profile))}, 'Accepted profile binding differs')
         caller_raw = base.regular(HERE / 'caller-inputs.json').read_bytes()
-        base.need(len(caller_raw) == 2008 and hashlib.sha256(caller_raw).hexdigest() == 'bb221f3a89d8b3667e959402ef53708a0f78bba1e07c08845b8500c99abefc07', 'Accepted caller authority bytes differ')
+        base.need(len(caller_raw) == 2531 and hashlib.sha256(caller_raw).hexdigest() == '7a29e0776cbfdffd3587a232bb1d96db7a2eb49495168955e631fd8c9a582cb3', 'Accepted caller authority bytes differ')
         callers = json.loads(caller_raw, object_pairs_hook=base.unique_object)
         base.check_rows(ROOT, callers)
         expected = base.regular(HERE / 'current-swift-job.yml').read_text()

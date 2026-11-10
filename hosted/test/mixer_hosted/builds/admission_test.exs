@@ -19,7 +19,7 @@ defmodule MixerHosted.Builds.AdmissionTest do
     )
 
     path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
-    assert length(Ecto.Migrator.run(Repo, path, :up, all: true)) == 10
+    MixerHosted.Test.Migrations.up!(Repo, path)
     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true)
     start_supervised!({Oban, repo: Repo, queues: false, plugins: false, testing: :manual})
     :ok

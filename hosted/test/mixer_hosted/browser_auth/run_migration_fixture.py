@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Selected ten-migration integration; no application or frozen-lane loading."""
+"""Selected closed-list migration integration; no application or frozen-lane loading."""
 import argparse
 import datetime
 import hashlib
@@ -17,11 +17,8 @@ ROOT = Path(__file__).resolve().parents[4]
 BROWSER = "hosted/lib/mixer_hosted/browser_auth/"
 MODULES = ["hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
            BROWSER + "storage_schema.ex", BROWSER + "activation_preparation_schema.ex"]
-MIGRATIONS = ["20261024000000_add_oban.exs", "20261025000000_add_build_journals.exs",
-              "20261025000001_add_build_admission.exs", "20261025000002_add_build_aggregate_limits.exs",
-              "20261025000003_add_customer_authorization.exs", "20261025000004_add_authorization_state_revisions.exs",
-              "20261025000005_add_customer_artifact_storage.exs", "20261025000006_add_customer_workspace_discovery.exs",
-              "20261025000007_add_browser_sessions.exs", "20261025000008_add_browser_activation_preparation.exs"]
+MIGRATION_LIST = "hosted/test/support/reviewed_migrations.json"
+MIGRATIONS = json.loads((ROOT / MIGRATION_LIST).read_text())
 DEPS = ["telemetry", "decimal", "db_connection", "ecto", "ecto_sql", "postgrex", "jason", "oban"]
 SPEC = "hosted/test/mixer_hosted/browser_auth/migration_spec.exs"
 ASSERTIONS = ["hosted/test/foundation_integration_test.exs"] + [
@@ -36,7 +33,7 @@ inputs = out / "inputs"
 inputs.mkdir(parents=True, exist_ok=False)
 pg = args.pg_bin.resolve()
 sources = MODULES + [BROWSER + "activation_preparation.ex", SPEC, str(Path(__file__).resolve().relative_to(ROOT)),
-                     "hosted/mix.lock", "hosted/mix.exs"] + ASSERTIONS
+                     "hosted/mix.lock", "hosted/mix.exs", MIGRATION_LIST] + ASSERTIONS
 sources += ["hosted/priv/repo/migrations/" + n for n in MIGRATIONS]
 deps = [ROOT / "hosted/_build/test/lib" / name / "ebin" for name in DEPS]
 
@@ -51,7 +48,7 @@ def source_manifest():
 
 receipt = {"schema": 2, "commands": [], "cleanup": {}, "dependencies": DEPS,
            "migration_filenames": MIGRATIONS,
-           "scope": "Selected ten ordinary migrations under synthetic non-superuser schema owner; inert runtime privileges, additive-only down/up preserving baseline object OIDs/source/ACLs/tables/policies/constraints/data, seven-migration rollback/reapply preserving build data, complete rollback/reapply. Eight named locked dependency ebin directories only. No broad hosted harness/application/provider/native/frozen lane execution.",
+           "scope": "Selected reviewed ordinary migrations under synthetic non-superuser schema owner; inert runtime privileges, additive-only down/up preserving baseline object OIDs/source/ACLs/tables/policies/constraints/data, closed-list aggregate-and-later rollback/reapply preserving build data, complete rollback/reapply. Eight named locked dependency ebin directories only. No broad hosted harness/application/provider/native/frozen lane execution.",
            "pending": ["Independent migration review", "Neon/operator qualification", "Runtime lifecycle admission",
                        "Provider/OIDC/session join", "Browser/native tests paused", "Customer and GA acceptance"]}
 env = dict(os.environ, ERL_FLAGS="+S 2:2", MIX_ENV="test")

@@ -204,6 +204,11 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
     if (output / "postgres-timezone.log").read_text().strip() != "UTC":
         raise RuntimeError("fixture database time zone is not UTC")
     env["MIXER_TEST_DATABASE_PORT"] = str(port)
+    env["MIXER_BILLING_DATABASE_PORT"] = str(port)
+    env["MIXER_USAGE_DATABASE_PORT"] = str(port)
+    for database in ("mixer_billing_r325", "mixer_billing_r354", "mixer_usage_r398"):
+        run("billing-fixture-" + database, [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
+                    "-U", "mixer_fixture", database])
     env.update(provision_customer_authorization_fixture(args.pg_bin, port, run))
     env.update(provision_customer_transaction_fixture(args.pg_bin, port, run))
     env.update(provision_customer_artifact_fixtures(args.pg_bin, port, run))

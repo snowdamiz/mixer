@@ -2,6 +2,8 @@ import Foundation
 
 /// Explicit app-owned public V3 SDK consumer and Android host templates.
 enum AndroidPublicHost {
+    // Required by the V2 observer: public high-contrast read and listener begin at API 36.
+    static let minimumAPI = 36
     static let selection = "{\"host\":\"public-v3\",\"profile\":\"MEASURED_MULTILINE_RETIREMENT_V3\"}\n"
     static func selectionFile(_ config: ApplicationConfiguration) -> String {
         config.androidHost == .publicV4 ? "public-host-v4.json" : "public-host-v3.json"
@@ -14,11 +16,13 @@ enum AndroidPublicHost {
         let base = "Java/" + appPackage.replacingOccurrences(of: ".", with: "/") + "/"
         let files = ["Package.swift": package.replacingOccurrences(of: "__NAME__", with: config.name),
                 "AndroidManifest.xml": manifest.replacingOccurrences(of: "__APPLICATION__", with: config.application)
+                    .replacingOccurrences(of: "__MIN_API__", with: String(minimumAPI))
                     .replacingOccurrences(of: "__PACKAGE__", with: appPackage).replacingOccurrences(of: "__NAME__", with: config.name),
                 "Sources/AppAndroid/NativeEntry.swift": entry,
                 "Sources/AppAndroid/PublicFactory.swift": factory,
                 "Tests/AppAndroidTests/PublicHostTests.swift": tests,
-                base + "PublicActivity.java": activity.replacingOccurrences(of: "__PACKAGE__", with: appPackage),
+                base + "PublicActivity.java": activity.replacingOccurrences(of: "__PACKAGE__", with: appPackage)
+                    .replacingOccurrences(of: "__MIN_API__", with: String(minimumAPI)),
                 base + "PublicBridge.java": bridge.replacingOccurrences(of: "__PACKAGE__", with: appPackage),
                 "Bridge/PublicBridge.c": jni.replacingOccurrences(of: "__BRIDGE_CLASS__", with: appPackage.replacingOccurrences(of: ".", with: "/") + "/PublicBridge").replacingOccurrences(of: "__ACTIVITY_CLASS__", with: appPackage.replacingOccurrences(of: ".", with: "/") + "/PublicActivity"),
                 selectionFile(config): selection(config), "README.md": readme]
@@ -52,7 +56,7 @@ enum AndroidPublicHost {
     """# + "\n"
     private static let manifest = #"""
     <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="__APPLICATION__" android:versionCode="1" android:versionName="0.1.0">
-      <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="37" />
+      <uses-sdk android:minSdkVersion="__MIN_API__" android:targetSdkVersion="37" />
       <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="__NAME__" android:debuggable="true" android:allowBackup="false" android:extractNativeLibs="true" android:supportsRtl="true">
         <activity android:name="__PACKAGE__.PublicActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
           <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
@@ -280,7 +284,12 @@ enum AndroidPublicHost {
         private int eventBytes = 2; // JSON array delimiters, plus comma per subsequent event.
         private int readiness;
         @Override public void onCreate(Bundle state) {
-            super.onCreate(state); root = new FrameLayout(this); setContentView(root);
+            super.onCreate(state);
+            if (android.os.Build.VERSION.SDK_INT < __MIN_API__) {
+                failed = true;
+                throw new IllegalStateException("Public Android appearance requires API __MIN_API__ or later (high-contrast read/listener)");
+            }
+            root = new FrameLayout(this); setContentView(root);
             if (!handler.post(this::openWhenReady)) throw new IllegalStateException("host queue unavailable");
         }
         private void openWhenReady() {
@@ -482,6 +491,10 @@ enum AndroidPublicHost {
     # Public Android V3 development host
 
     Selected explicitly by `mixer create NAME --platform android --android-host public-v3`.
+    Requires Android API 36 or later: the appearance observer requires public
+    high-contrast reads and listeners first available on API 36. Legacy remains
+    API 28; full API 28 product acceptance is pending. The manifest declares this
+    floor, and the build rejects older generated manifests before creating artifacts.
     The app-owned external-package Activity consumes only public facade/profile APIs.
     Shared Swift uses public MixerAndroid/MixerUI/MixerCore. Original owner, native
     packet, appearance and event bytes cross the app JNI glue without JSON rebasing.

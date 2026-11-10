@@ -11,18 +11,11 @@ defmodule MixerBrowserMigrationFixture.Test do
   alias MixerBrowserMigrationFixture.Repo
   alias MixerHosted.BrowserAuth.{ActivationPreparationSchema, StorageSchema}
 
-  @versions [
-    20_261_024_000_000,
-    20_261_025_000_000,
-    20_261_025_000_001,
-    20_261_025_000_002,
-    20_261_025_000_003,
-    20_261_025_000_004,
-    20_261_025_000_005,
-    20_261_025_000_006,
-    20_261_025_000_007,
-    20_261_025_000_008
-  ]
+  @versions Path.expand("../../support/reviewed_migrations.json", __DIR__)
+            |> File.read!()
+            |> Jason.decode!()
+            |> Enum.map(&(&1 |> String.split("_") |> hd() |> String.to_integer()))
+  @activation_migration 20_261_025_000_008
 
   setup_all do
     start_supervised!(
@@ -39,14 +32,14 @@ defmodule MixerBrowserMigrationFixture.Test do
     :ok
   end
 
-  test "ten ordinary migrations remain inert and reversible under an unprivileged schema owner" do
+  test "reviewed ordinary migrations remain inert and reversible under an unprivileged schema owner" do
     path = Path.expand("../../../priv/repo/migrations", __DIR__)
     roles_before = Repo.query!("SELECT oid,rolname FROM pg_roles ORDER BY oid").rows
     assert @versions == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
     assert [] == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
     assert_inert()
 
-    # Existing build data predates the latest seven migrations and must survive
+    # Existing build data predates the aggregate and later migrations and must survive
     # their rollback/reapply. This exercises real foreign-key/policy teardown.
     Repo.query!("""
     INSERT INTO mixer_builds
@@ -59,7 +52,10 @@ defmodule MixerBrowserMigrationFixture.Test do
     before = Repo.query!("SELECT * FROM mixer_builds ORDER BY id").rows
     baseline = baseline_surface()
     unload()
-    assert [List.last(@versions)] == Ecto.Migrator.run(Repo, path, :down, step: 1, log: false)
+    activation_and_later = Enum.filter(@versions, &(&1 >= @activation_migration))
+
+    assert Enum.reverse(activation_and_later) ==
+             Ecto.Migrator.run(Repo, path, :down, step: length(activation_and_later), log: false)
 
     assert %{rows: [[nil, nil]]} =
              Repo.query!("""
@@ -69,13 +65,15 @@ defmodule MixerBrowserMigrationFixture.Test do
 
     assert baseline_surface() == baseline
     unload()
-    assert [List.last(@versions)] == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
+    assert activation_and_later == Ecto.Migrator.run(Repo, path, :up, all: true, log: false)
     assert baseline_surface() == baseline
     assert before == Repo.query!("SELECT * FROM mixer_builds ORDER BY id").rows
     assert_inert()
     unload()
     latest = Enum.drop(@versions, 3)
-    assert Enum.reverse(latest) == Ecto.Migrator.run(Repo, path, :down, step: 7, log: false)
+
+    assert Enum.reverse(latest) ==
+             Ecto.Migrator.run(Repo, path, :down, step: length(latest), log: false)
 
     assert %{rows: [[nil, nil, nil]]} =
              Repo.query!("""
@@ -184,7 +182,9 @@ defmodule MixerBrowserMigrationFixture.Test do
           MixerHosted.Repo.Migrations.AddCustomerArtifactStorage,
           MixerHosted.Repo.Migrations.AddCustomerWorkspaceDiscovery,
           MixerHosted.Repo.Migrations.AddBrowserSessions,
-          MixerHosted.Repo.Migrations.AddBrowserActivationPreparation
+          MixerHosted.Repo.Migrations.AddBrowserActivationPreparation,
+          MixerHosted.Repo.Migrations.AddBillingWebhookInbox,
+          MixerHosted.Repo.Migrations.AddBillingUsageLedger
         ] do
       :code.purge(module)
       :code.delete(module)

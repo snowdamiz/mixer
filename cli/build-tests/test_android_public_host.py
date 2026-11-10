@@ -1,5 +1,7 @@
 """Explicit public host admission; compiler/linker/APK evidence is a separate run."""
 import copy
+import ast
+import re
 import json
 import pathlib
 import subprocess
@@ -9,6 +11,30 @@ import unittest
 from unittest import mock
 from test_android_sdk_compatibility import CompatibilityFixture, DRIVER, load_driver
 
+
+
+class APKMinimumFieldTests(unittest.TestCase):
+    @staticmethod
+    def guard():
+        source = DRIVER.read_text()
+        body = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == 'build').body
+        start = next(i for i,n in enumerate(body) if isinstance(n,ast.If) and 'APK identity, native activity or ABI' in ast.get_source_segment(source,n)) + 1
+        end = next(i for i,n in enumerate(body) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id == 'dex_dump' for t in n.targets))
+        return compile(ast.fix_missing_locations(ast.Module(body=body[start:end],type_ignores=[])),str(DRIVER),'exec')
+
+    def test_actual_aapt_minimum_field_accepts_legacy28_and_public36(self):
+        # Official build-tools 37 AAPT2 emits minSdkVersion, not sdkVersion.
+        for floor in (28,36):
+            with self.subTest(floor=floor):
+                exec(self.guard(), {'re':re,'badging':"package: name='example.floor'\nminSdkVersion:'%d'\ntargetSdkVersion:'37'\n" % floor,'min_api':floor})
+
+    def test_missing_alias_ambiguous_malformed_and_below_floor_refuse(self):
+        for text in ("", "sdkVersion:'36'", "targetSdkVersion:'36'", "minSdkVersion:'35'",
+                     "minSdkVersion:'36'\nminSdkVersion:'36'", "sdkVersion:'36'\nminSdkVersion:'36'",
+                     "minSdkVersion:'36'\nminSdkVersion:bad", "minSdkVersion:'036'",
+                     " minSdkVersion:'36'", 'minSdkVersion:"36"', "minSdkVersion:'36' extra"):
+            with self.subTest(badging=text):
+                with self.assertRaises(RuntimeError): exec(self.guard(),{'re':re,'badging':text,'min_api':36})
 
 class AndroidPublicHostTests(CompatibilityFixture, unittest.TestCase):
     def setUp(self):

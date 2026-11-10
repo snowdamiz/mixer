@@ -9,8 +9,10 @@ import shutil
 import stat
 import subprocess
 import sys
+import time
 import uuid
 import zipfile
+import xml.etree.ElementTree as ET
 
 SDK_ID = 'aarch64-unknown-linux-android28'
 ENV = os.environ.copy()
@@ -358,6 +360,36 @@ def public_host(root, config):
     return True
 
 
+def application_min_api(root, config):
+    """Admit the declared app floor before tool execution or output creation.
+
+    The Swift/NDK ABI remains android28. Public hosts additionally require the
+    API36 high-contrast read/listener used by the unchanged appearance observer.
+    """
+    host = config.get('androidHost', 'legacy-v1')
+    if host not in ('legacy-v1', 'public-v3', 'public-v4'):
+        raise RuntimeError('android.api-floor: unsupported Android host.')
+    required = 28 if host == 'legacy-v1' else 36
+    path = exact_path(root, 'Platforms/Android/AndroidManifest.xml')
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or not 0 < info.st_size <= 1_048_576:
+        raise RuntimeError('android.api-floor: manifest must be a bounded ordinary file.')
+    try:
+        manifest = ET.fromstring(path.read_bytes())
+    except ET.ParseError as error:
+        raise RuntimeError('android.api-floor: malformed manifest.') from error
+    uses = manifest.findall('uses-sdk')
+    value = uses[0].get('{http://schemas.android.com/apk/res/android}minSdkVersion') if len(uses) == 1 else None
+    if manifest.tag != 'manifest' or value is None or re.fullmatch(r'[1-9][0-9]{0,2}', value) is None:
+        raise RuntimeError('android.api-floor: manifest requires one explicit integer minSdkVersion.')
+    declared = int(value)
+    if declared < required or declared > 37:
+        raise RuntimeError('android.api-floor: ' + host + ' requires minSdkVersion >= ' + str(required) +
+                           ' and <= target API 37; declared ' + value +
+                           ('. Public appearance requires API36 high-contrast read/listener.' if required == 36 else '.'))
+    return declared
+
+
 def appearance_layout(adapter):
     """Admit the complete closed asset layout before source_tree opens any asset.
 
@@ -448,9 +480,86 @@ def checked_output(root, create=False):
     return output
 
 
+class InspectionPhases:
+    """Optional bounded diagnostic sidecar; never part of the tool identity."""
+    MAX_ENTRIES = 64
+    MAX_BYTES = 16384
+
+    def __init__(self):
+        self.fd = None
+        self.entries = 0
+        self.bytes = 0
+        selected = ENV.get('MIXER_ANDROID_INSPECTION_PHASE_DIR')
+        if not selected:
+            return
+        directory_fd = None
+        try:
+            directory = pathlib.Path(selected).resolve(strict=True)
+            roots = (SWIFT.parent.parent.parent, ART.parent, JAR.parent, BT, JDK)
+            if any(directory.is_relative_to(root.resolve()) for root in roots):
+                return
+            directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            info = os.fstat(directory_fd)
+            if info.st_uid != os.getuid() or info.st_mode & 0o022:
+                return
+            self.fd = os.open('inspection-' + str(os.getpid()) + '-' + uuid.uuid4().hex + '.jsonl',
+                              os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_NONBLOCK,
+                              0o600, dir_fd=directory_fd)
+        except Exception:
+            self.close()
+        finally:
+            if directory_fd is not None:
+                try:
+                    os.close(directory_fd)
+                except Exception:
+                    pass
+
+    def close(self):
+        fd, self.fd = self.fd, None
+        if fd is not None:
+            try:
+                os.close(fd)
+            except Exception:
+                pass
+
+    def mark(self, phase, state):
+        if self.fd is None:
+            return
+        try:
+            raw = (json.dumps({'phase': phase, 'state': state, 'monotonic_ns': time.monotonic_ns()},
+                              separators=(',', ':')) + '\n').encode()
+            if self.entries >= self.MAX_ENTRIES or self.bytes + len(raw) > self.MAX_BYTES:
+                self.close()
+                return
+            self.entries += 1
+            self.bytes += len(raw)
+            if os.write(self.fd, raw) != len(raw):
+                self.close()
+        except Exception:
+            self.close()
+
+    def run(self, phase, operation, *args):
+        self.mark(phase, 'begin')
+        try:
+            result = operation(*args)
+        except BaseException:
+            self.mark(phase, 'error')
+            raise
+        self.mark(phase, 'end')
+        return result
+
+
 def inspect():
+    phases = InspectionPhases()
+    try:
+        return inspect_phases(phases)
+    finally:
+        phases.close()
+
+
+def inspect_phases(phases):
     digest_file = InspectionDigests()
-    swift_version = probe([SWIFT, '--version'])
+    swift_version = phases.run('probe.swift', probe, [SWIFT, '--version'])
     if 'Swift version 6.3.3 ' not in swift_version:
         raise RuntimeError('Supported Android compiler is official Swift 6.3.3; set MIXER_SWIFT.')
     metadata = {
@@ -461,7 +570,7 @@ def inspect():
         'swift_sdk': ART / 'swift-sdk.json',
         'swift_toolset': ART / 'swift-toolset.json',
     }
-    texts = {key: path.read_text() for key, path in metadata.items()}
+    texts = {key: phases.run('metadata.read.' + key, path.read_text) for key, path in metadata.items()}
     if '27.3.13750724' not in texts['ndk'] or 'Pkg.Revision=37.0.0' not in texts['build_tools'] or 'AndroidVersion.ApiLevel=37.0' not in texts['platform'] or 'JAVA_VERSION="25.' not in texts['jdk']:
         raise RuntimeError('Supported tools require NDK r27d, build-tools37.0.0, Android37.0 platform and JDK25.')
     tools = {
@@ -476,17 +585,17 @@ def inspect():
             raise RuntimeError('Missing executable ' + name + ': ' + str(path))
     return {
         'schema': 1, 'sdk_id': SDK_ID, 'abi': 'arm64-v8a', 'min_api': 28, 'target_api': 37,
-        'swift_version': swift_version, 'javac_version': probe([JDK / 'bin/javac', '--version']),
-        'java_version': probe([JDK / 'bin/java', '--version']),
+        'swift_version': swift_version, 'javac_version': phases.run('probe.javac', probe, [JDK / 'bin/javac', '--version']),
+        'java_version': phases.run('probe.java', probe, [JDK / 'bin/java', '--version']),
         'python_version': sys.version,
-        'tools': {key: {'path': str(path), 'sha256': digest_file(path)} for key, path in tools.items()},
-        'metadata': {key: {'path': str(path), 'sha256': digest_file(path)} for key, path in metadata.items()},
+        'tools': {key: {'path': str(path), 'sha256': phases.run('tool.hash.' + key, digest_file, path)} for key, path in tools.items()},
+        'metadata': {key: {'path': str(path), 'sha256': phases.run('metadata.hash.' + key, digest_file, path)} for key, path in metadata.items()},
         'distributions': {
-            'swift_toolchain': {'path': str(SWIFT.parent.parent.parent), 'sha256': tree(SWIFT.parent.parent.parent, digest_file)},
-            'swift_android_sdk': {'path': str(ART.parent), 'sha256': tree(ART.parent, digest_file)},
-            'android_platform': {'path': str(JAR.parent), 'sha256': tree(JAR.parent, digest_file)},
-            'android_build_tools': {'path': str(BT), 'sha256': tree(BT, digest_file)},
-            'jdk': {'path': str(JDK), 'sha256': tree(JDK, digest_file)},
+            'swift_toolchain': {'path': str(SWIFT.parent.parent.parent), 'sha256': phases.run('distribution.hash.swift_toolchain', tree, SWIFT.parent.parent.parent, digest_file)},
+            'swift_android_sdk': {'path': str(ART.parent), 'sha256': phases.run('distribution.hash.swift_android_sdk', tree, ART.parent, digest_file)},
+            'android_platform': {'path': str(JAR.parent), 'sha256': phases.run('distribution.hash.android_platform', tree, JAR.parent, digest_file)},
+            'android_build_tools': {'path': str(BT), 'sha256': phases.run('distribution.hash.android_build_tools', tree, BT, digest_file)},
+            'jdk': {'path': str(JDK), 'sha256': phases.run('distribution.hash.jdk', tree, JDK, digest_file)},
         },
         'sdk_search_path': str(SWIFT_SDKS),
     }
@@ -510,6 +619,7 @@ def build(root):
     config = read_json(root / 'mixer.yml')
     if not isinstance(config, dict) or config.get('androidHost', 'legacy-v1') != 'legacy-v1':
         config = configuration(config)
+    min_api = application_min_api(root, config)
     public = public_host(root, config)
     profile = source_profile()
     lock = read_json(root / 'mixer.lock')
@@ -609,11 +719,11 @@ def build(root):
                 raise RuntimeError('Public Android app emitted a class outside its generated namespace: ' + relative)
     else:
         run([JDK / 'bin/javac', '--release', '17', '-Xlint:all', '-Werror', '-proc:none', '-sourcepath', '', '-classpath', JAR, '-d', classes, *sources])
-    run([BT / 'd8', '--min-api', '28', '--lib', JAR, '--output', dex, *sorted(classes.rglob('*.class'))])
+    run([BT / 'd8', '--min-api', str(min_api), '--lib', JAR, '--output', dex, *sorted(classes.rglob('*.class'))])
     unsigned = output / 'unaligned.apk'
     if admit_source_pair(root, profile) != appearance or source_tree(adapter) != android['adapterDigest']:
         raise RuntimeError('Android appearance/adapter input changed before packaging.')
-    run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '-A', adapter / 'app/assets', '--min-sdk-version', '28', '--target-sdk-version', '37', '-o', unsigned])
+    run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '-A', adapter / 'app/assets', '--min-sdk-version', str(min_api), '--target-sdk-version', '37', '-o', unsigned])
     checked_output(root)
     with zipfile.ZipFile(unsigned, 'a', compression=zipfile.ZIP_DEFLATED) as archive:
         for item in sorted((output / 'apk').rglob('*')):
@@ -627,6 +737,10 @@ def build(root):
     activity = config['application'] + '.androidhost.PublicActivity' if public else 'dev.mixer.android.MixerActivity'
     if "package: name='" + config['application'] + "'" not in badging or activity not in badging or "native-code: 'arm64-v8a'" not in badging:
         raise RuntimeError('APK identity, native activity or ABI does not match generated app.')
+    minimum_fields = [line for line in badging.splitlines()
+                      if re.match(r"\s*(?:minSdkVersion|sdkVersion)\b", line)]
+    if minimum_fields != ["minSdkVersion:'" + str(min_api) + "'"]:
+        raise RuntimeError('APK minimum SDK differs from admitted application floor.')
     dex_dump = run([BT / 'dexdump', '-f', dex / 'classes.dex'])
     descriptors = ['Ldev/mixer/android/MixerActivity;', 'Ldev/mixer/android/NativeBridge;', 'Ldev/mixer/android/NativeRenderer;']
     if public:
@@ -656,6 +770,7 @@ def build(root):
         raise RuntimeError('Application/SDK/adapter source changed during the Android build; result rejected. Restore stable inputs and rebuild.')
     receipt = {
         'schema_version': 1, 'qualification': 'local-unsigned-cross-build-only',
+        'application_min_api': min_api,
         'application': config['application'], 'android_host': config.get('androidHost', 'legacy-v1'), 'activity': activity, 'jni_library': jni_library, 'apk': str(apk_path), 'apk_sha256': digest(apk_path), 'apk_bytes': apk_path.stat().st_size,
         'apk_content_sha256': normalized, 'apk_entries': content,
         'source_tree_sha256': source_before, 'source_tree_after_sha256': source_after,

@@ -396,3 +396,35 @@ and network execution remain pending. The sanitized source-bound summary is
 `verification/github-delivery-fixture-format/prior-reviewed-ci-summary.json`;
 large raw evidence remains local. No new local formatter, compiler or runtime
 ran. Native/UI/capture, process/custody, UnitA and GA boundaries remain unchanged.
+
+
+## Current hosted source successor v1
+
+`verification/identity-network-current-source-v1/selection.json` explicitly selects
+185 hosted source members after R338, R325 and R354, plus their necessary migration
+fixture integration. Its bytes are pinned by `CURRENT_SELECTION_SHA256` in the
+collector. The full `selected-source-manifest.json` is pinned by that selection
+and independently checked against the compiled current digest and exact membership.
+A manifest cannot authorize itself or replace the caller's source authority.
+
+The old 178-source v2 constants, manifests, validators and verdict remain unchanged.
+Their metadata still validates before any image/container work. The successor
+changes source authority only: images, execution/resource/isolation/custody policy,
+lock, and the two actual production-path network methods retain their contracts.
+All production application, authorization and build modules remain unchanged.
+
+The current workflow runs `--check-source` before inert controls and the unchanged
+network command. This pure preflight reads only the explicitly selected files and
+metadata; the runtime still reads exact delivered Git blobs and binds this same
+selection through source archive, prepared/restored/compiled and final comparison.
+The final database comparison derives its exact versions from the pinned current
+migration members. A future source change requires an explicit reviewed successor;
+there is no automatic digest refresh, ignored test row or arbitrary source overlay.
+
+The test-only `MixerHosted.Test.Migrations` list owns the exact eleven reviewed
+migration filenames/versions from R354. Full-migration fixtures reject extra or
+missing files before execution and assert the exact newly applied versions.
+The R338 regression body/assertions remain unchanged. Aggregate rollback/reapply
+retains its explicit negative and targeted version assertions including billing.
+The dedicated Stripe route remains disabled without valid server configuration
+and a real worker; provider reconciliation and runtime/GA qualification stay pending.
