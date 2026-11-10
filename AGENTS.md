@@ -209,3 +209,5 @@ Do not probe, retry, delete locks or clean this exact chain. The short launcher
 reaped its direct child after timeout; descendant custody remains unobserved.
 Use the copied metadata in owned-taskeditor-focused-integration-r124/git-delivery-timeout.json.
 This does not hold static canonical source or revision-pinned GitHub API delivery.
+
+The separate FieldLog Pair18 consumer full checkout failed while persisting its final command receipt after a no-space error. Preserve PID/PGID 73726 and the entire `/Users/andreyyurlov/.t3/userdata/fieldlog-pair18-r184-l5oi5a4t/public-mixer` checkout chain without inspection, enumeration, probing, signalling, waiting, retry or cleanup. Read only the copied top-level `verification/plan-continuation-2026-11-07/fieldlog-public-pair18-consumer-r184/HOLD.json` and report as historical metadata. Available disk space or a terminal outer result does not release this hold. Fresh sparse public checkouts in separate namespaces remain permitted.
