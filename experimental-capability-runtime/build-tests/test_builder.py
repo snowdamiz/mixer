@@ -59,6 +59,19 @@ class BuilderTests(unittest.TestCase):
         files=b.frozen_inputs(self.revision)
         self.assertTrue(files['vm/src/lib.rs']['bytes'].startswith(b'// Original empty'))
         self.assertEqual(len(files),len(b.REQUIRED))
+    def test_frozen_export_contains_declared_feature_gated_example(self):
+        manifest=self.repo/'vm/Cargo.toml'
+        manifest.write_bytes(manifest.read_bytes()+b'\n[[example]]\nname="taskeditor_owned_command"\nrequired-features=["experimental-swift-reactor"]\n')
+        path='vm/examples/taskeditor_owned_command.rs';original=b'fn main() {}\n'
+        self.write(path,original);revision=self.commit()
+        self.write(path,b'changed after commit')
+        files=b.frozen_inputs(revision)
+        output=b.Output(self.base/'example-export')
+        try:
+            b.source_archive(output,files)
+            with tarfile.open(fileobj=io.BytesIO(output.read('source.tar'))) as tar:
+                self.assertEqual(tar.extractfile(path).read(),original)
+        finally:output.close()
     def test_source_file_boundary_and_one_byte_over_rejection(self):
         path='vm/src/large_accounting.rs'
         self.write(path,b' ' * b.MAX_FILE_BYTES)

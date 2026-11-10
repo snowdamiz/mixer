@@ -50,7 +50,7 @@ mixer_vm_session_cancel_v1 mixer_vm_session_close_v1 mixer_vm_session_create_v1
 mixer_vm_session_invoke_v1 mixer_vm_session_read_v1 mixer_vm_session_write_v1
 mixer_vm_validate mixer_vm_validate_numeric_v2 mixer_vm_validate_table_memory_v3
 '''.split())
-PATHS=['vm/Cargo.toml','vm/Cargo.lock','vm/build.rs','vm/src','vm/include','vm/profiles','vm/tests','vm/tools',
+PATHS=['vm/Cargo.toml','vm/Cargo.lock','vm/build.rs','vm/src','vm/include','vm/profiles','vm/tests','vm/tools','vm/examples',
     'contracts/vm-profile-v1.json','contracts/vm-session-v1.json','contracts/guest-capability-transport-v1.json',
     'capabilities/schema/v1.json','capabilities/schema/hashes.json','runtime/Sources/CMixerVM/include/mixer_vm.h']
 REQUIRED=['vm/Cargo.toml','vm/Cargo.lock','vm/src/lib.rs',*HEADER_HASHES,

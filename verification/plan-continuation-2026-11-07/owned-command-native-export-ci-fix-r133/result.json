@@ -1,0 +1,403 @@
+{
+  "schema": 1,
+  "deliveryReference": "ab6461503a18504c0a5fe5a6638854a7aad11f44",
+  "hostedFailureReference": {
+    "run": 42802722879,
+    "job": 129784064190,
+    "step": "Isolated experimental capability archive",
+    "retriggered": false
+  },
+  "rootCause": "Cargo parses explicit example targets even for --lib; frozen export omitted vm/examples/taskeditor_owned_command.rs",
+  "patch": [
+    {
+      "path": "experimental-capability-runtime/build-vm.py",
+      "beforeSha256": "0464672f429768e334697e9533ebe57baf67575c4f79f5a00279d7941d24bde9",
+      "afterSha256": "b22142b40c88ea3c443a46716c817e25420ef5187700e6f2f4bcac0aedc0da83"
+    },
+    {
+      "path": "experimental-capability-runtime/build-tests/test_builder.py",
+      "beforeSha256": "d101421745c32345c828fda3df28ba6a78f45d524f986291f97fe0571e54566d",
+      "afterSha256": "66685b44dfb350983548c4f232e406fd1163c27d3ca897d9e36c8eaaf4876617"
+    }
+  ],
+  "patchSha256": "0d693c9661ff23b083bfcda12396ff54524aca406b73f6115c738f5b7cf2d544",
+  "baseline": {
+    "fixture": {
+      "revision": "e96e9fac669b2732b8f339499fa315aa85384502",
+      "tree": "1f747ddcbe40e9657e099602ca1ac08d1aa92755",
+      "builderSha256": "0464672f429768e334697e9533ebe57baf67575c4f79f5a00279d7941d24bde9"
+    },
+    "commands": [
+      {
+        "name": "rust-sysroot",
+        "argv": [
+          "/opt/homebrew/opt/rustup/bin/rustc",
+          "--print",
+          "sysroot"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.04429,
+        "log": "rust-sysroot.log",
+        "sha256": "227730a0fd343950e38862b1b98da7ad62364b46ed496228058922d39a4289f8"
+      },
+      {
+        "name": "rustc-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+          "-Vv"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.019003,
+        "log": "rustc-version.log",
+        "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+      },
+      {
+        "name": "cargo-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "-V"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.007865,
+        "log": "cargo-version.log",
+        "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+      },
+      {
+        "name": "llvm-nm-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+          "--version"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.080797,
+        "log": "llvm-nm-version.log",
+        "sha256": "b9b121c361180ea1d23e5c1aed2830e2374b8317378fc0fc2f01ce758ee4cf7b"
+      },
+      {
+        "name": "apple-sdk",
+        "argv": [
+          "xcrun",
+          "--sdk",
+          "macosx",
+          "--show-sdk-path"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.007264,
+        "log": "apple-sdk.log",
+        "sha256": "65cc3834fc060b76c3d4c52bf08769c606fd42a29b02f205d9b7b791aa56be56"
+      },
+      {
+        "name": "apple-clang-path",
+        "argv": [
+          "xcrun",
+          "--find",
+          "clang"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.005823,
+        "log": "apple-clang-path.log",
+        "sha256": "083060ae79a9cc17bc69cb6166b1e16396c638b533de036324d8c6d49b77af24"
+      },
+      {
+        "name": "apple-linker-version",
+        "argv": [
+          "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+          "--version"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.066391,
+        "log": "apple-linker-version.log",
+        "sha256": "b8a2569d699eec50baaf1719096d0801d16fb28fbcb2df7ffd0a07cd26d9fd47"
+      },
+      {
+        "name": "cargo-build",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "build",
+          "--locked",
+          "--offline",
+          "--release",
+          "--lib",
+          "--no-default-features",
+          "--features",
+          "experimental-capability-native",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/userdata/mixer-native-export-r133-ja0u8e1u/baseline/source/vm/Cargo.toml"
+        ],
+        "cwd": "/",
+        "exit_code": 101,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.010381,
+        "log": "cargo-build.log",
+        "sha256": "c852a92ee3f217e6613e99ff9a89faf7d5d13243c8d4b131d991e2fbd32a8bad"
+      }
+    ],
+    "error": "cargo-build failed; see /Users/andreyyurlov/.t3/userdata/mixer-native-export-r133-ja0u8e1u/baseline/cargo-build.log"
+  },
+  "fixed": {
+    "fixture": {
+      "revision": "d6e6bb7a26bc2f04d9975067c8c53f7ef11acfb6",
+      "tree": "78c92b6e022357f8dd2e25fb7f3a9d3c3105ef2a",
+      "builderSha256": "b22142b40c88ea3c443a46716c817e25420ef5187700e6f2f4bcac0aedc0da83"
+    },
+    "commands": [
+      {
+        "name": "rust-sysroot",
+        "argv": [
+          "/opt/homebrew/opt/rustup/bin/rustc",
+          "--print",
+          "sysroot"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.029664,
+        "log": "rust-sysroot.log",
+        "sha256": "227730a0fd343950e38862b1b98da7ad62364b46ed496228058922d39a4289f8"
+      },
+      {
+        "name": "rustc-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+          "-Vv"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.019897,
+        "log": "rustc-version.log",
+        "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+      },
+      {
+        "name": "cargo-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "-V"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.008463,
+        "log": "cargo-version.log",
+        "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+      },
+      {
+        "name": "llvm-nm-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+          "--version"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.010648,
+        "log": "llvm-nm-version.log",
+        "sha256": "b9b121c361180ea1d23e5c1aed2830e2374b8317378fc0fc2f01ce758ee4cf7b"
+      },
+      {
+        "name": "apple-sdk",
+        "argv": [
+          "xcrun",
+          "--sdk",
+          "macosx",
+          "--show-sdk-path"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.00588,
+        "log": "apple-sdk.log",
+        "sha256": "65cc3834fc060b76c3d4c52bf08769c606fd42a29b02f205d9b7b791aa56be56"
+      },
+      {
+        "name": "apple-clang-path",
+        "argv": [
+          "xcrun",
+          "--find",
+          "clang"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.005201,
+        "log": "apple-clang-path.log",
+        "sha256": "083060ae79a9cc17bc69cb6166b1e16396c638b533de036324d8c6d49b77af24"
+      },
+      {
+        "name": "apple-linker-version",
+        "argv": [
+          "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+          "--version"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.010369,
+        "log": "apple-linker-version.log",
+        "sha256": "b8a2569d699eec50baaf1719096d0801d16fb28fbcb2df7ffd0a07cd26d9fd47"
+      },
+      {
+        "name": "cargo-build",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "build",
+          "--locked",
+          "--offline",
+          "--release",
+          "--lib",
+          "--no-default-features",
+          "--features",
+          "experimental-capability-native",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/userdata/mixer-native-export-r133-ja0u8e1u/fixed/source/vm/Cargo.toml"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 1.006122,
+        "log": "cargo-build.log",
+        "sha256": "5cc062d0c8113f7fca58027a332a1b42588352279183e0b945428ce9e9766e84"
+      },
+      {
+        "name": "archive-symbols",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+          "--extern-only",
+          "--defined-only",
+          "/Users/andreyyurlov/.t3/userdata/mixer-native-export-r133-ja0u8e1u/fixed/cargo-target/release/libmixer_vm.a"
+        ],
+        "cwd": "/",
+        "exit_code": 0,
+        "problem": null,
+        "elapsed_host_development_seconds": 0.048985,
+        "log": "archive-symbols.log",
+        "sha256": "cdcb29a1944eba43024a9cb3b667d57b9c8a3e177a2b1ea736f8c408f0b79062"
+      }
+    ],
+    "sourceManifestSha256": "3ca896ca3f1a38499505e9caad9ee72fd25fdefc9a0c4bfea49172d94468d8b4",
+    "sourceArchiveSha256": "f7819e1ae516891763e23cd69986e2377f0528068e6220ba0c79182450669f0b",
+    "sourceFileCount": 149,
+    "library": {
+      "sha256": "af0acddd9ce7cf510e55e8413b1df112860e868d877c5b4dcd08b3862aa6c69f",
+      "bytes": 19306720,
+      "path": "/Users/andreyyurlov/.t3/userdata/mixer-native-export-r133-ja0u8e1u/fixed/lib/libmixer_vm_capability_experimental.a"
+    },
+    "publicCSymbols": [
+      "mixer_vm_capability_ack_exit_v1",
+      "mixer_vm_capability_expire_v1",
+      "mixer_vm_capability_guest_ui_validate_v1",
+      "mixer_vm_capability_limit_deadline_v1",
+      "mixer_vm_capability_post_v1",
+      "mixer_vm_capability_session_cancel_v1",
+      "mixer_vm_capability_session_close_v1",
+      "mixer_vm_capability_session_create_v1",
+      "mixer_vm_capability_session_enable_v1",
+      "mixer_vm_capability_session_invoke_v1",
+      "mixer_vm_capability_session_read_v1",
+      "mixer_vm_capability_session_startup_v1",
+      "mixer_vm_capability_session_wake_v1",
+      "mixer_vm_capability_session_write_v1",
+      "mixer_vm_capability_take_v1",
+      "mixer_vm_capability_validate_v1",
+      "mixer_vm_invoke",
+      "mixer_vm_invoke_numeric_v2",
+      "mixer_vm_invoke_table_memory_v3",
+      "mixer_vm_session_cancel_v1",
+      "mixer_vm_session_close_v1",
+      "mixer_vm_session_create_v1",
+      "mixer_vm_session_invoke_v1",
+      "mixer_vm_session_read_v1",
+      "mixer_vm_session_write_v1",
+      "mixer_vm_validate",
+      "mixer_vm_validate_numeric_v2",
+      "mixer_vm_validate_table_memory_v3"
+    ],
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "tools": {
+      "rustc_selector": {
+        "path": "/opt/homebrew/opt/rustup/bin/rustc",
+        "resolved_path": "/opt/homebrew/Cellar/rustup/1.29.1/bin/rustc",
+        "sha256": "53d84580eddd2f4a3c1ef16c3d14d0522f1852c39690eb20a506d04d30c621e5"
+      },
+      "cargo": {
+        "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "resolved_path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+      },
+      "rustc": {
+        "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "resolved_path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+      },
+      "llvm_nm": {
+        "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+        "resolved_path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm",
+        "sha256": "65902eef48a374f0fddad3ac6229ce6333a800c7695a5f24de1fcc5bf3fa26c8"
+      },
+      "linker": {
+        "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "resolved_path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+        "sha256": "fc5e3cbba6ad54059295cad716aacb05ace8235f5f7a6031f1d8c15d24bd6d66"
+      }
+    },
+    "qualification": "local frozen-source development artifact; no release/identity/signing/device/bit-reproducibility claim"
+  },
+  "exportComparison": {
+    "added": [
+      "vm/examples/taskeditor_owned_command.rs"
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "regression": {
+    "before": {
+      "exitCode": 1,
+      "log": "regression-before.log"
+    },
+    "after": {
+      "exitCode": 0,
+      "log": "regression-after.log"
+    }
+  },
+  "cleanup": {
+    "status": "all owned private command groups observed absent by builder capture",
+    "ownedEvidenceRetained": "/Users/andreyyurlov/.t3/userdata/mixer-native-export-r133-ja0u8e1u",
+    "devicesCreated": 0,
+    "rootGitUsed": false,
+    "heldResourcesAccessed": false,
+    "noCITriggersPushesSigningOrChildren": true
+  },
+  "limitations": [
+    "Local host aarch64-apple-darwin frozen archive only.",
+    "Swift SDK consumer build/tests were not run; the two material compiler commands were the failed and corrected archive builds.",
+    "Hosted CI not retried or triggered; this does not establish hosted native-consumer success.",
+    "No device/signing/published-package/GA qualification; all historical holds remain in force.",
+    "Independent review and delivery belong to root.",
+    "The requested explicit CPU/jobs=2 setting was missed: the actual builder sanitized the environment and used Cargo default concurrency. No third compiler command was run to correct this, preserving the two-command cap."
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "resourceBounds": {
+    "materialCompilerCommands": 2,
+    "compilerSeconds": 1.0153921669116244,
+    "offline": true,
+    "locked": true,
+    "release": true,
+    "explicitCargoJobs2": false,
+    "note": "The actual builder uses a sanitized environment and did not set CARGO_BUILD_JOBS or --jobs. The export is dependency-free and only --lib was requested; no explicit two-job enforcement is claimed."
+  }
+}
