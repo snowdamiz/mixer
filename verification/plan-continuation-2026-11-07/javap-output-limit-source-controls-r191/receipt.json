@@ -1,0 +1,255 @@
+{
+  "scope": "source-only synthetic controls; no hosted OS diagnosis",
+  "source_revision_supplied_by_root": "cff82c2d2db402aaabbea17569c5856f7d08bf82",
+  "source116_supplied_by_root": "306221cc4d05bfd448deb5674162d1a79469ded6c047325eaf80df49c237187f",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "platform": [
+    "Darwin",
+    "Andreys-MacBook-Pro.local",
+    "27.0.0",
+    "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+    "arm64"
+  ],
+  "command": "python3 -B verification/plan-continuation-2026-11-07/javap-output-limit-source-controls-r191/controls.py",
+  "source_files": {
+    "scripts/ci/tests/test_android_generated_java_runner.py": "2ade5cbb298c3b79fc81a4bf47378d09c5092c449bc1341e218703e82499fc29",
+    "scripts/ci/check-android-generated-java.py": "dc26b2b900cdbb29fdb9915c9160918a0f10cbcea9de2dea0cf8ff48436cb851"
+  },
+  "canonical_unchanged": true,
+  "audit_rejects_actual_process_operations": true,
+  "actual_child_count": 0,
+  "results": [
+    {
+      "case": "original-test-ready-cleanup",
+      "result": "pass",
+      "stop": "output-limit",
+      "terminal_custody": true,
+      "fake_pid": -100001
+    },
+    {
+      "case": "exact-ceiling-success",
+      "result": "pass",
+      "terminal_custody": true
+    },
+    {
+      "case": "denied-observation",
+      "result": "pass",
+      "error": "javap-budget-overflow: terminal custody unknown or cleanup failed",
+      "stop": "output-limit",
+      "cleanup_operation": "observe-owned-group",
+      "terminal_custody": false,
+      "fake_pid": -100001
+    },
+    {
+      "case": "denied-signal",
+      "result": "pass",
+      "error": "javap-budget-overflow: terminal custody unknown or cleanup failed",
+      "stop": "output-limit",
+      "cleanup_operation": "signal-owned-group",
+      "terminal_custody": false,
+      "fake_pid": -100001
+    },
+    {
+      "case": "reap-failure",
+      "result": "pass",
+      "error": "javap-budget-overflow: terminal custody unknown or cleanup failed",
+      "stop": "output-limit",
+      "cleanup_operation": "reap-direct-child",
+      "terminal_custody": false,
+      "fake_pid": -100001
+    },
+    {
+      "case": "pipe-close-failure",
+      "result": "pass",
+      "error": "javap-budget-overflow: terminal custody unknown or cleanup failed",
+      "stop": "output-limit",
+      "cleanup_operation": "close-stdout",
+      "terminal_custody": false,
+      "fake_pid": -100001
+    },
+    {
+      "case": "selector-close-failure",
+      "result": "pass",
+      "error": "javap-budget-overflow: terminal custody unknown or cleanup failed",
+      "stop": "output-limit",
+      "cleanup_operation": "close-selector",
+      "terminal_custody": false,
+      "fake_pid": -100001
+    },
+    {
+      "case": "proposed:test_javap_stdout_ceiling_refuses_one_extra_byte_without_silent_success",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_javap_overflow_unknown_custody_still_takes_priority",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_invalid_stdout_budgets_fail_before_spawning",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_denied_signal_retains_receipt_even_after_child_exits",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_denied_or_unknown_group_observation_cannot_pass",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_live_child_denied_cleanup_still_persists_unknown_terminal_facts",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_one_stream_read_error_cannot_be_reported_as_eof",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_nested_reap_and_selector_cleanup_errors_still_persist",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_command_receipt_write_failure_retains_in_memory_facts",
+      "result": "pass"
+    },
+    {
+      "case": "proposed:test_exited_fake_parent_with_inherited_pipes_cannot_hang_runner",
+      "result": "pass"
+    },
+    {
+      "case": "mutation:ceiling-plus-one",
+      "result": "correctly rejected",
+      "assertion": "RuntimeError not raised"
+    },
+    {
+      "case": "mutation:output-before-custody",
+      "result": "correctly rejected",
+      "assertion": "\"terminal custody unknown or cleanup failed\" does not match \"javap-budget-overflow: output-limit\""
+    }
+  ],
+  "run_directory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/javap-output-limit-source-controls-r191/runs-1794321503164485000",
+  "elapsed_seconds": 0.20992533303797245,
+  "cleanup": {
+    "scope": "owned synthetic stdout only; digests retained in commands.json",
+    "removed_streams": [
+      {
+        "path": "runs-1794321503164485000/pipe-close-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/selector-close-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/denied-signal/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/proposed-test_javap_overflow_unknown_custody_still_takes_priority/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/proposed-test_javap_stdout_ceiling_refuses_one_extra_byte_without_silent_success/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/reap-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/denied-observation/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/original-test-ready-cleanup/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/mutant-output-before-custody/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/exact-ceiling-success/000-exact-ceiling.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321503164485000/mutant-ceiling-plus-one/000-javap-budget-overflow.stdout",
+        "bytes": 8388609
+      },
+      {
+        "path": "runs/pipe-close-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs/selector-close-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs/denied-signal/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs/proposed-test_javap_overflow_unknown_custody_still_takes_priority/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs/proposed-test_javap_stdout_ceiling_refuses_one_extra_byte_without_silent_success/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs/reap-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs/denied-observation/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs/original-test-ready-cleanup/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/pipe-close-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/selector-close-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/denied-signal/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/proposed-test_javap_overflow_unknown_custody_still_takes_priority/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/proposed-test_javap_stdout_ceiling_refuses_one_extra_byte_without_silent_success/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/reap-failure/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/denied-observation/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/original-test-ready-cleanup/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/mutant-output-before-custody/000-javap-budget-overflow.stdout",
+        "bytes": 8388608
+      },
+      {
+        "path": "runs-1794321415180529000/mutant-ceiling-plus-one/000-javap-budget-overflow.stdout",
+        "bytes": 8388609
+      }
+    ],
+    "bytes_removed": 243269634,
+    "real_process_resources": "none"
+  }
+}

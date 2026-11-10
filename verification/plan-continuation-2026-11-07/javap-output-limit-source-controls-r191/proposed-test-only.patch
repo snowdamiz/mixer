@@ -1,0 +1,79 @@
+--- a/scripts/ci/tests/test_android_generated_java_runner.py
++++ b/scripts/ci/tests/test_android_generated_java_runner.py
+@@ -30,9 +30,10 @@
+     """Synthetic uncertainty only; no real process, descriptor or finalizer exists."""
+     def __init__(self, root, *, stdout=b'', live=False, denied_signal=False,
+                  observation='absent', read_error=False, reap_error=False,
+-                 pipe_close_error=False, selector_close_error=False):
++                 pipe_close_error=False, selector_close_error=False, ready_output=False):
+         self.root = root
+         self.stdout = stdout
++        self.ready_output = ready_output
+         self.live = live
+         self.signal_error = 'fake live-child denial' if live else 'fake denied owned signal'
+         self.observation_error = 'fake live-child denial' if live else 'fake denied observation'
+@@ -122,7 +123,8 @@
+                 return self.mapping
+             def select(self, timeout=None):
+                 boundary.event('select', timeout)
+-                boundary.now += timeout or 0
++                if not boundary.ready_output:
++                    boundary.now += timeout or 0
+                 return [(key, 1) for key in list(self.mapping.values())]
+             def close(self):
+                 boundary.event('close-selector')
+@@ -581,15 +583,45 @@
+         self.terminal_record(commands.records[-1])
+ 
+     def test_javap_stdout_ceiling_refuses_one_extra_byte_without_silent_success(self):
+-        commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2)
+-        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
+-            commands.run('javap-budget-overflow', [sys.executable, '-B', '-c',
+-                'import sys; sys.stdout.buffer.write(b"x"*' + str(M.JAVAP_STDOUT_BYTES + 1) + ')'],
+-                stdout_bytes=M.JAVAP_STDOUT_BYTES)
+-        record = commands.records[-1]
+-        self.assertEqual(record['logs']['stdout']['bytes'], M.JAVAP_STDOUT_BYTES)
+-        self.assertEqual(record['stop'], 'output-limit')
+-        self.terminal_record(record)
++        # Budget refusal has deterministic bytes and independently proven fake custody.
++        with FakeCommandBoundary(self.root, stdout=b'x' * (M.JAVAP_STDOUT_BYTES + 1),
++                                 ready_output=True):
++            commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2)
++            with self.assertRaisesRegex(RuntimeError, 'output-limit'):
++                commands.run('javap-budget-overflow', ['synthetic-javap-output'],
++                             stdout_bytes=M.JAVAP_STDOUT_BYTES)
++            record = commands.records[-1]
++            self.assertEqual(record['logs']['stdout']['bytes'], M.JAVAP_STDOUT_BYTES)
++            self.assertEqual(record['stop'], 'output-limit')
++            self.terminal_record(record)
++
++    def test_javap_overflow_unknown_custody_still_takes_priority(self):
++        with FakeCommandBoundary(self.root, stdout=b'x' * (M.JAVAP_STDOUT_BYTES + 1),
++                                 observation='denied', ready_output=True) as boundary:
++            commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2)
++            try:
++                with self.assertRaisesRegex(RuntimeError, 'terminal custody unknown or cleanup failed'):
++                    commands.run('javap-budget-overflow', ['synthetic-javap-output'],
++                                 stdout_bytes=M.JAVAP_STDOUT_BYTES)
++                record = commands.records[-1]
++                self.assertEqual(record['logs']['stdout']['bytes'], M.JAVAP_STDOUT_BYTES)
++                self.assertEqual(record['stop'], 'output-limit')
++                self.assertTrue(record['direct_child_reaped'])
++                self.assertTrue(record['stdout_eof'] and record['stderr_eof'])
++                self.assertFalse(record['owned_group_absent'])
++                self.assertFalse(record['descriptors_closed'])
++                self.assertFalse(record['terminal_custody'])
++                self.assertFalse(commands.custody_terminal())
++                self.assertIsNotNone(commands.hold)
++                self.assertEqual(record['group_observation']['outcome'], 'denied')
++                self.assertEqual([e['operation'] for e in record['cleanup_errors']],
++                                 ['observe-owned-group'])
++                self.assertEqual(json.loads((self.root / 'commands.json').read_text())[-1], record)
++                with self.assertRaisesRegex(RuntimeError, 'Sticky inner custody hold'):
++                    commands.run('no-followup', ['synthetic-only'])
++                self.assertEqual(len(boundary.children), 1)
++            finally:
++                boundary.cleanup_markers()
+ 
+     def test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate(self):
+         commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2,

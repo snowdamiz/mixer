@@ -1,0 +1,7 @@
+The javap overflow negative test now drives the existing inert process boundary. It still requires the exact byte ceiling, output-limit reason and all terminal facts on the clean path. A companion control proves that unconfirmed cleanup has priority, persists its record and prevents subsequent work. Production Commands and every custody assertion remain unchanged.
+
+Ten selected fake controls, twelve rebinding tests and sixteen combined metadata controls pass in normal and actual optimized Python. Real process operations are forbidden inside the selected fake controls. The old Pair17 fixture reconstructs exactly through the expanded Pair18 raw-edit record; source116, SDK/profile, eight callers and all 32 seal members are unchanged in scope. The binding literal and two seal member identities were refreshed.
+
+An initial guard correctly rejected the changed raw fixture. Two pure mapping attempts stopped before metadata writes; the final method-bounded mapping preserves exact whitespace and reconstructs the predecessor. Concurrent metadata suites also exposed each other’s intentional temporary symlink; that failed output is retained and the optimized combined suite passes when run after the others exited. No product change followed those harness failures.
+
+The specific hosted OS cleanup failure remains Unknown and its exact resources remain held. No held scratch, worker artifact, PID or process group was inspected or operated on. This correction is local development CI fixture evidence; fresh hosted replication remains pending.
