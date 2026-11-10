@@ -33,6 +33,13 @@ it does not replace or narrow that scope. Keep `STATUS.md`, `work-graph.json`,
   Unrelated CI failures, VM completion and final GA requirements do not block
   dependency-ready development. One independent slice review is sufficient unless
   a concrete new defect or changed contract requires another.
+- The November 10 user instruction requires maximum useful parallel work across
+  ready product domains, not only the current platform. Apply product-plan
+  section 25.3: refill free agent slots at completion or a blocker, isolate file
+  ownership/output/cache paths, and serialize only actual shared-resource or
+  dependency conflicts. Do not impose an arbitrary small agent count or blanket
+  two-job compiler limit. Fit concurrent agents and builds to aggregate provider
+  and host capacity. Root retains native-device ownership and all explicit holds.
 - Coordinate public contracts before dependent changes. Never edit another active
   lane's files without coordination. Do not undo user work.
 - Each meaningful slice needs executable tests and accurate limitations. A skipped

@@ -1,5 +1,7 @@
 # Execution index
 
+The November 10 execution rule is [maximum useful parallel work across product domains](mixer-product-plan.md#253-parallel-work-and-integration). Refill available agent capacity when tasks complete or block; preserve concrete shared-resource limits, native ownership, model selection and historical holds.
+
 ## Development execution update: November 9, 2026
 
 The user authorized removing verification bottlenecks. [Product-plan section 24.5](mixer-product-plan.md#245-development-tests-must-advance-application-behavior) governs fresh development: standard tools, compact raw evidence, concrete isolation, one independent slice review, and executable application progress instead of recursive controller preparation. Pinned public-SDK checkout integration may advance while immutable-package and final launch qualification remain pending. All explicit historical holds remain active. The next development behavior is FieldLog open/edit/save/close/reopen with preserved state on each platform; root coordinates native resources and source delivery. [Policy evidence](verification/development-unblock-2026-11-09/receipt.json).
