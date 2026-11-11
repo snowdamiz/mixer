@@ -1,39 +1,44 @@
 # Execution index
 
-The reviewed proxy fixture correction is applied locally as backend source218/v8.
-Its complete strict run passed 804 tests with two existing Linux skips and
-warnings-as-errors exit0. Both proxy sockets use TCP_NODELAY; the diagnostic
-keeps its exact bytes under a test filename. COMMIT checks, product deadlines,
-authority and all twelve production migrations are unchanged. Delivery and a
-fresh ordinary Linux run are next; Linux causality remains unproven.
-[Qualification](verification/receipts/browser-proxy-strict-r1070.json) and
-[root application](verification/receipts/browser-proxy-adoption-r1076.json).
+The reviewed customer build-read composition is applied locally as source228/v9.
+The strict Mac runner passed 814 tests with two existing Linux skips and
+warnings-as-errors exit 0. Collectors passed 193 controls in each Python mode.
+The eight product modules retain their independently reviewed authority and
+confirmed-COMMIT boundary. The ordinary router remains unmounted, private build
+DDL remains unselected, and all twelve production migrations are unchanged.
+[Qualification](verification/receipts/hosted-owned-evidence-r1092.json) and
+[root application](verification/receipts/customer-build-adoption-r1100.json).
 
-The private customer build-read slice passed independent review. Actual restricted
-reads and typed HTTP200, ten original cases, nine adversarial controls and both
-remaining publication races passed. The exact reviewed modules are being composed
-into the full hosted package; they are not yet canonical or ordinarily mounted.
-[Actual read](verification/receipts/customer-build-file-logs-r1056.json) and
-[independent closure](verification/receipts/customer-build-race-review-r1064.json).
+Main 9e0ce9ca has twelve terminal checks: ten passed and two failed. Phoenix
+passed 802 tests; two evidence writes lacked owned output paths. The former
+begin-login timeout did not recur. The ordinary runner now supplies both paths
+and passed the complete private suite. Delivery and fresh Linux CI are pending.
+The cache descendant control recorded UNKNOWN custody for PGID1267. Its resources
+and copied raw artifact remain held. The underlying denied operation is unproven.
+[CI evidence](verification/receipts/phoenix-v8-ci-r1086.json) and
+[custody hold](verification/receipts/cache-ci-current-r1088.json).
 
-LongNote and Commit remain incomplete. A fresh root meter observed 101,486,390
-fuel credits across action decode/routing/mutation/projection and 25,196,202
-across encoding. The unchanged 30-second deadline then stopped raw document
-validation. These broad intervals do not isolate one expensive operation or
-prove a speedup. Documents1–5 matched native bytes, ready3 passed, and consuming
-cleanup returned all fourteen current fields and tickets to zero.
-[Measured evidence](verification/receipts/document-phase-root-r1074.json).
+The private input decoder passed 263 native tests, including all 258 retained
+tests. The actual guest produced documents1–6 byte for byte, including LongNote6.
+Event7 then hit the unchanged 30-second deadline during encoding. Document7,
+Commit7 completion, ready7 and complete internal-model parity remain unproven.
+Both payloads consumed all fourteen currents and tickets to zero. No private
+SDK, VM or numeric policy has been adopted.
+[Actual campaign](verification/receipts/guest-input-cost-r1082.json).
 
-The interrupted R1066 payload and R1048 PostgreSQL attempt remain under full
-namespace holds; no outputs or resources were recovered from either. All older
-holds remain active. The report app has reviewed source and its exact full
-Android build, while chooser/grants/recipient acceptance remains pending.
-[Report component](verification/receipts/fieldlog-report-component-r1002.json).
+The customer build-read purpose passed independent review. The next product
+boundary is a trusted active browser cookie reaching the actual authorized build
+read. Source-only custody diagnostics remain private and unaccepted. All older
+process, runtime and native holds remain active. The report component has reviewed
+source and an exact Android build, while native chooser, grants and recipient
+acceptance remain pending.
+[Customer review](verification/receipts/customer-build-race-review-r1064.json) and
+[report component](verification/receipts/fieldlog-report-component-r1002.json).
 
 CLI source118 d9473684…, Pair20 SDK24/adapter27/Java21 and canonical SDK/VM
-authorities remain intact. Apple Accessibility trust is unavailable; phones are
-disconnected. Immutable packages, full API28, production operation and all 38 GA
-gates remain pending.
+authorities remain intact. Apple Accessibility trust is unavailable and phones
+remain disconnected. Immutable packages, full API28, production operation and
+all 38 GA gates remain pending.
 
 ## Development execution update: November 9, 2026
 

@@ -90,6 +90,24 @@ def provision_browser_read_fixture(pg_bin, port, run_command):
     return {"MIXER_BROWSER_STORAGE_PORT": str(port)}
 
 
+def provision_customer_build_fixture(pg_bin, port, run_command):
+    """Only the new isolated synthetic CustomerBuilds test database."""
+    psql = [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
+            "-U", "mixer_fixture", "-v", "ON_ERROR_STOP=1"]
+    run_command("customer-build-roles", psql + ["-d", "postgres", "-c",
+        "CREATE ROLE r1026_admin LOGIN SUPERUSER; "
+        "CREATE ROLE r1026_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS; "
+        "CREATE ROLE r1026_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS; "
+        "ALTER ROLE r1026_runtime SET log_statement='all';"])
+    run_command("customer-build-database", [str(pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
+        "-U", "mixer_fixture", "-O", "r1026_admin", "mixer_customer_build_read"])
+    run_command("customer-build-grants", psql + ["-d", "mixer_customer_build_read", "-c",
+        "REVOKE CREATE ON SCHEMA public FROM PUBLIC; "
+        "ALTER SCHEMA public OWNER TO r1026_owner; "
+        "GRANT USAGE ON SCHEMA public TO r1026_runtime;"])
+    return {"R1026_PG_PORT": str(port)}
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--output", required=True, type=Path)
 parser.add_argument("--pg-bin", default="/opt/homebrew/opt/postgresql@17/bin", type=Path)
@@ -203,6 +221,7 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
     release_code += "; " + 'false = Code.ensure_loaded?(MixerHosted.Test.BuildIntentWorker); false = Code.ensure_loaded?(BuildStorageReview.Worker); false = Code.ensure_loaded?(MixerHosted.BuildAdmissionReview.Worker); IO.puts("production_build_intent_test_workers: absent")'
     release_code += "; " + 'Code.ensure_loaded!(MixerHosted.Builds.Coordinator); Code.ensure_loaded!(MixerHosted.Builds.Dispatch); false = Code.ensure_loaded?(MixerHosted.Test.BuildDispatchFixture); false = Code.ensure_loaded?(MixerHosted.BuildCoordinatorReview.Adapter); false = Code.ensure_loaded?(MixerHosted.BuildCoordinatorReview.Test); IO.puts("production_build_coordinator: present; modeled dispatch helpers: absent")'
     release_code += "; " + 'false = Code.ensure_loaded?(MixerHosted.BuildCoordinatorProcessorReview.Adapter); false = Code.ensure_loaded?(MixerHosted.BuildCoordinatorProcessorReview.Test); IO.puts("production_build_coordinator_processor_review: absent")'
+    release_code += "; " + 'false = Code.ensure_loaded?(R1026.Admin); false = Code.ensure_loaded?(R1026.CustomerBuildReadTest); false = Code.ensure_loaded?(R1026.ObanMigration); Code.ensure_loaded!(MixerHosted.CustomerBuilds); IO.puts("production_customer_build_test_helpers: absent")'
     run("release-test-exclusion", ["elixir", "-pa", str(root / "_build/prod/rel/mixer_hosted/lib/mixer_hosted-0.1.0/ebin"), "-e", release_code], prod_env)
     run("initdb", [str(args.pg_bin / "initdb"), "-D", str(scratch / "data"), "-U", "mixer_fixture",
                    "--auth-local=trust", "--auth-host=trust", "--no-locale", "-E", "UTF8"])
@@ -257,6 +276,11 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
         run("createdb-coordinator-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                            "mixer_fixture", "mixer_coordinator_review_test"])
     env.update(provision_browser_read_fixture(args.pg_bin, port, run))
+    env.update(provision_customer_build_fixture(args.pg_bin, port, run))
+    env["R1026_EVIDENCE"] = str(output / "customer-build-sql-boundary.json")
+    env["R1072_TRANSACTION_EVIDENCE"] = str(output / "customer-build-transactions.jsonl")
+    env["R932_BARRIER_EVIDENCE"] = str(output / "browser-activation-barrier.json")
+    env["R932_FAILURE_EVIDENCE"] = str(output / "browser-activation-rollback.json")
     test_argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"]
     if additional_tests:
         if not args.only_additional_tests:
