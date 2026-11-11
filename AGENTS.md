@@ -274,6 +274,11 @@ No review test ran. Build-complete output, direct baseline return or elapsed tim
 releases neither this hold nor any older one. Fresh independent review may use
 unchanged R486 inputs in a separate namespace.
 
+
+The R580 local callback matrix timed out with UNKNOWN custody for PID/PGID45848. Preserve the entire `verification/plan-continuation-2026-11-07/native-editor-opacity-source-compose-r580/native-work`, `logs/B-matrix.stdout`, `logs/B-matrix.stderr`, `observed-sites.txt`, `barrier-cases.json`, and `helper-boundaries.jsonl` without inspection, enumeration, probing, signalling, waiting, retry or cleanup. Read only the top-level HOLD.json, callback-matrix-custody-hold.json, REPORT.md and delivered static application packet. The separately captured immutable afterimages and completed binding-preflight metadata are outside that mutable held chain. Root R598 native acceptance and independent R578 source review do not release it.
+
+The R580 optimized source worker timed out with UNKNOWN custody for PID/PGID48537. Preserve `verification/plan-continuation-2026-11-07/native-editor-opacity-source-compose-r580/overlay/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/control-scratch` and `logs/optimized-test_source113.py.stdout`/`.stderr` without inspection, enumeration, process operations, waiting, retry or cleanup. Top-level HOLD-source.json and source-worker-custody-hold.json are the custody references. A later fresh optimized-source pass does not release this worker; static inputs and separately captured afterimages remain available for fresh independent work. All older holds remain in force.
+
 ## Verification artifact retention
 
 New build outputs, APKs, compiler dumps, copied checkouts and dependency trees

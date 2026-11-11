@@ -1877,6 +1877,7 @@ canvas.drawPath(thumb,paint);canvas.restoreToCount(save);
     private abstract static class OwnedDrawable extends Drawable {
         final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
         @Override public void setAlpha(int alpha){NativeEnvironmentV2.requireMain();if(alpha!=255)throw new IllegalArgumentException("authored alpha only");}
+        @Override public int getAlpha(){NativeEnvironmentV2.requireMain();return 255;}
         @Override public void setColorFilter(ColorFilter filter){NativeEnvironmentV2.requireMain();if(filter!=null)throw new IllegalArgumentException("authored colors only");}
         @Override public int getOpacity(){NativeEnvironmentV2.requireMain();return PixelFormat.TRANSLUCENT;}
     }
@@ -1908,16 +1909,34 @@ paint.setColor(color(outline.color()));mutation.require();
 float radius=(float)AppearanceGeometryV2.pixelCoordinate(outline.radius64(),b.density());
         canvas.drawRoundRect(inner,radius,radius,paint);paint.setStyle(Paint.Style.FILL);mutation.require();
 }
-    private static final class Cursor extends OwnedDrawable {
-        final Record record;Cursor(Record record){this.record=record;}
+    /** Editor owns fade opacity; authored geometry and palette remain immutable. */
+    private abstract static class EditorDrawable extends Drawable {
+        final Record record;
+        final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
+        private int opacity=255;
+        EditorDrawable(Record record){this.record=record;}
+        @Override public final void setAlpha(int alpha){
+            NativeEnvironmentV2.requireMain();
+            if(alpha<0||alpha>255)throw new IllegalArgumentException("editor alpha range");
+            Mutation mutation=record.mutation();mutation.require();
+            if(opacity==alpha)return;
+            opacity=alpha;invalidateSelf();mutation.require();
+        }
+        @Override public final int getAlpha(){NativeEnvironmentV2.requireMain();return opacity;}
+        @Override public final void setColorFilter(ColorFilter filter){NativeEnvironmentV2.requireMain();if(filter!=null)throw new IllegalArgumentException("authored colors only");}
+        @Override public final int getOpacity(){NativeEnvironmentV2.requireMain();return PixelFormat.TRANSLUCENT;}
+        final int presentationColor(int authored){return (authored&0x00ffffff)|((((authored>>>24)*opacity+127)/255)<<24);}
+    }
+    private static final class Cursor extends EditorDrawable {
+        Cursor(Record record){super(record);}
         @Override public int getIntrinsicWidth(){NativeEnvironmentV2.requireMain();return 2;}
-        @Override public void draw(Canvas canvas){NativeEnvironmentV2.requireMain();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();paint.setColor(color(fieldPaint(record).caret()));mutation.require();
+        @Override public void draw(Canvas canvas){NativeEnvironmentV2.requireMain();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();paint.setColor(presentationColor(color(fieldPaint(record).caret())));mutation.require();
 canvas.drawRect(getBounds(),paint);}
     }
-    private static final class Handle extends OwnedDrawable {
-        final Record record;Handle(Record record){this.record=record;}
+    private static final class Handle extends EditorDrawable {
+        Handle(Record record){super(record);}
         @Override public int getIntrinsicWidth(){NativeEnvironmentV2.requireMain();return 12;}@Override public int getIntrinsicHeight(){NativeEnvironmentV2.requireMain();return 12;}
-        @Override public void draw(Canvas canvas){NativeEnvironmentV2.requireMain();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();paint.setColor(color(fieldPaint(record).selection()));mutation.require();
+        @Override public void draw(Canvas canvas){NativeEnvironmentV2.requireMain();if(!record.input.draw())return;Mutation mutation=record.mutation();mutation.require();paint.setColor(presentationColor(color(fieldPaint(record).selection())));mutation.require();
 canvas.drawOval(new RectF(getBounds()),paint);}
     }
     private static final class Empty extends OwnedDrawable {

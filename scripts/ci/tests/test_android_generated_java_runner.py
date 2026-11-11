@@ -266,7 +266,7 @@ class RunnerControls(unittest.TestCase):
         adapter = {f'app/src/dev/mixer/android/Product{i:02}.java': b'owned input' for i in range(21)}
         adapter.update({'Sources/MixerAndroidRuntime/Entry.swift': b'owned runtime',
                         'bridge/jni.c': b'owned JNI', 'contracts/ui.json': b'owned contract'})
-        profile = {'schema': 1, 'id': 'mixer.android-source-pair.19',
+        profile = {'schema': 1, 'id': 'mixer.android-source-pair.20',
                    'default_descriptor': data_identity(b'owned descriptor'),
                    'sdk_files': {p: data_identity(v) for p, v in sdk.items()},
                    'adapter_files': {p: data_identity(v) for p, v in adapter.items()}}

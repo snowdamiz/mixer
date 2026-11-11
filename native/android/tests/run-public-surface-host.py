@@ -85,7 +85,7 @@ try:
             if f.name in concrete_sources:
                 concrete_sources[f.name] = f
     concrete_leaves = sorted((tests / 'NativeOwnerV2ConcreteHostLeaves').rglob('*.java'))
-    reflow_inputs = sorted(set(concrete_sources.values()) | set(concrete_leaves) | {tests / 'VerticalReflowHostTests.java', tests / 'GeneratedAddTransitionHostTests.java', tests / 'FocusedDisableOwnerTransitionHostTests.java', tests / 'CompleteHandoffHostTests.java', tests / 'FailureDismissalHostTests.java', tests / 'CapturedPredecessorCustodyHostTests.java', tests / 'EditorTransactionHostTests.java', tests / 'MeasuredAcknowledgmentHostTests.java', tests / 'MeasuredAcknowledgmentPreservationHostTests.java', tests / 'ContainerFrameWitnessHostTests.java'})
+    reflow_inputs = sorted(set(concrete_sources.values()) | set(concrete_leaves) | {tests / 'VerticalReflowHostTests.java', tests / 'GeneratedAddTransitionHostTests.java', tests / 'FocusedDisableOwnerTransitionHostTests.java', tests / 'CompleteHandoffHostTests.java', tests / 'FailureDismissalHostTests.java', tests / 'CapturedPredecessorCustodyHostTests.java', tests / 'EditorTransactionHostTests.java', tests / 'EditorOpacityHostTests.java', tests / 'MeasuredAcknowledgmentHostTests.java', tests / 'MeasuredAcknowledgmentPreservationHostTests.java', tests / 'ContainerFrameWitnessHostTests.java'})
     (args.evidence / 'vertical-reflow-inputs.json').write_text(json.dumps({str(f.relative_to(root)) if f.is_relative_to(root) else str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in reflow_inputs}, indent=2) + '\n')
     reflow_classes = scratch / 'vertical-reflow-classes'
     reflow_classes.mkdir()
@@ -110,6 +110,7 @@ try:
         run(main, [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.' + main, editor_packets])
     for main in ('MeasuredAcknowledgmentHostTests', 'MeasuredAcknowledgmentPreservationHostTests', 'ContainerFrameWitnessHostTests'):
         run(main, [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.' + main, editor_packets, 'candidate', focused_packets])
+    run('editor-opacity', [args.java_home / 'bin/java', '-ea', '-Xmx256m', '-cp', reflow_classes, 'dev.mixer.android.EditorOpacityHostTests', editor_packets / 'descriptor.json', editor_packets / 'before-public-reset/00.json'])
     passed = True
 finally:
     if passed:
