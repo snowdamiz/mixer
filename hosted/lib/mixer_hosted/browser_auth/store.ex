@@ -6,7 +6,7 @@ defmodule MixerHosted.BrowserAuth.Store do
   The internal owner must still authenticate ciphertext and fence private release
   after the transaction. A decoded snapshot alone grants no authentication.
   """
-  alias MixerHosted.BrowserAuth.{Catalog, LifecycleRepo, PreauthDraft, RelationCatalog}
+  alias MixerHosted.BrowserAuth.{ActiveCatalog, LifecycleRepo, PreauthDraft, RelationCatalog}
   alias MixerHosted.BrowserAuth.{Protocol, RuntimeConfig, RuntimeOwner, StoredSnapshot, Vault}
 
   defmodule Failure do
@@ -98,6 +98,34 @@ defmodule MixerHosted.BrowserAuth.Store do
   def begin_login(_, _), do: failure(:admission, :not_started)
 
   @doc false
+  def lifecycle(%PreauthDraft.Lease{} = lease, operation) do
+    with :ok <- RuntimeOwner.checkpoint(lease),
+         true <- MixerHosted.BrowserAuth.CallbackStore.valid?(lease, operation) do
+      transact(lease.runtime, lease.deadline, lease, {:lifecycle, operation})
+    else
+      _ -> failure(:admission, :not_started)
+    end
+  rescue
+    _ -> failure(:admission, :not_started)
+  catch
+    _, _ -> failure(:admission, :not_started)
+  end
+
+  def lifecycle(_, _), do: failure(:admission, :not_started)
+
+  @doc false
+  def active_read(lease, operation) do
+    with :ok <- RuntimeOwner.checkpoint(lease),
+         true <- MixerHosted.BrowserAuth.ActiveRead.valid?(lease, operation) do
+      transact(lease.runtime, lease.deadline, lease, {:active_read, operation})
+    else
+      _ -> failure(:admission, :not_started)
+    end
+  rescue
+    _ -> failure(:admission, :not_started)
+  end
+
+  @doc false
   def failure(phase, outcome),
     do: {:error, %Failure{code: :session_unavailable, phase: phase, outcome: outcome}}
 
@@ -123,7 +151,7 @@ defmodule MixerHosted.BrowserAuth.Store do
                 policy!(deadline)
 
                 :function_surface_verified =
-                  Catalog.check_function_surface!(
+                  ActiveCatalog.check_function_surface!(
                     LifecycleRepo,
                     runtime.expected_roles,
                     deadline,
@@ -249,6 +277,12 @@ defmodule MixerHosted.BrowserAuth.Store do
     result
   end
 
+  defp effect!({:active_read, operation}, deadline),
+    do: MixerHosted.BrowserAuth.ActiveRead.effect!(operation, deadline)
+
+  defp effect!({:lifecycle, operation}, deadline),
+    do: MixerHosted.BrowserAuth.CallbackStore.effect!(operation, deadline)
+
   defp effect!(:admit, _deadline), do: :admitted
 
   defp effect!({:bootstrap, d, metadata}, deadline) do
@@ -345,6 +379,12 @@ defmodule MixerHosted.BrowserAuth.Store do
          messages: []
        }),
        do: raw
+
+  defp decode!({:active_read, operation}, raw),
+    do: MixerHosted.BrowserAuth.ActiveRead.decode!(operation, raw)
+
+  defp decode!({:lifecycle, operation}, raw),
+    do: MixerHosted.BrowserAuth.CallbackStore.decode!(operation, raw)
 
   defp decode!(:admit, :admitted), do: :admitted
   defp decode!({:load, _}, nil), do: nil

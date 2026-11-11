@@ -667,11 +667,12 @@ defmodule MixerHosted.Authorization.ArtifactReadTest do
   end
 
   test "final guard rolls back writes and revoked identity cannot receive a cached result" do
-    i = F.identity(%{expires_at: F.now() + 1})
+    i = F.identity(%{expires_at: F.now() + 2})
 
     assert {:error, :unauthenticated} =
              F.run(
                fn _, _ ->
+                 assert System.system_time(:millisecond) < i.expires_at * 1_000
                  F.runtime_sql("INSERT INTO public.read_scope_probe VALUES ('must_rollback')")
                  F.expire(i)
                  {:ok, :cached}

@@ -1,0 +1,224 @@
+{
+  "campaign": "R662 coherent browser source v4 adoption packet",
+  "created_utc": "2026-11-11T03:19:24.979826+00:00",
+  "outcome": "READY_FOR_ROOT_GUARDED_SOURCE_ADOPTION; ACTUAL_ORDINARY_SUITE_PASS; ORDINARY_CI_GATES_PENDING",
+  "scope": "Isolated afterimages only. No canonical, Git/index, remote/API, native/browser, signing, provider, customer, credential or child operation.",
+  "root_reported_revision": "8efc201 user supplied; no Git queried",
+  "baseline_source201_digest": "458b1eefe69c390a10676690434ee05fdfecda11a430347844f855bfc2be3b3c",
+  "accepted_R634_archive": {
+    "path": "/Users/andreyyurlov/.t3/userdata/mixer-browser-r634-q2xpozrw/browser-r634-private-source-increment.tar.gz",
+    "sha256": "980cfc2457893f7e9d52f3e3d65f5028a830283e13abdd73d00685e6f974925d"
+  },
+  "selector": {
+    "namespace": "verification/identity-network-current-source-v4/",
+    "source_count": 212,
+    "source_digest_sha256": "10d70a0da184338c09ef87d32400d80f2d5013e323d9c656d1f79ed5ceb6a661",
+    "selection_sha256": "602b2e88b3d7a7e22a3eff8588d6e034f09744e7b5c78105928033504e8a9be6",
+    "count_authority": "Derived from independently hash-pinned selection metadata and checked against the actual final manifest; no manual current count literal.",
+    "runtime_gates": "Source preflight, ordinary services source checks, actual collector source archive, prepared/compiled archives, helper manifest, selected metadata archive and migration roster all use explicit v4.",
+    "historical_contracts": "Frozen178/current185/current190v2/private201v3 manifests and validators retained; v3 source check now correctly refuses v4 product while v3 metadata remains valid."
+  },
+  "composition": {
+    "all_R634_product_bytes_exact": true,
+    "baseline_existing_product_changes": [
+      "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+      "hosted/lib/mixer_hosted/browser_auth/store.ex"
+    ],
+    "source_roster_additions": 11,
+    "source_roster_changes": "Store, RuntimeOwner, local fixture provisioner and expiry test; 8 modules + private unselected SQL + permanent 8-control test and client driver added.",
+    "permanent_controls": "Exact accepted eight RS256 PKCE/restricted-role/read-HTTP controls moved into ordinary ExUnit discovery. Path/temp-file/application-setting restoration adaptations only; no fake identity, token or directly seeded active session.",
+    "expiry_delta": "R652 TTL1->2 and callback-entered-before-expiry assertion retained; only R652 diagnostic IO.puts removed. Actual whole suite passes. All original unauthenticated/rollback/family-revocation/pool assertions remain.",
+    "historical_failure": "R644 exact historical first cause remains UNOBSERVED. Controlled before-metadata expiry mechanism and R652 failed baseline remain preserved.",
+    "prod12_exact": true,
+    "private_helper_selected_for_production": false,
+    "default_mount_auth_mutation_grant_or_real_provider_added": false
+  },
+  "verification": {
+    "fresh_product_compile": {
+      "source_files": 114,
+      "beam_count": 196,
+      "exit": 0,
+      "command": [
+        "mix",
+        "compile",
+        "--force",
+        "--no-deps-check"
+      ],
+      "beams_unchanged_after_payloads": true
+    },
+    "whole_ordinary_suite": {
+      "command": [
+        "mix",
+        "test",
+        "--no-compile",
+        "--seed",
+        "574",
+        "--trace"
+      ],
+      "passed": 775,
+      "skipped": 2,
+      "failed": 0,
+      "exit": 0,
+      "includes_permanent_new_controls": 8,
+      "skips_pending": [
+        "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]",
+        "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]"
+      ],
+      "log": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/campaign/whole-suite.log",
+        "bytes": 212545,
+        "sha256": "a42c3b5615fe332ab3f77dce27a940f6a5afc1678b25b08860339168777d1295"
+      }
+    },
+    "additional_isolated_private_controls": {
+      "passed": 8,
+      "failed": 0,
+      "excluded": 0,
+      "exit": 0,
+      "log": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/campaign/private-controls.log",
+        "bytes": 3666,
+        "sha256": "c81c5155b606941bcc1d69ba63cda82d34cc7f91d5f4690b4a576f48c7c81c0d"
+      }
+    },
+    "final_guarded_replay_source_preflight": {
+      "exit": 0,
+      "log": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/packet-controls-final/source-preflight.log",
+        "bytes": 293,
+        "sha256": "6883ddccb52ed7786a10b189ceed10c03e1df96ed4d228fe6e9d35bef0df4069"
+      }
+    },
+    "final_guarded_replay_collector_controls": {
+      "normal": 163,
+      "optimized": 163,
+      "exit_each": 0,
+      "normal_log": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/packet-controls-final/normal.log",
+        "bytes": 28100,
+        "sha256": "04f2aec1e3de61edf014db63ad46d5c01bd6c2dff51c77bb20067a2235ec9ade"
+      },
+      "optimized_log": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/packet-controls-final/optimized.log",
+        "bytes": 28100,
+        "sha256": "039eaec722f564a38cd31377aa0173bb6f5e82564476be8318f71793fea33dda"
+      }
+    },
+    "actual_sparse_client_compile": {
+      "exit": 0,
+      "typescript": "5.9.3",
+      "compiled_outputs_match_accepted_client": true,
+      "receipt": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/client-compile.json",
+        "bytes": 3218,
+        "sha256": "8cf3c2981b58364c79e71b8fa24c2767ce13058a5b815247205cebb16d8d5d74"
+      }
+    },
+    "guard_controls": {
+      "dry_run": true,
+      "changed_workflow_preimage_refused_without_apply": true,
+      "tampered_product_afterimage_refused_without_apply": true,
+      "application_replayed": true,
+      "all_212_replay_sources_exact": true,
+      "receipt": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/guard-controls.json",
+        "bytes": 731,
+        "sha256": "e01eec9e28a8a07c9e2df26eb395635b0adc66dc9f7534aba7dbd514c265cb2c"
+      }
+    },
+    "independent_reviews": "Task-authorized reuse of hash-accepted R554/R592/R612 and R616 browser evidence; no review or browser restart."
+  },
+  "preservation_and_dependency_identity": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/preservation.json",
+    "bytes": 1859,
+    "sha256": "1eff772172aa3c91a1e90d0519b5388de65f09da7ccde721918735f2ee88fadc"
+  },
+  "bounds": {
+    "hosted_compiler_pg_batches": 1,
+    "whole_ordinary_suite_runs": 1,
+    "additional_private_suite_runs": 1,
+    "typescript_sparse_control_attempts": 2,
+    "harness_corrections": 1,
+    "harness_correction": "One CI sparse-input correction: added cookie-workspace-client and type-only workspace-controller. Initial actual tsc exit2 TS2307 is retained; corrected actual sparse tsc exit0 and all seven outputs match accepted client bytes. No backend rebuild or suite retry.",
+    "initial_failed_client_receipt": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/client-compile-incomplete-sparse.json",
+      "bytes": 2887,
+      "sha256": "e215ea7a57eb9a1fa0f64e2867ffcc0671998ee1d853111622e2c1f166862652"
+    },
+    "initial_failed_client_log": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/client-command-incomplete-sparse.log",
+      "bytes": 148,
+      "sha256": "6ae0d1c284795523ea827437d0102cc9433ee1228278644dcdde647ab980c1ed"
+    },
+    "children": 0,
+    "native_browser_attempts": 0
+  },
+  "cleanup": {
+    "owned_postgres_stopped": true,
+    "postmaster_pid_absent": true,
+    "all_recorded_groups_absent": true,
+    "historical_holds_accessed": false,
+    "private_tls_active_zero": true,
+    "whole_tls_lifecycle_snapshots": 9,
+    "whole_tls_cleanup_scope": "Pre-cleanup TLS lifecycle logs may contain active=1; terminate/2 closes listener and sockets. Actual whole-suite and separate-control BEAM groups observed absent. No claim all pre-cleanup snapshots were zero.",
+    "command_group_records": 46,
+    "packet_control_groups_absent": true,
+    "typescript_command_groups_absent": true,
+    "historical_holds_touched": false,
+    "scratch": "Retained only the owned verification/local/browser-source-r662 directory; no running owned PG/TLS/BEAM/test/compiler resource remains."
+  },
+  "delivery": {
+    "archive": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/browser-source-r662-adoption.tar.gz",
+    "bytes": 336303,
+    "directory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/delivery",
+    "mapped_paths": 22,
+    "sha256": "10a7c35b1637ac13d0d2bf600a0380968f4337aef10543f30e24d840f15032eb",
+    "source_count": 212
+  },
+  "application_map": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/delivery/application-map.json",
+    "bytes": 6054,
+    "sha256": "dd70f996d00977ded01103a4926812d5cafc9cf2d8d34b48e320b6ad278713d9"
+  },
+  "patch": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/delivery/candidate.patch",
+    "bytes": 182998,
+    "sha256": "f6aff80faedd3568bfd43f6560de39f4e12f7bed7507a62f27b68baaa118eced"
+  },
+  "guard": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/delivery/apply.py",
+    "bytes": 2153,
+    "sha256": "f1582e833b6237e67994c180bac520a4332477c2fefee3f1bb4c0ff6eb69f508"
+  },
+  "root_commands": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/root-commands.json",
+    "bytes": 1474,
+    "sha256": "d95ae87442ce2a5b9417ee8e0326513939a99174eb60f9e6075543decec21473"
+  },
+  "command_indexes": [
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/campaign/commands.json",
+      "bytes": 32519,
+      "sha256": "ce76b3fb989aa3c62a50002260c14c3da239f00a81c8fa59eb9d7930c24255d9"
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-source-r662/packet-controls-final/commands.json",
+      "bytes": 1443,
+      "sha256": "a7de35f3640ca8527dda09c61d57bc0bff37d9edadb2162a003449eb40b9490b"
+    }
+  ],
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:3:3] [ds:3:3:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "node": "v22.23.3 actual --version",
+    "typescript": "5.9.3"
+  },
+  "limitations": [
+    "This is a macOS loopback PostgreSQL17 development suite, not GitHub-hosted CI or Linux netns qualification; the two skipped Linux controls remain pending.",
+    "Ordinary CI format, warnings-as-errors and packaged release checks were not executed. Exact accepted ProviderOwner source still emits clause-order warning; accepted test harness also emits unused-alias/default warnings. No compiler policy gate is waived or passed.",
+    "Canonical selection/adoption, API fast-forward delivery, native testing and later hosted CI remain root-owned; none performed here.",
+    "Production12 migration selection unchanged. Private helper unselected; no default server mount, auth mutation route, config grant, production provider, production migration, W14 completion, immutable package or GA acceptance.",
+    "All historical failures and process/custody holds remain in force."
+  ]
+}

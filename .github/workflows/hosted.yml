@@ -8,6 +8,9 @@ on:
       - '.github/workflows/hosted.yml'
       - 'console/src/api/**'
       - 'console/src/domain/workspace-directory.ts'
+      - 'console/src/api/browser-session-client.ts'
+      - 'console/src/state/browser-session-controller.ts'
+      - 'console/src/state/workspace-controller.ts'
       - 'console/package.json'
       - 'console/package-lock.json'
       - 'verification/hosted-customer-workspace-http-integration/node-client-driver.mjs'
@@ -20,6 +23,9 @@ on:
       - '.github/workflows/hosted.yml'
       - 'console/src/api/**'
       - 'console/src/domain/workspace-directory.ts'
+      - 'console/src/api/browser-session-client.ts'
+      - 'console/src/state/browser-session-controller.ts'
+      - 'console/src/state/workspace-controller.ts'
       - 'console/package.json'
       - 'console/package-lock.json'
       - 'verification/hosted-customer-workspace-http-integration/node-client-driver.mjs'
@@ -47,6 +53,10 @@ jobs:
             /console/src/api/workspace-client.ts
             /console/src/api/workspace-transport.ts
             /console/src/domain/workspace-directory.ts
+            /console/src/api/browser-session-client.ts
+            /console/src/api/cookie-workspace-client.ts
+            /console/src/state/browser-session-controller.ts
+            /console/src/state/workspace-controller.ts
             /verification/hosted-browser-auth-protocol/run.py
             /verification/hosted-customer-workspace-http-integration/node-client-driver.mjs
             /verification/hosted-customer-artifact-event/golden_event.hex
@@ -75,12 +85,14 @@ jobs:
           npm --version
           npm ci --ignore-scripts --no-audit --no-fund
           node node_modules/typescript/bin/tsc --version
-          node node_modules/typescript/bin/tsc src/api/workspace-client.ts \
+          node node_modules/typescript/bin/tsc src/api/workspace-client.ts src/api/browser-session-client.ts src/state/browser-session-controller.ts \
             --target ES2022 --module ES2022 --moduleResolution bundler \
             --strict --skipLibCheck --lib ES2022,DOM \
             --outDir "$RUNNER_TEMP/workspace-client"
           cp ../verification/hosted-customer-workspace-http-integration/node-client-driver.mjs \
             "$RUNNER_TEMP/workspace-client/driver.mjs"
+          cp ../hosted/test/support/browser_read_client.mjs "$RUNNER_TEMP/workspace-client/browser-read-driver.mjs"
+          printf 'MIXER_BROWSER_READ_NODE_DRIVER=%s/browser-read-driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"
           printf '%s\n' '{"type":"module"}' > "$RUNNER_TEMP/workspace-client/package.json"
           printf 'MIXER_WORKSPACE_HTTP_NODE_DRIVER=%s/driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"
       - name: Browser session storage and migration checks

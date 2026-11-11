@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_private_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, PRIVATE_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_browser_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, BROWSER_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_private_source_manifest", return_value=collector.PRIVATE_MANIFEST), \
+                    mock.patch.object(collector, "validate_browser_source_manifest", return_value=collector.BROWSER_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_private_source_manifest", return_value=collector.PRIVATE_MANIFEST), \
+                    mock.patch.object(collector, "validate_browser_source_manifest", return_value=collector.BROWSER_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_private_source_manifest", return_value=collector.PRIVATE_MANIFEST), \
+                    mock.patch.object(collector, "validate_browser_source_manifest", return_value=collector.BROWSER_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_private_source_manifest", return_value=collector.PRIVATE_MANIFEST), \
+                            mock.patch.object(collector, "validate_browser_source_manifest", return_value=collector.BROWSER_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_private_source_manifest", return_value=collector.PRIVATE_MANIFEST), \
+                            mock.patch.object(collector, "validate_browser_source_manifest", return_value=collector.BROWSER_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.PRIVATE_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.BROWSER_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -2426,7 +2426,10 @@ class PrivateSourceSelectionControls(unittest.TestCase):
                 for name in ("selection.json", "selected-source-manifest.json")}
 
     def test_private_actual_source_has_independent_closed_root(self):
-        result = collector.check_private_source(COLLECTOR_PATH.resolve().parents[2])
+        value = collector.validate_private_source_metadata(self.metadata())
+        result = {"source_count": value["selected"]["source_count"], "source_digest_sha256": value["selected"]["source_digest_sha256"], "selection_sha256": self.SELECTION, "runtime_or_GA_accepted": value["runtime_or_GA_accepted"]}
+        with self.assertRaises(collector.CollectorError):
+            collector.check_private_source(COLLECTOR_PATH.resolve().parents[2])
         self.assertEqual((201, self.DIGEST, self.SELECTION), (result["source_count"], result["source_digest_sha256"], result["selection_sha256"]))
         self.assertFalse(result["runtime_or_GA_accepted"])
 
@@ -2475,6 +2478,66 @@ class PrivateSourceSelectionControls(unittest.TestCase):
                 result = original(paths)
                 if collector.PRIVATE_SOURCE_BASE + "selection.json" in result:
                     result[collector.PRIVATE_SOURCE_BASE + "selection.json"] += b" "
+                return result
+            subject.git_blobs = blobs
+            with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
+                    mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
+                with self.assertRaisesRegex(collector.CollectorError, "selection pin mismatch"): subject.collect()
+            self.assertFalse(any(argv[0] == "docker" for argv in calls))
+
+
+
+class BrowserSourceSelectionControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.BROWSER_SOURCE_BASE + name: (root / collector.BROWSER_SOURCE_BASE / name).read_bytes()
+                for name in ("selection.json", "selected-source-manifest.json")}
+
+    def test_actual_source_count_and_digest_match_independently_pinned_metadata(self):
+        metadata = self.metadata()
+        body = metadata[collector.BROWSER_SOURCE_BASE + "selection.json"]
+        self.assertEqual('7ebc5dd2f3eaf093442ecee1bf26078023d934cc62c216b90aa417cee86331cf', hashlib.sha256(body).hexdigest())
+        selected = json.loads(body)["selected"]
+        result = collector.check_browser_source(COLLECTOR_PATH.resolve().parents[2])
+        self.assertEqual(selected["source_count"], result["source_count"])
+        self.assertEqual('e35af32a6ebaafec4d9154ca2d04bdb0655cdd57ad5c7e06988db8e1aa65477d', result["source_digest_sha256"])
+        self.assertEqual('7ebc5dd2f3eaf093442ecee1bf26078023d934cc62c216b90aa417cee86331cf', result["selection_sha256"])
+        self.assertFalse(result["runtime_or_GA_accepted"])
+
+    def test_every_changed_missing_extra_and_self_recomputed_source_refuses(self):
+        for path in collector.BROWSER_MANIFEST:
+            value = copy.deepcopy(collector.BROWSER_MANIFEST)
+            value[path]["sha256"] = "0" * 64
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError):
+                collector.validate_browser_source_manifest(value)
+        for value in ({}, {**collector.BROWSER_MANIFEST, "hosted/foreign": {"bytes":0,"sha256":"0"*64}}):
+            with self.assertRaises(collector.CollectorError): collector.validate_browser_source_manifest(value)
+            with self.assertRaises(collector.CollectorError): collector.validate_browser_source_manifest(value, expected_digest=canonical_digest(value), expected_count=len(value))
+        value = dict(collector.BROWSER_MANIFEST); value.pop(next(iter(value)))
+        with self.assertRaises(collector.CollectorError): collector.validate_browser_source_manifest(value)
+        for old in (collector.FROZEN_MANIFEST, collector.CURRENT_MANIFEST, collector.SUCCESSOR_MANIFEST, collector.PRIVATE_MANIFEST):
+            with self.assertRaises(collector.CollectorError): collector.validate_browser_source_manifest(old)
+
+    def test_missing_changed_extra_metadata_refuses(self):
+        metadata = self.metadata()
+        collector.validate_browser_source_metadata(metadata)
+        for path in metadata:
+            for mode in ("change", "missing"):
+                value = dict(metadata)
+                if mode == "change": value[path] += b" "
+                else: value.pop(path)
+                with self.subTest(path=path, mode=mode), self.assertRaises(collector.CollectorError): collector.validate_browser_source_metadata(value)
+        with self.assertRaises(collector.CollectorError): collector.validate_browser_source_metadata({**metadata,"foreign": b"{}"})
+
+    def test_browser_metadata_refusal_precedes_any_docker_operation(self):
+        helper = CollectorMethodWiringControls()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
+            original = subject.git_blobs
+            def blobs(paths):
+                result = original(paths)
+                if collector.BROWSER_SOURCE_BASE + "selection.json" in result:
+                    result[collector.BROWSER_SOURCE_BASE + "selection.json"] += b" "
                 return result
             subject.git_blobs = blobs
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \

@@ -76,6 +76,20 @@ def provision_customer_artifact_fixtures(pg_bin, port, run_command):
     return env
 
 
+def provision_browser_read_fixture(pg_bin, port, run_command):
+    psql = [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
+            "-U", "mixer_fixture", "-d", "postgres", "-v", "ON_ERROR_STOP=1"]
+    run_command("browser-read-roles", psql + ["-c",
+        "CREATE ROLE browser_admin LOGIN SUPERUSER; "
+        "CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; "
+        "CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; "
+        "CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; "
+        "CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;"])
+    run_command("browser-read-database", [str(pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
+        "-U", "mixer_fixture", "-O", "browser_schema_owner", "browser_storage"])
+    return {"MIXER_BROWSER_STORAGE_PORT": str(port)}
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--output", required=True, type=Path)
 parser.add_argument("--pg-bin", default="/opt/homebrew/opt/postgresql@17/bin", type=Path)
@@ -240,6 +254,7 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
                                                    "mixer_fixture", "mixer_aggregate_admission_review_test"])
         run("createdb-coordinator-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                            "mixer_fixture", "mixer_coordinator_review_test"])
+    env.update(provision_browser_read_fixture(args.pg_bin, port, run))
     test_argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"]
     if additional_tests:
         if not args.only_additional_tests:

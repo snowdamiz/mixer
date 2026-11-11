@@ -1,0 +1,276 @@
+{
+  "schema": 1,
+  "campaign": "R676 browser strict CI closure before root adoption",
+  "created_utc": "2026-11-11T03:35:52.326001+00:00",
+  "outcome": "PASS_RELATED_LOCAL_CI_GATES; READY_FOR_ROOT_GUARDED_ADOPTION",
+  "canonical_writes": false,
+  "root_git_remote_native_browser_signing_credentials_children": false,
+  "baseline": {
+    "root_reported_revision": "8efc201",
+    "canonical201_verified_byte_exact": true,
+    "r662_archive_sha256": "10a7c35b1637ac13d0d2bf600a0380968f4337aef10543f30e24d840f15032eb",
+    "r662_source_digest_sha256": "10d70a0da184338c09ef87d32400d80f2d5013e323d9c656d1f79ed5ceb6a661",
+    "actual_first_refusals": [
+      {
+        "label": "format",
+        "argv": [
+          "mix",
+          "format",
+          "--check-formatted"
+        ],
+        "exit": 1,
+        "log": {
+          "path": "verification/local/browser-strict-ci-r676/baseline-format.log",
+          "bytes": 141389,
+          "sha256": "4c4eab10488b07c8d31cc50caee24a93de3ebfd1389e9c8e1f6d39649fa88b00"
+        }
+      },
+      {
+        "label": "test-compile",
+        "argv": [
+          "mix",
+          "compile",
+          "--warnings-as-errors"
+        ],
+        "MIX_ENV": "test",
+        "exit": 1,
+        "log": {
+          "path": "verification/local/browser-strict-ci-r676/baseline-compile-wae.log",
+          "bytes": 481,
+          "sha256": "06d62a0101f86fe72d8a702f6b3e49f2d96d3afda158eb11cf379f9fbf0f43ca"
+        }
+      },
+      {
+        "label": "test-warnings",
+        "argv": [
+          "mix",
+          "run",
+          "--no-start",
+          "--no-compile",
+          "-e",
+          "ExUnit.start(autorun: false); Code.require_file(\"test/mixer_hosted/browser_auth/trusted_read_http_test.exs\")"
+        ],
+        "MIX_ENV": "test",
+        "exit": 0,
+        "log": {
+          "path": "verification/local/browser-strict-ci-r676/baseline-test-warnings.log",
+          "bytes": 654,
+          "sha256": "ed97c8ed3ebfa8040b025df9f597969fda1751c01cd121d879435f43182f0d56"
+        }
+      }
+    ]
+  },
+  "final_source": {
+    "count": 212,
+    "digest_sha256": "e35af32a6ebaafec4d9154ca2d04bdb0655cdd57ad5c7e06988db8e1aa65477d",
+    "selection_sha256": "7ebc5dd2f3eaf093442ecee1bf26078023d934cc62c216b90aa417cee86331cf",
+    "identity": {
+      "path": "verification/local/browser-strict-ci-r676/source-identity.json",
+      "bytes": 37248,
+      "sha256": "eec29f6263986b41300241553b7bd3b0b95bb296464e7baef47d8d08d9b72f95"
+    },
+    "count_authority": "Derived actual unchanged file roster and independently hash-pinned v4 metadata; no CURRENT count literal changed."
+  },
+  "minimal_cleanup": {
+    "delta": {
+      "path": "verification/local/browser-strict-ci-r676/minimal-delta.json",
+      "bytes": 3517,
+      "sha256": "9c4398b84282ee5ba43e945b570e839b8647d8c5d9228f95f069235cc488a4bf"
+    },
+    "description": "Mix formatter on changed Elixir sources/test; split the existing test-only condition so start_fixture precedes adjacent init clauses; remove compiler-confirmed unused test Store alias and unused headers default only. Existing method/body defaults retained.",
+    "formatter_detail": "Mix 1.20.4 first formatting pass left one BrowserHTTP expression unformatted. Second pass stabilized it; actual format preflight and unchanged runner both passed.",
+    "ast": "155 functions across 12 files: metadata-free AST and same-function clause order identical under the two explicit unused-test normalizations; conditional module/Mix.env contexts retained. Other full ASTs identical; ProviderOwner only regrouped its existing test-only definitions.",
+    "ast_log": {
+      "path": "verification/local/browser-strict-ci-r676/ast-proof.log",
+      "bytes": 1022,
+      "sha256": "ae25c74c76a7c098a27df9e741f0e45761d6ee299eb775688d8b59d64f26aba7"
+    },
+    "product_exports": {
+      "path": "verification/local/browser-strict-ci-r676/all-product-exports.log",
+      "bytes": 635,
+      "sha256": "e02c8ea40fcd1a9ee66096baeffa63039c66ef31517ee3fcb613f83ef63d5559"
+    },
+    "test_exports_before": {
+      "path": "verification/local/browser-strict-ci-r676/test-exports-before.log",
+      "bytes": 9643,
+      "sha256": "9f336c4d306bc9cf3073cee98fd15d51abf31574d1e07942a9dd208d265e287c"
+    },
+    "test_exports_after": {
+      "path": "verification/local/browser-strict-ci-r676/test-exports-after.log",
+      "bytes": 8773,
+      "sha256": "105c3236cc4daf0ccb34c36801ad7d7718ec19a5b104d1dd89f3d18b5dde19fc"
+    },
+    "production_fixture_and_unconfigured_policy": {
+      "path": "verification/local/browser-strict-ci-r676/provider-production-policy.log",
+      "bytes": 106,
+      "sha256": "d1b09fb6c4c19872f801453c200b5918c956426a9f5e4cfab57d8ef4df726540"
+    },
+    "contracts": "No callback, SQL, catalog, crypto, authority, COMMIT, error, publication, mount or production-grant contract change."
+  },
+  "actual_strict_gate": {
+    "command": [
+      "python3",
+      "hosted/scripts/test-local.py",
+      "--output",
+      "verification/local/browser-strict-ci-r676/strict-3"
+    ],
+    "runner_unchanged_from_r662": true,
+    "receipt": {
+      "path": "verification/local/browser-strict-ci-r676/strict-3/receipt.json",
+      "bytes": 69798,
+      "sha256": "c9c96fc7310e4ee65568faf308eddbffb0bcd168fd86c55fc934c27a0dbb914b"
+    },
+    "tested_hosted_tree_digest_sha256": "a379fe31ff03042f3292919e66579a9918060dbd0c62c2d42fd1ec0aa7520b17",
+    "coverage": [
+      "mix format --check-formatted",
+      "MIX_ENV=test mix compile --warnings-as-errors",
+      "MIX_ENV=prod mix release --overwrite",
+      "release missing-config rejection (required exit1)",
+      "production release test-export and policy exclusion",
+      "loopback PostgreSQL17 and every ordinary named fixture, including browser roles/database",
+      "mix test --warnings-as-errors --seed 0 --trace",
+      "exact accepted compiled canonical console clients and both actual Node drivers"
+    ],
+    "result": {
+      "passed": 775,
+      "failed": 0,
+      "skipped": 2,
+      "includes_permanent_browser_controls": 8,
+      "test_seconds": 109.2
+    },
+    "tests_log": {
+      "path": "verification/local/browser-strict-ci-r676/strict-3/tests.log",
+      "bytes": 202936,
+      "sha256": "e364aad99e96719e0a37f11afe1f727febe8d907488cce93c3e0fa71c75eb055"
+    },
+    "client_compile_input_receipt": {
+      "path": "verification/local/browser-source-r662/client-compile.json",
+      "bytes": 3218,
+      "sha256": "8cf3c2981b58364c79e71b8fa24c2767ce13058a5b815247205cebb16d8d5d74"
+    },
+    "client_outputs": "All seven accepted compiled outputs hash-verified and copied; no TypeScript source or compile policy changed.",
+    "production_warnings": "Unchanged release command emitted dependency xref deprecation and ProviderOwner ConfigurationDigest unused-alias warning (alias is used only by test init). Release exit0; no warning disabled and no production warnings-as-errors claim."
+  },
+  "source_and_collector": {
+    "source_preflight": {
+      "path": "verification/local/browser-strict-ci-r676/packet-controls-final/source-preflight.log",
+      "bytes": 293,
+      "sha256": "adf478dbbe108a3c2d6f92af1f6262d63c3c1d35d1a36b00661dd5712aa626f0"
+    },
+    "normal_controls": 163,
+    "optimized_controls": 163,
+    "normal_log": {
+      "path": "verification/local/browser-strict-ci-r676/packet-controls-final/normal.log",
+      "bytes": 28100,
+      "sha256": "60683a0b3331a5ccf63cfdfc7d20e0ab3eb1c2b4bdda09c402113202b6517353"
+    },
+    "optimized_log": {
+      "path": "verification/local/browser-strict-ci-r676/packet-controls-final/optimized.log",
+      "bytes": 28100,
+      "sha256": "03c09688845174db2d365aa73c99a9da2be9606670ca7c9cd42c9b80bad0901c"
+    },
+    "executed_on_guarded_final_replay": true
+  },
+  "preservation": {
+    "path": "verification/local/browser-strict-ci-r676/preservation.json",
+    "bytes": 2706,
+    "sha256": "3c19b5823e8225bd7e8a64d964010d7dfa4d89b929e1868373ada3df85f6f87c"
+  },
+  "security_reviews": "Task-authorized accepted R554/R592/R612 and R616 browser evidence reused. No recursive component review; cleanup equivalence independently executable locally.",
+  "guard": {
+    "checks": {
+      "path": "verification/local/browser-strict-ci-r676/guard-controls.json",
+      "bytes": 734,
+      "sha256": "4f1c2cf8c98f1cad3cbcff1a02068a4e588df7c56ae869470e304fefe4c1d808"
+    },
+    "root_dryrun": {
+      "path": "verification/local/browser-strict-ci-r676/root-dryrun.log",
+      "bytes": 76,
+      "sha256": "b237c18577cadf54319b76bc3cc333f332d001067719ec65cae87cafd831e012"
+    },
+    "preimage_and_packet_tamper_refused": true,
+    "guarded_replay_all_sources_exact": true,
+    "canonical201_still_unmodified": true
+  },
+  "delivery": {
+    "archive": {
+      "path": "verification/local/browser-strict-ci-r676/browser-strict-ci-r676-adoption.tar.gz",
+      "bytes": 338588,
+      "sha256": "e096dc90b2acf76e14f679f4dd997e7eb8c161daca60c933468b7e4001b57aef"
+    },
+    "directory": "verification/local/browser-strict-ci-r676/delivery",
+    "application_map": {
+      "path": "verification/local/browser-strict-ci-r676/delivery/application-map.json",
+      "bytes": 6054,
+      "sha256": "ffac814408ba33648f3661cb58f8100ceb534216f46b8e16fc45803cf108426f"
+    },
+    "mapped_paths": 22,
+    "root_commands": {
+      "path": "verification/local/browser-strict-ci-r676/root-commands.json",
+      "bytes": 1081,
+      "sha256": "ad228b9ce5237bc8b10d73ae76e692e863841a28afaf98e8822d1d5429b3fd50"
+    }
+  },
+  "bounds": {
+    "runner_invocations": 3,
+    "source_gate_attempts": 2,
+    "whole_exunit_runs": 1,
+    "runner_harness_corrections": 1,
+    "runner_harness_correction": "First invocation stopped at revision: local marker had 41 hex digits; corrected to 40 in isolated .git only. Second stopped at one residual formatter expression; third completed all unchanged gates. All failed receipts retained.",
+    "prior_runner_receipts": [
+      {
+        "path": "verification/local/browser-strict-ci-r676/strict-1/receipt.json",
+        "bytes": 29745,
+        "sha256": "b519ec9cf9fdd7ad5ce9fccd7280c6d2b925e86117a113b25ff434dc81656298"
+      },
+      {
+        "path": "verification/local/browser-strict-ci-r676/strict-2/receipt.json",
+        "bytes": 31079,
+        "sha256": "ebecf656e0c50700bd09516acf8d73f158f31880ff91d8c4960286c278ead10a"
+      }
+    ],
+    "inspection_correction": "Initial beam export query used binary path; corrected to Erlang charlist. Both outputs preserved; this did not invoke or alter the ordinary runner.",
+    "metadata_limitation": "Early correction script overwrote the first three baseline command PID rows before append loading was fixed. Their actual raw compiler/formatter logs, argv and exits remain; all three group-absence True observations were returned at execution. Subsequent command identities are retained."
+  },
+  "cleanup": {
+    "postgres": {
+      "postmaster_pid": 57319,
+      "pgid": 57319,
+      "observed_running": true,
+      "port": 49863,
+      "postmaster_pid_absent": true,
+      "pgid_absent": true,
+      "port_closed": true
+    },
+    "runner_and_collector_groups_observed_absent": true,
+    "scratch_removed_by_unchanged_runner": true,
+    "tls": "Nine actual lifecycle snapshots (eight active=0; one active=1 before fixture teardown). Successful supervisor teardown plus terminal BEAM/runner group observed absent; no active TLS process remains in that group. Pre-teardown snapshot is not relabeled zero.",
+    "historical_holds_touched": false,
+    "owned_artifacts": "Only R676 ignored local artifacts and this compact receipt written. No root staging/index changes; artifact-policy index check remains root-owned if staged."
+  },
+  "command_indexes": [
+    {
+      "path": "verification/local/browser-strict-ci-r676/commands.json",
+      "bytes": 13740,
+      "sha256": "bb93b52798ccaf81d92e864566c9d47eb27a731a79d8e974e167ab843f5d9d61"
+    },
+    {
+      "path": "verification/local/browser-strict-ci-r676/packet-controls-final/commands.json",
+      "bytes": 1452,
+      "sha256": "36843fd0f913a711ffdee906243b14eb7c6b61dc291606afa2ed65cd38ae6951"
+    }
+  ],
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:3:3] [ds:3:3:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "node": "v22.23.3",
+    "typescript": "5.9.3 accepted R662 compile"
+  },
+  "limitations": [
+    "Local macOS development evidence; no hosted GitHub CI or Linux netns result. K03 and IS04/IS05 remain skipped/pending.",
+    "Local revision output is an explicit synthetic marker based on root-reported short revision, not a Git commit proof. Exact source manifests/digests identify the tested tree; no root Git query performed.",
+    "Production12, private SQL selection, default mount and all frozen historical fixtures unchanged. No real provider/account, new production grant, publication, immutable-package, native or GA acceptance.",
+    "Canonical adoption, coherent API fast-forward, staging and subsequent hosted CI inspection remain root-owned. All existing custody holds remain active."
+  ]
+}

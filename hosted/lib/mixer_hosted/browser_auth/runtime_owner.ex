@@ -1,6 +1,6 @@
 defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   @moduledoc """
-  Manually supervised, fixed preauthentication owner. No Application wiring yet.
+  Manually supervised private browser lifecycle owner. No Application wiring yet.
 
   Storage readiness requires both current catalogs on the dedicated pool. It is
   never browser authentication readiness. Startup receives trusted configuration;
@@ -85,6 +85,89 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     _, _ -> Store.failure(:admission, :not_started)
   end
 
+  @type raw_headers :: [{binary(), binary()}]
+  @type public_session ::
+          {:unauthenticated, binary()}
+          | {:authenticated, binary(), non_neg_integer(), binary(), pos_integer()}
+
+  @doc "Private metadata read after exact current-authority admission and retained key/publication fences."
+  @spec read_session(raw_headers()) ::
+          {:ok, public_session(), :unchanged}
+          | {:error, :invalid_request | :unauthenticated | struct()}
+  def read_session(raw_headers) do
+    case read_private(raw_headers, :session) do
+      {:ok, public} -> {:ok, public, :unchanged}
+      error -> error
+    end
+  end
+
+  @doc "Private closed directory read; uses exactly the existing dispatcher request grammar."
+  def read_workspace(raw_headers, request) do
+    case MixerHostedWeb.BrowserWorkspaceDispatcher.Request.new(request) do
+      {:ok, _checked} -> read_private(raw_headers, {:workspace, request})
+      _ -> {:error, :invalid_request}
+    end
+  rescue
+    _ -> {:error, :invalid_request}
+  end
+
+  defp read_private(raw_headers, operation) do
+    deadline = System.monotonic_time(:millisecond) + 5000
+    wall = System.system_time(:second)
+
+    with {:ok, cookie} <- Protocol.parse_session_cookie(raw_headers),
+         {:ok, lease} <- reserve(deadline, wall) do
+      execute(lease, fn ->
+        if is_binary(cookie) do
+          input = %PreauthDraft.Load{lease: lease, cookie_digest: :crypto.hash(:sha256, cookie)}
+
+          case Store.active_read(lease, {:discover, input}) do
+            {:ok, nil} ->
+              {:error, :unauthenticated}
+
+            {:ok, %StoredSnapshot{browser: %{"status" => "active"}} = snapshot} ->
+              MixerHosted.BrowserAuth.ActiveRead.run(lease, snapshot, operation)
+
+            {:ok, %StoredSnapshot{browser: %{"status" => "preauth"}} = snapshot}
+            when operation == :session ->
+              envelope = snapshot.session_envelope
+
+              expires =
+                min(snapshot.browser["idle_expires_at"], snapshot.browser["absolute_expires_at"])
+
+              with :preauth <- envelope.context.purpose,
+                   {:ok, %Vault.Preauth{csrf: csrf}} <-
+                     Vault.open(lease.runtime.custody.key, envelope.context, envelope.sealed),
+                   true <-
+                     :crypto.hash_equals(
+                       envelope.context.csrf_digest,
+                       :crypto.hash(:sha256, csrf)
+                     ) do
+                finish_receipt(lease, expires, {:unauthenticated, csrf})
+              else
+                _ -> Store.failure(:decode, :committed)
+              end
+
+            {:ok, _} ->
+              {:error, :unauthenticated}
+
+            error ->
+              error
+          end
+        else
+          {:error, :unauthenticated}
+        end
+      end)
+    else
+      {:error, :invalid_request} = error -> error
+      _ -> Store.failure(:admission, :not_started)
+    end
+  rescue
+    _ -> Store.failure(:admission, :not_started)
+  catch
+    _, _ -> Store.failure(:admission, :not_started)
+  end
+
   def load(cookie) do
     deadline = System.monotonic_time(:millisecond) + 5000
     wall = System.system_time(:second)
@@ -125,6 +208,34 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
         else
           {:error, %Store.Failure{}} = error -> error
           _ -> Store.failure(:decode, :committed)
+        end
+      end)
+    else
+      _ -> Store.failure(:admission, :not_started)
+    end
+  rescue
+    _ -> Store.failure(:admission, :not_started)
+  catch
+    _, _ -> Store.failure(:admission, :not_started)
+  end
+
+  @doc "Private callback admission; no HTTP route is installed."
+  def callback(raw_headers, raw_query) do
+    deadline = System.monotonic_time(:millisecond) + 5000
+    wall = System.system_time(:second)
+
+    with {:ok, cookie} when is_binary(cookie) <- Protocol.parse_session_cookie(raw_headers),
+         {:ok, lease} <- reserve(deadline, wall) do
+      execute(lease, fn ->
+        case MixerHosted.BrowserAuth.CallbackLifecycle.run(lease, raw_headers, raw_query) do
+          {:ok, %MixerHosted.BrowserAuth.CallbackLifecycle.Result{} = value, fence} ->
+            %MixerHosted.BrowserAuth.CallbackLifecycle.Completion{
+              receipt: finish_receipt(lease, value.expires_at, value),
+              fence: fence
+            }
+
+          error ->
+            error
         end
       end)
     else
@@ -235,6 +346,30 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
       end
 
     case result do
+      %MixerHosted.BrowserAuth.ActiveRead.Completion{} = completion ->
+        try do
+          with %PreauthDraft.Publication{} = receipt <- completion.receipt,
+               :ok <- MixerHosted.BrowserAuth.ActiveRead.final_check(completion) do
+            publish(lease, receipt)
+          else
+            _ -> Store.failure(:commit, :committed)
+          end
+        after
+          MixerHosted.BrowserAuth.ActiveRead.release(completion)
+        end
+
+      %MixerHosted.BrowserAuth.CallbackLifecycle.Completion{} = completion ->
+        try do
+          with %PreauthDraft.Publication{} = receipt <- completion.receipt,
+               :ok <- MixerHosted.BrowserAuth.CallbackLifecycle.final_check(completion.fence) do
+            publish(lease, receipt)
+          else
+            _ -> Store.failure(:commit, :committed)
+          end
+        after
+          MixerHosted.BrowserAuth.CallbackLifecycle.release(completion.fence)
+        end
+
       %PreauthDraft.Publication{} = receipt ->
         # Finish already released the exact retained caller permit. No external
         # cleanup call may delay a successful value after this final sample.
@@ -251,6 +386,9 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
         error
     end
   end
+
+  @doc false
+  def active_receipt(lease, expires, value), do: finish_receipt(lease, expires, value)
 
   defp finish_receipt(lease, expires, value) do
     case call(lease, {:finish, lease, expires}) do
