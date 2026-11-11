@@ -1,1 +1,0 @@
-use mixer_vm::experimental_swift_reactor::{validate_swift_reactor, SwiftValidationBudget, ValidatedSwiftReactor}; use mixer_vm::Cancellation; fn f(b: &[u8]) -> Option<ValidatedSwiftReactor> { validate_swift_reactor(b, SwiftValidationBudget::default(), &Cancellation::default()).ok() }

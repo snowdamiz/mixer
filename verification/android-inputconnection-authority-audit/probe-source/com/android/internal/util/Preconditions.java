@@ -1,1 +1,0 @@
-package com.android.internal.util; public final class Preconditions {public static int checkArgumentNonnegative(int n){if(n<0)throw new IllegalArgumentException();return n;}}

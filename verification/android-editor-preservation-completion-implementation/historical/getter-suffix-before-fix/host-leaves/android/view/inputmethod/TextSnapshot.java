@@ -1,1 +1,0 @@
-package android.view.inputmethod;public final class TextSnapshot {private final SurroundingText text;public TextSnapshot(SurroundingText text){this.text=text;}public SurroundingText getSurroundingText(){return text;}}

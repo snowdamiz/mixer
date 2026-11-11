@@ -1,1 +1,0 @@
-package android.annotation; public @interface IntRange {long from() default 0;}

@@ -273,3 +273,20 @@ its supplied top-level HOLD.json, REPORT.md, receipt.json and logs/candidate-bui
 No review test ran. Build-complete output, direct baseline return or elapsed time
 releases neither this hold nor any older one. Fresh independent review may use
 unchanged R486 inputs in a separate namespace.
+
+## Verification artifact retention
+
+New build outputs, APKs, compiler dumps, copied checkouts and dependency trees
+belong in ignored `verification/local/` or an owned external scratch directory.
+Write new compact receipts under `verification/receipts/`. Existing tracked
+fixtures and all custody holds remain protected. Historical reports may refer
+to archived inputs: use `verification/README.md` to restore the corresponding
+campaign before replaying an old driver.
+
+Run `python3 scripts/check-verification-artifacts.py` after staging verification
+changes. It checks the index, including sparse paths. New canonical fixtures
+outside `verification/receipts/` require explicit `git add -f`; generated or
+large fixtures also require an exact blob/size/reason entry in
+`scripts/verification-artifact-policy.json`. Keep the whole verification tree
+within its 1 GiB budget. Do not loosen the budget to accommodate transient runs.
+The archive tag preserves old evidence; this change releases no custody hold.

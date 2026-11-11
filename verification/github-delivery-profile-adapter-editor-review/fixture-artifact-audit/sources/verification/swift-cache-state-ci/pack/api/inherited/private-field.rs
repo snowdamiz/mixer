@@ -1,1 +1,0 @@
-use mixer_absence::*;pub fn f(x:&mut FixtureEnvelopeObservationV1){x.envelope_debit=0;}fn main(){}

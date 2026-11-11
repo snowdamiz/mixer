@@ -1,1 +1,0 @@
-package android.view.inputmethod;public class CorrectionInfo {public final int offset;public final CharSequence oldText,newText;public CorrectionInfo(int offset,CharSequence oldText,CharSequence newText){this.offset=offset;this.oldText=oldText;this.newText=newText;}}

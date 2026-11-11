@@ -1,1 +1,0 @@
-use mixer_absence::*;fn need<T:Clone>(){}fn main(){need::<FixtureEnvelopeObservationV1>();}

@@ -1,2 +1,0 @@
-import MixerCapabilityActivation
-typealias UnauthorizedAttempt = CapabilityConcreteAttempt

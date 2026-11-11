@@ -2,6 +2,7 @@
 set -eu
 MIXER_REPO=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$MIXER_REPO"
+python3 scripts/check-verification-artifacts.py
 python3 scripts/check-policy.py
 swift build --package-path cli --product mixer -j 2
 MIXER_STORE_CLI_BIN_DIR="$(swift build --package-path cli --product mixer -j 2 --show-bin-path)"

@@ -1,2 +1,0 @@
-import MixerCapabilityActivation
-typealias UnauthorizedRetirement = CapabilityConcreteRetirement

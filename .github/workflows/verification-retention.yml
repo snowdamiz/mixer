@@ -1,0 +1,24 @@
+name: Verification artifact retention
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verification-retention:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/check-verification-artifacts.py
+            /scripts/restore-verification-artifacts.py
+            /scripts/verification-artifact-policy.json
+            /scripts/ci/tests/test_verification_artifacts.py
+            /scripts/ci/tests/test_restore_verification_artifacts.py
+      - name: Check staged verification paths and blob budgets
+        run: python3 scripts/check-verification-artifacts.py --fetch-missing-from origin
+      - name: Test retention and targeted recovery
+        run: python3 -B -m unittest discover -s scripts/ci/tests -p 'test_*verification_artifacts.py' -v

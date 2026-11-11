@@ -146,7 +146,10 @@ See the integration README for build prerequisites. FieldLog lives separately at
 `work-graph.json` preserves W01–W18; `gates/ga.json` preserves G01–G38;
 `dogfood/receipts/milestones.json` preserves D0–D8. Current receipts are in
 `verification/`; detailed transient build logs and generated apps stay in
-`verification/local/`. See [STATUS.md](STATUS.md) for the integrated state.
+`verification/local/`. Historical generated payloads are available on demand from
+the [verification archive](verification/README.md); new checkouts retain the
+current fixtures, reports and held evidence. See [STATUS.md](STATUS.md) for the
+integrated state.
 
 `python3 scripts/check-policy.py` checks dependency manifests and gate integrity.
 It is a guardrail, not independent security, legal, or provenance certification.
