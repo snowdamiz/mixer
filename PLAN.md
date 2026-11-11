@@ -1,44 +1,39 @@
 # Execution index
 
-Browser confirmed-COMMIT code is delivered at92c2c15f with source217/v7 and
-unchangedproduction12. All twelve ordinary checks are terminal: eleven passed;
-Phoenix failed seven new begin-login cases before callback. Its796 other cases
-passed with2 skips. The same original focused test passes on localPG16, so the
-Linux cause is unproven. The next delivery adds only a bounded private trace tool
-and its explicit argument to the existing full Linux suite. No nodelay, deadline,
-role, SQL, product or source-authority correction is selected.
-[CI](verification/receipts/main92c2-ci-r988.json),
-[local discriminator](verification/receipts/browser-linux-proxy-r1000.json) and
-[diagnostic selection](verification/receipts/browser-linux-ci-adoption-r1040.json).
+The reviewed proxy fixture correction is applied locally as backend source218/v8.
+Its complete strict run passed 804 tests with two existing Linux skips and
+warnings-as-errors exit0. Both proxy sockets use TCP_NODELAY; the diagnostic
+keeps its exact bytes under a test filename. COMMIT checks, product deadlines,
+authority and all twelve production migrations are unchanged. Delivery and a
+fresh ordinary Linux run are next; Linux causality remains unproven.
+[Qualification](verification/receipts/browser-proxy-strict-r1070.json) and
+[root application](verification/receipts/browser-proxy-adoption-r1076.json).
 
-The private reader remains unaccepted. A root probe proved rejection of valid
-leading JSON whitespace; that defect is fixed. Two owned native crash reports,
-matched by compiled-image UUID, show125 recursive reader-node frames and a stack
-guard fault in the valid maximum-depth test. An explicit bounded parser stack
-is now being implemented without changing the supported depth or any cap.
-Original248 tests remain intact; no reader Wasm or application acceptance is
-claimed. The earlier actual guest still stops in Foundation document decoding.
-[Whitespace proof](verification/receipts/document-reader-whitespace-r1020.json)
-and [owned crash evidence](verification/receipts/reader-native-crash-r1032.json).
+The private customer build-read slice passed independent review. Actual restricted
+reads and typed HTTP200, ten original cases, nine adversarial controls and both
+remaining publication races passed. The exact reviewed modules are being composed
+into the full hosted package; they are not yet canonical or ordinarily mounted.
+[Actual read](verification/receipts/customer-build-file-logs-r1056.json) and
+[independent closure](verification/receipts/customer-build-race-review-r1064.json).
 
-The report app's failed-unlink correction passed independent review and all49
-actual Android build commands on the exact source. Root compared70 members and
-proved68 unchanged from the95-Swift-test source. Development source/build selection
-does not qualify Android chooser/grants/recipient behavior; theR928 native chain
-remains held. [Component](verification/receipts/fieldlog-report-component-r1002.json).
+LongNote and Commit remain incomplete. A fresh root meter observed 101,486,390
+fuel credits across action decode/routing/mutation/projection and 25,196,202
+across encoding. The unchanged 30-second deadline then stopped raw document
+validation. These broad intervals do not isolate one expensive operation or
+prove a speedup. Documents1–5 matched native bytes, ready3 passed, and consuming
+cleanup returned all fourteen current fields and tickets to zero.
+[Measured evidence](verification/receipts/document-phase-root-r1074.json).
 
-The console's Builds page still has no connected data source. A private explicit
-build.read policy/context/SQL successor compiles, and35 existing lifecycle/journal
-tests pass. All10 new cases were invalid at migrator setup; the two-connection
-fixture correction is unrun. A fresh artifact-only PostgreSQL/HTTP execution is
-selected. No artifact/audit/workspace authority is borrowed or widened; no build
-read, default mount, production grant or worker action is qualified.
-[Private packet](verification/receipts/customer-build-authority-r1026.json).
+The interrupted R1066 payload and R1048 PostgreSQL attempt remain under full
+namespace holds; no outputs or resources were recovered from either. All older
+holds remain active. The report app has reviewed source and its exact full
+Android build, while chooser/grants/recipient acceptance remains pending.
+[Report component](verification/receipts/fieldlog-report-component-r1002.json).
 
-CLI source118d9473684…, Pair20 SDK24/adapter27/Java21 and historical authorities
-remain intact. All native/process/custody holds remain active; Apple Accessibility
-trust is unavailable and phones remain disconnected. Immutable packages,
-full API28, production operation and all38 GA gates remain pending.
+CLI source118 d9473684…, Pair20 SDK24/adapter27/Java21 and canonical SDK/VM
+authorities remain intact. Apple Accessibility trust is unavailable; phones are
+disconnected. Immutable packages, full API28, production operation and all 38 GA
+gates remain pending.
 
 ## Development execution update: November 9, 2026
 

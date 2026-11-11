@@ -65,7 +65,9 @@ defmodule R932.PhaseCommitProxy do
   end
 
   defp connection(client, port, owner) do
-    {:ok, backend} = :gen_tcp.connect({127, 0, 0, 1}, port, [:binary, active: false], 2000)
+    {:ok, backend} =
+      :gen_tcp.connect({127, 0, 0, 1}, port, [:binary, active: false, nodelay: true], 2000)
+
     {:ok, <<len::32>>} = :gen_tcp.recv(client, 4, 5000)
     {:ok, startup} = :gen_tcp.recv(client, len - 4, 5000)
     :ok = :gen_tcp.send(backend, [<<len::32>>, startup])

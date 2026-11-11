@@ -51,6 +51,9 @@ LIFETIME_SOURCE_DIGEST = '2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0
 COMMIT_SOURCE_BASE = 'verification/identity-network-current-source-v7/'
 COMMIT_SELECTION_SHA256 = '77406d745d798c83be28f1b26be08c3b396cee1093e4726b147ddc0a5e6b36ed'
 COMMIT_SOURCE_DIGEST = '619e21ed7669a1b5782c6c4ccc4e0647aaba20433002ab8b4045e0d57df9891c'
+PROXY_SOURCE_BASE = 'verification/identity-network-current-source-v8/'
+PROXY_SELECTION_SHA256 = 'a5ade3b244f15d610b141eee05dc0c754adbb7e9fcaf71dca52b0100939124fb'
+PROXY_SOURCE_DIGEST = 'cd8dfff529b3e461adbea1fec2b21dbbb0ece6ba323a26f63d5b3676cbd41c6f'
 FORMAT_BASE = "verification/identity-network-fixture-amendment-v2/metadata/"
 FORMAT_SHA256 = "45f0c33f8f521ff43ed58b13c34466dea593ecd1c9e8aab166b1e075da07ef84"
 FORMAT_PACKET = "46d75ed1393db3250b5b7df2611b82bdc5c49f5c1ca7ec64ff8f40e24f179760"
@@ -697,6 +700,54 @@ def _load_commit_source_authority():
     return CurrentSourceAuthority(count, canonical_digest(manifest), manifest)
 
 
+def validate_proxy_source_manifest(manifest, expected_digest=PROXY_SOURCE_DIGEST, expected_count=None):
+    require(expected_digest == PROXY_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == PROXY_SOURCE_COUNT),
+            "caller cannot replace proxy source authority")
+    return _validate_source_manifest(manifest, PROXY_SOURCE_DIGEST, PROXY_SOURCE_COUNT)
+
+
+def validate_proxy_source_metadata(metadata):
+    require(isinstance(metadata, dict) and set(metadata) == {PROXY_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")}, "proxy source selection membership mismatch")
+    body = metadata[PROXY_SOURCE_BASE + "selection.json"]
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == PROXY_SELECTION_SHA256, "proxy source selection pin mismatch")
+    value = json.loads(body)
+    selected_body = metadata[PROXY_SOURCE_BASE + "selected-source-manifest.json"]
+    require(isinstance(selected_body, bytes) and _file_row(selected_body) == {key: value["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "proxy source manifest bytes mismatch")
+    selected = json.loads(selected_body)
+    validate_proxy_source_manifest(selected)
+    require(selected == PROXY_MANIFEST and value["selected"]["source_count"] == PROXY_SOURCE_COUNT and value["selected"]["source_digest_sha256"] == PROXY_SOURCE_DIGEST, "proxy source count or digest mismatch")
+    require(value["predecessor"] == {"source_count": COMMIT_SOURCE_COUNT, "source_digest_sha256": COMMIT_SOURCE_DIGEST, "selection_sha256": COMMIT_SELECTION_SHA256}, "proxy source predecessor mismatch")
+    delta = {path: {"before": COMMIT_MANIFEST.get(path), "after": row} for path, row in selected.items() if COMMIT_MANIFEST.get(path) != row}
+    require(set(COMMIT_MANIFEST) <= set(selected) and value["exact_delta"] == delta and value["runtime_or_GA_accepted"] is False, "proxy source delta mismatch")
+    return value
+
+
+def check_proxy_source(root):
+    metadata = {PROXY_SOURCE_BASE + name: (root / PROXY_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+    selection = validate_proxy_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in PROXY_MANIFEST}
+    validate_proxy_source_manifest(observed)
+    return {"identity": selection["identity"], "source_count": len(observed), "source_digest_sha256": canonical_digest(observed), "selection_sha256": PROXY_SELECTION_SHA256, "runtime_or_GA_accepted": False}
+
+
+def _load_proxy_source_authority():
+    # The closed count comes from independently pinned metadata, never a caller
+    # manifest or a manually maintained CURRENT_SOURCE_COUNT literal.
+    root = Path(__file__).resolve().parents[2]
+    body = (root / PROXY_SOURCE_BASE / "selection.json").read_bytes()
+    require(hashlib.sha256(body).hexdigest() == PROXY_SELECTION_SHA256, "proxy source selection pin mismatch")
+    selection = json.loads(body)
+    manifest_body = (root / PROXY_SOURCE_BASE / "selected-source-manifest.json").read_bytes()
+    require(_file_row(manifest_body) == {key: selection["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "proxy source manifest bytes mismatch")
+    count = selection["selected"]["source_count"]
+    require(type(count) is int and count > 0 and selection["selected"]["source_digest_sha256"] == PROXY_SOURCE_DIGEST, "proxy source authority shape")
+    manifest = json.loads(manifest_body)
+    _validate_source_manifest(manifest, PROXY_SOURCE_DIGEST, count)
+    require(type(selection["schema"]) is int and selection["schema"] == 1 and count == len(manifest), "proxy typed authority membership")
+    return CurrentSourceAuthority(count, canonical_digest(manifest), manifest)
+
+
 def validate_fixture_manifest(body):
     require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == FIXTURE_PACKET_SHA256, "fixture amendment packet bytes mismatch")
     packet = json.loads(body)
@@ -827,7 +878,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_commit_source_manifest(prepared["source"])
+    validate_proxy_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -994,7 +1045,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_commit_source_manifest(manifest["source"])
+    validate_proxy_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -1017,7 +1068,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(COMMIT_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PROXY_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -1788,10 +1839,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_commit_source_manifest(COMMIT_MANIFEST)
-        product = self.git_blobs(sorted(COMMIT_MANIFEST))
+        validate_proxy_source_manifest(PROXY_MANIFEST)
+        product = self.git_blobs(sorted(PROXY_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_commit_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_proxy_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -1839,7 +1890,10 @@ class Collector:
         commit_metadata = self.git_blobs([COMMIT_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
         validate_commit_source_metadata(commit_metadata)
         metadata.update(commit_metadata)
-        self.state["source"].update(current_source_selection_sha256=COMMIT_SELECTION_SHA256, current_source_digest_sha256=COMMIT_SOURCE_DIGEST)
+        proxy_metadata = self.git_blobs([PROXY_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_proxy_source_metadata(proxy_metadata)
+        metadata.update(proxy_metadata)
+        self.state["source"].update(current_source_selection_sha256=PROXY_SELECTION_SHA256, current_source_digest_sha256=PROXY_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -1857,7 +1911,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(COMMIT_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PROXY_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -1879,7 +1933,7 @@ class Collector:
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
-        require(prepared_manifest["source"] == COMMIT_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == PROXY_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -1977,7 +2031,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in COMMIT_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in PROXY_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -2428,7 +2482,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_commit_source(root), sort_keys=True))
+        print(json.dumps(check_proxy_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -2486,6 +2540,9 @@ LIFETIME_AUTHORITY = _load_lifetime_source_authority()
 LIFETIME_SOURCE_COUNT, LIFETIME_MANIFEST = LIFETIME_AUTHORITY.count, LIFETIME_AUTHORITY.manifest
 COMMIT_AUTHORITY = _load_commit_source_authority()
 COMMIT_SOURCE_COUNT, COMMIT_MANIFEST = COMMIT_AUTHORITY.count, COMMIT_AUTHORITY.manifest
+
+PROXY_AUTHORITY = _load_proxy_source_authority()
+PROXY_SOURCE_COUNT, PROXY_MANIFEST = PROXY_AUTHORITY.count, PROXY_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:
