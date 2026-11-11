@@ -220,6 +220,7 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
     env["MIXER_KEY_OWNER_LIFECYCLE_EVIDENCE"] = str(lifecycle_evidence)
     run("createdb", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                      "mixer_fixture", "mixer_foundation_test"])
+    run("createdb-operation-admission", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U", "mixer_fixture", "mixer_operation_admission_test"])
     run("createdb-startup", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                             "mixer_fixture", "mixer_startup_test"])
     run("createdb-builds", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",

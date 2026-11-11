@@ -35,6 +35,10 @@ SUCCESSOR_SOURCE_BASE = 'verification/identity-network-current-source-v2/'
 SUCCESSOR_SELECTION_SHA256 = 'bfeca22fb174a283206c8b9db0ffd858ba52849444384eeea62b728717b24272'
 SUCCESSOR_SOURCE_DIGEST = '4d2eefb1fe856f83507fc643c46ba9f2171b5f11810ffad3942c345b209e9eab'
 SUCCESSOR_SOURCE_COUNT = 190
+PRIVATE_SOURCE_BASE = 'verification/identity-network-current-source-v3/'
+PRIVATE_SELECTION_SHA256 = '37ce1ac2ce60e65fa51bc3c99417cc2ee666edaa114e7e9c3cdafe17fd468a02'
+PRIVATE_SOURCE_DIGEST = '458b1eefe69c390a10676690434ee05fdfecda11a430347844f855bfc2be3b3c'
+PRIVATE_SOURCE_COUNT = 201
 FORMAT_BASE = "verification/identity-network-fixture-amendment-v2/metadata/"
 FORMAT_SHA256 = "45f0c33f8f521ff43ed58b13c34466dea593ecd1c9e8aab166b1e075da07ef84"
 FORMAT_PACKET = "46d75ed1393db3250b5b7df2611b82bdc5c49f5c1ca7ec64ff8f40e24f179760"
@@ -452,6 +456,36 @@ def check_successor_source(root):
     return {"identity": selection["identity"], "source_count": len(observed), "source_digest_sha256": canonical_digest(observed), "selection_sha256": SUCCESSOR_SELECTION_SHA256, "runtime_or_GA_accepted": False}
 
 
+def validate_private_source_manifest(manifest, expected_digest=PRIVATE_SOURCE_DIGEST, expected_count=PRIVATE_SOURCE_COUNT):
+    """Only this explicitly selected private can authorize current product bytes."""
+    require(expected_digest == PRIVATE_SOURCE_DIGEST and type(expected_count) is int and expected_count == PRIVATE_SOURCE_COUNT, "caller cannot replace private source authority")
+    return _validate_source_manifest(manifest, PRIVATE_SOURCE_DIGEST, PRIVATE_SOURCE_COUNT)
+
+
+def validate_private_source_metadata(metadata):
+    require(isinstance(metadata, dict) and set(metadata) == {PRIVATE_SOURCE_BASE + "selection.json", PRIVATE_SOURCE_BASE + "selected-source-manifest.json"}, "private source selection membership mismatch")
+    body = metadata[PRIVATE_SOURCE_BASE + "selection.json"]
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == PRIVATE_SELECTION_SHA256, "private source selection pin mismatch")
+    value = json.loads(body)
+    selected_body = metadata[PRIVATE_SOURCE_BASE + "selected-source-manifest.json"]
+    require(isinstance(selected_body, bytes) and _file_row(selected_body) == {key: value["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "private source manifest bytes mismatch")
+    selected = json.loads(selected_body)
+    validate_private_source_manifest(selected)
+    require(selected == PRIVATE_MANIFEST and value["predecessor"] == {"source_count": SUCCESSOR_SOURCE_COUNT, "source_digest_sha256": SUCCESSOR_SOURCE_DIGEST, "selection_sha256": SUCCESSOR_SELECTION_SHA256}, "private source predecessor mismatch")
+    delta = {path: {"before": SUCCESSOR_MANIFEST.get(path), "after": row} for path, row in selected.items() if SUCCESSOR_MANIFEST.get(path) != row}
+    require(set(SUCCESSOR_MANIFEST) <= set(selected) and value["exact_delta"] == delta and value["runtime_or_GA_accepted"] is False, "private source delta mismatch")
+    return value
+
+
+def check_private_source(root):
+    """Pure source preflight: no Git, subprocess, container or network activity."""
+    metadata = {PRIVATE_SOURCE_BASE + name: (root / PRIVATE_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+    selection = validate_private_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in PRIVATE_MANIFEST}
+    validate_private_source_manifest(observed)
+    return {"identity": selection["identity"], "source_count": len(observed), "source_digest_sha256": canonical_digest(observed), "selection_sha256": PRIVATE_SELECTION_SHA256, "runtime_or_GA_accepted": False}
+
+
 def validate_fixture_manifest(body):
     require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == FIXTURE_PACKET_SHA256, "fixture amendment packet bytes mismatch")
     packet = json.loads(body)
@@ -582,7 +616,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_successor_source_manifest(prepared["source"])
+    validate_private_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -749,7 +783,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_successor_source_manifest(manifest["source"])
+    validate_private_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -772,7 +806,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(SUCCESSOR_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PRIVATE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -1543,10 +1577,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_successor_source_manifest(SUCCESSOR_MANIFEST)
-        product = self.git_blobs(sorted(SUCCESSOR_MANIFEST))
+        validate_private_source_manifest(PRIVATE_MANIFEST)
+        product = self.git_blobs(sorted(PRIVATE_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_successor_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_private_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -1579,7 +1613,10 @@ class Collector:
         current_metadata = self.git_blobs([SUCCESSOR_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
         validate_successor_source_metadata(current_metadata)
         metadata.update(current_metadata)
-        self.state["source"].update(current_source_selection_sha256=SUCCESSOR_SELECTION_SHA256, current_source_digest_sha256=SUCCESSOR_SOURCE_DIGEST)
+        private_metadata = self.git_blobs([PRIVATE_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_private_source_metadata(private_metadata)
+        metadata.update(private_metadata)
+        self.state["source"].update(current_source_selection_sha256=PRIVATE_SELECTION_SHA256, current_source_digest_sha256=PRIVATE_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -1597,7 +1634,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(SUCCESSOR_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PRIVATE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -1619,7 +1656,7 @@ class Collector:
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
-        require(prepared_manifest["source"] == SUCCESSOR_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == PRIVATE_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -1717,7 +1754,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in SUCCESSOR_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in PRIVATE_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -2168,7 +2205,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_successor_source(root), sort_keys=True))
+        print(json.dumps(check_private_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -2198,6 +2235,24 @@ SUCCESSOR_MANIFEST = {
     'hosted/test/mixer_hosted/builds/aggregate_admission_test.exs': {'bytes': 30144, 'sha256': '4dde515c2cb3805ac979b382a867eac56335c7bfda44ed6b8bfac235de6de3b6'},
     'hosted/test/support/reviewed_migrations.json': {'bytes': 597, 'sha256': '588f54f76747be82713188547f41a3f04cdb18250faaa375b1ee65523e36d103'},
     'hosted/test/test_helper.exs': {'bytes': 903, 'sha256': 'c8781a28fdc95e2556794163fa24036546be1959b04371f577a63418efbc503b'},
+}
+
+
+PRIVATE_MANIFEST = {
+    **SUCCESSOR_MANIFEST,
+    'hosted/lib/mixer_hosted/billing/observed_subscription.ex': {'bytes': 2846, 'sha256': '49bf9da5d873d0299b9cf99bc70a27711cad9b1145ea17e56ba294f103a08e0e'},
+    'hosted/lib/mixer_hosted/billing/subscription_read_transport.ex': {'bytes': 9245, 'sha256': 'd9a1440060a6166eb49eac42d89bcf2c613bd60a0609d1002eeea3cf7bcaec95'},
+    'hosted/lib/mixer_hosted/builds/operation_admission.ex': {'bytes': 6985, 'sha256': 'e8d8e29f3fbba9b5fe8f2f6ae8fb82413105eb4599334f86efb3843aad0e735c'},
+    'hosted/priv/unselected_operation_admission/01_table.sql': {'bytes': 774, 'sha256': '7b016fb16a77b2f32a4034d108fb8450ec8acb8285a5f892ab383a1576dc1b45'},
+    'hosted/priv/unselected_operation_admission/02_immutable_function.sql': {'bytes': 988, 'sha256': 'c2df2cfbabb2b5ee09d878067f58caf2df8483560cac5cc84c719db8ea707cb5'},
+    'hosted/priv/unselected_operation_admission/03_immutable_trigger.sql': {'bytes': 195, 'sha256': '23ff6521503065ec7dd15c871c8c056b15c464f5873bfb4dafd938641d495c26'},
+    'hosted/priv/unselected_operation_admission/04_admission_function.sql': {'bytes': 3779, 'sha256': '32267de6bbe60ce2999b2e628b71c19499206ef4fad7385f9de3960e1a01b700'},
+    'hosted/priv/unselected_operation_admission/20261110000498_add_private_build_operation_admission.exs': {'bytes': 525, 'sha256': '7833259133321b699559052bf836900a80f0257a437e3762a1dbb98af99b8ea3'},
+    'hosted/scripts/test-local.py': {'bytes': 21972, 'sha256': '1514be29aed481e4e433bbcf9c6c7778c7b3acbf8db16b3bb3a06e5b753c9507'},
+    'hosted/test/mixer_hosted/billing/subscription_read_transport_test.exs': {'bytes': 14451, 'sha256': '10cc7e5ee10e933865ed7c62afafb818053c427fdd4ff0334c4d3c6f1b9601f1'},
+    'hosted/test/mixer_hosted/builds/operation_admission_test.exs': {'bytes': 17945, 'sha256': '71597fc651ee7e265d6da7bcaf1daf5a3343fa0e1bdc77375b74b818f5d00eaa'},
+    'hosted/test/support/subscription_tls_fixture.ex': {'bytes': 9626, 'sha256': '6ba9183453d9137585d8155cee02ab559fbd1cc776fe93ca722ffed612680ab8'},
+    'hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs': {'bytes': 33080, 'sha256': '79cbcf1a529723f55e5bf49c18aa667b13cec1403c87c86a1a2975d57e81f23e'},
 }
 
 

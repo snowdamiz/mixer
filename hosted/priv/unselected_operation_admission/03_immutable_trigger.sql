@@ -1,0 +1,4 @@
+CREATE TRIGGER mixer_build_operation_admissions_immutable
+BEFORE UPDATE OR DELETE ON mixer_build_operation_admissions
+FOR EACH ROW EXECUTE FUNCTION mixer_build_operation_admissions_immutable();
+

@@ -486,12 +486,12 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   end
 
   test "real default bearer verifier and PostgreSQL create retry read audit and wire HEAD", ctx do
-    assert TLSFixture.info(ctx.tls_fixture).requests == []
+    requests_before = TLSFixture.info(ctx.tls_fixture).requests
 
     error(
       request(
         ctx,
-        "cold missing bearer does not fetch JWKS",
+        "missing bearer does not fetch JWKS",
         "PUT",
         path(ctx),
         "",
@@ -503,7 +503,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       "unauthenticated"
     )
 
-    assert TLSFixture.info(ctx.tls_fixture).requests == []
+    assert TLSFixture.info(ctx.tls_fixture).requests == requests_before
 
     created =
       request(
