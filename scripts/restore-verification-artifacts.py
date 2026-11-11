@@ -109,7 +109,8 @@ def read_blob_sizes(repo, oids):
 def blob_sizes(repo, files, fetch_remote):
     sizes, missing = read_blob_sizes(repo, sorted({oid for _, _, oid in files}))
     if missing and fetch_remote:
-        git(repo, 'fetch', '--no-tags', '--no-write-fetch-head', '--no-recurse-submodules',
+        git(repo, '-c', 'fetch.negotiationAlgorithm=noop', 'fetch',
+            '--no-tags', '--no-write-fetch-head', '--no-recurse-submodules',
             '--no-auto-maintenance', '--filter=blob:none', '--stdin', '--', fetch_remote,
             data=b'\n'.join(missing) + b'\n')
         fetched, missing = read_blob_sizes(repo, missing)

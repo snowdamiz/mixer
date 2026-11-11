@@ -84,7 +84,10 @@ def blob_sizes(repo, oids, fetch_remote):
     if missing and fetch_remote:
         # A sparse partial clone lacks these blobs. Fetch the exact selected IDs
         # in one request without materializing verification or changing refs.
-        git(repo, 'fetch', '--no-tags', '--no-write-fetch-head', '--no-recurse-submodules',
+        # Like Git's promisor fetch, omit haves because local commits can refer
+        # to missing blobs that the server would otherwise assume we have.
+        git(repo, '-c', 'fetch.negotiationAlgorithm=noop', 'fetch',
+            '--no-tags', '--no-write-fetch-head', '--no-recurse-submodules',
             '--no-auto-maintenance', '--filter=blob:none', '--stdin', '--', fetch_remote,
             data=''.join(oid + '\n' for oid in missing).encode('ascii'))
         fetched, missing = read_blob_sizes(repo, missing)
