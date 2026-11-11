@@ -1,0 +1,110 @@
+{
+  "id": "R726",
+  "status": "REQUEST_CHANGES",
+  "scope": "One independent SOURCEONLY review of R712 test-fixture diagnostics and retention",
+  "completedUTC": "2026-11-11T04:23:53.403745+00:00",
+  "sourceRevision": {
+    "value": "0bb46782bd99abff6f3e5d8ba01e0ab8a9632a69",
+    "authority": "Supplied R712 receipt only; no Git lookup"
+  },
+  "canonicalTest": {
+    "path": "scripts/ci/tests/test_android_generated_java_runner.py",
+    "bytes": 65786,
+    "sha256": "2bfbd7924845a5bea0c21c6c80ba4c20610ee7c37761f92ea716ffeb3dbe2b95",
+    "unchanged": true
+  },
+  "runtime": {
+    "path": "scripts/ci/check-android-generated-java.py",
+    "bytes": 65563,
+    "sha256": "95b314c4c9e8a5ab2f4cf4f1d8f7f7d018db874bc498ee52ce939f7659e95f98",
+    "unchanged": true,
+    "bindingFilesAccessedOrChanged": false
+  },
+  "findings": [
+    {
+      "priority": "P2",
+      "path": "verification/local/stderr-fixture-review-r726/afterimage/scripts/ci/tests/test_android_generated_java_runner.py",
+      "line": 280,
+      "title": "Normal cleanup raises when its root was already removed",
+      "trigger": "Fresh owned fixture, no new retained owners, remove its root, then run doCleanups",
+      "baseline": "success true; no cleanup errors",
+      "candidate": "success false; unittest cleanup FileNotFoundError from shutil.rmtree(self.root)",
+      "modes": ["normal", "optimized"],
+      "impact": "Otherwise successful normal fixture teardown becomes a test error",
+      "scopeLimit": "Explicit requested edge; current existing test bodies were not observed deleting their fixture roots",
+      "minimalFixProposal": "After the retained-owner branch, tolerate only FileNotFoundError for the exact root; propagate other deletion failures. Add an inert missing-root cleanup regression.",
+      "fixImplementedOrTested": false
+    }
+  ],
+  "validation": {
+    "python": "3.14.8; Clang 21.0.0",
+    "invocations": [
+      {
+        "command": "python3 -B verification/local/stderr-fixture-review-r726/review.py > verification/local/stderr-fixture-review-r726/normal.stdout 2> verification/local/stderr-fixture-review-r726/normal.stderr",
+        "exit": 0,
+        "result": "14 discriminator scenarios completed; 8 existing inert tests passed; P2 recorded",
+        "resultSHA256": "750fcda8f79ac3aa3e934a5f335495437e7fb933f5991415e7bdc868f0901ef4",
+        "stdoutSHA256": "95ea64abbac869c1b9227fc7f6349a876dc681836197b7d515fdb03f558a0d40",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "python3 -B -O verification/local/stderr-fixture-review-r726/review.py > verification/local/stderr-fixture-review-r726/optimized.stdout 2> verification/local/stderr-fixture-review-r726/optimized.stderr",
+        "exit": 0,
+        "result": "14 discriminator scenarios completed; 8 existing inert tests passed; same P2 recorded",
+        "resultSHA256": "d173ca47726a495464985a02fcaa7e4d0d23e8be021aaf3e9df011f73401c6fb",
+        "stdoutSHA256": "8fbc4a14c973ef7828b025c5397d05f9a9a435da1e448c3ae86c76572d89a5a2",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "zeroExitMeansCandidateAccepted": false,
+    "harnessCorrections": 0,
+    "producerScenariosReused": 10,
+    "additionalIndependentScenarios": 4,
+    "normalOptimizedEquivalent": true,
+    "popenKillpgReadCanaries": "PASS; all rejected before payload",
+    "payloadRealProcessOrPipeCalls": [],
+    "realChildLaunches": 0,
+    "actualOriginalAssertionFailurePreserved": true,
+    "boundedStderrCommandsAndHoldArtifactsRetained": true,
+    "cleanupDiagnosticsRetainExactRecordAndFirstError": true,
+    "constructorNoReturnedChildIdentityPreserved": true,
+    "preexistingGlobalOwnersPreserved": true,
+    "subsequentFixtureIndependent": true,
+    "unknownPriorityAndStickyHoldPreserved": true,
+    "stdout32Over33Stderr17Aggregate100Assertions": "Unchanged; executed using fake children and pipes",
+    "allOriginalTerminalAssertions": "Unchanged",
+    "full161ProcessSuiteRun": false
+  },
+  "delivery": {
+    "root": "verification/local/stderr-fixture-review-r726",
+    "report": "REPORT.md",
+    "driver": "review.py",
+    "driverSHA256": "4155464a56b233031b5330a77c174a74fcbe23334bfc3e95699cbce33d9502c4",
+    "rawResults": ["result-normal.json", "result-optimized.json"],
+    "afterimage": "afterimage/scripts/ci/tests/test_android_generated_java_runner.py",
+    "afterimageSHA256": "908e716b7b5263ad3470bfd51583128c99aba330bdb0d0780f12ff171b1d63a3",
+    "patch": "fixture-diagnostics.patch",
+    "patchSHA256": "b0782ef2eda74305904d2b577f76b1a3c39ab5bec44cfbada57d4d7d674b2278",
+    "patchDisposition": "Exact producer patch retained for review; NOT ACCEPTED",
+    "permanentRegressionAfterimageAdded": false,
+    "stopReason": "User instruction: stop at P1/P2 with minimal fix proposal"
+  },
+  "historicalHold": {
+    "reference": "verification/receipts/swift-stderr-custody-r710.json",
+    "run": 42957152316,
+    "job": 130314843007,
+    "label": "stderr-default",
+    "innerPID": null,
+    "innerPGID": null,
+    "operation": null,
+    "osError": null,
+    "custodyResolved": false
+  },
+  "heldResourcesAccessed": false,
+  "producerResourcesChanged": false,
+  "canonicalFilesChanged": false,
+  "gitRemoteDeviceProviderCredentialOrDelegatedChildActions": false,
+  "freshOrdinaryCIRequiresAcceptedPatchAndRootSelection": true,
+  "engineFixClaimed": false,
+  "GA": false
+}

@@ -1,0 +1,315 @@
+{
+  "review": "R732 one independent review of R720 private512 accounting",
+  "status": "PASS_CHANGED_PRIVATE_ACCOUNTING_ONLY",
+  "findings": [],
+  "P1_P2_findings": 0,
+  "input_tree_sha256": "56b58def818a6075e2f6c5d538f6ba6777f21ce4279dc44b851391d9f3111004",
+  "tested_tree_sha256": "86e4d11fa5460881e193c811bebc8fefb78c837d7ed60683b93d7fd7934bc332",
+  "input_files": 101,
+  "after_files": 102,
+  "patch_sha256": "69f689939a85a0f59a4918ea9ebd103aeb311c84ee7acb9429633936c976b8f1",
+  "zero_fuzz": true,
+  "all_replayed_bytes_equal": true,
+  "prior_component_pass_reused": "R702 SCOPED_PASS_EXACT_TESTED_PRIVATE_COMPONENT",
+  "packet_identity_repair_reused": "R716 PASS_PACKET_IDENTITY_ONLY",
+  "policy": {
+    "feature": "r720-ticket-resident-512",
+    "depends_on_private_feature": "r682-ticket-resident-256",
+    "resident_slots": 512,
+    "ticket_ceiling": 534,
+    "fixed_and_inflight_owners": 22,
+    "owner_inventory": {
+      "foundation": 5,
+      "cache": 4,
+      "wasi": 5,
+      "execution": 7,
+      "residents": 512,
+      "inflight_decode": 1
+    },
+    "selector": "feature-only ReactorPolicyR682::Resident512, exact sealed private UI proof/512 residents/128 frames/128 pins",
+    "index_buckets": 128,
+    "index_link_type": "u16",
+    "index_cells": 640,
+    "index_bytes": 1280,
+    "visited_words_u128": 4,
+    "visited_bytes": 64,
+    "eviction_plan_bytes": 512,
+    "private_operation_reservation": 106766,
+    "operation_delta_from_input": 352,
+    "operation_delta_accounting": "3*32 added ResidentSeen bytes +256 eviction-plan bytes",
+    "default_operation_reservation": 106190,
+    "runtime_control_owner_bytes": 1720,
+    "foundation_shared_backing_bytes": 24,
+    "foundation_construction_bytes": 271392,
+    "actual_guest_cache_fixed_bytes": 191744,
+    "default_resident_slots": 64,
+    "default_ticket_ceiling": 86,
+    "legacy_ticket_ceiling": 150,
+    "frozen_layout": [
+      8,
+      664,
+      8
+    ]
+  },
+  "binaries": [
+    {
+      "path": "verification/local/entryeditor-residency512-r720/target-default/release/examples/r524",
+      "bytes": 1071456,
+      "sha256": "4c9f64f189877a78a37ac1d1919f4ecf0bc893801ef5525c481948ec31a27586"
+    },
+    {
+      "path": "verification/local/entryeditor-residency512-r720/target-private/release/examples/r524",
+      "bytes": 1071520,
+      "sha256": "43147136706dfe7b9f9257049b22fd09f82808a660d824e259b28a453ff5fed5"
+    }
+  ],
+  "module_sha256": "1ec7ce12b2c812304c5b4d97fe22d39fd9e48e2ddfdebe49da4cc9db23f3c79c",
+  "changed_slice_assessment": {
+    "explicit_private_enum_and_exact_sealed_admission": true,
+    "arbitrary_ticket_selector": false,
+    "fixed_and_inflight_owners": 22,
+    "resident_owners": 512,
+    "ticket_ceiling": 534,
+    "index_cells_u16": 640,
+    "index_bytes": 1280,
+    "visited_u128_words": 4,
+    "visited_bytes": 64,
+    "eviction_plan_bytes": 512,
+    "operation_bytes": 106766,
+    "operation_delta": 352,
+    "operation_delta_formula": "3*(64-32)+(512-256)",
+    "fixed_cache_bytes": 191744,
+    "high_index_bounds_and_pin_mutation_review": "source review plus exact delivered512-slot pressure controls; not exhaustive corruption/cycle qualification",
+    "default_residents": 64,
+    "default_tickets": 86,
+    "default_operation_bytes": 106190,
+    "ordinary_and_frozen_layout_preserved": true,
+    "full_validation_last_body_and_capability_safeguards_preserved": true
+  },
+  "producer_evidence_reused": {
+    "rust_builds": 2,
+    "guest_payloads": 1,
+    "focused_controls": 5,
+    "complete_public_documents_1_5_byte_equal": true,
+    "ready3_observed_revision": 5,
+    "independent_native_ready_oracle": false,
+    "save_draft_work": 32940377,
+    "reopen_work": 50569545,
+    "long_note_failure": {
+      "turn": 6,
+      "action": "entry.note.changed",
+      "code": "swift_run_work",
+      "kind": "WorkExhausted",
+      "function": 10586,
+      "offset": 2943130,
+      "attempted": 64000001,
+      "limit": 64000000,
+      "admitted_work": 63999998,
+      "deadline_overshoot_micros": 0
+    },
+    "runtime_cleanup": [
+      {
+        "label": "guest-private",
+        "all_14_currents_zero": true,
+        "live_tickets": 0,
+        "cleanup_invariant": null,
+        "primary_preservation": "exact_raw_failure_equal_except_cleanup_snapshot",
+        "raw_usage_sha256": "60db43c5634c8c280d7f6ad41b8b67ebc6d6457a912e546a5d01cd55cdfae376"
+      },
+      {
+        "label": "ticket-private-512",
+        "all_14_currents_zero": true,
+        "live_tickets": 0,
+        "cleanup_invariant": null,
+        "primary_preservation": "expected_ticket_failure_asserted_before_consuming_cleanup; inherited first-failure contract",
+        "raw_usage_sha256": "5fd450f408cb0a6a93bfc2e83532ef4545834b67ffcab6c208ca725e6190bbfa"
+      },
+      {
+        "label": "ticket-private-64",
+        "all_14_currents_zero": true,
+        "live_tickets": 0,
+        "cleanup_invariant": null,
+        "primary_preservation": "expected_ticket_failure_asserted_before_consuming_cleanup; inherited first-failure contract",
+        "raw_usage_sha256": "60fa13e8dffbacefc2dbee77f1115d612e5abb3dd23414d6326a7104064b5db7"
+      },
+      {
+        "label": "private-overflow",
+        "all_14_currents_zero": true,
+        "live_tickets": 0,
+        "cleanup_invariant": null,
+        "primary_preservation": "exact_raw_failure_equal_except_cleanup_snapshot",
+        "raw_usage_sha256": "22cb39e76245f719043e809ef69832ba036cdc22731ad1475cb021c01f8e5fa3"
+      },
+      {
+        "label": "private-underflow",
+        "all_14_currents_zero": true,
+        "live_tickets": 0,
+        "cleanup_invariant": null,
+        "primary_preservation": "exact_raw_failure_equal_except_cleanup_snapshot",
+        "raw_usage_sha256": "7ad4a23cf6b86931b283a535e770866bafe6cbd3e4c65ca325c87de73c1bf0fd"
+      },
+      {
+        "label": "default-overflow",
+        "all_14_currents_zero": true,
+        "live_tickets": 0,
+        "cleanup_invariant": null,
+        "primary_preservation": "exact_raw_failure_equal_except_cleanup_snapshot",
+        "raw_usage_sha256": "f9836771ad049dacc87f69d101ccb2445553f4a6e2f8798eff4d45246180427a"
+      }
+    ],
+    "managed_commands": [
+      {
+        "label": "build-private",
+        "pid": 50948,
+        "pgid": 50948,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "guest-private",
+        "pid": 53767,
+        "pgid": 53767,
+        "exit_code": 2,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "ticket-private-512",
+        "pid": 54313,
+        "pgid": 54313,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "ticket-private-64",
+        "pid": 54368,
+        "pgid": 54368,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "private-overflow",
+        "pid": 54373,
+        "pgid": 54373,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "private-underflow",
+        "pid": 54386,
+        "pgid": 54386,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "build-default",
+        "pid": 54392,
+        "pgid": 54392,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "default-overflow",
+        "pid": 55680,
+        "pgid": 55680,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "rustc-version",
+        "pid": 55693,
+        "pgid": 55693,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      },
+      {
+        "label": "cargo-version",
+        "pid": 55701,
+        "pgid": 55701,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "group_absence": "OBSERVED_ABSENT"
+      }
+    ],
+    "group_absence_basis": "exact persisted positive producer observations; no new probes",
+    "unchanged_body_count": 84138,
+    "last_body_rejection_function": 84171
+  },
+  "review_execution": {
+    "command": "python3 verification/local/entryeditor-512-review-r732/check.py",
+    "checker_sha256": "956bc372540e4fc285e48ccf3dd3c0f4c187ba537847f68e29f4796837816646",
+    "output": "Exact input101/after102/patch/binaries verified; public documents1-5 equal; ready3 observed; six raw14-zero/tickets0 cleanups and ten recorded absent groups verified. LongNote64M failure remains.",
+    "rustc_from_pinned_build_receipt": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo_from_pinned_build_receipt": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "fresh_rust_builds": 0,
+    "fresh_controls": 0,
+    "fresh_guest_runs": 0,
+    "swift_builds": 0,
+    "child_processes": 0,
+    "checker_label_corrections": 1,
+    "reuse_reason": "Exact source patch replay, binaries, immutable inputs and raw proof are coherent. Existing focused controls and five complete documents are legitimate reusable evidence; no unresolved contradiction requires another guest."
+  },
+  "scope": {
+    "private_changed_accounting_slice": true,
+    "engine_adoption": false,
+    "production_selection": false,
+    "long_note_commit": false,
+    "full_internal_model": false,
+    "full_reactor": false,
+    "W07": false,
+    "W08": false,
+    "GA": false,
+    "performance_claim": false,
+    "native_operations": 0,
+    "canonical_writes": false,
+    "git_or_remote_actions": false,
+    "provider_credential_actions": false,
+    "children": 0,
+    "held_resources_touched": false,
+    "new_custody_hold": false
+  },
+  "limitations": [
+    "LongNote turn6 retains64M work exhaustion; Commit7 and ready7 unrun.",
+    "Complete public UI documents1-5 are byte equal; no full internal saved-model or complete persistence oracle.",
+    "Startup/ready3 lack independently admitted matching native oracles.",
+    "Existing512 pressure controls do not establish exhaustive corruption/cycle coverage.",
+    "No fresh build or runtime; delivered binary identity and execution evidence are reused, not a reproducible-build claim.",
+    "Private feature binary carries larger charged extents for Existing profiles; no private64 storage or old ordinary-binary equality claim."
+  ],
+  "report": "verification/local/entryeditor-512-review-r732/REPORT.md",
+  "evidence": "verification/local/entryeditor-512-review-r732/evidence-review.json",
+  "checker_first_failure": "verification/local/entryeditor-512-review-r732/checker-first-failure.txt",
+  "output_artifacts": [
+    {
+      "path": "verification/local/entryeditor-512-review-r732/check.py",
+      "bytes": 13562,
+      "sha256": "956bc372540e4fc285e48ccf3dd3c0f4c187ba537847f68e29f4796837816646"
+    },
+    {
+      "path": "verification/local/entryeditor-512-review-r732/REPORT.md",
+      "bytes": 8591,
+      "sha256": "1b70f5d1a8084f9793703d25283ea26fdedc456f4424e909fcc93a379ef4f092"
+    },
+    {
+      "path": "verification/local/entryeditor-512-review-r732/evidence-review.json",
+      "bytes": 8714,
+      "sha256": "8cf8f9c0198db12dfd4e24ed18682b2954a4b07e85b1e29b6741615892c669ef"
+    },
+    {
+      "path": "verification/local/entryeditor-512-review-r732/checker-first-failure.txt",
+      "bytes": 304,
+      "sha256": "0d79848d0d75b4453716c52c019621c3f24fa811244aa8b1a994b2ee32b461b5"
+    }
+  ],
+  "finalized_unix": 1794371712.637079
+}

@@ -1,12 +1,14 @@
 """Pure Python runner controls. Fake children never qualify Java/Swift or DEX."""
 import copy
-from contextlib import ExitStack, nullcontext
+from contextlib import ExitStack, nullcontext, redirect_stderr
 import hashlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
 import plistlib
+import shutil
 import signal
 import subprocess
 import sys
@@ -254,9 +256,33 @@ class FakeCommandBoundary:
 
 class RunnerControls(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix='generated-java-python-controls-')
-        self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name).resolve(strict=True)
+        self.root = Path(tempfile.mkdtemp(prefix='generated-java-python-controls-')).resolve(strict=True)
+        self.process_owners_before = set(M._PROCESS_OWNERS)
+        self.command_owners_before = {id(owner) for owner in M._COMMAND_OWNERS}
+        self.cli_owners_before = {id(owner) for owner in M._CLI_OWNERS}
+        self.addCleanup(self.cleanup_fixture)
+
+    def cleanup_fixture(self):
+        # Consult retained Python owners only; never poll, wait, signal or close.
+        commands = [owner for owner in M._COMMAND_OWNERS
+                    if id(owner) not in self.command_owners_before]
+        cli = [owner for owner in M._CLI_OWNERS if id(owner) not in self.cli_owners_before]
+        processes = set(M._PROCESS_OWNERS) - self.process_owners_before
+        if commands or cli or processes:
+            records = [owner['record'] for owner in commands] + [owner.record for owner in cli]
+            print('Retained runner fixture: ' + json.dumps({
+                'test': self.id(), 'root': str(self.root),
+                'retained_process_objects': len(processes),
+                'records': records,
+                'first_cleanup_error': next((error for record in records
+                    for error in record.get('cleanup_errors', [])), None),
+            }, sort_keys=True), file=sys.stderr, flush=True)
+            return
+        try:
+            shutil.rmtree(self.root)
+        except FileNotFoundError as error:
+            if error.filename is None or os.fsdecode(error.filename) != str(self.root):
+                raise
 
     def consumer(self):
         root = self.root / 'consumer'
@@ -1140,6 +1166,64 @@ class RunnerControls(unittest.TestCase):
                 receipt = M.execute(args)
         self.assertEqual(receipt['status'], 'failed')
         self.assertFalse(receipt['cleanup']['owned_scratch_started'])
+
+
+
+
+class FixtureCleanupControls(unittest.TestCase):
+    """Filesystem-only fixture ownership checks; all owners below are inert."""
+    def fixture(self):
+        self.enterContext(mock.patch.object(M, '_PROCESS_OWNERS', {}))
+        self.enterContext(mock.patch.object(M, '_COMMAND_OWNERS', []))
+        self.enterContext(mock.patch.object(M, '_CLI_OWNERS', []))
+        value = RunnerControls('test_invalid_stdout_budgets_fail_before_spawning')
+        value.setUp()
+        self.addCleanup(self.remove_inert_root, value.root)
+        return value
+
+    @staticmethod
+    def remove_inert_root(root):
+        # These roots contain only synthetic records; no child is created.
+        try:
+            shutil.rmtree(root)
+        except FileNotFoundError as error:
+            if error.filename is None or os.fsdecode(error.filename) != str(root):
+                raise
+
+    def test_already_removed_normal_root_is_successful(self):
+        value = self.fixture()
+        shutil.rmtree(value.root)
+        self.assertTrue(value.doCleanups())
+        self.assertFalse(value.root.exists())
+
+    def test_unknown_owner_keeps_record_and_root(self):
+        value = self.fixture()
+        record = {'label': 'inert-unknown', 'terminal_custody': False,
+                  'cleanup_errors': [{'operation': 'observe-owned-group', 'error': 'synthetic'}]}
+        M._COMMAND_OWNERS.append({'record': record})
+        hold = value.root / 'COMMAND-HOLD.json'
+        hold.write_text(json.dumps(record), encoding='utf-8')
+        captured = io.StringIO()
+        with redirect_stderr(captured):
+            self.assertTrue(value.doCleanups())
+        self.assertTrue(value.root.is_dir())
+        self.assertEqual(json.loads(hold.read_text(encoding='utf-8')), record)
+        diagnostic = json.loads(captured.getvalue().removeprefix('Retained runner fixture: '))
+        self.assertEqual(diagnostic['root'], str(value.root))
+        self.assertEqual(diagnostic['records'], [record])
+        self.assertEqual(diagnostic['first_cleanup_error'], record['cleanup_errors'][0])
+        self.assertEqual(M._COMMAND_OWNERS, [{'record': record}])
+
+    def test_other_deletion_errors_propagate(self):
+        value = self.fixture()
+        with mock.patch.object(shutil, 'rmtree', side_effect=PermissionError('synthetic deletion denied')):
+            with self.assertRaises(PermissionError):
+                value.cleanup_fixture()
+        nested = FileNotFoundError(2, 'synthetic missing nested path', str(value.root / 'nested'))
+        with mock.patch.object(shutil, 'rmtree', side_effect=nested):
+            with self.assertRaises(FileNotFoundError):
+                value.cleanup_fixture()
+        self.assertTrue(value.root.exists())
 
 
 if __name__ == '__main__':

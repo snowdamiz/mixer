@@ -305,3 +305,13 @@ The candidate is unaccepted: two of seven database tests passed and coordinator
 persistence remained unresolved. Outer exit 74 does not release this hold.
 Fresh work from canonical source in a distinct namespace remains authorized.
 
+The hosted Swift job in run 42957152316, job 130314843007, reported UNKNOWN
+terminal custody or cleanup failure for the `stderr-default` output-ceiling
+control. No reliable inner PID/PGID was exposed. Preserve that exact hosted
+command group and its test scratch without inspection, probing, signals, waits,
+retries or cleanup. Only the copied top-level summary in
+`verification/receipts/swift-stderr-custody-r710.json` is a reference. A completed
+GitHub job or direct child does not establish inner absence. The underlying
+operation and OS error remain unproven; this does not release earlier holds or
+block new isolated source-only controls and independent product work.
+

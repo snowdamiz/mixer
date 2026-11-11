@@ -352,8 +352,25 @@ def pair20_predecessor(base, binding, actual, owner):
     base.need(len(predecessor) == transition['sourceCountBefore'] and owner.source_digest(predecessor) == transition['sourceBefore'], 'Pair20 predecessor differs')
     return predecessor
 
-def pair20_predecessor_raw(base, path):
+FIXTURE_RETENTION_TRANSITION = json.loads('{"schema":1,"type":"EXACT_TEST_FIXTURE_RETENTION_R736","path":"scripts/ci/tests/test_android_generated_java_runner.py","before":{"bytes":65786,"sha256":"2bfbd7924845a5bea0c21c6c80ba4c20610ee7c37761f92ea716ffeb3dbe2b95"},"after":{"bytes":69886,"sha256":"d3cebc7a162a39c038e05c098c254ded2a9ef6e3b90900688d635553263d4c3d"},"reverseEdits":[{"afterStartLine":2,"afterEndLine":3,"beforeText":"from contextlib import ExitStack, nullcontext\\n"},{"afterStartLine":5,"afterEndLine":6,"beforeText":""},{"afterStartLine":10,"afterEndLine":11,"beforeText":""},{"afterStartLine":258,"afterEndLine":285,"beforeText":"        self.temporary = tempfile.TemporaryDirectory(prefix=\'generated-java-python-controls-\')\\n        self.addCleanup(self.temporary.cleanup)\\n        self.root = Path(self.temporary.name).resolve(strict=True)\\n"},{"afterStartLine":1170,"afterEndLine":1228,"beforeText":""}],"outsideSource118":true,"scope":"Test fixture retention diagnostics and exact missing-root cleanup only; inverse precedes unchanged Pair20 history","qualification":false,"actualSixConsumers":false,"ordinaryCI":false,"nativePass":false,"runtimePass":false,"gaPass":false,"historicalHoldsReleased":false}')
+
+
+def fixture_retention_predecessor_raw(base, path):
     raw = base.regular(path).read_bytes()
+    transition = FIXTURE_RETENTION_TRANSITION
+    if path.relative_to(ROOT).as_posix() != transition['path']:
+        return raw
+    base.need(same_json({'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}, transition['after']), 'Fixture retention exact raw successor differs')
+    lines = raw.decode().splitlines(True)
+    for edit in reversed(transition['reverseEdits']):
+        lines[edit['afterStartLine']:edit['afterEndLine']] = [edit['beforeText']]
+    old = ''.join(lines).encode()
+    base.need(same_json({'bytes': len(old), 'sha256': hashlib.sha256(old).hexdigest()}, transition['before']), 'Fixture retention exact raw predecessor differs')
+    return old
+
+
+def pair20_predecessor_raw(base, path):
+    raw = fixture_retention_predecessor_raw(base, path)
     relative = path.relative_to(ROOT).as_posix()
     row = next((r for r in PAIR20_TRANSITION['rawPredecessors'] if r['path'] == relative), None)
     if row is None:
@@ -477,6 +494,7 @@ def bind():
         base.need(actual == frozen, 'Current owning source closure differs')
         binding = json.loads(base.regular(HERE / 'binding.json').read_bytes(), object_pairs_hook=base.unique_object)
         base.need(same_json(binding.get('schema'), 1), 'Binding schema differs')
+        base.need(same_json(binding.get('fixture_retention_transition'), FIXTURE_RETENTION_TRANSITION), 'Fixture retention typed transition differs')
         digest = owner.source_digest(actual)
         current_actual = actual
         actual = pair20_predecessor(base, binding, actual, owner)

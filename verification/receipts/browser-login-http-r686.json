@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "campaign": "browser-login-http-r686",
+  "created_utc": "2026-11-11T04:03:46.176653+00:00",
+  "outcome": "IMPLEMENTED_PRIVATE_AFTERIMAGES; CORE_HTTP_AND_FAILED_COMMIT_WITHHOLDING_OBSERVED; FINAL_ASSERTION_CORRECTION_NOT_RERUN; INDEPENDENT_REVIEW_REQUIRED",
+  "canonical_writes": false,
+  "root_reported_revision": "40e7864c",
+  "root_reported_source212_digest": "e35af32a6ebaafec4d9154ca2d04bdb0655cdd57ad5c7e06988db8e1aa65477d",
+  "contract": {
+    "listener": "MixerHostedWeb.BrowserLoginHTTP.Server explicit 127.0.0.1 ephemeral HTTP/1 only",
+    "bootstrap": "GET /auth/session without cookie -> RuntimeOwner.bootstrap; existing unauthenticated DTO, capped secure preauth cookie",
+    "begin": "POST /auth/login empty query/body; raw duplicate-preserving headers -> begin_login fixed :workspace; 303 runtime-generated provider URL, no cookie",
+    "callback": "GET /auth/callback raw query/headers -> RuntimeOwner.callback; only successful published Result -> capped secure rotated cookie,303 /workspace; failures 503 no cookie/location",
+    "reads": "Existing cookie session/directory calls unchanged BrowserHTTP; default application and read-only listener unchanged",
+    "load": "Test verifies HTTP bootstrapped cookie/CSRF against actual RuntimeOwner.load return",
+    "provider": "Trusted synthetic RS256 fixture; actual raw HTTP /authorize redirect, test-only mapping of pinned HTTPS logical provider/callback to explicit loopback sockets; token exchange remains accepted in-process ProviderOwner.start_fixture transport; production transport unconfigured"
+  },
+  "observed": {
+    "first_batch": "3/4 passed; telemetry injection did not execute because accepted query telemetry_event=nil. Full valid raw HTTP/provider redirect/callback/session/client pagination, duplicate boundaries, replay, and nonce failure passed.",
+    "second_batch": "0 executed, 4 invalid: new proxy mishandled empty PostgreSQL frames; preserved raw failure; clean teardown.",
+    "harness_correction": "3/4 passed. Proxy empty-frame/Nagle/link cleanup correction succeeded. The SECOND callback COMMIT was targeted: source order is discover_begin COMMIT, claim COMMIT, then activate COMMIT. Injected SELECT 1/0 caused server ReadyForQuery E; original claim COMMIT was forwarded and actual CommandComplete ROLLBACK observed. HTTP503 with no cookie/location and preauth row persisted assertions passed. Final activation COMMIT failure was NOT targeted.",
+    "remaining_failure": "Subsequent preauth session200 assertion failed with actual503. It was corrected to503 without another DB run. Test name/output were corrected from activation to callback claim rollback to match actual source ordering. No green suite claim.",
+    "unchanged_client": "All seven accepted compiled client outputs hash-verified from R662 input receipt; unchanged Node driver performed authenticated session + org53/projects53 pagination with tenant filtering.",
+    "security": "Duplicate cookie,Origin,CSRF,Authorization and raw query keys/encoded key aliases; body/query arbitrary tenant/token/redirect; wrong state, replay and signed nonce failures refused. No runtime/store/security defaults weakened.",
+    "root_correction": "Raw PostgreSQL log and exact CallbackLifecycle/Store ordering revealed the proxy targeted claim COMMIT. This narrows earlier commentary wording about activation; no final-activation SQL/rollback conclusion follows."
+  },
+  "bounded_runs": {
+    "meaningful_db_http_batches": 2,
+    "harness_correction_runs": 1,
+    "additional_db_runs": 0,
+    "beam_schedulers": 3,
+    "limits": "150s per ExUnit invocation,5s runtime/DB admission unchanged"
+  },
+  "delivery": {
+    "directory": "verification/local/browser-login-http-r686/delivery",
+    "patch": "verification/local/browser-login-http-r686/delivery/patch.diff",
+    "application_map": "verification/local/browser-login-http-r686/delivery/application-map.json",
+    "new_paths": [
+      "hosted/lib/mixer_hosted_web/browser_login_http.ex",
+      "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs",
+      "hosted/test/support/browser_commit_proxy.ex"
+    ],
+    "tested_before_last_assertion": "verification/local/browser-login-http-r686/tested-source-manifest.json",
+    "final_tested_delta": "One subsequent-read assertion200 ->503, plus test name/output corrected to claim-transaction rollback. Product module and proxy unchanged from executed harness-correction run."
+  },
+  "commands_and_cleanup": {
+    "1": {
+      "commands": "verification/local/browser-login-http-r686/commands-1.json",
+      "test": {
+        "label": "tests",
+        "argv": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-login-http-r686/source/hosted",
+        "pid": 68695,
+        "pgid": 68695,
+        "log": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-login-http-r686/logs/1-tests.log",
+        "started": 1794369540.1696472,
+        "exit": 2,
+        "group_absent": true,
+        "finished": 1794369545.908074,
+        "log_sha256": "50f34dff4cb443911b03192df86bbfa69c0aad52b7c1689a2f49dec85a86557a"
+      },
+      "cleanup": {
+        "postgres_pid": 68678,
+        "group_absent": true,
+        "port_closed": true
+      }
+    },
+    "2": {
+      "commands": "verification/local/browser-login-http-r686/commands-2.json",
+      "test": {
+        "label": "tests",
+        "argv": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-login-http-r686/source/hosted",
+        "pid": 73171,
+        "pgid": 73171,
+        "log": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-login-http-r686/logs/2-tests.log",
+        "started": 1794369677.81575,
+        "exit": 2,
+        "group_absent": true,
+        "finished": 1794369684.4156191,
+        "log_sha256": "7089b749385ad0dbe241fe6b657767edeb37e9980521511103dcea5c7d15e9b1"
+      },
+      "cleanup": {
+        "postgres_pid": 73147,
+        "group_absent": true,
+        "port_closed": true
+      }
+    },
+    "harness-correction": {
+      "commands": "verification/local/browser-login-http-r686/commands-harness-correction.json",
+      "test": {
+        "label": "tests",
+        "argv": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-login-http-r686/source/hosted",
+        "pid": 82659,
+        "pgid": 82659,
+        "log": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-login-http-r686/logs/harness-correction-tests.log",
+        "started": 1794369741.814452,
+        "exit": 2,
+        "group_absent": true,
+        "finished": 1794369754.5915542,
+        "log_sha256": "adcb4276f839dca336edd051d3dbd39d21e140785efdc7b1e422707dbf07329b"
+      },
+      "cleanup": {
+        "postgres_pid": 82364,
+        "group_absent": true,
+        "port_closed": true
+      }
+    }
+  },
+  "cleanup": {
+    "all_recorded_owned_groups_absent": true,
+    "all_postgres_ports_closed": true,
+    "tls": "Final ExUnit fixture lifecycle reports active0 accepted1 peer_closed1. Full BEAM groups absent.",
+    "historical_holds_touched": false,
+    "removed_owned_terminal_scratch": [
+      "pgdata-1",
+      "pgdata-2",
+      "pgdata-harness-correction",
+      "source/hosted/deps",
+      "source/hosted/_build"
+    ],
+    "own_tmp_remaining_names": [
+      "mix_pubsub_user501",
+      "mix_lock_user501"
+    ],
+    "scratch_reuse": "All three PG groups observed absent and ports closed before removal; only R686 exact owned paths removed. Test source, raw logs, command receipts, source preimage and tested afterimages retained."
+  },
+  "limitations": [
+    "Final corrected assertion unrerun; independent slice review/root integration pending.",
+    "Critical remaining acceptance test: activation-transaction COMMIT failure. Current proxy counted second callback COMMIT and hit CLAIM, not final activation. Root may select a fresh bounded test targeting actual mixer_browser_activate before the next COMMIT; this task exhausted its own allowance. No claim of final-activation rollback validation.",
+    "Synthetic loopback raw HTTP transport only; secure-cookie browser enforcement and real HTTPS user-agent navigation not qualified. Test harness explicitly attaches HttpOnly cookie outside product client.",
+    "Token endpoint exchange uses existing in-process synthetic fixture, no real provider/account/token. Production ProviderOwner remains unconfigured.",
+    "Existing broader key/config/lifetime and SQL/catalog protections reused unchanged, not all rerun in this focused slice.",
+    "No default API mount, SQL/catalog/grant/prod12/schema selector/canonical/source edits; no Git, devices, signing, remote, deployment, customer or child work."
+  ],
+  "tools": {
+    "elixir_version_log": "verification/local/browser-login-http-r686/logs/harness-correction-versions.log",
+    "postgres": "17.11 from actual postgres log",
+    "node_client_compile_receipt": "verification/local/browser-source-r662/client-compile.json",
+    "node_version": "accepted R662 Node client output reused; no fresh node --version probe"
+  },
+  "acceptance": "PENDING; do not mount or select publicly before final activation-COMMIT test and independent review.",
+  "commit_boundary_finding": {
+    "status": "SOURCE_SUPPORTED_RISK; FINAL_ACTIVATION_NOT_EXECUTED",
+    "observation": "The runtime return type exposes published callback Result without a distinct raw COMMIT command tag. Postgrex recv_transaction returns {:ok,result,state} for CommandComplete ROLLBACK followed by ReadyForQuery. DBConnection.run_transaction treats {:ok,_commit_result} as {:ok,result}, discarding that command tag. The executed claim-COMMIT proxy control observed ROLLBACK and later prepare_activation rejection; it does not establish final activation-COMMIT safety.",
+    "evidence": [
+      "verification/local/browser-strict-ci-r676/candidate/hosted/deps/postgrex/lib/postgrex/protocol.ex:2972",
+      "verification/local/browser-strict-ci-r676/candidate/hosted/deps/postgrex/lib/postgrex/protocol.ex:2985",
+      "verification/local/browser-strict-ci-r676/candidate/hosted/deps/db_connection/lib/db_connection.ex:1787",
+      "hosted/lib/mixer_hosted/browser_auth/store.ex:185"
+    ],
+    "next_named_test": "Fresh root-selected owned control: arm only after mixer_browser_activate is observed on the database connection, abort before that same connection COMMIT, assert no cookie and no redirect; review need for explicit commit acknowledgement at Store transaction boundary. No retry under exhausted R686 allowance."
+  }
+}
