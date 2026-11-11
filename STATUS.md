@@ -1,60 +1,44 @@
 # Current development status
 
-Browser transaction publication now requires an actual COMMIT receipt from the
-same backend and invocation. An actual final ROLLBACK yields HTTP 503 without a
-cookie or redirect. The successful visibility/acknowledgement barrier passes.
-Caller-death testing observed both pool slots recover; loss of acknowledgement
-after server commit remains unknown and publishes no cookie. The independent
-source review and actual remaining outcomes are complete within that scope.
-[Review completion](verification/receipts/browser-outcome-completion-r964.json).
+Browser confirmed-COMMIT code is delivered at92c2c15f with source217/v7 and
+unchangedproduction12. All twelve ordinary checks are terminal: eleven passed;
+Phoenix failed seven new begin-login cases before callback. Its796 other cases
+passed with2 skips. The same original focused test passes on localPG16, so the
+Linux cause is unproven. The next delivery adds only a bounded private trace tool
+and its explicit argument to the existing full Linux suite. No nodelay, deadline,
+role, SQL, product or source-authority correction is selected.
+[CI](verification/receipts/main92c2-ci-r988.json),
+[local discriminator](verification/receipts/browser-linux-proxy-r1000.json) and
+[diagnostic selection](verification/receipts/browser-linux-ci-adoption-r1040.json).
 
-The reviewed browser v7 packet is applied with exact preimages: 217 selected
-sources, twelve unchanged production migrations, and an unmounted private login
-adapter. The fresh strict suite passed 803 tests with two existing Linux skips;
-all ten new cases passed. Collector controls passed 182/182 normally and under
-actual Python -O. Canonical source admission and exact archive checks pass.
-Fresh hosted CI on this delivery is pending. Real provider operation, HTTPS,
-default mounting and production qualification remain pending.
-[Qualification](verification/receipts/browser-final-qualification-r980.json)
-and [guarded adoption](verification/receipts/browser-commit-adoption-r986.json).
+The private reader remains unaccepted. A root probe proved rejection of valid
+leading JSON whitespace; that defect is fixed. Two owned native crash reports,
+matched by compiled-image UUID, show125 recursive reader-node frames and a stack
+guard fault in the valid maximum-depth test. An explicit bounded parser stack
+is now being implemented without changing the supported depth or any cap.
+Original248 tests remain intact; no reader Wasm or application acceptance is
+claimed. The earlier actual guest still stops in Foundation document decoding.
+[Whitespace proof](verification/receipts/document-reader-whitespace-r1020.json)
+and [owned crash evidence](verification/receipts/reader-native-crash-r1032.json).
 
-Prior main 44743c18 passed all ten triggered CI checks; identity-network and
-Phoenix were not triggered by its documentation-only paths. Main 1633d0e7
-passed all twelve checks, including actual 216 SDK tests and 114 CLI functions.
-CLI source118 d9473684…, Pair20 SDK24/adapter27/Java21 and all historical source
-authorities remain intact. Private VM/SDK experiments are not adopted.
-[Prior CI](verification/receipts/main4474-ci-r936.json).
+The report app's failed-unlink correction passed independent review and all49
+actual Android build commands on the exact source. Root compared70 members and
+proved68 unchanged from the95-Swift-test source. Development source/build selection
+does not qualify Android chooser/grants/recipient behavior; theR928 native chain
+remains held. [Component](verification/receipts/fieldlog-report-component-r1002.json).
 
-FieldLog date editing remains accepted for development. The photo candidate
-passes 90 host tests, independent review and its 49-command Android build.
-Its actual native SAF campaign remains held after UNKNOWN emulator cleanup;
-photo draft/reopen/Commit acceptance is pending.
-[Date acceptance](verification/receipts/fieldlog-entry-date-acceptance-r830.json)
-and [native hold](verification/receipts/fieldlog-photo-native-r928.json).
+The console's Builds page still has no connected data source. A private explicit
+build.read policy/context/SQL successor compiles, and35 existing lifecycle/journal
+tests pass. All10 new cases were invalid at migrator setup; the two-connection
+fixture correction is unrun. A fresh artifact-only PostgreSQL/HTTP execution is
+selected. No artifact/audit/workspace authority is borrowed or widened; no build
+read, default mount, production grant or worker action is qualified.
+[Private packet](verification/receipts/customer-build-authority-r1026.json).
 
-The report app retains its 95 Swift test bindings. Independent review found
-that failed file deletion could leave seven copies against the six-copy bound.
-The two-file correction retains ownership until confirmed removal and passes
-strict Java, preserved body controls and ten filesystem fault modes.
-A fresh independent review is running. The Java-only APK delta is a candidate;
-native sharing, recipient reads and full final-source pipeline acceptance remain
-pending.
-[Finding](verification/receipts/fieldlog-report-review-r968.json) and
-[correction](verification/receipts/fieldlog-report-unlink-owner-r974.json).
-
-The latest private guest trace shows the large Foundation string decode returned.
-LongNote then reached routing, mutation and projection before exhausting the
-unchanged instruction-fuel limit during encoding. Documents 1–5 match native
-bytes; LongNote document6, Commit7 and complete internal-model parity remain
-unmet. A contiguous UTF-8 writer passes 248 native tests; actual encoding now
-returns, then the retained document decode exhausts fuel. A bounded attribution
-run is isolating that decoder with all safeguards and caps unchanged.
-[Actual trace](verification/receipts/guest-event-string-r970.json).
-
-Apple Accessibility trust remains unavailable. All specific native, process and
-custody holds remain active; physical phones stay disconnected. Immutable
-published packages, full API28 acceptance and all 38 GA gates remain pending.
-No production publication, deployment, OTA release or GA acceptance is claimed.
+CLI source118d9473684…, Pair20 SDK24/adapter27/Java21 and historical authorities
+remain intact. All native/process/custody holds remain active; Apple Accessibility
+trust is unavailable and phones remain disconnected. Immutable packages,
+full API28, production operation and all38 GA gates remain pending.
 
 ## Development execution update: November 9, 2026
 

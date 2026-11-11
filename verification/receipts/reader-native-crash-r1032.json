@@ -1,0 +1,50 @@
+{
+  "id": "R1032_PRIVATE_READER_NATIVE_STACK_DIAGNOSIS",
+  "observedUTC": "2026-11-11T13:49:42.745Z",
+  "status": "PROVEN_OWNED_STACK_GUARD_FAULT_AT_SUPPORTED_DEPTH",
+  "ownership": {
+    "method": "Mach-O LC_UUID of each exact owned MixerPackageTests image equals usedImages UUID in corresponding OS crash report",
+    "images": [
+      {
+        "path": "verification/local/document-reader-reference-r1014/scratch/sdk/arm64-apple-macosx/debug/MixerPackageTests.xctest/Contents/MacOS/MixerPackageTests",
+        "uuid": "e286f79a7ccf3c0689d48a6795ff34e2"
+      },
+      {
+        "path": "verification/local/document-reader-correction-r1024/scratch/sdk/arm64-apple-macosx/debug/MixerPackageTests.xctest/Contents/MacOS/MixerPackageTests",
+        "uuid": "55896665b321316cb4ff98e6bd11fefe"
+      }
+    ]
+  },
+  "reports": [
+    {
+      "path": "/Users/andreyyurlov/Library/Logs/DiagnosticReports/swiftpm-testing-helper-2026-11-11-082357.ips",
+      "sha256": "7fef465d17118f489082fb1489db0a248454119a23ff056f1aadf307e7711860",
+      "pid": 72956,
+      "parentPID": 72023,
+      "readerNodeFrames": 125,
+      "exception": "EXC_BAD_ACCESS / KERN_PROTECTION_FAILURE stack guard region",
+      "signal": "SIGBUS"
+    },
+    {
+      "path": "/Users/andreyyurlov/Library/Logs/DiagnosticReports/swiftpm-testing-helper-2026-11-11-083734.ips",
+      "sha256": "2c1549e428d610113bf90a20cbab49ea640221122e03b23e966de06be21623fa",
+      "pid": 19094,
+      "parentPID": 18947,
+      "readerNodeFrames": 125,
+      "exception": "EXC_BAD_ACCESS / KERN_PROTECTION_FAILURE stack guard region",
+      "signal": "SIGBUS"
+    }
+  ],
+  "owningCase": "schemaBoundsAndFinalTypedValidationR1004",
+  "source": "LongNoteDocumentReader.node recursive child construction; Protocol.swift lines521/522",
+  "baselineSupportedMaximumDepth": 128,
+  "defaultDepth": 64,
+  "limitsUnchanged": true,
+  "scope": "Private unselected prototype; no canonicalSDK/runtime default affected",
+  "unmatchedCrashDetailsUsed": false,
+  "otherUserLogsRead": false,
+  "newProcessesLaunched": false,
+  "heldResourcesTouched": false,
+  "GA": false,
+  "next": "Replace recursive private node construction with an explicit schema-bounded iterative stack; retain rawguard/finalvalidation/error ordering and all original tests."
+}
