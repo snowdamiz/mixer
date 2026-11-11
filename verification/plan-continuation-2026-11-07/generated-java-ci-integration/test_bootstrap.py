@@ -60,16 +60,61 @@ def good_result():
 
 
 class BootstrapControls(unittest.TestCase):
+    def assert_current_source(self, authority, inputs, root=None):
+        root = B.ROOT if root is None else root
+        source = json.loads((root / CURRENT.BINDING).read_bytes(),
+                            object_pairs_hook=CURRENT.unique_object)['source']
+        self.assertEqual(source['manifest'], 'source-inputs.json')
+        self.assertEqual((len(inputs), authority.source_digest(inputs)),
+                         (source['count'], source['sha256']))
+
+    def test_current_source_count_and_digest_are_independent_of_runtime_pins(self):
+        from unittest.mock import patch
+        authority = B.canonical()
+        inputs = authority.source_inputs(authority.load_profile())
+        self.assert_current_source(authority, inputs)
+        binding = json.loads((B.ROOT / CURRENT.BINDING).read_bytes())
+        with tempfile.TemporaryDirectory(dir=HERE) as td:
+            root = Path(td)
+            path = root / CURRENT.BINDING
+            path.parent.mkdir(parents=True)
+            # The historical stale count is a negative case, never CURRENT.
+            stale = dict(binding['source'], count=116)
+            path.write_text(json.dumps({'source': stale}))
+            with self.assertRaises(AssertionError):
+                self.assert_current_source(authority, inputs, root)
+            for extra in (1, 3):
+                future = dict(inputs)
+                for index in range(extra):
+                    future['sdk/Sources/MixerGuest/FutureControl%d.swift' % index] = {
+                        'bytes': 1, 'sha256': ('%064x' % (index + 1))}
+                expected = dict(binding['source'], count=len(future),
+                                sha256=authority.source_digest(future))
+                path.write_text(json.dumps({'source': expected}))
+                # A coherent future binding works without editing a test literal.
+                self.assert_current_source(authority, future, root)
+                with patch.object(authority, 'source_inputs', return_value=future):
+                    with self.assertRaisesRegex(RuntimeError, 'owning inputs'):
+                        B.admit_source_inputs(authority, {})
+                    with patch.object(B, 'SOURCE_INPUT_COUNT', len(future)), \
+                         patch.object(B, 'SOURCE_INPUT_SHA256', expected['sha256']):
+                        admitted = B.admit_source_inputs(authority, {})
+                        # Matching runtime constants cannot bless a stale binding.
+                        path.write_text(json.dumps({'source': binding['source']}))
+                        with self.assertRaises(AssertionError):
+                            self.assert_current_source(authority, admitted, root)
+                path.write_text(json.dumps({'source': dict(expected, sha256='0' * 64)}))
+                with self.assertRaises(AssertionError):
+                    self.assert_current_source(authority, future, root)
+
     def test_current_policy_and_all_sources(self):
         a = B.canonical()
         expected = CURRENT.load_current_profile(B.ROOT)
         p = a.load_profile()
         self.assertEqual(json.dumps(p, sort_keys=True), json.dumps(expected, sort_keys=True))
         self.assertEqual(a.java_roster(p), sorted(path for path in expected['adapter_files'] if path.endswith('.java')))
-        # Keep the exact source116 admission independent of the profile oracle.
         inputs = B.admit_source_inputs(a, p)
-        self.assertEqual(len(inputs), B.SOURCE_INPUT_COUNT)
-        self.assertEqual(a.source_digest(inputs), B.SOURCE_INPUT_SHA256)
+        self.assert_current_source(a, inputs)
 
     def test_current_metadata_mismatches_and_duplicates_refuse(self):
         import json

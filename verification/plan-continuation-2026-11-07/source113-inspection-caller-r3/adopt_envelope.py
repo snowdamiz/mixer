@@ -537,7 +537,7 @@ def bind():
         base.need(len(current_actual) == 118 and digest == '424a48870a44c17035709c0aa5d6c8db71c3c566f5f53b4d680e13a3eb16283f' and binding['source']['count'] == 118 and binding['source']['sha256'] == digest, 'Bound source closure differs')
         base.need(binding['profile'] == {'id':profile['id'], 'sdk_count':len(profile['sdk_files']), 'sdk_sha256':profile['sdk_compatibility_sha256'], 'adapter_count':len(profile['adapter_files']), 'adapter_sha256':profile['adapter_compatibility_sha256'], 'java_sources':len(owner.java_roster(profile))}, 'Accepted profile binding differs')
         caller_raw = base.regular(HERE / 'caller-inputs.json').read_bytes()
-        base.need(len(caller_raw) == 2531 and hashlib.sha256(caller_raw).hexdigest() == '8da09de0131872593a12a23baea77d7abd761c1236903c50742ef4367f8f0e55', 'Accepted caller authority bytes differ')
+        base.need(len(caller_raw) == 2532 and hashlib.sha256(caller_raw).hexdigest() == 'd9364748a84ca0338d7623f96eec07814c341e97995ed63ea968b257bcf1bf04', 'Accepted caller authority bytes differ')
         callers = json.loads(caller_raw, object_pairs_hook=base.unique_object)
         base.check_rows(ROOT, callers)
         expected = base.regular(HERE / 'current-swift-job.yml').read_text()
