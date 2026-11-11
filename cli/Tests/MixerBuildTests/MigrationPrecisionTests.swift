@@ -3,7 +3,7 @@ import Testing
 @testable import MixerBuild
 
 private func inventory(_ source: Data, name: String = "Example.swift", _ body: (MigrationReport) throws -> Void) throws {
-    let parent = URL(fileURLWithPath: ProcessInfo.processInfo.environment["R728_FIXTURES"]!)
+    let parent = FileManager.default.temporaryDirectory
     let root = parent.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -120,7 +120,7 @@ func incompleteOrUnsupportedFormsRequireCompilerReview(_ source: String) throws 
 }
 
 @Test func existingSizeAndSymlinkBoundsStillReject() throws {
-    let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["R728_FIXTURES"]!).appendingPathComponent(UUID().uuidString)
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
     let file = root.appendingPathComponent("Large.swift")

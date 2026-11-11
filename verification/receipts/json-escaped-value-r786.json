@@ -1,0 +1,145 @@
+{
+  "task": "R786 escaped-value JSON preflight bounded competing-premise campaign",
+  "status": "STOP_NATIVE_TOOLCHAIN_MISMATCH_BEFORE_TESTS; GUEST_GATE_UNRUN",
+  "decision": "Preserve first failure. Native compiler build used active Xcode27.2/SDK27.2 rather than requested26.6/26.5; no second SDK compiler build under stated native1+Wasm1 bound. No hotspot or performance conclusion. Root selects successor.",
+  "candidate": {
+    "baseline_guard_sha256": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c",
+    "candidate_guard_sha256": "5250155fcadeea4205139dfcf1fa4e322596a95ba6ad6e7a9063532ba68616cc",
+    "patch_sha256": "9b3c2a7a0de588dab0d2896ecb9a622025dd6480b5da96971400d8d82fbbb07d",
+    "files": [
+      {
+        "path": "afterimages/sdk/Sources/MixerCore/JSONInputGuard.swift",
+        "bytes": 8951,
+        "sha256": "5250155fcadeea4205139dfcf1fa4e322596a95ba6ad6e7a9063532ba68616cc"
+      },
+      {
+        "path": "afterimages/sdk/Tests/MixerCoreTests/JSONEscapedValueR786Tests.swift",
+        "bytes": 5778,
+        "sha256": "7f2f79452594749a5e1459a0e180aba0c60e5188fcd46caa7e1f76ffe470b47f"
+      },
+      {
+        "path": "afterimages/sdk/Tests/MixerCoreTests/R786OriginalGuard.swift",
+        "bytes": 8761,
+        "sha256": "2a2268558f48f522a4bd2b961df28105d7b79200bba2ed402acfda6733d93f39"
+      }
+    ],
+    "implementation": "Only escaped nonkey values count validated scalar UTF8 width arithmetically; key encoding byte operations unchanged. No API/ABI/protocol/default/runtime/model change."
+  },
+  "inputs": {
+    "runtime_source_tree_sha256": "b182679a3d802424b249f8ffeb6eac1a11b0bb2a7893e988ea0fd1b8300f8ee3",
+    "runtime_files": 103,
+    "runtime_unchanged": true,
+    "fixture_files": 35,
+    "fixture_changes": [
+      "Sources/MixerCore/JSONInputGuard.swift"
+    ],
+    "canonical_guard_and_R524_beforeimage_exact": true,
+    "original_module_sha256": "1ec7ce12b2c812304c5b4d97fe22d39fd9e48e2ddfdebe49da4cc9db23f3c79c",
+    "original_module_bodies": 84138,
+    "new_module": null,
+    "events_native_oracles_unchanged": true
+  },
+  "native": {
+    "original_test_files": 25,
+    "expected_original_tests": 216,
+    "focused_tests": 8,
+    "differential_reference": "Original complete scanner with symbol renaming only in test module",
+    "executed_tests": 0,
+    "exit_code": 1,
+    "primary_diagnostic": "unknown argument: '-target-arch-variant'",
+    "additional_diagnostic": "Foundation UUID unavailable after compiler/SDK incompatibility",
+    "requested_environment": "Swift6.3.3 Xcode26.6 SDK26.5 --jobs3",
+    "observed_versions": {
+      "swift-version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+      "xcode-version": "Xcode 27.2\nBuild version 27B52",
+      "macos-sdk-version": "27.2"
+    },
+    "limitation": "No decoder behavior proof; tests are source-only and unaccepted."
+  },
+  "guest": {
+    "payloads": 0,
+    "full_validation": false,
+    "LongNote": "UNRUN",
+    "Commit": "UNRUN",
+    "complete_public_document_parity": "UNRUN",
+    "internal_model": "UNRUN",
+    "consuming14currents": "NOT_OBSERVED_NO_GUEST",
+    "live_tickets": "NOT_OBSERVED_NO_GUEST"
+  },
+  "bounds": {
+    "native_swift_builds": 1,
+    "wasm_swift_builds": 0,
+    "rust_builds": 0,
+    "actual_guest_payloads": 0,
+    "harness_corrections": 0,
+    "children": 0,
+    "minutes_limit": 20
+  },
+  "cleanup": {
+    "managed_commands": 4,
+    "all_direct_children_reaped": true,
+    "all_exact_owned_groups_positively_absent": true,
+    "new_UNKNOWN_holds": 0,
+    "native_devices": 0,
+    "retained": "All R786 source/build/log/tmp artifacts retained. No deletion; every historical hold remains protected."
+  },
+  "commands": [
+    {
+      "label": "macos-sdk-version",
+      "exit_code": 0,
+      "pid": 65078,
+      "pgid": 65078,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "metadata": "verification/local/json-escaped-value-r786/logs/macos-sdk-version.json"
+    },
+    {
+      "label": "sdk-tests",
+      "exit_code": 1,
+      "pid": 65079,
+      "pgid": 65079,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "metadata": "verification/local/json-escaped-value-r786/logs/sdk-tests.json"
+    },
+    {
+      "label": "swift-version",
+      "exit_code": 0,
+      "pid": 65075,
+      "pgid": 65075,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "metadata": "verification/local/json-escaped-value-r786/logs/swift-version.json"
+    },
+    {
+      "label": "xcode-version",
+      "exit_code": 0,
+      "pid": 65077,
+      "pgid": 65077,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "metadata": "verification/local/json-escaped-value-r786/logs/xcode-version.json"
+    }
+  ],
+  "scope": {
+    "canonical_writes": false,
+    "root_git_mutations": false,
+    "initial_scope_deviation": "Initial tool call ran pwd and git status --short --untracked-files=no before recognizing the no-rootGit restriction. No mutation or later Git/index access. No held tree content was read.",
+    "held_R768_R772_access": false
+  },
+  "limitations": [
+    "Native toolchain selection error consumes the only native build; no retries, Wasm compilation, Rust build or guest executed.",
+    "Key byte identity and arithmetic equivalence are intended/source-inspected only; executable parity remains pending.",
+    "No candidate adoption, independent review, hotspot/speedup, W07/W08, GA, production, publication or device claim.",
+    "Canonical SDK guard was left unchanged; root remains sole owner of canonical delivery/status/gates."
+  ],
+  "paths": {
+    "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/json-escaped-value-r786/REPORT.md",
+    "raw_native_stderr": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/json-escaped-value-r786/logs/sdk-tests.stderr",
+    "raw_native_stdout": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/json-escaped-value-r786/logs/sdk-tests.stdout",
+    "source_patch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/json-escaped-value-r786/candidate.patch",
+    "afterimage_manifest": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/json-escaped-value-r786/afterimage-manifest.json"
+  },
+  "finalized_unix": 1794375862.0056908,
+  "raw_output_manifest": "verification/local/json-escaped-value-r786/result.json#raw_output_manifest"
+}

@@ -39,20 +39,33 @@ stderr fixture passed the fresh Swift job; it does not release historical
 uncertainty. [CI](verification/receipts/mainc8c-ci-r770.json) and
 [hold](verification/receipts/cache-observation-custody-r762.json).
 
-The reviewed CLI inventory now distinguishes actual imports from comments and
-strings, preserves physical line numbers and accepts an initial UTF-8 BOM without
-hiding the first import. Its full suite passes 114 tests. The coordinated exact
-caller successor passes 108 controls in each Python mode; both installed guards
-admit source118 `d9473684…` with unchanged Pair20 SDK/adapter/profile bytes.
-Fresh CI and actual generated consumers for this successor remain pending.
-Private VM work remains unselected: the actual lookup experiment reached Reopen
-with documents 1–5 equal to native output, then LongNote exhausted the unchanged
-64M cache-work limit. Consuming cleanup reached fourteen zero currents and zero
-tickets. The preceding failed diagnostic chains stay held. A separate app lane
-implements entry-date editing, while a bounded guest experiment tests unnecessary
-escaped-value string construction. [CLI adoption](verification/receipts/import-adoption-r782.json),
-[caller proof](verification/receipts/import-caller-successor-r774.json), and
-[actual reactor result](verification/receipts/entryeditor-actual-guest-r778.json).
+The reviewed CLI inventory distinguishes real imports from comments and strings,
+preserves physical lines and handles an initial UTF-8 BOM. Its caller successor
+binds source118 `d9473684…` with unchanged Pair20 SDK/adapter/profile bytes.
+Main `1233b1be` passed seven of eight CI checks, including actual generated Java
+consumers; Swift crashed because two test helpers required a producer-only
+environment variable. The test-only correction uses the ordinary owned temporary
+directory and passes all 114 functions and 259 parameter cases with that variable
+absent. Fresh delivery CI remains pending. The failed hosted chain stays held.
+[Correction](verification/receipts/import-temp-root-adoption-r804.json) and
+[CI](verification/receipts/main1233-ci-r804.json).
+
+FieldLog entry-date editing passes all 82 host tests, 49 Android build commands
+and nine independent review cases. Native acceptance remains pending: two UI
+observation attempts failed, and the next emulator exited before boot because its
+userdata partition lacked disk space. Each disposable device was retired with
+positive cleanup and unchanged external baselines. The exact source ZIP and APK
+remain local development artifacts. [Feature](verification/receipts/fieldlog-entry-date-r780.json),
+[review](verification/receipts/fieldlog-entry-date-review-r788.json), and
+[latest native result](verification/receipts/fieldlog-entry-date-native-r802.json).
+
+Private VM work remains unselected. The escaped-value scanner candidate still
+hits the 64M cache-work limit on the actual LongNote turn after all 84,138 bodies
+validate; Commit is unrun and consuming cleanup reaches zero. A different encoder
+experiment failed at the provider level before implementation. Fresh work must
+check aggregate disk capacity as well as compiler/SDK compatibility. No private
+policy or code from these experiments is adopted. [Actual guest](verification/receipts/json-actual-wasm-r794.json)
+and [provider result](verification/receipts/typed-writer-provider-r810.json).
 
 Apple Accessibility trust remains false; no new iOS frontend is booted. The full
 W01–W18, D0–D8, API28, immutable-package and physical-phone requirements remain.

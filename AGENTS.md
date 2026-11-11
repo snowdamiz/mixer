@@ -343,3 +343,13 @@ under `verification/local/entryeditor-single-owner-r772` without inspection,
 probing, retries or cleanup. Only its delivered top-level REPORT.md, HOLD.json
 and compact receipt are references. A fresh separately selected application run
 uses the independent R760 baseline; it does not release this chain.
+
+The fresh CLI host suite in run 42967308165, job 130347402614, aborted in
+MigrationPrecisionTests.swift:6 while tests ran concurrently. No reliable inner
+PID/PGID or complete descendant-absence proof was exposed. Preserve that hosted
+command and `/Users/runner/work/_temp/cli-host-swift-42967308165-1`, including its
+tmp and store-children paths, without inspection, probing, signals, waits, retries
+or cleanup. Only the copied top-level summary
+`verification/receipts/cli-import-ci-first-failure-r800.json` is a reference.
+The uploaded top-level SUITE-HOLD.json is absent; that is not absence evidence.
+Fresh test-only work in separate namespaces remains authorized.

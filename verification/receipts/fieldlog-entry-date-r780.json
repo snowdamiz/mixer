@@ -1,0 +1,300 @@
+{
+  "schema": "mixer.fieldlog.entry-date.1",
+  "task": "R780",
+  "result": "PASS_HOST82_ANDROID49_ROOT_ACCEPTANCE_PENDING",
+  "recorded_at_utc": "2026-11-11T05:43:02.451729+00:00",
+  "scope": "Independent app presentation/action implementation; public pinned checkout development tests and unsigned Android cross-build; no native runtime acceptance",
+  "source": {
+    "baseline_zip": "verification/local/fieldlog-shipping-lock-r664/artifacts/FieldLog-r664-app-source.zip",
+    "baseline_sha256": "3876cf9c1b7e52fa1550f0825d015baa21c0048ecf484449a961e6689b6d2788",
+    "original_entries": 67,
+    "delivered_entries": 68,
+    "changed_original_files": [
+      "Sources/FieldLogAndroid/PublicFactory.swift"
+    ],
+    "added_files": [
+      "Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift"
+    ],
+    "all_original_tests_and_other66_members_byte_exact": true,
+    "empty_resources_preserved": true,
+    "shipping_manifest_and_both_resolved_locks_unchanged": true,
+    "sdk_revision": "8efc1a9e5b1602117f8211c95bfd4203cc91f689",
+    "selected_sdk79_and_android_public80_postverified": true,
+    "external_sdk_config_alternates_unchanged": true,
+    "sdk_source_override": false,
+    "global_url_rewrites": false
+  },
+  "contract": {
+    "node_id": "entry.date.input",
+    "action_id": "entry.date.change",
+    "event": "textChange/string",
+    "accessibility_id": "entry-date",
+    "api": "EntryEditor.changeOccurredAt(Date)",
+    "grammar": "YYYY-MM-DDTHH:mm:ss[.fraction](Z|\u00b1HH:MM)",
+    "subset": "Proleptic Gregorian years0001..9999; seconds00..59; fractional digits1..3 or none; uppercaseT/Z; known offsets00:00..23:59; -00:00 rejected. No whitespace, leap seconds, invalid date normalization or precision truncation.",
+    "display": "Seed UTC; preserve exact untouched Date including sub-ms and seed echoes. User offset text is retained for current draft.",
+    "lifetime": "Raw input keyed by draft UUID; survives normal render/task/queue navigation and save/failure. Explicit new/draft selection resets to selected persisted date; raw unsaved text is not persisted across closing/reopening.",
+    "invalid": "Keep raw input/error and last valid Date. Disable draft/commit; samebatch invalid+save rejected atomically before reducer/effects.",
+    "saves": "Unchanged shared EntrySaveIntent/repository; date/category survive SaveDraft/reopen/Commit; exactly one entrySaved effect.",
+    "native_calendar_picker": false
+  },
+  "tools": {
+    "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "xcode": "Xcode 26.6\nBuild version 17F113",
+    "macos_sdk": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+    "android_toolchain": {
+      "schema": 1,
+      "sdk_id": "aarch64-unknown-linux-android28",
+      "abi": "arm64-v8a",
+      "min_api": 28,
+      "target_api": 37,
+      "swift_version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+      "javac_version": "javac 25.0.4.1",
+      "java_version": "openjdk 25.0.4.1 2026-08-18\nOpenJDK Runtime Environment Homebrew (build 25.0.4.1)\nOpenJDK 64-Bit Server VM Homebrew (build 25.0.4.1, mixed mode, sharing)",
+      "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "tools": {
+        "python": {
+          "path": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+          "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+        },
+        "swift": {
+          "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+          "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+        },
+        "clang": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android28-clang",
+          "sha256": "c0e2e0373d192a8f9339e3148b2c56d41f60286ea5ff6ed3920c767be8090857"
+        },
+        "readelf": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+          "sha256": "27ac07f3157f415817a263843824577d7283871fb6e9b280afbc9e8badf6d1d5"
+        },
+        "nm": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+          "sha256": "0ada73281ce97f8eec87cc3b3ad5f98e774721aca06120606fc5249b412b0d3a"
+        },
+        "java": {
+          "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+          "sha256": "9ef6c1a939343ac850811551a8b88d4b877630ab2c94ac38c541e25ccc8cf0a5"
+        },
+        "javac": {
+          "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/javac",
+          "sha256": "e9fb09ca9cb259a164a32c9055931a865943d25c66800996183c86e527ca0688"
+        },
+        "d8": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/d8",
+          "sha256": "b773a721be3d4988dea9660815a9e441b76100e5b0f5c72b5893cfadadc76c6f"
+        },
+        "aapt2": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/aapt2",
+          "sha256": "13a206c0b022ba3b92f21b6f142f3a4b2d0f3bb1ac0bddfa820ee2c6b00c4c99"
+        },
+        "zipalign": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/zipalign",
+          "sha256": "6d99a9d16c7116850414910b04cffd5ba3aaff86db7a6346179d678abe6d25d1"
+        },
+        "dexdump": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/dexdump",
+          "sha256": "0328e326271bcb69350eb32ffc8053eb1e9de9cc245641a78ce322e5c4855c31"
+        }
+      },
+      "metadata": {
+        "ndk": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/source.properties",
+          "sha256": "fb5eec1ca5dac09442109cf79e9ce49faecd8b312dbc997e88903a394e14994a"
+        },
+        "platform": {
+          "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0/source.properties",
+          "sha256": "fa89029fc0cee414cb5e44a37cd3033771217eeecb5086577bb6d9b1b03b5b5f"
+        },
+        "build_tools": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/source.properties",
+          "sha256": "fbd87c8567afbc6dc78e140097fcde234f4a61fa7065e85081d43e442ccd3d24"
+        },
+        "jdk": {
+          "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/release",
+          "sha256": "243ad32301f0103033f6e398d229018dedd145b5a6534ebca3efefb9e77c743c"
+        },
+        "swift_sdk": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-sdk.json",
+          "sha256": "e81f3f2142bce0a795cdec567ad24434db3a7b02c288eb2eef2041d2066111dc"
+        },
+        "swift_toolset": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-toolset.json",
+          "sha256": "0f9e3a784a4e60bf4c816460dae0ed64e0a723167af111fc05bac8a010b0e065"
+        }
+      },
+      "distributions": {
+        "swift_toolchain": {
+          "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain",
+          "sha256": "0d79dcd75ec7e2e8467f6572f049f25adde933d6d1a35b64a222079f61752051"
+        },
+        "swift_android_sdk": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle",
+          "sha256": "cef2cc34f476b2d209de6fc66acacfa5b34ec737acf3fa4f00de16f26c3eabeb"
+        },
+        "android_platform": {
+          "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0",
+          "sha256": "6a89d699d8cbf8eec88d55bf6fcc79c57bba757695dd955d3f869c5e6ad5597a"
+        },
+        "android_build_tools": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0",
+          "sha256": "aa9272b16e099a091cbced96ebb162debfd4ce0520bfb4756bc9ea2a011338f1"
+        },
+        "jdk": {
+          "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home",
+          "sha256": "6c95d1cd868f04ffb6647890cc558d8fe00a6f5ade4d4562d659ada7687dde10"
+        }
+      },
+      "sdk_search_path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks"
+    },
+    "compiler_jobs": 3
+  },
+  "tests": {
+    "host_invocations": 2,
+    "harness_compile_corrections": 0,
+    "runs": [
+      {
+        "label": "host-tests",
+        "xctest": 20,
+        "swift_testing": 61,
+        "new_tests": [
+          [
+            "EntryDatePresentationTests",
+            "testInvalidPartialInputRetainedNavigationAndWholeBatchRefusal"
+          ],
+          [
+            "EntryDatePresentationTests",
+            "testOffsetLeapDateSaveReopenCommitAndExactlyOneOutboxEffect"
+          ],
+          [
+            "EntryDatePresentationTests",
+            "testStrictFiniteRFC3339SubsetAndDefaultPolicyRefusals"
+          ],
+          [
+            "EntryDatePresentationTests",
+            "testUntouchedSubmillisecondDateAndEchoRemainExact"
+          ]
+        ],
+        "all_original77_passed": true,
+        "no_failures": true
+      },
+      {
+        "label": "host-tests-r2",
+        "xctest": 21,
+        "swift_testing": 61,
+        "new_tests": [
+          [
+            "EntryDatePresentationTests",
+            "testBatchedDateCategorySaveStorageFailureRetainsExactRetry"
+          ],
+          [
+            "EntryDatePresentationTests",
+            "testInvalidPartialInputRetainedNavigationAndWholeBatchRefusal"
+          ],
+          [
+            "EntryDatePresentationTests",
+            "testOffsetLeapDateSaveReopenCommitAndExactlyOneOutboxEffect"
+          ],
+          [
+            "EntryDatePresentationTests",
+            "testStrictFiniteRFC3339SubsetAndDefaultPolicyRefusals"
+          ],
+          [
+            "EntryDatePresentationTests",
+            "testUntouchedSubmillisecondDateAndEchoRemainExact"
+          ]
+        ],
+        "all_original77_passed": true,
+        "no_failures": true
+      }
+    ],
+    "new_tests": 5,
+    "android_invocations": 1,
+    "android_commands_passed": 49,
+    "android_commands_total": 49,
+    "android_min_api": 36,
+    "android_profile": "public-v4",
+    "android_source_tree_sha256": "1ed202e98deab82cfe0ed064055456befdf5af1242cf94e2a9f25c8a19810c78",
+    "android_source_unchanged": true,
+    "sdk_digest": "437e58d96d0a0d33e5e2fc9bdc6d1eac165c14030959d7b8baad6e1016966f40",
+    "adapter_digest": "06fed784eb1d576fe6365c6dc7b21826aceec89bfa4efceb990842acb40ee80b",
+    "retained_cli": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/plan-continuation-2026-11-07/pair20-six-completion-r628/retained-cli/mixer",
+      "bytes": 3864344,
+      "sha256": "d6b1e7850403da3cd0ab1a51f9aa183c02b00bb3bce22032e986f086bc9fa228"
+    },
+    "producer_cli_builds": 0,
+    "devices": 0
+  },
+  "artifacts": [
+    {
+      "path": "verification/local/fieldlog-entry-date-r780/artifacts/FieldLog-r780-app-source.zip",
+      "bytes": 1433107,
+      "sha256": "cc2396ff2d28534414d10c1e30303b55f816d8c751a941d1258780fb14f21ec0"
+    },
+    {
+      "path": "verification/local/fieldlog-entry-date-r780/artifacts/FieldLog-r780-unsigned.apk",
+      "bytes": 28620474,
+      "sha256": "9fd4ad8bf7fccda5e91b84e1b353f01472f92e36f16588e85a26763b2f107247"
+    },
+    {
+      "path": "verification/local/fieldlog-entry-date-r780/artifacts/entry-date.patch",
+      "bytes": 30728,
+      "sha256": "7e9565b26ecfeb76e65c494d1c682d92fd76215b264d0de0d1036368149310a3"
+    },
+    {
+      "path": "verification/local/fieldlog-entry-date-r780/source/Sources/FieldLogAndroid/PublicFactory.swift",
+      "bytes": 47712,
+      "sha256": "79e80ab48e362bb9367e68a4e753205e2ee18a5bd9729f337926efd3b6a5ea81"
+    },
+    {
+      "path": "verification/local/fieldlog-entry-date-r780/source/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift",
+      "bytes": 12666,
+      "sha256": "1de947c01c6a00150e78559f82c5172ab69da552c8a4d405b0e0dd1123725f65"
+    },
+    {
+      "path": "verification/local/fieldlog-entry-date-r780/artifacts/android-build-receipt.json",
+      "bytes": 2588401,
+      "sha256": "9b7db38101fa6ddaceee3a170d936baa769fcd7ec41f1332d87acee661d8af3e"
+    }
+  ],
+  "cleanup": {
+    "all_recorded_new_groups_positively_absent": true,
+    "signals": [],
+    "removed_owned_temporary_paths": [
+      "build",
+      "cache",
+      "config",
+      "security",
+      "mirror",
+      "swift-module-cache",
+      "test-workspace",
+      "runtime-tmp",
+      "test-workspace-r2",
+      "runtime-tmp-r2",
+      "runtime-tmp-android",
+      "android-swift-cache",
+      "FieldLogGenerated",
+      "source/.swiftpm"
+    ],
+    "historical_holds_untouched": true,
+    "details": "verification/local/fieldlog-entry-date-r780/cleanup.json"
+  },
+  "pending": [
+    "Root independent review",
+    "Root serialized native acceptance using delivered APK and action IDs",
+    "Native calendar-picker/locale/DST acceptance",
+    "iOS native build/runtime for this slice",
+    "Immutable published-package qualification",
+    "Physical phones (remain disconnected)",
+    "Publication and GA"
+  ],
+  "limits": [
+    "Two agreed app-owned files only; no canonical source/root Git/remotes/providers/credentials/children/devices/signing touched",
+    "No model/schema/Features/iOS/SDK/native API changes",
+    "Unsigned APK build is not installation or device evidence",
+    "No staging; root owns artifact index guard after staging"
+  ],
+  "details": "verification/local/fieldlog-entry-date-r780"
+}
