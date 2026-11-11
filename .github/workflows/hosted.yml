@@ -5,11 +5,19 @@ on:
       - 'hosted/**'
       - 'verification/identity-network-current-source-v5/**'
       - 'verification/identity-network-current-source-v6/**'
+      - 'verification/identity-network-current-source-v7/**'
+      - 'verification/identity-network-current-source-v8/**'
+      - 'verification/identity-network-current-source-v9/**'
+      - 'verification/identity-network-current-source-v10/**'
       - 'services/protocol/testdata/signed-release-v3.json'
       - 'services/protocol/testdata/release-v3-cases.json'
       - '.github/workflows/hosted.yml'
       - 'console/src/api/**'
       - 'console/src/domain/workspace-directory.ts'
+      - 'console/src/domain/build-overview.ts'
+      - 'console/src/domain/build-read.ts'
+      - 'console/tests/cookie-build-client.test.mjs'
+      - 'console/tsconfig.json'
       - 'console/src/api/browser-session-client.ts'
       - 'console/src/state/browser-session-controller.ts'
       - 'console/src/state/workspace-controller.ts'
@@ -22,11 +30,19 @@ on:
       - 'hosted/**'
       - 'verification/identity-network-current-source-v5/**'
       - 'verification/identity-network-current-source-v6/**'
+      - 'verification/identity-network-current-source-v7/**'
+      - 'verification/identity-network-current-source-v8/**'
+      - 'verification/identity-network-current-source-v9/**'
+      - 'verification/identity-network-current-source-v10/**'
       - 'services/protocol/testdata/signed-release-v3.json'
       - 'services/protocol/testdata/release-v3-cases.json'
       - '.github/workflows/hosted.yml'
       - 'console/src/api/**'
       - 'console/src/domain/workspace-directory.ts'
+      - 'console/src/domain/build-overview.ts'
+      - 'console/src/domain/build-read.ts'
+      - 'console/tests/cookie-build-client.test.mjs'
+      - 'console/tsconfig.json'
       - 'console/src/api/browser-session-client.ts'
       - 'console/src/state/browser-session-controller.ts'
       - 'console/src/state/workspace-controller.ts'
@@ -53,6 +69,11 @@ jobs:
             /services/protocol/testdata/signed-release-v3.json
             /services/protocol/testdata/release-v3-cases.json
             /console/package.json
+            /console/tsconfig.json
+            /console/tests/cookie-build-client.test.mjs
+            /console/src/api/cookie-build-client.ts
+            /console/src/domain/build-read.ts
+            /console/src/domain/build-overview.ts
             /console/package-lock.json
             /console/src/api/workspace-client.ts
             /console/src/api/workspace-transport.ts
@@ -89,13 +110,15 @@ jobs:
           npm --version
           npm ci --ignore-scripts --no-audit --no-fund
           node node_modules/typescript/bin/tsc --version
-          node node_modules/typescript/bin/tsc src/api/workspace-client.ts src/api/browser-session-client.ts src/state/browser-session-controller.ts \
+          node node_modules/typescript/bin/tsc src/api/workspace-client.ts src/api/browser-session-client.ts src/state/browser-session-controller.ts src/api/cookie-build-client.ts \
             --target ES2022 --module ES2022 --moduleResolution bundler \
             --strict --skipLibCheck --lib ES2022,DOM \
             --outDir "$RUNNER_TEMP/workspace-client"
           cp ../verification/hosted-customer-workspace-http-integration/node-client-driver.mjs \
             "$RUNNER_TEMP/workspace-client/driver.mjs"
           cp ../hosted/test/support/browser_read_client.mjs "$RUNNER_TEMP/workspace-client/browser-read-driver.mjs"
+          cp ../hosted/test/support/browser_build_client.mjs "$RUNNER_TEMP/workspace-client/browser-build-driver.mjs"
+          printf 'MIXER_BROWSER_BUILD_NODE_DRIVER=%s/browser-build-driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"
           printf 'MIXER_BROWSER_READ_NODE_DRIVER=%s/browser-read-driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"
           printf '%s\n' '{"type":"module"}' > "$RUNNER_TEMP/workspace-client/package.json"
           printf 'MIXER_WORKSPACE_HTTP_NODE_DRIVER=%s/driver.mjs\n' "$RUNNER_TEMP/workspace-client" >> "$GITHUB_ENV"

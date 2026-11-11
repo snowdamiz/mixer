@@ -72,7 +72,11 @@ defmodule R686.Provider do
           "iat" => now - 1,
           "exp" => now + if(s.mode === :short, do: 2, else: 120),
           "jti" => Protocol.random_token(),
-          "scope" => "mixer.workspace.read"
+          "scope" =>
+            if(s.mode == :no_build_scope,
+              do: "mixer.workspace.read",
+              else: String.replace(v["scope"], "openid ", "")
+            )
         }
 
         access = sign(s.key, claims, "at+jwt")
@@ -229,6 +233,17 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
       log: false
     ]
 
+    previous_admin = Application.fetch_env(:browser_storage_fixture, Admin)
+
+    on_exit(fn ->
+      case previous_admin do
+        {:ok, value} -> Application.put_env(:browser_storage_fixture, Admin, value)
+        :error -> Application.delete_env(:browser_storage_fixture, Admin)
+      end
+    end)
+
+    Application.put_env(:browser_storage_fixture, Admin, settings ++ [username: "browser_admin"])
+
     start_supervised!({Admin, settings ++ [username: "browser_admin"]})
 
     start_supervised!(
@@ -347,7 +362,7 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
       "client_auth_method" => "client_secret_basic",
       "client_credential_ref" => "secret://fixture/client",
       "session_vault_ref" => "vault://fixture/browser",
-      "scope" => "openid mixer.workspace.read",
+      "scope" => "openid mixer.workspace.read mixer.build.read",
       "response_mode" => "query",
       "response_iss_required" => true
     }
@@ -376,7 +391,9 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
         key_bytes: :crypto.strong_rand_bytes(32)
       })
 
-    ordinary = Keyword.put(settings, :username, "browser_ordinary")
+    ordinary =
+      settings |> Keyword.put(:username, "browser_ordinary") |> Keyword.put(:pool_size, 1)
+
     previous_repo = Application.fetch_env(:mixer_hosted, MixerHosted.Repo)
 
     on_exit(fn ->
@@ -455,6 +472,32 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
         do: Postgrex.query!(conn, sql, [])
 
     GenServer.stop(conn)
+
+    unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
+      do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
+
+    :ok =
+      Ecto.Migrator.up(
+        Migration,
+        20_261_025_000_000,
+        MixerHosted.Repo.Migrations.AddBuildJournals,
+        log: false
+      )
+
+    :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
+    F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
+
+    F.q!(
+      Migration,
+      "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
+    )
+
+    F.q!(
+      Migration,
+      "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
+    )
+
+    start_supervised!({Oban, repo: Admin, queues: false, plugins: false, testing: :manual})
     now = System.system_time(:second)
     {:ok, snapshot} = TrustSnapshot.new(profile, jwks, now, now + 300)
     provider = start_supervised!({R686.Provider, %{key: key, wrong_key: wrong, config: config}})
@@ -477,6 +520,11 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
     F.q!(
       Admin,
       "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+    )
+
+    F.q!(
+      Admin,
+      "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
     )
 
     F.q!(
@@ -682,6 +730,295 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
     assert String.starts_with?(callback, c.config.redirect_uri <> "?")
     query = URI.parse(callback).query
     %{headers: headers(p.cookie), query: query, cookie: p.cookie}
+  end
+
+  defp compiled_build_read(c, selected, cookie, phase, wire) do
+    [values] =
+      F.q!(
+        Admin,
+        "SELECT organization_id,project_id,application_id,build_id,platform,request_key,revision,journal FROM public.mixer_builds"
+      ).rows
+
+    record =
+      Map.new(
+        Enum.zip(
+          ~w(organization_id project_id application_id build_id platform request_key revision journal)a,
+          values
+        )
+      )
+
+    assert {:ok, projected} = MixerHosted.CustomerBuilds.Snapshot.project(record, selected)
+    expected = projected |> Jason.encode!() |> Jason.decode!()
+    assert expected === wire
+    assert {:ok, restored} = MixerHosted.Builds.Journal.restore(record.journal)
+    assert {:ok, status} = MixerHosted.Builds.Lifecycle.customer_status(restored)
+    assert wire["attempt"] === status.attempt
+    assert wire["maxAttempts"] === status.max_attempts
+    assert wire["state"] === Atom.to_string(status.state)
+    assert wire["revision"] === length(record.journal["events"])
+
+    fixture =
+      Path.join(
+        System.tmp_dir!(),
+        "browser-build-client-" <>
+          Base.url_encode64(:crypto.strong_rand_bytes(12), padding: false) <> ".json"
+      )
+
+    File.write!(
+      fixture,
+      Jason.encode!(%{port: c.http_port, cookie: cookie, dto: expected, phase: phase})
+    )
+
+    try do
+      {out, code} =
+        System.cmd("node", [System.fetch_env!("MIXER_BROWSER_BUILD_NODE_DRIVER"), fixture],
+          stderr_to_stdout: true
+        )
+
+      assert code == 0, out
+      assert out =~ ~s("status":"PASS"), out
+    after
+      File.rm!(fixture)
+    end
+  end
+
+  defp build_selection do
+    %{
+      organization_id: "org-a",
+      project_id: "project-a",
+      application_id: "fieldlog",
+      build_id: "build-a",
+      platform: "ios",
+      source_sha256: String.duplicate("a", 64),
+      toolchain_lock_sha256: String.duplicate("b", 64),
+      build_definition_sha256: String.duplicate("c", 64)
+    }
+  end
+
+  defp build_path(selection), do: "/console-api/v1/builds?" <> URI.encode_query(selection)
+
+  defp create_build do
+    s = build_selection()
+
+    spec =
+      Map.take(s, [:organization_id, :project_id, :application_id, :build_id])
+      |> Map.merge(%{
+        platform: :ios,
+        source: %{kind: :revision, sha256: s.source_sha256, reference: "immutable-test-revision"},
+        toolchain_lock_sha256: s.toolchain_lock_sha256,
+        build_definition_sha256: s.build_definition_sha256
+      })
+
+    multi =
+      MixerHosted.Builds.Storage.create_multi(
+        Ecto.Multi.new(),
+        :build,
+        spec,
+        %{max_attempts: 2, timeout_ms: 100, retry_backoff_ms: 0},
+        "r1104-build",
+        0,
+        &MixerHosted.Builds.Coordinator.new/1
+      )
+
+    assert {:ok, _} = Admin.transaction(multi)
+    s
+  end
+
+  @tag :r1104
+  test "R1104 genuine PKCE cookie admits exact queued and terminal build then closed refusals",
+       c do
+    selected = create_build()
+
+    [[false, false, false]] =
+      F.q!(
+        MixerHosted.Repo,
+        "SELECT rolsuper,rolbypassrls,has_table_privilege(current_user,'public.mixer_builds','SELECT') FROM pg_roles WHERE rolname=current_user"
+      ).rows
+
+    p = bootstrap_http(c)
+    login = begin_http(c, p)
+    response = http(c, "/auth/callback?" <> login.query, login.headers)
+    assert response.status == 303
+    cookie = response_cookie(response)
+    hs = headers(cookie)
+    assert cookie != p.cookie
+
+    before =
+      F.q!(
+        Admin,
+        "SELECT (SELECT count(*) FROM public.oban_jobs),(SELECT count(*) FROM public.mixer_builds)"
+      ).rows
+
+    r = http(c, build_path(selected), hs)
+    assert r.status == 200, inspect(r)
+    dto = Jason.decode!(r.body)["build"]
+    assert map_size(dto) == 14
+    assert dto["state"] == "queued" and dto["revision"] == 0
+
+    for {wire, key} <- [
+          {"organizationId", :organization_id},
+          {"projectId", :project_id},
+          {"applicationId", :application_id},
+          {"buildId", :build_id},
+          {"platform", :platform},
+          {"sourceSha256", :source_sha256},
+          {"toolchainLockSha256", :toolchain_lock_sha256},
+          {"buildDefinitionSha256", :build_definition_sha256}
+        ],
+        do: assert(dto[wire] == selected[key])
+
+    assert response_header(r, "cache-control") == ["no-store"]
+    assert response_header(r, "set-cookie") == []
+    assert [id] = response_header(r, "x-request-id")
+    assert byte_size(id) == 32
+
+    assert F.q!(
+             Admin,
+             "SELECT (SELECT count(*) FROM public.oban_jobs),(SELECT count(*) FROM public.mixer_builds)"
+           ).rows == before
+
+    leases_clean()
+
+    File.write!(
+      System.fetch_env!("R1104_POSITIVE"),
+      Jason.encode!(%{
+        queued: dto,
+        rotated_cookie: true,
+        actual_HTTP: true,
+        ordinary_role: "browser_ordinary",
+        direct_build_select: false,
+        no_read_job_or_row_insert: true
+      })
+    )
+
+    IO.puts("R1104_FIRST_GENUINE_HTTP_GATE_PASS queued exact DTO cookie-only")
+    compiled_build_read(c, selected, cookie, "queued", dto)
+
+    [[journal]] = F.q!(Admin, "SELECT journal FROM public.mixer_builds").rows
+    assert {:ok, build} = MixerHosted.Builds.Journal.restore(journal)
+    assert {:ok, ref} = MixerHosted.Builds.Lifecycle.worker_ref(build)
+
+    assert {:ok, running, _, :applied} =
+             MixerHosted.Builds.Journal.append(journal, "start", %{type: :start, ref: ref}, 1)
+
+    assert {:ok, terminal, _, :applied} =
+             MixerHosted.Builds.Journal.append(
+               running,
+               "fail",
+               %{
+                 type: :completed,
+                 ref: ref,
+                 result: %{
+                   outcome: :failed,
+                   class: :compiler,
+                   code: :compiler_error,
+                   diagnostic_sha256: String.duplicate("d", 64)
+                 }
+               },
+               2
+             )
+
+    F.q!(Admin, "UPDATE public.mixer_builds SET journal=$1,revision=2", [terminal])
+    result = http(c, build_path(selected), hs)
+    assert result.status == 200
+    assert Jason.decode!(result.body)["build"]["state"] == "failed"
+    assert Jason.decode!(result.body)["build"]["failureCode"] == "compiler_error"
+    compiled_build_read(c, selected, cookie, "terminal", Jason.decode!(result.body)["build"])
+    assert http(c, "/auth/session", hs).status == 200
+    assert http(c, "/console-api/v1/orgs?limit=1", hs).status == 200
+    assert http(c, "/console-api/v1/projects?organization_id=org-a&limit=1", hs).status == 200
+
+    for {key, value} <- [
+          organization_id: "org-b",
+          project_id: "project-b",
+          application_id: "other",
+          build_id: "other",
+          platform: "android",
+          source_sha256: String.duplicate("e", 64),
+          toolchain_lock_sha256: String.duplicate("e", 64),
+          build_definition_sha256: String.duplicate("e", 64)
+        ] do
+      bad = http(c, build_path(Map.put(selected, key, value)), hs)
+      assert bad.status in [403, 404], inspect({key, bad})
+      refute Map.has_key?(Jason.decode!(bad.body), "build")
+    end
+
+    path = build_path(selected)
+
+    for bad <- [
+          path <> "&build_id=build-a",
+          path <> "&authority=true",
+          String.replace(path, "build_id=build-a", "build_id=%GG"),
+          String.replace(path, "build_id=build-a", "build_id=%2f"),
+          String.replace(path, "build_id=build-a", "%62uild_id=build-a")
+        ] do
+      assert http(c, bad, hs).status == 400
+    end
+
+    assert http(c, path, hs ++ hs).status == 400
+    assert http(c, path, hs ++ [{"authorization", "Bearer fake"}]).status == 400
+    assert http(c, path, hs ++ [{"content-length", "1"}], "GET", "x").status == 400
+    assert http(c, path, hs, "POST").status == 404
+
+    assert http(c, "/v3/orgs/org-a/projects/project-a/apps/fieldlog/builds/build-a/ios", hs).status ==
+             404
+
+    F.q!(Admin, "UPDATE public.mixer_authz_memberships SET active=false WHERE id='member-a'")
+    assert http(c, path, hs).status in [403, 404]
+    F.q!(Admin, "UPDATE public.mixer_authz_memberships SET active=true WHERE id='member-a'")
+    assert http(c, path, hs).status == 200
+    F.q!(Admin, "UPDATE public.mixer_authz_credentials SET active=false")
+    assert http(c, path, hs).status == 503
+    F.q!(Admin, "UPDATE public.mixer_authz_credentials SET active=true")
+    F.q!(Admin, "UPDATE public.mixer_authz_families SET active=false")
+    assert http(c, path, hs).status == 503
+    F.q!(Admin, "UPDATE public.mixer_authz_families SET active=true")
+    assert http(c, path, hs).status == 200
+    leases_clean()
+
+    GenServer.call(c.provider, {:mode, :no_build_scope})
+    next = bootstrap_http(c)
+    second = begin_http(c, next)
+    missing = http(c, "/auth/callback?" <> second.query, second.headers)
+    assert missing.status == 303
+    missing_cookie = response_cookie(missing)
+    assert http(c, path, headers(missing_cookie)).status == 403
+    assert http(c, "/auth/session", headers(missing_cookie)).status == 200
+    GenServer.call(c.provider, {:mode, :ok})
+    leases_clean()
+    stop_supervised!(RuntimeOwner)
+    assert http(c, path, hs).status == 503
+
+    start_supervised!(
+      {RuntimeOwner,
+       %RuntimeConfig{
+         mode: :disabled,
+         browser_config: nil,
+         configuration_digest: nil,
+         lifecycle_repo: nil,
+         expected_roles: nil,
+         custody: nil
+       }}
+    )
+
+    assert http(c, path, hs).status == 503
+
+    File.write!(
+      System.fetch_env!("R1104_CONTROLS"),
+      Jason.encode!(%{
+        terminal: true,
+        eight_selection_refusals: true,
+        raw_duplicates: true,
+        malformed_query: true,
+        no_build_scope: true,
+        revoked_credential: true,
+        revoked_family: true,
+        revoked_membership: true,
+        existing_reads: true,
+        missing_disabled_runtime: true,
+        leases_clean: true
+      })
+    )
   end
 
   test "raw HTTP bootstrap PKCE callback rotates cookie then unchanged client reads", c do

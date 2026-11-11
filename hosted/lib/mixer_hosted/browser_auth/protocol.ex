@@ -48,7 +48,12 @@ defmodule MixerHosted.BrowserAuth.Protocol do
         values
       )
       when is_map(values) and is_binary(endpoint) and is_binary(client) and is_binary(redirect) do
-    with true <- map_size(values) == 3,
+    with true <-
+           config.scope in [
+             "openid mixer.workspace.read",
+             "openid mixer.workspace.read mixer.build.read"
+           ],
+         true <- map_size(values) == 3,
          %{state: state, nonce: nonce, verifier: verifier} <- values,
          true <- token?(state) and token?(nonce),
          {:ok, challenge} <- pkce_challenge(verifier) do
@@ -58,7 +63,7 @@ defmodule MixerHosted.BrowserAuth.Protocol do
           {"response_mode", "query"},
           {"client_id", config.client_id},
           {"redirect_uri", config.redirect_uri},
-          {"scope", "openid mixer.workspace.read"},
+          {"scope", config.scope},
           {"state", state},
           {"nonce", nonce},
           {"code_challenge", challenge},

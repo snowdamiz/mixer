@@ -1,0 +1,410 @@
+{
+  "campaign": "guest-private-deadline-r1132",
+  "status": "STOP_ACTUAL_GATE_INCOMPLETE_NO_RETRY",
+  "startedUnix": 1794419963.0,
+  "deadlineUnix": 1794420923.0,
+  "cleanupReserveSeconds": 45,
+  "bounds": {
+    "Rust": 1,
+    "pure": 1,
+    "guest": 1,
+    "native": 0,
+    "Wasm": 0,
+    "jobs": 3,
+    "cumulativeNamedRustLaunchAttempts": 24
+  },
+  "commands": [
+    {
+      "label": "rust-build",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "3",
+        "--example",
+        "r850-guest",
+        "--example",
+        "r1132_budget_probe",
+        "--features",
+        "experimental-swift-reactor,experimental-guest-ui-v2-native,r1132-private-deadline60",
+        "--target-dir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/target-private",
+        "--message-format=json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/source/vm",
+      "environmentSHA256": "862374c09b016e82c2fba54de1e29383f0721c27a82b842ab3035586292ecce4",
+      "controlledEnvironment": {
+        "PATH": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin:/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin:/Applications/Xcode_26.6.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
+        "TOOLCHAINS": "org.swift.633202606251a",
+        "SDKROOT": null,
+        "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/tmp/",
+        "CLANG_MODULE_CACHE_PATH": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/clang-module-cache",
+        "SWIFTPM_MODULECACHE_OVERRIDE": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/swift-module-cache"
+      },
+      "pid": 6870,
+      "pgid": 6870,
+      "state": "REAP_EOF_CLOSED_BEFORE_KILLPG0",
+      "maxSeconds": 180,
+      "gate": "inherited pipe; Python gate os.execvpe only after release byte",
+      "identityBeforeExecGate": true,
+      "exitCode": 0,
+      "directReaped": true,
+      "bothEOF": true,
+      "seconds": 8.85900295805186,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true,
+      "custody": "TERMINAL_OBSERVED"
+    },
+    {
+      "label": "pure-budget-control",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/target-private/release/examples/r1132_budget_probe"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132",
+      "environmentSHA256": "862374c09b016e82c2fba54de1e29383f0721c27a82b842ab3035586292ecce4",
+      "controlledEnvironment": {
+        "PATH": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin:/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin:/Applications/Xcode_26.6.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
+        "TOOLCHAINS": "org.swift.633202606251a",
+        "SDKROOT": null,
+        "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/tmp/",
+        "CLANG_MODULE_CACHE_PATH": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/clang-module-cache",
+        "SWIFTPM_MODULECACHE_OVERRIDE": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/swift-module-cache"
+      },
+      "pid": 7302,
+      "pgid": 7302,
+      "state": "REAP_EOF_CLOSED_BEFORE_KILLPG0",
+      "maxSeconds": 15,
+      "gate": "inherited pipe; Python gate os.execvpe only after release byte",
+      "identityBeforeExecGate": true,
+      "exitCode": 0,
+      "directReaped": true,
+      "bothEOF": true,
+      "seconds": 0.106487707933411,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true,
+      "custody": "TERMINAL_OBSERVED"
+    },
+    {
+      "label": "actual-original-guest",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/target-private/release/examples/r850-guest"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132",
+      "environmentSHA256": "754a78aa1be5cc3ec1fd83881498bf5fbfd5bad38db3286942dd2789f45ed591",
+      "controlledEnvironment": {
+        "PATH": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin:/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin:/Applications/Xcode_26.6.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
+        "TOOLCHAINS": "org.swift.633202606251a",
+        "SDKROOT": null,
+        "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/tmp/",
+        "CLANG_MODULE_CACHE_PATH": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/clang-module-cache",
+        "SWIFTPM_MODULECACHE_OVERRIDE": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/swift-module-cache"
+      },
+      "pid": 7303,
+      "pgid": 7303,
+      "state": "REAP_EOF_CLOSED_BEFORE_KILLPG0",
+      "maxSeconds": 100,
+      "gate": "inherited pipe; Python gate os.execvpe only after release byte",
+      "identityBeforeExecGate": true,
+      "exitCode": 2,
+      "directReaped": true,
+      "bothEOF": true,
+      "seconds": 38.778220499982126,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true,
+      "custody": "TERMINAL_OBSERVED"
+    }
+  ],
+  "GA": false,
+  "adoption": false,
+  "heldAccess": false,
+  "tools": {
+    "cargo": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "size": 32181448,
+      "exists": true,
+      "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+    },
+    "rustc": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "size": 413480,
+      "exists": true,
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+    }
+  },
+  "baselineTree": "24063ea30ed552b024886b701d2a7c856a033e071b1a332b7ec0fb12b5b70629",
+  "baselineSourceFiles": 153,
+  "original30Gate": "FAILED_PRESERVED",
+  "metadataCorrection": {
+    "originalAnalysis": 120000,
+    "correctRunDeadlineMS": 30000,
+    "reason": "Original parser selected nested validation deadline instead of first Run usage deadline; corrected from same terminal output, no rerun"
+  },
+  "preflight": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-private-deadline-r1132/preflight.json",
+  "contractApproval": "Root approved closed paired60s; default admission unchanged; selected private+nondefault WASI refuses",
+  "applicationMapSHA256": "b4566596db3b9d2b250bee633144f24196e1d761245d0f5dafd068714fe47371",
+  "proposedPatchSHA256": "d5c3832a7dd83035fddbd94db8fd8f8a907bc8984b68fbe89ebd4e221d24c281",
+  "sourceTreeSHA256": "2a1e5ba87ff7564fa01913d1c08e910249d09f8a0d6d072477c44d958089aa0f",
+  "sourceFiles": 154,
+  "reusedNative": {
+    "total": 263,
+    "retained": 258,
+    "differential": 5
+  },
+  "hostPhaseMeter": false,
+  "guestPhaseMarkers": true,
+  "speedupClaim": false,
+  "defaultAccountingQualification": false,
+  "ordinaryDynamicRun60Admission": "UNRUN",
+  "privateNondefaultWasiDynamicRefusal": "UNRUN",
+  "earlierDeadlineCancellationDynamicControls": "UNRUN",
+  "originalHarnessSHA256": "5d4ac3cf9238047540f384e2aa740bb828e2960f2e2639be9617bbaa63bf7fc5",
+  "build": {
+    "engineSHA256": "149dda27ca5be1c1d962525845e86653cfc36b41c5a921db1f13900e13aeeab8",
+    "engineBytes": 1059936,
+    "probeSHA256": "06ee59e995cae5429e2810d53b7c0eb08d2882b59625596d4f947353d1f4d37b",
+    "features": [
+      "default",
+      "experimental-capability-guest",
+      "experimental-capability-mailbox",
+      "experimental-capability-native",
+      "experimental-guest-ui-v2-native",
+      "experimental-stream-validation",
+      "experimental-swift-reactor",
+      "experimental-swift-wasi",
+      "r1132-private-deadline60",
+      "r682-ticket-resident-256",
+      "r720-ticket-resident-512",
+      "r734-ticket-resident-1024",
+      "r746-private-index1024",
+      "r760-private-fuel200m",
+      "r850-copy-first-growth",
+      "r890-private-direct-ordinal",
+      "r930-private-reserved-linear"
+    ],
+    "profile": {
+      "opt_level": "3",
+      "debuginfo": 0,
+      "debug_assertions": false,
+      "overflow_checks": true,
+      "test": false
+    },
+    "artifactInvocations": 1
+  },
+  "pureControls": {
+    "exitCode": 0,
+    "stdout": "R1132_PURE default_run_ms=30000 default_wasi_ms=30000 public_wasi60_refused=true private_run_ms=60000 private_wasi_ms=60000 all_other_fields_exact=true owner_constructed=false ordinary_run_dynamic_admission=UNRUN layout=8/664/8\nR1132_PRIVATE_RUN SwiftRunBudget { source_bytes: 67108864, metadata_bytes: 16777216, cache_bytes: 16777216, cache_entry_bytes: 8388608, cache_entries: 1024, active_pins: 128, cache_work: 64000000, frames: 128, values: 16384, controls: 4096, memory_pages: 768, state_bytes: 134217728, combined_bytes: 268435456, instruction_fuel: 200000000, execution_work: 1000000000, host_calls: 32768, deadline_ms: 60000 } PRIVATE_WASI WasiBudget { calls: 32768, transfer_bytes: 4194304, work: 32000000, one_transfer_bytes: 65536, iovecs: 64, log_bytes: 65536, deadline_ms: 60000 }\n",
+    "stderr": "",
+    "ownerConstructed": false
+  },
+  "payloadExit": 2,
+  "documents": [
+    {
+      "turn": 1,
+      "bytes": 1101
+    },
+    {
+      "turn": 2,
+      "bytes": 1163
+    },
+    {
+      "turn": 3,
+      "bytes": 1159
+    },
+    {
+      "turn": 4,
+      "bytes": 1159
+    },
+    {
+      "turn": 5,
+      "bytes": 1163
+    },
+    {
+      "turn": 6,
+      "bytes": 134434
+    }
+  ],
+  "ready": [
+    3
+  ],
+  "guards": {
+    "STRICT_TABLE_MEMORY_V3_REFUSAL": true,
+    "CURRENT_REFUSAL": true,
+    "UNCALLED_INVALID_BODY_REJECTED": true,
+    "WRONG_FIXED_UI_EXPORT_REFUSED": true,
+    "UNKNOWN_IMPORT_REFUSED": true
+  },
+  "consumingCleanup": {
+    "currentFields": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "all14Zero": true,
+    "liveTicketsZero": true,
+    "cleanupInvariantNone": true
+  },
+  "succeeded": false,
+  "fullPublicSequence": false,
+  "actualLines": [
+    "ACTUAL_UI_STARTUP failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_STARTUP_DOCUMENT bytes=1079",
+    "ACTUAL_UI_EVENT turn=1 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=1 native_byte_equal=true bytes=1101",
+    "ACTUAL_UI_EVENT turn=2 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=2 native_byte_equal=true bytes=1163",
+    "ACTUAL_UI_EVENT turn=3 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=3 native_byte_equal=true bytes=1159",
+    "ACTUAL_UI_READY after=3 failure=None cleaned=true",
+    "ACTUAL_UI_EVENT turn=4 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=4 native_byte_equal=true bytes=1159",
+    "ACTUAL_UI_EVENT turn=5 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=5 native_byte_equal=true bytes=1163",
+    "ACTUAL_UI_EVENT turn=6 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=6 native_byte_equal=true bytes=134434",
+    "ACTUAL_UI_EVENT turn=7 failure=Some(SwiftRunFailure { stage: Invocation, kind: FuelExhausted, code: \"swift_run_fuel\", function: Some(4714), offset: Some(1339868), resource: Some(InstructionFuel), attempted: 200000001, limit: 200000000, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 54955647, peak: 54955647 }, retained_metadata: SwiftReservationUsage { current: 1091788, peak: 1091788 }, cache: SwiftReservationUsage { current: 7953959, peak: 8005300 }, state: SwiftReservationUsage { current: 57692200, peak: 57692200 }, wasi: SwiftReservationUsage { current: 264680, peak: 264680 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 16118824, peak: 16248638 }, combined: SwiftReservationUsage { current: 138078842, peak: 138259997 }, live_tickets: 1045, peak_tickets: 1045 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 1024, peak: 1024 }, active_pins: SwiftReservationUsage { current: 11, peak: 61 }, frames: SwiftReservationUsage { current: 11, peak: 61 }, values: SwiftReservationUsage { current: 190, peak: 769 }, controls: SwiftReservationUsage { current: 107, peak: 329 }, memory_pages: SwiftReservationUsage { current: 632, peak: 632 } }, cache_work: 18023345, execution_work: 662867474, instruction_fuel: 200000000, instructions: 199757494, host_calls: 215, cleanup_invariant: None, elapsed_micros: 37399100, deadline_ms: 60000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 54955647, source_bytes: 54955647, metadata_reserved: 1091788, scratch_reserved: 0, metadata_peak_reserved: 1091788, scratch_peak_reserved: 13312, total_peak_reserved: 56060747, work_used: 193732340, elapsed_micros: 561705, deadline_ms: 120000 }, wasi: Some(WasiUsage { calls: 215, work: 47492, transfer_bytes: 5538, r",
+    "R562_GUEST_SUCCEEDED false"
+  ],
+  "lastUsage": {
+    "cache_work": 18023345,
+    "execution_work": 662867474,
+    "instruction_fuel": 200000000,
+    "instructions": 199757494,
+    "host_calls": 215,
+    "deadline_ms": 60000
+  },
+  "primaryFailure": "ACTUAL_UI_EVENT turn=7 failure=Some(SwiftRunFailure { stage: Invocation, kind: FuelExhausted, code: \"swift_run_fuel\", function: Some(4714), offset: Some(1339868), resource: Some(InstructionFuel), attempted: 200000001, limit: 200000000, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 54955647, peak: 54955647 }, retained_metadata: SwiftReservationUsage { current: 1091788, peak: 1091788 }, cache: SwiftReservationUsage { current: 7953959, peak: 8005300 }, state: SwiftReservationUsage { current: 57692200, peak: 57692200 }, wasi: SwiftReservationUsage { current: 264680, peak: 264680 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 16118824, peak: 16248638 }, combined: SwiftReservationUsage { current: 138078842, peak: 138259997 }, live_tickets: 1045, peak_tickets: 1045 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 1024, peak: 1024 }, active_pins: SwiftReservationUsage { current: 11, peak: 61 }, frames: SwiftReservationUsage { current: 11, peak: 61 }, values: SwiftReservationUsage { current: 190, peak: 769 }, controls: SwiftReservationUsage { current: 107, peak: 329 }, memory_pages: SwiftReservationUsage { current: 632, peak: 632 } }, cache_work: 18023345, execution_work: 662867474, instruction_fuel: 200000000, instructions: 199757494, host_calls: 215, cleanup_invariant: None, elapsed_micros: 37399100, deadline_ms: 60000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 54955647, source_bytes: 54955647, metadata_reserved: 1091788, scratch_reserved: 0, metadata_peak_reserved: 1091788, scratch_peak_reserved: 13312, total_peak_reserved: 56060747, work_used: 193732340, elapsed_micros: 561705, deadline_ms: 120000 }, wasi: Some(WasiUsage { calls: 215, work: 47492, transfer_bytes: 5538, random_bytes: 116, log_bytes: 4544, failures: 0, reservations: WasiReservations { fixed_state_bytes: 1600, staging_bytes: 65536, rollback_bytes: 65536, stdout_bytes: 65536, stderr_bytes: 65536, current_bytes: 263744, peak_bytes: 263744 } }) }, after_cleanup: None }) cleaned=true result=None",
+  "allOwnedOSGroupsObservedESRCH": true,
+  "completedUnix": 1794420388.946176,
+  "outerSession": {
+    "session_id": 22757,
+    "state": "COLLECTED_EXIT_2",
+    "recordedUnix": 1794420350.86934,
+    "doNotInferInnerAbsenceFromOuter": true,
+    "collectedUnix": 1794420414.514029
+  },
+  "reviewUnlocked": false,
+  "default30Qualified": false,
+  "productionPolicyUnresolved": true,
+  "elapsedSeconds": 425.9461760520935,
+  "postRunSourceAndInputsExact": true,
+  "furtherExecutions": 0,
+  "fullInternalModelParity": false,
+  "toolVersionsFromSoleBuildCache": [
+    "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n"
+  ],
+  "toolVersionsFreshSeparateProcess": "UNRUN; no extra Cargo/rustc commands",
+  "caps": {
+    "residents": 1024,
+    "tickets": 1046,
+    "policy_buckets": 1024,
+    "fuel": 200000000,
+    "cache_work": 64000000,
+    "cache_bytes": 16777216,
+    "deadline_ms": 60000,
+    "frames": 128,
+    "pins": 128,
+    "execution_work": 1000000000,
+    "combined_bytes": 268435456,
+    "memory_pages": 768,
+    "Frozen_layout": [
+      8,
+      664,
+      8
+    ],
+    "wasi_deadline_ms": 60000,
+    "changeScope": "Only selected private Run and WASI wall deadlines30000->60000; ordinary defaults/check unchanged"
+  },
+  "freshVersusReused": {
+    "fresh": [
+      "153-file source verification",
+      "154-file patched manifest",
+      "normalrelease engine+pureprobe solebatch",
+      "pure default/private/WASI refusal controls",
+      "84210-body actual validation and original negative controls",
+      "one original seven-event sequence attempt through fuel refusal",
+      "consuming cleanup",
+      "3 command custody receipts"
+    ],
+    "reused": [
+      "R1082 native263=258retained+5differential",
+      "R1082B Reactor.wasm and final-body mutant from unheld R1114 artifacts",
+      "14 original event/native oracle files",
+      "R938153-file engine baseline",
+      "R1114 gated inert-finalizer custodian with receipt destination changed"
+    ]
+  },
+  "unrunGates": [
+    "document7 completion",
+    "ready7",
+    "full private acceptance/review unlock",
+    "ordinary dynamic Run60 refusal",
+    "private nondefault WASI dynamic owner refusal",
+    "dynamic earlier deadline/cancellation controls",
+    "default106190 runtime accounting",
+    "native reexecution",
+    "SDK/Wasm recompile",
+    "full internal model/storage parity",
+    "default30 qualification",
+    "adoption",
+    "GA",
+    "W07/W08",
+    "production policy"
+  ],
+  "verificationSourceProof": {
+    "publicWasiModuleExact": true,
+    "defaultRunImplementationExact": true,
+    "ordinaryAdoptImplementationExact": true,
+    "ordinaryCarryWasiDeadlineExact": true,
+    "ordinaryMaximumOnlyPrivateFuelFeatureBranchChanged": true,
+    "originalExampleExact": true,
+    "postRunManifestAndInputsExact": true,
+    "newStorageOwner": false,
+    "newGlobalInventory": false,
+    "frozenLayout": [
+      8,
+      664,
+      8
+    ],
+    "default106190FormulaSourceUnchanged": true,
+    "privateSelectedPolicy": "Resident1024 is minted only from validated swift-ui-reactor-diagnostic-v2-r562 in existing adoption; exact private budget60 required"
+  },
+  "sourceDelivery": {
+    "baselineManifest": "verification/local/guest-private-deadline-r1132/baseline-manifest.json",
+    "finalManifest": "verification/local/guest-private-deadline-r1132/source-manifest.json",
+    "patch": "verification/local/guest-private-deadline-r1132/proposed.patch",
+    "applicationMap": "verification/local/guest-private-deadline-r1132/application-map.json",
+    "prepareScript": "historical preparation only; final proposed.patch is authoritative; no replay authorized"
+  },
+  "primaryFailureSummary": {
+    "kind": "FuelExhausted",
+    "stage": "Invocation",
+    "turn": 7,
+    "function": 4714,
+    "offset": 1339868,
+    "attempted": 200000001,
+    "limit": 200000000,
+    "elapsedMicros": 37399100,
+    "deadlineMS": 60000,
+    "deadlineOvershootMicros": 0,
+    "cacheWork": 18023345,
+    "executionWork": 662867474,
+    "rawOutput": "verification/local/guest-private-deadline-r1132/logs/actual-original-guest.stdout"
+  }
+}

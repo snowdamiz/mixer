@@ -1,0 +1,347 @@
+{
+  "campaign": "R1114_UNMETERED_ENGINE_ACTUAL",
+  "status": "STOP_ACTUAL_GATE_INCOMPLETE_NO_RETRY",
+  "startedUnix": 1794417303.641807,
+  "deadlineUnix": 1794417453.641807,
+  "cleanupReserveSeconds": 45,
+  "bounds": {
+    "native": 0,
+    "Wasm": 0,
+    "Rust": 0,
+    "guest": 1,
+    "cumulativeNamedRustLaunchAttempts": 23
+  },
+  "commands": [
+    {
+      "label": "actual",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-no-host-meter-r1114/r850-guest"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-no-host-meter-r1114",
+      "environmentSHA256": "9237f85d782d37a8da031772a38a47420a8578a8eb96b4c8f8b3707e470af7c5",
+      "controlledEnvironment": {
+        "PATH": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin:/Applications/Xcode_26.6.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "DEVELOPER_DIR": "/Applications/Xcode_26.6.app/Contents/Developer",
+        "TOOLCHAINS": "org.swift.633202606251a",
+        "SDKROOT": null,
+        "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-no-host-meter-r1114/tmp/",
+        "CLANG_MODULE_CACHE_PATH": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-no-host-meter-r1114/clang-module-cache",
+        "SWIFTPM_MODULECACHE_OVERRIDE": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/guest-no-host-meter-r1114/swift-module-cache"
+      },
+      "pid": 51928,
+      "pgid": 51928,
+      "state": "REAP_EOF_CLOSED_BEFORE_KILLPG0",
+      "maxSeconds": 90,
+      "gate": "inherited pipe; Python gate os.execvpe only after release byte",
+      "identityBeforeExecGate": true,
+      "exitCode": 2,
+      "directReaped": true,
+      "bothEOF": true,
+      "seconds": 31.579956125002354,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true,
+      "custody": "TERMINAL_OBSERVED"
+    }
+  ],
+  "GA": false,
+  "adoption": false,
+  "preflight": {
+    "id": "R1114_UNMETERED_ENGINE_ACTUAL",
+    "premise": "Do the already-compiled normal engine and exact R1082B module complete the original sequence under the same private work and 30s deadlines?",
+    "claimAllowed": "One actual acceptance attempt, no speedup/causality/adoption claim",
+    "normalEngine": {
+      "bytes": 1043136,
+      "sha256": "2e368a94c334ba194cd7d4d5054e2d55047c8a228939981d5df3b4a0d2b0a019",
+      "profile": {
+        "opt_level": "3",
+        "debuginfo": 0,
+        "debug_assertions": false,
+        "overflow_checks": true,
+        "test": false
+      },
+      "features": [
+        "default",
+        "experimental-capability-guest",
+        "experimental-capability-mailbox",
+        "experimental-capability-native",
+        "experimental-guest-ui-v2-native",
+        "experimental-stream-validation",
+        "experimental-swift-reactor",
+        "experimental-swift-wasi",
+        "r682-ticket-resident-256",
+        "r720-ticket-resident-512",
+        "r734-ticket-resident-1024",
+        "r746-private-index1024",
+        "r760-private-fuel200m",
+        "r850-copy-first-growth",
+        "r890-private-direct-ordinal",
+        "r930-private-reserved-linear"
+      ]
+    },
+    "module": {
+      "bytes": 54955647,
+      "sha256": "bc9fec4bf1f54ac0f89808a9261b0ac0d2838fc73ac61950c3fb3af93c232895",
+      "definedBodies": 84210,
+      "imports": 34,
+      "exports": [
+        {
+          "name": "memory",
+          "kind": 2,
+          "index": 0
+        },
+        {
+          "name": "_initialize",
+          "kind": 0,
+          "index": 35
+        },
+        {
+          "name": "mixer_guest_ui_start_v2",
+          "kind": 0,
+          "index": 5353
+        },
+        {
+          "name": "mixer_guest_ui_event_v2",
+          "kind": 0,
+          "index": 5355
+        },
+        {
+          "name": "mixer_guest_capability_ready_v1",
+          "kind": 0,
+          "index": 5358
+        }
+      ],
+      "lastFunction": 84243,
+      "lastBodyMutation": {
+        "offset": 17036934,
+        "before": 11,
+        "after": 255,
+        "sha256": "1cda11c4fa996e8584770db6a5f47379d085b118e6ee7a5b6291a4657bbbcda9"
+      },
+      "completeVMValidation": "PASS",
+      "importDescriptorsExact": true,
+      "exportNamesKindsExact": true,
+      "memorySectionExact": true,
+      "validatedBodies": 84210,
+      "negativeControls": {
+        "STRICT_TABLE_MEMORY_V3_REFUSAL": true,
+        "CURRENT_REFUSAL": true,
+        "UNCALLED_INVALID_BODY_REJECTED": true,
+        "WRONG_FIXED_UI_EXPORT_REFUSED": true,
+        "UNKNOWN_IMPORT_REFUSED": true
+      },
+      "strictDefault159Over128": true,
+      "FrozenLayout": [
+        8,
+        664,
+        8
+      ]
+    },
+    "inputs": [
+      {
+        "path": "artifacts/event-1.json",
+        "bytes": 155,
+        "sha256": "cbb84d39376aa9032b8a6115d53559f725d081454e14b8acee27e11af5f33d32"
+      },
+      {
+        "path": "artifacts/event-2.json",
+        "bytes": 193,
+        "sha256": "02c02fbe7941d32f0b16fab1aff875580be9cf1d0e20c71423ef90b7d8889197"
+      },
+      {
+        "path": "artifacts/event-3.json",
+        "bytes": 128,
+        "sha256": "979faf8ccb03093816c529f8945ac4d515c8b997f8b635cd00e310d200434297"
+      },
+      {
+        "path": "artifacts/event-4.json",
+        "bytes": 119,
+        "sha256": "641e41efb084891b4ed05b8f7a2226d63937f339403588a12e0e575755345838"
+      },
+      {
+        "path": "artifacts/event-5.json",
+        "bytes": 121,
+        "sha256": "c15a823e76529872041cbce00a9bebd0a5aa1aff69d97d26d564206069ecbc23"
+      },
+      {
+        "path": "artifacts/event-6.json",
+        "bytes": 133464,
+        "sha256": "62281ef50f9e43ba772c908f89ad8f7ebbaeda45effd784551283666218f81f4"
+      },
+      {
+        "path": "artifacts/event-7.json",
+        "bytes": 121,
+        "sha256": "8c61e39f574738e8f9d4313e94fb567ac1619fb64ba740e7fd838bdc74e7a268"
+      },
+      {
+        "path": "artifacts/document-1.json",
+        "bytes": 1101,
+        "sha256": "28aa6f6bc2f6505d0d7ef5275e7ccfa45267c67d2155437a6c23933e626bfe26"
+      },
+      {
+        "path": "artifacts/document-2.json",
+        "bytes": 1163,
+        "sha256": "2b71b4053903bc0f770723743ca9e8571684f8eb9f9adf72523eda87e8a0c1f8"
+      },
+      {
+        "path": "artifacts/document-3.json",
+        "bytes": 1159,
+        "sha256": "6d3d5a7a82ee723f6025ba7a3d3789c2eb0e693670ce261b1589cc3c0d4f0604"
+      },
+      {
+        "path": "artifacts/document-4.json",
+        "bytes": 1159,
+        "sha256": "74ef31da39d2021afefafa57b257d7b1a7229c899a6966f4d8619e4ada96e73f"
+      },
+      {
+        "path": "artifacts/document-5.json",
+        "bytes": 1163,
+        "sha256": "605c0e47ed019a9e85f601c310c5c66717fa464f4aee5f4999ef4c3ac4f39d26"
+      },
+      {
+        "path": "artifacts/document-6.json",
+        "bytes": 134434,
+        "sha256": "18fe937b0d5a0a9394ec169db5067e079e45346a18233c881962046c7ae9015d"
+      },
+      {
+        "path": "artifacts/document-7.json",
+        "bytes": 134430,
+        "sha256": "f41e57c032b5e8daa874a2e40979adf74ae30380da48caffc64617892a7d2bed"
+      }
+    ],
+    "caps": {
+      "residents": 1024,
+      "tickets": 1046,
+      "policy_buckets": 1024,
+      "fuel": 200000000,
+      "cache_work": 64000000,
+      "cache_bytes": 16777216,
+      "deadline_ms": 30000,
+      "frames": 128,
+      "pins": 128,
+      "execution_work": 1000000000,
+      "combined_bytes": 268435456,
+      "memory_pages": 768,
+      "Frozen_layout": [
+        8,
+        664,
+        8
+      ]
+    },
+    "expectedNativeRetained": 258,
+    "nativeNew": 5,
+    "sourceChanges": 0,
+    "RustBuilds": 0,
+    "SDKWasmNativeBuilds": 0,
+    "payloadBound": 1,
+    "cumulativeRustAttempts": 23,
+    "deadlineHypothesis60s": "NOT IMPLEMENTED: both run and WASI enforce30s; no cap change selected",
+    "scope": "private diagnostic; defaults and canonical untouched",
+    "holdsReleased": false
+  },
+  "documents": [
+    {
+      "turn": 1,
+      "bytes": 1101
+    },
+    {
+      "turn": 2,
+      "bytes": 1163
+    },
+    {
+      "turn": 3,
+      "bytes": 1159
+    },
+    {
+      "turn": 4,
+      "bytes": 1159
+    },
+    {
+      "turn": 5,
+      "bytes": 1163
+    },
+    {
+      "turn": 6,
+      "bytes": 134434
+    }
+  ],
+  "ready": [
+    3
+  ],
+  "guards": {
+    "STRICT_TABLE_MEMORY_V3_REFUSAL": true,
+    "CURRENT_REFUSAL": true,
+    "UNCALLED_INVALID_BODY_REJECTED": true,
+    "WRONG_FIXED_UI_EXPORT_REFUSED": true,
+    "UNKNOWN_IMPORT_REFUSED": true
+  },
+  "consumingCleanup": {
+    "currentFields": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "liveTicketsZero": true,
+    "all14Zero": true
+  },
+  "payloadExit": 2,
+  "succeeded": false,
+  "fullPublicSequence": false,
+  "nativeEvidence": "R1082 258 retained plus5 differential; reused exact module bc9fec4b",
+  "normalEngineSHA256": "2e368a94c334ba194cd7d4d5054e2d55047c8a228939981d5df3b4a0d2b0a019",
+  "sourceChanges": 0,
+  "SDKWasmRustBuilds": 0,
+  "hostPhaseMeter": false,
+  "guestPhaseMarkers": true,
+  "defaultAccountingQualification": "UNMEASURED; no106190 control",
+  "speedupClaim": false,
+  "fullInternalModelParity": false,
+  "completedUnix": 1794417335.3329248,
+  "actualLines": [
+    "ACTUAL_UI_STARTUP failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_STARTUP_DOCUMENT bytes=1079",
+    "ACTUAL_UI_EVENT turn=1 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=1 native_byte_equal=true bytes=1101",
+    "ACTUAL_UI_EVENT turn=2 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=2 native_byte_equal=true bytes=1163",
+    "ACTUAL_UI_EVENT turn=3 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=3 native_byte_equal=true bytes=1159",
+    "ACTUAL_UI_READY after=3 failure=None cleaned=true",
+    "ACTUAL_UI_EVENT turn=4 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=4 native_byte_equal=true bytes=1159",
+    "ACTUAL_UI_EVENT turn=5 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=5 native_byte_equal=true bytes=1163",
+    "ACTUAL_UI_EVENT turn=6 failure=None cleaned=true result=Some(I32(38387392))",
+    "ACTUAL_UI_DOCUMENT turn=6 native_byte_equal=true bytes=134434",
+    "ACTUAL_UI_EVENT turn=7 failure=Some(SwiftRunFailure { stage: Invocation, kind: Deadline, code: \"swift_run_deadline\", function: Some(1600), offset: Some(495715), resource: None, attempted: 0, limit: 0, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 54955647, peak: 54955647 }, retained_metadata: SwiftReservationUsage { current: 1091788, peak: 1091788 }, cache: SwiftReservationUsage { current: 7953959, peak: 8005300 }, state: SwiftReservationUsage { current: 57692200, peak: 57692200 }, wasi: SwiftReservationUsage { current: 264680, peak: 264680 }, shared: SwiftReservationUsage { current: 1744, peak: 1744 }, construction: SwiftReservationUsage { current: 16118824, peak: 16248638 }, combined: SwiftReservationUsage { current: 138078842, peak: 138259997 }, live_tickets: 1045, peak_tickets: 1045 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 1024, peak: 1024 }, active_pins: SwiftReservationUsage { current: 7, peak: 61 }, frames: SwiftReservationUsage { current: 7, peak: 61 }, values: SwiftReservationUsage { current: 116, peak: 769 }, controls: SwiftReservationUsage { current: 26, peak: 329 }, memory_pages: SwiftReservationUsage { current: 632, peak: 632 } }, cache_work: 15729027, execution_work: 517672497, instruction_fuel: 149541282, instructions: 149383721, host_calls: 209, cleanup_invariant: None, elapsed_micros: 30001306, deadline_ms: 30000, deadline_origin: Run, deadline_overshoot_micros: 1306, validati",
+    "R562_GUEST_SUCCEEDED false"
+  ],
+  "lastUsage": {
+    "cache_work": 15729027,
+    "execution_work": 517672497,
+    "instruction_fuel": 149541282,
+    "instructions": 149383721,
+    "host_calls": 209,
+    "deadline_ms": 30000
+  },
+  "metadataCorrection": {
+    "originalAnalysis": 120000,
+    "correctRunDeadlineMS": 30000,
+    "reason": "Original parser selected nested validation deadline instead of first Run usage deadline; corrected from same terminal output, no rerun"
+  },
+  "primary": "ACTUAL_UI_EVENT turn=7 failure=Some(SwiftRunFailure { stage: Invocation, kind: Deadline, code: \"swift_run_deadline\", function: Some(1600), offset: Some(495715), resource: None, attempted: 0, limit: 0, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 54955647, peak: 54955647 }, retained_metadata: SwiftReservationUsage { current: 1091788, peak: 1091788 }, cache: SwiftReservationUsage { current: 7953959, peak: 8005300 }, state: SwiftReservationUsage { current: 57692200, peak: 57692200 }, wasi: SwiftR",
+  "outerSession": {
+    "handle": 14369,
+    "status": "COLLECTED_EXIT_0"
+  }
+}

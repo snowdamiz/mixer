@@ -111,6 +111,16 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     _ -> {:error, :invalid_request}
   end
 
+  @doc "Private exact build read; selection is data, never authority."
+  def read_build(raw_headers, input) do
+    case MixerHosted.CustomerBuilds.Selection.new(input) do
+      {:ok, selection} -> read_private(raw_headers, {:build, selection})
+      _ -> {:error, :invalid_request}
+    end
+  rescue
+    _ -> {:error, :invalid_request}
+  end
+
   defp read_private(raw_headers, operation) do
     deadline = System.monotonic_time(:millisecond) + 5000
     wall = System.system_time(:second)

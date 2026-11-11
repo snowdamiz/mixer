@@ -1,0 +1,673 @@
+{
+  "schema": 1,
+  "id": "browser-build-client-review-r1134",
+  "status": "PASS_JOINT_PRIVATE_SLICE_REVIEW",
+  "verdict": "PASS",
+  "findings": [],
+  "proven_P1_P2_count": 0,
+  "reviewed_packets": {
+    "R1128": {
+      "receipt": {
+        "bytes": 9445,
+        "sha256": "124f71eb1216043ebfb07b6732059c5275719763333c1f6476379ef3bc7cd945"
+      },
+      "root": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-build-scope-r1128",
+      "application_map": {
+        "hosted/lib/mixer_hosted/identity/access_token_verifier.ex": {
+          "before": {
+            "bytes": 5090,
+            "sha256": "1c17efc4b1a7c9befed39e312fdd3d06f89f4c64a0befbfb7c1cc9a9049d5dcb"
+          },
+          "after": {
+            "bytes": 5114,
+            "sha256": "bd435b0237079f8f7d9610a0ccd95032dedd14b45939d21dd0ff0e8b015f262b"
+          }
+        },
+        "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs": {
+          "before": {
+            "bytes": 48397,
+            "sha256": "4d015966a2dcb96c3cada5c08ae9eff1d743e7640ac844eb0c38f8e9e9c90b81"
+          },
+          "after": {
+            "bytes": 48798,
+            "sha256": "9d9a52c67a0d65f47c06687cc3170cff8bedd107d007ad9a4a1c217caa384be7"
+          }
+        }
+      },
+      "source_archive": {
+        "path": "static-delivery/complete-source.tar.gz",
+        "bytes": 2128270,
+        "sha256": "5370b1e07f8ea44b0a3d0db7af7968017ab4bbddce0244aa6ba6fbda2edbaa83"
+      }
+    },
+    "R1122": {
+      "receipt": {
+        "bytes": 10070,
+        "sha256": "5327889eef41e70a213144cf297c3c4757b206c0b73872ae42c68a6c6daf5874"
+      },
+      "root": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-build-client-r1122",
+      "application_map": {
+        "console/src/api/cookie-build-client.ts": {
+          "after": {
+            "bytes": 1976,
+            "sha256": "dcc8b25dfe28fe7323d855a6828e49799d184c582de0d9b6eb579df29009aa42"
+          },
+          "before": null
+        },
+        "console/src/domain/build-read.ts": {
+          "after": {
+            "bytes": 3546,
+            "sha256": "0ce9afe5aba1bc82f1496cbc876315ea853cd97b320a5ca1326c459f25c42d69"
+          },
+          "before": null
+        },
+        "console/tests/cookie-build-client.test.mjs": {
+          "after": {
+            "bytes": 14959,
+            "sha256": "5f2efdd07c489abf48b152755c52bd2281d8d77a47128c9f023ad87150c0745b"
+          },
+          "before": null
+        }
+      },
+      "compiled_manifest": {
+        "bytes": 951,
+        "sha256": "2d0b927bb66ae8ff6a01a2fd8f58dea97c57d0e5c82ae81375cef08cb29f0bf3"
+      },
+      "persisted_managed_identities": [
+        90629,
+        90633,
+        4867
+      ],
+      "producer_tmp_retained_without_inventory": true
+    }
+  },
+  "fresh": {
+    "status": "PASS_JOINT_PRIVATE_SLICE_REVIEW",
+    "hosted_compile_batches": 1,
+    "PG_batches": 1,
+    "TS_compile_batches": 1,
+    "Node_payloads": 2,
+    "producer_controls": 14,
+    "independent_controls": 2,
+    "queued_terminal_real_join": true
+  },
+  "join": {
+    "status": "PASS",
+    "path": "/console-api/v1/builds",
+    "authentication": "genuine RS256 PKCE callback active Secure HttpOnly cookie, no bearer or synthetic VerifiedIdentity",
+    "real_network": true,
+    "client": "actual fresh compiled R1122 cookie client",
+    "server": "actual fresh compiled R1128 private server",
+    "final_validator": "unchanged summarizeBuildOverview",
+    "expected_source": "actual database row -> Journal.restore / Lifecycle.customer_status / Snapshot.project",
+    "observations": [
+      {
+        "phase": "queued",
+        "revision": 0,
+        "state": "queued",
+        "attempt": 1,
+        "maxAttempts": 2,
+        "failureCode": null
+      },
+      {
+        "phase": "terminal",
+        "revision": 2,
+        "state": "failed",
+        "attempt": 1,
+        "maxAttempts": 2,
+        "failureCode": "compiler_error"
+      }
+    ],
+    "synthetic_backend": false,
+    "browser_UI_proven": false
+  },
+  "HTTP": {
+    "passed": 1,
+    "excluded": 10,
+    "failed": 0,
+    "seed": 0,
+    "ordinary_role": "browser_ordinary",
+    "direct_build_select": false,
+    "raw_controls": {
+      "terminal": true,
+      "no_build_scope": true,
+      "leases_clean": true,
+      "eight_selection_refusals": true,
+      "raw_duplicates": true,
+      "malformed_query": true,
+      "revoked_credential": true,
+      "revoked_family": true,
+      "revoked_membership": true,
+      "existing_reads": true,
+      "missing_disabled_runtime": true
+    },
+    "TLS": {
+      "active": 0,
+      "accepted": 1,
+      "peer_closed": 1
+    },
+    "warnings": [
+      "Two pre-existing private fixture migration-order warnings"
+    ]
+  },
+  "client_controls": {
+    "producer_passed": 14,
+    "independent_adversarial_passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "synthetic_fetch": true
+  },
+  "scope_controls": {
+    "real_RS256": true,
+    "old_four_projection_exact": true,
+    "new_known_scope_survives": true,
+    "unknown_scopes_discarded": true,
+    "non_scope_identity_fields_exact": true,
+    "malformed_scopes_refused": 14,
+    "raw_syntax_size_binding_time_disabled_refusals": true,
+    "forged_identity": false
+  },
+  "closed_config_controls": {
+    "old_struct_exact": true,
+    "old_digest_bytes_exact": true,
+    "old_url_exact": true,
+    "new_scope_preserved_and_bound": true,
+    "forged_scope_refusals": 6
+  },
+  "source_audit": {
+    "all440_inputs_verified": true,
+    "only_review_fixture_changed": [
+      "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs"
+    ],
+    "product_sources_exact_R1128": true,
+    "client_sources_exact_R1122": true,
+    "dependency_sources_exact": 915,
+    "dependency_cache_exact": 969,
+    "fresh_loaded_server_identities": 211,
+    "producer_loaded_identities_verified": 211,
+    "fresh_client_compiled_hashes_exact_producer": true,
+    "after_run_hash_checks": true
+  },
+  "custody": {
+    "primary_exec_session": 61684,
+    "primary_collected_exit": 0,
+    "inner_commands": 15,
+    "outer_commands": 1,
+    "all_identity_readback_before_exec_G": true,
+    "all_direct_reaped_closed_original_killpg0_ESRCH": true,
+    "all_pipe_commands_both_EOF": true,
+    "regular_log_commands": [
+      "00010-postgres",
+      "00012-real-compiled-cookie-client-join"
+    ],
+    "inert_finalizer": true,
+    "cleanup": {
+      "stop": 0,
+      "status": 3,
+      "port": 57338,
+      "connect_errno": 61,
+      "refused": true,
+      "direct_reaped_closed_original_killpg0_ESRCH": true,
+      "owned_data_retained_no_removal": true
+    },
+    "new_unknown": false,
+    "historical_holds_untouched": true,
+    "managed_identities": [
+      {
+        "label": "00001-elixir-version",
+        "pid": 63792,
+        "pgid": 63792,
+        "exit": 0
+      },
+      {
+        "label": "00002-pg-version",
+        "pid": 63840,
+        "pgid": 63840,
+        "exit": 0
+      },
+      {
+        "label": "00003-single-typescript-compile",
+        "pid": 63841,
+        "pgid": 63841,
+        "exit": 0
+      },
+      {
+        "label": "00004-producer14-and-independent-adversarial",
+        "pid": 63904,
+        "pgid": 63904,
+        "exit": 0
+      },
+      {
+        "label": "00005-single-fresh-hosted-product-compile",
+        "pid": 63921,
+        "pgid": 63921,
+        "exit": 0
+      },
+      {
+        "label": "00006-signed-scope-controls",
+        "pid": 64326,
+        "pgid": 64326,
+        "exit": 0
+      },
+      {
+        "label": "00007-closed-config-old-projection-controls",
+        "pid": 64413,
+        "pgid": 64413,
+        "exit": 0
+      },
+      {
+        "label": "00008-loaded-source-beam-identities",
+        "pid": 64496,
+        "pgid": 64496,
+        "exit": 0
+      },
+      {
+        "label": "00009-initdb",
+        "pid": 64608,
+        "pgid": 64608,
+        "exit": 0
+      },
+      {
+        "label": "00010-postgres",
+        "pid": 64656,
+        "pgid": 64656,
+        "exit": 0
+      },
+      {
+        "label": "00011-browser-roles",
+        "pid": 64664,
+        "pgid": 64664,
+        "exit": 0
+      },
+      {
+        "label": "00012-real-compiled-cookie-client-join",
+        "pid": 64668,
+        "pgid": 64668,
+        "exit": 0
+      },
+      {
+        "label": "00013-single-real-PG-cookie-client-server-batch",
+        "pid": 64670,
+        "pgid": 64670,
+        "exit": 0
+      },
+      {
+        "label": "00014-postgres-stop",
+        "pid": 65213,
+        "pgid": 65213,
+        "exit": 0
+      },
+      {
+        "label": "00015-postgres-status",
+        "pid": 65243,
+        "pgid": 65243,
+        "exit": 3
+      },
+      {
+        "label": "10001-r1134-one-joint-campaign",
+        "pid": 63788,
+        "pgid": 63788,
+        "exit": 0
+      }
+    ]
+  },
+  "bounds": {
+    "start_utc": "2026-11-11T17:57:10+00:00",
+    "observed_utc": "2026-11-11T18:03:29.048058+00:00",
+    "elapsed_seconds": 379.048058,
+    "max_minutes": 18,
+    "cleanup_reserve_seconds": 45,
+    "hosted_product_compiles": 1,
+    "PG_batches": 1,
+    "TS_compiles": 1,
+    "Node_payloads": 2,
+    "harness_corrections": 0,
+    "retries": 0
+  },
+  "scope": {
+    "joint_independent_reviews": 1,
+    "children": 0,
+    "canonical_writes": false,
+    "product_fixes": false,
+    "Git": false,
+    "remote": false,
+    "native": false,
+    "devices": false,
+    "adoption": false,
+    "publication": false,
+    "GA": false
+  },
+  "unrun": [
+    "10 original browser cases",
+    "10 existing CustomerBuilds cases",
+    "distinct role mutation, stale stored revision, post-COMMIT late publication/races",
+    "full console/ordinary/Linux suites",
+    "browser UI/default installation",
+    "provider/native/devices/immutable packages/customer/production/GA"
+  ],
+  "raw_failures": [],
+  "historical_raw_failure_identities": {
+    "logs/00013-positive-cookie-build-http.stdout": {
+      "bytes": 4472,
+      "sha256": "3749468bea71756fb812d690da4fabb40a7ec33b48e2bdf8346b3dc82e98f9bf"
+    },
+    "logs/00013-positive-cookie-build-http.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/00022-positive-cookie-build-http.stdout": {
+      "bytes": 4751,
+      "sha256": "0e38eb6181a48ddab63b6b34b14e8c651e5043979302aead023829808faa1314"
+    },
+    "logs/00022-positive-cookie-build-http.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "tools": {
+    "elixir": "1.20.4",
+    "OTP": "29",
+    "ERTS": "17.1",
+    "ERL_SCHEDULERS": "3:3",
+    "PG": "17.11",
+    "Node": "v22.23.3 (same producer absolute executable; no extra Node metadata payload)",
+    "TypeScript": "5.9.3",
+    "node_executable": "/Users/andreyyurlov/.local/state/fnm_multishells/68826_1794419272046/bin/node",
+    "tool_recipe": "commands.py copied hash-exact from R1128",
+    "runtime": "macOS arm64 local, no native device run",
+    "tool_byte_identities": "tool-identities.json"
+  },
+  "delivery": {
+    "root": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-build-client-review-r1134",
+    "report": "REPORT.md",
+    "artifacts": {
+      "REPORT.md": {
+        "bytes": 6825,
+        "sha256": "fbc69d050cae3906eb781b48e777d9946be4d764de8361b95b3e61b1d3dd3fdf"
+      },
+      "input-proof.json": {
+        "bytes": 4296,
+        "sha256": "48fcd356a90bcf78808dfc9cb34eade7d0648426d0298aaff28bf27dabe21a5d"
+      },
+      "source-audit.json": {
+        "bytes": 469,
+        "sha256": "f003b6d66b01ee7500551933a32c5c732de65a9e3e1c72bc9080f2eae6ffe031"
+      },
+      "server-original-source-manifest.json": {
+        "bytes": 82785,
+        "sha256": "7abfc609eff929244a1bd297579736db97f079e3362b3ac16a4e8241b6a6358c"
+      },
+      "compiled-client-identities.json": {
+        "bytes": 952,
+        "sha256": "d991acde25bb36e918e37ca189d46b626441bed59b672fdcad183e850ea0c051"
+      },
+      "loaded-identities.json": {
+        "bytes": 130147,
+        "sha256": "3ada1dfb56aa14b6b6ac273b111ad69e25d54ada7616d76957238bd2cc1a4bb8"
+      },
+      "integration-fixture.diff": {
+        "bytes": 2424,
+        "sha256": "50635484f6a31346e30d6a9f01e732e704f1b71b430143554930e8d7c4b76ca2"
+      },
+      "independent-controls.mjs": {
+        "bytes": 3430,
+        "sha256": "b0e45ddece36a10359efaea7496e87fb46869fc810ef1e8c247fdd9f27aca7f4"
+      },
+      "join-driver.mjs": {
+        "bytes": 3430,
+        "sha256": "02c5e3bd1e9ed9ea9dea46707a0b037be91ba3898ae096a54d552de973985c02"
+      },
+      "run.py": {
+        "bytes": 6083,
+        "sha256": "39ce78f88372249a88c77112983c4dc4c02935ab220d1549a51ff4b6bc5d6d6e"
+      },
+      "commands.py": {
+        "bytes": 6799,
+        "sha256": "afe0219539ad0bb2ba2ef5578689f3594f554bc6897323e293ccee555365b340"
+      },
+      "launch.py": {
+        "bytes": 283,
+        "sha256": "80eeb0167194c80e3a164a9be7a4f06775d6f4873350340ffed0f3ee1dcc063e"
+      },
+      "tool-selection.json": {
+        "bytes": 222,
+        "sha256": "15eb43a0cbb6856a1230313af4b8e17d4e3d2710c47d9a8c28c9fc97ffdce2c3"
+      },
+      "outer-exec.json": {
+        "bytes": 95,
+        "sha256": "10fb5b9d359a2d2fbecd0732ca700cd89d3cb9e80c69b86605cf6d19b267c601"
+      },
+      "commands.json": {
+        "bytes": 18761,
+        "sha256": "3209143eb8fe25ed13a29c6bc1b1439bec65472ee9b642eefa642173e2921632"
+      },
+      "outer/commands.json": {
+        "bytes": 1178,
+        "sha256": "af372b2660eea7742c56cdb02f0f4c54a4e3f5e54659e2c135cda5b5538d0374"
+      },
+      "scope-controls.json": {
+        "bytes": 263,
+        "sha256": "67b666033fcaba1d4e599076ffb06458729814a81ee60617538075ebe8ccb419"
+      },
+      "config-scope-controls.json": {
+        "bytes": 139,
+        "sha256": "69e5d83490d5aa6bec9491d31e0fb9af9a5e94045e08e746596a89614fcdf929"
+      },
+      "join-result.json": {
+        "bytes": 4666,
+        "sha256": "23769526ebad7db71ca94f1466180f45cafff3cf8a5f9bcee0256f9e63b520b3"
+      },
+      "positive.json": {
+        "bytes": 633,
+        "sha256": "19c9a7f23d05d14694417493d2086a3354639a8e1169b882930d93039a8689ee"
+      },
+      "controls.json": {
+        "bytes": 264,
+        "sha256": "d83dc0201cf354832e98395d9bf5b3bedbe62fe8016fbd2114c6dafdec84fe44"
+      },
+      "gate-result.json": {
+        "bytes": 178,
+        "sha256": "06af1509e395711234b210c75406857d046c7ba519acc78d71ce364b4a375004"
+      },
+      "cleanup.json": {
+        "bytes": 187,
+        "sha256": "017a1a12e95f654549dca8504034655b9d74d217b8e2868a641d75a7b1ef1d67"
+      },
+      "result.json": {
+        "bytes": 242,
+        "sha256": "e4619a0e6a1557fe154df53400c4ffdd0ff0902e046b93b2c1cf3046511bc413"
+      },
+      "campaign.json": {
+        "bytes": 299,
+        "sha256": "b161bfff1e5a10af3d9d5234c787c8969b11d5da94c8d091b8053afcaf79eef7"
+      },
+      "tool-identities.json": {
+        "bytes": 817,
+        "sha256": "67f442fbc8f385ed6d4dbf122fb794fdd6d187f58ec97ad0e0eb5429262ca15e"
+      }
+    },
+    "raw_logs": {
+      "00001-elixir-version": {
+        "stdout": {
+          "path": "logs/00001-elixir-version.stdout",
+          "bytes": 144,
+          "sha256": "e83aaa271b606b57f288d90d46f7f31dd576a1fae46bbdd91885b8c1a12470e6"
+        },
+        "stderr": {
+          "path": "logs/00001-elixir-version.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00002-pg-version": {
+        "stdout": {
+          "path": "logs/00002-pg-version.stdout",
+          "bytes": 39,
+          "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+        },
+        "stderr": {
+          "path": "logs/00002-pg-version.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00003-single-typescript-compile": {
+        "stdout": {
+          "path": "logs/00003-single-typescript-compile.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "logs/00003-single-typescript-compile.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00004-producer14-and-independent-adversarial": {
+        "stdout": {
+          "path": "logs/00004-producer14-and-independent-adversarial.stdout",
+          "bytes": 3473,
+          "sha256": "542a9549a4c9ff55db9ff4e773242750a87062d1632ef9fbfbc28aa6576c56c5"
+        },
+        "stderr": {
+          "path": "logs/00004-producer14-and-independent-adversarial.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00005-single-fresh-hosted-product-compile": {
+        "stdout": {
+          "path": "logs/00005-single-fresh-hosted-product-compile.stdout",
+          "bytes": 53,
+          "sha256": "3539d88affd40d42d2f6161c94b0ae744687e836f8559b2b51a8387752098f8c"
+        },
+        "stderr": {
+          "path": "logs/00005-single-fresh-hosted-product-compile.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00006-signed-scope-controls": {
+        "stdout": {
+          "path": "logs/00006-signed-scope-controls.stdout",
+          "bytes": 29,
+          "sha256": "4a3e075adf4bd6c2323fbf6475ea03901e17ac5054f9e9851245f9a7ca1bc1c6"
+        },
+        "stderr": {
+          "path": "logs/00006-signed-scope-controls.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00007-closed-config-old-projection-controls": {
+        "stdout": {
+          "path": "logs/00007-closed-config-old-projection-controls.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "logs/00007-closed-config-old-projection-controls.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00008-loaded-source-beam-identities": {
+        "stdout": {
+          "path": "logs/00008-loaded-source-beam-identities.stdout",
+          "bytes": 22,
+          "sha256": "71b29e3409452e66d38ad248e8002bf37fa131893eeb79118f596e229768be55"
+        },
+        "stderr": {
+          "path": "logs/00008-loaded-source-beam-identities.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00009-initdb": {
+        "stdout": {
+          "path": "logs/00009-initdb.stdout",
+          "bytes": 1042,
+          "sha256": "75111c23b569adc98bcd4d8888d249c4d43a893e9792a6409f8f19dbe0f80504"
+        },
+        "stderr": {
+          "path": "logs/00009-initdb.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00010-postgres": {
+        "stdout": {
+          "path": "logs/00010-postgres.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "logs/00010-postgres.stderr",
+          "bytes": 2641,
+          "sha256": "831ed553c9761edc5b25afb86782c2530858992a062178c30174b5931c6a5888"
+        }
+      },
+      "00011-browser-roles": {
+        "stdout": {
+          "path": "logs/00011-browser-roles.stdout",
+          "bytes": 60,
+          "sha256": "4982da64c0ba03fcbd29f1878c4569b2be646026c4ed233aa765ab2d37fbdf5c"
+        },
+        "stderr": {
+          "path": "logs/00011-browser-roles.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00012-real-compiled-cookie-client-join": {
+        "stdout": {
+          "path": "logs/00012-real-compiled-cookie-client-join.stdout",
+          "bytes": 119,
+          "sha256": "a4dcc230008fb61cb5966f646ff75be1a5f45b5b86e4c9ea5f725ed412cdebb3"
+        },
+        "stderr": {
+          "path": "logs/00012-real-compiled-cookie-client-join.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00013-single-real-PG-cookie-client-server-batch": {
+        "stdout": {
+          "path": "logs/00013-single-real-PG-cookie-client-server-batch.stdout",
+          "bytes": 3624,
+          "sha256": "5af5620fe53bcc23972f69cd5f03517d958a238de102bcc4db8a8da7be7a1c01"
+        },
+        "stderr": {
+          "path": "logs/00013-single-real-PG-cookie-client-server-batch.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00014-postgres-stop": {
+        "stdout": {
+          "path": "logs/00014-postgres-stop.stdout",
+          "bytes": 56,
+          "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+        },
+        "stderr": {
+          "path": "logs/00014-postgres-stop.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "00015-postgres-status": {
+        "stdout": {
+          "path": "logs/00015-postgres-status.stdout",
+          "bytes": 26,
+          "sha256": "e138ccb54fdb08283c6eb21159c53207bbbbf07077246e2804e18d22efe6e250"
+        },
+        "stderr": {
+          "path": "logs/00015-postgres-status.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    }
+  },
+  "limitations_note": "Verification index policy check not run: no staging or Git operation permitted in this review; root coordinates delivery."
+}

@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "id": "browser-build-join-r1104",
+  "status": "UNACCEPTED_FIRST_HTTP_GATE_FAILED",
+  "observed_utc": "2026-11-11T17:21:39.674314+00:00",
+  "model": "gpt-6.1-sol",
+  "options": {
+    "reasoningEffort": "xhigh",
+    "serviceTier": "default",
+    "fast": false
+  },
+  "root_supplied_current_main": "67cb6efeeae7b840e16a2a5c966f5ae709ca6e92",
+  "baseline": {
+    "selection_version": 9,
+    "selected_count": 228,
+    "digest": "db080c4ff0b1bde4b0a03e1dccccb8a829c9feb84206f90dcf25620bc990c168",
+    "selection_sha256": "d0c51485ce5fa56a94cfea1ffaf59b0afb383356c39619058c387f56ac58328e",
+    "archive": {
+      "bytes": 2103366,
+      "sha256": "ea75f63c16d5960fffc351c6fcd0782a89dbf1a7b0696de9ab3361e150356dc6"
+    },
+    "root_git_observed": false
+  },
+  "scope_contract_approval": "Root approved exactly Config + ConfigurationDigest + Protocol closed two-scope candidate-only addition after baseline executable refusal. No verifier/crypto change authorized or made.",
+  "verified": {
+    "baseline_real_scope_refusal": {
+      "baseline_workspace_load": true,
+      "baseline_workspace_digest": "440617472f397b81eee95dc21b24e01c94632cf9f51de389e76e692a64d8f4b0",
+      "requested_build_scope_rejected": true,
+      "changed_struct_digest_rejected": true
+    },
+    "candidate_scope": {
+      "old_struct_exact": true,
+      "old_digest_bytes_exact": true,
+      "old_url_exact": true,
+      "new_scope_preserved_and_bound": true,
+      "forged_scope_refusals": 6
+    },
+    "fresh_compile_batches": 2,
+    "candidate_compile_warnings": 0,
+    "changed_product_modules": 8,
+    "compiled_module_identities_recorded": 8,
+    "PKCE_callback_cookie_rotation_reached": true,
+    "build_request_reached_owner_and_fixed_dispatcher": true
+  },
+  "HTTP_gate": {
+    "attempts": 2,
+    "first": "setup_all23503 FK fixture failure; zero HTTP payload tests",
+    "fixture_corrections": 1,
+    "second": "one test executed; first real selected build GET returned403 permission_denied; 0/1 passed,10 existing tests excluded",
+    "positive_build_DTO_observed": false,
+    "terminal_and_negative_controls_executed": false,
+    "stopped_first_substantive_failure": true,
+    "raw_failures": {
+      "logs/00013-positive-cookie-build-http.stdout": {
+        "bytes": 4472,
+        "sha256": "3749468bea71756fb812d690da4fabb40a7ec33b48e2bdf8346b3dc82e98f9bf"
+      },
+      "logs/00013-positive-cookie-build-http.stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "logs/00022-positive-cookie-build-http.stdout": {
+        "bytes": 4751,
+        "sha256": "0e38eb6181a48ddab63b6b34b14e8c651e5043979302aead023829808faa1314"
+      },
+      "logs/00022-positive-cookie-build-http.stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "contract_finding": {
+    "observed_HTTP": {
+      "status": 403,
+      "body": {
+        "error": {
+          "code": "permission_denied"
+        }
+      },
+      "expected_status": 200,
+      "callback_status": 303,
+      "cookie_rotated_before_read": true
+    },
+    "owning_source": "hosted/lib/mixer_hosted/identity/access_token_verifier.ex",
+    "source_identity": {
+      "bytes": 5090,
+      "sha256": "1c17efc4b1a7c9befed39e312fdd3d06f89f4c64a0befbfb7c1cc9a9049d5dcb"
+    },
+    "scope_allowlist_lines": [
+      18,
+      115
+    ],
+    "finding": "AccessTokenVerifier retains only artifact.read/artifact.upload/audit.read/workspace.read, dropping signed mixer.build.read before CustomerBuilds.Policy.request. The verifier was not changed. This source finding explains the refusal; no token contents were logged or patched.",
+    "status": "SOURCE_EXPLAINS_OBSERVED_REFUSAL_NO_NEW_RUNTIME_PROBE",
+    "unrelated_fixture_issue": "Oban notifier logged missing :database because the fixture Admin Application env was not configured; no retry or second fixture correction was attempted."
+  },
+  "custody": {
+    "inner_commands": 24,
+    "outer_commands": 3,
+    "all_identity_readback_before_exec_G": true,
+    "all_direct_reaped_output_closed_original_killpg0_ESRCH": true,
+    "regular_PostgreSQL_logs": true,
+    "all_historical_holds_untouched": true,
+    "new_unknown": false,
+    "postgres_batches": 2,
+    "cleanup": [
+      {
+        "stop": 0,
+        "status": 3,
+        "port": 58579,
+        "connect_errno": 61,
+        "refused": true,
+        "direct_reaped_closed_ESRCH": true
+      },
+      {
+        "stop": 0,
+        "status": 3,
+        "port": 59940,
+        "connect_errno": 61,
+        "refused": true,
+        "direct_reaped_closed_ESRCH": true
+      }
+    ],
+    "TLS_fixture_last_lifecycle": {
+      "active": 0,
+      "requests": 1,
+      "accepted": 1,
+      "peer_closed": 1
+    }
+  },
+  "delivery": {
+    "application_paths": 9,
+    "application_map": "static-delivery/application-map.json",
+    "source_inputs": 440,
+    "source_archive": {
+      "bytes": 2125653,
+      "sha256": "4d9c3e3af99ed13dd6f270cf96dea307c09ca0a183a761ccb6b1f7da583c1acb"
+    },
+    "patch": {
+      "bytes": 21573,
+      "sha256": "b861b63081bb82a5d22111e0d85df68c7908ada43baeed6e8f5e39692294506a"
+    },
+    "source_manifest": {
+      "bytes": 82785,
+      "sha256": "83b079eb48826b0e6ec2b3edacba4df076a07cb88868a9fbfe106d80309baba4"
+    },
+    "BEAM_identities": {
+      "bytes": 5019,
+      "sha256": "6fb5d5255e3d1311d1e7706afcee716a7a56feaa61d948a4d8bb9e0ed4d1daf6"
+    }
+  },
+  "limitations": [
+    "Candidate is unaccepted. No independent review is unlocked because positive HTTP build gate did not pass.",
+    "All terminal build, selected-ID/SHA denial, scope denial, authority revocation, stale generation, late publication and unchanged session/org/project regression assertions remain unexecuted in this candidate.",
+    "The exact original ten CustomerBuilds tests and eight boundary modules match R1092; only historical hash-bound evidence is reused, not fresh test execution.",
+    "Oban notifier also logged missing database due test fixture Application env; migrations emitted two out-of-order warnings per batch. No additional correction or run was attempted.",
+    "No canonical writes, progress docs, default mounts, v10 source selection, review, Git/API/remote delivery, real provider, browser UI, native/device, customer, production, or GA action.",
+    "The stalled root coordination tool was terminated before any dependent executable launch; managed primary handles28555/44170/34621 were persisted and collected. Root receives this terminal result automatically."
+  ],
+  "bounds": {
+    "original_start_utc": "2026-11-11T17:07:37Z",
+    "hard_cutoff_utc": "2026-11-11T17:27:30Z",
+    "cleanup_reserve_seconds": 45,
+    "meaningful_compile_batches": 2,
+    "PG_batches": 2,
+    "fixture_corrections": 1,
+    "no_budget_reset": true
+  }
+}

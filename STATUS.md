@@ -1,44 +1,47 @@
 # Current development status
 
-The reviewed customer build-read composition is applied locally as source228/v9.
-The strict Mac runner passed 814 tests with two existing Linux skips and
-warnings-as-errors exit 0. Collectors passed 193 controls in each Python mode.
-The eight product modules retain their independently reviewed authority and
-confirmed-COMMIT boundary. The ordinary router remains unmounted, private build
-DDL remains unselected, and all twelve production migrations are unchanged.
-[Qualification](verification/receipts/hosted-owned-evidence-r1092.json) and
-[root application](verification/receipts/customer-build-adoption-r1100.json).
+The reviewed browser build read and console decoder are now composed as
+source243/v10. A genuine synthetic PKCE callback and rotated cookie reach the
+compiled console client, private GET and build-summary validator for queued and
+terminal builds. The unfiltered strict hosted suite passed 816 tests with two
+existing skips; the full console suite passed 165 tests, and collector controls
+passed 199 each in normal and actual optimized Python. The joint independent
+review passed. Root adopted 22 permanent paths, excluding three temporary local
+qualification files from the original packet.
+[Qualification](verification/receipts/browser-build-compose-r1144.json),
+[joint review](verification/receipts/browser-build-client-review-r1134.json) and
+[root adoption](verification/receipts/browser-build-adoption-r1150.json).
 
-Main 9e0ce9ca has twelve terminal checks: ten passed and two failed. Phoenix
-passed 802 tests; two evidence writes lacked owned output paths. The former
-begin-login timeout did not recur. The ordinary runner now supplies both paths
-and passed the complete private suite. Delivery and fresh Linux CI are pending.
-The cache descendant control recorded UNKNOWN custody for PGID1267. Its resources
-and copied raw artifact remain held. The underlying denied operation is unproven.
-[CI evidence](verification/receipts/phoenix-v8-ci-r1086.json) and
-[custody hold](verification/receipts/cache-ci-current-r1088.json).
+The prior delivered main 67cb6efeeae7b840e16a2a5c966f5ae709ca6e92 passed all
+twelve checks. Its ordinary Linux suite passed 814 tests with two skips, including
+actual COMMIT acknowledgement and ROLLBACK publication controls. The new v10
+composition still requires its own delivered-head CI. The default build page
+remains unavailable while real application/build discovery and UI binding are
+implemented; the private browser route is not mounted by the ordinary router.
+[Linux evidence](verification/receipts/customer-build-linux-ci-r1118.json) and
+[runner capacity retry](verification/receipts/swift-host-queue-r1124.json).
 
-The private input decoder passed 263 native tests, including all 258 retained
-tests. The actual guest produced documents1–6 byte for byte, including LongNote6.
-Event7 then hit the unchanged 30-second deadline during encoding. Document7,
-Commit7 completion, ready7 and complete internal-model parity remain unproven.
-Both payloads consumed all fourteen currents and tickets to zero. No private
-SDK, VM or numeric policy has been adopted.
-[Actual campaign](verification/receipts/guest-input-cost-r1082.json).
+R1148's private string-buffer change passed 267 native tests and Wasm admission,
+but event7 still exhausted 200M fuel under the private 60-second experiment.
+Documents1–6 and ready3 matched; document7 and ready7 remain incomplete. B's
+reused log label overwrote A's original raw outputs. Retained counters, receipts
+and outer responses do not satisfy that raw-evidence requirement. No C run,
+independent review or SDK/VM adoption followed. The ordinary 30-second limits
+remain unchanged.
+[Runtime result and evidence limitation](verification/receipts/property-string-cost-r1148.json).
 
-The customer build-read purpose passed independent review. The next product
-boundary is a trusted active browser cookie reaching the actual authorized build
-read. Source-only custody diagnostics remain private and unaccepted. All older
-process, runtime and native holds remain active. The report component has reviewed
-source and an exact Android build, while native chooser, grants and recipient
-acceptance remain pending.
-[Customer review](verification/receipts/customer-build-race-review-r1064.json) and
-[report component](verification/receipts/fieldlog-report-component-r1002.json).
+The entire R1138 preparation namespace and all historical custody holds remain
+preserved. The cache diagnostic is unaccepted after its bounded harness failures.
+Fresh R1144 qualification used an explicitly extended execution window and one
+sparse-path correction; its original failure and exact timing remain recorded.
+[Preparation hold](verification/receipts/browser-build-current-source-r1138.json)
+and [diagnostic limitation](verification/receipts/cache-diagnostic-proof-r1116.json).
 
-CLI source118 d9473684…, Pair20 SDK24/adapter27/Java21 and canonical SDK/VM
-authorities remain intact. Apple Accessibility trust is unavailable and phones
-remain disconnected. Immutable packages, full API28, production operation and
-all 38 GA gates remain pending.
+Production12, unselected private DDL, ordinary router mounts, Source118 d947,
+Pair20 SDK24/adapter27/Java21 and canonical SDK/VM authorities remain unchanged.
+Apple Accessibility trust is unavailable and phones remain disconnected. Native
+chooser/grants/recipient acceptance, immutable packages, production operation
+and all 38 GA gates remain pending.
 
 ## Development execution update: November 9, 2026
 

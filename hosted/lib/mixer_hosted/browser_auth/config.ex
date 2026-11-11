@@ -76,7 +76,11 @@ defmodule MixerHosted.BrowserAuth.Config do
          "client_secret_basic" <- object["client_auth_method"],
          true <- reference?(object["client_credential_ref"], "secret://"),
          true <- reference?(object["session_vault_ref"], "vault://"),
-         "openid mixer.workspace.read" <- object["scope"],
+         true <-
+           object["scope"] in [
+             "openid mixer.workspace.read",
+             "openid mixer.workspace.read mixer.build.read"
+           ],
          "query" <- object["response_mode"],
          true <- object["response_iss_required"],
          :ok <- match_identity(object, identity) do
@@ -95,7 +99,8 @@ defmodule MixerHosted.BrowserAuth.Config do
          redirect_uri: object["redirect_uri"],
          client_auth_method: :client_secret_basic,
          client_credential_ref: object["client_credential_ref"],
-         session_vault_ref: object["session_vault_ref"]
+         session_vault_ref: object["session_vault_ref"],
+         scope: object["scope"]
        }}
     else
       _ -> {:error, :invalid_configuration}

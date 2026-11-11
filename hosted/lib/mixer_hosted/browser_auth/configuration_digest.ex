@@ -30,7 +30,6 @@ defmodule MixerHosted.BrowserAuth.ConfigurationDigest do
   @fixed [
     mode: :configured,
     client_auth_method: :client_secret_basic,
-    scope: "openid mixer.workspace.read",
     response_mode: "query",
     response_iss_required: true,
     transaction_seconds: 300,
@@ -50,7 +49,12 @@ defmodule MixerHosted.BrowserAuth.ConfigurationDigest do
 
   @doc "Closed ordered JSON pairs after a fixed domain; contains configuration metadata only."
   def canonical_bytes(%Config{} = config) do
-    with true <- Enum.sort(Map.keys(config)) == Enum.sort([:__struct__ | @fields]),
+    with true <-
+           config.scope in [
+             "openid mixer.workspace.read",
+             "openid mixer.workspace.read mixer.build.read"
+           ],
+         true <- Enum.sort(Map.keys(config)) == Enum.sort([:__struct__ | @fields]),
          true <- Enum.all?(@fixed, fn {key, value} -> Map.fetch!(config, key) === value end),
          true <-
            is_integer(config.profile_version) and config.profile_version in 1..2_147_483_647,
