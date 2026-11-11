@@ -1,0 +1,1189 @@
+defmodule R942.ReceiptFault do
+  def handle(_, _, %{query: "begin"}, :missing) do
+    :telemetry.detach({MixerHosted.BrowserAuth.Store, :transaction_receipt})
+  end
+
+  def handle(_, _, _, _), do: :ok
+end
+
+Code.require_file("storage_fixture.exs", __DIR__)
+
+defmodule R686.AuthorizationHTTP do
+  import Plug.Conn
+  def init(opts), do: opts
+
+  def call(conn, %{provider: provider, config: config}) do
+    if conn.method == "GET" and conn.request_path == "/authorize" do
+      code = GenServer.call(provider, {:register, conn.query_string})
+      state = URI.decode_query(conn.query_string)["state"]
+      query = URI.encode_query([{"state", state}, {"iss", config.issuer}, {"code", code}])
+
+      conn
+      |> put_resp_header("location", config.redirect_uri <> "?" <> query)
+      |> send_resp(302, "")
+    else
+      send_resp(conn, 404, "")
+    end
+  end
+end
+
+defmodule R686.Provider do
+  use GenServer
+  alias MixerHosted.BrowserAuth.Protocol
+  def start_link(opts), do: GenServer.start_link(__MODULE__, opts)
+  def init(opts), do: {:ok, Map.merge(opts, %{codes: %{}, mode: :ok, count: 0})}
+
+  def handle_call({:register, query}, _, s) do
+    values = URI.decode_query(query)
+    code = Protocol.random_token()
+    {:reply, code, put_in(s.codes[code], values)}
+  end
+
+  def handle_call({:mode, mode}, _, s), do: {:reply, :ok, %{s | mode: mode}}
+  def handle_call(:count, _, s), do: {:reply, s.count, s}
+
+  def handle_call({:exchange, r}, _, s) do
+    {v, codes} = Map.pop(s.codes, r.code)
+    s = %{s | codes: codes, count: s.count + 1}
+
+    valid =
+      v !== nil and r.issuer === s.config.issuer and r.client_id === v["client_id"] and
+        r.redirect_uri === v["redirect_uri"] and r.token_endpoint === s.config.token_endpoint and
+        r.grant_type === "authorization_code" and r.client_auth_method === :client_secret_basic and
+        r.client_credential_ref === s.config.client_credential_ref and
+        Protocol.pkce_challenge(r.code_verifier) === {:ok, v["code_challenge"]}
+
+    cond do
+      not valid or s.mode === :pkce ->
+        {:reply, {:error, :invalid_grant}, s}
+
+      s.mode === :late ->
+        Process.sleep(1100)
+        {:reply, {:error, :late}, s}
+
+      true ->
+        now = System.system_time(:second)
+
+        claims = %{
+          "iss" => s.config.issuer,
+          "aud" => s.config.api_audience,
+          "sub" => "subject-1",
+          "client_id" => s.config.client_id,
+          "iat" => now - 1,
+          "exp" => now + if(s.mode === :short, do: 2, else: 120),
+          "jti" => Protocol.random_token(),
+          "scope" => "mixer.workspace.read"
+        }
+
+        access = sign(s.key, claims, "at+jwt")
+        <<half::binary-size(16), _::binary>> = :crypto.hash(:sha256, access)
+
+        id = %{
+          "iss" => s.config.issuer,
+          "aud" => s.config.client_id,
+          "sub" => "subject-1",
+          "iat" => now - 1,
+          "exp" =>
+            now +
+              case s.mode do
+                :short -> 2
+                :session_short -> 45
+                _ -> 120
+              end,
+          "nonce" => v["nonce"],
+          "at_hash" => Base.url_encode64(half, padding: false)
+        }
+
+        id =
+          case s.mode do
+            :nonce -> Map.put(id, "nonce", Protocol.random_token())
+            :aud -> Map.put(id, "aud", "wrong-client")
+            :issuer -> Map.put(id, "iss", "https://wrong.example.invalid")
+            :link -> Map.put(id, "at_hash", Protocol.random_token())
+            :azp -> id |> Map.put("aud", [s.config.client_id, "other"]) |> Map.put("azp", "other")
+            :expired -> Map.put(id, "exp", now - 2)
+            _ -> id
+          end
+
+        token = sign(if(s.mode === :signature, do: s.wrong_key, else: s.key), id, "JWT")
+        if is_tuple(s.mode), do: send(elem(s.mode, 1), {:provider_exchange, self()})
+
+        if is_tuple(s.mode) do
+          receive do
+            :continue -> :ok
+          after
+            1500 -> :ok
+          end
+        end
+
+        {:reply,
+         {:ok,
+          Jason.encode!(%{
+            "token_type" => "Bearer",
+            "access_token" => access,
+            "id_token" => token
+          })}, s}
+    end
+  end
+
+  defp sign(k, c, t),
+    do:
+      JOSE.JWS.sign(k, Jason.encode!(c), %{"alg" => "RS256", "typ" => t, "kid" => "key1"})
+      |> JOSE.JWS.compact()
+      |> elem(1)
+end
+
+defmodule R966.LoginFixture do
+  alias MixerHosted.BrowserAuth.StorageFixture, as: Original
+  defdelegate port(), to: Original
+  defdelegate q!(repo, sql, params \\ []), to: Original
+  defdelegate call(conn, name, args), to: Original
+  def install!, do: Original.install!()
+
+  def connection!(role \\ "browser_lifecycle", database \\ "browser_login_storage") do
+    {:ok, conn} =
+      Postgrex.start_link(
+        hostname: "127.0.0.1",
+        port: port(),
+        username: role,
+        database: database,
+        ssl: false,
+        backoff_type: :stop
+      )
+
+    Process.unlink(conn)
+    Postgrex.query!(conn, "SET statement_timeout='5s'", [])
+    Postgrex.query!(conn, "SET lock_timeout='500ms'", [])
+    Postgrex.query!(conn, "SET idle_in_transaction_session_timeout='5s'", [])
+    conn
+  end
+
+  def provision! do
+    conn = connection!("browser_admin")
+
+    try do
+      for sql <-
+            MixerHosted.BrowserAuth.StorageSchema.provisioning_statements(
+              "browser_writer",
+              "browser_lifecycle"
+            ),
+          do: Postgrex.query!(conn, sql, [])
+    after
+      GenServer.stop(conn)
+    end
+  end
+end
+
+defmodule MixerHosted.BrowserLoginHTTPTest do
+  use ExUnit.Case, async: false
+
+  alias MixerHosted.BrowserAuth.{
+    RuntimeOwner,
+    RuntimeConfig,
+    Config,
+    ConfigurationDigest,
+    Custody,
+    LifecycleRepo,
+    ProviderOwner,
+    ActivationPreparationSchema,
+    Vault,
+    StoredSnapshot,
+    Protocol
+  }
+
+  alias R966.LoginFixture, as: F
+  alias MixerHosted.BrowserAuth.StorageFixture.{Admin, Migration}
+  alias MixerHosted.Identity.{KeyOwner, TLSFixture, TrustSnapshot}
+
+  setup_all do
+    conn = F.connection!("browser_admin", "postgres")
+
+    try do
+      Postgrex.query!(
+        conn,
+        "CREATE DATABASE browser_login_storage OWNER browser_schema_owner",
+        []
+      )
+    after
+      GenServer.stop(conn)
+    end
+
+    on_exit(fn ->
+      conn = F.connection!("browser_admin", "postgres")
+
+      try do
+        Postgrex.query!(conn, "DROP DATABASE browser_login_storage", [])
+      after
+        GenServer.stop(conn)
+      end
+    end)
+
+    for app <- [:ecto_sql, :postgrex, :jason, :jose, :mint, :ssl, :bandit],
+        do: Application.ensure_all_started(app)
+
+    settings = [
+      hostname: "127.0.0.1",
+      port: F.port(),
+      database: "browser_login_storage",
+      pool_size: 2,
+      log: false
+    ]
+
+    start_supervised!({Admin, settings ++ [username: "browser_admin"]})
+
+    start_supervised!(
+      {Migration,
+       settings ++
+         [
+           username: "browser_admin",
+           after_connect: fn c -> Postgrex.query!(c, "SET ROLE browser_schema_owner", []) end
+         ]}
+    )
+
+    F.install!()
+    F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
+    F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
+
+    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
+        do:
+          F.q!(
+            Admin,
+            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
+          )
+
+    for table <- ~w(sessions session_vault oidc_attempts session_events),
+        do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
+
+    for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
+    F.provision!()
+    conn = F.connection!("browser_admin")
+
+    for sql <-
+          ActivationPreparationSchema.provisioning_statements(
+            "browser_writer",
+            "browser_lifecycle",
+            "browser_schema_owner"
+          ),
+        do: Postgrex.query!(conn, sql, [])
+
+    GenServer.stop(conn)
+
+    F.q!(
+      Admin,
+      "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
+    )
+
+    F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
+
+    F.q!(
+      Admin,
+      "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
+    )
+
+    fixture = start_supervised!(TLSFixture)
+    auth = GenServer.call(fixture, :authority)
+    key = JOSE.JWK.generate_key({:rsa, 2048})
+    wrong = JOSE.JWK.generate_key({:rsa, 2048})
+
+    public =
+      key
+      |> JOSE.JWK.to_public()
+      |> JOSE.JWK.to_map()
+      |> elem(1)
+      |> Map.merge(%{"kid" => "key1", "alg" => "RS256", "use" => "sig"})
+
+    jwks = Jason.encode!(%{"keys" => [public]})
+    TLSFixture.configure(fixture, {:body, jwks})
+
+    profile = %{
+      profile_id: "humans",
+      profile_version: 1,
+      issuer: "https://issuer.fixture.invalid",
+      audience: "mixer-api",
+      client_id: "console",
+      identity_class: :human,
+      enabled: true
+    }
+
+    entry = %{
+      profile: profile,
+      jwks_endpoint: %{host: "jwks.fixture.invalid", port: 443, path: "/keys"},
+      transport: :hosted_https
+    }
+
+    workers = start_supervised!({DynamicSupervisor, strategy: :one_for_one, name: R686.Workers})
+
+    start_supervised!(%{
+      id: KeyOwner,
+      start:
+        {KeyOwner, :start_fixture,
+         [
+           [
+             name: KeyOwner,
+             manifest: [entry],
+             generation: 1,
+             binding: "humans",
+             ca_roots: [auth.ca],
+             resolvers: [{{127, 0, 0, 1}, 9}],
+             worker_supervisor: R686.Workers,
+             fixture: Map.take(auth, [:ip, :port])
+           ]
+         ]},
+      shutdown: :infinity
+    })
+
+    object = %{
+      "version" => 1,
+      "public_origin" => "https://console.fixture.invalid",
+      "profile_id" => "humans",
+      "profile_version" => 1,
+      "issuer" => profile.issuer,
+      "client_id" => "console",
+      "api_audience" => "mixer-api",
+      "authorization_endpoint" => "https://issuer.fixture.invalid/authorize",
+      "token_endpoint" => "https://issuer.fixture.invalid/token",
+      "id_token_jwks_endpoint" => "https://issuer.fixture.invalid/oidc/keys",
+      "redirect_uri" => "https://console.fixture.invalid/auth/callback",
+      "client_auth_method" => "client_secret_basic",
+      "client_credential_ref" => "secret://fixture/client",
+      "session_vault_ref" => "vault://fixture/browser",
+      "scope" => "openid mixer.workspace.read",
+      "response_mode" => "query",
+      "response_iss_required" => true
+    }
+
+    identity = %MixerHosted.Identity.StartupConfig{
+      mode: :configured,
+      owner_options: [manifest: [entry], binding: "humans"]
+    }
+
+    {:ok, config} =
+      Config.load(
+        %{
+          "MIXER_BROWSER_AUTH_MODE" => "configured",
+          "MIXER_BROWSER_AUTH_CONFIG" => Jason.encode!(object)
+        },
+        :api,
+        identity
+      )
+
+    {:ok, digest} = ConfigurationDigest.digest(config)
+
+    {:ok, custody} =
+      Custody.new(config.session_vault_ref, %{
+        reference: config.session_vault_ref,
+        key_id: "r512",
+        key_bytes: :crypto.strong_rand_bytes(32)
+      })
+
+    ordinary = Keyword.put(settings, :username, "browser_ordinary")
+    previous_repo = Application.fetch_env(:mixer_hosted, MixerHosted.Repo)
+
+    on_exit(fn ->
+      case previous_repo do
+        {:ok, value} -> Application.put_env(:mixer_hosted, MixerHosted.Repo, value)
+        :error -> Application.delete_env(:mixer_hosted, MixerHosted.Repo)
+      end
+    end)
+
+    Application.put_env(:mixer_hosted, MixerHosted.Repo, ordinary)
+    start_supervised!({MixerHosted.Repo, ordinary})
+
+    commit_proxy = start_supervised!({R932.PhaseCommitProxy, F.port()})
+
+    life = [
+      hostname: "127.0.0.1",
+      port: GenServer.call(commit_proxy, :port),
+      database: "browser_login_storage",
+      username: "browser_lifecycle",
+      password: "synthetic",
+      pool_size: 2,
+      pool_count: 1,
+      timeout: 5000,
+      connect_timeout: 5000,
+      queue: false,
+      show_sensitive_data_on_connection_error: false,
+      ssl: false
+    ]
+
+    start_supervised!({LifecycleRepo, life})
+
+    runtime = %RuntimeConfig{
+      mode: :configured,
+      browser_config: config,
+      configuration_digest: digest,
+      lifecycle_repo: life,
+      expected_roles: %{
+        lifecycle_login: "browser_lifecycle",
+        writer: "browser_writer",
+        relation_owner: "browser_schema_owner",
+        ordinary_runtime_login: "browser_ordinary"
+      },
+      custody: custody
+    }
+
+    assert {:ok, :function_surface_verified} =
+             LifecycleRepo.transaction(
+               fn ->
+                 F.q!(LifecycleRepo, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+
+                 for setting <- [
+                       "search_path=pg_catalog",
+                       "jit=off",
+                       "statement_timeout='5s'",
+                       "lock_timeout='500ms'",
+                       "idle_in_transaction_session_timeout='5s'",
+                       "bytea_output='hex'"
+                     ],
+                     do: F.q!(LifecycleRepo, "SET LOCAL " <> setting)
+
+                 MixerHosted.BrowserAuth.Catalog.check_function_surface!(
+                   LifecycleRepo,
+                   runtime.expected_roles,
+                   System.monotonic_time(:millisecond) + 5000,
+                   2
+                 )
+               end,
+               log: false
+             )
+
+    IO.puts("ORIGINAL_CATALOG exact_v2_before_addition=true")
+    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
+    conn = F.connection!("browser_admin")
+
+    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
+        do: Postgrex.query!(conn, sql, [])
+
+    GenServer.stop(conn)
+    now = System.system_time(:second)
+    {:ok, snapshot} = TrustSnapshot.new(profile, jwks, now, now + 300)
+    provider = start_supervised!({R686.Provider, %{key: key, wrong_key: wrong, config: config}})
+
+    start_supervised!(%{
+      id: ProviderOwner,
+      start: {ProviderOwner, :start_fixture, [config, snapshot, provider]}
+    })
+
+    {:ok, :ok} =
+      Migration.transaction(fn ->
+        Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
+      end)
+
+    F.q!(
+      Admin,
+      "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
+    )
+
+    F.q!(
+      Admin,
+      "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+    )
+
+    F.q!(
+      Admin,
+      "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
+    )
+
+    F.q!(
+      Admin,
+      "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
+    )
+
+    F.q!(
+      Admin,
+      "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
+    )
+
+    for n <- 0..51 do
+      id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
+
+      F.q!(
+        Admin,
+        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
+        [id]
+      )
+
+      F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
+
+      F.q!(
+        Admin,
+        "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
+        ["member-" <> id, id]
+      )
+
+      F.q!(
+        Admin,
+        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
+        [id]
+      )
+
+      F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
+    end
+
+    %{
+      runtime: runtime,
+      config: config,
+      provider: provider,
+      workers: workers,
+      fixture: fixture,
+      commit_proxy: commit_proxy
+    }
+  end
+
+  setup c do
+    assert LifecycleRepo.bound?(c.runtime.lifecycle_repo)
+    assert MixerHosted.Repo.config()[:username] === "browser_ordinary"
+    start_supervised!({RuntimeOwner, c.runtime})
+    assert RuntimeOwner.status().phase === :storage_ready
+    GenServer.call(c.provider, {:mode, :ok})
+
+    server =
+      start_supervised!(%{
+        id: :r604_http,
+        start: {MixerHostedWeb.BrowserLoginHTTP.Server, :start_link, [[]]}
+      })
+
+    {:ok, {_, port}} = ThousandIsland.listener_info(server)
+
+    authorization =
+      start_supervised!(%{
+        id: :authorization_http,
+        start:
+          {Bandit, :start_link,
+           [
+             [
+               plug: {R686.AuthorizationHTTP, %{provider: c.provider, config: c.config}},
+               ip: {127, 0, 0, 1},
+               port: 0,
+               startup_log: false
+             ]
+           ]}
+      })
+
+    {:ok, {_, provider_port}} = ThousandIsland.listener_info(authorization)
+    %{http_port: port, provider_port: provider_port}
+  end
+
+  defp raw(cookie, c) do
+    conn = F.connection!()
+
+    {:ok, s} =
+      F.call(conn, :load, [:crypto.hash(:sha256, cookie), c.runtime.configuration_digest])
+
+    GenServer.stop(conn)
+    s
+  end
+
+  defp headers(cookie), do: [{"cookie", "__Host-mixer-session=" <> cookie}]
+
+  defp leases_clean do
+    assert map_size(:sys.get_state(RuntimeOwner).operations) == 0
+  end
+
+  defp http(c, path, headers, method \\ "GET", body \\ "") do
+    {:ok, s} = :gen_tcp.connect({127, 0, 0, 1}, c.http_port, [:binary, active: false], 2000)
+
+    request = [
+      method,
+      " ",
+      path,
+      " HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n",
+      Enum.map(headers, fn {k, v} -> [k, ": ", v, "\r\n"] end),
+      "\r\n",
+      body
+    ]
+
+    :ok = :gen_tcp.send(s, request)
+
+    collect = fn again, acc ->
+      case :gen_tcp.recv(s, 0, 7000) do
+        {:ok, b} ->
+          if c[:wire_observer], do: send(c.wire_observer, {:http_bytes, byte_size(b)})
+          again.(again, acc <> b)
+
+        {:error, :closed} ->
+          acc
+
+        _ ->
+          raise "closed HTTP transport failure"
+      end
+    end
+
+    raw = collect.(collect, "")
+    :gen_tcp.close(s)
+    [head, body] = String.split(raw, "\r\n\r\n", parts: 2)
+    [line | hs] = String.split(head, "\r\n")
+    [_, code | _] = String.split(line, " ")
+    %{status: String.to_integer(code), body: body, headers: hs}
+  end
+
+  defp expiry(c, cookie) do
+    assert {:ok, s} = StoredSnapshot.decode(raw(cookie, c))
+
+    assert {:ok, %Vault.Active{access_token: token}} =
+             Vault.open(
+               c.runtime.custody.key,
+               s.session_envelope.context,
+               s.session_envelope.sealed
+             )
+
+    assert {:ok, i} =
+             MixerHosted.Identity.ConfiguredVerifier.authenticate(
+               KeyOwner,
+               "humans",
+               token,
+               System.system_time(:second)
+             )
+
+    {s, i, min(i.expires_at, min(s.browser["idle_expires_at"], s.browser["absolute_expires_at"]))}
+  end
+
+  defp response_header(r, name) do
+    prefix = name <> ": "
+    for h <- r.headers, String.starts_with?(h, prefix), do: String.replace_prefix(h, prefix, "")
+  end
+
+  defp response_cookie(r) do
+    [cookie] = response_header(r, "set-cookie")
+    assert String.contains?(cookie, "; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=")
+    [pair | _] = String.split(cookie, ";")
+    "__Host-mixer-session=" <> token = pair
+    assert Protocol.token?(token)
+    token
+  end
+
+  defp bootstrap_http(c) do
+    r = http(c, "/auth/session", [])
+    assert r.status == 200
+    p = response_cookie(r)
+    csrf = Jason.decode!(r.body)["csrf_token"]
+    assert {:ok, loaded} = RuntimeOwner.load(p)
+    assert loaded.cookie == p and loaded.csrf == csrf
+    %{cookie: p, csrf: csrf}
+  end
+
+  defp begin_http(c, p) do
+    hs = headers(p.cookie) ++ [{"origin", c.config.public_origin}, {"x-mixer-csrf", p.csrf}]
+    r = http(c, "/auth/login", hs, "POST")
+    assert r.status == 303
+    assert response_header(r, "set-cookie") == []
+    [location] = response_header(r, "location")
+    uri = URI.parse(location)
+    assert uri.scheme <> "://" <> uri.host <> uri.path == c.config.authorization_endpoint
+    v = URI.decode_query(uri.query)
+    assert v["response_type"] == "code" and v["response_mode"] == "query"
+    assert v["redirect_uri"] == c.config.redirect_uri
+    assert v["client_id"] == c.config.client_id and v["code_challenge_method"] == "S256"
+    assert Protocol.token?(v["state"]) and Protocol.token?(v["nonce"])
+    # The synthetic provider receives only the HTTP-produced authorization query.
+    provider_response = http(%{http_port: c.provider_port}, "/authorize?" <> uri.query, [])
+    assert provider_response.status == 302
+    [callback] = response_header(provider_response, "location")
+    assert String.starts_with?(callback, c.config.redirect_uri <> "?")
+    query = URI.parse(callback).query
+    %{headers: headers(p.cookie), query: query, cookie: p.cookie}
+  end
+
+  test "raw HTTP bootstrap PKCE callback rotates cookie then unchanged client reads", c do
+    p = bootstrap_http(c)
+    l = begin_http(c, p)
+    before = GenServer.call(c.provider, :count)
+    r = http(c, "/auth/callback?" <> l.query, l.headers)
+    assert r.status == 303
+    assert response_header(r, "location") == ["/workspace"]
+    active_cookie = response_cookie(r)
+    refute active_cookie == p.cookie
+    assert GenServer.call(c.provider, :count) == before + 1
+    assert http(c, "/auth/session", headers(p.cookie)).status == 503
+    {_, _, exp} = expiry(c, active_cookie)
+
+    assert Jason.decode!(http(c, "/auth/session", headers(active_cookie)).body)["state"] ==
+             "authenticated"
+
+    f = Path.join(System.tmp_dir!(), "client.json")
+
+    File.write!(
+      f,
+      Jason.encode!(%{
+        origin: "http://127.0.0.1:#{c.http_port}",
+        firstCookie: Protocol.random_token(),
+        activeCookie: active_cookie,
+        expires: exp
+      })
+    )
+
+    File.chmod!(f, 0o600)
+
+    try do
+      {out, code} =
+        System.cmd("node", [System.fetch_env!("MIXER_BROWSER_READ_NODE_DRIVER"), f],
+          stderr_to_stdout: true
+        )
+
+      assert code == 0, out
+      IO.puts("R686_CLIENT " <> out)
+    after
+      File.rm!(f)
+    end
+
+    replay = http(c, "/auth/callback?" <> l.query, l.headers)
+    assert replay.status == 503
+    assert response_header(replay, "set-cookie") == []
+    assert GenServer.call(c.provider, :count) == before + 1
+    leases_clean()
+
+    IO.puts(
+      "R686_HTTP valid_bootstrap_begin_callback=true committed_cookie_rotation=true replay_no_cookie=true unchanged_client=true"
+    )
+  end
+
+  test "raw HTTP duplicates bodies origins arbitrary inputs and aliases fail closed", c do
+    p = bootstrap_http(c)
+    h = headers(p.cookie)
+    hs = h ++ [{"origin", c.config.public_origin}, {"x-mixer-csrf", p.csrf}]
+    before = GenServer.call(c.provider, :count)
+
+    for bad <- [
+          h,
+          hs ++ h,
+          hs ++ [{"Origin", c.config.public_origin}],
+          hs ++ [{"X-Mixer-CSRF", p.csrf}],
+          hs ++ [{"authorization", "Bearer refused"}],
+          h ++ [{"origin", "https://evil.invalid"}, {"x-mixer-csrf", p.csrf}]
+        ] do
+      r = http(c, "/auth/login", bad, "POST")
+      assert r.status == 503
+      assert response_header(r, "set-cookie") == [] and response_header(r, "location") == []
+    end
+
+    for query <- [
+          "?redirect_uri=https://evil.invalid",
+          "?tenant=org-b",
+          "?token=caller",
+          "?return_to=/evil"
+        ] do
+      assert http(c, "/auth/login" <> query, hs, "POST").status == 503
+    end
+
+    assert http(c, "/auth/login", hs ++ [{"content-length", "1"}], "POST", "x").status == 503
+
+    for path <- ["/auth/login/", "/auth/%6cogin", "/AUTH/login", "/auth/logout"] do
+      assert http(c, path, hs, "POST").status == 404
+    end
+
+    l = begin_http(c, p)
+    state = URI.decode_query(l.query)["state"]
+
+    for query <- [
+          l.query <> "&state=" <> state,
+          l.query <> "&code=duplicate",
+          l.query <> "&%73tate=" <> state,
+          l.query <> "&tenant=org-b",
+          String.replace(l.query, "state=" <> state, "state=" <> Protocol.random_token())
+        ] do
+      r = http(c, "/auth/callback?" <> query, h)
+      assert r.status == 503
+      assert response_header(r, "set-cookie") == []
+    end
+
+    assert http(c, "/auth/callback?" <> l.query, h ++ h).status == 503
+
+    assert http(c, "/auth/callback?" <> l.query, h ++ [{"content-length", "1"}], "GET", "x").status ==
+             503
+
+    assert GenServer.call(c.provider, :count) == before
+    assert http(c, "/auth/callback?" <> l.query, h).status == 303
+    leases_clean()
+
+    IO.puts(
+      "R686_BOUNDARIES duplicate_headers_query=true csrf_origin=true aliases_caller_choices_body_refused=true"
+    )
+  end
+
+  test "callback claim transaction rollback never publishes cookie", c do
+    p = bootstrap_http(c)
+    l = begin_http(c, p)
+    provider_before = GenServer.call(c.provider, :count)
+
+    pending = fn ->
+      %{rows: rows} =
+        F.q!(
+          Admin,
+          """
+          SELECT b.epoch,b.revision,a.status,a.claim_digest IS NULL,a.claimed_at IS NULL
+          FROM public.mixer_browser_sessions b
+          JOIN public.mixer_browser_oidc_attempts a ON a.browser_id=b.id
+          WHERE b.cookie_digest=$1
+          """,
+          [:crypto.hash(:sha256, p.cookie)]
+        )
+
+      rows
+    end
+
+    pending_before = pending.()
+    assert [[2, 2, "pending", true, true]] = pending_before
+    :ok = GenServer.call(c.commit_proxy, {:arm, self()})
+    r = http(c, "/auth/callback?" <> l.query, l.headers)
+    assert_receive {:activation_aborted, true}, 1000
+    assert_receive :actual_commit_rolled_back, 1000
+    assert r.status == 503
+    assert response_header(r, "set-cookie") == [] and response_header(r, "location") == []
+    assert {:ok, snapshot} = StoredSnapshot.decode(raw(p.cookie, c))
+    assert snapshot.browser["status"] == "preauth"
+    assert http(c, "/auth/session", headers(p.cookie)).status == 503
+    assert pending.() == pending_before
+    assert GenServer.call(c.provider, :count) == provider_before
+    retry = http(c, "/auth/callback?" <> l.query, l.headers)
+    assert retry.status == 303
+    assert response_header(retry, "location") == ["/workspace"]
+    active_cookie = response_cookie(retry)
+
+    assert Jason.decode!(http(c, "/auth/session", headers(active_cookie)).body)["state"] ==
+             "authenticated"
+
+    assert GenServer.call(c.provider, :count) == provider_before + 1
+    replay = http(c, "/auth/callback?" <> l.query, l.headers)
+    assert replay.status == 503 and response_header(replay, "set-cookie") == []
+    assert GenServer.call(c.provider, :count) == provider_before + 1
+
+    IO.puts(
+      "R686_COMMIT callback_claim_commit_rolled_back=true cookie_withheld=true preauth_row_retained=true pending_revision_retained=true zero_exchange_before_retry=true retry_committed_once=true further_replay_closed=true"
+    )
+
+    leases_clean()
+  end
+
+  test "bad signed nonce and disabled owner never publish callback cookies", c do
+    p = bootstrap_http(c)
+    l = begin_http(c, p)
+    GenServer.call(c.provider, {:mode, :nonce})
+    r = http(c, "/auth/callback?" <> l.query, l.headers)
+    assert r.status == 503 and response_header(r, "set-cookie") == []
+    stop_supervised(RuntimeOwner)
+    assert http(c, "/auth/session", []).status == 503
+    assert http(c, "/auth/callback?" <> l.query, l.headers).status == 503
+    IO.puts("R686_FAILURE nonce_refused=true owner_absence_no_cookie=true")
+  end
+
+  defp independent_state(cookie) do
+    %{rows: rows} =
+      F.q!(
+        Admin,
+        """
+        SELECT b.status,b.epoch,b.revision,
+          (SELECT count(*) FROM public.mixer_browser_sessions WHERE status='active'),
+          (SELECT count(*) FROM public.mixer_authz_families),
+          (SELECT count(*) FROM public.mixer_authz_credentials)
+        FROM public.mixer_browser_sessions b WHERE b.cookie_digest=$1
+        """,
+        [:crypto.hash(:sha256, cookie)]
+      )
+
+    rows
+  end
+
+  test "final activation COMMIT barrier withholds bytes until independently visible", c do
+    p = bootstrap_http(c)
+    l = begin_http(c, p)
+    :ok = GenServer.call(c.commit_proxy, {:arm_activation, :barrier, self()})
+    parent = self()
+
+    task =
+      Task.async(fn ->
+        http(Map.put(c, :wire_observer, parent), "/auth/callback?" <> l.query, l.headers)
+      end)
+
+    assert_receive {:final_activation_commit, backend, :barrier},
+                   2000,
+                   "phase-aware final activation COMMIT not observed"
+
+    assert_receive {:activation_barrier, proxy_worker, ^backend}, 1000
+
+    [["preauth", _, _, active_before, families_before, credentials_before]] =
+      independent_state(p.cookie)
+
+    %{rows: [["browser_lifecycle", "browser_login_storage", false, false]]} =
+      F.q!(
+        Admin,
+        "SELECT a.usename,a.datname,r.rolsuper,r.rolbypassrls FROM pg_catalog.pg_stat_activity a JOIN pg_catalog.pg_roles r ON r.rolname=a.usename WHERE a.pid=$1",
+        [backend]
+      )
+
+    refute_receive {:http_bytes, _}, 100
+    send(proxy_worker, :release_commit)
+    assert_receive {:committed_barrier, reader}, 1000
+
+    %{rows: [[active_after, families_after, credentials_after]]} =
+      F.q!(
+        Admin,
+        "SELECT (SELECT count(*) FROM public.mixer_browser_sessions WHERE status='active'),(SELECT count(*) FROM public.mixer_authz_families),(SELECT count(*) FROM public.mixer_authz_credentials)"
+      )
+
+    assert active_after == active_before + 1
+    assert families_after == families_before + 1 and credentials_after == credentials_before + 1
+    assert independent_state(p.cookie) == []
+    refute_receive {:http_bytes, _}, 100
+    send(reader, :release_ack)
+    r = Task.await(task, 2000)
+    assert r.status == 303
+    cookie = response_cookie(r)
+    assert response_header(r, "location") == ["/workspace"]
+
+    assert Jason.decode!(http(c, "/auth/session", headers(cookie)).body)["state"] ==
+             "authenticated"
+
+    File.write!(
+      System.fetch_env!("R932_BARRIER_EVIDENCE"),
+      Jason.encode!(%{
+        phase:
+          "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+        backend: backend,
+        role: "browser_lifecycle",
+        superuser: false,
+        bypassrls: false,
+        no_bytes_before_commit: true,
+        no_bytes_before_ack: true,
+        independently_visible_before_ack: true,
+        truthful_cookie_and_read_after_ack: true
+      })
+    )
+
+    leases_clean()
+  end
+
+  test "final activation actual COMMIT rollback must never publish activation", c do
+    p = bootstrap_http(c)
+    l = begin_http(c, p)
+    before = independent_state(p.cookie)
+    :ok = GenServer.call(c.commit_proxy, {:arm_activation, :abort, self()})
+    r = http(c, "/auth/callback?" <> l.query, l.headers)
+    assert_receive {:final_activation_commit, backend, :abort}, 1000
+    assert_receive {:activation_aborted, true}, 1000
+    assert_receive :actual_commit_rolled_back, 1000
+    after_state = independent_state(p.cookie)
+
+    %{rows: identity} =
+      F.q!(
+        Admin,
+        "SELECT a.usename,a.datname,r.rolsuper,r.rolbypassrls FROM pg_catalog.pg_stat_activity a JOIN pg_catalog.pg_roles r ON r.rolname=a.usename WHERE a.pid=$1",
+        [backend]
+      )
+
+    cookies = response_header(r, "set-cookie")
+
+    read =
+      if cookies == [],
+        do: nil,
+        else: http(c, "/auth/session", headers(response_cookie(r))).status
+
+    evidence = %{
+      phase:
+        "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+      backend: backend,
+      identity: identity,
+      injected_ready_for_query: "E",
+      actual_commit_command_complete: "ROLLBACK",
+      independent_before: before,
+      independent_after: after_state,
+      http_status: r.status,
+      active_cookie_header: cookies != [],
+      workspace_redirect: response_header(r, "location") == ["/workspace"],
+      published_cookie_session_status: read
+    }
+
+    File.write!(System.fetch_env!("R932_FAILURE_EVIDENCE"), Jason.encode!(evidence))
+    IO.puts("R932_FINAL_COMMIT " <> Jason.encode!(evidence))
+    assert after_state == before
+    assert r.status == 503
+    assert cookies == [] and response_header(r, "location") == []
+    leases_clean()
+  end
+
+  defp assert_pool_idle do
+    %{rows: [[0]]} =
+      F.q!(Admin, """
+      SELECT count(*) FROM pg_catalog.pg_stat_activity
+      WHERE usename='browser_lifecycle' AND state LIKE 'idle in transaction%'
+      """)
+
+    assert %{rows: [[1]]} = F.q!(LifecycleRepo, "SELECT 1")
+    refute LifecycleRepo.in_transaction?()
+    refute LifecycleRepo.checked_out?()
+  end
+
+  test "confirmed receipt rejects missing duplicate mismatched and failed tags" do
+    store = MixerHosted.BrowserAuth.Store
+    event = [:mixer_hosted, :browser_auth, :store, :transaction]
+    key = {store, :receipt}
+    reference = make_ref()
+
+    metadata = fn query, command, backend ->
+      %{
+        type: :ecto_sql_query,
+        repo: LifecycleRepo,
+        options: [store_transaction: {self(), reference}],
+        query: query,
+        result: {:ok, %Postgrex.Result{command: command, connection_id: backend}}
+      }
+    end
+
+    observe = fn value -> store.transaction_event(event, %{}, value, nil) end
+    reset = fn -> Process.put(key, {self(), reference, :await_begin}) end
+
+    try do
+      reset.()
+      observe.(metadata.("commit", :commit, 1))
+      assert elem(Process.get(key), 2) == :unknown
+      reset.()
+      observe.(metadata.("begin", :begin, 1))
+      observe.(metadata.("commit", :commit, 2))
+      assert elem(Process.get(key), 2) == :unknown
+      reset.()
+      observe.(metadata.("begin", :begin, 1))
+      observe.(metadata.("commit", :commit, 1))
+      assert elem(Process.get(key), 2) == :committed
+      observe.(metadata.("commit", :commit, 1))
+      assert elem(Process.get(key), 2) == :unknown
+      reset.()
+      observe.(metadata.("begin", :begin, 1))
+      observe.(metadata.("commit", :rollback, 1))
+      assert elem(Process.get(key), 2) == :rolled_back
+      reset.()
+      observe.(metadata.("begin", :begin, 1))
+
+      observe.(
+        Map.put(
+          metadata.("commit", :commit, 1),
+          :result,
+          {:error, %DBConnection.ConnectionError{message: "fixture"}}
+        )
+      )
+
+      assert elem(Process.get(key), 2) == :unknown
+
+      for options <- [
+            [store_transaction: {self(), make_ref()}],
+            [store_transaction: {Process.whereis(RuntimeOwner), reference}],
+            []
+          ] do
+        reset.()
+        observe.(metadata.("begin", :begin, 1))
+        observe.(Map.put(metadata.("commit", :commit, 1), :options, options))
+        assert elem(Process.get(key), 2) == :unknown
+      end
+    after
+      Process.delete(key)
+    end
+
+    assert Process.get(key) == nil
+  end
+
+  test "missing actual Store receipt withholds HTTP cookie and handler registration is bounded",
+       c do
+    store = MixerHosted.BrowserAuth.Store
+    event = [:mixer_hosted, :browser_auth, :store, :transaction]
+    handler = {store, :transaction_receipt}
+    fault = {__MODULE__, :missing_receipt}
+    original_status = RuntimeOwner.status()
+    :ok = :telemetry.attach(fault, event, &R942.ReceiptFault.handle/4, :missing)
+
+    try do
+      r = http(c, "/auth/session", [])
+      assert r.status == 503
+      assert response_header(r, "set-cookie") == [] and response_header(r, "location") == []
+    after
+      :telemetry.detach(fault)
+    end
+
+    assert %{phase: :unavailable, generation: generation} = RuntimeOwner.status()
+    assert generation == original_status.generation + 1
+    r = http(c, "/auth/session", [])
+    assert r.status == 503
+    assert response_header(r, "set-cookie") == [] and response_header(r, "location") == []
+    # Explicitly restore only the handler removed by the fixture; the owner stays unavailable.
+    assert :ok =
+             :telemetry.attach(
+               handler,
+               event,
+               &MixerHosted.BrowserAuth.Store.transaction_event/4,
+               nil
+             )
+
+    assert RuntimeOwner.status() == %{phase: :unavailable, generation: generation}
+    matching = Enum.filter(:telemetry.list_handlers(event), &(&1.id == handler))
+    assert [%{config: nil, function: fun}] = matching
+    assert fun == (&MixerHosted.BrowserAuth.Store.transaction_event/4)
+    assert_pool_idle()
+    leases_clean()
+  end
+
+  test "pinned transaction explicit rollback SQL exception and nested admission release checkout",
+       c do
+    store = MixerHosted.BrowserAuth.Store
+
+    assert {:error, :fixture} =
+             LifecycleRepo.transaction(fn -> LifecycleRepo.rollback(:fixture) end, log: false)
+
+    assert_raise Postgrex.Error, fn ->
+      LifecycleRepo.transaction(fn -> F.q!(LifecycleRepo, "SELECT 1/0") end, log: false)
+    end
+
+    assert_pool_idle()
+    parent = self()
+    marker = make_ref()
+
+    :sys.replace_state(RuntimeOwner, fn state ->
+      result =
+        LifecycleRepo.transaction(
+          fn ->
+            store.admit(c.runtime, System.monotonic_time(:millisecond) + 5000)
+          end,
+          log: false
+        )
+
+      send(parent, {marker, result, Process.get({store, :receipt})})
+      state
+    end)
+
+    assert_receive {^marker,
+                    {:ok,
+                     {:error, %MixerHosted.BrowserAuth.Store.Failure{outcome: :not_started}}},
+                    nil}
+
+    # The ordinary default is still preauthentication; it cannot reach workspace.
+    p = bootstrap_http(c)
+
+    assert Jason.decode!(http(c, "/auth/session", headers(p.cookie)).body)["state"] ==
+             "unauthenticated"
+
+    assert_pool_idle()
+    leases_clean()
+  end
+
+  test "actual transport loss before final COMMIT withholds activation and leaves no live transaction",
+       c do
+    p = bootstrap_http(c)
+    l = begin_http(c, p)
+    before = independent_state(p.cookie)
+    :ok = GenServer.call(c.commit_proxy, {:arm_activation, :barrier, self()})
+    task = Task.async(fn -> http(c, "/auth/callback?" <> l.query, l.headers) end)
+    assert_receive {:final_activation_commit, backend, :barrier}, 2000
+    assert_receive {:activation_barrier, worker, ^backend}, 1000
+
+    assert %{rows: [[true]]} =
+             F.q!(Admin, "SELECT pg_catalog.pg_terminate_backend($1)", [backend])
+
+    send(worker, :release_commit)
+    r = Task.await(task, 3000)
+    assert r.status == 503
+    assert response_header(r, "set-cookie") == [] and response_header(r, "location") == []
+    assert independent_state(p.cookie) == before
+    assert_pool_idle()
+    leases_clean()
+
+    IO.puts(
+      "R942_TRANSPORT actual_terminated_final_backend=true no_cookie=true rows_unchanged=true pool_reusable=true"
+    )
+  end
+end

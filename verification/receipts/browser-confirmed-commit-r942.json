@@ -1,0 +1,269 @@
+{
+  "campaign": "browser-confirmed-commit-r942",
+  "status": "UNADOPTED_REVIEW_PENDING",
+  "result": "R932 actual final-activation ROLLBACK false303 fixed; final batch9/10 with one invalid recovery200 fixture expectation retained",
+  "source_provenance": {
+    "root_reported_revision": "main1633d0e7",
+    "revision_not_independently_queried": true,
+    "r932_packet": {
+      "path": "verification/local/browser-activation-commit-r932/delivery/source-packet.tar.gz",
+      "sha256": "b66a67445790d293364d0ba184eac6809a134378ce5b636d75cdfd647161edf8"
+    },
+    "final_source_tree_sha256": "c982bdbe14181f1c1086c8372c0ea21edb253342019fa84ab67beeec0ccf9616",
+    "changed_files": {
+      "hosted/lib/mixer_hosted/browser_auth/store.ex": {
+        "before_sha256": "c962c4f88d0dece68035467d0bf42b6bb65165c9c9054a8cf55c12a9313555ab",
+        "after_sha256": "24aaac574a11761c72166826f7ff91f385aae1bacf45c01bfe07e6a18ce1c823",
+        "bytes": 23946
+      },
+      "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs": {
+        "before_sha256": "26628a758f33b89ad1f3378afe7cdd86822308ad2bcc2f076946aa6f11043188",
+        "after_sha256": "99a0187a2ee4dbd490c2b59bbcb766795f170106a8984244a11a40e901c0f75f",
+        "bytes": 36022
+      }
+    }
+  },
+  "product_scope": [
+    "hosted/lib/mixer_hosted/browser_auth/store.ex"
+  ],
+  "transaction_contract": {
+    "repo_transaction_preserved": true,
+    "catalog_sql_role_lease_deadline_fences_preserved": true,
+    "fixed_event": [
+      "mixer_hosted",
+      "browser_auth",
+      "store",
+      "transaction"
+    ],
+    "fixed_handler_config": null,
+    "receipt_state": "invoking process dictionary only, PID/reference correlated, cleared in after",
+    "success": "exact BEGIN then COMMIT same positive backend ID, exactly once",
+    "definite_rollback": "matching backend ROLLBACK terminal tag",
+    "all_missing_duplicate_error_mismatched_events": "unknown/fail closed",
+    "no_dependency_changes": true
+  },
+  "actual_reproductions": {
+    "baseline": {
+      "identity": [
+        [
+          "browser_lifecycle",
+          "browser_storage",
+          false,
+          false
+        ]
+      ],
+      "phase": "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+      "backend": 32123,
+      "injected_ready_for_query": "E",
+      "actual_commit_command_complete": "ROLLBACK",
+      "independent_before": [
+        [
+          "preauth",
+          2,
+          2,
+          3,
+          3,
+          3
+        ]
+      ],
+      "independent_after": [
+        [
+          "preauth",
+          2,
+          2,
+          3,
+          3,
+          3
+        ]
+      ],
+      "http_status": 303,
+      "active_cookie_header": true,
+      "workspace_redirect": true,
+      "published_cookie_session_status": 503
+    },
+    "fixed": {
+      "identity": [
+        [
+          "browser_lifecycle",
+          "browser_storage",
+          false,
+          false
+        ]
+      ],
+      "phase": "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+      "backend": 55259,
+      "injected_ready_for_query": "E",
+      "actual_commit_command_complete": "ROLLBACK",
+      "independent_before": [
+        [
+          "preauth",
+          2,
+          2,
+          4,
+          4,
+          4
+        ]
+      ],
+      "independent_after": [
+        [
+          "preauth",
+          2,
+          2,
+          4,
+          4,
+          4
+        ]
+      ],
+      "http_status": 503,
+      "active_cookie_header": false,
+      "workspace_redirect": false,
+      "published_cookie_session_status": null
+    },
+    "success_barrier": {
+      "phase": "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+      "role": "browser_lifecycle",
+      "backend": 55259,
+      "superuser": false,
+      "bypassrls": false,
+      "no_bytes_before_commit": true,
+      "no_bytes_before_ack": true,
+      "independently_visible_before_ack": true,
+      "truthful_cookie_and_read_after_ack": true
+    }
+  },
+  "batches": [
+    {
+      "name": "original",
+      "tests_passed": 5,
+      "tests_run": 6,
+      "expected_false303_reproduced": true,
+      "log": "logs/http-batch-1.stdout"
+    },
+    {
+      "name": "candidate-1",
+      "tests_passed": 2,
+      "tests_run": 3,
+      "failure": "old claim replay503 assertion depended on broken Store acknowledging rolled-back claim; preserved raw failure",
+      "log": "logs/fixed-http-batch-1.stdout"
+    },
+    {
+      "name": "final",
+      "tests_passed": 9,
+      "tests_run": 10,
+      "all_six_r932_scenarios_passed_with_root_approved_claim_retry_contract_correction": true,
+      "failure": "added missing-hook recovery200 assertion got503; existing RuntimeOwner invalidates onunknown at runtime_owner.ex586-590",
+      "log": "logs/final-http-batch-1.stdout"
+    }
+  ],
+  "focused_passes": [
+    "synthetic receipt missing-BEGIN, duplicate-COMMIT, wrong backend/ref/caller, error tag, actual rollback tag",
+    "actual missing-hook HTTP request503 with no cookie/no redirect",
+    "pinned explicit rollback and SQLexception, checkout reusable, noidle-in-transaction",
+    "nested admission fails not_started",
+    "default preauth HTTP state unauthenticated",
+    "actual final-activation backend termination beforeCOMMIT503/no cookie/unchanged independent rows/pool reusable"
+  ],
+  "unrun_assertions_after_fixture_failure": [
+    "line925 handler lookup/filter assignment not executed",
+    "line926 single matching handler with nilconfig assertion not executed",
+    "line927 exact handler function identity assertion not executed",
+    "line928 assert_pool_idle helper not executed",
+    "line929 leases_clean helper not executed"
+  ],
+  "fixture_failure_limit": "second request503 observed; no subsequent assertions in that test ran; later separate tests passed, no rerun or source correction after final result",
+  "versions": {
+    "postgresql": "17.11",
+    "otp": "29",
+    "elixir": "1.20.4",
+    "ecto": "3.14.2",
+    "ecto_sql": "3.14.0",
+    "postgrex": "0.22.4",
+    "db_connection": "2.10.2",
+    "beam_schedulers": "3:3"
+  },
+  "budgets": {
+    "full_product_compiles": 1,
+    "incremental_product_compiles": 1,
+    "final_extension_product_compiles": 0,
+    "pg_http_batches": 3,
+    "third_batch": "root-authorized test-only contract correction, no product changes",
+    "subchildren": 0
+  },
+  "custody": {
+    "managed_commands": 35,
+    "all_direct_reaped_eof_closed_fds": true,
+    "all_original_killpg0_ESRCH": true,
+    "three_postgres_stop_exit": 0,
+    "three_postgres_status_exit": 3,
+    "all_owned_postgres_ports_ECONNREFUSED": true,
+    "pgdata_deleted_only_after_positive_cleanup": true,
+    "new_unknown_holds": [],
+    "commands_file": "commands.json"
+  },
+  "artifacts": {
+    "delivery/source-packet.tar.gz": {
+      "sha256": "977fda8e3664164e4e0f2e91381441cb487c60f1b596a33157dd932a364af984",
+      "bytes": 930581
+    },
+    "delivery/compiled-candidate-beams.tar.gz": {
+      "sha256": "5f9003fe849ef86bfd6d305e9b11edc0695706cda5e1fc99b608ef31e2109d05",
+      "bytes": 1952774
+    },
+    "delivery/store-only.diff": {
+      "sha256": "f9301ff684cba4dad5e22fb4935308a65530787646dfe05343dc51b75d19123b",
+      "bytes": 5136
+    },
+    "delivery/test-only.diff": {
+      "sha256": "2bf3882645a841d187cb50b8e47f65e5de5b152e02e8c2800a770ac6d4df48d9",
+      "bytes": 8446
+    },
+    "delivery/patch.diff": {
+      "sha256": "a61477f33f88d887ed32345e79d37988a36af331e757b16a74b3d12b8448f13a",
+      "bytes": 13582
+    },
+    "delivery/test-contract-correction.diff": {
+      "sha256": "0a711bb08f8d67f498b8cfd0029287eacdc5cdaa20b58dcd78b6794794680cc9",
+      "bytes": 2810
+    },
+    "delivery/application-map.json": {
+      "sha256": "7d7cefa31dc425b58051bf32b64cd3f03d41744512f81358f63ce2bc6ec9a0e2",
+      "bytes": 530
+    },
+    "final-beam-reuse-proof.json": {
+      "sha256": "ac3633b5a4e96f231a05a4b7ffc686adf63c60de6890f7f0f4a8c46a714cf874",
+      "bytes": 34605
+    },
+    "original-input-beam-identities.json": {
+      "sha256": "1cbb1876746d5c30cb7600ac402ef742d8c35337ad1889d060bf7c36a00c2c2b",
+      "bytes": 298081
+    },
+    "commands.json": {
+      "sha256": "93e051d4391fda8e4b46a1e6592497d98d4475d1e446556550871e2cb30c4b46",
+      "bytes": 39340
+    },
+    "logs/http-batch-1.stdout": {
+      "sha256": "4049c2faf414e2790e93242fe3f271520eb11fab42bed331b49617c9004c81b7",
+      "bytes": 3313
+    },
+    "logs/fixed-http-batch-1.stdout": {
+      "sha256": "b96d022aa17ca7289e5c834a31bf73c8e017eacc1bfdbd3459e238b0757ed4ce",
+      "bytes": 2142
+    },
+    "logs/final-http-batch-1.stdout": {
+      "sha256": "f932661c62be745c584e1b2021de1bebd60430b142759df13bfbe0561dc9376b",
+      "bytes": 4589
+    },
+    "REPORT.md": {
+      "sha256": "d2102110fff0702c6e9c6927a31118ce95c76b029875e3eb210a53ef375ad1e6",
+      "bytes": 12627
+    }
+  },
+  "limitations": [
+    "Unadopted until root selects new independent review; final suite is9/10 not green",
+    "No failed-BEGIN wire test or lost-ack-after-serverCOMMIT test",
+    "Handler foreign-ID refusal, untrappable caller death, concurrent correlation, and fixed-registration cardinality have no fresh adversarial execution in this campaign",
+    "No canonical/root Git/remote/provider/device/subagent actions",
+    "Synthetic signed provider fixture and raw local loopback HTTP only; no real browser HTTPS, commercial, immutable-package, production or GA qualification",
+    "All historical held namespaces remain untouched; no verification/userdata inventory; no staged index check because Git forbidden"
+  ]
+}

@@ -442,3 +442,23 @@ The recorded reason is emulator group remains; direct return or elapsed time
 does not establish absence. Its primary AssertionError has no diagnostic detail
 in the compact receipt. Native photo acceptance remains pending. This hold
 releases no earlier hold and does not block independent source work.
+
+The R930 reserved-memory experiment declared a runtime hold after its harness
+rejected the retained expected WorkExhausted primary failure. The separate compact
+receipt records fourteen final zero currents, zero tickets and no cleanup
+invariant, and all three OS groups were observed absent. These facts do not
+release the declared hold. Preserve source, target-private, logs, tmp and artifacts
+under `verification/local/reserved-memory-single-owner-r930` without inspection,
+probing, signals, waits, retry or cleanup. Only its prelaunch `static-delivery/`
+packet and `verification/receipts/reserved-memory-single-owner-r930.json` are
+permitted references. Independent R938 used those static bytes in a new namespace;
+it does not authorize any operation on this chain.
+
+The R940 report-share preparation recorded UNKNOWN for read-only sdk-head
+PID/PGID39033 after EPERM during group observation before direct reap/EOF. Preserve
+`verification/local/fieldlog-report-share-r940/runtime/host` and that command chain
+without inspection, probing, signals, waits, retries or cleanup. Separately frozen
+source outside that runtime chain remains available. The isolated host-r2
+successor does not release the original hold. Its eventual separate compact
+receipt is the custody reference; source-only app work does not imply native
+acceptance or a device hold release.

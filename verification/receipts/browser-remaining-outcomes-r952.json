@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "campaign": "browser-remaining-outcomes-r952",
+  "created_utc": "2026-11-11T11:52:42.064445+00:00",
+  "status": "REVIEW_INCOMPLETE_POOL_OBSERVATION_FAILURE_NO_PROVEN_P1_P2",
+  "adoption_authorized": false,
+  "root_adoption": false,
+  "strict_source_admission": false,
+  "default_provider_qualified": false,
+  "ga_qualified": false,
+  "findings": [],
+  "concrete_failed_control": {
+    "test": "R946 untrappable Store caller death retains no global caller config",
+    "location": "private_login_http_test.exs:1084 via assert_pool_idle:865",
+    "observed_rows": [
+      [
+        1
+      ]
+    ],
+    "expected_rows": [
+      [
+        0
+      ]
+    ],
+    "sample": "immediate idle-in-transaction count after caller DOWN and zero RuntimeOwner leases",
+    "persistent_leak_proven": false,
+    "eventual_cleanup_observed": false,
+    "pool_reuse_assertions_executed": false,
+    "owner_contract_pass": "storage_ready/generation1",
+    "handler_cardinality_function_nil_config_pass": true,
+    "failure_stdout_sha256": "38237ec136d81a340f01e4e8ca02be6b35723e273b363d3a4e67d56819ae9517"
+  },
+  "source": {
+    "source_files_verified": 219,
+    "source_unchanged_during_test": true,
+    "product_files_unchanged": true,
+    "store_sha256": "24aaac574a11761c72166826f7ff91f385aae1bacf45c01bfe07e6a18ce1c823",
+    "store_beam_sha256": "42b1437a3f848583c2149a7fe662e2988a94155a1f49f1972bbd8b043b47f341",
+    "beams_verified_after": 216,
+    "dependency_inputs_verified_after": 1884,
+    "test_sha256": "c5dd76bf6add4bcf2e14d36b4c5cfd284391ff8ce87b9e6b115ff1d3098d5132",
+    "proxy_sha256": "27a8efd83a5e0d0cf2f3e7b7a755d459cd36efe882143f231a4a6363a8c34301",
+    "packet_sha256": "977fda8e3664164e4e0f2e91381441cb487c60f1b596a33157dd932a364af984",
+    "store_diff_sha256": "f9301ff684cba4dad5e22fb4935308a65530787646dfe05343dc51b75d19123b",
+    "root_reported_revision": "main1633d0e7",
+    "git_not_queried": true
+  },
+  "fresh_tests": {
+    "selected": 3,
+    "executed": 1,
+    "passed": 0,
+    "failed": 1,
+    "excluded": 13,
+    "stop_on_first_failure": true,
+    "caller_death": "owner/handler/leases PASS; immediate pool count assertion FAIL; eventual cleanup and checkout reuse UNRUN",
+    "actual_owner_deadline_context": "SELECTED_UNRUN",
+    "actual_deferred_commit_error": "INVALID_EXISTING_FIXTURE_EXCLUDED_BEFORE_LAUNCH; no admitted Store callback; runtime gate pending",
+    "post_commit_lost_ack": "SELECTED_UNRUN",
+    "failed_begin_wire": "UNRUN"
+  },
+  "classification": {
+    "definite_rejected_commit": "source conservatively returns unknown for all error results; no actual admitted runtime counterexample",
+    "rolled_back_proven": false,
+    "contract_regression_proven": false,
+    "p2_asserted": false
+  },
+  "reuse": {
+    "r946_report_sha256": "8db38d3db0e6cc9e1abc202e907e375972449d04a191eb3d5415c3cd5c5f163d",
+    "r946_receipt_sha256": "b8b1caee7cda12ad3b6e81a91679d7a1d48ad31166ad7268e9acda50b9233fa0",
+    "original_six": "PASS twice in R946; reused only",
+    "actual_concurrency_ref_other_process_events": "PASS R946; reused only",
+    "foreign_fixed_registration_refusal": "PASS R946; reused only",
+    "missing_hook_handler_pool_lease": "PASS R946; reused only",
+    "rollback_sql_exception_nested_termination": "PASS R946; reused only",
+    "database_free_receipt_controls": "3/3 PASS R946; reused only",
+    "historical_failures_and_budget_violation_preserved": true
+  },
+  "budgets": {
+    "pg_http_batches": 1,
+    "product_compiles": 0,
+    "beam_schedulers": "3:3",
+    "fixture_assertion_corrections": 1,
+    "test_selection_tags": 3,
+    "pipe_bytes": 8388608,
+    "batch_seconds": 3.009774923324585,
+    "further_runtime_attempts": 0
+  },
+  "custody": {
+    "managed_commands_total": 11,
+    "all_direct_reaped_both_eof_closed_fds_original_killpg0_ESRCH": true,
+    "cluster_cleanup": {
+      "stop_exit": 0,
+      "status_exit": 3,
+      "direct_reaped": true,
+      "group_absent": true,
+      "original_killpg0_errno": 3,
+      "port_connect_errno": 61,
+      "port_closed": true
+    },
+    "owned_pgdata_removed_after_positive_closure": true,
+    "new_holds": [],
+    "historical_holds_touched": false
+  },
+  "limitations": [
+    "Independent review remains incomplete; this run is 0/1, not all green",
+    "Immediate pool observation lacks eventual cleanup/reuse observation; no persistent defect proven",
+    "Actual-owner expired/context and phase-aware lost-ack tests did not execute",
+    "Deferred fixture is unrelated Repo transaction with temp schema; actual admitted Store deferred rejection still pending",
+    "No failed-BEGIN wire fault, key/generation mutation or full review restart",
+    "No canonical/root Git/remote/provider-account/device/subchildren/inventory/staging/publication",
+    "Root strict source admission/adoption/default provider and GA remain false/pending"
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "path": "verification/local/browser-remaining-outcomes-r952/REPORT.md",
+      "sha256": "e583fe2fe16f058e1ed77d6cda52fad758e779233bf312f2e2ffcdf70e313cc9",
+      "bytes": 8853
+    },
+    "input-proof.json": {
+      "path": "verification/local/browser-remaining-outcomes-r952/input-proof.json",
+      "sha256": "6ec9b06bbb937a24b387d6d822e0130a1877a4d4d3f0622cc9da421102ed4d9f",
+      "bytes": 1286
+    },
+    "input-identities.json": {
+      "path": "verification/local/browser-remaining-outcomes-r952/input-identities.json",
+      "sha256": "04c7fd9f3d8b44eea67934dae6898ac46543ab037bb2c90aefb8126ed3912c68",
+      "bytes": 299049
+    },
+    "final-identity-proof.json": {
+      "path": "verification/local/browser-remaining-outcomes-r952/final-identity-proof.json",
+      "sha256": "d58a1b2b366568b6553ca34ce6ae791fe03ca9c37db82c1f1c2ebfac88ffc8b1",
+      "bytes": 532
+    },
+    "fixture-only.diff": {
+      "path": "verification/local/browser-remaining-outcomes-r952/fixture-only.diff",
+      "sha256": "db9e6e72d64738a0b8f45232a63c5b60a7c327e543f8aaa11ced0683841d7621",
+      "bytes": 1432
+    },
+    "run.py": {
+      "path": "verification/local/browser-remaining-outcomes-r952/run.py",
+      "sha256": "050002a9e1aa8060a14df1b5b89192d40fa8fcc2873aabe784a3157da44001c2",
+      "bytes": 8941
+    },
+    "commands.json": {
+      "path": "verification/local/browser-remaining-outcomes-r952/commands.json",
+      "sha256": "9ee052ad4055584bb56230669f18854fb3fd976907e4a93949d2cb8766fe8783",
+      "bytes": 12681
+    },
+    "final-cleanup.json": {
+      "path": "verification/local/browser-remaining-outcomes-r952/final-cleanup.json",
+      "sha256": "787f52746691c21f70a308a3fa7a6972d6272bcdaa116425577f2f3ec870d2ae",
+      "bytes": 171
+    },
+    "outcome.json": {
+      "path": "verification/local/browser-remaining-outcomes-r952/outcome.json",
+      "sha256": "7838e94c17eeed23f6a5cc9bf4e59ecfc0f9a41e9dd25f9079bf72775838b890",
+      "bytes": 74
+    },
+    "logs/final-http-batch-1.stdout": {
+      "path": "verification/local/browser-remaining-outcomes-r952/logs/final-http-batch-1.stdout",
+      "sha256": "38237ec136d81a340f01e4e8ca02be6b35723e273b363d3a4e67d56819ae9517",
+      "bytes": 3925
+    },
+    "logs/final-http-batch-1.stderr": {
+      "path": "verification/local/browser-remaining-outcomes-r952/logs/final-http-batch-1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "logs/final-loaded-versions.stdout": {
+      "path": "verification/local/browser-remaining-outcomes-r952/logs/final-loaded-versions.stdout",
+      "sha256": "e71d80063723aefee28d988d574de053988eeb8c46dc503d5d8cc7487beb5e0d",
+      "bytes": 690
+    }
+  }
+}

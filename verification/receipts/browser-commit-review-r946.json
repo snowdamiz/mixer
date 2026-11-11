@@ -1,0 +1,243 @@
+{
+  "schema": 1,
+  "campaign": "browser-commit-review-r946",
+  "created_utc": "2026-11-11T11:41:49.521516+00:00",
+  "status": "REVIEW_INCOMPLETE_NO_PROVEN_P1_P2",
+  "adoption_authorized": false,
+  "findings": [],
+  "source": {
+    "root_reported_revision": "main1633d0e7",
+    "git_not_queried": true,
+    "packet_sha256": "977fda8e3664164e4e0f2e91381441cb487c60f1b596a33157dd932a364af984",
+    "store_diff_sha256": "f9301ff684cba4dad5e22fb4935308a65530787646dfe05343dc51b75d19123b",
+    "original_tree_digest": "c982bdbe14181f1c1086c8372c0ea21edb253342019fa84ab67beeec0ccf9616",
+    "source_changes": {
+      "test/mixer_hosted/browser_auth/private_login_http_test.exs": {
+        "before": "99a0187a2ee4dbd490c2b59bbcb766795f170106a8984244a11a40e901c0f75f",
+        "after": "48fcbcbc8633cc53fd3e9e537baee1b241ad37a43c61cd83772225434254448c"
+      },
+      "test/support/browser_commit_proxy.ex": {
+        "before": "8565f218c2edff370fa7624ba6172ab5115c36bf25f06df47153bfac0778b8b9",
+        "after": "27a8efd83a5e0d0cf2f3e7b7a755d459cd36efe882143f231a4a6363a8c34301"
+      }
+    },
+    "product_files_unchanged": true,
+    "beams_byte_identical": 216,
+    "pinned_dependency_inputs_verified": 1884,
+    "store_sha256": "24aaac574a11761c72166826f7ff91f385aae1bacf45c01bfe07e6a18ce1c823",
+    "test_delta_sha256": "76869b5ad0012fc54104ab6a0f8a29bff100631dc1677f75bc3ffb8e72bee2dc",
+    "proxy_delta_sha256": "feab3b01d2b7558d18a96e1f8a4bb76ae20b68860adb866a298671a825a330fc",
+    "unit_source_sha256": "ddd616d0121cc3c3077356ff64a33d69c4ce30989d1ec81febbaec1bf0889885"
+  },
+  "batches": {
+    "batch_1": {
+      "passed": 11,
+      "executed": 12,
+      "declared": 14,
+      "failure": "invalid newly authored concurrency metadata; correctly refused before Store",
+      "original_six": "PASS"
+    },
+    "batch_2": {
+      "passed": 12,
+      "executed": 13,
+      "declared": 16,
+      "failure": "invalid newly authored caller-death readiness invalidation assertion; zero leases observed, existing source releases caller slot without owner invalidation",
+      "original_six": "PASS"
+    },
+    "unit_initial": {
+      "passed": 1,
+      "executed": 3,
+      "failure": "telemetry not started under --no-start"
+    },
+    "unit_ready": {
+      "passed": 3,
+      "executed": 3,
+      "test_source_unchanged_from_unit_initial": true
+    }
+  },
+  "original_scenarios": {
+    "signed_pkce_rotation_client_pagination": "PASS in both fresh PG batches",
+    "input_header_query_alias_csrf_origin_refusal": "PASS in both fresh PG batches",
+    "claim_rollback_atomic_retry_once_replay_refusal": "PASS in both fresh PG batches",
+    "bad_nonce_absent_owner": "PASS in both fresh PG batches",
+    "final_commit_visibility_and_ack_barrier": "PASS in both fresh PG batches",
+    "actual_final_commit_rollback_no_cookie": "PASS in both fresh PG batches"
+  },
+  "new_controls": {
+    "missing_hook_unknown_latch_generation_no_cookie": "PASS actual HTTP both batches; explicit handler restoration; cardinality/function/nil/pool/leases executed",
+    "foreign_registration": "PASS actual Store admission refuses wrong function/config/other-event registration without stealing; recovery admission succeeds",
+    "concurrent_callers_refs": "PASS actual overlapping Store transactions, distinct PIDs/refs, two committed results",
+    "ordinary_repo_events": "PASS actual independent LifecycleRepo/ordinary Repo queries during paused Store call plus standalone event control",
+    "caller_death": "Actual Store caller DOWN/zero leases observed; readiness assertion INVALID. Separate database-free16 killed callers each preserve exact singleton nil-config external function/env[]",
+    "pool_reuse_nested": "PASS actual pinned rollback/SQL error/nested admission and pre-COMMIT backend loss; post-caller-death pool assertions UNRUN",
+    "deadline_ordinary_context": "PASS database-free exact BEAM admission guard; actual-owner PG test UNRUN",
+    "mutants": "PASS freshly rerun producer receipt mutants and standalone unknown absorbing check",
+    "deferred_commit_error": "UNRUN runtime test; pinned source broadens selected definite rejection to unknown; no valid Store-contract defect proven",
+    "post_commit_lost_ack": "UNRUN; optional proxy/test extension retained only",
+    "key_generation_mutation": "Existing fences source unchanged; no fresh mutation test"
+  },
+  "actual_rollback": {
+    "identity": [
+      [
+        "browser_lifecycle",
+        "browser_storage",
+        false,
+        false
+      ]
+    ],
+    "phase": "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+    "backend": 19326,
+    "injected_ready_for_query": "E",
+    "actual_commit_command_complete": "ROLLBACK",
+    "independent_before": [
+      [
+        "preauth",
+        2,
+        2,
+        4,
+        4,
+        4
+      ]
+    ],
+    "independent_after": [
+      [
+        "preauth",
+        2,
+        2,
+        4,
+        4,
+        4
+      ]
+    ],
+    "http_status": 503,
+    "active_cookie_header": false,
+    "workspace_redirect": false,
+    "published_cookie_session_status": null
+  },
+  "actual_success_barrier": {
+    "phase": "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+    "role": "browser_lifecycle",
+    "backend": 19326,
+    "superuser": false,
+    "bypassrls": false,
+    "no_bytes_before_commit": true,
+    "no_bytes_before_ack": true,
+    "independently_visible_before_ack": true,
+    "truthful_cookie_and_read_after_ack": true
+  },
+  "budgets": {
+    "pg_http_batches": 2,
+    "product_compiles": 0,
+    "beam_schedulers": "3:3",
+    "supplied_fixture_corrections": 1,
+    "new_control_input_repairs": 1,
+    "literal_single_total_fixture_correction_cap_exceeded": true,
+    "further_pg_batches": 0
+  },
+  "custody": {
+    "managed_command_counts": {
+      "batch_1": 11,
+      "batch_2": 11,
+      "unit_initial": 1,
+      "unit_ready": 1
+    },
+    "managed_commands_total": 24,
+    "all_direct_reaped_both_eof_closed_fds_original_killpg0_ESRCH": true,
+    "batch_1_cleanup": {
+      "stop_exit": 0,
+      "status_exit": 3,
+      "direct_reaped": true,
+      "group_absent": true,
+      "original_killpg0_errno": 3,
+      "port_connect_errno": 61,
+      "port_closed": true
+    },
+    "batch_2_cleanup": {
+      "stop_exit": 0,
+      "status_exit": 3,
+      "direct_reaped": true,
+      "group_absent": true,
+      "original_killpg0_errno": 3,
+      "port_connect_errno": 61,
+      "port_closed": true
+    },
+    "owned_pgdata_removed_after_closure": true,
+    "new_holds": [],
+    "historical_holds_touched": false
+  },
+  "limitations": [
+    "Review incomplete; not an all-green final suite",
+    "Actual deferred-COMMIT rejection, post-COMMIT lost-ack and failed-BEGIN wire test not executed",
+    "Actual handler/pool assertions after caller-death invalid latch expectation skipped; independent singleton death controls have separate scope",
+    "No canonical/root Git/remote/provider account/device/subchild/inventory/staging/publication",
+    "No native browser/HTTPS/real-provider/default-mount/production/immutable-package/GA qualification",
+    "Root adoption/full strict source admission remain later"
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "path": "verification/local/browser-commit-review-r946/REPORT.md",
+      "sha256": "8db38d3db0e6cc9e1abc202e907e375972449d04a191eb3d5415c3cd5c5f163d",
+      "bytes": 8841
+    },
+    "review-test.diff": {
+      "path": "verification/local/browser-commit-review-r946/review-test.diff",
+      "sha256": "76869b5ad0012fc54104ab6a0f8a29bff100631dc1677f75bc3ffb8e72bee2dc",
+      "bytes": 10609
+    },
+    "proxy-test-only.diff": {
+      "path": "verification/local/browser-commit-review-r946/proxy-test-only.diff",
+      "sha256": "feab3b01d2b7558d18a96e1f8a4bb76ae20b68860adb866a298671a825a330fc",
+      "bytes": 421
+    },
+    "receipt-controls.exs": {
+      "path": "verification/local/browser-commit-review-r946/receipt-controls.exs",
+      "sha256": "ddd616d0121cc3c3077356ff64a33d69c4ce30989d1ec81febbaec1bf0889885",
+      "bytes": 3663
+    },
+    "final-identity-proof.json": {
+      "path": "verification/local/browser-commit-review-r946/final-identity-proof.json",
+      "sha256": "9cf813b404422ea153eccfaae6a82eb6beec2e528c5464ab9b6ca1955066bef6",
+      "bytes": 960
+    },
+    "input-proof.json": {
+      "path": "verification/local/browser-commit-review-r946/input-proof.json",
+      "sha256": "46a5d48d9abb4d1eaddd2b743a21de6079cecb6e3f2c0578b8ecb49c3549e27d",
+      "bytes": 26963
+    },
+    "batch-1/commands.json": {
+      "path": "verification/local/browser-commit-review-r946/batch-1/commands.json",
+      "sha256": "03e94e6709bb0012781664e155494aed9c2d95200c96b993ca6c8b01fd8d00c8",
+      "bytes": 12538
+    },
+    "commands.json": {
+      "path": "verification/local/browser-commit-review-r946/commands.json",
+      "sha256": "5abfad0c1e01fb487578173fd62734cd7f367aba5bc7864ee97f886dc8281b81",
+      "bytes": 12533
+    },
+    "unit-commands.json": {
+      "path": "verification/local/browser-commit-review-r946/unit-commands.json",
+      "sha256": "2393826d4bddaf9f1b9165ca195ce946c1de51fe307a4258fc4aed725d2d6959",
+      "bytes": 1111
+    },
+    "unit-ready-commands.json": {
+      "path": "verification/local/browser-commit-review-r946/unit-ready-commands.json",
+      "sha256": "a03ad028415c3a558b70931a0baf2a4269ebda354025ea3293e8d319280d95e4",
+      "bytes": 1118
+    },
+    "batch-1/logs/final-http-batch-1.stdout": {
+      "path": "verification/local/browser-commit-review-r946/batch-1/logs/final-http-batch-1.stdout",
+      "sha256": "12eed91b3b9fbb3cd656cc20ead22345a4c45482844ba7cc39fdad8ef2442086",
+      "bytes": 6084
+    },
+    "logs/final-http-batch-1.stdout": {
+      "path": "verification/local/browser-commit-review-r946/logs/final-http-batch-1.stdout",
+      "sha256": "1a4496b7340f73781d8cb92188f965641326e71fed05b12df1cf31db25ab2f3d",
+      "bytes": 5405
+    },
+    "unit-ready-logs/final-receipt-controls.stdout": {
+      "path": "verification/local/browser-commit-review-r946/unit-ready-logs/final-receipt-controls.stdout",
+      "sha256": "e58cc083879b99681efc9bf19e59f1fc4f28fcdf2ff701bcee668bac3fd87e13",
+      "bytes": 412
+    }
+  }
+}

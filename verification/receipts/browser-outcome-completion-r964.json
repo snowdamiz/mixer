@@ -1,0 +1,149 @@
+{
+  "id": "R964_BROWSER_OUTCOME_COMPLETION",
+  "observedUTC": "2026-11-11T12:15:10.129Z",
+  "status": "SCOPED_COMMIT_REVIEW_COMPLETE",
+  "productStoreSHA256": "24aaac574a11761c72166826f7ff91f385aae1bacf45c01bfe07e6a18ce1c823",
+  "sourcePacketR942": "977fda8e3664164e4e0f2e91381441cb487c60f1b596a33157dd932a364af984",
+  "productCompiles": 0,
+  "productEdits": 0,
+  "freshPGbatches": 1,
+  "fixtureCorrections": [
+    "bind existing runtime context c",
+    "read actual c.runtime.lifecycle_repo instead of application defaults"
+  ],
+  "fresh": {
+    "tests": 3,
+    "failures": 0,
+    "summary": [
+      "  * test R946 concurrent actual Store caller refs and ordinary Repo events stay isolated [L#1046]\r  * test R946 concurrent actual Store caller refs and ordinary Repo events stay isolated (excluded) [L#1046]",
+      "  * test R946 actual pinned deferred COMMIT error is conservatively unknown [L#1177]\r  * test R946 actual pinned deferred COMMIT error is conservatively unknown (excluded) [L#1177]",
+      "Finished in 1.6 seconds (0.00s async, 1.6s sync)",
+      "Result: 3 passed, 13 excluded"
+    ],
+    "pool": {
+      "caller": "#PID<0.995.0>",
+      "immediate": {
+        "rows": [
+          [
+            "idle in transaction",
+            true,
+            "browser_lifecycle"
+          ]
+        ],
+        "elapsed_ms": 2
+      },
+      "backend": 41957,
+      "generation": 1,
+      "transaction_reference": "#Reference<0.520684876.3347841025.136835>",
+      "lease_reference": "#Reference<0.520684876.3347841025.136820>",
+      "lease_caller": "#PID<0.995.0>",
+      "lease_generation": 1,
+      "lease_remaining_ms": 4999,
+      "bound_ms": 10000,
+      "checkout_timeout_ms": 5000,
+      "reconnect_timeout_ms": 5000,
+      "before_kill": {
+        "rows": [
+          [
+            "idle in transaction",
+            true,
+            "browser_lifecycle"
+          ]
+        ],
+        "elapsed_ms": 1
+      },
+      "timeline": [
+        {
+          "rows": [
+            [
+              "idle in transaction",
+              true,
+              "browser_lifecycle"
+            ]
+          ],
+          "elapsed_ms": 2
+        },
+        {
+          "rows": [
+            [
+              "idle in transaction",
+              true,
+              "browser_lifecycle"
+            ]
+          ],
+          "elapsed_ms": 3
+        },
+        {
+          "rows": [],
+          "elapsed_ms": 14
+        }
+      ],
+      "backend_returned": true,
+      "all_slots_completed": true,
+      "distinct_pool_backends": [
+        41956,
+        41961
+      ],
+      "actual_new_store_committed": true,
+      "zero_leases": true,
+      "handler_nil_config": true,
+      "owner_phase": "storage_ready",
+      "completed_ms": 57
+    },
+    "lostAcknowledgement": {
+      "location": false,
+      "cookie": false,
+      "backend": 41961,
+      "http_status": 503,
+      "owner_phase": "unavailable",
+      "visible_actual_commit": true,
+      "rows_remain_committed_after_http": true,
+      "active_delta": 1,
+      "family_delta": 1,
+      "credential_delta": 1,
+      "generation_advanced": true,
+      "classification": "unknown"
+    },
+    "admission": "Actual-owner expired/ordinary-context refusal passed"
+  },
+  "reused": {
+    "R942": "All six rollback/publication scenarios; genuine claim-retry semantics",
+    "R946": "Independent source review, all six scenarios in two fresh batches, concurrent correlation, registration refusal, corrected missing-hook latch, sixteen untrappable-death fixed-handler controls and standalone3/3",
+    "R952": "Caller-death owner/handler/lease assertions before immediate pool observation; no persistent leak proven",
+    "R960": "Hash-bound216BEAM/1884dependencies; exact fixture failure and startup config diagnosis"
+  },
+  "cleanup": {
+    "commands": 11,
+    "allDirectReapedBothEOFClosedDescriptorsExactESRCH": true,
+    "postgres": {
+      "stop_exit": 0,
+      "status_exit": 3,
+      "direct_reaped": true,
+      "group_absent": true,
+      "original_killpg0_errno": 3,
+      "port_connect_errno": 61,
+      "port_closed": true
+    },
+    "ownedPGdataRemovedAfterClosure": true,
+    "newHolds": false
+  },
+  "evidence": {
+    "runner": "verification/local/browser-root-outcomes-r964/run.py",
+    "preparation": "verification/local/browser-root-outcomes-r964/prepare.py",
+    "fixtureDiff": "verification/local/browser-root-outcomes-r964/fixture-only.diff",
+    "inputProof": "verification/local/browser-root-outcomes-r964/input-proof.json",
+    "stdout": "verification/local/browser-root-outcomes-r964/logs/final-http-batch-1.stdout",
+    "commands": "verification/local/browser-root-outcomes-r964/commands.json",
+    "pool": "verification/local/browser-root-outcomes-r964/pool-timeline.json",
+    "lostAck": "verification/local/browser-root-outcomes-r964/lost-ack.json"
+  },
+  "limitations": [
+    "Definite deferred COMMIT errors conservatively classify unknown; no valid closed-admission deferred-error test executed",
+    "Failed-BEGIN wire case unrun",
+    "No real provider, HTTPS browser, default mount, production or GA qualification",
+    "Independent component review completed in R946 plus this targeted remaining-gate proof; full strict source composition/adoption still pending"
+  ],
+  "canonicalProductChanged": false,
+  "holdsReleased": false,
+  "GA": false
+}

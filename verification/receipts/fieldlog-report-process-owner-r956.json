@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "lane": "fieldlog-report-process-owner-r956",
+  "created_utc": "2026-11-11T12:09:29.066805+00:00",
+  "status": "IMPLEMENTATION_CHECKS_PASS_PENDING_ROOT_SELECTED_INDEPENDENT_REVIEW",
+  "scope": "Implementation sub-agent; private Java only, no adoption/canonical/root Git/remote/provider/device/signing/subchildren",
+  "source": {
+    "base": {
+      "path": "verification/local/fieldlog-report-final-java-r948/FieldLog-r948-app-source.zip",
+      "sha256": "db83b30a758a53c4d9132bce7bcf11bf2af08977108339330b8dacdc728cd0bf",
+      "bytes": 1450564
+    },
+    "final": {
+      "path": "verification/local/fieldlog-report-process-owner-r956/FieldLog-r956-app-source.zip",
+      "sha256": "478a51dcf549c2041cb232fd27eace2a959a64a8603e5620a60e29124e2bdefd",
+      "bytes": 1451299
+    },
+    "members": 70,
+    "empty_Resources_preserved": true,
+    "changed": [
+      "Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java",
+      "Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java"
+    ],
+    "all_other68_members_exact": true,
+    "source_map": "verification/local/fieldlog-report-process-owner-r956/source-map.json",
+    "diff": "verification/local/fieldlog-report-process-owner-r956/source-diff.patch",
+    "tests": {
+      "path": "verification/local/fieldlog-report-process-owner-r956/FieldLog-r956-native-tests.zip",
+      "sha256": "e5442cd88b13e75fdf8141f1865104dd66410e0dfa495ef212d9770901fa7ef4",
+      "bytes": 36026
+    },
+    "strict_production_classes": {
+      "path": "verification/local/fieldlog-report-process-owner-r956/FieldLog-r956-strict-production-classes.zip",
+      "sha256": "eb65308036ae23ff802186d47ccdca51b54a430ff123e30e6d1548327e453803",
+      "bytes": 411747
+    },
+    "binding": "verification/local/fieldlog-report-process-owner-r956/source-test-binding.json"
+  },
+  "contract": {
+    "registry": "static ReportFiles.WorkLease; identity/cancelled/done/Thread/prepared File only; no Activity/context fields",
+    "reservation": "before FD duplication and Thread construction; one across contexts",
+    "release": "matching identity; prestart NEW/no-thread proof or actual worker finally + no queued prepared file + observed !Thread.isAlive; terminal predecessor lazily reclaimed by next admission",
+    "destruction": "cancel + close own duplicate + interrupt; never marks worker done or frees live worker",
+    "queued_completion": "lease owns prepared File until main consumes/publishes or cancellation deletes; prevents completed queued file plus a second partial",
+    "stale_actions": "old completion/cancel/workerFinished/prestart failure cannot affect a new lease",
+    "bound": "one global active mapping + at most four reader-backed retired copies + at most one partial or queued prepared copy = six; executable cross-context control reaches six and refuses another writer",
+    "unchanged": "Swift/C/service ABI/public 11 args/ops0..2/CF pump/date/photo/models/Features/storage/locks/manifest/SDK/source118"
+  },
+  "verification": {
+    "strict_API36_JDK25_release17_two_file_compiles": 2,
+    "final_batch": "PASS",
+    "C_body": "PASS exact final C",
+    "preserved_Java_assertions": 39,
+    "preserved_Activity_modes": [
+      "success",
+      "refusal",
+      "duplicateOOM",
+      "invalid",
+      "readOOM",
+      "postOOM",
+      "destroy",
+      "replaceBefore",
+      "replaceAfter"
+    ],
+    "new_process_modes": [
+      "overlap",
+      "queued",
+      "inventory",
+      "constructorOOM",
+      "startOOM",
+      "duplicateOOM",
+      "postOOM",
+      "postFalse",
+      "workerDeath"
+    ],
+    "parent_path_controls": "PASS final trusted canonical files root and literal NOFOLLOW descendants",
+    "restart": [
+      "seed6",
+      "restart6/open orphan FD survives unlink/old mapping absent",
+      "unknown",
+      "symlink",
+      "count",
+      "size",
+      "directory"
+    ],
+    "Swift": "95 prior R940 passes reused ONLY by exact unchanged Swift/original-test byte hashes; no Swift run/held runtime reads",
+    "public_SDK": "pin8efc; exact80/80 independently against R628 manifest and before/after original/private projection; no shared mutation",
+    "fixture_failures": 0,
+    "preparation_failure": "R924 recorded fixture was absent; exact R640 public source successfully used with independent 80/80 hashes; no runtime/test failure",
+    "local_recovery_correction": "second final batch additionally proves same Activity recovery after failed completion cleanup post and deadline",
+    "first_batch_source_reconstruction": "First-batch ZIP was not preserved before one added local-dead-worker guard. Reconstructed by reversing exactly that addition; recorded honestly in batch1-reconstruction.json. Final second batch authoritative.",
+    "strict_batches": 2,
+    "fixture_only_corrections": 0,
+    "prelaunch_static_packets": true
+  },
+  "APK": {
+    "result": "PASS_JAVA_ONLY_DEX_DELTA_UNSIGNED",
+    "artifact": {
+      "path": "verification/local/fieldlog-report-process-owner-r956/FieldLog-r956-java-delta-unsigned.apk",
+      "sha256": "b999ad93f28dab718aef9d2185212abe583df7c4bb9661cd4d1b1cb029b1f944",
+      "bytes": 28713458
+    },
+    "all_other21_members_exact": true,
+    "native18_manifest_resources_exact": true,
+    "old_actual49_receipt_sha256": "eb2bd473a0c291974d1ddf631a87c95f4b10f878b8f38b7eb34fd80023a91645",
+    "old_actual49_pass_reused_for_unchanged_native_resources_only": true,
+    "full49_ran_on_final_source": false,
+    "details": "verification/local/fieldlog-report-process-owner-r956/apk-delta-result.json"
+  },
+  "custody": {
+    "managed_payloads": 66,
+    "all_direct_reap_EOF_closed_fds_then_ESRCH": true,
+    "no_new_hold": true,
+    "all_existing_holds_preserved": true,
+    "details": "verification/local/fieldlog-report-process-owner-r956/custody.json",
+    "cleanup": "verification/local/fieldlog-report-process-owner-r956/cleanup.json"
+  },
+  "limits": [
+    "Host body tests use Android framework stubs: FD duplication is a second file open through an owned hardlink; real ParcelFD/Looper/provider onClose/chooser/grants/recipient permissions unrun",
+    "Thread constructor/start OOM fixture subclasses Thread in host shell only; full production two-file compile has no fixture Thread class",
+    "Global registry retains a terminal Thread identity until the next reservation; no Activity/context fields; platform thread termination clears its Runnable target; Android runtime retention not measured",
+    "Existing best-effort File.delete cleanup is unchanged outside lease ownership; injected filesystem unlink failure and hostile same-UID in-place mutation are untested",
+    "No device/phone/signing/published package/general SDK/native runtime/GA qualification",
+    "No canonical/root Git/remote/provider/subchild action; root must select ONE independent review before adoption"
+  ],
+  "report": "verification/local/fieldlog-report-process-owner-r956/REPORT.md",
+  "report_sha256": "4a7866f3d240edc09a8dae0ac1ab99fbab9df26fc353823fb302e52b5ab54647",
+  "elapsed_scope": "2026-11-11 12:00 UTC static inspection through final handoff, within 16-minute allowance"
+}

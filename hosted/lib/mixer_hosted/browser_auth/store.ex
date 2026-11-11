@@ -18,6 +18,9 @@ defmodule MixerHosted.BrowserAuth.Store do
   @phase {__MODULE__, :phase}
   @owned {__MODULE__, :owned}
   @entered {__MODULE__, :entered}
+  @receipt {__MODULE__, :receipt}
+  @transaction_event [:mixer_hosted, :browser_auth, :store, :transaction]
+  @handler {__MODULE__, :transaction_receipt}
   @ordinary_context {MixerHosted.Authorization.Transaction.Context, :active}
 
   @doc false
@@ -142,11 +145,14 @@ defmodule MixerHosted.BrowserAuth.Store do
       Process.put(@entered, false)
 
       try do
+        :ok = ensure_receipt_handler()
+        reference = make_ref()
+        Process.put(@receipt, {self(), reference, :await_begin})
+        Process.put(@entered, true)
+
         result =
           LifecycleRepo.transaction(
             fn ->
-              Process.put(@entered, true)
-
               try do
                 policy!(deadline)
 
@@ -183,11 +189,12 @@ defmodule MixerHosted.BrowserAuth.Store do
             deadline: deadline,
             queue: false,
             log: false,
-            telemetry_event: nil
+            telemetry_event: @transaction_event,
+            telemetry_options: [store_transaction: {self(), reference}]
           )
 
-        case result do
-          {:ok, value} ->
+        case {result, receipt_outcome()} do
+          {{:ok, value}, :committed} ->
             # DBConnection's absolute deadline also covers COMMIT. This final
             # check can withhold a known committed result, never resurrect it.
             try do
@@ -199,24 +206,19 @@ defmodule MixerHosted.BrowserAuth.Store do
               _, _ -> failure(:commit, :committed)
             end
 
-          {:error, %Failure{} = error} ->
-            {:error, error}
+          {{:error, %Failure{} = error}, outcome} ->
+            failure(error.phase, outcome)
 
-          _ ->
-            failure(:commit, :unknown)
+          {_, outcome} ->
+            failure(:commit, outcome)
         end
       rescue
-        error in Postgrex.Error ->
-          # Only an ERROR response that rejects COMMIT supplies a definite
-          # rollback receipt. FATAL/PANIC can race with COMMIT acknowledgement.
-          outcome = if rejected_commit?(error.postgres), do: :rolled_back, else: :unknown
-          failure(Process.get(@phase, :admission), outcome)
-
         _ ->
           failure(Process.get(@phase, :admission), uncertain_outcome())
       catch
         _, _ -> failure(Process.get(@phase, :admission), uncertain_outcome())
       after
+        Process.delete(@receipt)
         Process.delete(@entered)
         Process.delete(@phase)
         Process.delete(@owned)
@@ -230,15 +232,85 @@ defmodule MixerHosted.BrowserAuth.Store do
     _, _ -> failure(:admission, :not_started)
   end
 
-  defp uncertain_outcome, do: if(Process.get(@entered, false), do: :unknown, else: :not_started)
+  # Ecto emits transaction-management query results synchronously in this caller.
+  # Keep one fixed handler; killing a caller cannot retain its PID or reference globally.
+  defp ensure_receipt_handler do
+    handler = &__MODULE__.transaction_event/4
 
-  defp rejected_commit?(%{severity: "ERROR", pg_code: <<class::binary-size(2), _::binary>>})
-       when class in ["23", "40"], do: true
+    case :telemetry.attach(@handler, @transaction_event, handler, nil) do
+      :ok ->
+        :ok
 
-  defp rejected_commit?(%{severity: "ERROR", pg_code: code}) when code in ["57014", "P0001"],
-    do: true
+      {:error, :already_exists} ->
+        true =
+          Enum.any?(:telemetry.list_handlers(@transaction_event), fn entry ->
+            entry.id === @handler and entry.function === handler and entry.config === nil
+          end)
 
-  defp rejected_commit?(_), do: false
+        :ok
+    end
+  end
+
+  @doc false
+  def transaction_event(@transaction_event, _, metadata, nil) do
+    case Process.get(@receipt) do
+      {caller, reference, state} when caller == self() ->
+        next =
+          case metadata do
+            %{
+              type: :ecto_sql_query,
+              repo: LifecycleRepo,
+              options: [store_transaction: {^caller, ^reference}],
+              query: query,
+              result: result
+            } ->
+              advance_receipt(state, query, result)
+
+            _ ->
+              :unknown
+          end
+
+        Process.put(@receipt, {caller, reference, next})
+
+      _ ->
+        :ok
+    end
+
+    :ok
+  end
+
+  defp advance_receipt(
+         :await_begin,
+         "begin",
+         {:ok, %Postgrex.Result{command: :begin, connection_id: id}}
+       )
+       when is_integer(id) and id > 0, do: {:begun, id}
+
+  defp advance_receipt(
+         {:begun, id},
+         "commit",
+         {:ok, %Postgrex.Result{command: :commit, connection_id: id}}
+       ),
+       do: :committed
+
+  defp advance_receipt(
+         {:begun, id},
+         query,
+         {:ok, %Postgrex.Result{command: :rollback, connection_id: id}}
+       )
+       when query in ["commit", "rollback"], do: :rolled_back
+
+  defp advance_receipt(_, _, _), do: :unknown
+
+  defp receipt_outcome do
+    case Process.get(@receipt) do
+      {_, _, outcome} when outcome in [:committed, :rolled_back] -> outcome
+      _ -> :unknown
+    end
+  end
+
+  defp uncertain_outcome,
+    do: if(Process.get(@entered, false), do: receipt_outcome(), else: :not_started)
 
   defp rollback! do
     {:error, error} = failure(Process.get(@phase, :admission), :rolled_back)
