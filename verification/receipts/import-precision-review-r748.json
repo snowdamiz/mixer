@@ -1,0 +1,269 @@
+{
+  "schema": 1,
+  "campaign": "import-precision-review-r748",
+  "role": "one independent combined R742 slice review",
+  "decision": "REQUEST_CHANGES",
+  "created_utc": "2026-11-11T04:50:07.973446+00:00",
+  "owned_namespace": "verification/local/import-precision-review-r748",
+  "findings": [
+    {
+      "severity": "P2",
+      "title": "Leading UTF-8 BOM hides the first import without compiler review",
+      "file": "verification/local/import-delimiter-fix-r742/afterimage/cli/Sources/MixerBuild/MigrationInspector.swift",
+      "line": 110,
+      "related_lines": [
+        193,
+        194,
+        195,
+        196
+      ],
+      "reproducer": "verification/local/import-precision-review-r748/reproducer.swift",
+      "source_hex": "efbbbf696d706f7274204170704b69740a",
+      "expected": [
+        {
+          "line": 1,
+          "message": "macOS AppKit import",
+          "category": "unsupported-mobile"
+        }
+      ],
+      "actual_findings": [],
+      "actual_authority": "advisory-only",
+      "actual_technical_eligibility": "unverified",
+      "actual_compiler_review_count": 0,
+      "proof": "The actual inspector ran on BOM + import AppKit. The independently compiled review test file begins with BOM + import Foundation.",
+      "fix_proposal": "Skip the exact initial UTF-8 BOM in the inventory cursor without altering source bytes or line numbering; preserve all other Unicode/string handling.",
+      "product_fix_applied": false
+    }
+  ],
+  "source": {
+    "candidate_bytes": 13464,
+    "candidate_sha256": "37d064fc8fc28483c1f7b7f301f09c18db795d39d7af1deea5c3bf16cf791205",
+    "reconstructed_baseline_sha256": "7d3dec247291de3bfb9396c36b51c4bd24c2ab4c405c785a2725f35143f62da3",
+    "source_closure_count": 40,
+    "unchanged_original_closure_members": 39,
+    "all_supplied_source_hashes_match": true,
+    "post_execution_all_40_still_match": true,
+    "public_report_declarations_unchanged": true,
+    "release_assessment_declaration_unchanged": true,
+    "producer_tests_copied_without_changes": true,
+    "original_importer_and_release_guard_hashes_match_producer_receipt": true,
+    "executed_package_tree_sha256": "6b0e45d1766330d1d6c167664a3f6a83ac0a9ff7995330c49c0ab2006f0993b4",
+    "tree_digest_method": "SHA256 of sorted relative path + NUL + content SHA256 + LF, using prelaunch source_identity in logs/candidate.json",
+    "canonical_access": false,
+    "current_canonical_identity": "supplied by root, not independently reread"
+  },
+  "toolchain": {
+    "swift_version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "xcode": "26.6",
+    "sdk": "macOS 26.5",
+    "jobs": 3,
+    "host_system": "Darwin",
+    "host_machine": "arm64"
+  },
+  "budget": {
+    "compile_test_invocations": 1,
+    "maximum_fresh_compile_test_invocations": 1,
+    "harness_corrections": 0,
+    "maximum_harness_corrections": 1,
+    "per_command_timeout_seconds": 600,
+    "stopped_at_first_proven_P1_P2": true
+  },
+  "results": {
+    "producer_functions": 15,
+    "producer_functions_passed": 15,
+    "producer_parameter_cases_passed": 8,
+    "original_release_assertions_passed": 4,
+    "independent_functions": 8,
+    "independent_functions_passed": 7,
+    "independent_functions_failed": 1,
+    "total_functions": 23,
+    "total_passed_functions": 22,
+    "failed_assertions": 2,
+    "failed_function": "IndependentAttacks.leadingUTF8BOMRetainsFirstImport",
+    "raw_test_exit": 1,
+    "size_16_MiB_exact_case": "PASS",
+    "over_size_symlink_bytes_and_digest_controls": "PASS",
+    "original_importer_and_release_defaults": "PASS",
+    "baseline_executions_this_lane": 0,
+    "timing_speedup_allocation_measurement_claims": false
+  },
+  "commands": [
+    {
+      "label": "swift-version",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/import-precision-review-r748",
+      "started_utc": "2026-11-11T04:47:20.508328+00:00",
+      "finished_utc": "2026-11-11T04:47:21.246779+00:00",
+      "pid": 55864,
+      "pgid": 55864,
+      "observed_pgid": 55864,
+      "exit_code": 0,
+      "custody": "TERMINAL",
+      "direct_child_reaped": true,
+      "owned_group_gone": true,
+      "absence_observation": "killpg(exact owned PGID,0) -> ProcessLookupError",
+      "record": "verification/local/import-precision-review-r748/logs/swift-version.json"
+    },
+    {
+      "label": "candidate",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+        "test",
+        "--package-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/import-precision-review-r748/package",
+        "--scratch-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/import-precision-review-r748/build",
+        "--cache-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/import-precision-review-r748/cache",
+        "--config-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/import-precision-review-r748/config",
+        "--security-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/import-precision-review-r748/security",
+        "--disable-dependency-cache",
+        "--disable-experimental-prebuilts",
+        "--jobs",
+        "3"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/import-precision-review-r748",
+      "started_utc": "2026-11-11T04:47:24.961064+00:00",
+      "finished_utc": "2026-11-11T04:48:02.696474+00:00",
+      "pid": 55955,
+      "pgid": 55955,
+      "observed_pgid": 55955,
+      "exit_code": 1,
+      "custody": "TERMINAL",
+      "direct_child_reaped": true,
+      "owned_group_gone": true,
+      "absence_observation": "killpg(exact owned PGID,0) -> ProcessLookupError",
+      "record": "verification/local/import-precision-review-r748/logs/candidate.json"
+    }
+  ],
+  "cleanup": {
+    "created_utc": "2026-11-11T04:48:45.051791+00:00",
+    "owned_group_absence": {
+      "swift-version": {
+        "pid": 55864,
+        "pgid": 55864,
+        "observed_pgid": 55864,
+        "direct_child_reaped": true,
+        "owned_group_gone": true,
+        "absence_observation": "killpg(exact owned PGID,0) -> ProcessLookupError",
+        "custody": "TERMINAL"
+      },
+      "candidate": {
+        "pid": 55955,
+        "pgid": 55955,
+        "observed_pgid": 55955,
+        "direct_child_reaped": true,
+        "owned_group_gone": true,
+        "absence_observation": "killpg(exact owned PGID,0) -> ProcessLookupError",
+        "custody": "TERMINAL"
+      }
+    },
+    "removed_owned_terminal_caches": [
+      "build",
+      "cache",
+      "config",
+      "security",
+      "tmp",
+      "clang-cache",
+      "swift-cache",
+      "xcrun-cache"
+    ],
+    "removed_paths_absent": true,
+    "fixtures_empty": true,
+    "all_40_source_inputs_still_match": true,
+    "historical_holds_untouched": true
+  },
+  "authority": {
+    "schema": 1,
+    "inventory": "advisory-only",
+    "technicalEligibility": "unverified",
+    "releaseEligibility": "blocked",
+    "publicationAllowed": false,
+    "releaseBlockers": 4,
+    "canonical_adoption": false,
+    "source118_binding": false,
+    "profile_change": false,
+    "GA_claim": false
+  },
+  "scope": {
+    "canonical_mutations": false,
+    "git_actions": false,
+    "remote_actions": false,
+    "native_or_device_actions": false,
+    "credentials_or_provider_actions": false,
+    "children": false,
+    "held_resource_access": false,
+    "full_unrelated_suites": false
+  },
+  "limitations": [
+    "One concrete supported-input regression prevents a PASS; no reviewed product fix was made.",
+    "39 original source/resource identities were checked against the supplied manifest, without canonical checkout access.",
+    "Finite stress correctness and source-level complexity reasoning; no measured allocation, speedup or complete resource qualification.",
+    "Existing file-size check follows Data loading; no pre-read memory or I/O bound is claimed.",
+    "No Swift semantic parser, target-conditional truth, type/name resolution or OTA authority is claimed.",
+    "No staging occurred; root owns integration and artifact-policy checking after staging."
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 5617,
+      "sha256": "d5599c046333982ade72f1c4d5417fe536dafdcbd3cf5837826fbbd7990060b2"
+    },
+    "input-verification.json": {
+      "bytes": 12271,
+      "sha256": "857f4fb6965f380e2e8b5b1aea1918f2a1ea7e96bd8d3aebbce724e241f91747"
+    },
+    "observed-reports.json": {
+      "bytes": 1599,
+      "sha256": "d83588dfaf5b425fb3eddb095be743c74c9e03e08e40bd93f3e4e74c8c343c71"
+    },
+    "reproducer.swift": {
+      "bytes": 17,
+      "sha256": "9ad155190330482c78c43a3a5bd2b96a5ab4ae51c98dc4c9f3463b47aa96097a"
+    },
+    "reconstructed-baseline.swift": {
+      "bytes": 4529,
+      "sha256": "7d3dec247291de3bfb9396c36b51c4bd24c2ab4c405c785a2725f35143f62da3"
+    },
+    "cleanup.json": {
+      "bytes": 942,
+      "sha256": "70a42266f0c5d8668ae8d3fe11101e5fbd14e423683ff4b438f20edb9c94cf07"
+    },
+    "run.py": {
+      "bytes": 3896,
+      "sha256": "116b09725cafe6ffd3660dd4b74d94e7adde04a1d4c0060cb7db8bddf963d687"
+    },
+    "package/Tests/MixerBuildTests/IndependentAttacks.swift": {
+      "bytes": 5563,
+      "sha256": "5b2da9c8b20c0b141b47bb7a1fd5f97ce14fcd8ece4e97883ecbb1bd62df4472"
+    },
+    "logs/candidate.stdout": {
+      "bytes": 7094,
+      "sha256": "fe617117eea3239717c708fd4057135f44e7daf764bf88e5317139ab140c64aa"
+    },
+    "logs/candidate.stderr": {
+      "bytes": 2875,
+      "sha256": "bca6c7aaa6e1930d46e528bc161a720726e8b39ebbf76a0fe4d30493e444d650"
+    },
+    "logs/candidate.json": {
+      "bytes": 10342,
+      "sha256": "2ad08d55bcebef5f21871f7e803a9900533c899239275117828557076cceeb22"
+    },
+    "logs/swift-version.stdout": {
+      "bytes": 79,
+      "sha256": "f7c8e3e54412f67bf6632e8c6744533677d8d65acd8ce3004b0f3b9806e8aa48"
+    },
+    "logs/swift-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/swift-version.json": {
+      "bytes": 9571,
+      "sha256": "7eea808ee05e29d1f468add9d4d676beaa7e81697c8f3b5b157e6d17d9f6d12e"
+    }
+  }
+}

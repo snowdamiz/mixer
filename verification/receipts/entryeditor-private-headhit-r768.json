@@ -1,0 +1,120 @@
+{
+  "task": "R768 finite private head-hit algorithm hypothesis",
+  "status": "UNACCEPTED: CONTROL_HARNESS_SECOND_RUNTIME_ACCOUNTING_UNKNOWN; APPLICATION_GATE_UNRUN",
+  "decision": "STOP after two Rust build attempts and one harness correction; no further correction, rebuild, payload, widening, review or adoption.",
+  "input_tree_sha256": "b182679a3d802424b249f8ffeb6eac1a11b0bb2a7893e988ea0fd1b8300f8ee3",
+  "tested_tree_sha256": "722c4a33950dfd700d14dcf6e207642ae5c913a46dea6d8bca530519540589da",
+  "source_files": 103,
+  "changed_source_files": [
+    "source/vm/Cargo.toml",
+    "source/vm/examples/r524.rs",
+    "source/vm/src/experimental_swift_reactor/cache.rs",
+    "source/vm/src/experimental_swift_reactor/mod.rs"
+  ],
+  "patch_sha256": "128cd252a66700575c67bdadaf5f056fc9a3bec3e43beb257c8ac7281b10b431",
+  "module_sha256": "1ec7ce12b2c812304c5b4d97fe22d39fd9e48e2ddfdebe49da4cc9db23f3c79c",
+  "original_hypothesis": "Unrestricted head-hit return ineligible: original lookup validates full tail after hit.",
+  "private_alternative": "Empty or verified next==0 singleton returns without visited array; otherwise unchanged full chain scan. All added work paid before effects.",
+  "bounds": {
+    "rust_build_attempts": 2,
+    "successful_rust_builds": 1,
+    "rust_jobs": 3,
+    "actual_guest_payloads": 0,
+    "focused_control_commands_attempted": 1,
+    "focused_control_commands_completed": 0,
+    "harness_corrections": 1,
+    "swift_builds": 0,
+    "children": 0,
+    "cache_work": 64000000,
+    "cache_bytes": 16777216,
+    "deadline_ms": 30000,
+    "frames": 128,
+    "pins": 128,
+    "residents": 1024,
+    "tickets": 1046,
+    "buckets": 1024,
+    "private_instruction_fuel": 200000000,
+    "ordinary_instruction_fuel": 100000000,
+    "execution_work": 1000000000,
+    "elapsed_seconds_since_snapshot_copy": 257.9186487197876
+  },
+  "builds": {
+    "first_exit": 101,
+    "first_error": "E0277 control constructor unwrap required Debug; one allowed harness correction used explicit match",
+    "second_exit": 0
+  },
+  "runtime_gate": {
+    "command": "head-valid",
+    "exit": 101,
+    "error": "diagnostic counters never reset",
+    "location": "cache.rs diagnostic_step_r622 checked_sub(last)",
+    "first_case": "R768_CONTROL case=singleton old=true hit=Some(1) code=None work=14 unchanged=true",
+    "second_runtime": "Adopted, then panic during constructor preparation; no second consuming cleanup receipt",
+    "cache_work_first_final": 12140,
+    "private_branch_counters": null,
+    "guest_stage_counters": null
+  },
+  "cleanup": {
+    "runtime_control_owners_started": 2,
+    "consuming_snapshots": 1,
+    "first_all_14_currents_zero": true,
+    "first_live_tickets": 0,
+    "first_cleanup_invariant": null,
+    "second_consuming_accounting": "UNKNOWN",
+    "exact_command_groups_observed_absent": 3,
+    "new_process_custody_holds": 0,
+    "accounting_hold": "HOLD.json",
+    "no_process_absence_implies_cleanup": true
+  },
+  "baseline_r760": {
+    "result": {
+      "turn": 6,
+      "action": "entry.note.changed",
+      "kind": "WorkExhausted",
+      "code": "swift_run_work",
+      "resource": "CacheWork",
+      "function": 27939,
+      "offset": 5137907,
+      "attempted": 64000003,
+      "limit": 64000000,
+      "paid_cache_work": 63999995,
+      "instruction_fuel": 121376534,
+      "execution_work": 953691401,
+      "deadline_overshoot_micros": 0,
+      "original_primary_failure_preserved": true
+    },
+    "stdout_sha256": "0ef063d033edb32da1c3b6577681374e762b4b4d4c414143907b93fff957f20c",
+    "patch_sha256": "629998f9825ec36eedcf4cb477c94f94cb6993b55f46c447be2906fa94591364"
+  },
+  "binary": {
+    "path": "target-private/release/examples/r524",
+    "bytes": 1093008,
+    "sha256": "e355d2b8154a4fecf76a02ec589d9d543b5b5ae1813442683a329a27ae2503ba"
+  },
+  "unrun": [
+    "new private direct singleton/empty/full-chain checks",
+    "old/new corrupt self-cycle/slot/duplicate checks",
+    "private underfunded branch control",
+    "eviction initializer underfunded witness recheck",
+    "admission control",
+    "default overflow and ticket control",
+    "original startup/title/note/SaveDraft/ready/Close/Reopen/100000-byte LongNote/Commit/closed refusals"
+  ],
+  "limitations": [
+    "Control suite incorrectly attempted multiple cumulative-diagnostic owners per process; first owner cleaned, second consuming accounting UNKNOWN. Finite correction/build bounds prohibit repair here.",
+    "No application gate unlocked. Private fast-path safety and branch meter counts remain unverified by completed focused controls; no independent review warranted.",
+    "Complete public documents1\u20135 parity is retained R760 evidence only; no new R768 application document, startup parity, full internal model/persistence, speedup, native qualification, published package, W07/W08 or GA claim.",
+    "Default source preserved; retained R760 ordinary binary verified, but no fresh default build/test. Larger private wrapper scratch remains charged; exact operation size was not emitted by failed harness.",
+    "All historical holds preserved without access. No canonical/root Git/remotes/native/providers/credentials/children or other lane private outputs accessed. No index staging, so index-based artifact checker excluded by task."
+  ],
+  "finalized_unix": 1794374321.766975,
+  "local_report": "verification/local/entryeditor-private-headhit-r768/REPORT.md",
+  "local_patch": "verification/local/entryeditor-private-headhit-r768/patches/r768.patch",
+  "before_manifest": "verification/local/entryeditor-private-headhit-r768/before-manifest.json",
+  "after_manifest": "verification/local/entryeditor-private-headhit-r768/after-manifest.json",
+  "source_proof": "verification/local/entryeditor-private-headhit-r768/source-proof.json",
+  "raw_control": "verification/local/entryeditor-private-headhit-r768/raw-control.json",
+  "accounting_hold": "verification/local/entryeditor-private-headhit-r768/HOLD.json",
+  "failed_build_tree_sha256": "bfccef7ca085c9b4358333325045913f75cd164ec226d3d1903c2de12c79b9e2",
+  "failed_build_manifest": "verification/local/entryeditor-private-headhit-r768/failed-build-manifest.json"
+}

@@ -131,7 +131,15 @@ defmodule MixerHosted.Builds.Coordinator do
             |> Admission.yield_multi(:yield, renewed.token)
             |> Multi.put(:current, :transitioned)
           else
-            Multi.new() |> Multi.put(:current, renewed)
+            case config.operation_intent do
+              :disabled ->
+                Multi.new() |> Multi.put(:current, renewed)
+
+              :durable_intent_v1 ->
+                Multi.new()
+                |> MixerHosted.Builds.OperationIntent.record_multi(:operation_intent, renewed)
+                |> Multi.put(:current, renewed)
+            end
           end
         end)
       end)
@@ -275,7 +283,7 @@ defmodule MixerHosted.Builds.Coordinator do
                is_integer(c.lease_ttl_ms) and c.lease_ttl_ms in 1..300_000 and
                c.lease_ttl_ms >= 3 * c.call_timeout_ms and
                is_integer(c.poll_ms) and c.poll_ms in 1..60_000,
-             do: {:ok, c},
+             do: operation_intent_configuration(c),
              else: {:error, :invalid_dispatch_configuration}
         else
           {:error, :invalid_dispatch_configuration}
@@ -286,6 +294,15 @@ defmodule MixerHosted.Builds.Coordinator do
 
       _ ->
         {:error, :invalid_dispatch_configuration}
+    end
+  end
+
+  # Trusted server configuration only; job arguments remain a closed contract.
+  defp operation_intent_configuration(config) do
+    case Application.fetch_env(:mixer_hosted, :build_operation_intent) do
+      :error -> {:ok, Map.put(config, :operation_intent, :disabled)}
+      {:ok, :durable_intent_v1} -> {:ok, Map.put(config, :operation_intent, :durable_intent_v1)}
+      _ -> {:error, :invalid_operation_intent_configuration}
     end
   end
 

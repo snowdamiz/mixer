@@ -701,4 +701,80 @@ defmodule MixerHosted.Builds.CoordinatorTest do
 
     assert current().build.attempt == 1
   end
+
+  test "absent private selection uses the standard schema without an operation table" do
+    assert Application.fetch_env(:mixer_hosted, :build_operation_intent) == :error
+
+    assert [[nil]] =
+             Repo.query!("SELECT to_regclass('public.mixer_build_operation_admissions')::text").rows
+
+    {_, started} = running()
+    assert {:snooze, 1} = Coordinator.perform(started)
+    assert Fixture.snapshot().creations == 1
+
+    assert [[nil]] =
+             Repo.query!("SELECT to_regclass('public.mixer_build_operation_admissions')::text").rows
+
+    assert length(MixerHosted.Test.Migrations.versions()) == 12
+  end
+
+  test "invalid private server selections fail before callbacks and admission writes" do
+    {_, started} = running()
+    on_exit(fn -> Application.delete_env(:mixer_hosted, :build_operation_intent) end)
+    before = Repo.one!(Lease)
+
+    for selection <- [
+          nil,
+          :disabled,
+          :unknown,
+          "durable_intent_v1",
+          true,
+          [],
+          %{mode: :durable_intent_v1}
+        ] do
+      Application.put_env(:mixer_hosted, :build_operation_intent, selection)
+      assert {:error, :invalid_operation_intent_configuration} = Coordinator.perform(started)
+      assert Fixture.snapshot().calls == []
+      assert Repo.one!(Lease) == before
+
+      assert [[nil]] =
+               Repo.query!("SELECT to_regclass('public.mixer_build_operation_admissions')::text").rows
+    end
+  end
+
+  test "job arguments cannot select the private intent path" do
+    created = create()
+
+    for key <- ["build_operation_intent", "operation_intent", "mode"] do
+      args = Map.put(created.args, key, "durable_intent_v1")
+      assert {:cancel, :invalid_build_intent} = Coordinator.perform(%{created | args: args})
+    end
+
+    assert Repo.aggregate(Reservation, :count) == 0
+    assert Fixture.snapshot().calls == []
+    assert Application.fetch_env(:mixer_hosted, :build_operation_intent) == :error
+  end
+
+  test "dispatch configuration still has exactly the existing four keys" do
+    created = create()
+    config = Application.fetch_env!(:mixer_hosted, :build_dispatch)
+
+    for selection <- [nil, :durable_intent_v1] do
+      if selection == nil,
+        do: Application.delete_env(:mixer_hosted, :build_operation_intent),
+        else: Application.put_env(:mixer_hosted, :build_operation_intent, selection)
+
+      Application.put_env(
+        :mixer_hosted,
+        :build_dispatch,
+        Keyword.put(config, :operation_intent, :durable_intent_v1)
+      )
+
+      assert {:error, :invalid_dispatch_configuration} = Coordinator.perform(created)
+    end
+
+    Application.delete_env(:mixer_hosted, :build_operation_intent)
+    assert Fixture.snapshot().calls == []
+    assert Repo.aggregate(Reservation, :count) == 0
+  end
 end

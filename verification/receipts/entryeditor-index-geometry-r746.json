@@ -1,0 +1,224 @@
+{
+  "task": "R746 bounded private1024-resident/1024-bucket changed-premise VM campaign",
+  "status": "LONGNOTE_FUEL_EXHAUSTED; NAMED_GATE_CLOSED; PRIVATE_UNSELECTED",
+  "input_tree_sha256": "2b58ea1050fe3c1a2db3d9ef4d12875ebd6f85cb9289c17ac79a1723a7919e14",
+  "input_files_verified_before_copy": 103,
+  "tested_tree_sha256": "fd5e9abf247fcf9a08e67978ac0b25befe1ad214dd1a2cd80c4985ccbed46a27",
+  "tested_files": 103,
+  "changed_source_files": [
+    "source/vm/Cargo.toml",
+    "source/vm/examples/r524.rs",
+    "source/vm/src/experimental_swift_reactor/cache.rs"
+  ],
+  "patch_sha256": "a2720bbfb26bb654c0fd5a9107d549b0f80c2f84dc69765c0a44f9bbf4eea0b0",
+  "module_sha256": "1ec7ce12b2c812304c5b4d97fe22d39fd9e48e2ddfdebe49da4cc9db23f3c79c",
+  "policy": {
+    "compile_time_feature": "r746-private-index1024",
+    "depends_on": "r734-ticket-resident-1024",
+    "residents": 1024,
+    "ticket_ceiling": 1046,
+    "ordinary_residents": 64,
+    "ordinary_ticket_ceiling": 86,
+    "frozen_layout": [
+      8,
+      664,
+      8
+    ],
+    "hash": "wrapping_mul0x9e3779b9 >>22 instead of25; full actual-key verification unchanged",
+    "index_buckets": 1024
+  },
+  "bounds": {
+    "rust_builds": 2,
+    "actual_guest_payloads": 1,
+    "focused_controls": 5,
+    "swift_builds": 0,
+    "harness_corrections": 0,
+    "children": 0,
+    "rust_jobs": 3,
+    "cache_work": 64000000,
+    "cache_bytes": 16777216,
+    "deadline_ms": 30000,
+    "frames": 128,
+    "pins": 128,
+    "instruction_fuel": 100000000,
+    "execution_work": 1000000000,
+    "combined_bytes": 268435456,
+    "elapsed_seconds": 344.0966329574585
+  },
+  "terminal": {
+    "turn": 6,
+    "action": "entry.note.changed",
+    "kind": "FuelExhausted",
+    "code": "swift_run_fuel",
+    "function": 27936,
+    "offset": 5136283,
+    "attempted": 100000001,
+    "limit": 100000000,
+    "cache_work": 55000835,
+    "execution_work": 883681295,
+    "deadline_overshoot_micros": 0,
+    "original_primary_failure_preserved": true
+  },
+  "parity": [
+    {
+      "turn": 1,
+      "bytes": 1101,
+      "sha256": "28aa6f6bc2f6505d0d7ef5275e7ccfa45267c67d2155437a6c23933e626bfe26",
+      "complete_document_native_equal": true
+    },
+    {
+      "turn": 2,
+      "bytes": 1163,
+      "sha256": "2b71b4053903bc0f770723743ca9e8571684f8eb9f9adf72523eda87e8a0c1f8",
+      "complete_document_native_equal": true
+    },
+    {
+      "turn": 3,
+      "bytes": 1159,
+      "sha256": "6d3d5a7a82ee723f6025ba7a3d3789c2eb0e693670ce261b1589cc3c0d4f0604",
+      "complete_document_native_equal": true
+    },
+    {
+      "turn": 4,
+      "bytes": 1159,
+      "sha256": "74ef31da39d2021afefafa57b257d7b1a7229c899a6966f4d8619e4ada96e73f",
+      "complete_document_native_equal": true
+    },
+    {
+      "turn": 5,
+      "bytes": 1163,
+      "sha256": "605c0e47ed019a9e85f601c310c5c66717fa464f4aee5f4999ef4c3ac4f39d26",
+      "complete_document_native_equal": true
+    }
+  ],
+  "ready3": {
+    "completed": true,
+    "revision": 5,
+    "native_fields_other_than_revision_equal": true,
+    "separate_native_oracle": false
+  },
+  "cleanup": {
+    "runtime_payloads": 6,
+    "all_14_currents_zero": true,
+    "live_tickets": 0,
+    "cleanup_invariant": null,
+    "original_primary_failures_preserved": true,
+    "managed_commands_reaped_and_exact_groups_observed_absent": 10,
+    "new_custody_holds": 0,
+    "retained_outputs": "Owned ignored artifacts/targets/raw logs retained; no active owned command group remains. No simulator/native instance created."
+  },
+  "source_accounting_finding": {
+    "finding": "Inherited eviction-plan work is charged after initialization and fallible snapshot planning",
+    "source": "source/vm/src/experimental/cache/borrowed.rs pin_acquired: let mut storage=M::eviction_plan precedes checked snapshot arithmetic; meter.work(size_of::<M::EvictionPlan>()) follows loop",
+    "initializer": "cache.rs SwiftMode::eviction_plan returns [false;RESIDENT_LINKS]",
+    "scope": "1024 logical bool initializations on private failed overflow/underflow planning paths can occur without reaching the later1024 work charge. Storage reservation is still paid by107470 operation bytes. Successful plans retain the existing later charge. This is source-level charge placement, not measured compiler store count.",
+    "action": "Reported concretely; no budget relabel, deduction, credit removal or unrelated fix applied. Actual LongNote terminates at instruction fuel, not in this planning refusal path."
+  },
+  "limitations": [
+    "Original LongNote fails unchanged100M instruction fuel; no LongNote document, Commit or ready7. Named complete-sequence gate is closed.",
+    "Full internal saved model/persistence is not independently exported by unchanged harness. Public documents1-5 byte match; startup and ready3 lack separate matching native oracle.",
+    "One original guest run, no baseline replay, no spread or speedup/performance claim. Uniform hash chain estimates are hypotheses, not measured resident distribution. Hook interval groupings are not exclusive attribution.",
+    "Original guest WASI secure random and realtime/monotonic grants remain; no entropy/clock freezing. Guest hit counts/fuel differ at completed stages, so cross-run trace identity and pure geometry-only attribution are not claimed.",
+    "Inherited eviction-plan late work-charge finding is reported in source-accounting-audit.json; all R734 accounting and limits were preserved.",
+    "Fresh highlink/cycle and overflow controls passed; underflow was only a checked arithmetic assertion, no fresh underflow process. Exhaustive corruption testing not claimed.",
+    "Private Existing64 ticket authority passed; actual larger header is type-derived and asserted, not an executed Existing64 cache-construction receipt. Ordinary engine extents and106190 operation bytes were executed separately; retained256/512 combinations not rebuilt.",
+    "Only owned R746 local namespace/compact receipt changed. No canonical/Git/remotes/native/device/provider/credential/children/held namespaces touched. No engine adoption/W07/W08/GA; root retains selection."
+  ],
+  "decision": "Stop after failed original LongNote fuel gate; no second guest, changed ceilings, review, adoption or widening. Root owns further premise selection.",
+  "review": "Not requested/launched: gate failed; this child has no child/provider authorization.",
+  "host": {
+    "system": "Darwin",
+    "release": "27.0.0",
+    "machine": "arm64",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "finalized_unix": 1794372647.2149131,
+  "local_report": "verification/local/entryeditor-index-geometry-r746/REPORT.md",
+  "local_result": "verification/local/entryeditor-index-geometry-r746/result.json",
+  "local_patch": "verification/local/entryeditor-index-geometry-r746/patches/r746.patch",
+  "after_manifest": "verification/local/entryeditor-index-geometry-r746/after-manifest.json",
+  "storage_inventory": "verification/local/entryeditor-index-geometry-r746/storage-inventory.json",
+  "audit": "verification/local/entryeditor-index-geometry-r746/source-accounting-audit.json",
+  "counters_at_Reopen": {
+    "stage": "event:5",
+    "fixed_reserved": 264192,
+    "resident_bytes": 6725446,
+    "peak_resident_bytes": 7699080,
+    "peak_pinned_bytes": 1335996,
+    "peak_construction_bytes": 491557,
+    "hits": 908110,
+    "misses": 4144,
+    "decodes": 4144,
+    "evictions": 3120,
+    "cache_work": 37786285,
+    "execution_work": 462898089,
+    "instruction_fuel": 43702721,
+    "instructions": 43672439,
+    "host_calls": 19,
+    "live_tickets": 1045,
+    "peak_tickets": 1046,
+    "elapsed_micros": 10495801,
+    "resident_slots": 1024,
+    "allocated_slots": 1024,
+    "logical_peak_cache_bytes": 7963272,
+    "logical_peak_combined_bytes": 168492795,
+    "work_by_hook_interval": {
+      "reset": 0,
+      "lookup": 21024576,
+      "constructor": 0,
+      "scan": 1924081,
+      "reset_second": 0,
+      "build": 3000047,
+      "planning": 11750308,
+      "publication": 79464,
+      "before_first_hook": 7809
+    }
+  },
+  "counters_at_LongNote_failure": {
+    "stage": "event:6",
+    "fixed_reserved": 264192,
+    "resident_bytes": 6983227,
+    "peak_resident_bytes": 7699080,
+    "peak_pinned_bytes": 1335996,
+    "peak_construction_bytes": 491557,
+    "hits": 1650564,
+    "misses": 4183,
+    "decodes": 4183,
+    "evictions": 3159,
+    "cache_work": 55000835,
+    "execution_work": 883681295,
+    "instruction_fuel": 100000000,
+    "instructions": 99948218,
+    "host_calls": 19,
+    "live_tickets": 1045,
+    "peak_tickets": 1046,
+    "elapsed_micros": 20654163,
+    "resident_slots": 1024,
+    "allocated_slots": 1024,
+    "logical_peak_cache_bytes": 7963272,
+    "logical_peak_combined_bytes": 168715751,
+    "work_by_hook_interval": {
+      "reset": 0,
+      "lookup": 38001420,
+      "constructor": 0,
+      "scan": 1963093,
+      "reset_second": 0,
+      "build": 3077355,
+      "planning": 11870938,
+      "publication": 80220,
+      "before_first_hook": 7809
+    }
+  },
+  "binaries": [
+    {
+      "path": "target-private/release/examples/r524",
+      "bytes": 1072688,
+      "sha256": "0fa3395b1149f9607a89125ae80887734091ca04599047b7d5bb74652822c67a"
+    },
+    {
+      "path": "target-default/release/examples/r524",
+      "bytes": 1086336,
+      "sha256": "f85fe2637ef1660e3a3aedf45b91b88f81dbc167673f5689bff2bb91e372f66b"
+    }
+  ]
+}

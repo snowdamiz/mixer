@@ -1,16 +1,56 @@
 # Implementation status
 
-This slice integrates the reviewed private browser callback, current-authority reads and explicit HTTP listener. Current source admission binds 212 sources and preserves every historical selector and all twelve production migrations. The unchanged strict runner passes formatting, test compilation and tests with warnings-as-errors, production/release checks, and 775 tests with two Linux-only skips. Collector controls pass all 163 cases in both Python modes. Cleanup preserves the accepted callback, SQL, crypto and publication behavior. The private helper stays unselected, the default server remains unmounted, and the production provider remains unconfigured. All ten CI jobs pass on delivered main `40e7864c`. The actual hosted strict suite passes the same 775 tests with two Linux-only skips; all 216 artifact input hashes match the applied source. [Adoption](verification/receipts/browser-adoption-r678.json), [CI](verification/receipts/main40e-ci-r678.json), and [hosted evidence](verification/receipts/browser-hosted-ci-r678.json).
+The reviewed coordinator slice now records durable operation intent behind a
+closed server-only opt-in. The absent setting preserves the original path; the
+private schema remains outside the twelve production migrations. Current v5
+admission binds 214 sources. The actual strict runner passes formatting,
+warnings-as-errors compilation and tests, release checks, and **790 tests with
+two existing Linux-only skips**. All 218 tested input hashes match the applied
+files. Both collector modes pass 167 controls, and both installed guards pass
+normally and under optimized Python. This proves intent persistence; worker
+execution, termination, capacity and provenance remain pending. Selected-to-absent
+dynamic reconfiguration is also unqualified. [Adoption](verification/receipts/coordinator-adoption-r770.json)
+and [full suite](verification/receipts/coordinator-current-source-r758.json).
 
-Public SDK `8efc1a9e` passed all ten CI jobs, the complete 189-binding/1,323-case/15-helper callback matrix, six actual Java and D8 consumers, and twelve refusal cases. [CI](verification/receipts/main8efc-ci-r614.json) and [matrix](verification/receipts/pair20-hosted-matrix-r614.json).
+The preceding browser source remains accepted within its private scope. Delivered
+main `40e7864c` passed all ten CI jobs, including its 775-test hosted suite.
+The default browser listener remains unmounted and the production identity
+provider unconfigured. The separate login-HTTP candidate remains unaccepted.
+[Hosted browser evidence](verification/receipts/browser-hosted-ci-r678.json).
 
-The separate FieldLog app passes 49 Android build commands, an unsigned arm64/x86_64 generic iOS build, and all 77 tests using its unchanged shipping manifest and both resolver-produced locks. The locks retain the original GitHub URL and exact public SDK revision. All 67 archive members remain unchanged during the final test. The complete source archive is local, hash-identified evidence; immutable package qualification remains pending. [Shipping tests](verification/receipts/fieldlog-shipping-host-r670.json) and [resolved package](verification/receipts/fieldlog-shipping-lock-r664.json).
+Public SDK `8efc1a9e` passed all ten CI jobs, the 189-binding/1,323-case/15-helper
+callback matrix, six Java/D8 consumers and twelve refusal cases. The complete
+original SDK host suite passes 216 tests with zero skips. Separate FieldLog
+shipping inputs pass 49 Android build commands, an unsigned arm64/x86_64 iOS
+Simulator build and all 77 host tests, with resolver-produced locks at that public
+revision. Actual API36 OS-IME draft/reopen/Commit and three-task lifecycle tests
+pass with exact data readback and owned emulator cleanup. Immutable packages,
+physical phones and final acceptance remain pending. [SDK](verification/receipts/current-sdk-compatible-r698.json),
+[shipping tests](verification/receipts/fieldlog-shipping-host-r670.json),
+[Entries](verification/receipts/fieldlog-public-native-r654.json), and
+[tasks](verification/receipts/fieldlog-public-tasks-r690.json).
 
-The actual API36 controlled OS-IME flow also passes Unicode composition, a 100,000-byte draft, exact visible restoration in a fresh process, a 100,000-byte emoji edit, one Commit and a third-process readback. A different-prefix 100,001-byte input leaves valid content intact. No SDK overlay was used. IME restoration, fixture removal, emulator shutdown, AVD deletion and the external device baseline all pass. The earlier R650 hierarchy timeout remains preserved. The separate public task-flow test passes three saves, completion and reopening, reorder, honest Not sent navigation, preservation of unsaved fields, and exact repository and visible checklist restoration in a fresh process. Its 240 commands and owned emulator cleanup pass. R674’s earlier final-row search failure remains preserved. [Entry input](verification/receipts/fieldlog-public-native-r654.json), [task flow](verification/receipts/fieldlog-public-tasks-r690.json), and [preserved failure](verification/receipts/fieldlog-public-tasks-r674.json).
+Main `c8c1c867` completed seven of eight CI checks successfully. Its optimized
+cache descendant control left PID/PGID 5342 with UNKNOWN custody: the first
+PermissionError came from `os.killpg(pgid, 0)`, while the underlying OS cause
+remains unproven. Preserve that exact chain and every earlier hold. The corrected
+stderr fixture passed the fresh Swift job; it does not release historical
+uncertainty. [CI](verification/receipts/mainc8c-ci-r770.json) and
+[hold](verification/receipts/cache-observation-custody-r762.json).
 
-The private VM experiments remain unselected. Default reservation equivalence and the separate 480-byte/12-credit controls pass. The private 256-resident/278-ticket policy reaches SaveDraft, ready and Close. The reviewed 512-resident/534-ticket successor also reaches Reopen with documents 1–5 equal to native output; long note still exhausts the unchanged cumulative 64M work limit. The 1024-resident experiment preserves that refusal and adds explicit lookup initialization charges, so its counters do not isolate capacity alone. A different private index experiment retains those charges and all existing ceilings. No experimental profile or cache policy is adopted. The complete original SDK host suite passes 216 tests with zero skips using Xcode 26.6, SDK 26.5 and Swift 6.3.3. All 25 original test files and owning sources remain unchanged; the earlier compiler/SDK mismatch is preserved. [SDK tests](verification/receipts/current-sdk-compatible-r698.json). Apple Accessibility trust remains false, so no new iOS Simulator is booted. R684 adds an unresolved PostgreSQL custody hold for PID/PGID 80819 and its entire private namespace; its coordinator candidate is unaccepted. Fresh work uses canonical source in a different namespace. Every historical hold, phone restriction, full API28 requirement, immutable-package requirement and all 38 GA gates remain in force. No gate or package status is promoted. The current checkpoint `0bb46782` passed seven of eight CI checks; the Swift stderr-output control reported unresolved custody. Its exact hosted command remains held. The corrected fixture now preserves uncertainty evidence and reports recorded cleanup errors. The missing-root cleanup regression is closed, three permanent inert regressions pass, and the exact test-only successor passes both installed guards in normal and optimized Python. Runtime source118, Pair20 history and backend source212 remain unchanged. Root selects one fresh ordinary CI run after this delivery. [CI failure](verification/receipts/swift-stderr-custody-r710.json), [fixture correction](verification/receipts/stderr-fixture-fix-r736.json), and [binding adoption](verification/receipts/fixture-retention-binding-adoption-r752.json).
+The CLI inventory candidate passes the full 114-test suite, including its permanent
+precision/BOM regressions. Exact caller admission and the final normal metadata
+suite remain with its isolated successor; no CLI source is applied in this slice.
+Private reactor work remains unselected. Larger private residency reaches Reopen,
+but LongNote and Commit remain blocked. The latest lookup experiment stopped at
+a diagnostic-owner failure before guest execution; its second ledger accounting
+remains UNKNOWN despite positive process absence. Fresh work separates diagnostic
+owners without increasing limits. [CLI](verification/receipts/import-current-source-r766.json)
+and [reactor](verification/receipts/entryeditor-private-headhit-r768.json).
 
-The private build-intent selection passes all 24 default cases on the original twelve production migrations with its private table absent. Selected-path execution still needs a test-VM module-load correction and independent review. The CLI migration-inventory candidate passes 15 focused test functions after delimiter allocation corrections; it remains advisory and awaits independent review. Neither candidate is applied. [Coordinator](verification/receipts/coordinator-complete-package-r740.json) and [CLI candidate](verification/receipts/import-delimiter-fix-r742.json).
+Apple Accessibility trust remains false; no new iOS frontend is booted. The full
+W01–W18, D0–D8, API28, immutable-package and physical-phone requirements remain.
+All 38 GA gates are still unverified. No package, milestone or gate status changes.
 
 ## Development execution update: November 9, 2026
 

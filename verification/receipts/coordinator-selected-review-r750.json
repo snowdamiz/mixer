@@ -1,0 +1,236 @@
+{
+  "campaign": "coordinator-selected-review-r750",
+  "status": "REVIEW_PASS_WITH_NOTES_SELECTED11_PASS_EXTRA_FIXTURE1_FAIL",
+  "review": {
+    "product_selection": "PASS_NO_P1_P2_FOUND",
+    "all_fresh_checks_green": false,
+    "selected_closure": "11_OF_11_PASS",
+    "additional_lifetime": "1_PASS_1_FIXTURE_FAILURE",
+    "root_source_admission_and_fullsuite": "PENDING_ROOT",
+    "product_changes": false
+  },
+  "created_utc": "2026-11-11T04:48:31Z",
+  "scope": "Independent R724 server-selection review and exact R740 selected fixture closure; durable intent only",
+  "inputs": {
+    "r724_contract": {
+      "path": "verification/local/coordinator-private-selection-r724/CONTRACT.md",
+      "bytes": 818,
+      "sha256": "079cdfbbe4f4a15264aaa634d9ebfd1f8d13c7ee7c631ae60a7423eb8750a074"
+    },
+    "r724_patch": {
+      "path": "verification/local/coordinator-private-selection-r724/integration.patch",
+      "bytes": 5960,
+      "sha256": "ca9aa6a6dcce50355af703093b12ac97809b42e4a48c0aa595a691d1a23ca255"
+    },
+    "r740_receipt": {
+      "path": "verification/receipts/coordinator-complete-package-r740.json",
+      "bytes": 12353,
+      "sha256": "33a9d11c5f3add2aa3efc77fbda47562163571ee63a9cd1ec02df314f2c844af"
+    },
+    "r740_source_digest": "e35af32a6ebaafec4d9154ca2d04bdb0655cdd57ad5c7e06988db8e1aa65477d",
+    "r740_source_roster_verified_after": 212,
+    "r724_afterimage_hashes": {
+      "lib/mixer_hosted/builds/coordinator.ex": "8ca79ae9638d71a39ecd57cc2992bf30bd1b8a846657ad2921cbabda0e311ef4",
+      "lib/mixer_hosted/builds/operation_intent.ex": "5738ca6363362abad621419267680b4e2bf1ea1c7e1e9cb9cb9647d0c4c31358",
+      "test/mixer_hosted/builds/coordinator_test.exs": "25d40a1a5f01415330cc8aadda68f11baabeb097ea687c85ab9aa299e2ca7193"
+    },
+    "beams": "Exact copied R740 complete owning Mix output; 0 product/dependency compiles",
+    "actual_loaded_identity_pre_pg": {
+      "path": "verification/local/coordinator-selected-review-r750/input/pre-pg-identity.json",
+      "bytes": 226285,
+      "sha256": "048f257d270e8f4eb420432fed66a6f80d74c04a52100bd0ca8726897ff3480d"
+    },
+    "actual_loaded_identity_selected_vm": {
+      "path": "verification/local/coordinator-selected-review-r750/input/selected-vm-identity.json",
+      "bytes": 226483,
+      "sha256": "18ae2b77a81a992f419b6ad0f179f0b665e21fbbb25f41a2ad85f212993fbb0e"
+    },
+    "app_modules": 197,
+    "metadata_source_paths": "R740 original compilation source metadata retained; loaded BEAM paths are R750 copied paths"
+  },
+  "default24_reused": {
+    "campaign": "coordinator-complete-package-r740",
+    "run_again": false,
+    "original20": 20,
+    "configuration4": 4,
+    "pass": 24,
+    "no_private_table": true,
+    "server_selection_absent": true,
+    "source_and_beam_identity_matches": true,
+    "default_log_sha256": "a631c06b23aafdbf988d574134f8ec03c29a461e4437971a10466a571d75420e",
+    "historical_notifier_errors": 7
+  },
+  "selected_tests": {
+    "original11_pass": 11,
+    "original11_fail": 0,
+    "original11_bodies_unchanged": true,
+    "raw_exunit": {
+      "total": 13,
+      "failures": 1,
+      "excluded": 0,
+      "skipped": 0
+    },
+    "additional_pass": 1,
+    "additional_fixture_fail": 1,
+    "skipped": 0,
+    "excluded": 0,
+    "memberships": {
+      "path": "verification/local/coordinator-selected-review-r750/input/test-outcomes.json",
+      "bytes": 2083,
+      "sha256": "530a7f1ca3ced0926176b931d6f3ba45ac5fa133d63e6f33af3c3f9ab61eccc5"
+    },
+    "fixture_load_fix": {
+      "path": "verification/local/coordinator-selected-review-r750/fixture-load-correction.patch",
+      "bytes": 471,
+      "sha256": "df930aec31699874eb69fa16cf9e4b1f83c59a40bdc9faae19844e6738a06674"
+    },
+    "actual_executed_fixture": {
+      "path": "verification/local/coordinator-selected-review-r750/fixture/selected-tests.exs",
+      "bytes": 16985,
+      "sha256": "2ee14dcb4000b82ab646be3ce85b5b9e0e3858edcf88e2e4eef32751ae2f3596"
+    },
+    "discriminator": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/discriminator.json",
+      "bytes": 590,
+      "sha256": "8d01c487b543340f148df2373e0a5884f22ccb2a803735cd4110df53c60cacb1"
+    },
+    "actual_Coordinator_refresh_and_OperationIntent_record_multi_traced": true,
+    "trace_pattern_expected1_passed": true,
+    "selected_server_mode": "Application :build_operation_intent = :durable_intent_v1; job map never authority"
+  },
+  "review_findings": [
+    {
+      "gate": "trusted closed server selection",
+      "result": "PASS",
+      "evidence": "configuration called before reconcile/claim; fetch_env accepts absence or atom durable_intent_v1 only; job keys/four dispatch keys remain closed; R740 default24 reused"
+    },
+    {
+      "gate": "snapshot per invocation",
+      "result": "PASS_SOURCE_AND_ONE_DYNAMIC_DIRECTION",
+      "evidence": "perform captures config once and passes it to external/act/refresh; absent->selected during query does not add private intent until next perform; selected->absent additional fixture invalid and unproven dynamically"
+    },
+    {
+      "gate": "default no private SQL",
+      "result": "PASS_REUSED_R740",
+      "evidence": "same disabled branch expression, production12 private table absent; no rerun"
+    },
+    {
+      "gate": "same-Multi stop monotonicity, rollback, replay, identity fences",
+      "result": "PASS_SELECTED11",
+      "evidence": "unchanged 11 bodies plus live refresh/join discriminator"
+    },
+    {
+      "gate": "additional selected->absent fixture",
+      "result": "FAIL_FIXTURE",
+      "evidence": "query callback sends admitted-row message, then attempts DELETE before changing config. Original active BEFORE DELETE trigger raises retention deletion forbidden; Coordinator rescue converts callback error to uncertainty. Exact exception was not captured. The expected ensure callback did not occur. No product defect established.",
+      "minimal_proposal": "Replace destructive row-deletion discriminator with local trace counting of OperationIntent.record_multi/3 in a separately authorized run; no schema, trigger, product or assertion weakening."
+    }
+  ],
+  "postgres": {
+    "fresh_batches": 1,
+    "production_migrations": 12,
+    "private_fixture_version": 20261110000498,
+    "private_fixture_only_selected_database": true,
+    "catalog": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/batch/selected-catalog.stdout",
+      "bytes": 228,
+      "sha256": "3502153a8ddebc15cf2256840eb339a0a604ee39aff9cd2b2bfd25aebc8a0656"
+    },
+    "single_absolute_pgdata": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-selected-review-r750/pgdata-selected",
+    "cleanup": {
+      "postmaster_pid": 54146,
+      "pgid": 54146,
+      "pgdata": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-selected-review-r750/pgdata-selected",
+      "clean_stop": true,
+      "group_absent": true,
+      "port_closed": true,
+      "removed_after_confirmed_clean_stop": true
+    }
+  },
+  "commands": {
+    "count": 11,
+    "all_groups_positively_observed_absent": true,
+    "identities_persisted_before_wait": true,
+    "records": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/batch/commands.json",
+      "bytes": 9039,
+      "sha256": "45c2f9e202e2a54fa2d7f073c9bd2061551c54ba79138f858e74889236df09f5"
+    },
+    "python_runtime": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir_version_output": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/batch/elixir-version.stdout",
+      "bytes": 144,
+      "sha256": "d58a6a6ee33259fe5832d9cb13aa3f7ea88ed04f8a48ead0ca72697060274df8"
+    },
+    "postgres_version_output": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/batch/postgres-version.stdout",
+      "bytes": 39,
+      "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    }
+  },
+  "bounds": {
+    "fresh_postgres_batches": 1,
+    "product_compiles": 0,
+    "dependency_compiles": 0,
+    "fixture_load_correction": 1,
+    "additional_harness_retry": 0,
+    "second_postgres_batch": false,
+    "stop": "Original11 complete. Extra fixture failure preserved; no rerun beyond one-batch cap."
+  },
+  "diagnostics": {
+    "preflight_unused_fixture_variable_warnings": 2,
+    "product_compile_warnings": "No product compile performed",
+    "selected_test_stderr_empty": true
+  },
+  "preserved": {
+    "canonical_changes": false,
+    "git_or_remote_operations": false,
+    "children": false,
+    "native": false,
+    "providers_credentials": false,
+    "held_access": false,
+    "R684_entire_namespace_untouched": true,
+    "R710_held_hosted_resources_untouched": true,
+    "production12_sql_schema_grants_unchanged": true,
+    "new_holds": []
+  },
+  "limitations": [
+    "Raw fresh run is12/13, not an all-green13-test PASS. Only the11 unchanged selected cases and1 additional case passed.",
+    "Selected->absent dynamic direction remains unproven because review fixture attempted forbidden retention deletion; source carries immutable config snapshot.",
+    "No worker execution, termination, capacity, authentication or provenance claim. Intent-only semantics.",
+    "No root source admission, full suite rerun, new migration selection/default enablement, provider, deployment, publication or GA claim.",
+    "All historical custody holds remain in force."
+  ],
+  "artifacts": {
+    "report": {
+      "path": "verification/local/coordinator-selected-review-r750/REPORT.md",
+      "bytes": 6446,
+      "sha256": "8568ca9be4bba2b77210e325fd0d9d579f9da131ec1f330d62f574cb0c5c6b21"
+    },
+    "runner": {
+      "path": "verification/local/coordinator-selected-review-r750/run.py",
+      "bytes": 6151,
+      "sha256": "1220194b2e85ef888e7f58460e266096eb120d6700e28ce30a2f68255761c373"
+    },
+    "stdout": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/batch/selected-tests.stdout",
+      "bytes": 3201,
+      "sha256": "368d61b4b97523949ef2b538e5c7580adcab0855ecd4495800531e1ba98c1198"
+    },
+    "stderr": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/batch/selected-tests.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/selected-result.json",
+      "bytes": 67,
+      "sha256": "0c82ee0a61cf2f314886b75b3224374c8fb7fe3e0eb428b37772cc52798846c2"
+    },
+    "cleanup": {
+      "path": "verification/local/coordinator-selected-review-r750/raw/batch/cleanup.json",
+      "bytes": 297,
+      "sha256": "e27854e9b15f0f7e95317e407fc65da06f2e642fdc99b6383f9ec4d9cef0bfd1"
+    }
+  }
+}

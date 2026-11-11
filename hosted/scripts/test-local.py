@@ -245,6 +245,8 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
                                         "mixer_fixture", "mixer_aggregate_admission_test"])
     run("createdb-coordinator", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                 "mixer_fixture", "mixer_coordinator_test"])
+    run("createdb-coordinator-intent", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
+                                       "mixer_fixture", "mixer_coordinator_intent_test"])
     if additional_tests:
         run("createdb-builds-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                       "mixer_fixture", "mixer_builds_review_test"])

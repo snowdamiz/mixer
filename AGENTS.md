@@ -315,3 +315,22 @@ GitHub job or direct child does not establish inner absence. The underlying
 operation and OS error remain unproven; this does not release earlier holds or
 block new isolated source-only controls and independent product work.
 
+The optimized cache descendant control in run 42961685092, job 130329446293,
+left UNKNOWN custody for PID/PGID 5342. Preserve that exact hosted group and
+`/Users/runner/work/mixer/mixer/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/evidence/original-optimized-hpojqy3z/scratch/mixer-cache-runner-controls-2ryg0h52`
+in full, without inspection, probing, signals, waits, retries or cleanup. Read
+only the copied top-level summary `verification/receipts/cache-observation-custody-r762.json`.
+Its first PermissionError is now attributed to `commands.py:16`, function
+`gone`, calling `os.killpg(pgid, 0)`; the underlying OS cause remains unproven.
+Direct child return, successful signal dispatch or GitHub job cleanup do not
+establish group absence. Unrelated isolated development remains authorized.
+
+The R768 lookup diagnostic consumed its first runtime to fourteen zero currents
+and zero tickets, then failed while constructing a second runtime in the same
+process. That second runtime's consuming accounting is UNKNOWN. All three OS
+command groups were positively observed absent; that does not prove ledger
+cleanup. Preserve its `source`, `target-private`, `artifacts`, `logs` and `tmp`
+under `verification/local/entryeditor-private-headhit-r768` without inspection,
+retry or cleanup. Only its delivered top-level report, receipt, HOLD.json,
+manifests, source proof and patch are references. Fresh separately selected work
+must use an independent baseline and namespace, never the retained chain.
