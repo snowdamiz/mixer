@@ -72,7 +72,8 @@ class Rebinding(unittest.TestCase):
         transition = json.loads((HERE / 'binding.json').read_text())['guest_ui_v2_transition']
         successor_changed = {row['path'] for row in transition['owningChanges']
                              if row['path'] in before and before[row['path']] != row['after']}
-        self.assertEqual(set(changed), set(historical_changed) | successor_changed)
+        cli = json.loads((HERE / 'binding.json').read_text())['cli_advisory_source_transition']
+        self.assertEqual(set(changed), set(historical_changed) | successor_changed | {cli['path']})
         self.assertIn("sdk/Sources/MixerApple/MixerNativeView.swift", changed)
         original = self.base.regular
         for name in changed:

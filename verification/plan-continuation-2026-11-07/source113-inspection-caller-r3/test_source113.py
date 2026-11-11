@@ -103,15 +103,53 @@ class Source113(unittest.TestCase):
         spec = importlib.util.spec_from_file_location('source113_bootstrap', HERE.parent/'generated-java-ci-integration/bootstrap.py')
         b = importlib.util.module_from_spec(spec); spec.loader.exec_module(b)
         owner = b.canonical()
-        actual = b.admit_source_inputs(owner, owner.load_profile())
+        actual = owner.source_inputs(owner.load_profile())
+        binding = json.loads((HERE/'binding.json').read_bytes())
+        predecessor = a.cli_advisory_predecessor(self.base, binding, actual, owner)
+        from types import SimpleNamespace
+        historical_authority = SimpleNamespace(source_inputs=lambda profile: predecessor, source_digest=owner.source_digest)
+        self.assertEqual(b.admit_source_inputs(owner, owner.load_profile()), actual)
+        with self.assertRaisesRegex(RuntimeError, 'owning inputs'):
+            b.admit_source_inputs(historical_authority, owner.load_profile())
         self.assertEqual(actual, self.frozen)
-        self.assertEqual(b.SOURCE_INPUT_COUNT, len(actual))
-        self.assertEqual(b.SOURCE_INPUT_SHA256, owner.source_digest(actual))
+        source = binding['source']
+        self.assertEqual((b.SOURCE_INPUT_COUNT, b.SOURCE_INPUT_SHA256), (source['count'], source['sha256']))
+        # Reconstruct the independently pinned old bootstrap, retaining its refusal.
+        transition = binding['cli_advisory_caller_transition']
+        raw = (HERE.parent/'generated-java-ci-integration/bootstrap.py').read_bytes()
+        old = raw.replace(transition['sourceAfter'].encode(), transition['sourceBefore'].encode(), 1)
+        self.assertEqual({'bytes':len(old), 'sha256':hashlib.sha256(old).hexdigest()}, transition['before'])
+        namespace = {'__file__':str(HERE.parent/'generated-java-ci-integration/bootstrap.py'), '__name__':'old_bootstrap_control'}
+        exec(compile(old, namespace['__file__'], 'exec'), namespace)
+        self.assertEqual(namespace['admit_source_inputs'](historical_authority, owner.load_profile()), predecessor)
+        with self.assertRaisesRegex(RuntimeError, 'owning inputs'):
+            namespace['admit_source_inputs'](owner, owner.load_profile())
         for name, value in (('cli/Sources/MixerCLI/Extra.swift', b'// extra\n'),):
             p = self.project(); target=p/name; target.write_bytes(value)
             actual_owner = self.base.module_at('source113_extra_bootstrap', p/'scripts/ci/check-android-generated-java.py')
             with self.assertRaisesRegex(RuntimeError, 'owning inputs'):
                 b.admit_source_inputs(actual_owner, actual_owner.load_profile())
+    def test_bootstrap_actual_source_profile_lock_and_extraneous_mutants(self):
+        spec = importlib.util.spec_from_file_location('mutant_bootstrap', HERE.parent/'generated-java-ci-integration/bootstrap.py')
+        b = importlib.util.module_from_spec(spec); spec.loader.exec_module(b)
+        p = self.project()
+        cases = [('changed-source', 'cli/Sources/MixerBuild/MigrationInspector.swift', 'change'),
+                 ('extraneous-file', 'cli/Sources/MixerCLI/Unreviewed.swift', 'extra'),
+                 ('changed-profile', 'native/android/contracts/android-profile-v1.json', 'change'),
+                 ('missing-lock', 'cli/Package.resolved', 'missing')]
+        for label, name, operation in cases:
+            target = p/name
+            before = target.read_bytes() if target.exists() else None
+            try:
+                if operation == 'missing': target.unlink()
+                else: target.write_bytes((before or b'') + b'\n// unreviewed\n')
+                owner = self.base.module_at('bootstrap_mutant_owner', p/'scripts/ci/check-android-generated-java.py')
+                with self.subTest(mutation=label), self.assertRaises((RuntimeError, FileNotFoundError, ValueError)):
+                    b.admit_source_inputs(owner, owner.load_profile())
+            finally:
+                if before is None: target.unlink()
+                else: target.write_bytes(before)
+
     def test_unaccepted_r3_dependency_and_no_consumer_promotion(self):
         dep = json.loads((HERE/'binding.json').read_text())['dependency']
         self.assertFalse(dep['source106_R3']['independently_accepted'])

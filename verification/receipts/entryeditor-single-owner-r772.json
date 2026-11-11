@@ -1,0 +1,167 @@
+{
+  "task": "R772 finite private EntryEditor single-owner gate",
+  "status": "UNACCEPTED: FIRST_CONTROL_ACCOUNTING_UNKNOWN; APPLICATION_GATE_UNRUN",
+  "decision": "STOP and preserve exact new chain. No correction, second build, remaining focused invocation, guest or independent review.",
+  "cause": "R772 harness grouped valid and rejecting scenarios under one owner. The expected self-cycle rejection became the retained primary failure, so preparation for bad-slot returned swift_cache_index_cycle and panicked before consuming finish. This was an invalid harness change.",
+  "input_tree_sha256": "b182679a3d802424b249f8ffeb6eac1a11b0bb2a7893e988ea0fd1b8300f8ee3",
+  "applied_r768_tree_sha256": "722c4a33950dfd700d14dcf6e207642ae5c913a46dea6d8bca530519540589da",
+  "tested_tree_sha256": "7a0ad6c95e92c36117af34ac8691916cdea581488ab433d91f178ee93e45817e",
+  "module_sha256": "1ec7ce12b2c812304c5b4d97fe22d39fd9e48e2ddfdebe49da4cc9db23f3c79c",
+  "source_files": 103,
+  "immutable_inputs": 17,
+  "bounds": {
+    "elapsed_campaign_limit_seconds": 900,
+    "rust_builds": 1,
+    "allowed_rust_builds": 2,
+    "build_corrections": 0,
+    "focused_process_invocations": 1,
+    "allowed_focused_process_invocations": 6,
+    "actual_guest_payloads": 0,
+    "allowed_actual_guest_payloads": 2,
+    "rust_jobs": 3,
+    "swift_builds": 0,
+    "native_runs": 0,
+    "children": 0,
+    "residents": 1024,
+    "tickets": 1046,
+    "buckets": 1024,
+    "instruction_fuel": 200000000,
+    "cache_work": 64000000,
+    "cache_bytes": 16777216,
+    "deadline_ms": 30000,
+    "frames": 128,
+    "pins": 128,
+    "execution_work": 1000000000,
+    "combined_bytes": 268435456,
+    "default_residents": 64,
+    "default_tickets": 86,
+    "default_fuel": 100000000,
+    "default_operation_bytes": 106190,
+    "frozen_layout": [
+      8,
+      664,
+      8
+    ]
+  },
+  "build": {
+    "label": "build-private",
+    "exit_code": 0,
+    "group_absence": "OBSERVED_ABSENT",
+    "command": "cargo build --offline --locked --release --features experimental-swift-reactor,experimental-guest-ui-v2-native,r768-private-headhit --example r524 --target-dir <R772>/target-private",
+    "versions": "No fresh version command before stop; R760 historical rustc1.99.0(b940084d7 2026-09-28), cargo1.99.0(5f94df478 2026-08-27). Exact selected toolchain paths recorded in logs/build-private.json."
+  },
+  "first_gate": {
+    "label": "head-old",
+    "fixed_selector": {
+      "R768_CONTROL": "old"
+    },
+    "exit_code": 101,
+    "runtime_control_owners_started": 1,
+    "completed_cases_before_failure": [
+      {
+        "case": "singleton",
+        "old": true,
+        "hit": "Some(1)",
+        "code": null,
+        "work": 14,
+        "index_pins_lru_nonce_unchanged": true
+      },
+      {
+        "case": "empty",
+        "old": true,
+        "hit": null,
+        "code": null,
+        "work": 10,
+        "index_pins_lru_nonce_unchanged": true
+      },
+      {
+        "case": "chain",
+        "old": true,
+        "hit": "Some(1)",
+        "code": null,
+        "work": 18,
+        "index_pins_lru_nonce_unchanged": true
+      },
+      {
+        "case": "self-cycle",
+        "old": true,
+        "hit": null,
+        "code": "swift_cache_index_cycle",
+        "work": 15,
+        "index_pins_lru_nonce_unchanged": true
+      }
+    ],
+    "next_scenario": "bad-slot; prepare_operation refused retained self-cycle before direct lookup",
+    "panic_location": "cache.rs:5387:77",
+    "panic": "Result::unwrap on Err swift_cache_index_cycle",
+    "at_failure": {
+      "retained_source_current": 54908436,
+      "retained_metadata_current": 1090912,
+      "cache_current": 264712,
+      "shared_current": 1744,
+      "construction_current": 382366,
+      "combined_current": 56648170,
+      "live_tickets": 11,
+      "cache_entries_current": 2,
+      "active_pins_current": 0,
+      "cache_work": 12183,
+      "after_cleanup": null
+    },
+    "private_direct_cases_observed": 0,
+    "consuming_cleanup": "UNKNOWN; no snapshot; none inferred from OS absence"
+  },
+  "cleanup": {
+    "managed_commands_reaped_and_groups_observed_absent": 2,
+    "consuming_snapshots": 0,
+    "all_14_currents_zero": null,
+    "live_tickets_at_consuming_finish": null,
+    "cleanup_invariant_at_consuming_finish": null,
+    "ledger": "UNKNOWN",
+    "new_process_custody_holds": 0,
+    "new_accounting_holds": 1,
+    "owned_cleanup_performed": false,
+    "retained": [
+      "source",
+      "target-private",
+      "artifacts",
+      "logs",
+      "tmp"
+    ]
+  },
+  "preserved_baseline_r760": {
+    "stage": "LongNote turn6 entry.note.changed",
+    "resource": "CacheWork",
+    "attempted": 64000003,
+    "limit": 64000000,
+    "paid_cache_work": 63999995,
+    "fuel": 121376534,
+    "fuel_limit": 200000000,
+    "execution_work": 953691401,
+    "execution_limit": 1000000000,
+    "historical": true
+  },
+  "unrun": [
+    "new direct singleton/empty/full-chain/corruption/underfunding cases",
+    "old bad-slot/duplicate/underfunding cases",
+    "charge-before-eviction-initializer witness0",
+    "admission",
+    "existing64 ticket boundary",
+    "default overflow",
+    "unchanged original84138-body guest sequence including LongNote/Commit",
+    "new full public-document parity",
+    "eventual full internal model/persistence"
+  ],
+  "limitations": [
+    "The first control process had one owner, but grouping rejecting scenarios violated the retained-terminal contract. One owner per process did not make this harness correct. The next campaign requires separately selected work; this chain cannot be repaired or reused.",
+    "No paid-work, consuming-cleanup or application gate passed. Only partial old traversal observations exist; none accepts the candidate.",
+    "No source reinspection or process operation after the accounting stop. The retained source-proof describes construction provenance and limitations, not a completed independent audit.",
+    "All17 copied immutable inputs and103 baseline source files were hash-checked before the build; R768 held source/target/artifacts/logs/tmp were not accessed. Only its permitted top-level references and delivered patch were read.",
+    "No fullmodel, persistence, performance, package, physical-device, production, W07/W08 or GA claim. No limits widened.",
+    "No canonical edits, root Git/index/remotes, devices, providers, credentials, children or overlapping R758 hosted work. Writes restricted to R772 and this compact receipt. No staging or index-based artifact check."
+  ],
+  "local_report": "verification/local/entryeditor-single-owner-r772/REPORT.md",
+  "local_hold": "verification/local/entryeditor-single-owner-r772/HOLD.json",
+  "source_proof": "verification/local/entryeditor-single-owner-r772/source-proof.json",
+  "patch": "verification/local/entryeditor-single-owner-r772/patches/r772.patch",
+  "finalized_unix": 1794374809.299084
+}

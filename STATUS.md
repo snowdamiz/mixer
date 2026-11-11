@@ -1,7 +1,8 @@
 # Implementation status
 
-The reviewed coordinator slice now records durable operation intent behind a
-closed server-only opt-in. The absent setting preserves the original path; the
+Main `cf1ca9a3` delivers the reviewed coordinator slice through a normal fast-forward;
+fresh CI is running. It records durable operation intent behind a closed
+server-only opt-in. The absent setting preserves the original path; the
 private schema remains outside the twelve production migrations. Current v5
 admission binds 214 sources. The actual strict runner passes formatting,
 warnings-as-errors compilation and tests, release checks, and **790 tests with
@@ -38,15 +39,20 @@ stderr fixture passed the fresh Swift job; it does not release historical
 uncertainty. [CI](verification/receipts/mainc8c-ci-r770.json) and
 [hold](verification/receipts/cache-observation-custody-r762.json).
 
-The CLI inventory candidate passes the full 114-test suite, including its permanent
-precision/BOM regressions. Exact caller admission and the final normal metadata
-suite remain with its isolated successor; no CLI source is applied in this slice.
-Private reactor work remains unselected. Larger private residency reaches Reopen,
-but LongNote and Commit remain blocked. The latest lookup experiment stopped at
-a diagnostic-owner failure before guest execution; its second ledger accounting
-remains UNKNOWN despite positive process absence. Fresh work separates diagnostic
-owners without increasing limits. [CLI](verification/receipts/import-current-source-r766.json)
-and [reactor](verification/receipts/entryeditor-private-headhit-r768.json).
+The reviewed CLI inventory now distinguishes actual imports from comments and
+strings, preserves physical line numbers and accepts an initial UTF-8 BOM without
+hiding the first import. Its full suite passes 114 tests. The coordinated exact
+caller successor passes 108 controls in each Python mode; both installed guards
+admit source118 `d9473684…` with unchanged Pair20 SDK/adapter/profile bytes.
+Fresh CI and actual generated consumers for this successor remain pending.
+Private VM work remains unselected: the actual lookup experiment reached Reopen
+with documents 1–5 equal to native output, then LongNote exhausted the unchanged
+64M cache-work limit. Consuming cleanup reached fourteen zero currents and zero
+tickets. The preceding failed diagnostic chains stay held. A separate app lane
+implements entry-date editing, while a bounded guest experiment tests unnecessary
+escaped-value string construction. [CLI adoption](verification/receipts/import-adoption-r782.json),
+[caller proof](verification/receipts/import-caller-successor-r774.json), and
+[actual reactor result](verification/receipts/entryeditor-actual-guest-r778.json).
 
 Apple Accessibility trust remains false; no new iOS frontend is booted. The full
 W01–W18, D0–D8, API28, immutable-package and physical-phone requirements remain.

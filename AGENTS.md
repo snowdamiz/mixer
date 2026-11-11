@@ -334,3 +334,12 @@ under `verification/local/entryeditor-private-headhit-r768` without inspection,
 retry or cleanup. Only its delivered top-level report, receipt, HOLD.json,
 manifests, source proof and patch are references. Fresh separately selected work
 must use an independent baseline and namespace, never the retained chain.
+
+The R772 control grouped multiple rejection cases under one runtime. Its retained
+self-cycle failure caused a later harness panic before consuming cleanup. Ledger
+accounting remains UNKNOWN, although both managed process groups were positively
+observed absent. Preserve `source`, `target-private`, `artifacts`, `logs` and `tmp`
+under `verification/local/entryeditor-single-owner-r772` without inspection,
+probing, retries or cleanup. Only its delivered top-level REPORT.md, HOLD.json
+and compact receipt are references. A fresh separately selected application run
+uses the independent R760 baseline; it does not release this chain.

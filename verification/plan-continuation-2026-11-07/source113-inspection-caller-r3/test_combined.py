@@ -20,15 +20,24 @@ class MetadataDiagnostics(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory(dir=HERE/'control-scratch');self.addCleanup(self.temp.cleanup);self.work=Path(self.temp.name);self.base=a.bind()
  def test_projected_installed_whole_job_is_exact_without_qualification(self):
   p=self.base.verify(True)
-  self.assertEqual((p['source_count'],p['source_sha256']),(116,'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99'))
+  source=json.loads((HERE/'binding.json').read_bytes())['source']
+  self.assertEqual((p['source_count'],p['source_sha256']),(source['count'],source['sha256']))
   self.assertTrue(p['installed_job_verified']);self.assertFalse(p['exact_compiler_qualified'])
- def test_actual_owner_bootstrap_116_and_profile24_27(self):
+ def test_actual_owner_bootstrap_predecessor_and_bound_profile(self):
   s=importlib.util.spec_from_file_location('rebound_bootstrap',HERE.parent/'generated-java-ci-integration/bootstrap.py');b=importlib.util.module_from_spec(s);s.loader.exec_module(b)
-  owner=b.canonical();profile=owner.load_profile();actual=b.admit_source_inputs(owner,profile)
+  owner=b.canonical();profile=owner.load_profile();actual=owner.source_inputs(profile)
+  binding=json.loads((HERE/'binding.json').read_bytes())
+  predecessor=a.cli_advisory_predecessor(self.base,binding,actual,owner)
+  source=binding['source']
+  self.assertEqual((b.SOURCE_INPUT_COUNT,b.SOURCE_INPUT_SHA256),(source['count'],source['sha256']))
+  self.assertEqual(b.admit_source_inputs(owner,profile),actual)
+  from types import SimpleNamespace
+  historical=SimpleNamespace(source_inputs=lambda p:predecessor,source_digest=owner.source_digest)
+  with self.assertRaisesRegex(RuntimeError,'owning inputs'):b.admit_source_inputs(historical,profile)
   self.assertEqual(actual,json.loads((HERE/'source-inputs.json').read_bytes()))
-  self.assertEqual((len(profile['sdk_files']),len(profile['adapter_files'])),(24,27))
-  self.assertEqual(owner.source_digest(profile['sdk_files']),'1aff4a8c3b9c8b25f6457a0b43617ec19f9a34b7b678029859c4ae220d7076d6')
-  self.assertEqual(owner.source_digest(profile['adapter_files']),'7cd791c7cda6f3231eae19079a133662b84b862ddd04bce3cfa25495ebea0d38')
+  self.assertEqual((len(profile['sdk_files']),len(profile['adapter_files'])),(binding['profile']['sdk_count'],binding['profile']['adapter_count']))
+  self.assertEqual(owner.source_digest(profile['sdk_files']),binding['profile']['sdk_sha256'])
+  self.assertEqual(owner.source_digest(profile['adapter_files']),binding['profile']['adapter_sha256'])
  def test_full_job_mutations_refuse(self):
   text=(HERE/'verify.yml.candidate').read_text();p=self.work/'verify.yml'
   for old,new in [('timeout-minutes: 12','timeout-minutes: 13'),('--product mixer -j 2','--product mixer -j 3'),('scripts/ci/prepare-cli-host-tests.py','scripts/ci/other.py'),('swift test --package-path cli -j 2','swift test --package-path cli -j 3'),('export RUSTUP_AUTO_INSTALL=0','export RUSTUP_AUTO_INSTALL=1')]:
@@ -177,7 +186,12 @@ class MetadataDiagnostics(unittest.TestCase):
   binding=json.loads((HERE/'binding.json').read_bytes())
   owner=self.base.module_at('diagnostic_history_owner',ROOT/'scripts/ci/check-android-generated-java.py')
   actual=owner.source_inputs(owner.load_profile(ROOT))
-  source_pair18=a.pair19_predecessor(self.base,binding,actual,owner)
+  source_before_cli=a.cli_advisory_predecessor(self.base,binding,actual,owner)
+  source_before_pair20=a.pair20_predecessor(self.base,binding,source_before_cli,owner)
+  source_before_guest=a.guest_ui_v2_predecessor(self.base,binding,source_before_pair20,owner)
+  source_before_phase=a.android_inspection_phase_predecessor(self.base,binding,source_before_guest,owner)
+  source_before_floor=a.public_android_floor_predecessor(self.base,binding,source_before_phase,owner)
+  source_pair18=a.pair19_predecessor(self.base,binding,source_before_floor,owner)
   self.assertEqual(owner.source_digest(source_pair18),binding['pair19_transition']['sourceBefore'])
   source_pair17=a.pair18_predecessor(self.base,binding,source_pair18,owner)
   self.assertEqual(owner.source_digest(source_pair17),binding['pair18_transition']['sourceBefore'])
@@ -216,3 +230,45 @@ class MetadataDiagnostics(unittest.TestCase):
    seal['tree_sha256']=self.base.tree(seal['members']);fake_seal=self.work/'seal';fake_seal.write_text(json.dumps(seal))
    def redirect(p):return original(fake if p==HERE/'binding.json' else fake_seal if p==HERE/'seal.json' else p)
    with self.subTest(section=section,key=key),patched(self.base,'regular',redirect),self.assertRaises(RuntimeError):self.base.verify(True)
+
+ def test_cli_successor_reverses_exact_raw_before_unchanged_history(self):
+  binding=json.loads((HERE/'binding.json').read_bytes())
+  owner=self.base.module_at('cli_successor_owner',ROOT/'scripts/ci/check-android-generated-java.py')
+  actual=owner.source_inputs(owner.load_profile(ROOT))
+  before=a.cli_advisory_predecessor(self.base,binding,actual,owner)
+  transition=binding['cli_advisory_source_transition']
+  self.assertEqual(owner.source_digest(before),transition['sourceBefore'])
+  self.assertEqual([p for p in actual if actual[p]!=before[p]],[transition['path']])
+  raw=a.pair20_predecessor_raw(self.base,ROOT/transition['path'])
+  self.assertEqual({'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},transition['before'])
+  fixture=a.fixture_retention_predecessor_raw(self.base,ROOT/a.FIXTURE_RETENTION_TRANSITION['path'])
+  self.assertEqual({'bytes':len(fixture),'sha256':hashlib.sha256(fixture).hexdigest()},a.FIXTURE_RETENTION_TRANSITION['before'])
+  self.assertTrue(self.base.verify(True)['installed_job_verified'])
+
+ def test_cli_byteflip_refuses_before_resource_or_dispatch(self):
+  original=self.base.regular
+  path=ROOT/a.CLI_ADVISORY_SOURCE_TRANSITION['path']
+  fake=self.work/'cli-byteflip';fake.write_bytes(path.read_bytes()+b'\n')
+  self.refused_main(lambda p:original(fake if p==path else p),'Pinned source differs')
+
+ def test_cli_forged_omitted_and_historical_transitions_refuse_resealed(self):
+  import copy
+  original=self.base.regular
+  binding=json.loads((HERE/'binding.json').read_bytes())
+  variants=[]
+  for key in ('before','after'):
+   v=copy.deepcopy(binding);v['cli_advisory_source_transition'][key]['sha256']='0'*64;variants.append((key,v))
+  v=copy.deepcopy(binding);del v['cli_advisory_source_transition'];variants.append(('omitted',v))
+  v=copy.deepcopy(binding);v['pair20_transition']['sourceAfter']='0'*64;variants.append(('old Pair20 tamper',v))
+  v=copy.deepcopy(binding);v['fixture_retention_transition']['before']['sha256']='0'*64;variants.append(('fixture inverse tamper',v))
+  v=copy.deepcopy(binding);v['source']['count']+=1;variants.append(('future count',v))
+  v=copy.deepcopy(binding);v['cli_advisory_source_transition']['publicationAllowed']=0;variants.append(('numeric authority',v))
+  for label,value in variants:
+   raw=(json.dumps(value,indent=2)+'\n').encode();fake=self.work/'forged-binding';fake.write_bytes(raw)
+   seal=json.loads((HERE/'seal.json').read_bytes())
+   for row in seal['members']:
+    if row['path']=='binding.json':row.update(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
+   seal['tree_sha256']=self.base.tree(seal['members']);fake_seal=self.work/'forged-seal';fake_seal.write_text(json.dumps(seal))
+   def redirect(p):return original(fake if p==HERE/'binding.json' else fake_seal if p==HERE/'seal.json' else p)
+   with self.subTest(mutation=label):self.refused_main(redirect,'CLI advisory|Pair20 typed|Fixture retention typed|Bound source closure')
+

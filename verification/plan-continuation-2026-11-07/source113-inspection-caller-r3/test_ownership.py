@@ -190,6 +190,10 @@ class Independent(unittest.TestCase):
             return ''.join(out+source[cursor:])
         old=(HERE/'current-verify.yml').read_text()
         expected=(HERE/'verify.yml.candidate').read_text()
+        # The immutable transport patch predates the later exact job edits.
+        for change in reversed(json.loads((HERE/'job-changes.json').read_text())[1:]):
+            self.assertEqual(expected.count(change['after']), change['count'])
+            expected=expected.replace(change['after'], change['before'])
         self.assertEqual(apply(old,(HERE/'workflow.patch').read_text()),expected)
         patch=''.join(line for line in (HERE/'full.patch').read_text().splitlines(True)
                       if not line.startswith(('diff --git ', 'new file mode ', 'index ')))

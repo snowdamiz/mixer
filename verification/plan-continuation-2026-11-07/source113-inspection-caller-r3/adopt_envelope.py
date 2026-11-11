@@ -369,8 +369,34 @@ def fixture_retention_predecessor_raw(base, path):
     return old
 
 
-def pair20_predecessor_raw(base, path):
+CLI_ADVISORY_SOURCE_TRANSITION = json.loads('{"schema":1,"type":"EXACT_CLI_ADVISORY_MIGRATION_SOURCE_SUCCESSOR","sourceBefore":"595e737abd54e3aee17a74e05ba6f7f86a1196c9d73aed06c84ff3b197fe4c5b","sourceAfter":"d947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7","sourceCount":118,"path":"cli/Sources/MixerBuild/MigrationInspector.swift","before":{"bytes":4529,"sha256":"7d3dec247291de3bfb9396c36b51c4bd24c2ab4c405c785a2725f35143f62da3"},"after":{"bytes":13528,"sha256":"1a32073daa56905c6d6dcfa6853ed36863753160406650da4d6d5bc57008fe83"},"reverseEdits":[{"afterStartLine":41,"afterEndLine":49,"beforeText":"            for (index, line) in String(decoding: data, as: UTF8.self).components(separatedBy: .newlines).enumerated() {\\n                for (needle, category, message, remediation) in rules where line.contains(needle) {\\n                    findings.append(MigrationFinding(file: relative, line: index + 1, category: category, message: message, remediation: remediation))\\n                }\\n"},{"afterStartLine":52,"afterEndLine":220,"beforeText":""}],"authority":"advisory-only","technicalEligibility":"unverified","publicationAllowed":false,"qualification":false,"actualSixConsumers":false,"nativePass":false,"runtimePass":false,"gaPass":false,"historicalHoldsReleased":false}')
+
+
+def cli_advisory_predecessor(base, binding, actual, owner):
+    transition = CLI_ADVISORY_SOURCE_TRANSITION
+    base.need(same_json(binding.get('cli_advisory_source_transition'), transition), 'CLI advisory typed transition differs')
+    base.need(len(actual) == transition['sourceCount'] and owner.source_digest(actual) == transition['sourceAfter'], 'CLI advisory current source differs')
+    base.need(same_json(actual.get(transition['path']), transition['after']), 'CLI advisory owning row differs')
+    predecessor = dict(actual)
+    predecessor[transition['path']] = transition['before']
+    base.need(owner.source_digest(predecessor) == transition['sourceBefore'], 'CLI advisory predecessor source differs')
+    return predecessor
+
+def cli_advisory_predecessor_raw(base, path):
     raw = fixture_retention_predecessor_raw(base, path)
+    transition = CLI_ADVISORY_SOURCE_TRANSITION
+    if path.relative_to(ROOT).as_posix() != transition['path']:
+        return raw
+    base.need(same_json({'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}, transition['after']), 'CLI advisory exact raw successor differs')
+    lines = raw.decode().splitlines(True)
+    for edit in reversed(transition['reverseEdits']):
+        lines[edit['afterStartLine']:edit['afterEndLine']] = [edit['beforeText']]
+    old = ''.join(lines).encode()
+    base.need(same_json({'bytes': len(old), 'sha256': hashlib.sha256(old).hexdigest()}, transition['before']), 'CLI advisory exact raw predecessor differs')
+    return old
+
+def pair20_predecessor_raw(base, path):
+    raw = cli_advisory_predecessor_raw(base, path)
     relative = path.relative_to(ROOT).as_posix()
     row = next((r for r in PAIR20_TRANSITION['rawPredecessors'] if r['path'] == relative), None)
     if row is None:
@@ -468,6 +494,9 @@ def pair19_predecessor_raw(base, path):
     return old
 
 
+CLI_ADVISORY_CALLER_TRANSITION = {'schema': 1, 'type': 'EXACT_CLI_ADVISORY_BOOTSTRAP_CALLER_SUCCESSOR', 'sourceCount': 118, 'sourceBefore': '595e737abd54e3aee17a74e05ba6f7f86a1196c9d73aed06c84ff3b197fe4c5b', 'sourceAfter': 'd947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7', 'path': 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py', 'before': {'bytes': 18682, 'sha256': '8472d92f401f7516f1b76d30c042052bb1cdceb5149e654b59bcab02643485f5'}, 'after': {'bytes': 18682, 'sha256': 'fe8d434f9fe5f35520838a7498b2356f5fa7cc4ad4641405ceb30191b4e22146'}, 'callerBefore': {'bytes': 2532, 'sha256': '571f11fafb077acc0921c24f47dd1e45844441251dad3ad5a8395053a8dd1ce8'}, 'callerAfter': {'bytes': 2532, 'sha256': '92ab439e7e5f52c15ff9720f8dab0a336dfa72e7199e6b125bcae69d02ffdd9d'}, 'scope': 'Exact source-pin and caller binding only; no compiler, runtime, workflow or qualification transfer', 'qualification': False}
+
+
 def bind():
     base = load()
     historical_verify = base.verify
@@ -497,6 +526,7 @@ def bind():
         base.need(same_json(binding.get('fixture_retention_transition'), FIXTURE_RETENTION_TRANSITION), 'Fixture retention typed transition differs')
         digest = owner.source_digest(actual)
         current_actual = actual
+        actual = cli_advisory_predecessor(base, binding, actual, owner)
         actual = pair20_predecessor(base, binding, actual, owner)
         actual = guest_ui_v2_predecessor(base, binding, actual, owner)
         actual = android_inspection_phase_predecessor(base, binding, actual, owner)
@@ -580,12 +610,22 @@ def bind():
         base.need(same_json(binding.get('fixture_dispatch'), {'host_rust_fixture_after_exact_checks':True, 'scope':'host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch', 'combinedAccepted':False, 'runtime':False, 'GA':False, 'exactWindow':False}), 'Host-only fixture dispatch contract differs')
         base.need(same_json(binding.get('adoption'), {'allowed':False, 'status':'CANDIDATE_PENDING_COMBINED_REVIEW', 'canonicalAdopted':False})
                   and same_json(binding.get('qualification'), {'compiler':False, 'native':False, 'CLI87':False, 'TestFlight':False, 'release':False, 'GA':False}), 'Candidate authority must remain pending')
-        base.need(len(current_actual) == 118 and digest == '595e737abd54e3aee17a74e05ba6f7f86a1196c9d73aed06c84ff3b197fe4c5b' and binding['source']['count'] == 118 and binding['source']['sha256'] == digest, 'Bound source closure differs')
+        base.need(same_json(binding['source'], {'count': CLI_ADVISORY_SOURCE_TRANSITION['sourceCount'], 'sha256': digest, 'algorithm': 'sha256 of sorted path + NUL + file sha256 + newline; scripts/ci/check-android-generated-java.py:source_inputs', 'manifest': 'source-inputs.json'}) and len(current_actual) == CLI_ADVISORY_SOURCE_TRANSITION['sourceCount'] and digest == CLI_ADVISORY_SOURCE_TRANSITION['sourceAfter'], 'Bound source closure differs')
         base.need(binding['profile'] == {'id':profile['id'], 'sdk_count':len(profile['sdk_files']), 'sdk_sha256':profile['sdk_compatibility_sha256'], 'adapter_count':len(profile['adapter_files']), 'adapter_sha256':profile['adapter_compatibility_sha256'], 'java_sources':len(owner.java_roster(profile))}, 'Accepted profile binding differs')
         caller_raw = base.regular(HERE / 'caller-inputs.json').read_bytes()
-        base.need(len(caller_raw) == 2532 and hashlib.sha256(caller_raw).hexdigest() == '571f11fafb077acc0921c24f47dd1e45844441251dad3ad5a8395053a8dd1ce8', 'Accepted caller authority bytes differ')
+        caller_transition = CLI_ADVISORY_CALLER_TRANSITION
+        base.need(same_json(binding.get('cli_advisory_caller_transition'), caller_transition), 'CLI advisory caller transition differs')
+        base.need(caller_transition['sourceBefore'] == CLI_ADVISORY_SOURCE_TRANSITION['sourceBefore'] and caller_transition['sourceAfter'] == digest and caller_transition['sourceCount'] == len(current_actual), 'CLI advisory caller source differs')
+        base.need(same_json({'bytes':len(caller_raw), 'sha256':hashlib.sha256(caller_raw).hexdigest()}, caller_transition['callerAfter']), 'Accepted caller authority bytes differ')
         callers = json.loads(caller_raw, object_pairs_hook=base.unique_object)
         base.check_rows(ROOT, callers)
+        bootstrap_raw = base.regular(ROOT / caller_transition['path']).read_bytes()
+        base.need(same_json({'bytes':len(bootstrap_raw), 'sha256':hashlib.sha256(bootstrap_raw).hexdigest()}, caller_transition['after']), 'CLI advisory bootstrap differs')
+        old_pin = ('SOURCE_INPUT_SHA256 = ' + repr(caller_transition['sourceBefore'])).encode()
+        new_pin = ('SOURCE_INPUT_SHA256 = ' + repr(caller_transition['sourceAfter'])).encode()
+        base.need(bootstrap_raw.count(new_pin) == 1, 'CLI advisory bootstrap pin differs')
+        predecessor_bootstrap = bootstrap_raw.replace(new_pin, old_pin, 1)
+        base.need(same_json({'bytes':len(predecessor_bootstrap), 'sha256':hashlib.sha256(predecessor_bootstrap).hexdigest()}, caller_transition['before']), 'CLI advisory bootstrap predecessor differs')
         expected = base.regular(HERE / 'current-swift-job.yml').read_text()
         base.need(expected == base.regular(prior / 'swift-job.yml').read_text(), 'Historical predecessor job differs')
         accepted = base.regular(HERE / 'accepted-swift-job.yml').read_text()

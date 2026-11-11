@@ -4,7 +4,7 @@
   "base_revision": "953dd09bfcc9b1d9c404221dce3c18bd75e67051",
   "source": {
     "count": 118,
-    "sha256": "595e737abd54e3aee17a74e05ba6f7f86a1196c9d73aed06c84ff3b197fe4c5b",
+    "sha256": "d947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7",
     "algorithm": "sha256 of sorted path + NUL + file sha256 + newline; scripts/ci/check-android-generated-java.py:source_inputs",
     "manifest": "source-inputs.json"
   },
@@ -6771,5 +6771,68 @@
     "runtimePass": false,
     "gaPass": false,
     "historicalHoldsReleased": false
+  },
+  "cli_advisory_source_transition": {
+    "schema": 1,
+    "type": "EXACT_CLI_ADVISORY_MIGRATION_SOURCE_SUCCESSOR",
+    "sourceBefore": "595e737abd54e3aee17a74e05ba6f7f86a1196c9d73aed06c84ff3b197fe4c5b",
+    "sourceAfter": "d947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7",
+    "sourceCount": 118,
+    "path": "cli/Sources/MixerBuild/MigrationInspector.swift",
+    "before": {
+      "bytes": 4529,
+      "sha256": "7d3dec247291de3bfb9396c36b51c4bd24c2ab4c405c785a2725f35143f62da3"
+    },
+    "after": {
+      "bytes": 13528,
+      "sha256": "1a32073daa56905c6d6dcfa6853ed36863753160406650da4d6d5bc57008fe83"
+    },
+    "reverseEdits": [
+      {
+        "afterStartLine": 41,
+        "afterEndLine": 49,
+        "beforeText": "            for (index, line) in String(decoding: data, as: UTF8.self).components(separatedBy: .newlines).enumerated() {\n                for (needle, category, message, remediation) in rules where line.contains(needle) {\n                    findings.append(MigrationFinding(file: relative, line: index + 1, category: category, message: message, remediation: remediation))\n                }\n"
+      },
+      {
+        "afterStartLine": 52,
+        "afterEndLine": 220,
+        "beforeText": ""
+      }
+    ],
+    "authority": "advisory-only",
+    "technicalEligibility": "unverified",
+    "publicationAllowed": false,
+    "qualification": false,
+    "actualSixConsumers": false,
+    "nativePass": false,
+    "runtimePass": false,
+    "gaPass": false,
+    "historicalHoldsReleased": false
+  },
+  "cli_advisory_caller_transition": {
+    "schema": 1,
+    "type": "EXACT_CLI_ADVISORY_BOOTSTRAP_CALLER_SUCCESSOR",
+    "sourceCount": 118,
+    "sourceBefore": "595e737abd54e3aee17a74e05ba6f7f86a1196c9d73aed06c84ff3b197fe4c5b",
+    "sourceAfter": "d947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7",
+    "path": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py",
+    "before": {
+      "bytes": 18682,
+      "sha256": "8472d92f401f7516f1b76d30c042052bb1cdceb5149e654b59bcab02643485f5"
+    },
+    "after": {
+      "bytes": 18682,
+      "sha256": "fe8d434f9fe5f35520838a7498b2356f5fa7cc4ad4641405ceb30191b4e22146"
+    },
+    "callerBefore": {
+      "bytes": 2532,
+      "sha256": "571f11fafb077acc0921c24f47dd1e45844441251dad3ad5a8395053a8dd1ce8"
+    },
+    "callerAfter": {
+      "bytes": 2532,
+      "sha256": "92ab439e7e5f52c15ff9720f8dab0a336dfa72e7199e6b125bcae69d02ffdd9d"
+    },
+    "scope": "Exact source-pin and caller binding only; no compiler, runtime, workflow or qualification transfer",
+    "qualification": false
   }
 }
