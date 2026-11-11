@@ -390,3 +390,55 @@ members of the copied R876 cache-artifact.zip. The normal run stopped after 29
 tests. Later optimized/contract logs in the archive are not current execution
 evidence. Child return, dispatched kill and GitHub cleanup do not prove absence;
 all earlier holds remain active.
+
+The R900 Android photo-selection preflight recorded UNKNOWN custody for
+PID/PGID 36872 after EPERM in its exact group-absence observation during
+`/usr/bin/xcodebuild -version`. Preserve that exact group, all command outputs
+including `logs/xcode-version.stdout` and `.stderr`, and runtime scratch under
+`verification/local/fieldlog-android-photo-select-r900` without probing, signals,
+waits, retries, cleanup or runtime inspection. EOFs do not prove direct reap or
+group absence. Only its top-level HOLD.json and separately delivered compact
+`verification/receipts/fieldlog-android-photo-select-r900.json` are custody references.
+Root authorized one source-only extraction of six exact prelaunch app members;
+the resulting independent static packet is
+`verification/local/fieldlog-photo-static-packet-r906`. Its afterimages and ZIP
+may guide fresh separately selected source work, but remain uncompiled and
+unaccepted. This exception authorizes no further R900 runtime/source traversal
+or hold release. All earlier holds remain active.
+
+The R902 direct-cache focused matrix left UNKNOWN consuming-ledger accounting
+for its second owner after inherited thread-local diagnostic counters panicked
+during construction. All four managed OS groups, including PID/PGID52722, were
+observed absent; that does not prove engine cleanup. Preserve `source`,
+`target-private`, `logs`, `tmp` and `artifacts` under
+`verification/local/direct-cache-compile-closure-r902` without inspection, retry,
+process operations or cleanup. Only delivered top-level receipts, REPORT.md,
+HOLD.json, source-proof, manifests, patches, application-map and separately copied
+`afterimages` are permitted static references. No runtime/ledger retry is allowed.
+Fresh source work must reconstruct from the unheld R860 baseline plus those
+explicit immutable afterimages in a new namespace. It releases no hold.
+
+The R922 reserved-linear backing experiment left UNKNOWN consuming-ledger
+accounting for its underfunded owner (PID/PGID64006). OS groups63540,64005,64006
+were directly reaped and observed absent; that does not establish engine cleanup.
+Preserve the ENTIRE `verification/local/reserved-linear-backing-r922` namespace,
+including source, logs, target, tmp, artifacts and HOLD.json, without further
+reads, inspection, probing, retries or cleanup. ONLY the separate compact
+`verification/receipts/reserved-linear-backing-r922.json` is a permitted reference.
+No source after-hashes, patch or application map were captured before the hold;
+do not read held source to produce them. The success owner consumed fourteen
+zero currents/tickets0, but that releases neither the failed owner nor any hold.
+The original guest was unrun; its non-test artifact qualification was not
+established. No adoption or review is unlocked.
+
+The root R928 Android photo campaign recorded UNKNOWN cleanup for emulator
+PID/PGID 35214 (AVD mixer-photo-r928-gwbf3qqe, serial emulator-5586). Preserve
+the entire `verification/local/fieldlog-photo-native-r928` command/runtime chain
+and `/Users/andreyyurlov/.t3/userdata/mixer-photo-api36-r928-gwbf3qqe`, including
+the owned device, without further inspection, probing, signals, waits, retries
+or cleanup. Only the separate compact
+`verification/receipts/fieldlog-photo-native-r928.json` is a permitted reference.
+The recorded reason is emulator group remains; direct return or elapsed time
+does not establish absence. Its primary AssertionError has no diagnostic detail
+in the compact receipt. Native photo acceptance remains pending. This hold
+releases no earlier hold and does not block independent source work.

@@ -1,87 +1,61 @@
 # Execution index
 
-The reviewed collector checkout correction includes current-source metadata in
-both consuming jobs: services and identity-network. The family checkout pattern
-also includes future metadata directories; it does not select or replace the
-strictly pinned v6 authority. Fresh root normal validation passes 178 collector,
-15 binding and nine source controls; matching optimized evidence also passes.
-The three-file correction is applied for coherent delivery; fresh CI is pending.
-[Review](verification/receipts/collector-consumer-review-r888.json).
+Main `1633d0e7` contains the reviewed collector checkout correction and passes
+all twelve CI checks. Both collector consumers include the current-source metadata
+family while admission remains pinned to v6. The required Swift aggregate still
+requires host and runner-control success. Actual host logs record 216 SDK tests
+and 114 CLI functions. Earlier EPERM and custody failures remain preserved; the
+new passes establish no OS cause or hold release.
+[Delivery](verification/receipts/collector-consumer-delivery-r892.json) and
+[CI](verification/receipts/main1633-ci-r908.json).
 
-The `00d584fd` campaign completed with passing Swift host, VM, native capability,
-Android owner, generated Java, Phoenix, identity and retention checks. Its services
-job failed at the missing-v6 import fixed above. Runner controls and cache controls
-have separate EPERM custody failures, and the required `swift` aggregate correctly
-failed. Those exact resources remain held; their OS cause is unproven. The actual
-host log confirms 216 SDK tests and 114 CLI tests passed independently. Predecessor
-`1174e435` passed all ten checks. [Current results](verification/receipts/main00d-ci-r888.json)
-and [preserved failures](verification/receipts/main00d-ci-first-failures-r876.json).
+CLI source118 `d9473684…`, Pair20 SDK24/adapter27/Java21 and backend v6's 214
+sources remain exact. The coordinator lifetime suite passes 793 tests with two
+existing Linux skips; production12 and the private opt-in contract are unchanged.
+Intent persistence does not establish execution, termination, capacity or provenance.
+[Coordinator](verification/receipts/coordinator-lifetime-adoption-r864.json).
 
-The CLI import inventory and its exact caller successor bind source118
-`d9473684…`, preserving Pair20 SDK24/adapter27/Java21. All 114 CLI functions and
-259 parameter cases pass with the producer-only environment variable absent.
-The CI split preserves every original test-bearing command and all runner limits;
-it does not establish the OS permission cause or release the failed commands.
-[CLI correction](verification/receipts/import-temp-root-adoption-r804.json) and
-[CI review](verification/receipts/swift-ci-review-r834.json).
+FieldLog date editing remains accepted for development: 82 host tests, 49 Android
+build commands, nine independent cases, and actual API36 Save Draft, fresh-process
+restore and Commit passed. Exactly one entrySaved effect was observed, and the
+owned date-test device was retired with the external baseline unchanged.
+[Acceptance](verification/receipts/fieldlog-entry-date-acceptance-r830.json).
 
-FieldLog entry-date editing is accepted as a development slice: 82 host tests,
-49 Android build commands and nine independent review cases pass. Actual API36
-input preserves the explicit-offset timestamp through Save Draft, a fresh-process
-restore, Commit and a third-process repository read. Exactly one entrySaved
-effect exists. The owned emulator was retired with positive cleanup and an
-unchanged external device baseline. Earlier invalid-input/navigation evidence
-remains separately scoped; the final saved-list screenshot clips part of its row.
-The source ZIP and APK remain local, with shared business code, SDK inputs,
-bridge and shipping locks unchanged. [Acceptance](verification/receipts/fieldlog-entry-date-acceptance-r830.json)
-and [native evidence](verification/receipts/fieldlog-entry-date-native-r826.json).
+The separate Android photo candidate now passes 90 host tests, retaining all 82
+originals. Independent review passed 19 Java control groups and two Swift close/IO
+tests. The exact reviewed app passed all 49 production Android build commands.
+The separate document-provider fixture passed compilation and 29 pure controls.
+An uncooperative worker can outlive its bounded join; late-result fencing passed,
+but universal worker drainage is not established. The root API36 campaign stopped
+with UNKNOWN emulator cleanup for group35214. Its device/runtime chain is held,
+and native SAF, photo draft/reopen/Commit acceptance remains pending.
+[Host](verification/receipts/fieldlog-photo-completion-r910.json),
+[review](verification/receipts/fieldlog-photo-review-r920.json),
+[build](verification/receipts/fieldlog-photo-android-build-r924.json), and
+[native stop](verification/receipts/fieldlog-photo-native-r928.json).
 
-The reviewed coordinator lifetime successor is delivered on main `00d584fd`.
-Current v6 admission binds 214 backend sources; only the coordinator test fixture
-changes within that roster. The strict runner passes 793 tests with two existing
-Linux-only skips, and both collector modes pass 173 controls. The real source CLI
-and the identity job's sparse import are exercised. The latter regression
-reproduces the reviewed missing-input failure before passing with the exact fix.
-All twelve production migrations, product code and private opt-in behavior remain
-unchanged. The earlier coordinator delivery `cf1ca9a3` passed all ten CI jobs;
-v6 identity, Phoenix and retention checks pass; services needs the reviewed checkout correction, while independent runner/cache custody failures remain held. Intent persistence does not establish worker
-execution, termination, capacity or provenance.
-[Adoption](verification/receipts/coordinator-lifetime-adoption-r864.json),
-[strict suite](verification/receipts/coordinator-lifetime-current-source-r848.json),
-and [sparse correction](verification/receipts/coordinator-sparse-closure-r868.json).
+Private VM changes remain unselected. The single-owner direct-index guest
+validated all 84,145 bodies and matched native documents through Reopen. LongNote
+refused ExecutionWork at 1,024,505,261 attempted against 1,000,000,000. Commit and
+full internal-model parity remain unrun. Consuming cleanup reached fourteen zero
+currents and zero tickets. The exact opcode is memory.grow; its paid work includes
+copying the existing memory prefix. [Guest](verification/receipts/direct-cache-actual-single-owner-r916.json)
+and [opcode evidence](verification/receipts/execution-growth-premise-r918.json).
 
-Public SDK `8efc1a9e` passed all ten CI jobs, the 189-binding/1,323-case/15-helper
-callback matrix, six Java/D8 consumers, twelve refusal cases and all 216 original
-SDK host tests. Separate FieldLog shipping inputs pass the Android build, unsigned
-arm64/x86_64 iOS Simulator build and 77 host tests with resolver-produced locks.
-API36 OS-IME entry and three-task lifecycle tests pass with exact readback and
-owned cleanup. Immutable packages, physical phones and final acceptance remain
-pending. [SDK](verification/receipts/current-sdk-compatible-r698.json),
-[shipping](verification/receipts/fieldlog-shipping-host-r670.json),
-[Entries](verification/receipts/fieldlog-public-native-r654.json), and
-[tasks](verification/receipts/fieldlog-public-tasks-r690.json).
+The independent reserved-backing experiment passed one growth control, then its
+underfunded control exited without a consuming report. That entire namespace is
+held despite observed OS-group absence. No source packet or adoption was unlocked.
+A fresh independent implementation from the unheld R916 baseline is running with
+unchanged limits and one owner per control process. No held R922 source is reused.
+[Preserved result](verification/receipts/reserved-linear-backing-r922.json).
 
-Private VM work remains unselected. R874 reconciles all 53,296,249 observed
-lookup credits with zero uncovered. Repeated chain checks and visited-set
-initialization are substantial costs; the tested small lookup change still refuses
-LongNote at the unchanged 64M ceiling, with Commit unrun. Documents through Reopen
-match native bytes, and consuming cleanup reaches fourteen zero currents and zero
-tickets. Two isolated designs compare a qualified owned index with a direct
-function-to-slot index. The first design is complete; synthesis awaits the second. No encoder, index, runtime policy or increased limit is
-adopted. [Measured evidence](verification/receipts/cache-lookup-attribution-r874.json).
-
-R880 established no public libproc observer contract and launched no controls.
-The public ps documentation attempt also stopped before controls. Root selected
-a fresh bounded executable characterization on owned groups; no observation from
-it can release a held chain or change production custody by itself.
-[Blocked contract](verification/receipts/darwin-owned-group-observer-r880.json).
-
-The private browser read boundary remains accepted in scope; its default listener
-is unmounted and its production identity provider unconfigured. The separate
-login-HTTP candidate remains unaccepted. Apple Accessibility trust remains false;
-no new iOS frontend is booted. The full W01–W18, D0–D8, API28, immutable-package
-and physical-phone requirements remain. All 38 GA gates are still unverified.
-No package, milestone or gate status changes.
+The private browser read boundary remains accepted in scope; the default listener
+is unmounted and the production identity provider unconfigured. A separate bounded
+review is testing the login-HTTP candidate's final activation COMMIT and cookie
+publication. It has no production selection. Fresh Apple Accessibility trust
+remains false (R896), and no new iOS frontend is booted. Physical phones, immutable
+packages, full API28 acceptance and all 38 GA gates remain pending. No package,
+milestone or gate status changes.
 
 ## Development execution update: November 9, 2026
 
