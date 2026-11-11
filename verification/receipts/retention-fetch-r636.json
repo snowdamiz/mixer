@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "campaign": "retention-fetch-r636",
+  "status": "INDEPENDENT_CHECK_PASS_EE2BD368",
+  "requested_source_revision": "6474d136aad160461efd3e527ef37e9dc86c2d84",
+  "source_revision_scope": "User supplied revision; actual six source files copied and SHA-256 recorded without invoking root Git.",
+  "source_manifest": "verification/local/retention-fetch-r636/source-manifest.json",
+  "ci": {
+    "run_id": 42943471854,
+    "job_id": 130270552990,
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/42943471854/job/130270552990",
+    "log_source": "GitHub plugin fetch_workflow_job_logs",
+    "git_version": "2.56.0",
+    "first_failure": "2026-11-11T02:04:52.0319522Z fatal: bad revision '00007900289bc0dd80b7e345d931985260a1642d'",
+    "followup": "error: https://github.com/snowdamiz/mixer did not send all necessary objects",
+    "step": "Check staged verification paths and blob budgets",
+    "tests_ran": false,
+    "excerpt": "verification/local/retention-fetch-r636/ci-first-failure.log"
+  },
+  "finding": {
+    "proven": "A fresh depth-1 blob:none sparse fixture with 32 distinct one-byte verification blobs reproduces the hosted bad-revision/did-not-send-all-necessary-objects failure. Setting fetch.negotiationAlgorithm=noop on the exact-object fetch makes the regression pass.",
+    "interpretation": "The explicit promised-blob fetch was using ordinary commit negotiation. Request exact missing objects without commit negotiation, as Git's own promisor fetch does.",
+    "limits": "No packet-level server diagnosis or claim that the original hosted OID was absent on GitHub. This campaign did not fetch real verification payloads.",
+    "official_sources": [
+      "https://raw.githubusercontent.com/git/git/v2.56.0/promisor-remote.c",
+      "https://git-scm.com/docs/git-config/2.56.0#Documentation/git-config.txt-fetchnegotiationAlgorithm"
+    ]
+  },
+  "fix": {
+    "patch": "verification/local/retention-fetch-r636/fix.patch",
+    "afterimages": "verification/local/retention-fetch-r636/afterimages/",
+    "manifest": "verification/local/retention-fetch-r636/afterimage-manifest.json",
+    "production_changes": [
+      "scripts/check-verification-artifacts.py: add per-command -c fetch.negotiationAlgorithm=noop to exact-OID fetch",
+      "scripts/restore-verification-artifacts.py: same fix for identical fetch pattern"
+    ],
+    "regressions": [
+      "test_shallow_partial_clone_fetches_multiple_missing_blobs",
+      "test_partial_clone_restores_multiple_missing_archive_blobs"
+    ],
+    "canonical_changes_applied": false,
+    "historical_candidate_status": "Superseded by root-delivered exact two-file fix ee2bd3680c7710072b9d87b575c1682ac61abc87; no competing implementation continued."
+  },
+  "attempts": [
+    {
+      "number": 1,
+      "kind": "baseline regression",
+      "command": "python3 -B -m unittest discover -s scripts/ci/tests -p test_verification_artifacts.py -k shallow -v",
+      "cwd": "verification/local/retention-fetch-r636/candidate",
+      "executed_source_snapshot": "verification/local/retention-fetch-r636/baseline-regression/",
+      "exit_code": 1,
+      "result": "Expected regression failure: fatal bad revision 127620c78a33b65b9b1b3f40843e7236e50e8c6c; did not send all necessary objects",
+      "stdout": "verification/local/retention-fetch-r636/attempt-1.stdout",
+      "stderr": "verification/local/retention-fetch-r636/attempt-1.stderr",
+      "launch": "verification/local/retention-fetch-r636/attempt-1-launch.json",
+      "custody_receipt": "verification/local/retention-fetch-r636/attempt-1-result.json",
+      "timeout_seconds": 30,
+      "pid": 19612,
+      "pgid": 19612,
+      "custody": "GONE; os.killpg(pgid, 0) raised ProcessLookupError after worker collection"
+    },
+    {
+      "number": 2,
+      "kind": "fixed full focused suites",
+      "command": "python3 -B -m unittest discover -s scripts/ci/tests -p 'test_*verification_artifacts.py' -v",
+      "cwd": "verification/local/retention-fetch-r636/candidate",
+      "exit_code": 0,
+      "tests": 20,
+      "reported_elapsed_seconds": 15.224,
+      "result": "All 18 existing tests plus 2 new regressions passed",
+      "stdout": "verification/local/retention-fetch-r636/attempt-2.stdout",
+      "stderr": "verification/local/retention-fetch-r636/attempt-2.stderr",
+      "launch": "verification/local/retention-fetch-r636/attempt-2-launch.json",
+      "custody_receipt": "verification/local/retention-fetch-r636/attempt-2-result.json",
+      "timeout_seconds": 60,
+      "pid": 22787,
+      "pgid": 22787,
+      "custody": "GONE; os.killpg(pgid, 0) raised ProcessLookupError after worker collection"
+    }
+  ],
+  "harness_corrections": 0,
+  "tool_versions": "verification/local/retention-fetch-r636/tool-versions.json",
+  "preserved": {
+    "production_policy_bytes": "unchanged; SHA-256 in source manifest",
+    "total_budget_bytes": 1073741824,
+    "index_and_sparse_coverage": "production staged entry enumeration unchanged; new sparse regression verifies byte-identical index, unchanged refs, no FETCH_HEAD and no verification materialization",
+    "exact_exceptions": "policy and exact OID/size validation unchanged; existing generated/large exception tests passed",
+    "fail_closed_missing_blobs": "existing post-fetch read_blob_sizes and missing-object rejection unchanged",
+    "selective_fetch": "new regression proves unrelated blob absent from local object inventory after fetch; existing restore single-blob selection test passed",
+    "holds": "No held namespace or process inspected; no root Git; no remote mutation; no native/signing/customer work; no children"
+  },
+  "cleanup": {
+    "owned_temporary_fixture_parent": "verification/local/retention-fetch-r636/tmp",
+    "remaining_entries": 0,
+    "scope": "Only newly created fixture databases and clones; source snapshots, command outputs and afterimages retained",
+    "new_holds": []
+  },
+  "proposed_full_guard_command": "python3 scripts/check-verification-artifacts.py --fetch-missing-from origin",
+  "proposed_focused_test_command": "python3 -B -m unittest discover -s scripts/ci/tests -p 'test_*verification_artifacts.py' -v",
+  "full_guard_scope": "Run after applying four afterimages in a fresh independent delivery/CI checkout. Do not run against held root Git. This child did not run the full repository guard or rerun hosted CI.",
+  "scope": "All writes confined to verification/local/retention-fetch-r636 and this compact receipt. Two meaningful attempts, no harness correction.",
+  "current_recommendation": "Retain root-delivered ee2bd3680c7710072b9d87b575c1682ac61abc87. Earlier alternative afterimages/patch are historical only; do not apply them over the delivered fix.",
+  "independent_check": {
+    "status": "PASS",
+    "commit": "ee2bd3680c7710072b9d87b575c1682ac61abc87",
+    "parent": "6474d136aad160461efd3e527ef37e9dc86c2d84",
+    "tree": "8e40184fb07f4425acd1ffbb8c807718a084b77f",
+    "revision_proof": "GitHub plugin fetched exact commit diff and Git commit metadata; parent confirmed. Both exact production files fetched at pinned commit and local Git blob hashes matched plugin blob OIDs.",
+    "diff_scope": "Only two fetch invocations add per-command fetch.negotiationAlgorithm=noop; guard also gains two explanatory comment lines. No policy, validation, staged index enumeration, missing-object post-fetch check, budget or exact-exception code changed.",
+    "diff": "verification/local/retention-fetch-r636/independent-ee2bd368/commit-diff.json",
+    "source_manifest": "verification/local/retention-fetch-r636/independent-ee2bd368/source-manifest.json",
+    "command": "python3 -B -m unittest discover -s scripts/ci/tests -p 'test_*verification_artifacts.py' -v",
+    "cwd": "verification/local/retention-fetch-r636/independent-ee2bd368/source",
+    "git_version": "2.56.0",
+    "result": {
+      "exit_code": 0,
+      "pid": 45053,
+      "pgid": 45053,
+      "custody": "GONE",
+      "owned_fixture_entries_remaining": 0,
+      "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+    },
+    "tests": 20,
+    "reported_elapsed_seconds": 19.154,
+    "launch": "verification/local/retention-fetch-r636/independent-ee2bd368/launch.json",
+    "stdout": "verification/local/retention-fetch-r636/independent-ee2bd368/stdout",
+    "stderr": "verification/local/retention-fetch-r636/independent-ee2bd368/stderr",
+    "result_receipt": "verification/local/retention-fetch-r636/independent-ee2bd368/result.json",
+    "tested_behavior": [
+      "Shallow sparse partial clone with 32 distinct missing blobs fetches successfully; no-fetch request rejects missing objects.",
+      "Guard preserves index bytes and refs, does not create FETCH_HEAD or materialize verification, and leaves unrelated blob unfetched.",
+      "Archive multi-blob restoration and single-blob selection pass.",
+      "Existing staged policy/fixture, duplicate-path total accounting, total count/size, per-file size, generated-output, exact canonical exception, index-mode and restore safety controls pass."
+    ],
+    "findings": [],
+    "limitations": [
+      "Only isolated synthetic Git fixture regressions against the exact pinned two production files; no real retained-index full-guard run in this independent check.",
+      "Hosted full-guard/test success asserted in commit message was not independently verified here.",
+      "R636 selected regression tests are separate diagnostic inputs, not changes included in the delivered two-file commit."
+    ],
+    "canonical_writes": false,
+    "root_git_invoked": false,
+    "remote_mutations": false,
+    "children": false,
+    "new_holds": [],
+    "cleanup": "Owned test group 45053 observed absent using os.killpg(pgid, 0) -> ProcessLookupError after collection; owned fixture directory empty. All historical holds preserved."
+  }
+}

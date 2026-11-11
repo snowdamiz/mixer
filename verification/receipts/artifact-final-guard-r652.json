@@ -1,0 +1,414 @@
+{
+  "campaign": "R652 bounded artifact final guard premise",
+  "created_utc": "2026-11-11T03:01:59.065816+00:00",
+  "outcome": "WHOLE_SUITE_AND_PRIVATE_CONTROLS_GREEN",
+  "scope": "private test-only precondition correction; macOS loopback restricted PostgreSQL17 runtime fixture; no canonical Git, remote, native, provider, selector or publication changes",
+  "root_reported_revision": "8efc201 (task-provided, not independently queried)",
+  "source": {
+    "archive": {
+      "path": "/Users/andreyyurlov/.t3/userdata/mixer-browser-r634-q2xpozrw/browser-r634-private-source-increment.tar.gz",
+      "sha256": "980cfc2457893f7e9d52f3e3d65f5028a830283e13abdd73d00685e6f974925d"
+    },
+    "frozen_members": 210,
+    "frozen_digest": "a61597cc2a7917b5dd8e1d7b0d9b0c86fae0a762151c8dce3656fc4d5d9a8ffb",
+    "only_changed_member": "hosted/test/mixer_hosted/authorization/artifact_read_test.exs",
+    "product_bytes_all_exact": true,
+    "baseline201_candidate210_artifact_read_identical": true,
+    "final_test_sha256": "9b188ab121266a64f08cbe8f4331b8387e9453c3f704c50aba095b4071b4429f",
+    "new_tree_digest": "1906bb1b70504f42326316653ba33d7fda99428f1d32dc1186b2cac19c7fb094",
+    "fresh_product_compile_files": 114,
+    "product_beams": 196,
+    "product_beams_unchanged_after_payloads": true
+  },
+  "premise": {
+    "hypothesis": "Integer-second now()+1 permits arbitrarily short initial slack. Expiry between policy admission and metadata SQL can prevent callback entry and return not_found.",
+    "status": "CONTROLLED_PATH_PROVEN; exact R644 historical first cause remains unobserved",
+    "original_delayed": {
+      "summary": [
+        "Result: 0/1 passed, 14 excluded",
+        "Failed: 1 test"
+      ],
+      "identity": [
+        {
+          "expiry": "1794365746",
+          "wall_ms": 1794365745468
+        }
+      ],
+      "clocks": [
+        {
+          "rows": [
+            [
+              "1794365745.693031",
+              "1794365745.693038",
+              "read_scope_runtime",
+              "read_scope_runtime",
+              "1794365746",
+              "metadata"
+            ]
+          ],
+          "wall_ms": 1794365745693,
+          "stage": "topology_catalog_return_before_metadata"
+        },
+        {
+          "rows": [
+            [
+              "1794365746.012504",
+              "1794365746.012511",
+              "read_scope_runtime",
+              "read_scope_runtime",
+              "1794365746",
+              "metadata"
+            ]
+          ],
+          "wall_ms": 1794365746014,
+          "stage": "after_controlled_natural_expiry_before_metadata"
+        }
+      ],
+      "metadata_rows": 0,
+      "callback_entries": 0,
+      "result": "not_found; original unauthenticated assertion intentionally fails; raw failure retained"
+    },
+    "corrected": {
+      "summary": [
+        "Result: 1 passed, 14 excluded"
+      ],
+      "clocks": [
+        {
+          "rows": [
+            [
+              "1794365776.979040",
+              "1794365776.979048",
+              "read_scope_runtime",
+              "read_scope_runtime",
+              "1794365778",
+              "metadata"
+            ]
+          ],
+          "wall_ms": 1794365776979,
+          "stage": "topology_catalog_return_before_metadata"
+        }
+      ],
+      "callback": [
+        {
+          "expiry": 1794365778,
+          "wall_ms": 1794365777041
+        }
+      ],
+      "metadata_rows": 1,
+      "result": "unauthenticated after actual callback natural expiry; inserted probe rolled back; family revocation and pooled cleanup pass"
+    },
+    "mechanism": "Actual Topology.catalog_hash final SQL telemetry occurs after metadata policy admission. Runtime SQL statement/clock timestamps and effective/session roles recorded before/after bounded F.expire; unchanged metadata helper filters expired token and returns zero rows. Unchanged ArtifactRead.resolve! maps that result to not_found.",
+    "candidate_specific_regression_established": false
+  },
+  "correction": {
+    "test_precondition": "expires_at F.now()+2 gives initial slack greater than 1000ms and at most 2000ms. Callback asserts entry before expiry; existing F.expire waits naturally until expiry+10ms. No retry.",
+    "patch": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/test-precondition.patch",
+      "sha256": "2dc45994ecbf9342e4871cadd46eb83da17a50fc51f7f79534eb6b7d10408622",
+      "bytes": 818
+    },
+    "assertions_preserved": [
+      "unauthenticated final expiry refusal",
+      "actual probe-write rollback",
+      "family revocation refuses cached result",
+      "on_exit pooled context and zero visible rows"
+    ],
+    "product_deadline_changed": false,
+    "looser_errors_or_skips": false
+  },
+  "whole_suite": {
+    "summary": [
+      "Result: 767 passed, 2 skipped"
+    ],
+    "exit": 0,
+    "seed": 574,
+    "skips": [
+      "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]",
+      "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]"
+    ],
+    "log": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/whole-suite.log",
+      "sha256": "16bda0f6c50e0fb858dda477cb5592afc637e6955d168b447ae80eb5f664db49",
+      "bytes": 205034
+    },
+    "callback_telemetry": [
+      "{\"expiry\":1794365913,\"wall_ms\":1794365911609}"
+    ]
+  },
+  "private_controls": {
+    "summary": [
+      "TLSFixture lifecycle: %{active: 0, requests: 1, accepted: 1, terminal_results: [%{outcome: :peer_closed, stage: :peer_close, unexpected_bytes: 0}], peer_closed: 1}",
+      "COUNTS {\"failed\":0,\"passed\":8,\"excluded\":0}"
+    ],
+    "exit": 0,
+    "passed": [
+      "test R612 independent authenticated DTO raw HTTP project isolation and secret refusal",
+      "test R612 independent preauth no mutation methods routes or caller metadata",
+      "test R604 raw HTTP preserves duplicate admission and genuine preauth metadata",
+      "test R604 actual unchanged console client reads genuine synthetic callback over loopback",
+      "test R604 JSON expiry exactly follows admitted token credential and session bounds",
+      "test R604 revoked and stale cookies deny HTTP and runtime misconfiguration never succeeds",
+      "test R604 expired publication remains withheld after admitted SQL success",
+      "test R604 SQL admitted HTTP metadata refuses stale key generation publication"
+    ],
+    "log": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/private-controls.log",
+      "sha256": "ea24a3700ad9583f567538c831e23c527da75b568420dfab2bc9a0bf11c6d846",
+      "bytes": 3678
+    }
+  },
+  "bounds": {
+    "product_compiles": 1,
+    "focused_payloads": 2,
+    "whole_ordinary_suites": 1,
+    "private_actual_callback_read_http_controls": 8,
+    "children": 0,
+    "payload_retries": 0,
+    "harness_corrections": 1,
+    "harness_correction": "Post-run telemetry extractor originally matched a rendered assertion string; restricted parsing to actual JSON event lines. No test payload or compile repeated.",
+    "wall_seconds_from_first_command": 407.720245
+  },
+  "cleanup": {
+    "owned_postgres_stopped": true,
+    "postmaster_pid_absent": true,
+    "all_recorded_groups_absent": true,
+    "historical_holds_accessed": false,
+    "command_groups_recorded": 52,
+    "private_tls_active_zero": true,
+    "whole_tls_pre_cleanup_active_counts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    "whole_tls_cleanup_evidence": "TLSFixture.terminate/2 records pre-cleanup counts, then closes listener and sockets and kills acceptor/handlers. Whole-suite owned BEAM process group was observed absent after completion. Pre-cleanup active=1 snapshots are not asserted to be active=0.",
+    "tls_fixture_source": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/candidate/hosted/test/support/identity_tls_fixture.ex",
+      "sha256": "d3b55796a8baac4f9ebd37cc9ee5e44bde01ca346ce2dd00a0a5dd884711ba55",
+      "bytes": 9533
+    },
+    "retained_owned_scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652"
+  },
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:3:3] [ds:3:3:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "selected_commands": [
+    {
+      "label": "compile",
+      "argv": [
+        "mix",
+        "compile",
+        "--force",
+        "--no-deps-check"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/candidate/hosted",
+      "pid": 82385,
+      "pgid": 82385,
+      "utc": "2026-11-11T02:55:11.895363+00:00",
+      "timeout_seconds": 100,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "fbcb3182def8e7aa0d81362bd1ecea24c9f8bbcd6c31e5e6b41bcd4ce8d87402"
+    },
+    {
+      "label": "owned-postgres",
+      "pid": 83146,
+      "pgid": 83146,
+      "port": 64525,
+      "exit": 0,
+      "group_absent": true
+    },
+    {
+      "label": "focused-original-delayed",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/guard_driver.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/candidate/hosted",
+      "pid": 83467,
+      "pgid": 83467,
+      "utc": "2026-11-11T02:55:34.492846+00:00",
+      "timeout_seconds": 45,
+      "exit": 2,
+      "group_absent": true,
+      "output_sha256": "4a08b0d8d501b3430ce2b0264073068ef7e12dab8311fe0bcef1528cf01ca02f"
+    },
+    {
+      "label": "focused-corrected",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/guard_driver.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/candidate/hosted",
+      "pid": 85302,
+      "pgid": 85302,
+      "utc": "2026-11-11T02:56:08.576683+00:00",
+      "timeout_seconds": 45,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "fdc74e3d75a5192e9cfa20315ee7192c7d7c2bd9700b75bdccb87a3cb3c9794c"
+    },
+    {
+      "label": "whole-suite",
+      "argv": [
+        "mix",
+        "test",
+        "--no-compile",
+        "--seed",
+        "574",
+        "--trace"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/candidate/hosted",
+      "pid": 86230,
+      "pgid": 86230,
+      "utc": "2026-11-11T02:56:21.559119+00:00",
+      "timeout_seconds": 270,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "16bda0f6c50e0fb858dda477cb5592afc637e6955d168b447ae80eb5f664db49"
+    },
+    {
+      "label": "private-controls",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/support.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/candidate/hosted",
+      "pid": 93377,
+      "pgid": 93377,
+      "utc": "2026-11-11T02:58:35.227197+00:00",
+      "timeout_seconds": 150,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "ea24a3700ad9583f567538c831e23c527da75b568420dfab2bc9a0bf11c6d846"
+    },
+    {
+      "label": "postgres-stop",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/pgdata",
+        "-m",
+        "fast",
+        "-w",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/candidate/hosted",
+      "pid": 93824,
+      "pgid": 93824,
+      "utc": "2026-11-11T02:58:46.979975+00:00",
+      "timeout_seconds": 25,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "c1523409ba1a5a6fa5d744982f42a44402a8cfb8b8b32bca92b4a39560042db9"
+    }
+  ],
+  "command_index": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/commands.json",
+    "sha256": "6dedd8a80fbb65ebf96b85ae5b1d699b744c46aa2803c0d9149eeec497afd405",
+    "bytes": 37012
+  },
+  "raw_evidence": [
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/prepare.py",
+      "sha256": "8567a0ff269eb891bbba86257b1d6e68660459e8b0614cd1ea3a7bfd51bf5007",
+      "bytes": 1527
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/make_run.py",
+      "sha256": "d45181687e958b2892514e4c7b10e38e3670ae8d089e1bfad700a47213b636f4",
+      "bytes": 2219
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/run.py",
+      "sha256": "724d5ad649296c21768cab56edeb3fafca9f9f2dd0d6729464f284928d8a254d",
+      "bytes": 6951
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/diagnostic.exs",
+      "sha256": "0dff36621574f2030006b7e8ebe6cbe0269b372de584790a1a1385a3ce4026a2",
+      "bytes": 1775
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/guard_driver.exs",
+      "sha256": "9144ed1796bb6c20224aa3189a0f372ba2d8ff36887392a6b355b9cffffc9dfa",
+      "bytes": 179
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/finish.py",
+      "sha256": "96c93f8aade2a144dbafa87691a20eb5179d4a85c9f6127ba2c9cd61a41d2909",
+      "bytes": 9101
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/original-test.txt",
+      "sha256": "2a7cf1a0d7a23d6fd345892c6da535ee1ceab4de5875572df8db720f208332a3",
+      "bytes": 664
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/decision.json",
+      "sha256": "f3382772c15d7428330407ae94bd6f360ec708220f7b682ee63a0b6437aed5d2",
+      "bytes": 338
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/telemetry-summary.json",
+      "sha256": "1783e98b4eece6474bc3b8e3cf804c65672ea24781a819ea5b25c6d62f63829d",
+      "bytes": 5229
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/compile.log",
+      "sha256": "fbcb3182def8e7aa0d81362bd1ecea24c9f8bbcd6c31e5e6b41bcd4ce8d87402",
+      "bytes": 429
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/focused-original-delayed.log",
+      "sha256": "4a08b0d8d501b3430ce2b0264073068ef7e12dab8311fe0bcef1528cf01ca02f",
+      "bytes": 5626
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/focused-corrected.log",
+      "sha256": "fdc74e3d75a5192e9cfa20315ee7192c7d7c2bd9700b75bdccb87a3cb3c9794c",
+      "bytes": 7017
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/cleanup.json",
+      "sha256": "e722913967fec5dfc5d7631fce4df847270b55040ac880d2617c244a9ce62291",
+      "bytes": 146
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/artifact-final-guard-r652/campaign/result.json",
+      "sha256": "03d1d05ebb3f31e4238b4966fdb1320d25b7a1f445a65cb56a66c45cf5863e88",
+      "bytes": 496
+    }
+  ],
+  "limitations": [
+    "Single whole-suite run at seed574; focused success alone was not accepted.",
+    "Two Linux-specific native network/startup controls skipped on macOS remain pending.",
+    "Controlled reproduction proves the timing mechanism, not the uninstrumented R644 event exact first cause.",
+    "No candidate selection, public package, ordinary public CI, device, deployment or GA acceptance. No new review requested.",
+    "All historical holds untouched. No Git staging, commits or remote operations."
+  ]
+}

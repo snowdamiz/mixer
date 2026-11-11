@@ -1,0 +1,257 @@
+{
+  "verdict": "REQUEST_CHANGES",
+  "scope": "FROZEN R638 private stored16 prototype only; note2 progress independently reproduced; no adoption",
+  "finding": {
+    "priority": "P2",
+    "title": "Private retention inventory changes default64 admission",
+    "source": "verification/local/entryeditor-v2-cachework-progress-r638/source/vm/src/experimental_swift_reactor/cache.rs",
+    "line": 488,
+    "detail": "Added OperationScalarInventory fields are tripled by unconditional compute_cache_operation_bytes and admitted by operation_preflight for all Swift caches. The slots.len()==128 gate guards ranking only. Default64 recency remains LRU, but temporary/combined admission and peaks are not byte/behavior identical. A budget sufficient for the former operation bound can now reject before lookup.",
+    "compiled_baseline_operation_bytes": 106190,
+    "compiled_stored16_operation_bytes": 106646,
+    "unconditional_extra_bytes": 456,
+    "proof": "Exact hash-bound executable disassembly plus owning source; custom runtime exact-boundary control did not build and is not claimed as executed.",
+    "fix_scope": "Keep the extra temporary obligations honestly charged; isolate the private-path inventory or withdraw default admission-equivalence claim. Do not adopt or repair the production profile gate in this review."
+  },
+  "public_document_comparisons": [
+    {
+      "turn": 1,
+      "bytes": 1101,
+      "sha256": "28aa6f6bc2f6505d0d7ef5275e7ccfa45267c67d2155437a6c23933e626bfe26",
+      "full_document_native_bytes_equal": true,
+      "title": "  Reactor inspection  ",
+      "note_utf8_bytes": 0
+    },
+    {
+      "turn": 2,
+      "bytes": 1163,
+      "sha256": "2b71b4053903bc0f770723743ca9e8571684f8eb9f9adf72523eda87e8a0c1f8",
+      "full_document_native_bytes_equal": true,
+      "title": "  Reactor inspection  ",
+      "note_utf8_bytes": 60
+    }
+  ],
+  "source_review": {
+    "all_word_uses": "SwiftSlot accessors, initialization, original victim comparator, diagnostic/test-only rank snapshots; Frozen Slot accessors; no clock arithmetic consumes stored scores",
+    "work_clock": "RuntimeControl CacheWork checked_add/no reset; stored score not fed into meter; phase sums equal admitted work",
+    "ranking": "12 additional precharged credits, not8; u128 widened arithmetic and checked u64 narrowing; no saturation; bounded entry/work cannot overflow under unchanged limits",
+    "publication_order": "Precharge precedes pin count/record/free-pin/nonce publication; original decoded resident/index may already be published. Failed pin abandons acquired live pin; no decoded-resident rollback promised.",
+    "errors_cleanup": "Error/first_failure and consuming owner code hash-unchanged; snapshot primary equality and14zero-current controls freshly passed. New key-overflow/precharge controls unrun due harness compile failure.",
+    "default_frozen": "Default64 comparator/raw timestamps and Frozen code/layout unchanged; default Swift admission differs by456 bytes.",
+    "diagnostic_counters": "Read-only phase grouping of cumulative charged work; no weighting/refund; all parsed phase sums exact.",
+    "R622_R626": "Prior component PASS reused unchanged; no repeated broad component campaign"
+  },
+  "limits": {
+    "CacheWork": 64000000,
+    "cache_bytes": 16777216,
+    "resident_slots": 128,
+    "pins": 128,
+    "deadline_ms": 30000,
+    "weight": 16
+  },
+  "full_flow": "RED; original R638 SaveDraft Deadline at62769871 retained; fresh replay SaveDraft CacheWork64000001/64000000. No complete internal model, draft-ready,close/reopen,100000-byte note,Commit or commit-ready completion.",
+  "next_gate": "Actual original SaveDraft turn3 plus its complete public document within unchanged cumulative64M and30s; then ready and remaining original sequence plus complete internal-model observation. Resolve the default-admission finding separately before any claimed private isolation acceptance.",
+  "nonadoptable": "slots.len()==128 remains unresolved disposable selection; no production profile/GA/W07/W08 claim",
+  "bounds": {
+    "fresh_rust_build_invocations": 2,
+    "successful_rust_builds": 0,
+    "initial_attempt": "test build failed: declared snapshot omits external capability_ffi test ledger",
+    "one_harness_correction": "example control build failed: SwiftReleaseFailure lacks Debug for harness unwrap; no further correction/build attempted",
+    "existing_guest_payloads": 2,
+    "focused_control_campaigns": 1,
+    "control_processes": 2,
+    "Swift_builds": 0,
+    "subagents": 0
+  },
+  "cleanup": {
+    "all_6_managed_direct_children_reaped": true,
+    "all_6_exact_groups_observed_absent": true,
+    "new_holds": [],
+    "retained_scratch": "verification/local/cache-review-r646",
+    "historical_holds": "untouched",
+    "devices": 0
+  },
+  "tool_versions": {
+    "rustc": "1.99.0 (b940084d7 2026-09-28), pinned path from exact build argv",
+    "cargo": "1.99.0 (5f94df478 2026-08-27), inherited receipt; no successful compile",
+    "python": "3.14.8",
+    "LLVM": "Apple LLVM21.0.0",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "finished_unix": 1794365714.642451,
+  "frozen_source_tree_sha256": "334c6dd1e8cf2c29d7a5e27ce5cdb42b647c8282b7f8652dbf66fbd3c17b074c",
+  "full_review": "verification/local/cache-review-r646/review.json",
+  "fresh_runs": {
+    "baseline": {
+      "equal_turns": [],
+      "terminal_resource": "Deadline",
+      "stages": [
+        {
+          "stage": "initialize",
+          "turn": 0,
+          "cache_work": 164086,
+          "cache": {
+            "fixed_reserved": 138496,
+            "resident_bytes": 577790,
+            "pinned_bytes": 0,
+            "construction_bytes": 0,
+            "peak_resident_bytes": 577790,
+            "peak_pinned_bytes": 184388,
+            "peak_construction_bytes": 97491,
+            "active_pins": 0,
+            "hits": 333,
+            "misses": 126,
+            "decodes": 126,
+            "evictions": 0
+          },
+          "Build": 66604,
+          "Planning": 32382
+        },
+        {
+          "stage": "startup",
+          "turn": 0,
+          "cache_work": 15629024,
+          "cache": {
+            "fixed_reserved": 138496,
+            "resident_bytes": 2067300,
+            "pinned_bytes": 0,
+            "construction_bytes": 0,
+            "peak_resident_bytes": 2454800,
+            "peak_pinned_bytes": 1279691,
+            "peak_construction_bytes": 491557,
+            "active_pins": 0,
+            "hits": 145012,
+            "misses": 7903,
+            "decodes": 7903,
+            "evictions": 7775
+          },
+          "Build": 7734685,
+          "Planning": 3124494
+        }
+      ]
+    },
+    "stored16": {
+      "equal_turns": [
+        1,
+        2
+      ],
+      "terminal_resource": "CacheWork",
+      "stages": [
+        {
+          "stage": "initialize",
+          "turn": 0,
+          "cache_work": 169594,
+          "cache": {
+            "fixed_reserved": 138496,
+            "resident_bytes": 577790,
+            "pinned_bytes": 0,
+            "construction_bytes": 0,
+            "peak_resident_bytes": 577790,
+            "peak_pinned_bytes": 184388,
+            "peak_construction_bytes": 97491,
+            "active_pins": 0,
+            "hits": 333,
+            "misses": 126,
+            "decodes": 126,
+            "evictions": 0
+          },
+          "Build": 66604,
+          "Planning": 32382
+        },
+        {
+          "stage": "startup",
+          "turn": 0,
+          "cache_work": 23922627,
+          "cache": {
+            "fixed_reserved": 138496,
+            "resident_bytes": 2768597,
+            "pinned_bytes": 0,
+            "construction_bytes": 0,
+            "peak_resident_bytes": 3153650,
+            "peak_pinned_bytes": 1299737,
+            "peak_construction_bytes": 491557,
+            "active_pins": 0,
+            "hits": 208018,
+            "misses": 21581,
+            "decodes": 21581,
+            "evictions": 21453
+          },
+          "Build": 6280794,
+          "Planning": 8568022
+        },
+        {
+          "stage": "event",
+          "turn": 1,
+          "cache_work": 40202508,
+          "cache": {
+            "fixed_reserved": 138496,
+            "resident_bytes": 1260239,
+            "pinned_bytes": 0,
+            "construction_bytes": 0,
+            "peak_resident_bytes": 3537146,
+            "peak_pinned_bytes": 1335996,
+            "peak_construction_bytes": 491557,
+            "active_pins": 0,
+            "hits": 316736,
+            "misses": 39198,
+            "decodes": 39198,
+            "evictions": 39070
+          },
+          "Build": 10427245,
+          "Planning": 15574888
+        },
+        {
+          "stage": "event",
+          "turn": 2,
+          "cache_work": 55123088,
+          "cache": {
+            "fixed_reserved": 138496,
+            "resident_bytes": 1281234,
+            "pinned_bytes": 0,
+            "construction_bytes": 0,
+            "peak_resident_bytes": 3537146,
+            "peak_pinned_bytes": 1335996,
+            "peak_construction_bytes": 491557,
+            "active_pins": 0,
+            "hits": 416489,
+            "misses": 55802,
+            "decodes": 55802,
+            "evictions": 55674
+          },
+          "Build": 14099047,
+          "Planning": 22179068
+        },
+        {
+          "stage": "event",
+          "turn": 3,
+          "cache_work": 64000000,
+          "cache": {
+            "fixed_reserved": 138496,
+            "resident_bytes": 2160809,
+            "pinned_bytes": 0,
+            "construction_bytes": 0,
+            "peak_resident_bytes": 3537146,
+            "peak_pinned_bytes": 1335996,
+            "peak_construction_bytes": 491557,
+            "active_pins": 0,
+            "hits": 472875,
+            "misses": 64972,
+            "decodes": 64971,
+            "evictions": 64843
+          },
+          "Build": 16429770,
+          "Planning": 25823132
+        }
+      ]
+    }
+  },
+  "retained_stored16_terminal": "Deadline at62769871; preserved unchanged",
+  "evidence": "verification/local/cache-review-r646/logs",
+  "limitations": [
+    "Default64 runtime exact-boundary reproduction and new weighted-key overflow/precharge refusal controls did not build; no pass claimed.",
+    "Fresh R622 baseline overlapped the failed control compiler attempt and refused Deadline during startup; it is not a paired work or timing comparison. Retained R638 baseline/refusals remain unchanged.",
+    "No complete internal-model export; complete public documents and input note UTF-8 bytes were compared independently.",
+    "No additional guest, Swift build, model child, canonical source edit, Git/remote/device/signing operation, ceiling increase, credit reset/refund or shortened event sequence."
+  ],
+  "review_record_sha256": "81811edf3786e9a7a48b655a3d39cf69b5772c0250934354e571b6122aaefd48"
+}
