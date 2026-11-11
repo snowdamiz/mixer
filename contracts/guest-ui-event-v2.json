@@ -1,0 +1,276 @@
+{
+  "schema_version": 2,
+  "name": "mixer-guest-ui-event-v2",
+  "kind": "unselected_additive_contract_candidate",
+  "authority": "Host/data contract candidate only. The separately reviewed opt-in native validator is implemented. No installed V2 selection, native Swift composite, resource profile, EntryEditor execution, presentation health or release authority is supplied.",
+  "candidate_status": {
+    "selected": false,
+    "production_dependency_added": false,
+    "c_validator": "IMPLEMENTED_OPT_IN_R508_REVIEWED_R522",
+    "runtime_bridge": "NOT_IMPLEMENTED",
+    "reactor": "NOT_BUILT_OR_EXECUTED",
+    "independent_review": "HOST_R518_NATIVE_R522_COMPOSITION_AND_INSTALLED_GUARD_PARENT_REVIEW_PENDING"
+  },
+  "preserved_v1": {
+    "contracts/guest-ui-event-v1.json": "34180d46e20e403c9cd3f3aa1584a7b6d0e67e94900267c7aa51c87116566024",
+    "vm/include/mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"
+  },
+  "reserved_candidate_binding": {
+    "identity_schema": 2,
+    "release_schema": 3,
+    "guest_abi": 2,
+    "ui_schema": 1,
+    "base_profile": "mixer-table-memory-v3",
+    "startup_export": "mixer_guest_ui_start_v2",
+    "event_export": "mixer_guest_ui_event_v2",
+    "ready_export": "mixer_guest_capability_ready_v1",
+    "required_dependencies": [
+      {
+        "id": "mixer.guest-ui-event-v2",
+        "version": "2",
+        "artifact_sha256": "SHA256 of these exact candidate contract bytes"
+      },
+      {
+        "id": "mixer.guest-ui-native-header-v2",
+        "version": "2",
+        "artifact_sha256": "be7ebb2da4836351c54b7f431a34722c35aed5ef003e806cd5b0607d48b54ea0"
+      }
+    ],
+    "admission": "Reserved candidate identities only. No current production identity selects these. Current capability-only and UIV1 facades reject either reserved V2 dependency ID at any version/hash and reserved V2 startup, including mixed V1/V2 tuples, before capture/pool/reservation/filesystem. Positive V2 admission is not implemented; never auto-detect or silently fall back to V1. Signed identity-v2/release-v3 schemas/domains and defaults remain unchanged. These reserved bindings confer no positive V2 execution authority."
+  },
+  "exports": [
+    {
+      "name": "mixer_guest_ui_start_v2",
+      "parameters": [],
+      "results": [
+        "i32"
+      ],
+      "defined": true
+    },
+    {
+      "name": "mixer_guest_ui_event_v2",
+      "parameters": [
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ],
+      "defined": true
+    },
+    {
+      "name": "mixer_guest_capability_ready_v1",
+      "parameters": [],
+      "results": [],
+      "defined": true
+    }
+  ],
+  "memory": {
+    "header_bytes": 32,
+    "byte_order": "little-endian; unaligned",
+    "header_fields": [
+      {
+        "offset": 0,
+        "type": "u32",
+        "name": "magic",
+        "value": 843666765
+      },
+      {
+        "offset": 4,
+        "type": "u32",
+        "name": "size",
+        "value": 32
+      },
+      {
+        "offset": 8,
+        "type": "u32",
+        "name": "document_offset"
+      },
+      {
+        "offset": 12,
+        "type": "u32",
+        "name": "document_length",
+        "minimum": 1,
+        "maximum": 1048576
+      },
+      {
+        "offset": 16,
+        "type": "u32",
+        "name": "event_offset"
+      },
+      {
+        "offset": 20,
+        "type": "u32",
+        "name": "event_capacity",
+        "value": 1048576
+      },
+      {
+        "offset": 24,
+        "type": "u64",
+        "name": "reserved",
+        "value": 0
+      }
+    ],
+    "fixed_for_session": [
+      "header_offset",
+      "event_offset",
+      "event_capacity"
+    ],
+    "ranges": "Header, document and whole event buffer must be nonwrapping, in bounds and pairwise disjoint. Reject arithmetic overflow before C work. Read event buffer once at startup to establish bounds; recheck header fields/ranges at every harvest. Document offset/length may change. No guest address escapes the worker.",
+    "native_copies": "Use existing <=1MiB read/write ABI; no new allocator, memory export, pointer, callback or host-object API.",
+    "unchanged_limits": "No VM/module/function/global/import/resource ceiling changes."
+  },
+  "document": {
+    "schema": 1,
+    "maximum_bytes": 1048576,
+    "maximum_nodes": 256,
+    "maximum_depth": 16,
+    "maximum_children_per_node": 64,
+    "maximum_string_utf8_bytes": 4096,
+    "supported_kinds": [
+      "vStack",
+      "text",
+      "button",
+      "textField"
+    ],
+    "textField_axis": "Every textField explicitly declares horizontal or vertical. Missing/unknown axis fails.",
+    "text_value_policy": {
+      "selection": "Explicit standard or longNoteV1 at candidate host construction; grants no signed selection.",
+      "standard": "All string values at most 4096 decoded UTF8 bytes.",
+      "longNoteV1": "Only vertical textField value and its routed textChange accept at most 100000 decoded UTF8 bytes; every non-value string and horizontal field value remains at most 4096. Application business limits remain separate."
+    },
+    "validation": "Reuse strict owned raw JSON preflight and closed UI-v1 properties, action/identifier/structure checks. Refuse NUL strings and submit/valueChange actions. No unchecked Codable entrypoint. Encoded byte cap applies after actual escaping; no truncation/partial screen.",
+    "revision": "First positive UInt64. Increase publishes replacement; equality only for exact identical raw bytes. Lower revision or equal revision with changed bytes is terminal. No wrap."
+  },
+  "event": {
+    "maximum_bytes": 1048576,
+    "schemaVersion": 1,
+    "schema_note": "Original UI-v1 JSON envelope schema retained to consume unchanged original decoded events; protocol selection is distinct V2 dependencies/exports/header. No V1 reinterpretation.",
+    "mandatory_keys": [
+      "schemaVersion",
+      "sequence",
+      "revision",
+      "nodeID",
+      "actionID",
+      "event",
+      "value"
+    ],
+    "variants": [
+      {
+        "event": "activate",
+        "value": "null"
+      },
+      {
+        "event": "textChange",
+        "value": "string"
+      }
+    ],
+    "encoding": "Owned deterministic sorted-key UTF8 JSON, unescaped slash, no newline. Preserve exact original decoded UTF8 bytes, including combining sequences, CRLF and controls; do not normalize. NUL refuses. Encoded cap applies after escaping.",
+    "sequence": "Positive shortest unsigned decimal UInt64; advance only on accepted input; no wrap.",
+    "revision": "Positive shortest unsigned decimal UInt64 of current displayed and latest harvested document.",
+    "identifiers": "Existing UI-v1: nonempty 1..128 UTF8 bytes; no ASCII control or DEL. Action ID derives from current routed node, never caller-supplied authority.",
+    "routing": "Current displayed routed node owns action ID. Preserve exact decoded UTF8 ID bytes; canonical-equivalent aliases fail. Checked node kind/axis/policy validates event variant. Owner, attempt generation, native node generation, sequence, busy, stale and close checks retain existing exchange behavior.",
+    "raw_validation": "One closed object; reject duplicate decoded keys, unknown/missing keys, BOM, malformed UTF8/surrogates, numeric coercion/exponents/fractions/signs/leading zeros/overflow, trailing values and oversize. No unchecked Codable entrypoint.",
+    "excluded": [
+      "native_generation",
+      "session_id",
+      "export_name",
+      "capability_name",
+      "pointer",
+      "callback"
+    ]
+  },
+  "validation": {
+    "symbol": "mixer_vm_capability_guest_ui_validate_v2",
+    "implementation": "UNIMPLEMENTED_UNLINKED; no alias to V1",
+    "semantics": "Future same-config complete capability validation must require defined V2 startup/event and existing capability-ready exports. Existing numeric preflight/status/report/limits apply; no instance/reservation/startup/I/O. The candidate Swift header checker does not perform C export validation.",
+    "instance": false,
+    "required_exports": [
+      {
+        "name": "mixer_guest_ui_start_v2",
+        "parameters": [],
+        "results": [
+          "i32"
+        ],
+        "defined": true
+      },
+      {
+        "name": "mixer_guest_ui_event_v2",
+        "parameters": [
+          "i32"
+        ],
+        "results": [
+          "i32"
+        ],
+        "defined": true
+      },
+      {
+        "name": "mixer_guest_capability_ready_v1",
+        "parameters": [],
+        "results": [],
+        "defined": true
+      }
+    ]
+  },
+  "unmodified_turn_contract": {
+    "worker": "Existing serialized off-UI worker; one shared exchange guard arbitrates native input and startup/event/every actual ready wake.",
+    "startup": "Invoke fixed startup, require i32, capture header/ranges and copy/decode/validate document as one ordinary operation with no interleaved guest turn.",
+    "event": "Claim sole accepted event, recheck live authority, write exact bytes, invoke fixed event export, require i32 zero, harvest/validate as one operation with no interleaved wake.",
+    "wake": "Harvest after every actual successful ready invocation, including unchanged revisions. No harvest-only claim for a non-invoked wake.",
+    "before_io": "In UI mode, validate successful-turn UI before draining that turn capability calls. Invalid UI stops admission; already admitted external effects may still commit.",
+    "budgets": "All invocations count toward existing four guest turns/batch. Header copy/decode/reconciliation count in elapsed work. The 8ms batch target is cooperative, not preemption. Fuel/deadlines/cancellation/expiry remain unchanged.",
+    "prepared_owner": "UI-prepared sessions reject generic public startup/invoke/readMemory/writeMemory/development-enable; only fixed UI SPI/internal composites and existing owned-enable/close/status remain."
+  },
+  "unmodified_bounded_delivery": {
+    "accepted_events_including_running_and_unconsumed_result": 1,
+    "pending_frames": 1,
+    "claimed_frames": 1,
+    "displayed_snapshots": 1,
+    "worker_last_snapshots": 1,
+    "presentation_consumers_per_attempt": 1,
+    "wake": "Two fixed data-only coalesced sources, one reader and one pending bit each. Existing single coordinator consumer uses control source in UI mode; no per-frame/task fanout.",
+    "ownership": "Exchange retains no owner/model/signals/worker/session/DispatchSource/external-execution-source/observer/callback; bridge and activation share exact instance. Private issuer identity plus positive checked generation/serial rejects foreign or stale claims/tickets.",
+    "presentation": "One fixed counted task retains wake reader and weak model box while parked. MainActor helper claim/apply/complete runs without suspension and ends strong locals before next wait. Close/fallback joins actual Task.value before replacement.",
+    "input": "Require confirmed effects and current attempt/displayed revision/node generation with displayed==last harvested. Busy/stale/closed rejects before event capture, Task creation or sequence advance. Admission winning guard forces next turn event; prior wake claim makes input busy.",
+    "result": "At most once invocation; delivered or terminal(turnBegan). Keep accepted slot through result consumption/final retirement; never overwrite/retry/replay. Zero event result is not KV completion.",
+    "refresh": "Admission, result consumption, frame revision and stop changes signal bounded delivery wake so native controls reflect busy/lag state.",
+    "timer": "Existing 10ms bridge timer polls event slot in UI mode after confirmation; no second worker/reverse owner callback.",
+    "rebinding": "Every exchange binding creates a fresh private MixerUIHost. Old native action closures retain captured exchange/issuer scope and are rejected after rebinding; never reconstruct an old callback against the new host/snapshot.",
+    "native_attachment": "At most one active native attachment and probe per presentation model. Reject duplicate attachment before allocating a second host/probe/consumer. Detach invalidates old probe and input authority.",
+    "wake_finish": "Issue one reader per source; reject a second simultaneous waiter before suspension. Signal/resume continuations outside both locks. Consume one pending retirement hint before finished returns false. Stop signals delivery before finishing it, allowing final MainActor retirement before joined Task.value. Only CapabilityAttemptSignals.finishNotifications finishes coordinatorWake after existing stop/notification handoff; exchange/UI stop never finishes it early."
+  },
+  "unmodified_terminal": {
+    "ui_phases": [
+      "validation",
+      "startup",
+      "event",
+      "wake",
+      "presentation"
+    ],
+    "ui_codes": [
+      "requiredExport",
+      "startupResult",
+      "header",
+      "memoryRange",
+      "bufferChanged",
+      "document",
+      "revisionRegressed",
+      "sameRevisionMutation",
+      "eventEncoding",
+      "eventResult",
+      "sequenceExhausted",
+      "presentationInvariant"
+    ],
+    "native_domain": "Existing native/ExperimentalCapabilityFailure codes unchanged. New typed UI diagnostics are separate; never message-based classification or deterministicTrap coercion.",
+    "before_intent": "Atomically captured first UI stop before sticky intent clears failed staged selection, records ui_protocol_before_effects, and may select authorized retained healthy only after ordinary frame, actual presentation task and concrete native retirement join. No increment of trap-only quarantine count.",
+    "intent_entered": "Includes persistence race before enable return; records ui_protocol_after_effects, preserves uncertainty and requires reopen/recovery. No replacement guest or rollback claim.",
+    "close": "Latch shared stop/input authority before async/native close; clear pending frames, terminalize accepted event, invalidate receipts and finish delivery. Preserve existing first bridge detail and native quarantine/exit rules; presentation is never native exit.",
+    "apply_race": "Close before claim prevents update; close after claim may allow transient apply, but postcheck denies input/health and retires in same MainActor turn. No lock held across native reconciliation."
+  },
+  "unmodified_health": {
+    "feature_started": "Private coordinator after valid startup and actual effects confirmation.",
+    "first_screen": "Only bound private native wrapper earns receipt for current live generation/frame after attached visible nonempty native layout/display-cycle observation; iOS also requires active foreground scene and subsequent display interval. Offscreen rendering/start return/host.update/onAppear/public callback are insufficient.",
+    "receipt": "One pending receipt survives same-attempt later revisions while coordinator busy. Stop/replacement discards it. Recheck at milestone/health entry; entered durable commit retains existing uncertainty rules.",
+    "qualification": "Native layout/display-cycle observation is not compositor/pixel/human perception proof. Actual window/button/screenshot/AX evidence is separate. Observation interval and all installed milestones still govern health."
+  },
+  "qualification_boundary": "Executable host codec/exchange/header checks only. No selected dependency, native memory bridge integration, C export implementation/link, all-body actual Swift reactor validation/execution, durable model differential, native device, published package, release or GA acceptance. R472 resource-profile blocker remains."
+}

@@ -12,6 +12,8 @@ import MixerUI
         try GuestUINativeInputReadinessConsumerV1(wake: nativeInputReadinessWake)
     }
     private let generation: UInt64
+    // Internal composition only. Public V1 construction always retains the V1 codec.
+    private let editorCodec: GuestUIDocumentCodecV2?
     private let issuer = GuestUIIssuerV1()
     private let lock = NSLock()
     private var state = State()
@@ -66,6 +68,12 @@ import MixerUI
     public init(generation: UInt64) throws {
         guard generation > 0 else { throw GuestUIControlRejectionV1.invalidGeneration }
         self.generation = generation
+        self.editorCodec = nil
+    }
+    init(generation: UInt64, editorCodec: GuestUIDocumentCodecV2) throws {
+        guard generation > 0 else { throw GuestUIControlRejectionV1.invalidGeneration }
+        self.generation = generation
+        self.editorCodec = editorCodec
     }
     private func mutate<T>(_ body: (inout State, inout Notices) throws -> T) rethrows -> T {
         lock.lock()
@@ -164,7 +172,7 @@ import MixerUI
     }
     public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data) throws {
         try mutate { s, _ in try requireTurn(claim, s) }
-        guard (1...65536).contains(documentBytes.count) else {
+        guard (1...(editorCodec == nil ? 65536 : GuestUIProtocolV2.maximumBytes)).contains(documentBytes.count) else {
             try mutate { s, notices in
                 try requireTurn(claim, s)
                 let error = failure(claim, .document); protocolStop(error, &s, &notices); throw error
@@ -174,7 +182,8 @@ import MixerUI
         let owned = documentBytes.withUnsafeBytes { Data(bytes: $0.baseAddress!, count: $0.count) }
         let document: ValidatedUIDocument
         do {
-            document = try GuestUICodec(validator: Self.validator).decode(owned)
+            if let editorCodec { document = try editorCodec.decode(owned) }
+            else { document = try GuestUICodec(validator: Self.validator).decode(owned) }
             guard document.document.revision > 0 else { throw failure(claim, .document) }
         } catch {
             // A concurrent close is an ordinary dropped turn, not a later protocol stop.
@@ -241,7 +250,13 @@ import MixerUI
             do { action = try displayed.route(envelope) }
             catch let error as UIRoutingError { return .rejected(.invalid(error)) }
             catch { return .rejected(.invalid(.invalidValue)) }
-            guard action.event == .activate, action.value == .null else { return .rejected(.invalid(.invalidValue)) }
+            if let editorCodec {
+                guard editorCodec.accepts(action, envelope: envelope, document: displayed.document) else {
+                    return .rejected(.invalid(.invalidValue))
+                }
+            } else {
+                guard action.event == .activate, action.value == .null else { return .rejected(.invalid(.invalidValue)) }
+            }
             if classifyReady, s.turn != nil || s.event != nil || s.presentation != nil {
                 if case .ready? = s.turn?.kind, s.event == nil, s.presentation == nil { return .readyBusy }
                 return .rejected(.busy)
@@ -262,8 +277,22 @@ import MixerUI
         }
         let bytes: Data
         do {
-            bytes = try GuestUIEventCodecV1.encode(GuestUIEventV1(sequence: sequence, revision: action.revision,
-                nodeID: action.nodeID, actionID: action.actionID))
+            if let editorCodec {
+                // Re-read only immutable checked data. No guest/native turn is interleaved with the slot.
+                let node = mutate { s, _ in s.lastDocument.flatMap { editorCodec.node(id: action.nodeID, in: $0.document) } }
+                guard let node else { throw GuestUIEditorErrorV2.routing }
+                let payload: GuestUIEventPayloadV2
+                switch (action.event, action.value) {
+                case (.activate, .null): payload = .activate
+                case (.textChange, .string(let text)): payload = .textChange(text)
+                default: throw GuestUIEditorErrorV2.value
+                }
+                bytes = try GuestUIEventCodecV2.encode(GuestUIEventV2(sequence: sequence, revision: action.revision,
+                    node: node, payload: payload, textValuePolicy: editorCodec.textValuePolicy))
+            } else {
+                bytes = try GuestUIEventCodecV1.encode(GuestUIEventV1(sequence: sequence, revision: action.revision,
+                    nodeID: action.nodeID, actionID: action.actionID))
+            }
         } catch {
             return .offered(mutate { s, notices in
                 guard s.stop == nil, case .preparing(sequence)? = s.event else { return .closed }

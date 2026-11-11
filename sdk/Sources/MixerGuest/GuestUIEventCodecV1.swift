@@ -56,10 +56,10 @@ import MixerCore
     }
 }
 
-private enum GuestUIFlatValueV1: Equatable { case string(String), literal(String) }
+enum GuestUIFlatValueV1: Equatable { case string(String), literal(String) }
 /// Preflight has already checked complete syntax/Unicode/duplicates. This small
 /// flat extractor preserves numeric lexemes instead of accepting Codable coercion.
-private struct GuestUIFlatEventV1 {
+struct GuestUIFlatEventV1 {
     let bytes: [UInt8]
     var index = 0
     mutating func whitespace() { while index < bytes.count && [9, 10, 13, 32].contains(bytes[index]) { index += 1 } }

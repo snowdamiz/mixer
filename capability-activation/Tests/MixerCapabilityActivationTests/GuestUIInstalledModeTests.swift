@@ -119,4 +119,78 @@ final class GuestUIInstalledModeTests: XCTestCase, @unchecked Sendable {
             XCTAssertFalse(FileManager.default.fileExists(atPath: root.path))
         }
     }
+
+    private func reservedV2Descriptors() throws -> [Data] {
+        var result: [Data] = []
+        for startup in ["start", "mixer_guest_ui_start_v1", "mixer_guest_ui_start_v2"] {
+            for v1 in 0..<4 {
+                for v2 in 0..<4 where v2 != 0 || startup == "mixer_guest_ui_start_v2" {
+                    for (version, hash) in [("1", String(repeating: "a", count: 64)),
+                                            ("2", String(repeating: "b", count: 64)),
+                                            ("future", String(repeating: "c", count: 64))] {
+                        let bytes = try descriptor(startup: startup,
+                            contract: v1 & 1 != 0 ? ("1", Self.contractHash) : nil,
+                            header: v1 & 2 != 0 ? ("1", Self.headerHash) : nil)
+                        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+                        var dependencies = try XCTUnwrap(object["dependencies"] as? [[String: Any]])
+                        for (bit, id) in [(1, "mixer.guest-ui-event-v2"), (2, "mixer.guest-ui-native-header-v2")] where v2 & bit != 0 {
+                            dependencies.append(["id": id, "version": version, "artifact_sha256": hash])
+                        }
+                        object["dependencies"] = dependencies.sorted { ($0["id"] as! String) < ($1["id"] as! String) }
+                        result.append(try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes]))
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    func testReservedV2MarkersRejectBothSelectors() throws {
+        let variants = try reservedV2Descriptors()
+        XCTAssertEqual(variants.count, 120)
+        for bytes in variants {
+            let identity = try CapabilityRuntimeIdentity(json: bytes)
+            rejected { try CapabilityInstalledExecutionMode.requireCapabilityOnly(identity) }
+            rejected { try CapabilityInstalledExecutionMode.requireGuestUI(identity, milestones: Self.milestones) }
+        }
+        // Exact names are reserved; unrelated namespace neighbors remain generic dependencies.
+        for id in ["mixer.guest-ui-event-v2.other", "mixer.guest-ui-native-header-v2.other"] {
+            var object = try XCTUnwrap(JSONSerialization.jsonObject(with: descriptor()) as? [String: Any])
+            object["dependencies"] = [["id": id, "version": "future", "artifact_sha256": String(repeating: "a", count: 64)]]
+            let identity = try CapabilityRuntimeIdentity(json: JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]))
+            try CapabilityInstalledExecutionMode.requireCapabilityOnly(identity)
+        }
+        print("R534 selectors: 120 reserved tuples, two facades, two unrelated IDs")
+    }
+
+    func testPublicFacadesRejectReservedV2BeforePoolCaptureAndFilesystem() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-v2-mode-" + UUID().uuidString)
+        let materials: [CapabilityMaterialFile] = [
+            .init(role: .bridgePolicy, bytes: try resource("bridge.json")),
+            .init(role: .configuration(capabilityID: CapabilitySchemas.httpID), bytes: try resource("http.json")),
+            .init(role: .configuration(capabilityID: CapabilitySchemas.storageID), bytes: try resource("storage.json")),
+            .init(role: .installedGrant(capabilityID: CapabilitySchemas.httpID), bytes: try resource("http-grant.json")),
+            .init(role: .installedGrant(capabilityID: CapabilitySchemas.storageID), bytes: try resource("storage-grant.json"))]
+        let before = CapabilityAttemptReservation.occupiedSlots
+        let reservations = try (before..<16).map { _ in try CapabilityAttemptReservation.acquire() }
+        defer { for reservation in reservations { reservation.beginClosing() } }
+        for bytes in try reservedV2Descriptors() {
+            let execution = try InstalledCapabilityExecution(identityJSON: bytes, materials: materials,
+                trustRootsJSON: resource("roots.json"), privateContainer: root)
+            let configuration = CapabilityColdStartConfiguration(directory: root.appendingPathComponent("recovery"), channel: "beta", installation: "v2-mode")
+            do {
+                let runtime = try await CapabilityColdStartRuntime.open(configuration: configuration, execution: execution)
+                await runtime.close(); XCTFail("Capability facade admitted reserved V2")
+            } catch { XCTAssertEqual((error as? UpdateError)?.code, "capability.runtime.installed_mode") }
+            #if canImport(SwiftUI) && canImport(MixerApple)
+            do {
+                let runtime = try await CapabilityGuestUIRuntime.open(configuration: configuration, execution: execution)
+                await runtime.close(); XCTFail("UIV1 facade admitted reserved V2")
+            } catch { XCTAssertEqual((error as? UpdateError)?.code, "capability.runtime.installed_mode") }
+            #endif
+            XCTAssertEqual(CapabilityAttemptReservation.occupiedSlots, 16)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: root.path))
+        }
+        print("R534 public facades: 120 tuples each, full pool, absent filesystem root")
+    }
 }

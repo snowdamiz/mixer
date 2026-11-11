@@ -3,8 +3,8 @@
   "status": "CANDIDATE_PENDING_COMBINED_REVIEW",
   "base_revision": "953dd09bfcc9b1d9c404221dce3c18bd75e67051",
   "source": {
-    "count": 116,
-    "sha256": "452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f",
+    "count": 118,
+    "sha256": "424a48870a44c17035709c0aa5d6c8db71c3c566f5f53b4d680e13a3eb16283f",
     "algorithm": "sha256 of sorted path + NUL + file sha256 + newline; scripts/ci/check-android-generated-java.py:source_inputs",
     "manifest": "source-inputs.json"
   },
@@ -5952,6 +5952,131 @@
       }
     ],
     "qualification": false,
+    "nativePass": false,
+    "runtimePass": false,
+    "gaPass": false,
+    "historicalHoldsReleased": false
+  },
+  "guest_ui_v2_transition": {
+    "schema": 1,
+    "type": "EXACT_ACCEPTED_GUEST_UI_V2_SOURCE_CLOSURE",
+    "sourceBefore": "452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f",
+    "sourceAfter": "424a48870a44c17035709c0aa5d6c8db71c3c566f5f53b4d680e13a3eb16283f",
+    "sourceCountBefore": 116,
+    "sourceCountAfter": 118,
+    "owningChanges": [
+      {
+        "path": "sdk/Sources/MixerGuest/GuestUIEditorV2.swift",
+        "before": null,
+        "after": {
+          "bytes": 11170,
+          "sha256": "b5e6ee388e3af43835ac24f926c1b91275ca7835818557f7bd48bf42bc8355a4"
+        }
+      },
+      {
+        "path": "sdk/Sources/MixerGuest/GuestUIEventCodecV1.swift",
+        "before": {
+          "bytes": 5546,
+          "sha256": "a44296cf2758b604e63e1bc50a5a504f420ad4c5256fda2a37f1b580679b30f6"
+        },
+        "after": {
+          "bytes": 5530,
+          "sha256": "ccc8650f85c3f9bbabacda40f7726d0d83247cd53884b218f0a278336395d2ba"
+        }
+      },
+      {
+        "path": "sdk/Sources/MixerGuest/GuestUIExchangeV1.swift",
+        "before": {
+          "bytes": 23389,
+          "sha256": "ab3b988e83d24348224353c043a1b2697219d9410899c883725e483f93aac42e"
+        },
+        "after": {
+          "bytes": 25127,
+          "sha256": "38cc202ecabd413ff94934aa16dd1b3d5b796a412e2662521e0e118cc5e8ef8e"
+        }
+      },
+      {
+        "path": "sdk/Sources/MixerGuest/GuestUIExchangeV2.swift",
+        "before": null,
+        "after": {
+          "bytes": 3139,
+          "sha256": "0b2307e82b153d573411d668bf75d6e2f452ecca5c8264e720c322ea695dbfc9"
+        }
+      }
+    ],
+    "rawPredecessors": [
+      {
+        "path": "sdk/Sources/MixerGuest/GuestUIEventCodecV1.swift",
+        "before": {
+          "bytes": 5546,
+          "sha256": "a44296cf2758b604e63e1bc50a5a504f420ad4c5256fda2a37f1b580679b30f6"
+        },
+        "after": {
+          "bytes": 5530,
+          "sha256": "ccc8650f85c3f9bbabacda40f7726d0d83247cd53884b218f0a278336395d2ba"
+        },
+        "reverseEdits": [
+          {
+            "afterStartLine": 58,
+            "afterEndLine": 59,
+            "beforeText": "private enum GuestUIFlatValueV1: Equatable { case string(String), literal(String) }\n"
+          },
+          {
+            "afterStartLine": 61,
+            "afterEndLine": 62,
+            "beforeText": "private struct GuestUIFlatEventV1 {\n"
+          }
+        ]
+      },
+      {
+        "path": "sdk/Sources/MixerGuest/GuestUIExchangeV1.swift",
+        "before": {
+          "bytes": 23389,
+          "sha256": "ab3b988e83d24348224353c043a1b2697219d9410899c883725e483f93aac42e"
+        },
+        "after": {
+          "bytes": 25127,
+          "sha256": "38cc202ecabd413ff94934aa16dd1b3d5b796a412e2662521e0e118cc5e8ef8e"
+        },
+        "reverseEdits": [
+          {
+            "afterStartLine": 14,
+            "afterEndLine": 16,
+            "beforeText": ""
+          },
+          {
+            "afterStartLine": 70,
+            "afterEndLine": 76,
+            "beforeText": ""
+          },
+          {
+            "afterStartLine": 174,
+            "afterEndLine": 175,
+            "beforeText": "        guard (1...65536).contains(documentBytes.count) else {\n"
+          },
+          {
+            "afterStartLine": 184,
+            "afterEndLine": 186,
+            "beforeText": "            document = try GuestUICodec(validator: Self.validator).decode(owned)\n"
+          },
+          {
+            "afterStartLine": 252,
+            "afterEndLine": 259,
+            "beforeText": "            guard action.event == .activate, action.value == .null else { return .rejected(.invalid(.invalidValue)) }\n"
+          },
+          {
+            "afterStartLine": 279,
+            "afterEndLine": 295,
+            "beforeText": "            bytes = try GuestUIEventCodecV1.encode(GuestUIEventV1(sequence: sequence, revision: action.revision,\n                nodeID: action.nodeID, actionID: action.actionID))\n"
+          }
+        ]
+      }
+    ],
+    "installedMode": "UNSELECTED",
+    "experimentalNativeFeature": "experimental-guest-ui-v2-native",
+    "qualification": false,
+    "actualSixConsumers": false,
+    "ordinaryCI": false,
     "nativePass": false,
     "runtimePass": false,
     "gaPass": false,

@@ -242,3 +242,34 @@ held chains. Direct child exits and unavailable process observers do not prove
 absence. Existing copied host-test observations remain scoped evidence;
 generic iOS build/resolution is incomplete. Independent source, Android and
 other fresh work remain authorized; no historical hold is released.
+
+The R492 pinned public-checkout Git archive timed out with UNKNOWN custody for
+PID/PGID33305. Preserve that exact command, its retained
+`verification/plan-continuation-2026-11-07/fieldlog-v4-system-bar-restore-r492/work-r2`
+and `public-java.tar`, and the command's source-checkout chain
+`verification/plan-continuation-2026-11-07/fieldlog-delivered416-android-consumer-r444/work/public-mixer`
+without inspection, enumeration, probing, signalling, waiting, retry or cleanup.
+Read only R492's top-level `HOLD.json` and separately delivered static artifact
+metadata. The successful R492 build is in the separate `afterimage-build` namespace;
+its terminal custody does not release the archive hold. Root's new native test
+may use the exact delivered APK/source ZIP without accessing this held chain.
+
+The R494 owned AVD cleanup timed out during avdmanager deletion after its cold-boot
+preparation failed. The deletion child's identity was not persisted before the
+30-second wait timeout; custody is UNKNOWN. Preserve the entire exact
+`/Users/andreyyurlov/.t3/userdata/mixer-fieldlog-api36-r494-kbha57n_` target and
+`verification/plan-continuation-2026-11-07/fieldlog-public-v4-os-ime-r494/delete-owned-avd.stdout`
+and `.stderr` deletion outputs without inspection, enumeration, process operations,
+waiting, retry or cleanup. Read only that campaign's top-level HOLD/ownership/result
+metadata and static source. Emulator exit0 does not establish deletion-child absence.
+No app installation or OS-IME payload ran. Fresh distinct namespaces remain permitted.
+
+The R506 independent GuestUI review has UNKNOWN compiler custody for PID/PGID76976
+and uncollected inner compiler resources despite terminal outer exec38931/exit74.
+Preserve `verification/plan-continuation-2026-11-07/guest-ui-v2-independent-review-r506/source`,
+its `scratch/candidate`, and `logs/candidate-build.stdout`/`.stderr` without
+inspection, enumeration, probing, signalling, waiting, retry or cleanup. Read only
+its supplied top-level HOLD.json, REPORT.md, receipt.json and logs/candidate-build.json.
+No review test ran. Build-complete output, direct baseline return or elapsed time
+releases neither this hold nor any older one. Fresh independent review may use
+unchanged R486 inputs in a separate namespace.

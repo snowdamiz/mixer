@@ -11,7 +11,7 @@ enum CapabilityInstalledExecutionMode {
     static let headerSHA256 = "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"
 
     static func requireCapabilityOnly(_ identity: CapabilityRuntimeIdentity) throws {
-        let dependencies = try entries(identity)
+        let dependencies = try entriesRejectingReservedV2(identity)
         guard identity.execution.startupExport != startup,
               !dependencies.contains(where: { entry in
                   let id = entry.object?["id"]?.text
@@ -22,7 +22,7 @@ enum CapabilityInstalledExecutionMode {
     static func requireGuestUI(_ identity: CapabilityRuntimeIdentity, milestones: Set<String>) throws {
         guard identity.execution.startupExport == startup,
               milestones == ["feature_started", "first_screen"] else { throw rejection() }
-        let dependencies = try entries(identity)
+        let dependencies = try entriesRejectingReservedV2(identity)
         for (id, digest) in [(contractID, contractSHA256), (headerID, headerSHA256)] {
             // The identity parser already requires bounded, sorted, unique IDs.
             guard let fields = dependencies.first(where: { $0.object?["id"]?.text == id })?.object,
@@ -30,6 +30,16 @@ enum CapabilityInstalledExecutionMode {
                 throw rejection()
             }
         }
+    }
+
+    private static func entriesRejectingReservedV2(_ identity: CapabilityRuntimeIdentity) throws -> [CanonicalValue] {
+        let dependencies = try entries(identity)
+        guard identity.execution.startupExport != "mixer_guest_ui_start_v2",
+              !dependencies.contains(where: { entry in
+                  let id = entry.object?["id"]?.text
+                  return id == "mixer.guest-ui-event-v2" || id == "mixer.guest-ui-native-header-v2"
+              }) else { throw rejection() }
+        return dependencies
     }
 
     private static func entries(_ identity: CapabilityRuntimeIdentity) throws -> [CanonicalValue] {

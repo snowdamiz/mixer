@@ -90,7 +90,7 @@ def sdk_fixture_successor(base, binding, actual, owner):
         base.need(all(review.get(k) == v for k,v in spec['semantic'].items()), 'Accepted SDK fixture review semantic scope differs')
     predecessor_inputs = dict(actual)
     for row in transition['sdk']:
-        raw = base.regular(ROOT / row['path']).read_bytes()
+        raw = guest_ui_v2_predecessor_raw(base, ROOT / row['path'])
         base.need({'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} == row['after'], 'Accepted SDK afterimage differs: ' + row['path'])
         if row['owning113']:
             base.need(actual.get(row['path']) == row['after'] and row['before'] is not None, 'SDK owning transition differs')
@@ -338,6 +338,35 @@ PAIR19_RECEIPT_TRANSITION = {'schema': 1, 'type': 'EXACT_PAIR19_ANDROID_HOST_REC
 PUBLIC_ANDROID_FLOOR_TRANSITION = {'schema': 1, 'type': 'EXACT_PUBLIC_ANDROID_API_FLOOR_SOURCE_CORRECTION', 'sourceBefore': 'ee43817e481398db35a4c60b8416c647745b9be0e46fa2c8f4390900c4999e99', 'sourceAfter': 'de5ca08c37cdca5307808a6732ffcbbe9dbeeb8057ceaa11b40e19f0be06cc6a', 'sourceCount': 116, 'owningChanges': [{'path': 'cli/Sources/MixerBuild/AndroidPublicHost.swift', 'before': {'bytes': 41354, 'sha256': 'ee2db2dfb606153bc7eb95a70e6e9d07ee75a11cfd9beb78547d3bb35cecaf0c'}, 'after': {'bytes': 42251, 'sha256': '49f8d5db5b14360792714bc25405d3cb3da8d627ce817d2fcaedbc0c916e2847'}}, {'path': 'cli/Sources/MixerBuild/Resources/android-build.py', 'before': {'bytes': 40156, 'sha256': '04675e4b320a68ed89d4f06f7a232fdde87ff0316e9f569a0725c9a02c1fea28'}, 'after': {'bytes': 42297, 'sha256': '5111372e8e0da0ba07f61dda99348805cf439860ca0cfdee8003a971f30c6073'}}], 'qualification': False, 'nativePass': False, 'runtimePass': False, 'gaPass': False, 'historicalHoldsReleased': False}
 
 ANDROID_INSPECTION_PHASE_TRANSITION = {'schema': 1, 'type': 'EXACT_ANDROID_INSPECTION_PHASE_DIAGNOSTIC', 'sourceBefore': 'de5ca08c37cdca5307808a6732ffcbbe9dbeeb8057ceaa11b40e19f0be06cc6a', 'sourceAfter': '452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f', 'sourceCount': 116, 'owningChanges': [{'path': 'cli/Sources/MixerBuild/Resources/android-build.py', 'before': {'bytes': 42297, 'sha256': '5111372e8e0da0ba07f61dda99348805cf439860ca0cfdee8003a971f30c6073'}, 'after': {'bytes': 45295, 'sha256': '6889b75958fdc2d2f4894072d180c8aa377c040cc4b1b22b3a8e3dfeff357ca2'}}], 'qualification': False, 'nativePass': False, 'runtimePass': False, 'gaPass': False, 'historicalHoldsReleased': False}
+GUEST_UI_V2_TRANSITION = {'schema': 1, 'type': 'EXACT_ACCEPTED_GUEST_UI_V2_SOURCE_CLOSURE', 'sourceBefore': '452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f', 'sourceAfter': '424a48870a44c17035709c0aa5d6c8db71c3c566f5f53b4d680e13a3eb16283f', 'sourceCountBefore': 116, 'sourceCountAfter': 118, 'owningChanges': [{'path': 'sdk/Sources/MixerGuest/GuestUIEditorV2.swift', 'before': None, 'after': {'bytes': 11170, 'sha256': 'b5e6ee388e3af43835ac24f926c1b91275ca7835818557f7bd48bf42bc8355a4'}}, {'path': 'sdk/Sources/MixerGuest/GuestUIEventCodecV1.swift', 'before': {'bytes': 5546, 'sha256': 'a44296cf2758b604e63e1bc50a5a504f420ad4c5256fda2a37f1b580679b30f6'}, 'after': {'bytes': 5530, 'sha256': 'ccc8650f85c3f9bbabacda40f7726d0d83247cd53884b218f0a278336395d2ba'}}, {'path': 'sdk/Sources/MixerGuest/GuestUIExchangeV1.swift', 'before': {'bytes': 23389, 'sha256': 'ab3b988e83d24348224353c043a1b2697219d9410899c883725e483f93aac42e'}, 'after': {'bytes': 25127, 'sha256': '38cc202ecabd413ff94934aa16dd1b3d5b796a412e2662521e0e118cc5e8ef8e'}}, {'path': 'sdk/Sources/MixerGuest/GuestUIExchangeV2.swift', 'before': None, 'after': {'bytes': 3139, 'sha256': '0b2307e82b153d573411d668bf75d6e2f452ecca5c8264e720c322ea695dbfc9'}}], 'rawPredecessors': [{'path': 'sdk/Sources/MixerGuest/GuestUIEventCodecV1.swift', 'before': {'bytes': 5546, 'sha256': 'a44296cf2758b604e63e1bc50a5a504f420ad4c5256fda2a37f1b580679b30f6'}, 'after': {'bytes': 5530, 'sha256': 'ccc8650f85c3f9bbabacda40f7726d0d83247cd53884b218f0a278336395d2ba'}, 'reverseEdits': [{'afterStartLine': 58, 'afterEndLine': 59, 'beforeText': 'private enum GuestUIFlatValueV1: Equatable { case string(String), literal(String) }\n'}, {'afterStartLine': 61, 'afterEndLine': 62, 'beforeText': 'private struct GuestUIFlatEventV1 {\n'}]}, {'path': 'sdk/Sources/MixerGuest/GuestUIExchangeV1.swift', 'before': {'bytes': 23389, 'sha256': 'ab3b988e83d24348224353c043a1b2697219d9410899c883725e483f93aac42e'}, 'after': {'bytes': 25127, 'sha256': '38cc202ecabd413ff94934aa16dd1b3d5b796a412e2662521e0e118cc5e8ef8e'}, 'reverseEdits': [{'afterStartLine': 14, 'afterEndLine': 16, 'beforeText': ''}, {'afterStartLine': 70, 'afterEndLine': 76, 'beforeText': ''}, {'afterStartLine': 174, 'afterEndLine': 175, 'beforeText': '        guard (1...65536).contains(documentBytes.count) else {\n'}, {'afterStartLine': 184, 'afterEndLine': 186, 'beforeText': '            document = try GuestUICodec(validator: Self.validator).decode(owned)\n'}, {'afterStartLine': 252, 'afterEndLine': 259, 'beforeText': '            guard action.event == .activate, action.value == .null else { return .rejected(.invalid(.invalidValue)) }\n'}, {'afterStartLine': 279, 'afterEndLine': 295, 'beforeText': '            bytes = try GuestUIEventCodecV1.encode(GuestUIEventV1(sequence: sequence, revision: action.revision,\n                nodeID: action.nodeID, actionID: action.actionID))\n'}]}], 'installedMode': 'UNSELECTED', 'experimentalNativeFeature': 'experimental-guest-ui-v2-native', 'qualification': False, 'actualSixConsumers': False, 'ordinaryCI': False, 'nativePass': False, 'runtimePass': False, 'gaPass': False, 'historicalHoldsReleased': False}
+def guest_ui_v2_predecessor(base, binding, actual, owner):
+    transition = GUEST_UI_V2_TRANSITION
+    base.need(same_json(binding.get('guest_ui_v2_transition'), transition), 'Guest UI V2 typed transition differs')
+    base.need(len(actual) == transition['sourceCountAfter'] and owner.source_digest(actual) == transition['sourceAfter'], 'Guest UI V2 current source differs')
+    predecessor = dict(actual)
+    for row in transition['owningChanges']:
+        base.need(same_json(actual.get(row['path']), row['after']), 'Guest UI V2 owning row differs')
+        if row['before'] is None:
+            del predecessor[row['path']]
+        else:
+            predecessor[row['path']] = row['before']
+    base.need(len(predecessor) == transition['sourceCountBefore'] and owner.source_digest(predecessor) == transition['sourceBefore'], 'Guest UI V2 predecessor differs')
+    return predecessor
+
+def guest_ui_v2_predecessor_raw(base, path):
+    raw = base.regular(path).read_bytes()
+    relative = path.relative_to(ROOT).as_posix()
+    row = next((r for r in GUEST_UI_V2_TRANSITION['rawPredecessors'] if r['path'] == relative), None)
+    if row is None:
+        return raw
+    base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, row['after']), 'Guest UI V2 exact raw successor differs')
+    lines = raw.decode().splitlines(True)
+    for edit in reversed(row['reverseEdits']):
+        lines[edit['afterStartLine']:edit['afterEndLine']] = [edit['beforeText']]
+    old = ''.join(lines).encode()
+    base.need(same_json({'bytes':len(old), 'sha256':hashlib.sha256(old).hexdigest()}, row['before']), 'Guest UI V2 exact raw predecessor differs')
+    return old
+
 def android_inspection_phase_predecessor(base, binding, actual, owner):
     transition = ANDROID_INSPECTION_PHASE_TRANSITION
     base.need(same_json(binding.get('android_inspection_phase_transition'), transition), 'Inspection phase typed transition differs')
@@ -423,6 +452,7 @@ def bind():
         base.need(same_json(binding.get('schema'), 1), 'Binding schema differs')
         digest = owner.source_digest(actual)
         current_actual = actual
+        actual = guest_ui_v2_predecessor(base, binding, actual, owner)
         actual = android_inspection_phase_predecessor(base, binding, actual, owner)
         actual = public_android_floor_predecessor(base, binding, actual, owner)
         actual = pair19_predecessor(base, binding, actual, owner)
@@ -449,7 +479,7 @@ def bind():
         base.need(same_json(binding.get('combined_cli_transition'), transition), 'Combined transition binding differs')
         predecessor_inputs = sdk_fixture_successor(base, binding, apple_accessibility_successor(base, binding, swift_identity_diagnostic_predecessor(base, binding, actual, owner), owner), owner)
         baseline_inputs = dict(predecessor_inputs)
-        base.need(len(actual) == 113 and set(actual) == set(frozen) - {r['path'] for transition in (PAIR12_TRANSITION, PAIR13_TRANSITION, PAIR15_TRANSITION) for r in transition['owningChanges'] if r['before'] is None}, 'Combined owning roster differs')
+        base.need(len(actual) == 113 and set(actual) == set(frozen) - {r['path'] for transition in (PAIR12_TRANSITION, PAIR13_TRANSITION, PAIR15_TRANSITION, GUEST_UI_V2_TRANSITION) for r in transition['owningChanges'] if r['before'] is None}, 'Combined owning roster differs')
         for change in transition['owning_changes']:
             base.need(actual.get(change['path']) == change['candidate'], 'Combined candidate owning row differs')
             baseline_inputs[change['path']] = change['preimage']
@@ -504,10 +534,10 @@ def bind():
         base.need(same_json(binding.get('fixture_dispatch'), {'host_rust_fixture_after_exact_checks':True, 'scope':'host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch', 'combinedAccepted':False, 'runtime':False, 'GA':False, 'exactWindow':False}), 'Host-only fixture dispatch contract differs')
         base.need(same_json(binding.get('adoption'), {'allowed':False, 'status':'CANDIDATE_PENDING_COMBINED_REVIEW', 'canonicalAdopted':False})
                   and same_json(binding.get('qualification'), {'compiler':False, 'native':False, 'CLI87':False, 'TestFlight':False, 'release':False, 'GA':False}), 'Candidate authority must remain pending')
-        base.need(len(current_actual) == 116 and digest == '452ff6bb02012d0664e88288597996cf7dd859e37688b8f80d02b388e557322f' and binding['source']['count'] == 116 and binding['source']['sha256'] == digest, 'Bound source closure differs')
+        base.need(len(current_actual) == 118 and digest == '424a48870a44c17035709c0aa5d6c8db71c3c566f5f53b4d680e13a3eb16283f' and binding['source']['count'] == 118 and binding['source']['sha256'] == digest, 'Bound source closure differs')
         base.need(binding['profile'] == {'id':profile['id'], 'sdk_count':len(profile['sdk_files']), 'sdk_sha256':profile['sdk_compatibility_sha256'], 'adapter_count':len(profile['adapter_files']), 'adapter_sha256':profile['adapter_compatibility_sha256'], 'java_sources':len(owner.java_roster(profile))}, 'Accepted profile binding differs')
         caller_raw = base.regular(HERE / 'caller-inputs.json').read_bytes()
-        base.need(len(caller_raw) == 2531 and hashlib.sha256(caller_raw).hexdigest() == '7a29e0776cbfdffd3587a232bb1d96db7a2eb49495168955e631fd8c9a582cb3', 'Accepted caller authority bytes differ')
+        base.need(len(caller_raw) == 2531 and hashlib.sha256(caller_raw).hexdigest() == '8da09de0131872593a12a23baea77d7abd761c1236903c50742ef4367f8f0e55', 'Accepted caller authority bytes differ')
         callers = json.loads(caller_raw, object_pairs_hook=base.unique_object)
         base.check_rows(ROOT, callers)
         expected = base.regular(HERE / 'current-swift-job.yml').read_text()

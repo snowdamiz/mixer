@@ -274,12 +274,25 @@ impl CapabilityGuest {
         mailbox: &mb::Limits,
         guest: GuestLimits,
     ) -> Result<(), Error> {
-        const START: &str = "mixer_guest_ui_start_v1";
-        const EVENT: &str = "mixer_guest_ui_event_v1";
-        let (module, _, _) = Self::validated(wasm, vm, mailbox, guest, START)?;
+        Self::validate_guest_ui_exports(wasm, vm, mailbox, guest,
+            "mixer_guest_ui_start_v1", "mixer_guest_ui_event_v1")
+    }
+    #[cfg(feature = "experimental-guest-ui-v2-native")]
+    pub(crate) fn validate_guest_ui_v2_only(
+        wasm: &[u8], vm: &Limits, mailbox: &mb::Limits, guest: GuestLimits,
+    ) -> Result<(), Error> {
+        Self::validate_guest_ui_exports(wasm, vm, mailbox, guest,
+            "mixer_guest_ui_start_v2", "mixer_guest_ui_event_v2")
+    }
+    #[cfg(feature = "experimental-capability-native")]
+    fn validate_guest_ui_exports(
+        wasm: &[u8], vm: &Limits, mailbox: &mb::Limits, guest: GuestLimits,
+        start: &str, event: &str,
+    ) -> Result<(), Error> {
+        let (module, _, _) = Self::validated(wasm, vm, mailbox, guest, start)?;
         for (name, params, result) in [
-            (START, &[][..], Some(Type::I32)),
-            (EVENT, &[Type::I32][..], Some(Type::I32)),
+            (start, &[][..], Some(Type::I32)),
+            (event, &[Type::I32][..], Some(Type::I32)),
             (WAKE_EXPORT, &[][..], None),
         ] {
             let valid = module.exports.get(name).is_some_and(|&(kind, index)| {

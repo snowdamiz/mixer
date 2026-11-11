@@ -1,0 +1,5 @@
+Actual API36 public416 V4 OS-IME attempt failed before the long-note SaveDraft/reopen/Commit flow. Real Unicode title input and short Unicode composition passed. Tapping the composed editor then crashes in the SDK: `OwnedDrawable.setAlpha` throws `authored alpha only` when Android creates/fades its insertion handle. The later IME target-package refusal follows Activity death. The earlier Back-only attribution is withdrawn; both R540 and R556 contain this same product stack.
+
+`first-product-crash.txt` and `failure-attribution.json` identify the first concrete failure. Original result, commands and raw log remain unchanged. All original IME settings were restored, the fixture removed, emulator exit0/group and serial absent, external device baseline unchanged, and the exact disposable AVD deleted. No existing app store was used.
+
+The next executable action is R568: separate Android-owned editor presentation opacity from immutable authored control appearance, rebuild the same app, and rerun the same OS-IME flow. This result does not accept long-note durability, stock-keyboard parity, phones, immutable packages or GA.
