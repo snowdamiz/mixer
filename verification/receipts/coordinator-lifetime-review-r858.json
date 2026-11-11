@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "campaign": "R858",
+  "status": "REQUEST_CHANGES",
+  "scope": "One independent review of the eight-path R848 plus root R856 private packet",
+  "revision_user_supplied": "1174e4353538717d04ea0f3a70b7398b4faa14ce",
+  "revision_observed_with_git": false,
+  "findings": [
+    {
+      "priority": "P1",
+      "title": "Include v6 metadata in the identity workflow sparse checkout",
+      "packet_path": "verification/local/coordinator-cli-routing-r856/afterimages/.github/workflows/identity-network.yml",
+      "line": 68,
+      "trigger": "A fresh identity-network job materializes only the workflow's sparse-checkout patterns",
+      "effect": "The collector fails at import before source preflight with FileNotFoundError for the absent v6 selection; the same import also prevents the finalizer entrypoint",
+      "proof": {
+        "method": "Materialize the actual positive rooted sparse-checkout patterns in a private filesystem tree and execute unchanged real collector --check-source",
+        "A_exit": 1,
+        "A_error": "FileNotFoundError: verification/identity-network-current-source-v6/selection.json",
+        "B_change": "Add only the two exact delivered v6 metadata files to that private tree",
+        "B_exit": 0,
+        "B_output_matches_full_source_admission": true,
+        "actual_git_checkout_or_hosted_execution": false
+      },
+      "required_fix": "Add /verification/identity-network-current-source-v6/** to the existing sparse-checkout block",
+      "evidence": ["workflow-A.stderr", "workflow-A.exit", "workflow-B.stdout", "sparse-patterns.txt", "direct-checks.sh"]
+    }
+  ],
+  "packet": {
+    "application_map": "verification/local/coordinator-cli-routing-r856/application-map.json",
+    "preimages_afterimages_verified": 8,
+    "exact_context_patch_replay_afterimages": 8,
+    "patch_bytes": 80243,
+    "patch_sha256": "56c9ea481e4b9b0964ab9e1ad1af7b7feecae51c15ad6e839153239b2e8e748c",
+    "source_count": 214,
+    "source_digest_sha256": "2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0a2bc7a7c11",
+    "selection_sha256": "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211",
+    "source_roster_unchanged": true,
+    "actual_private_source_all_rows_match": true,
+    "only_v5_to_v6_source_delta": "hosted/test/mixer_hosted/builds/coordinator_operation_intent_test.exs",
+    "fixture_sha256": "6848bdbbd2b580918e40f62fc9d62083e75e7ab3d11d73b3941a541e4a587476",
+    "collector_sha256": "de39b723af2452c37281a25322802b6e26eaa1519efde233973f2ec9ff5827d0",
+    "controls_sha256": "7017102c8041989ed44e0d6b41d7875f3d58b6447b76eaa8dbc178c0dccf2350",
+    "original11_test_bodies": "byte exact",
+    "R836_behavior_assertions": "inspected diff retains assertions and removes only evidence writes and unused binding",
+    "production_migrations": 12,
+    "product_DDL_runner_unchanged": true,
+    "historical_v1_v5_validator_bodies": "unchanged in delivered diff",
+    "R856_collector_delta_from_R848": "one actual main call",
+    "R856_control_delta_from_R848": "one real-main regression class"
+  },
+  "fresh_checks": {
+    "python": "3.14.8",
+    "targeted_normal_controls": 58,
+    "targeted_control_failures": 0,
+    "targeted_control_errors": 0,
+    "targeted_control_skips": 0,
+    "targeted_control_elapsed_seconds": 0.780,
+    "targeted_control_log_sha256": "65544848c99cba8e5c9fb031e58a1993d798ef51fc216436dc6579b065c788f5",
+    "actual_main_unmocked": "PASS with delivered v6 metadata and source",
+    "new_permanent_regression_against_actual_R848_routing": "EXPECTED_ERROR frozen product digest mismatch",
+    "actual_main_changed_fixture": "EXPECTED_REFUSAL frozen product digest mismatch",
+    "mutated_owned_files_restored": true,
+    "workflow_missing_v6_A_B": "FAIL then PASS after adding only the two missing inputs",
+    "new_database_batches": 0,
+    "new_product_compiles": 0,
+    "new_Docker_RunnerControls_or_native_runs": 0
+  },
+  "artifact_policy": {
+    "only_changes": "exact two generated_files rows",
+    "manifest": {"oid": "5ef7f78288aa5e068dad99426b4303eb5164604f", "size": 35674},
+    "selection": {"oid": "cf7762357f107551d0bf5211b1a1d935d83a171d", "size": 1232},
+    "reason": "Exact current backend source-v6 authority required by the reviewed ordinary hosted/identity workflow; preserves historical selections and prod12.",
+    "actual_blob_oid_size_reason_verified": true,
+    "all_other_policy_rows_identical": true,
+    "max_total_bytes": 1073741824,
+    "max_files": 75000,
+    "max_file_bytes": 1048576,
+    "staged_index_check": "PENDING_ROOT"
+  },
+  "reused_evidence": {
+    "R856": {
+      "normal_controls": 172,
+      "optimized_controls": 172,
+      "normal_log_sha256": "b161cae1cb70b2f551b3fa5baa13192f0f41b027b08045bed699de96bc5166af",
+      "optimized_log_sha256": "7b968bbe847f56387f0106e06c5998f1e5579ee289703909e3870a4a4c5be33c",
+      "actual_normal_and_optimized_CLI": "PASS as recorded; final source and control bytes match packet afterimages",
+      "five_groups_absent": "recorded in supplied receipt, not freshly probed"
+    },
+    "R848": {
+      "strict_batches": 2,
+      "passed_each": 793,
+      "existing_Linux_skips_each": 2,
+      "membership_each": 795,
+      "coordinator_intent_members_each": 14,
+      "membership_sha256": ["96d1eb714d3ae78550f5d9e66ddb4289cd60168a94c8a3af1de1676c67e2292e", "037390789691c1a3da12af9be4db940e341019d091501310ddae370182e32cf5"],
+      "strict_receipt_sha256": ["06d64a5c87e379a1f907227400dda957dd0c20c8bb06855728582e07862bf7e3", "73db5598d938c2e6067f5658088d928c837049add60f6ba4381d0ff070280cd4"],
+      "actual_hashes_match": true,
+      "loaded_BEAM_proof_sha256": "9f1de16e24d62f2ac48df1325ce96b6c9cb7192e4b73d3fb57fbf4ecfd45024f",
+      "loaded_BEAM_proof_hash_matches": true,
+      "loaded_modules_recorded": 197,
+      "fixture_and_metadata_unchanged": true,
+      "runtime_not_repeated": true
+    }
+  },
+  "review_wrapper": {
+    "code_corrections": 1,
+    "first_stop": "Overbroad review-only guard rejected unchanged MIXER_TEST_DATABASE_PORT lookup before controls",
+    "corrected_stop": "Existing review-only tmp directory caused FileExistsError before controls",
+    "abandoned_after_second_stop": true,
+    "no_second_code_correction_or_wrapper_rerun": true,
+    "completion_method": "Existing packet control entrypoint and small direct shell commands in the same bounded review",
+    "failure_evidence": ["first-harness-result.json", "wrapper-final-result.json", "review-error.txt"]
+  },
+  "commands": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14 -B verification/local/coordinator-lifetime-review-r858/review.py (initial and one corrected attempt; both stopped before controls)",
+    "TMPDIR=<R858>/tmp /opt/homebrew/opt/python@3.14/bin/python3.14 -B <R858>/source/hosted/scripts/test_identity_network_collector.py SourceControls CurrentSourceSelectionControls SuccessorSourceSelectionControls PrivateSourceSelectionControls BrowserSourceSelectionControls OperationSourceSelectionControls LifetimeSourceSelectionControls CurrentCLISelectionControls PreparedArchiveControls GeneratedCompilerOutputControls",
+    "bash verification/local/coordinator-lifetime-review-r858/direct-checks.sh",
+    "bash verification/local/coordinator-lifetime-review-r858/permanent-regression.sh",
+    "Read-only diff, jq, cmp, wc and shasum against the named packet and evidence files"
+  ],
+  "historical_failures_preserved": ["R836 auxiliary membership overwritten with []", "R848 actual stale-v5 CLI refusal"],
+  "remaining_gates": ["Fix the executed workflow checkout defect", "Root guarded application", "Root staged retention check", "Actual post-application hosted CI", "All previously unverified operational, package and GA gates"],
+  "writes_scope": ["verification/local/coordinator-lifetime-review-r858", "verification/receipts/coordinator-lifetime-review-r858.json"],
+  "canonical_root_Git_index_remotes_process_controls_devices_providers_credentials_children": "UNTOUCHED",
+  "held_namespaces": "UNTOUCHED",
+  "holds_released": false,
+  "production_or_GA_claim": false,
+  "report": "verification/local/coordinator-lifetime-review-r858/REPORT.md"
+}

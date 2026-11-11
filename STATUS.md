@@ -1,13 +1,12 @@
 # Current development status
 
-Main `90601071` delivers the CLI test temporary-directory correction. Seven of
-its eight CI checks passed; Swift stopped earlier in a runner-control test after
-a denied signal and incomplete terminal custody. The CLI host suite was not
-reached. Preserve that exact hosted chain and all historical holds. The reviewed
-CI successor now runs Swift host checks and runner controls independently while
-keeping the required `swift` aggregate dependent on both succeeding. Both
-installed guards pass; actual successor CI awaits normal fast-forward delivery.
-[Current CI](verification/receipts/main906-ci-r840.json),
+Main `1174e435` passes all ten CI checks. Swift host checks and runner controls
+run independently; the required `swift` aggregate requires both successes.
+The actual host log confirms 216 SDK tests and all 114 CLI tests passed.
+The predecessor `90601071` stopped earlier in a runner control after a denied
+signal and incomplete custody. Its held chain remains preserved; fresh success
+does not establish that failure's OS cause or release any historical hold.
+[Current CI](verification/receipts/main1174-ci-r844.json),
 [hold](verification/receipts/stderr-signal-custody-r822.json), and
 [reviewed application](verification/receipts/swift-ci-adoption-r838.json).
 
@@ -30,15 +29,19 @@ The source ZIP and APK remain local, with shared business code, SDK inputs,
 bridge and shipping locks unchanged. [Acceptance](verification/receipts/fieldlog-entry-date-acceptance-r830.json)
 and [native evidence](verification/receipts/fieldlog-entry-date-native-r826.json).
 
-The reviewed coordinator slice was delivered on main `cf1ca9a3`; all ten CI jobs
-passed. Current v5 admission binds 214 backend sources. The strict local runner
-passes 790 tests with two existing Linux-only skips, formatting, compilation and
-release checks. Its closed server opt-in records durable intent in the coordinator
-transaction; an absent setting preserves the original path. The private schema
-remains outside the twelve production migrations. Worker execution, termination,
-capacity and provenance remain pending. A focused selected-to-absent configuration
-lifetime test is running independently. [Backend](verification/receipts/coordinator-adoption-r770.json)
-and [delivery CI](verification/receipts/maincf1-ci-r784.json).
+The reviewed coordinator lifetime successor is applied for coherent delivery.
+Current v6 admission binds 214 backend sources; only the coordinator test fixture
+changes within that roster. The strict runner passes 793 tests with two existing
+Linux-only skips, and both collector modes pass 173 controls. The real source CLI
+and the identity job's sparse import are exercised. The latter regression
+reproduces the reviewed missing-input failure before passing with the exact fix.
+All twelve production migrations, product code and private opt-in behavior remain
+unchanged. The earlier coordinator delivery `cf1ca9a3` passed all ten CI jobs;
+fresh v6 delivery CI is pending. Intent persistence does not establish worker
+execution, termination, capacity or provenance.
+[Adoption](verification/receipts/coordinator-lifetime-adoption-r864.json),
+[strict suite](verification/receipts/coordinator-lifetime-current-source-r848.json),
+and [sparse correction](verification/receipts/coordinator-sparse-closure-r868.json).
 
 Public SDK `8efc1a9e` passed all ten CI jobs, the 189-binding/1,323-case/15-helper
 callback matrix, six Java/D8 consumers, twelve refusal cases and all 216 original
@@ -51,12 +54,15 @@ pending. [SDK](verification/receipts/current-sdk-compatible-r698.json),
 [Entries](verification/receipts/fieldlog-public-native-r654.json), and
 [tasks](verification/receipts/fieldlog-public-tasks-r690.json).
 
-Private VM work remains unselected. The typed long-note writer passes 216 original
-and seven differential native tests. Its compiled guest validates all 84,145
-bodies and matches native documents through Reopen, but LongNote exceeds the
-unchanged execution-work limit: 1,050,844,704 attempted against 1,000,000,000.
-Commit remains unrun; consuming cleanup returns all fourteen currents and tickets
-to zero. No encoder or runtime policy is adopted. [Actual guest](verification/receipts/typed-writer-actual-guest-r832.json).
+Private VM work remains unselected. The encoder, copy-first growth and narrow
+lookup experiments have not completed LongNote/Commit under the unchanged
+limits. The latest run validates all 84,145 bodies and matches documents through
+Reopen, then refuses LongNote at 64,000,002 cache-work credits against 64,000,000.
+All fourteen consuming currents and tickets reach zero. Unit-test type failures,
+focused probes and default-admission measurements remain red or unmeasured.
+A bounded diagnostic now attributes the observed lookup charges before another
+implementation decision. No encoder or runtime policy is adopted.
+[Latest guest](verification/receipts/typed-writer-private-hit-r870.json).
 
 The private browser read boundary remains accepted in scope; its default listener
 is unmounted and its production identity provider unconfigured. The separate

@@ -1,0 +1,332 @@
+{
+  "schema": 1,
+  "campaign": "R868",
+  "status": "PRIVATE_SOURCE_ONLY_CORRECTION_PASS_ROOT_REVIEW_PENDING",
+  "created_utc": "2026-11-11T08:44:44.790164+00:00",
+  "revision_user_supplied": "1174e4353538717d04ea0f3a70b7398b4faa14ce",
+  "revision_observed_with_git": false,
+  "scope": "Complete eight-path R856 packet plus only the R858 P1 sparse-checkout correction and one permanent real-collector sparse regression",
+  "finding": {
+    "priority": "P1",
+    "title": "Include v6 metadata in the identity workflow sparse checkout",
+    "packet_path": "verification/local/coordinator-cli-routing-r856/afterimages/.github/workflows/identity-network.yml",
+    "line": 68,
+    "trigger": "A fresh identity-network job materializes only the workflow's sparse-checkout patterns",
+    "effect": "The collector fails at import before source preflight with FileNotFoundError for the absent v6 selection; the same import also prevents the finalizer entrypoint",
+    "proof": {
+      "method": "Materialize the actual positive rooted sparse-checkout patterns in a private filesystem tree and execute unchanged real collector --check-source",
+      "A_exit": 1,
+      "A_error": "FileNotFoundError: verification/identity-network-current-source-v6/selection.json",
+      "B_change": "Add only the two exact delivered v6 metadata files to that private tree",
+      "B_exit": 0,
+      "B_output_matches_full_source_admission": true,
+      "actual_git_checkout_or_hosted_execution": false
+    },
+    "required_fix": "Add /verification/identity-network-current-source-v6/** to the existing sparse-checkout block",
+    "evidence": [
+      "workflow-A.stderr",
+      "workflow-A.exit",
+      "workflow-B.stdout",
+      "sparse-patterns.txt",
+      "direct-checks.sh"
+    ]
+  },
+  "fix": "Exactly one /verification/identity-network-current-source-v6/** line in the existing identity sparse-checkout block",
+  "regression": "WorkflowSparseSourceControls.test_identity_sparse_checkout_admits_real_current_source",
+  "past_mistake": {
+    "tests": 1,
+    "expected_errors": 1,
+    "error": "FileNotFoundError for missing v6 selection during real collector import"
+  },
+  "sparse_preflight": {
+    "real_patterns": true,
+    "real_inputs": true,
+    "fresh_module_sys_modules_registration": true,
+    "real_main": true,
+    "independent_selection_pin": true,
+    "unsupported_pattern_syntax_fails": true,
+    "subprocess_socket_operations_guarded": true,
+    "actual_git_or_hosted_checkout": false
+  },
+  "normal": {
+    "mode": "normal",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "optimize": 0,
+    "past_mistake": {
+      "tests": 1,
+      "expected_errors": 1,
+      "error": "FileNotFoundError for missing v6 selection during real collector import"
+    },
+    "controls": {
+      "membership": 173,
+      "run": 173,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "actual_cli": {
+      "identity": "coordinator-selection-lifetime-regression-v6",
+      "runtime_or_GA_accepted": false,
+      "selection_sha256": "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211",
+      "source_count": 214,
+      "source_digest_sha256": "2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0a2bc7a7c11"
+    }
+  },
+  "optimized": {
+    "mode": "optimized",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "optimize": 1,
+    "controls": {
+      "membership": 173,
+      "run": 173,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "actual_cli": {
+      "identity": "coordinator-selection-lifetime-regression-v6",
+      "runtime_or_GA_accepted": false,
+      "selection_sha256": "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211",
+      "source_count": 214,
+      "source_digest_sha256": "2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0a2bc7a7c11"
+    }
+  },
+  "actual_membership_identical": true,
+  "meaningful_control_batches": 2,
+  "focused_baseline_inside_normal_batch": 1,
+  "control_harness_corrections": 0,
+  "packaging_harness_corrections": 1,
+  "initial_packaging_failure": "source/scripts/verification-artifact-policy.json is absent from R856 runtime source projection; one correction reads the unchanged afterimage; original script and failure retained",
+  "packet": {
+    "application_map": "verification/local/coordinator-sparse-closure-r868/application-map.json",
+    "same_eight_paths_as_R856": true,
+    "canonical_preimages_matched": 8,
+    "exact_context_patch_replay_files": 8,
+    "patch": {
+      "path": "verification/local/coordinator-sparse-closure-r868/combined.patch",
+      "bytes": 83999,
+      "sha256": "154c04350c30ac62979a864ab7ca182d07640779b89ac917d0edc3d165861034"
+    },
+    "R856_relative_changed_files": [
+      ".github/workflows/identity-network.yml",
+      "hosted/scripts/test_identity_network_collector.py"
+    ]
+  },
+  "source_authority": {
+    "selected_count": 214,
+    "selected_digest_sha256": "2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0a2bc7a7c11",
+    "selection_sha256": "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211",
+    "source_and_metadata_bytes_unchanged_from_R856": true
+  },
+  "preserved": {
+    "all_existing_control_bytes": true,
+    "original_actual_main_routing_regression": true,
+    "collector_bytes": true,
+    "permanent_coordinator_fixture_bytes": true,
+    "original11_bodies_and_three_R836_assertions": "R858 byte proof reused; identical R856 fixture",
+    "production_migration_count": 12,
+    "product_DDL_runner_prod12": true,
+    "hosted_workflow": "R856 byte exact; 214 selected files already covered by /hosted/; no identity collector invocation; no broadening"
+  },
+  "artifact_policy": {
+    "unchanged_from_R856": true,
+    "generated_files": {
+      "verification/identity-network-current-source-v6/selection.json": {
+        "oid": "cf7762357f107551d0bf5211b1a1d935d83a171d",
+        "size": 1232,
+        "reason": "Exact current backend source-v6 authority required by the reviewed ordinary hosted/identity workflow; preserves historical selections and prod12."
+      },
+      "verification/identity-network-current-source-v6/selected-source-manifest.json": {
+        "oid": "5ef7f78288aa5e068dad99426b4303eb5164604f",
+        "size": 35674,
+        "reason": "Exact current backend source-v6 authority required by the reviewed ordinary hosted/identity workflow; preserves historical selections and prod12."
+      }
+    },
+    "max_total_bytes": 1073741824,
+    "max_files": 75000,
+    "max_file_bytes": 1048576
+  },
+  "reused_evidence": {
+    "R858_receipt_binding": {
+      "bytes": 8126,
+      "sha256": "31df027850004ea98307ceef99bdf02bd1b96040894f8de038a8b5a967ba5a81"
+    },
+    "R856_receipt_binding": {
+      "bytes": 4041,
+      "sha256": "e29cdb8d388fea0d6293631f0178e6bd094f299d5b02ad4fd0dec10a468ffc1c"
+    },
+    "R848": {
+      "strict_batches": 2,
+      "passed_each": 793,
+      "existing_Linux_skips_each": 2,
+      "membership_each": 795,
+      "coordinator_intent_members_each": 14,
+      "membership_sha256": [
+        "96d1eb714d3ae78550f5d9e66ddb4289cd60168a94c8a3af1de1676c67e2292e",
+        "037390789691c1a3da12af9be4db940e341019d091501310ddae370182e32cf5"
+      ],
+      "strict_receipt_sha256": [
+        "06d64a5c87e379a1f907227400dda957dd0c20c8bb06855728582e07862bf7e3",
+        "73db5598d938c2e6067f5658088d928c837049add60f6ba4381d0ff070280cd4"
+      ],
+      "actual_hashes_match": true,
+      "loaded_BEAM_proof_sha256": "9f1de16e24d62f2ac48df1325ce96b6c9cb7192e4b73d3fb57fbf4ecfd45024f",
+      "loaded_BEAM_proof_hash_matches": true,
+      "loaded_modules_recorded": 197,
+      "fixture_and_metadata_unchanged": true,
+      "runtime_not_repeated": true
+    },
+    "scope": "Reused exact-input observations; no fresh database or product compilation"
+  },
+  "new_database_batches": 0,
+  "new_product_compiles": 0,
+  "new_Docker_native_provider_credential_or_delegated_children_actions": 0,
+  "commands": [
+    {
+      "name": "normal",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-sparse-closure-r868/batch.py"
+      ],
+      "pid": 14119,
+      "pgid": 14119,
+      "exit": 0,
+      "reaped": true,
+      "group": "OBSERVED_ABSENT",
+      "descriptors_closed": true
+    },
+    {
+      "name": "optimized",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-O",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-sparse-closure-r868/batch.py"
+      ],
+      "pid": 14370,
+      "pgid": 14370,
+      "exit": 0,
+      "reaped": true,
+      "group": "OBSERVED_ABSENT",
+      "descriptors_closed": true
+    }
+  ],
+  "cleanup": {
+    "owned_command_groups": "Both positively OBSERVED_ABSENT after reap",
+    "output_descriptors_closed": true,
+    "owned_inert_temporary_directories_removed": true,
+    "tmp_empty_after_group_absence": true,
+    "packet_retained_for_root_review": true,
+    "UNKNOWN": false
+  },
+  "historical_evidence_preserved": [
+    "R858 original P1 and initial review failures",
+    "R848 stale actual CLI refusal",
+    "R836 overwritten auxiliary [] membership"
+  ],
+  "canonical_Git_index_remotes": "UNTOUCHED",
+  "held_namespaces": "UNTOUCHED",
+  "holds_released": false,
+  "root_review": "PENDING: independent actual sparse probe and changed-slice diff",
+  "root_guarded_application": "PENDING",
+  "staged_artifact_policy_check": "PENDING_ROOT",
+  "post_application_hosted_CI": "PENDING_ROOT",
+  "accepted": false,
+  "production_or_GA_claim": false,
+  "writes_scope": [
+    "verification/local/coordinator-sparse-closure-r868",
+    "verification/receipts/coordinator-sparse-closure-r868.json"
+  ],
+  "report": "verification/local/coordinator-sparse-closure-r868/REPORT.md",
+  "evidence": {
+    "application-map.json": {
+      "bytes": 4704,
+      "sha256": "bbaf53823bb4843dac253caa5c55d1a23d7dbadc0508d1b43eefc9dd729f0df0"
+    },
+    "combined.patch": {
+      "bytes": 83999,
+      "sha256": "154c04350c30ac62979a864ab7ca182d07640779b89ac917d0edc3d165861034"
+    },
+    "canonical-preimage-proof.json": {
+      "bytes": 1278,
+      "sha256": "55c9330fda7e733c6134a854b52f2b8d7b3df4a21346b86e1a437304350c0bc4"
+    },
+    "source-proof.json": {
+      "bytes": 4430,
+      "sha256": "5f6552c246328dea15de0c957912135fe3d6e5b263012490f23c05488c71c361"
+    },
+    "artifact-policy-proof.json": {
+      "bytes": 801,
+      "sha256": "36598d956ca509480715d93fd0c9e7d79870a01d99ad528221826b774b88db48"
+    },
+    "hosted-source-closure.json": {
+      "bytes": 381,
+      "sha256": "8a5cdf2f9378d8cc815609f472f102992fb228555ea271701e25ce36ae3c40fc"
+    },
+    "baseline-mutant.log": {
+      "bytes": 2310,
+      "sha256": "dca4cf5eb86f0508b0c945b172f72163d7a983f51fe93d9d2fb8405ed7990def"
+    },
+    "normal-controls.log": {
+      "bytes": 30698,
+      "sha256": "8ac4d8beba452bf33b256658eb7d9167a45b326346848dd92405928436e0e503"
+    },
+    "optimized-controls.log": {
+      "bytes": 30698,
+      "sha256": "cae05f09a70b07d9964a0b9bbbdcb773d5ace0a3ab9b5ee370385fb91cdd3844"
+    },
+    "normal-membership.json": {
+      "bytes": 18879,
+      "sha256": "fb565b35cc4b5020b7c4f7cd5d74dca6f3fab49e0595aa98a72350f6ae026ca7"
+    },
+    "optimized-membership.json": {
+      "bytes": 18879,
+      "sha256": "fb565b35cc4b5020b7c4f7cd5d74dca6f3fab49e0595aa98a72350f6ae026ca7"
+    },
+    "normal-actual-cli.stdout": {
+      "bytes": 295,
+      "sha256": "26039444201b11f88fa6ea6cfde10a4b57655e01d6e5d1ffa6f35d44ff143c10"
+    },
+    "optimized-actual-cli.stdout": {
+      "bytes": 295,
+      "sha256": "26039444201b11f88fa6ea6cfde10a4b57655e01d6e5d1ffa6f35d44ff143c10"
+    },
+    "normal-result.json": {
+      "bytes": 728,
+      "sha256": "7e9637fda83ff94da4373a7c1701039b74016a9cbb67b03d5c65e48d693012fa"
+    },
+    "optimized-result.json": {
+      "bytes": 577,
+      "sha256": "11dd7a9f7b14f77c5258f5f130abd9463cf5bc6217a5e058973d5220925690eb"
+    },
+    "commands.json": {
+      "bytes": 764,
+      "sha256": "bad0a328133eb24f7130f728f8e1d02ee23ade084ebf32f37dc0278af28c359b"
+    },
+    "batch.py": {
+      "bytes": 4622,
+      "sha256": "bc713bf0957c3dfe444a5fb26071b7fefedb0b753c106bc059388304415a7aa1"
+    },
+    "run.py": {
+      "bytes": 1848,
+      "sha256": "6c654e97e4ee42470489f4c13a5ef3db84f031a1da96fa2d01563b8e185e1a04"
+    },
+    "package.py": {
+      "bytes": 9107,
+      "sha256": "e5c7d619f19297a3d6380e3c794318ea282824cbce1f375fdf93f3d54355c975"
+    },
+    "package-initial.py": {
+      "bytes": 8917,
+      "sha256": "d8f5030b7135ca6e3d9c847452a438151adb795fd097c0f46b3ca2ca05278930"
+    },
+    "package-initial-failure.json": {
+      "bytes": 336,
+      "sha256": "968156e9b7eeab3b484c1818871b953b8d9abdc45de3ee7f47f70472945ec05d"
+    },
+    "REPORT.md": {
+      "bytes": 5303,
+      "sha256": "68deab1dba3ae03b7c5d073c834fa6719611fd8e047035ec365f204cfd53187e"
+    }
+  }
+}

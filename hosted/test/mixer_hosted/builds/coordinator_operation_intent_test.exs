@@ -1,3 +1,35 @@
+defmodule R836.Adapter do
+  alias MixerHosted.Builds.Dispatch.Observation
+
+  def query(request) do
+    case Application.fetch_env!(:mixer_hosted, :r836_control) do
+      {:block, owner} ->
+        send(owner, {:r836_query_blocked, self(), request})
+
+        receive do
+          :r836_continue -> observation(request, :absent)
+        after
+          5_000 -> raise "R836 query barrier timed out"
+        end
+
+      {:observe, owner} ->
+        send(owner, {:r836_callback, :query, request})
+        observation(request, :absent)
+    end
+  end
+
+  def ensure_started(request) do
+    {_, owner} = Application.fetch_env!(:mixer_hosted, :r836_control)
+    send(owner, {:r836_callback, :ensure_started, request})
+    {:error, :uncertain}
+  end
+
+  def stop(_), do: raise("R836 must not model worker termination")
+
+  defp observation(request, status),
+    do: {:ok, %Observation{operation_id: request.operation_id, ref: request.ref, status: status}}
+end
+
 defmodule MixerHosted.Test.CoordinatorIntentSQLForbidden do
   def query(_, _), do: raise("malformed WorkerRef reached SQL")
 end
@@ -102,6 +134,7 @@ defmodule MixerHosted.Builds.CoordinatorOperationIntentTest do
     :erlang.trace_pattern({OperationIntent, :record_multi, 3}, false, [:local])
     send(tracer, :stop)
     assert row("provenance") == "admitted"
+    r836_install_audit()
     :ok
   end
 
@@ -458,5 +491,232 @@ defmodule MixerHosted.Builds.CoordinatorOperationIntentTest do
     assert Repo.query!(query, [c.record.id]).rows == before
     lease = Repo.get!(Admission.Lease, c.record.id)
     assert lease.expires_at == c.lease.expires_at
+  end
+
+  defp r836_install_audit do
+    Repo.query!("""
+    CREATE TABLE r836_dml_audit (
+      seq bigserial PRIMARY KEY, relation text NOT NULL, action text NOT NULL,
+      record_id text NOT NULL, xid bigint NOT NULL, backend integer NOT NULL,
+      body jsonb NOT NULL
+    )
+    """)
+
+    Repo.query!("""
+    CREATE FUNCTION r836_capture_dml() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN
+      INSERT INTO r836_dml_audit(relation, action, record_id, xid, backend, body)
+      VALUES (TG_TABLE_NAME, TG_OP,
+        CASE WHEN TG_TABLE_NAME = 'mixer_build_operation_admissions'
+          THEN to_jsonb(NEW)->>'record_id' ELSE to_jsonb(NEW)->>'build_record_id' END,
+        txid_current(), pg_backend_pid(), to_jsonb(NEW));
+      RETURN NEW;
+    END $$
+    """)
+
+    for table <- ["mixer_build_operation_admissions", "mixer_build_coordinator_leases"] do
+      Repo.query!(
+        "CREATE TRIGGER r836_audit AFTER INSERT OR UPDATE ON #{table} FOR EACH ROW EXECUTE FUNCTION r836_capture_dml()"
+      )
+    end
+  end
+
+  defp r836_settings do
+    keys = [:build_operation_intent, :build_dispatch, :r836_control]
+    previous = for key <- keys, do: {key, Application.fetch_env(:mixer_hosted, key)}
+
+    on_exit(fn ->
+      Enum.each(previous, fn {key, value} -> r836_restore(key, value) end)
+      for {key, value} <- previous, do: assert(Application.fetch_env(:mixer_hosted, key) == value)
+    end)
+
+    Application.put_env(:mixer_hosted, :build_dispatch,
+      adapter: R836.Adapter,
+      lease_ttl_ms: 30_000,
+      call_timeout_ms: 5_000,
+      poll_ms: 1
+    )
+
+    Application.put_env(:mixer_hosted, :r836_control, {:observe, self()})
+    previous
+  end
+
+  defp r836_restore(key, {:ok, value}), do: Application.put_env(:mixer_hosted, key, value)
+  defp r836_restore(key, :error), do: Application.delete_env(:mixer_hosted, key)
+
+  defp r836_private_rows do
+    Repo.query!(
+      "SELECT row_to_json(a)::text FROM mixer_build_operation_admissions a ORDER BY operation_id"
+    ).rows
+  end
+
+  defp r836_intent_audit do
+    Repo.query!(
+      "SELECT seq, action, record_id, xid, backend, body::text FROM r836_dml_audit WHERE relation='mixer_build_operation_admissions' ORDER BY seq"
+    ).rows
+  end
+
+  defp r836_audit_for(id) do
+    Repo.query!(
+      "SELECT relation, action, xid, backend, body::text FROM r836_dml_audit WHERE record_id=$1 ORDER BY seq",
+      [id]
+    ).rows
+  end
+
+  defp r836_wait_blocked(blocker, remaining \\ 200)
+
+  defp r836_wait_blocked(_, 0),
+    do: flunk("second refresh did not block on the exact owned DB mutex")
+
+  defp r836_wait_blocked(blocker, remaining) do
+    rows =
+      Repo.query!(
+        "SELECT pid, wait_event_type, wait_event, query FROM pg_stat_activity WHERE $1::int = ANY(pg_blocking_pids(pid)) AND query = 'SELECT pg_advisory_xact_lock(1296648258, 1)'",
+        [blocker]
+      ).rows
+
+    case rows do
+      [[_, "Lock", "advisory", _] = row] ->
+        row
+
+      [] ->
+        Process.sleep(10)
+        r836_wait_blocked(blocker, remaining - 1)
+
+      other ->
+        flunk("unexpected blocking evidence: #{inspect(other)}")
+    end
+  end
+
+  test "R836 selected in-flight second refresh retains snapshot after removal then new absent invocation preserves intent" do
+    previous = r836_settings()
+    Application.put_env(:mixer_hosted, :build_operation_intent, :durable_intent_v1)
+    job = running("r836-lifetime")
+    Application.put_env(:mixer_hosted, :r836_control, {:block, self()})
+    task = Task.async(fn -> Coordinator.perform(job) end)
+    assert_receive {:r836_query_blocked, callback, request}, 3_000
+    assert row("r836-lifetime") == "admitted"
+    prior_row = r836_private_rows()
+    first_audit = r836_intent_audit()
+    owner = self()
+
+    lock =
+      Task.async(fn ->
+        Repo.transaction(fn ->
+          Repo.query!("SELECT pg_advisory_xact_lock(1296648258, 1)")
+          [[backend]] = Repo.query!("SELECT pg_backend_pid()").rows
+          send(owner, {:r836_mutex_owned, self(), backend})
+
+          receive do
+            :r836_release -> :released
+          after
+            4_000 -> raise "R836 mutex release deadline"
+          end
+        end)
+      end)
+
+    assert_receive {:r836_mutex_owned, lock_pid, backend}, 2_000
+
+    try do
+      send(callback, :r836_continue)
+      r836_wait_blocked(backend)
+      Application.delete_env(:mixer_hosted, :build_operation_intent)
+      assert Application.fetch_env(:mixer_hosted, :build_operation_intent) == :error
+      send(lock_pid, :r836_release)
+      assert {:ok, :released} = Task.await(lock, 5_000)
+      assert {:snooze, 1} = Task.await(task, 5_000)
+      assert_receive {:r836_callback, :ensure_started, second}, 2_000
+      assert second.operation_id == request.operation_id
+      assert second.ref == request.ref and second.spec == request.spec
+      assert second.deadline_ms == request.deadline_ms
+      assert second.guard.owner_id == request.guard.owner_id
+      assert second.guard.epoch == request.guard.epoch
+      after_audit = r836_intent_audit()
+      assert length(after_audit) == length(first_audit) + 1
+      assert [_, "UPDATE", id, xid, sql_backend, encoded] = List.last(after_audit)
+      assert id == request.guard.record_id
+      body = Jason.decode!(encoded)
+      assert body["operation_id"] == request.operation_id
+      assert body["owner_id"] == request.guard.owner_id
+      assert body["lease_epoch"] == request.guard.epoch
+      assert body["journal_revision"] == request.guard.revision
+      assert body["admission_state"] == "admitted"
+
+      matching =
+        Enum.filter(r836_audit_for(id), fn [relation, _, tx, pid, _] ->
+          relation == "mixer_build_coordinator_leases" and tx == xid and pid == sql_backend
+        end)
+
+      assert [[_, "UPDATE", ^xid, ^sql_backend, lease_json]] = matching
+      lease = Jason.decode!(lease_json)
+      assert lease["owner_id"] == body["owner_id"] and lease["epoch"] == body["lease_epoch"]
+      assert r836_private_rows() != prior_row
+      retained = r836_private_rows()
+      retained_audit = r836_intent_audit()
+      Application.put_env(:mixer_hosted, :r836_control, {:observe, self()})
+      assert {:snooze, 1} = Coordinator.perform(job)
+      assert_receive {:r836_callback, :query, absent_query}, 2_000
+      assert_receive {:r836_callback, :ensure_started, absent_ensure}, 2_000
+      assert absent_query.operation_id == request.operation_id
+      assert absent_ensure.operation_id == request.operation_id
+      assert r836_private_rows() == retained
+      assert r836_intent_audit() == retained_audit
+    after
+      send(lock.pid, :r836_release)
+      send(callback, :r836_continue)
+      Enum.each(previous, fn {key, value} -> r836_restore(key, value) end)
+    end
+  end
+
+  test "R836 fresh absent invocation uses both original refreshes without private DML" do
+    previous = r836_settings()
+
+    try do
+      Application.delete_env(:mixer_hosted, :build_operation_intent)
+      job = running("r836-fresh-absent")
+      before_rows = r836_private_rows()
+      before_dml = r836_intent_audit()
+      assert {:snooze, 1} = Coordinator.perform(job)
+      assert_receive {:r836_callback, :query, query}, 2_000
+      assert_receive {:r836_callback, :ensure_started, ensure}, 2_000
+      assert query.operation_id == ensure.operation_id
+      assert row("r836-fresh-absent") == nil
+      assert r836_private_rows() == before_rows
+      assert r836_intent_audit() == before_dml
+    after
+      Enum.each(previous, fn {key, value} -> r836_restore(key, value) end)
+    end
+  end
+
+  test "R836 malformed present selection refuses before lease renewal or callback" do
+    previous = r836_settings()
+
+    try do
+      Application.delete_env(:mixer_hosted, :build_operation_intent)
+      job = running("r836-malformed")
+      id = current("r836-malformed").record.id
+      before_rows = r836_private_rows()
+      before_dml = r836_intent_audit()
+      before_lease = Repo.get!(Admission.Lease, id)
+
+      for value <- [
+            nil,
+            false,
+            "durable_intent_v1",
+            :unsupported,
+            [],
+            %{mode: :durable_intent_v1}
+          ] do
+        Application.put_env(:mixer_hosted, :build_operation_intent, value)
+        assert {:error, :invalid_operation_intent_configuration} = Coordinator.perform(job)
+        assert Repo.get!(Admission.Lease, id) == before_lease
+        assert r836_private_rows() == before_rows
+        assert r836_intent_audit() == before_dml
+      end
+
+      refute_receive {:r836_callback, _, _}, 50
+    after
+      Enum.each(previous, fn {key, value} -> r836_restore(key, value) end)
+    end
   end
 end

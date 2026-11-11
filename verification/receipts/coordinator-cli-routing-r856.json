@@ -1,0 +1,114 @@
+{
+  "id": "R856",
+  "status": "PRIVATE_CLI_ROUTING_SUCCESSOR_EXECUTABLE_PASS_ROOT_REVIEW_PENDING",
+  "source214": {
+    "exact_delta": {
+      "hosted/test/mixer_hosted/builds/coordinator_operation_intent_test.exs": {
+        "after": {
+          "bytes": 24790,
+          "sha256": "6848bdbbd2b580918e40f62fc9d62083e75e7ab3d11d73b3941a541e4a587476"
+        },
+        "before": {
+          "bytes": 15228,
+          "sha256": "7725c1fed2d3bd5fef7bd3d558c78868d5b2d62b0b9626f8b7fa24fac54ecf96"
+        }
+      }
+    },
+    "selection_sha256": "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211",
+    "source_count": 214,
+    "source_digest_sha256": "2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0a2bc7a7c11"
+  },
+  "originalActualCLIRefusalReproduced": true,
+  "fix": "Exactly one main --check-source call routes to current lifetime validator; all historical validators untouched",
+  "permanentRegression": "Calls actual main with real selected bytes; expected count/digest from independently pinned metadata",
+  "normalControls": 172,
+  "optimizedControls": 172,
+  "actualCLI": "normal and optimized pass",
+  "productAndPermanentFixtureBytesUnchangedFromR848": true,
+  "strictR848EvidenceReused": "793 passed +2 existing Linux skips in each of two batches; no product/test fixture changed",
+  "newDatabaseBatches": 0,
+  "newProductCompiles": 0,
+  "commands": [
+    {
+      "name": "original-cli-refusal",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-cli-routing-r856/source/hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "pid": 44933,
+      "pgid": 44933,
+      "exit": 1,
+      "reaped": true,
+      "group": "OBSERVED_ABSENT"
+    },
+    {
+      "name": "normal-controls",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-cli-routing-r856/source/hosted/scripts/test_identity_network_collector.py"
+      ],
+      "pid": 44934,
+      "pgid": 44934,
+      "exit": 0,
+      "reaped": true,
+      "group": "OBSERVED_ABSENT"
+    },
+    {
+      "name": "optimized-controls",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-O",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-cli-routing-r856/source/hosted/scripts/test_identity_network_collector.py"
+      ],
+      "pid": 44950,
+      "pgid": 44950,
+      "exit": 0,
+      "reaped": true,
+      "group": "OBSERVED_ABSENT"
+    },
+    {
+      "name": "normal-cli-admission",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-cli-routing-r856/source/hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "pid": 44972,
+      "pgid": 44972,
+      "exit": 0,
+      "reaped": true,
+      "group": "OBSERVED_ABSENT"
+    },
+    {
+      "name": "optimized-cli-admission",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-O",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-cli-routing-r856/source/hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "pid": 44973,
+      "pgid": 44973,
+      "exit": 0,
+      "reaped": true,
+      "group": "OBSERVED_ABSENT"
+    }
+  ],
+  "rootCanonicalApplied": false,
+  "independentSliceReview": "PENDING",
+  "historicalHoldsReleased": false,
+  "GA": false,
+  "changedPaths": 8,
+  "artifactPolicy": "Exact two generated v6 fixture blob/size/reason entries; byte/file budgets unchanged",
+  "patch": {
+    "path": "verification/local/coordinator-cli-routing-r856/combined.patch",
+    "bytes": 80243,
+    "sha256": "56c9ea481e4b9b0964ab9e1ad1af7b7feecae51c15ad6e839153239b2e8e748c"
+  }
+}

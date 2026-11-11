@@ -1,0 +1,409 @@
+{
+  "campaign": "R852",
+  "status": "TRANSACTION_FACTS_VERIFIED_CLEANUP_INCOMPLETE",
+  "scope": "Local generic PostgreSQL transaction acknowledgements using isolated plain fixtures and a tiny Ecto Repo. No product modules, auth callbacks, browser, HTTP, provider or deployment qualification.",
+  "finding": "No wrong success in seven executed controls. Deferred COMMIT failure raises; aborted callbacks returning ordinary values still return {:error, :rollback}; actual command tag is ROLLBACK.",
+  "not_a_product_defect": true,
+  "source_identity": {
+    "files": {
+      "verification/local/database-commit-ack-r852/run.py": "6fb7612ef519604dc8f74c631dc4fcccc2909ac906674d5e2a397453426e0a3c",
+      "verification/local/database-commit-ack-r852/diagnostic.exs": "c7ec39d0483ca74efe410fece1a84c28503f45fc9448c89ba59d192b7e505c3c",
+      "AGENTS.md": "4aa12ba39e450f770bd157f8e8ac3363327624ed651b6b3500c7c0b458220ec0",
+      "hosted/mix.lock": "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837",
+      "hosted/lib/mixer_hosted/browser_auth/store.ex": "c962c4f88d0dece68035467d0bf42b6bb65165c9c9054a8cf55c12a9313555ab"
+    },
+    "postgres_binary": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+    "postgres_sha256": "9d1930da02e11e446b42f9d79cf2e6bce307a6decb6a089591f8726d0f49b6f2",
+    "dependency_cache": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-selection-lifetime-r836/source/hosted",
+    "dependency_apps": [
+      "telemetry",
+      "decimal",
+      "jason",
+      "db_connection",
+      "postgrex",
+      "ecto",
+      "ecto_sql"
+    ],
+    "root_git_invocations": 0,
+    "diagnostic_compile_limit": 1,
+    "pg_test_batch_limit": 2,
+    "harness_corrections_allowed": 1,
+    "scope": "isolated generic PostgreSQL transaction acknowledgements only"
+  },
+  "runtime_identity": {
+    "otp": "29",
+    "schedulers": 3,
+    "elixir": "1.20.4",
+    "modules": {
+      "DBConnection": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/db_connection/ebin/Elixir.DBConnection.beam",
+        "sha256": "2d3790582189ceb0207a2a80d5ce172ee40d0c5515e1e74409a9fb1866f1c3a4"
+      },
+      "DBConnection.Holder": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/db_connection/ebin/Elixir.DBConnection.Holder.beam",
+        "sha256": "ff524719b4ce07822a7fb68be9a1821ba741e6fb2ab11f9afd2569d42381f076"
+      },
+      "Ecto.Adapters.Postgres": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto_sql/ebin/Elixir.Ecto.Adapters.Postgres.beam",
+        "sha256": "4a4a9e2e1fedcad025209268949db7621977cd3c64e76ce3cc96f7b043e039b4"
+      },
+      "Ecto.Adapters.Postgres.Connection": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto_sql/ebin/Elixir.Ecto.Adapters.Postgres.Connection.beam",
+        "sha256": "4f8263d30fbb8a3139bda8fb6a25f402d70a7a4768cc2809d52d4377189dc18a"
+      },
+      "Ecto.Adapters.SQL": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto_sql/ebin/Elixir.Ecto.Adapters.SQL.beam",
+        "sha256": "bcd1cab8cf99c1d037deeba0a79dce0371d3a5b079bbcf86aa0e1071c59e5c26"
+      },
+      "Ecto.Repo": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto/ebin/Elixir.Ecto.Repo.beam",
+        "sha256": "0b3211045f4acef6960d5714bbd5d3db4e2932a5cd70ff87c4ed6ee62ebc95a0"
+      },
+      "Ecto.Repo.Transaction": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto/ebin/Elixir.Ecto.Repo.Transaction.beam",
+        "sha256": "5916656f5d891ae05672af82971dfde69ff0136da2c65837e29c354d33d4f9e8"
+      },
+      "Postgrex": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/postgrex/ebin/Elixir.Postgrex.beam",
+        "sha256": "25dcc4df68f35501b0ff0a0e33c0dde8b3b64ec69a3835b047f24236f8f7725c"
+      },
+      "Postgrex.Protocol": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/postgrex/ebin/Elixir.Postgrex.Protocol.beam",
+        "sha256": "fdba29d7e2faef67b630b37834e7213aa54b098ebf44b42670195e4e906856a7"
+      }
+    },
+    "apps": {
+      "decimal": {
+        "version": "3.2.0",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/decimal"
+      },
+      "telemetry": {
+        "version": "1.4.2",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/telemetry"
+      },
+      "jason": {
+        "version": "1.4.5",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/jason"
+      },
+      "db_connection": {
+        "version": "2.10.2",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/db_connection"
+      },
+      "postgrex": {
+        "version": "0.22.4",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/postgrex"
+      },
+      "ecto": {
+        "version": "3.14.2",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto"
+      },
+      "ecto_sql": {
+        "version": "3.14.0",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto_sql"
+      }
+    }
+  },
+  "server_identity": {
+    "result": "%Postgrex.Result{command: :select, columns: [\"version\", \"current_user\", \"pg_backend_pid\", \"current_setting\", \"current_setting\", \"system_identifier\"], rows: [[\"PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit\", \"andreyyurlov\", 25891, \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/data\", \"58295\", \"7706824547330897129\"]], num_rows: 1, connection_id: 25891, messages: []}"
+  },
+  "resources": {
+    "diagnostic_compile_invocations": 1,
+    "product_compile_invocations": 0,
+    "postgres_test_batches": 1,
+    "harness_corrections": 0,
+    "beam_schedulers": 3,
+    "deadline_minutes": 12,
+    "diagnostic_command": {
+      "command": [
+        "/opt/homebrew/bin/elixir",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/telemetry/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/decimal/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/jason/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/db_connection/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/postgrex/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/beams/ecto_sql/ebin",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/diagnostic.exs"
+      ],
+      "pid": 25848,
+      "pgid": 25848,
+      "started": 1794384920.525601,
+      "timeout_seconds": 90,
+      "exit_code": 0,
+      "group_absent": true,
+      "descriptors_closed": true
+    }
+  },
+  "results": {
+    "ordinary": {
+      "events": [
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :begin, columns: nil, rows: nil, num_rows: nil, connection_id: 25889, messages: []}}",
+          "query": "begin"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :insert, columns: nil, rows: nil, num_rows: 1, connection_id: 25889, messages: []}}",
+          "query": "INSERT INTO r852_effects VALUES ('ordinary',1)"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :commit, columns: nil, rows: nil, num_rows: nil, connection_id: 25889, messages: []}}",
+          "query": "commit"
+        }
+      ],
+      "case": "ordinary",
+      "outcome": {
+        "raw": "{:ok, :ordinary_value}",
+        "kind": "return"
+      },
+      "independent_rows": 1,
+      "fixture_classification": "confirmed_committed"
+    },
+    "deferred": {
+      "events": [
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :begin, columns: nil, rows: nil, num_rows: nil, connection_id: 25889, messages: []}}",
+          "query": "begin"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :insert, columns: nil, rows: nil, num_rows: 1, connection_id: 25889, messages: []}}",
+          "query": "INSERT INTO r852_effects VALUES ('deferred',999)"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:error, %Postgrex.Error{message: nil, postgres: %{code: :foreign_key_violation, line: \"2610\", message: \"insert or update on table \\\"r852_effects\\\" violates foreign key constraint \\\"r852_effects_parent_id_fkey\\\"\", table: \"r852_effects\", file: \"ri_triggers.c\", routine: \"ri_ReportViolation\", unknown: \"ERROR\", constraint: \"r852_effects_parent_id_fkey\", severity: \"ERROR\", pg_code: \"23503\", schema: \"public\", detail: \"Key (parent_id)=(999) is not present in table \\\"r852_parents\\\".\"}, connection_id: nil, query: nil}}",
+          "query": "commit"
+        }
+      ],
+      "case": "deferred",
+      "outcome": {
+        "message": "ERROR 23503 (foreign_key_violation) insert or update on table \"r852_effects\" violates foreign key constraint \"r852_effects_parent_id_fkey\"\n\n    table: r852_effects\n    constraint: r852_effects_parent_id_fkey\n\nKey (parent_id)=(999) is not present in table \"r852_parents\".",
+        "raw": "%Postgrex.Error{message: nil, postgres: %{code: :foreign_key_violation, line: \"2610\", message: \"insert or update on table \\\"r852_effects\\\" violates foreign key constraint \\\"r852_effects_parent_id_fkey\\\"\", table: \"r852_effects\", file: \"ri_triggers.c\", routine: \"ri_ReportViolation\", unknown: \"ERROR\", constraint: \"r852_effects_parent_id_fkey\", severity: \"ERROR\", pg_code: \"23503\", schema: \"public\", detail: \"Key (parent_id)=(999) is not present in table \\\"r852_parents\\\".\"}, connection_id: nil, query: nil}",
+        "kind": "raise",
+        "class": "Postgrex.Error",
+        "postgres": "%{code: :foreign_key_violation, line: \"2610\", message: \"insert or update on table \\\"r852_effects\\\" violates foreign key constraint \\\"r852_effects_parent_id_fkey\\\"\", table: \"r852_effects\", file: \"ri_triggers.c\", routine: \"ri_ReportViolation\", unknown: \"ERROR\", constraint: \"r852_effects_parent_id_fkey\", severity: \"ERROR\", pg_code: \"23503\", schema: \"public\", detail: \"Key (parent_id)=(999) is not present in table \\\"r852_parents\\\".\"}"
+      },
+      "independent_rows": 0,
+      "callback_returned": true,
+      "fixture_classification": "confirmed_rolled_back"
+    },
+    "aborted_returned": {
+      "events": [
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :begin, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "begin"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :insert, columns: nil, rows: nil, num_rows: 1, connection_id: 25894, messages: []}}",
+          "query": "INSERT INTO r852_effects VALUES ($1,1)"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:error, %Postgrex.Error{message: nil, postgres: %{code: :division_by_zero, line: \"872\", message: \"division by zero\", file: \"int.c\", routine: \"int4div\", unknown: \"ERROR\", severity: \"ERROR\", pg_code: \"22012\"}, connection_id: 25894, query: nil}}",
+          "query": "SELECT 1/0"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :rollback, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "rollback"
+        }
+      ],
+      "case": "aborted_returned",
+      "outcome": {
+        "raw": "{:error, :rollback}",
+        "kind": "return"
+      },
+      "independent_rows": 0,
+      "callback_error": "{:error, %Postgrex.Error{message: nil, postgres: %{code: :division_by_zero, line: \"872\", message: \"division by zero\", file: \"int.c\", routine: \"int4div\", unknown: \"ERROR\", severity: \"ERROR\", pg_code: \"22012\"}, connection_id: 25894, query: nil}}",
+      "fixture_classification": "confirmed_rolled_back"
+    },
+    "aborted_rescued": {
+      "events": [
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :begin, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "begin"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :insert, columns: nil, rows: nil, num_rows: 1, connection_id: 25894, messages: []}}",
+          "query": "INSERT INTO r852_effects VALUES ($1,1)"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:error, %Postgrex.Error{message: nil, postgres: %{code: :division_by_zero, line: \"872\", message: \"division by zero\", file: \"int.c\", routine: \"int4div\", unknown: \"ERROR\", severity: \"ERROR\", pg_code: \"22012\"}, connection_id: 25894, query: nil}}",
+          "query": "SELECT 1/0"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :rollback, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "rollback"
+        }
+      ],
+      "case": "aborted_rescued",
+      "outcome": {
+        "raw": "{:error, :rollback}",
+        "kind": "return"
+      },
+      "independent_rows": 0,
+      "callback_error": "%{message: \"ERROR 22012 (division_by_zero) division by zero\", raw: \"%Postgrex.Error{message: nil, postgres: %{code: :division_by_zero, line: \\\"872\\\", message: \\\"division by zero\\\", file: \\\"int.c\\\", routine: \\\"int4div\\\", unknown: \\\"ERROR\\\", severity: \\\"ERROR\\\", pg_code: \\\"22012\\\"}, connection_id: 25894, query: nil}\", kind: \"raise\", class: \"Postgrex.Error\", postgres: \"%{code: :division_by_zero, line: \\\"872\\\", message: \\\"division by zero\\\", file: \\\"int.c\\\", routine: \\\"int4div\\\", unknown: \\\"ERROR\\\", severity: \\\"ERROR\\\", pg_code: \\\"22012\\\"}\"}",
+      "fixture_classification": "confirmed_rolled_back"
+    },
+    "explicit": {
+      "events": [
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :begin, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "begin"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :insert, columns: nil, rows: nil, num_rows: 1, connection_id: 25894, messages: []}}",
+          "query": "INSERT INTO r852_effects VALUES ('explicit',1)"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :rollback, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "rollback"
+        }
+      ],
+      "case": "explicit",
+      "outcome": {
+        "raw": "{:error, :explicit_reason}",
+        "kind": "return"
+      },
+      "independent_rows": 0,
+      "fixture_classification": "confirmed_rolled_back"
+    },
+    "barrier": {
+      "events": [
+        {
+          "caller": "#PID<0.176.0>",
+          "result": "{:ok, %Postgrex.Result{command: :begin, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "begin"
+        },
+        {
+          "caller": "#PID<0.176.0>",
+          "result": "{:ok, %Postgrex.Result{command: :insert, columns: nil, rows: nil, num_rows: 1, connection_id: 25894, messages: []}}",
+          "query": "INSERT INTO r852_effects VALUES ('barrier',1)"
+        },
+        {
+          "caller": "#PID<0.176.0>",
+          "result": "{:ok, %Postgrex.Result{command: :commit, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "commit"
+        }
+      ],
+      "case": "barrier",
+      "outcome": {
+        "raw": "{:ok, :barrier_value}",
+        "kind": "return"
+      },
+      "independent_rows": 1,
+      "before_release_rows": 0,
+      "blocked_server_activity": [
+        [
+          25894,
+          "active",
+          "Lock",
+          "advisory",
+          "COMMIT"
+        ]
+      ],
+      "fixture_classification": "confirmed_committed"
+    },
+    "connection_loss": {
+      "events": [
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :begin, columns: nil, rows: nil, num_rows: nil, connection_id: 25894, messages: []}}",
+          "query": "begin"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :insert, columns: nil, rows: nil, num_rows: 1, connection_id: 25894, messages: []}}",
+          "query": "INSERT INTO r852_effects VALUES ('connection_loss',1)"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:ok, %Postgrex.Result{command: :select, columns: [\"pg_backend_pid\"], rows: [[25894]], num_rows: 1, connection_id: 25894, messages: []}}",
+          "query": "SELECT pg_backend_pid()"
+        },
+        {
+          "caller": "#PID<0.94.0>",
+          "result": "{:error, %Postgrex.Error{message: nil, postgres: %{code: :admin_shutdown, line: \"3318\", message: \"terminating connection due to administrator command\", file: \"postgres.c\", routine: \"ProcessInterrupts\", unknown: \"FATAL\", severity: \"FATAL\", pg_code: \"57P01\"}, connection_id: nil, query: nil}}",
+          "query": "commit"
+        }
+      ],
+      "case": "connection_loss",
+      "outcome": {
+        "message": "FATAL 57P01 (admin_shutdown) terminating connection due to administrator command",
+        "raw": "%Postgrex.Error{message: nil, postgres: %{code: :admin_shutdown, line: \"3318\", message: \"terminating connection due to administrator command\", file: \"postgres.c\", routine: \"ProcessInterrupts\", unknown: \"FATAL\", severity: \"FATAL\", pg_code: \"57P01\"}, connection_id: nil, query: nil}",
+        "kind": "raise",
+        "class": "Postgrex.Error",
+        "postgres": "%{code: :admin_shutdown, line: \"3318\", message: \"terminating connection due to administrator command\", file: \"postgres.c\", routine: \"ProcessInterrupts\", unknown: \"FATAL\", severity: \"FATAL\", pg_code: \"57P01\"}"
+      },
+      "independent_rows": 0,
+      "terminated_owned_backend": 25894,
+      "client_error_alone": "unknown",
+      "fixture_outcome_with_independent_rows_and_backend_absence": "confirmed_rolled_back",
+      "acknowledged_commit_loss_window": "unrun",
+      "fixture_classification": "confirmed_rolled_back_for_owned_precommit_termination_fixture"
+    }
+  },
+  "transaction_fact_status": "all_seven_controls_passed",
+  "unknown_commit_outcome": {
+    "tested_connection_loss": "Owned backend 25894 verified by pid, application_name, backend_type, database and user, then ended by pg_terminate_backend before callback returned. Independent observer saw backend absent and zero fixture rows.",
+    "client_error_alone": "unknown; not proof of rollback",
+    "after_commit_before_acknowledgement_window": "UNRUN; no classification or general guarantee from this diagnostic"
+  },
+  "cleanup": {
+    "stop_exit": 0,
+    "postgres_exit": 0,
+    "group_absent": true,
+    "pg_ctl_status_exit": 3,
+    "port_closed_and_bindable": false,
+    "destructive_cleanup": false,
+    "data_retained": true
+  },
+  "hold": {
+    "status": "PRESERVE_AND_STOP",
+    "metadata": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/HOLD.json",
+    "data_directory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/data",
+    "pid": 25838,
+    "pgid": 25838,
+    "port": 58295,
+    "reason": "Port was not bindable after positive server stop, group absence and pg_ctl status=3. Bind failure errno was not captured; cause and port closure remain unproven. No recheck, retry or cleanup performed.",
+    "process_group_absence_observed": true,
+    "port_closure_verified": false,
+    "retained_namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852"
+  },
+  "raw_evidence": {
+    "root": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852",
+    "stdout": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/logs/pg-test-batch-1.stdout",
+    "stderr": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/logs/pg-test-batch-1.stderr",
+    "postgres_log": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/logs/postgres.stderr",
+    "loaded_dependency_beam_manifest": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/database-commit-ack-r852/dependency-beams.json",
+    "commands": "Exact argv/PID/PGID/outcomes are persisted in the R852 top-level *-command.json files."
+  },
+  "limits": [
+    "No historical held chain inspected or operated on.",
+    "No children, devices, root Git, remotes, credentials, provider actions or canonical edits.",
+    "No product patch; no auth/cookie/session or GA claims.",
+    "No manual SQL transaction-status bypass, mocked success, or forged auth.",
+    "No universal port-closure inference from bind failure; cleanup remains incomplete.",
+    "No staging or index-based artifact checker invocation because root Git is prohibited by this task."
+  ]
+}

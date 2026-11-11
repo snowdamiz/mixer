@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_operation_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, OPERATION_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_lifetime_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, LIFETIME_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_operation_source_manifest", return_value=collector.OPERATION_MANIFEST), \
+                    mock.patch.object(collector, "validate_lifetime_source_manifest", return_value=collector.LIFETIME_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_operation_source_manifest", return_value=collector.OPERATION_MANIFEST), \
+                    mock.patch.object(collector, "validate_lifetime_source_manifest", return_value=collector.LIFETIME_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_operation_source_manifest", return_value=collector.OPERATION_MANIFEST), \
+                    mock.patch.object(collector, "validate_lifetime_source_manifest", return_value=collector.LIFETIME_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_operation_source_manifest", return_value=collector.OPERATION_MANIFEST), \
+                            mock.patch.object(collector, "validate_lifetime_source_manifest", return_value=collector.LIFETIME_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_operation_source_manifest", return_value=collector.OPERATION_MANIFEST), \
+                            mock.patch.object(collector, "validate_lifetime_source_manifest", return_value=collector.LIFETIME_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.OPERATION_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.LIFETIME_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -2559,7 +2559,9 @@ class OperationSourceSelectionControls(unittest.TestCase):
         body = metadata[collector.OPERATION_SOURCE_BASE + "selection.json"]
         self.assertEqual('b204f4cda567bceedf47f4f23d2466c77a9a99bb071cd1cde1d22723c6825969', hashlib.sha256(body).hexdigest())
         selected = json.loads(body)["selected"]
-        result = collector.check_operation_source(COLLECTOR_PATH.resolve().parents[2])
+        with self.assertRaises(collector.CollectorError):
+            collector.check_operation_source(COLLECTOR_PATH.resolve().parents[2])
+        result = {**collector.validate_operation_source_metadata(metadata)["selected"], "selection_sha256": hashlib.sha256(body).hexdigest(), "runtime_or_GA_accepted": collector.validate_operation_source_metadata(metadata)["runtime_or_GA_accepted"]}
         self.assertEqual(selected["source_count"], result["source_count"])
         self.assertEqual('9514758b76335408231b72c1a9da06b55cce77b75c47bb79d153afb5e3ca7552', result["source_digest_sha256"])
         self.assertEqual('b204f4cda567bceedf47f4f23d2466c77a9a99bb071cd1cde1d22723c6825969', result["selection_sha256"])
@@ -2605,6 +2607,141 @@ class OperationSourceSelectionControls(unittest.TestCase):
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
                 with self.assertRaisesRegex(collector.CollectorError, "selection pin mismatch"): subject.collect()
             self.assertFalse(any(argv[0] == "docker" for argv in calls))
+
+
+class LifetimeSourceSelectionControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.LIFETIME_SOURCE_BASE + name: (root / collector.LIFETIME_SOURCE_BASE / name).read_bytes()
+                for name in ("selection.json", "selected-source-manifest.json")}
+
+    def test_actual_source_count_and_digest_match_independently_pinned_metadata(self):
+        metadata = self.metadata()
+        body = metadata[collector.LIFETIME_SOURCE_BASE + "selection.json"]
+        self.assertEqual('243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211', hashlib.sha256(body).hexdigest())
+        selected = json.loads(body)["selected"]
+        result = collector.check_lifetime_source(COLLECTOR_PATH.resolve().parents[2])
+        self.assertEqual(selected["source_count"], result["source_count"])
+        self.assertEqual('2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0a2bc7a7c11', result["source_digest_sha256"])
+        self.assertEqual('243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211', result["selection_sha256"])
+        self.assertFalse(result["runtime_or_GA_accepted"])
+
+    def test_every_changed_missing_extra_and_self_recomputed_source_refuses(self):
+        for path in collector.LIFETIME_MANIFEST:
+            value = copy.deepcopy(collector.LIFETIME_MANIFEST)
+            value[path]["sha256"] = "0" * 64
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError):
+                collector.validate_lifetime_source_manifest(value)
+        for value in ({}, {**collector.LIFETIME_MANIFEST, "hosted/foreign": {"bytes":0,"sha256":"0"*64}}):
+            with self.assertRaises(collector.CollectorError): collector.validate_lifetime_source_manifest(value)
+            with self.assertRaises(collector.CollectorError): collector.validate_lifetime_source_manifest(value, expected_digest=canonical_digest(value), expected_count=len(value))
+        value = dict(collector.LIFETIME_MANIFEST); value.pop(next(iter(value)))
+        with self.assertRaises(collector.CollectorError): collector.validate_lifetime_source_manifest(value)
+        for old in (collector.FROZEN_MANIFEST, collector.CURRENT_MANIFEST, collector.SUCCESSOR_MANIFEST, collector.PRIVATE_MANIFEST, collector.BROWSER_MANIFEST, collector.OPERATION_MANIFEST):
+            with self.assertRaises(collector.CollectorError): collector.validate_lifetime_source_manifest(old)
+
+    def test_missing_changed_extra_metadata_refuses(self):
+        metadata = self.metadata()
+        collector.validate_lifetime_source_metadata(metadata)
+        for path in metadata:
+            for mode in ("change", "missing"):
+                value = dict(metadata)
+                if mode == "change": value[path] += b" "
+                else: value.pop(path)
+                with self.subTest(path=path, mode=mode), self.assertRaises(collector.CollectorError): collector.validate_lifetime_source_metadata(value)
+        with self.assertRaises(collector.CollectorError): collector.validate_lifetime_source_metadata({**metadata,"foreign": b"{}"})
+
+    def test_lifetime_metadata_refusal_precedes_any_docker_operation(self):
+        helper = CollectorMethodWiringControls()
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
+            original = subject.git_blobs
+            def blobs(paths):
+                result = original(paths)
+                if collector.LIFETIME_SOURCE_BASE + "selection.json" in result:
+                    result[collector.LIFETIME_SOURCE_BASE + "selection.json"] += b" "
+                return result
+            subject.git_blobs = blobs
+            with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
+                    mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
+                with self.assertRaisesRegex(collector.CollectorError, "selection pin mismatch"): subject.collect()
+            self.assertFalse(any(argv[0] == "docker" for argv in calls))
+
+
+class CurrentCLISelectionControls(unittest.TestCase):
+    def test_actual_main_preflight_uses_independently_pinned_active_selection(self):
+        import contextlib
+        import io
+        root = COLLECTOR_PATH.resolve().parents[2]
+        raw = (root / collector.LIFETIME_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.LIFETIME_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        expected = json.loads(raw)["selected"]
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertEqual(0, collector.main(["--check-source"]))
+        observed = json.loads(output.getvalue())
+        self.assertEqual(expected["source_count"], observed["source_count"])
+        self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
+        self.assertEqual(collector.LIFETIME_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertFalse(observed["runtime_or_GA_accepted"])
+
+
+class WorkflowSparseSourceControls(unittest.TestCase):
+    def test_identity_sparse_checkout_admits_real_current_source(self):
+        import contextlib
+        import shutil
+        import uuid
+
+        root = COLLECTOR_PATH.resolve().parents[2]
+        workflow = (root / ".github/workflows/identity-network.yml").read_text()
+        marker = "          sparse-checkout: |\n"
+        self.assertEqual(1, workflow.count(marker))
+        patterns = []
+        for line in workflow.split(marker, 1)[1].splitlines():
+            if not line.startswith("            "):
+                break
+            pattern = line[12:]
+            relative = pattern[1:-3] if pattern.endswith("/**") else pattern[1:]
+            # This projection supports only the workflow's positive rooted
+            # prefixes and exact files; other Git wildmatch syntax must fail.
+            self.assertTrue(pattern.startswith("/") and relative)
+            self.assertTrue(all(c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/" for c in relative), pattern)
+            self.assertTrue(all(part not in ("", ".", "..") for part in relative.split("/")), pattern)
+            patterns.append((relative, pattern.endswith("/**")))
+        self.assertTrue(patterns)
+
+        raw = (root / "verification/identity-network-current-source-v6/selection.json").read_bytes()
+        pin = "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211"
+        self.assertEqual(pin, hashlib.sha256(raw).hexdigest())
+        expected = json.loads(raw)["selected"]
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            sparse = Path(directory)
+            for relative, recursive in patterns:
+                source, destination = root / relative, sparse / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                if recursive:
+                    self.assertTrue(source.is_dir(), relative)
+                    shutil.copytree(source, destination, dirs_exist_ok=True)
+                else:
+                    self.assertTrue(source.is_file(), relative)
+                    shutil.copyfile(source, destination)
+            path = sparse / "hosted/scripts/test-identity-network.py"
+            name = "identity_sparse_control_" + uuid.uuid4().hex
+            spec = importlib.util.spec_from_file_location(name, path)
+            subject = importlib.util.module_from_spec(spec)
+            sys.modules[name] = subject  # dataclasses resolves this fresh identity.
+            try:
+                spec.loader.exec_module(subject)
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    self.assertEqual(0, subject.main(["--check-source"]))
+                observed = json.loads(output.getvalue())
+                self.assertEqual(expected["source_count"], observed["source_count"])
+                self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
+                self.assertEqual(pin, observed["selection_sha256"])
+                self.assertFalse(observed["runtime_or_GA_accepted"])
+            finally:
+                sys.modules.pop(name, None)
 
 
 if __name__ == "__main__":

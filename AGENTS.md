@@ -363,3 +363,11 @@ without inspection, probing, signals, waits, retries or cleanup. Read only the
 copied top-level `verification/receipts/stderr-signal-custody-r822.json`.
 The OS permission cause is unproven; the recorded absence does not override
 cleanup failure or release this or earlier holds. Independent work remains authorized.
+
+The R852 generic database diagnostic stopped PostgreSQL successfully and observed
+PID/PGID 25838 absent, but did not establish closure of port 58295. Preserve the
+entire `verification/local/database-commit-ack-r852` namespace, including data,
+source, logs and outputs, without inspection, probing, signals, waits, retry or
+cleanup. Only `verification/receipts/database-commit-ack-r852.json` is a permitted
+reference. Its seven observed database outcomes remain narrowly scoped evidence;
+the unrecorded bind error and port state are unresolved. No historical hold is released.

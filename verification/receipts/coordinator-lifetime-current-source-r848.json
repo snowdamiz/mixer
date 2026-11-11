@@ -1,0 +1,240 @@
+{
+  "baseline": {
+    "source_count": 214,
+    "source_digest_sha256": "9514758b76335408231b72c1a9da06b55cce77b75c47bb79d153afb5e3ca7552",
+    "version": 5
+  },
+  "bounds": {
+    "elapsed_minutes_less_than": 20,
+    "elapsed_seconds": 525.241571,
+    "finished_utc": "2026-11-11T08:13:41.241440+00:00",
+    "further_corrective_attempts": 0,
+    "harness_only_corrections": 1,
+    "meaningful_PostgreSQL_full_batches": 2,
+    "started_utc": "2026-11-11T08:04:56+00:00"
+  },
+  "campaign": "coordinator-lifetime-current-source-r848",
+  "collectors": {
+    "collector-normal": {
+      "exit": 0,
+      "log": {
+        "bytes": 29486,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/raw-controls-final/collector-normal.stderr",
+        "sha256": "f35b111cba4783e86a0f3c3c6ba558145d1deb4748ac945ea117dcb5dbfd8d6c"
+      },
+      "passed": 171
+    },
+    "collector-optimized": {
+      "exit": 0,
+      "log": {
+        "bytes": 29486,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/raw-controls-final/collector-optimized.stderr",
+        "sha256": "1244cfd15e49be0622bf93c5b0763016707aab8b005c55fec9f8d6981cbae3c2"
+      },
+      "passed": 171
+    }
+  },
+  "created_utc": "2026-11-11T08:12:37.506358+00:00",
+  "custody": {
+    "all_groups_positively_absent": true,
+    "all_historical_holds_untouched": true,
+    "both_postmasters_clean_stop_and_port_closed_before_scratch_removed": true,
+    "managed_commands": 116,
+    "new_holds": [],
+    "unknown": false
+  },
+  "delivery": {
+    "afterimages": "verification/local/coordinator-lifetime-current-source-r848/afterimages",
+    "application_guard": "verification/local/coordinator-lifetime-current-source-r848/apply.py",
+    "application_map": {
+      "bytes": 3989,
+      "path": "verification/local/coordinator-lifetime-current-source-r848/application-map.json",
+      "sha256": "5ac5ddc8d5e112a7ed7feda08ecb263bf0a677777cb15defe98b238ce8d45c37"
+    },
+    "application_policy": "NOT_READY: preserve packet for review, do not apply until separately selected CLI-routing successor passes actual source admission",
+    "patch": {
+      "bytes": 77652,
+      "path": "verification/local/coordinator-lifetime-current-source-r848/incremental.patch",
+      "sha256": "bb5df0df959c7bac632377e8aa4440103a76fd620bcca0b1180c024a6d15c6db"
+    },
+    "preimages": "verification/local/coordinator-lifetime-current-source-r848/preimages",
+    "root_adoption": "NOT_READY; source CLI gate failed; one changed-slice review remains with root"
+  },
+  "failed_attempts": [
+    {
+      "exit": 1,
+      "log": {
+        "bytes": 31401,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/raw-controls/collector-normal.stderr",
+        "sha256": "1ed31297261e86ceedb1afca77d25db3d3bdb96f2e83f3b6b9482b02fa11fca7"
+      },
+      "observed": "171 controls, one error: prepared archive helper still patched OPERATION_MANIFEST, while current collector uses LIFETIME_MANIFEST",
+      "one_harness_correction": "Change only helper mock to LIFETIME_MANIFEST; historical test reads independently pinned validated historical metadata",
+      "stage": "first collector controls"
+    },
+    {
+      "exit": 1,
+      "observed": "frozen product digest mismatch; stale v5 CLI routing; left unfixed",
+      "stage": "actual CLI source admission"
+    }
+  ],
+  "failure": {
+    "action": "STOP corrective/runtime attempts at correction/full-batch bounds; no root adoption or coherent-current acceptance claimed",
+    "actual_command": [
+      "python3",
+      "-B",
+      "hosted/scripts/test-identity-network.py",
+      "--check-source"
+    ],
+    "cause": "The candidate main --check-source branch still calls historical check_operation_source(root), selecting v5 instead of check_lifetime_source(root). v5 correctly rejects the new test bytes. Current v6 direct-validator controls pass; actual CLI routing remains defective.",
+    "error": "identity network collector refused: frozen product digest mismatch",
+    "exit": 1,
+    "raw": {
+      "bytes": 67,
+      "path": "verification/local/coordinator-lifetime-current-source-r848/raw-controls-final/source-admission.stderr",
+      "sha256": "572f5f0ca57968c2bd0519e17fd417ffa9d47d2833d6146e150388e86a05ead3"
+    },
+    "source_line": 2377
+  },
+  "git_not_observed_or_modified": true,
+  "implementation": {
+    "historical_v1_v5_metadata_and_validators_exact": true,
+    "no_required_R836_OUTPUT_or_new_env": true,
+    "ordinary_ExUnit_runner_configuration": true,
+    "original11_ASTs_unchanged": true,
+    "permanent_fixture": {
+      "bytes": 24790,
+      "path": "verification/local/coordinator-lifetime-current-source-r848/source/hosted/test/mixer_hosted/builds/coordinator_operation_intent_test.exs",
+      "sha256": "6848bdbbd2b580918e40f62fc9d62083e75e7ab3d11d73b3941a541e4a587476"
+    },
+    "private_operation_migration_unselected": true,
+    "producer_evidence_helper_and_calls_removed": true,
+    "production_code_and_DDL_unchanged": true,
+    "production_migration_members": 12,
+    "same3_R836_behavior_regressions": true,
+    "stock_test_local_runner_byte_exact": true
+  },
+  "limitations": [
+    "Final successor remains unaccepted due actual source CLI routing failure; no claimed coherent CURRENT backend acceptance.",
+    "Two existing Linux-only transport tests skipped on macOS; no new skips, assertion drops, muting or exclusions.",
+    "Local synthetic loopback PostgreSQL without TLS and modeled transport callbacks; no production migration, auth, worker execution/termination, capacity or GA proof.",
+    "No canonical, root Git/remotes, index, devices, provider, credential or child writes/actions. No published package qualification.",
+    "No staging authorized; index-based artifact-policy check not run.",
+    "R836 custom formatter/autorun and empty membership history were preserved, not imported. Actual membership here derives only from the ordinary completed CLI traces."
+  ],
+  "loaded_BEAMs": {
+    "dependency_caches": "21 locked general-purpose dependencies only; fresh product test and prod compilation",
+    "every_compiled_source_matches_selected_v6_manifest": true,
+    "every_runtime_MD5_matches_exact_file": true,
+    "fresh_app_modules": 197,
+    "precompile_source_closure": {
+      "bytes": 41875,
+      "path": "verification/local/coordinator-lifetime-current-source-r848/input/precompile-source-closure.json",
+      "sha256": "77365c8fd753b375754bb98fa4d543e6af531820a8653c5438694391595d0f2f"
+    },
+    "proof": {
+      "bytes": 153487,
+      "path": "verification/local/coordinator-lifetime-current-source-r848/input/loaded-beams.json",
+      "sha256": "9f1de16e24d62f2ac48df1325ce96b6c9cb7192e4b73d3fb57fbf4ecfd45024f"
+    }
+  },
+  "replay": {
+    "actual_source_admission": "FAILED in raw-controls-final/source-admission.stderr; no repeat after correction budget",
+    "all_afterimages_exact": true,
+    "canonical_preimages_still_match": true,
+    "files": 7,
+    "groups_absent": true,
+    "preimages_guarded": true,
+    "standard_patch_fuzz": 0
+  },
+  "report": "verification/local/coordinator-lifetime-current-source-r848/REPORT.md",
+  "revision_user_supplied": "1174e4353538717d04ea0f3a70b7398b4faa14ce",
+  "schema": 1,
+  "source_identity": {
+    "exact_delta": {
+      "hosted/test/mixer_hosted/builds/coordinator_operation_intent_test.exs": {
+        "after": {
+          "bytes": 24790,
+          "sha256": "6848bdbbd2b580918e40f62fc9d62083e75e7ab3d11d73b3941a541e4a587476"
+        },
+        "before": {
+          "bytes": 15228,
+          "sha256": "7725c1fed2d3bd5fef7bd3d558c78868d5b2d62b0b9626f8b7fa24fac54ecf96"
+        }
+      }
+    },
+    "selection_sha256": "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211",
+    "source_count": 214,
+    "source_digest_sha256": "2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0a2bc7a7c11"
+  },
+  "status": "UNACCEPTED_SOURCE_ADMISSION_FAILED",
+  "strict_batches": [
+    {
+      "commands": {
+        "bytes": 36661,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/raw/commands.json",
+        "sha256": "8f084009f0bd2c1d7ae0a4ecb8491031c5eb96dbaf5c63bf0f255b9839afa85f"
+      },
+      "coordinator_intent_cases": 14,
+      "membership": {
+        "bytes": 228520,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/strict/observed-membership.json",
+        "sha256": "96d1eb714d3ae78550f5d9e66ddb4289cd60168a94c8a3af1de1676c67e2292e"
+      },
+      "output": "strict",
+      "passed": 793,
+      "positive_cleanup": {
+        "clean_stop": true,
+        "group_absent": true,
+        "pgdata": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-lifetime-current-source-r848/mixer-phoenix-foundation-o0hak44i/data",
+        "port_closed": true,
+        "postmaster_pid": 92689
+      },
+      "skipped": 2,
+      "source_tree_sha256": "02bfef6034399da7202dd94d240086374b41271877f380dd63c648aacacfc2ff",
+      "status": "passed",
+      "strict_receipt": {
+        "bytes": 70916,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/strict/receipt.json",
+        "sha256": "06d64a5c87e379a1f907227400dda957dd0c20c8bb06855728582e07862bf7e3"
+      }
+    },
+    {
+      "commands": {
+        "bytes": 36556,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/raw-final/commands.json",
+        "sha256": "fe5ad93e7e7662b10b3cd3f8593e67ae065d5d45855015e83116bbb401bb3225"
+      },
+      "coordinator_intent_cases": 14,
+      "membership": {
+        "bytes": 228526,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/strict-final/observed-membership.json",
+        "sha256": "037390789691c1a3da12af9be4db940e341019d091501310ddae370182e32cf5"
+      },
+      "output": "strict-final",
+      "passed": 793,
+      "positive_cleanup": {
+        "clean_stop": true,
+        "group_absent": true,
+        "pgdata": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-lifetime-current-source-r848/mixer-phoenix-foundation-lkdry3n_/data",
+        "port_closed": true,
+        "postmaster_pid": 6589
+      },
+      "skipped": 2,
+      "source_tree_sha256": "c017f132a7675109d11a9e69d9dfbddbd0eb97e4594800cfe1aaf7e1df66f375",
+      "status": "passed",
+      "strict_receipt": {
+        "bytes": 70922,
+        "path": "verification/local/coordinator-lifetime-current-source-r848/strict-final/receipt.json",
+        "sha256": "73db5598d938c2e6067f5658088d928c837049add60f6ba4381d0ff070280cd4"
+      }
+    }
+  ],
+  "toolchain": {
+    "Elixir": "1.20.4",
+    "OTP": "29 / ERTS17.1",
+    "PostgreSQL": "17.11",
+    "async_threads": 3,
+    "schedulers": 3
+  }
+}
