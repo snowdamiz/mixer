@@ -1,75 +1,69 @@
 # Execution index
 
-Main `cf1ca9a3` delivers the reviewed coordinator slice through a normal fast-forward;
-fresh CI is running. It records durable operation intent behind a closed
-server-only opt-in. The absent setting preserves the original path; the
-private schema remains outside the twelve production migrations. Current v5
-admission binds 214 sources. The actual strict runner passes formatting,
-warnings-as-errors compilation and tests, release checks, and **790 tests with
-two existing Linux-only skips**. All 218 tested input hashes match the applied
-files. Both collector modes pass 167 controls, and both installed guards pass
-normally and under optimized Python. This proves intent persistence; worker
-execution, termination, capacity and provenance remain pending. Selected-to-absent
-dynamic reconfiguration is also unqualified. [Adoption](verification/receipts/coordinator-adoption-r770.json)
-and [full suite](verification/receipts/coordinator-current-source-r758.json).
+Main `90601071` delivers the CLI test temporary-directory correction. Seven of
+its eight CI checks passed; Swift stopped earlier in a runner-control test after
+a denied signal and incomplete terminal custody. The CLI host suite was not
+reached. Preserve that exact hosted chain and all historical holds. The reviewed
+CI successor now runs Swift host checks and runner controls independently while
+keeping the required `swift` aggregate dependent on both succeeding. Both
+installed guards pass; actual successor CI awaits normal fast-forward delivery.
+[Current CI](verification/receipts/main906-ci-r840.json),
+[hold](verification/receipts/stderr-signal-custody-r822.json), and
+[reviewed application](verification/receipts/swift-ci-adoption-r838.json).
 
-The preceding browser source remains accepted within its private scope. Delivered
-main `40e7864c` passed all ten CI jobs, including its 775-test hosted suite.
-The default browser listener remains unmounted and the production identity
-provider unconfigured. The separate login-HTTP candidate remains unaccepted.
-[Hosted browser evidence](verification/receipts/browser-hosted-ci-r678.json).
+The CLI import inventory and its exact caller successor bind source118
+`d9473684…`, preserving Pair20 SDK24/adapter27/Java21. All 114 CLI functions and
+259 parameter cases pass with the producer-only environment variable absent.
+The CI split preserves every original test-bearing command and all runner limits;
+it does not establish the OS permission cause or release the failed commands.
+[CLI correction](verification/receipts/import-temp-root-adoption-r804.json) and
+[CI review](verification/receipts/swift-ci-review-r834.json).
+
+FieldLog entry-date editing is accepted as a development slice: 82 host tests,
+49 Android build commands and nine independent review cases pass. Actual API36
+input preserves the explicit-offset timestamp through Save Draft, a fresh-process
+restore, Commit and a third-process repository read. Exactly one entrySaved
+effect exists. The owned emulator was retired with positive cleanup and an
+unchanged external device baseline. Earlier invalid-input/navigation evidence
+remains separately scoped; the final saved-list screenshot clips part of its row.
+The source ZIP and APK remain local, with shared business code, SDK inputs,
+bridge and shipping locks unchanged. [Acceptance](verification/receipts/fieldlog-entry-date-acceptance-r830.json)
+and [native evidence](verification/receipts/fieldlog-entry-date-native-r826.json).
+
+The reviewed coordinator slice was delivered on main `cf1ca9a3`; all ten CI jobs
+passed. Current v5 admission binds 214 backend sources. The strict local runner
+passes 790 tests with two existing Linux-only skips, formatting, compilation and
+release checks. Its closed server opt-in records durable intent in the coordinator
+transaction; an absent setting preserves the original path. The private schema
+remains outside the twelve production migrations. Worker execution, termination,
+capacity and provenance remain pending. A focused selected-to-absent configuration
+lifetime test is running independently. [Backend](verification/receipts/coordinator-adoption-r770.json)
+and [delivery CI](verification/receipts/maincf1-ci-r784.json).
 
 Public SDK `8efc1a9e` passed all ten CI jobs, the 189-binding/1,323-case/15-helper
-callback matrix, six Java/D8 consumers and twelve refusal cases. The complete
-original SDK host suite passes 216 tests with zero skips. Separate FieldLog
-shipping inputs pass 49 Android build commands, an unsigned arm64/x86_64 iOS
-Simulator build and all 77 host tests, with resolver-produced locks at that public
-revision. Actual API36 OS-IME draft/reopen/Commit and three-task lifecycle tests
-pass with exact data readback and owned emulator cleanup. Immutable packages,
-physical phones and final acceptance remain pending. [SDK](verification/receipts/current-sdk-compatible-r698.json),
-[shipping tests](verification/receipts/fieldlog-shipping-host-r670.json),
+callback matrix, six Java/D8 consumers, twelve refusal cases and all 216 original
+SDK host tests. Separate FieldLog shipping inputs pass the Android build, unsigned
+arm64/x86_64 iOS Simulator build and 77 host tests with resolver-produced locks.
+API36 OS-IME entry and three-task lifecycle tests pass with exact readback and
+owned cleanup. Immutable packages, physical phones and final acceptance remain
+pending. [SDK](verification/receipts/current-sdk-compatible-r698.json),
+[shipping](verification/receipts/fieldlog-shipping-host-r670.json),
 [Entries](verification/receipts/fieldlog-public-native-r654.json), and
 [tasks](verification/receipts/fieldlog-public-tasks-r690.json).
 
-Main `c8c1c867` completed seven of eight CI checks successfully. Its optimized
-cache descendant control left PID/PGID 5342 with UNKNOWN custody: the first
-PermissionError came from `os.killpg(pgid, 0)`, while the underlying OS cause
-remains unproven. Preserve that exact chain and every earlier hold. The corrected
-stderr fixture passed the fresh Swift job; it does not release historical
-uncertainty. [CI](verification/receipts/mainc8c-ci-r770.json) and
-[hold](verification/receipts/cache-observation-custody-r762.json).
+Private VM work remains unselected. The typed long-note writer passes 216 original
+and seven differential native tests. Its compiled guest validates all 84,145
+bodies and matches native documents through Reopen, but LongNote exceeds the
+unchanged execution-work limit: 1,050,844,704 attempted against 1,000,000,000.
+Commit remains unrun; consuming cleanup returns all fourteen currents and tickets
+to zero. No encoder or runtime policy is adopted. [Actual guest](verification/receipts/typed-writer-actual-guest-r832.json).
 
-The reviewed CLI inventory distinguishes real imports from comments and strings,
-preserves physical lines and handles an initial UTF-8 BOM. Its caller successor
-binds source118 `d9473684…` with unchanged Pair20 SDK/adapter/profile bytes.
-Main `1233b1be` passed seven of eight CI checks, including actual generated Java
-consumers; Swift crashed because two test helpers required a producer-only
-environment variable. The test-only correction uses the ordinary owned temporary
-directory and passes all 114 functions and 259 parameter cases with that variable
-absent. Fresh delivery CI remains pending. The failed hosted chain stays held.
-[Correction](verification/receipts/import-temp-root-adoption-r804.json) and
-[CI](verification/receipts/main1233-ci-r804.json).
-
-FieldLog entry-date editing passes all 82 host tests, 49 Android build commands
-and nine independent review cases. Native acceptance remains pending: two UI
-observation attempts failed, and the next emulator exited before boot because its
-userdata partition lacked disk space. Each disposable device was retired with
-positive cleanup and unchanged external baselines. The exact source ZIP and APK
-remain local development artifacts. [Feature](verification/receipts/fieldlog-entry-date-r780.json),
-[review](verification/receipts/fieldlog-entry-date-review-r788.json), and
-[latest native result](verification/receipts/fieldlog-entry-date-native-r802.json).
-
-Private VM work remains unselected. The escaped-value scanner candidate still
-hits the 64M cache-work limit on the actual LongNote turn after all 84,138 bodies
-validate; Commit is unrun and consuming cleanup reaches zero. A different encoder
-experiment failed at the provider level before implementation. Fresh work must
-check aggregate disk capacity as well as compiler/SDK compatibility. No private
-policy or code from these experiments is adopted. [Actual guest](verification/receipts/json-actual-wasm-r794.json)
-and [provider result](verification/receipts/typed-writer-provider-r810.json).
-
-Apple Accessibility trust remains false; no new iOS frontend is booted. The full
-W01–W18, D0–D8, API28, immutable-package and physical-phone requirements remain.
-All 38 GA gates are still unverified. No package, milestone or gate status changes.
+The private browser read boundary remains accepted in scope; its default listener
+is unmounted and its production identity provider unconfigured. The separate
+login-HTTP candidate remains unaccepted. Apple Accessibility trust remains false;
+no new iOS frontend is booted. The full W01–W18, D0–D8, API28, immutable-package
+and physical-phone requirements remain. All 38 GA gates are still unverified.
+No package, milestone or gate status changes.
 
 ## Development execution update: November 9, 2026
 

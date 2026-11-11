@@ -276,7 +276,7 @@ class Ownership(unittest.TestCase):
         old=(HERE/'current-verify.yml').read_text()
         new=(HERE/'verify.yml.candidate').read_text()
         base=a.load()
-        self.assertEqual(old.replace(base.job_text(old),''),new.replace(base.job_text(new),''))
+        self.assertEqual(old.replace(base.job_text(old),''),new.replace(a.swift_ci_graph(base, new),''))
         self.assertIn('--out "$RUNNER_TEMP/analyzer-envelope"',new)
         self.assertEqual((HERE/'incremental.patch').read_bytes(),(HERE/'full.patch').read_bytes())
 

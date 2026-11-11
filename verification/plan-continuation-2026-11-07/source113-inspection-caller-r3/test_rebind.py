@@ -163,15 +163,15 @@ class Rebinding(unittest.TestCase):
     def test_all_other_jobs_and_top_level_remain_identical(self):
         before = (HERE / 'current-verify.yml').read_text()
         after = (HERE / 'verify.yml.candidate').read_text()
-        self.assertEqual(before.replace(self.base.job_text(before), ''), after.replace(self.base.job_text(after), ''))
+        self.assertEqual(before.replace(self.base.job_text(before), ''), after.replace(a.swift_ci_graph(self.base, after), ''))
         self.assertEqual(after.count('adopt_envelope.py" run '), before.count('adopt_envelope.py" run '))
         old = self.base.job_text(before)
         expected = old
         for edit in json.loads((HERE / 'job-changes.json').read_text()):
             self.assertEqual(expected.count(edit['before']), edit['count'])
             expected = expected.replace(edit['before'], edit['after'])
-        self.assertEqual(expected, self.base.job_text(after))
-        sparse = self.base.job_text(after).split('          sparse-checkout: |\n', 1)[1].split('      - name:', 1)[0]
+        self.assertEqual(expected, a.swift_ci_graph(self.base, after))
+        sparse = a.swift_ci_graph(self.base, after).split('          sparse-checkout: |\n', 1)[1].split('      - name:', 1)[0]
         entries = [line.strip().lstrip('/') for line in sparse.splitlines()]
         history = json.loads((HERE / 'historical-closure.json').read_text())
         for row in history:

@@ -6834,5 +6834,49 @@
     },
     "scope": "Exact source-pin and caller binding only; no compiler, runtime, workflow or qualification transfer",
     "qualification": false
+  },
+  "swift_ci_independence_transition": {
+    "schema": 1,
+    "type": "EXACT_INDEPENDENT_SWIFT_CI_JOBS",
+    "jobs": [
+      "swift",
+      "swift-host",
+      "swift-runner-controls"
+    ],
+    "before": {
+      "bytes": 13336,
+      "sha256": "948c97e43e170197a3de4db16d239c5a99b513ae27d8dd317e56da372d7e0223"
+    },
+    "after": {
+      "bytes": 17531,
+      "sha256": "4878fbc5917c1a5a58202eb84de2fdaa87691bec48f0692c12a389a59d1d9184"
+    },
+    "host": {
+      "bytes": 13232,
+      "sha256": "caa37b6237e67210b15c6e63262862ee7970600f40818d9dcb3b9317f61390fc"
+    },
+    "controls": {
+      "bytes": 3679,
+      "sha256": "6d178273a434dfdc3b545844bc9a737b1c519148b82a1efba284a6c7c3102c2d"
+    },
+    "aggregate": {
+      "bytes": 620,
+      "sha256": "65b97dff46c629e54c3a8b34a5e2610f7a6809ca79a3e77f9d9b2809367ec119"
+    },
+    "prior_job_changes": {
+      "bytes": 26247,
+      "sha256": "214f85fb24e99707bd970f2d8b779812543b89839685cbcceb5c88fd4aeefc53"
+    },
+    "prior_binding": {
+      "bytes": 286914,
+      "sha256": "07599cde4c6aa7ef27e83e49aa776f73bd96552d4ba7d121e0004317c9d35e0a"
+    },
+    "duplicated_setup": [
+      "actions/checkout@v4 with the exact existing fetch-depth and sparse input closure",
+      "macos-15 and the existing DEVELOPER_DIR/TOOLCHAINS environment"
+    ],
+    "moved_step": "      - name: CI selection regression tests\n        run: python3 -m unittest discover -s scripts/ci/tests -v\n",
+    "source_changed": false,
+    "qualification": false
   }
 }

@@ -353,3 +353,13 @@ or cleanup. Only the copied top-level summary
 `verification/receipts/cli-import-ci-first-failure-r800.json` is a reference.
 The uploaded top-level SUITE-HOLD.json is absent; that is not absence evidence.
 Fresh test-only work in separate namespaces remains authorized.
+
+The fresh stderr-default control in run 42976700575, job 130377344219,
+reported a denied SIGKILL for owned PID/PGID1637: PermissionError/EPERM at
+signal-owned-group. Its top record reports direct reap, both EOFs and group
+absence, but descriptors_closed=false and terminal_custody=false. Preserve the
+exact command and `/private/var/folders/2s/vty41l455yv698g4xkgfv7z00000gn/T/generated-java-python-controls-bs1munr7`
+without inspection, probing, signals, waits, retries or cleanup. Read only the
+copied top-level `verification/receipts/stderr-signal-custody-r822.json`.
+The OS permission cause is unproven; the recorded absence does not override
+cleanup failure or release this or earlier holds. Independent work remains authorized.

@@ -102,8 +102,8 @@ class BindingControls(unittest.TestCase):
     def test_outside_swift_job_unchanged_and_old_controls_retained(self):
         old = (HERE / 'current-verify.yml').read_text()
         new = (HERE / 'verify.yml.candidate').read_text()
-        self.assertEqual(old.replace(self.base.job_text(old), ''), new.replace(self.base.job_text(new), ''))
-        old_job, new_job = self.base.job_text(old), self.base.job_text(new)
+        self.assertEqual(old.replace(self.base.job_text(old), ''), new.replace(a.swift_ci_graph(self.base, new), ''))
+        old_job, new_job = self.base.job_text(old), a.swift_ci_graph(self.base, new)
         self.assertEqual(old_job.count('python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v'), 1)
         self.assertEqual(new_job.count('python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v'), 1)
         self.assertEqual(new_job.count('adopt_envelope.py" run '), old_job.count('adopt_envelope.py" run '))
@@ -154,6 +154,113 @@ class BindingControls(unittest.TestCase):
             self.assertEqual(a.run_fixture(self.base, output, '/synthetic/no-process'), 1)
         receipt = json.loads((output / 'caller-binding-result.json').read_text())
         self.assertEqual(receipt['errors'][0]['message'], 'synthetic preserved exception')
+
+
+
+class SwiftCIIndependence(unittest.TestCase):
+    setUp = BindingControls.setUp
+
+    def job(self, text, name):
+        marker = '  ' + name + ':\n'
+        self.assertEqual(text.splitlines(True).count(marker), 1)
+        lines = text[text.index(marker):].splitlines(True)
+        end = next((i for i in range(1, len(lines))
+                    if lines[i].startswith('  ') and not lines[i].startswith('   ')
+                    and lines[i].rstrip().endswith(':')), len(lines))
+        return ''.join(lines[:end])
+
+    def steps(self, job):
+        parts = job.split('    steps:\n', 1)[1].split('      - ')
+        self.assertEqual(parts[0], '')
+        return ['      - ' + item for item in parts[1:]]
+
+    def test_every_original_test_step_executes_once_and_only_checkout_is_duplicated(self):
+        from collections import Counter
+        text = (HERE / 'verify.yml.candidate').read_text()
+        old = json.loads((HERE / 'job-changes.json').read_bytes())[-1]['before']
+        original = self.steps(old)
+        host = self.job(text, 'swift-host')
+        controls = self.job(text, 'swift-runner-controls')
+        observed = self.steps(host) + self.steps(controls)
+        self.assertEqual(Counter(observed), Counter(original + [original[0]]))
+        self.assertNotIn('needs:', host.split('    steps:\n', 1)[0])
+        self.assertNotIn('needs:', controls.split('    steps:\n', 1)[0])
+        self.assertNotIn('if:', host.split('    steps:\n', 1)[0])
+        self.assertNotIn('if:', controls.split('    steps:\n', 1)[0])
+        self.assertEqual(self.steps(controls), [original[0], a.SWIFT_CI_INDEPENDENCE_TRANSITION['moved_step']])
+        self.assertEqual(host.split('    steps:\n')[0].replace('swift-host:', 'swift:'),
+                         old.split('    steps:\n')[0])
+        self.assertEqual(controls.split('    steps:\n')[0].replace('swift-runner-controls:', 'swift:'),
+                         old.split('    steps:\n')[0])
+
+    def test_actual_aggregate_code_fails_all_failure_cancel_skip_combinations(self):
+        import textwrap
+        text = (HERE / 'verify.yml.candidate').read_text()
+        aggregate = self.job(text, 'swift')
+        self.assertIn('    name: swift\n    if: ${{ always() }}\n', aggregate)
+        self.assertIn('    needs: [swift-host, swift-runner-controls]\n', aggregate)
+        self.assertIn('        shell: python\n', aggregate)
+        self.assertIn('SWIFT_HOST_RESULT: ${{ needs.swift-host.result }}', aggregate)
+        self.assertIn('SWIFT_RUNNER_CONTROLS_RESULT: ${{ needs.swift-runner-controls.result }}', aggregate)
+        code = compile(textwrap.dedent(aggregate.split('        run: |\n', 1)[1]), '<actual-swift-aggregate>', 'exec')
+        for host in ('success', 'failure', 'cancelled', 'skipped'):
+            for controls in ('success', 'failure', 'cancelled', 'skipped'):
+                with self.subTest(host=host, controls=controls), patched(os, 'environ', {
+                        'SWIFT_HOST_RESULT': host, 'SWIFT_RUNNER_CONTROLS_RESULT': controls}), self.assertRaises(SystemExit) as result:
+                    exec(code, {})
+                self.assertEqual(result.exception.code, 0 if host == controls == 'success' else 1)
+
+    def test_each_job_and_historical_metadata_inverse_has_an_independent_code_pin(self):
+        text = (HERE / 'verify.yml.candidate').read_text()
+        transition = a.SWIFT_CI_INDEPENDENCE_TRANSITION
+        def identity(raw):
+            return {'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}
+        for job, key in [('swift', 'aggregate'), ('swift-host', 'host'), ('swift-runner-controls', 'controls')]:
+            self.assertEqual(identity(self.job(text, job).encode()), transition[key])
+        changes = json.loads((HERE / 'job-changes.json').read_bytes())
+        self.assertEqual(identity(changes[-1]['before'].encode()), transition['before'])
+        self.assertEqual(identity((json.dumps(changes[:-1], indent=2) + '\n').encode()), transition['prior_job_changes'])
+        binding = json.loads((HERE / 'binding.json').read_bytes())
+        del binding['swift_ci_independence_transition']
+        self.assertEqual(identity((json.dumps(binding, indent=2) + '\n').encode()), transition['prior_binding'])
+
+    def test_aggregate_host_and_controls_tampering_refuses_installed_admission(self):
+        text = (HERE / 'verify.yml.candidate').read_text()
+        for before, after in [
+                ('    name: swift\n    if: ${{ always() }}', '    name: swift\n    if: ${{ success() }}'),
+                ('needs: [swift-host, swift-runner-controls]', 'needs: [swift-host]'),
+                ("os.environ['SWIFT_RUNNER_CONTROLS_RESULT'] == 'success'", 'True'),
+                ('  swift-host:\n', '  swift-host:\n    needs: swift-runner-controls\n'),
+                ('  swift-runner-controls:\n', '  swift-runner-controls:\n    continue-on-error: true\n'),
+                ('run: python3 -m unittest discover -s scripts/ci/tests -v', 'run: true'),
+                ('  swift-runner-controls:\n', '  omitted-controls:\n')]:
+            self.assertIn(before, text)
+            self.workflow.write_text(text.replace(before, after, 1))
+            with self.subTest(mutation=before), patched(a, 'WORKFLOW', self.workflow), self.assertRaises(RuntimeError):
+                self.base.verify(True)
+
+    def test_resealed_old_job_changes_and_binding_metadata_tampering_refuses(self):
+        original = self.base.regular
+        for name in ('job-changes.json', 'binding.json'):
+            data = json.loads((HERE / name).read_bytes())
+            if isinstance(data, list):
+                data.insert(-1, {'before': '  swift:\n', 'after': '  swift:\n', 'count': 1})
+            else:
+                data['base_revision'] = '0' * 40
+            raw = (json.dumps(data, indent=2) + '\n').encode()
+            fake = self.workflow.parent / 'changed-metadata'
+            fake.write_bytes(raw)
+            seal = json.loads((HERE / 'seal.json').read_bytes())
+            for row in seal['members']:
+                if row['path'] == name:
+                    row.update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+            seal['tree_sha256'] = self.base.tree(seal['members'])
+            seal_path = self.workflow.parent / 'resealed'
+            seal_path.write_text(json.dumps(seal))
+            def redirect(path):
+                return original(fake if path == HERE / name else seal_path if path == HERE / 'seal.json' else path)
+            with self.subTest(metadata=name), patched(self.base, 'regular', redirect), self.assertRaisesRegex(RuntimeError, 'historical metadata inverse'):
+                self.base.verify(False)
 
 
 if __name__ == '__main__':

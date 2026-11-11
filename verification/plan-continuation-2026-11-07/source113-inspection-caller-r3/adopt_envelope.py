@@ -497,6 +497,24 @@ def pair19_predecessor_raw(base, path):
 CLI_ADVISORY_CALLER_TRANSITION = {'schema': 1, 'type': 'EXACT_CLI_ADVISORY_BOOTSTRAP_CALLER_SUCCESSOR', 'sourceCount': 118, 'sourceBefore': '595e737abd54e3aee17a74e05ba6f7f86a1196c9d73aed06c84ff3b197fe4c5b', 'sourceAfter': 'd947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7', 'path': 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py', 'before': {'bytes': 18682, 'sha256': '8472d92f401f7516f1b76d30c042052bb1cdceb5149e654b59bcab02643485f5'}, 'after': {'bytes': 18682, 'sha256': 'fe8d434f9fe5f35520838a7498b2356f5fa7cc4ad4641405ceb30191b4e22146'}, 'callerBefore': {'bytes': 2532, 'sha256': '571f11fafb077acc0921c24f47dd1e45844441251dad3ad5a8395053a8dd1ce8'}, 'callerAfter': {'bytes': 2532, 'sha256': '92ab439e7e5f52c15ff9720f8dab0a336dfa72e7199e6b125bcae69d02ffdd9d'}, 'scope': 'Exact source-pin and caller binding only; no compiler, runtime, workflow or qualification transfer', 'qualification': False}
 
 
+SWIFT_CI_INDEPENDENCE_TRANSITION = {'schema': 1, 'type': 'EXACT_INDEPENDENT_SWIFT_CI_JOBS', 'jobs': ['swift', 'swift-host', 'swift-runner-controls'], 'before': {'bytes': 13336, 'sha256': '948c97e43e170197a3de4db16d239c5a99b513ae27d8dd317e56da372d7e0223'}, 'after': {'bytes': 17531, 'sha256': '4878fbc5917c1a5a58202eb84de2fdaa87691bec48f0692c12a389a59d1d9184'}, 'host': {'bytes': 13232, 'sha256': 'caa37b6237e67210b15c6e63262862ee7970600f40818d9dcb3b9317f61390fc'}, 'controls': {'bytes': 3679, 'sha256': '6d178273a434dfdc3b545844bc9a737b1c519148b82a1efba284a6c7c3102c2d'}, 'aggregate': {'bytes': 620, 'sha256': '65b97dff46c629e54c3a8b34a5e2610f7a6809ca79a3e77f9d9b2809367ec119'}, 'prior_job_changes': {'bytes': 26247, 'sha256': '214f85fb24e99707bd970f2d8b779812543b89839685cbcceb5c88fd4aeefc53'}, 'prior_binding': {'bytes': 286914, 'sha256': '07599cde4c6aa7ef27e83e49aa776f73bd96552d4ba7d121e0004317c9d35e0a'}, 'duplicated_setup': ['actions/checkout@v4 with the exact existing fetch-depth and sparse input closure', 'macos-15 and the existing DEVELOPER_DIR/TOOLCHAINS environment'], 'moved_step': '      - name: CI selection regression tests\n        run: python3 -m unittest discover -s scripts/ci/tests -v\n', 'source_changed': False, 'qualification': False}
+
+
+def swift_ci_graph(base, text):
+    """Extract the three admitted adjacent jobs; historical job parsing stays sealed."""
+    jobs = SWIFT_CI_INDEPENDENCE_TRANSITION['jobs']
+    markers = ['  ' + job + ':\n' for job in jobs]
+    base.need(all(text.splitlines(keepends=True).count(marker) == 1 for marker in markers),
+              'Installed ordinary Swift job differs: exactly one aggregate and each independent job required')
+    start = text.index(markers[0])
+    last = text.index(markers[-1])
+    base.need(start < text.index(markers[1]) < last, 'Installed ordinary Swift job differs: job order')
+    # Reuse the historical single-job parser on the final isolated job block.
+    tail = base.job_text(text[last:].replace(markers[-1], markers[0], 1))
+    tail = tail.replace(markers[0], markers[-1], 1)
+    return text[start:last] + tail
+
+
 def bind():
     base = load()
     historical_verify = base.verify
@@ -634,9 +652,17 @@ def bind():
             base.need(expected.count(change['before']) == change['count'], 'Successor edit preimage differs')
             expected = expected.replace(change['before'], change['after'])
         base.need(expected == base.regular(HERE / 'swift-job.yml').read_text(), 'Successor job derivation differs')
+        independence = SWIFT_CI_INDEPENDENCE_TRANSITION
+        base.need(same_json(binding.get('swift_ci_independence_transition'), independence), 'Swift CI independence transition differs')
+        base.need(same_json({'bytes':len(expected.encode()), 'sha256':hashlib.sha256(expected.encode()).hexdigest()}, independence['after']), 'Swift CI independently pinned graph differs')
+        prior_changes = json.loads(base.regular(HERE / 'job-changes.json').read_bytes(), object_pairs_hook=base.unique_object)[:-1]
+        prior_binding = {key:value for key,value in binding.items() if key != 'swift_ci_independence_transition'}
+        for value, key in ((prior_changes, 'prior_job_changes'), (prior_binding, 'prior_binding')):
+            raw = (json.dumps(value, indent=2) + '\n').encode()
+            base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, independence[key]), 'Swift CI historical metadata inverse differs')
         base.need(CALLER_AFTER in expected and 'scripts/ci/prepare-cli-host-tests.py' in expected, 'Accepted caller missing')
         if installed:
-            base.need(base.job_text(base.regular(WORKFLOW).read_text()) == expected, 'Installed ordinary Swift job differs from successor candidate')
+            base.need(swift_ci_graph(base, base.regular(WORKFLOW).read_text()) == expected, 'Installed ordinary Swift job differs from successor candidate')
         return {**proof, 'historical_workflow_job_sha256':proof['workflow_job_sha256'], 'workflow_job_sha256':hashlib.sha256(expected.encode()).hexdigest(), 'installed_job_verified':installed, 'caller_binding_seal_sha256':base.sha(HERE / 'seal.json'), 'source_count':len(current_actual), 'source_sha256':digest, 'profile':binding['profile'], 'historical_closure_sha256':base.sha(HERE / 'historical-closure.json')}
     base.verify = verify
     return base

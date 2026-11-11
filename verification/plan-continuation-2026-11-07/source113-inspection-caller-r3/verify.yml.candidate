@@ -66,6 +66,24 @@ jobs:
           if-no-files-found: warn
           path: ${{ runner.temp }}/android-owner-*/
   swift:
+    name: swift
+    if: ${{ always() }}
+    needs: [swift-host, swift-runner-controls]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require independent Swift host and runner controls
+        shell: python
+        env:
+          SWIFT_HOST_RESULT: ${{ needs.swift-host.result }}
+          SWIFT_RUNNER_CONTROLS_RESULT: ${{ needs.swift-runner-controls.result }}
+        run: |
+          import os
+          raise SystemExit(0 if (
+              os.environ['SWIFT_HOST_RESULT'] == 'success' and
+              os.environ['SWIFT_RUNNER_CONTROLS_RESULT'] == 'success'
+          ) else 1)
+  swift-host:
     runs-on: macos-15
     timeout-minutes: 30
     env:
@@ -128,8 +146,6 @@ jobs:
             --developer-dir "$DEVELOPER_DIR" \
             --xcode-version 26.3 --xcode-build 17C529 \
             --output "$RUNNER_TEMP/apple-toolchain.json"
-      - name: CI selection regression tests
-        run: python3 -m unittest discover -s scripts/ci/tests -v
       - name: Policy and acceptance integrity
         run: python3 scripts/check-policy.py
       - name: Accepted standalone analyzer fixture framing
@@ -293,6 +309,65 @@ jobs:
             ${{ runner.temp }}/apple-toolchain.json
             ${{ runner.temp }}/native-vm/receipt.json
             ${{ runner.temp }}/VerificationApp/mixer.lock
+  swift-runner-controls:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      # runner-images macos-15-arm64/20260907.0337 includes this installation;
+      # its default Xcode 16.4 supplies Swift 6.1 and cannot build the CLI.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Builder boundary fixtures read the independently reviewed native pin.
+          fetch-depth: 0
+          # Retain source and every policy manifest; omit unrelated old receipts.
+          # Complete framing seals, envelope pack and external test inputs remain.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/verification/*
+            /verification/**/Package.swift
+            /verification/**/Package.resolved
+            /verification/**/Cargo.toml
+            /verification/**/Cargo.lock
+            /verification/**/package.json
+            /verification/**/package-lock.json
+            /verification/**/go.mod
+            /verification/**/go.sum
+            /verification/**/build.gradle
+            /verification/**/build.gradle.kts
+            /verification/**/settings.gradle.kts
+            /verification/runtime-review/
+            /verification/guest-capability-contract/
+            /verification/swift-ordered-retention-analyzer-library/
+            /verification/swift-ordered-retention-analyzer-library-review/
+            /verification/swift-envelope-ci-pack/
+            /verification/envelope-producer-timeout-experiment/candidate_runner.py
+            /verification/envelope-producer-timeout-experiment/overlay.json
+            /verification/envelope-producer-timeout-experiment/producer-partition.json
+            /verification/envelope-partition-default-ci-adoption/
+            /verification/envelope-rust-1991-default-ci-adoption/
+            /verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/
+            /verification/plan-continuation-2026-11-07/envelope-profile10-rebind-r3/
+            /verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/
+            /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/workflow-proposal.yml
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/sources/swift-releases.yml
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/sources/download-head.json
+            /verification/plan-continuation-2026-11-07/envelope-r2-hosted-actual-review/review.json
+            /verification/swift-envelope-ci-root-review/compiler-qualification-selection-amendment.json
+            /verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json
+            /verification/android-default-appearance-packaging/run-2/created-descriptor.json
+            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+            /verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json
+            /verification/ui-appearance-foundation/design-corpus.json
+      - name: CI selection regression tests
+        run: python3 -m unittest discover -s scripts/ci/tests -v
   swift-capability-native:
     runs-on: macos-15
     timeout-minutes: 30
