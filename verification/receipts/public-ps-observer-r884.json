@@ -1,0 +1,160 @@
+{
+  "id": "R884_PUBLIC_PS_OBSERVER_QUALIFICATION",
+  "status": "BLOCKED_BEFORE_LAUNCH",
+  "blockerType": "PUBLIC_API_CONTRACT_NOT_ESTABLISHED",
+  "recordedAtUTC": "2026-11-11T09:39:43.667443+00:00",
+  "baseCommitProvidedByRoot": "00d584fd9d2733d86b729fa24d45515001fc0ff6",
+  "rootGitInspected": false,
+  "decision": {
+    "name": "Documented Apple empty-selected-set result semantics",
+    "detail": "No public Apple ps(1) contract states the exit status/stdout/stderr tuple for an exact process-group query selecting no processes, or guarantees that this tuple distinguishes an empty observable set from a failed/incomplete query. POSIX nonzero-is-error does not authorize interpreting Apple exit 1 plus empty output as GONE.",
+    "emptySelectedSetGoneEvidence": null,
+    "whyNotProbeToInfer": "User requires public contract before controls. A fresh control could characterize a result but cannot supply the missing public guarantee."
+  },
+  "selectionCandidateNotExecuted": {
+    "argv": [
+      "/bin/ps",
+      "-x",
+      "-g",
+      "<persisted-positive-PGID>",
+      "-o",
+      "pid=,pgid="
+    ],
+    "environment": {
+      "COMMAND_MODE": "unix2003",
+      "LC_ALL": "C"
+    },
+    "selection": "One positive persisted owned PGID only; no other selection option; -x retains processes without a controlling terminal; header-free numeric fields would be validated exactly.",
+    "publicSelectionBasis": "Installed Apple ps(1), options -g, -x, -o and keywords pid/pgid. Apple-specific group selection; POSIX -g means session-leader selection and is not substituted.",
+    "legacyHazard": "Installed ps(1) says legacy -g is ignored; installed compat(5) documents explicit COMMAND_MODE=unix2003.",
+    "scopeIfLaterAdmitted": "Fresh bounded same-user groups with no credential changes, privileged descendants or escaping children; macOS only. No historical group, Linux, arbitrary child tree, or unrestricted visibility qualification."
+  },
+  "environment": {
+    "macOS": "27.0.1",
+    "build": "26A434",
+    "Darwin": "27.0.0",
+    "arch": "arm64",
+    "pythonCommand": "/usr/bin/python3",
+    "pythonVersion": "3.9.6",
+    "ps": "/bin/ps",
+    "psVersion": "No version flag documented; binary identified by SHA256",
+    "psSHA256": "a06fe087161557f1f8c030672eaedcd90bc6a8e92b8f2d44e07cffedc3349205"
+  },
+  "outcomes": {
+    "live": "NOT_RUN",
+    "gone": "NOT_QUALIFIED",
+    "unknown": "Admission refused before runtime; no runtime custody conclusion"
+  },
+  "runtimeControls": {
+    "maximum": 5,
+    "started": 0,
+    "observerQueries": 0,
+    "processSignals": 0,
+    "freshOwnedGroups": [],
+    "processDiagnosticBatches": 0,
+    "harnessCorrections": 0,
+    "compilerBuilds": 0
+  },
+  "elapsedLimitMinutes": 15,
+  "startedAtUTC": "2026-11-11T09:35:57+00:00",
+  "elapsedScope": "Wall-clock documentation/admission work only; no process-observer timing result.",
+  "cleanup": {
+    "status": "NOT_REQUIRED_NO_CONTROL_LAUNCHED",
+    "newUnknownHold": false,
+    "heldResourcesTouched": false
+  },
+  "boundedPlatformToolBoundary": {
+    "proposedOnly": true,
+    "description": "If later admitted, trusted read-only /bin/ps may inherit controller group, with bounded stdout/stderr and deadline, direct reap and both EOFs recorded. No recursive observer group is required for that helper. This exception would not confer absence for the target group.",
+    "helpersLaunchedForObservation": 0
+  },
+  "independentReview": "NOT_APPLICABLE_NO_QUALIFIED_OBSERVER; no subchildren allowed; root selects any later review",
+  "canonicalRunnerRead": false,
+  "productionRunnerChanged": false,
+  "productionTestsFixturesCeilingsChanged": false,
+  "historicalHoldsReleased": false,
+  "heldResourcesAccessed": false,
+  "historicalUnderlyingOSCause": "UNPROVEN",
+  "gitUsed": false,
+  "subchildrenUsed": false,
+  "devicesUsed": false,
+  "providerDatabaseRemoteMutation": false,
+  "CIIntegration": false,
+  "cacheIntegration": false,
+  "productionQualified": false,
+  "GA": false,
+  "primaryReferences": [
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/adv_cmds/main/ps/ps.1",
+      "sha256": "fbddf023ce4960c7e6eadebcfb7f0badf0ab6c3f59b2b97c2807d3f67a85142d",
+      "snapshot": "verification/local/public-ps-observer-r884/apple-ps-man.txt"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/adv_cmds/main/ps/ps.c",
+      "sha256": "d338ad022a81a53a3f34149778b0a3dbe3e31b154395589c333c080ad308ea5a",
+      "snapshot": "verification/local/public-ps-observer-r884/apple-ps-source.txt"
+    },
+    {
+      "url": "https://pubs.opengroup.org/onlinepubs/009695399/utilities/ps.html",
+      "sha256": "1d943db5816580e3dd2079ae257844b449dec7ce52fac88d6b859abb689785c4",
+      "snapshot": "verification/local/public-ps-observer-r884/posix-susv3-ps.txt"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "verification/local/public-ps-observer-r884/REPORT.txt",
+      "bytes": 3420,
+      "sha256": "3d4ef179d37f189d0bf9311e6cccb3e7f64b6cfb84f90b92ad83dd94205efd92"
+    },
+    {
+      "path": "verification/local/public-ps-observer-r884/admission.json",
+      "bytes": 6188,
+      "sha256": "e13076e119ffaf72c44b700efb1ac027c23b7ce19a93132ecd96f161bfbc0d54"
+    },
+    {
+      "path": "verification/local/public-ps-observer-r884/apple-ps-man.txt",
+      "bytes": 18590,
+      "sha256": "fbddf023ce4960c7e6eadebcfb7f0badf0ab6c3f59b2b97c2807d3f67a85142d"
+    },
+    {
+      "path": "verification/local/public-ps-observer-r884/apple-ps-source.txt",
+      "bytes": 36552,
+      "sha256": "d338ad022a81a53a3f34149778b0a3dbe3e31b154395589c333c080ad308ea5a"
+    },
+    {
+      "path": "verification/local/public-ps-observer-r884/commands.json",
+      "bytes": 4134,
+      "sha256": "b9dd1d7ac0d94c0a42c0d2e42dd0766bc44188798cb168165ef6fc4d9251d019"
+    },
+    {
+      "path": "verification/local/public-ps-observer-r884/input-evidence.json",
+      "bytes": 4438,
+      "sha256": "7c3e4c10e914e656f0ee69fec6fd12a1d8140ebd71454a079037a30a47a88be2"
+    },
+    {
+      "path": "verification/local/public-ps-observer-r884/installed-compat.5.txt",
+      "bytes": 4130,
+      "sha256": "8ee43e3dfd2f9e567271ff4e95da8d651a9ab6c4f46cb37caf536df1d26bb71d"
+    },
+    {
+      "path": "verification/local/public-ps-observer-r884/installed-ps.1.txt",
+      "bytes": 18590,
+      "sha256": "fbddf023ce4960c7e6eadebcfb7f0badf0ab6c3f59b2b97c2807d3f67a85142d"
+    },
+    {
+      "path": "verification/local/public-ps-observer-r884/posix-susv3-ps.txt",
+      "bytes": 30466,
+      "sha256": "1d943db5816580e3dd2079ae257844b449dec7ce52fac88d6b859abb689785c4"
+    }
+  ],
+  "totalLocalArtifactBytes": 126508,
+  "staged": false,
+  "artifactPolicyCheck": "Not run: no Git staging authorized or performed. Outputs restricted to owned ignored local directory plus this compact receipt.",
+  "verification": {
+    "type": "Owned artifact readback and JSON parse; not runtime observer qualification",
+    "manifestEntriesVerified": 9,
+    "documentAssertionsPassed": true,
+    "allOwnedPaths": true,
+    "receiptParsed": true
+  }
+}

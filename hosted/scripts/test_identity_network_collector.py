@@ -2687,37 +2687,56 @@ class CurrentCLISelectionControls(unittest.TestCase):
 
 
 class WorkflowSparseSourceControls(unittest.TestCase):
-    def test_identity_sparse_checkout_admits_real_current_source(self):
-        import contextlib
-        import shutil
-        import uuid
+    # Deliberately limited projection, not a general Git wildmatch interpreter.
+    # Only positive rooted files/directories and this one-component family work.
+    FAMILY = "/verification/identity-network-current-source-v*/**"
+    PIN = "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211"
+    DIGEST = "2cdc4df04d645fee0ca7d6e33aa02d96d02b8bc7cd3fb6848476d0a2bc7a7c11"
 
-        root = COLLECTOR_PATH.resolve().parents[2]
-        workflow = (root / ".github/workflows/identity-network.yml").read_text()
+    def patterns(self, workflow, job):
+        lines = workflow.splitlines(keepends=True)
+        marker = "  " + job + ":\n"
+        self.assertEqual(1, lines.count(marker))
+        start = lines.index(marker) + 1
+        end = next((i for i in range(start, len(lines))
+                    if lines[i].startswith("  ") and not lines[i].startswith("   ")
+                    and lines[i].strip()), len(lines))
+        block = "".join(lines[start:end])
         marker = "          sparse-checkout: |\n"
-        self.assertEqual(1, workflow.count(marker))
-        patterns = []
-        for line in workflow.split(marker, 1)[1].splitlines():
+        self.assertEqual(1, block.count(marker))
+        self.assertIn("          sparse-checkout-cone-mode: false\n", block)
+        result = []
+        for line in block.split(marker, 1)[1].splitlines():
             if not line.startswith("            "):
                 break
-            pattern = line[12:]
-            relative = pattern[1:-3] if pattern.endswith("/**") else pattern[1:]
-            # This projection supports only the workflow's positive rooted
-            # prefixes and exact files; other Git wildmatch syntax must fail.
-            self.assertTrue(pattern.startswith("/") and relative)
-            self.assertTrue(all(c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/" for c in relative), pattern)
-            self.assertTrue(all(part not in ("", ".", "..") for part in relative.split("/")), pattern)
-            patterns.append((relative, pattern.endswith("/**")))
-        self.assertTrue(patterns)
+            result.append(line[12:])
+        self.assertTrue(result)
+        return result
 
-        raw = (root / "verification/identity-network-current-source-v6/selection.json").read_bytes()
-        pin = "243a0cbb98f15f048d0d12dbf5d6fb5ff89e616d0f21dd0dba786fe8fac1e211"
-        self.assertEqual(pin, hashlib.sha256(raw).hexdigest())
-        expected = json.loads(raw)["selected"]
-        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
-            sparse = Path(directory)
-            for relative, recursive in patterns:
+    def materialize(self, root, sparse, patterns):
+        import shutil
+        for pattern in patterns:
+            # Qualified collector-input projection: these two Go-only inputs
+            # are unavailable in the identity job and never read by the collector.
+            if pattern in ("/services/", "/contracts/release-v2.json"):
+                continue
+            if pattern == self.FAMILY:
+                # glob's '*' matches within one directory component here.
+                sources = sorted((root / "verification").glob("identity-network-current-source-v*"))
+                self.assertTrue(sources)
+                self.assertTrue(all(p.is_dir() and not p.is_symlink() for p in sources))
+                rows = [(p.relative_to(root).as_posix(), True) for p in sources]
+            else:
+                recursive = pattern.endswith(("/**", "/"))
+                relative = pattern[1:-3] if pattern.endswith("/**") else pattern[1:].rstrip("/")
+                self.assertTrue(pattern.startswith("/") and relative, pattern)
+                self.assertTrue(all(c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/"
+                                    for c in relative), pattern)
+                self.assertTrue(all(part not in ("", ".", "..") for part in relative.split("/")), pattern)
+                rows = [(relative, recursive)]
+            for relative, recursive in rows:
                 source, destination = root / relative, sparse / relative
+                self.assertFalse(source.is_symlink(), relative)
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 if recursive:
                     self.assertTrue(source.is_dir(), relative)
@@ -2725,23 +2744,100 @@ class WorkflowSparseSourceControls(unittest.TestCase):
                 else:
                     self.assertTrue(source.is_file(), relative)
                     shutil.copyfile(source, destination)
-            path = sparse / "hosted/scripts/test-identity-network.py"
-            name = "identity_sparse_control_" + uuid.uuid4().hex
-            spec = importlib.util.spec_from_file_location(name, path)
-            subject = importlib.util.module_from_spec(spec)
-            sys.modules[name] = subject  # dataclasses resolves this fresh identity.
-            try:
-                spec.loader.exec_module(subject)
-                output = io.StringIO()
-                with contextlib.redirect_stdout(output):
-                    self.assertEqual(0, subject.main(["--check-source"]))
-                observed = json.loads(output.getvalue())
-                self.assertEqual(expected["source_count"], observed["source_count"])
-                self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-                self.assertEqual(pin, observed["selection_sha256"])
-                self.assertFalse(observed["runtime_or_GA_accepted"])
-            finally:
-                sys.modules.pop(name, None)
+
+    def check_real_main(self, sparse):
+        import contextlib
+        import uuid
+        path = sparse / "hosted/scripts/test-identity-network.py"
+        name = "identity_sparse_control_" + uuid.uuid4().hex
+        spec = importlib.util.spec_from_file_location(name, path)
+        subject = importlib.util.module_from_spec(spec)
+        sys.modules[name] = subject
+        try:
+            spec.loader.exec_module(subject)
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(0, subject.main(["--check-source"]))
+            observed = json.loads(output.getvalue())
+            self.assertEqual(214, observed["source_count"])
+            self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
+            self.assertEqual(self.PIN, observed["selection_sha256"])
+            self.assertFalse(observed["runtime_or_GA_accepted"])
+            return observed
+        finally:
+            sys.modules.pop(name, None)
+
+    def project_consumer(self, workflow_path, job):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        raw = (root / "verification/identity-network-current-source-v6/selection.json").read_bytes()
+        self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
+        patterns = self.patterns((root / workflow_path).read_text(), job)
+        self.assertIn(self.FAMILY, patterns)
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            sparse = Path(directory)
+            self.materialize(root, sparse, patterns)
+            # The controls themselves read both actual workflow definitions.
+            for workflow in ("identity-network.yml", "verify.yml"):
+                self.assertEqual((root / ".github/workflows" / workflow).read_bytes(),
+                                 (sparse / ".github/workflows" / workflow).read_bytes())
+            self.check_real_main(sparse)
+
+    def test_identity_sparse_checkout_admits_real_current_source(self):
+        self.project_consumer(".github/workflows/identity-network.yml", "identity-network")
+
+    def test_services_sparse_checkout_admits_real_current_source(self):
+        self.project_consumer(".github/workflows/verify.yml", "services")
+
+    def test_services_original_missing_v6_fails_real_import(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        patterns = self.patterns((root / ".github/workflows/verify.yml").read_text(), "services")
+        self.assertIn(self.FAMILY, patterns)
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            sparse = Path(directory)
+            self.materialize(root, sparse, [p for p in patterns if p != self.FAMILY])
+            with self.assertRaisesRegex(FileNotFoundError, "identity-network-current-source-v6/selection.json"):
+                self.check_real_main(sparse)
+
+    def test_family_copies_future_metadata_sidecars_in_one_component(self):
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            root, sparse = Path(directory) / "input", Path(directory) / "output"
+            for relative in ("verification/identity-network-current-source-v6/selection.json",
+                             "verification/identity-network-current-source-v999/authority/nested.json",
+                             "verification/identity-network-current-source-v999/current-authority.json",
+                             "verification/unrelated/identity-network-current-source-v999/selection.json"):
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b"inert sidecar")
+            self.materialize(root, sparse, [self.FAMILY])
+            self.assertEqual(b"inert sidecar", (sparse / "verification/identity-network-current-source-v999/authority/nested.json").read_bytes())
+            self.assertEqual(b"inert sidecar", (sparse / "verification/identity-network-current-source-v999/current-authority.json").read_bytes())
+            self.assertFalse((sparse / "verification/unrelated").exists())
+
+    def test_projection_refuses_unsupported_wildmatch_and_aliases(self):
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            root = Path(directory)
+            for pattern in ("!/hosted/", "/verification/*/**", "/verification/identity-network-current-source-v?/**",
+                            "/verification/identity-network-current-source-v[67]/**", "/hosted/../escape/", "/hosted//bad/"):
+                with self.subTest(pattern=pattern), self.assertRaises(AssertionError):
+                    self.materialize(root, root / "output", [pattern])
+
+    def test_future_checkout_metadata_does_not_select_or_replace_authority(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        patterns = self.patterns((root / ".github/workflows/verify.yml").read_text(), "services")
+        with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
+            sparse = Path(directory)
+            self.materialize(root, sparse, patterns)
+            future = sparse / "verification/identity-network-current-source-v999/selection.json"
+            future.parent.mkdir(parents=True)
+            future.write_bytes(b'{"selected":{"source_count":999}}')
+            self.check_real_main(sparse)
+            selected = sparse / "verification/identity-network-current-source-v6/selection.json"
+            selected.write_bytes(selected.read_bytes() + b" ")
+            with self.assertRaisesRegex(ValueError, "selection pin mismatch"):
+                self.check_real_main(sparse)
+            selected.unlink()
+            with self.assertRaisesRegex(FileNotFoundError, "identity-network-current-source-v6/selection.json"):
+                self.check_real_main(sparse)
 
 
 if __name__ == "__main__":

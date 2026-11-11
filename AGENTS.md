@@ -371,3 +371,22 @@ source, logs and outputs, without inspection, probing, signals, waits, retry or
 cleanup. Only `verification/receipts/database-commit-ack-r852.json` is a permitted
 reference. Its seven observed database outcomes remain narrowly scoped evidence;
 the unrecorded bind error and port state are unresolved. No historical hold is released.
+
+The fresh Swift runner controls in run 42991327875, job 130424678769, recorded
+denied SIGKILL/EPERM for PID/PGID 1273 in `stderr-default`. Preserve that exact
+command and `/private/var/folders/2s/vty41l455yv698g4xkgfv7z00000gn/T/generated-java-python-controls-9bvzaeez`
+without inspection, probing, signals, waits, retries or cleanup. Its direct reap,
+EOFs and reported group absence do not override descriptors_closed=false and
+terminal_custody=false. Use only the copied top-level
+`verification/receipts/swift-stderr-custody-r876.json`. The OS cause is unproven.
+
+The normal cache descendant control in run 42991327875, job 130424678859,
+left UNKNOWN custody for PID/PGID 1149 after EPERM in commands.py:16, `gone`,
+calling os.killpg(pgid, 0). Preserve that exact group and
+`/Users/runner/work/mixer/mixer/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/evidence/original-normal-9gb1r7wd/scratch/mixer-cache-runner-controls-6_ixyrm8`
+in full without inspection, probing, signals, waits, retries or cleanup. Read only
+`verification/receipts/cache-normal-custody-r876.json`; do not inspect additional
+members of the copied R876 cache-artifact.zip. The normal run stopped after 29
+tests. Later optimized/contract logs in the archive are not current execution
+evidence. Child return, dispatched kill and GitHub cleanup do not prove absence;
+all earlier holds remain active.

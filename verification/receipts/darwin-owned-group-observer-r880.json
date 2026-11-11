@@ -1,0 +1,90 @@
+{
+  "id": "R880_DARWIN_PUBLIC_API_OBSERVER_QUALIFICATION",
+  "status": "BLOCKED_BEFORE_LAUNCH",
+  "blockerType": "PUBLIC_API_CONTRACT_NOT_ESTABLISHED",
+  "recordedAtUTC": "2026-11-11T09:25:59.979689+00:00",
+  "baseCommitProvidedByRoot": "00d584fd9d2733d86b729fa24d45515001fc0ff6",
+  "rootGitInspected": false,
+  "sourceIdentity": "SHA256 of actual read inputs in local-sdk-evidence.json; supplied commit not revalidated",
+  "environment": {
+    "macOS": "27.0.1",
+    "build": "26A434",
+    "Darwin": "27.0.0",
+    "Xcode": "27.2",
+    "XcodeBuild": "27B52",
+    "SDK": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.2.sdk",
+    "Python": "3.14.8"
+  },
+  "decision": "Installed SDK and Apple DTS identify libproc interfaces as private. Required public observer contract not established. Stop before ctypes or controls.",
+  "runtimeControls": {
+    "allowedMaximum": 5,
+    "started": 0,
+    "observerQueries": 0,
+    "processSignals": 0,
+    "freshOwnedGroups": [],
+    "diagnosticModuleImportsOrCompiles": 0,
+    "harnessCorrections": 0
+  },
+  "outcomes": {
+    "live": "NOT_RUN",
+    "gone": "NOT_RUN",
+    "unavailable": "STATIC_ADMISSION_REFUSAL; runtime control NOT_RUN"
+  },
+  "elapsed": "No control launched; no process/group observation duration or runtime timing result claimed.",
+  "originalKillpgObserverChanged": false,
+  "productionRunnerChanged": false,
+  "protocolFixturesChanged": false,
+  "underlyingHistoricalOSCause": "UNPROVEN",
+  "historicalHoldsReleased": false,
+  "heldResourcesAccessed": false,
+  "cleanup": {
+    "status": "NOT_REQUIRED_NO_CONTROL_LAUNCHED",
+    "heldResourcesTouched": false
+  },
+  "independentReview": "NOT_REQUESTED: no qualified observer to review; root owns review selection before any future integration",
+  "CIIntegration": false,
+  "cacheIntegration": false,
+  "productionQualified": false,
+  "GA": false,
+  "artifacts": [
+    {
+      "path": "verification/local/darwin-owned-group-observer-r880/admission.json",
+      "bytes": 3279,
+      "sha256": "95bfbb59e4c9a7913c5ffe4e37531aff16ef335c648000283c8a1004258db051"
+    },
+    {
+      "path": "verification/local/darwin-owned-group-observer-r880/local-sdk-evidence.json",
+      "bytes": 4141,
+      "sha256": "50725b33901666630e12b7dda83cc7eefa698a17776e27c893b2f59df55f995f"
+    },
+    {
+      "path": "verification/local/darwin-owned-group-observer-r880/REPORT.txt",
+      "bytes": 1968,
+      "sha256": "aa28769e50689b520f3b76058549d5b64073965156517bf0d6fe59f5e25612c6"
+    }
+  ],
+  "primaryReferences": [
+    {
+      "url": "https://github.com/apple-oss-distributions/xnu/blob/main/libsyscall/wrappers/libproc/libproc.h",
+      "owner": "Apple",
+      "locator": "header private-interface notice; proc_listpids and proc_listpgrppids declarations",
+      "finding": "Apple-published source contains the same private-interface warning as the installed SDK.",
+      "binding": "Published main source inspected on this date; not a claim that it matches the installed binary."
+    },
+    {
+      "url": "https://developer.apple.com/forums/thread/837541",
+      "owner": "Apple DTS Engineer",
+      "locator": "Apple staff reply, July 2026, paragraphs following header quotation (web extraction lines 48-57)",
+      "finding": "Apple staff distinguish these private libproc interfaces from public API and explicitly decline a stability/support guarantee."
+    },
+    {
+      "url": "https://github.com/apple-oss-distributions/xnu/blob/main/libsyscall/wrappers/libproc/libproc.c",
+      "owner": "Apple",
+      "locator": "proc_listpids; proc_listpgrppids",
+      "finding": "In the published wrapper proc_listpids maps __proc_info failure -1 to 0; proc_listpgrppids divides the returned byte count by sizeof(int). Zero alone is therefore not a sufficient absence fact.",
+      "binding": "Source observation only. No current-runtime errno, truncation, filtering, visibility or empty-result guarantee is established."
+    }
+  ],
+  "staged": false,
+  "artifactPolicyCheck": "Not run: no Git staging authorized or performed; new outputs are confined to the owned ignored local namespace plus this compact receipt."
+}

@@ -1,0 +1,111 @@
+{
+  "id": "R888_CURRENT_MAIN_CI",
+  "observedUTC": "2026-11-11 09:39:04 UTC",
+  "commit": "00d584fd9d2733d86b729fa24d45515001fc0ff6",
+  "status": "COMPLETED_WITH_THREE_INDEPENDENT_ENGINE_FAILURES_AND_REQUIRED_AGGREGATE_FAILURE",
+  "runs": {
+    "engine": 42991327875,
+    "phoenix": 42991327815,
+    "identity": 42991327871,
+    "retention": 42991327946
+  },
+  "engineJobs": [
+    {
+      "id": 130424678553,
+      "name": "swift-capability-native",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130424678591,
+      "name": "swift-host",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130424678673,
+      "name": "vm",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130424678769,
+      "name": "swift-runner-controls",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 130424678859,
+      "name": "swift-cache-state-fixture",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 130424679032,
+      "name": "services",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 130424679305,
+      "name": "android-owner-host",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130424679327,
+      "name": "android-generated-java",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 130430359594,
+      "name": "swift",
+      "status": "completed",
+      "conclusion": "failure"
+    }
+  ],
+  "otherJobs": {
+    "phoenix": "success",
+    "identity": "success",
+    "retention": "success"
+  },
+  "hostEvidence": {
+    "job": 130424678591,
+    "SDK": {
+      "XCTest": 8,
+      "SwiftTesting": 208,
+      "total": 216
+    },
+    "CLI": 114,
+    "selectedActualLogLines": [
+      "2026-11-11T09:04:15.4886170Z \t Executed 8 tests, with 0 failures (0 unexpected) in 0.127 (0.129) seconds",
+      "2026-11-11T09:04:15.4887390Z \t Executed 8 tests, with 0 failures (0 unexpected) in 0.127 (0.131) seconds",
+      "2026-11-11T09:04:20.2679810Z ✔ Test run with 208 tests in 0 suites passed after 4.831 seconds.",
+      "2026-11-11T09:07:10.3790150Z ✔ Test run with 114 tests in 3 suites passed after 71.537 seconds.",
+      "2026-11-11T09:07:55.1396560Z \t Executed 8 tests, with 0 failures (0 unexpected) in 0.006 (0.007) seconds"
+    ]
+  },
+  "servicesFailure": {
+    "cause": "Collector import requires v6 selection metadata omitted from services sparse checkout",
+    "reviewedFix": "verification/receipts/collector-consumer-review-r888.json",
+    "actualCIOnFix": "pending"
+  },
+  "swiftFailure": {
+    "job": 130424678769,
+    "hold": "verification/receipts/swift-stderr-custody-r876.json",
+    "underlyingOSCause": "unproven",
+    "retryOriginalHeldResources": false
+  },
+  "cacheFailure": {
+    "job": 130424678859,
+    "hold": "verification/receipts/cache-normal-custody-r876.json",
+    "operation": "commands.py:16 gone -> os.killpg(pgid,0) received EPERM",
+    "underlyingOSCause": "unproven",
+    "laterArchivedLogs": "Not current execution evidence; failed normal stopped subsequent workflow steps",
+    "retryOriginalHeldResources": false
+  },
+  "requiredSwiftAggregate": "Failed as required when runner controls failed; authority unchanged",
+  "historicalHoldsReleased": false,
+  "GA": false
+}
