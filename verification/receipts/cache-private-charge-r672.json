@@ -1,0 +1,362 @@
+{
+  "verdict": "PASS \u2014 named private runtime controls completed; no product adoption",
+  "scope": "R672 finite completion of R658/R666 missing private charge and precharge boundaries only",
+  "typed_profile": {
+    "harness_type": "RealCoupledPrivate128R672",
+    "constructor": "validate_swift_ui_reactor_r524 -> SwiftSelection::UIReactorV2 -> RuntimeControl::adopt -> SwiftFunctionCache::prepare/construct",
+    "validator_policy_type": "Policy<'static,false,true>::ui_v2()",
+    "policy_identity": "swift-ui-reactor-diagnostic-v2-r562",
+    "budget": {
+      "frames": 128,
+      "active_pins": 128,
+      "cache_entries": 128
+    },
+    "guard": "typed wrapper accepts no arbitrary proof/budget; sealed decode selection checked before adoption and after cache construction; slots/pins128 asserted",
+    "environment_selection": false,
+    "adoption": "YES all3cases"
+  },
+  "identity": {
+    "product_tree_sha256": "97d02c2ea1cbb72fced3f82c4c2c4127669e418084fe02f5b3f6eb06f6f966d5",
+    "all100_product_prefixes_unchanged": true,
+    "archive_sha256": "8df14a2b3273e1612987bf0777e73eed323460bf300de6af8073258cc1e31a15",
+    "diagnostic_tree_sha256": "1ba931c5e4ad5e39df0fed4b4f022129a58a27f1939ccc2c1c735075bff5f027",
+    "binary": {
+      "bytes": 716688,
+      "sha256": "cb735e1bbb20cf1464b77c43b8042f2451beb37d146bae300d0cd4c69b270003"
+    },
+    "module": {
+      "bytes": 54908436,
+      "sha256": "1ec7ce12b2c812304c5b4d97fe22d39fd9e48e2ddfdebe49da4cc9db23f3c79c"
+    },
+    "harness_appends": [
+      {
+        "path": "source/vm/src/experimental_swift_reactor/cache.rs",
+        "producer_prefix_sha256": "f0e45ffe7fafb561790f873fdefdf261e00f85171ce92f80f14b89ca691dcfaf",
+        "appended_bytes": 7746
+      },
+      {
+        "path": "source/vm/src/experimental_swift_reactor/control.rs",
+        "producer_prefix_sha256": "5d99ad3f7055915431af232a58e5ac7e0c8078feda50b9a7d8e14001332606c2",
+        "appended_bytes": 147
+      },
+      {
+        "path": "source/vm/src/experimental_swift_reactor/mod.rs",
+        "producer_prefix_sha256": "1e0e194b757da571a04e3019b854942e3f72ac712a5b2edfba99b1f5652be70a",
+        "appended_bytes": 29
+      }
+    ],
+    "manifest": "verification/local/cache-private-charge-r672/identity.json"
+  },
+  "actual_controls": {
+    "charge": {
+      "status": "PASS",
+      "base_operation_bytes": 106190,
+      "private_inventory_bytes": 480,
+      "inventory_element_size": 160,
+      "copies": 3,
+      "private_operation_bytes": 106670,
+      "previous_construction_current": 271392,
+      "construction_during_pin": 378062,
+      "resident_bytes_during_pin": 320,
+      "active_pin_during_pin": 1,
+      "construction_after_phase": 271392,
+      "lifetime": "full106670 delta persists through miss and hit return storage; returns exactly to prior bound only at phase completion",
+      "hit_measured_cache_work": 5526
+    },
+    "construction_refusal": {
+      "status": "PASS",
+      "additional_combined_allowance": 106669,
+      "required_additional_bytes": 106670,
+      "kind": "CombinedExhausted",
+      "attempted": 56517650,
+      "limit": 56517649,
+      "construction_current_unchanged": true,
+      "empty_residents_pins_and_nonce_unchanged": true,
+      "whole_primary_retained": true
+    },
+    "precharge_refusal": {
+      "status": "PASS",
+      "actual_path": "hit on actual function34, body offset263367; one resident warmed and released in same owner",
+      "credits": 12,
+      "charged_before": 5514,
+      "attempted": 5526,
+      "limit": 5525,
+      "cache_work_after_cleanup": 5514,
+      "resident_bytes": 320,
+      "no_changes_to": [
+        "slot pins",
+        "resident function/bytes",
+        "resident score",
+        "resident index",
+        "pin records",
+        "free pin bitmap",
+        "next nonce"
+      ],
+      "phase_inventory_still_charged_at_failure": true,
+      "whole_primary_retained": true,
+      "qualification": "The existing provisional ActivePins admission is1 in at_failure and unwinds to0 before return. No slot/pin-record/score publication occurs. This control does not claim a cold miss refuses before resident insertion."
+    }
+  },
+  "primary_errors": {
+    "preserved_in_full": [
+      "logs/construction-refuse.stdout",
+      "logs/precharge-refuse.stdout"
+    ],
+    "assertion": "complete SwiftRunFailure equality including original at_failure; only expected after_cleanup attachment normalized"
+  },
+  "consuming_cleanup": {
+    "all3cases": "14zero currents,tickets0,no cleanup invariant",
+    "work_counters_preserved": true
+  },
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/env",
+        "RUSTC=/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--release",
+        "--example",
+        "r672",
+        "--features",
+        "experimental-swift-reactor",
+        "--jobs",
+        "3",
+        "--target-dir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/target"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/source/vm",
+      "timeout_seconds": 180,
+      "started_unix": 1794367474.017083,
+      "source_tree_sha256": "1ba931c5e4ad5e39df0fed4b4f022129a58a27f1939ccc2c1c735075bff5f027",
+      "pid": 22512,
+      "pgid": 22512,
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "elapsed_seconds": 9.907018184661865
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/target/release/examples/r672",
+        "charge",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/Reactor.wasm"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/source/vm",
+      "timeout_seconds": 25,
+      "started_unix": 1794367539.9826849,
+      "source_tree_sha256": "1ba931c5e4ad5e39df0fed4b4f022129a58a27f1939ccc2c1c735075bff5f027",
+      "pid": 25355,
+      "pgid": 25355,
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "elapsed_seconds": 0.7464921474456787
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/target/release/examples/r672",
+        "construction-refuse",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/Reactor.wasm"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/source/vm",
+      "timeout_seconds": 25,
+      "started_unix": 1794367540.789966,
+      "source_tree_sha256": "1ba931c5e4ad5e39df0fed4b4f022129a58a27f1939ccc2c1c735075bff5f027",
+      "pid": 25373,
+      "pgid": 25373,
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "elapsed_seconds": 0.6328179836273193
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/target/release/examples/r672",
+        "precharge-refuse",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/Reactor.wasm",
+        "5525"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/source/vm",
+      "timeout_seconds": 25,
+      "started_unix": 1794367541.4775438,
+      "source_tree_sha256": "1ba931c5e4ad5e39df0fed4b4f022129a58a27f1939ccc2c1c735075bff5f027",
+      "pid": 25381,
+      "pgid": 25381,
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "elapsed_seconds": 0.6836891174316406
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/source/vm",
+      "timeout_seconds": 10,
+      "started_unix": 1794367601.266409,
+      "source_tree_sha256": "1ba931c5e4ad5e39df0fed4b4f022129a58a27f1939ccc2c1c735075bff5f027",
+      "pid": 36358,
+      "pgid": 36358,
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "elapsed_seconds": 0.20519018173217773
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/cache-private-charge-r672/source/vm",
+      "timeout_seconds": 10,
+      "started_unix": 1794367601.499329,
+      "source_tree_sha256": "1ba931c5e4ad5e39df0fed4b4f022129a58a27f1939ccc2c1c735075bff5f027",
+      "pid": 36359,
+      "pgid": 36359,
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "group_absence": "OBSERVED_ABSENT",
+      "elapsed_seconds": 0.05246591567993164
+    }
+  ],
+  "tools": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "bounds": {
+    "fresh_Rust_builds": 1,
+    "compiler_jobs": 3,
+    "private_campaigns": 1,
+    "private_cases": 3,
+    "harness_corrections": 0,
+    "guest_execution_payloads": 0,
+    "Swift_builds": 0,
+    "devices": 0,
+    "children": 0,
+    "elapsed_from_first_observation_seconds": 472.9619219303131
+  },
+  "custody": {
+    "managed_commands": 6,
+    "all_direct_children_reaped": true,
+    "all_exact_groups_observed_absent": true,
+    "new_holds": [],
+    "historical_holds": "untouched",
+    "artifacts": "retained ignored local namespace; no disposable devices created"
+  },
+  "reused_evidence": [
+    "verification/receipts/cache-private-inventory-review-r666.json \u2014 default106190 admit106189 refuse, source review",
+    "R626 unchanged component consuming-owner proof via R658/R666 supplied summaries"
+  ],
+  "limitations": [
+    "Implicit128slot prototype gate remains NONADOPTABLE; production selector unresolved",
+    "SaveDraft remains RED CacheWork64000001/64000000; historical deadline failure retained",
+    "No full sequence, complete internal model, model qualification, GA,W07,W08 or production profile claim",
+    "Defaultproof/source review reused unchanged; no broad repeated review",
+    "No canonical product/source edits, root Git/remotes, staging, devices, child agents or held namespaces touched"
+  ],
+  "artifacts": {
+    "target/release/examples/r672": {
+      "bytes": 716688,
+      "sha256": "cb735e1bbb20cf1464b77c43b8042f2451beb37d146bae300d0cd4c69b270003"
+    },
+    "identity.json": {
+      "bytes": 37718,
+      "sha256": "b76192d91f312e936369e2686c24626c47c79047a5226e9ca4d539eabd5fd87c"
+    },
+    "prepare.py": {
+      "bytes": 9668,
+      "sha256": "55f73c8b4170bed82805f61051ba3b135363e21f389712ad5ead278b4e2b2cc4"
+    },
+    "run.py": {
+      "bytes": 1959,
+      "sha256": "ed651487e2b996f7b70b8343cfeba674c5a94821e0bc2f2b6cd2d56db187b10a"
+    },
+    "campaign.py": {
+      "bytes": 1224,
+      "sha256": "6f9a5b48bfc3b4066c83783da94a75f2eb11afe73c7b9fba1c1efa75ff3d49f5"
+    },
+    "campaign.json": {
+      "bytes": 5062,
+      "sha256": "2fe44c0d9ba0e49b5ed124bb8e39b868542535a66eba5f27368bad1cdfaba07e"
+    },
+    "logs/build.json": {
+      "bytes": 944,
+      "sha256": "12e33c5642582231159e4e199f10051aa4594bcc3a363fd18fffe0741c84f92a"
+    },
+    "logs/build.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/build.stderr": {
+      "bytes": 200,
+      "sha256": "6c8686fd4fd0e83623487446afacd15c3379319d2fb184f7207f4517c5dd6a14"
+    },
+    "logs/charge.json": {
+      "bytes": 717,
+      "sha256": "ba401f4177e91228e639f0376a4866b41932c8cdc45b9cead734e68c2229760e"
+    },
+    "logs/charge.stdout": {
+      "bytes": 491,
+      "sha256": "839021dad598ad60c21c7d86b80f762d563a11f65356a605f27643ab0d6b6f8d"
+    },
+    "logs/charge.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/construction-refuse.json": {
+      "bytes": 729,
+      "sha256": "068b978f3c6f3c152ef4f55b86370848b599a68eabc70ec3b94a60a7082219ca"
+    },
+    "logs/construction-refuse.stdout": {
+      "bytes": 7397,
+      "sha256": "feeaa4d882a2afa23a83ba435e32199b1314638a1d29a1799ca2664b78004f9c"
+    },
+    "logs/construction-refuse.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/precharge-refuse.json": {
+      "bytes": 739,
+      "sha256": "d67d4bdd91a832d391c9255514de5ce795a193b91b2dba815db6e34a66b1c228"
+    },
+    "logs/precharge-refuse.stdout": {
+      "bytes": 9664,
+      "sha256": "36b10ef933a0513799a6a5619a5854fa33a341ab600f5dc9bda61cc9228504f9"
+    },
+    "logs/precharge-refuse.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/rustc-version.json": {
+      "bytes": 554,
+      "sha256": "08b492f87a47f31f127f8466ba7fdfb7dfb4ff9008459433ae17e1e0c754bfd2"
+    },
+    "logs/rustc-version.stdout": {
+      "bytes": 36,
+      "sha256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+    },
+    "logs/rustc-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/cargo-version.json": {
+      "bytes": 554,
+      "sha256": "3512ec8fe99d645cbd02e7b652d8d2beceef7fe0459ae1fe7f5ca928659a9201"
+    },
+    "logs/cargo-version.stdout": {
+      "bytes": 36,
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    "logs/cargo-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "finished_unix": 1794367689.961934
+}

@@ -295,3 +295,13 @@ large fixtures also require an exact blob/size/reason entry in
 `scripts/verification-artifact-policy.json`. Keep the whole verification tree
 within its 1 GiB budget. Do not loosen the budget to accommodate transient runs.
 The archive tag preserves old evidence; this change releases no custody hold.
+The private R684 build-admission integration left UNKNOWN PostgreSQL readiness
+and custody for PID/PGID 80819. Preserve the entire
+`verification/local/build-admission-coordinator-r684` namespace, including its
+database, source, outputs and scratch, without inspection, enumeration, probing,
+signals, waits, retries or cleanup. Use only the separately delivered compact
+`verification/receipts/build-admission-coordinator-r684.json` as a reference.
+The candidate is unaccepted: two of seven database tests passed and coordinator
+persistence remained unresolved. Outer exit 74 does not release this hold.
+Fresh work from canonical source in a distinct namespace remains authorized.
+

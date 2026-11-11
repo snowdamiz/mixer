@@ -1,0 +1,85 @@
+{
+  "campaign": "build-admission-coordinator-r684",
+  "status": "STOPPED_UNKNOWN_CUSTODY_CANDIDATE_UNACCEPTED",
+  "supplied_revision": "40e7864c; Git not inspected",
+  "scope": "private additive OperationIntent Multi join and private Coordinator.refresh afterimage; canonical source and selectors unchanged",
+  "contract": {
+    "new_module": "MixerHosted.Builds.OperationIntent",
+    "api": "record_multi(Ecto.Multi, name, freshly guarded Admission context)",
+    "running": "OperationAdmission.ensure_admitted",
+    "cancelling_or_reconciling": "OperationAdmission.stop_intent",
+    "proposed_join": "Coordinator.refresh/3 after renew and with_current, inside same Multi before current context is returned",
+    "worker_observations_emitted": false,
+    "external_execution_or_termination_proved": false,
+    "capacity_release_authorized": false
+  },
+  "cache": "verification/plan-continuation-2026-11-07/private-backend-full-suite-r594/source/hosted/_build/test/lib",
+  "cache_provenance": "R610 explicit R594 source/commands references; exact current/cache mix.lock and dependency .app versions agreed; dependency BEAM hashes retained in now-held R684/input/cache.json",
+  "executed": [
+    {
+      "batch": "first compile/prepayload",
+      "product_compile": "zero compile/runtime warnings",
+      "harness_failure": "Elixir 1.20 return_diagnostics warning map did not match expected list; corrected once; no tests ran",
+      "owned_database_cleanup": "postmaster and command groups directly observed absent; stopped data retained"
+    },
+    {
+      "batch": "first database payload, label batch2",
+      "tests": 7,
+      "passed": 2,
+      "failed": 5,
+      "skipped": 0,
+      "passed_cases": [
+        "direct join rollback in actual Ecto/Postgrex Multi",
+        "extended/malformed reference rejected before SQL via exact join"
+      ],
+      "failed_cases": [
+        "coordinator admission rows missing",
+        "stop-first coordinator tombstone missing",
+        "start-stop coordinator admission missing",
+        "conflict test observed initial foreign admission because prior expected coordinator row absent",
+        "late decision read unadmitted instead of stop_intent"
+      ],
+      "cause": "unresolved; possible cached Coordinator execution was hypothesis only, not proved",
+      "owned_database_cleanup": "postmaster and command groups directly observed absent; stopped data retained"
+    },
+    {
+      "batch": "second fresh DB test/provenance attempt using retained product BEAMs, no product recompile",
+      "payload_ran": false,
+      "startup": "readiness never established within bound",
+      "exit": 74,
+      "custody": "UNKNOWN"
+    }
+  ],
+  "new_hold": {
+    "pid": 80819,
+    "pgid": 80819,
+    "namespace": "verification/local/build-admission-coordinator-r684",
+    "postgres_directory": "verification/local/build-admission-coordinator-r684/pgdata-final",
+    "reference": "verification/local/build-admission-coordinator-r684/HOLD.json",
+    "instructions": "Preserve entire exact R684 namespace; no inspection, process probing, signals, waiting, retries or cleanup. No absence inferred from outer exit74."
+  },
+  "known_runner_defect": "Final-run script construction changed standalone pgdata paths to pgdata-final, but longer postgresql.conf path literal was not changed. This is source-construction evidence, not an observation of server state; no held source/log access was performed to diagnose further.",
+  "artifacts": {
+    "private_afterimages": "retained inside now-held R684 namespace; not adopted",
+    "patch": "not produced before UNKNOWN; delivery incomplete",
+    "source_hashes": "retained inside now-held R684/input/source.json",
+    "logs": "retained inside now-held R684/raw; do not inspect",
+    "independent_review": "not run; root-owned next gate only after separately selected fresh work"
+  },
+  "prohibitions_observed": {
+    "canonical_writes": false,
+    "root_git": false,
+    "devices_or_signing": false,
+    "provider_customer_credential_deploy_remote_operations": false,
+    "children": 0,
+    "historical_held_resources_operated_on": false
+  },
+  "limitations": [
+    "No successful coordinator/store integration result",
+    "No durable reopen execution",
+    "No final postmaster cleanup proof",
+    "No worker authentication or external completion/termination proof",
+    "No production migration selection, default adapter, delivery, release or GA claim"
+  ],
+  "coordination_note": "Initial T3 send used capabilities.parentThreadId, which routed to this same delegated thread; subsequent coordination stayed in commentary. No child was launched."
+}

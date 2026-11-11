@@ -1,0 +1,172 @@
+{
+  "task": "R680 private original-LRU resident-capacity hypothesis",
+  "status": "STOPPED: 256-slot profile blocked by unchanged 150-ticket ceiling during startup; SaveDraft remains unrun",
+  "input_tree_sha256": "628e8bb2dd7111758593717cb7ae0c15248d8d1eaffce9f85bb7f42a12fbf1c3",
+  "tested_source_tree_sha256": "c97d4db88c4c435a21463646a44482a225dc11530f046ecf891aa446d2300a57",
+  "constraints": {
+    "cache_work": 64000000,
+    "cache_bytes": 16777216,
+    "deadline_ms": 30000,
+    "frame_depth": 128,
+    "active_pins": 128,
+    "private_ticket_limit_unchanged": 150,
+    "default_ticket_limit_unchanged": 86,
+    "default_cache_entries_unchanged": 64,
+    "frozen_plan_capacity_unchanged": 64,
+    "default_operation_reservation": 106190,
+    "layout": [
+      8,
+      664,
+      8
+    ],
+    "rust_builds": 2,
+    "rust_jobs": 2,
+    "actual_guest_payloads": 2,
+    "swift_builds": 0,
+    "post_build_harness_corrections": 0,
+    "capacity_profiles_tested": [
+      256
+    ],
+    "elapsed_seconds": 456.193
+  },
+  "decision": "Do not test 512 or raise another limit. Capacity alone is insufficient under the unchanged ticket envelope. The broader decode-retention hypothesis beyond 129 residents remains unresolved because admission blocks it.",
+  "limitations": [
+    "No SaveDraft, close/reopen, long-note, Commit or ready completion.",
+    "256 allocated slots but only 129 resident slots reached; high-slot runtime link traversal beyond 128 is not qualified.",
+    "The capacity-profile negative controls use 128 resident slots and the original 129-function pressure sequence.",
+    "Native full-document equality established only for completed default title turn1; internal model remains pending.",
+    "Phase counters are admitted-work groupings between existing hooks, not exclusive operation attribution or speed measurements.",
+    "Private candidate is unselected and not independently reviewed; no concrete gate-unlocking delta to adopt."
+  ],
+  "local_result": "verification/local/entryeditor-cache-residency-r680/result.json",
+  "local_patch": "verification/local/entryeditor-cache-residency-r680/patches/r680.patch",
+  "stage_evidence": {
+    "guest-default": [
+      {
+        "stage": "initialize:0",
+        "cache_work": 164086,
+        "build": 66604,
+        "added_work": 164086,
+        "added_build_work": 66604,
+        "evictions": 0,
+        "added_evictions": 0,
+        "resident_bytes": 577790,
+        "resident_slots": 126,
+        "allocated_slots": 128,
+        "fixed_reserved": 138496,
+        "live_tickets": 147
+      },
+      {
+        "stage": "startup:0",
+        "cache_work": 31549128,
+        "build": 16080693,
+        "added_work": 31385042,
+        "added_build_work": 16014089,
+        "evictions": 18192,
+        "added_evictions": 18192,
+        "resident_bytes": 1874630,
+        "resident_slots": 128,
+        "allocated_slots": 128,
+        "fixed_reserved": 138496,
+        "live_tickets": 149
+      },
+      {
+        "stage": "event:1",
+        "cache_work": 52052795,
+        "build": 25600560,
+        "added_work": 20503667,
+        "added_build_work": 9519867,
+        "evictions": 33650,
+        "added_evictions": 15458,
+        "resident_bytes": 601018,
+        "resident_slots": 128,
+        "allocated_slots": 128,
+        "fixed_reserved": 138496,
+        "live_tickets": 149
+      },
+      {
+        "stage": "event:2",
+        "cache_work": 64000000,
+        "build": 31057923,
+        "added_work": 11947205,
+        "added_build_work": 5457363,
+        "evictions": 42784,
+        "added_evictions": 9134,
+        "resident_bytes": 1116278,
+        "resident_slots": 127,
+        "allocated_slots": 128,
+        "fixed_reserved": 138496,
+        "live_tickets": 148
+      }
+    ],
+    "guest-256": [
+      {
+        "stage": "initialize:0",
+        "cache_work": 196598,
+        "build": 66604,
+        "added_work": 196598,
+        "added_build_work": 66604,
+        "evictions": 0,
+        "added_evictions": 0,
+        "resident_bytes": 577790,
+        "resident_slots": 126,
+        "allocated_slots": 256,
+        "fixed_reserved": 156416,
+        "live_tickets": 147
+      },
+      {
+        "stage": "startup:0",
+        "cache_work": 199609,
+        "build": 67018,
+        "added_work": 3011,
+        "added_build_work": 414,
+        "evictions": 0,
+        "added_evictions": 0,
+        "resident_bytes": 581034,
+        "resident_slots": 129,
+        "allocated_slots": 256,
+        "fixed_reserved": 156416,
+        "live_tickets": 150
+      }
+    ]
+  },
+  "terminals": {
+    "guest-default": {
+      "code": "swift_run_work",
+      "attempted": 64000001,
+      "limit": 64000000,
+      "function": 28021,
+      "offset": 5196893
+    },
+    "guest-256": {
+      "code": "swift_run_ticket_inventory",
+      "attempted": 151,
+      "limit": 150,
+      "function": 27323,
+      "offset": 5065482
+    }
+  },
+  "verification": {
+    "all_6_processes_validated_bodies": 84138,
+    "all_6_processes_layout": [
+      8,
+      664,
+      8
+    ],
+    "negative_controls": "4/4 PASS, overflow/underflow, Frozen65/64, retained64 valid pins, original primary failure equality",
+    "all_6_consuming_cleanup": "all14 currents zero; tickets0; no invariant",
+    "rust_builds": "2/2 PASS",
+    "guest_default_native_title_equal": true,
+    "default159_128_guard": "executed each launch",
+    "invalid_last_body_import_export_legacy_guards": "executed both guest launches",
+    "actual_module_sha256": "1ec7ce12b2c812304c5b4d97fe22d39fd9e48e2ddfdebe49da4cc9db23f3c79c",
+    "all_10_managed_groups": "direct children reaped; exact groups positively observed absent",
+    "read_only_evidence_verifier": "verification/local/entryeditor-cache-residency-r680/verify.py: PASS",
+    "copied_input_artifacts_hash_checked": 33
+  },
+  "environment": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "local_report": "verification/local/entryeditor-cache-residency-r680/REPORT.md"
+}
