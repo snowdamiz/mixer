@@ -281,6 +281,8 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
     env["R1072_TRANSACTION_EVIDENCE"] = str(output / "customer-build-transactions.jsonl")
     env["R932_BARRIER_EVIDENCE"] = str(output / "browser-activation-barrier.json")
     env["R932_FAILURE_EVIDENCE"] = str(output / "browser-activation-rollback.json")
+    env["R1104_POSITIVE"] = str(output / "browser-build-positive.json")
+    env["R1104_CONTROLS"] = str(output / "browser-build-controls.json")
     test_argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"]
     if additional_tests:
         if not args.only_additional_tests:

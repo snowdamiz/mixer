@@ -1,0 +1,316 @@
+{
+  "schema": 1,
+  "campaign": "catalog-acl-direct-r1216",
+  "parent_thread": "00630bdf-9e64-48f0-a169-afbea47b68f1",
+  "status": "PRIVATE_UNACCEPTED_ACL_CONFLICT_OBSERVED_POSTLUDE_FAILED",
+  "named_gate": "catalog_acl_compatibility_r1216",
+  "actual_result": {
+    "name": "catalog_acl_compatibility_r1216",
+    "baseline": {
+      "acl": {
+        "count": 132,
+        "vector": "proof/acl_baseline-acl.json"
+      },
+      "outcome": "admitted",
+      "surfaces": [
+        {
+          "result": "function_surface_verified",
+          "surface": "Elixir.MixerHosted.BrowserAuth.ActiveCatalog"
+        },
+        {
+          "result": "relation_surface_verified",
+          "surface": "Elixir.MixerHosted.BrowserAuth.RelationCatalog"
+        }
+      ]
+    },
+    "catalog": {
+      "acl": {
+        "count": 138,
+        "vector": "proof/acl_catalog-acl.json"
+      },
+      "outcome": "refused",
+      "surface": "Elixir.MixerHosted.BrowserAuth.RelationCatalog",
+      "class": "Elixir.MixerHosted.BrowserAuth.RelationCatalog.Unavailable"
+    },
+    "discriminator": "ACL_CONFLICT_CONFIRMED"
+  },
+  "process_outcome": {
+    "test_exit": 1,
+    "outer_exit": 1,
+    "discriminator_completed_before_failure": true,
+    "failure_class": "SyntaxError",
+    "failure_site": "loaded-beam-final.exs:17 trailing end)",
+    "failure_scope": "optional final loaded-module byte check; no postlude statements executed",
+    "product_refusal_is_expected_discriminator_result": true,
+    "postlaunch_corrections": 0,
+    "retry": 0
+  },
+  "acl": {
+    "baseline_count": 132,
+    "catalog_count": 138,
+    "baseline_components": {
+      "owner": 72,
+      "writer": 55,
+      "ordinary_select": 5
+    },
+    "added_role": "mixer_customer_build_catalog_definer_v1",
+    "six_added_rows": [
+      {
+        "column": null,
+        "grantee": 16389,
+        "grantor": 16385,
+        "null": false,
+        "option": false,
+        "privilege": "SELECT",
+        "relation": "public.mixer_authz_bindings"
+      },
+      {
+        "column": null,
+        "grantee": 16389,
+        "grantor": 16385,
+        "null": false,
+        "option": false,
+        "privilege": "UPDATE",
+        "relation": "public.mixer_authz_bindings"
+      },
+      {
+        "column": null,
+        "grantee": 16389,
+        "grantor": 16385,
+        "null": false,
+        "option": false,
+        "privilege": "SELECT",
+        "relation": "public.mixer_authz_credentials"
+      },
+      {
+        "column": null,
+        "grantee": 16389,
+        "grantor": 16385,
+        "null": false,
+        "option": false,
+        "privilege": "SELECT",
+        "relation": "public.mixer_authz_families"
+      },
+      {
+        "column": null,
+        "grantee": 16389,
+        "grantor": 16385,
+        "null": false,
+        "option": false,
+        "privilege": "SELECT",
+        "relation": "public.mixer_authz_principals"
+      },
+      {
+        "column": null,
+        "grantee": 16389,
+        "grantor": 16385,
+        "null": false,
+        "option": false,
+        "privilege": "SELECT",
+        "relation": "public.mixer_authz_profiles"
+      }
+    ],
+    "removed_rows": [],
+    "owning_sql": "RelationCatalog.privileges!/6 query exact guards/order/limit513/nine manifest targets; saved acl.sql",
+    "exact_predicates": [
+      "fetch!/6:111 demand(is_nil(expected_count) or count == expected_count), expected132 actual138",
+      "privileges!/6:1015 demand(Enum.frequencies(rows) === Enum.frequencies(expected))"
+    ],
+    "first_internal_runtime_site_observed": false,
+    "site_inference": "closed public refusal plus owning source/count/vector; no instrumentation",
+    "role_oid_association": "unchanged installer and exact fixture role source; no additional role-query proof"
+  },
+  "transaction": {
+    "public_checks_same_original_deadline_ms": 5000,
+    "isolation": "READ COMMITTED",
+    "search_path": "pg_catalog",
+    "jit": "off",
+    "statement_timeout": "5s",
+    "lock_timeout": "500ms",
+    "idle_in_transaction_session_timeout": "5s",
+    "bytea_output": "hex",
+    "same_four_role_contract": true,
+    "acl_queries_outside_public_check_deadline": true,
+    "separate_databases_in_one_owned_cluster": true
+  },
+  "source": {
+    "historical_root_supplied_revision": "59cec04ed349381ecd553e5626c268cf980e6305",
+    "Git_measured": false,
+    "source_entries": 508,
+    "dependency_source_entries": 915,
+    "dependency_cache_entries": 969,
+    "application_ebin_entries": 219,
+    "product_BEAM_source_bound_before_comparison": 218,
+    "pre_and_post_manifest_integrity": "PASS all2611 entries",
+    "final_loaded_dependency_module_hash_check": "UNRUN due postlude SyntaxError",
+    "fixture_runtime_migration_exs_loading": true,
+    "product_dependency_compiler_tools": 0
+  },
+  "tools": {
+    "postgres": "17.11",
+    "postgres_bin": "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+    "elixir_bin": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin",
+    "erlang_bin": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/bin",
+    "runtime": {
+      "otp": "29",
+      "schedulers": 3,
+      "elixir": "1.20.4",
+      "erts": "17.1"
+    },
+    "environment": "local macOS; private loopback synthetic PostgreSQL"
+  },
+  "budget": {
+    "runtime_campaign_limit_seconds": 480,
+    "requested_maximum_seconds": 600,
+    "cleanup_reserve_seconds": 60,
+    "elapsed_seconds_at_receipt": 167.23,
+    "fresh_PG_clusters": 1,
+    "test_processes": 1,
+    "compiler_tools": 0,
+    "observer_tracing_hooks_BEAM_instrumentation": false,
+    "fixture_corrections_after_first_launch": 0,
+    "retries": 0,
+    "earlier_preclock_scope": "local instruction/handoff/source reads only"
+  },
+  "custody": {
+    "new_UNKNOWN": false,
+    "managed_commands": 8,
+    "custodian_sha256": "59c186a79e6f8954844f201b4904608508e47c6813657ac944aca8c3025c2fcd",
+    "custodian_byte_exact_R1202": true,
+    "all_inner_PID_PGID_persist_readback_before_G": true,
+    "complete_outer_response_persist_readback_before_gate": true,
+    "outer_session": 20179,
+    "outer_terminal_exit": 1,
+    "full_terminal_response_persisted": true,
+    "all_direct_reaped_pipe_EOFs_FD_closed_original_killpg0_ESRCH": true,
+    "PG_regular_EOF": "N/A",
+    "cleanup": {
+      "status": "PASS",
+      "direct_reap": true,
+      "fds_closed": true,
+      "regular_file_EOF": "N/A",
+      "original_killpg0_ESRCH": true,
+      "stop_exit": 0,
+      "pg_ctl_status": 3,
+      "port_errno": 61
+    },
+    "port": 64827,
+    "historical_holds_touched": false,
+    "R1180_R1138_R1066_R1048_accessed": false
+  },
+  "source_only_proposals": [
+    "Distinct versioned exact catalog-capable admission contract, leaving frozen v2 unchanged; validate all six dedicated grants and role constraints explicitly.",
+    "Redesign catalog capability SQL to avoid added grants on frozen nine relations, then prove authorization and isolation."
+  ],
+  "unrun": [
+    "final actually-loaded dependency-module postlude check",
+    "full RuntimeOwner lifecycle and retrospective R1194 first cause",
+    "HTTP/PKCE/cookie/catalog reads",
+    "new product fix or independent fix review",
+    "default DDL authority selection, adoption, release, GA"
+  ],
+  "scope": {
+    "only_assigned_paths_written": true,
+    "canonical_product_authority_changes": false,
+    "Git_network_native_device_provider_children_operations": false,
+    "fixture_roles_and_private_installer_unchanged": true
+  },
+  "artifacts": {
+    "root": "verification/local/catalog-acl-direct-r1216",
+    "report": "verification/local/catalog-acl-direct-r1216/REPORT.md",
+    "commands": "commands.json",
+    "files": {
+      "direct.exs": {
+        "bytes": 8192,
+        "sha256": "d540f22502c9060f98a372322f81d4819eab1ab34ef4c74b690399034d43e110"
+      },
+      "run.py": {
+        "bytes": 4477,
+        "sha256": "5eb6ce3e85e89d4c4babf57a5176725ce4b30df423fb6f69526a26a1c9e9d802"
+      },
+      "commands.py": {
+        "bytes": 5705,
+        "sha256": "59c186a79e6f8954844f201b4904608508e47c6813657ac944aca8c3025c2fcd"
+      },
+      "acl.sql": {
+        "bytes": 1508,
+        "sha256": "c5bcf66485b948e5704f9673ebfc6f2b058aa9e71e659ebb7a08e70ee8850116"
+      },
+      "loaded-beam-final.exs": {
+        "bytes": 1094,
+        "sha256": "793bbaeab6f9e76eead7a56b29cd17f0656d017bb9aae1e754ca249d950ce71d"
+      },
+      "beam-admission.exs": {
+        "bytes": 1894,
+        "sha256": "104121bbc0dc02933fb2fcb03dd164331dd614e7148cba363f00059468bce3ae"
+      },
+      "proof/source-manifest.json": {
+        "bytes": 93273,
+        "sha256": "9bf4824acb78b5758f6b3199b89f403143637b2559e7a27c5e99631247eb598e"
+      },
+      "proof/dependency-source-manifest.json": {
+        "bytes": 139830,
+        "sha256": "860254546fd0d076c6c7ea41e01c61fd03c062a0780896e74e3cdc9593bb2848"
+      },
+      "proof/dependency-cache-manifest.json": {
+        "bytes": 167867,
+        "sha256": "835363db3362b1e31a4271700cc9db111ed79c013bb81939151a7a1e45362abe"
+      },
+      "proof/application-ebin-manifest.json": {
+        "bytes": 35835,
+        "sha256": "c6920e0105dbe34598ceaabf19fa43dae698172edfaa1507ddff55072ece0e76"
+      },
+      "proof/beam-source-admission.json": {
+        "bytes": 168815,
+        "sha256": "ea0d694aaa7fa0a51ee91fc7550f5ff3516d2775c0e520acc604fcc15a4e7589"
+      },
+      "proof/acl_baseline-acl.json": {
+        "bytes": 19502,
+        "sha256": "188dd96918a429b2bb6a9cf427d21b21d080dc8657dec0508e3c94490c710526"
+      },
+      "proof/acl_catalog-acl.json": {
+        "bytes": 20335,
+        "sha256": "7b4c498d7e2856945787ff3d8f448990ca6bf583e708755aaef5adfb61944f53"
+      },
+      "proof/acl-delta.json": {
+        "bytes": 1350,
+        "sha256": "02bc528d3640d0beb865d53e14de438633dc720fe73f845d6f6312bcce9fb6f8"
+      },
+      "proof/post-run-integrity.json": {
+        "bytes": 471,
+        "sha256": "7c8b362af105cf6c1ed8df8128be52cf071a8f8b15a846d151ad259389610a29"
+      },
+      "outer-exec-response.json": {
+        "bytes": 130,
+        "sha256": "e28c568ced8d9acf8863e4e641d0c9e5082480dfe41c84d3bed4e0a8b136f680"
+      },
+      "outer-terminal-response.json": {
+        "bytes": 1128,
+        "sha256": "028c60866d86d34e489c5a46445acae547b482461a1bcb5344777819383cd997"
+      },
+      "commands.json": {
+        "bytes": 13439,
+        "sha256": "409d2f8b2f0656bb814bec250f064fc0d96ac1b5193a14a89a5879d2caa4ab61"
+      },
+      "fixture/roles.sql": {
+        "bytes": 463,
+        "sha256": "bf3f8db6e6121c94ecd306350a74e1d9629226f955d2a828bb03402b1495691d"
+      },
+      "fixture/role-roster.sql": {
+        "bytes": 2072,
+        "sha256": "fb103e94cdbadc1616d5480afa90ad497b671826fdcec26e49970798d5386566"
+      }
+    },
+    "test_stdout": {
+      "path": "logs/00006-catalog-acl-compatibility-r1216.stdout",
+      "bytes": 2482,
+      "sha256": "c041de6a025361c91e1f3355072678eb02c0d063e90562f19aa53a0a81dcc9e4"
+    },
+    "test_stderr": {
+      "path": "logs/00006-catalog-acl-compatibility-r1216.stderr",
+      "bytes": 560,
+      "sha256": "879a1d1ad6230f159a0451133ced115f0c085578c34f11bb667b0cddba1a7d42"
+    }
+  },
+  "finished_utc": "2026-11-11T21:02:36.471900+00:00"
+}

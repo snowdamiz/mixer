@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "id": "console-owner-remaining-review-r1200",
+  "status": "REQUEST_CHANGES",
+  "observed_utc": "2026-11-11T20:49:36.764010+00:00",
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "independent": true,
+    "fast_mode": false
+  },
+  "root_thread": "00630bdf-9e64-48f0-a169-afbea47b68f1",
+  "scope": {
+    "supplied_revision": "59cec04ed349381ecd553e5626c268cf980e6305",
+    "git_observed": false,
+    "exact_R1168_owner_binding_and_R1174_client": true,
+    "canonical_edits": false,
+    "canonical_adopted": false
+  },
+  "findings": [
+    {
+      "severity": "P2",
+      "title": "Retained detail error erases accepted revision floor",
+      "source": "verification/local/console-selection-owner-review-r1190/candidate/console/src/state/build-selection-controller.ts",
+      "line": 132,
+      "related_lines": [
+        139,
+        140,
+        177,
+        187,
+        246,
+        247
+      ],
+      "source_identity": {
+        "sha256": "a59fd9c51183a7e83407799fb7e75cbf093ae79e24ea082f5ffa747ab11b909c",
+        "bytes": 16372
+      },
+      "trigger": "accept detail4; refresh receives HTTP200 invalid revision => invalid_response; select same current catalog row; receive valid detail3",
+      "expected": "Reject revision3 below highest accepted revision4 within same admitted immutable selection/session",
+      "actual": "Actual Solid binding exposes ready revision3; catalog row revision2 used after fail clears selected",
+      "identical_session_pages_row_and_eight_field_selection": true,
+      "new_workspace_or_epoch": false,
+      "refresh_after_error_dispatches": 0,
+      "reproduction": "remaining.mjs:43-56; invariant assertion line54; results.json traces[1]",
+      "product_defect_proven": true
+    }
+  ],
+  "identity": {
+    "all_declared_source_inputs_matched": 68,
+    "all_declared_compiled_outputs_matched": 27,
+    "compiled_input_manifest": "verification/local/console-selection-binding-r1182/compiled-manifest-before.json + compiled-manifest-after.json",
+    "compiled_origin": "verification/local/console-selection-owner-review-r1190/compiled",
+    "compiled_copy_byte_exact": true,
+    "owned_source_hashes": {
+      "console/src/state/browser-session-controller.ts": {
+        "before": {
+          "sha256": "cb9e1d5310d8bdf67bcebf1acb89a23f7fd063c45f3ef38719f7d2e0ea7974f7",
+          "bytes": 8447
+        },
+        "after": {
+          "sha256": "4751c2020c4689d51f5b19053483843dad93f9af58244941cd5a7da3d271292e",
+          "bytes": 9983
+        }
+      },
+      "console/src/state/browser-session-binding.ts": {
+        "before": {
+          "sha256": "7f1cf1e1a43e20d8baf289ee1511c2a0d6b4b5d81a19cf7f79fd315bee53f5a1",
+          "bytes": 4062
+        },
+        "after": {
+          "sha256": "797c5b7280aad68b1eb8376d67b9e265f760bd984edfdcb041420e36480a79fc",
+          "bytes": 4062
+        }
+      },
+      "console/src/state/build-selection-controller.ts": {
+        "before": null,
+        "after": {
+          "sha256": "a59fd9c51183a7e83407799fb7e75cbf093ae79e24ea082f5ffa747ab11b909c",
+          "bytes": 16372
+        }
+      },
+      "console/src/state/build-selection-binding.ts": {
+        "before": null,
+        "after": {
+          "sha256": "d5eeb8aad9d3afa5e9c7da26f3d1e0090a8ae932197212d6e597304f36025b1c",
+          "bytes": 3298
+        }
+      },
+      "console/tests/build-selection-controller.test.mjs": {
+        "before": null,
+        "after": {
+          "sha256": "f52312155d57e92452a9e0c425a036a005aa0054b7394d55f808848839f702f4",
+          "bytes": 14328
+        }
+      },
+      "console/tests/build-selection-binding.test.mjs": {
+        "before": null,
+        "after": {
+          "sha256": "08cf07ec3b2c020152f3d449fc535c4487b02dab3f32f75484deb802b0207b1c",
+          "bytes": 2374
+        }
+      }
+    },
+    "dependency_hashes": {
+      "console/src/api/cookie-build-catalog-client.ts": {
+        "sha256": "afc98cf45f4b3bd78b28171e7d778a2b2ef90d553de9f4f77071ca49dac57230",
+        "bytes": 2807
+      },
+      "console/src/domain/build-catalog.ts": {
+        "sha256": "9840f9e03e1e5006f271387aa2409d245c9db2bda60487f844095757baa0419a",
+        "bytes": 6801
+      }
+    },
+    "frozen_controls_and_source_and_compiled_unchanged": true,
+    "original_R1190_controls_unchanged": true,
+    "custodian_sha256": "afe0219539ad0bb2ba2ef5578689f3594f554bc6897323e293ccee555365b340"
+  },
+  "tests": {
+    "fresh_Node_payloads": 1,
+    "fresh_compilers": 0,
+    "Node": "v22.23.3",
+    "Solid": "1.9.17",
+    "conditions": "browser",
+    "Node_exit": 1,
+    "corrected_HTTP500_and_deliberate_workspace_reset": "PASS",
+    "retained_detail_error_revision_floor": "FAIL_PRODUCT_P2",
+    "actual_owner_wrapped_catalog_captured_selection_detail_Solid": true,
+    "R1190_strict_compile_reused": true,
+    "R1190_six_passed_groups_reused": true,
+    "R1190_unexecuted_control_not_claimed_passed": true,
+    "R1182_ordinary_reused": {
+      "total": 197,
+      "pass": 197
+    },
+    "R1182_actual_Solid_reused": {
+      "total": 1,
+      "pass": 1
+    },
+    "reuse_input_and_raw_output_identity_checks": true,
+    "R1178_catalog_dependency": "supplied SCOPED_PASS; exact dependency hashes matched",
+    "harness_corrections_after_launch": 0,
+    "reruns": 0
+  },
+  "custody": {
+    "commands": [
+      {
+        "label": "00001-remaining-owner-revision-control",
+        "argv": [
+          "/Users/andreyyurlov/.local/state/fnm_multishells/68826_1794419272046/bin/node",
+          "--conditions=browser",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-owner-remaining-review-r1200/remaining.mjs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-owner-remaining-review-r1200",
+        "started": 1794430064.904744,
+        "pid": 16444,
+        "pgid": 16444,
+        "gated": true,
+        "identity_persist_readback_before_exec_G": true,
+        "exit": 1,
+        "direct_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "descriptors_closed": true,
+        "finished": 1794430065.005604,
+        "stdout": {
+          "path": "logs/00001-remaining-owner-revision-control.stdout",
+          "bytes": 309,
+          "sha256": "0fbf4445bf297b1d853776831620c8d50414d357b4fb466825aa297982d5583c"
+        },
+        "stderr": {
+          "path": "logs/00001-remaining-owner-revision-control.stderr",
+          "bytes": 1698,
+          "sha256": "73c5158681547d827e6bdcafe35baae2de96113cb346cf49b45a63fd7994ab5c"
+        },
+        "group_absent": true,
+        "absence_errno": 3,
+        "absence_method": "original os.killpg(pgid,0) ESRCH"
+      }
+    ],
+    "outer_session_id": 71684,
+    "outer_exit": 1,
+    "full_outer_response_session_persisted_readback_before_G": true,
+    "full_terminal_response_persisted_readback": true,
+    "inner_PIDPGID_persisted_readback_before_G": true,
+    "absence_order": "direct reap + bothEOF + closedFD THEN original killpg0 ESRCH",
+    "new_unknown": false,
+    "outer_group_absence_not_independently_claimed": true,
+    "historical_holds_untouched": true,
+    "artifacts_retained": true
+  },
+  "limits": {
+    "maximum_seconds": 720,
+    "reserve_seconds": 60,
+    "started_utc": "2026-11-11T20:44:42Z",
+    "completed_utc": "2026-11-11T20:49:36.764010+00:00",
+    "elapsed_seconds": 294.76401,
+    "payload_maximum_seconds": 45,
+    "payload_watchdog_seconds": 20,
+    "compilers": 0,
+    "children": 0,
+    "Git_network_PostgreSQL_native_devices": false,
+    "held_namespace_access": false,
+    "inventory": false,
+    "source_writes_outside_owned": false,
+    "staged": false
+  },
+  "delivery": {
+    "directory": "verification/local/console-owner-remaining-review-r1200",
+    "report": "REPORT.md",
+    "report_identity": {
+      "sha256": "743d2e2c47368527bfce0472afba5d50a6094664ce14a5af411b15ea5a708772",
+      "bytes": 5941
+    },
+    "raw_results": "results.json",
+    "raw_logs": [
+      "logs/00001-remaining-owner-revision-control.stdout",
+      "logs/00001-remaining-owner-revision-control.stderr"
+    ],
+    "source_evidence": "source-evidence.json",
+    "reuse_proof": "reused-evidence.json",
+    "frozen_controls": "frozen-controls.json",
+    "final_integrity": "final-integrity.json"
+  },
+  "pending": [
+    "root adoption",
+    "CI",
+    "default App/routes installed UI",
+    "real backend/cookie/auth/PostgreSQL integration",
+    "DOM/visual/native/physical device",
+    "immutable published packages/production/GA"
+  ],
+  "preparation": {
+    "absent_convenience_alias": "R1190/compiled-manifest.json",
+    "resolution": "used exact before/after compiled manifests explicitly declared in R1182 receipt; all27 R1190 outputs matched; no inventory"
+  },
+  "cache": {
+    "fresh_namespace_cache_tmp_and_deadline": true,
+    "no_old_transient_cache_access": true,
+    "R1168_shared_baseline": "UNOBSERVED; unreleased"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "id": "console-catalog-review-r1164",
+  "status": "INCOMPLETE",
+  "observed_utc": "2026-11-11T19:43:16.246528+00:00",
+  "verdict_scope": "Independent review incomplete at reviewer identity harness, no product finding",
+  "reviewed_packet": "verification/local/console-build-catalog-client-r1160",
+  "producer_receipt": {
+    "sha256": "46ef7ed2a3be9782e305e4368d57d2a455e461f6ea598f888510f917db918450",
+    "bytes": 14611
+  },
+  "producer_application_map": {
+    "console/src/domain/build-catalog.ts": {
+      "before": null,
+      "after": {
+        "sha256": "9840f9e03e1e5006f271387aa2409d245c9db2bda60487f844095757baa0419a",
+        "bytes": 6801
+      }
+    },
+    "console/src/api/cookie-build-catalog-client.ts": {
+      "before": null,
+      "after": {
+        "sha256": "b953bbc31b839e70e6023e7c4ecd488e50083d0478ae9ba0ece6d8083a38f51d",
+        "bytes": 2724
+      }
+    },
+    "console/tests/cookie-build-catalog-client.test.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "5b421822b4bdd7d3c2c22c173890f33ed4822dbf5cedb3d06737ce01f5ce76e4",
+        "bytes": 16603
+      }
+    }
+  },
+  "partial_identity_observed": {
+    "all_three_afterimages_equal_map_receipt_candidate": true,
+    "all_three_patch_new_file_replays_equal_afterimages": true,
+    "unchanged_source_hashes_verified_before_failure": [
+      "console/src/domain/build-read.ts",
+      "console/src/domain/build-overview.ts",
+      "console/src/domain/workspace-directory.ts",
+      "console/src/api/workspace-transport.ts",
+      "console/src/api/cookie-build-client.ts"
+    ],
+    "full_original_16_control_source_identity": false,
+    "compiled_artifact_identity": false,
+    "producer_13_controls": "Attributed PASS only; complete reuse admission not completed"
+  },
+  "failure": {
+    "classification": "reviewer_harness_setup_failure",
+    "product_finding": false,
+    "command_exit": 1,
+    "exception": "FileNotFoundError",
+    "missing_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-build-catalog-client-r1160/candidate/console/tests/cookie-build-client.test.mjs",
+    "cause": "Reviewer assumed every unchanged producer input existed in candidate tree",
+    "phase": "source identity admission before compile/payload",
+    "raw_response": "verification/local/console-catalog-review-r1164/identity-failure-response.json",
+    "correction": null,
+    "reproduction": "for name,expected in receipt['unchanged_inputs'].items(): source=(producer/'candidate'/name) if not name.startswith('console/node_modules/') else Path(name); source.read_bytes()"
+  },
+  "delivery_observation": {
+    "requested_REPORT_md_missing": true,
+    "R1152_exact_design_read": "verification/local/console-build-selection-design-r1152/DESIGN.md",
+    "design_hash_admission_completed": false
+  },
+  "execution": {
+    "strict_ts_compiles": 0,
+    "node_payloads": 0,
+    "harness_corrections": 0,
+    "stop_reason": "Explicit zero-harness-correction limit",
+    "tool": "Python 3.14.8, pathlib/hashlib/json; no subprocess in identity command"
+  },
+  "custody": {
+    "inner_pid_pgid": null,
+    "managed_groups_launched": 0,
+    "outer_identity_exec_exit": 1,
+    "outer_identity_exec_chunk": "3d2941",
+    "outer_identity_exec_session_id": null,
+    "outer_identity_full_response_persisted_readback": true,
+    "new_unknown": false,
+    "new_hold": false,
+    "historical_holds_untouched": true,
+    "group_absence_probe": "not applicable; no managed inner child launched",
+    "outer_terminal_status_not_used_to_release_any_hold": true
+  },
+  "scope": {
+    "product_edits": false,
+    "canonical_reads_or_writes": false,
+    "git": false,
+    "network": false,
+    "postgres": false,
+    "devices": false,
+    "children": false,
+    "local_or_userdata_inventory": false,
+    "fresh_adversarial_payload_ran": false
+  },
+  "artifacts": {
+    "REPORT.md": {
+      "sha256": "3e791ca517c2609cc694baf5a5cb858630a06cea3cc38de6af369a69c510581f",
+      "bytes": 2658
+    },
+    "identity-failure-response.json": {
+      "sha256": "92383fa59b2267ffd4561e48a4d3b26188795d530199f1a83ee2c3eb65ab3454",
+      "bytes": 960
+    },
+    "read-tool-responses.json": {
+      "sha256": "13fb9de3ebf8c4c8d35cc55f033e865af01129b08cdb680273c090943753f3fd",
+      "bytes": 134715
+    }
+  },
+  "packet_hashes_recorded_only": {
+    "application-map.json": {
+      "sha256": "8129606659cad5ebd6d5f5d480f779b5f254bff9a9b4f0e35b8503042136c6a1",
+      "bytes": 609
+    },
+    "patch.diff": {
+      "sha256": "de8218e772f30cc539c1f553c1bcdd125471dab182b92a188b5b55457314d24b",
+      "bytes": 26744
+    }
+  },
+  "unrun": [
+    "Fresh independent adversarial payload: cursor canonical byte bounds, closed record/accessor/prototype boundaries, reentrant fetch/snapshot capture, 14 DTO/parent/order/duplicate/26 controls and eight detail fields",
+    "Fresh strict compile",
+    "Full original 16-control source identity/reuse admission",
+    "Real backend/auth/catalog-to-detail integration",
+    "DOM/UI/visual/accessibility",
+    "Native/physical devices",
+    "Production/GA"
+  ],
+  "required_product_changes": []
+}

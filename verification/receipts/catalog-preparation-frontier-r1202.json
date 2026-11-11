@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "campaign": "catalog-preparation-frontier-r1202",
+  "parent_thread": "00630bdf-9e64-48f0-a169-afbea47b68f1",
+  "status": "PRIVATE_UNACCEPTED_INCOMPLETE_OBSERVER_FAILURE",
+  "named_gate": "catalog_runtime_preparation_frontier_r1202",
+  "actual_result": {
+    "payload_exit": 1,
+    "baseline_function_surface": "PASS: actual unchanged ActiveCatalog.check_function_surface!/4 returned :function_surface_verified",
+    "baseline_relation_surface": "INCOMPLETE: observer aborted while processing constraints after query count109",
+    "catalog_fixture": "UNRUN: stopped before second database creation/private installer",
+    "first_observed_failure": ":trace_bound from new linked observer; no product refusal collected",
+    "exact_observer_predicate": "frontier.exs R1202.Observer.loop/3: if n >= 40_000, do: exit(:trace_bound)",
+    "cause": "Wildcard local tracing included every hot private validator call; observer linked to test owner and its bound exit terminated that owner. This observer failed its noninterference intent.",
+    "source_only_static_conflict_candidate": {
+      "source": "RelationCatalog.privileges!/6:990-1015; fetch!/7:111",
+      "predicate": "demand(is_nil(expected_count) or count == expected_count), followed by demand(Enum.frequencies(rows) === Enum.frequencies(expected))",
+      "frozen_PG17_expected_acl_rows": 132,
+      "static_expected_components": {
+        "nine_owner_relations_8_privileges": 72,
+        "writer_table_and_column_grants": 55,
+        "ordinary_SELECT_on_five_authz_relations": 5
+      },
+      "unchanged_catalog_installer_extra_acl_rows_on_protected_relations": 6,
+      "extras": [
+        "profiles:SELECT",
+        "principals:SELECT",
+        "bindings:SELECT",
+        "bindings:UPDATE",
+        "families:SELECT",
+        "credentials:SELECT"
+      ],
+      "conditional_count_after_installer_if_frozen_baseline_matches": 138,
+      "observed_runtime_count_after_installer": null,
+      "catalog_apps_policies_outside_nine_frozen_relations": true,
+      "runtime_discriminator_completed": false
+    },
+    "RuntimeOwner_full_lifecycle": "UNRUN; direct existing preparation surfaces selected to avoid provider/HTTP activity",
+    "underlying_R1194_unavailable_cause": "UNPROVEN",
+    "no_product_fix_authorized_or_applied": true
+  },
+  "source": {
+    "root_supplied_historical_revision": "59cec04ed349381ecd553e5626c268cf980e6305",
+    "fresh_Git_measurement": false,
+    "R1194_source_entries_exact": 508,
+    "R1194_dependency_source_entries_exact": 915,
+    "R1194_dependency_cache_entries_exact": 969,
+    "R1194_application_ebin_entries_exact": 219,
+    "BEAM_compile_source_bound_modules": 218,
+    "loaded_pinned_BEAM_modules": 310,
+    "post_run_integrity": "PASS all2611 manifest entries",
+    "telemetry_generated_row_refresh_used": false,
+    "catalog_schema_sha256": "e0b176f0bec27fafc6a5d26bc235b65e107d573c136432d6823c879c1aa6e923",
+    "installer_product_test_sources_unchanged": true
+  },
+  "tools": {
+    "postgres": "17.11",
+    "postgres_bin": "/opt/homebrew/Cellar/postgresql@17/17.11/bin",
+    "elixir_bin": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin",
+    "erlang_bin": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/bin",
+    "runtime": {
+      "otp": "29",
+      "schedulers": 3,
+      "elixir": "1.20.4",
+      "erts": "17.1"
+    },
+    "environment": "local macOS; fresh loopback PostgreSQL; no native/device/provider/HTTP"
+  },
+  "budget": {
+    "inclusive_limit_seconds": 960,
+    "cleanup_reserve_seconds": 60,
+    "elapsed_seconds_at_receipt": 519.702,
+    "fresh_PG_batches": 1,
+    "test_processes": 1,
+    "product_compiler_tools": 0,
+    "dependency_compiler_tools": 0,
+    "fixture_runtime_migration_exs_loading": true,
+    "payload_harness_corrections": 0,
+    "test_retries": 0,
+    "prelaunch_construction_errors": [
+      "Python parse-only typo, no statements ran",
+      "Attempted to compare product schema source to distinct historical standalone installer hash; manifest source pin remains exact"
+    ],
+    "authoring_error_note": "Two preparatory errors were corrected before launch; no extra PG/test process or post-failure correction was used. No claim that preparatory errors satisfy a one-correction interpretation."
+  },
+  "custody": {
+    "new_UNKNOWN": false,
+    "managed_commands": 8,
+    "all_inner_PID_PGID_persist_readback_before_G": true,
+    "custodian_byte_exact_R1194": true,
+    "custodian_sha256": "59c186a79e6f8954844f201b4904608508e47c6813657ac944aca8c3025c2fcd",
+    "complete_initial_outer_response_persisted_readback_before_parent_gate": true,
+    "outer_session": 62858,
+    "outer_terminal_exit": 1,
+    "full_terminal_response_persisted": true,
+    "all_direct_reaped_FDs_closed_original_killpg0_ESRCH": true,
+    "all_pipe_commands_both_EOF": true,
+    "PG_regular_file_EOF": "N/A",
+    "cleanup": {
+      "status": "PASS",
+      "direct_reap": true,
+      "fds_closed": true,
+      "regular_file_EOF": "N/A",
+      "original_killpg0_ESRCH": true,
+      "stop_exit": 0,
+      "pg_ctl_status": 3,
+      "port_errno": 61
+    },
+    "owned_port": 60124,
+    "historical_holds_touched": false,
+    "R1180_R1138_R1066_R1048_accessed": false
+  },
+  "unrun": [
+    "complete frozen baseline RelationCatalog return",
+    "catalog fixture preparation and competing result",
+    "actual product first refusal and SQL admission conflict",
+    "RuntimeOwner whole lifecycle, Schema.admit!, cookie/HTTP/selection/catalog acceptance",
+    "all adoption/review/Git/network/native/device/provider/children operations"
+  ],
+  "next_selection": "Separate root decision required; do not replay this consumed allowance. A future observer must target only named stage boundaries/fetch calls and never terminate the payload on telemetry truncation. No blanket bound increase or authority relaxation is proposed.",
+  "artifacts": {
+    "report": "verification/local/catalog-preparation-frontier-r1202/REPORT.md",
+    "source_frontier": "verification/local/catalog-preparation-frontier-r1202/proof/source-frontier.json",
+    "commands": "verification/local/catalog-preparation-frontier-r1202/commands.json",
+    "test_stdout": {
+      "path": "verification/local/catalog-preparation-frontier-r1202/logs/00006-catalog-runtime-preparation-frontier-r1202.stdout",
+      "bytes": 1521,
+      "sha256": "3a0e69d66ee6614604a93a074d9dc51d9183204be75349f5c125e65b85d8422d"
+    },
+    "test_stderr": {
+      "path": "verification/local/catalog-preparation-frontier-r1202/logs/00006-catalog-runtime-preparation-frontier-r1202.stderr",
+      "bytes": 42,
+      "sha256": "8c15a47b7d01446e7a912f19284da28e0ef53c097b9a4610a25a7b127adb1ad5"
+    },
+    "baseline_observer": {
+      "path": "verification/local/catalog-preparation-frontier-r1202/proof/frontier_baseline-frontier.jsonl",
+      "bytes": 2061,
+      "sha256": "a6a93d68b13e25c8b15540bde528dcc87b0a844a9ec11c31c418ab586fed7c8a"
+    },
+    "post_run_integrity": "verification/local/catalog-preparation-frontier-r1202/proof/post-run-integrity.json",
+    "executed_harness": {
+      "path": "verification/local/catalog-preparation-frontier-r1202/frontier.exs",
+      "bytes": 10264,
+      "sha256": "e7295cd4d725064f690daaf04c38535053dd2ab25c0b246ceb0df763dc38b090"
+    },
+    "outer_runner": {
+      "path": "verification/local/catalog-preparation-frontier-r1202/run.py",
+      "bytes": 4445,
+      "sha256": "43c419f1c353fd181233c5b59332a1c070ccc2945cfab0dfe82e33de50be380a"
+    }
+  },
+  "finished_utc": "2026-11-11T20:54:27.709600+00:00"
+}

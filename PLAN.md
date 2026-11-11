@@ -1,47 +1,20 @@
 # Execution index
 
-The reviewed browser build read and console decoder are now composed as
-source243/v10. A genuine synthetic PKCE callback and rotated cookie reach the
-compiled console client, private GET and build-summary validator for queued and
-terminal builds. The unfiltered strict hosted suite passed 816 tests with two
-existing skips; the full console suite passed 165 tests, and collector controls
-passed 199 each in normal and actual optimized Python. The joint independent
-review passed. Root adopted 22 permanent paths, excluding three temporary local
-qualification files from the original packet.
-[Qualification](verification/receipts/browser-build-compose-r1144.json),
-[joint review](verification/receipts/browser-build-client-review-r1134.json) and
-[root adoption](verification/receipts/browser-build-adoption-r1150.json).
+The ordinary hosted runner now owns both browser-build evidence outputs. Root applied the reviewed eight-file source243/v11 successor after the unchanged, uninstrumented strict suite passed 816 tests with two existing skips. Actual canonical source admission passed; the same 243 paths are selected and only the runner row changes. Two exact metadata-policy entries were added within the unchanged 1 GiB budget. Delivery and fresh Linux CI are pending. The earlier isolated R1162 customer-read failure remains unexplained; no customer-read product logic changed. [Strict qualification](verification/receipts/owned-build-evidence-strict-r1222.json), [root review](verification/receipts/build-evidence-root-review-r1234.json) and [canonical adoption](verification/receipts/runner-canonical-adoption-r1236.json).
 
-The prior delivered main 67cb6efeeae7b840e16a2a5c966f5ae709ca6e92 passed all
-twelve checks. Its ordinary Linux suite passed 814 tests with two skips, including
-actual COMMIT acknowledgement and ROLLBACK publication controls. The new v10
-composition still requires its own delivered-head CI. The default build page
-remains unavailable while real application/build discovery and UI binding are
-implemented; the private browser route is not mounted by the ordinary router.
-[Linux evidence](verification/receipts/customer-build-linux-ci-r1118.json) and
-[runner capacity retry](verification/receipts/swift-host-queue-r1124.json).
+The previously delivered head is 59cec04ed349381ecd553e5626c268cf980e6305 (source243/v10). Its freshly rechecked CI has twelve successful checks and the original Phoenix failure from the missing output assignment; no rerun was selected. [Prior delivery](verification/receipts/browser-build-delivery-r1154.json) and [original Linux failure](verification/receipts/browser-build-ci-r1156.json).
 
-R1148's private string-buffer change passed 267 native tests and Wasm admission,
-but event7 still exhausted 200M fuel under the private 60-second experiment.
-Documents1–6 and ready3 matched; document7 and ready7 remain incomplete. B's
-reused log label overwrote A's original raw outputs. Retained counters, receipts
-and outer responses do not satisfy that raw-evidence requirement. No C run,
-independent review or SDK/VM adoption followed. The ordinary 30-second limits
-remain unchanged.
-[Runtime result and evidence limitation](verification/receipts/property-string-cost-r1148.json).
+The corrected catalog client passed compilation and 22 producer controls; its independent query review passed nine groups. The selection owner passed 197 ordinary tests and one Solid binding test. Independent completion then proved a P2: a retained detail error erases the accepted revision floor, allowing revision 3 after revision 4 within the same session and selection. The private owner fix passed 16 controls and the unchanged independent rollback reproduction. Independent reset-branch review passed five groups with 16 subcases. The coherent console run passed 205 cases but cancelled two new tests under Solid server conditions. The test-entry successor then exited green while inherited Node worker context skipped 17 child cases. Root kept the frontend unapplied and selected a direct child-environment discriminator; 191 of 208 business cases actually ran. [Client review](verification/receipts/console-catalog-query-review-r1178.json), [owner qualification](verification/receipts/console-selection-binding-r1182.json) and [proven revision rollback](verification/receipts/console-owner-remaining-review-r1200.json).
 
-The entire R1138 preparation namespace and all historical custody holds remain
-preserved. The cache diagnostic is unaccepted after its bounded harness failures.
-Fresh R1144 qualification used an explicitly extended execution window and one
-sparse-path correction; its original failure and exact timing remain recorded.
-[Preparation hold](verification/receipts/browser-build-current-source-r1138.json)
-and [diagnostic limitation](verification/receipts/cache-diagnostic-proof-r1116.json).
+The private application/build page passed strict TypeScript, a production build and four Solid runtime cases. Its combined run passed 199 of 201 tests; the two unchanged failures lacked website and hosted source inputs. The frozen six-file slice and both missing-input tests passed independent review, with five UI controls passing and main.tsx unchanged. The coherent console packet is in qualification. Browser snapshots timed out twice; the owned preview server was closed and its port refused connections. Visual and real backend integration remain pending. [UI packet](verification/receipts/console-application-build-page-r1196.json).
 
-Production12, unselected private DDL, ordinary router mounts, Source118 d947,
-Pair20 SDK24/adapter27/Java21 and canonical SDK/VM authorities remain unchanged.
-Apple Accessibility trust is unavailable and phones remain disconnected. Native
-chooser/grants/recipient acceptance, immutable packages, production operation
-and all 38 GA gates remain pending.
+The catalog's narrow forced-RLS SQL discriminator passed ordinary-role isolation and two-application discovery. The latest genuine-browser fixture has all six roles and completes the private installer, but runtime setup reports unavailable before any catalog request. A direct comparison observed frozen browser admission pass with 132 ACL rows and refuse after the installer added exactly six grants. Root selected an explicit server-owned catalog-capable admission profile: default v2 remains closed, while the private selected profile must validate the complete exact surface. Implementation and the genuine cookie join are pending. [Latest catalog result](verification/receipts/catalog-fixture-closure-r1194.json).
+
+R1180 was interrupted with UNKNOWN custody for PID/PGID 93022 and owned PostgreSQL port 64376. The entire namespace is held; no terminal test result or diagnostic cause was recovered, and no further session poll, inspection or cleanup is authorized. [Restart recovery](verification/receipts/interruption-recovery-r1188.json) and [hold receipt](verification/receipts/customer-read-refusal-r1180.json). All historical holds remain active.
+
+R1148's private writer change passed 267 native tests and Wasm admission, but event7 still exhausted 200M fuel. Documents 1–6 and ready3 matched; document7 and ready7 remain incomplete. B overwrote A's raw logs, leaving the full raw-evidence requirement unmet. No SDK/VM adoption followed, and ordinary limits remain unchanged. [Runtime evidence and limitation](verification/receipts/property-string-cost-r1148.json).
+
+Production12, unselected private DDL, ordinary router mounts, Source118 d947, Pair20 SDK24/adapter27/Java21 and canonical SDK/VM authorities remain unchanged. Apple Accessibility trust is unavailable and phones remain disconnected. Native acceptance, immutable packages, production operation and all 38 GA gates remain pending.
 
 ## Development execution update: November 9, 2026
 

@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_browser_build_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, BROWSER_BUILD_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_owned_evidence_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, OWNED_EVIDENCE_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_browser_build_source_manifest", return_value=collector.BROWSER_BUILD_MANIFEST), \
+                    mock.patch.object(collector, "validate_owned_evidence_source_manifest", return_value=collector.OWNED_EVIDENCE_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_browser_build_source_manifest", return_value=collector.BROWSER_BUILD_MANIFEST), \
+                    mock.patch.object(collector, "validate_owned_evidence_source_manifest", return_value=collector.OWNED_EVIDENCE_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_browser_build_source_manifest", return_value=collector.BROWSER_BUILD_MANIFEST), \
+                    mock.patch.object(collector, "validate_owned_evidence_source_manifest", return_value=collector.OWNED_EVIDENCE_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_browser_build_source_manifest", return_value=collector.BROWSER_BUILD_MANIFEST), \
+                            mock.patch.object(collector, "validate_owned_evidence_source_manifest", return_value=collector.OWNED_EVIDENCE_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_browser_build_source_manifest", return_value=collector.BROWSER_BUILD_MANIFEST), \
+                            mock.patch.object(collector, "validate_owned_evidence_source_manifest", return_value=collector.OWNED_EVIDENCE_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.BROWSER_BUILD_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.OWNED_EVIDENCE_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -2882,7 +2882,21 @@ class BrowserBuildSourceSelectionControls(unittest.TestCase):
         body = metadata[collector.BROWSER_BUILD_SOURCE_BASE + "selection.json"]
         self.assertEqual('542ceeff624ef3befd51e089cbab646cbb93242a4f48a0fae7033a8df0180f1d', hashlib.sha256(body).hexdigest())
         selected = json.loads(body)["selected"]
-        result = collector.check_browser_build_source(COLLECTOR_PATH.resolve().parents[2])
+        root = COLLECTOR_PATH.resolve().parents[2]
+        with tempfile.TemporaryDirectory(prefix="identity-controls-v10-") as directory:
+            historical = Path(directory)
+            for relative in collector.BROWSER_BUILD_MANIFEST:
+                body = (root / relative).read_bytes()
+                if relative == "hosted/scripts/test-local.py":
+                    body = body.replace(b'    env["R1104_POSITIVE"] = str(output / "browser-build-positive.json")\n    env["R1104_CONTROLS"] = str(output / "browser-build-controls.json")\n', b"")
+                destination = historical / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(body)
+            for relative, body in metadata.items():
+                destination = historical / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(body)
+            result = collector.check_browser_build_source(historical)
         self.assertEqual(selected["source_count"], result["source_count"])
         self.assertEqual('b45def2cb208ba76c5472ac49bd379278d744fc7831b2e8da59e1baf7169c505', result["source_digest_sha256"])
         self.assertEqual('542ceeff624ef3befd51e089cbab646cbb93242a4f48a0fae7033a8df0180f1d', result["selection_sha256"])
@@ -2952,8 +2966,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
         import contextlib
         import io
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / collector.BROWSER_BUILD_SOURCE_BASE / "selection.json").read_bytes()
-        self.assertEqual(collector.BROWSER_BUILD_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        raw = (root / collector.OWNED_EVIDENCE_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.OWNED_EVIDENCE_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
         expected = json.loads(raw)["selected"]
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -2961,7 +2975,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-        self.assertEqual(collector.BROWSER_BUILD_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertEqual(collector.OWNED_EVIDENCE_SELECTION_SHA256, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
 
@@ -2969,8 +2983,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "542ceeff624ef3befd51e089cbab646cbb93242a4f48a0fae7033a8df0180f1d"
-    DIGEST = "b45def2cb208ba76c5472ac49bd379278d744fc7831b2e8da59e1baf7169c505"
+    PIN = "7310bb24b6147d867eb0ef47afd6fb612dbe9c80903633d62268b68c8bf77d20"
+    DIGEST = "e3df1a2cf113db904dd48cca93d8492ba11c6b0f3201a6978596866d415f0e33"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3048,7 +3062,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / "verification/identity-network-current-source-v10/selection.json").read_bytes()
+        raw = (root / "verification/identity-network-current-source-v11/selection.json").read_bytes()
         self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
         patterns = self.patterns((root / workflow_path).read_text(), job)
         self.assertNotIn(self.FAMILY, patterns)
@@ -3085,14 +3099,14 @@ class WorkflowSparseSourceControls(unittest.TestCase):
                 sparse = Path(directory)
                 self.materialize(root, sparse, patterns)
                 self.check_real_main(sparse)
-                (sparse / collector.BROWSER_BUILD_SOURCE_BASE / "selection.json").unlink()
-                with self.assertRaisesRegex(FileNotFoundError, "identity-network-current-source-v10/selection.json"):
+                (sparse / collector.OWNED_EVIDENCE_SOURCE_BASE / "selection.json").unlink()
+                with self.assertRaisesRegex(FileNotFoundError, "identity-network-current-source-v11/selection.json"):
                     self.check_real_main(sparse)
 
     def test_family_copies_future_metadata_sidecars_in_one_component(self):
         with tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
             root, sparse = Path(directory) / "input", Path(directory) / "output"
-            for relative in ("verification/identity-network-current-source-v10/selection.json",
+            for relative in ("verification/identity-network-current-source-v11/selection.json",
                              "verification/identity-network-current-source-v999/authority/nested.json",
                              "verification/identity-network-current-source-v999/current-authority.json",
                              "verification/unrelated/identity-network-current-source-v999/selection.json"):
@@ -3122,14 +3136,53 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             future.parent.mkdir(parents=True)
             future.write_bytes(b'{"selected":{"source_count":999}}')
             self.check_real_main(sparse)
-            selected = sparse / "verification/identity-network-current-source-v10/selection.json"
+            selected = sparse / "verification/identity-network-current-source-v11/selection.json"
             selected.write_bytes(selected.read_bytes() + b" ")
             with self.assertRaisesRegex(ValueError, "selection pin mismatch"):
                 self.check_real_main(sparse)
             selected.unlink()
-            with self.assertRaisesRegex(FileNotFoundError, "identity-network-current-source-v10/selection.json"):
+            with self.assertRaisesRegex(FileNotFoundError, "identity-network-current-source-v11/selection.json"):
                 self.check_real_main(sparse)
 
+
+
+
+class OwnedEvidenceSourceControls(unittest.TestCase):
+    def test_exact_v11_single_runner_delta_and_inverse(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        metadata = {collector.OWNED_EVIDENCE_SOURCE_BASE + name: (root / collector.OWNED_EVIDENCE_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+        value = collector.validate_owned_evidence_source_metadata(metadata)
+        self.assertEqual({"hosted/scripts/test-local.py"}, set(value["exact_delta"]))
+        inverse = dict(collector.OWNED_EVIDENCE_MANIFEST)
+        for path, change in value["exact_delta"].items():
+            inverse[path] = change["before"]
+        self.assertEqual(collector.BROWSER_BUILD_MANIFEST, inverse)
+        self.assertEqual(collector.BROWSER_BUILD_SOURCE_DIGEST, canonical_digest(inverse))
+        self.assertEqual(243, collector.OWNED_EVIDENCE_SOURCE_COUNT)
+        self.assertEqual(set(collector.BROWSER_BUILD_MANIFEST), set(collector.OWNED_EVIDENCE_MANIFEST))
+
+    def test_all_v11_rows_and_caller_replacement_refuse(self):
+        for path in collector.OWNED_EVIDENCE_MANIFEST:
+            changed = copy.deepcopy(collector.OWNED_EVIDENCE_MANIFEST)
+            changed[path]["sha256"] = "0" * 64
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError):
+                collector.validate_owned_evidence_source_manifest(changed)
+        for changed in ({}, collector.BROWSER_BUILD_MANIFEST, {**collector.OWNED_EVIDENCE_MANIFEST, "hosted/foreign": {"bytes":0,"sha256":"0"*64}}):
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_owned_evidence_source_manifest(changed, expected_digest=canonical_digest(changed), expected_count=len(changed))
+
+    def test_v11_missing_changed_extra_metadata_refuse(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        metadata = {collector.OWNED_EVIDENCE_SOURCE_BASE + name: (root / collector.OWNED_EVIDENCE_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+        for path in metadata:
+            for mode in ("change", "missing"):
+                changed = dict(metadata)
+                if mode == "change": changed[path] += b" "
+                else: changed.pop(path)
+                with self.subTest(path=path, mode=mode), self.assertRaises(collector.CollectorError):
+                    collector.validate_owned_evidence_source_metadata(changed)
+        with self.assertRaises(collector.CollectorError):
+            collector.validate_owned_evidence_source_metadata({**metadata, "foreign": b"{}"})
 
 if __name__ == "__main__":
     signal.alarm(50)

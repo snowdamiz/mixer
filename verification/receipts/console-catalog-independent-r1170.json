@@ -1,0 +1,358 @@
+{
+  "schema": 1,
+  "id": "console-catalog-independent-r1170",
+  "status": "REQUEST_CHANGES",
+  "observed_utc": "2026-11-11T19:49:48.296Z",
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "independent": true
+  },
+  "scope": {
+    "producer": "console-build-catalog-client-r1160",
+    "supplied_base": "59cec04ed349381ecd553e5626c268cf980e6305",
+    "git_observed": false,
+    "source_identity_digest_sha256": "5d936c584c1f4088d0f2732b1e469d53e5e9a70be984b378c985d94b6f159a08",
+    "afterimages": {
+      "console/src/domain/build-catalog.ts": {
+        "before": null,
+        "after": {
+          "sha256": "9840f9e03e1e5006f271387aa2409d245c9db2bda60487f844095757baa0419a",
+          "bytes": 6801
+        }
+      },
+      "console/src/api/cookie-build-catalog-client.ts": {
+        "before": null,
+        "after": {
+          "sha256": "b953bbc31b839e70e6023e7c4ecd488e50083d0478ae9ba0ece6d8083a38f51d",
+          "bytes": 2724
+        }
+      },
+      "console/tests/cookie-build-catalog-client.test.mjs": {
+        "before": null,
+        "after": {
+          "sha256": "5b421822b4bdd7d3c2c22c173890f33ed4822dbf5cedb3d06737ce01f5ce76e4",
+          "bytes": 16603
+        }
+      }
+    },
+    "unchanged_inputs": {
+      "console/src/domain/build-read.ts": {
+        "sha256": "0ce9afe5aba1bc82f1496cbc876315ea853cd97b320a5ca1326c459f25c42d69",
+        "bytes": 3546
+      },
+      "console/src/domain/build-overview.ts": {
+        "sha256": "3b57454505da750c70cff73b808053a62af61bec04ac5aabaffcc3d2d476abed",
+        "bytes": 8108
+      },
+      "console/src/domain/workspace-directory.ts": {
+        "sha256": "f77c87180f1e6b8e4e2e988686f7db60d7d896a3b0a06b634750878e7938aca1",
+        "bytes": 10417
+      },
+      "console/src/api/workspace-transport.ts": {
+        "sha256": "c349d8ec732e8f70c880619a0d512cf3987bdcd74167ccf9d1fd6beca1d29d2b",
+        "bytes": 7048
+      },
+      "console/src/api/cookie-build-client.ts": {
+        "sha256": "dcc8b25dfe28fe7323d855a6828e49799d184c582de0d9b6eb579df29009aa42",
+        "bytes": 1976
+      },
+      "console/tests/cookie-build-client.test.mjs": {
+        "sha256": "d4dad4874eb0fe4944fd9330f865a8354c007d9b08e9710e10045c5b15c796ab",
+        "bytes": 18003
+      },
+      "console/package.json": {
+        "sha256": "902a8ccf228ecc357720592d258212701519c50635b5f5a04f37a7f7213189c0",
+        "bytes": 551
+      },
+      "console/tsconfig.json": {
+        "sha256": "48f413f5dab5711e18c865d5b463196a2b83166020fd82e4a0858862b8d61465",
+        "bytes": 503
+      },
+      "console/node_modules/typescript/bin/tsc": {
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+        "bytes": 45
+      },
+      "console/node_modules/typescript/lib/typescript.js": {
+        "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+        "bytes": 9112572
+      }
+    },
+    "all_13_identities_match": true,
+    "patch_replay_matches": true,
+    "final_input_drift": false,
+    "product_edits": false,
+    "adoption": false
+  },
+  "finding": {
+    "id": "R1170-P2-1",
+    "priority": "P2",
+    "title": "Applications query reads inherited applicationId despite closed scope capture",
+    "file": "console/src/api/cookie-build-catalog-client.ts",
+    "line": 15,
+    "afterimage_sha256": "b953bbc31b839e70e6023e7c4ecd488e50083d0478ae9ba0ece6d8083a38f51d",
+    "precondition": "Object.prototype has a configurable applicationId data property; the caller still supplies a valid own-key project selection.",
+    "reproduction": "The fresh payload defines Object.prototype.applicationId = Inherited-App, calls applications({organizationId:Org, projectId:Proj}, {}), captures the actual fixed-route fetch URL, then restores the prototype in finally.",
+    "expected": "/console-api/v1/applications?organization_id=Org&project_id=Proj",
+    "actual": "/console-api/v1/applications?organization_id=Org&project_id=Proj&application_id=Inherited-App",
+    "cause": "The in operator searches Object.prototype on the newly frozen scope object. Freezing the scope does not remove its shared prototype.",
+    "impact": "Inherited state changes an otherwise valid applications request by injecting an undeclared application_id query field, violating the exact-route and no-prototype-influence contract. Backend rejection or authorization impact was not tested.",
+    "recommendation": "Choose the applications/builds query fields explicitly or use an own-property check rather than the in operator. Apply the same own-property discipline to the optional cursor read at line 16; that second path is source-only and was not exercised in this bounded payload.",
+    "raw_stdout": "logs/00002-independent-adversarial-node.stdout",
+    "raw_stderr": "logs/00002-independent-adversarial-node.stderr",
+    "payload_line": 61
+  },
+  "tests": {
+    "strict_compile_invocations": 1,
+    "strict_compile_exit": 0,
+    "node_payloads": 1,
+    "node_exit": 1,
+    "groups_passed": 5,
+    "groups_failed": 1,
+    "groups": [
+      {
+        "name": "canonical cursor trailing bits padding and 1024-byte boundary",
+        "status": "PASS"
+      },
+      {
+        "name": "closed records and arrays reject foreign prototypes hidden keys symbols and getters",
+        "status": "PASS"
+      },
+      {
+        "name": "C ordering duplicate identities and 25 versus 26 rows",
+        "status": "PASS"
+      },
+      {
+        "name": "all fourteen DTO fields all eight states exact parents and immutable eight-field selections",
+        "status": "PASS"
+      },
+      {
+        "name": "synchronous scope page and options capture under reentrant fetch",
+        "status": "PASS"
+      },
+      {
+        "name": "applications route ignores inherited applicationId on Object.prototype",
+        "status": "FAIL"
+      }
+    ],
+    "runtime_harness_corrections": 0,
+    "reexecuted_after_payload_failure": false,
+    "producer_controls_rerun": false,
+    "canonical_16_controls_rerun": false
+  },
+  "tools": {
+    "node": "v22.23.3",
+    "node_observation": "raw managed Node stderr",
+    "typescript": "5.9.3",
+    "typescript_observation": "version literal in exact hash-matched declared typescript.js",
+    "python_version": "not separately observed"
+  },
+  "custody": {
+    "new_unknown": false,
+    "all_managed_groups_absent": true,
+    "original_esrch": true,
+    "commands": [
+      {
+        "label": "00001-strict-typescript-compile",
+        "argv": [
+          "node",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/console/node_modules/typescript/bin/tsc",
+          "src/api/cookie-build-catalog-client.ts",
+          "src/api/cookie-build-client.ts",
+          "--outDir",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-independent-r1170/compiled",
+          "--target",
+          "ES2022",
+          "--module",
+          "ESNext",
+          "--moduleResolution",
+          "Bundler",
+          "--strict",
+          "--skipLibCheck",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--erasableSyntaxOnly",
+          "--verbatimModuleSyntax",
+          "--lib",
+          "ES2022,DOM,DOM.Iterable"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-independent-r1170/candidate/console",
+        "started": 1794426496.898201,
+        "pid": 9755,
+        "pgid": 9755,
+        "gated": true,
+        "identity_persist_readback_before_exec_G": true,
+        "exit": 0,
+        "direct_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "descriptors_closed": true,
+        "finished": 1794426498.9870138,
+        "stdout": {
+          "path": "logs/00001-strict-typescript-compile.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "logs/00001-strict-typescript-compile.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "group_absent": true,
+        "absence_errno": 3,
+        "absence_method": "original os.killpg(pgid,0) ESRCH"
+      },
+      {
+        "label": "00002-independent-adversarial-node",
+        "argv": [
+          "node",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-independent-r1170/independent.mjs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-independent-r1170",
+        "started": 1794426498.987651,
+        "pid": 9795,
+        "pgid": 9795,
+        "gated": true,
+        "identity_persist_readback_before_exec_G": true,
+        "exit": 1,
+        "direct_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "descriptors_closed": true,
+        "finished": 1794426499.206828,
+        "stdout": {
+          "path": "logs/00002-independent-adversarial-node.stdout",
+          "bytes": 382,
+          "sha256": "f6c1aa7bc5515e3728332525a394429003acd38bc84213d79720bb0076fec76b"
+        },
+        "stderr": {
+          "path": "logs/00002-independent-adversarial-node.stderr",
+          "bytes": 1154,
+          "sha256": "5c9dd0ed5a875cf7ab2656d03c23e4f350db28b25d00acbdbb8aa06912934061"
+        },
+        "group_absent": true,
+        "absence_errno": 3,
+        "absence_method": "original os.killpg(pgid,0) ESRCH"
+      }
+    ],
+    "outer_session_id": 83437,
+    "outer_terminal_exit": 0,
+    "initial_full_response_persisted_readback_before_outer_G": true,
+    "terminal_full_response_persisted_readback": true,
+    "prototype_restored_in_payload_finally": true,
+    "historical_holds_untouched": true
+  },
+  "limits": {
+    "started_utc": "2026-11-11T19:45:35Z",
+    "finished_utc": "2026-11-11T19:49:48.296Z",
+    "maximum_minutes": 10,
+    "reserve_seconds": 45,
+    "strict_compile_budget": 1,
+    "node_payload_budget": 1,
+    "no_additional_execution_after_payload_failure": true,
+    "children": 0,
+    "network": false,
+    "database": false,
+    "native": false,
+    "git": false,
+    "canonical_product_writes": false
+  },
+  "artifact_gap": "Producer REPORT.md was absent (ENOENT). Manifest/map/patch/afterimages and compact receipt were available and verified.",
+  "unrun": [
+    "real backend/auth/cookie/PostgreSQL catalog-to-detail join",
+    "session controller and UI wiring",
+    "DOM/browser/visual/accessibility",
+    "producer 13 and unchanged canonical 16 controls",
+    "full console suite/native/devices/published-package/production/GA"
+  ],
+  "artifacts": {
+    "identity-proof.json": {
+      "sha256": "d0a7e9641701e529ac6d243b29919d1529f9ec9e7fcb1f087bf3ffcf57e1c873",
+      "bytes": 5522
+    },
+    "patch-replay.json": {
+      "sha256": "0e732729d24dcdc13a658e21b468976bf6a6965e3c7b39c86fbf8c81244d511d",
+      "bytes": 355
+    },
+    "source-preflight-notes.json": {
+      "sha256": "79cd0307d83dc48e2241386fb3c8f3374919426ba1ceae844bb1f9c09856d6e9",
+      "bytes": 501
+    },
+    "final-input-proof.json": {
+      "sha256": "08a2b51f6a807c331bb620e76804ab2ed7b8b29e8bff5cba303e0bb11e0a5cc9",
+      "bytes": 2116
+    },
+    "finding.json": {
+      "sha256": "f69216bef0c653ebb3e841d03e77de529d262ff7eb2f2ef5cb53282a5504b79e",
+      "bytes": 1729
+    },
+    "REPORT.md": {
+      "sha256": "d19fc3f370fdd74d54b156834e989f46054a5788c181b8a26d24325334f767b3",
+      "bytes": 4072
+    },
+    "independent.mjs": {
+      "sha256": "63d90dbaf3301c75122ecd5c0398bbf5abfa1ca2c67ac0ef294a66548d866b45",
+      "bytes": 8066
+    },
+    "run.py": {
+      "sha256": "f9b6407ce0e5ab36b8cdfa49b434b5bbf29d7518649706a492732e65ff81f4ab",
+      "bytes": 1548
+    },
+    "commands.py": {
+      "sha256": "afe0219539ad0bb2ba2ef5578689f3594f554bc6897323e293ccee555365b340",
+      "bytes": 6799
+    },
+    "plan.json": {
+      "sha256": "56d579afe2e03b6a79f340cabc9d78d451209936a229e1db26731ea8ed5c2697",
+      "bytes": 1025
+    },
+    "campaign.json": {
+      "sha256": "a95644cf7b1de5b9a80bee4fc822c47903ec8f8e15f363456afa5c5c8e1862e4",
+      "bytes": 41
+    },
+    "commands.json": {
+      "sha256": "ceb7e1c009321be04b3f03d40223b46a49a48a42e0f4cdd1cf83a0490c861b1d",
+      "bytes": 2804
+    },
+    "execution-result.json": {
+      "sha256": "00ff20d8699995d1fb282379f03f45ec9e2f89242440afe95bf511cd1f669443",
+      "bytes": 139
+    },
+    "payload-results.json": {
+      "sha256": "ed2461195c62b91c6249c61851ba739421c478419e2a64e3bdbac73aec2eb170",
+      "bytes": 1426
+    },
+    "outer-identity.json": {
+      "sha256": "3617530a4458a6605b479b1c2ab6f46f0e17f88400569f047ed66f032108e0e0",
+      "bytes": 139
+    },
+    "outer-response-initial.json": {
+      "sha256": "9f1000a73998b6e800fa8bf4eb199e945b367efa313798df6262be1c66f8bb35",
+      "bytes": 130
+    },
+    "outer-response-gate-proof.json": {
+      "sha256": "0a60b7af5a0d93dfa78a0e7be7653e4ea231db65b3fe79315522a276557786a3",
+      "bytes": 261
+    },
+    "outer-response-terminal.json": {
+      "sha256": "d619f4018df798fff156367aaed2385a05b95907b4e4ed9997741331ddda30d7",
+      "bytes": 402
+    },
+    "logs/00001-strict-typescript-compile.stdout": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "logs/00001-strict-typescript-compile.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "logs/00002-independent-adversarial-node.stdout": {
+      "sha256": "f6c1aa7bc5515e3728332525a394429003acd38bc84213d79720bb0076fec76b",
+      "bytes": 382
+    },
+    "logs/00002-independent-adversarial-node.stderr": {
+      "sha256": "5c9dd0ed5a875cf7ab2656d03c23e4f350db28b25d00acbdbb8aa06912934061",
+      "bytes": 1154
+    }
+  }
+}

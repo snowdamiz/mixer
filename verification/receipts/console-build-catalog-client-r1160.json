@@ -1,0 +1,396 @@
+{
+  "id": "console-build-catalog-client-r1160",
+  "schema": 1,
+  "status": "PASS_PRIVATE_COMPILED_CONTROLS_REVIEW_PENDING",
+  "observed_utc": "2026-11-11T19:36:55.170595+00:00",
+  "base": {
+    "supplied_main": "59cec04ed349381ecd553e5626c268cf980e6305",
+    "supplied_source_selection": "source243",
+    "git_observed": false,
+    "provenance": "supplied brief plus actual canonical input hashes"
+  },
+  "application_map": {
+    "console/src/domain/build-catalog.ts": {
+      "before": null,
+      "after": {
+        "sha256": "9840f9e03e1e5006f271387aa2409d245c9db2bda60487f844095757baa0419a",
+        "bytes": 6801
+      }
+    },
+    "console/src/api/cookie-build-catalog-client.ts": {
+      "before": null,
+      "after": {
+        "sha256": "b953bbc31b839e70e6023e7c4ecd488e50083d0478ae9ba0ece6d8083a38f51d",
+        "bytes": 2724
+      }
+    },
+    "console/tests/cookie-build-catalog-client.test.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "5b421822b4bdd7d3c2c22c173890f33ed4822dbf5cedb3d06737ce01f5ce76e4",
+        "bytes": 16603
+      }
+    }
+  },
+  "delivery": {
+    "directory": "verification/local/console-build-catalog-client-r1160",
+    "afterimages": "afterimages",
+    "patch": "patch.diff",
+    "application_map": "application-map.json",
+    "canonical_preimages_absent": true,
+    "private_compiled_sources_equal_afterimages": true
+  },
+  "contract": {
+    "ProjectSelection": "Readonly<Pick<BuildReadSelection, organizationId | projectId>>",
+    "ApplicationSelection": "Readonly<Pick<BuildReadSelection, organizationId | projectId | applicationId>>",
+    "CatalogPageRequest": "readonly {cursor?:string}",
+    "methods": [
+      "applications(scope,page,signal?):Promise<ApplicationPage>",
+      "builds(scope,page,signal?):Promise<BuildPage>"
+    ],
+    "build_row": "readonly {selection:BuildReadSelection,snapshot:BuildReadSnapshot}",
+    "query_keys": {
+      "/console-api/v1/applications": [
+        "organization_id",
+        "project_id",
+        "cursor?"
+      ],
+      "/console-api/v1/build-catalog": [
+        "organization_id",
+        "project_id",
+        "application_id",
+        "cursor?"
+      ]
+    },
+    "row_limit": 25,
+    "sort": "ASCII C applicationId or (buildId,platform)",
+    "dto_keys": 14,
+    "detail_selection_keys": 8,
+    "cursor_validation": "opaque canonical base64url-no-padding <=1400encoded/1024decoded, no content or authorization claim",
+    "http400_client_mapping": "invalid_response, unchanged WorkspaceTransport",
+    "scope_page_captured_before_await": true,
+    "nextCursor": "null|string"
+  },
+  "tests": {
+    "compiler_exit": 0,
+    "node_exit": 0,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "synthetic fetch with actual compiled decoders, unchanged detail client and transport, real Response/ReadableStream",
+    "controls": [
+      "authorized empty pages are frozen successes and full pages accept exactly 25 sorted rows",
+      "all actual status variants reuse the detail decoder and preserve exact selections",
+      "only the two relative GET routes, exact filters and confidential cookie settings are used",
+      "scope and page intent are captured before await; later mutation cannot change validation",
+      "closed request records reject hidden/symbol keys, prototypes and accessors without invoking them",
+      "all scope identifiers use exact bounded ASCII grammar",
+      "opaque cursors enforce canonical base64url and decoded bounds on requests and responses",
+      "exact envelope and row keys, parent equality and dense arrays fail closed",
+      "25-row limit, duplicate keys and C ordering reject the entire page",
+      "every 14-field DTO slot is required and invalid identity/status values cannot become a selection",
+      "HTTP failures redact bodies, never parse error pages, and preserve unchanged transport mapping",
+      "response ceiling, malformed UTF8/JSON and stream chunk/read ceilings cancel and release",
+      "abort and deadlines settle noncooperative fetch/body and late bodies are cancelled"
+    ]
+  },
+  "limits": {
+    "start_utc": "2026-11-11T19:29:42Z",
+    "deadline_minutes": 14,
+    "cleanup_reserve_seconds": 45,
+    "compiler_invocations": 1,
+    "node_payloads": 2,
+    "harness_corrections": 1,
+    "first_substantive_failure": null
+  },
+  "preserved_failure": {
+    "file": "execution-first-failure.json",
+    "stderr": "logs/00002-catalog-client-controls.stderr",
+    "reason": "metadata package path ENOENT before any test import",
+    "product_or_test_failure": false,
+    "correction": "harness-correction.json"
+  },
+  "tools": {
+    "node": "v22.23.3",
+    "platform": "darwin",
+    "arch": "arm64",
+    "typescript": "5.9.3"
+  },
+  "custody": {
+    "recipe": "unchanged verification/local/hosted-owned-evidence-r1092/commands.py copied into owned namespace",
+    "inert_finalizer": true,
+    "new_unknown": false,
+    "all_managed_groups_absent": true,
+    "commands": [
+      {
+        "label": "00001-typescript-compile",
+        "argv": [
+          "node",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/console/node_modules/typescript/bin/tsc",
+          "src/api/cookie-build-catalog-client.ts",
+          "src/api/cookie-build-client.ts",
+          "--outDir",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-build-catalog-client-r1160/compiled",
+          "--target",
+          "ES2022",
+          "--module",
+          "ESNext",
+          "--moduleResolution",
+          "Bundler",
+          "--strict",
+          "--skipLibCheck",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--erasableSyntaxOnly",
+          "--verbatimModuleSyntax",
+          "--lib",
+          "ES2022,DOM,DOM.Iterable"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-build-catalog-client-r1160/candidate/console",
+        "started": 1794425696.424217,
+        "pid": 16938,
+        "pgid": 16938,
+        "gated": true,
+        "identity_persist_readback_before_exec_G": true,
+        "exit": 0,
+        "direct_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "descriptors_closed": true,
+        "finished": 1794425697.059642,
+        "stdout": {
+          "path": "logs/00001-typescript-compile.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "logs/00001-typescript-compile.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "group_absent": true,
+        "absence_errno": 3,
+        "absence_method": "original os.killpg(pgid,0) ESRCH"
+      },
+      {
+        "label": "00002-catalog-client-controls",
+        "argv": [
+          "node",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-build-catalog-client-r1160/node-driver.mjs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-build-catalog-client-r1160/candidate/console",
+        "started": 1794425697.060426,
+        "pid": 17054,
+        "pgid": 17054,
+        "gated": true,
+        "identity_persist_readback_before_exec_G": true,
+        "exit": 1,
+        "direct_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "descriptors_closed": true,
+        "finished": 1794425697.122991,
+        "stdout": {
+          "path": "logs/00002-catalog-client-controls.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "logs/00002-catalog-client-controls.stderr",
+          "bytes": 820,
+          "sha256": "ab5c294f2b1d0a26aca0a17815d32e9337249eec5d9919b677018f2976f48d4a"
+        },
+        "group_absent": true,
+        "absence_errno": 3,
+        "absence_method": "original os.killpg(pgid,0) ESRCH"
+      },
+      {
+        "label": "00003-catalog-client-controls-corrected-harness",
+        "argv": [
+          "node",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-build-catalog-client-r1160/node-driver.mjs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-build-catalog-client-r1160/candidate/console",
+        "started": 1794425743.207252,
+        "pid": 19285,
+        "pgid": 19285,
+        "gated": true,
+        "identity_persist_readback_before_exec_G": true,
+        "exit": 0,
+        "direct_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "descriptors_closed": true,
+        "finished": 1794425743.5262568,
+        "stdout": {
+          "path": "logs/00003-catalog-client-controls-corrected-harness.stdout",
+          "bytes": 3213,
+          "sha256": "f652779ba1371f5f154f0f24259273d9471b80d92ef13ea1c69084b0cc3c0985"
+        },
+        "stderr": {
+          "path": "logs/00003-catalog-client-controls-corrected-harness.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "group_absent": true,
+        "absence_errno": 3,
+        "absence_method": "original os.killpg(pgid,0) ESRCH"
+      }
+    ],
+    "outer_sessions": [
+      {
+        "session_id": 63056,
+        "terminal_exit": 1,
+        "response_files": [
+          "outer-response-000.json",
+          "outer-response-001.json"
+        ]
+      },
+      {
+        "session_id": 5549,
+        "terminal_exit": 0,
+        "response_files": [
+          "outer-response-002.json",
+          "outer-response-003.json"
+        ]
+      }
+    ],
+    "entire_initial_outer_response_persisted_readback_before_release": true,
+    "terminal_outer_responses_persisted_readback": true,
+    "historical_holds_untouched": true
+  },
+  "cleanup": {
+    "owned_managed_process_groups_absent": true,
+    "source_compiled_outputs_logs_tmp_retained": true,
+    "no_devices_database_network_or_other_resources_started": true,
+    "other_projects_untouched": true
+  },
+  "unchanged_inputs": {
+    "console/src/domain/build-read.ts": {
+      "sha256": "0ce9afe5aba1bc82f1496cbc876315ea853cd97b320a5ca1326c459f25c42d69",
+      "bytes": 3546
+    },
+    "console/src/domain/build-overview.ts": {
+      "sha256": "3b57454505da750c70cff73b808053a62af61bec04ac5aabaffcc3d2d476abed",
+      "bytes": 8108
+    },
+    "console/src/domain/workspace-directory.ts": {
+      "sha256": "f77c87180f1e6b8e4e2e988686f7db60d7d896a3b0a06b634750878e7938aca1",
+      "bytes": 10417
+    },
+    "console/src/api/workspace-transport.ts": {
+      "sha256": "c349d8ec732e8f70c880619a0d512cf3987bdcd74167ccf9d1fd6beca1d29d2b",
+      "bytes": 7048
+    },
+    "console/src/api/cookie-build-client.ts": {
+      "sha256": "dcc8b25dfe28fe7323d855a6828e49799d184c582de0d9b6eb579df29009aa42",
+      "bytes": 1976
+    },
+    "console/tests/cookie-build-client.test.mjs": {
+      "sha256": "d4dad4874eb0fe4944fd9330f865a8354c007d9b08e9710e10045c5b15c796ab",
+      "bytes": 18003
+    },
+    "console/package.json": {
+      "sha256": "902a8ccf228ecc357720592d258212701519c50635b5f5a04f37a7f7213189c0",
+      "bytes": 551
+    },
+    "console/tsconfig.json": {
+      "sha256": "48f413f5dab5711e18c865d5b463196a2b83166020fd82e4a0858862b8d61465",
+      "bytes": 503
+    },
+    "console/node_modules/typescript/bin/tsc": {
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+      "bytes": 45
+    },
+    "console/node_modules/typescript/lib/typescript.js": {
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+      "bytes": 9112572
+    }
+  },
+  "review": {
+    "required_independent_reviews": 1,
+    "status": "PENDING_ROOT",
+    "root_notified": true
+  },
+  "scope": {
+    "canonical_edits": false,
+    "git": false,
+    "subchildren": 0,
+    "database": false,
+    "backend_auth": false,
+    "ui": false,
+    "default_install": false,
+    "native": false,
+    "publication": false
+  },
+  "unrun": [
+    "independent slice review (root coordinates)",
+    "real backend/PKCE-cookie/PostgreSQL catalog-to-detail join",
+    "session controller and UI wiring",
+    "DOM/browser/visual/accessibility",
+    "original 16 reviewed client controls unchanged and not rerun",
+    "full console suite/native/production/GA"
+  ],
+  "artifacts": {
+    "source-inputs.json": {
+      "sha256": "a717ca144c75a2c7dcc7ef2e1c2bada5be57bfb55bc17b82fb2323b075b7a62c",
+      "bytes": 1490
+    },
+    "unchanged-input-proof.json": {
+      "sha256": "4a4288b8bf1137efaa2897d172d25e3a45b273988178ffa2ecfc675ce594c2b8",
+      "bytes": 1609
+    },
+    "compiled-source-inputs.json": {
+      "sha256": "f68452c4480b5bda8325e2ba063cee43cb8997723970b7be7042be62485b44f1",
+      "bytes": 1225
+    },
+    "compiled-manifest.json": {
+      "sha256": "726cee3e67b9186b65078f34afc6bd512029fbeff5c3784f0e7ae782bdb54f2f",
+      "bytes": 1099
+    },
+    "application-map.json": {
+      "sha256": "8129606659cad5ebd6d5f5d480f779b5f254bff9a9b4f0e35b8503042136c6a1",
+      "bytes": 609
+    },
+    "patch.diff": {
+      "sha256": "de8218e772f30cc539c1f553c1bcdd125471dab182b92a188b5b55457314d24b",
+      "bytes": 26744
+    },
+    "commands.json": {
+      "sha256": "5bfe2292908f06f1157491e05307f7b247befb05c3efc1f68ef1cd90470e16b4",
+      "bytes": 3979
+    },
+    "tool-versions.json": {
+      "sha256": "a935c024cb23026f43521c50c887a4b7232ad2a2082d38559f46ced271043b7e",
+      "bytes": 93
+    },
+    "execution-result.json": {
+      "sha256": "971dc9f0f8f4daa545a613be23be82a3087d837d1b11c3666bf27b5ab0ec63ab",
+      "bytes": 157
+    },
+    "execution-first-failure.json": {
+      "sha256": "aaa0655421e0acbfa8e18d85f52bfdeac985828c7ac89ca2bd5d04a7fc3e093d",
+      "bytes": 594
+    },
+    "harness-correction.json": {
+      "sha256": "9602bd2e8e330c416ecc9edf0a8764ce0f28562b15b4da1148d3c4e788b3326d",
+      "bytes": 297
+    },
+    "outer-response-000.json": {
+      "sha256": "0238737f9a6e246b25fa7427d0404645fb901334027a8651e8036bc544bc0626",
+      "bytes": 127
+    },
+    "outer-response-001.json": {
+      "sha256": "5ec0f8b4e2f1964920a012a25e12a0b338a58373a05cc88509886857841f0b25",
+      "bytes": 690
+    },
+    "outer-response-002.json": {
+      "sha256": "702a64fc78deb19aa2b973db8d116ed7afdbfba811bee757a421a994a057ab7e",
+      "bytes": 129
+    },
+    "outer-response-003.json": {
+      "sha256": "b89df257999b32f2a48a6a21bc636e08c9e1c80c5e32e387bbcc2703fb6809a1",
+      "bytes": 208
+    }
+  }
+}

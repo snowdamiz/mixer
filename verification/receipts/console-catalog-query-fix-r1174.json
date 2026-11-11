@@ -1,0 +1,235 @@
+{
+  "schema": 1,
+  "id": "console-catalog-query-fix-r1174",
+  "status": "PASS_PRIVATE_CONTROLS_REVIEW_PENDING",
+  "observed_utc": "2026-11-11T19:57:48.565Z",
+  "implementation": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh"
+  },
+  "base": {
+    "producer": "console-build-catalog-client-r1160",
+    "supplied_revision": "59cec04ed349381ecd553e5626c268cf980e6305",
+    "git_observed": false,
+    "identities_match": true
+  },
+  "fix": {
+    "finding": "R1170-P2-1",
+    "query": "ProjectSelection + CatalogPageRequest + optional primitive applicationId",
+    "builds": "passes own captured scope.applicationId",
+    "applications": "omits applicationId argument",
+    "cursor": "Object.hasOwn(page, cursor) before reading",
+    "domain_unchanged_sha256": "9840f9e03e1e5006f271387aa2409d245c9db2bda60487f844095757baa0419a",
+    "public_api_transport_options_errors_paths_unchanged": true
+  },
+  "delivery": {
+    "directory": "verification/local/console-catalog-query-fix-r1174",
+    "afterimages": "afterimages",
+    "patch": "patch.diff",
+    "map": "application-map.json",
+    "compiled_manifest": "compiled-manifest.json",
+    "compiled_sources": "compiled-source-inputs.json",
+    "compiled_client": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-query-fix-r1174/compiled/api/cookie-build-catalog-client.js",
+      "sha256": "dfbc4d882f9f9fac0bda5630a321bbb6fda986f8bb9b0554de19125450538ef7",
+      "bytes": 2202
+    },
+    "application_map": {
+      "console/src/api/cookie-build-catalog-client.ts": {
+        "before": {
+          "sha256": "b953bbc31b839e70e6023e7c4ecd488e50083d0478ae9ba0ece6d8083a38f51d",
+          "bytes": 2724
+        },
+        "after": {
+          "sha256": "afc98cf45f4b3bd78b28171e7d778a2b2ef90d553de9f4f77071ca49dac57230",
+          "bytes": 2807
+        }
+      },
+      "console/tests/cookie-build-catalog-client.test.mjs": {
+        "before": {
+          "sha256": "5b421822b4bdd7d3c2c22c173890f33ed4822dbf5cedb3d06737ce01f5ce76e4",
+          "bytes": 16603
+        },
+        "after": {
+          "sha256": "727e3bbf9a9e821ab33d65c501e8bc474e4f9b763d9e6fa0958c41ee14b32dd2",
+          "bytes": 28353
+        }
+      }
+    }
+  },
+  "tests": {
+    "strict_compile_invocations": 1,
+    "strict_compile_exit": 0,
+    "node_payloads": 1,
+    "node_exit": 0,
+    "passed": 22,
+    "failed": 0,
+    "skipped": 0,
+    "original13": "all body and assertion bytes retained as exact prefix; 13 PASS",
+    "independent_groups": "five previously passed R1170 groups rerun PASS",
+    "inherited_application_reproduction": "original R1170 expected exact applications route now PASS",
+    "new_controls": [
+      "inherited cursor omitted and own cursor unchanged on both routes",
+      "genuine builds include exact own application field and fake scopes refuse",
+      "inherited getters unread, own accessors refuse, zero getter reads"
+    ],
+    "prototype_descriptors_restored_in_each_finally": true,
+    "runtime_harness_corrections": 0
+  },
+  "tools": {
+    "node": "v22.23.3",
+    "platform": "darwin",
+    "arch": "arm64",
+    "typescript": "5.9.3",
+    "input_hashes": "tool-inputs.json",
+    "custodian_sha256": "afe0219539ad0bb2ba2ef5578689f3594f554bc6897323e293ccee555365b340"
+  },
+  "custody": {
+    "new_unknown": false,
+    "all_managed_groups_absent": true,
+    "commands": [
+      {
+        "label": "00001-strict-typescript-compile",
+        "argv": [
+          "node",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/console/node_modules/typescript/bin/tsc",
+          "src/api/cookie-build-catalog-client.ts",
+          "src/api/cookie-build-client.ts",
+          "--outDir",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-query-fix-r1174/compiled",
+          "--target",
+          "ES2022",
+          "--module",
+          "ESNext",
+          "--moduleResolution",
+          "Bundler",
+          "--strict",
+          "--skipLibCheck",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--erasableSyntaxOnly",
+          "--verbatimModuleSyntax",
+          "--lib",
+          "ES2022,DOM,DOM.Iterable"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-query-fix-r1174/candidate/console",
+        "started": 1794426954.091934,
+        "pid": 48492,
+        "pgid": 48492,
+        "gated": true,
+        "identity_persist_readback_before_exec_G": true,
+        "exit": 0,
+        "direct_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "descriptors_closed": true,
+        "finished": 1794426954.833662,
+        "stdout": {
+          "path": "logs/00001-strict-typescript-compile.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "logs/00001-strict-typescript-compile.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "group_absent": true,
+        "absence_errno": 3,
+        "absence_method": "original os.killpg(pgid,0) ESRCH"
+      },
+      {
+        "label": "00002-catalog-query-controls",
+        "argv": [
+          "node",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-query-fix-r1174/node-driver.mjs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-catalog-query-fix-r1174",
+        "started": 1794426954.834471,
+        "pid": 48502,
+        "pgid": 48502,
+        "gated": true,
+        "identity_persist_readback_before_exec_G": true,
+        "exit": 0,
+        "direct_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "descriptors_closed": true,
+        "finished": 1794426955.035753,
+        "stdout": {
+          "path": "logs/00002-catalog-query-controls.stdout",
+          "bytes": 5347,
+          "sha256": "4a6148292e3c57c48fda10ade7baaa8e1f6141a6c765f157d23019e80fef3656"
+        },
+        "stderr": {
+          "path": "logs/00002-catalog-query-controls.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "group_absent": true,
+        "absence_errno": 3,
+        "absence_method": "original os.killpg(pgid,0) ESRCH"
+      }
+    ],
+    "outer_session_id": 44391,
+    "outer_terminal_exit": 0,
+    "initial_full_response_persisted_readback_before_outer_G": true,
+    "terminal_full_response_persisted_readback": true,
+    "historical_holds_untouched": true
+  },
+  "prior_failure": {
+    "review": "console-catalog-independent-r1170",
+    "status": "REQUEST_CHANGES preserved",
+    "report": "preserved-r1170-REPORT.md",
+    "receipt": "preserved-r1170-receipt.json",
+    "raw_stdout": "preserved-r1170-failure.stdout",
+    "raw_stderr": "preserved-r1170-failure.stderr",
+    "rewritten": false
+  },
+  "limits": {
+    "maximum_seconds": 480,
+    "reserve_seconds": 45,
+    "compile_budget": 1,
+    "node_budget": 1,
+    "correction_budget": 0,
+    "children": 0,
+    "network": false,
+    "git": false,
+    "database": false,
+    "native": false,
+    "canonical_writes": false,
+    "no_held_chain_access": true,
+    "no_inventory_of_verification_local_or_userdata": true
+  },
+  "review": {
+    "required": 1,
+    "scope": "independent changed-query slice",
+    "status": "PENDING_ROOT",
+    "child_launched": false
+  },
+  "unrun": [
+    "remaining broader R1170 independent review",
+    "canonical original16 detail controls (hash checked only)",
+    "real backend/auth/cookie/PostgreSQL",
+    "session/controller/UI/browser/native/device",
+    "full console suite/published package/production/GA"
+  ],
+  "artifacts": {
+    "manifest": "artifact-manifest.json",
+    "sha256": "8da2c0e884917a172e375da7a53710dbe30ef37d07e037d1f48d80692b0caac1",
+    "patch": {
+      "sha256": "34fd4f9aebcbd7e7cb93111a6b7bf8da933391a3a7c6647f3c14076959e5e05e",
+      "bytes": 16325
+    },
+    "map": {
+      "sha256": "03ddaa2d2ccb4275622861a97007b53b2462786aba28e7ef32ea994f1b6d04b7",
+      "bytes": 631
+    }
+  },
+  "preparation": {
+    "initial_read_only_shell_calls": 2,
+    "remaining_source_preparation": "Node fs only; no spawned source-preparation commands",
+    "source_preflight_missing_path": "R1160/run.py absent; producer commands.py and independent reviewer run.py used",
+    "runtime_harness_corrections": 0
+  }
+}
