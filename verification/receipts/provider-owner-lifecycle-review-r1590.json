@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "id": "provider-owner-lifecycle-review-r1590",
+  "status": "REQUEST_CHANGES",
+  "recordedUTC": "2026-11-12T17:05:08.056518+00:00",
+  "producer": "verification/receipts/provider-owner-lease-lifecycle-r1588.json",
+  "candidate": {
+    "path": "verification/local/provider-owner-lease-lifecycle-r1588/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex",
+    "bytes": 10701,
+    "sha256": "05a4bbb8c85cbbf5460724fee59502fe775fd09854fdc2dc927af741e76f868c"
+  },
+  "producerFixture": {
+    "bytes": 16631,
+    "sha256": "9dcda5ada601f059622e8f476dde85f6679261b0c5c76da47c4af1593002a3c1"
+  },
+  "findings": [
+    {
+      "priority": "P2",
+      "title": "Raw workers survive ProviderOwner death after their permits are returned",
+      "location": "hosted/lib/mixer_hosted/browser_auth/provider_owner.ex:85",
+      "actual": {
+        "originalWorkersAliveAfterPermitRelease": 16,
+        "simultaneousWorkersAfterReplacement": 32,
+        "capacity": 16,
+        "remainingOriginalDeadlineMilliseconds": 3997
+      },
+      "evidence": "verification/local/provider-owner-lifecycle-review-r1590/delivery/abrupt-death-observations.json",
+      "expected": "Atomic worker lifetime coupling prevents detached ongoing work from outliving the admission owner and overlapping reallocated capacity."
+    }
+  ],
+  "execution": {
+    "BEAMLaunches": 1,
+    "compileExUnitBatches": 1,
+    "retries": 0,
+    "postLaunchCorrections": 0,
+    "subchildren": 0,
+    "result": {
+      "total": 1,
+      "failures": 1,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "failureOrigin": "Review cleanup assertion stop_supervised(:provider) returned {:error,:not_found} after product observation; final bound assertion not reached",
+    "payload": {
+      "label": "abrupt-death-actual-beam",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-owner-lifecycle-review-r1590/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-owner-lifecycle-review-r1590",
+      "pid": 67081,
+      "pgid": 67081,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 25.335826957947575,
+      "ownedGroupAbsentESRCH": true
+    },
+    "versions": {
+      "otp": "29",
+      "elixir": "1.20.4",
+      "openssl": "4.1.0",
+      "jose": "1.11.13",
+      "mint": "1.11.0",
+      "hpax": "1.1.0",
+      "jason": "1.4.5"
+    },
+    "externalNetworkContacts": 0,
+    "loopbackTLSFetches": 1,
+    "productionActivation": false
+  },
+  "sourceProof": {
+    "namedInputsExactBeforeAfter": 357,
+    "producerArtifactsExact": 61,
+    "canonicalSelectedFilesExact": 272,
+    "reviewedConstructorFilesExact": 2,
+    "canonicalEdits": false,
+    "inheritedRevision": "64bd540a044766c4d4e2b30485dcf9e9546afd2d",
+    "noGitRevisionRead": true,
+    "details": "verification/local/provider-owner-lifecycle-review-r1590/source-proof.json",
+    "canonical272ObservationScope": "Independent direct hash checks during compilation and after completion; producer before/after proof separately inspected."
+  },
+  "cleanup": {
+    "basis": "All listed assertions executed before the first ExUnit failure at integration.exs:145; source lines 133-144 and raw stdout. No final beam-cleanup.json was emitted.",
+    "all32ExactWorkerDOWN": true,
+    "all32CallerDOWN": true,
+    "permitSlotsEmptyBeforeOwnerTeardown": true,
+    "capacity16RestoredAndOverflowRefused": true,
+    "zeroKeyFetchWorkers": true,
+    "replacementProviderStopped": true,
+    "originalProviderDOWNKilled": true,
+    "fullOwnerTableAndFixtureExplicitTeardownAssertionsReached": false,
+    "tlsFixtureFinalRawSummary": {
+      "active": 0,
+      "requests": 1,
+      "accepted": 1,
+      "peer_closed": 1
+    },
+    "finalVMTermination": "Inner process reaped; both EOF; FDs closed; original killpg(67081,0) ESRCH. Separate OS custody proof, not substitute for omitted app assertions.",
+    "joseStopped": true,
+    "joseSupervisorDead": true,
+    "fixtureTemporaryDirectoryEmpty": true
+  },
+  "outerCustody": {
+    "outerPID": 66788,
+    "outerPGID": 66788,
+    "outerSession": 60407,
+    "terminalExecExit": 1,
+    "completeInitialAndTerminalResponseReadBack": true,
+    "directReapBothEOFClosedFDs": true,
+    "transportBasis": "Completed exec transport; internals not separately instrumented",
+    "originalKillpg0ESRCH": true,
+    "UTC": "2026-11-12T17:01:57.968821+00:00"
+  },
+  "newHolds": [],
+  "historicalHoldsAccessed": false,
+  "holdsReleased": false,
+  "limits": [
+    "Private fixture only; production constructor/secret backend closed.",
+    "Unrelated review cleanup assertion failed; do not describe review ExUnit as passing.",
+    "Exact32worker/callerDOWN and restored capacity observed; final explicit owner/table cleanup receipt not reached.",
+    "Outer transport internals not separately instrumented.",
+    "No full crash matrix, browser/token/session flow, CI, immutable packages, devices, production or GA qualification."
+  ],
+  "nextActualIntegration": "Fix atomic ProviderOwner/worker lifetime coupling, correct temporary-child cleanup assertion, and run a fresh focused kill/restart worker-and-permit control with existing graceful/single-use cases.",
+  "report": "verification/local/provider-owner-lifecycle-review-r1590/REPORT.md",
+  "artifactManifest": {
+    "path": "verification/local/provider-owner-lifecycle-review-r1590/artifact-manifest.json",
+    "bytes": 2854,
+    "sha256": "a78a74096c31efcaad8cb2766b38f67e54e8c19e7c9ba3802ad3b386472f557d"
+  },
+  "staged": false
+}

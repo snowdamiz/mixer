@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "id": "RUNNER_FIRST_ERROR_R1380",
+  "status": "FAILED_INERT_COMPARISON_STOPPED_UNACCEPTED",
+  "observedAt": "2026-11-12T02:38:34.391Z",
+  "output": "verification/local/runner-first-error-r1380",
+  "scope": {
+    "owningAfterimageFiles": 1,
+    "canonicalEdits": false,
+    "canonicalReadbackUnchanged": {
+      "owner": true,
+      "tests": true
+    },
+    "gitApiNetwork": false,
+    "subchildren": 0,
+    "realRunnerChildren": 0,
+    "devicesCompilersPostgresGuests": 0,
+    "signalsDispatched": 0,
+    "heldResourceAccess": false,
+    "historicalHoldsReleased": false,
+    "ciSelectedOrRun": false,
+    "adopted": false,
+    "GA": false
+  },
+  "rootContract": {
+    "preEditSeamSent": true,
+    "explicitApprovalReceived": true,
+    "owner": "scripts/ci/check-android-generated-java.py",
+    "ownerClassMethod": "Commands.run",
+    "seams": [
+      "execution except BaseException",
+      "nested cleanup_error(operation,error)",
+      "hold-persistence except BaseException only if first"
+    ],
+    "formatterSignature": "_runner_first_error(phase, operation, error)",
+    "optIn": "self.env.get('MIXER_RUNNER_FIRST_ERROR') == '1'",
+    "defaultOff": true,
+    "latch": "Local; set before formatter call and never reset",
+    "maxLineBytes": 512,
+    "maxTraceFrames": 16,
+    "operationMap": "operation-map.json",
+    "interpretation": "Exact owning statement/catch only; compound calls are not syscall attribution. Only caught OSError.errno descriptor is eligible.",
+    "claims": "Static private contract; runtime diagnostic equivalence not proven"
+  },
+  "proposal": {
+    "files": {
+      "scripts/ci/check-android-generated-java.py": {
+        "before": {
+          "bytes": 65563,
+          "sha256": "95b314c4c9e8a5ab2f4cf4f1d8f7f7d018db874bc498ee52ce939f7659e95f98"
+        },
+        "after": {
+          "bytes": 68859,
+          "sha256": "859b940daaae2e688babdf86c80fd724a60c4e4c76e7b8d11a4b73b39f64b092"
+        }
+      }
+    },
+    "patch": "owning-source.patch",
+    "map": "application-map.json",
+    "tracebackLineMap": "traceback-line-map.json",
+    "inputs": "input-hashes.json"
+  },
+  "execution": {
+    "payloadsAllowed": 2,
+    "payloadsLaunched": 1,
+    "actualOptimizedPayloads": 0,
+    "normal": "FAIL: wait: delta records",
+    "stopAtFirstSubstantiveFailure": true,
+    "retries": 0,
+    "harnessCorrections": 1,
+    "harnessCorrection": "Preparation: disambiguate duplicate setup line by restricting map to ordinary Commands.run",
+    "exactFreshModuleGlobalsAdmission": "Both normal baseline/candidate reached run after actual module.__dict__ identity checks; no shallow vars copy for runner seams",
+    "normalCommand": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-B",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/runner-first-error-r1380/payload.py"
+    ],
+    "pythonVersion": "Exact executable recorded; detailed version unobserved before stop",
+    "output": "custody/normal.stderr",
+    "raw": "raw-controls-failure.json",
+    "unrun": [
+      "remaining inert cases",
+      "actual -O",
+      "failed-write and OOM assertions",
+      "redaction assertions",
+      "first-error immutability assertions"
+    ],
+    "failure": {
+      "case": "wait",
+      "comparison": "records",
+      "staticHarnessMismatch": "run binds cwd=ROOT; separate private source locations yield different default ROOT values. Payload omitted explicit cwd.",
+      "baselineRawPair": "NOT_SAVED before failed comparison",
+      "onlyDifferenceEstablished": false,
+      "sourceDiagnosticDefectEstablished": false,
+      "diagnosticDeltaProven": false
+    }
+  },
+  "custody": {
+    "outer": {
+      "pid": 4527,
+      "pgid": 4527,
+      "state": "GATED",
+      "session": 62293,
+      "completeExecResponseSavedAndReadBackBeforeGate": true,
+      "final": {
+        "chunk_id": "8f765d",
+        "wall_time_seconds": 0.000008167,
+        "exit_code": 1,
+        "original_token_count": 148,
+        "output": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/runner-first-error-r1380/supervisor.py\", line 24, in <module>\n    run(label,[sys.executable,'-B',*flags,str(HERE/'payload.py')],cwd=HERE,timeout=45)\n    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/runner-first-error-r1380/admitted-custodian.py\", line 57, in run\n    assert child.returncode == 0, label\n           ^^^^^^^^^^^^^^^^^^^^^\nAssertionError: normal\n"
+      }
+    },
+    "inner": {
+      "label": "normal",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/runner-first-error-r1380/payload.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/runner-first-error-r1380",
+      "pid": 16798,
+      "pgid": 16798,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.2089310419978574,
+      "ownedGroupAbsentESRCH": true,
+      "identityPersistedAndReadBackBeforeExec": true,
+      "ordering": "communicate reaped/bothEOF; all FDs closed; then original os.killpg(pgid,0) raised ProcessLookupError/ESRCH"
+    },
+    "newUnknown": false,
+    "retainedWholeNamespace": true
+  },
+  "heldR1369": {
+    "receipt": "verification/receipts/runner-output-custody-r1369.json",
+    "run": 43136782317,
+    "job": 130913921366,
+    "commit": "d7fba7f3288410aba5d05a2740b7e32be7b57b7d",
+    "pidPgidScratch": "UNOBSERVED_AND_HELD",
+    "operationErrno": "UNPROVEN",
+    "relationToR8": "UNESTABLISHED",
+    "untouched": true
+  },
+  "limitations": [
+    "Private afterimage is unaccepted; no product or source correction demonstrated.",
+    "Exact exception, logical traceback, receipts/files/events and custody equivalence not proven because first comparison failed.",
+    "Only candidate fixture receipt survived; baseline pair and captured diagnostic were in process memory when assertion stopped.",
+    "No actual -O or ordinary CI result."
+  ],
+  "evidenceManifest": "evidence-manifest.json",
+  "elapsedSeconds": 548.873
+}

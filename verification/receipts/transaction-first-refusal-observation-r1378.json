@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "id": "TRANSACTION_FIRST_REFUSAL_OBSERVATION_R1378",
+  "observedAt": "2026-11-12T02:31:04.578Z",
+  "status": "NO_REPRODUCTION_PRIVATE_DIAGNOSTIC_ONLY",
+  "main": "d7fba7f3288410aba5d05a2740b7e32be7b57b7d",
+  "diagnosticBranch": "t3/transaction-frontier-r1374",
+  "diagnosticCommit": "3a88970fd3525790b63ddd727e3e95aceec873e8",
+  "phoenix": {
+    "run": 43140278303,
+    "job": 130925321026,
+    "conclusion": "success",
+    "passed": 822,
+    "skipped": 2,
+    "failed": 0,
+    "selection": "ordinary unfiltered seed0 repository suite",
+    "target": "fresh snapshots select surviving membership rows without modifying the initial Context",
+    "targetOriginalAssertionsAndSleepPreserved": true,
+    "observation": {
+      "diagnostic": "transaction_minimal_frontier_r1370",
+      "phase": "ordinary_callback_return",
+      "armed": true,
+      "truncated": false,
+      "membership_count": 2,
+      "phase_events": [
+        {
+          "phase": "authorize",
+          "membership_count": null
+        },
+        {
+          "phase": "initial_membership_assert",
+          "membership_count": 2
+        },
+        {
+          "phase": "sleep",
+          "membership_count": 2
+        },
+        {
+          "phase": "explicit_checkpoint",
+          "membership_count": 2
+        },
+        {
+          "phase": "fresh_membership_assert",
+          "membership_count": 1
+        },
+        {
+          "phase": "initial_context_assert",
+          "membership_count": 2
+        },
+        {
+          "phase": "ordinary_callback_return",
+          "membership_count": 2
+        }
+      ],
+      "first_caught": null,
+      "schema": 1,
+      "elapsed_ms": 1118,
+      "elapsed_saturated": false,
+      "elapsed_unavailable": false
+    }
+  },
+  "identity": {
+    "run": 43140278252,
+    "job": 130925321094,
+    "conclusion": "failure",
+    "reason": "identity network collector refused: frozen product digest mismatch",
+    "expectedForPrivateInstrumentation": true,
+    "waiver": false
+  },
+  "retention": {
+    "run": 43140278237,
+    "job": 130925320803,
+    "conclusion": "success"
+  },
+  "artifact": {
+    "id": 13908779689,
+    "bytes": 1151820,
+    "sha256": "110fc72a57a686a7ec42cdcc688e598d1b67fa120fb4e67d6137088f687e3ced",
+    "path": "verification/local/transaction-ci-dispatch-r1374/evidence/artifact.zip",
+    "wholeZipVerified": true,
+    "sourceArchiveSHA256": "b1e27fb558f433cdeee7af4becaf801ec0cabe64b62ed0ac28dce7e72a1f20f3",
+    "sourceTreeSHA256": "fb3cb79c857a403765b040b4b6ad61750b69fde6f135c08187166f15f97f3917",
+    "testsLogSHA256": "e69319e0596bb76215484495381e7f11b88ea8a66c2b262c332f5e7ba87b276a",
+    "cleanup": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "holdMemberCount": 0
+  },
+  "canonicalSourceProof": [
+    {
+      "path": "hosted/lib/mixer_hosted/authorization.ex",
+      "bytes": 4183,
+      "sha256": "ac5b8a0ed8edc40598d8b02036066460fa8ce7d4cb55abbd05229d18a18a10d3"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/authorization/transaction_test.exs",
+      "bytes": 31291,
+      "sha256": "414cc74e70ca8572919ae82d4f17b10b9deb2095d4310aa6856dd8179dbae6ad"
+    }
+  ],
+  "interpretation": "Original failure not reproduced. Existing two initial memberships, one fresh surviving membership and immutable two-member initial Context observed. No caught exception. This does not establish why main1855 failed.",
+  "selectedFix": null,
+  "retries": 0,
+  "canonicalProductEdits": 0,
+  "source259Adopted": false,
+  "releaseQualification": false,
+  "GA": false,
+  "historicalHoldsReleased": false,
+  "limitations": [
+    "Private formatted diagnostic inputs differ from canonical product digest; identity guard correctly refused.",
+    "No wall-clock/expiry/lock/database or assertion root cause proven for historical main failure.",
+    "No blind rerun, timing or assertion relaxation selected."
+  ]
+}

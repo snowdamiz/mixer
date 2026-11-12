@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "id": "console-build-selection-design-r1152",
+  "status": "SOURCE_ONLY_DESIGN_COMPLETE",
+  "observed_utc": "2026-11-11T19:24:15.975Z",
+  "tools": "mcp__node_repl__js with node:fs/promises; in-memory node:crypto SHA-256; no subprocess or tool-version probe",
+  "source_manifest_sha256": "6f3b6c3867f212fbd6c9e4c86a8247cd77f1942a17e86cad432dd5a52c2a7030",
+  "decision": "Separate private build-purpose application/build catalog; unchanged eight-field exact read and 14-field projection; no frozen workspace/artifact/audit authority expansion.",
+  "authoritative_data": [
+    "mixer_authz_applications under exact active org/project",
+    "mixer_builds with Journal.restore + Lifecycle.customer_status + CustomerBuilds.Snapshot.project"
+  ],
+  "permissions": {
+    "human": true,
+    "scope": "mixer.build.read",
+    "browser_additionally": "mixer.workspace.read",
+    "roles": [
+      "owner",
+      "administrator",
+      "developer",
+      "release_manager",
+      "viewer"
+    ],
+    "excluded": [
+      "billing_manager-only",
+      "service",
+      "organization_only",
+      "wrong project",
+      "expired/revoked/disabled resources"
+    ]
+  },
+  "routes_proposed": [
+    "GET /console-api/v1/applications",
+    "GET /console-api/v1/build-catalog"
+  ],
+  "existing_read_unchanged": "GET /console-api/v1/builds",
+  "bounds_proposed": {
+    "rows": 25,
+    "lookahead": 26,
+    "response_bytes": 262144,
+    "cursor_encoded_bytes": 1400,
+    "cursor_decoded_bytes": 1024,
+    "domain_transaction_ms": 5000
+  },
+  "next_named_integration": "console_application_build_selection_cookie_pg_join",
+  "deliverables": {
+    "design": {
+      "path": "verification/local/console-build-selection-design-r1152/DESIGN.md",
+      "bytes": 20806,
+      "sha256": "8ccc200fb70b8f79dd1e4ec65fff13c012673df8f0e46d8793278eafdc454542"
+    },
+    "proof": {
+      "path": "verification/local/console-build-selection-design-r1152/source-proof.json",
+      "bytes": 12535,
+      "sha256": "93cc0cb106c0c22eb09130e2b1566bf06cb40f780586c5eac2e9cebe08f45238"
+    }
+  },
+  "verification": {
+    "kind": "source-only",
+    "executable_pass_claims": false,
+    "tests_run": 0,
+    "compiles": 0,
+    "process_launches": 0,
+    "subchildren": 0,
+    "git": false,
+    "PG": false,
+    "native": false,
+    "network": false,
+    "provider": false,
+    "customer": false,
+    "canonical_writes": false,
+    "packet_writes": false,
+    "verification_local_enumerated": false,
+    "userdata_enumerated": false,
+    "held_namespaces_read": false,
+    "holds_released": false,
+    "readback_of_deliverables": true
+  },
+  "limitations": [
+    "Canonical adoption concurrent and unasserted",
+    "No catalog implementation yet",
+    "No rendered UI/browser acceptance",
+    "No immutable package, physical device, external provider, production or GA qualification"
+  ]
+}

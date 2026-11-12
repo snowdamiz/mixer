@@ -1,0 +1,123 @@
+{
+  "campaign": "coordinator-execution-premise-r704",
+  "status": "PRIVATE_IMPLEMENTATION_TESTED_REVIEW_PENDING_NOT_ADOPTED",
+  "date_utc": "2026-11-11",
+  "scope": "Private canonical builds closure plus additive OperationIntent and Coordinator.refresh join only; no canonical adoption",
+  "source_revision": "Current canonical working source identified by per-file hashes; no Git operation permitted or performed",
+  "canonical_manifest": "verification/local/coordinator-execution-premise-r704/input/canonical.json",
+  "canonical_sources_unchanged_at_delivery": true,
+  "tree_sha256": "3426662e18f11094cb02522a32970c1fafb4a6fb7d1305dabac726dbbe6438b4",
+  "fresh_product_modules": 25,
+  "contract": {
+    "module": "MixerHosted.Builds.OperationIntent",
+    "signature": "record_multi(Ecto.Multi.t(), term(), map()) :: Ecto.Multi.t()",
+    "context": "Existing Admission context with typed Build/Record/Token/Lease, immediately renewed and current-intent checked in the surrounding transaction; map is not authorization or provenance",
+    "join": "Coordinator.refresh/3, after Admission.renew_multi and with_current; same Multi before :current return",
+    "running": "OperationAdmission.ensure_admitted",
+    "cancelling_or_reconciling": "OperationAdmission.stop_intent",
+    "frozen_interfaces_changed": false
+  },
+  "discriminator": {
+    "native_erlang_trace": "Fresh actual Coordinator.refresh/3 and OperationIntent.record_multi/3 call events captured before semantic tests in setup_all",
+    "loaded_identity": "Every fresh product module load path, source, file SHA256 and runtime module_info(:md5) matching beam_lib.md5 recorded",
+    "cached_mixer_hosted_product_beams_used": false,
+    "raw": "verification/local/coordinator-execution-premise-r704/raw/discriminator.json",
+    "executable": "verification/local/coordinator-execution-premise-r704/input/executable.json",
+    "r684_cached_execution_hypothesis": "Remains unproved for historical R684. R704 proves its own fresh execution and successful join; it does not retrospectively diagnose the held chain."
+  },
+  "dependency_cache": "verification/plan-continuation-2026-11-07/private-backend-full-suite-r594/source/hosted/_build/test/lib",
+  "dependency_verification": {
+    "mix_lock_identical_to_current_canonical": true,
+    "dependency_app_versions_match_lock": true,
+    "dependency_beam_and_app_hashes_rechecked_before_each_batch": true,
+    "apps": 21,
+    "product_cache_path_excluded": true
+  },
+  "environment": {
+    "host": "local macOS",
+    "elixir": "1.20.4",
+    "otp": "29 / erts17.1",
+    "postgres": "17.11 Homebrew",
+    "database": "fresh owned loopback PostgreSQL per batch",
+    "scheduler_options": "+S 3:3 +A 3",
+    "pgdata": "One absolute PGDATA variable drives init/config/start/identity/stop; no copied runner string replacement"
+  },
+  "batches": [
+    {
+      "name": "batch1",
+      "command": "python3 verification/local/coordinator-execution-premise-r704/run.py batch1",
+      "exit": 0,
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "discriminator_passed": true,
+      "product_compile_diagnostics": {
+        "compile_warnings": [],
+        "runtime_warnings": []
+      },
+      "harness_error": "Oban notifier missing :database configuration logged despite semantic tests passing; preserved raw output",
+      "postmaster_pid_pgid": 13182,
+      "clean_stop_and_group_absence": true
+    },
+    {
+      "name": "batch2",
+      "command": "python3 verification/local/coordinator-execution-premise-r704/run.py batch2",
+      "exit": 0,
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "discriminator_passed": true,
+      "product_compile_diagnostics": {
+        "compile_warnings": [],
+        "runtime_warnings": []
+      },
+      "harness_correction": "Publish actual isolated Repo configuration for Oban notifier; add loaded MD5 equality and compact trace data; add actual reconciling-state test",
+      "postmaster_pid_pgid": 15914,
+      "clean_stop_and_group_absence": true,
+      "remaining_output": "21 canonical mix.lock quoted-key parser warnings and one expected Postgrex post-migration type-refresh debug line; no notifier errors"
+    }
+  ],
+  "passed_cases": [
+    "Real Coordinator guarded refresh writes admitted intent and repeated coordinator invocation keeps one identity",
+    "Real stop-first coordinator refresh writes permanent stop_intent; stale original job cannot resurrect and later ensure is fenced",
+    "Real outer Ecto.Multi failure rolls back renewed-context operation intent",
+    "Malformed extended WorkerRef is rejected without SQL through exact join",
+    "Exact immutable tenant and worker fence conflicts fail closed, exact replay is idempotent",
+    "Real running deadline expiry moves to reconciling and successor refresh writes stop_intent"
+  ],
+  "budget": {
+    "meaningful_compile_database_batches": 2,
+    "harness_corrections_between_batches": 1,
+    "additional_prebatch_failure": "Input-manifest path parent off by one during preparation; corrected before any compiler/database launch; no process custody introduced",
+    "limit_exhausted": true
+  },
+  "cleanup": {
+    "both_postmasters_cleanly_stopped": true,
+    "all_launched_command_groups_observed_absent": true,
+    "pgdata_removed_after_recorded_clean_stop": true,
+    "unknown_custody": false,
+    "new_holds": []
+  },
+  "artifacts": {
+    "afterimages": "verification/local/coordinator-execution-premise-r704/source/hosted/lib/mixer_hosted/builds",
+    "patch": "verification/local/coordinator-execution-premise-r704/candidate.patch",
+    "driver": "verification/local/coordinator-execution-premise-r704/run.py",
+    "fixture": "verification/local/coordinator-execution-premise-r704/fixture",
+    "manifest": "verification/local/coordinator-execution-premise-r704/delivery-manifest.json",
+    "raw": "verification/local/coordinator-execution-premise-r704/raw",
+    "report": "verification/local/coordinator-execution-premise-r704/REPORT.md"
+  },
+  "limitations": [
+    "Independent review remains required before any adoption",
+    "Intent-only durable PostgreSQL writes; no worker observations or execution/termination/capacity-release claims",
+    "No worker authentication or external provenance proof",
+    "Fresh database commit/read tested; process/server restart or deployment qualification not tested",
+    "Only canonical builds/repo product closure compiled, not full hosted application or full suite",
+    "Production migration selector, source selector, default adapter and canonical source untouched",
+    "R684 held namespace and every other historical hold remain untouched and in force",
+    "No root Git, remotes, devices, credentials, deployment, children, publication or merge operations"
+  ],
+  "next_root_action": "One independent slice review of patch, fresh executable discriminator, both preserved batch outputs and final six-test result; adoption remains root-owned."
+}

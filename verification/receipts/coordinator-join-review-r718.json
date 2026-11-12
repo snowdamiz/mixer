@@ -1,0 +1,116 @@
+{
+  "campaign": "coordinator-join-review-r718",
+  "reviewed_candidate": "coordinator-execution-premise-r704",
+  "status": "PASS_SCOPED_PRIVATE_DURABLE_INTENT_JOIN_ONLY",
+  "date_utc": "2026-11-11T04:18:32.801041+00:00",
+  "findings": [],
+  "p1_count": 0,
+  "p2_count": 0,
+  "canonical_adoption": false,
+  "candidate_patch_sha256": "438b786c7a4ece246beaaf14f2a758b74857db1a4b3376f1157d2bc19c59eb46",
+  "producer_delivery_tree_sha256": "3426662e18f11094cb02522a32970c1fafb4a6fb7d1305dabac726dbbe6438b4",
+  "source_identity": "Per-file manifest hashes; no Git operation",
+  "exact_afterimages_unchanged_before_and_after": true,
+  "preimage_reconstructed_and_hash_verified": true,
+  "source_context": {
+    "placement": "Coordinator.refresh/3 after renew and with_current, inside the actual Ecto.Multi",
+    "identity_origin": "Fresh guarded typed existing Admission context, not job/dispatch input maps",
+    "sql_boundary_changed": false,
+    "privileges_widened": false,
+    "default_adapter_or_migration_selection_changed": false
+  },
+  "command": "python3 verification/local/coordinator-join-review-r718/run.py review1",
+  "batch_count": 1,
+  "harness_corrections": 0,
+  "tests": {
+    "producer": 6,
+    "independent": 5,
+    "total": 11,
+    "failures": 0,
+    "excluded": 0,
+    "skipped": 0
+  },
+  "independent_cases": [
+    "stale job revisions before join",
+    "lease replacement and old-token refusal",
+    "stop before admission with newer-epoch ensure and stale replay",
+    "four concurrent real Coordinator replays",
+    "outer rollback of existing admission stop update and lease renewal"
+  ],
+  "executed_identity": {
+    "fresh_product_modules": 25,
+    "loaded_md5_matches_beam_files": true,
+    "source_hashes_match_exact_afterimages": true,
+    "native_refresh_to_join_same_process_trace": true,
+    "cached_product_BEAMs": false,
+    "dependency_applications": 21,
+    "frozen_dependency_hashes_and_lock_app_versions_verified": true
+  },
+  "environment": {
+    "host": "local macOS Apple Silicon",
+    "elixir": "1.20.4",
+    "otp": "29 / erts17.1",
+    "postgres": "17.11 Homebrew",
+    "beam_flags": "+S 3:3 +A 3",
+    "loopback_only": true,
+    "port": 52073
+  },
+  "diagnostics": {
+    "compile_warnings": [],
+    "runtime_warnings": [],
+    "unchanged_mix_lock_parser_warnings": 21,
+    "notifier_errors": false,
+    "expected_post_migration_type_refresh": true
+  },
+  "cleanup": {
+    "postmaster_pid": 38537,
+    "group_absent": true,
+    "clean_stop": true,
+    "pgdata": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/coordinator-join-review-r718/pgdata-review1",
+    "retained_stopped_data": false,
+    "removed_after_confirmed_clean_stop": true,
+    "all_launched_command_groups_observed_absent": true,
+    "launched_command_count": 9,
+    "identities_persisted_before_wait": true,
+    "unknown_custody": false,
+    "new_holds": []
+  },
+  "historical_producer_evidence": {
+    "both_output_command_cleanup_packets_match_delivery_manifest": true,
+    "batch1_notifier_errors_preserved": true,
+    "batch2_final_six_passes_distinct_from_review": true,
+    "r684_cause_resolved": false
+  },
+  "qualification": {
+    "durable_intent_join": true,
+    "production_selection": false,
+    "default_adapter": false,
+    "deployment": false,
+    "worker_authentication": false,
+    "worker_execution": false,
+    "worker_termination": false,
+    "capacity_release": false,
+    "external_provenance": false,
+    "restart_durability": false,
+    "GA": false
+  },
+  "scope_controls": {
+    "canonical_changed": false,
+    "git_or_remotes_used": false,
+    "device_actions": false,
+    "provider_or_credential_actions": false,
+    "children": false,
+    "held_namespace_access": false,
+    "historical_holds_preserved": true
+  },
+  "artifacts": {
+    "report": "verification/local/coordinator-join-review-r718/REPORT.md",
+    "inputs": "verification/local/coordinator-join-review-r718/input/review-inputs.json",
+    "executable": "verification/local/coordinator-join-review-r718/input/executable.json",
+    "identity_checks": "verification/local/coordinator-join-review-r718/raw/identity-review.json",
+    "test_results": "verification/local/coordinator-join-review-r718/raw/tests.json",
+    "commands": "verification/local/coordinator-join-review-r718/raw/review1/commands.json",
+    "cleanup": "verification/local/coordinator-join-review-r718/raw/review1/cleanup.json"
+  },
+  "next_root_action": "Root may adopt this exact private durable-intent slice within its reviewed scope; production selection and all broader qualification remain separate."
+}

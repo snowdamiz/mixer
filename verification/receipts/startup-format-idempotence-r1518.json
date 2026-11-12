@@ -1,0 +1,56 @@
+{
+  "id": "R1518_FORMAT_IDEMPOTENCE",
+  "status": "OBSERVED",
+  "tool": "Elixir1.20.4/OTP29 single scheduler; Code.format_string! only",
+  "pass1Equals2": false,
+  "pass2Equals3": true,
+  "outputs": [
+    {
+      "path": "verification/local/startup-format-idempotence-r1518/pass1.ex",
+      "sha256": "968780cce93c0c837984c50a8edad11845186b4aa48a8e0137af708f381c935a"
+    },
+    {
+      "path": "verification/local/startup-format-idempotence-r1518/pass2.ex",
+      "sha256": "cc3949735a4d381543b3e5413e7d6fc593eb8f3b2b857ca07b1f85e1747364f8"
+    },
+    {
+      "path": "verification/local/startup-format-idempotence-r1518/pass3.ex",
+      "sha256": "cc3949735a4d381543b3e5413e7d6fc593eb8f3b2b857ca07b1f85e1747364f8"
+    }
+  ],
+  "source": "R1494 exact helper",
+  "compilerOrMixBuilds": 0,
+  "PGTests": 0,
+  "custody": {
+    "commands": [
+      {
+        "label": "pure-format",
+        "argv": [
+          "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+          "--erl",
+          "+S 1:1 +SDcpu 1 +SDio 1 +sbwt none",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/startup-format-idempotence-r1518/probe.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/startup-format-idempotence-r1518",
+        "pid": 35399,
+        "pgid": 35399,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.4522511250106618,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "outer": {
+      "pgid": 35327,
+      "originalKillpg0ESRCH": true
+    }
+  },
+  "canonicalEdits": false,
+  "GA": false,
+  "holdsReleased": false,
+  "pass1MatchesActualCIInput": true,
+  "actualCIInputHash": "968780cce93c0c837984c50a8edad11845186b4aa48a8e0137af708f381c935a",
+  "interpretation": "First formatter pass was not a fixed point; second and third are identical. The actual CI first-pass hash matches the local pure probe. This explains the format gate, not the startup checkout refusal."
+}

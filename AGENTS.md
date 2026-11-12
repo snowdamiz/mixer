@@ -486,3 +486,13 @@ is also held against further payload reads or extraction. Only copied top-level
 HOLD metadata and `verification/receipts/cache-ci-custody-r1342.json` remain permitted
 references. Direct child return and later GitHub cleanup do not establish group
 absence. This scoped hold does not pause unrelated development or release older holds.
+
+The runner stdout-budget control in run 43136782317, job 130913921366,
+returned terminal-custody-unknown or cleanup-failed for default-still-bounded.
+No reliable PID/PGID or exact worker scratch path was exposed. Preserve that
+exact hosted command and its job-owned unit-worker scratch; do not inspect
+payloads to recover identities, probe, signal, wait on, retry or clean it.
+Only the copied top-level console diagnosis in
+`verification/receipts/runner-output-custody-r1369.json` is a reference.
+The failed assertion and later GitHub job cleanup establish no process absence.
+Canonical source and fresh isolated development are outside this scoped hold.

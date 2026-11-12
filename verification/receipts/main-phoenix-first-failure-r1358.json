@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "id": "R1358_MAIN_PHOENIX_FIRST_FAILURE",
+  "observedAt": "2026-11-12T01:34:41.280Z",
+  "main": "185522c8c62b721f7ccc56400e28c6d2f64f1dfd",
+  "run": 43133778188,
+  "job": 130904060470,
+  "status": "FAILED_EXISTING_AUTHORIZATION_TEST_CAUSE_UNPROVEN",
+  "artifact": {
+    "id": 13906936823,
+    "bytes": 1150605,
+    "sha256": "fd8ec1af4f889a73272d8ffb8ff25568b5b536ca1c60890ee1c9cfe7d3dc8243"
+  },
+  "testsLogSHA256": "b6f1128f2c16c9ee7831871ec872a6152f10619cc932027c1000b9153b87cf79",
+  "result": {
+    "passed": 821,
+    "failed": 1,
+    "skipped": 2,
+    "command": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "test",
+      "/home/runner/work/mixer/mixer/hosted/diagnostics/browser_login_trace_test.exs"
+    ],
+    "exit": 2
+  },
+  "failure": {
+    "file": "hosted/test/mixer_hosted/authorization/transaction_test.exs",
+    "line": 762,
+    "name": "fresh snapshots select surviving membership rows without modifying the initial Context",
+    "expected": "{:ok, :survived}",
+    "actual": "{:error, :authorization_unavailable}",
+    "assertionLine": 769
+  },
+  "postgres": "17.11 Ubuntu PGDG24.04",
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "postgresStopExit": 0,
+  "priorQualification": {
+    "commit": "ee722de22510febf991055c9de50580b665a1744",
+    "passed": 822,
+    "skips": 2,
+    "productCodeIdentical": true
+  },
+  "cause": "UNPROVEN; no retry, timeout change, test change or product fix selected",
+  "newCustodyHoldEstablished": false,
+  "historicalHoldsReleased": false,
+  "GA": false
+}

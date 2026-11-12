@@ -1,0 +1,222 @@
+{
+  "id": "R1470_INSPECTION_DIAGNOSTIC_CLOSURE",
+  "status": "REQUEST_CHANGES_PUBLIC_ENTRY_FAILED",
+  "observedUTC": "2026-11-12T04:45:51.771566+00:00",
+  "namespace": "verification/local/inspection-diagnostic-closure-r1470",
+  "sourceRevision": "d7fba7f3 last confirmed by root; no Git/API refresh permitted",
+  "source118": {
+    "count": 118,
+    "digest": "d947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7",
+    "unchangedCanonical": true,
+    "historicalAdmissionRetained": true
+  },
+  "candidateSelection": {
+    "count": 120,
+    "digest": "1c10e122789125413010bed0935fba75a2803cf2b46ed50a2f2b6df7f0eab795",
+    "supportTargets": 3,
+    "applicationTargets": 5,
+    "route": "new diagnostic entry -> frozen bootstrap.run_integration -> frozen runner.execute",
+    "adopted": false,
+    "accepted": false
+  },
+  "tests": {
+    "normalPayloads": 1,
+    "actualOptimizedPayloads": 0,
+    "passedGroups": [
+      "actual-installed-entry-admission",
+      "original118-admission-and-diagnostic-refusal",
+      "stale-runner-refusal",
+      "mismatched-driver-refusal",
+      "mismatched-bootstrap-refusal",
+      "stale-selected-manifest-refusal",
+      "selection-digest-refusal",
+      "original118-metadata-refusal",
+      "extra-owning-input-refusal"
+    ],
+    "passedGroupCount": 9,
+    "failedBoundary": "installed-public-main-debug-create-frontier",
+    "observedFailure": "FileNotFoundError reading missing normal/integration/receipt.json after entry.main returned",
+    "missingRawEvidence": "entry.main stdout/status was captured in memory but not persisted before receipt read; do not infer an observed exact error string",
+    "staticDiagnosis": "entry passes parsed args containing output and execute_toolchains to frozen run_integration, which constructs argparse.Namespace(**vars(args), output=output, execute_toolchains=True); duplicate keyword arguments prevent dispatch",
+    "runtimeRetries": 0,
+    "stoppedAtFirstSubstantiveFailure": true,
+    "sameFrontierBehaviorReviewRepeated": false,
+    "realRunnerChildren": 0,
+    "realSignals": 0,
+    "OSObservations": "only exact owned command/outer killpg(...,0) custody observations",
+    "toolVersion": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "optimization": 0
+  },
+  "nextRootDecision": {
+    "canonicalAdoption": "NOT_READY",
+    "freshCI": "NOT_AUTHORIZED_HERE_AND_NOT_READY",
+    "minimalCorrection": "Pass a tool-only argparse.Namespace without output/execute_toolchains to frozen bootstrap.run_integration; persist entry return/stdout before attempting to read receipt. Requires a separately selected fresh bounded campaign; do not rerun R1470.",
+    "namedExecutableUnlock": "actual generated-Java debug-create inspect failure receipt carrying inspection_failure_frontier",
+    "moreThanEightSupportTargetsRequired": false
+  },
+  "limits": {
+    "originalWallSeconds": 720,
+    "reservedSeconds": 60,
+    "maxPurePayloads": 2,
+    "maxPreparationCorrections": 1,
+    "preparationInvocations": 1,
+    "substantiveFailureStops": true,
+    "rootTestedDispatchPrefixUnchanged": true,
+    "apiNeverCalled": true
+  },
+  "custody": {
+    "commands": [
+      {
+        "label": "normal",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/inspection-diagnostic-closure-r1470/test_closure.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+        "pid": 69251,
+        "pgid": 69251,
+        "state": "direct_reaped",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 1.1547198339831084,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "outer": {
+      "pid": 68589,
+      "pgid": 68589,
+      "terminalExecResponsePersisted": true,
+      "sessionId": 18505,
+      "observation": "ESRCH",
+      "groupAbsent": true
+    },
+    "allManagedTerminal": true
+  },
+  "scope": {
+    "privateOnly": true,
+    "canonicalWrites": 0,
+    "gitAPICINetworkCompilerSDKNativeDeviceOperations": 0,
+    "subchildren": 0,
+    "heldResourcesAccessed": false,
+    "historicalHoldsReleased": false,
+    "timeout180CauseProven": false,
+    "GA": false,
+    "publication": false
+  },
+  "artifacts": {
+    "CONTRACT.md": {
+      "bytes": 1231,
+      "sha256": "5f3d02f95ca19c64bcf176401376c8cfb428cca2e1a728a62fbdab1abc2f3a32"
+    },
+    "entry.py": {
+      "bytes": 6183,
+      "sha256": "87412355a612e9a8bb031f6389d17ec256d01e41be3e6d55e9bf7cfa7aa5c7cd"
+    },
+    "prepare.py": {
+      "bytes": 4676,
+      "sha256": "ec34612e9794c87503a263c19f058485bb0e6c7eed963e0e0e3fda19f187c9ad"
+    },
+    "test_closure.py": {
+      "bytes": 8639,
+      "sha256": "8db3cc60e481a8bf670facb8f67b41c7787b7f5081255b57d5cdb982169a718a"
+    },
+    "dispatch.py": {
+      "bytes": 2088,
+      "sha256": "d71f15ab16d2e378c9d2991693586664511bdfe69354fba0608e913dd0a62c3a"
+    },
+    "application-map.json": {
+      "bytes": 1321,
+      "sha256": "faab54c6a802a979abe1b940e242f4768f6e52f6a0cb6d4af7d13480a36511e4"
+    },
+    "source-inputs.json": {
+      "bytes": 19940,
+      "sha256": "0b9760964ae77b102b9f69e15800a9a34b86302185799063fd193ee0cf9b819d"
+    },
+    "selection-summary.json": {
+      "bytes": 1000,
+      "sha256": "09ac590f9ccf74b40618512df6335f16f5127cc938f2d89574e99c199b5aec52"
+    },
+    "diagnostic-selection.patch": {
+      "bytes": 34904,
+      "sha256": "509ef43ad9b9f18a3e31ac70b81d61faeb590807a23da1bcd19dc50ff2731a31"
+    },
+    "prefix-proof.json": {
+      "bytes": 447,
+      "sha256": "c46654836de32180bf5d014ee18fbbc7b0310e819986aef781cbe51ee25d336b"
+    },
+    "outer-exec-response.json": {
+      "bytes": 131,
+      "sha256": "64cc88614e808dcd86d13b05b411e2f5e6c1a926205469bc26694367459e140e"
+    },
+    "outer-exec-final.json": {
+      "bytes": 763,
+      "sha256": "032195c5080a1f50dedaad390ff65f9017bf4c1671a2f2e1ed85a0683db36eb9"
+    },
+    "PARENT_WAITING.json": {
+      "bytes": 188,
+      "sha256": "8bc11f9445018f45ac67a0c2b748903fe0a59a3f9bf6a18a3acb6da624971770"
+    },
+    "PARENT_READY": {
+      "bytes": 42,
+      "sha256": "891bf873ab64d80d9162f158a5688254bd8013babeb806f5ea729e9c622554fd"
+    },
+    "outer-custody.json": {
+      "bytes": 148,
+      "sha256": "9186cd75df546178106bba7bab22cd41a0f9c296599e1ac2deda75466a13f103"
+    },
+    "canonical-preservation.json": {
+      "bytes": 125,
+      "sha256": "4a8c018f243caea3f0e4d79c91de5af27ba9510c0af61f29342040591b6b38e8"
+    },
+    "delivery/commands.json": {
+      "bytes": 518,
+      "sha256": "22a53f31b10afb9ab5e0b441365ffd26b44fa295249a502b9bb0523cbde9e981"
+    },
+    "delivery/normal.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "delivery/normal.stderr": {
+      "bytes": 1697,
+      "sha256": "b21059a56b996515089501026cd058de250fbd614ac0bcf088eddbee2a264559"
+    },
+    "normal/progress.json": {
+      "bytes": 315,
+      "sha256": "6423e3a72d0d3f1ebedeb2f8fe83959d75c28c2641f5e285a9ac02448581c2c0"
+    },
+    "normal/admission.json": {
+      "bytes": 485,
+      "sha256": "1aa6359b8bd8eda580542f37588331b478e20e635c19161633fff9a786f826ab"
+    },
+    "normal/stale-runner.raw.json": {
+      "bytes": 166,
+      "sha256": "d707c467fab9320f6ffb60035965eec6d62f37fca6c8ee87e9f4da102d9dbb67"
+    },
+    "normal/driver.raw.json": {
+      "bytes": 173,
+      "sha256": "2ba48a95066ad0b6bb92f4b6d789c57cebad666962a6113a506c13d49a78481b"
+    },
+    "normal/bootstrap.raw.json": {
+      "bytes": 208,
+      "sha256": "42dc8a6f7ecda20f14aa9214201731c238d2950be66cd642e46b562eb2d25cfb"
+    },
+    "normal/manifest.raw.json": {
+      "bytes": 130,
+      "sha256": "29f33fe3a7f87122eaed984239c8ba150ea315901a0486f42e8a42a145db12c4"
+    },
+    "normal/selection.raw.json": {
+      "bytes": 134,
+      "sha256": "16fe9da6484692d210531932c4faea103a8c827ba6b19c17bbd6f93dbb5b1250"
+    },
+    "normal/historical-metadata.raw.json": {
+      "bytes": 136,
+      "sha256": "5300b010ea336fab9ba8e48ef9c9cd55e09262dc6a29cae033b41e8df2f0d6de"
+    },
+    "normal/extra-owner.raw.json": {
+      "bytes": 74,
+      "sha256": "e7089fb22f60b5e3f88d3888eb32b4a8d7278db1cbaedeaa6a39d59ba998ac1a"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "id": "BROWSER_GROUP_FAIL_STOP_POLICY_R1432",
+  "observedAt": "2026-11-12T03:40:06.734Z",
+  "status": "PASS_STANDARD_OTP_MECHANISM_ONLY",
+  "tool": {
+    "elixir": "1.20.4",
+    "OTP": "29",
+    "schedulers": 1
+  },
+  "scope": "Anonymous synthetic actors under actual OTP Supervisor. No product, authorization, provider, PG, PKCE or Endpoint integration claim.",
+  "selectedPolicy": {
+    "root": "one_for_one",
+    "browserChild": "temporary",
+    "group": "one_for_all",
+    "max_restarts": 0,
+    "groupChildren": "permanent"
+  },
+  "observed": {
+    "starts": 5,
+    "groupRestarts": 0,
+    "providerTerminationClosedGroupAndSiblings": true,
+    "rootAndOrdinaryActorsStayedAlive": true,
+    "allOwnedActorsClosedAtEnd": true
+  },
+  "commands": [
+    {
+      "label": "otp-failstop",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 1:1 +SDcpu 1 +SDio 1 +sbwt none +sbwtdcpu none +sbwtdio none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-group-policy-r1432/policy.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+      "pid": 89886,
+      "pgid": 89886,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.9472272079437971,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "outer": {
+    "pid": 89754,
+    "pgid": 89754,
+    "session": 68472,
+    "exitCode": 0,
+    "initialResponseReadbackBeforeGate": true,
+    "terminalResponseReadback": true,
+    "originalKillpg0ESRCH": true
+  },
+  "input": "verification/local/browser-group-policy-r1432/input.json",
+  "raw": "verification/local/browser-group-policy-r1432/delivery/otp-failstop.stdout",
+  "runCount": 1,
+  "retries": 0,
+  "OSSignalsDispatched": 0,
+  "heavyBuilds": 0,
+  "productTestsRun": 0,
+  "canonicalEdits": false,
+  "historicalHoldsReleased": false,
+  "GA": false
+}

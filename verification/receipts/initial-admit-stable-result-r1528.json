@@ -1,0 +1,338 @@
+{
+  "schema": 1,
+  "id": "initial-admit-stable-result-r1528",
+  "status": "OBSERVED_10_OF_11_PASSED_DEADLINE_CASE_MESSAGE_ASSERTION_FAILED",
+  "recordedUTC": "2026-11-12T06:12:08.421221+00:00",
+  "scope": "Read-only collection of existing exact-head CI; no new tests, reruns, retry, mutation, compiler, PostgreSQL, native, Git or subchildren.",
+  "head": "414081c767d4197b38d961cbeef454db3ca41aba",
+  "branch": "t3/initial-admit-stable-format-r1522",
+  "publishedTree": "e4ff722e78694856c06b995cf19393886bdecb35",
+  "publicationParentMain": "c87d50118a34913e69de715d9329c59c5085d877",
+  "run": {
+    "id": 43165479952,
+    "jobId": 131006240043,
+    "attempt": 1,
+    "conclusion": "failure",
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/43165479952/job/131006240043"
+  },
+  "firstUnexpectedFailure": {
+    "stage": "Phoenix step11; focused ExUnit after successful format, compile and packaged-release checks",
+    "case": "initial admission held through the original deadline stays unavailable after release without retry",
+    "file": "hosted/test/mixer_hosted/browser_auth/initial_admit_queue_test.exs",
+    "caseLine": 40,
+    "assertionLine": 64,
+    "assertion": "refute_receive {:store_transaction, ^owner, _}, 250",
+    "actual": "Unexpectedly received message {:store_transaction, #PID<0.714.0>, \"begin\"} (which matched {:store_transaction, ^owner, _})",
+    "exitCode": 2,
+    "rawEntry": "_temp/phoenix-foundation/tests.log",
+    "logSHA256": "12ecc82fdea5863c21a761e8ccc7df9a4a0eff2211268ca92f53e517acaed1bd",
+    "priorAssertionsReached": "Actual owner queued; held past observation+5001ms; init returned; unavailable generation1; holders released; queue0; unavailable retained; GET /auth/session=503 with no Set-Cookie.",
+    "unexecutedAssertions": [
+      65,
+      66,
+      67
+    ],
+    "boundaryLimit": "Log does not establish when the unexpected begin message was emitted, whether it denotes a retry, or transaction commit. No cause or fix inferred."
+  },
+  "focusedTests": {
+    "expected": 11,
+    "executed": 11,
+    "passed": 10,
+    "failed": 1,
+    "originalNine": {
+      "passed": 9,
+      "failed": 0
+    },
+    "newRealOwner": {
+      "passed": 1,
+      "failed": 1
+    },
+    "cases": [
+      {
+        "name": "real initial admission queues until a held connection is released within its original deadline",
+        "line": 20,
+        "durationMS": 1289.9,
+        "result": "passed"
+      },
+      {
+        "name": "initial admission held through the original deadline stays unavailable after release without retry",
+        "line": 40,
+        "durationMS": 6002.1,
+        "result": "failed"
+      },
+      {
+        "name": "ordinary_console_catalog_navigation_cookie_pg_join",
+        "line": 34,
+        "durationMS": 5169.6,
+        "result": "passed"
+      },
+      {
+        "name": "ordinary disabled endpoint serves health and bearer but no browser owners or cookies",
+        "line": 175,
+        "durationMS": 18.8,
+        "result": "passed"
+      },
+      {
+        "name": "processor and malformed installations refuse before any children; configured production stays closed",
+        "line": 211,
+        "durationMS": 2.9,
+        "result": "passed"
+      },
+      {
+        "name": "ordinary mount preserves raw refusals and passes nonowned connections unchanged",
+        "line": 243,
+        "durationMS": 123.7,
+        "result": "passed"
+      },
+      {
+        "name": "actual permanent child termination tears down browser siblings without restarting the temporary group",
+        "line": 281,
+        "durationMS": 422.3,
+        "result": "passed"
+      },
+      {
+        "name": "runtime startup refusal unwinds lifecycle provider and ordinary siblings before Endpoint",
+        "line": 325,
+        "durationMS": 21.0,
+        "result": "passed"
+      },
+      {
+        "name": "external Repo replacement cannot renew the retained owner or its old lease",
+        "line": 345,
+        "durationMS": 113.0,
+        "result": "passed"
+      },
+      {
+        "name": "expired lease and unknown outcome remain latched until explicit application restart",
+        "line": 361,
+        "durationMS": 274.5,
+        "result": "passed"
+      },
+      {
+        "name": "provider ticket retains PID and generation fences across whole-Application restart",
+        "line": 393,
+        "durationMS": 227.9,
+        "result": "passed"
+      }
+    ],
+    "actualArgv": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "/home/runner/work/mixer/mixer/hosted/test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs",
+      "/home/runner/work/mixer/mixer/hosted/test/mixer_hosted/browser_auth/initial_admit_queue_test.exs"
+    ],
+    "testSelection": "explicit independent tests only",
+    "seed": 0,
+    "maxCases": 1,
+    "suiteSeconds": 18.5,
+    "positiveEvidence": "Passing actual-source assertions observe checkout_queue_length=1 for real owner, release one held connection, require completion within original5000ms, observe owner begin/commit, then fixture-provider PKCE callback, activated cookie and application catalog200.",
+    "negativeComplete": false,
+    "all11Green": false
+  },
+  "stages": {
+    "format": {
+      "argv": [
+        "mix",
+        "format",
+        "--check-formatted"
+      ],
+      "exit": 0
+    },
+    "compile": {
+      "argv": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "exit": 0,
+      "files": 146,
+      "warningsObserved": false
+    },
+    "release": {
+      "argv": [
+        "mix",
+        "release",
+        "--overwrite"
+      ],
+      "exit": 0,
+      "missingConfigExpectedExit": 1,
+      "missingSetting": "MIXER_HOSTED_ROLE",
+      "productionTestExclusionExit": 0,
+      "warnings": [
+        "Deprecated xref exclude option",
+        "Unused ConfigurationDigest alias: provider_owner.ex:4",
+        "Unreachable {:ok, children} clause: browser_auth/supervisor.ex:19"
+      ]
+    },
+    "testWarnings": [
+      "Repeated migration-order warnings for versions20261025000000 and1 after20261025000007"
+    ],
+    "protocol": {
+      "passed": 45,
+      "failed": 0
+    },
+    "storage": {
+      "passed": 24,
+      "failed": 0,
+      "scope": "prior storage stage"
+    },
+    "migrations": {
+      "passed": 1,
+      "failed": 0
+    },
+    "workspaceClientCompile": "job step9 success"
+  },
+  "source": {
+    "actualRunAndRevisionMatch": true,
+    "foundationTreeSHA256": "48add0683ec9b62fd4c41846846db0619597b15b7acfb7a9ef130033e460436e",
+    "inputCount": 262,
+    "sourceArchive": {
+      "entry": "_temp/phoenix-foundation/source.tar.gz",
+      "bytes": 852008,
+      "sha256": "c96b5d00d28755f3337fdb22bb92ce8bd92e5b73a866b522df28e64304382c85",
+      "hashVerifiedBeforeParse": true
+    },
+    "actualStableHelperSHA256": "cc3949735a4d381543b3e5413e7d6fc593eb8f3b2b857ca07b1f85e1747364f8",
+    "actualStoreSHA256": "d265b30252f322fc02da88e2a6e88ced7a19947d77d891ee32655e9387706425",
+    "workflowFormattedInputDifferences": 12,
+    "differences": "verification/local/initial-admit-stable-result-r1528/selected-versus-collector-hashes.json",
+    "authorityLimit": "Published Git tree identity comes from R1522 publication packet; actual runner input hashes are separately reported after workflow formatting. No hash waiver or semantic equivalence assumed."
+  },
+  "artifact": {
+    "id": 13920016608,
+    "bytes": 1081184,
+    "sha256": "db090261a16983ca37defa8a6561b604e24577de39efbdc40fa510ec3892b5a2",
+    "wholeZIPSizeVerifiedBeforeParse": true,
+    "wholeZIPDigestVerifiedBeforeParse": true,
+    "HOLDEntries": [],
+    "custodyAndCleanupMetadataReadBeforePayload": true,
+    "newUnknownObserved": false,
+    "path": "verification/local/initial-admit-stable-result-r1528/delivery/artifact.stdout"
+  },
+  "tools": {
+    "hostedOS": "ubuntu-24.04",
+    "Elixir": "1.20.4",
+    "ErlangOTP": "29 / erts17.1",
+    "Mix": "1.20.4",
+    "PostgreSQL": "17.11 Ubuntu17.11-1.pgdg24.04+2",
+    "hostedPython": "3.12.3",
+    "localGH": "2.102.0",
+    "collectorPython": "3.14.8",
+    "collectorPlatform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "NodeAndTypeScriptVersion": "not independently collected"
+  },
+  "identityAuthority": {
+    "runId": 43165479826,
+    "jobId": 131006239567,
+    "conclusion": "failure",
+    "failedSteps": [
+      {
+        "number": 3,
+        "name": "Admit the explicitly selected current hosted source"
+      },
+      {
+        "number": 6,
+        "name": "Finalize exact owned resources and retain failures"
+      }
+    ],
+    "expectedReasonFromRootBrief": "private graph source authority",
+    "sourceAdmissionFailureObserved": true,
+    "exactHashDiagnosticCollected": false,
+    "waiver": false,
+    "isPhoenixFailure": false,
+    "logCollection": {
+      "exitCode": 1,
+      "diagnostic": "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway",
+      "stdoutBytes": 0,
+      "retry": false,
+      "custodyComplete": true
+    },
+    "finalizationLimit": "Identity finalize step also failed; its resource/cleanup details were not collected. No process absence or cause inferred."
+  },
+  "custody": {
+    "managedLocalCommands": 7,
+    "allDirectReapedBothEOFClosedFDsOriginalKillpg0ESRCH": true,
+    "outer": [
+      {
+        "pid": 89465,
+        "pgid": 89465,
+        "state": "direct_reaped",
+        "driver": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/initial-admit-stable-result-r1528/collect.py",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "originalKillpg0ESRCH": true
+      },
+      {
+        "pid": 99221,
+        "pgid": 99221,
+        "state": "direct_reaped",
+        "driver": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/initial-admit-stable-result-r1528/identity-detail/collect.py",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "originalKillpg0ESRCH": true
+      }
+    ],
+    "fullOuterResponseSessionPersistedReadBackBeforeG": true,
+    "outerTerminalResponsesPersistedReadBack": true,
+    "hostedFoundationCleanupReported": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "otherHostedCleanupReported": {
+      "mixer/mixer/verification/hosted-browser-auth-protocol/attempts/20261112T060420754544Z/receipt.json": {
+        "owned_scratch_removed": true,
+        "owned_scratch_path": "/tmp/mixer-browser-auth-protocol-od9225un",
+        "started_browser_capture_native_or_phone_processes": false,
+        "started_provider_network_or_database": false
+      },
+      "mixer/mixer/verification/hosted-browser-session-storage/attempts/20261112T060451.006356Z-b878ea8f/receipt.json": {
+        "owned_postgres_stopped": true,
+        "owned_scratch_removed": true
+      },
+      "_temp/browser-migrations/20261112T060505.871987Z-aae442ed/receipt.json": {
+        "owned_postgres_stopped": true,
+        "owned_scratch_removed": true,
+        "owned_compile_products_removed": true
+      }
+    },
+    "hostedDescendantAbsenceProof": "Not recorded in foundation receipt. Job completion and cleanup reports are not process-group absence proof.",
+    "newLocalUnknown": false,
+    "rawEvidenceRetained": true,
+    "localCleanupPerformed": false,
+    "historicalHoldsReleased": false
+  },
+  "collectionBounds": {
+    "initialExactHeadRunChecks": 1,
+    "laterStatusChecks": 0,
+    "PhoenixJobLists": 1,
+    "artifactLists": 1,
+    "artifactDownloads": 1,
+    "identityJobLists": 1,
+    "identityLogDownloadAttempts": 1,
+    "retries": 0,
+    "newCIRuns": 0
+  },
+  "raw": {
+    "directory": "verification/local/initial-admit-stable-result-r1528",
+    "tests": "artifact-tests.log.escaped.json",
+    "actualTestSource": "initial_admit_queue_test.exs.actual-source.json",
+    "metadata": "artifact-custody-metadata.json",
+    "jobs": "delivery/phoenix-jobs.stdout",
+    "localCommands": [
+      "delivery/commands.json",
+      "identity-detail/delivery/commands.json"
+    ]
+  },
+  "originalFailurePreserved": "verification/receipts/startup-queue-ci-result-r1514.json",
+  "nextDecisionOwner": "Root; full ordinary regressions and independent graph review not launched because eleven-green condition is unmet.",
+  "canonicalAdoption": false,
+  "productionActivation": false,
+  "GA": false,
+  "holdsReleased": false
+}

@@ -1,0 +1,1111 @@
+{
+  "schema": 1,
+  "campaign": "browser-activation-commit-r932",
+  "created_utc": "2026-11-11T11:05:31.890057+00:00",
+  "outcome": "REQUEST_CHANGES_PROVEN_P1_FINAL_ACTIVATION_ROLLBACK_PUBLISHES_COOKIE",
+  "acceptance": "FAILED; diagnostic packet only; no adoption",
+  "source": {
+    "root_reported_revision": "main1633d0e7",
+    "root_revision_not_queried": true,
+    "canonical_hosted_files_verified_unchanged": 216,
+    "production12_unchanged": true,
+    "r686_product_sha256": "1dd605f112835aecdad1f43d6ebd5315beb7b35403cd0aff4d1ad17ba75ae839",
+    "r686_product_byte_exact": true,
+    "canonical_application": false
+  },
+  "finding": {
+    "severity": "P1",
+    "owner": "hosted/lib/mixer_hosted/browser_auth/store.ex:189",
+    "publication_boundary": "hosted/lib/mixer_hosted_web/browser_login_http.ex:40",
+    "trigger": "Same connection executes actual mixer_browser_activate; proxy observes SELECT 1 CommandComplete; before its following COMMIT proxy induces SELECT 1/0, hides only that fixture error, then forwards original COMMIT and actual server ROLLBACK result.",
+    "observed": {
+      "identity": [
+        [
+          "browser_lifecycle",
+          "browser_storage",
+          false,
+          false
+        ]
+      ],
+      "phase": "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+      "backend": 79780,
+      "injected_ready_for_query": "E",
+      "actual_commit_command_complete": "ROLLBACK",
+      "independent_before": [
+        [
+          "preauth",
+          2,
+          2,
+          3,
+          3,
+          3
+        ]
+      ],
+      "independent_after": [
+        [
+          "preauth",
+          2,
+          2,
+          3,
+          3,
+          3
+        ]
+      ],
+      "http_status": 303,
+      "active_cookie_header": true,
+      "workspace_redirect": true,
+      "published_cookie_session_status": 503
+    },
+    "no_authorization_bypass_claimed": true,
+    "product_fix_attempted": false
+  },
+  "barrier": {
+    "phase": "mixer_browser_activate Execute + SELECT 1 CommandComplete then same-connection COMMIT",
+    "role": "browser_lifecycle",
+    "backend": 79780,
+    "superuser": false,
+    "bypassrls": false,
+    "no_bytes_before_commit": true,
+    "no_bytes_before_ack": true,
+    "independently_visible_before_ack": true,
+    "truthful_cookie_and_read_after_ack": true
+  },
+  "results": {
+    "batch_1": "Original corrected four controls passed; fifth stopped on proxy frontend/backend fixture placement error; sixth unrun.",
+    "fixture_correction": "One correction relocated response tracking to backend; separately named proxy loaded at test runtime without product recompilation.",
+    "batch_2": "5/6 passed; successful final COMMIT barrier passed; genuine final COMMIT rollback falsely published cookie. Stopped at first product finding.",
+    "original_assertions_preserved": true,
+    "bounded_header_query_controls_preserved": true,
+    "sql_schema_catalog_grants_unchanged": true,
+    "product_role": "browser_lifecycle; NOSUPERUSER NOBYPASSRLS; actual admission/catalog",
+    "client_outputs": "All seven R662 outputs SHA-256 verified; unchanged Node driver rerun in both batches"
+  },
+  "tools": {
+    "OTP": "29 erts-17.1",
+    "Elixir": "1.20.4",
+    "Ecto": "3.14.2",
+    "EctoSQL": "3.14.0",
+    "Postgrex": "0.22.4",
+    "DBConnection": "2.10.2",
+    "PostgreSQL": "17.11 Homebrew"
+  },
+  "bounds": {
+    "elapsed_seconds_since_source_preparation": 571.01,
+    "maximum_seconds": 1080,
+    "product_compile_invocations": 1,
+    "compiled_elixir_files": 117,
+    "meaningful_pg_http_batches": 2,
+    "fixture_only_corrections": 1,
+    "beam_schedulers": 3,
+    "test_timeout_seconds": 150,
+    "per_command_output_ceiling_bytes": 2000000,
+    "wrapper_typo": "One pre-PG missing-executable attempt, terminal identity and EOF/ESRCH recorded; no HTTP batch or product compile consumed."
+  },
+  "cleanup": {
+    "batch_1": {
+      "stop_exit": 0,
+      "status_exit": 3,
+      "direct_reaped": true,
+      "group_absent": true,
+      "original_killpg0_errno": 3,
+      "port_connect_errno": 61,
+      "port_closed": true
+    },
+    "batch_2": {
+      "stop_exit": 0,
+      "status_exit": 3,
+      "direct_reaped": true,
+      "group_absent": true,
+      "original_killpg0_errno": 3,
+      "port_connect_errno": 61,
+      "port_closed": true
+    },
+    "all_gated_commands_terminal": true,
+    "all_original_group_observers_ESRCH": true,
+    "historical_holds_touched": false,
+    "owned_postgres_data_removed_after_closure": true,
+    "removed_owned_transient_dependency_and_build_copies": [
+      "source/hosted/deps",
+      "source/hosted/_build"
+    ]
+  },
+  "evidence": {
+    "REPORT.md": {
+      "path": "verification/local/browser-activation-commit-r932/REPORT.md",
+      "bytes": 6909,
+      "sha256": "2fde082ca99718841fbd3fc1a1291843c4ecad54f263572bb336f20bdd38dc74"
+    },
+    "commands.json": {
+      "path": "verification/local/browser-activation-commit-r932/commands.json",
+      "bytes": 26162,
+      "sha256": "e6e5150dc5b5ad9f93d2ad7acfbf5751bfee0ea9a34ed76afa84e2b855db0e40"
+    },
+    "cleanup.json": {
+      "path": "verification/local/browser-activation-commit-r932/cleanup.json",
+      "bytes": 171,
+      "sha256": "787f52746691c21f70a308a3fa7a6972d6272bcdaa116425577f2f3ec870d2ae"
+    },
+    "batch-1/cleanup.json": {
+      "path": "verification/local/browser-activation-commit-r932/batch-1/cleanup.json",
+      "bytes": 171,
+      "sha256": "787f52746691c21f70a308a3fa7a6972d6272bcdaa116425577f2f3ec870d2ae"
+    },
+    "source-manifest.json": {
+      "path": "verification/local/browser-activation-commit-r932/source-manifest.json",
+      "bytes": 26366,
+      "sha256": "9a63520d03d0f1c898c893ceab8a8fa5a83ba3fff26e120f4067c7c89200eaa8"
+    },
+    "source-digest.txt": {
+      "path": "verification/local/browser-activation-commit-r932/source-digest.txt",
+      "bytes": 65,
+      "sha256": "f600caa854e4501ecf4397753e741784a743ca03a15da37d8fb4f4454863217b"
+    },
+    "canonical-source-proof.json": {
+      "path": "verification/local/browser-activation-commit-r932/canonical-source-proof.json",
+      "bytes": 26697,
+      "sha256": "41163174559a52a0d05eaa4be83b7d522cc20229fef66f91bb2893e9566a4733"
+    },
+    "dependency-source-proof.json": {
+      "path": "verification/local/browser-activation-commit-r932/dependency-source-proof.json",
+      "bytes": 692,
+      "sha256": "e1679714048ac7763ec14636d5905a1e03dad57e360531e4cbb3cd8ab1b09b69"
+    },
+    "original-assertions-proof.json": {
+      "path": "verification/local/browser-activation-commit-r932/original-assertions-proof.json",
+      "bytes": 171,
+      "sha256": "c598c24dcbe17997fe0597a89f322ac390868a9bb2a39a1fe0a3a47799cc8c98"
+    },
+    "packet-replay.json": {
+      "path": "verification/local/browser-activation-commit-r932/packet-replay.json",
+      "bytes": 274,
+      "sha256": "2a55aad2d875c643cbac165d36c8b9ad4c6d4836221c288b01a31d14d577290e"
+    },
+    "barrier.json": {
+      "path": "verification/local/browser-activation-commit-r932/barrier.json",
+      "bytes": 315,
+      "sha256": "ae56ccf207f17c2057422f996662cc1dd0394d0728d187b503a0d5764e049b5a"
+    },
+    "final-commit.json": {
+      "path": "verification/local/browser-activation-commit-r932/final-commit.json",
+      "bytes": 452,
+      "sha256": "9f4895ca085de67e43b27930a59a69d175e016b89547e4166d218691fb1cb87c"
+    },
+    "delivery/patch.diff": {
+      "path": "verification/local/browser-activation-commit-r932/delivery/patch.diff",
+      "bytes": 41813,
+      "sha256": "e2fddc06cfb82ef9c3702aa1f583377105b833489f5057d2be8feec8fe865890"
+    },
+    "delivery/test-only-r686-delta.diff": {
+      "path": "verification/local/browser-activation-commit-r932/delivery/test-only-r686-delta.diff",
+      "bytes": 10301,
+      "sha256": "637b54c2729c740cf1aa819fc9a8470863b74d6c10c7ebb391d58369a010a545"
+    },
+    "delivery/application-map.json": {
+      "path": "verification/local/browser-activation-commit-r932/delivery/application-map.json",
+      "bytes": 1400,
+      "sha256": "e3e212767f06386ddd71d695b343d3de33bb63a38000c50e52d7e14443eae4e5"
+    },
+    "delivery/source-packet.tar.gz": {
+      "path": "verification/local/browser-activation-commit-r932/delivery/source-packet.tar.gz",
+      "bytes": 726990,
+      "sha256": "b66a67445790d293364d0ba184eac6809a134378ce5b636d75cdfd647161edf8"
+    },
+    "logs/http-batch-1.stdout": {
+      "path": "verification/local/browser-activation-commit-r932/logs/http-batch-1.stdout",
+      "bytes": 3766,
+      "sha256": "6bcbe1564b86d42d9318ae2917f01a4d15a956fc4c08bd17b95d56d6c10253a6"
+    },
+    "logs/http-batch-2.stdout": {
+      "path": "verification/local/browser-activation-commit-r932/logs/http-batch-2.stdout",
+      "bytes": 3313,
+      "sha256": "31fb449eafd5a9ca6ce3faa3bd06f2b0e4369327065a370649b13a909af4a406"
+    },
+    "logs/compile.stdout": {
+      "path": "verification/local/browser-activation-commit-r932/logs/compile.stdout",
+      "bytes": 53,
+      "sha256": "4d22431564d5e8d2da8d2f067d1effb5eb778a6d30308fd941feb1dd2f7db34a"
+    },
+    "logs/loaded-versions.stdout": {
+      "path": "verification/local/browser-activation-commit-r932/logs/loaded-versions.stdout",
+      "bytes": 686,
+      "sha256": "73969a28d2f08e73e57d6c71eab6513c16234c43770fca6d04b22810c0498cf2"
+    }
+  },
+  "commands": [
+    {
+      "label": "versions",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394840.468652,
+      "pid": 69485,
+      "pgid": 69485,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394840.6526,
+      "stdout": {
+        "path": "logs/versions.stdout",
+        "bytes": 144,
+        "sha256": "e83aaa271b606b57f288d90d46f7f31dd576a1fae46bbdd91885b8c1a12470e6"
+      },
+      "stderr": {
+        "path": "logs/versions.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "postgres-version",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394840.6530051,
+      "pid": 69524,
+      "pgid": 69524,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394840.6798568,
+      "stdout": {
+        "path": "logs/postgres-version.stdout",
+        "bytes": 39,
+        "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+      },
+      "stderr": {
+        "path": "logs/postgres-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394840.680203,
+      "pid": 69525,
+      "pgid": 69525,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394843.331451,
+      "stdout": {
+        "path": "logs/compile.stdout",
+        "bytes": 53,
+        "sha256": "4d22431564d5e8d2da8d2f067d1effb5eb778a6d30308fd941feb1dd2f7db34a"
+      },
+      "stderr": {
+        "path": "logs/compile.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "loaded-versions",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "-e",
+        "for a <- [:ecto,:ecto_sql,:postgrex,:db_connection] do Application.load(a); IO.inspect({a,Application.spec(a,:vsn),:code.lib_dir(a)}) end"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394843.3318489,
+      "pid": 69566,
+      "pgid": 69566,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394843.575726,
+      "stdout": {
+        "path": "logs/loaded-versions.stdout",
+        "bytes": 686,
+        "sha256": "73969a28d2f08e73e57d6c71eab6513c16234c43770fca6d04b22810c0498cf2"
+      },
+      "stderr": {
+        "path": "logs/loaded-versions.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "initdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata",
+        "-U",
+        "mixer_fixture",
+        "--auth-local=trust",
+        "--auth-host=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394843.576155,
+      "pid": 69604,
+      "pgid": 69604,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394843.9523158,
+      "stdout": {
+        "path": "logs/initdb.stdout",
+        "bytes": 1025,
+        "sha256": "975dc4b30663620cb86f2179ef032d6027bc692fb04e2bd24625c2e8b4878f58"
+      },
+      "stderr": {
+        "path": "logs/initdb.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "postgres",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52893",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394843.952789,
+      "pid": 69615,
+      "pgid": 69615,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394850.1101491,
+      "stdout": {
+        "path": "logs/postgres.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/postgres.stderr",
+        "bytes": 2273,
+        "sha256": "51723085155285988e8ab3801b6c54650cdd47883b1347ab9919c6d88de6a049"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "roles",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52893",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "CREATE ROLE browser_admin LOGIN SUPERUSER; CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394844.014835,
+      "pid": 69622,
+      "pgid": 69622,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394844.064998,
+      "stdout": {
+        "path": "logs/roles.stdout",
+        "bytes": 60,
+        "sha256": "4982da64c0ba03fcbd29f1878c4569b2be646026c4ed233aa765ab2d37fbdf5c"
+      },
+      "stderr": {
+        "path": "logs/roles.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "database",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52893",
+        "-U",
+        "mixer_fixture",
+        "-O",
+        "browser_schema_owner",
+        "browser_storage"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394844.065367,
+      "pid": 69624,
+      "pgid": 69624,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394844.1274428,
+      "stdout": {
+        "path": "logs/database.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/database.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "server-identity",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52893",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "browser_storage",
+        "-At",
+        "-c",
+        "SELECT version(),current_setting('data_directory'),current_setting('port'),system_identifier FROM pg_control_system()"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394844.127837,
+      "pid": 69626,
+      "pgid": 69626,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394844.156412,
+      "stdout": {
+        "path": "logs/server-identity.stdout",
+        "bytes": 262,
+        "sha256": "b4cf3c7585275a4560acbd2dfc9b1e1bf00c1ca5d225f6e7e39a705f684a08c7"
+      },
+      "stderr": {
+        "path": "logs/server-identity.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "http-batch-1",
+      "argv": [
+        "mix",
+        "test",
+        "--no-compile",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "--trace",
+        "--max-failures",
+        "1",
+        "test/mixer_hosted/browser_auth/private_login_http_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394844.156756,
+      "pid": 69628,
+      "pgid": 69628,
+      "gated": true,
+      "exit": 2,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394849.975518,
+      "stdout": {
+        "path": "logs/http-batch-1.stdout",
+        "bytes": 3766,
+        "sha256": "6bcbe1564b86d42d9318ae2917f01a4d15a956fc4c08bd17b95d56d6c10253a6"
+      },
+      "stderr": {
+        "path": "logs/http-batch-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "postgres-stop",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata",
+        "-m",
+        "fast",
+        "-w",
+        "-t",
+        "10",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394849.976226,
+      "pid": 69732,
+      "pgid": 69732,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394850.109247,
+      "stdout": {
+        "path": "logs/postgres-stop.stdout",
+        "bytes": 56,
+        "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+      },
+      "stderr": {
+        "path": "logs/postgres-stop.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "postgres-status",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata",
+        "status"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394850.110674,
+      "pid": 69783,
+      "pgid": 69783,
+      "gated": true,
+      "exit": 3,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394850.132489,
+      "stdout": {
+        "path": "logs/postgres-status.stdout",
+        "bytes": 26,
+        "sha256": "e138ccb54fdb08283c6eb21159c53207bbbbf07077246e2804e18d22efe6e250"
+      },
+      "stderr": {
+        "path": "logs/postgres-status.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "loaded-versions-2",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "-e",
+        "for a <- [:ecto,:ecto_sql,:postgrex,:db_connection] do Application.load(a); IO.inspect({a,Application.spec(a,:vsn),:code.lib_dir(a)}) end"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394907.001271,
+      "pid": 70800,
+      "pgid": 70800,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394907.324972,
+      "stdout": {
+        "path": "logs/loaded-versions-2.stdout",
+        "bytes": 686,
+        "sha256": "73969a28d2f08e73e57d6c71eab6513c16234c43770fca6d04b22810c0498cf2"
+      },
+      "stderr": {
+        "path": "logs/loaded-versions-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "initdb-2",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb-2",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata-2",
+        "-U",
+        "mixer_fixture",
+        "--auth-local=trust",
+        "--auth-host=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394907.32549,
+      "pid": 70839,
+      "pgid": 70839,
+      "gated": true,
+      "exit": 1,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394907.350462,
+      "stdout": {
+        "path": "logs/initdb-2.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/initdb-2.stderr",
+        "bytes": 452,
+        "sha256": "49908f4386f168bef02ec9aecd3091652b9734f0937718e7b9f3593180f959cd"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "loaded-versions-2",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "-e",
+        "for a <- [:ecto,:ecto_sql,:postgrex,:db_connection] do Application.load(a); IO.inspect({a,Application.spec(a,:vsn),:code.lib_dir(a)}) end"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394935.329687,
+      "pid": 79662,
+      "pgid": 79662,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394935.704309,
+      "stdout": {
+        "path": "logs/loaded-versions-2.stdout",
+        "bytes": 686,
+        "sha256": "73969a28d2f08e73e57d6c71eab6513c16234c43770fca6d04b22810c0498cf2"
+      },
+      "stderr": {
+        "path": "logs/loaded-versions-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "initdb-2",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata-2",
+        "-U",
+        "mixer_fixture",
+        "--auth-local=trust",
+        "--auth-host=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394935.7048059,
+      "pid": 79701,
+      "pgid": 79701,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394936.1378329,
+      "stdout": {
+        "path": "logs/initdb-2.stdout",
+        "bytes": 1029,
+        "sha256": "c05c56563aa4d0fb02ebbe8c58beddbbd865268e0e49c8e812754c89c543e1f4"
+      },
+      "stderr": {
+        "path": "logs/initdb-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "postgres-2",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata-2",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53045",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394936.1383932,
+      "pid": 79712,
+      "pgid": 79712,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394941.145818,
+      "stdout": {
+        "path": "logs/postgres-2.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/postgres-2.stderr",
+        "bytes": 2393,
+        "sha256": "e0b11bd0b305859ff3ce9400dec2b55bf9b0d9652feedabfb1de291e6bb6ae6a"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "roles-2",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53045",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "CREATE ROLE browser_admin LOGIN SUPERUSER; CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394936.200541,
+      "pid": 79719,
+      "pgid": 79719,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394936.246468,
+      "stdout": {
+        "path": "logs/roles-2.stdout",
+        "bytes": 60,
+        "sha256": "4982da64c0ba03fcbd29f1878c4569b2be646026c4ed233aa765ab2d37fbdf5c"
+      },
+      "stderr": {
+        "path": "logs/roles-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "database-2",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53045",
+        "-U",
+        "mixer_fixture",
+        "-O",
+        "browser_schema_owner",
+        "browser_storage"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394936.246888,
+      "pid": 79722,
+      "pgid": 79722,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394936.321077,
+      "stdout": {
+        "path": "logs/database-2.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/database-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "server-identity-2",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53045",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "browser_storage",
+        "-At",
+        "-c",
+        "SELECT version(),current_setting('data_directory'),current_setting('port'),system_identifier FROM pg_control_system()"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394936.321513,
+      "pid": 79724,
+      "pgid": 79724,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394936.35433,
+      "stdout": {
+        "path": "logs/server-identity-2.stdout",
+        "bytes": 264,
+        "sha256": "a5ebd227ac1e5deb224dff5d2f42b4dbbe805db406748733e2411d3a841422b9"
+      },
+      "stderr": {
+        "path": "logs/server-identity-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "http-batch-2",
+      "argv": [
+        "mix",
+        "test",
+        "--no-compile",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "--trace",
+        "--max-failures",
+        "1",
+        "test/mixer_hosted/browser_auth/private_login_http_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394936.3547819,
+      "pid": 79726,
+      "pgid": 79726,
+      "gated": true,
+      "exit": 2,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394941.0164502,
+      "stdout": {
+        "path": "logs/http-batch-2.stdout",
+        "bytes": 3313,
+        "sha256": "31fb449eafd5a9ca6ce3faa3bd06f2b0e4369327065a370649b13a909af4a406"
+      },
+      "stderr": {
+        "path": "logs/http-batch-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "postgres-stop-2",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata-2",
+        "-m",
+        "fast",
+        "-w",
+        "-t",
+        "10",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394941.017078,
+      "pid": 79809,
+      "pgid": 79809,
+      "gated": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394941.1453068,
+      "stdout": {
+        "path": "logs/postgres-stop-2.stdout",
+        "bytes": 56,
+        "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+      },
+      "stderr": {
+        "path": "logs/postgres-stop-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "postgres-status-2",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/pgdata-2",
+        "status"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-activation-commit-r932/source/hosted",
+      "started": 1794394941.146097,
+      "pid": 79810,
+      "pgid": 79810,
+      "gated": true,
+      "exit": 3,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794394941.164983,
+      "stdout": {
+        "path": "logs/postgres-status-2.stdout",
+        "bytes": 26,
+        "sha256": "e138ccb54fdb08283c6eb21159c53207bbbbf07077246e2804e18d22efe6e250"
+      },
+      "stderr": {
+        "path": "logs/postgres-status-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    }
+  ],
+  "limitations": [
+    "No secure browser or HTTPS navigation qualification.",
+    "Synthetic signed provider fixture only; no actual provider or credentials.",
+    "No after-server-COMMIT lost-acknowledgement test. Successful ack barrier does not cover ack loss.",
+    "Ordinary final-COMMIT deferred constraint rejection not rerun at product layer. R852 is historical narrow diagnostic evidence only; its held namespace untouched.",
+    "False-cookie session read503 observed; no separate workspace directory request after the first finding.",
+    "Local macOS development evidence only; no default mounting, provider activation, canonical selector, production grant, publication, device, GA, remote, or Git action.",
+    "No subchildren and no verification/userdata inventory.",
+    "No staging or index artifact check; root Git forbidden.",
+    "This is a phase-aware injected rollback reproduction, not a claim that all natural COMMIT failures yield false success."
+  ]
+}

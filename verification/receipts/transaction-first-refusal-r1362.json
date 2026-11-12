@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "task": "transaction-first-refusal-r1362",
+  "created_at": "2026-11-12T01:44:31.369761+00:00",
+  "status": "source_only_contract_ready_for_root_coordination",
+  "cause": "UNPROVEN",
+  "product_fix_selected": false,
+  "ownership": [
+    "verification/local/transaction-first-refusal-r1362",
+    "verification/receipts/transaction-first-refusal-r1362.json"
+  ],
+  "local_read_head": "caf17724e13af4c6cc01a06b65421312d29d1c01",
+  "root_brief_context": {
+    "main": "185522c8",
+    "product": "source259/v13",
+    "prior_tested_branch": "ee722de",
+    "run": 43133778188,
+    "job": 130904060470,
+    "postgres": "17.11",
+    "authority": "task brief; no API/version-log fetch in this lane"
+  },
+  "source": {
+    "named_files_read": 13,
+    "file_budget": 20,
+    "all_equal_copied_ci": true,
+    "subset_sha256": "b7355ea47fa854c876d4c080564282c69b35eb287cf7a3c5d0cd188ff6aff0fd",
+    "copied_ci_source_tree_sha256": "55f6ad21244f50fc9fac56ff82d82a63a79f9f05773cadd7b6660db9307216d4",
+    "manifest_path": "verification/local/transaction-first-refusal-r1362/source-manifest.json",
+    "manifest_sha256": "7a634d0a753829f70b6f5eb7cf76e790db84c9ace13a85cc1d92a17376c63f69"
+  },
+  "copied_runtime_observations": {
+    "seed": 0,
+    "max_cases": 1,
+    "result": "821/822 passed, 2 skipped; one failure",
+    "target": "test/mixer_hosted/authorization/transaction_test.exs:762",
+    "reported_target_ms": 529.5,
+    "assertion_expected": "{:ok, :survived}",
+    "assertion_actual": "{:error, :authorization_unavailable}",
+    "fixture_sleep_ms": 1100,
+    "cleanup_reported": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "freshly_reobserved_here": false
+  },
+  "findings": [
+    "F.run directly calls Authorization.with_authorized_transaction; PostgresRepository is not the invoked owner.",
+    "Authorization rescue/catch maps escaped callback assertions, SQL/connection errors, throws and exits to authorization_unavailable.",
+    "529.5 ms versus a 1100 ms callback sleep points toward refusal before successful passage through the sleep; it does not prove the phase or cause.",
+    "A single expired membership plus an unexpired viewer still permits artifact.read; an initial one-membership snapshot could fail the initial callback assertion and be serialized generically.",
+    "Deadline, wall regression, lock/query, topology/JIT, Context binding/latch/connection, snapshot/policy invalidity and other mapped failures remain unresolved."
+  ],
+  "proposed_instrumentation_files": [
+    "hosted/test/mixer_hosted/authorization/transaction_test.exs",
+    "hosted/lib/mixer_hosted/authorization.ex",
+    "hosted/lib/mixer_hosted/authorization/transaction/context.ex"
+  ],
+  "observation_contract": {
+    "path": "verification/local/transaction-first-refusal-r1362/CONTRACT.md",
+    "sha256": "0d643b4ec7a34f351a8753529a60ec42e3b7706b2cd794d58ea4e04e0da1bd5b",
+    "fields": "per-test flag; fixed phase; first actual failed gate/type class; bounded elapsed; existing Ecto query result classifications; no raw values",
+    "caps": "32 phase/gate records, last 8 sanitized query classifications, one first refusal, <=8 KiB; logging only",
+    "authority": "proposal only; root coordinates before edits",
+    "preserves": "all assertions, sleep 1100, policy/validation, limits, ordinary returns, latch, rollback and cleanup"
+  },
+  "next_discriminator": {
+    "owner": "root",
+    "choose_one": [
+      "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/authorization/transaction_test.exs:762",
+      "one ordinary unfiltered seed-0 CI batch in the existing standard isolated runner"
+    ],
+    "working_directory": "hosted",
+    "requirements": "root-agreed diagnostic diff/source hashes; standard pinned toolchain and PG17.11; fresh isolated fixture DB/roles; MIXER_TRANSACTION_TEST_PORT; verify exact target if line moves; bounded cleanup receipt",
+    "retries": 0,
+    "cap_widening": false,
+    "executed_here": false
+  },
+  "execution_here": {
+    "postgres": 0,
+    "compiler": 0,
+    "tests": 0,
+    "elixir_or_erlang_product_payload": 0,
+    "api": 0,
+    "new_children": 0
+  },
+  "mutations_here": {
+    "canonical": false,
+    "git": false,
+    "api": false,
+    "owned_verification_outputs_only": true
+  },
+  "holds": {
+    "cache_1209_and_older": "preserved; no held resource accessed or released"
+  },
+  "limitations": [
+    "Source inference is not the historical caught type or first-false runtime receipt.",
+    "Broad/unknown gate results remain unresolved; no guess or automatic instrumentation expansion.",
+    "No CI rerun, instrumentation execution, product acceptance, release or GA qualification."
+  ],
+  "outputs": {
+    "verification/local/transaction-first-refusal-r1362/source-manifest.json": "7a634d0a753829f70b6f5eb7cf76e790db84c9ace13a85cc1d92a17376c63f69",
+    "verification/local/transaction-first-refusal-r1362/ci-observation.txt": "8aeb888ffaacc4d6cf2828fc466daf2f5e479d928956975ddc4c871bd3e841a3",
+    "verification/local/transaction-first-refusal-r1362/read-only-audit.json": "e16856e97f987e5e1de42f6308cee68bd5fd68a2d9527e7df12e69f3b9124995"
+  }
+}

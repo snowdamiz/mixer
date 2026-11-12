@@ -1,0 +1,318 @@
+{
+  "schema": 1,
+  "id": "private-ci-results-r1466",
+  "status": "BOTH_TERMINAL_A_FAILED_B_PASSED",
+  "startedUTC": "2026-11-12T04:34:34Z",
+  "finishedUTC": "2026-11-12T04:42:51.703216+00:00",
+  "bounds": {
+    "minutes": 10,
+    "reserveSeconds": 60,
+    "readRoundsUsed": 4,
+    "readRoundsMaximum": 8,
+    "intervalSeconds": 45,
+    "noReruns": true
+  },
+  "mainSnapshot": {
+    "sha": "d7fba7f3288410aba5d05a2740b7e32be7b57b7d",
+    "reads": 1,
+    "descriptiveOnly": true,
+    "noFutureUnchangedAssertion": true
+  },
+  "A": {
+    "commit": "3b9496e2fc0759c20fce16f23a7f456d1289c956",
+    "tree": "d2299484cab9e865c87a200d17a3fec18c574ea7",
+    "parent": "d7fba7f3288410aba5d05a2740b7e32be7b57b7d",
+    "run": 43155476848,
+    "runAttempt": 1,
+    "job": 130974296041,
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/43155476848",
+    "conclusion": "failure",
+    "workflow": ".github/workflows/hosted.yml",
+    "focusedPrerequisite": {
+      "compileWarningsAsErrors": "passed",
+      "testsPassed": 2,
+      "testFile": "test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs",
+      "exactArgv": [
+        "mix",
+        "test",
+        "--no-start",
+        "--warnings-as-errors",
+        "test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs",
+        "--seed",
+        "0",
+        "--max-failures",
+        "1"
+      ],
+      "duplicateOfSuiteCases": true,
+      "evidence": "verification/local/private-ci-results-r1466/delivery/A-focused-evidence.json"
+    },
+    "unfilteredSuite": {
+      "passed": 829,
+      "failed": 4,
+      "skipped": 2,
+      "attempted": 833,
+      "selectedIncludingSkipped": 835,
+      "rawSummary": [
+        "",
+        "Result: 829/833 passed, 2 skipped",
+        "Failed: 4 tests",
+        "R1018 {:summary, 255, 25617, true}"
+      ],
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "--trace",
+        "test",
+        "/home/runner/work/mixer/mixer/hosted/diagnostics/browser_login_trace_test.exs"
+      ],
+      "exit": 2,
+      "log": "verification/local/private-ci-results-r1466/delivery/A-tests.log",
+      "logSHA256": "003705d0ee2bab64754990fcb84b70f1a245be252290a522cc0e06d34f96f04f",
+      "firstFailure": [
+        "  1) test ordinary mount preserves raw refusals and passes nonowned connections unchanged (MixerHosted.BrowserAuth.OrdinaryConsoleCatalogNavigationCookiePGJoinTest)",
+        "     test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs:243",
+        "     Assertion with == failed",
+        "     code:  assert RuntimeOwner.status().phase == :storage_ready",
+        "     left:  :unavailable",
+        "     right: :storage_ready",
+        "     stacktrace:",
+        "       test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs:278: (test)"
+      ],
+      "remainingFailures": [
+        "  2) test actual permanent child termination tears down browser siblings without restarting the temporary group (MixerHosted.BrowserAuth.OrdinaryConsoleCatalogNavigationCookiePGJoinTest)",
+        "  3) test external Repo replacement cannot renew the retained owner or its old lease (MixerHosted.BrowserAuth.OrdinaryConsoleCatalogNavigationCookiePGJoinTest)",
+        "  4) test expired lease and unknown outcome remain latched until explicit application restart (MixerHosted.BrowserAuth.OrdinaryConsoleCatalogNavigationCookiePGJoinTest)"
+      ],
+      "failureNatureObserved": "Two :storage_ready expectations received :unavailable; two reservations returned Store.Failure session_unavailable/admission/not_started. No root-cause or fix conclusion."
+    },
+    "otherChecks": {
+      "protocol": {
+        "result": [
+          "Result: 45 passed"
+        ],
+        "cleanup": {
+          "owned_scratch_removed": true,
+          "owned_scratch_path": "/tmp/mixer-browser-auth-protocol-xdkpl0x3",
+          "started_browser_capture_native_or_phone_processes": false,
+          "started_provider_network_or_database": false
+        },
+        "receipt": "verification/local/private-ci-results-r1466/delivery/A-protocol-receipt.json"
+      },
+      "storage": {
+        "result": [
+          "Result: 24 passed"
+        ],
+        "cleanup": {
+          "owned_postgres_stopped": true,
+          "owned_scratch_removed": true
+        },
+        "receipt": "verification/local/private-ci-results-r1466/delivery/A-storage-receipt.json"
+      },
+      "migration": {
+        "result": [
+          "Result: 1 passed"
+        ],
+        "cleanup": {
+          "owned_postgres_stopped": true,
+          "owned_scratch_removed": true,
+          "owned_compile_products_removed": true
+        },
+        "receipt": "verification/local/private-ci-results-r1466/delivery/A-migration-receipt.json"
+      }
+    },
+    "compile": "passed --warnings-as-errors",
+    "release": "built; missing-config expected exit1 and production test-export exclusion exit0",
+    "environment": {
+      "runner": "ubuntu-24.04",
+      "elixir": "1.20.4",
+      "erlang": "OTP29 erts17.1",
+      "postgres": "17.11 Ubuntu 17.11-1.pgdg24.04+2"
+    },
+    "source": {
+      "revisionReadback": "3b9496e2fc0759c20fce16f23a7f456d1289c956",
+      "sourceTreeSHA256": "1c85a5fbdf189df7075bd93ec0bbc03523892d8a566835fc355d13a866eaf26c",
+      "archiveSHA256": "a4ea77bfcc50fa77ad80e35efce7773df798d1f1ae1086e6a8859bef9018a994",
+      "innerArchiveHashVerifiedWithoutParsing": true,
+      "actualInputHashesReceipt": "verification/local/private-ci-results-r1466/delivery/A-foundation-receipt.json",
+      "keyFormattedInputHashes": {
+        "hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex": "aafb1be8c32215a0c34e6ae52a3bbc90e449f3976f95179804e016250bce0eaf",
+        "hosted/mix.lock": "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837",
+        "hosted/test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs": "f1019c099bafb654c50a74962a3ce90875864cbf52a3fdb2eee79c35075b6adf",
+        "hosted/test/support/ordinary_browser_startup_fixture.ex": "486fbf75691a8f3e8168442c7727324817c14c8560f0b796b805a0221a5e19a5"
+      }
+    },
+    "cleanup": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "cleanupLimit": "Existing host-runner receipt semantics retained; PostgreSQL stop/scratch removal is not a new independent OS descendant-absence proof.",
+    "artifact": {
+      "id": 13915892103,
+      "name": "phoenix-foundation-3b9496e2fc0759c20fce16f23a7f456d1289c956",
+      "zip": "verification/local/private-ci-results-r1466/delivery/A-artifact-zip.stdout",
+      "identity": {
+        "bytes": 1167606,
+        "sha256": "cef6328ca7315db7fc0a9b6293fd8d255842af563333101aad9a97b9838c882d",
+        "githubBytes": 1167606,
+        "githubDigest": "sha256:cef6328ca7315db7fc0a9b6293fd8d255842af563333101aad9a97b9838c882d",
+        "bytesMatch": true,
+        "digestMatch": true
+      },
+      "verification": "Entire bytes and GitHub SHA256 verified before ZIP parsing."
+    }
+  },
+  "B": {
+    "commit": "47cc7d4627e7174104c66b7beada20efe2e20a1e",
+    "tree": "484ae9db3e8624d5a0c56c4d8d80b1b3add761e7",
+    "parent": "d7fba7f3288410aba5d05a2740b7e32be7b57b7d",
+    "run": 43155223124,
+    "runAttempt": 1,
+    "job": 130973493777,
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/43155223124",
+    "conclusion": "success",
+    "workflow": ".github/workflows/provider-https-r1464.yml",
+    "batches": 1,
+    "testsPassed": 19,
+    "failures": 0,
+    "skipped": 0,
+    "firstFailure": null,
+    "argv": [
+      "mix",
+      "test",
+      "--no-start",
+      "--warnings-as-errors",
+      "test/mixer_hosted/browser_auth/provider_https_exchange_test.exs",
+      "--only",
+      "browser_provider_https_exchange_verified",
+      "--seed",
+      "0",
+      "--max-failures",
+      "1"
+    ],
+    "tag": "browser_provider_https_exchange_verified",
+    "log": "verification/local/private-ci-results-r1466/delivery/B-tests.log",
+    "logSHA256": "29d862913f8a6fea57142dd3a229afee984025a0fa18e57e373f45fe8a6ac962",
+    "cases": [
+      "browser_provider_https_exchange_verified: actual Mint TLS complete POST and bounded JSON",
+      "exact 16384 bytes succeeds",
+      "unknown configuration and raw material shapes fail before connection",
+      "fixture-only exact-reference lookup rejects unknown and mismatched references",
+      "wrong CA rejects authenticated TLS",
+      "wrong hostname rejects authenticated TLS",
+      "redirect is rejected at status before body",
+      "non200 is rejected",
+      "compression is rejected before reading entity",
+      "ambiguous framing is rejected before reading entity",
+      "unsupported close-delimited framing is rejected",
+      "16385 Content-Length is rejected before a stalled body",
+      "streamed chunk overflow rejects 16385 before final byte is sent",
+      "bounded chunked JSON succeeds",
+      "stall consumes original deadline and closes owned socket",
+      "drip cannot replenish original deadline",
+      "expired deadline performs no socket IO",
+      "queued invocation preserves original absolute deadline",
+      "ordinary production DNS rejection remains closed without fixture bypass"
+    ],
+    "sourceBefore": {
+      "lib/mixer_hosted/browser_auth/provider_https_wire.ex": "fdb98c826aa587017154d9540630f590aebd87c7ced0e085ddf7c6e2cce3c69f",
+      "lib/mixer_hosted/browser_auth/provider_https.ex": "45fa8efa0f1261c11f1a6cccea98bcbf79c748a3f0b91a7dd61eb51d65deda7a",
+      "test/support/browser_provider_tls_fixture.ex": "04626ac66209d557eaf81a59edec8585de5d852ec5fb29b162a13ad0cbfc93b5",
+      "test/mixer_hosted/browser_auth/provider_https_exchange_test.exs": "6e9717ec3952f5e80964b36e5f431eb58bd6c8c04d3da8d270cbd0e98537f0f6"
+    },
+    "sourceAfter": {
+      "lib/mixer_hosted/browser_auth/provider_https_wire.ex": "fdb98c826aa587017154d9540630f590aebd87c7ced0e085ddf7c6e2cce3c69f",
+      "lib/mixer_hosted/browser_auth/provider_https.ex": "57a03f842737b8c9b8950b8de3230e28b0ad5c649dceec2dd0188c3426dca532",
+      "test/support/browser_provider_tls_fixture.ex": "42dba3aedf40a5967b0848109e5701476aaba80ae36fa49e4f24c587b3da8b2b",
+      "test/mixer_hosted/browser_auth/provider_https_exchange_test.exs": "de8cd26ad7ef50f39546a54555c952834058d9c67444ed2b47839d430ed2ee48"
+    },
+    "sourceNote": "Workflow ran mix format before tests. Three of four source hashes changed; record tested after-format identity separately from immutable commit/pre-format identity.",
+    "environment": {
+      "runner": "ubuntu-24.04",
+      "elixir": "1.20.4",
+      "erlang": "OTP29 erts17.1",
+      "openssl": "OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)"
+    },
+    "cleanup": {
+      "topReceiptPresent": false,
+      "postgresStarted": false,
+      "lifecycleRecords": 20,
+      "allActiveZero": true,
+      "observedPeerClosureRecords": 12,
+      "handshakeTransportErrorRecords": 2,
+      "acceptedZeroRecords": 6,
+      "retirementAssertion": "closed/3 requires exactly one accepted connection, empty socket map, and one peer EOF by default; wrong CA/hostname use require_eof=false, still require socket retirement. No-IO cases assert accepted==0.",
+      "sourceEvidence": "verification/local/private-ci-results-r1466/source-detail/delivery/B-tests.source",
+      "fixtureEvidence": "verification/local/private-ci-results-r1466/source-detail/delivery/B-fixture.source",
+      "OSDescendantAbsenceProven": false,
+      "noInferenceFromJobCompletion": true
+    },
+    "artifact": {
+      "id": 13915502517,
+      "name": "provider-https-r1464-47cc7d4627e7174104c66b7beada20efe2e20a1e",
+      "zip": "verification/local/private-ci-results-r1466/delivery/B-artifact-zip.stdout",
+      "identity": {
+        "bytes": 2197,
+        "sha256": "4360ea3e78fffb948e2affd15d1ef05e65a2f061ab58b6110fadc79e3c37b039",
+        "githubBytes": 2197,
+        "githubDigest": "sha256:4360ea3e78fffb948e2affd15d1ef05e65a2f061ab58b6110fadc79e3c37b039",
+        "bytesMatch": true,
+        "digestMatch": true
+      },
+      "verification": "Entire bytes and GitHub SHA256 verified before ZIP parsing."
+    }
+  },
+  "localCustody": {
+    "managedGETCommands": 23,
+    "allDirectReaped": true,
+    "bothEOF": true,
+    "allFDsClosed": true,
+    "allOwnedAPIGroupsESRCH": true,
+    "outerGroups": [
+      {
+        "pid": 1297,
+        "pgid": 1297,
+        "collectedExitCode": 0,
+        "collectedExecSession": 78529,
+        "ownedOuterGroupAbsentESRCH": true
+      },
+      {
+        "pid": 33699,
+        "pgid": 33699,
+        "collectedExecSession": 55538,
+        "collectedExitCode": 0,
+        "ownedOuterGroupAbsentESRCH": true
+      }
+    ],
+    "execResponseBeforeReadyGatePersistedAndReadBack": true,
+    "newCustodyHolds": []
+  },
+  "collectionEnvironment": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "ghPath": "/opt/homebrew/bin/gh",
+    "ghBinary": {
+      "bytes": 39950274,
+      "sha256": "81904d0aaa9fb3d9e35e13e7b1fe917451df0430eaee63144c69426d5d2832f1"
+    },
+    "ghVersion": "not separately invoked; API-only payload policy",
+    "driver": {
+      "bytes": 7456,
+      "sha256": "f6baef3b1fc7f19a56055d6bbb6ab1587fcc8273c75ec07de6560205446a84d0"
+    },
+    "utc": "2026-11-12T04:35:57.753473+00:00",
+    "ghResolvedPath": "/opt/homebrew/Cellar/gh/2.102.0/bin/gh",
+    "ghVersionFromInstallPath": "2.102.0",
+    "ghVersionExecution": "not invoked separately under API-only payload policy"
+  },
+  "evidenceRoot": "verification/local/private-ci-results-r1466",
+  "limitations": [
+    "No source/Git/remote mutation; no rerun, cancel, new workflow, branch, PR, or merge.",
+    "No local compiler, PostgreSQL, native/device, provider, or delegated-subagent activity. Only gh GET payload children.",
+    "No adoption, production/provider/secret-backend/activation, Source259, physical-device, or GA qualification.",
+    "Prior R1452 failures are historical and not counted as this run. No unique business-test sum across focused/component/suite repetitions.",
+    "All historical held chains untouched. Root chooses next implementation, review, and adoption."
+  ]
+}

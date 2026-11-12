@@ -1,0 +1,287 @@
+{
+  "schema": 1,
+  "id": "CONSOLE_FIXTURE_ORDERING_R1510",
+  "status": "PARSER_CONTROLS_PASS_VISUAL_TARGET_FAIL_STOP",
+  "observedAt": "2026-11-12T05:53:39.761587+00:00",
+  "ownership": {
+    "local": "verification/local/console-fixture-ordering-r1510",
+    "receipt": "verification/receipts/console-fixture-ordering-r1510.json"
+  },
+  "budgetSeconds": 480,
+  "reserveSeconds": 45,
+  "selection": "Root explicitly selected fixture correction after R1502 rendered failure; no product bug fix.",
+  "premise": "Synthetic fixture conforms to the actual compiled parser.",
+  "premiseResult": "Disproved: original apps and builds orders both rejected by compiled parsers; reversing only the two row arrays makes both exact DTO pages parse.",
+  "inputManifest": "verification/local/console-fixture-ordering-r1510/input-manifest.json",
+  "controls": [
+    {
+      "label": "unsorted applications reject",
+      "status": "PASS",
+      "error": {
+        "name": "TypeError",
+        "message": "Invalid build catalog"
+      }
+    },
+    {
+      "label": "sorted applications pass",
+      "status": "PASS",
+      "order": [
+        "empty",
+        "fieldlog"
+      ]
+    },
+    {
+      "label": "unsorted builds reject",
+      "status": "PASS",
+      "error": {
+        "name": "TypeError",
+        "message": "Invalid build catalog"
+      }
+    },
+    {
+      "label": "sorted builds pass",
+      "status": "PASS",
+      "order": [
+        [
+          "android-43",
+          "android"
+        ],
+        [
+          "ios-42",
+          "ios"
+        ]
+      ]
+    }
+  ],
+  "runtime": {
+    "node": "v22.23.3",
+    "payloads": 1,
+    "payload": {
+      "path": "verification/local/console-fixture-ordering-r1510/controls.mjs",
+      "bytes": 2680,
+      "sha256": "46cfeb1741962ee63a95ecdda07055f4d56ca5657c605809dea54d6d8c932474"
+    },
+    "actualCompiledParsers": true,
+    "exactCopiedClosure": [
+      "compiled/domain/build-catalog.js",
+      "compiled/domain/build-read.js",
+      "compiled/domain/build-overview.js"
+    ],
+    "noRewrittenOrExtractedModelFunctions": true,
+    "sameFixtureData": "Executed exact original R1502 fixtureFetch definition in the Node realm, then used its JSON response data. No network fetch.",
+    "firstSubstantivePayloadFailure": null,
+    "retry": false
+  },
+  "freeze": {
+    "beforeHTMLSHA256": "965a13357f552f024f8a36c451c88018a63fbe973f09d83e2a95c0a48aebb23a",
+    "afterHTMLSHA256": "ffe6b240177b9248378eee9dd875aa5e2213005a464d5ab102f350b3404b5783",
+    "productBundleSHA256": "c162aff19ad3f5c537c9d9a64cbfadb68c125bf550525a35d96208a4c2f72408",
+    "productBundleBytes": 212225,
+    "productBundleByteExact": true,
+    "CSSByteExact": true,
+    "cssSHA256": [
+      "0d487bdfab48e59fdd9cfa32548b44162e6b7682236470d360402b0d50ae9706"
+    ],
+    "exactReversalMatchesInput": true,
+    "onlyChanges": [
+      {
+        "before": "applications:[{applicationId:'fieldlog'},{applicationId:'empty'}]",
+        "after": "applications:[{applicationId:'empty'},{applicationId:'fieldlog'}]"
+      },
+      {
+        "before": "builds:[dto,{...dto,buildId:'android-43',platform:'android',state:'running',workerCompletionPending:true}]",
+        "after": "builds:[{...dto,buildId:'android-43',platform:'android',state:'running',workerCompletionPending:true},dto]"
+      }
+    ],
+    "logo": {
+      "path": "console/public/assets/flick-128.webp",
+      "available": true,
+      "bytes": 5392,
+      "sha256": "f366034547d29813bba5ffdfb99e1d8b5b3a359ef770486721a8b566ab4bf316",
+      "inlined": false,
+      "reason": "Asset reference occurs inside frozen compiled JS; preserving bundle and handler bytes takes precedence."
+    },
+    "controlPayloadSHA256": "46cfeb1741962ee63a95ecdda07055f4d56ca5657c605809dea54d6d8c932474",
+    "oneNodePayload": true
+  },
+  "fixture": {
+    "path": "verification/local/console-fixture-ordering-r1510/fixture.html",
+    "bytes": 239339,
+    "sha256": "ffe6b240177b9248378eee9dd875aa5e2213005a464d5ab102f350b3404b5783"
+  },
+  "diff": {
+    "path": "verification/local/console-fixture-ordering-r1510/fixture-ordering.diff",
+    "bytes": 4912,
+    "sha256": "f931ad1b5b8b5881401b74341572b510328caa498a6f551165404b46c56b2382"
+  },
+  "custody": {
+    "implementation": "Known R1430 dispatch prefix before selected-files plan, R986 InertPopen/run definitions with standard durable inner identity readback insertion. R1486 validate.py inspected; it contained replay validation rather than a process custodian.",
+    "outerExecResponse": "verification/local/console-fixture-ordering-r1510/outer-exec-response.json",
+    "outerSession": 1783,
+    "fullOuterResponsePersistedAndReadBackBeforeGate": true,
+    "outerIdentityReadBack": "verification/local/console-fixture-ordering-r1510/outer-identity-readback.json",
+    "outerTerminalResponse": "verification/local/console-fixture-ordering-r1510/outer-terminal-response.json",
+    "innerCommands": [
+      {
+        "label": "parser-controls",
+        "argv": [
+          "node",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-fixture-ordering-r1510/controls.mjs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-fixture-ordering-r1510",
+        "pid": 83260,
+        "pgid": 83260,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.12081383296754211,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "innerOriginalKillpgZeroAfterDirectReapBothEOFFDClose": true,
+    "outerOSAbsenceInferred": false,
+    "newHolds": []
+  },
+  "renderer": {
+    "tool": "mcp__t3_code__html_preview",
+    "version": "not exposed",
+    "attempts": 1,
+    "request": {
+      "width": 1366,
+      "appearance": "light",
+      "html": "verification/local/console-fixture-ordering-r1510/fixture.html"
+    },
+    "result": {
+      "width": 1366,
+      "contentHeight": 900,
+      "capturedHeight": 900,
+      "consoleMessages": [
+        {
+          "level": "error",
+          "text": "Failed to load resource: net::ERR_ACCESS_DENIED http://t3-page.localhost/assets/flick-128.webp"
+        },
+        {
+          "level": "log",
+          "text": "{\"fixture\":true,\"status\":\"queued-detail-visible\",\"exactDetailKeys\":[\"organization_id\",\"project_id\",\"application_id\",\"build_id\",\"platform\",\"source_sha256\",\"toolchain_lock_sha256\",\"build_definition_sha256\"],\"steps\":5,\"backend\":false}"
+        }
+      ],
+      "screenshot": {
+        "mimeType": "image/png",
+        "width": 1366,
+        "height": 900
+      }
+    },
+    "rawResponse": {
+      "path": "verification/local/console-fixture-ordering-r1510/tool-response.json",
+      "bytes": 105889,
+      "sha256": "e1d8632c006bfb6c94474abc78f39ef904f162070fca8e67520ca3593adb7dfe"
+    },
+    "toolOwnedLifecycle": true,
+    "OSAbsenceInferred": false,
+    "noRetryAfterVisualFailure": true
+  },
+  "console": {
+    "messages": [
+      {
+        "level": "error",
+        "text": "Failed to load resource: net::ERR_ACCESS_DENIED http://t3-page.localhost/assets/flick-128.webp"
+      },
+      {
+        "level": "log",
+        "text": "{\"fixture\":true,\"status\":\"queued-detail-visible\",\"exactDetailKeys\":[\"organization_id\",\"project_id\",\"application_id\",\"build_id\",\"platform\",\"source_sha256\",\"toolchain_lock_sha256\",\"build_definition_sha256\"],\"steps\":5,\"backend\":false}"
+      }
+    ],
+    "marker": {
+      "fixture": true,
+      "status": "queued-detail-visible",
+      "exactDetailKeys": [
+        "organization_id",
+        "project_id",
+        "application_id",
+        "build_id",
+        "platform",
+        "source_sha256",
+        "toolchain_lock_sha256",
+        "build_definition_sha256"
+      ],
+      "steps": 5,
+      "backend": false
+    },
+    "actualDetailQueryKeys": [
+      "organization_id",
+      "project_id",
+      "application_id",
+      "build_id",
+      "platform",
+      "source_sha256",
+      "toolchain_lock_sha256",
+      "build_definition_sha256"
+    ],
+    "expectedDetailQueryKeys": [
+      "organization_id",
+      "project_id",
+      "application_id",
+      "build_id",
+      "platform",
+      "source_sha256",
+      "toolchain_lock_sha256",
+      "build_definition_sha256"
+    ],
+    "eightKeysMatch": true,
+    "successMarkerObserved": true
+  },
+  "handlerTargetPass": true,
+  "handlerPassScope": "Synthetic handler marker and exact query key sequence only. It does not establish visible detail.",
+  "visualTargetPass": false,
+  "pngs": [
+    {
+      "path": "verification/local/console-fixture-ordering-r1510/preview-1.png",
+      "bytes": 78276,
+      "sha256": "faaafa9568654f0f1f8241fec9258977899253e80249c14f2c5b39a4ecb9eedb",
+      "width": 1366,
+      "height": 900,
+      "visuallyInspected": true
+    }
+  ],
+  "visualInspection": {
+    "observedState": "Applications and platform builds render in ascending ID order; fieldlog application selected; Android android-43 Running and iOS ios-42 Queued listed. Detail region still says Choose a build; no queued detail shown.",
+    "markerScreenshotDisagreement": "Raw console emitted queued-detail-visible after five clicks and exact eight query keys, but retained PNG does not show detail. Cause unproven; no retry.",
+    "hierarchy": "Sidebar Builds active; Application builds heading, project breadcrumb, paired application/platform panels readable.",
+    "overflow": "No horizontal overflow visible at 1366px. Bottom footer is partly outside the 900px capture; detail target is absent. No responsive or numerical contrast audit.",
+    "defects": [
+      "Queued detail absent from actual retained screenshot despite console marker.",
+      "Broken logo at top left; console ERR_ACCESS_DENIED for /assets/flick-128.webp."
+    ]
+  },
+  "preserved": {
+    "R1502Failure": true,
+    "R1428Failure": true,
+    "allHistoricalHolds": true,
+    "heldResourcesAccessed": false,
+    "holdReleased": false,
+    "canonicalProductEdited": false,
+    "bundleByteExact": true,
+    "CSSByteExact": true
+  },
+  "scope": {
+    "syntheticFixture": true,
+    "compilerBuilds": 0,
+    "serverStarts": 0,
+    "GitOperations": 0,
+    "APIOperations": 0,
+    "networkTools": 0,
+    "nativeOperations": 0,
+    "delegatedChildren": 0,
+    "htmlPreviewCalls": 1,
+    "htmlRenderCalls": 0
+  },
+  "limitations": [
+    "Synthetic session and DTO fixture; routes by path and does not independently enforce request method or exact query values.",
+    "Visual target FAIL. Console marker and query keys are insufficient to claim visible queued detail.",
+    "Only one 1366x900 light capture of frozen retained compiled UI; no current canonical source, real auth/backend/provider, installed production, responsive, device, release or GA evidence.",
+    "Named canonical logo exists (5392 bytes, SHA-256 in freeze) but remains uninlined because its path is inside frozen JS; existing logo error preserved.",
+    "No retry, product parser/guard/controller change, CSS change, DTO change, selection/transport/handler change or hold release.",
+    "No Git staging or verification-artifact policy index check performed by this test-only lane."
+  ]
+}

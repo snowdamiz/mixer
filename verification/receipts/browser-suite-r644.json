@@ -1,0 +1,456 @@
+{
+  "campaign": "R644 finite first-failure/fullsuite completion",
+  "created_utc": "2026-11-11T02:46:43.377064+00:00",
+  "outcome": "FULL_SUITE_OR_CONTROLS_NOT_GREEN",
+  "environment": "macOS host; PostgreSQL17 loopback synthetic fixture; restricted non-superuser/non-bypass product roles; no browser/native/provider/device run",
+  "root_reported_public_revision": "8efc201 (task supplied; canonical Git not queried)",
+  "source_archive": {
+    "path": "/Users/andreyyurlov/.t3/userdata/mixer-browser-r634-q2xpozrw/browser-r634-private-source-increment.tar.gz",
+    "sha256": "980cfc2457893f7e9d52f3e3d65f5028a830283e13abdd73d00685e6f974925d",
+    "verified": true
+  },
+  "sources": {
+    "baseline": {
+      "members": 201,
+      "digest": "458b1eefe69c390a10676690434ee05fdfecda11a430347844f855bfc2be3b3c",
+      "exact": true,
+      "guard": {
+        "passed": 1,
+        "excluded": 14,
+        "seed": 574,
+        "metadata": [
+          {
+            "metadata_rows": 1,
+            "metadata_row_sha256": "08e522cc145aa3ece5ed1c3e3c1c349a79035efeeb62a45ece0b2a58b3ab2668",
+            "wall_ms": 1794364913594
+          }
+        ],
+        "catalog": "ff576c90a10e0bc098f3c7b593640f508aa676a166b8e2123257501f50eb375e"
+      }
+    },
+    "candidate": {
+      "members": 210,
+      "digest": "a61597cc2a7917b5dd8e1d7b0d9b0c86fae0a762151c8dce3656fc4d5d9a8ffb",
+      "exact": true,
+      "guard": {
+        "passed": 1,
+        "excluded": 14,
+        "seed": 574,
+        "metadata": [
+          {
+            "metadata_rows": 1,
+            "metadata_row_sha256": "08e522cc145aa3ece5ed1c3e3c1c349a79035efeeb62a45ece0b2a58b3ab2668",
+            "wall_ms": 1794364917304
+          }
+        ],
+        "catalog": "ff576c90a10e0bc098f3c7b593640f508aa676a166b8e2123257501f50eb375e"
+      }
+    }
+  },
+  "fixture_repair": {
+    "cause": "Two required genuine fixture files were absent from the R634 isolated full-suite checkout. Restored the exact canonical files in both R644 isolated checkouts. No assertions edited.",
+    "inputs": {
+      "services/protocol/testdata/signed-release-v3.json": {
+        "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/services/protocol/testdata/signed-release-v3.json",
+        "sha256": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a",
+        "bytes": 17925,
+        "identical_both_lanes": true
+      },
+      "verification/hosted-customer-artifact-event/golden_event.hex": {
+        "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/hosted-customer-artifact-event/golden_event.hex",
+        "sha256": "a6ffecbbc3c2f43f27a8d8fd210fddaf76fc465e95dbf195d458f40422526422",
+        "bytes": 2131,
+        "identical_both_lanes": true
+      },
+      "verification/hosted-customer-artifact-event/golden_hashes.txt": {
+        "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/hosted-customer-artifact-event/golden_hashes.txt",
+        "sha256": "e1fffac877c8445fdd9a3bc72ae62a04653e42afde2651c81cff56c9e8755af6",
+        "bytes": 658,
+        "identical_both_lanes": true
+      },
+      "services/protocol/testdata/release-v3-cases.json": {
+        "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/services/protocol/testdata/release-v3-cases.json",
+        "sha256": "8f62ae6bc91e951c3c66ab16689dd20f9465c7b671b2f24ad44b5960923c2b44",
+        "bytes": 593420,
+        "identical_both_lanes": true
+      }
+    },
+    "previous_failing_tests_passed": true
+  },
+  "guard_comparison": {
+    "same_seed": 574,
+    "same_fixture_bytes": true,
+    "fresh_read_database_per_lane": true,
+    "effective_role": "read_scope_runtime",
+    "session_role": "read_scope_runtime",
+    "metadata_rows": 1,
+    "metadata_identical": true,
+    "both_actual_unchanged_tests_pass_alone": true,
+    "assertions": "Actual isolated test exercises expiry final guard, probe-write rollback, family revocation and pooled context cleanup.",
+    "whole_suite_difference": "The same original guard fails in normal whole suite at line672: expected {:error,:unauthenticated}, received {:error,:not_found}. Whole-suite failure duration260.9ms; isolated baseline685.8ms/candidate928.0ms.",
+    "first_cause": "Unproven. Passing paired runs have identical actual SQL rows, catalog and effective role. Full-suite failure has no SQL telemetry; it cannot establish which statement first lost visibility. No claim of candidate regression or fixture causation of the third failure.",
+    "untested_hypothesis": "Expiry can cross during exact topology validation after metadata policy admission; SQL allowed_body uses statement_timestamp and filters expired tokens, while resolve! maps zero rows directly to not_found. This is a source-supported timing hypothesis, not a measured first cause. Whole-suite state contamination is also not excluded.",
+    "next_discriminating_test": "Fresh separately authorized bounded control: use the original guard with query telemetry to delay only after CustomerArtifacts.Topology.catalog_hash returns and before metadata SQL, until its admitted token expires; compare baseline201 and candidate210 before editing product. No third batch attempted here.",
+    "product_or_assertion_changes": false
+  },
+  "whole_suite": {
+    "command": [
+      "mix",
+      "test",
+      "--no-compile",
+      "--seed",
+      "574",
+      "--trace"
+    ],
+    "summary": "Result: 766/767 passed, 2 skipped",
+    "counts": {
+      "passed": 766,
+      "failed": 1,
+      "skipped": 2
+    },
+    "exit": 2,
+    "skips": [
+      "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]",
+      "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]"
+    ],
+    "log": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/full/whole-suite.log",
+      "sha256": "4482b7554886d919f7f9ab401db5a23234690a6920c00fedfa451b041588f631",
+      "bytes": 205701
+    }
+  },
+  "private_controls": {
+    "counts": {
+      "failed": 0,
+      "passed": 8,
+      "excluded": 0
+    },
+    "exit": 0,
+    "controls": [
+      "test R612 independent authenticated DTO raw HTTP project isolation and secret refusal",
+      "test R612 independent preauth no mutation methods routes or caller metadata",
+      "test R604 raw HTTP preserves duplicate admission and genuine preauth metadata",
+      "test R604 actual unchanged console client reads genuine synthetic callback over loopback",
+      "test R604 JSON expiry exactly follows admitted token credential and session bounds",
+      "test R604 revoked and stale cookies deny HTTP and runtime misconfiguration never succeeds",
+      "test R604 expired publication remains withheld after admitted SQL success",
+      "test R604 SQL admitted HTTP metadata refuses stale key generation publication"
+    ],
+    "tls_terminal_lines": [
+      "TLSFixture lifecycle: %{active: 0, requests: 1, accepted: 1, terminal_results: [%{outcome: :peer_closed, stage: :peer_close, unexpected_bytes: 0}], peer_closed: 1}"
+    ],
+    "log": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/full/private-controls.log",
+      "sha256": "8182cb169e40d06e9ee19a390e18670be0208bc190cf1c1a74297a59cd035687",
+      "bytes": 3664
+    }
+  },
+  "compilation": {
+    "baseline_source_files": 106,
+    "candidate_source_files": 114,
+    "candidate_fresh_product_beams": 196,
+    "cached_product_beams_used": false,
+    "candidate_beams_unchanged_after_tests": true,
+    "accepted_warning": "ProviderOwner init/1 clauses are not grouped; no warnings-as-errors acceptance claimed.",
+    "no_new_dependencies": true
+  },
+  "bounds": {
+    "compile_pg_batches": 2,
+    "harness_corrections": 1,
+    "correction": "First diagnostic exited before any test because telemetry was not started. Start telemetry before handler attachment. Both failures retained; source/test bytes unchanged.",
+    "third_batch": false
+  },
+  "preservation": {
+    "candidate_210_members_exact_after_tests": true,
+    "production_12_migrations_changed": false,
+    "historical_selectors_changed": false,
+    "old109_catalog_changed": false,
+    "callback_crypto_changed": false,
+    "active_sql_changed": false,
+    "final_fences_changed": false,
+    "canonical_source_git_remote_mutation": false,
+    "children": 0,
+    "held_resources_accessed": false
+  },
+  "cleanup": {
+    "first_batch": {
+      "owned_postgres_stopped": true,
+      "postmaster_pid_absent": true,
+      "all_recorded_groups_absent": true,
+      "historical_holds_accessed": false
+    },
+    "final_batch": {
+      "owned_postgres_stopped": true,
+      "postmaster_pid_absent": true,
+      "all_recorded_groups_absent": true,
+      "historical_holds_accessed": false
+    },
+    "command_groups_recorded": 87,
+    "private_tls_active_zero": true,
+    "raw_scratch_retained": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644"
+  },
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:3:3] [ds:3:3:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "selected_commands": [
+    {
+      "label": "baseline-compile",
+      "argv": [
+        "mix",
+        "compile",
+        "--force",
+        "--no-deps-check"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/baseline/hosted",
+      "pid": 14181,
+      "pgid": 14181,
+      "utc": "2026-11-11T02:41:04.649983+00:00",
+      "timeout_seconds": 100,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "f70808be277d54956e10e0979b2d6781c6f15ab9bcdc1c2adcd614cb0bd5bdc5"
+    },
+    {
+      "label": "baseline-guard",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/guard_driver.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/baseline/hosted",
+      "pid": 14951,
+      "pgid": 14951,
+      "utc": "2026-11-11T02:41:13.463143+00:00",
+      "timeout_seconds": 60,
+      "exit": 1,
+      "group_absent": true,
+      "output_sha256": "bed146ee6403728adc73292b4a6f9e34d30c0dc9ef0e7c194341420c23e92146"
+    },
+    {
+      "label": "candidate-compile",
+      "argv": [
+        "mix",
+        "compile",
+        "--force",
+        "--no-deps-check"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/candidate/hosted",
+      "pid": 15043,
+      "pgid": 15043,
+      "utc": "2026-11-11T02:41:14.699219+00:00",
+      "timeout_seconds": 100,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "fbcb3182def8e7aa0d81362bd1ecea24c9f8bbcd6c31e5e6b41bcd4ce8d87402"
+    },
+    {
+      "label": "candidate-guard",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/guard_driver.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/candidate/hosted",
+      "pid": 15271,
+      "pgid": 15271,
+      "utc": "2026-11-11T02:41:19.949925+00:00",
+      "timeout_seconds": 60,
+      "exit": 1,
+      "group_absent": true,
+      "output_sha256": "5e46dad3a332d226822d5f483a2d6b34cb953cdb495559237f8c9767c986e4fa"
+    },
+    {
+      "label": "postgres-stop",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/discriminator/pgdata",
+        "-m",
+        "fast",
+        "-w",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/candidate/hosted",
+      "pid": 15327,
+      "pgid": 15327,
+      "utc": "2026-11-11T02:41:20.567614+00:00",
+      "timeout_seconds": 25,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+    },
+    {
+      "label": "baseline-guard",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/guard_driver.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/baseline/hosted",
+      "pid": 16615,
+      "pgid": 16615,
+      "utc": "2026-11-11T02:41:51.132766+00:00",
+      "timeout_seconds": 60,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "0fdbfd7e3040b688497ff66a2e83e3639475903f24d182bfa46ec83e8ea72257"
+    },
+    {
+      "label": "candidate-guard",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/guard_driver.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/candidate/hosted",
+      "pid": 16776,
+      "pgid": 16776,
+      "utc": "2026-11-11T02:41:55.065688+00:00",
+      "timeout_seconds": 60,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "b743e9a4b3fa1e0b2c43d03d30230659bb01a1ed1c3023e353becf44741a27da"
+    },
+    {
+      "label": "whole-suite",
+      "argv": [
+        "mix",
+        "test",
+        "--no-compile",
+        "--seed",
+        "574",
+        "--trace"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/candidate/hosted",
+      "pid": 22899,
+      "pgid": 22899,
+      "utc": "2026-11-11T02:42:27.209352+00:00",
+      "timeout_seconds": 270,
+      "exit": 2,
+      "group_absent": true,
+      "output_sha256": "4482b7554886d919f7f9ab401db5a23234690a6920c00fedfa451b041588f631"
+    },
+    {
+      "label": "private-controls",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/support.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/candidate/hosted",
+      "pid": 36030,
+      "pgid": 36030,
+      "utc": "2026-11-11T02:44:58.887748+00:00",
+      "timeout_seconds": 150,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "8182cb169e40d06e9ee19a390e18670be0208bc190cf1c1a74297a59cd035687"
+    },
+    {
+      "label": "postgres-stop",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/full/pgdata",
+        "-m",
+        "fast",
+        "-w",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/candidate/hosted",
+      "pid": 36932,
+      "pgid": 36932,
+      "utc": "2026-11-11T02:45:24.314329+00:00",
+      "timeout_seconds": 25,
+      "exit": 0,
+      "group_absent": true,
+      "output_sha256": "be0eb6af6e3b8f7601dd9c679a8d580757b27db65721cdd954d961a1ac414e67"
+    }
+  ],
+  "raw_evidence": [
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/setup.py",
+      "sha256": "4048b68c5bf8307faa575084c179d55cb9c20e2a4926aa49793e2fc6de22e9cc",
+      "bytes": 3096
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/run.py",
+      "sha256": "5b077bf24c0b62b820e717a27c41b46e0b6e7c9a9472247401a855fec0c09a66",
+      "bytes": 7905
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/guard_driver.exs",
+      "sha256": "9144ed1796bb6c20224aa3189a0f372ba2d8ff36887392a6b355b9cffffc9dfa",
+      "bytes": 179
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/diagnostic.exs",
+      "sha256": "154a3529ba2d1fa5bfa4a6872b9592878386c895d14357594aa1b9abec34475d",
+      "bytes": 627
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/decision.json",
+      "sha256": "5069d99d9aa2e96a857dbd3705756db5932263f8712bfef6f3ff4dafb040d98f",
+      "bytes": 376
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/source-identity.json",
+      "sha256": "d7840632ff40cfcf13534d618d373c112b42b69f8b7f4860699c7643c55db72a",
+      "bytes": 244
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/verified-inputs.json",
+      "sha256": "2a7b064e2805cb53a0aacafb6a04fb9b689bc171ece3f6c2e174691b3a6be4be",
+      "bytes": 27295
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/discriminator/commands.json",
+      "sha256": "6fb73403a9362328caa53d8f1e319dd3ec89e1cd46828eda8bd5e8f3fa258971",
+      "bytes": 26119
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/discriminator/result.json",
+      "sha256": "be43253b7746bbf9bb31d4744e7bccd79eb2182e122e44479706066211593c3b",
+      "bytes": 101
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/full/commands.json",
+      "sha256": "32a43b321aec852ec5466c95c759ac8713a327a7ad423410b7dc7cec267aceaa",
+      "bytes": 36146
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/full/result.json",
+      "sha256": "b6a3b3af982e3b1eb94ea082c226181b942d9eb6d79e90903e566d371f46337d",
+      "bytes": 492
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/full/baseline-guard.log",
+      "sha256": "0fdbfd7e3040b688497ff66a2e83e3639475903f24d182bfa46ec83e8ea72257",
+      "bytes": 11990
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-suite-r644/full/candidate-guard.log",
+      "sha256": "b743e9a4b3fa1e0b2c43d03d30230659bb01a1ed1c3023e353becf44741a27da",
+      "bytes": 11989
+    }
+  ],
+  "limitations": [
+    "Private unselected candidate; no source-selector, production migration, default mount, provider, immutable package, deployment or GA acceptance.",
+    "Two Linux/netns controls are skipped on this macOS host.",
+    "Normal whole suite is not green: original ArtifactRead final guard not_found recurs; it passes alone on both source sets. First cause remains unproven, with no speculative product change.",
+    "Accepted independent source reviews reused. No new review or ordinary public CI run.",
+    "Receipt is delivered unstaged; canonical Git was not mutated."
+  ]
+}

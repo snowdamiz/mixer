@@ -1,0 +1,378 @@
+{
+  "id": "R894_PS_ACTUAL_CHARACTERIZATION",
+  "status": "CHARACTERIZED_NOT_PRODUCTION_QUALIFIED",
+  "environment": {
+    "startedAtUTC": "2026-11-11T09:45:50.835398+00:00",
+    "pythonExecutable": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "pythonVersion": "3.9.6 (default, Oct 19 2026, 19:18:13) \n[Clang 21.0.0 (clang-2100.4.1.1)]",
+    "pythonSHA256": "c5a13e37785524fbc0384539d3c99aa4f888cb7c89e13e0bf0018436378b13bc",
+    "uname": [
+      "Darwin",
+      "Andreys-MacBook-Pro.local",
+      "27.0.0",
+      "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "arm64"
+    ],
+    "ps": "/bin/ps",
+    "psSHA256": "a06fe087161557f1f8c030672eaedcd90bc6a8e92b8f2d44e07cffedc3349205",
+    "psVersion": "No version flag documented; installed executable SHA256 identifies tested tool",
+    "sourceSHA256": {
+      "characterize.py": "e8b80dbb4ea35d584a015887a26a977976147582d0d8403b953ac05553d3682b",
+      "fixture.py": "48aff5762313538c0e9a4814737f13b5b98fe4b23e6b172f3a092670448bf7e7"
+    },
+    "installedManualSHA256": {
+      "man1/ps.1": "fbddf023ce4960c7e6eadebcfb7f0badf0ab6c3f59b2b97c2807d3f67a85142d",
+      "man5/compat.5": "8ee43e3dfd2f9e567271ff4e95da8d651a9ab6c4f46cb37caf536df1d26bb71d"
+    },
+    "rootBaseCommitFromR884": "00d584fd9d2733d86b729fa24d45515001fc0ff6",
+    "rootRevisionRevalidated": false,
+    "priorReceiptSHA256": {
+      "verification/receipts/darwin-owned-group-observer-r880.json": "a7a0db1fcc8a2617058dba8e0ca8e74434288eb7d822a5614bb7053911f617b4",
+      "verification/receipts/public-ps-observer-r884.json": "e314a3881c43bf00c0a97ff829b5894904259339029bd5e8a64396fbfc246ac4"
+    },
+    "manualVerified": "Installed ps -g process group leaders; -x retains no-terminal processes; -o empty headers; compat COMMAND_MODE=unix2003",
+    "publicContractGap": "Installed manual does not guarantee all empty-selection exit tuples or complete visibility; characterization only",
+    "priorAttributionCorrection": "R884 public-contract prerequisite was imposed by root, not user; user authorizes bounded executable diagnostics",
+    "macOSActualVersion": "27.0.1",
+    "macOSActualBuild": "26A434",
+    "versionSource": "/System/Library/CoreServices/SystemVersion.plist"
+  },
+  "freshOwnedGroups": [
+    {
+      "pid": 88418,
+      "pgid": 88418,
+      "uid": 501,
+      "payload_released": false
+    }
+  ],
+  "diagnosticBatches": 2,
+  "harnessCorrections": 1,
+  "compilerBuilds": 0,
+  "outcomes": {
+    "liveLeader": {
+      "label": "01-live-leader",
+      "argv": [
+        "/bin/ps",
+        "-x",
+        "-g",
+        "88418",
+        "-o",
+        "pid=,pgid="
+      ],
+      "environment": {
+        "COMMAND_MODE": "unix2003",
+        "LC_ALL": "C"
+      },
+      "capture_cap_per_stream": 512,
+      "row_cap": 2,
+      "deadline_seconds": 2,
+      "timestampUTC": "2026-11-11T09:45:50.858538+00:00",
+      "injected_unavailable": false,
+      "injected_capture_cap": false,
+      "helper_pid": 88419,
+      "helper_inherits_controller_group": true,
+      "returncode": 0,
+      "bytes_seen": {
+        "stdout": 12,
+        "stderr": 0
+      },
+      "eof": {
+        "stdout": true,
+        "stderr": true
+      },
+      "descriptors_closed": true,
+      "truncated": false,
+      "infrastructure_error": null,
+      "stdout": "88418 88418\n",
+      "stderr": "",
+      "classification": "LIVE"
+    },
+    "descendantAfterDirectReap": {
+      "label": "06-descendant-after-direct-reap",
+      "argv": [
+        "/bin/ps",
+        "-x",
+        "-g",
+        "88418",
+        "-o",
+        "pid=,pgid="
+      ],
+      "environment": {
+        "COMMAND_MODE": "unix2003",
+        "LC_ALL": "C"
+      },
+      "capture_cap_per_stream": 512,
+      "row_cap": 2,
+      "deadline_seconds": 2,
+      "timestampUTC": "2026-11-11T09:45:50.879625+00:00",
+      "injected_unavailable": false,
+      "injected_capture_cap": false,
+      "helper_pid": 88425,
+      "helper_inherits_controller_group": true,
+      "returncode": 0,
+      "bytes_seen": {
+        "stdout": 12,
+        "stderr": 0
+      },
+      "eof": {
+        "stdout": true,
+        "stderr": true
+      },
+      "descriptors_closed": true,
+      "truncated": false,
+      "infrastructure_error": null,
+      "stdout": "88424 88418\n",
+      "stderr": "",
+      "classification": "LIVE"
+    },
+    "terminatedGroupEmptyTuple": {
+      "label": "07-consumed-same-group",
+      "argv": [
+        "/bin/ps",
+        "-x",
+        "-g",
+        "88418",
+        "-o",
+        "pid=,pgid="
+      ],
+      "environment": {
+        "COMMAND_MODE": "unix2003",
+        "LC_ALL": "C"
+      },
+      "capture_cap_per_stream": 512,
+      "row_cap": 2,
+      "deadline_seconds": 2,
+      "timestampUTC": "2026-11-11T09:45:50.885822+00:00",
+      "injected_unavailable": false,
+      "injected_capture_cap": false,
+      "helper_pid": 88426,
+      "helper_inherits_controller_group": true,
+      "returncode": 1,
+      "bytes_seen": {
+        "stdout": 0,
+        "stderr": 0
+      },
+      "eof": {
+        "stdout": true,
+        "stderr": true
+      },
+      "descriptors_closed": true,
+      "truncated": false,
+      "infrastructure_error": null,
+      "stdout": "",
+      "stderr": "",
+      "classification": "EMPTY_OBSERVED_NOT_GONE"
+    },
+    "truncated": {
+      "label": "02-truncated-capture",
+      "argv": [
+        "/bin/ps",
+        "-x",
+        "-g",
+        "88418",
+        "-o",
+        "pid=,pgid="
+      ],
+      "environment": {
+        "COMMAND_MODE": "unix2003",
+        "LC_ALL": "C"
+      },
+      "capture_cap_per_stream": 1,
+      "row_cap": 2,
+      "deadline_seconds": 2,
+      "timestampUTC": "2026-11-11T09:45:50.861743+00:00",
+      "injected_unavailable": false,
+      "injected_capture_cap": true,
+      "helper_pid": 88420,
+      "helper_inherits_controller_group": true,
+      "returncode": 0,
+      "bytes_seen": {
+        "stdout": 12,
+        "stderr": 0
+      },
+      "eof": {
+        "stdout": true,
+        "stderr": true
+      },
+      "descriptors_closed": true,
+      "truncated": true,
+      "infrastructure_error": null,
+      "stdout": "8",
+      "stderr": "",
+      "classification": "UNKNOWN"
+    },
+    "toolError": {
+      "label": "03-invalid-format",
+      "argv": [
+        "/bin/ps",
+        "-x",
+        "-g",
+        "88418",
+        "-o",
+        "pid=,pgid=",
+        "-o",
+        "r894_invalid_keyword="
+      ],
+      "environment": {
+        "COMMAND_MODE": "unix2003",
+        "LC_ALL": "C"
+      },
+      "capture_cap_per_stream": 512,
+      "row_cap": 2,
+      "deadline_seconds": 2,
+      "timestampUTC": "2026-11-11T09:45:50.864760+00:00",
+      "injected_unavailable": false,
+      "injected_capture_cap": false,
+      "helper_pid": 88421,
+      "helper_inherits_controller_group": true,
+      "returncode": 1,
+      "bytes_seen": {
+        "stdout": 12,
+        "stderr": 44
+      },
+      "eof": {
+        "stdout": true,
+        "stderr": true
+      },
+      "descriptors_closed": true,
+      "truncated": false,
+      "infrastructure_error": null,
+      "stdout": "88418 88418\n",
+      "stderr": "ps: r894_invalid_keyword: keyword not found\n",
+      "classification": "UNKNOWN"
+    },
+    "unavailable": {
+      "label": "04-unavailable",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/ps-actual-characterization-r894/missing-ps",
+        "-x",
+        "-g",
+        "88418",
+        "-o",
+        "pid=,pgid="
+      ],
+      "environment": {
+        "COMMAND_MODE": "unix2003",
+        "LC_ALL": "C"
+      },
+      "capture_cap_per_stream": 512,
+      "row_cap": 2,
+      "deadline_seconds": 2,
+      "timestampUTC": "2026-11-11T09:45:50.867450+00:00",
+      "injected_unavailable": true,
+      "injected_capture_cap": false,
+      "launch_error": {
+        "type": "FileNotFoundError",
+        "errno": 2,
+        "text": "[Errno 2] No such file or directory: '/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/ps-actual-characterization-r894/missing-ps'"
+      },
+      "classification": "UNKNOWN"
+    },
+    "injectedSIGKILLDenial": {
+      "injected": true,
+      "osCause": "NOT_AN_OS_OBSERVATION",
+      "syscallInvoked": false,
+      "requestedSignal": 9,
+      "pgid": 88418,
+      "exception": "PermissionError",
+      "errno": 1,
+      "custody": "UNKNOWN",
+      "positivePSQuery": "05-live-after-injected-denial"
+    }
+  },
+  "originalObserverReference": "verification/local/ps-actual-characterization-r894/original-observer-reference.json",
+  "cleanup": {
+    "status": "COMPLETE_ORIGINAL_ESRCH_REFERENCE",
+    "direct_leader_reaped": true,
+    "descendant_stop_consumed": true,
+    "both_EOF": true,
+    "descriptors_closed": true,
+    "scratch_removed": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/ps-actual-characterization-r894/scratch/control-1",
+    "original_reference": "original-observer-reference.json",
+    "candidateUsedToAuthorizeCleanup": false,
+    "actual_destructive_signals": 0
+  },
+  "queries": 7,
+  "independentReview": "PARENT_OWNED_PENDING",
+  "productionQualified": false,
+  "canonicalRunnerChanged": false,
+  "publicUniversalGuaranteeEstablished": false,
+  "historicalHoldsReleased": false,
+  "heldResourcesAccessed": false,
+  "gitUsed": false,
+  "subagentsUsed": false,
+  "deviceDatabaseProviderRemoteMutation": false,
+  "limitation": "Single fresh same-user no-escape group; installed ps binary only. Empty rc1/stdout/stderr is an observed tuple, not GONE authority. Visibility, errors with identical empty tuple, races, reuse, other users, privilege changes and production integration remain unqualified.",
+  "nextAuthority": "Parent independent review and bounded contract synthesis before any production adoption; candidate never overrides original UNKNOWN, signal or descriptor failures.",
+  "campaignStartedAtUTC": "2026-11-11T09:42:28+00:00",
+  "recordedAtUTC": "2026-11-11T09:49:16.397017+00:00",
+  "campaignElapsedSecondsFromFirstClockRead": 408.397,
+  "runtimeControlElapsedSeconds": 0.054,
+  "batchDetails": [
+    {
+      "kind": "actual fresh lifecycle and ps controls",
+      "freshGroups": 1,
+      "psLaunches": 6,
+      "unavailableLaunchAttempt": 1,
+      "runs": 1
+    },
+    {
+      "kind": "artifact readback and pure parser controls",
+      "freshGroups": 0,
+      "processOperations": 0,
+      "parserCases": 14,
+      "initialReadbackFailures": 1,
+      "corrections": 1
+    }
+  ],
+  "correctionScope": "Readback verifier argv prefix used six fields against five expected; corrected to five and derived uid from persisted identity. No characterization runner/source or process lifecycle was changed or rerun.",
+  "outputBoundRationale": "512 retained bytes per ps stream, 2 second helper deadline, maximum two rows because the closed fixture creates only one leader and one descendant. Two numeric pid/pgid pairs need at most 84 bytes even at 20 decimal digits per field with separators/newlines. Any captured overflow, more than two rows, incomplete row, stderr, unexpected status, launch error or incomplete transport is UNKNOWN. The truncation control deliberately lowers retention to one byte and records bytes_seen separately.",
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-u",
+        "verification/local/ps-actual-characterization-r894/characterize.py"
+      ],
+      "exitCode": 0,
+      "fixtureRuns": 1
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "verification/local/ps-actual-characterization-r894/verify_artifacts.py"
+      ],
+      "exitCode": 1,
+      "scope": "readback-only prefix assertion failure; no process operations",
+      "log": "verification/local/ps-actual-characterization-r894/logs/verification-first-failure.txt"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "verification/local/ps-actual-characterization-r894/verify_artifacts.py"
+      ],
+      "exitCode": 0,
+      "scope": "same nonprocess batch after one correction",
+      "result": "verification/local/ps-actual-characterization-r894/verification.json"
+    }
+  ],
+  "verification": {
+    "status": "PASS_SCOPED_ARTIFACT_READBACK_AND_PURE_CONTROLS",
+    "pureParserCases": 14,
+    "retainedRawOutputsMatched": true,
+    "sourceAndInstalledToolHashesMatched": true,
+    "priorReceiptsUnchanged": true,
+    "ownedScratchAbsent": true,
+    "newActualCustodyHold": false
+  },
+  "staged": false,
+  "artifactPolicyCheck": "Not run: no Git staging or root Git mutation performed; source and raw outputs remain in the authorized ignored local namespace.",
+  "artifactManifest": {
+    "path": "verification/local/ps-actual-characterization-r894/manifest.json",
+    "bytes": 9734,
+    "sha256": "b5c90a41ce96d9966544351c43fd180ad71bb506c038a5d4124bb66a79295e93",
+    "entries": 45,
+    "payloadBytes": 45535
+  },
+  "report": "verification/local/ps-actual-characterization-r894/REPORT.md"
+}

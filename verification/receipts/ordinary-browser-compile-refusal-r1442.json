@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "ordinary-browser-compile-refusal-r1442",
+  "status": "STOP_FIRST_COMPILE_FAILURE_NO_RETRY",
+  "commit": "576643f82959848a10aa2d6c6f089a15625d0234",
+  "run": 43152416936,
+  "job": 130964498733,
+  "artifact": {
+    "artifact": 13913689377,
+    "bytes": 1047157,
+    "sha256": "88c786ae6b92a4fe62a1275b153ac668703b75bbd1182d4a70762300ed399e2e",
+    "declaredDigest": "sha256:88c786ae6b92a4fe62a1275b153ac668703b75bbd1182d4a70762300ed399e2e",
+    "wholeZipVerified": true
+  },
+  "firstFailure": "Mix compile --warnings-as-errors: new compiled support references StorageFixture modules defined only by later .exs require.",
+  "compileSourceCount": 141,
+  "compileLogSHA256": "0247230bd0598bd413371009bc1f5ad9868b87b224477d284e56c115198e2290",
+  "testCasesExecuted": 0,
+  "format": "PASS",
+  "protocol": "PASS",
+  "clientCompile": "PASS",
+  "storageAndMigrations": "PASS",
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "allRootAPIGroupsESRCH": true,
+  "rootOuterGroups": [
+    90627,
+    21292,
+    28121
+  ],
+  "mainUpdated": false,
+  "productAcceptance": false,
+  "reviewUnlocked": false,
+  "retries": 0,
+  "GA": false,
+  "holdsReleased": false,
+  "premise": {
+    "statement": "New test/support fixtures can statically call modules that are loaded only when test .exs files run.",
+    "observation": "Actual warnings-as-errors compile fails on10 undefined calls before any test. The premise is false.",
+    "next": "Finite fixture-loading escalation with actual ordinary compile and existing standalone entry closure checks. No warning suppression."
+  }
+}

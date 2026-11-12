@@ -1,0 +1,323 @@
+{
+  "schema": 1,
+  "id": "provider-trust-direct-owner-r1582",
+  "status": "FIRST_FAILURE_HARNESS_HPAX_LOAD_GUARD_EXUNIT_UNRUN",
+  "recordedUTC": "2026-11-12T16:32:02.398037+00:00",
+  "scope": {
+    "namedTest": "browser_provider_trust_key_owner_lease_generation_fencing",
+    "ownerLevel": "KeyOwner ONLY",
+    "providerOwnerLifecycle": "UNIMPLEMENTED_NOT_CLAIMED",
+    "canonicalEdits": false
+  },
+  "execution": {
+    "directCompileCommands": 1,
+    "BEAMLaunches": 1,
+    "meaningfulExUnitBatches": 0,
+    "testsExecuted": 0,
+    "ownerOrFixtureStarted": false,
+    "firstFailure": {
+      "kind": "HARNESS_MODULE_LOADING_GUARD_FAILURE",
+      "runtimeFailure": "MatchError: no match of right hand side value false",
+      "file": "batch.exs",
+      "line": 28,
+      "failingExpression": "true = function_exported?(HPAX, :new, 1)",
+      "successfulCompileReturnMatchedAtLine": 27,
+      "actualOutputBeam": {
+        "bytes": 18964,
+        "sha256": "03882cf4aac30c8423b78353b03332d7f79636d9fe0a21d9cd43a9006274bd4d"
+      },
+      "officialHPAXSourceDefinesNew1": {
+        "source": "dependency/hpax/lib/hpax.ex",
+        "line": 48,
+        "text": "def new(max_table_size), do: new(max_table_size, [])"
+      },
+      "runtimeOwnerBehaviorProof": false,
+      "diagnosis": "Direct HPAX compiler returned :ok and wrote Elixir.HPAX.beam, then the immediate non-loading exported-function guard returned false. Harness did not explicitly ensure HPAX was loaded. HPAX load state was not independently printed; no product or package incompatibility is established.",
+      "nextRequiredActionIfSeparatelySelected": "Explicitly load actual HPAX after direct compile before its exported-function guard; apply equivalent loading discipline to Mint.HTTP. Preserve this failed batch byte-exact. This is a prospective correction, not a validated fix.",
+      "unsupportedExternalPrerequisiteObserved": false,
+      "remainingCompilationAndExUnitUnrun": true,
+      "retryPerformed": false,
+      "postrunDiagnosticParserFailure": {
+        "kind": "UnicodeDecodeError",
+        "scope": "Attempt to decode OTP29 AtU8 table with a one-byte-length assumption; no test/runtime rerun and no decoded export claim retained"
+      }
+    },
+    "preparationCorrections": 0,
+    "substantiveRetries": 0,
+    "stopEnforced": true,
+    "command": {
+      "label": "direct-compile-actual-exunit",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-direct-owner-r1582/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-direct-owner-r1582",
+      "pid": 27972,
+      "pgid": 27972,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 3.3754556250059977,
+      "ownedGroupAbsentESRCH": true
+    },
+    "environment": {
+      "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "otp": "29",
+      "elixir": "1.20.4",
+      "otpElixirBasis": "actual stdout",
+      "JOSE": "1.11.13",
+      "JOSEBasis": "Application.spec(:jose, :vsn) matched before HPAX frontier",
+      "HPAX": "1.1.0",
+      "HPAXBasis": "exact lock-admitted source manifest; direct compilation passed",
+      "Jason": "1.4.5",
+      "JasonBasis": "exact R1576 admitted source; direct compilation passed",
+      "Mint": "1.11.0",
+      "MintBasis": "exact lock-admitted source only; compilation NOT_REACHED",
+      "noFetch": true,
+      "noInstall": true,
+      "MixDependencyLoader": false,
+      "Hex": false,
+      "packageMetadataAltered": false
+    },
+    "rootSelectionDeadlineUTC": "2026-11-12T16:41:29Z",
+    "cleanupReserveSeconds": 90
+  },
+  "source": {
+    "reportedRevision": "64bd540a044766c4d4e2b30485dcf9e9546afd2d",
+    "revisionBasis": "R1572 compact receipt; no local Git",
+    "selection": "v15/272",
+    "manifest": "verification/identity-network-current-source-v15/selected-source-manifest.json",
+    "manifestHash": {
+      "bytes": 45207,
+      "sha256": "2c5e09c1d1842f6847d854354dfac9820af8ed78e1059ae49e76099a20d6da3c"
+    },
+    "reportedSourceDigest": "7541ccd6dc3369acac10dbfa881914eaf76e0c092a7ceaba142fc26ce00c169e",
+    "all272ExactBeforeAndAfter": true,
+    "constructor2FilesExactBeforeAndAfter": true,
+    "ProviderOwnerAndInstallationExact": true,
+    "preservationMap": "verification/local/provider-trust-direct-owner-r1582/preservation-map.json",
+    "canonicalSourceCopies": 0
+  },
+  "dependencies": {
+    "readOnlyReuse": true,
+    "R1580Manifest": "verification/local/provider-trust-owner-fencing-r1580/delivery/dependency-admission.json",
+    "R1580ManifestHash": {
+      "bytes": 30255,
+      "sha256": "c7b0931ea27d698b53f14fe8b4228aad0cd4ded82816c118edbea21a14324493"
+    },
+    "R1576JasonManifest": "verification/local/production-browser-admission-r1576/delivery/dependency-admission.json",
+    "allSourceBytesAndExistingJOSEBuildExactBeforeAndAfter": true,
+    "dependencyCopies": 0,
+    "fetches": 0,
+    "installs": 0,
+    "metadataStripped": false,
+    "MixDependencyLoader": false
+  },
+  "custody": {
+    "adapter": "R986 inert definitions via R1430 prefix",
+    "outerInitialFullResponseAndIdentityReadBackBeforeGate": true,
+    "innerIdentityReadBackBeforeG": true,
+    "innerReapBothEOFClosedFDsBeforeOriginalESRCH": true,
+    "outer": {
+      "pid": 25648,
+      "pgid": 25648,
+      "session": 25648,
+      "terminalFullExecResponseReadBack": true,
+      "transportExit": 1,
+      "directReapBothEOFClosedFDs": true,
+      "terminalFactsBasis": "Completed exec transport; transport internals not separately instrumented",
+      "originalKillpg0Queries": 1,
+      "ownedGroupAbsentESRCH": true
+    },
+    "applicationCleanup": {
+      "KeyOwnerStarted": false,
+      "ProviderOwnerStarted": false,
+      "TLSFixtureStarted": false,
+      "fetchWorkersStarted": false,
+      "ownerWorkerIndependentCleanupAssertions": "NOT_RUN; ExUnit not reached",
+      "joseApplicationStartReached": true,
+      "beamGroupTerminalAbsent": true,
+      "OTPProcessCleanupBasis": "VM exited and managed OS process group observed absent; no separate in-VM JOSE lifecycle assertion",
+      "noProductLifecycleCleanupPassClaimed": true
+    },
+    "newUnknown": false,
+    "historicalHoldsAccessed": false,
+    "historicalHoldsReleased": false,
+    "newHolds": []
+  },
+  "priorFailures": {
+    "R1580Receipt": {
+      "bytes": 18222,
+      "sha256": "896d48507f11f606db8e30ea8ab34d599503ba33330d50ce87eab4a65870ffb9"
+    },
+    "R1580Report": {
+      "bytes": 4674,
+      "sha256": "ccd032a420f2d349f56b866cbf99317797cd6527ec4ec87a66be237a2cba59ce"
+    },
+    "twoPreparationFailuresPreservedNotReset": true,
+    "R1582IsSeparateSelection": true
+  },
+  "independentReview": {
+    "launched": false,
+    "reason": "No meaningful pass"
+  },
+  "limitations": [
+    "ZERO actual ExUnit tests; all requested KeyOwner behaviors and independent owner/worker cleanup remain unrun.",
+    "ProviderOwner lifecycle gap remains unimplemented.",
+    "Configured production refusal/default-disabled/caps/crypto preserved by exact source only; no fresh runtime qualification.",
+    "HPAX explicit-loading diagnosis is prospective; no corrected run performed.",
+    "No canonical/Git/API/CI/database/native/device/credentials/provider/production work."
+  ],
+  "postprocessingLimitations": {
+    "BEAMAtomTableDiagnostic": "One-byte-length AtU8 decoder raised UnicodeDecodeError; no export-table claim retained and no runtime rerun",
+    "aggregateDigestDiagnostic": "A path-NUL-sha256-lines diagnostic uses a different serialization from the admitted source digest; its equality assertion failed. All 272 individual bytes/sha256 rows were exact. No source drift inferred or waived.",
+    "payloadAndCustodyReceiptsUnaffected": true,
+    "noBEAMRetry": true
+  },
+  "staged": false,
+  "productionActivation": false,
+  "productionQualified": false,
+  "GA": false,
+  "holdsReleased": false,
+  "artifacts": {
+    "PARENT_WAITING.json": {
+      "bytes": 206,
+      "sha256": "9bc8b26b3571a342bc3f7060ad8f0caa0918d4346d5126e186afd643068e1b6a"
+    },
+    "input-proof.json": {
+      "bytes": 29140,
+      "sha256": "bb936d43b7e91b2367d2868bbf597f3cd36404be63b0e1436984b5d26800500c"
+    },
+    "batch.exs": {
+      "bytes": 4501,
+      "sha256": "32ffe4102c1b6f13f877a58208331a350f3ca811f774cc747e39bd8f47cae124"
+    },
+    "first-frontier.json": {
+      "bytes": 1541,
+      "sha256": "c86483fd1df3fbe544690aa562be211534c097b4ada0d9ac5ae72ccbd987018f"
+    },
+    "application-map.json": {
+      "bytes": 1124,
+      "sha256": "1e2a0248b5293b2ec98ca7add29b1a3b7d0055c87735b1d47e9f6a564b316e4c"
+    },
+    "REPORT.md": {
+      "bytes": 3405,
+      "sha256": "4156cfe16d28d3a94407571de0a3a80d9ffaec1ef5ea1b559641c9995b7bcb7e"
+    },
+    "dispatch.py": {
+      "bytes": 3918,
+      "sha256": "9d223799dda034e9095eaff3e135ad2042bdc685426bc5b95dc0015428254722"
+    },
+    "prelaunch-manifest.json": {
+      "bytes": 633,
+      "sha256": "bf20c2a25b68432b1830e9090c0ebbc16dc60dbdc2ba0756adb82ac4a3df8439"
+    },
+    "finalize.py": {
+      "bytes": 11373,
+      "sha256": "04b7622df6c1dc0b7d9549bb069feb0f547f6166b690ac7198ea82fa3f68119b"
+    },
+    "PARENT_READY": {
+      "bytes": 42,
+      "sha256": "891bf873ab64d80d9162f158a5688254bd8013babeb806f5ea729e9c622554fd"
+    },
+    "postprocessing-limitations.json": {
+      "bytes": 462,
+      "sha256": "ce5c030144edf6baa6fba61d89ed6034fcc2048f1389d412ae926dffed4d87a4"
+    },
+    "dispatch-prefix.txt": {
+      "bytes": 2352,
+      "sha256": "c2cc6d2eff7e587a06eba80ebcabccaa446eff4d1083cdb9cde6fc1b9affeb5b"
+    },
+    "application-cleanup.json": {
+      "bytes": 454,
+      "sha256": "08125b83dd988cded76c65d76424e8b415b134a9b03292b22e02540ed4c5159d"
+    },
+    "integration.exs": {
+      "bytes": 11714,
+      "sha256": "258d0c890ec35ba2e294e6e6bafedb58a6ae7389876139f269240902f4453d42"
+    },
+    "outer-terminal-response.json": {
+      "bytes": 1071,
+      "sha256": "1639967751ab51c005f369fb33c9ef7c34a6fb73b6276fd1fbf97a3eae3cae25"
+    },
+    "outer-initial-response.json": {
+      "bytes": 131,
+      "sha256": "050579d5fc9dc0d6bac915d8afc41ed60ff268a38dd76f751088c0a402d8c7c0"
+    },
+    "capacity-before-preparation.json": {
+      "bytes": 211,
+      "sha256": "561eca0855916c9dfaca66c94adcdb21a9da8ec8f341abc93e3b1b899286e5d8"
+    },
+    "outer-admission.json": {
+      "bytes": 502,
+      "sha256": "b8be5beee241171c13361404315461dfebcb66a0507a85c8e37b2ef93bf59445"
+    },
+    "preservation-map.json": {
+      "bytes": 48950,
+      "sha256": "9f4167420eefd99dbc9d9df4c9f6c3e68b81b1570bca5652c01cc380c4a3b4cd"
+    },
+    "prior-failures-preserved.json": {
+      "bytes": 340,
+      "sha256": "44259b1ed51fbbdc316930fb563ce193ab78fce40b12861caeeec2e6699cfa3e"
+    },
+    "environment.json": {
+      "bytes": 674,
+      "sha256": "f26076f9b025872857bc11da75b3f53b52499c8ad2ee11197bdb484ffab546aa"
+    },
+    "outer-custody.json": {
+      "bytes": 325,
+      "sha256": "41ce085854eeec035b42fd018a20dca0dfa1481e210d0ab9efe966e8da0cca9b"
+    },
+    "contract.json": {
+      "bytes": 573,
+      "sha256": "fa2fc82693ec6ef8e47f00188fb30dd9f140e70e59101c20128979c28b009d86"
+    },
+    "delivery/before.json": {
+      "bytes": 301,
+      "sha256": "ccf8964592673b102b2e319b3726eca8d54657914267f76e085e3028abc6e0eb"
+    },
+    "delivery/result.json": {
+      "bytes": 1028,
+      "sha256": "3d8648bf0c0a8ea1a8e84754021ed236d09e413e75e67cdbfcc6b6b642ffc85a"
+    },
+    "delivery/after.json": {
+      "bytes": 301,
+      "sha256": "ccf8964592673b102b2e319b3726eca8d54657914267f76e085e3028abc6e0eb"
+    },
+    "delivery/commands.json": {
+      "bytes": 644,
+      "sha256": "14c70ae767b73ee78c0c716798de6488dda79812bfb215d95909134ccf002890"
+    },
+    "delivery/direct-compile-actual-exunit.stderr": {
+      "bytes": 146,
+      "sha256": "a9f8c7044e29acd6ce0037879b9558fc45818729fc02be174075edeaaf62f03c"
+    },
+    "delivery/precompile-capacity.json": {
+      "bytes": 181,
+      "sha256": "217a59d3650667cf6add56d5118c967362399e18ea5948f9455550996d43bf95"
+    },
+    "delivery/direct-compile-actual-exunit.stdout": {
+      "bytes": 57,
+      "sha256": "4f243b60ee26f05656ee5be9da6a33f9a9eeacc5c0b308d9f5f3be6dd68f0724"
+    },
+    "build/hpax/ebin/Elixir.HPAX.Huffman.beam": {
+      "bytes": 38392,
+      "sha256": "be71d1e3526febd6e8685a1c2b3e61e481181f17038fa98c417c98f6cd92fd29"
+    },
+    "build/hpax/ebin/Elixir.HPAX.Table.beam": {
+      "bytes": 33064,
+      "sha256": "7d2407cfb4d3be051f84abd1d9a0ba8ed7b31831cd5007de07af053d45abfbf4"
+    },
+    "build/hpax/ebin/Elixir.HPAX.beam": {
+      "bytes": 18964,
+      "sha256": "03882cf4aac30c8423b78353b03332d7f79636d9fe0a21d9cd43a9006274bd4d"
+    },
+    "build/hpax/ebin/Elixir.HPAX.Types.beam": {
+      "bytes": 6944,
+      "sha256": "61ee31f16a730ff2bacac6a7e6508b90c9189f0691c779578bc31a9e83a330ba"
+    }
+  }
+}

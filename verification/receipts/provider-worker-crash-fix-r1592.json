@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "id": "provider-worker-crash-fix-r1592",
+  "status": "REQUEST_CHANGES_PRIVATE_STRUCTURAL_FIX_INCOMPLETE",
+  "recordedUTC": "2026-11-12T17:16:31.912135+00:00",
+  "P2Resolved": false,
+  "canonicalAdoptionAllowed": false,
+  "canonicalEdits": false,
+  "productionActivation": false,
+  "changedProductFiles": {
+    "hosted/lib/mixer_hosted/browser_auth/provider_owner.ex": {
+      "baseline": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-owner-lease-lifecycle-r1588/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex",
+      "before": {
+        "bytes": 10701,
+        "sha256": "05a4bbb8c85cbbf5460724fee59502fe775fd09854fdc2dc927af741e76f868c"
+      },
+      "afterimage": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-worker-crash-fix-r1592/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex",
+      "after": {
+        "bytes": 10964,
+        "sha256": "1115a07ad2bc262ea585e7d69e82d15c24d1a4b28fae56ec8c7b36b9b7b0ea9e"
+      }
+    },
+    "hosted/lib/mixer_hosted/identity/key_owner.ex": {
+      "baseline": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-owner-fencing-r1580/source/hosted/lib/mixer_hosted/identity/key_owner.ex",
+      "before": {
+        "bytes": 15903,
+        "sha256": "d5d98bec506ad418c37fc36097d2cf714261c3f644875bf2bf93b4360adefe5d"
+      },
+      "afterimage": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-worker-crash-fix-r1592/afterimages/hosted/lib/mixer_hosted/identity/key_owner.ex",
+      "after": {
+        "bytes": 17785,
+        "sha256": "56f73a019b9c96256071dc51ff90280ba6128a80e32490987e85af6633370101"
+      }
+    }
+  },
+  "execution": {
+    "BEAMLaunches": 1,
+    "combinedCompileExUnitBatches": 1,
+    "result": {
+      "total": 2,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "retries": 0,
+    "preparationCorrectionPasses": 1,
+    "postPayloadSourceChanges": 0,
+    "subchildren": 0,
+    "payload": {
+      "label": "combined-crash-fix-actual-beam",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-worker-crash-fix-r1592/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-worker-crash-fix-r1592",
+      "pid": 45846,
+      "pgid": 45846,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 7.517173875006847,
+      "ownedGroupAbsentESRCH": true
+    },
+    "versions": {
+      "jason": "1.4.5",
+      "jose": "1.11.13",
+      "mint": "1.11.0",
+      "hpax": "1.1.0",
+      "mint_hpax_jason_basis": "outer-lock-admitted source manifests checked before and after; direct official compiler APIs",
+      "otp": "29",
+      "elixir": "1.20.4",
+      "openssl": "4.1.0"
+    },
+    "externalNetworkContacts": 0,
+    "loopbackTLSFixtureRequests": 4,
+    "dependencyFetches": 0,
+    "dependencyCopies": 0,
+    "MixDependencyTraversal": false
+  },
+  "observations": {
+    "crashRestart": {
+      "provider_down": true,
+      "old_workers_alive_at_first_permit_reuse": 11,
+      "reused_global_and_profile_slots_original_workers_dead": true,
+      "original_permit_caller_preserved": true,
+      "simultaneous_raw_transport_workers": 16,
+      "configured_capacity": 16,
+      "replacement_owns_all_current_permits": true,
+      "real_keyowner_pid_unchanged": true,
+      "remaining_original_deadline_ms": 3999
+    },
+    "workerExceptionAndIssuedOwnerDeath": {
+      "actual_worker_exception": true,
+      "unrelated_request_completed": true,
+      "keyowner_survived": true,
+      "issued_owner_killed": true,
+      "full_capacity_restored": true,
+      "duplicate_worker_start_refused": true
+    },
+    "unchangedR1588Baseline": {
+      "name": "browser_provider_trust_owner_lease_generation_fencing",
+      "requests": 3,
+      "transport_error": true,
+      "actual_exchange": true,
+      "original_pid_fence": true,
+      "generation_fence": true,
+      "snapshot_expiry_fence": true,
+      "deadline_expiry": true,
+      "wrong_attempts_preserve_legitimate_ticket": true,
+      "actual_owner_permit_caller": true,
+      "release_count": 10,
+      "unique_original_permit_nonces": 10,
+      "exact_worker_DOWN_required": true,
+      "worker_death_observed": true,
+      "late_completion": true,
+      "caller_death_cancellation": true,
+      "provider_termination": true,
+      "static_fixture_regression": true,
+      "production_refusal_unchanged": true,
+      "permit_tables_deleted": true,
+      "zero_key_fetch_workers": true,
+      "peers_closed": 3
+    }
+  },
+  "remainingGap": {
+    "status": "UNRESOLVED_SOURCE_INTERLEAVING_NOT_RUNTIME_REPRODUCED",
+    "location": "afterimages/hosted/lib/mixer_hosted/identity/key_owner.ex:429",
+    "sequence": [
+      "KeyOwner handles :reap; ProviderOwner is alive during dead-list construction, so its permit is excluded.",
+      "ProviderOwner is killed before Admission.reap scans its slots; raw worker is still linked to the living KeyOwner.",
+      "Admission.reap sees the now-dead ProviderOwner and deletes its slots before KeyOwner handles caller DOWN or awaits raw worker DOWN.",
+      "Another caller can reserve reclaimed slots while old worker remains alive. Later registered-permit cleanup cannot undo the capacity gap."
+    ],
+    "requiredCorrection": "Exclude every registered/admitted permit nonce from the generic orphan reaper, independent of a liveness snapshot. Keep exact worker-DOWN cleanup as the sole release authority for those permits. Coordinate the Admission API seam or an equivalent sole-owner operation.",
+    "runtimeCoverage": "Not induced by the sole combined batch; passing crash control samples first reuse and full replacement population, not this tick-boundary schedule.",
+    "action": "Stop after source defect; preserve tested source and batch; fresh root selection required before changed-source validation."
+  },
+  "cleanup": {
+    "actualBEAM": {
+      "provider_dead": true,
+      "original_owner_dead": true,
+      "transport_dead": true,
+      "tls_dead": true,
+      "owner_name_absent": true,
+      "provider_name_absent": true,
+      "original_table_deleted": true,
+      "all_32_exact_worker_DOWN": true,
+      "all_callers_DOWN": true,
+      "permit_capacity_restored": true,
+      "fetch_supervisor_dead": true,
+      "replacement_dead": true,
+      "third_provider_dead": true,
+      "browser_dead": true
+    },
+    "applications": {
+      "jose_stopped": true,
+      "jose_supervisor_dead": true,
+      "provider_owner_started": true,
+      "fixture_tmp_entries_after": []
+    },
+    "outerCustody": {
+      "outerPID": 45744,
+      "outerPGID": 45744,
+      "outerSession": 38702,
+      "terminalExecExit": 0,
+      "completeInitialAndTerminalResponseReadBack": true,
+      "directReapBothEOFClosedFDs": true,
+      "transportBasis": "Completed exec transport; internals not separately instrumented",
+      "UTC": "2026-11-12T17:13:02.959383+00:00",
+      "originalKillpg0ESRCH": true
+    },
+    "metadataOnlySerializationCorrection": {
+      "phase": "post-run terminal receipt only",
+      "firstAttemptExit": 1,
+      "firstAttemptError": "JSONDecodeError before terminal response write, identity read or killpg probe",
+      "cause": "JSON embedded as interpreted Python string lost escapes",
+      "correction": "UTF-8 JSON hex transport into json.loads",
+      "payloadRetries": 0,
+      "newBEAMLaunches": 0
+    },
+    "newHolds": [],
+    "historicalHoldsAccessed": false,
+    "holdsReleased": false
+  },
+  "sourceProof": {
+    "namedInputsExactBeforeAfter": 701,
+    "canonical272ExactBeforeAfter": true,
+    "reviewedConstructor2ExactBeforeAfter": true,
+    "R1588AndR1590Unchanged": true,
+    "baselineFixtureByteExact": true,
+    "inheritedRevision": "64bd540a044766c4d4e2b30485dcf9e9546afd2d",
+    "details": "verification/local/provider-worker-crash-fix-r1592/source-proof.json"
+  },
+  "report": "verification/local/provider-worker-crash-fix-r1592/REPORT.md",
+  "deltaMap": "verification/local/provider-worker-crash-fix-r1592/delta-map.json",
+  "artifactManifest": {
+    "path": "verification/local/provider-worker-crash-fix-r1592/artifact-manifest.json",
+    "bytes": 9983,
+    "sha256": "3419f6977a0edbf531654a7e167527939ade5b0208947a161d6f577e80351a2c"
+  },
+  "limits": [
+    "Passing batch does not induce periodic-reaper TOCTOU schedule; complete P2 acceptance remains blocked.",
+    "Root must select fresh corrected-source validation before independent review/adoption.",
+    "Test-only raw fixture and real local TLS trust source; no provider credentials or production activation.",
+    "Outer terminal facts rely on completed exec transport, not independent transport internals.",
+    "No CI, immutable package, native/device, production or GA qualification."
+  ],
+  "staged": false
+}

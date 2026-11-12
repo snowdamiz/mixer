@@ -1,0 +1,304 @@
+{
+  "schema": 1,
+  "id": "startup-queue-ci-result-r1514",
+  "status": "FROZEN_OBSERVED_FORMAT_FAILURE_RUNTIME_UNRUN",
+  "frozenUTC": "2026-11-12T05:56:12.797050+00:00",
+  "scope": "Read-only collection of one already terminal Phoenix run, associated run metadata, and one necessary existing artifact; no fixes/retries/retriggers/cancellations/compile/PostgreSQL/Git/native/subchildren/canonical writes.",
+  "selectedExperiment": {
+    "id": "R1504",
+    "commit": "ff51c03b0bc522524bca022bd9fc50a266751d55",
+    "branch": "t3/initial-admit-queue-r1504",
+    "publishedTree": "471117d443bc460ab5e60ba010864ca9432e136f",
+    "productDelta": "queue: operation === :admit",
+    "runtimeHypothesisEvaluated": false,
+    "fixSelected": false,
+    "prototypeFailureEstablished": false,
+    "productionCauseEstablished": false
+  },
+  "firstFailure": {
+    "runId": 43163611535,
+    "jobId": 131000246332,
+    "job": "phoenix",
+    "jobStepNumber": 11,
+    "stage": "format preflight in Phoenix and disposable PostgreSQL host checks",
+    "file": "hosted/test/support/initial_admit_queue_fixture.ex",
+    "line": 57,
+    "toolDiagnosticClass": "Mix (as printed; no more specific exception class exposed)",
+    "diagnostic": "mix format failed due to --check-formatted",
+    "unformattedFiles": [
+      "hosted/test/support/initial_admit_queue_fixture.ex"
+    ],
+    "diff": "line57 end, timeout: 15_000, queue: true) is split into end, / timeout: 15_000, / queue: true / )",
+    "command": [
+      "mix",
+      "format",
+      "--check-formatted"
+    ],
+    "exitCode": 1,
+    "started": "2026-11-12T05:48:03.520282+00:00",
+    "collectorExceptionClass": "RuntimeError",
+    "collectorMessage": "format failed (1); see /home/runner/work/_temp/phoenix-foundation/format.log",
+    "collectorStack": [
+      {
+        "file": "hosted/scripts/test-local.py",
+        "line": 188,
+        "operation": "run(\"format\", [\"mix\", \"format\", \"--check-formatted\"])"
+      },
+      {
+        "file": "hosted/scripts/test-local.py",
+        "line": 171,
+        "operation": "raise RuntimeError"
+      }
+    ],
+    "rawArtifactEntry": "_temp/phoenix-foundation/format.log",
+    "rawArtifactLogSHA256": "dd830d8279445612d210d750eb8c1c44a4c0fb6aeb503d25a450a107d91cd143",
+    "escapedCopy": "verification/local/startup-queue-ci-result-r1514/artifact-format.log.escaped.json",
+    "rawRunLogEntry": "phoenix/11_Phoenix and disposable PostgreSQL host checks.txt"
+  },
+  "focusedTests": {
+    "selectedFromActualWorkflowCommand": [
+      "test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs",
+      "test/mixer_hosted/browser_auth/initial_admit_queue_test.exs"
+    ],
+    "selectionFlag": "--only-additional-tests",
+    "expectedOriginal": 9,
+    "expectedNewRealOwner": 2,
+    "expectedTotal": 11,
+    "expectationSource": "R1504 contract; expectation is not runtime proof",
+    "actuallyExecutedOriginal": 0,
+    "actuallyExecutedNewRealOwner": 0,
+    "actuallyExecutedTotal": 0,
+    "executedMembership": [],
+    "runtimeGateObserved": false,
+    "actualCheckoutQueueObserved": false,
+    "earlyReleaseObserved": false,
+    "expiryLatchObserved": false,
+    "reason": "foundation receipt records only revision, elixir-version, postgres-version, failing format; artifact contains no tests.log or test command"
+  },
+  "stages": {
+    "workflowExactPathFormat": "success (mutating format step7); subsequent global check still failed fixture line57",
+    "protocol": {
+      "status": "passed",
+      "executed": 45,
+      "failures": 0,
+      "selectedCompilation": "passed",
+      "receiptEntry": "mixer/mixer/verification/hosted-browser-auth-protocol/attempts/20261112T054713197523Z/receipt.json"
+    },
+    "workspaceClientCompilation": {
+      "status": "passed",
+      "jobStepNumber": 9
+    },
+    "storage": {
+      "status": "passed",
+      "executed": 24,
+      "failures": 0,
+      "receiptEntry": "mixer/mixer/verification/hosted-browser-session-storage/attempts/20261112T054742.703785Z-a5087457/receipt.json",
+      "cleanup": {
+        "owned_postgres_stopped": true,
+        "owned_scratch_removed": true
+      }
+    },
+    "migration": {
+      "status": "passed",
+      "executed": 1,
+      "failures": 0,
+      "receiptEntry": "_temp/browser-migrations/20261112T054757.888214Z-21011b12/receipt.json",
+      "cleanup": {
+        "owned_postgres_stopped": true,
+        "owned_scratch_removed": true,
+        "owned_compile_products_removed": true
+      }
+    },
+    "foundationApplicationCompile": "NOT_REACHED",
+    "foundationRelease": "NOT_REACHED",
+    "foundationTests": "NOT_REACHED",
+    "foundationPostgresInitStart": "no init/start command recorded before format failure"
+  },
+  "source": {
+    "actualRunHeadVerified": true,
+    "foundationSourceTreeSHA256": "3f7b971f3b536a30d9d57ca6b38478941fbc7d2bcc82b6d5ec6d69e6b16c74d2",
+    "foundationInputCount": 258,
+    "foundationSourceArchiveSHA256": "3b09a4feaf693de744f96b1d2e25e72f97b2c759a0a5eb1724313610c6981f70",
+    "sourceArchiveBytes": 840680,
+    "sourceArchiveHashVerified": true,
+    "sourceArchiveParsedOrExtracted": false,
+    "collectorScriptSHA256": "f0585945da899d16f36c1c15531c867445ee390fea5fa8fa81f4f16f3dc1e5e7",
+    "actualPostWorkflowFormatInputSHA256": {
+      "hosted/lib/mixer_hosted/browser_auth/store.ex": "d265b30252f322fc02da88e2a6e88ced7a19947d77d891ee32655e9387706425",
+      "hosted/test/mixer_hosted/browser_auth/initial_admit_queue_test.exs": "2992e1eef798315020b2d7ede7312738b44385eb8a44b697f55e6fe74425f9d2",
+      "hosted/test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs": "4d851130a5ab5bd87da3855ed7b8ac4c38d30fb3bcf8128e81a9f0a085951110",
+      "hosted/test/support/initial_admit_queue_fixture.ex": "968780cce93c0c837984c50a8edad11845186b4aa48a8e0137af708f381c935a"
+    },
+    "selectedVersusActualInputDifferences": "verification/local/startup-queue-ci-result-r1514/selected-versus-collector-hashes.json",
+    "note": "13 selected input hashes differ from collector input hashes after workflow formatting; no semantic-equivalence or runtime-test inference."
+  },
+  "tools": {
+    "hostedOS": "ubuntu-24.04",
+    "Elixir": "1.20.4 (compiled with Erlang/OTP29)",
+    "ErlangOTP": "29; erts-17.1",
+    "Mix": "1.20.4",
+    "PostgreSQL": "17.11 (Ubuntu17.11-1.pgdg24.04+2)",
+    "Python": "3.12.3",
+    "Node": "v22.23.3",
+    "npm": "10.9.9",
+    "TypeScript": "5.9.3",
+    "localGH": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0",
+    "collectorPython": "3.14.8",
+    "collectorPlatform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "artifact": {
+    "id": 13918319267,
+    "node_id": "MDg6QXJ0aWZhY3QxMzkxODMxOTI2Nw==",
+    "name": "phoenix-foundation-ff51c03b0bc522524bca022bd9fc50a266751d55",
+    "size_in_bytes": 1049417,
+    "url": "https://api.github.com/repos/snowdamiz/mixer/actions/artifacts/13918319267",
+    "archive_download_url": "https://api.github.com/repos/snowdamiz/mixer/actions/artifacts/13918319267/zip",
+    "expired": false,
+    "digest": "sha256:ae0bd447bbe7b8cbbf5cd176992109b852cf29cb5c99b96ff20b1f553cc053e8",
+    "created_at": "2026-11-12T05:48:05Z",
+    "updated_at": "2026-11-12T05:48:05Z",
+    "expires_at": "2026-11-26T05:48:04Z",
+    "workflow_run": {
+      "id": 43163611535,
+      "repository_id": 1430395778,
+      "head_repository_id": 1430395778,
+      "head_branch": "t3/initial-admit-queue-r1504",
+      "head_sha": "ff51c03b0bc522524bca022bd9fc50a266751d55"
+    },
+    "downloadBytes": 1049417,
+    "downloadSHA256": "ae0bd447bbe7b8cbbf5cd176992109b852cf29cb5c99b96ff20b1f553cc053e8",
+    "wholeZIPSizeVerifiedBeforeParse": true,
+    "wholeZIPDigestVerifiedBeforeParse": true,
+    "download": "verification/local/startup-queue-ci-result-r1514/artifact-collection/delivery/artifact.stdout",
+    "inventory": "verification/local/startup-queue-ci-result-r1514/artifact-inventory.json",
+    "verification": "verification/local/startup-queue-ci-result-r1514/artifact-verified.json",
+    "foundationReceiptCopy": "verification/local/startup-queue-ci-result-r1514/artifact-receipt.json",
+    "HOLDEntries": [],
+    "foundationEntries": [
+      "_temp/phoenix-foundation/elixir-version.log",
+      "_temp/phoenix-foundation/format.log",
+      "_temp/phoenix-foundation/postgres-version.log",
+      "_temp/phoenix-foundation/receipt.json",
+      "_temp/phoenix-foundation/revision.log",
+      "_temp/phoenix-foundation/source.tar.gz"
+    ],
+    "metadataReadBeforePayload": true
+  },
+  "custody": {
+    "localManagedCommandCount": 8,
+    "localAllDirectReapedBothEOFClosedFDsOriginalKillpg0ESRCH": true,
+    "commandRecords": [
+      "verification/local/startup-queue-ci-result-r1514/delivery/commands.json",
+      "verification/local/startup-queue-ci-result-r1514/artifact-collection/delivery/commands.json"
+    ],
+    "outerCustody": [
+      {
+        "pid": 96466,
+        "pgid": 96466,
+        "state": "direct_reaped",
+        "driver": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/startup-queue-ci-result-r1514/collect.py",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "originalKillpg0ESRCH": true
+      },
+      {
+        "pid": 97439,
+        "pgid": 97439,
+        "state": "direct_reaped",
+        "driver": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/startup-queue-ci-result-r1514/artifact-collection/collect.py",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "originalKillpg0ESRCH": true
+      }
+    ],
+    "fullOuterResponseSessionPersistedAndReadBackBeforeG": true,
+    "outerTerminalResponsesPersistedAndReadBack": true,
+    "newLocalUNKNOWN": false,
+    "newHOLD": false,
+    "hostedFoundationCleanupReported": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "hostedProtocolCleanupReported": {
+      "owned_scratch_removed": true,
+      "owned_scratch_path": "/tmp/mixer-browser-auth-protocol-hjdcm_xt",
+      "started_browser_capture_native_or_phone_processes": false,
+      "started_provider_network_or_database": false
+    },
+    "hostedDescendantAbsenceProof": "Not recorded in foundation receipt; job completion and reported cleanup are not promoted to process-group absence proof. No hosted probe/signals/waits/retries performed.",
+    "historicalHoldsReleased": false,
+    "ownedRawEvidenceRetained": true,
+    "localCleanupPerformed": false
+  },
+  "otherRuns": [
+    {
+      "id": 43163611542,
+      "name": "Verification artifact retention",
+      "head_sha": "ff51c03b0bc522524bca022bd9fc50a266751d55",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43163611542"
+    },
+    {
+      "id": 43163611541,
+      "name": "Isolated identity network checks",
+      "head_sha": "ff51c03b0bc522524bca022bd9fc50a266751d55",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43163611541"
+    }
+  ],
+  "identityAuthority": {
+    "status": "failure observed from run metadata",
+    "expectedReasonFromRootBrief": "private product source authority",
+    "reasonIndependentlyCollected": false,
+    "waiver": false,
+    "notPhoenixFirstFailure": true
+  },
+  "raw": {
+    "directory": "verification/local/startup-queue-ci-result-r1514",
+    "runMetadata": "verification/local/startup-queue-ci-result-r1514/delivery/run-43163611535.stdout",
+    "jobs": "verification/local/startup-queue-ci-result-r1514/delivery/jobs.stdout",
+    "logsZIP": {
+      "path": "verification/local/startup-queue-ci-result-r1514/delivery/logs.stdout",
+      "bytes": 35968,
+      "sha256": "c4375f8aa33af7cff3aae821b9ef16a4d56a8ee7dbc0fcfeb45b2fd6884cff80"
+    },
+    "artifactMetadata": "verification/local/startup-queue-ci-result-r1514/delivery/artifacts.stdout",
+    "stepCopies": [
+      {
+        "path": "verification/local/startup-queue-ci-result-r1514/job-step-7.escaped.json",
+        "bytes": 11567,
+        "sha256": "3820a836bbb7e129f9d895b6d60ae54ea18f7dc43a70bc3b5d76f9d77966ee2b"
+      },
+      {
+        "path": "verification/local/startup-queue-ci-result-r1514/job-step-11.escaped.json",
+        "bytes": 2673,
+        "sha256": "4e8771b5fc83d14d1027502258e44c892c8cbf10e96f3aa9e254cd223ce00900"
+      },
+      {
+        "path": "verification/local/startup-queue-ci-result-r1514/job-step-9.escaped.json",
+        "bytes": 3225,
+        "sha256": "0b64173a815fa55e9082f4243d302129cf777611e83afadefb747e897e878757"
+      }
+    ],
+    "commands": "verification/local/startup-queue-ci-result-r1514/delivery/commands.json"
+  },
+  "collectionBounds": {
+    "runFetches": 3,
+    "PhoenixJobListFetches": 1,
+    "PhoenixLogFetches": 1,
+    "artifactListFetches": 1,
+    "artifactDownloads": 1,
+    "terminalRunPolling": 0,
+    "retries": 0,
+    "newCIRuns": 0
+  },
+  "nextDecisionOwner": "Root; no correction or replacement prepared packet selected",
+  "canonicalAdoption": false,
+  "productionActivation": false,
+  "GA": false,
+  "holdsReleased": false
+}
