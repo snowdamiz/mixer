@@ -340,7 +340,93 @@ def inner_paths(tmp, *, live=False, tool_tmp_limit=0, tool_tmp_evidence=None):
     return result
 
 
-def retain_inner(record, tmp, required, *, successful):
+def inspection_frontier(directory, pid):
+    """Read one PID-bound optional sidecar; never walk command scratch."""
+    result = {'inspect_pid': pid, 'status': 'missing', 'last_begin': None, 'last_end': None}
+    if not directory:
+        return result
+    directory_fd = file_fd = None
+    try:
+        directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        info = os.fstat(directory_fd)
+        if info.st_uid != os.geteuid() or info.st_mode & 0o022:
+            raise ValueError('untrusted phase directory')
+        matches = []
+        prefix = 'inspection-' + str(pid) + '-'
+        with os.scandir(directory_fd) as entries:
+            for count, entry in enumerate(entries):
+                if count >= 64:
+                    raise ValueError('phase directory entry bound')
+                if entry.name.startswith(prefix) and entry.name.endswith('.jsonl'):
+                    token = entry.name[len(prefix):-6]
+                    if len(token) == 32 and all(c in '0123456789abcdef' for c in token):
+                        matches.append(entry.name)
+        if not matches:
+            return result
+        if len(matches) != 1:
+            result['status'] = 'ambiguous'
+            return result
+        file_fd = os.open(matches[0], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory_fd)
+        before = os.fstat(file_fd)
+        if not stat.S_ISREG(before.st_mode) or before.st_uid != os.geteuid() or before.st_nlink != 1:
+            raise ValueError('untrusted phase sidecar')
+        if before.st_size > 16384:
+            result['status'] = 'oversize'
+            return result
+        raw = os.read(file_fd, 16385)
+        after = os.fstat(file_fd)
+        if len(raw) != before.st_size or any(getattr(before, k) != getattr(after, k) for k in (
+                'st_dev', 'st_ino', 'st_uid', 'st_mode', 'st_size', 'st_mtime_ns', 'st_ctime_ns')):
+            raise ValueError('phase sidecar changed')
+        result['sidecar'] = {'name': matches[0], 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+        if raw and not raw.endswith(b'\n'):
+            result['status'] = 'truncated'
+            return result
+        records = raw.splitlines()
+        if len(records) > 64:
+            result['status'] = 'record-limit'
+            return result
+        begin = end = None
+        previous = -1
+        for line in records:
+            value = unique_json(line.decode('utf-8'))
+            if (type(value) is not dict or set(value) != {'phase', 'state', 'monotonic_ns'} or
+                    type(value['phase']) is not str or not 0 < len(value['phase']) <= 128 or
+                    value['state'] not in ('begin', 'end', 'error') or
+                    type(value['monotonic_ns']) is not int or value['monotonic_ns'] < 0 or value['monotonic_ns'] < previous):
+                raise ValueError('malformed phase record')
+            previous = value['monotonic_ns']
+            if value['state'] == 'begin':
+                begin = value
+            elif value['state'] == 'end':
+                end = value
+        result.update(status='recorded' if records else 'empty', record_count=len(records), last_begin=begin, last_end=end)
+    except (OSError, ValueError, TypeError, RuntimeError, UnicodeError) as error:
+        result.update(status='unavailable' if isinstance(error, OSError) else 'malformed', last_begin=None, last_end=None)
+    finally:
+        for fd in (file_fd, directory_fd):
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+    return result
+
+
+def promote_inspection_failure(receipt, records):
+    """Copy the first failed inspect frontier without changing its failure."""
+    for record in records:
+        for item in record.get('inner_receipts', []):
+            inner = item.get('receipt', {})
+            if (item.get('kind') == 'inspect' and 'inspection_frontier' in item and
+                    (inner.get('exitCode') != 0 or inner.get('stopReason') is not None)):
+                receipt['inspection_failure_frontier'] = {
+                    'parent_label': record['label'], 'outer_exit_code': record.get('exit_code'),
+                    **item['inspection_frontier']}
+                return
+
+
+def retain_inner(record, tmp, required, *, successful, phase_dir=None):
     require(private_directory(tmp) == record['inner_tmp_identity'], 'Per-CLI TMPDIR identity changed')
     retained = []
     record['inner_receipts'] = retained
@@ -394,6 +480,8 @@ def retain_inner(record, tmp, required, *, successful):
                 all(type(policy[k]) is int for k in ('runtimeSeconds', 'cleanupSeconds', 'generatedOutputBytes')),
                 'Wrong typed inner policy')
         item['kind'] = kind
+        if kind == 'inspect':
+            item['inspection_frontier'] = inspection_frontier(phase_dir, r['pid'])
         if successful:
             require(r['exitCode'] == 0 and r.get('stopReason') is None and
                     not r['outputTruncated'] and r['generatedBytes'] <= policy['generatedOutputBytes'] and
@@ -581,7 +669,8 @@ class Commands:
                 if record['stop']:
                     break
             scan_hold()
-            retain_inner(record, tmp, required, successful=record['exit_code'] == 0 and not expected_failure)
+            retain_inner(record, tmp, required, successful=record['exit_code'] == 0 and not expected_failure,
+                         phase_dir=self.env.get('MIXER_ANDROID_INSPECTION_PHASE_DIR'))
             # Required nested identities are now terminal; only then clean the
             # exact outer group. Outer terminal facts never waive inner proof.
             cleanup_end = time.monotonic() + self.cleanup_seconds
@@ -1130,6 +1219,7 @@ def execute(args):
     finally:
         terminal = commands is not None and commands.custody_terminal()
         receipt['command_records'] = commands.records if commands is not None else []
+        promote_inspection_failure(receipt, receipt['command_records'])
         receipt['cleanup'] = {'owned_scratch_started': scratch is not None,
             'command_custody_terminal': terminal, 'owned_scratch_removed': False}
         try:
