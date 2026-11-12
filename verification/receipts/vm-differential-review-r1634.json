@@ -1,0 +1,171 @@
+{
+  "schema": "mixer-vm-differential-review-r1634-v1",
+  "status": "REQUEST_CHANGES",
+  "date_utc": "2026-11-12",
+  "review_source_revision": "89f54652126005548284b4ff92cae1e4168d2d5d",
+  "reviewer": {
+    "role": "independent meaningful slice reviewer",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "speed": "standard"
+  },
+  "reviewed": {
+    "test": "vm/tests/differential_branch_table_consuming.rs",
+    "test_sha256": "ee8e49f267ae5118134a925e70b09caf44fa11b88a67ecb4ac022f0957756c14",
+    "producer_receipt": "verification/receipts/vm-differential-r1620.json",
+    "producer_receipt_sha256": "befa70d190f4a7f6de425574b25d167ddd567cdcd56f127643aabeb8a78209c4",
+    "producer_source_revision": "bcf757707b47f0fb827656daf15e036652f713bc",
+    "canonical_snapshot_files_hash_verified": 95,
+    "all_95_canonical_and_snapshot_files_match_manifest": true,
+    "all_8_producer_evidence_file_hashes_match_receipt": true,
+    "AGENTS_sha256": "4b57ae8ff51caa92987063d7a570f6715eb7e73444ece4f7b47619317cfeb7c5"
+  },
+  "finding": {
+    "id": "R1634-1",
+    "severity": "blocks slice acceptance",
+    "title": "The private ignored worker fails canonical blanket ignored-test CI",
+    "source": "vm/tests/differential_branch_table_consuming.rs:109-112",
+    "integration_sources": [
+      ".github/workflows/verify.yml:570",
+      ".github/workflows/verify.yml:571"
+    ],
+    "trigger": "Canonical debug/release experimental reference checks pass -- --ignored without MIXER_DIFFERENTIAL_BRANCH_CASE. libtest independently selects both ignored functions, including isolated_branch_table_case.",
+    "observed": "Existing producer binary with the case variable explicitly removed panics at line 110 with NotPresent; child exit 101 and one failed test.",
+    "why_producer_missed_it": "The producer runs --ignored --exact nested_branch_table_matches_node; only that parent sets the variable for its child processes, so the standalone worker is filtered out.",
+    "requested_change": "Make the worker entry safe under canonical blanket --ignored discovery while keeping the dispatcher and all sixteen actual cases exercised; verify the blanket ignored invocation as well as the exact dispatcher invocation.",
+    "reproduction_artifact": "verification/local/vm-differential-review-r1634/discriminator.json",
+    "feature_scope": "Reproduced in the existing experimental-swift-reactor-only debug binary. The canonical combined-feature failure follows from the same unconditionally compiled environment unwrap; combined-feature CI was not rerun."
+  },
+  "verified_positive_evidence": {
+    "module_construction": "Reviewed the exact hashed byte generator, Fixture serializer, signed LEB constants, WASI import signatures/order and exported function indices. Helper has three typed blocks and br_table vector [0,1,2,3] with default depth1; unreachable follows the branch. _start keeps address32 on its operand stack across call35, stores helper output at32, and fd_write emits exactly 4/8 bytes via a data-segment iovec at0.",
+    "semantically_distinct_targets": {
+      "depth0": 11126,
+      "depth1_and_default": 11004,
+      "depth2": 9993,
+      "depth3_function_return": -7
+    },
+    "selectors_per_width": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      2147483647,
+      -2147483648,
+      -1
+    ],
+    "widths": [
+      32,
+      64
+    ],
+    "oracle_independence": "The same original bytes go to Node WebAssembly.validate/Module/Instance and Mixer validation/execution. The JS import stub observes fd_write only, copies memory bytes and writes nwritten; every other imported call throws. Both output paths must equal the independently specified expected bytes, giving transitive Node/Mixer parity.",
+    "fail_closed_cases": "Node absence, invalid modules, unexpected imports, nonzero Node exit, validation errors, guest execution failures and output mismatches fail assertions. No unsupported-case conditional skips occur within the explicitly selected corpus.",
+    "cleanup_source": [
+      "vm/src/experimental_swift_reactor/command.rs",
+      "vm/src/experimental_swift_reactor/command_execution.rs",
+      "vm/src/experimental_swift_reactor/execution.rs",
+      "vm/src/experimental_swift_reactor/control.rs"
+    ],
+    "cleanup_source_assessment": "The command dispatcher runs actual owned execution, consumes frame/growth state, rejects nonempty frame/value/control/pin cleanup, drops state/cache/WASI/proof/header storage, then returns finish_owned_cleanup observations. The test checks cleanup_completed, actual after_cleanup, fourteen current counters, live_tickets and cleanup_invariant before semantic assertions.",
+    "producer_raw_output_verified": {
+      "cases": 16,
+      "parity_rows": 16,
+      "distinct_results_per_width": 4,
+      "terminal_cleanup_rows": 16,
+      "all_currents_zero": true,
+      "all_tickets_zero": true,
+      "all_cleanup_invariants_none": true,
+      "structured_results_match_raw_output": true
+    },
+    "process_isolation": "Parent constructs no runtime. Each exact child constructs one consuming runtime after Node has exited and wait_with_output has collected its pipes. First failure stops the parent loop; no second runtime is constructed in a child.",
+    "producer_process_custody": "Producer driver/read receipts show build/corpus direct children reaped, owned groups observed absent, and parent log descriptors closed. These are retained producer observations, not fresh reviewer probes.",
+    "cargo_discovery": "Cargo.toml uses default automatic integration-test discovery; producer compiler artifact identifies this file as a test target. File-level cfg removes tests without experimental-swift-reactor. With that feature both tests are ignored in ordinary test runs. Canonical combined-feature --ignored commands select both, exposing R1634-1.",
+    "actual_built_features": [
+      "default",
+      "experimental-stream-validation",
+      "experimental-swift-reactor",
+      "experimental-swift-wasi"
+    ],
+    "actual_built_profile": {
+      "opt_level": "0",
+      "debuginfo": 0,
+      "debug_assertions": true,
+      "overflow_checks": true,
+      "test": true
+    },
+    "receipt_claim_accuracy": "The sixteen-case host-development parity and cleanup claims are supported by matching source and raw output; acceptance still requires fixing the canonical ignored-worker entry failure."
+  },
+  "reviewer_execution": {
+    "entry_command": "python3 -B verification/local/vm-differential-review-r1634/discriminator.py",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "existing_binary_discriminators": 1,
+    "maximum_allowed_discriminators": 1,
+    "compiler_runs": 0,
+    "node_runs": 0,
+    "consuming_runtimes": 0,
+    "deadline_seconds": 10,
+    "observed_elapsed_seconds": 0.012136,
+    "result": {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-differential-r1620/target/debug/deps/differential_branch_table_consuming-c0571970ea1887e5",
+        "--ignored",
+        "--exact",
+        "isolated_branch_table_case",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 10,
+      "environment_removed": [
+        "MIXER_DIFFERENTIAL_BRANCH_CASE"
+      ],
+      "environment_set": {
+        "RUST_BACKTRACE": "0"
+      },
+      "binary_sha256": "7a0d9d57584cf8f569bb37e916f81ec4dd395e454e34167e95e02106876249b5",
+      "compiler_runs": 0,
+      "node_runs": 0,
+      "consuming_runtimes": 0,
+      "pid": 92833,
+      "pgid": 92833,
+      "exit_code": 101,
+      "direct_reaped": true,
+      "parent_log_descriptors_closed": true,
+      "elapsed_seconds": 0.012136,
+      "group_absent": true,
+      "reproduced": true
+    }
+  },
+  "limitations": [
+    "R1620 recorded only debug experimental-swift-reactor mode (stream-validation and swift-wasi transitively enabled); release, combined feature and default-feature corpus behavior were not executed by producer or reviewer.",
+    "Generated module construction was traced from exact source/fixture bytes and correlated with successful Node assertions in captured output; no standalone generated .wasm dump was retained or independently rerun.",
+    "This covers one nested branch-table shape at both integer widths, not loops, arbitrary label vectors, multi-value labels, malformed-module corpus, randomized differential coverage, or full Swift artifacts.",
+    "Review discriminator intentionally fails before module construction, Node launch and consuming VM execution; it does not supply a fresh parity or ledger run.",
+    "No performance, default/resource feasibility, native/device, FieldLog, database, published-package, security-release or GA qualification; W07/W08 and GA remain open."
+  ],
+  "ownership_and_cleanup": {
+    "only_written_paths": [
+      "verification/local/vm-differential-review-r1634",
+      "verification/receipts/vm-differential-review-r1634.json"
+    ],
+    "source_changes": false,
+    "git_mutation": false,
+    "subchildren": false,
+    "held_path_access": false,
+    "reviewer_direct_child_reaped": true,
+    "reviewer_owned_group_observed_absent": true,
+    "reviewer_parent_log_descriptors_closed": true,
+    "unknown_state": false,
+    "historical_holds": "untouched; none released",
+    "staged_verification_changes": false,
+    "index_artifact_check": "Not applicable: no staging or Git mutation."
+  },
+  "evidence_files": {
+    "verification/local/vm-differential-review-r1634/discriminator.py": "ed05a4fa9b98d5e95b5067ce611d2993761730748709729557ba79ff389279c8",
+    "verification/local/vm-differential-review-r1634/discriminator.json": "ef5c16c2780663aea9e8ce6a9d9630f61378f8d33a4e7e5f4bd767ee24fa178d",
+    "verification/local/vm-differential-review-r1634/discriminator.stdout": "9e73331c14eeec8dd64a49546274c40a4ff9317f83846fb12dc32a1773770f5e",
+    "verification/local/vm-differential-review-r1634/discriminator.stderr": "f99947858a3b812dc6c1f33d1c45cb1912ec2112b65ff1de5ea73192c11f0fc3",
+    "verification/local/vm-differential-review-r1634/source-proof.json": "eefffb23e570e5cc44237e92dd01305940007a69541595a8db439daf5392f296",
+    "verification/local/vm-differential-review-r1634/review-evidence.json": "afe70c17d9ba6d96e006025b7a2001f4f58904cfd6b601bf58c6ed0f1d93da01"
+  }
+}

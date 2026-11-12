@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "slice": "W13 Play lifecycle status independent security/state review r1632",
+  "reviewer": {"model": "gpt-6.1-sol", "reasoningEffort": "xhigh", "fastMode": false},
+  "sourceRevision": "bcf757707b47f0fb827656daf15e036652f713bc",
+  "sourceState": "New canonical uncommitted files; reviewed hashes match the successful producer build inputs.",
+  "status": "PASS-scoped-source-and-offline-evidence-review",
+  "recommendation": "Accept this reader slice for parent-owned CLI integration. This is not an integrated CLI, provider-account, testing-ready, release or GA acceptance.",
+  "findings": [],
+  "reviewedFiles": {
+    "cli/Sources/MixerBuild/PlayReleaseStatus.swift": "ce713149aee0fa48e6b8f23670e25dfb54f5fe107f8296707ea16ed55dd08966",
+    "cli/Tests/MixerBuildTests/PlayReleaseStatusTests.swift": "2513b19b51087a1bbafd2609027fa44ff0ca62b24a25f4a4759f16f495e622b6",
+    "sdk/Sources/MixerCore/JSONInputGuard.swift": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c",
+    "verification/receipts/play-testing-r1618.json": "See producerReceipt digest in verification/local/play-status-review-r1632/evidence-check.json."
+  },
+  "requirements": "mixer-product-plan.md section 15; AGENTS.md ownership, process holds and artifact retention.",
+  "reviewResults": [
+    {
+      "area": "Exact application/version/track binding",
+      "result": "PASS",
+      "evidence": "PlayTestingRequest validates bounded ASCII package/track path components and canonical positive Int32 version text (lines 15-39). The fixed HTTPS endpoint and exact response URL bind the application and track (138-152). Every decoded release must repeat the exact track; identity uses activeArtifacts.versionCode, never releaseName (180-197). Previous observations require complete identity equality (83-86). Offline tests cover response URL, body track, absent version and cross-identity history."
+    },
+    {
+      "area": "Unknown and contradictory states",
+      "result": "PASS",
+      "evidence": "All six specified lifecycle states are preserved. Unspecified/future states, duplicate matching releases, duplicate or nonpositive artifact versions, malformed shapes/numbers, duplicate JSON keys and excessive releases fail unresolved. The canonical JSON guard rejects ambiguous keys before decoding. Tests exercise these rejection paths. Missing/null releases and upload-shaped objects yield not-observed with exit 2; this explicit limitation never establishes publication or testing readiness."
+    },
+    {
+      "area": "Upload, publication and testing truth",
+      "result": "PASS",
+      "evidence": "Only an exact matching current lifecycle can produce published-on-track. Qualification remains provider-observation-only; testingReadiness, testLinks and productionAvailability are unverified (64-80). The published next step explicitly warns about partial/halted rollouts (111). Official Google documentation confirms that warning. Empty/upload-only responses cannot produce exit 0. No upload, review-submission, publication or tester-access action is implemented."
+    },
+    {
+      "area": "Timeout and progress reconciliation",
+      "result": "PASS",
+      "evidence": "A request is GET-only; no write endpoint, resubmission or application retry loop exists. Timeout/transport/auth/parse failures produce unresolved exit 1 and retain only an exact-identity previous observation marked historical (83-96, 128-177). The actual offline success-timeout-rejection test passed with one intercepted GET per call. No cross-process persistence is implemented."
+    },
+    {
+      "area": "Credential handling",
+      "result": "PASS",
+      "evidence": "A bounded token alphabet excludes header injection. Token-bearing identities throw the fixed redactedResponse before a request. The token is used only in Authorization; neither token nor arbitrary provider display/error text enters a report. Current/history identity checks prevent a previous reflected identity from being retained. Ephemeral configuration disables shared cache, cookies and credential storage. Redirect delegate refuses forwarding. Tests check malformed/missing/reflected credentials and absence of the offline bearer value in serialized results."
+    },
+    {
+      "area": "Network and parser bounds",
+      "result": "PASS-scoped",
+      "evidence": "Request and resource timeouts are configured to 30 seconds; waitsForConnectivity is false. Both advertised and incrementally consumed bodies are capped at 262144 bytes. JSON limits are depth 12, values 4096, strings 4096 bytes; release count is at most 20. MIME, response URL, redirect status, auth, access, rate limit and provider errors are explicit. Offline tests exercise injected failures and advertised/streamed byte ceilings. Actual elapsed-time enforcement, platform redirect callback behavior and live Google transport were not independently exercised."
+    }
+  ],
+  "officialApiVerification": [
+    {
+      "url": "https://developers.google.com/android-publisher/api-ref/rest/v3/applications.tracks.releases",
+      "access": "Read-only public documentation through web tool; no API/account call.",
+      "lastUpdatedOnPage": "2026-09-28 UTC",
+      "supportedClaims": "ReleaseSummary uses track, activeArtifacts and releaseLifecycleState; ArtifactSummary.versionCode is an integer. Six specified lifecycle states match the implementation. PUBLISHED covers full/partial rollout and resumable halted releases, so it does not independently prove tester access or serving readiness."
+    },
+    {
+      "url": "https://developers.google.com/android-publisher/api-ref/rest/v3/applications.tracks.releases/list",
+      "access": "Read-only public documentation through web tool; no API/account call.",
+      "lastUpdatedOnPage": "2026-03-17 UTC",
+      "supportedClaims": "The GET path binds package and track and has an empty body. The response excludes obsolete releases and has a maximum of 20 summaries; no pagination token is specified. Absence is therefore not proof that an upload failed. OAuth androidpublisher scope is required."
+    }
+  ],
+  "actualOutputReview": {
+    "producerReceipt": "verification/receipts/play-testing-r1618.json",
+    "evidenceCheck": "verification/local/play-status-review-r1632/evidence-check.json",
+    "sourceAndHarnessEquality": "All three canonical input files equal their focused harness copies and the receipt hashes.",
+    "logsChecked": [
+      "verification/local/play-testing-r1618/logs/build-test-1.log",
+      "verification/local/play-testing-r1618/logs/build-test-2.log",
+      "verification/local/play-testing-r1618/logs/final-skip-build-tests.log"
+    ],
+    "observed": "First-build log records a completed build and nine passing tests. Optional hardening log records a compile failure before tests. The final skip-build log records nine passing tests. Canonical/harness hashes equal the successful first-build inputs, so the rejected optional candidate is not being accepted.",
+    "reviewerExtraBuilds": 0,
+    "reviewerExtraBehaviorControls": 0,
+    "producerTestsRerunByReviewer": false,
+    "reasonNoExtraControl": "Source and actual output resolve the requested security/state questions without a remaining defect hypothesis needing another compiler run on the loaded host."
+  },
+  "rootCliIntegration": {
+    "safeToProceed": true,
+    "dispatchLocation": "Inside submit, before StoreStatusRequest.parse at cli/Sources/MixerCLI/main.swift:138.",
+    "oneLineDispatchContract": "if arguments.options[\"--provider\"] == \"play\" { let app = try ApplicationConfiguration.load(root).application; let request = try PlayTestingRequest.parse(words: words, options: arguments.options, applicationID: app); let report = try await PlayReleaseStatus().status(request: request, token: ProcessInfo.processInfo.environment[\"MIXER_PLAY_BEARER_TOKEN\"] ?? \"\"); try output(report); exit(report.exitCode) }",
+    "requiredIntegrationWork": [
+      "Allow --version-code and --track in BOTH Arguments' option parser and allowedOptions[submit]; keep duplicate-option checks and PlayTestingRequest.parse's exact words/provider/options validation. Add command help.",
+      "Map thrown invalidRequest/redactedResponse to fixed structured Play CLI errors without echoing identity, token, arbitrary input or provider content.",
+      "Compile the parent-owned full CLI with the top-level await and run offline end-to-end argument/dispatch/output/exit controls; this review does not establish that integration compiles or dispatches.",
+      "Preserve exit semantics: 0 means current provider PUBLISHED only, 2 means known pending/not-observed, 1 means rejected/failure/unresolved. Neither exit 0 nor published-on-track can satisfy a testing-readiness, serving, release or GA gate."
+    ],
+    "history": "The previous parameter supports exact-identity in-process history only; first CLI wiring may omit it. Durable reconciliation storage remains unimplemented and unqualified.",
+    "mutationAuthority": "No upload, resubmission, publication, review submission or automatic tester operation follows from this read-only dispatch."
+  },
+  "execution": {
+    "readCommands": [
+      "cat AGENTS.md",
+      "nl -ba cli/Sources/MixerBuild/PlayReleaseStatus.swift",
+      "nl -ba cli/Tests/MixerBuildTests/PlayReleaseStatusTests.swift",
+      "cat verification/receipts/play-testing-r1618.json",
+      "sed -n '572,584p' mixer-product-plan.md",
+      "cat verification/local/play-testing-r1618/logs/build-test-1.log",
+      "cat verification/local/play-testing-r1618/logs/final-skip-build-tests.log",
+      "sed -n '1,75p' verification/local/play-testing-r1618/logs/build-test-2.log",
+      "cat verification/local/play-testing-r1618/command.json",
+      "cat verification/local/play-testing-r1618/harness/Package.swift",
+      "cat verification/local/play-testing-r1618/source-manifest.json",
+      "git rev-parse HEAD",
+      "git status --short -- cli/Sources/MixerBuild/PlayReleaseStatus.swift cli/Tests/MixerBuildTests/PlayReleaseStatusTests.swift verification/receipts/play-testing-r1618.json"
+    ],
+    "comparisonMethod": "Python hashlib.sha256 and byte equality over the exact allowed canonical/harness/log paths; persisted actual output in evidence-check.json.",
+    "toolsObserved": {"git": "2.56.0", "python": "3.14.8", "testToolchain": "Producer's Swift 6.4.2 / Testing Library 2403 / arm64e-apple-macos14.0 receipt and actual logs; no reviewer compiler invocation."},
+    "capacity": "Provided recent host: 15 logical CPUs, 48 GiB RAM, load about 29 and swap about 11.7 GiB. No additional compiler/build load introduced.",
+    "providerOrStoreApiCalls": 0,
+    "uploadsOrAccountChanges": 0,
+    "credentialsRead": false,
+    "nativeRuns": 0,
+    "subchildren": 0,
+    "sourceOrAuthorityFilesEdited": false,
+    "commitsPushesOrStaging": false,
+    "heldNamespacesAccessed": false,
+    "processProbesSignalsOrCleanup": false,
+    "writesRestrictedTo": ["verification/receipts/play-status-review-r1632.json", "verification/local/play-status-review-r1632"],
+    "artifactPolicy": "Compact receipt and ignored local comparison metadata only. Nothing staged; the index artifact check is not applicable."
+  },
+  "remainingGates": [
+    "Parent-owned CLI option, await, error and output integration with executable offline checks.",
+    "Live authorized account/credential and provider qualification remain unrun.",
+    "Serving state, tester enrollment/access and testing links remain unverified, including halted/partial releases.",
+    "Durable cross-process Play observation persistence is not implemented.",
+    "No store publication, production availability, physical-device or final GA acceptance."
+  ]
+}

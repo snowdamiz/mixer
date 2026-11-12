@@ -1,0 +1,136 @@
+{
+  "schema": "mixer-vm-differential-r1620-v1",
+  "status": "PASS_SCOPED_HOST_DEVELOPMENT",
+  "date_utc": "2026-11-12",
+  "workstreams": [
+    "W07",
+    "W08"
+  ],
+  "source_revision": "bcf757707b47f0fb827656daf15e036652f713bc",
+  "source_tree_sha256": "58696dbeae7cccd1c34c75ef88ddc9e7d6009cb4ffe36af9a0c5ad2dc78dc2e5",
+  "source_manifest": "verification/local/vm-differential-r1620/source-manifest.json",
+  "canonical_source_matches_tested_snapshot": true,
+  "test_module": "vm/tests/differential_branch_table_consuming.rs",
+  "test_sha256": "ee8e49f267ae5118134a925e70b09caf44fa11b88a67ecb4ac022f0957756c14",
+  "public_apis": [
+    "experimental_swift_reactor::validate_swift_command",
+    "experimental_swift_reactor::execute_swift_command",
+    "SwiftCommandReport::after_cleanup"
+  ],
+  "boundary": "Nested br_table: i32/i64 label preservation, discarded intermediate operands, block/function target depths, unsigned high-bit/default selectors, direct callee return into an existing caller operand stack.",
+  "coverage_gap": "Existing interpreter.rs br_table has two selector paths; span_execution_oracle.rs does not exercise br_table through the consuming Swift command dispatcher with terminal reservation receipts.",
+  "specification": "https://webassembly.github.io/spec/core/exec/instructions.html",
+  "oracle": "Node built-in WebAssembly.validate / Module / Instance; original fd_write observation stub only; all other imported calls throw",
+  "tools": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "node": "v22.23.3",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "compiler_environment": {
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-differential-r1620/target",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "jobs": 1,
+    "rationale": "Root reported 15 CPUs/48GiB, load29.27, swap11.7GiB; one named target, one compiler job."
+  },
+  "policy": "SwiftValidationBudget, SwiftRunBudget, WasiBudget remain Default; stdout explicitly granted; no production policy changes.",
+  "commands": {
+    "build": {
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-differential-r1620/source/Cargo.toml",
+        "--locked",
+        "--offline",
+        "-j",
+        "1",
+        "--features",
+        "experimental-swift-reactor",
+        "--test",
+        "differential_branch_table_consuming",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 210,
+      "pid": 26372,
+      "pgid": 26372,
+      "exit_code": 0,
+      "parent_log_descriptors_closed": true,
+      "group_absent": true,
+      "elapsed_seconds": 9.415,
+      "direct_reaped": true
+    },
+    "corpus": {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-differential-r1620/target/debug/deps/differential_branch_table_consuming-c0571970ea1887e5",
+        "--ignored",
+        "--exact",
+        "nested_branch_table_matches_node",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 100,
+      "pid": 27576,
+      "pgid": 27576,
+      "exit_code": 0,
+      "parent_log_descriptors_closed": true,
+      "group_absent": true,
+      "elapsed_seconds": 0.767,
+      "direct_reaped": true
+    }
+  },
+  "exact_entry_commands": [
+    "python3 -B verification/local/vm-differential-r1620/run.py build",
+    "python3 -B verification/local/vm-differential-r1620/run.py corpus"
+  ],
+  "replay_from_repository": "PATH=/opt/homebrew/opt/rustup/bin:$PATH CARGO_TARGET_DIR=<fresh-owned-target> cargo test --locked --offline --manifest-path vm/Cargo.toml -j 1 --features experimental-swift-reactor --test differential_branch_table_consuming -- --ignored --exact nested_branch_table_matches_node --nocapture --test-threads=1",
+  "results": {
+    "original_modules": 16,
+    "oracle_matches": 16,
+    "consuming_runtimes": 16,
+    "runtime_isolation": "One fresh OS test process and one consuming runtime for each case; Node oracle completes before runtime construction. Parent constructs no runtime.",
+    "all_fourteen_currents_zero": true,
+    "all_live_tickets_zero": true,
+    "cleanup_invariant": null,
+    "product_defect_reproduced": false,
+    "canonical_vm_product_edits": false
+  },
+  "execution_limits": {
+    "fresh_target_builds_used": 1,
+    "corpus_runs_used": 1,
+    "task_wall_limit_minutes": 12,
+    "build_deadline_seconds": 210,
+    "corpus_deadline_seconds": 100
+  },
+  "cleanup": {
+    "build_and_corpus_direct_children_reaped": true,
+    "both_owned_process_groups_observed_absent": true,
+    "parent_log_descriptors_closed": true,
+    "node_and_case_children_waited_and_pipes_collected": true,
+    "runtime_receipts": 16,
+    "unknown_state": false,
+    "retained_artifacts": "Source snapshot, exact target, original driver and raw logs retained only under assigned ignored local namespace.",
+    "owned_artifact_bytes": 76588017,
+    "historical_holds": "untouched; none released"
+  },
+  "limitations": [
+    "Host development semantics only; W07/W08 and GA remain open.",
+    "No full Swift/FieldLog artifact, provider integration, native/device, published-package, performance or default-feasibility qualification.",
+    "Independent slice review remains for root; no subagents, commits, pushes or product-source changes."
+  ],
+  "evidence_files": {
+    "verification/local/vm-differential-r1620/build.json": "f45c08e9b676afabe05b91f4b1e4394dc2dc2278973ed729b4132a1e66759873",
+    "verification/local/vm-differential-r1620/build.stdout": "cebdc17286e12608105c78cc2296d3a0faece780d39c7ea6242aa3fd70972923",
+    "verification/local/vm-differential-r1620/build.stderr": "e2208081d686c0e3d0adfbb2222bacc8ccdec3488150507621c2241a7609692c",
+    "verification/local/vm-differential-r1620/corpus.json": "13ffdae16316aeb9803dfd33af193e4e54c9e7d2e003344269b9c9c0025dc28c",
+    "verification/local/vm-differential-r1620/corpus.stdout": "6fb78b62a62d97a6b24b179ce1a708ebf93d11f06ed8c831d1516cead49e31e0",
+    "verification/local/vm-differential-r1620/corpus.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/local/vm-differential-r1620/results.json": "35bd1542a048444a495635fae7e1029befa840925b9da5c4d52ac7283f714998",
+    "verification/local/vm-differential-r1620/run.py": "2eb8aed315ae5e6303a8111c739a207f1546c4a6d974d106c2d36b1dc371c866"
+  }
+}

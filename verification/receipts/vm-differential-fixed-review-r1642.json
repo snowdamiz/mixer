@@ -1,0 +1,171 @@
+{
+  "schema": "mixer-vm-differential-fixed-review-r1642-v1",
+  "status": "PASS",
+  "date_utc": "2026-11-12T19:50:33.008288+00:00",
+  "reviewer": {
+    "role": "changed-fix independent review",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "speed": "standard"
+  },
+  "scope": "R1638 fix for R1634-1: deterministic original br_table differential host-development test discovery, actual execution evidence and cleanup; sixteen cases in debug experimental-swift-reactor target.",
+  "prior_review": "verification/receipts/vm-differential-review-r1634.json",
+  "producer_receipt": "verification/receipts/vm-differential-fix-r1638.json",
+  "findings": [],
+  "closed_findings": [
+    {
+      "id": "R1634-1",
+      "status": "RESOLVED",
+      "reason": "Worker no longer has test/ignore attributes. The sole ignored entry dispatches a valid per-case environment to one helper execution and returns; absent environment launches sixteen exact invocations of that same entry. Fresh blanket logs contain all sixteen cases and no independently selected worker."
+    }
+  ],
+  "reviewed_source": {
+    "test": "vm/tests/differential_branch_table_consuming.rs",
+    "sha256": "8c5e58f660cb52b8ab361cf2041f48d0bb6b78a414d2edbcc1e0600241e4a11d",
+    "source_manifest": "verification/local/vm-differential-fix-r1638/source-manifest.json",
+    "source_manifest_sha256": "60285bf374f8011125726d1e60a5e3bf60a9090aa30fe7cd41c066ad227cfdab",
+    "historical_source_revision_reference": "bcf757707b47f0fb827656daf15e036652f713bc",
+    "revision_note": "Producer historical reference only. Current canonical and tested snapshot identity verified with all 95 manifest file hashes; no Git operation performed.",
+    "unchanged_source_files": 94,
+    "module_oracle_and_consuming_worker_bodies_unchanged": true,
+    "worker_body_sha256": "2487c1abd39d2b013b021741f85d8e98695580826152c71d1b8782d84ad31d91",
+    "producer_evidence_files_hash_verified": 26,
+    "producer_receipt_sha256": "57b63a0fed9838912758687675f0d328cf9a1c19e534e978ea21fe837bc13bce",
+    "prior_review_sha256": "336eaf7e6b09893512da0289d962b191220062d250c21ea19963f6103ed0bbcd",
+    "binary_sha256": "b0d2a1cdd76b62562b009c96b86f873df2decc11ecf723a01391fa9fa96d6ce5",
+    "other_reviewed_input_hashes": {
+      "AGENTS.md": "4b57ae8ff51caa92987063d7a570f6715eb7e73444ece4f7b47619317cfeb7c5",
+      "vm/Cargo.toml": "d408b1429bd9d8cc5c837eecaffc14b2630df2d7060a95a09940f430837a12be",
+      ".github/workflows/verify.yml": "a509124afd98054503811fa2be6e475154662a819a7c5a0e5be5cb15fe048314"
+    }
+  },
+  "checks": {
+    "no_silent_passing_path": {
+      "status": "PASS",
+      "evidence": "Only one discoverable ignored entry (lines210-212). Absent environment always enters 0..16 loop. A valid case must finish Node validation/execution/output assertions, one consuming execution, cleanup checks and parity assertions. Parent requires child success and the matching cleanup row; failed cases stop the loop."
+    },
+    "invalid_environment_fail_closed": {
+      "status": "PASS_SOURCE_REVIEW",
+      "evidence": "Source only: malformed, empty, negative and overflowing usize parse fails; >=16 asserts; non-Unicode errors panic; only NotPresent selects the corpus. Valid 0..15 executes the helper once and returns before the spawn loop.",
+      "source": "vm/tests/differential_branch_table_consuming.rs:213"
+    },
+    "no_recursive_parent_relaunch": {
+      "status": "PASS",
+      "evidence": "Every exact child receives case.to_string() in 0..16. Its valid-environment branch calls the helper then returns at line217 before the spawn loop. Raw logs show exactly seventeen successful one-test harness results per corpus: sixteen children and the parent, with one corpus-summary line."
+    },
+    "one_runtime_per_child": {
+      "status": "PASS",
+      "evidence": "The unchanged helper contains one execute_swift_command call. Node wait_with_output completes first. Parent without case environment constructs no runtime; valid case returns immediately after one helper. Prior R1634 consuming-ledger source findings reused because worker and all other 94 source files are byte-identical."
+    },
+    "canonical_discovery": {
+      "status": "PASS_SCOPED",
+      "evidence": "Cargo default integration-test discovery retained. Fresh compiler-artifact identifies this exact source as a test target, fresh=false, debug reactor profile. Canonical workflow lines570-571 use blanket -- --ignored. Producer target-binary exact and blanket invocations both removed the case environment and ran cases0..15; full combined-feature debug/release workflow was not rerun."
+    },
+    "actual_execution_and_cleanup": {
+      "status": "PASS",
+      "runs": {
+        "exact": {
+          "case_ids": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "parity_rows": 16,
+          "terminal_cleanup_rows": 16,
+          "successful_libtest_results": 17,
+          "environment_removed": [
+            "MIXER_DIFFERENTIAL_BRANCH_CASE"
+          ],
+          "stdout_sha256": "600067b9ec77c77bb3cfa06e74f5af34d599cff05bcd9d3f91366656d2124d25",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "blanket": {
+          "case_ids": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "parity_rows": 16,
+          "terminal_cleanup_rows": 16,
+          "successful_libtest_results": 17,
+          "environment_removed": [
+            "MIXER_DIFFERENTIAL_BRANCH_CASE"
+          ],
+          "stdout_sha256": "4be9a53079f57c60e5af6cc9596338319694a03dcfc7de1dee5bd2afa9469a24",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "evidence": "Independently checked raw stdout, structured rows and hashes. Both invocations have all sixteen ordered parity rows with expected signed little-endian bytes and all sixteen terminal cleanup rows: fourteen zero currents, zero tickets, no cleanup invariant. Module/oracle bytes and consuming worker remain identical to the prior accepted semantic review."
+    },
+    "producer_command_custody": {
+      "status": "PASS_RETAINED_EVIDENCE",
+      "evidence": "Hashed producer command records match receipt for build, exact and blanket invocations and tool-version commands: exit0, direct reaped, group observed absent, parent log descriptors closed. No historical process probes or hold releases."
+    }
+  },
+  "reviewer_execution": {
+    "command": "python3 -B verification/local/vm-differential-fixed-review-r1642/audit.py",
+    "exit_code": 0,
+    "output": "verification/local/vm-differential-fixed-review-r1642/observations.json",
+    "tools": {
+      "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+    },
+    "compiler_runs": 0,
+    "runtime_runs": 0,
+    "reproductions": 0,
+    "reason_no_reproduction": "No concrete remaining concern after the changed-source review and independently verified fresh exact/blanket evidence. Invalid-value paths have direct parse/range/non-Unicode rejection; no extra test run needed.",
+    "runtime_budget_seconds": 240
+  },
+  "ownership": {
+    "source_changes": false,
+    "product_changes": false,
+    "builds": false,
+    "native_or_database_actions": false,
+    "git_operations": false,
+    "subagents": false,
+    "held_access": false,
+    "staging": false,
+    "writes_limited_to": [
+      "verification/receipts/vm-differential-fixed-review-r1642.json",
+      "verification/local/vm-differential-fixed-review-r1642/"
+    ],
+    "artifact_index_check": "Not applicable: no staging authorized or performed."
+  },
+  "limitations": [
+    "Accepts the changed discovery fix and sixteen-case host-development evidence only.",
+    "Invalid environment rejection reviewed in source; no fresh reviewer runtime reproduction.",
+    "Producer evidence is debug experimental-swift-reactor target only; full canonical combined-feature/release/full-suite CI not executed in this review.",
+    "No speedup, full-product, published-package, native-device or GA qualification claims.",
+    "All historical custody holds remain active and untouched."
+  ],
+  "review_artifacts": {
+    "verification/local/vm-differential-fixed-review-r1642/audit.py": "23b05a0eaba12aa63554ff0debdd0e41b883ceb49bb88ef4d6ea176e34b33b6e",
+    "verification/local/vm-differential-fixed-review-r1642/observations.json": "8c5c4d56ac0b176ffba07a74af8320726f31c0471414fd11579913180e6253b8"
+  }
+}

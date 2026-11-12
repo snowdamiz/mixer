@@ -1,0 +1,247 @@
+{
+  "schema": "mixer-vm-differential-fix-r1638-v1",
+  "status": "PASS_SCOPED_FIX_AWAITING_CHANGED_FIX_REVIEW",
+  "date_utc": "2026-11-12",
+  "finding": "R1634-1",
+  "baseline_review": "verification/receipts/vm-differential-review-r1634.json",
+  "baseline_failure": "Independent reviewer observed worker missing-env panic / exit101; preserved receipt, not rerun here.",
+  "implementation": "Worker is an ordinary usize helper. Single ignored parent dispatches valid env to helper and returns; missing env runs sixteen exact invocations of the same parent; parse/range/non-Unicode errors fail.",
+  "source_revision_reference": "bcf757707b47f0fb827656daf15e036652f713bc",
+  "source_revision_note": "Historical producer revision, not a current Git assertion. Current source is bound by all95 file hashes; no Git operations.",
+  "source_manifest": "verification/local/vm-differential-fix-r1638/source-manifest.json",
+  "source_tree_sha256": "60285bf374f8011125726d1e60a5e3bf60a9090aa30fe7cd41c066ad227cfdab",
+  "canonical_source_matches_tested_snapshot": true,
+  "manifest_files": 95,
+  "unchanged_source_rows": 94,
+  "changed_hashes": {
+    "tests/differential_branch_table_consuming.rs": {
+      "before": "ee8e49f267ae5118134a925e70b09caf44fa11b88a67ecb4ac022f0957756c14",
+      "after": "8c5e58f660cb52b8ab361cf2041f48d0bb6b78a414d2edbcc1e0600241e4a11d"
+    }
+  },
+  "test_module": "vm/tests/differential_branch_table_consuming.rs",
+  "test_sha256": "8c5e58f660cb52b8ab361cf2041f48d0bb6b78a414d2edbcc1e0600241e4a11d",
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "node": "v22.23.3"
+  },
+  "commands": {
+    "cargo-version": {
+      "argv": [
+        "cargo",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 5,
+      "environment_removed": [
+        "MIXER_DIFFERENTIAL_BRANCH_CASE"
+      ],
+      "pid": 52791,
+      "pgid": 52791,
+      "exit_code": 0,
+      "parent_log_descriptors_closed": true,
+      "direct_reaped": true,
+      "group_absent": true,
+      "elapsed_seconds": 0.130261
+    },
+    "rustc-version": {
+      "argv": [
+        "rustc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 5,
+      "environment_removed": [
+        "MIXER_DIFFERENTIAL_BRANCH_CASE"
+      ],
+      "pid": 52841,
+      "pgid": 52841,
+      "exit_code": 0,
+      "parent_log_descriptors_closed": true,
+      "direct_reaped": true,
+      "group_absent": true,
+      "elapsed_seconds": 0.238945
+    },
+    "node-version": {
+      "argv": [
+        "node",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 5,
+      "environment_removed": [
+        "MIXER_DIFFERENTIAL_BRANCH_CASE"
+      ],
+      "pid": 52899,
+      "pgid": 52899,
+      "exit_code": 0,
+      "parent_log_descriptors_closed": true,
+      "direct_reaped": true,
+      "group_absent": true,
+      "elapsed_seconds": 0.027419
+    },
+    "build": {
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-differential-fix-r1638/source/Cargo.toml",
+        "--locked",
+        "--offline",
+        "-j",
+        "1",
+        "--features",
+        "experimental-swift-reactor",
+        "--test",
+        "differential_branch_table_consuming",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 150,
+      "environment_removed": [
+        "MIXER_DIFFERENTIAL_BRANCH_CASE"
+      ],
+      "pid": 52908,
+      "pgid": 52908,
+      "exit_code": 0,
+      "parent_log_descriptors_closed": true,
+      "direct_reaped": true,
+      "group_absent": true,
+      "elapsed_seconds": 5.370489
+    },
+    "exact": {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-differential-fix-r1638/target/debug/deps/differential_branch_table_consuming-c0571970ea1887e5",
+        "--ignored",
+        "--exact",
+        "nested_branch_table_matches_node",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 30,
+      "environment_removed": [
+        "MIXER_DIFFERENTIAL_BRANCH_CASE"
+      ],
+      "pid": 54154,
+      "pgid": 54154,
+      "exit_code": 0,
+      "parent_log_descriptors_closed": true,
+      "direct_reaped": true,
+      "group_absent": true,
+      "elapsed_seconds": 0.76948
+    },
+    "blanket": {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-differential-fix-r1638/target/debug/deps/differential_branch_table_consuming-c0571970ea1887e5",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "deadline_seconds": 30,
+      "environment_removed": [
+        "MIXER_DIFFERENTIAL_BRANCH_CASE"
+      ],
+      "pid": 54464,
+      "pgid": 54464,
+      "exit_code": 0,
+      "parent_log_descriptors_closed": true,
+      "direct_reaped": true,
+      "group_absent": true,
+      "elapsed_seconds": 0.666253
+    }
+  },
+  "compiler_environment": {
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-differential-fix-r1638/target",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "results": {
+    "exact": {
+      "exit_code": 0,
+      "parity_rows": 16,
+      "cleanup_rows": 16,
+      "top_level_test_count": 1,
+      "case_env_removed": true
+    },
+    "blanket": {
+      "exit_code": 0,
+      "parity_rows": 16,
+      "cleanup_rows": 16,
+      "top_level_test_count": 1,
+      "case_env_removed": true
+    }
+  },
+  "case_rows": "verification/local/vm-differential-fix-r1638/results.json",
+  "preserved": [
+    "sixteen original cases",
+    "independent Node WebAssembly oracle",
+    "one consuming runtime per child",
+    "default SwiftValidationBudget / SwiftRunBudget / WasiBudget",
+    "fourteen zero currents, zero tickets, no cleanup invariant"
+  ],
+  "execution_limits": {
+    "compiler_rebuilds": 1,
+    "corpus_runs": 2,
+    "maximum_wall_seconds": 360,
+    "elapsed_since_first_owned_output_seconds": 75.513
+  },
+  "cleanup": {
+    "all_owned_direct_children_reaped": true,
+    "all_owned_groups_observed_absent": true,
+    "all_parent_log_descriptors_closed": true,
+    "node_and_case_children_waited_and_pipes_collected": true,
+    "terminal_runtime_cleanup_rows": 32,
+    "unknown_state": false,
+    "historical_holds": "untouched; none released"
+  },
+  "ownership": {
+    "product_changes": false,
+    "git_operations": false,
+    "subchildren": false,
+    "native_or_db": false,
+    "held_path_operations": false,
+    "producer_source_or_target_modified": false,
+    "staged_changes": false,
+    "artifact_index_check": "Not applicable: no staging authorized/performed"
+  },
+  "limitations": [
+    "Parent changed-fix independent review remains pending.",
+    "Host debug experimental-swift-reactor target only; no release/combined-feature/full-suite/GA qualification.",
+    "Invalid case values fail by parse/range/non-Unicode checks; no extra invalid-env executable run within the two corpus runs."
+  ],
+  "evidence_files": {
+    "verification/local/vm-differential-fix-r1638/before.rs": "ee8e49f267ae5118134a925e70b09caf44fa11b88a67ecb4ac022f0957756c14",
+    "verification/local/vm-differential-fix-r1638/blanket.json": "5320c7e95174ad64ab9e8534c0fe6ae3c922269a52ef0937e86819bad39c2f56",
+    "verification/local/vm-differential-fix-r1638/blanket.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/local/vm-differential-fix-r1638/blanket.stdout": "4be9a53079f57c60e5af6cc9596338319694a03dcfc7de1dee5bd2afa9469a24",
+    "verification/local/vm-differential-fix-r1638/build.json": "f2d1a6766c9136fd571d2475f072d58bbbce95fd33cc5f01a1d3d8454f65d38d",
+    "verification/local/vm-differential-fix-r1638/build.stderr": "aa45a0f99086dbba5a691688d928086e0dfd75e4ad06f9b396d0a2d4a430945e",
+    "verification/local/vm-differential-fix-r1638/build.stdout": "39a1172f5849641cf6a78e132749c572b399db90b05fbeb5d29c961bce595f34",
+    "verification/local/vm-differential-fix-r1638/cargo-version.json": "d9cd88635ca737d22a397e62e31ba662995dc3c9bec338dc5370233c00438785",
+    "verification/local/vm-differential-fix-r1638/cargo-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/local/vm-differential-fix-r1638/cargo-version.stdout": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+    "verification/local/vm-differential-fix-r1638/changed-hashes.json": "248dd50ec3dfe293933752ac6be0603ba5d5d2848fe3960fdfb0fd7455a722c4",
+    "verification/local/vm-differential-fix-r1638/exact.json": "84c9892d22b9fa43ef2b08635d11e2153a0b638f91d212e4cae82b2153d4b63c",
+    "verification/local/vm-differential-fix-r1638/exact.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/local/vm-differential-fix-r1638/exact.stdout": "600067b9ec77c77bb3cfa06e74f5af34d599cff05bcd9d3f91366656d2124d25",
+    "verification/local/vm-differential-fix-r1638/executable.json": "4ca6ae7fe0460303c8dab77260619074a58d1e2cc68b0e6d769773204a2d1836",
+    "verification/local/vm-differential-fix-r1638/fix.patch": "51d54425f0da52362d3bffa38acaba61cb63bc63c2f55951fafc841bff6b723c",
+    "verification/local/vm-differential-fix-r1638/node-version.json": "7a8125e9de87dfd0f04d26a4dba94fad415ccbc3073614a5c626ad56cafa5d47",
+    "verification/local/vm-differential-fix-r1638/node-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/local/vm-differential-fix-r1638/node-version.stdout": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9",
+    "verification/local/vm-differential-fix-r1638/results.json": "f7f28e1628b0037c71ff9d496f5b80429cb1568731e32e45c9fa37c670f314eb",
+    "verification/local/vm-differential-fix-r1638/run.py": "62c31308ca57077a557f16cce4deedf47459b53f0633c4ede8eb114bdc68a2f5",
+    "verification/local/vm-differential-fix-r1638/rustc-version.json": "0d18fa8a2bca4743f8671ec341487815028cd272b5fbd85734a1e4d2f062c187",
+    "verification/local/vm-differential-fix-r1638/rustc-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/local/vm-differential-fix-r1638/rustc-version.stdout": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6",
+    "verification/local/vm-differential-fix-r1638/source-manifest.json": "60285bf374f8011125726d1e60a5e3bf60a9090aa30fe7cd41c066ad227cfdab",
+    "verification/local/vm-differential-fix-r1638/started.json": "e16a35bb0ad1d43b2f4a6bb5b7d6cf444ef571acd35b4d7ffb0b810b8fe442e4"
+  }
+}

@@ -3018,8 +3018,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "709be299b1bbe66f1a79a250bdac019cfde1165b47859597bcbe86e13c71d771"
-    DIGEST = "90557e1395e2cb9cbb5780a93799d63974220ce025ef06cce932884f4198c094"
+    PIN = "d3c744d600c5ba3950e6344e942f1bcd1b7b6233d4efbb0f11abc492afc3f9c5"
+    DIGEST = "f6a84a1350e42b6020914a9967d869f6b58666a26d1eae446331f7e92aa28d05"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3474,7 +3474,7 @@ class SupervisedProviderSourceControls(unittest.TestCase):
         self.assertEqual('7541ccd6dc3369acac10dbfa881914eaf76e0c092a7ceaba142fc26ce00c169e',canonical_digest(inverse))
         self.assertFalse(value['runtime_or_GA_accepted'])
         provider = 'hosted/lib/mixer_hosted/browser_auth/provider_owner.ex'
-        self.assertEqual('92953b0c6608eb27d9f6dd5e1341f1271b9990fa5492bd8e0384b782bc92eafd',value['exact_delta'][provider]['after']['sha256'])
+        self.assertEqual('f4d130a1242820c5419870e5446bb4283d771bb2ba23bc760b1f6870096fd779',value['exact_delta'][provider]['after']['sha256'])
         for p,r in collector.ORDINARY_BROWSER_MANIFEST.items():
             if p != provider: self.assertEqual(r,collector.SUPERVISED_PROVIDER_MANIFEST[p])
 

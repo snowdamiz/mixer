@@ -1419,10 +1419,10 @@ def validate_format_metadata(metadata):
 
 
 SUPERVISED_PROVIDER_SOURCE_BASE = 'verification/identity-network-current-source-v16/'
-SUPERVISED_PROVIDER_SELECTION_SHA256 = '709be299b1bbe66f1a79a250bdac019cfde1165b47859597bcbe86e13c71d771'
-SUPERVISED_PROVIDER_SOURCE_DIGEST = '90557e1395e2cb9cbb5780a93799d63974220ce025ef06cce932884f4198c094'
+SUPERVISED_PROVIDER_SELECTION_SHA256 = 'd3c744d600c5ba3950e6344e942f1bcd1b7b6233d4efbb0f11abc492afc3f9c5'
+SUPERVISED_PROVIDER_SOURCE_DIGEST = 'f6a84a1350e42b6020914a9967d869f6b58666a26d1eae446331f7e92aa28d05'
 SUPERVISED_PROVIDER_INPUTS = ORDINARY_BROWSER_INPUTS
-SUPERVISED_PROVIDER_DELTA = {'hosted/lib/mixer_hosted/browser_auth/provider_owner.ex': {'before': {'bytes': 3240, 'sha256': '8eb447eee9906b2a0eda58ed2fc5469afbbaa8f3c7495317e474dd6c7eb15331'}, 'after': {'bytes': 12951, 'sha256': '92953b0c6608eb27d9f6dd5e1341f1271b9990fa5492bd8e0384b782bc92eafd'}}, 'hosted/lib/mixer_hosted/browser_auth/provider_trust_config.ex': {'before': None, 'after': {'bytes': 3920, 'sha256': '4472a0e554969da8e1c146850685030936dad2397a75028f80f439cf68a766a4'}}, 'hosted/test/mixer_hosted/browser_auth/provider_trust_config_test.exs': {'before': None, 'after': {'bytes': 9245, 'sha256': '5836408664c07b13fab32709457dee075850fafeac1aac17f92002018d682b65'}}, 'hosted/test/mixer_hosted/browser_auth/provider_owner_lifecycle_test.exs': {'before': None, 'after': {'bytes': 41673, 'sha256': '0e49e497a2bc9f1cb08e395ede8704e2796855fd9b43764181568ea3eb99b8f8'}}}
+SUPERVISED_PROVIDER_DELTA = {'hosted/lib/mixer_hosted/browser_auth/provider_owner.ex': {'before': {'bytes': 3240, 'sha256': '8eb447eee9906b2a0eda58ed2fc5469afbbaa8f3c7495317e474dd6c7eb15331'}, 'after': {'bytes': 13603, 'sha256': 'f4d130a1242820c5419870e5446bb4283d771bb2ba23bc760b1f6870096fd779'}}, 'hosted/lib/mixer_hosted/browser_auth/provider_trust_config.ex': {'before': None, 'after': {'bytes': 3920, 'sha256': '4472a0e554969da8e1c146850685030936dad2397a75028f80f439cf68a766a4'}}, 'hosted/test/mixer_hosted/browser_auth/provider_trust_config_test.exs': {'before': None, 'after': {'bytes': 9245, 'sha256': '5836408664c07b13fab32709457dee075850fafeac1aac17f92002018d682b65'}}, 'hosted/test/mixer_hosted/browser_auth/provider_owner_lifecycle_test.exs': {'before': None, 'after': {'bytes': 41732, 'sha256': 'c9769e784d2bb5a743dcb6ef981f5ad7bb471092c500ef962cc738f7fcfe2ce2'}}}
 
 def _validate_supervised_provider_source_manifest(manifest, count):
     require(type(count) is int and count == 275, "supervised provider closed source count")

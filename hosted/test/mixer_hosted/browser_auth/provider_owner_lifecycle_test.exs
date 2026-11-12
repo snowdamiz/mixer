@@ -558,7 +558,9 @@ defmodule MixerHosted.BrowserAuth.ProviderOwnerLifecycleTest do
       end
 
     assert length(slots(table)) == 32
+
     assert Enum.all?(slots(table), fn {_, pid, _} -> Enum.any?(old, fn {w, _} -> w == pid end) end)
+
     # Public runtime suspension keeps actual admitted workers live across expiry;
     # no lease, ETS row, owner state, or authority identity is modified.
     Enum.each(old, fn {w, _} -> true = :erlang.suspend_process(w) end)
@@ -894,7 +896,9 @@ defmodule MixerHosted.BrowserAuth.ProviderOwnerLifecycleTest do
     assert DynamicSupervisor.count_children(@workers).active == 0
 
     assert :ok =
-             stop_supervised(if(mode == :provider_and_keyowner, do: :replacement, else: :provider))
+             stop_supervised(
+               if(mode == :provider_and_keyowner, do: :replacement, else: :provider)
+             )
 
     wait_until(
       fn ->
@@ -1058,7 +1062,10 @@ defmodule MixerHosted.BrowserAuth.ProviderOwnerLifecycleTest do
       info = TLSFixture.info(fixture)
       assert info.accepted == 1 and info.closed == 1
       assert :ok = stop_supervised(:browser_component)
-      assert :ok = stop_supervised(MixerHosted.BrowserAuth.ProviderOwnerLifecycleTest.RawTransport)
+
+      assert :ok =
+               stop_supervised(MixerHosted.BrowserAuth.ProviderOwnerLifecycleTest.RawTransport)
+
       assert :ok = stop_supervised(TLSFixture)
 
       cleanup = %{
@@ -1070,7 +1077,8 @@ defmodule MixerHosted.BrowserAuth.ProviderOwnerLifecycleTest do
         new_fetch_dead: not Process.alive?(replacement_fetch),
         transport_dead: not Process.alive?(transport),
         fixture_dead: not Process.alive?(fixture),
-        both_tables_deleted: :ets.info(table) == :undefined and :ets.info(new_table) == :undefined,
+        both_tables_deleted:
+          :ets.info(table) == :undefined and :ets.info(new_table) == :undefined,
         no_names:
           Process.whereis(@owner) == nil and Process.whereis(@workers) == nil and
             Process.whereis(ProviderOwner) == nil,
