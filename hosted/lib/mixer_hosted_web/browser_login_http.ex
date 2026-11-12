@@ -1,10 +1,31 @@
 defmodule MixerHostedWeb.BrowserLoginHTTP do
-  @moduledoc "Private opt-in browser login adapter. Never mounted by the application."
+  @moduledoc "Browser login adapter with ordinary startup and explicit private fixture modes."
   @behaviour Plug
   import Plug.Conn
   alias MixerHosted.BrowserAuth.{CallbackLifecycle, PreauthDraft, Protocol, RuntimeOwner}
 
   def init([]), do: []
+  def init(:ordinary), do: :ordinary
+
+  def owns_path?(path),
+    do:
+      path in ~w(/auth/session /auth/login /auth/callback) or
+        MixerHostedWeb.BrowserHTTP.owns_path?(path)
+
+  def call(conn, :ordinary) do
+    if owns_path?(conn.request_path) do
+      response =
+        case MixerHosted.Application.startup() do
+          {:ok, {_, :disabled}} -> error(conn, 404)
+          {:ok, {_, %MixerHosted.BrowserAuth.Installation{}}} -> call(conn, [])
+          _ -> error(conn, 404)
+        end
+
+      halt(response)
+    else
+      conn
+    end
+  end
 
   def call(conn, []) do
     case {conn.method, conn.request_path} do

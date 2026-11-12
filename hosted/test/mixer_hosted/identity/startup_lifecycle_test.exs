@@ -75,6 +75,14 @@ defmodule MixerHosted.Identity.StartupLifecycleTest do
     StartupFixture.app_settings(disabled)
     Application.put_env(:mixer_hosted, :role, :processor)
     Application.put_env(:mixer_hosted, Oban, settings.oban)
+    {hosted, :disabled} = Application.fetch_env!(:mixer_hosted, :startup)
+
+    Application.put_env(
+      :mixer_hosted,
+      :startup,
+      {%{hosted | role: :processor, oban: settings.oban}, :disabled}
+    )
+
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
     assert Process.whereis(KeyOwner) == nil
     assert Process.whereis(MixerHostedWeb.Endpoint) == nil
@@ -88,7 +96,13 @@ defmodule MixerHosted.Identity.StartupLifecycleTest do
       StartupFixture.configuration(StartupFixture.envelope(), StartupFixture.standard_roots())
 
     [MixerHosted.Repo, {Oban, _}, {KeyOwnerSupervisor, _}, MixerHostedWeb.Endpoint] =
-      MixerHosted.Application.children(:api, [], settings)
+      MixerHosted.Application.children(
+        {%{
+           MixerHosted.RuntimeConfig.load!(StartupFixture.foundation_env())
+           | oban: [],
+             identity_startup: settings
+         }, :disabled}
+      )
 
     start(settings)
     owner = Process.whereis(KeyOwner)
