@@ -212,7 +212,7 @@ defmodule MixerHosted.BrowserAuth.Store do
             end,
             timeout: remaining,
             deadline: deadline,
-            queue: false,
+            queue: operation === :admit,
             log: false,
             telemetry_event: @transaction_event,
             telemetry_options: [store_transaction: {self(), reference}]
