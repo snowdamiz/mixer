@@ -1,0 +1,41 @@
+name: Browser provider HTTPS development test
+on:
+  push:
+    branches:
+      - "t3/browser-provider-https-r1464"
+permissions:
+  contents: read
+jobs:
+  provider-https:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124
+        with:
+          version-file: hosted/.tool-versions
+          version-type: strict
+      - name: Resolve the normal locked hosted dependencies
+        working-directory: hosted
+        run: mix deps.get --check-locked
+      - name: Format and execute the exact HTTPS transport tests once
+        shell: bash
+        working-directory: hosted
+        run: |
+          mkdir -p "$RUNNER_TEMP/provider-https-r1464"
+          elixir --version | tee "$RUNNER_TEMP/provider-https-r1464/toolchain.txt"
+          openssl version | tee "$RUNNER_TEMP/provider-https-r1464/openssl.txt"
+          shasum -a 256 lib/mixer_hosted/browser_auth/provider_https_wire.ex lib/mixer_hosted/browser_auth/provider_https.ex test/support/browser_provider_tls_fixture.ex test/mixer_hosted/browser_auth/provider_https_exchange_test.exs | tee "$RUNNER_TEMP/provider-https-r1464/source-before.txt"
+          mix format lib/mixer_hosted/browser_auth/provider_https_wire.ex lib/mixer_hosted/browser_auth/provider_https.ex test/support/browser_provider_tls_fixture.ex test/mixer_hosted/browser_auth/provider_https_exchange_test.exs
+          shasum -a 256 lib/mixer_hosted/browser_auth/provider_https_wire.ex lib/mixer_hosted/browser_auth/provider_https.ex test/support/browser_provider_tls_fixture.ex test/mixer_hosted/browser_auth/provider_https_exchange_test.exs | tee "$RUNNER_TEMP/provider-https-r1464/source-after.txt"
+          mix test --no-start --warnings-as-errors test/mixer_hosted/browser_auth/provider_https_exchange_test.exs --only browser_provider_https_exchange_verified --seed 0 --max-failures 1 2>&1 | tee "$RUNNER_TEMP/provider-https-r1464/tests.log"
+      - name: Retain this test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provider-https-r1464-${{ github.sha }}
+          path: ${{ runner.temp }}/provider-https-r1464/
+          if-no-files-found: error
+          retention-days: 14
