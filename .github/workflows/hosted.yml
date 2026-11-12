@@ -129,6 +129,18 @@ jobs:
         with:
           version-file: hosted/.tool-versions
           version-type: strict
+      - name: Provision PostgreSQL 17 for disposable host checks
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y noble
+          sudo apt-get install --yes --no-install-recommends postgresql-17 postgresql-client-17
+          for tool in postgres initdb pg_ctl psql createdb; do
+            version=$("/usr/lib/postgresql/17/bin/$tool" --version)
+            printf '%s\n' "$version"
+            [[ "$version" == "$tool (PostgreSQL) 17."* ]]
+          done
       - name: Resolve locked dependencies
         working-directory: hosted
         run: mix deps.get --check-locked
@@ -167,15 +179,15 @@ jobs:
         run: |
           mix deps.compile
           python3 test/mixer_hosted/browser_auth/run_storage_fixture.py \
-            --pg-bin /usr/lib/postgresql/16/bin
+            --pg-bin /usr/lib/postgresql/17/bin
           python3 test/mixer_hosted/browser_auth/run_migration_fixture.py \
-            --pg-bin /usr/lib/postgresql/16/bin \
+            --pg-bin /usr/lib/postgresql/17/bin \
             --output "$RUNNER_TEMP/browser-migrations"
       - name: Phoenix and disposable PostgreSQL host checks
         working-directory: hosted
         run: |
           python3 scripts/test-local.py \
-            --pg-bin /usr/lib/postgresql/16/bin \
+            --pg-bin /usr/lib/postgresql/17/bin \
             --output "$RUNNER_TEMP/phoenix-foundation" \
             --additional-test diagnostics/browser_login_trace_test.exs
       - name: Preserve host evidence
