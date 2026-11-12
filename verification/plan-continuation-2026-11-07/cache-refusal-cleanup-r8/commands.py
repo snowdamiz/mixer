@@ -55,6 +55,23 @@ class Commands:
   except BaseException:
    self.unknown_custody=True
    raise
+ def permission_diagnostic(self,error,phase):
+  # Best-effort attribution only; never change the primary or custody facts.
+  try:
+   if not isinstance(error,PermissionError)or phase not in {'spawn','active'}:return
+   import json,sys
+   def bounded(value):return ''.join(c if c.isascii()and(c.isalnum()or c in '._<>-')else'_'for c in value[:64])
+   frames=[];tb=BaseException.__traceback__.__get__(error)
+   for _ in range(12):
+    if tb is None:break
+    code=tb.tb_frame.f_code;name=code.co_filename.rsplit('/',1)[-1].rsplit('\\',1)[-1]
+    frames.append({'file':bounded(name),'function':bounded(code.co_name),'line':tb.tb_lineno})
+    tb=tb.tb_next
+   number=OSError.errno.__get__(error)
+   record={'type':bounded(type(error).__name__),'errno':number if type(number)is int and -2147483648<=number<=2147483647 else None,'phase':phase,'frames':frames,'truncated':tb is not None}
+   line='CACHE_PERMISSION_ORIGIN '+json.dumps(record,ensure_ascii=True,separators=(',',':'))+'\n'
+   if len(line.encode('ascii'))<=4096:sys.stderr.write(line);sys.stderr.flush()
+  except BaseException:pass
  def run(self,name,argv,cwd,env=None,negative=False):
   need(not self.unknown_custody,'UNKNOWN custody; command admission closed')
   need(self.active is None,'One child group only');need(re.fullmatch('[A-Za-z0-9_-]+',name),'Command name')
@@ -85,6 +102,7 @@ class Commands:
    if not self.gone(proc.pid):row['descendants_outlived_child']=True
   except BaseException as e:
    primary=e;row['errors'].append({'phase':'spawn'if self.active is None else'active',**exception_details(e)})
+   self.permission_diagnostic(e,'spawn'if self.active is None else'active')
    if isinstance(e,OSError)and self.active is None:row['spawn_error']=str(e)
   finally:
    for key in list(selector.get_map().values()):
