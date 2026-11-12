@@ -1,0 +1,192 @@
+{
+  "schema": 1,
+  "campaign": "native-renderer-review-r1680",
+  "observed_at": "2026-11-12T20:45:15.224797+00:00",
+  "status": "PASS",
+  "scope": "Independent private Java renderer source and controlled-host review; native/repack artifact acceptance pending root",
+  "started_utc": "2026-11-12T20:40:25Z",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "xhigh",
+  "fast_mode": false,
+  "repository_revision_as_recorded_by_producer": "8ee63e6350dc895dd34891a35acd256e38371742",
+  "producer_receipt": "verification/receipts/native-report-renderer-fix-r1672.json",
+  "public_pin": "8efc1a9e5b1602117f8211c95bfd4203cc91f689",
+  "predecessor_sha256": "a065e2bef70d9ed886fd09fc29357318360a9ad14e4b98bb9d21f1784eb8c1d3",
+  "reviewed_afterimage_sha256": "f23b3f4ddcc2503f9b5ef00f88f3f6ccb40882e0fbbce97789a5a8ff7b868b51",
+  "findings": [],
+  "source_proof": {
+    "baseline": {
+      "manifest_entries": 106,
+      "mismatches": []
+    },
+    "candidate": {
+      "manifest_entries": 110,
+      "mismatches": []
+    },
+    "patch_exact_delta": true,
+    "canonical_matches_pinned": true,
+    "receipt_artifact_hashes": {
+      "verification/local/native-report-fix-r1672/afterimage/NativeRenderer.java": true,
+      "verification/local/native-report-fix-r1672/NativeRenderer.patch": true,
+      "verification/local/native-report-fix-r1672/ReportBoundaryHostTests.java": true,
+      "verification/local/native-report-fix-r1672/run.py": true,
+      "verification/local/native-report-fix-r1672/REPORT.md": true,
+      "verification/local/native-report-fix-r1672/REPACK-PLAN.md": true,
+      "verification/local/native-report-fix-r1672/R992-repack-input-proof.json": true,
+      "verification/local/native-report-fix-r1672/R992-java-build-commands.json": true
+    }
+  },
+  "raw_log_review": {
+    "baseline_refusals": 3,
+    "producer_candidate_cases": 40,
+    "producer_candidate_checks": 323,
+    "original_native_receipt": "verification/receipts/fieldlog-report-native-r1664.json",
+    "original_native_logcat_independently_inspected": false,
+    "native_stack_location_source": "task brief; host baseline raw logs independently reproduced same guard refusal"
+  },
+  "independent_execution": {
+    "command": "python3 verification/local/native-renderer-review-r1680/run.py",
+    "compiler_version": "javac 25.0.4.1",
+    "compiler_batches": 1,
+    "jvm_batches": 1,
+    "rerun_existing_cases": 40,
+    "additional_cases": 8,
+    "additional_explicit_assertions": 43,
+    "additional_fixture_cleanup_assertions": true,
+    "additional_cases_passed": [
+      "trailing text insertion retains editor",
+      "trailing text cannot authorize corrupt Y",
+      "zero-height measured insertion retains editor",
+      "zero-height text cannot authorize corrupt Y",
+      "zero-height text plus disable/handoff cannot authorize corrupt Y",
+      "disable/handoff rejects unreported native buffer",
+      "candidate editor fence corruption refuses",
+      "candidate input capability corruption refuses"
+    ],
+    "commands": [
+      {
+        "label": "javac-version",
+        "pid": 80634,
+        "pgid": 80634,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "owned_group_absent": true,
+        "terminal_custody": true,
+        "cleanup_errors": []
+      },
+      {
+        "label": "compile",
+        "pid": 80651,
+        "pgid": 80651,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "owned_group_absent": true,
+        "terminal_custody": true,
+        "cleanup_errors": []
+      },
+      {
+        "label": "controls",
+        "pid": 81108,
+        "pgid": 81108,
+        "exit_code": 0,
+        "direct_child_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "owned_group_absent": true,
+        "terminal_custody": true,
+        "cleanup_errors": []
+      }
+    ],
+    "cleanup": {
+      "allTerminalCustody": true,
+      "hold": null,
+      "scratchRemoved": true,
+      "aggregateBytes": 2263,
+      "aggregateLimit": 67108864
+    }
+  },
+  "interface_conditions": [
+    "Exact reviewed afterimage replacing exact public pinned predecessor; no other production SDK/app Java changes or host substitutes",
+    "Complete Java/DEX rebuild; verify class/source rosters and avoid duplicate renderer definitions",
+    "Original R992 APK and source ZIP identity verified; unchanged all 18 native libraries, manifest, resources and appearance descriptor after repack/alignment/signing",
+    "New APK/DEX hashes and production-source identities, tool/command and cleanup evidence returned to root",
+    "Root checks artifact conditions before its single remaining postfix native payload; no extra review/controller layer required by this review"
+  ],
+  "pending": [
+    "R1682 repack artifact verification",
+    "Root-selected single remaining postfix API36 payload: live report boundary, chooser START, resumed Activity, receiver JSON, cleanup",
+    "Immutable published-package, physical-device and GA qualification"
+  ],
+  "limitations": [
+    "Controlled Android Layout metrics and JNI leaves; no Android device operations",
+    "Source-derived host frames, not captured native failing packets",
+    "Original R1664 logcat not independently inspected; source and producer raw JVM logs were inspected",
+    "No claim about concurrently produced R1682 APK bytes"
+  ],
+  "new_holds": [],
+  "historical_holds_released": false,
+  "writes": [
+    "verification/local/native-renderer-review-r1680",
+    "verification/receipts/native-renderer-review-r1680.json"
+  ],
+  "mutations": {
+    "canonical_or_producer_edits": false,
+    "devices": false,
+    "subchildren": false,
+    "commits_or_pushes": false,
+    "network": false,
+    "database": false,
+    "credentials": false
+  },
+  "artifacts": [
+    {
+      "path": "verification/local/native-renderer-review-r1680/REPORT.md",
+      "bytes": 6061,
+      "sha256": "06f3dfbae34199fb56698dd28013c65f2b4dbe99d0e95b5fd7a323b370e95d7d"
+    },
+    {
+      "path": "verification/local/native-renderer-review-r1680/ReviewControls.java",
+      "bytes": 4229,
+      "sha256": "a6c795deca5f134d3db2a4df4fd1310b26f84e5691e0d78b99df95e4e65f5294"
+    },
+    {
+      "path": "verification/local/native-renderer-review-r1680/run.py",
+      "bytes": 2217,
+      "sha256": "373cad4bc35134215badc294b4eb1adf3d9e583acf287e9a8770e19129643055"
+    },
+    {
+      "path": "verification/local/native-renderer-review-r1680/source-proof.json",
+      "bytes": 866,
+      "sha256": "0da61d51f225d87282f41fc71ae8803d5b1e34e5c25defed2bf18192466a134b"
+    },
+    {
+      "path": "verification/local/native-renderer-review-r1680/input-sha256.json",
+      "bytes": 17106,
+      "sha256": "fa8a138e2fae85528023ade5bc7849c6cf6d77ee102e22898b460e308c1423d1"
+    },
+    {
+      "path": "verification/local/native-renderer-review-r1680/commands.json",
+      "bytes": 26740,
+      "sha256": "613ddef365d3418a82f3e826afb2d25e77ec5ad8d300862f47590b3a8d54182a"
+    },
+    {
+      "path": "verification/local/native-renderer-review-r1680/result.json",
+      "bytes": 2581,
+      "sha256": "12836f1ed51049d95301ac2466901086a12f1f221fb1c1434d10f4d3c130bf74"
+    },
+    {
+      "path": "verification/local/native-renderer-review-r1680/002-controls.stdout",
+      "bytes": 2248,
+      "sha256": "1ba746d0693b5deb988631b5229379c435c31fbdc22ef8b5999a84d85174587a"
+    },
+    {
+      "path": "verification/local/native-renderer-review-r1680/002-controls.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "id": "provider-production-r1690",
+  "status": "REQUEST_CHANGES",
+  "revision": {
+    "userReported": "e4d9dcc328d8ef0410740303f2ea374a16ebbbb5",
+    "canonical": "v16/275",
+    "gitVerified": false
+  },
+  "scope": {
+    "ownedPrivateNamespace": "verification/local/provider-production-r1690",
+    "canonicalEdits": false,
+    "sourceMetadataEdits": false,
+    "gitOperations": 0,
+    "subchildren": 0,
+    "externalProvider": false,
+    "externalDNS": false,
+    "DB": false,
+    "devices": false,
+    "credentials": false,
+    "deployment": false,
+    "historicHeldChainReads": false
+  },
+  "source": {
+    "canonicalInputs": "verification/local/provider-production-r1690/delivery/canonical-inputs.json",
+    "count": 30,
+    "allUnchangedAtHandoff": true,
+    "afterimages": [
+      {
+        "target": "hosted/lib/mixer_hosted/browser_auth/provider_owner.ex",
+        "before": {
+          "bytes": 13603,
+          "sha256": "f4d130a1242820c5419870e5446bb4283d771bb2ba23bc760b1f6870096fd779"
+        },
+        "after": {
+          "bytes": 16519,
+          "sha256": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192"
+        },
+        "afterimage": "verification/local/provider-production-r1690/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex"
+      },
+      {
+        "target": "hosted/lib/mixer_hosted/browser_auth/provider_https.ex",
+        "before": {
+          "bytes": 11316,
+          "sha256": "57a03f842737b8c9b8950b8de3230e28b0ad5c649dceec2dd0188c3426dca532"
+        },
+        "after": {
+          "bytes": 16230,
+          "sha256": "60e6bc274a7d05eb1eee4b63feb4cb2f50a695ecd03dad191b73b464686e147c"
+        },
+        "afterimage": "verification/local/provider-production-r1690/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_https.ex"
+      }
+    ]
+  },
+  "baseline": {
+    "caller_dead": true,
+    "unlinked_watcher_survived": true,
+    "live_tls_before_cleanup": 1
+  },
+  "experiments": {
+    "limit": 2,
+    "used": 2,
+    "bothExit": 1,
+    "exUnitTestsRun": 0,
+    "candidateModulesCompiled": true,
+    "exactProductionExchange": "UNRUN",
+    "combinedReplacementLiveIO": "UNRUN",
+    "failures": [
+      "Installation test-mode missing RuntimeConfig struct in private harness",
+      "replacement.exs:82 missing whitespace after map keyword keys"
+    ],
+    "retryAfterSecondFailure": false
+  },
+  "osCustody": {
+    "inner": [
+      {
+        "label": "production-transport-exact-HTTPS",
+        "argv": [
+          "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+          "--erl",
+          "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-production-r1690/batch.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-production-r1690",
+        "pid": 86909,
+        "pgid": 86909,
+        "state": "direct_reaped",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 2.2917959589976817,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "combined-owner-replacement-live-IO-and-exact-HTTPS",
+        "argv": [
+          "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+          "--erl",
+          "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-production-r1690/batch.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-production-r1690",
+        "pid": 96274,
+        "pgid": 96274,
+        "state": "direct_reaped",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 3.432338875019923,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "outer": [
+      {
+        "session_id": 92725,
+        "initial_response_received": true,
+        "outer": {
+          "pid": 71505,
+          "pgid": 71505,
+          "session": 71505
+        },
+        "ownedGroupAbsentESRCH": true,
+        "terminal_transport_exit": 1
+      },
+      {
+        "session_id": 73493,
+        "initial_response_received": true,
+        "outer": {
+          "pid": 91106,
+          "pgid": 91106,
+          "session": 91106
+        },
+        "ownedGroupAbsentESRCH": true,
+        "terminal_transport_exit": 1
+      }
+    ],
+    "newHolds": []
+  },
+  "productCleanup": {
+    "baselineWatcherDead": true,
+    "baselineCallerDead": true,
+    "baselinePeerEOF": true,
+    "baselineFixtureStopped": true,
+    "candidateProductRuntimeStarted": false,
+    "newHold": false
+  },
+  "integrationContract": {
+    "publicStartup": "ProviderOwner.start_link({%Config{}, %Identity.StartupConfig{}, fixed_secret_bytes})",
+    "actualTransport": "existing ProviderHTTPS.post/6",
+    "admissionHolder": "supervised HTTPS watcher",
+    "supervisor": "fixed ProviderTrustOwner.FetchSupervisor",
+    "shutdown": "infinity; cleanup before watcher DOWN",
+    "capacity": 16,
+    "deadlineMS": 5000,
+    "installationChanged": false,
+    "startupEnvironmentComposition": "root pending",
+    "unverifiedHandoffRace": "SSL control-transfer/registration window needs executable race proof"
+  },
+  "report": "verification/local/provider-production-r1690/REPORT.md",
+  "artifactManifest": {
+    "path": "verification/local/provider-production-r1690/artifact-manifest.json",
+    "bytes": 9843,
+    "sha256": "d9851bcff10dbf24e27d50bb1e9a8b1e56a508414c6e6790c4d6ed59d42a37c3"
+  },
+  "readyForIndependentAcceptanceReview": false,
+  "productionQualification": false,
+  "GA": false,
+  "holdsReleased": false,
+  "timestamp": "2026-11-12T20:57:09.542341+00:00"
+}

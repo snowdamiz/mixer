@@ -221,6 +221,8 @@ class SwiftCIIndependence(unittest.TestCase):
         self.assertEqual(identity(changes[-1]['before'].encode()), transition['before'])
         self.assertEqual(identity((json.dumps(changes[:-1], indent=2) + '\n').encode()), transition['prior_job_changes'])
         binding = json.loads((HERE / 'binding.json').read_bytes())
+        self.assertEqual(binding.pop('play_cli_transition'), a.PLAY_CLI_TRANSITION)
+        binding['source'] = binding.pop('historical_cli118_source')
         del binding['swift_ci_independence_transition']
         self.assertEqual(identity((json.dumps(binding, indent=2) + '\n').encode()), transition['prior_binding'])
 

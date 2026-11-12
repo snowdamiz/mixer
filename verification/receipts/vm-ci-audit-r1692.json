@@ -1,0 +1,154 @@
+{
+  "id": "vm-ci-audit-r1692",
+  "verdict": "evidence_gap",
+  "question": "Did the corrected differential_branch_table_consuming test actually run and pass in debug and release combined-feature CI at 8ee63e6350dc895dd34891a35acd256e38371742?",
+  "answer": "The saved job-log prefix does not show nested_branch_table_matches_node executing or passing in either combined-feature profile. Both captured combined-feature results are ignored, 0 passed. The two --ignored invocations are outside the retained prefix.",
+  "observed_utc": "2026-11-12T20:54:53Z",
+  "commit": "8ee63e6350dc895dd34891a35acd256e38371742",
+  "job": {
+    "name": "vm",
+    "id": 131462115298,
+    "run_id": 43298222758,
+    "workflow": "Owned engine checks",
+    "head_sha": "8ee63e6350dc895dd34891a35acd256e38371742",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43298222758/job/131462115298",
+    "started_at": "2026-11-12T20:14:01Z",
+    "completed_at": "2026-11-12T20:24:49Z",
+    "experimental_step": {
+      "number": 6,
+      "name": "Experimental validation, cached execution, WASI, native sessions and explicit reference checks",
+      "conclusion": "success",
+      "started_at": "2026-11-12T20:14:52Z",
+      "completed_at": "2026-11-12T20:20:06Z"
+    }
+  },
+  "source_identity": {
+    "test_file": "vm/tests/differential_branch_table_consuming.rs",
+    "git_blob": "f13eb4102ca52c7de0c401a798b5e92e91bd82c5",
+    "sha256": "8c5e58f660cb52b8ab361cf2041f48d0bb6b78a414d2edbcc1e0600241e4a11d",
+    "blob_matches_commit_and_worktree": true,
+    "worktree_head": "e4d9dcc328d8ef0410740303f2ea374a16ebbbb5",
+    "workflow_file": ".github/workflows/verify.yml",
+    "workflow_git_blob": "c62343822238994c37b5073ffd6bb5e42b30cd85",
+    "workflow_sha256": "a509124afd98054503811fa2be6e475154662a819a7c5a0e5be5cb15fe048314",
+    "workflow_lines": "565-571",
+    "sole_test": "nested_branch_table_matches_node",
+    "attributes": [
+      "#![cfg(feature = \"experimental-swift-reactor\")]",
+      "#[test]",
+      "#[ignore = \"development Node oracle; run explicitly with experimental-swift-reactor\"]"
+    ],
+    "helper_is_not_a_test": "isolated_branch_table_case"
+  },
+  "commands": [
+    "gh api repos/snowdamiz/mixer/actions/jobs/131462115298",
+    "curl -sS -L --http1.1 --max-redirs 3 --max-time 100 --connect-timeout 20 -D job-log.headers -o - https://api.github.com/repos/snowdamiz/mixer/actions/jobs/131462115298/logs with Accept, X-GitHub-Api-Version 2022-11-28, and Range bytes=-2097152; body read stopped at 2097152 bytes"
+  ],
+  "tools": {
+    "gh": "2.102.0 (2026-09-30)",
+    "runner": "2.338.2",
+    "runner_image": "Linux runnervm7aw5e 7.0.0-1017-azure #17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 18:46:57 UTC 2026 x86_64",
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "1.99.1 (5f94df478 2026-08-27)",
+    "node": "v22.23.4"
+  },
+  "requests": {
+    "count": 2,
+    "limit": 2,
+    "log_elapsed_sec": 1.329,
+    "time_limit_sec": 120
+  },
+  "log_artifact": {
+    "path": "verification/local/vm-ci-audit-r1692/job-log.part",
+    "saved_bytes": 2097152,
+    "sha256": "d07f1b8c79f5439fc70af0a591519c6b636fc7b09388005f2282b6c6a279fb25",
+    "window": "prefix",
+    "full_content_length": 3862780,
+    "bytes_not_saved": 1765628,
+    "http": "GitHub API 302, blob HTTP 200. Range was not applied. Accept-Ranges was advertised. Client killed the transfer at the 2 MiB cap.",
+    "prefix_ends": "2026-11-12T20:19:18.6659265Z inside the combined-feature release non-ignored suite, mid control_trace line",
+    "job_json_sha256": "b3f8d507f56a968706d8ece2c9f2c8629e9dfd606706bfa7a6571d512a6d2ab2",
+    "checkout_sha_in_log": "8ee63e6350dc895dd34891a35acd256e38371742"
+  },
+  "executed_lines": [
+    {
+      "profile": "debug",
+      "features": "none",
+      "ignored_flag": false,
+      "cargo": "cargo test --locked --manifest-path vm/Cargo.toml",
+      "running": "tests/differential_branch_table_consuming.rs (vm/target/debug/deps/differential_branch_table_consuming-b08621aef3574844)",
+      "log_lines": "310-314",
+      "result": "running 0 tests; test result ok. 0 passed; 0 failed; 0 ignored",
+      "test_named": false,
+      "ran": false
+    },
+    {
+      "profile": "release",
+      "features": "none",
+      "ignored_flag": false,
+      "cargo": "cargo test --locked --release --manifest-path vm/Cargo.toml",
+      "running": "tests/differential_branch_table_consuming.rs (vm/target/release/deps/differential_branch_table_consuming-4ed890b80471721f)",
+      "log_lines": "649-653",
+      "result": "running 0 tests; test result ok. 0 passed; 0 failed; 0 ignored",
+      "test_named": false,
+      "ran": false
+    },
+    {
+      "profile": "debug",
+      "features": "experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native",
+      "ignored_flag": false,
+      "finished": "Finished `test` profile [unoptimized + debuginfo] at log line 937",
+      "running": "tests/differential_branch_table_consuming.rs (vm/target/debug/deps/differential_branch_table_consuming-3cf55b9be18106a2)",
+      "log_lines": "1462-1467",
+      "timestamp": "2026-11-12T20:18:05.5257531Z",
+      "line": "test nested_branch_table_matches_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor",
+      "summary": "running 1 test; test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "ran": false,
+      "passed": false
+    },
+    {
+      "profile": "release",
+      "features": "experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native",
+      "ignored_flag": false,
+      "finished": "Finished `release` profile [optimized] at log line 2683",
+      "running": "tests/differential_branch_table_consuming.rs (vm/target/release/deps/differential_branch_table_consuming-c6b89e9a2dc4fb01)",
+      "log_lines": "3203-3211",
+      "timestamp": "2026-11-12T20:19:17.5637720Z",
+      "line": "test nested_branch_table_matches_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor",
+      "summary": "running 1 test; test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "ran": false,
+      "passed": false
+    }
+  ],
+  "ignored_invocations_not_in_artifact": [
+    "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored",
+    "cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored"
+  ],
+  "script_echo_only": "Log lines 931-932 echo those two --ignored commands at the start of step 6. Echo is the shell script text, not test output.",
+  "counts_in_saved_prefix": {
+    "nested_branch_table_matches_node": 2,
+    "ok_result_for_that_test": 0,
+    "CLEANUP case=": 0,
+    "PARITY case=": 0,
+    "fourteen zero": 0,
+    "MIXER_DIFFERENTIAL_BRANCH_CASE": 0
+  },
+  "positive_scope": [
+    "Job identity, head SHA, and step 6 success come from the complete job JSON.",
+    "The same SHA is printed by git rev-parse HEAD in the saved log.",
+    "Combined-feature debug and release non-ignored blocks discovered exactly one ignored test, nested_branch_table_matches_node, and did not run it.",
+    "Featureless debug and release blocks compiled the same test file as running 0 tests, matching the reactor cfg."
+  ],
+  "negative_scope": [
+    "No saved line shows nested_branch_table_matches_node ... ok.",
+    "The harness summary ok on those blocks is 0 passed and 1 ignored. It is not a test pass.",
+    "Step 6 success does not establish that the later --ignored commands executed this test.",
+    "No per-case rows, sixteen-case count, or fourteen-zero cleanup counts are in the artifact. Parent-assertion support is not claimed because the parent pass line is absent.",
+    "R1620, R1638, and R1642 local parity was not rerun and is not this CI result.",
+    "No held job chain was opened. No device, package, or GA conclusion. No later e4 CI was watched.",
+    "Worktree HEAD e4d9dcc is not the audited CI commit. Only the named test file and verify.yml blobs were compared, and they match 8ee63e6."
+  ],
+  "holds_released": false
+}

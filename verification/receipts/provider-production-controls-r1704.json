@@ -1,0 +1,249 @@
+{
+  "id": "provider-production-controls-r1704",
+  "status": "REQUEST_CHANGES",
+  "revision": {
+    "userReported": "e4d9dcc328d8ef0410740303f2ea374a16ebbbb5",
+    "canonical": "v16/275",
+    "gitVerified": false,
+    "canonicalInputsDigest": "11396178582aa699802edb42495ce94c71e46f611a7a61e9413df77108580107"
+  },
+  "scope": {
+    "ownedNamespace": "verification/local/provider-production-controls-r1704",
+    "canonicalEdits": false,
+    "sourceAdmissionEdits": false,
+    "GitOperations": 0,
+    "subchildren": 0,
+    "DB": false,
+    "devices": false,
+    "ADB": false,
+    "externalProvider": false,
+    "realCredentials": false,
+    "deployment": false,
+    "historicHoldAccess": false
+  },
+  "campaign": {
+    "BEAMBatchLimit": 2,
+    "actualBEAMBatches": 2,
+    "thirdAttempt": false,
+    "withinEightMinutes": true,
+    "finishedUTC": "2026-11-12T21:03:58.312522+00:00",
+    "firstObservedClockUTC": "2026-11-12T20:59:10Z",
+    "exactCampaignStartTimestampRecorded": false
+  },
+  "source": {
+    "verifiedProducerFiles": 39,
+    "canonicalInputCount": 30,
+    "canonicalAllUnchanged": true,
+    "privateCandidateAllUnchanged": true,
+    "applicationMap": "verification/local/provider-production-controls-r1704/delivery/application-map.json",
+    "candidateHashes": [
+      {
+        "target": "hosted/lib/mixer_hosted/browser_auth/provider_owner.ex",
+        "before": {
+          "bytes": 13603,
+          "sha256": "f4d130a1242820c5419870e5446bb4283d771bb2ba23bc760b1f6870096fd779"
+        },
+        "after": {
+          "bytes": 16519,
+          "sha256": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192"
+        },
+        "afterimage": "verification/local/provider-production-controls-r1704/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex"
+      },
+      {
+        "target": "hosted/lib/mixer_hosted/browser_auth/provider_https.ex",
+        "before": {
+          "bytes": 11316,
+          "sha256": "57a03f842737b8c9b8950b8de3230e28b0ad5c649dceec2dd0188c3426dca532"
+        },
+        "after": {
+          "bytes": 16230,
+          "sha256": "60e6bc274a7d05eb1eee4b63feb4cb2f50a695ecd03dad191b73b464686e147c"
+        },
+        "afterimage": "verification/local/provider-production-controls-r1704/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_https.ex"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "batch": 1,
+      "result": {
+        "total": 21,
+        "failures": 2,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "passed": 19,
+      "existingHTTPSPassed": 19,
+      "exactTrustedTLS": "SETUP_FAILED",
+      "replacementCapacity16": "SETUP_FAILED",
+      "failure": "ProviderTrustConfig.new/2 rejected hand-built StartupConfig keyword ordering; no candidate runtime started in this batch",
+      "ASTValidatedBeforeCandidate": true
+    },
+    {
+      "batch": 2,
+      "result": {
+        "total": 22,
+        "failures": 2,
+        "skipped": 0,
+        "excluded": 0
+      },
+      "passed": 20,
+      "existingHTTPSPassed": 19,
+      "exactTrustedTLS": "PASS",
+      "replacementCapacity16": "FAIL",
+      "replacementReached": false,
+      "providerRequestsObservedAtTeardown": 6,
+      "replacementRawAssertion": "helpers.exs:7 bounded observation expired from replacement.exs:47 waiting for requests == 16",
+      "SSLInterruption": "HARNESS_FAILED",
+      "SSLRawAssertion": "replacement.exs:103 :sys.get_state(#PID<0.1113.0>) exited normal; first transfer was identity/JWKS fixture, not provider fixture",
+      "ASTValidatedBeforeCandidate": true
+    }
+  ],
+  "exactTLS": {
+    "exact_post": true,
+    "peer_eof": true,
+    "trust_snapshot": true,
+    "one_use_finish": true,
+    "status_redacted": true,
+    "one_use_finish_scope": "one successful finish invocation; no second-finish replay assertion was executed",
+    "secondFinishRejectionTested": false
+  },
+  "productionCompile": {
+    "fixtureExportsAbsent": true,
+    "modules": [
+      "ProviderHTTPS",
+      "ProviderOwner"
+    ],
+    "checkedExports": [
+      "post_fixture/8",
+      "start_production_fixture/5",
+      "start_trust_fixture/2",
+      "start_fixture/3"
+    ],
+    "warningsAsErrors": false
+  },
+  "baseline": {
+    "reproducedInBothBatches": true,
+    "caller_dead": true,
+    "unlinked_watcher_survived": true,
+    "live_tls_before_cleanup": 1,
+    "resumedWatcherDeadAndFixtureStopped": true,
+    "naturalLatencyMeasurement": false
+  },
+  "productCleanup": {
+    "exactExchangePeerEOF": true,
+    "exactTrustJWKSFetchPeerEOF": true,
+    "replacementFixtureObservedActiveAtTeardown": 0,
+    "replacementFixtureObservedPeerEOFs": 6,
+    "replacementIdentityFixtureObservedActiveAtTeardown": 0,
+    "replacementIdentityFixturePeerEOFs": 1,
+    "interruptionIdentityFixtureObservedActiveAtTeardown": 0,
+    "interruptionIdentityHandshakePeerEOF": true,
+    "interruptionProviderConnections": 0,
+    "failedCaseCallerAndWatcherIndividualDOWNProofComplete": false,
+    "capacity16ReplacementCleanupProven": false,
+    "SSLRegistrationRaceProvenOrRepaired": false,
+    "completeIOCustodyClaimed": false,
+    "OSAbsenceDoesNotSubstituteForProductCleanupAssertions": true
+  },
+  "osCustody": {
+    "commands": [
+      {
+        "label": "batch-1",
+        "argv": [
+          "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+          "--erl",
+          "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-production-controls-r1704/batch.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-production-controls-r1704",
+        "pid": 42655,
+        "pgid": 42655,
+        "state": "direct_reaped",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 8.814006500062533,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "batch-2",
+        "argv": [
+          "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+          "--erl",
+          "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-production-controls-r1704/batch.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-production-controls-r1704",
+        "pid": 58546,
+        "pgid": 58546,
+        "state": "direct_reaped",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 18.971514374949038,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "outerDispatchers": [
+      {
+        "session_id": 13560,
+        "initial_response_received": true,
+        "outer": {
+          "pid": 41086,
+          "pgid": 41086,
+          "session": 41086
+        },
+        "ownedGroupAbsentESRCH": true,
+        "terminal_transport_exit": 1
+      },
+      {
+        "session_id": 48596,
+        "initial_response_received": true,
+        "outer": {
+          "pid": 56878,
+          "pgid": 56878,
+          "session": 56878
+        },
+        "ownedGroupAbsentESRCH": true,
+        "terminal_transport_exit": 1
+      }
+    ],
+    "allOwnedGroupsObservedAbsent": true,
+    "newHolds": [],
+    "historicalHoldsReleased": false
+  },
+  "environment": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "Elixir": "1.20.4",
+    "OTP": "29",
+    "OpenSSL": "4.1.0",
+    "Mint": "1.11.0",
+    "HPAX": "1.1.0",
+    "JOSE": "1.11.13",
+    "Jason": "1.4.5",
+    "schedulers": 2,
+    "absoluteProviderDeadlineMS": 5000,
+    "capacityUnchanged": 16,
+    "admittedReusableBEAMs": 125,
+    "completeDependencySourceManifestFreshlyCaptured": false
+  },
+  "logs": {
+    "batch-1.stdout": "verification/local/provider-production-controls-r1704/delivery/batch-1.stdout",
+    "batch-1.stderr": "verification/local/provider-production-controls-r1704/delivery/batch-1.stderr",
+    "batch-2.stdout": "verification/local/provider-production-controls-r1704/delivery/batch-2.stdout",
+    "batch-2.stderr": "verification/local/provider-production-controls-r1704/delivery/batch-2.stderr",
+    "commands.json": "verification/local/provider-production-controls-r1704/delivery/commands.json",
+    "outer-exec.json": "verification/local/provider-production-controls-r1704/delivery/outer-exec.json",
+    "outer-exec-2.json": "verification/local/provider-production-controls-r1704/delivery/outer-exec-2.json"
+  },
+  "artifactManifest": {
+    "path": "verification/local/provider-production-controls-r1704/artifact-manifest.json",
+    "bytes": 11128,
+    "sha256": "984cbaf99d1d1e228f21614e846e8f0ce155ad7708b57847059fde69f5f5f2bf"
+  },
+  "readyForIndependentAcceptanceReview": false,
+  "canonicalAdoption": false,
+  "productionQualification": false,
+  "GA": false
+}
