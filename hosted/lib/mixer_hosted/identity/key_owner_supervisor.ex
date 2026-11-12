@@ -14,7 +14,7 @@ defmodule MixerHosted.Identity.KeyOwnerSupervisor do
   defp initialize(options, owner_start) do
     name = Keyword.get(options, :name, KeyOwner)
     workers = Module.concat(name, FetchSupervisor)
-    owner_options = Keyword.put(options, :worker_supervisor, workers)
+    owner_options = options |> Keyword.put(:name, name) |> Keyword.put(:worker_supervisor, workers)
     owner = KeyOwner.child_spec(owner_options)
     owner = %{owner | start: {KeyOwner, owner_start, [owner_options]}}
 
