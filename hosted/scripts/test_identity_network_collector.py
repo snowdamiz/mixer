@@ -3018,8 +3018,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "d3c744d600c5ba3950e6344e942f1bcd1b7b6233d4efbb0f11abc492afc3f9c5"
-    DIGEST = "f6a84a1350e42b6020914a9967d869f6b58666a26d1eae446331f7e92aa28d05"
+    PIN = "f3d0ae94268cc7887c2bfa712c9f86c06438be6fb9fb41ffa8b5a28ad5305371"
+    DIGEST = "758ae1c973ec4b58ea0158b5566d6ac81cb1cad6a54762d3e5a23a2ff99896a8"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)

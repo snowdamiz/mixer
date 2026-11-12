@@ -14,6 +14,8 @@ The VM differential test now passes independent review after correcting blanket 
 
 The first provider integration commit `89f546521` failed hosted formatting before tests. The two files now pass the repository default formatter with identical parsed syntax trees. Five canonical lifecycle tests and 223 collector controls in each Python mode pass again; the current unqualified v16 candidate pins the formatted bytes. The failed commit and raw format log remain preserved. [Correction](verification/receipts/provider-format-correction-r1636.json) and [revalidation](verification/receipts/provider-format-revalidation-r1640.json).
 
+The first fully executed v16 hosted suite passed 871 tests with two skips, then aborted on the new test's unused-alias warning under `--warnings-as-errors`. The alias is removed; the canonical lifecycle module now emits zero captured diagnostics, all five controls pass, and all 223 collector controls pass in each Python mode. A fresh hosted run remains required. [Full-suite correction](verification/receipts/provider-full-suite-r1654.json).
+
 ## Previous checkpoint
 
 Private provider work remains unadopted. R1576 passed 12 pure constructor cases; R1578 independently passed one adversarial test covering 71 rejection cases. R1586 passed the actual KeyOwner lease and generation-fencing test. These results do not qualify ProviderOwner lifecycle or configured production startup. [Constructor](verification/receipts/production-browser-admission-r1576.json), [independent review](verification/receipts/provider-trust-review-r1578.json), and [KeyOwner result](verification/receipts/provider-trust-official-context-r1586.json).

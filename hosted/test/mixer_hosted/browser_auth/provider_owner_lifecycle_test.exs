@@ -26,7 +26,6 @@ defmodule MixerHosted.BrowserAuth.ProviderOwnerLifecycleTest do
 
   alias MixerHosted.BrowserAuth.{
     Config,
-    ConfigurationDigest,
     Installation,
     ProviderOwner,
     ProviderTrustConfig
