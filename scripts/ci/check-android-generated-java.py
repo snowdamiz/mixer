@@ -467,6 +467,49 @@ def command_exit_boundary(code=74, owners=_COMMAND_OWNERS,
 atexit.register(command_exit_boundary)
 
 
+_RUNNER_ERROR_LINES = {740:"read-stream",757:"selector-create",758:"process-setup",759:"process-setup",760:"process-setup",764:"nonblocking-setup",765:"selector-register",766:"selector-map-or-process-poll",767:"execution-clock",770:"selector-ready"}
+
+
+def _runner_first_error(phase, operation, error):
+    """Private, bounded observation only; never changes command custody."""
+    try:
+        if phase == 'execution':
+            trace = error.__traceback__
+            for _ in range(16):
+                if trace is None:
+                    break
+                frame = trace.tb_frame
+                if frame.f_globals is globals() and frame.f_code.co_name in ('run', 'read_stream'):
+                    operation = _RUNNER_ERROR_LINES.get(trace.tb_lineno, operation)
+                trace = trace.tb_next
+        if phase not in ('execution', 'cleanup', 'persistence') or operation not in (
+                'runner-execution', 'selector-create', 'process-setup', 'nonblocking-setup',
+                'selector-register', 'selector-map-or-process-poll', 'execution-clock',
+                'selector-ready', 'read-stream', 'signal-owned-group', 'reap-direct-child',
+                'nonblocking-stdout', 'nonblocking-stderr', 'observe-owned-group',
+                'drain-stdout', 'drain-stderr', 'cleanup-wait', 'close-stdout',
+                'close-stderr', 'close-selector', 'persist-stdout', 'persist-stderr',
+                'persist-command-receipt', 'persist-hold'):
+            return
+        kind = type(error).__name__
+        if kind not in ('PermissionError', 'ProcessLookupError', 'BlockingIOError',
+                        'OSError', 'TimeoutError', 'TimeoutExpired', 'RuntimeError',
+                        'ValueError', 'TypeError', 'MemoryError', 'KeyboardInterrupt',
+                        'SystemExit', 'AssertionError', 'AttributeError'):
+            kind = 'other'
+        number = OSError.errno.__get__(error) if isinstance(error, OSError) else None
+        if type(number) is not int or not -4096 <= number <= 4096:
+            number = None
+        line = 'RUNNER_FIRST_ERROR ' + json.dumps({
+            'phase': phase, 'operation': operation, 'type': kind, 'errno': number},
+            sort_keys=True, separators=(',', ':')) + '\n'
+        if len(line.encode('utf-8')) <= 512:
+            sys.stderr.write(line)
+            sys.stderr.flush()
+    except BaseException:
+        pass
+
+
 class Commands:
     """Bounded pipes and only owned process-group cleanup, including failures."""
     def __init__(self, out, env, *, seconds=2400, command_seconds=600,
@@ -671,7 +714,23 @@ class Commands:
                      'selector': None, 'logs': logs, 'buffers': buffers}
         _COMMAND_OWNERS.append(resources)
 
+        first_error = None
+        if self.env.get('MIXER_RUNNER_FIRST_ERROR') == '1':
+            first_error_seen = False
+
+            def first_error(phase, operation, error):
+                nonlocal first_error_seen
+                if first_error_seen:
+                    return
+                first_error_seen = True
+                try:
+                    _runner_first_error(phase, operation, error)
+                except BaseException:
+                    pass
+
         def cleanup_error(operation, error):
+            if first_error is not None:
+                first_error('persistence' if operation.startswith('persist-') else 'cleanup', operation, error)
             record['cleanup_errors'].append({'operation': operation,
                 'type': type(error).__name__, 'message': str(error)})
 
@@ -715,6 +774,8 @@ class Commands:
                 if record['stop']:
                     break
         except BaseException as error:
+            if first_error is not None:
+                first_error('execution', 'runner-execution', error)
             record['execution_error'] = {'type': type(error).__name__, 'message': str(error)}
         finally:
             if child is not None:
@@ -817,6 +878,8 @@ class Commands:
                 try:
                     durable_save(self.out / 'COMMAND-HOLD.json', self.hold)
                 except BaseException as error:
+                    if first_error is not None:
+                        first_error('persistence', 'persist-hold', error)
                     record['hold_persistence_error'] = repr(error)
         require('execution_error' not in record, label + ': ' + str(record.get('execution_error')))
         require(record['terminal_custody'], label + ': terminal custody unknown or cleanup failed')

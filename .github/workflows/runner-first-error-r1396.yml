@@ -1,0 +1,87 @@
+name: Private runner first-error observation
+on:
+  push:
+    branches:
+      - t3/runner-first-error-r1396
+permissions:
+  contents: read
+jobs:
+  runner-first-error:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      MIXER_RUNNER_FIRST_ERROR: "1"
+      # runner-images macos-15-arm64/20260907.0337 includes this installation;
+      # its default Xcode 16.4 supplies Swift 6.1 and cannot build the CLI.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Builder boundary fixtures read the independently reviewed native pin.
+          fetch-depth: 0
+          # Retain source and every policy manifest; omit unrelated old receipts.
+          # Complete framing seals, envelope pack and external test inputs remain.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/verification/*
+            /verification/**/Package.swift
+            /verification/**/Package.resolved
+            /verification/**/Cargo.toml
+            /verification/**/Cargo.lock
+            /verification/**/package.json
+            /verification/**/package-lock.json
+            /verification/**/go.mod
+            /verification/**/go.sum
+            /verification/**/build.gradle
+            /verification/**/build.gradle.kts
+            /verification/**/settings.gradle.kts
+            /verification/runtime-review/
+            /verification/guest-capability-contract/
+            /verification/swift-ordered-retention-analyzer-library/
+            /verification/swift-ordered-retention-analyzer-library-review/
+            /verification/swift-envelope-ci-pack/
+            /verification/envelope-producer-timeout-experiment/candidate_runner.py
+            /verification/envelope-producer-timeout-experiment/overlay.json
+            /verification/envelope-producer-timeout-experiment/producer-partition.json
+            /verification/envelope-partition-default-ci-adoption/
+            /verification/envelope-rust-1991-default-ci-adoption/
+            /verification/plan-continuation-2026-11-07/envelope-output-ownership-fix-r2/
+            /verification/plan-continuation-2026-11-07/envelope-profile10-rebind-r3/
+            /verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/
+            /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/workflow-proposal.yml
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/sources/swift-releases.yml
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/sources/download-head.json
+            /verification/plan-continuation-2026-11-07/envelope-r2-hosted-actual-review/review.json
+            /verification/swift-envelope-ci-root-review/compiler-qualification-selection-amendment.json
+            /verification/swift-envelope-ci-root-review/test-lint-selection-amendment.json
+            /verification/android-default-appearance-packaging/run-2/created-descriptor.json
+            /verification/ui-measured-appearance-v2-contract/mixer-measured-default-v2.json
+            /verification/ui-shared-appearance-contract/v2/mixer-default-appearance-v1.json
+            /verification/ui-appearance-foundation/design-corpus.json
+      - name: CI selection regression tests
+        working-directory: scripts/ci/tests
+        run: |
+          set -euo pipefail
+          diag_dir="$RUNNER_TEMP/runner-first-error-r1396"
+          mkdir -p "$diag_dir"
+          python3 --version > "$diag_dir/python.txt" 2>&1
+          shasum -a 256 "$GITHUB_WORKSPACE/scripts/ci/check-android-generated-java.py" "$GITHUB_WORKSPACE/scripts/ci/tests/test_android_generated_java_runner.py" > "$diag_dir/source-hashes.txt"
+          set +e
+          python3 -m unittest test_android_generated_java_runner.RunnerControls.test_explicit_stdout_budget_captures_complete_large_output_without_changing_defaults -v 2>&1 | tee "$diag_dir/tests.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          exit "$result"
+      - name: Preserve only top-level diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-first-error-r1396
+          path: ${{ runner.temp }}/runner-first-error-r1396/
+          if-no-files-found: error
+          retention-days: 14
