@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "id": "provider-constructor-integration-review-r1610",
+  "recordedUTC": "2026-11-12T19:11:52.010919+00:00",
+  "status": "PASS",
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "xhigh",
+    "speed": "standard"
+  },
+  "scope": "Independent source/output review of canonical constructor runner and four-line hosted CI integration only. Accepted R1576/R1578 constructor/test semantics not re-reviewed.",
+  "revision": "44a1f99a3f3535b84b9fec82b157254dde384a9f",
+  "workingTreeInputs": {
+    "hosted/scripts/check-provider-trust-config.exs": {
+      "bytes": 1791,
+      "sha256": "6366732b6f01a6176688da14145efd6002a0de22475cd74984b432046625cb62"
+    },
+    ".github/workflows/hosted.yml": {
+      "bytes": 13851,
+      "sha256": "9d898848e512e983e5c0f2b8a8c8889512daf451aba540225567f35c2d7050ba"
+    },
+    "hosted/lib/mixer_hosted/browser_auth/provider_trust_config.ex": {
+      "bytes": 3921,
+      "sha256": "4e307be72ffdedfd60cba9ee87a24f333de0272b6fe5bd5f5f24f34a773f9978"
+    },
+    "hosted/test/mixer_hosted/browser_auth/provider_trust_config_test.exs": {
+      "bytes": 9246,
+      "sha256": "719e5b3ed1512800c02a42255995e27fea4a5ba96274e5d33c41535391e6f721"
+    }
+  },
+  "inspectedSourceTreeDigestSHA256": "c1791006bf29033fa9c6343ff69c76942690a0a6ec72ebea2a1d5524af1095f6",
+  "findings": [],
+  "checks": [
+    {
+      "name": "CI sparse inputs and dependency ordering",
+      "status": "PASS",
+      "evidence": [
+        ".github/workflows/hosted.yml:86",
+        ".github/workflows/hosted.yml:154",
+        ".github/workflows/hosted.yml:190",
+        ".github/workflows/hosted.yml:193",
+        "hosted/mix.lock"
+      ],
+      "conclusion": "Non-cone /hosted/ sparse input includes runner, nine required modules and test. Root-relative step follows locked dependency resolution and uses hosted/deps/jason/lib. Jason archive hash in adoption matches the locked 1.4.5 package. Pinned Elixir 1.20.4/OTP29 matches observed local replay. MIX_ENV:test on preceding step is step-local; runner explicitly selects prod."
+    },
+    {
+      "name": "Current formatted runner and production output",
+      "status": "PASS",
+      "evidence": [
+        "verification/receipts/provider-constructor-adoption-r1606.json#formattedReplay",
+        "verification/local/provider-constructor-adoption-r1606/formatted-logs/constructor-canonical-formatted.stdout",
+        "verification/local/provider-constructor-adoption-r1606/formatted-logs/commands.json",
+        "hosted/scripts/check-provider-trust-config.exs:5"
+      ],
+      "conclusion": "Current runner and workflow hashes match formattedReplay. Actual stdout records prod, OTP29/Elixir1.20.4, ten Jason sources, 12 total/0 failures/0 skipped/0 excluded and no production activation. All ten source/test identities match current canonical bytes. Command records agree with receipt and report exit0, direct reap, both EOFs, closed descriptors and group absence. Runner loads only explicit dependencies, initializes public_key, runs ExUnit and exits nonzero on failure, skip or total !=12."
+    },
+    {
+      "name": "Production and ordinary test compatibility",
+      "status": "PASS_SOURCE_REVIEW",
+      "evidence": [
+        "hosted/mix.exs:28",
+        "hosted/lib/mixer_hosted/browser_auth/installation.ex:12",
+        "hosted/lib/mixer_hosted/browser_auth/installation.ex:29",
+        "hosted/test/mixer_hosted/browser_auth/provider_trust_config_test.exs:241",
+        "hosted/scripts/test-local.py:296"
+      ],
+      "conclusion": "New lib module compiles under both lib-only production and lib+test/support test paths. Test uses public constructor/configuration APIs and public_key CA loading. Installation.load! configured refusal and disabled branch are outside its test-only fixture definitions, so test assertion applies in both modes. Existing broad mix test discovers added *_test.exs; test-local manifest records additive files and compares before/after rather than enforcing a closed repository file count. No lifecycle/startup code changed."
+    },
+    {
+      "name": "Existing strict selected-source runner",
+      "status": "PASS_SOURCE_AND_HASH_INSPECTION",
+      "evidence": [
+        "hosted/scripts/test-identity-network.py:1218",
+        "hosted/scripts/test-identity-network.py:2399",
+        "verification/identity-network-current-source-v15/selected-source-manifest.json",
+        "verification/hosted-browser-auth-protocol/run.py:50"
+      ],
+      "conclusion": "Independently read all 272 named v15 inputs and matched every byte-size/hash to selected manifest. Constructor, test and runner are unselected additions. --check-source builds observed map by iterating ORDINARY_BROWSER_MANIFEST; runtime obtains sorted explicit manifest Git blobs. Neither demands total filesystem membership. Protocol runner likewise uses explicit source list. Strict authority remains unchanged; added files do not expand or invalidate it."
+    }
+  ],
+  "executionEvidence": {
+    "adoption": "verification/receipts/provider-constructor-adoption-r1606.json",
+    "initialResult": {
+      "total": 12,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "formattedResult": {
+      "total": 12,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "formattedCommand": {
+      "label": "constructor-canonical-formatted",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "hosted/scripts/check-provider-trust-config.exs",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/production-browser-admission-r1576/dependency/jason/lib"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 48901,
+      "pgid": 48901,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 3.0408204999985173,
+      "ownedGroupAbsentESRCH": true
+    },
+    "rawOutput": "verification/local/provider-constructor-adoption-r1606/formatted-logs/constructor-canonical-formatted.stdout",
+    "inspection": "verification/local/provider-constructor-integration-review-r1610/inspection.json"
+  },
+  "reviewMethod": {
+    "commands": [
+      "cat AGENTS.md",
+      "sed/cat targeted runner, workflow, Mix project/lock, installation and test compatibility code",
+      "git rev-parse HEAD",
+      "git diff -- .github/workflows/hosted.yml",
+      "targeted source/output reads and Python stdlib JSON/SHA256 comparisons"
+    ],
+    "inspectionTool": "Python 3.14.8",
+    "newRuntimeTests": 0,
+    "rootRuntimeResultsIndependentlyInspected": true,
+    "network": false,
+    "subchildren": false,
+    "sourceChanges": false,
+    "stagedChanges": false
+  },
+  "limitations": [
+    "No fresh reviewer runtime test; existing canonical and formatted root runs were inspected.",
+    "Full Mix suite and hosted CI were not executed or claimed passed by this review.",
+    "Root-reported --check-source was not replayed; selected hashes and exact source-selection behavior were independently checked.",
+    "CI integration readiness only; production startup/activation, live providers, native/device and GA qualification remain pending/closed."
+  ],
+  "productionActivation": false,
+  "GA": false,
+  "holdsReleased": false,
+  "heldResourcesAccessed": false,
+  "newHolds": []
+}

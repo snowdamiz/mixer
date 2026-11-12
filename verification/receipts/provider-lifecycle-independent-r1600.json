@@ -1,0 +1,311 @@
+{
+  "schema": 1,
+  "id": "provider-lifecycle-independent-r1600",
+  "status": "REQUEST_CHANGES",
+  "recordedUTC": "2026-11-12T19:11:02.436297+00:00",
+  "reviewerModel": "gpt-6.1-sol",
+  "reasoningEffort": "xhigh",
+  "speed": "standard",
+  "producerReceipt": "verification/receipts/provider-permit-owner-r1594.json",
+  "canonicalAdoptionAllowed": false,
+  "P2Resolved": false,
+  "finding": {
+    "priority": "P2",
+    "title": "KeyOwner replacement admits16 actual workers while16 old transports still run",
+    "observableInvariant": "actual old+replacement profile transport workers <=16, across owner lifetimes",
+    "actual": {
+      "capacity": 16,
+      "old_transport_workers_alive": 16,
+      "replacement_transport_workers_alive": 16,
+      "simultaneous_actual_transport_workers": 32,
+      "remaining_original_deadline_ms": 3983,
+      "original_table_deleted": true,
+      "old_workers_suspended": false,
+      "new_table_slot_rows": 32
+    },
+    "sequence": [
+      "16 genuine deferred calls occupy all old slots",
+      "abrupt actual ProviderOwner death leaves old calls blocked",
+      "actual KeyOwner killed; real supervisor replaces it and its table",
+      "new ProviderOwner admits16 genuine replacement transport calls",
+      "all32 exact live PIDs are simultaneously pending in the real fixture transport"
+    ],
+    "evidence": "verification/local/provider-lifecycle-independent-r1600/delivery/cross-owner-observations.json",
+    "smallestCorrectiveContract": "Place the actual raw transport workers under an owned worker supervisor inside the existing KeyOwnerSupervisor one_for_all restart boundary, ordered before KeyOwner. Terminate and await that worker supervisor and every old worker before replacement KeyOwner publishes its new table/name. Start ProviderOwner raw workers through this supervisor; keep the original PID/lease checks. A completion fence alone cannot enforce this lifetime invariant. This is the smallest corrective contract proposed by this review, not an implemented or validated patch."
+  },
+  "sourceIdentities": {
+    "provider-permit-owner-r1594/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-permit-owner-r1594/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex",
+      "bytes": 12277,
+      "sha256": "c99f763b58c1c7e6e617862d53960d050e9234bfdea1ed9ad22bcdb36179728c"
+    },
+    "provider-trust-owner-fencing-r1580/source/hosted/lib/mixer_hosted/identity/key_owner.ex": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-owner-fencing-r1580/source/hosted/lib/mixer_hosted/identity/key_owner.ex",
+      "bytes": 15903,
+      "sha256": "d5d98bec506ad418c37fc36097d2cf714261c3f644875bf2bf93b4360adefe5d"
+    },
+    "provider-trust-owner-fencing-r1580/source/hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-owner-fencing-r1580/source/hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex",
+      "bytes": 1110,
+      "sha256": "aafb1be8c32215a0c34e6ae52a3bbc90e449f3976f95179804e016250bce0eaf"
+    },
+    "provider-trust-owner-fencing-r1580/source/hosted/lib/mixer_hosted/identity/admission.ex": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-owner-fencing-r1580/source/hosted/lib/mixer_hosted/identity/admission.ex",
+      "bytes": 2723,
+      "sha256": "f1a0ea0420a644b06f93910cbf807171e1978b2b0adf6c4186b203bf377a6d85"
+    },
+    "provider-trust-owner-fencing-r1580/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_trust_config.ex": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-owner-fencing-r1580/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_trust_config.ex",
+      "bytes": 3921,
+      "sha256": "4e307be72ffdedfd60cba9ee87a24f333de0272b6fe5bd5f5f24f34a773f9978"
+    }
+  },
+  "execution": {
+    "BEAMLaunches": 1,
+    "combinedCompileExUnitBatches": 1,
+    "result": {
+      "total": 3,
+      "failures": 1,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "payload": {
+      "label": "independent-cross-keyowner-batch",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-lifecycle-independent-r1600/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-lifecycle-independent-r1600",
+      "pid": 40107,
+      "pgid": 40107,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 8.101259332965128,
+      "ownedGroupAbsentESRCH": true
+    },
+    "retries": 0,
+    "postPayloadSourceChanges": 0,
+    "subchildren": 0,
+    "replayCommand": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir --erl '+S 2:2 +SDcpu 1 +SDio 1 +sbwt none' /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-lifecycle-independent-r1600/batch.exs",
+    "versions": {
+      "otp": "29",
+      "elixir": "1.20.4",
+      "openssl": "4.1.0",
+      "jason": "1.4.5",
+      "jose": "1.11.13",
+      "mint": "1.11.0",
+      "hpax": "1.1.0",
+      "mint_hpax_jason_basis": "outer-lock-admitted source manifests checked before and after; direct official compiler APIs"
+    },
+    "externalNetworkContacts": 0,
+    "loopbackTLSRequests": 6,
+    "dependencyFetches": 0,
+    "dependencyCopies": 0,
+    "officialSourceAndBeamHashes": "verification/local/provider-lifecycle-independent-r1600/input-manifest.json",
+    "baselineTestsByteExact": true
+  },
+  "observations": {
+    "selectedProviderDeathAndExpiry": "PASS",
+    "existingLeaseGenerationAndProductionRefusal": "PASS",
+    "crossKeyOwnerOverlap": "FAIL_ACTUAL_32_OVER_16",
+    "exactRuntimeIdentities": {
+      "original_table_deleted": true,
+      "replacement_table": "#Reference<0.1047375878.2562588674.18218>",
+      "capacity": 16,
+      "old_transport_workers_alive": 16,
+      "replacement_transport_workers_alive": 16,
+      "simultaneous_actual_transport_workers": 32,
+      "old_provider": "#PID<0.718.0>",
+      "replacement_provider": "#PID<0.763.0>",
+      "original_KeyOwner": "#PID<0.716.0>",
+      "replacement_KeyOwner": "#PID<0.762.0>",
+      "original_table": "#Reference<0.1047375878.2562588674.17701>",
+      "actual_old_workers": [
+        "#PID<0.749.0>",
+        "#PID<0.750.0>",
+        "#PID<0.751.0>",
+        "#PID<0.755.0>",
+        "#PID<0.756.0>",
+        "#PID<0.757.0>",
+        "#PID<0.745.0>",
+        "#PID<0.746.0>",
+        "#PID<0.758.0>",
+        "#PID<0.747.0>",
+        "#PID<0.748.0>",
+        "#PID<0.753.0>",
+        "#PID<0.759.0>",
+        "#PID<0.760.0>",
+        "#PID<0.752.0>",
+        "#PID<0.754.0>"
+      ],
+      "actual_new_workers": [
+        "#PID<0.780.0>",
+        "#PID<0.792.0>",
+        "#PID<0.783.0>",
+        "#PID<0.793.0>",
+        "#PID<0.794.0>",
+        "#PID<0.787.0>",
+        "#PID<0.795.0>",
+        "#PID<0.781.0>",
+        "#PID<0.782.0>",
+        "#PID<0.784.0>",
+        "#PID<0.788.0>",
+        "#PID<0.785.0>",
+        "#PID<0.786.0>",
+        "#PID<0.790.0>",
+        "#PID<0.789.0>",
+        "#PID<0.791.0>"
+      ],
+      "old_worker_current_functions": [
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}",
+        "{:current_function, {:gen, :do_call, 4}}"
+      ],
+      "old_workers_suspended": false,
+      "remaining_original_deadline_ms": 3983,
+      "new_table_slot_rows": 32,
+      "overflow_refused_at_new_owner_capacity": true,
+      "replacement_admission_succeeded_while_old_actual_workers_alive": true,
+      "original_deadlines_unextended": true,
+      "external_provider_traffic": false
+    }
+  },
+  "cleanup": {
+    "cross-owner-cleanup.json": {
+      "original_owner_dead": true,
+      "transport_dead": true,
+      "all_32_exact_worker_DOWN": true,
+      "all_32_caller_DOWN": true,
+      "full_capacity_restored": true,
+      "browser_dead": true,
+      "fixture_dead": true,
+      "names_absent": true,
+      "replacement_owner_dead": true,
+      "original_fetch_dead": true,
+      "replacement_fetch_dead": true,
+      "providers_dead": true,
+      "both_tables_deleted": true
+    },
+    "crash-cleanup.json": {
+      "transport_dead": true,
+      "all_32_exact_worker_DOWN": true,
+      "all_32_caller_DOWN": true,
+      "full_capacity_restored": true,
+      "table_deleted": true,
+      "owner_dead": true,
+      "fetch_dead": true,
+      "browser_dead": true,
+      "fixture_dead": true,
+      "names_absent": true
+    },
+    "beam-cleanup.json": {
+      "provider_dead": true,
+      "original_owner_dead": true,
+      "workers_dead": true,
+      "browser_supervisor_dead": true,
+      "transport_dead": true,
+      "tls_dead": true,
+      "owner_name_absent": true,
+      "provider_name_absent": true,
+      "worker_name_absent": true,
+      "original_table_deleted": true
+    },
+    "application-cleanup.json": {
+      "jose_stopped": true,
+      "jose_supervisor_dead": true,
+      "provider_owner_started": true,
+      "fixture_tmp_entries_after": []
+    }
+  },
+  "osCustody": {
+    "inner": {
+      "label": "independent-cross-keyowner-batch",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-lifecycle-independent-r1600/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-lifecycle-independent-r1600",
+      "pid": 40107,
+      "pgid": 40107,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 8.101259332965128,
+      "ownedGroupAbsentESRCH": true
+    },
+    "outer": {
+      "outerPID": 38856,
+      "outerPGID": 38856,
+      "execSession": 12237,
+      "transportExit": 1,
+      "completeInitialAndTerminalResponseReadBack": true,
+      "terminalTransportBasis": "Completed exec transport; internals not separately instrumented",
+      "UTC": "2026-11-12T19:08:46.165507+00:00",
+      "originalKillpg0ESRCH": true
+    },
+    "separateFromProductCleanup": true
+  },
+  "sourceProof": {
+    "namedInputsExactBeforeAfter": 719,
+    "originalProducerInputs": 713,
+    "ownedReviewFiles": 6,
+    "details": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-lifecycle-independent-r1600/input-manifest.json",
+    "currentCanonical272MatchesOwningInputManifest": true,
+    "currentCanonicalObservationScope": "Direct hash observation during result collection and final collection; prior-root canonical selected inputs independently before/after in this runtime adapter.",
+    "currentCanonicalUnchangedBetweenReviewObservations": true,
+    "producerAfterimageUnchanged": true,
+    "baselineTestsByteExact": true,
+    "canonicalEdits": false,
+    "staged": false
+  },
+  "revision": {
+    "latestLocalUserProvided": "44a1f99a3",
+    "owningProduct": "v15/272",
+    "owningProductRevision": "64bd540a044766c4d4e2b30485dcf9e9546afd2d",
+    "basis": "User brief and inherited pinned input receipts;272 current selected hashes match. No Git."
+  },
+  "limitations": [
+    "Private local fixture only; production startup stays closed. No immutable-package, CI, native/device, full crash matrix, production or GA qualification.",
+    "The failing ordering kills ProviderOwner, then kills actual KeyOwner while genuine old GenServer.call workers remain blocked. It does not separately reproduce KeyOwner-only death with a live delayed ProviderOwner. That narrower interleaving remains unclaimed.",
+    "Transport is the admitted private RawTransport GenServer; actual TLS/Mint trust acquisition uses loopback. No external provider exchange or credential was exercised.",
+    "The passing expiry replay suspends owned old workers as in unchanged R1594; the failing cross-KeyOwner case suspends none and extends no deadline.",
+    "No internally raised transport RuntimeError control.",
+    "Replay argv below is the exact tested payload. Reconstruct it in a fresh owned evidence namespace before replay; this selected namespace contains final evidence and should be preserved.",
+    "OS outer transport reap/EOF/descriptor internals are not separately instrumented; terminal transport completion and original group ESRCH are recorded separately.",
+    "Revision identifiers are inherited from the task and receipts; no Git operation was performed."
+  ],
+  "newHolds": [],
+  "historicalHoldsAccessed": false,
+  "holdsReleased": false,
+  "productionActivation": false,
+  "GA": false,
+  "canonicalEdits": false,
+  "staged": false,
+  "report": "verification/local/provider-lifecycle-independent-r1600/REPORT.md",
+  "artifactManifest": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-lifecycle-independent-r1600/artifact-manifest.json",
+    "bytes": 18329,
+    "sha256": "d7028d637c34a355a8577dc6098ba883be64ac85e1c3b8b8b45eb48e2093b39b"
+  },
+  "artifactBytes": 1109424
+}

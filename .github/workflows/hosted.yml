@@ -190,6 +190,10 @@ jobs:
         run: |
           mix deps.compile jason
           python3 ../verification/hosted-browser-auth-protocol/run.py
+      - name: Provider trust constructor production-mode checks
+        run: >-
+          elixir --erl '+S 2:2 +SDcpu 1 +SDio 1 +sbwt none'
+          hosted/scripts/check-provider-trust-config.exs hosted/deps/jason/lib
       - name: Compile workspace client for real HTTP integration
         working-directory: console
         run: |
