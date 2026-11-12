@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "status": "NO_REPRODUCTION",
+  "recorded_utc": "2026-11-11T23:10:37.967898+00:00",
+  "test": "Elixir.MixerHosted.Authorization.ArtifactReadTest: test expiry immediately after actual metadata resolution rejects before callback",
+  "A1_exit": 0,
+  "A1_passed": 1,
+  "A1_excluded": 14,
+  "A1_skipped": 0,
+  "exact_single_named_case": true,
+  "original_timing": "F.identity(%{expires_at: F.now() + 1})",
+  "original_expiry_handler_assertion_callback_unchanged": true,
+  "actual_metadata_result": {
+    "command": "select",
+    "result": "ok",
+    "num_rows": 1,
+    "row_count": 1,
+    "expected_expiry_s": 1794438576,
+    "observed_system_us": 1794438575378782,
+    "observed_monotonic_us": -576460750146709,
+    "total_us": 16492,
+    "query_us": 16491,
+    "caller_bound": true
+  },
+  "callback_state": "not run; original flunk callback and original unauthenticated assertion passed",
+  "observer": {
+    "event": [
+      "mixer_artifact_read_fixture",
+      "repo",
+      "query"
+    ],
+    "private_caller_PD_marker": true,
+    "result_rows_from": "metadata.result real Postgrex result, not query-text inference",
+    "records": 1,
+    "bytes": 226,
+    "limits": {
+      "records": 32,
+      "bytes": 4096
+    },
+    "synchronous": true,
+    "logging_failure_swallowed": true,
+    "after_suite_detached": true,
+    "order_limitation": "private telemetry handler order may observe timestamp after F.expire; row_count is actual completed database result"
+  },
+  "B_payloads": 0,
+  "fixture_or_production_fix_proposed": false,
+  "prior_R1286_cause": "Unproven: this one isolated focused pass does not explain prior suite failure under its load/timing.",
+  "fixture_setup": "Exact ordinary read_scope roles/database/schema grants; unchanged focused setup_all ran all three real migrations and topology preflight.",
+  "actual_catalog_hash": "ff576c90a10e0bc098f3c7b593640f508aa676a166b8e2123257501f50eb375e",
+  "versions": {
+    "PostgreSQL": "17.11",
+    "Elixir": "1.20.4",
+    "OTP": "29.1.1_2",
+    "pinned_rebar": "3.28.0; BOOTSTRAP sha512 exact"
+  },
+  "builds": {
+    "product": 0,
+    "dependencies": 0,
+    "native_Rust_TS": 0,
+    "test_fixture_loading": "Ordinary focused ExUnit file and required migration .exs loaded in BEAM; no Mix compile or dependency build task."
+  },
+  "identity": {
+    "source_tree_sha256": "17d73e2c70f1899d3c6d7a2a51927ca65b658bf9eddc60e653d751de7da3b1af",
+    "detail": "verification/local/artifact-expiry-premise-r1306/source-identity.json",
+    "product_BEAM_origin": "R1284 fresh-compiled-module-identities.json; copied test cache exact before and after",
+    "loaded_module_paths_independently_observed": false,
+    "test_observed": {
+      "bytes": 27222,
+      "sha256": "ffefb07cdec4c28662031a01d7d1241aee48dff1849ab96628e9759615568e52"
+    },
+    "test_original_and_inverse": {
+      "bytes": 27133,
+      "sha256": "8f92de8e22764cc6c6e5f79d377819f818f70ac5fefb443b2dc535bc2098065c"
+    },
+    "postrun": "verification/local/artifact-expiry-premise-r1306/final-identity-proof.json"
+  },
+  "corrections": {
+    "count": 2,
+    "first": "Cached generated telemetry source.dag refreshed since expected source manifest; actual unmodified cached DAG frozen.",
+    "second": "Root explicitly selected correcting erroneous fixture superuser rolbypassrls expectation to false and restarting same stopped cluster; no role/product SQL changed.",
+    "prior_failures_retained": true,
+    "further_corrections": 0
+  },
+  "resource_bounds": {
+    "PG_clusters_initialized": 1,
+    "PG_server_starts": 2,
+    "focused_payloads": 1,
+    "semantic_retries": 0,
+    "full_suites": 0,
+    "Git_network_subchildren": 0,
+    "original_hard_cutoff": "2026-11-11T23:14:30+00:00",
+    "reserve_seconds": 60,
+    "campaign_clock_reset": false
+  },
+  "cleanup": {
+    "pg_stop": 0,
+    "pg_status": 3,
+    "TCP_errno": 61,
+    "TCP_refused": true,
+    "all_managed_groups_terminal": true
+  },
+  "managed_commands_terminal": 15,
+  "outer_execs": [
+    {
+      "session_id": 93922,
+      "exit_code": 0,
+      "terminal_response_readback": true
+    },
+    {
+      "session_id": 65010,
+      "exit_code": 0,
+      "terminal_response_readback": true
+    }
+  ],
+  "holds_touched": false,
+  "new_hold": false,
+  "raw_outputs": "verification/local/artifact-expiry-premise-r1306/logs/00013-A1-original-expiry.stdout and .stderr",
+  "warnings": "Diagnostic modules were required before dependency code paths became available, producing four compile-time undefined-module warnings; runtime observer attached, captured actual result, detached and test passed. Warnings retained unchanged.",
+  "root_notified": true
+}

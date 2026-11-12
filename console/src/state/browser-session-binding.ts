@@ -1,10 +1,10 @@
 import { createSignal, getOwner, onCleanup } from "solid-js";
 import type { Accessor } from "solid-js";
 import { createBrowserSessionController } from "./browser-session-controller.js";
-import type { WorkspaceSession } from "./workspace-controller.js";
+import type { ConsoleSession } from "./browser-session-controller.js";
 
 export interface BrowserSessionBinding {
-  readonly workspaceSession: Accessor<WorkspaceSession>;
+  readonly workspaceSession: Accessor<ConsoleSession>;
   revalidate(): void;
   invalidate(): void;
 }
@@ -77,7 +77,7 @@ export function createBrowserSessionBinding(): BrowserSessionBinding {
     setSnapshot(controller.getSession());
   });
   return Object.freeze({
-    workspaceSession(): WorkspaceSession {
+    workspaceSession(): ConsoleSession {
       snapshot(); // Track notifications, but always enforce the live synchronous fence.
       if (!visible()) { queued = false; controller.invalidate(); }
       return controller.getSession();

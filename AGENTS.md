@@ -473,3 +473,16 @@ The fresh hosted cache descendant control in run 43055169989, job 130642569551, 
 The R1138 private source-composition preparation lost its asynchronous supervisor handle before recording a durable outer PID/PGID. Preserve the entire `verification/local/browser-build-current-source-r1138` namespace without inspection, enumeration, probing, signalling, waiting, retry or cleanup. Only the separate compact `verification/receipts/browser-build-current-source-r1138.json` is a permitted reference. No compiler, PostgreSQL, Node-test, collector or strict payload was launched and no canonical adoption occurred. File presence or later outer status must not be used to infer terminal custody. Fresh composition from canonical v9 and the unheld reviewed R1128/R1122/R1134 static packets uses a separately selected namespace and does not release this hold.
 
 The R1180 customer-read diagnostic was interrupted by the Acid/provider restart. Its sole owning-thread collection of primary exec session 26801 returned Unknown process id; this does not establish absence. Preserve the ENTIRE `verification/local/customer-read-refusal-r1180` namespace, including source, diagnostics, logs, database and scratch, plus known PID/PGID 93022 and the owned PostgreSQL resources on port 64376, without inspection, enumeration, probing, signals, waits, retries or cleanup. Read only the separate compact `verification/receipts/customer-read-refusal-r1180.json`. The last persisted test command lacked exit, EOF, descriptor-close and group-absence facts; no test result or diagnostic cause was collected. Later fresh tests or a continued goal release no hold.
+
+
+The R1304 catalog ordinary-closure launch lost its complete outer execution response before releasing the parent gate. Outer PID, PGID and session are unobserved by that controller. Preserve the entire `verification/local/catalog-ordinary-closure-r1304/runtime` namespace without inspection, enumeration, stat, probing, signals, waits, retry or cleanup. No CLI, collector, compiler or PostgreSQL payload is inferred to have run. Only the separate compact `verification/receipts/catalog-ordinary-closure-r1304.json` and immutable prelaunch `verification/local/catalog-ordinary-closure-r1304/delivery` packet are permitted references; they do not release runtime custody. A separately selected parent-owned launch uses a fresh namespace and must persist and read back the complete outer exec response before its gate.
+
+The fresh macOS cache focused controls in run 43130739497, job 130893943051,
+left UNKNOWN custody for PID/PGID 1209 after a denied custody operation. Preserve
+that exact hosted group and `/Users/runner/work/mixer/mixer/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/evidence/original-normal-mm2shk4a/scratch/mixer-cache-runner-controls-j1j11320`
+in full, without inspection, enumeration, probing, signals, waits, retries or
+cleanup. The copied artifact `verification/local/catalog-ci-correction-r1338/cache-ci-evidence/artifact.zip`
+is also held against further payload reads or extraction. Only copied top-level
+HOLD metadata and `verification/receipts/cache-ci-custody-r1342.json` remain permitted
+references. Direct child return and later GitHub cleanup do not establish group
+absence. This scoped hold does not pause unrelated development or release older holds.

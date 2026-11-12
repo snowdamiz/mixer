@@ -22,7 +22,13 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   end
 
   @doc false
-  def check_relation_surface!(repo, expected_roles, original_monotonic_deadline_ms) do
+  def check_relation_surface!(repo, expected_roles, original_monotonic_deadline_ms),
+    do: check!(repo, expected_roles, original_monotonic_deadline_ms, :browser_auth_v2)
+
+  def check_build_catalog_surface!(repo, expected_roles, original_monotonic_deadline_ms),
+    do: check!(repo, expected_roles, original_monotonic_deadline_ms, :build_catalog_v3)
+
+  defp check!(repo, expected_roles, original_monotonic_deadline_ms, profile) do
     try do
       check_roles!(expected_roles)
       deadline = original_monotonic_deadline_ms
@@ -31,7 +37,14 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
       state = %{repo: repo, deadline: deadline, wire: 0, backend: nil}
       {context, state} = context!(state, expected_roles)
       {role_oids, state} = roles!(state, expected_roles)
-      manifest = RelationManifest.for_major(context.major)
+
+      manifest =
+        case profile do
+          :browser_auth_v2 -> RelationManifest.for_major(context.major)
+          :build_catalog_v3 -> MixerHosted.BrowserAuth.RelationManifestV3.for_major(context.major)
+        end
+
+      {extra_acl, state} = catalog_acl!(state, profile, role_oids)
       {relations, state} = relations!(state, role_oids)
       ids = Enum.map(relations, & &1["oid"])
       {columns, state} = columns!(state, ids, manifest)
@@ -39,7 +52,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
       {indexes, state} = indexes!(state, ids, columns, constraints, manifest, role_oids)
       {_, state} = triggers!(state, ids, constraints, indexes, manifest, role_oids)
       {_, state} = policies!(state, ids, manifest, role_oids)
-      {_, state} = privileges!(state, ids, columns, manifest, role_oids, context.major)
+      {_, state} = privileges!(state, ids, columns, manifest, role_oids, context.major, extra_acl)
       {_, state} = forbidden!(state, ids, role_oids, context.major)
       remaining!(state.deadline)
       :relation_surface_verified
@@ -48,6 +61,24 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
     catch
       _, _ -> raise Unavailable
     end
+  end
+
+  defp catalog_acl!(state, :browser_auth_v2, _), do: {[], state}
+
+  defp catalog_acl!(state, :build_catalog_v3, roles) do
+    {rows, state} =
+      fetch!(
+        state,
+        "SELECT oid::pg_catalog.int8 AS oid FROM pg_catalog.pg_roles WHERE rolname=$1",
+        [MixerHosted.CustomerBuildCatalog.Schema.role()],
+        [{"oid", :oid}],
+        1,
+        1
+      )
+
+    [row] = rows
+    demand(row["oid"] not in Map.values(roles))
+    {MixerHosted.BrowserAuth.RelationManifestV3.acl_rows(row["oid"], roles.relation_owner), state}
   end
 
   defp demand(true), do: :ok
@@ -960,7 +991,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   defp table_tokens(17), do: ~w(SELECT INSERT UPDATE DELETE TRUNCATE REFERENCES TRIGGER MAINTAIN)
   defp apps(roles), do: [roles.lifecycle_login, roles.writer, roles.ordinary_runtime_login]
 
-  defp privileges!(state, ids, columns, manifest, roles, major) do
+  defp privileges!(state, ids, columns, manifest, roles, major, extra_acl) do
     schema = [
       {"relation", {:text, 127}},
       {"column", {:nullable, {:text, 63}}},
@@ -1011,6 +1042,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         base ++ writer ++ mutable ++ ordinary
       end)
 
+    expected = expected ++ extra_acl
     {rows, state} = fetch!(state, sql, [ids], schema, 512, length(expected))
     demand(Enum.frequencies(rows) === Enum.frequencies(expected))
     tokens = table_tokens(major)

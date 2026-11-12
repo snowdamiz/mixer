@@ -4,10 +4,20 @@ import { createCookieWorkspaceClient } from "../api/cookie-workspace-client.js";
 import { WorkspaceClientError } from "../api/workspace-client.js";
 import type { WorkspaceClient, WorkspacePageRequest } from "../api/workspace-client.js";
 import type { WorkspaceSession } from "./workspace-controller.js";
+import { createCookieBuildClient } from "../api/cookie-build-client.js";
+import type { CookieBuildClient } from "../api/cookie-build-client.js";
+import { createCookieBuildCatalogClient } from "../api/cookie-build-catalog-client.js";
+import type { BuildCatalogClient } from "../api/cookie-build-catalog-client.js";
+import type { BuildReadSelection } from "../domain/build-read.js";
+import type { ProjectSelection, ApplicationSelection, CatalogPageRequest } from "../domain/build-catalog.js";
+
+export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" }> |
+  { readonly kind: "ready"; readonly client: WorkspaceClient;
+    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient }> };
 
 export interface BrowserSessionController {
-  getSession(): WorkspaceSession;
-  subscribe(listener: (session: WorkspaceSession) => void): () => void;
+  getSession(): ConsoleSession;
+  subscribe(listener: (session: ConsoleSession) => void): () => void;
   revalidate(): void;
   invalidate(): void;
   dispose(): void;
@@ -20,8 +30,8 @@ interface Capability {
   lastWall: number;
   lastMono: number;
 }
-interface Subscription { readonly listener: (session: WorkspaceSession) => void; revision: number }
-const unavailable: WorkspaceSession = Object.freeze({ kind: "unavailable" });
+interface Subscription { readonly listener: (session: ConsoleSession) => void; revision: number }
+const unavailable: ConsoleSession = Object.freeze({ kind: "unavailable" });
 const aborted = (): never => { throw new WorkspaceClientError("aborted"); };
 
 function clock(): { wall: number; mono: number } | undefined {
@@ -138,22 +148,34 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
       organizations: (page?: WorkspacePageRequest, signal?: AbortSignal) => delegate(value, owned => cookieClient.organizations(page, owned), signal),
       projects: (organizationId: string, page?: WorkspacePageRequest, signal?: AbortSignal) => delegate(value, owned => cookieClient.projects(organizationId, page, owned), signal),
     });
+    const rawCatalog = createCookieBuildCatalogClient(settings);
+    const rawRead = createCookieBuildClient(settings);
+    const catalog: BuildCatalogClient = Object.freeze({
+      applications: (scope: ProjectSelection, page: CatalogPageRequest, signal?: AbortSignal) =>
+        delegate(value, owned => rawCatalog.applications(scope, page, owned), signal),
+      builds: (scope: ApplicationSelection, page: CatalogPageRequest, signal?: AbortSignal) =>
+        delegate(value, owned => rawCatalog.builds(scope, page, owned), signal),
+    });
+    const read: CookieBuildClient = Object.freeze({
+      read: (selection: BuildReadSelection, signal?: AbortSignal) => delegate(value, owned => rawRead.read(selection, owned), signal),
+    });
+    const buildClients = Object.freeze({ catalog, read });
     active = undefined;
     capability = value;
     // Each accepted check is a fresh local epoch, including equal server generation strings.
     // Server metadata and CSRF never enter the public session or workspace client.
-    session = Object.freeze({ kind: "ready", client });
+    session = Object.freeze({ kind: "ready", client, buildClients });
     deadlineTimer = setTimeout(() => { if (capability === value && epoch === value.epoch) clear(); },
       Math.max(0, Math.floor(monoDeadline - now.mono)));
     revision++; notify();
   }
 
   return Object.freeze({
-    getSession(): WorkspaceSession {
+    getSession(): ConsoleSession {
       if (capability) live(capability);
       return session;
     },
-    subscribe(listener: (value: WorkspaceSession) => void): () => void {
+    subscribe(listener: (value: ConsoleSession) => void): () => void {
       if (disposed) return () => undefined;
       const item: Subscription = { listener, revision: -1 };
       subscriptions.add(item); notify();

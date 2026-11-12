@@ -210,6 +210,12 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
     })
   end
 
+  defp value({:build_catalog, request}, token, _csrf, _source, _expires) do
+    MixerHostedWeb.BrowserBuildCatalogDispatcher.dispatch(token, request, %{
+      request_id: Base.encode16(:crypto.strong_rand_bytes(16), case: :lower)
+    })
+  end
+
   defp query!(sql, params, deadline) do
     true = System.monotonic_time(:millisecond) < deadline
 

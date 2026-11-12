@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "id": "CACHE_ORIGIN_INERT_R1344",
+  "status": "STOPPED_FIXTURE_DEFECT_PROPOSAL_UNQUALIFIED",
+  "observed_at": "2026-11-12T01:09:40Z",
+  "output": "verification/local/cache-origin-inert-r1344",
+  "managed_python_payloads": {"used": 2, "maximum": 2, "python": "/opt/homebrew/opt/python@3.14/bin/python3.14", "version": "3.14.8", "correction_reruns": 0},
+  "first_executable": {
+    "mode": "normal",
+    "result": "ORIGINAL_INJECTED_PRIMARY_CAPTURED",
+    "escaping_type": "PermissionError",
+    "escaping_is_injected_object": true,
+    "trace_functions": ["<module>", "run", "run", "observe", "injected_permission"],
+    "frame_limit": 8,
+    "original_r1094_different_exception_reproduced": false,
+    "raw_proof": "first-baseline.json",
+    "sha256": "2effa468e42a1bd3a912ebb9716e292b455e83ada433fc1b60bba2650ba3e1b7"
+  },
+  "final_executable": {
+    "mode": "actual -O",
+    "result": "ORIGINAL_BASELINE_SETUP_REJECTED_BEFORE_INJECTION",
+    "completed_comparison_cases": 0,
+    "escaping_type": "RuntimeError",
+    "reason": "Owned directory required",
+    "trace_functions": ["<module>", "run", "compare", "execute", "context", "bind_scratch", "identity", "need"],
+    "frame_limit": 8,
+    "raw_proof": "matrix-failure.json",
+    "sha256": "66b5f8e22a1a99b45fdaba6db110d4ca7f0934e7722f2352d9502a7c05bf2d93",
+    "cause": "Shallow copied function objects retain original module globals. identity used real os.geteuid while fake stat returned uid 1000.",
+    "fake_uid": 1000,
+    "host_uid_observation": {"command": "/usr/bin/id -u", "exit": 0, "stdout": "501\n", "tool_chunk": "013689"},
+    "function_globals_pointer_assertion": "NOT_RUN; source construction establishes retained globals",
+    "next_action": "Fresh separate per-case module; replace seams in its actual globals, assert helper globals identity, then run original baseline before candidate. No further payload authorized in this campaign."
+  },
+  "qualification": {
+    "candidate_compared": false,
+    "receipt_event_primary_equivalence": "UNRUN",
+    "frame_string_byte_caps_and_redaction": "UNRUN",
+    "nonpermission_write_flush_oom_controls": "UNRUN",
+    "ordinary_installed_verify_true": "NOT_REACHED",
+    "projection_or_rglob": "NOT_REACHED; no directory rglob executed",
+    "independent_slice_review": "NOT_REQUESTED; no candidate pass",
+    "adopted": false,
+    "GA": false
+  },
+  "frozen_proposal": [
+    {"path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/commands.py", "before_sha256": "f1766fb3bd025fff5ea5a4c5c0b71932a468e505588cedd064bcc70f63f9d745", "after_sha256": "7cacf4d5ccc2158924b9b2f7b782fc68fcbf49b10b0cc860ed94ac03b3520d13", "after_bytes": 9090},
+    {"path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/sources.json", "before_sha256": "b203fb9baa8ce322a29ef1b8ff6d15ae4de3057f4ddebb01aff59c8dab1e7d28", "after_sha256": "441e9bf49a0b8688b9686afb8125b3071172f5cf96a318c8e54000acf74702aa", "after_bytes": 3160}
+  ],
+  "source_hashes": {
+    "owning_helper_module": "5b29269988838c8af4fdfd4858645b17837bddd8812a133ef4e6aaa709ba55ad",
+    "materialize_pack.py": "fa06f1fb03277ea3b984db71ee3a18feffe926775e9ef2d3fe196d77a12ffa2e",
+    "test_original.py_unimported": "338ccbc6842bb02286cbfe206842120cc071f37a76205e6970bbb92a4212c404",
+    "preserved_failing_fixture.py": "177217c0e801a66c3ce2ab891b56bd72e4e909efd04e9ba2fae7e94a344e1797",
+    "baseline.py": "2e9dcbd2cc06e74d0c86eab26e1216243ad77595e34c9c76feeea10a36891f83",
+    "matrix.py": "17d6d0d3b7f67a90fb8cfed8cf60158de0259d3005b87009df7baca7c375f80c",
+    "outer.py": "77887275df240f4a5bfcf2dc9a522ec33daed8c784580f30b8544f3ed7aacc23",
+    "selected_r1314_custodian": "56957b7b3d14c2af575cd13a252d35d710abbcbebdf2eedb66b9715f2051acdb"
+  },
+  "custody": {
+    "gating": "Complete exec response/session persisted and read back before outer G; inner identity persisted and read back before inner G",
+    "baseline": {"outer_pid_pgid": 96167, "session": 81912, "outer_exit": 0, "outer_final_chunk": "fcff61", "inner_pid_pgid": 96264, "inner_exit": 0, "direct_reaped": true, "both_eof": true, "descriptors_closed_before_absence": true, "original_killpg0_esrch": true, "metadata": "baseline-custody.json"},
+    "matrix": {"outer_pid_pgid": 51119, "session": 11249, "outer_exit": 1, "outer_final_chunk": "474f35", "inner_pid_pgid": 51150, "inner_exit": 1, "direct_reaped": true, "both_eof": true, "descriptors_closed_before_absence": true, "original_killpg0_esrch": true, "metadata": "commands.json"},
+    "new_unknown_custody": false,
+    "timeout_controls_or_signal_dispatch": false
+  },
+  "scope": {"real_test_children": 0, "real_signal_dispatches": 0, "new_subagents": 0, "compilers": 0, "native": 0, "git_or_api": 0, "ci_reruns": 0, "canonical_changes": false, "publication": false},
+  "retained_hosted_hold": {"reference": "verification/receipts/cache-ci-custody-r1342.json", "run": 43130739497, "job": 130893943051, "pgid": 1209, "status": "UNKNOWN", "source_cause": "UNPROVEN", "held_group_scratch_archive_accessed": false, "historical_holds_released": false}
+}

@@ -63,6 +63,87 @@ BROWSER_BUILD_SOURCE_DIGEST = 'b45def2cb208ba76c5472ac49bd379278d744fc7831b2e8da
 OWNED_EVIDENCE_SOURCE_BASE = 'verification/identity-network-current-source-v11/'
 OWNED_EVIDENCE_SELECTION_SHA256 = '7310bb24b6147d867eb0ef47afd6fb612dbe9c80903633d62268b68c8bf77d20'
 OWNED_EVIDENCE_SOURCE_DIGEST = 'e3df1a2cf113db904dd48cca93d8492ba11c6b0f3201a6978596866d415f0e33'
+HOSTED_COMPILER_SOURCE_BASE = 'verification/identity-network-current-source-v12/'
+HOSTED_COMPILER_SELECTION_SHA256 = 'a58e82e2f5aff62244221cd99c5dbb6d5d23b6b00a0ece50bff074578f122591'
+HOSTED_COMPILER_SOURCE_DIGEST = '495547c77707cf511b62e6aa9b6b9f5dbcb0c82969e6193ebd9e2d3b77bf7e9d'
+HOSTED_COMPILER_INPUTS = ('console/src/state/browser-session-controller.ts', 'console/src/state/workspace-controller.ts', 'console/src/api/cookie-build-catalog-client.ts', 'console/src/domain/build-catalog.ts')
+CATALOG_JOIN_SOURCE_BASE = 'verification/identity-network-current-source-v13/'
+CATALOG_JOIN_SELECTION_SHA256 = '6dc37c2e86ba39377751d8fe03bdfbf11e2cce4a4613fbdd39c172fb37d6134a'
+CATALOG_JOIN_SOURCE_DIGEST = 'cb35b0bde7d3eda61b16b7e754c37ca642c7a16571e8d06671455459a2f908c8'
+CATALOG_JOIN_INPUTS = HOSTED_COMPILER_INPUTS
+CATALOG_JOIN_DELTA = {'hosted/lib/mixer_hosted/browser_auth/active_read.ex': {'after': {'bytes': 8201,
+                                                                   'sha256': '76b369e9f8117862bbac751734d09e2e8f6426eec9c3c5f9c1e24d293badc8e2'},
+                                                         'before': {'bytes': 7957,
+                                                                    'sha256': 'd2c356d9fa47cd3bdb4528f0647231491b2fe8a9a050b48d49f4efc8d969868c'}},
+ 'hosted/lib/mixer_hosted/browser_auth/build_catalog_admission.ex': {'after': {'bytes': 10797,
+                                                                               'sha256': '35e59b49ccfa230111778c6abb485bec8559cbb909ff78d609bc5188b0e684f1'},
+                                                                     'before': None},
+ 'hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex': {'after': {'bytes': 48754,
+                                                                        'sha256': 'fef31903c1ac4f1a3aa3c4e0f22e55623ed878d68c4ceaf0a78a6087c2a54556'},
+                                                              'before': {'bytes': 47573,
+                                                                         'sha256': 'f71d79b92065d2137363f10de89c137b95ce5758b0e4c21b88faaeb8a779fcfc'}},
+ 'hosted/lib/mixer_hosted/browser_auth/relation_manifest_v3.ex': {'after': {'bytes': 859,
+                                                                            'sha256': '34a650acde4959083c0ab47aac3a4b61164a002729acab588613cdc1979f31ed'},
+                                                                  'before': None},
+ 'hosted/lib/mixer_hosted/browser_auth/runtime_config.ex': {'after': {'bytes': 8396,
+                                                                      'sha256': '2fac58266ac73065b88ac2846bf401c0a32c122c84a9ad3564945c92c8c59c4a'},
+                                                            'before': {'bytes': 7874,
+                                                                       'sha256': '0ce7e28450b7f5652313fc22cb909ea6e65cc8b4a8edcc960669d5a950da0962'}},
+ 'hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex': {'after': {'bytes': 27533,
+                                                                     'sha256': '81c54c0a7ec53dd3d788be0d130c6d9abf68e95d0d0a3ae269fe0130e51bf537'},
+                                                           'before': {'bytes': 26031,
+                                                                      'sha256': '28582f7ae7340f3375de077e1381335d3c193b4da47dac9acf9751dbf2965c14'}},
+ 'hosted/lib/mixer_hosted/browser_auth/store.ex': {'after': {'bytes': 24830,
+                                                             'sha256': 'a310b0a8ec8fb28fe78f8d69b3758399d88d096a7bd2a97fefbaaca091c188bb'},
+                                                   'before': {'bytes': 24180,
+                                                              'sha256': '4c1b726412bcdec9de5bd41730533aaf698b20101a7d8bd5cb048a08f8e80f3a'}},
+ 'hosted/lib/mixer_hosted/customer_build_catalog.ex': {'after': {'bytes': 609,
+                                                                 'sha256': '2c498c3780fa49694ed6355370c72c3fd2dc7eac70418ee4006e1c34ace5befe'},
+                                                       'before': None},
+ 'hosted/lib/mixer_hosted/customer_build_catalog/context.ex': {'after': {'bytes': 7674,
+                                                                         'sha256': '1c3f04c256938e790e6556251f9c38d8e01a83d7c80129f935d5be5d7d605177'},
+                                                               'before': None},
+ 'hosted/lib/mixer_hosted/customer_build_catalog/input.ex': {'after': {'bytes': 2636,
+                                                                       'sha256': '5a951fc25a020a015f79faa1d5c7d48598965141bea333b63e67cf2c9ecdcdf3'},
+                                                             'before': None},
+ 'hosted/lib/mixer_hosted/customer_build_catalog/schema.ex': {'after': {'bytes': 33899,
+                                                                        'sha256': '3ae427632cee7932a24eb02a26cf560911c5e560457616e21e9588dfc6b8f790'},
+                                                              'before': None},
+ 'hosted/lib/mixer_hosted/customer_build_catalog/snapshot.ex': {'after': {'bytes': 2292,
+                                                                          'sha256': 'df96d686bb1ecffe98482738598bd0faf795c55b6d426b3fad3ab4fa2490c10b'},
+                                                                'before': None},
+ 'hosted/lib/mixer_hosted_web/browser_build_catalog_dispatcher.ex': {'after': {'bytes': 2441,
+                                                                               'sha256': '884e4f3aad7e3c102bd9d541c4bce11f7258aca93478a9e2c890f60f3fb1d0ed'},
+                                                                     'before': None},
+ 'hosted/lib/mixer_hosted_web/browser_build_catalog_request.ex': {'after': {'bytes': 1730,
+                                                                            'sha256': '146065231dcd41655ae0233c45f976afbd69389f7ac7237af26ce3867fc879b3'},
+                                                                  'before': None},
+ 'hosted/lib/mixer_hosted_web/browser_http.ex': {'after': {'bytes': 7099,
+                                                           'sha256': '4065474f1c12c364dd71f73cfdd1855a29bea2d94f5e32b2346141bd2ea622b7'},
+                                                 'before': {'bytes': 6215,
+                                                            'sha256': '2a617926bcf96f2cf25f03923567295792feac8e4cfd4038b4ca5109d2cf3737'}},
+ 'hosted/scripts/test-local.py': {'after': {'bytes': 25951,
+                                            'sha256': 'f0585945da899d16f36c1c15531c867445ee390fea5fa8fa81f4f16f3dc1e5e7'},
+                                  'before': {'bytes': 25108,
+                                             'sha256': '0a0e1f844fe42fb4881cbac58efcb38d543e4125d3bd4dd6f495272cd38ca277'}},
+ 'hosted/test/customer_build_catalog_input_test.exs': {'after': {'bytes': 3553,
+                                                                 'sha256': 'cca5b433ed030a9261860cc1a6fe78e6d488b73a51d2e1e39b117621903d8921'},
+                                                       'before': None},
+ 'hosted/test/mixer_hosted/browser_auth/catalog_browser_current_surface_join_test.exs': {'after': {'bytes': 15617,
+                                                                                                   'sha256': '90aa19229485ad6dba89cc4154b7dbca71d7d30ada816ad72b12ca22b64e0758'},
+                                                                                         'before': None},
+ 'hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs': {'after': {'bytes': 61834,
+                                                                                 'sha256': '97889c149ddc69458b46f2d4e99a64b1ce37f4770e049515349b25d82fdc62f6'},
+                                                                       'before': {'bytes': 50578,
+                                                                                  'sha256': '0d0f4d0fa13a4cd1f0b635c75c56a31580d2dc623bbf866b1b1cc17bae2dc3a9'}},
+ 'hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs': {'after': {'bytes': 21236,
+                                                                             'sha256': 'c12b571e3a213955eee7b484d96af048c7f44b6e0dcaff81830bb80e4ec26c63'},
+                                                                   'before': {'bytes': 20142,
+                                                                              'sha256': 'fcd79eb95485dbe8e20b2fe4ec104daad59fc7eb78b607571132f89c0f0b2e82'}},
+ 'hosted/test/support/browser_build_catalog_client.mjs': {'after': {'bytes': 5118,
+                                                                    'sha256': '3f4438faf287d198075a4c76d28daa33a2ff47b169a4e573ec44ebd0759a4f37'},
+                                                          'before': None}}
+
 FORMAT_BASE = "verification/identity-network-fixture-amendment-v2/metadata/"
 FORMAT_SHA256 = "45f0c33f8f521ff43ed58b13c34466dea593ecd1c9e8aab166b1e075da07ef84"
 FORMAT_PACKET = "46d75ed1393db3250b5b7df2611b82bdc5c49f5c1ca7ec64ff8f40e24f179760"
@@ -945,6 +1026,141 @@ def _load_owned_evidence_source_authority():
     return CurrentSourceAuthority(count, canonical_digest(manifest), manifest)
 
 
+def _validate_hosted_compiler_source_manifest(manifest, count):
+    require(type(count) is int and count == 247, "hosted compiler closed source count")
+    require(isinstance(manifest, dict) and len(manifest) == count, "source path count mismatch")
+    console_inputs = ["console/package.json","console/src/api/browser-session-client.ts","console/src/api/cookie-build-client.ts","console/src/api/cookie-workspace-client.ts","console/src/api/workspace-client.ts","console/src/api/workspace-transport.ts","console/src/domain/build-overview.ts","console/src/domain/build-read.ts","console/src/domain/workspace-directory.ts","console/tests/cookie-build-client.test.mjs","console/tsconfig.json"]
+    for path, row in manifest.items():
+        p = PurePosixPath(path)
+        require((path.startswith("hosted/") or path in console_inputs or path in HOSTED_COMPILER_INPUTS) and not p.is_absolute() and ".." not in p.parts and str(p) == path, "unsafe source path")
+        require(isinstance(row, dict) and set(row) == {"bytes", "sha256"}, "source row shape")
+        require(type(row["bytes"]) is int and 0 <= row["bytes"] <= MAX_COMMAND_BYTES, "source byte bound")
+        require(bool(re.fullmatch("[0-9a-f]{64}", row["sha256"])), "source hash shape")
+    require(manifest["hosted/mix.lock"]["sha256"] == FROZEN_LOCK_SHA256, "frozen lock mismatch")
+    require(canonical_digest(manifest) == HOSTED_COMPILER_SOURCE_DIGEST, "frozen product digest mismatch")
+    return manifest
+
+
+def validate_hosted_compiler_source_manifest(manifest, expected_digest=HOSTED_COMPILER_SOURCE_DIGEST, expected_count=None):
+    require(expected_digest == HOSTED_COMPILER_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == HOSTED_COMPILER_SOURCE_COUNT),
+            "caller cannot replace hosted compiler source authority")
+    return _validate_hosted_compiler_source_manifest(manifest, HOSTED_COMPILER_SOURCE_COUNT)
+
+def validate_hosted_compiler_source_metadata(metadata):
+    require(isinstance(metadata, dict) and set(metadata) == {HOSTED_COMPILER_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")}, "hosted compiler source selection membership mismatch")
+    body = metadata[HOSTED_COMPILER_SOURCE_BASE + "selection.json"]
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == HOSTED_COMPILER_SELECTION_SHA256, "hosted compiler source selection pin mismatch")
+    value = json.loads(body)
+    selected_body = metadata[HOSTED_COMPILER_SOURCE_BASE + "selected-source-manifest.json"]
+    require(isinstance(selected_body, bytes) and _file_row(selected_body) == {key: value["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "hosted compiler source manifest bytes mismatch")
+    selected = json.loads(selected_body)
+    validate_hosted_compiler_source_manifest(selected)
+    require(selected == HOSTED_COMPILER_MANIFEST and value["selected"]["source_count"] == HOSTED_COMPILER_SOURCE_COUNT and value["selected"]["source_digest_sha256"] == HOSTED_COMPILER_SOURCE_DIGEST, "hosted compiler source count or digest mismatch")
+    require(value["predecessor"] == {"source_count": OWNED_EVIDENCE_SOURCE_COUNT, "source_digest_sha256": OWNED_EVIDENCE_SOURCE_DIGEST, "selection_sha256": OWNED_EVIDENCE_SELECTION_SHA256}, "hosted compiler source predecessor mismatch")
+    delta = {path: {"before": OWNED_EVIDENCE_MANIFEST.get(path), "after": row} for path, row in selected.items() if OWNED_EVIDENCE_MANIFEST.get(path) != row}
+    require(set(selected) == set(OWNED_EVIDENCE_MANIFEST) | set(HOSTED_COMPILER_INPUTS) and set(delta) == set(HOSTED_COMPILER_INPUTS) and all(change["before"] is None for change in delta.values()) and value["exact_delta"] == delta and value["runtime_or_GA_accepted"] is False, "hosted compiler source delta mismatch")
+    inverse = dict(selected)
+    for path, change in delta.items():
+        if change["before"] is None: inverse.pop(path)
+        else: inverse[path] = change["before"]
+    require(inverse == OWNED_EVIDENCE_MANIFEST and canonical_digest(inverse) == OWNED_EVIDENCE_SOURCE_DIGEST, "hosted compiler predecessor inverse mismatch")
+    return value
+
+
+def check_hosted_compiler_source(root):
+    metadata = {HOSTED_COMPILER_SOURCE_BASE + name: (root / HOSTED_COMPILER_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+    selection = validate_hosted_compiler_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in HOSTED_COMPILER_MANIFEST}
+    validate_hosted_compiler_source_manifest(observed)
+    return {"identity": selection["identity"], "source_count": len(observed), "source_digest_sha256": canonical_digest(observed), "selection_sha256": HOSTED_COMPILER_SELECTION_SHA256, "runtime_or_GA_accepted": False}
+
+
+def _load_hosted_compiler_source_authority():
+    # The closed count comes from independently pinned metadata, never a caller
+    # manifest or a manually maintained CURRENT_SOURCE_COUNT literal.
+    root = Path(__file__).resolve().parents[2]
+    body = (root / HOSTED_COMPILER_SOURCE_BASE / "selection.json").read_bytes()
+    require(hashlib.sha256(body).hexdigest() == HOSTED_COMPILER_SELECTION_SHA256, "hosted compiler source selection pin mismatch")
+    selection = json.loads(body)
+    manifest_body = (root / HOSTED_COMPILER_SOURCE_BASE / "selected-source-manifest.json").read_bytes()
+    require(_file_row(manifest_body) == {key: selection["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "hosted compiler source manifest bytes mismatch")
+    count = selection["selected"]["source_count"]
+    require(type(count) is int and count > 0 and selection["selected"]["source_digest_sha256"] == HOSTED_COMPILER_SOURCE_DIGEST, "hosted compiler source authority shape")
+    manifest = json.loads(manifest_body)
+    _validate_hosted_compiler_source_manifest(manifest, count)
+    require(type(selection["schema"]) is int and selection["schema"] == 1 and count == len(manifest), "hosted compiler typed authority membership")
+    return CurrentSourceAuthority(count, canonical_digest(manifest), manifest)
+
+
+
+def _validate_catalog_join_source_manifest(manifest, count):
+    require(type(count) is int and count == 259, "catalog join closed source count")
+    require(isinstance(manifest, dict) and len(manifest) == count, "source path count mismatch")
+    console_inputs = ["console/package.json","console/src/api/browser-session-client.ts","console/src/api/cookie-build-client.ts","console/src/api/cookie-workspace-client.ts","console/src/api/workspace-client.ts","console/src/api/workspace-transport.ts","console/src/domain/build-overview.ts","console/src/domain/build-read.ts","console/src/domain/workspace-directory.ts","console/tests/cookie-build-client.test.mjs","console/tsconfig.json"]
+    for path, row in manifest.items():
+        p = PurePosixPath(path)
+        require((path.startswith("hosted/") or path in console_inputs or path in CATALOG_JOIN_INPUTS) and not p.is_absolute() and ".." not in p.parts and str(p) == path, "unsafe source path")
+        require(isinstance(row, dict) and set(row) == {"bytes", "sha256"}, "source row shape")
+        require(type(row["bytes"]) is int and 0 <= row["bytes"] <= MAX_COMMAND_BYTES, "source byte bound")
+        require(bool(re.fullmatch("[0-9a-f]{64}", row["sha256"])), "source hash shape")
+    require(manifest["hosted/mix.lock"]["sha256"] == FROZEN_LOCK_SHA256, "frozen lock mismatch")
+    require(canonical_digest(manifest) == CATALOG_JOIN_SOURCE_DIGEST, "frozen product digest mismatch")
+    return manifest
+
+
+def validate_catalog_join_source_manifest(manifest, expected_digest=CATALOG_JOIN_SOURCE_DIGEST, expected_count=None):
+    require(expected_digest == CATALOG_JOIN_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == CATALOG_JOIN_SOURCE_COUNT),
+            "caller cannot replace catalog join source authority")
+    return _validate_catalog_join_source_manifest(manifest, CATALOG_JOIN_SOURCE_COUNT)
+
+def validate_catalog_join_source_metadata(metadata):
+    require(isinstance(metadata, dict) and set(metadata) == {CATALOG_JOIN_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")}, "catalog join source selection membership mismatch")
+    body = metadata[CATALOG_JOIN_SOURCE_BASE + "selection.json"]
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == CATALOG_JOIN_SELECTION_SHA256, "catalog join source selection pin mismatch")
+    value = json.loads(body)
+    selected_body = metadata[CATALOG_JOIN_SOURCE_BASE + "selected-source-manifest.json"]
+    require(isinstance(selected_body, bytes) and _file_row(selected_body) == {key: value["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "catalog join source manifest bytes mismatch")
+    selected = json.loads(selected_body)
+    validate_catalog_join_source_manifest(selected)
+    require(selected == CATALOG_JOIN_MANIFEST and value["selected"]["source_count"] == CATALOG_JOIN_SOURCE_COUNT and value["selected"]["source_digest_sha256"] == CATALOG_JOIN_SOURCE_DIGEST, "catalog join source count or digest mismatch")
+    require(value["predecessor"] == {"source_count": HOSTED_COMPILER_SOURCE_COUNT, "source_digest_sha256": HOSTED_COMPILER_SOURCE_DIGEST, "selection_sha256": HOSTED_COMPILER_SELECTION_SHA256}, "catalog join source predecessor mismatch")
+    delta = {path: {"before": HOSTED_COMPILER_MANIFEST.get(path), "after": row} for path, row in selected.items() if HOSTED_COMPILER_MANIFEST.get(path) != row}
+    require(set(selected) == set(HOSTED_COMPILER_MANIFEST) | {path for path, change in CATALOG_JOIN_DELTA.items() if change["before"] is None} and delta == CATALOG_JOIN_DELTA and value["exact_delta"] == delta and value["runtime_or_GA_accepted"] is False, "catalog join source delta mismatch")
+    inverse = dict(selected)
+    for path, change in delta.items():
+        if change["before"] is None: inverse.pop(path)
+        else: inverse[path] = change["before"]
+    require(inverse == HOSTED_COMPILER_MANIFEST and canonical_digest(inverse) == HOSTED_COMPILER_SOURCE_DIGEST, "catalog join predecessor inverse mismatch")
+    return value
+
+
+def check_catalog_join_source(root):
+    metadata = {CATALOG_JOIN_SOURCE_BASE + name: (root / CATALOG_JOIN_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+    selection = validate_catalog_join_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in CATALOG_JOIN_MANIFEST}
+    validate_catalog_join_source_manifest(observed)
+    return {"identity": selection["identity"], "source_count": len(observed), "source_digest_sha256": canonical_digest(observed), "selection_sha256": CATALOG_JOIN_SELECTION_SHA256, "runtime_or_GA_accepted": False}
+
+
+def _load_catalog_join_source_authority():
+    # The closed count comes from independently pinned metadata, never a caller
+    # manifest or a manually maintained CURRENT_SOURCE_COUNT literal.
+    root = Path(__file__).resolve().parents[2]
+    body = (root / CATALOG_JOIN_SOURCE_BASE / "selection.json").read_bytes()
+    require(hashlib.sha256(body).hexdigest() == CATALOG_JOIN_SELECTION_SHA256, "catalog join source selection pin mismatch")
+    selection = json.loads(body)
+    manifest_body = (root / CATALOG_JOIN_SOURCE_BASE / "selected-source-manifest.json").read_bytes()
+    require(_file_row(manifest_body) == {key: selection["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "catalog join source manifest bytes mismatch")
+    count = selection["selected"]["source_count"]
+    require(type(count) is int and count > 0 and selection["selected"]["source_digest_sha256"] == CATALOG_JOIN_SOURCE_DIGEST, "catalog join source authority shape")
+    manifest = json.loads(manifest_body)
+    _validate_catalog_join_source_manifest(manifest, count)
+    require(type(selection["schema"]) is int and selection["schema"] == 1 and count == len(manifest), "catalog join typed authority membership")
+    return CurrentSourceAuthority(count, canonical_digest(manifest), manifest)
+
+
 def validate_fixture_manifest(body):
     require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == FIXTURE_PACKET_SHA256, "fixture amendment packet bytes mismatch")
     packet = json.loads(body)
@@ -1075,7 +1291,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_owned_evidence_source_manifest(prepared["source"])
+    validate_catalog_join_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -1242,7 +1458,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_owned_evidence_source_manifest(manifest["source"])
+    validate_catalog_join_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -1265,7 +1481,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(OWNED_EVIDENCE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CATALOG_JOIN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -2036,10 +2252,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_owned_evidence_source_manifest(OWNED_EVIDENCE_MANIFEST)
-        product = self.git_blobs(sorted(OWNED_EVIDENCE_MANIFEST))
+        validate_catalog_join_source_manifest(CATALOG_JOIN_MANIFEST)
+        product = self.git_blobs(sorted(CATALOG_JOIN_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_owned_evidence_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_catalog_join_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -2099,7 +2315,13 @@ class Collector:
         owned_metadata = self.git_blobs([OWNED_EVIDENCE_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
         validate_owned_evidence_source_metadata(owned_metadata)
         metadata.update(owned_metadata)
-        self.state["source"].update(current_source_selection_sha256=OWNED_EVIDENCE_SELECTION_SHA256, current_source_digest_sha256=OWNED_EVIDENCE_SOURCE_DIGEST)
+        compiler_metadata = self.git_blobs([HOSTED_COMPILER_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_hosted_compiler_source_metadata(compiler_metadata)
+        metadata.update(compiler_metadata)
+        catalog_metadata = self.git_blobs([CATALOG_JOIN_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_catalog_join_source_metadata(catalog_metadata)
+        metadata.update(catalog_metadata)
+        self.state["source"].update(current_source_selection_sha256=CATALOG_JOIN_SELECTION_SHA256, current_source_digest_sha256=CATALOG_JOIN_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -2117,7 +2339,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(OWNED_EVIDENCE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CATALOG_JOIN_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -2139,7 +2361,7 @@ class Collector:
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
-        require(prepared_manifest["source"] == OWNED_EVIDENCE_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == CATALOG_JOIN_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -2237,7 +2459,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in OWNED_EVIDENCE_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in CATALOG_JOIN_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -2688,7 +2910,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_owned_evidence_source(root), sort_keys=True))
+        print(json.dumps(check_catalog_join_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -2758,6 +2980,12 @@ BROWSER_BUILD_SOURCE_COUNT, BROWSER_BUILD_MANIFEST = BROWSER_BUILD_AUTHORITY.cou
 
 OWNED_EVIDENCE_AUTHORITY = _load_owned_evidence_source_authority()
 OWNED_EVIDENCE_SOURCE_COUNT, OWNED_EVIDENCE_MANIFEST = OWNED_EVIDENCE_AUTHORITY.count, OWNED_EVIDENCE_AUTHORITY.manifest
+
+HOSTED_COMPILER_AUTHORITY = _load_hosted_compiler_source_authority()
+HOSTED_COMPILER_SOURCE_COUNT, HOSTED_COMPILER_MANIFEST = HOSTED_COMPILER_AUTHORITY.count, HOSTED_COMPILER_AUTHORITY.manifest
+
+CATALOG_JOIN_AUTHORITY = _load_catalog_join_source_authority()
+CATALOG_JOIN_SOURCE_COUNT, CATALOG_JOIN_MANIFEST = CATALOG_JOIN_AUTHORITY.count, CATALOG_JOIN_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:

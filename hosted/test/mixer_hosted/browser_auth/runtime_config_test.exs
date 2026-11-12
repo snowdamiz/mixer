@@ -107,6 +107,31 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
   defp with_ssl(hosted, key, value),
     do: with_repo(hosted, :ssl, Keyword.put(hosted.repo[:ssl], key, value))
 
+  test "explicit catalog constructor preserves default inverse and signed values" do
+    for scope <- ["openid mixer.workspace.read", "openid mixer.workspace.read mixer.build.read"] do
+      env = browser_env(Map.put(object(), "scope", scope))
+      assert {:ok, ordinary} = RuntimeConfig.new(env, hosted(), lifecycle(), custody())
+      assert ordinary.admission_profile === :browser_auth_v2
+
+      assert {:ok, selected} =
+               RuntimeConfig.new_with_build_catalog(env, hosted(), lifecycle(), custody())
+
+      assert selected === %{ordinary | admission_profile: :build_catalog_v3}
+      assert inspect(selected) === inspect(ordinary)
+
+      for key <- ["admission_profile", "MIXER_BROWSER_ADMISSION_PROFILE"] do
+        assert RuntimeConfig.new_with_build_catalog(
+                 Map.put(env, key, "build_catalog_v3"),
+                 hosted(),
+                 lifecycle(),
+                 custody()
+               ) == @error
+      end
+    end
+
+    assert RuntimeConfig.new_with_build_catalog(%{}, hosted(), nil, nil) == @error
+  end
+
   test "actual ordinary loader Config Manifest Digest and custody compose without startup wiring" do
     hosted = hosted()
     assert {:ok, _} = Manifest.validate(hosted.identity_startup.owner_options[:manifest])
@@ -121,7 +146,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
 
     assert Enum.sort(Map.keys(result)) ==
              Enum.sort(
-               ~w(__struct__ mode browser_config configuration_digest lifecycle_repo expected_roles custody)a
+               ~w(__struct__ mode browser_config configuration_digest lifecycle_repo expected_roles custody admission_profile)a
              )
 
     assert result.expected_roles == %{
@@ -175,7 +200,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
         assert result.mode == :disabled
 
         assert Enum.all?(Map.from_struct(result), fn {key, value} ->
-                 key == :mode or is_nil(value)
+                 key in [:mode, :admission_profile] or is_nil(value)
                end)
       end
     end
