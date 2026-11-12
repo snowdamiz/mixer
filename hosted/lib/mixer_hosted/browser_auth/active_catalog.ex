@@ -95,9 +95,13 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
       remaining!(monotonic_deadline_ms)
       :function_surface_verified
     rescue
-      _ -> raise Unavailable
+      error ->
+        readiness_probe(:active_catalog_rescue, error.__struct__, __STACKTRACE__)
+        raise Unavailable
     catch
-      _, _ -> raise Unavailable
+      kind, _ ->
+        readiness_probe(:active_catalog_catch, kind, __STACKTRACE__)
+        raise Unavailable
     end
   end
 
@@ -610,4 +614,15 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
 
   defp require!(true), do: :ok
   defp require!(_), do: raise(Unavailable)
+
+  # R1478 diagnostic only; helper exists only in test/support and activates for one exact module.
+  defp readiness_probe(stage, class, stack) do
+    if Code.ensure_loaded?(MixerHosted.Test.OrdinaryReadinessFrontier),
+      do: apply(MixerHosted.Test.OrdinaryReadinessFrontier, :record, [stage, class, stack])
+    :ok
+  rescue
+    _ -> :ok
+  catch
+    _, _ -> :ok
+  end
 end

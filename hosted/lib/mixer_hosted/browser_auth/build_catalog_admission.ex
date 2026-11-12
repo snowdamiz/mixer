@@ -200,9 +200,13 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
 
     :ok
   rescue
-    _ -> raise Unavailable
+    error ->
+      readiness_probe(:build_catalog_rescue, error.__struct__, __STACKTRACE__)
+      raise Unavailable
   catch
-    _, _ -> raise Unavailable
+    kind, _ ->
+      readiness_probe(:build_catalog_catch, kind, __STACKTRACE__)
+      raise Unavailable
   end
 
   defp safe!(repo, deadline, backend, sql, params) do
@@ -222,5 +226,16 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
     true = System.monotonic_time(:millisecond) < deadline
     %Postgrex.Result{command: :select, num_rows: 1, messages: []} = result
     result
+  end
+
+  # R1478 diagnostic only; helper exists only in test/support and activates for one exact module.
+  defp readiness_probe(stage, class, stack) do
+    if Code.ensure_loaded?(MixerHosted.Test.OrdinaryReadinessFrontier),
+      do: apply(MixerHosted.Test.OrdinaryReadinessFrontier, :record, [stage, class, stack])
+    :ok
+  rescue
+    _ -> :ok
+  catch
+    _, _ -> :ok
   end
 end

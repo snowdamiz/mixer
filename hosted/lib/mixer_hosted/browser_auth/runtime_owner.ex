@@ -520,6 +520,8 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
           do: :storage_ready,
           else: :unavailable
 
+      readiness_probe(:init_admit, phase === :storage_ready, [])
+
       {:ok,
        %{
          phase: phase,
@@ -679,6 +681,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   defp invalidate(%{phase: :disabled} = state), do: state
 
   defp invalidate(state) do
+    readiness_probe(:invalidate, state.phase === :storage_ready, Process.info(self(), :current_stacktrace) |> elem(1))
     state = Enum.reduce(Map.keys(state.operations), state, &release(&2, &1))
     %{state | phase: :unavailable, generation: state.generation + 1}
   end
@@ -794,4 +797,15 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
        do: Enum.all?(:binary.bin_to_list(id), &(&1 in ?0..?9 or &1 in ?a..?f))
 
   defp metadata?(_), do: false
+
+  # R1478 diagnostic only; helper exists only in test/support and activates for one exact module.
+  defp readiness_probe(stage, class, stack) do
+    if Code.ensure_loaded?(MixerHosted.Test.OrdinaryReadinessFrontier),
+      do: apply(MixerHosted.Test.OrdinaryReadinessFrontier, :record, [stage, class, stack])
+    :ok
+  rescue
+    _ -> :ok
+  catch
+    _, _ -> :ok
+  end
 end

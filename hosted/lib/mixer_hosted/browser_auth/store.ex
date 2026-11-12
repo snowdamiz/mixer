@@ -205,9 +205,13 @@ defmodule MixerHosted.BrowserAuth.Store do
                 Process.put(@phase, :commit)
                 value
               rescue
-                _ -> rollback!()
+                error ->
+                  readiness_probe(:store_inner_rescue, error.__struct__, __STACKTRACE__)
+                  rollback!()
               catch
-                _, _ -> rollback!()
+                kind, _ ->
+                  readiness_probe(:store_inner_catch, kind, __STACKTRACE__)
+                  rollback!()
               end
             end,
             timeout: remaining,
@@ -226,22 +230,31 @@ defmodule MixerHosted.BrowserAuth.Store do
               checkpoint!(lease, deadline)
               {:ok, value}
             rescue
-              _ -> failure(:commit, :committed)
+              error ->
+                readiness_probe(:store_commit_rescue, error.__struct__, __STACKTRACE__)
+                failure(:commit, :committed)
             catch
-              _, _ -> failure(:commit, :committed)
+              kind, _ ->
+                readiness_probe(:store_commit_catch, kind, __STACKTRACE__)
+                failure(:commit, :committed)
             end
 
           {{:error, %Failure{} = error}, outcome} ->
+            readiness_probe(:store_result_failure, outcome, [])
             failure(error.phase, outcome)
 
           {_, outcome} ->
+            readiness_probe(:store_receipt_refused, outcome, [])
             failure(:commit, outcome)
         end
       rescue
-        _ ->
+        error ->
+          readiness_probe(:store_outer_rescue, error.__struct__, __STACKTRACE__)
           failure(Process.get(@phase, :admission), uncertain_outcome())
       catch
-        _, _ -> failure(Process.get(@phase, :admission), uncertain_outcome())
+        kind, _ ->
+          readiness_probe(:store_outer_catch, kind, __STACKTRACE__)
+          failure(Process.get(@phase, :admission), uncertain_outcome())
       after
         Process.delete(@receipt)
         Process.delete(@entered)
@@ -249,12 +262,18 @@ defmodule MixerHosted.BrowserAuth.Store do
         Process.delete(@owned)
       end
     else
-      _ -> failure(:admission, :not_started)
+      _ ->
+        readiness_probe(:store_entry_refused, false, [])
+        failure(:admission, :not_started)
     end
   rescue
-    _ -> failure(:admission, :not_started)
+    error ->
+      readiness_probe(:store_entry_rescue, error.__struct__, __STACKTRACE__)
+      failure(:admission, :not_started)
   catch
-    _, _ -> failure(:admission, :not_started)
+    kind, _ ->
+      readiness_probe(:store_entry_catch, kind, __STACKTRACE__)
+      failure(:admission, :not_started)
   end
 
   # Ecto emits transaction-management query results synchronously in this caller.
@@ -760,4 +779,15 @@ defmodule MixerHosted.BrowserAuth.Store do
   defp metadata?(_), do: false
   defp raw?(value, size), do: is_binary(value) and byte_size(value) == size
   defp bytea_hex(value), do: "\\x" <> Base.encode16(value, case: :lower)
+
+  # R1478 diagnostic only; helper exists only in test/support and activates for one exact module.
+  defp readiness_probe(stage, class, stack) do
+    if Code.ensure_loaded?(MixerHosted.Test.OrdinaryReadinessFrontier),
+      do: apply(MixerHosted.Test.OrdinaryReadinessFrontier, :record, [stage, class, stack])
+    :ok
+  rescue
+    _ -> :ok
+  catch
+    _, _ -> :ok
+  end
 end
