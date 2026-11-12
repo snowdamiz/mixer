@@ -1,0 +1,713 @@
+{
+  "task": "provider-direct-backlog-r1744",
+  "status": "DIAGNOSTIC_PASS_CANDIDATE_UNACCEPTED",
+  "completed_utc": "2026-11-12T21:50:48.567071+00:00",
+  "scope": "One fresh local synthetic TLS backlog32 control, then unchanged R1742 provider-first and keyowner-first orderings. No adoption.",
+  "candidate_adopted": false,
+  "independent_review_required": true,
+  "batch": {
+    "count": 1,
+    "cap_seconds": 180,
+    "seconds": 11.828352249925956,
+    "schedulers": 2,
+    "nice_increment": 10,
+    "ast_before_bootstrap": true,
+    "exunit": {
+      "total": 1,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "retry": false
+  },
+  "limits": {
+    "profile": 16,
+    "global": 128,
+    "deadline_ms": 5000,
+    "fixture_backlog": 32,
+    "product_changed": false
+  },
+  "hypotheses": {
+    "backlog": "Fixture backlog5 rejects concurrent connects; forcing32 permits all16 actual TLS IO.",
+    "transport": "Mint/TLS transport still rejects some callers with backlog32; collect exact error stage and resource outcomes.",
+    "product_limits": {
+      "profile": 16,
+      "global": 128,
+      "deadline_ms": 5000
+    },
+    "listener_proof": "Source-only: start_link uses Keyword.put(opts,:backlog,32), init passes Keyword.get(opts,:backlog,32) to ssl.listen. No listener tracing or associated assertions/waits.",
+    "selected_utc": "2026-11-12T21:48:46.028938+00:00"
+  },
+  "fixture_source_proof": {
+    "startup": "GenServer.start_link(__MODULE__, Keyword.put(opts, :backlog, 32))",
+    "propagation": "init opts -> ssl.listen backlog: Keyword.get(opts, :backlog, 32)",
+    "caller_cannot_override": true,
+    "listener_tracing_and_dependent_assertions_waits_removed": true
+  },
+  "results": {
+    "control": {
+      "full16": true,
+      "passed": true,
+      "ordering": "control",
+      "old": {
+        "full16": true,
+        "cleanup": true,
+        "final": {
+          "active": 0,
+          "requests": 17,
+          "at_ms": -576460741915,
+          "accepted": 17,
+          "peer_closed": 17,
+          "max_active": 16,
+          "profile_slots": 0,
+          "global_slots": 0,
+          "watchers": {},
+          "owner_admitted": 0,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "observed": {
+          "active": 16,
+          "requests": 17,
+          "at_ms": -576460741929,
+          "accepted": 17,
+          "peer_closed": 1,
+          "max_active": 16,
+          "profile_slots": 16,
+          "global_slots": 16,
+          "watchers": {
+            "provider_socket_registered": 16
+          },
+          "owner_admitted": 16,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "peer_eof_added": 16,
+        "exchange_result_count": 0,
+        "launched_us": -576460742004112,
+        "terminal_us": -576460741914562,
+        "callers": 16,
+        "caller_outcomes": {
+          "test_cancelled_without_exchange_return": 16
+        },
+        "caller_down_reasons": {
+          ":killed": 16
+        },
+        "all_callers_dead": true,
+        "pinned_resources": {
+          "ssl": 16,
+          "raw": 16,
+          "socket": 16,
+          "worker": 16,
+          "watcher": 16
+        },
+        "all_pins_retired": true,
+        "resource_down_count": 64,
+        "missing_down": 0,
+        "peers_dead_closed": true,
+        "stage_outcomes": {
+          "start_trusted:ok": 16,
+          "trusted_current_before:True": 16,
+          "admission_acquire:ok": 16,
+          "keyowner_checkout:ok": 16,
+          "trusted_current_after:True": 16,
+          "keyowner_finish:ok": 16,
+          "trusted_start_ready:ok": 16,
+          "post_enter:ok": 16,
+          "configuration_digest:ok": 16,
+          "mint_connect:ok": 16,
+          "http_request:ok": 16,
+          "watcher_exit_transport:normal": 16
+        },
+        "mint_errors": []
+      },
+      "warm": {
+        "finished": true,
+        "stats": {
+          "active": 0,
+          "requests": 1,
+          "at_ms": -576460742005,
+          "accepted": 1,
+          "peer_closed": 1,
+          "max_active": 1,
+          "profile_slots": 0,
+          "global_slots": 0,
+          "watchers": {},
+          "owner_admitted": 0,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "cached_lease_ready": true,
+        "fixture_zero": true
+      },
+      "teardown": {
+        "bindings": [
+          {
+            "name": "provider",
+            "port": 49434,
+            "result": "bind_succeeded_and_closed"
+          },
+          {
+            "name": "jwks",
+            "port": 49437,
+            "result": "bind_succeeded_and_closed"
+          }
+        ],
+        "passed": true,
+        "provider_listener_closed": true,
+        "jwks_listener_closed": true
+      }
+    },
+    "provider-first": {
+      "killed": [
+        {
+          "pid": "#PID<0.827.0>",
+          "down": ":killed"
+        },
+        {
+          "pid": "#PID<0.826.0>",
+          "down": ":killed"
+        }
+      ],
+      "full16": true,
+      "passed": true,
+      "ordering": "provider_first",
+      "old_owner": "#PID<0.826.0>",
+      "old_workers": "#PID<0.825.0>",
+      "all_old_down_before_new_admission": true,
+      "distinct_resources": true,
+      "old": {
+        "full16": true,
+        "cleanup": true,
+        "final": {
+          "active": 0,
+          "requests": 17,
+          "at_ms": -576460741443,
+          "accepted": 17,
+          "peer_closed": 17,
+          "max_active": 16,
+          "profile_slots": 0,
+          "global_slots": 0,
+          "watchers": {},
+          "owner_admitted": 0,
+          "owner_waiters": 0,
+          "cached_snapshots": 0
+        },
+        "observed": {
+          "active": 16,
+          "requests": 17,
+          "at_ms": -576460741468,
+          "accepted": 17,
+          "peer_closed": 1,
+          "max_active": 16,
+          "profile_slots": 16,
+          "global_slots": 16,
+          "watchers": {
+            "provider_socket_registered": 16
+          },
+          "owner_admitted": 16,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "peer_eof_added": 16,
+        "exchange_result_count": 16,
+        "launched_us": -576460741523800,
+        "terminal_us": -576460741442530,
+        "callers": 16,
+        "caller_outcomes": {
+          "{'id': 1, 'pid': '#PID<0.847.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 2, 'pid': '#PID<0.848.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 3, 'pid': '#PID<0.849.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 4, 'pid': '#PID<0.850.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 5, 'pid': '#PID<0.851.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 6, 'pid': '#PID<0.852.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 7, 'pid': '#PID<0.853.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 8, 'pid': '#PID<0.854.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 65}": 1,
+          "{'id': 9, 'pid': '#PID<0.855.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 65}": 1,
+          "{'id': 10, 'pid': '#PID<0.856.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 65}": 1,
+          "{'id': 11, 'pid': '#PID<0.857.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 65}": 1,
+          "{'id': 12, 'pid': '#PID<0.858.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 65}": 1,
+          "{'id': 13, 'pid': '#PID<0.859.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 14, 'pid': '#PID<0.860.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 15, 'pid': '#PID<0.861.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1,
+          "{'id': 16, 'pid': '#PID<0.862.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 66}": 1
+        },
+        "caller_down_reasons": {
+          ":normal": 16
+        },
+        "all_callers_dead": true,
+        "pinned_resources": {
+          "ssl": 16,
+          "socket": 16,
+          "watcher": 16,
+          "worker": 16,
+          "raw": 16
+        },
+        "all_pins_retired": true,
+        "resource_down_count": 64,
+        "missing_down": 0,
+        "peers_dead_closed": true,
+        "stage_outcomes": {
+          "trusted_current_before:True": 16,
+          "start_trusted:ok": 16,
+          "admission_acquire:ok": 16,
+          "keyowner_checkout:ok": 16,
+          "trusted_current_after:True": 16,
+          "keyowner_finish:ok": 16,
+          "trusted_start_ready:ok": 16,
+          "post_enter:ok": 16,
+          "configuration_digest:ok": 16,
+          "mint_connect:ok": 16,
+          "http_request:ok": 16,
+          "watcher_exit_transport:normal": 16
+        },
+        "mint_errors": []
+      },
+      "new": {
+        "full16": true,
+        "cleanup": true,
+        "final": {
+          "active": 0,
+          "requests": 34,
+          "at_ms": -576460741196,
+          "accepted": 34,
+          "peer_closed": 34,
+          "max_active": 16,
+          "profile_slots": 0,
+          "global_slots": 0,
+          "watchers": {},
+          "owner_admitted": 0,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "observed": {
+          "active": 16,
+          "requests": 34,
+          "at_ms": -576460741224,
+          "accepted": 34,
+          "peer_closed": 18,
+          "max_active": 16,
+          "profile_slots": 16,
+          "global_slots": 16,
+          "watchers": {
+            "provider_socket_registered": 16
+          },
+          "owner_admitted": 16,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "peer_eof_added": 16,
+        "exchange_result_count": 0,
+        "launched_us": -576460741316986,
+        "terminal_us": -576460741195721,
+        "callers": 16,
+        "caller_outcomes": {
+          "test_cancelled_without_exchange_return": 16
+        },
+        "caller_down_reasons": {
+          ":killed": 16
+        },
+        "all_callers_dead": true,
+        "pinned_resources": {
+          "socket": 16,
+          "raw": 16,
+          "worker": 16,
+          "watcher": 16,
+          "ssl": 16
+        },
+        "all_pins_retired": true,
+        "resource_down_count": 64,
+        "missing_down": 0,
+        "peers_dead_closed": true,
+        "stage_outcomes": {
+          "trusted_current_before:True": 16,
+          "admission_acquire:ok": 16,
+          "keyowner_checkout:ok": 16,
+          "trusted_current_after:True": 16,
+          "start_trusted:ok": 16,
+          "keyowner_finish:ok": 16,
+          "trusted_start_ready:ok": 16,
+          "post_enter:ok": 16,
+          "configuration_digest:ok": 16,
+          "mint_connect:ok": 16,
+          "http_request:ok": 16,
+          "watcher_exit_transport:normal": 16
+        },
+        "mint_errors": []
+      },
+      "new_admissions_after_old_terminal_min_us": 125779,
+      "warm": {
+        "finished": true,
+        "stats": {
+          "active": 0,
+          "requests": 1,
+          "at_ms": -576460741525,
+          "accepted": 1,
+          "peer_closed": 1,
+          "max_active": 1,
+          "profile_slots": 0,
+          "global_slots": 0,
+          "watchers": {},
+          "owner_admitted": 0,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "cached_lease_ready": true,
+        "fixture_zero": true
+      },
+      "teardown": {
+        "bindings": [
+          {
+            "name": "provider",
+            "port": 49458,
+            "result": "bind_succeeded_and_closed"
+          },
+          {
+            "name": "jwks",
+            "port": 49459,
+            "result": "bind_succeeded_and_closed"
+          }
+        ],
+        "passed": true,
+        "provider_listener_closed": true,
+        "jwks_listener_closed": true
+      }
+    },
+    "keyowner-first": {
+      "killed": [
+        {
+          "pid": "#PID<0.1211.0>",
+          "down": ":killed"
+        },
+        {
+          "pid": "#PID<0.1212.0>",
+          "down": ":killed"
+        }
+      ],
+      "full16": true,
+      "passed": true,
+      "ordering": "keyowner_first",
+      "old_owner": "#PID<0.1211.0>",
+      "old_workers": "#PID<0.1210.0>",
+      "all_old_down_before_new_admission": true,
+      "distinct_resources": true,
+      "old": {
+        "full16": true,
+        "cleanup": true,
+        "final": {
+          "active": 0,
+          "requests": 17,
+          "at_ms": -576460740542,
+          "accepted": 17,
+          "peer_closed": 17,
+          "max_active": 16,
+          "profile_slots": 0,
+          "global_slots": 0,
+          "watchers": {},
+          "owner_admitted": 0,
+          "owner_waiters": 0,
+          "cached_snapshots": 0
+        },
+        "observed": {
+          "active": 16,
+          "requests": 17,
+          "at_ms": -576460740554,
+          "accepted": 17,
+          "peer_closed": 1,
+          "max_active": 16,
+          "profile_slots": 16,
+          "global_slots": 16,
+          "watchers": {
+            "provider_socket_registered": 16
+          },
+          "owner_admitted": 16,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "peer_eof_added": 16,
+        "exchange_result_count": 16,
+        "launched_us": -576460740672383,
+        "terminal_us": -576460740541174,
+        "callers": 16,
+        "caller_outcomes": {
+          "{'id': 1, 'pid': '#PID<0.1232.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 2, 'pid': '#PID<0.1233.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 3, 'pid': '#PID<0.1234.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 126}": 1,
+          "{'id': 4, 'pid': '#PID<0.1235.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 126}": 1,
+          "{'id': 5, 'pid': '#PID<0.1236.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 126}": 1,
+          "{'id': 6, 'pid': '#PID<0.1237.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 7, 'pid': '#PID<0.1238.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 8, 'pid': '#PID<0.1239.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 9, 'pid': '#PID<0.1240.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 10, 'pid': '#PID<0.1241.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 11, 'pid': '#PID<0.1242.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 12, 'pid': '#PID<0.1243.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 13, 'pid': '#PID<0.1244.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 14, 'pid': '#PID<0.1245.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 15, 'pid': '#PID<0.1246.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1,
+          "{'id': 16, 'pid': '#PID<0.1247.0>', 'reason': ':provider_unavailable', 'outcome': 'error', 'elapsed_ms': 125}": 1
+        },
+        "caller_down_reasons": {
+          ":normal": 16
+        },
+        "all_callers_dead": true,
+        "pinned_resources": {
+          "ssl": 16,
+          "socket": 16,
+          "raw": 16,
+          "worker": 16,
+          "watcher": 16
+        },
+        "all_pins_retired": true,
+        "resource_down_count": 64,
+        "missing_down": 0,
+        "peers_dead_closed": true,
+        "stage_outcomes": {
+          "trusted_current_before:True": 16,
+          "admission_acquire:ok": 16,
+          "start_trusted:ok": 16,
+          "keyowner_checkout:ok": 16,
+          "trusted_current_after:True": 16,
+          "keyowner_finish:ok": 16,
+          "trusted_start_ready:ok": 16,
+          "post_enter:ok": 16,
+          "configuration_digest:ok": 16,
+          "mint_connect:ok": 16,
+          "http_request:ok": 16,
+          "watcher_exit_transport:normal": 16
+        },
+        "mint_errors": []
+      },
+      "new": {
+        "full16": true,
+        "cleanup": true,
+        "final": {
+          "active": 0,
+          "requests": 34,
+          "at_ms": -576460740454,
+          "accepted": 34,
+          "peer_closed": 34,
+          "max_active": 16,
+          "profile_slots": 0,
+          "global_slots": 0,
+          "watchers": {},
+          "owner_admitted": 0,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "observed": {
+          "active": 16,
+          "requests": 34,
+          "at_ms": -576460740462,
+          "accepted": 34,
+          "peer_closed": 18,
+          "max_active": 16,
+          "profile_slots": 16,
+          "global_slots": 16,
+          "watchers": {
+            "provider_socket_registered": 16
+          },
+          "owner_admitted": 16,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "peer_eof_added": 16,
+        "exchange_result_count": 0,
+        "launched_us": -576460740522378,
+        "terminal_us": -576460740453843,
+        "callers": 16,
+        "caller_outcomes": {
+          "test_cancelled_without_exchange_return": 16
+        },
+        "caller_down_reasons": {
+          ":killed": 16
+        },
+        "all_callers_dead": true,
+        "pinned_resources": {
+          "worker": 16,
+          "socket": 16,
+          "raw": 16,
+          "watcher": 16,
+          "ssl": 16
+        },
+        "all_pins_retired": true,
+        "resource_down_count": 64,
+        "missing_down": 0,
+        "peers_dead_closed": true,
+        "stage_outcomes": {
+          "trusted_current_before:True": 16,
+          "start_trusted:ok": 16,
+          "admission_acquire:ok": 16,
+          "keyowner_checkout:ok": 16,
+          "trusted_current_after:True": 16,
+          "keyowner_finish:ok": 16,
+          "trusted_start_ready:ok": 16,
+          "post_enter:ok": 16,
+          "configuration_digest:ok": 16,
+          "mint_connect:ok": 16,
+          "http_request:ok": 16,
+          "watcher_exit_transport:normal": 16
+        },
+        "mint_errors": []
+      },
+      "new_admissions_after_old_terminal_min_us": 19360,
+      "warm": {
+        "finished": true,
+        "stats": {
+          "active": 0,
+          "requests": 1,
+          "at_ms": -576460740674,
+          "accepted": 1,
+          "peer_closed": 1,
+          "max_active": 1,
+          "profile_slots": 0,
+          "global_slots": 0,
+          "watchers": {},
+          "owner_admitted": 0,
+          "owner_waiters": 0,
+          "cached_snapshots": 1
+        },
+        "cached_lease_ready": true,
+        "fixture_zero": true
+      },
+      "teardown": {
+        "bindings": [
+          {
+            "name": "provider",
+            "port": 49497,
+            "result": "bind_succeeded_and_closed"
+          },
+          {
+            "name": "jwks",
+            "port": 49498,
+            "result": "bind_succeeded_and_closed"
+          }
+        ],
+        "passed": true,
+        "provider_listener_closed": true,
+        "jwks_listener_closed": true
+      }
+    }
+  },
+  "aggregate": {
+    "full16_phases": 5,
+    "actual_blocked_tls_callers": 80,
+    "completed_warm_exchange_finish": 5,
+    "mint_connect_errors": 0,
+    "old_replacement_callers_provider_unavailable": 32,
+    "test_cancelled_callers_without_exchange_return": 48,
+    "pinned_watchers_workers_raw_ssl_sockets_each": 80,
+    "all_pins_retired": true,
+    "all_final_slots_zero": true,
+    "all_fixture_peer_eof": true,
+    "both_orderings_no_overlap": true,
+    "all_listeners_closed_and_rebound": true
+  },
+  "interpretation": "Backlog32 removed the prior econnreset shortfall in this bounded run. Supports fixture backlog hypothesis. Both replacement orderings filled16 before and after retirement. Does not establish production qualification or exclude all transport faults.",
+  "os_custody": {
+    "command": {
+      "label": "focused",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-direct-backlog-r1744/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-direct-backlog-r1744",
+      "pid": 44399,
+      "pgid": 44399,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 11.828352249925956,
+      "ownedGroupAbsentESRCH": true
+    },
+    "outer": {
+      "pid": 44389,
+      "pgid": 44389,
+      "session": 44389,
+      "ownedGroupAbsentESRCH": true,
+      "exec_session": 17319,
+      "exitCode": 0
+    },
+    "new_hold": false,
+    "historical_holds_released": false
+  },
+  "sources": {
+    "executed": {
+      "afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex": {
+        "bytes": 16519,
+        "sha256": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192"
+      },
+      "afterimages/hosted/lib/mixer_hosted/browser_auth/provider_https.ex": {
+        "bytes": 17417,
+        "sha256": "31ed0b12b1d2adebfc9e031a570946123d9e82d4fb02bfb93f00e7707fb818ea"
+      },
+      "source/hosted/test/support/browser_provider_tls_fixture.ex": {
+        "bytes": 11458,
+        "sha256": "51aad394b41ee188114aea76a8cbdb66c3d9291f824a09cd613c04b7b0776701"
+      },
+      "focused.exs": {
+        "bytes": 15128,
+        "sha256": "f133d9504b2ff5509367113ad242ce725ce51af3ad2307d678205e42f6fbf2e4"
+      },
+      "campaign.exs": {
+        "bytes": 361,
+        "sha256": "c8465d7c101f034953f4bb10b8c1363a7fe56c711005b9aacc9c78e78f939055"
+      },
+      "batch.exs": {
+        "bytes": 8056,
+        "sha256": "ef8c2946b02ecd57541217b9bf436961f83d35d67762d80e53c22abe7ec392e7"
+      },
+      "helpers.exs": {
+        "bytes": 2667,
+        "sha256": "c09cb561898972cf5a8f9a9185c577838ba8aec68e95cfd6a8edaef249322359"
+      },
+      "trace.exs": {
+        "bytes": 2191,
+        "sha256": "4a971881b8adefb6d024ba7235f7c43146e08ab6080a1559610e69faed4110c7"
+      },
+      "dispatch-prefix.txt": {
+        "bytes": 2352,
+        "sha256": "c2cc6d2eff7e587a06eba80ebcabccaa446eff4d1083cdb9cde6fc1b9affeb5b"
+      },
+      "dispatch.py": {
+        "bytes": 792,
+        "sha256": "e29ed8c0c7b28257184d0384fae999c164fdba117c1fdd52b5a49608a9951394"
+      }
+    },
+    "r1742_original_owner_sha256": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192",
+    "r1742_original_https_sha256": "60e6bc274a7d05eb1eee4b63feb4cb2f50a695ecd03dad191b73b464686e147c",
+    "original_hash_basis": "Historical R1742 metadata; actual executed instrumented hashes above.",
+    "all_copied_source_unchanged_after_run": true,
+    "before_manifest": "verification/local/provider-direct-backlog-r1744/delivery/source-hashes.json",
+    "after_manifest": "verification/local/provider-direct-backlog-r1744/delivery/after-source-hashes.json"
+  },
+  "tools": {
+    "python": "3.14.8",
+    "system": "Darwin",
+    "release": "27.0.0",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "openssl": "4.1.0",
+    "mint": "1.11.0"
+  },
+  "limitations": [
+    "Single localhost development diagnostic; independent review pending, candidate UNACCEPTED.",
+    "48 test-cancelled callers have monitored killed outcomes rather than exchange error returns.",
+    "No regression19, old baseline or successful SSL-race reruns."
+  ],
+  "scope_compliance": {
+    "writes_only_r1744_and_receipt": true,
+    "git_canonical_sourcepins_docs_db_devices_adb_external_provider_credentials_deploy_subchildren": false,
+    "r1728_touched": false
+  },
+  "outputs": {
+    "full-results.json": "verification/local/provider-direct-backlog-r1744/delivery/full-results.json",
+    "focused.stdout": "verification/local/provider-direct-backlog-r1744/delivery/focused.stdout",
+    "focused.stderr": "verification/local/provider-direct-backlog-r1744/delivery/focused.stderr",
+    "commands.json": "verification/local/provider-direct-backlog-r1744/delivery/commands.json",
+    "output-hashes.json": "verification/local/provider-direct-backlog-r1744/delivery/output-hashes.json"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "task": "provider-backlog-r1742",
+  "status": "REQUEST_CHANGES",
+  "completed_utc": "2026-11-12T21:44:17.798942+00:00",
+  "scope": "Fresh backlog32-only fixture counterfactual; one authorized BEAM batch consumed by a harness failure before any fixture or caller existed.",
+  "candidate_adopted": false,
+  "candidate_product_changed": false,
+  "independent_parent_review_required": true,
+  "batch": {
+    "count": 1,
+    "wall_cap_seconds": 350,
+    "wall_seconds": 5.5236431249650195,
+    "schedulers": 2,
+    "nice_increment": 10,
+    "ast_preflight_passed": true,
+    "prod_fixture_exports_absent": true,
+    "exunit": {
+      "total": 1,
+      "failures": 1,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "focused_cases_completed": 0,
+    "warm_backlog32_control_executed": false,
+    "provider_first_ordering_executed": false,
+    "keyowner_first_ordering_executed": false,
+    "retry_executed": false
+  },
+  "limits": {
+    "profile_capacity": 16,
+    "global_capacity": 128,
+    "provider_deadline_ms": 5000,
+    "fixture_read_timeout_ms": 3000,
+    "fixture_backlog_before": 5,
+    "fixture_backlog_selected": 32,
+    "production_changes": false
+  },
+  "failure": {
+    "type": "harness_precondition",
+    "file": "focused.exs",
+    "line": 76,
+    "expression": "1 = :erlang.trace_pattern({:ssl, :listen, 2}, true, [:local])",
+    "observed": 0,
+    "effect": "MatchError before first TLS fixture startup. No runtime listener backlog proof, warm exchange, caller outcome, Mint failure class or actual IO was collected.",
+    "diagnostic_limit": "The trace target was not explicitly loaded before matching; unloaded ssl module is a plausible explanation, not proven by this run. No subsequent BEAM was allowed."
+  },
+  "counts": {
+    "old_callers": 0,
+    "new_callers": 0,
+    "old_actual_tls": 0,
+    "new_actual_tls": 0,
+    "warm_exchanges": 0,
+    "fixture_accepts": 0,
+    "watchers_pinned": 0,
+    "workers_pinned": 0,
+    "raw_ports_pinned": 0,
+    "ssl_processes_pinned": 0,
+    "mint_error_classes": []
+  },
+  "fixture_proof": {
+    "prior_default": 5,
+    "selected_default": 32,
+    "before_sha256": "1ae6b777198892c3f22a29c818a6e3d1e6f93516b1bb5917142955625f26f60d",
+    "after_sha256": "f01f7b4b97fba13a2cdf66b2dc5d23e2633fd19955fb20bd83bb55141650b353",
+    "exact_change": [
+      "backlog: Keyword.get(opts, :backlog, 5),",
+      "backlog: Keyword.get(opts, :backlog, 32),"
+    ],
+    "runtime_listen_value_observed": false,
+    "only_parameter_delta_from_r1732": true
+  },
+  "product_cleanup": {
+    "fixture_created": false,
+    "callers_launched": false,
+    "resource_retirement_exercised": false,
+    "replacement_no_overlap_verified": false,
+    "qualification": "No provider runtime/fixture resources were created. Product cleanup and no-overlap behavior remain untested; OS custody is separate."
+  },
+  "os_custody": {
+    "command": {
+      "label": "focused",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-backlog-r1742/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-backlog-r1742",
+      "pid": 93769,
+      "pgid": 93769,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 5.5236431249650195,
+      "ownedGroupAbsentESRCH": true
+    },
+    "outer": {
+      "pid": 92826,
+      "pgid": 92826,
+      "exec_session": 81125,
+      "exitCode": 1,
+      "ownedGroupAbsentESRCH": true
+    },
+    "new_hold": false,
+    "historical_holds_released": false
+  },
+  "sources": {
+    "candidate_owner_sha256": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192",
+    "candidate_https_sha256": "60e6bc274a7d05eb1eee4b63feb4cb2f50a695ecd03dad191b73b464686e147c",
+    "executed_instrumented_https_sha256": "31ed0b12b1d2adebfc9e031a570946123d9e82d4fb02bfb93f00e7707fb818ea",
+    "adapter": {
+      "bytes": 2352,
+      "sha256": "c2cc6d2eff7e587a06eba80ebcabccaa446eff4d1083cdb9cde6fc1b9affeb5b"
+    },
+    "trace": {
+      "bytes": 2191,
+      "sha256": "4a971881b8adefb6d024ba7235f7c43146e08ab6080a1559610e69faed4110c7"
+    },
+    "private_fixture": {
+      "bytes": 11431,
+      "sha256": "f01f7b4b97fba13a2cdf66b2dc5d23e2633fd19955fb20bd83bb55141650b353"
+    },
+    "unchanged_after_execution": true,
+    "prelaunch_manifest": "verification/local/provider-backlog-r1742/delivery/prelaunch-manifest.json",
+    "after_manifest": "verification/local/provider-backlog-r1742/delivery/after-manifest.json",
+    "static_tree_digest_sha256": "99d422b5bf01fd4bf6f434372f6268211f8dee30e93b90950d2ff0de4d69ad6b"
+  },
+  "tools": {
+    "python": "3.14.8",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "openssl": "4.1.0",
+    "mint": "1.11.0",
+    "system": "Darwin",
+    "release": "27.0.0"
+  },
+  "regressions": {
+    "r1722_passed_ssl_handoff_rerun": false,
+    "https19_rerun": false,
+    "product_changed": false
+  },
+  "outputs": {
+    "report": "verification/local/provider-backlog-r1742/REPORT.md",
+    "stdout": "verification/local/provider-backlog-r1742/delivery/focused.stdout",
+    "stderr": "verification/local/provider-backlog-r1742/delivery/focused.stderr",
+    "command": "verification/local/provider-backlog-r1742/delivery/commands.json",
+    "output_manifest": "verification/local/provider-backlog-r1742/delivery/output-manifest.json"
+  },
+  "next_action": "Retain candidate UNACCEPTED. Root may select a fresh single batch correcting or omitting the optional listener-tracing precondition; no further batch was run here. Backlog32 behavior, both full16 replacement orderings and parent independent review remain pending.",
+  "scope_compliance": {
+    "writes_only_owned_namespace_and_receipt": true,
+    "git_operations": false,
+    "canonical_changes": false,
+    "source_admission_or_index_changes": false,
+    "db_device_adb_external_provider_real_credentials_deploy_subchildren": false,
+    "r1728_access": false
+  }
+}

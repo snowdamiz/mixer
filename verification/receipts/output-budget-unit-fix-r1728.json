@@ -1,0 +1,288 @@
+{
+  "id": "output-budget-unit-fix-r1728",
+  "status": "REQUEST_CHANGES",
+  "failure": "AssertionError: affected-discovery-normal",
+  "scope": "Private test afterimage; deterministic budget arithmetic; no product custody contract change",
+  "inputs": {
+    "path": "scripts/ci/tests/test_android_generated_java_runner.py",
+    "before": {
+      "bytes": 69886,
+      "sha256": "d3cebc7a162a39c038e05c098c254ded2a9ef6e3b90900688d635553263d4c3d"
+    },
+    "after": {
+      "bytes": 70434,
+      "sha256": "de5ba65295f9e8302075c304c61d8f547c108c5444eecb2b494598b921a80183"
+    },
+    "selectedManifest": "verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/current-source-inputs.json",
+    "selectedManifestIdentity": {
+      "bytes": 19295,
+      "sha256": "c80a7326e402f9ec8e4436c7701b1c54f9abefbb402aa997ec0285b0b6347465"
+    },
+    "sourceCount": 119,
+    "outsideSourceClosure": true,
+    "productCollector": {
+      "bytes": 65563,
+      "sha256": "95b314c4c9e8a5ab2f4cf4f1d8f7f7d018db874bc498ee52ce939f7659e95f98"
+    },
+    "baseline": {
+      "id": "runner-aggregate-hosted-hold-r1726",
+      "status": "HOLD_EXACT_HOSTED_AGGREGATE_CONTROL",
+      "observedUTC": "2026-11-12T21:17:41.450434+00:00",
+      "commit": "41acff46f7060813c25d4bb99a576fcebd87458c",
+      "run": 43307707743,
+      "job": 131495273799,
+      "jobName": "swift-runner-controls",
+      "test": "RunnerControls.test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate",
+      "commandLabel": "aggregate",
+      "failure": "RuntimeError: aggregate: terminal custody unknown or cleanup failed; expected output-limit assertion failed; worker exit74",
+      "innerPID": null,
+      "innerPGID": null,
+      "scratchPath": "not exposed in copied top-level job log; preserve exact hosted command and retained unit-worker scratch",
+      "rawTopLevelLog": {
+        "path": "verification/local/cli119-ci-r1706/runner-controls.log",
+        "bytes": 57606,
+        "sha256": "f48d288d2b8cf40157150d3dc331fa3e45819094cbd97f6c360bc04a32a37d14"
+      },
+      "prohibited": [
+        "inspect retained command scratch",
+        "probe/signal/wait/retry exact command group",
+        "infer absence from direct/job return or GitHub cleanup"
+      ],
+      "allowed": "New source-only diagnosis and fresh isolated controls independent of this exact command/resources.",
+      "underlyingOSOperationOrError": "unproven; no PermissionError attribution claimed",
+      "historicalHoldsReleased": false
+    }
+  },
+  "patch": {
+    "bytes": 4663,
+    "sha256": "7221510a37b32825056d75ad90f25edfb60e392db15b3f6068bd7ca650f22400"
+  },
+  "changedMethods": [
+    [
+      "FakeCommandBoundary",
+      "__init__"
+    ],
+    [
+      "FakeCommandBoundary",
+      "popen"
+    ],
+    [
+      "RunnerControls",
+      "test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate"
+    ]
+  ],
+  "checks": {
+    "focused-normal": {
+      "tests": 5,
+      "passed": true
+    },
+    "focused-optimized": {
+      "tests": 5,
+      "passed": true
+    },
+    "affected-discovery-normal": {
+      "tests": 50,
+      "passed": false,
+      "failures": 6,
+      "exitCode": 74,
+      "unchangedSyntheticFailures": [
+        "test_execute_persists_fallback_facts_on_command_receipt_write_denial",
+        "test_execute_retains_scratch_on_denied_observation",
+        "test_execute_retains_scratch_on_denied_signal",
+        "test_execute_retains_scratch_on_unknown_cleanup"
+      ],
+      "realCleanupFailures": [
+        "RunnerControls.test_timeout_and_output_overflow_fail_and_close_owned_child",
+        "RunnerControls.test_total_output_budget_spans_commands"
+      ]
+    },
+    "affected-discovery-optimized": {
+      "status": "NOT_RUN_AFTER_NEW_HOLD"
+    }
+  },
+  "commands": [
+    {
+      "label": "focused-normal",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "-c",
+        "import sys,unittest\nsys.path.insert(0,sys.argv[1])\nimport test_android_generated_java_runner as m\nsuite=unittest.defaultTestLoader.loadTestsFromNames(['test_android_generated_java_runner.RunnerControls.'+x for x in sys.argv[2:]])\nresult=unittest.TextTestRunner(verbosity=2).run(suite)\nif m.M._PROCESS_OWNERS or m.M._COMMAND_OWNERS or m.M._CLI_OWNERS:\n print('REAL_OWNER_HOLD',flush=True);raise SystemExit(74)\nraise SystemExit(not result.wasSuccessful())\n",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-unit-fix-r1728/afterimage/scripts/ci/tests",
+        "test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate",
+        "test_javap_stdout_ceiling_refuses_one_extra_byte_without_silent_success",
+        "test_javap_overflow_unknown_custody_still_takes_priority",
+        "test_denied_signal_retains_receipt_even_after_child_exits",
+        "test_cooperative_parent_waits_for_descendant_and_releases_custody"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 40775,
+      "pgid": 40775,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.7365996669977903,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "focused-optimized",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "-O",
+        "-c",
+        "import sys,unittest\nsys.path.insert(0,sys.argv[1])\nimport test_android_generated_java_runner as m\nsuite=unittest.defaultTestLoader.loadTestsFromNames(['test_android_generated_java_runner.RunnerControls.'+x for x in sys.argv[2:]])\nresult=unittest.TextTestRunner(verbosity=2).run(suite)\nif m.M._PROCESS_OWNERS or m.M._COMMAND_OWNERS or m.M._CLI_OWNERS:\n print('REAL_OWNER_HOLD',flush=True);raise SystemExit(74)\nraise SystemExit(not result.wasSuccessful())\n",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-unit-fix-r1728/afterimage/scripts/ci/tests",
+        "test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate",
+        "test_javap_stdout_ceiling_refuses_one_extra_byte_without_silent_success",
+        "test_javap_overflow_unknown_custody_still_takes_priority",
+        "test_denied_signal_retains_receipt_even_after_child_exits",
+        "test_cooperative_parent_waits_for_descendant_and_releases_custody"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 40790,
+      "pgid": 40790,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.701588291907683,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "affected-discovery-normal",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-unit-fix-r1728/afterimage/scripts/ci/tests",
+        "-p",
+        "test_android_generated_java_runner.py",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 40809,
+      "pgid": 40809,
+      "state": "direct_reaped",
+      "exitCode": 74,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 4.703580874949694,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "terminalOSGroups": true,
+  "canonicalTestUnchanged": true,
+  "productCollectorUnchanged": true,
+  "limits": {
+    "wallSeconds": 6.189737083972432,
+    "focusedBatches": 1,
+    "perFocusedProcessSeconds": 40,
+    "perDiscoveryProcessSeconds": 60,
+    "stdoutOverride": 32,
+    "stderrDefault": 16,
+    "total": 100,
+    "capturedBytes": [
+      32,
+      32,
+      16,
+      20
+    ],
+    "outerOutputMaxBytesPerStream": 8388608,
+    "totalSourceTaskUnderFiveMinutes": "No further experiment or preparation campaign; test subprocess batch elapsed 6.19 seconds"
+  },
+  "environment": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "executable": "/opt/homebrew/bin/python3",
+    "OS": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-unit-fix-r1728/tmp"
+  },
+  "adapter": {
+    "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "identity": {
+      "bytes": 7268,
+      "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+    },
+    "ASTDefinitions": [
+      "InertPopen",
+      "read",
+      "row",
+      "run",
+      "save"
+    ]
+  },
+  "fullCIDiscovery": "NOT_RUN: prohibited Git tests and then new inner custody hold",
+  "parentIndependentReview": "PENDING: changed budget-test contract; no child spawned",
+  "heldResourcesAccessed": false,
+  "holdsReleased": false,
+  "canonicalOrIndexOrGitOperations": false,
+  "nativeCompilerBuildNetworkProviderDBActions": false,
+  "innerTerminalCustody": false,
+  "hold": {
+    "id": "output-budget-unit-fix-r1728-inner-custody-hold",
+    "status": "UNKNOWN_INNER_CUSTODY_OR_CLEANUP_FAILED",
+    "basis": "Copied completed discovery process diagnostics; no held scratch read or identity probe",
+    "heldCommands": [
+      {
+        "test": "RunnerControls.test_timeout_and_output_overflow_fail_and_close_owned_child",
+        "label": "overflow",
+        "pid": 41018,
+        "pgid": 41018,
+        "root": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-unit-fix-r1728/tmp/generated-java-python-controls-yhnqkgvn",
+        "firstCleanupError": {
+          "operation": "signal-owned-group",
+          "type": "PermissionError",
+          "errno": 1,
+          "message": "Operation not permitted"
+        },
+        "directChildReaped": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "ownedGroupAbsent": true,
+        "descriptorsClosed": false,
+        "terminalCustody": false
+      },
+      {
+        "test": "RunnerControls.test_total_output_budget_spans_commands",
+        "label": "second",
+        "pid": 41034,
+        "pgid": 41034,
+        "root": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-unit-fix-r1728/tmp/generated-java-python-controls-0q02sehf",
+        "firstCleanupError": {
+          "operation": "signal-owned-group",
+          "type": "PermissionError",
+          "errno": 1,
+          "message": "Operation not permitted"
+        },
+        "directChildReaped": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "ownedGroupAbsent": true,
+        "descriptorsClosed": false,
+        "terminalCustody": false
+      }
+    ],
+    "preserveNamespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-unit-fix-r1728",
+    "doNot": "Inspect, enumerate, probe, signal, wait on, retry or clean the retained command groups, scratch and discovery raw outputs",
+    "outerCustody": "PID/PGID40809 reaped exit74, both EOFs, closed outer descriptors, owned outer group absent ESRCH; does not release inner holds",
+    "discoveryRawOutputs": [
+      "commands/affected-discovery-normal.stdout",
+      "commands/affected-discovery-normal.stderr"
+    ],
+    "allPreviousHoldsRemain": true
+  },
+  "newHoldResourcesAccessedAfterDiagnosis": false,
+  "historicalHeldResourcesAccessed": false,
+  "stoppedAfter": "Completed normal discovery process returned exit74; no further test batch, retries, process operations or scratch inspection",
+  "limitation": "unittest discovery continued later test cases after its first failing control within the same already-running process; this run is not a fail-fast discovery receipt. Four unchanged synthetic assertions also failed; no diagnosis/retry undertaken after the new real hold."
+}

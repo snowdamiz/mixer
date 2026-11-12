@@ -1,0 +1,175 @@
+{
+  "task": "provider-stage-diagnostic-r1732",
+  "status": "REQUEST_CHANGES",
+  "date": "2026-11-12T21:33:10.486788+00:00",
+  "scope": "one private warm16 stage diagnostic; no adoption or product fix",
+  "tests": {
+    "syntax_before_bootstrap": true,
+    "prod_fixture_exports_absent": true,
+    "focused_passed": 1,
+    "focused_failed": 0,
+    "beam_batches": 1,
+    "batch_seconds": 28.14063499995973,
+    "profile_limit": 16,
+    "global_limit": 128,
+    "deadline_ms": 5000,
+    "standalone_baseline_rerun": false,
+    "regression19_rerun": false,
+    "passed_ssl_race_rerun": false
+  },
+  "cause": {
+    "exact_refusal_branch": "ProviderHTTPS.connect -> Mint.HTTP.connect -> error Mint.TransportError reason econnreset",
+    "refusal_count": 8,
+    "all16_passed": [
+      "start_trusted",
+      "trusted_current_before",
+      "Admission.acquire",
+      "KeyOwner.checkout",
+      "trusted_current_after",
+      "KeyOwner.finish",
+      "post_enter"
+    ],
+    "registered_tls": 8,
+    "refusals_before_raw_registration": true,
+    "occupied_at_each_refusal": [
+      {
+        "caller": "#PID<0.650.0>",
+        "profile": 14,
+        "global": 14
+      },
+      {
+        "caller": "#PID<0.651.0>",
+        "profile": 13,
+        "global": 13
+      },
+      {
+        "caller": "#PID<0.652.0>",
+        "profile": 13,
+        "global": 13
+      },
+      {
+        "caller": "#PID<0.653.0>",
+        "profile": 13,
+        "global": 13
+      },
+      {
+        "caller": "#PID<0.654.0>",
+        "profile": 13,
+        "global": 13
+      },
+      {
+        "caller": "#PID<0.657.0>",
+        "profile": 11,
+        "global": 11
+      },
+      {
+        "caller": "#PID<0.656.0>",
+        "profile": 10,
+        "global": 10
+      },
+      {
+        "caller": "#PID<0.658.0>",
+        "profile": 10,
+        "global": 10
+      }
+    ],
+    "product_guard_rejection_observed": false,
+    "fixture_configuration": "single accept loop, per-accepted handler, explicit backlog5 in diagnostic; prior fixture omitted backlog",
+    "fixture_backlog_cause_proven": false,
+    "counterfactual_ran": false,
+    "counterfactual_limitation": "conditional recognized econnrefused only; observed econnreset, so no extra run after the sole batch"
+  },
+  "product_cleanup": {
+    "all_registered_resources_pinned": true,
+    "registered_watchers": 8,
+    "all_watcher_worker_raw_ssl_retired": true,
+    "pinned_resource_counts": {
+      "watcher": 16,
+      "worker": 16,
+      "ssl": 8,
+      "raw": 8,
+      "socket": 8
+    },
+    "caller_down_count": 16,
+    "final": {
+      "active": 0,
+      "requests": 9,
+      "at_ms": -576460731073,
+      "accepted": 9,
+      "peer_closed": 9,
+      "max_active": 8,
+      "profile_slots": 0,
+      "global_slots": 0,
+      "watchers": {},
+      "owner_admitted": 0,
+      "owner_waiters": 0,
+      "cached_snapshots": 1
+    },
+    "peer_eof_added": 8,
+    "local_fixture_timeouts": 0
+  },
+  "os_custody": {
+    "command": {
+      "label": "focused",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-stage-diagnostic-r1732/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-stage-diagnostic-r1732",
+      "pid": 68123,
+      "pgid": 68123,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 28.14063499995973,
+      "ownedGroupAbsentESRCH": true
+    },
+    "outer": {
+      "pid": 67753,
+      "pgid": 67753,
+      "outerExecSession": 40189,
+      "exitCode": 0,
+      "ownedGroupAbsentESRCH": true
+    },
+    "new_hold": false
+  },
+  "sources": {
+    "candidate_owner_sha256": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192",
+    "candidate_https_sha256": "60e6bc274a7d05eb1eee4b63feb4cb2f50a695ecd03dad191b73b464686e147c",
+    "instrumented_https_sha256": "31ed0b12b1d2adebfc9e031a570946123d9e82d4fb02bfb93f00e7707fb818ea",
+    "changed_private_files": [
+      "source/hosted/test/support/browser_provider_tls_fixture.ex",
+      "afterimages/hosted/lib/mixer_hosted/browser_auth/provider_https.ex"
+    ],
+    "input_manifest": "verification/local/provider-stage-diagnostic-r1732/delivery/input-manifest.json",
+    "after_manifest": "verification/local/provider-stage-diagnostic-r1732/delivery/after-manifest.json",
+    "adapter": {
+      "bytes": 2352,
+      "sha256": "c2cc6d2eff7e587a06eba80ebcabccaa446eff4d1083cdb9cde6fc1b9affeb5b"
+    },
+    "harness": {
+      "bytes": 9611,
+      "sha256": "723287105ed2b94f5d462db98567abf4b6ce6efe0bf179571bc32da2c0771583"
+    }
+  },
+  "tools": {
+    "python": "3.14.8",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "openssl": "4.1.0",
+    "mint": "1.11.0",
+    "schedulers": 2
+  },
+  "outputs": {
+    "stages": "verification/local/provider-stage-diagnostic-r1732/delivery/per-caller-stages.json",
+    "product": "verification/local/provider-stage-diagnostic-r1732/delivery/default-backlog.json",
+    "stdout": "verification/local/provider-stage-diagnostic-r1732/delivery/focused.stdout",
+    "stderr": "verification/local/provider-stage-diagnostic-r1732/delivery/focused.stderr",
+    "command": "verification/local/provider-stage-diagnostic-r1732/delivery/commands.json"
+  },
+  "root_next_action": "Select one fresh backlog32-only warm16 control with the same product16/global128 and 5000ms deadlines; instrument the raw gen_tcp.connect result if needed. Retain the product candidate unaccepted. Full capacity replacement/no-overlap remains unrun.",
+  "campaign_elapsed_seconds": 217.57392629201058
+}

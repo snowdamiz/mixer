@@ -496,3 +496,28 @@ Only the copied top-level console diagnosis in
 `verification/receipts/runner-output-custody-r1369.json` is a reference.
 The failed assertion and later GitHub job cleanup establish no process absence.
 Canonical source and fresh isolated development are outside this scoped hold.
+
+
+The hosted CLI119 runner controls in run 43307707743, job 131495273799,
+reported UNKNOWN terminal custody or cleanup failure for the `aggregate` command
+in `test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate`. No
+reliable inner PID/PGID or scratch path was exposed. Preserve that exact hosted
+command group and its retained unit-worker scratch without inspection, probing,
+signals, waits, retries or cleanup. Only the copied top-level
+`verification/receipts/runner-aggregate-hosted-hold-r1726.json` is a reference.
+The failed assertion, worker exit74 and later GitHub cleanup do not establish
+absence. The underlying OS operation/error remains unproven. Fresh isolated
+source controls and unrelated product/native work remain authorized; no earlier
+hold is released.
+
+
+The R1728 output-budget unit discovery recorded denied SIGKILL/EPERM and
+UNKNOWN terminal cleanup for PID/PGID41018 (`overflow`) and41034 (`second`).
+Preserve the entire `verification/local/output-budget-unit-fix-r1728` namespace,
+including its two retained test roots and discovery outputs, without further
+inspection, enumeration, probing, signals, waits, retries or cleanup. Read only
+the delivered top-level HOLD metadata and compact receipt. Reap, EOF and group
+absence observations do not release these cleanup holds; descriptors remained
+open. The terminal outer40809 does not release them. Fresh canonical-source
+work in distinct namespaces remains permitted. See
+`verification/receipts/output-budget-unit-fix-r1728.json`.

@@ -221,6 +221,9 @@ class SwiftCIIndependence(unittest.TestCase):
         self.assertEqual(identity(changes[-1]['before'].encode()), transition['before'])
         self.assertEqual(identity((json.dumps(changes[:-1], indent=2) + '\n').encode()), transition['prior_job_changes'])
         binding = json.loads((HERE / 'binding.json').read_bytes())
+        self.assertTrue(a.same_json(binding.pop('renderer_pair21_transition'), a.RENDERER_PAIR21_TRANSITION))
+        before = a.RENDERER_PAIR21_TRANSITION['profileBefore']
+        binding['profile'] = dict(binding['profile'], id=before['id'], adapter_sha256=before['adapter_compatibility_sha256'])
         self.assertEqual(binding.pop('play_cli_transition'), a.PLAY_CLI_TRANSITION)
         binding['source'] = binding.pop('historical_cli118_source')
         del binding['swift_ci_independence_transition']

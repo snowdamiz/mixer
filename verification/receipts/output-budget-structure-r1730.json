@@ -1,0 +1,321 @@
+{
+  "id": "output-budget-structure-r1730",
+  "status": "FOCUSED_PASS_DISCOVERY_SCOPE_BLOCKED",
+  "failure": "AssertionError: discovery-normal",
+  "scope": "Private test-only afterimage; canonical and collector untouched; no source119/Pair20 rebinding",
+  "source": {
+    "canonical": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/ci/tests/test_android_generated_java_runner.py",
+    "before": {
+      "bytes": 69886,
+      "sha256": "d3cebc7a162a39c038e05c098c254ded2a9ef6e3b90900688d635553263d4c3d"
+    },
+    "after": {
+      "bytes": 71305,
+      "sha256": "6084a79535ab816761675e16d468ef0712b838f3e739e4cd932d673f35f2a710"
+    },
+    "collector": {
+      "bytes": 65563,
+      "sha256": "95b314c4c9e8a5ab2f4cf4f1d8f7f7d018db874bc498ee52ce939f7659e95f98"
+    }
+  },
+  "patch": {
+    "bytes": 7598,
+    "sha256": "3770c2202774602628aa159e796c9c0ecf32d41450932a0a9929cc6c53925c93"
+  },
+  "changedMethods": [
+    [
+      "FakeCommandBoundary",
+      "__init__"
+    ],
+    [
+      "FakeCommandBoundary",
+      "popen"
+    ],
+    [
+      "RunnerControls",
+      "test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate"
+    ],
+    [
+      "RunnerControls",
+      "test_timeout_and_output_overflow_fail_and_close_owned_child"
+    ],
+    [
+      "RunnerControls",
+      "test_total_output_budget_spans_commands"
+    ]
+  ],
+  "checks": {
+    "focused-normal": {
+      "label": "focused-normal",
+      "tests": 7,
+      "passed": true,
+      "failures": [],
+      "errors": [],
+      "skipped": [],
+      "excludedGitTests": [],
+      "retainedActualOwners": {
+        "processes": 0,
+        "commands": 0,
+        "cli": 0
+      },
+      "canonicalModuleFilename": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/ci/tests/test_android_generated_java_runner.py",
+      "trueBytesSource": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/afterimage.py"
+    },
+    "focused-optimized": {
+      "label": "focused-optimized",
+      "tests": 7,
+      "passed": true,
+      "failures": [],
+      "errors": [],
+      "skipped": [],
+      "excludedGitTests": [],
+      "retainedActualOwners": {
+        "processes": 0,
+        "commands": 0,
+        "cli": 0
+      },
+      "canonicalModuleFilename": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/ci/tests/test_android_generated_java_runner.py",
+      "trueBytesSource": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/afterimage.py"
+    },
+    "discovery-normal": {
+      "label": "discovery-normal",
+      "tests": 8,
+      "passed": false,
+      "failures": [],
+      "errors": [
+        [
+          "test_analyzer_envelope_runner.RunnerControls.test_explicit_launcher_queries_original_then_direct_sysroot",
+          "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/ci/tests/test_analyzer_envelope_runner.py\", line 232, in test_explicit_launcher_queries_original_then_direct_sysroot\n    selected, identity = r.select_compiler(launcher, c, ROOT, c.out)\n                         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/ci/check-analyzer-envelope.py\", line 358, in select_compiler\n    selected = commands.run('compiler-sysroot-selection', [launcher, '--print', 'sysroot'], cwd=root)[0].strip()\n               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/ci/check-analyzer-envelope.py\", line 278, in run\n    proc = subprocess.Popen(argv, cwd=cwd, env=command_env, stdout=output, stderr=error,\n                            start_new_session=True)\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 1039, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                        pass_fds, cwd, env,\n                        ^^^^^^^^^^^^^^^^^^^\n    ...<5 lines>...\n                        gid, gids, uid, umask,\n                        ^^^^^^^^^^^^^^^^^^^^^^\n                        start_new_session, process_group)\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 1858, in _execute_child\n    sys.audit(\"subprocess.Popen\", executable, args, cwd, env)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/worker.py\", line 29, in audit\n    if exe not in {'python3','python','python3.14'}:raise RuntimeError('OUT_OF_SCOPE_EXECUTABLE: '+exe)\n                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: OUT_OF_SCOPE_EXECUTABLE: rustc\n"
+        ]
+      ],
+      "skipped": [],
+      "excludedGitTests": [
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_partial_clone_fetches_only_the_requested_blob_when_enabled",
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_refuses_overwrite",
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_rejects_archived_symlinks_before_creating_output",
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_rejects_corrupt_blob_and_removes_partial_output",
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_rejects_path_traversal_and_source_destination",
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_rejects_symlink_output_ancestors",
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_reports_fetch_command_for_missing_archive",
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_restores_binary_bytes_and_git_modes_from_the_archive",
+        "test_restore_verification_artifacts.RestoreVerificationArtifactsTests.test_restores_one_literal_path_into_repo_scratch",
+        "test_verification_artifacts.VerificationArtifactTests.test_build_directory_is_rejected",
+        "test_verification_artifacts.VerificationArtifactTests.test_canonical_exceptions_are_bound_to_staged_blob_and_size",
+        "test_verification_artifacts.VerificationArtifactTests.test_checks_file_size_against_staged_bytes",
+        "test_verification_artifacts.VerificationArtifactTests.test_checks_total_file_count",
+        "test_verification_artifacts.VerificationArtifactTests.test_counts_every_path_against_total_size_even_for_duplicate_blobs",
+        "test_verification_artifacts.VerificationArtifactTests.test_force_added_generated_output_is_rejected_when_sparse",
+        "test_verification_artifacts.VerificationArtifactTests.test_partial_clone_reads_sizes_without_materializing_fixtures",
+        "test_verification_artifacts.VerificationArtifactTests.test_rejects_non_regular_index_modes",
+        "test_verification_artifacts.VerificationArtifactTests.test_uses_staged_fixture_and_policy_bytes"
+      ],
+      "retainedActualOwners": {
+        "processes": 0,
+        "commands": 0,
+        "cli": 0
+      },
+      "canonicalModuleFilename": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/ci/tests/test_android_generated_java_runner.py",
+      "trueBytesSource": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/afterimage.py"
+    },
+    "discovery-optimized": {
+      "status": "NOT_RUN_AFTER_FAILFAST_NORMAL_DISCOVERY_SCOPE_REFUSAL"
+    }
+  },
+  "commands": [
+    {
+      "label": "focused-normal",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/worker.py",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730",
+        "focused-normal"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 40037,
+      "pgid": 40037,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.6695987499551848,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "focused-optimized",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-I",
+        "-B",
+        "-S",
+        "-O",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/worker.py",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730",
+        "focused-optimized"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 40054,
+      "pgid": 40054,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.7736703749978915,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "discovery-normal",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/worker.py",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730",
+        "discovery-normal"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 40095,
+      "pgid": 40095,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.6861528749577701,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "outerTerminalOSGroups": true,
+  "actualInnerOwnersRetained": false,
+  "canonicalUnchanged": true,
+  "collectorCommandsUnchanged": true,
+  "strictCustodyPriorityTestsUnchanged": true,
+  "timeoutFirstCaseUnchanged": "Same real script, Commands limits, exception/stop/exit/custody/log assertions; only overflow tuple removed and replaced with separate synthetic leaf",
+  "baselineKnownCIReceipt": "verification/receipts/output-budget-unit-fix-r1728.json; run43307707743/job131495273799/commit41acff46f7060813c25d4bb99a576fcebd87458c; held baseline not rerun",
+  "heldResourcesAccessed": false,
+  "holdsReleased": false,
+  "canonicalGitSourcePinsDocsNativeDeviceADBDBProviderNetworkDeploySubchildrenOperations": false,
+  "environment": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/tmp"
+  },
+  "adapter": {
+    "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "identity": {
+      "bytes": 7268,
+      "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+    },
+    "ASTDefinitions": [
+      "InertPopen",
+      "read",
+      "row",
+      "run",
+      "save"
+    ],
+    "pattern": "verification/local/cli119-ci-r1706/run-controls3.py"
+  },
+  "seconds": 2.2077392500359565,
+  "limits": {
+    "perCommandSeconds": 50,
+    "campaignSeconds": 160,
+    "focusedBatchesNormalOptimized": 1,
+    "discoveryNormalOptimized": 1,
+    "failfast": true
+  },
+  "fullDiscoveryLimitation": "2 Git-operating modules explicitly excluded; full unfiltered discovery prohibited by task no-Git scope",
+  "parentReviewContract": [
+    "Verify exact canonical preimage and apply only change.diff after independent changed-semantics review",
+    "Only FakeCommandBoundary stderr input plus three budget test methods change",
+    "Budget arithmetic is synthetic known-absent ready-output; timeout and real OS custody controls unchanged",
+    "Collector Commands/source119/Pair20 unchanged; test lies outside source119 manifest; Pair21 not applied",
+    "Do not access R1728 or any other historical hold; no publication or gate acceptance implied",
+    "Full unfiltered discovery is incomplete; reviewer must preserve no-Git/no-compiler scope or obtain a separately selected allowed suite; do not infer 50-test or full CI PASS"
+  ],
+  "structuralProof": {
+    "same_real_timeout_tuple": true,
+    "same_real_timeout_loop_body": true,
+    "changed_methods_exact": true
+  },
+  "discoveryScopeRefusal": {
+    "test": "test_analyzer_envelope_runner.RunnerControls.test_explicit_launcher_queries_original_then_direct_sysroot",
+    "operation": "subprocess.Popen audit event for rustc launcher",
+    "error": "RuntimeError: OUT_OF_SCOPE_EXECUTABLE: rustc",
+    "payloadLaunched": false,
+    "counts": {
+      "attempted": 8,
+      "succeeded": 7,
+      "errors": 1,
+      "failures": 0
+    },
+    "gitCasesExcluded": 18,
+    "furtherTestsRun": false,
+    "scope": "Not a changed-test failure; discovery incomplete; no full-suite PASS claimed"
+  },
+  "strictCustodyPriorityProof": {
+    "unchanged_ast": true,
+    "passed_both_normal_and_optimized": [
+      "test_javap_overflow_unknown_custody_still_takes_priority",
+      "test_denied_signal_retains_receipt_even_after_child_exits",
+      "test_cooperative_parent_waits_for_descendant_and_releases_custody"
+    ],
+    "preserved_contract": "Budget overflow never overrides UNKNOWN/denied custody; reaped+EOF does not imply terminal; sticky hold refuses followup",
+    "synthetic_budget_terminal_records": "Known-absent synthetic command leaves only; never OS cleanup qualification"
+  },
+  "OSFacts": {
+    "outer": [
+      {
+        "label": "focused-normal",
+        "pid": 40037,
+        "pgid": 40037,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "focused-optimized",
+        "pid": 40054,
+        "pgid": 40054,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "discovery-normal",
+        "pid": 40095,
+        "pgid": 40095,
+        "state": "direct_reaped",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "focused_real_timeout": "Unchanged real timeout case and its exit_code/terminal_custody assertions passed normal/O",
+    "focused_real_cooperative_descendant": "Unchanged cooperative descendant terminal-record assertions passed normal/O",
+    "retained_actual_android_runner_owners": {
+      "processes": 0,
+      "commands": 0,
+      "cli": 0
+    },
+    "newUnknownObserved": false,
+    "historicalHoldsReleased": false
+  },
+  "delivery": {
+    "afterimage": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/afterimage.py",
+    "diff": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/change.diff",
+    "source_proof": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/output-budget-structure-r1730/source-proof.json",
+    "canonical_application": "NOT_APPLIED",
+    "full_module_50_receipt": "NOT_RUN: permitted full discovery stopped in unrelated analyzer module before Android module; focused7/O7 only"
+  }
+}

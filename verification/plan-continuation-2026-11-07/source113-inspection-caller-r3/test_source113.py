@@ -27,6 +27,58 @@ class Source113(unittest.TestCase):
         self.work = Path(self.temp.name)
         self.base = a.bind()
         self.frozen = json.loads((HERE/'current-source-inputs.json').read_text())
+    def test_renderer_pair21_exact_119_inverse_and_typed_mutants(self):
+        import copy
+        owner = self.base.module_at('pair21_control_owner', ROOT/'scripts/ci/check-android-generated-java.py')
+        binding = json.loads((HERE/'binding.json').read_bytes())
+        actual = owner.source_inputs(owner.load_profile(ROOT))
+        before = a.renderer_pair21_predecessor(self.base, binding, actual, owner)
+        self.assertEqual((len(actual), len(before)), (119, 119))
+        self.assertEqual(set(actual), set(before))
+        self.assertEqual(before, json.loads((HERE/'renderer-pair21-predecessor.json').read_bytes()))
+        t = binding['renderer_pair21_transition']
+        for row in t['rawPredecessors']:
+            self.assertEqual(a.renderer_pair21_predecessor_raw(self.base, ROOT/row['path']), self.raw_predecessor(row, (ROOT/row['path']).read_bytes()))
+            mutated = dict(actual); mutated[row['path']] = dict(row['after'], sha256='0'*64)
+            with self.assertRaises(RuntimeError): a.renderer_pair21_predecessor(self.base,binding,mutated,owner)
+        for key,value in [('sourceCountAfter',True),('sourceCountAfter',120),('qualification',0),('sourceBefore','0'*64),('sourceAfter','0'*64)]:
+            forged=copy.deepcopy(binding); forged['renderer_pair21_transition'][key]=value
+            with self.assertRaises(RuntimeError): a.renderer_pair21_predecessor(self.base,forged,actual,owner)
+        self.assertEqual(actual['cli/Sources/MixerCLI/main.swift'], before['cli/Sources/MixerCLI/main.swift'])
+        self.assertEqual(actual['cli/Sources/MixerBuild/PlayReleaseStatus.swift'], before['cli/Sources/MixerBuild/PlayReleaseStatus.swift'])
+
+    @staticmethod
+    def raw_predecessor(row, raw):
+        lines=raw.decode().splitlines(True)
+        for edit in reversed(row['reverseEdits']): lines[edit['afterStartLine']:edit['afterEndLine']]=[edit['beforeText']]
+        old=''.join(lines).encode()
+        if {'bytes':len(old),'sha256':hashlib.sha256(old).hexdigest()} != row['before']: raise RuntimeError('Bad inverse')
+        return old
+
+    def test_output_budget_exact_raw_inverse_and_corruption_refuse_before_dispatch(self):
+        path = ROOT/a.OUTPUT_BUDGET_UNIT_TRANSITION['path']
+        raw = path.read_bytes()
+        old = a.output_budget_unit_predecessor_raw(self.base, path)
+        self.assertEqual({'bytes':len(old),'sha256':hashlib.sha256(old).hexdigest()}, a.OUTPUT_BUDGET_UNIT_TRANSITION['before'])
+        with patched(a, 'renderer_pair21_predecessor_raw', lambda base, path: old):
+            lines = old.decode().splitlines(True)
+            for e in reversed(a.FIXTURE_RETENTION_TRANSITION['reverseEdits']):
+                lines[e['afterStartLine']:e['afterEndLine']] = [e['beforeText']]
+            expected = ''.join(lines).encode()
+        self.assertEqual(a.fixture_retention_predecessor_raw(self.base,path), expected)
+        original_raw = a.renderer_pair21_predecessor_raw
+        dispatched = []
+        def dispatch(*args, **kwargs):
+            dispatched.append(True)
+            raise AssertionError('process dispatch forbidden')
+        with patched(self.base, 'run_fixture', dispatch):
+            for mutant in (bytes([raw[0]^1])+raw[1:], raw[:-1], raw+b'x', old):
+                with self.subTest(bytes=len(mutant)), patched(a, 'renderer_pair21_predecessor_raw', lambda base,candidate: mutant if candidate == path else original_raw(base,candidate)):
+                    with self.assertRaisesRegex(RuntimeError, 'Output budget exact raw successor differs'):
+                        a.run_fixture(self.base, self.work/'never-output', '/never-executed/rustc')
+        self.assertEqual(dispatched, [])
+        self.assertFalse((self.work/'never-output').exists())
+
     def project(self):
         p = self.work/'source'
         for name in self.frozen:

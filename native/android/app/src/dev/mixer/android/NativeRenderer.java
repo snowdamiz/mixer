@@ -619,7 +619,8 @@ final class NativeRenderer {
         AndroidUIProfile geometry=old.verticalInput||consumed?v2Profile:AndroidUIProfile.LEGACY_HORIZONTAL;
         return sameEditorConfigurationV2(old,next,true)&&old.binding.source().actions.equals(next.binding.source().actions)&&
             (sameModelAncestorsV3(c,old.id,false)||consumed&&sameModelAncestorsV3(c,old.id,true))&&
-            sameFrameV2(old.view,next.view,geometry)&&(old.verticalInput||old.view.getHeight()==next.view.getHeight());
+            (sameFrameV2(old.view,next.view,geometry)&&(old.verticalInput||old.view.getHeight()==next.view.getHeight())||
+             !old.verticalInput&&retainedMeasuredFrameV3(c,old,next));
     }
     // A retained field acknowledges its own complete native buffer. Sibling edits
     // grant no authority over its target, input contract or source lineage.
@@ -653,6 +654,27 @@ final class NativeRenderer {
                 before.geometry.nativeTextHeightPx>=0&&after.geometry.nativeTextHeightPx>=0&&
                 before.geometry.nativeTextHeightPx!=after.geometry.nativeTextHeightPx&&
                 !before.binding.source().properties.equals(after.binding.source().properties))return true;
+        }
+        // A newly inserted or removed measured text sibling also changes the
+        // source-owned vertical layout without changing any editor contract.
+        for(var after:c.detached.values())if(!c.base.nodes.containsKey(after.id)&&
+            measuredPrecedingTextV3(c.next,c.detached,after,old.id))return true;
+        for(var before:c.baseRecords.values())if(!c.next.nodes.containsKey(before.id)&&
+            measuredPrecedingTextV3(c.base,c.baseRecords,before,old.id))return true;
+        return false;
+    }
+    private static boolean measuredPrecedingTextV3(UiPacket source,Map<String,NativeAppearanceViewsV2.Record> records,
+            NativeAppearanceViewsV2.Record text,String field){
+        if(!text.kind.equals("text")||text.geometry.nativeTextHeightPx<0||!sourceFrameV3(source,records,text.id))return false;
+        Set<String> lineage=new HashSet<>();
+        for(String id=text.id;id!=null;id=parentV2(source,id))lineage.add(id);
+        for(String branch=field;branch!=null;){
+            String parent=parentV2(source,branch);if(parent==null)return false;
+            for(var sibling:source.nodes.get(parent).children){
+                if(sibling.id.equals(branch))break;
+                if(lineage.contains(sibling.id))return true;
+            }
+            branch=parent;
         }
         return false;
     }

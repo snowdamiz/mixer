@@ -30,11 +30,12 @@ def data_identity(value):
 
 class FakeCommandBoundary:
     """Synthetic uncertainty only; no real process, descriptor or finalizer exists."""
-    def __init__(self, root, *, stdout=b'', live=False, denied_signal=False,
+    def __init__(self, root, *, stdout=b'', stderr=b'', live=False, denied_signal=False,
                  observation='absent', read_error=False, reap_error=False,
                  pipe_close_error=False, selector_close_error=False, ready_output=False):
         self.root = root
         self.stdout = stdout
+        self.stderr = stderr
         self.ready_output = ready_output
         self.live = live
         self.signal_error = 'fake live-child denial' if live else 'fake denied owned signal'
@@ -86,7 +87,7 @@ class FakeCommandBoundary:
                 self.live, self.returncode = boundary.live, None
                 offset = 2 * len(boundary.children)
                 self.stdout = Pipe('stdout', -200001-offset, boundary.stdout)
-                self.stderr = Pipe('stderr', -200002-offset, b'')
+                self.stderr = Pipe('stderr', -200002-offset, boundary.stderr)
                 for pipe in (self.stdout, self.stderr):
                     boundary.pipes[pipe.fd] = (self, pipe)
             def poll(self):
@@ -573,8 +574,7 @@ class RunnerControls(unittest.TestCase):
 
     def test_timeout_and_output_overflow_fail_and_close_owned_child(self):
         for label, script, expected in (
-            ('timeout', 'import time; time.sleep(10)', 'timeout'),
-            ('overflow', 'import os; os.write(1,b"x"*10000)', 'output-limit')):
+            ('timeout', 'import time; time.sleep(10)', 'timeout'),):
             commands = M.Commands(self.root, os.environ.copy(), seconds=3, command_seconds=0.2, output_bytes=128)
             with self.assertRaisesRegex(RuntimeError, expected):
                 commands.run(label, [sys.executable, '-B', '-c', script])
@@ -583,12 +583,25 @@ class RunnerControls(unittest.TestCase):
             self.assertTrue(commands.records[-1]['terminal_custody'])
             self.assertLessEqual((self.root / ('000-' + label + '.stdout')).stat().st_size, 128)
 
+        with FakeCommandBoundary(self.root, stdout=b'x' * 10000, ready_output=True):
+            commands = M.Commands(self.root, os.environ.copy(), seconds=3, command_seconds=0.2, output_bytes=128)
+            with self.assertRaisesRegex(RuntimeError, 'output-limit'):
+                commands.run('overflow', ['synthetic-output'])
+            self.assertEqual(commands.records[-1]['stop'], 'output-limit')
+            self.assertEqual(commands.records[-1]['logs']['stdout']['bytes'], 128)
+            self.terminal_record(commands.records[-1])
+
     def test_total_output_budget_spans_commands(self):
-        commands = self.commands(output_bytes=128, total_output_bytes=6)
-        commands.run('first', [sys.executable, '-B', '-c', 'print("abc")'])
-        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
-            commands.run('second', [sys.executable, '-B', '-c', 'print("abc")'])
-        self.assertEqual(commands.used_output, 6)
+        with FakeCommandBoundary(self.root, stdout=b'abc\n', ready_output=True):
+            commands = self.commands(output_bytes=128, total_output_bytes=6)
+            self.assertEqual(commands.run('first', ['synthetic-output']), 'abc\n')
+            self.terminal_record(commands.records[-1])
+            with self.assertRaisesRegex(RuntimeError, 'output-limit'):
+                commands.run('second', ['synthetic-output'])
+            self.assertEqual(commands.used_output, 6)
+            self.assertEqual([r['logs']['stdout']['bytes'] for r in commands.records], [4, 2])
+            self.assertEqual(commands.records[-1]['stop'], 'output-limit')
+            self.terminal_record(commands.records[-1])
 
     def test_explicit_stdout_budget_captures_complete_large_output_without_changing_defaults(self):
         commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2)
@@ -650,26 +663,32 @@ class RunnerControls(unittest.TestCase):
                 boundary.cleanup_markers()
 
     def test_stdout_override_is_exact_and_does_not_expand_stderr_or_aggregate(self):
-        commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2,
-                              output_bytes=16, total_output_bytes=100)
-        self.assertEqual(commands.run('exact', [sys.executable, '-B', '-c',
-            'import os; os.write(1,b"x"*32)'], stdout_bytes=32), 'x' * 32)
-        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
-            commands.run('one-over', [sys.executable, '-B', '-c',
-                'import os; os.write(1,b"x"*33)'], stdout_bytes=32)
-        self.assertEqual(commands.records[-1]['logs']['stdout']['bytes'], 32)
-        self.terminal_record(commands.records[-1])
-        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
-            commands.run('stderr-default', [sys.executable, '-B', '-c',
-                'import os; os.write(2,b"e"*17)'], stdout_bytes=32)
-        self.assertEqual(commands.records[-1]['logs']['stderr']['bytes'], 16)
-        self.terminal_record(commands.records[-1])
-        with self.assertRaisesRegex(RuntimeError, 'output-limit'):
-            commands.run('aggregate', [sys.executable, '-B', '-c',
-                'import os; os.write(1,b"x"*32)'], stdout_bytes=32)
-        self.assertEqual(commands.used_output, 100)
-        self.assertEqual(commands.records[-1]['logs']['stdout']['bytes'], 20)
-        self.terminal_record(commands.records[-1])
+        with FakeCommandBoundary(self.root, stdout=b'x' * 32, ready_output=True) as boundary:
+            commands = M.Commands(self.root, os.environ.copy(), seconds=15, command_seconds=2,
+                                  output_bytes=16, total_output_bytes=100)
+            self.assertEqual(commands.run('exact', ['synthetic-output'], stdout_bytes=32), 'x' * 32)
+            self.terminal_record(commands.records[-1])
+            boundary.stdout = b'x' * 33
+            with self.assertRaisesRegex(RuntimeError, 'output-limit'):
+                commands.run('one-over', ['synthetic-output'], stdout_bytes=32)
+            self.assertEqual(commands.records[-1]['stop'], 'output-limit')
+            self.assertEqual(commands.records[-1]['logs']['stdout']['bytes'], 32)
+            self.terminal_record(commands.records[-1])
+            boundary.stdout, boundary.stderr = b'', b'e' * 17
+            with self.assertRaisesRegex(RuntimeError, 'output-limit'):
+                commands.run('stderr-default', ['synthetic-output'], stdout_bytes=32)
+            self.assertEqual(commands.records[-1]['stop'], 'output-limit')
+            self.assertEqual(commands.records[-1]['logs']['stderr']['bytes'], 16)
+            self.terminal_record(commands.records[-1])
+            boundary.stdout, boundary.stderr = b'x' * 32, b''
+            with self.assertRaisesRegex(RuntimeError, 'output-limit'):
+                commands.run('aggregate', ['synthetic-output'], stdout_bytes=32)
+            self.assertEqual(commands.records[-1]['stop'], 'output-limit')
+            self.assertEqual(commands.used_output, 100)
+            self.assertEqual(commands.records[-1]['logs']['stdout']['bytes'], 20)
+            self.assertEqual([sum(r['logs'][s]['bytes'] for s in ('stdout', 'stderr'))
+                              for r in commands.records], [32, 32, 16, 20])
+            self.terminal_record(commands.records[-1])
 
     def test_invalid_stdout_budgets_fail_before_spawning(self):
         commands = self.commands()
