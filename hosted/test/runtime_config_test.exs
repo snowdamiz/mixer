@@ -34,7 +34,7 @@ defmodule MixerHosted.RuntimeConfigTest do
     refute inspect(config) =~ "synthetic"
 
     assert Enum.member?(
-             MixerHosted.Application.children(:api, config.oban),
+             MixerHosted.Application.children({config, :disabled}),
              MixerHostedWeb.Endpoint
            )
   end
@@ -52,7 +52,7 @@ defmodule MixerHosted.RuntimeConfigTest do
     assert config.oban[:stager] == [interval: 1_000]
 
     refute Enum.member?(
-             MixerHosted.Application.children(:processor, config.oban),
+             MixerHosted.Application.children({config, :disabled}),
              MixerHostedWeb.Endpoint
            )
   end
