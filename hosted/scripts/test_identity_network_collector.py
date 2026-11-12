@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_catalog_join_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, CATALOG_JOIN_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_provider_https_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, PROVIDER_HTTPS_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_catalog_join_source_manifest", return_value=collector.CATALOG_JOIN_MANIFEST), \
+                    mock.patch.object(collector, "validate_provider_https_source_manifest", return_value=collector.PROVIDER_HTTPS_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_catalog_join_source_manifest", return_value=collector.CATALOG_JOIN_MANIFEST), \
+                    mock.patch.object(collector, "validate_provider_https_source_manifest", return_value=collector.PROVIDER_HTTPS_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_catalog_join_source_manifest", return_value=collector.CATALOG_JOIN_MANIFEST), \
+                    mock.patch.object(collector, "validate_provider_https_source_manifest", return_value=collector.PROVIDER_HTTPS_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_catalog_join_source_manifest", return_value=collector.CATALOG_JOIN_MANIFEST), \
+                            mock.patch.object(collector, "validate_provider_https_source_manifest", return_value=collector.PROVIDER_HTTPS_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_catalog_join_source_manifest", return_value=collector.CATALOG_JOIN_MANIFEST), \
+                            mock.patch.object(collector, "validate_provider_https_source_manifest", return_value=collector.PROVIDER_HTTPS_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.CATALOG_JOIN_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.PROVIDER_HTTPS_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -2985,8 +2985,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
         import contextlib
         import io
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / collector.CATALOG_JOIN_SOURCE_BASE / "selection.json").read_bytes()
-        self.assertEqual(collector.CATALOG_JOIN_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        raw = (root / collector.PROVIDER_HTTPS_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.PROVIDER_HTTPS_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
         expected = json.loads(raw)["selected"]
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -2994,7 +2994,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-        self.assertEqual(collector.CATALOG_JOIN_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertEqual(collector.PROVIDER_HTTPS_SELECTION_SHA256, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
 
@@ -3002,8 +3002,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "6dc37c2e86ba39377751d8fe03bdfbf11e2cce4a4613fbdd39c172fb37d6134a"
-    DIGEST = "cb35b0bde7d3eda61b16b7e754c37ca642c7a16571e8d06671455459a2f908c8"
+    PIN = 'd6349039303b6b158bba734d897edd7ee2ae943b9e8d8b0b98204923175447e0'
+    DIGEST = '4049b96febf9cce493d6d91fef62b19206db2f2f58d776cddaed67d6267955fc'
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3071,7 +3071,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(259, observed["source_count"])
+            self.assertEqual(263, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3081,7 +3081,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / "verification/identity-network-current-source-v13/selection.json").read_bytes()
+        raw = (root / "verification/identity-network-current-source-v14/selection.json").read_bytes()
         self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
         patterns = self.patterns((root / workflow_path).read_text(), job)
         self.assertNotIn(self.FAMILY, patterns)
@@ -3321,6 +3321,62 @@ class CatalogJoinSourceControls(unittest.TestCase):
                 sparse=Path(directory); helper.materialize(root,sparse,patterns); helper.check_real_main(sparse)
                 (sparse / "hosted/test/support/browser_build_catalog_client.mjs").unlink()
                 with self.assertRaises(FileNotFoundError): helper.check_real_main(sparse)
+
+class ProviderHTTPSSourceControls(unittest.TestCase):
+    def test_v14_exact_four_additions_inverse_and_twelve_compiler_inputs(self):
+        selected=collector.PROVIDER_HTTPS_MANIFEST
+        self.assertEqual(263,len(selected))
+        self.assertEqual(collector.CATALOG_JOIN_MANIFEST,{p:e for p,e in selected.items() if p not in collector.PROVIDER_HTTPS_DELTA})
+        expected=('console/src/api/browser-session-client.ts','console/src/api/cookie-build-catalog-client.ts','console/src/api/cookie-build-client.ts','console/src/api/cookie-workspace-client.ts','console/src/api/workspace-client.ts','console/src/api/workspace-transport.ts','console/src/domain/build-catalog.ts','console/src/domain/build-overview.ts','console/src/domain/build-read.ts','console/src/domain/workspace-directory.ts','console/src/state/browser-session-controller.ts','console/src/state/workspace-controller.ts')
+        self.assertEqual(expected,tuple(sorted(p for p in selected if p.endswith('.ts'))))
+        for p in expected:self.assertEqual(collector.CATALOG_JOIN_MANIFEST[p],selected[p])
+        root=COLLECTOR_PATH.resolve().parents[2]
+        metadata={collector.PROVIDER_HTTPS_SOURCE_BASE+n:(root/collector.PROVIDER_HTTPS_SOURCE_BASE/n).read_bytes() for n in ('selection.json','selected-source-manifest.json')}
+        value=collector.validate_provider_https_source_metadata(metadata)
+        self.assertEqual(4,len(value['exact_delta']))
+        self.assertTrue(all(c['before'] is None for c in value['exact_delta'].values()))
+
+    def test_v14_actual_cli_entrypoint_executes_and_stale_provider_refuses(self):
+        import contextlib,runpy
+        root=COLLECTOR_PATH.resolve().parents[2]
+        output=io.StringIO()
+        with mock.patch.object(sys,'argv',[str(COLLECTOR_PATH),'--check-source']),contextlib.redirect_stdout(output):
+            with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
+        self.assertEqual(0,exited.exception.code)
+        observed=json.loads(output.getvalue())
+        self.assertEqual(263,observed['source_count'])
+        self.assertEqual(collector.PROVIDER_HTTPS_SOURCE_DIGEST,observed['source_digest_sha256'])
+        self.assertEqual(collector.PROVIDER_HTTPS_SELECTION_SHA256,observed['selection_sha256'])
+        path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
+        try:
+            target.write_bytes(original+b'\n')
+            with self.assertRaises(collector.CollectorError):collector.main(['--check-source'])
+        finally:target.write_bytes(original)
+
+    def test_v14_each_new_file_required_by_all_actual_sparse_consumers(self):
+        helper=WorkflowSparseSourceControls();root=COLLECTOR_PATH.resolve().parents[2]
+        for workflow,job in [('hosted.yml','phoenix'),('identity-network.yml','identity-network'),('verify.yml','services')]:
+            patterns=helper.patterns((root/'.github/workflows'/workflow).read_text(),job)
+            self.assertIn('/'+collector.PROVIDER_HTTPS_SOURCE_BASE+'selection.json',patterns)
+            self.assertIn('/'+collector.PROVIDER_HTTPS_SOURCE_BASE+'selected-source-manifest.json',patterns)
+            with self.subTest(workflow=workflow),tempfile.TemporaryDirectory(prefix='identity-controls-') as directory:
+                sparse=Path(directory);helper.materialize(root,sparse,patterns);helper.check_real_main(sparse)
+                for p in collector.PROVIDER_HTTPS_DELTA:
+                    target=sparse/p;data=target.read_bytes();target.unlink()
+                    try:
+                        with self.assertRaises(FileNotFoundError):helper.check_real_main(sparse)
+                    finally:target.write_bytes(data)
+
+    def test_v14_stale_missing_extra_manifest_and_caller_authority_refuse(self):
+        for p in collector.PROVIDER_HTTPS_DELTA:
+            for missing in (True,False):
+                value=copy.deepcopy(collector.PROVIDER_HTTPS_MANIFEST)
+                if missing:value.pop(p)
+                else:value[p]['sha256']='0'*64
+                with self.subTest(path=p,missing=missing),self.assertRaises(collector.CollectorError):collector.validate_provider_https_source_manifest(value)
+        value={**collector.PROVIDER_HTTPS_MANIFEST,'hosted/future.ex':{'bytes':0,'sha256':'0'*64}}
+        with self.assertRaises(collector.CollectorError):collector.validate_provider_https_source_manifest(value,canonical_digest(value),264)
+        with self.assertRaises(collector.CollectorError):collector.validate_provider_https_source_manifest(collector.CATALOG_JOIN_MANIFEST)
 
 if __name__ == "__main__":
     signal.alarm(50)
