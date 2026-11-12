@@ -1,23 +1,19 @@
 defmodule MixerHostedWeb.BrowserHTTP do
-  @moduledoc "Private fixed browser reads. Explicit listener only; no default application mount."
+  @moduledoc "Fixed browser reads; raw parsers remain authoritative."
   @behaviour Plug
   alias MixerHosted.BrowserAuth.{Protocol, RuntimeOwner}
   alias MixerHostedWeb.BrowserWorkspaceDispatcher.Request
   import Plug.Conn
+
+  @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog)
+  def owns_path?(path), do: path in @paths
 
   def init([]), do: []
 
   def call(conn, []) do
     with true <- conn.method == "GET",
          true <-
-           conn.request_path in [
-             "/auth/session",
-             "/console-api/v1/orgs",
-             "/console-api/v1/projects",
-             "/console-api/v1/builds",
-             "/console-api/v1/applications",
-             "/console-api/v1/build-catalog"
-           ],
+           owns_path?(conn.request_path),
          {:ok, _} <- Protocol.parse_session_cookie(conn.req_headers),
          false <-
            Enum.any?(conn.req_headers, fn {k, v} ->
@@ -31,14 +27,7 @@ defmodule MixerHostedWeb.BrowserHTTP do
           conn,
           if(
             conn.method == "GET" and
-              conn.request_path in [
-                "/auth/session",
-                "/console-api/v1/orgs",
-                "/console-api/v1/projects",
-                "/console-api/v1/builds",
-                "/console-api/v1/applications",
-                "/console-api/v1/build-catalog"
-              ],
+              owns_path?(conn.request_path),
             do: 400,
             else: 404
           )

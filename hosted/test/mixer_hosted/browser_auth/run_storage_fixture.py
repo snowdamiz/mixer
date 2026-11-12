@@ -37,6 +37,7 @@ source_paths = [
     ROOT / "lib/mixer_hosted/browser_auth/storage_schema.ex",
     ROOT / "lib/mixer_hosted/browser_auth/vault.ex",
     ROOT / "lib/mixer_hosted/browser_auth/stored_snapshot.ex",
+    ROOT / "test/support/browser_storage_fixture.ex",
     ROOT / "test/mixer_hosted/browser_auth/storage_fixture.exs",
     ROOT / "test/mixer_hosted/browser_auth/storage_spec.exs",
     pathlib.Path(__file__).resolve(), REPO / "docs/hosted-browser-session-storage.md",

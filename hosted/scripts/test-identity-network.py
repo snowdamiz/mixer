@@ -1167,6 +1167,79 @@ def _load_provider_https_source_authority():
     require(type(selection["schema"]) is int and selection["schema"] == 1 and count == len(manifest), "provider HTTPS typed authority membership")
     return CurrentSourceAuthority(count, canonical_digest(manifest), manifest)
 
+ORDINARY_BROWSER_SOURCE_BASE = 'verification/identity-network-current-source-v15/'
+ORDINARY_BROWSER_SELECTION_SHA256 = "79ae1d49352d6bc02da85f004c5855089ba9eaa3fe7b8d408f4bb7e99358cb8b"
+ORDINARY_BROWSER_SOURCE_DIGEST = "7541ccd6dc3369acac10dbfa881914eaf76e0c092a7ceaba142fc26ce00c169e"
+ORDINARY_BROWSER_INPUTS = PROVIDER_HTTPS_INPUTS
+ORDINARY_BROWSER_DELTA = {"hosted/config/runtime.exs":{"before":{"bytes":549,"sha256":"73cd8edac21bb64c3fba3cd81bb461f2cee651b9f799bd42bfac3e5ffeca6e9f"},"after":{"bytes":695,"sha256":"386315724c984b7a66daa66c5f95bbaa6fdbeacd36296167695b33a5c9933367"}},"hosted/lib/mixer_hosted/application.ex":{"before":{"bytes":1278,"sha256":"bbf02752b982e1437564c266772cd4e5dd7190670a575dd6676dda7fc692803f"},"after":{"bytes":3777,"sha256":"12832d9bd53cceabb657fb115b7ef6678a7cbd0d836ab2e505c50d252a0ba39b"}},"hosted/lib/mixer_hosted/browser_auth/installation.ex":{"before":None,"after":{"bytes":3159,"sha256":"9f8a7c2341d533b596a9be645d9cbeea28d0f78929b9678ea4908ee3d99b1858"}},"hosted/lib/mixer_hosted/browser_auth/store.ex":{"before":{"bytes":24830,"sha256":"a310b0a8ec8fb28fe78f8d69b3758399d88d096a7bd2a97fefbaaca091c188bb"},"after":{"bytes":24845,"sha256":"d265b30252f322fc02da88e2a6e88ced7a19947d77d891ee32655e9387706425"}},"hosted/lib/mixer_hosted/browser_auth/supervisor.ex":{"before":None,"after":{"bytes":1361,"sha256":"41f0dacb08c8212d69b0ca8f63e47c387b121ff6b327579a08d26b2e2b5ade2c"}},"hosted/lib/mixer_hosted/identity/key_owner_supervisor.ex":{"before":{"bytes":1072,"sha256":"cdb7b901a8e521361e1578bf0b47ea521a31c61c681c27d1f164925081238ba2"},"after":{"bytes":1110,"sha256":"aafb1be8c32215a0c34e6ae52a3bbc90e449f3976f95179804e016250bce0eaf"}},"hosted/lib/mixer_hosted_web/browser_http.ex":{"before":{"bytes":7099,"sha256":"4065474f1c12c364dd71f73cfdd1855a29bea2d94f5e32b2346141bd2ea622b7"},"after":{"bytes":6763,"sha256":"929f9affec444dfa23fbe57ec9a5d96a380be759595ba63097253ea62327df02"}},"hosted/lib/mixer_hosted_web/browser_login_http.ex":{"before":{"bytes":4161,"sha256":"1dd605f112835aecdad1f43d6ebd5315beb7b35403cd0aff4d1ad17ba75ae839"},"after":{"bytes":4724,"sha256":"ef1f3408474b9e8c1581253f5cfc4371b2edc1315072bf6677f1d6e6f009facb"}},"hosted/lib/mixer_hosted_web/endpoint.ex":{"before":{"bytes":160,"sha256":"7702c86f462af84fb6ac157d700d1a22352f2eaf117e31565f672dd533313d08"},"after":{"bytes":211,"sha256":"45867999c57d3c9fcaeb79a164640b1755c5c878552f3e5ace0aacf5d870bd48"}},"hosted/test/foundation_integration_test.exs":{"before":{"bytes":6296,"sha256":"852de2acd4dbf623925d5fb7eddc14856e4cd0dc0ed09ca87703e6b1f2294a1b"},"after":{"bytes":6438,"sha256":"b65e549c79bef9028e8cea42741d1a160436f2710a6fc433b9a649c1ab447757"}},"hosted/test/mixer_hosted/browser_auth/initial_admit_queue_test.exs":{"before":None,"after":{"bytes":3835,"sha256":"90aebf785ae06bb4af4a8adacdf87c410d673373a0e49678e610d3fec09c3f43"}},"hosted/test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs":{"before":None,"after":{"bytes":16228,"sha256":"4d851130a5ab5bd87da3855ed7b8ac4c38d30fb3bcf8128e81a9f0a085951110"}},"hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs":{"before":{"bytes":61834,"sha256":"97889c149ddc69458b46f2d4e99a64b1ce37f4770e049515349b25d82fdc62f6"},"after":{"bytes":56454,"sha256":"ea8705368c9c5a14d4d6775b76b17546690900a88f53fb71b0d8110c59233ce7"}},"hosted/test/mixer_hosted/browser_auth/run_storage_fixture.py":{"before":{"bytes":8627,"sha256":"bfd5edfa4f4e362e76686fb7de89def23ca79eefe1b1c58f74749f550c9bf92c"},"after":{"bytes":8681,"sha256":"1869f1b7ea80aad44c7fabc970f98e6971c8acfde59851219e4b56827fec9253"}},"hosted/test/mixer_hosted/browser_auth/storage_fixture.exs":{"before":{"bytes":7108,"sha256":"9417342d3d5708d21b216383da8cb4bef381e3572036853e6f099ccf08235a06"},"after":{"bytes":147,"sha256":"d2af04e11201eda3e2caba1635214188c19a9a054967ff4d9f04aba7f7f51c00"}},"hosted/test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs":{"before":None,"after":{"bytes":4225,"sha256":"f1019c099bafb654c50a74962a3ce90875864cbf52a3fdb2eee79c35075b6adf"}},"hosted/test/mixer_hosted/identity/startup_config_test.exs":{"before":{"bytes":8279,"sha256":"bb9fc59f47c2c4bb15c42608ff52cd3dbe88ed71e73957bda3c4775b96214c3a"},"after":{"bytes":8297,"sha256":"31f2ba324282f06746aba3f47e1b89bfeb2a6fe3f8a878f90df33c9d30f12ea2"}},"hosted/test/mixer_hosted/identity/startup_lifecycle_test.exs":{"before":{"bytes":6531,"sha256":"e88301c119b04528879b0b52e896c73075cd2a390bc17ef9b20a2ddf68430ba2"},"after":{"bytes":6907,"sha256":"15b40da21797e6e019b1e2f433babf45fb1270e2c0da9da5469b21734371c667"}},"hosted/test/runtime_config_test.exs":{"before":{"bytes":3661,"sha256":"bf12eaec3ac8da5b7aec297c16bd3d3e89f62182c3fd00980b60a7c04e3a6daf"},"after":{"bytes":3659,"sha256":"818accb074ee8bdf0492a9495075f7d4c9e4adaeab74a2dd174370b406f6388f"}},"hosted/test/support/browser_login_provider_fixture.ex":{"before":None,"after":{"bytes":5379,"sha256":"2b0107bc357277f080d39ad01b5e6c7fda65d29fcd7fb5ba5a4afe662eb1e9c9"}},"hosted/test/support/browser_storage_fixture.ex":{"before":None,"after":{"bytes":7105,"sha256":"6e44facb19caf863eab5800ffe27d6c5e82816ada26af3c979a5ebf63e9abe0b"}},"hosted/test/support/identity_startup_fixture.ex":{"before":{"bytes":4539,"sha256":"075f77531b83d43567c214777ee458cb630f15e62fbd1f009c46100ccacdd761"},"after":{"bytes":4782,"sha256":"b28d98290cc83605325b81a74986515a5a5544f4393f479b9974cea7e69b84b2"}},"hosted/test/support/initial_admit_queue_fixture.ex":{"before":None,"after":{"bytes":9184,"sha256":"fd9098bd9b3fcc71a46bc60e723875c651968f0b010468da61297d468dd30eb4"}},"hosted/test/support/ordinary_browser_startup_fixture.ex":{"before":None,"after":{"bytes":25298,"sha256":"486fbf75691a8f3e8168442c7727324817c14c8560f0b796b805a0221a5e19a5"}}}
+
+def _validate_ordinary_browser_source_manifest(manifest, count):
+    require(type(count) is int and count == 272, "ordinary browser closed source count")
+    require(isinstance(manifest, dict) and len(manifest) == count, "source path count mismatch")
+    console_inputs = ["console/package.json","console/src/api/browser-session-client.ts","console/src/api/cookie-build-client.ts","console/src/api/cookie-workspace-client.ts","console/src/api/workspace-client.ts","console/src/api/workspace-transport.ts","console/src/domain/build-overview.ts","console/src/domain/build-read.ts","console/src/domain/workspace-directory.ts","console/tests/cookie-build-client.test.mjs","console/tsconfig.json"]
+    for path, row in manifest.items():
+        p = PurePosixPath(path)
+        require((path.startswith("hosted/") or path in console_inputs or path in ORDINARY_BROWSER_INPUTS) and not p.is_absolute() and ".." not in p.parts and str(p) == path, "unsafe source path")
+        require(isinstance(row, dict) and set(row) == {"bytes", "sha256"}, "source row shape")
+        require(type(row["bytes"]) is int and 0 <= row["bytes"] <= MAX_COMMAND_BYTES, "source byte bound")
+        require(bool(re.fullmatch("[0-9a-f]{64}", row["sha256"])), "source hash shape")
+    require(manifest["hosted/mix.lock"]["sha256"] == FROZEN_LOCK_SHA256, "frozen lock mismatch")
+    require(canonical_digest(manifest) == ORDINARY_BROWSER_SOURCE_DIGEST, "frozen product digest mismatch")
+    return manifest
+
+
+def validate_ordinary_browser_source_manifest(manifest, expected_digest=ORDINARY_BROWSER_SOURCE_DIGEST, expected_count=None):
+    require(expected_digest == ORDINARY_BROWSER_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == ORDINARY_BROWSER_SOURCE_COUNT),
+            "caller cannot replace ordinary browser source authority")
+    return _validate_ordinary_browser_source_manifest(manifest, ORDINARY_BROWSER_SOURCE_COUNT)
+
+def validate_ordinary_browser_source_metadata(metadata):
+    require(isinstance(metadata, dict) and set(metadata) == {ORDINARY_BROWSER_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")}, "ordinary browser source selection membership mismatch")
+    body = metadata[ORDINARY_BROWSER_SOURCE_BASE + "selection.json"]
+    require(isinstance(body, bytes) and hashlib.sha256(body).hexdigest() == ORDINARY_BROWSER_SELECTION_SHA256, "ordinary browser source selection pin mismatch")
+    value = json.loads(body)
+    selected_body = metadata[ORDINARY_BROWSER_SOURCE_BASE + "selected-source-manifest.json"]
+    require(isinstance(selected_body, bytes) and _file_row(selected_body) == {key: value["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "ordinary browser source manifest bytes mismatch")
+    selected = json.loads(selected_body)
+    validate_ordinary_browser_source_manifest(selected)
+    require(selected == ORDINARY_BROWSER_MANIFEST and value["selected"]["source_count"] == ORDINARY_BROWSER_SOURCE_COUNT and value["selected"]["source_digest_sha256"] == ORDINARY_BROWSER_SOURCE_DIGEST, "ordinary browser source count or digest mismatch")
+    require(value["predecessor"] == {"source_count": PROVIDER_HTTPS_SOURCE_COUNT, "source_digest_sha256": PROVIDER_HTTPS_SOURCE_DIGEST, "selection_sha256": PROVIDER_HTTPS_SELECTION_SHA256}, "ordinary browser source predecessor mismatch")
+    delta = {path: {"before": PROVIDER_HTTPS_MANIFEST.get(path), "after": row} for path, row in selected.items() if PROVIDER_HTTPS_MANIFEST.get(path) != row}
+    require(set(selected) == set(PROVIDER_HTTPS_MANIFEST) | {path for path, change in ORDINARY_BROWSER_DELTA.items() if change["before"] is None} and delta == ORDINARY_BROWSER_DELTA and value["exact_delta"] == delta and value["runtime_or_GA_accepted"] is False, "ordinary browser source delta mismatch")
+    inverse = dict(selected)
+    for path, change in delta.items():
+        if change["before"] is None: inverse.pop(path)
+        else: inverse[path] = change["before"]
+    require(inverse == PROVIDER_HTTPS_MANIFEST and canonical_digest(inverse) == PROVIDER_HTTPS_SOURCE_DIGEST, "ordinary browser predecessor inverse mismatch")
+    return value
+
+
+def check_ordinary_browser_source(root):
+    metadata = {ORDINARY_BROWSER_SOURCE_BASE + name: (root / ORDINARY_BROWSER_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
+    selection = validate_ordinary_browser_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in ORDINARY_BROWSER_MANIFEST}
+    validate_ordinary_browser_source_manifest(observed)
+    return {"identity": selection["identity"], "source_count": len(observed), "source_digest_sha256": canonical_digest(observed), "selection_sha256": ORDINARY_BROWSER_SELECTION_SHA256, "runtime_or_GA_accepted": False}
+
+
+def _load_ordinary_browser_source_authority():
+    # The closed count comes from independently pinned metadata, never a caller
+    # manifest or a manually maintained CURRENT_SOURCE_COUNT literal.
+    root = Path(__file__).resolve().parents[2]
+    body = (root / ORDINARY_BROWSER_SOURCE_BASE / "selection.json").read_bytes()
+    require(hashlib.sha256(body).hexdigest() == ORDINARY_BROWSER_SELECTION_SHA256, "ordinary browser source selection pin mismatch")
+    selection = json.loads(body)
+    manifest_body = (root / ORDINARY_BROWSER_SOURCE_BASE / "selected-source-manifest.json").read_bytes()
+    require(_file_row(manifest_body) == {key: selection["selected"]["manifest"][key] for key in ("bytes", "sha256")}, "ordinary browser source manifest bytes mismatch")
+    count = selection["selected"]["source_count"]
+    require(type(count) is int and count > 0 and selection["selected"]["source_digest_sha256"] == ORDINARY_BROWSER_SOURCE_DIGEST, "ordinary browser source authority shape")
+    manifest = json.loads(manifest_body)
+    _validate_ordinary_browser_source_manifest(manifest, count)
+    require(type(selection["schema"]) is int and selection["schema"] == 1 and count == len(manifest), "ordinary browser typed authority membership")
+    return CurrentSourceAuthority(count, canonical_digest(manifest), manifest)
+
+
 def _validate_catalog_join_source_manifest(manifest, count):
     require(type(count) is int and count == 259, "catalog join closed source count")
     require(isinstance(manifest, dict) and len(manifest) == count, "source path count mismatch")
@@ -1364,7 +1437,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_provider_https_source_manifest(prepared["source"])
+    validate_ordinary_browser_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -1531,7 +1604,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_provider_https_source_manifest(manifest["source"])
+    validate_ordinary_browser_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -1554,7 +1627,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PROVIDER_HTTPS_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(ORDINARY_BROWSER_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -2325,10 +2398,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_provider_https_source_manifest(PROVIDER_HTTPS_MANIFEST)
-        product = self.git_blobs(sorted(PROVIDER_HTTPS_MANIFEST))
+        validate_ordinary_browser_source_manifest(ORDINARY_BROWSER_MANIFEST)
+        product = self.git_blobs(sorted(ORDINARY_BROWSER_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_provider_https_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_ordinary_browser_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -2397,7 +2470,10 @@ class Collector:
         provider_metadata = self.git_blobs([PROVIDER_HTTPS_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
         validate_provider_https_source_metadata(provider_metadata)
         metadata.update(provider_metadata)
-        self.state["source"].update(current_source_selection_sha256=PROVIDER_HTTPS_SELECTION_SHA256, current_source_digest_sha256=PROVIDER_HTTPS_SOURCE_DIGEST)
+        ordinary_metadata = self.git_blobs([ORDINARY_BROWSER_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_ordinary_browser_source_metadata(ordinary_metadata)
+        metadata.update(ordinary_metadata)
+        self.state["source"].update(current_source_selection_sha256=ORDINARY_BROWSER_SELECTION_SHA256, current_source_digest_sha256=ORDINARY_BROWSER_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -2415,7 +2491,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PROVIDER_HTTPS_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(ORDINARY_BROWSER_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -2437,7 +2513,7 @@ class Collector:
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
-        require(prepared_manifest["source"] == PROVIDER_HTTPS_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == ORDINARY_BROWSER_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -2535,7 +2611,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in PROVIDER_HTTPS_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in ORDINARY_BROWSER_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -2986,7 +3062,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_provider_https_source(root), sort_keys=True))
+        print(json.dumps(check_ordinary_browser_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -3065,6 +3141,9 @@ CATALOG_JOIN_SOURCE_COUNT, CATALOG_JOIN_MANIFEST = CATALOG_JOIN_AUTHORITY.count,
 
 PROVIDER_HTTPS_AUTHORITY = _load_provider_https_source_authority()
 PROVIDER_HTTPS_SOURCE_COUNT, PROVIDER_HTTPS_MANIFEST = PROVIDER_HTTPS_AUTHORITY.count, PROVIDER_HTTPS_AUTHORITY.manifest
+
+ORDINARY_BROWSER_AUTHORITY = _load_ordinary_browser_source_authority()
+ORDINARY_BROWSER_SOURCE_COUNT, ORDINARY_BROWSER_MANIFEST = ORDINARY_BROWSER_AUTHORITY.count, ORDINARY_BROWSER_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:

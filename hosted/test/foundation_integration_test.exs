@@ -39,6 +39,13 @@ defmodule MixerHosted.FoundationIntegrationTest do
       |> Keyword.put(:http, ip: {127, 0, 0, 1}, port: 0)
 
     Application.put_env(:mixer_hosted, MixerHostedWeb.Endpoint, endpoint)
+
+    Application.put_env(
+      :mixer_hosted,
+      :startup,
+      {%{settings | repo: local_repo(), endpoint: endpoint}, :disabled}
+    )
+
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
   end
 

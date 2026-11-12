@@ -17,6 +17,8 @@ on:
       - 'verification/identity-network-current-source-v13/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v14/selection.json'
       - 'verification/identity-network-current-source-v14/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v15/selection.json'
+      - 'verification/identity-network-current-source-v15/selected-source-manifest.json'
       - 'services/protocol/testdata/signed-release-v3.json'
       - 'services/protocol/testdata/release-v3-cases.json'
       - '.github/workflows/hosted.yml'
@@ -51,6 +53,8 @@ on:
       - 'verification/identity-network-current-source-v13/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v14/selection.json'
       - 'verification/identity-network-current-source-v14/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v15/selection.json'
+      - 'verification/identity-network-current-source-v15/selected-source-manifest.json'
       - 'services/protocol/testdata/signed-release-v3.json'
       - 'services/protocol/testdata/release-v3-cases.json'
       - '.github/workflows/hosted.yml'
@@ -124,6 +128,8 @@ jobs:
             /verification/identity-network-current-source-v13/selected-source-manifest.json
             /verification/identity-network-current-source-v14/selection.json
             /verification/identity-network-current-source-v14/selected-source-manifest.json
+            /verification/identity-network-current-source-v15/selection.json
+            /verification/identity-network-current-source-v15/selected-source-manifest.json
             /verification/hosted-browser-auth-protocol/run.py
             /verification/hosted-customer-workspace-http-integration/node-client-driver.mjs
             /verification/hosted-customer-artifact-event/golden_event.hex
@@ -150,6 +156,33 @@ jobs:
       - name: Resolve locked dependencies
         working-directory: hosted
         run: mix deps.get --check-locked
+      - name: Check frozen ordinary browser graph format
+        working-directory: hosted
+        run: |
+          mix format --check-formatted \
+            config/runtime.exs \
+            lib/mixer_hosted/application.ex \
+            lib/mixer_hosted/browser_auth/installation.ex \
+            lib/mixer_hosted/browser_auth/store.ex \
+            lib/mixer_hosted/browser_auth/supervisor.ex \
+            lib/mixer_hosted/identity/key_owner_supervisor.ex \
+            lib/mixer_hosted_web/browser_http.ex \
+            lib/mixer_hosted_web/browser_login_http.ex \
+            lib/mixer_hosted_web/endpoint.ex \
+            test/foundation_integration_test.exs \
+            test/mixer_hosted/browser_auth/initial_admit_queue_test.exs \
+            test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs \
+            test/mixer_hosted/browser_auth/private_login_http_test.exs \
+            test/mixer_hosted/browser_auth/storage_fixture.exs \
+            test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs \
+            test/mixer_hosted/identity/startup_config_test.exs \
+            test/mixer_hosted/identity/startup_lifecycle_test.exs \
+            test/runtime_config_test.exs \
+            test/support/browser_login_provider_fixture.ex \
+            test/support/browser_storage_fixture.ex \
+            test/support/identity_startup_fixture.ex \
+            test/support/initial_admit_queue_fixture.ex \
+            test/support/ordinary_browser_startup_fixture.ex
       - name: Browser auth protocol host checks
         working-directory: hosted
         env:
