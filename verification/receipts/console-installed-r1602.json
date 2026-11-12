@@ -1,0 +1,300 @@
+{
+  "schema": 1,
+  "id": "CONSOLE_INSTALLED_R1602",
+  "status": "LOCAL_COMPILED_APP_SELECTION_RENDER_PASS",
+  "observedAt": "2026-11-12T19:13:54.024700+00:00",
+  "ownership": {
+    "local": "verification/local/console-installed-r1602",
+    "receipt": "verification/receipts/console-installed-r1602.json",
+    "consoleSourceTestsOnly": true,
+    "globalDocsEdited": false,
+    "commits": 0,
+    "pushes": 0,
+    "subchildren": 0
+  },
+  "source": {
+    "revision": "44a1f99a3f3535b84b9fec82b157254dde384a9f",
+    "manifest": "verification/local/console-installed-r1602/source-before.json",
+    "manifestDigestAlgorithm": "SHA256 canonical sorted compact JSON",
+    "manifestSha256": "ac562e3305168731e80dab54d9488ebd851214ff8141b533c13e583ddb361d75",
+    "testManifest": "verification/local/console-installed-r1602/test-manifest.json",
+    "producerWorktree": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4",
+    "allSelectedConsoleSourceAndTestsByteExactToProducer": true,
+    "productSourceChanges": [],
+    "testSourceChanges": [],
+    "afterHashesEqualBefore": true
+  },
+  "inputsRead": [
+    "AGENTS.md",
+    "STATUS.md top",
+    "PLAN.md top",
+    "verification/receipts/console-fixture-ordering-r1510.json",
+    "verification/receipts/console-settled-browser-r1516.json",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-fixture-ordering-r1510/input-manifest.json",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/console-fixture-ordering-r1510/fixture.html"
+  ],
+  "environment": {
+    "os": "macOS 27.0.1 (26A434)",
+    "node": "v22.23.3",
+    "npm": "10.9.9",
+    "typescript": "5.9.3",
+    "vite": "8.3.5",
+    "solid": "1.9.17",
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "HeadlessChrome/156.0.8078.4",
+      "revision": "@f842f52ef39fd97b449eb27cff414bf05a98ddce",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+      "jsVersion": "15.6.75"
+    },
+    "dependencies": "Copied existing unheld producer console/node_modules into owned local namespace; temporary console/node_modules symlink removed after validation. No dependency manifest changes."
+  },
+  "commands": [
+    {
+      "argv": [
+        "./console/node_modules/.bin/tsc",
+        "--noEmit",
+        "-p",
+        "console/tsconfig.json"
+      ],
+      "result": "PASS; empty diagnostic log",
+      "log": "verification/local/console-installed-r1602/logs/typecheck.log"
+    },
+    {
+      "argv": [
+        "./console/node_modules/.bin/vite",
+        "build",
+        "console",
+        "--outDir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-installed-r1602/dist"
+      ],
+      "result": "PASS; 55 transformed modules; recorded expected external-outDir warning",
+      "log": "verification/local/console-installed-r1602/logs/build.log"
+    },
+    {
+      "argv": [
+        "node",
+        "--test",
+        "console/tests/application-build-page.test.mjs"
+      ],
+      "result": "4 passed, 0 failed/cancelled/skipped",
+      "log": "verification/local/console-installed-r1602/logs/application-build-page.log"
+    },
+    {
+      "shell": "node --test console/tests/*.test.mjs",
+      "exitCode": 0,
+      "result": "193 passed, 0 failed/cancelled/skipped",
+      "log": "verification/local/console-installed-r1602/logs/business-suite.log"
+    },
+    {
+      "argv": [
+        "node",
+        "verification/local/console-installed-r1602/server.mjs"
+      ],
+      "exitCode": 0,
+      "identity": "verification/local/console-installed-r1602/server-start.json",
+      "terminal": "verification/local/console-installed-r1602/server-terminal.json"
+    },
+    {
+      "argv": [
+        "node",
+        "verification/local/console-installed-r1602/browser.mjs"
+      ],
+      "attempts": 2,
+      "firstExitCode": 1,
+      "secondExitCode": 0,
+      "result": "First attempt failed in diagnostic text normalizer; corrected local helper, preserved first result and PNG. Second attempt passed complete behavior. No product edits.",
+      "resultPath": "verification/local/console-installed-r1602/browser-result.json",
+      "firstResultPath": "verification/local/console-installed-r1602/browser-attempt-1.json"
+    }
+  ],
+  "buildArtifacts": [
+    {
+      "path": "verification/local/console-installed-r1602/dist/assets/favicon-32.png",
+      "bytes": 1832,
+      "sha256": "3e770ea0378151a2c088e43e1b5d8713f142e688fa0edc93289eb178acf6554d"
+    },
+    {
+      "path": "verification/local/console-installed-r1602/dist/assets/flick-128.webp",
+      "bytes": 5392,
+      "sha256": "f366034547d29813bba5ffdfb99e1d8b5b3a359ef770486721a8b566ab4bf316"
+    },
+    {
+      "path": "verification/local/console-installed-r1602/dist/assets/index-CFHXPblG.js",
+      "bytes": 118384,
+      "sha256": "7a6b043ff084f0997951ca3447d8496d207a18f53507b7f22bd9b5c44659a98f"
+    },
+    {
+      "path": "verification/local/console-installed-r1602/dist/assets/index-DoTdjU_P.css",
+      "bytes": 16498,
+      "sha256": "7ab01c8783ae9b93f5801dd1a82008c8fd611c2f4ea5419bf14d0118c4bd05dc"
+    },
+    {
+      "path": "verification/local/console-installed-r1602/dist/index.html",
+      "bytes": 518,
+      "sha256": "8f27e1942487cea13fd01688a0a35d05d5e669a644403eda2ca9f4e667e1071a"
+    },
+    {
+      "path": "verification/local/console-installed-r1602/dist/third-party-notices.txt",
+      "bytes": 6035,
+      "sha256": "90bc9ee087e8c876fb6edac6f8eb61b7013c94dded0f1eaf88b8972a68706551"
+    }
+  ],
+  "acidPreview": {
+    "statusCalls": 1,
+    "openCalls": 1,
+    "navigationCalls": 1,
+    "snapshotCalls": 2,
+    "tab": "tab_1_fcfa4980-70b8-4fe9-b238-bbf9da8fba30",
+    "ownIncognitoTab": true,
+    "humanTabsActedOn": false,
+    "navigation": "Loaded current compiled app at http://localhost:51989/workspace",
+    "snapshotErrors": [
+      "Preview snapshot failed: Preview automation snapshot timed out after 15000ms.",
+      "Preview snapshot failed: Preview automation snapshot timed out after 15000ms."
+    ],
+    "fallbackAuthorizedBy": "Two failed snapshots on same step",
+    "closedThroughNormalToolLifecycle": true,
+    "OSCleanupInferred": false,
+    "rawSnapshot": "verification/local/console-installed-r1602/acid-snapshot-attempt-2.json"
+  },
+  "fallback": {
+    "implementation": "Locally installed Chromium Headless Shell through direct DevTools Protocol using Node built-in WebSocket; separate owned profile. No external browser/account reused.",
+    "toolVersions": {
+      "protocolVersion": "1.3",
+      "product": "HeadlessChrome/156.0.8078.4",
+      "revision": "@f842f52ef39fd97b449eb27cff414bf05a98ddce",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+      "jsVersion": "15.6.75"
+    },
+    "browserResult": "verification/local/console-installed-r1602/browser-result.json",
+    "pageExceptions": 0,
+    "helperCorrection": "Escaped whitespace regex inside generated CDP evaluate expression. First helper accidentally normalized the letter s; no click ran in that attempt.",
+    "attemptOne": {
+      "status": "FAIL",
+      "directExit": {
+        "code": 0,
+        "signal": null
+      },
+      "groupAbsent": true,
+      "pipes": {
+        "stdoutClosed": true,
+        "stderrClosed": true
+      }
+    },
+    "attemptTwo": {
+      "status": "PASS",
+      "directExit": {
+        "code": 0,
+        "signal": null
+      },
+      "groupAbsent": true,
+      "pipesAtSample": {
+        "stdoutClosed": false,
+        "stderrClosed": true
+      }
+    },
+    "pipeLimitation": "Second attempt sampled stdoutClosed=false immediately after direct exit, before a close-event wait. Browser group absence was positively observed; complete stream-close timing is not claimed. Raw observations retained without retrospective promotion."
+  },
+  "fixture": {
+    "actualCompiledMainApp": true,
+    "fixtureTransport": "Loopback HTTP server; actual global fetch and cookie clients, no injected mount/rewritten model functions",
+    "backend": false,
+    "authentication": false,
+    "strictGETAndExactQueryValuesAndOrder": true,
+    "detailQueryKeys": [
+      "organization_id",
+      "project_id",
+      "application_id",
+      "build_id",
+      "platform",
+      "source_sha256",
+      "toolchain_lock_sha256",
+      "build_definition_sha256"
+    ],
+    "detailReadCount": 2,
+    "requestLog": "verification/local/console-installed-r1602/requests.jsonl",
+    "evidence": "verification/local/console-installed-r1602/http-evidence.json",
+    "rowOrdering": "empty then fieldlog; android-43 then ios-42",
+    "states": "iOS detail queued revision 2; explicit Refresh gets failed revision 3/compiler_error; empty application returns no builds"
+  },
+  "behavior": {
+    "workspaceToProjectToBuilds": true,
+    "applicationSelection": true,
+    "queuedDetailVisible": true,
+    "queuedDetailStillVisibleAfter500ms": true,
+    "refreshFailureVisible": true,
+    "emptyApplicationClearsPriorDetail": true,
+    "selectedDetailDoesNotContainAndroidRow": true,
+    "noHorizontalOverflowAt1366": true,
+    "logoNaturalWidth": 128,
+    "screenshots": [
+      {
+        "path": "verification/local/console-installed-r1602/build-list-before-selection.png",
+        "bytes": 83535,
+        "sha256": "f361a1189807083fd2a6c361a0dc8324fb0bc2ecc1f4aecb54917b12a48dc512",
+        "width": 1366,
+        "height": 1000,
+        "visuallyInspected": false
+      },
+      {
+        "path": "verification/local/console-installed-r1602/queued-detail.png",
+        "bytes": 109376,
+        "sha256": "dd1e257d36daf41c1ecf9548d777d00fe30f7d40e09d3daf3f73aa2abe285fab",
+        "width": 1351,
+        "height": 1323,
+        "visuallyInspected": true
+      },
+      {
+        "path": "verification/local/console-installed-r1602/failed-detail.png",
+        "bytes": 117859,
+        "sha256": "d8d91512a14ee70050cba7aa9ac41e7d091d87917eedb36bd9b0318e051fc2d7",
+        "width": 1351,
+        "height": 1354,
+        "visuallyInspected": true
+      },
+      {
+        "path": "verification/local/console-installed-r1602/empty-application.png",
+        "bytes": 78673,
+        "sha256": "95c40aa17bbf7d4858f5b8c218e846b5610dddfe49d17d55d50233e87553ce19",
+        "width": 1366,
+        "height": 1000,
+        "visuallyInspected": true
+      }
+    ],
+    "visualInspection": "Queued and failed selected detail visible, correct badges and copy, complete full-page capture; empty application shows No builds yet and clears selected detail."
+  },
+  "diagnosis": {
+    "sourceDefectReproduced": false,
+    "reasonForNoSourceFix": "Unmodified current source passes actual compiled client behavior over strict controlled HTTP and screenshot inspection. Source and tests byte-match producer worktree.",
+    "historicalFindings": "R1510 proved original fixture row ordering was rejected and corrected that ordering. Its retained handler marker and screenshot disagreed. Fresh Acid preview reproduced snapshot timeout despite HTTP app/session/org loads.",
+    "historicalScreenshotExactCause": "Unproven. The old html_preview console marker was not coupled to a selected-detail DOM/screenshot assertion; capture timing is a hypothesis, not an established product race.",
+    "resolvedBoundary": "Fresh current compiled app detail is observed in both DOM and retained screenshots after explicit visible-state waits; no perpetual Choose a build state reproduced."
+  },
+  "cleanup": {
+    "browserChildren": "Both direct Chromium children exited 0 and their exact owned process groups returned ESRCH; no other groups probed. Stream timing limitation preserved above.",
+    "fixtureServer": {
+      "pid": 36353,
+      "reason": "explicit-owned-fixture-stop",
+      "closed": true,
+      "at": "2026-11-12T19:12:40.335Z",
+      "detailReads": 2,
+      "requests": 30
+    },
+    "serverExecExitCode": 0,
+    "portBindableAfterExit": true,
+    "temporaryConsoleDependencySymlinkRemoved": true,
+    "localArtifactsRetained": true,
+    "historicalHoldsTouched": false,
+    "holdsReleased": false,
+    "physicalOrNativeOperations": 0
+  },
+  "limitations": [
+    "All DTOs and session metadata synthetic; this is actual client behavior with controlled loopback HTTP, not real backend/auth/provider acceptance.",
+    "One 1366x1000 desktop viewport with full-page PNGs; no responsive, keyboard/accessibility, native-device, immutable-package, deployment, release or GA qualification.",
+    "Exact historical marker/screenshot mismatch remains unproven; Acid collaborative snapshots remained unavailable after the permitted two attempts.",
+    "Chromium CDP clicks invoke actual DOM handlers through element.click; no physical-pointer, focus or keyboard parity claim.",
+    "Full current suite observed 193 cases; historical 208 was not reused as current test evidence.",
+    "No source defect found, so no product or permanent test change made. No independent child review, staging, commit, push or verification index check performed. Root must run artifact policy check after any later staging."
+  ]
+}
