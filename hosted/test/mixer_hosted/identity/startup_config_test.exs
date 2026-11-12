@@ -45,7 +45,7 @@ defmodule MixerHosted.Identity.StartupConfigTest do
     assert settings.identity_startup.mode == :disabled
 
     for role <- [:api, :processor] do
-      refute Enum.any?(MixerHosted.Application.children(role, settings.oban), fn
+      refute Enum.any?(MixerHosted.Application.children({%{settings | role: role}, :disabled}), fn
                {MixerHosted.Identity.KeyOwnerSupervisor, _} -> true
                _ -> false
              end)
