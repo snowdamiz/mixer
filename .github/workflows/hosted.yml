@@ -144,6 +144,19 @@ jobs:
       - name: Resolve locked dependencies
         working-directory: hosted
         run: mix deps.get --check-locked
+      - name: Format the exact ordinary browser installation paths
+        working-directory: hosted
+        run: |
+          shasum -a 256 config/runtime.exs lib/mixer_hosted_web/browser_http.ex lib/mixer_hosted_web/browser_login_http.ex lib/mixer_hosted_web/endpoint.ex lib/mixer_hosted/application.ex lib/mixer_hosted/browser_auth/installation.ex lib/mixer_hosted/browser_auth/supervisor.ex test/foundation_integration_test.exs test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs test/mixer_hosted/browser_auth/private_login_http_test.exs test/mixer_hosted/identity/startup_config_test.exs test/mixer_hosted/identity/startup_lifecycle_test.exs test/runtime_config_test.exs test/support/browser_login_provider_fixture.ex test/support/identity_startup_fixture.ex test/support/ordinary_browser_startup_fixture.ex test/support/browser_storage_fixture.ex test/mixer_hosted/browser_auth/storage_fixture.exs lib/mixer_hosted/identity/key_owner_supervisor.ex test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs
+          mix format config/runtime.exs lib/mixer_hosted_web/browser_http.ex lib/mixer_hosted_web/browser_login_http.ex lib/mixer_hosted_web/endpoint.ex lib/mixer_hosted/application.ex lib/mixer_hosted/browser_auth/installation.ex lib/mixer_hosted/browser_auth/supervisor.ex test/foundation_integration_test.exs test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs test/mixer_hosted/browser_auth/private_login_http_test.exs test/mixer_hosted/identity/startup_config_test.exs test/mixer_hosted/identity/startup_lifecycle_test.exs test/runtime_config_test.exs test/support/browser_login_provider_fixture.ex test/support/identity_startup_fixture.ex test/support/ordinary_browser_startup_fixture.ex test/support/browser_storage_fixture.ex test/mixer_hosted/browser_auth/storage_fixture.exs lib/mixer_hosted/identity/key_owner_supervisor.ex test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs
+          shasum -a 256 config/runtime.exs lib/mixer_hosted_web/browser_http.ex lib/mixer_hosted_web/browser_login_http.ex lib/mixer_hosted_web/endpoint.ex lib/mixer_hosted/application.ex lib/mixer_hosted/browser_auth/installation.ex lib/mixer_hosted/browser_auth/supervisor.ex test/foundation_integration_test.exs test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs test/mixer_hosted/browser_auth/private_login_http_test.exs test/mixer_hosted/identity/startup_config_test.exs test/mixer_hosted/identity/startup_lifecycle_test.exs test/runtime_config_test.exs test/support/browser_login_provider_fixture.ex test/support/identity_startup_fixture.ex test/support/ordinary_browser_startup_fixture.ex test/support/browser_storage_fixture.ex test/mixer_hosted/browser_auth/storage_fixture.exs lib/mixer_hosted/identity/key_owner_supervisor.ex test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs
+      - name: Compile and check the exact identity supervisor constructor first
+        working-directory: hosted
+        env:
+          MIX_ENV: test
+        run: |
+          mix compile --warnings-as-errors
+          mix test --no-start --warnings-as-errors test/mixer_hosted/identity/key_owner_supervisor_fixture_test.exs --seed 0 --max-failures 1
       - name: Browser auth protocol host checks
         working-directory: hosted
         env:

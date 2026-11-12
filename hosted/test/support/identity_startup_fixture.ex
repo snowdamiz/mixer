@@ -79,6 +79,9 @@ defmodule MixerHosted.Identity.StartupFixture do
       |> Keyword.put(:http, ip: {127, 0, 0, 1}, port: 0)
 
     Application.put_env(:mixer_hosted, MixerHostedWeb.Endpoint, endpoint)
+    hosted = %{settings | identity_startup: identity, endpoint: endpoint,
+      repo: Application.fetch_env!(:mixer_hosted, MixerHosted.Repo)}
+    Application.put_env(:mixer_hosted, :startup, {hosted, :disabled})
     :ok
   end
 
