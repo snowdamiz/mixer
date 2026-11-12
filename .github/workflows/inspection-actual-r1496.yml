@@ -1,0 +1,300 @@
+name: Private actual inspection diagnostic R1496
+on:
+  push:
+    branches: [t3/inspection-actual-r1496]
+permissions:
+  contents: read
+jobs:
+  android-generated-java:
+    runs-on: macos-26-intel
+    permissions:
+      contents: read
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          # Exact selected120 + immutable admission4 + selection2 + workflow1 + SwiftPM path1.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/inspection-actual-r1496.yml
+            /cli/Package.resolved
+            /cli/Package.swift
+            /cli/Sources/MixerBuild/AndroidProject.swift
+            /cli/Sources/MixerBuild/AndroidPublicHost.swift
+            /cli/Sources/MixerBuild/AndroidSDKCompatibility.swift
+            /cli/Sources/MixerBuild/AppStoreConnectBuildStatus.swift
+            /cli/Sources/MixerBuild/AppStoreConnectTestingResponse.swift
+            /cli/Sources/MixerBuild/AppleProject.swift
+            /cli/Sources/MixerBuild/Configuration.swift
+            /cli/Sources/MixerBuild/LocalUpdateValidation.swift
+            /cli/Sources/MixerBuild/MigrationInspector.swift
+            /cli/Sources/MixerBuild/OwnedCommand.swift
+            /cli/Sources/MixerBuild/POSIXCommandControl.swift
+            /cli/Sources/MixerBuild/ProcessRunner.swift
+            /cli/Sources/MixerBuild/ProjectGenerator.swift
+            /cli/Sources/MixerBuild/Resources/android-build.py
+            /cli/Sources/MixerBuild/StoreReconciliation.swift
+            /cli/Sources/MixerBuild/StoreTestingReconciliation.swift
+            /cli/Sources/MixerBuild/VerificationFile.swift
+            /cli/Sources/MixerCLI/main.swift
+            /cli/Sources/MixerProcessIO/include/MixerProcessIO.h
+            /cli/Sources/MixerProcessIO/include/module.modulemap
+            /cli/Sources/MixerProcessIO/process.c
+            /native/android/app/src/dev/mixer/android/AndroidUINativeSurface.java
+            /native/android/app/src/dev/mixer/android/AndroidUIProfile.java
+            /native/android/app/src/dev/mixer/android/AppearanceDescriptorV2.java
+            /native/android/app/src/dev/mixer/android/AppearanceGeometryV2.java
+            /native/android/app/src/dev/mixer/android/AppearanceNativePathsV2.java
+            /native/android/app/src/dev/mixer/android/AppearanceResolverV2.java
+            /native/android/app/src/dev/mixer/android/AuthoredToggleInputV2.java
+            /native/android/app/src/dev/mixer/android/ExternalFrameSourceV2.java
+            /native/android/app/src/dev/mixer/android/InstalledAppearanceV2.java
+            /native/android/app/src/dev/mixer/android/Json.java
+            /native/android/app/src/dev/mixer/android/MixerActivity.java
+            /native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java
+            /native/android/app/src/dev/mixer/android/NativeBridge.java
+            /native/android/app/src/dev/mixer/android/NativeCoordinatorV2.java
+            /native/android/app/src/dev/mixer/android/NativeEditorConnectionV2.java
+            /native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java
+            /native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java
+            /native/android/app/src/dev/mixer/android/NativeOwnerV2.java
+            /native/android/app/src/dev/mixer/android/NativeRenderer.java
+            /native/android/app/src/dev/mixer/android/OwnerLifecycleV2.java
+            /native/android/app/src/dev/mixer/android/UiPacket.java
+            /native/android/bridge/jni.c
+            /native/android/bridge/mixer_android.h
+            /native/android/bridge/mixer_android_v2.h
+            /native/android/contracts/android-profile-v1.json
+            /native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift
+            /native/android/engine/Sources/MixerAndroidRuntime/SessionRegistry.swift
+            /scripts/ci/check-android-binding.py
+            /scripts/ci/check-android-generated-java-diagnostic.py
+            /scripts/ci/check-android-generated-java.py
+            /sdk/Package.swift
+            /sdk/Sources/MixerAndroid/AndroidUIHost.swift
+            /sdk/Sources/MixerAndroid/AndroidUIProfile.swift
+            /sdk/Sources/MixerApple/AppearanceEnvironmentV2.swift
+            /sdk/Sources/MixerApple/AppearanceInstalledV2.swift
+            /sdk/Sources/MixerApple/AppearanceNativeGeometryV2.swift
+            /sdk/Sources/MixerApple/AppearanceNativeLayoutV2.swift
+            /sdk/Sources/MixerApple/AppearanceNativePathsV2.swift
+            /sdk/Sources/MixerApple/AppearanceNativeRendererV2.swift
+            /sdk/Sources/MixerApple/AppearanceNativeViewsV2.swift
+            /sdk/Sources/MixerApple/MixerNativeView.swift
+            /sdk/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift
+            /sdk/Sources/MixerCapabilities/CapabilityExitLease.swift
+            /sdk/Sources/MixerCapabilities/GeneratedGuestAdapters.swift
+            /sdk/Sources/MixerCapabilities/GeneratedGuestTransport.swift
+            /sdk/Sources/MixerCapabilities/GeneratedHostAdapters.swift
+            /sdk/Sources/MixerCapabilities/GeneratedIdentity.swift
+            /sdk/Sources/MixerCapabilities/GeneratedModels.swift
+            /sdk/Sources/MixerCapabilities/GuestClient.swift
+            /sdk/Sources/MixerCapabilities/Host.swift
+            /sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift
+            /sdk/Sources/MixerCapabilities/NativeIO/include/MixerCapabilityIO.h
+            /sdk/Sources/MixerCapabilities/NativeIO/lock.c
+            /sdk/Sources/MixerCapabilities/URLSessionHTTPTransport.swift
+            /sdk/Sources/MixerCapabilities/Wire.swift
+            /sdk/Sources/MixerCore/FeatureStore.swift
+            /sdk/Sources/MixerCore/JSONInputGuard.swift
+            /sdk/Sources/MixerCore/Lifecycle.swift
+            /sdk/Sources/MixerCore/Navigation.swift
+            /sdk/Sources/MixerCore/Resources.swift
+            /sdk/Sources/MixerGuest/GuestUICodec.swift
+            /sdk/Sources/MixerGuest/GuestUIEditorV2.swift
+            /sdk/Sources/MixerGuest/GuestUIEventCodecV1.swift
+            /sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
+            /sdk/Sources/MixerGuest/GuestUIExchangeV2.swift
+            /sdk/Sources/MixerGuest/GuestUIProtocolV1.swift
+            /sdk/Sources/MixerGuest/GuestUIWakeV1.swift
+            /sdk/Sources/MixerUI/AppearanceDefaultV1.swift
+            /sdk/Sources/MixerUI/AppearanceDefaultV2.swift
+            /sdk/Sources/MixerUI/AppearanceDescriptorV1.swift
+            /sdk/Sources/MixerUI/AppearanceDescriptorV2.swift
+            /sdk/Sources/MixerUI/AppearanceGeometryV2.swift
+            /sdk/Sources/MixerUI/AppearanceMetricMathV1.swift
+            /sdk/Sources/MixerUI/AppearanceResolutionV1.swift
+            /sdk/Sources/MixerUI/AppearanceResolutionV2.swift
+            /sdk/Sources/MixerUI/AppearanceValuesV1.swift
+            /sdk/Sources/MixerUI/AppearanceValuesV2.swift
+            /sdk/Sources/MixerUI/Authoring.swift
+            /sdk/Sources/MixerUI/NativePacketV1.swift
+            /sdk/Sources/MixerUI/Protocol.swift
+            /sdk/Sources/MixerUI/Reconciliation.swift
+            /sdk/Sources/MixerUI/SharedTextProfilesV1.swift
+            /sdk/Sources/MixerUI/Validation.swift
+            /sdk/Tests/MixerAndroidTests/AndroidUIHostTests.swift
+            /updates/Package.resolved
+            /updates/Package.swift
+            /updates/Sources/MixerDurableIO/include/MixerDurableIO.h
+            /updates/Sources/MixerDurableIO/lock.c
+            /updates/Sources/MixerUpdateTool/main.swift
+            /updates/Sources/MixerUpdates/CanonicalValue.swift
+            /updates/Sources/MixerUpdates/ColdStartModels.swift
+            /updates/Sources/MixerUpdates/ColdStartUpdater.swift
+            /updates/Sources/MixerUpdates/DurableDirectory.swift
+            /updates/Sources/MixerUpdates/StrictJSON.swift
+            /updates/Sources/MixerUpdates/UpdateInputFile.swift
+            /updates/Sources/MixerUpdates/Verifier.swift
+            /updates/Sources/MixerUpdates/VerifierV3.swift
+            /verification/android-inspection-diagnostic-r1470/selection.json
+            /verification/android-inspection-diagnostic-r1470/source-inputs.json
+            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
+            /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/adopt_envelope.py
+            /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/binding.json
+            /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/seal.json
+            /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/source-inputs.json
+      - name: Actual generated Java six-consumer inspection diagnostic
+        timeout-minutes: 62
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -I -B -S - <<'PY'
+          import importlib.util
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import sys
+          import tempfile
+          from datetime import datetime, timezone
+          
+          root = Path.cwd()
+          entry_path = root / 'scripts/ci/check-android-generated-java-diagnostic.py'
+          spec = importlib.util.spec_from_file_location('inspection_actual_r1496', entry_path)
+          diagnostic = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(diagnostic)
+          require = diagnostic.require
+          out = Path(os.environ['RUNNER_TEMP']) / 'generated-java-ci'
+          runner_temp = Path(os.environ['RUNNER_TEMP']).resolve(strict=True)
+          require(out.parent.resolve(strict=True) == runner_temp and not out.exists() and not out.is_symlink(),
+                  'Output must be a fresh direct child of RUNNER_TEMP')
+          out.mkdir(mode=0o700)
+          (out / 'bootstrap-commands').mkdir()
+          receipt = {'schema': 1, 'status': 'failed', 'observed_utc': datetime.now(timezone.utc).isoformat(),
+              'python': sys.version, 'argv': sys.argv, 'qualification': 'private diagnostic; no qualification transfer',
+              'runtime_API28_signing_published_package_GA': 'pending',
+              'workflow_adoption': 'Private t3/inspection-actual-r1496 branch only',
+              'limits': {'downloads': 2, 'download_bytes': 1836753341,
+                         'bootstrap_seconds': 1200, 'bootstrap_command_seconds': 300,
+                         'integration_seconds': 2400, 'producer_jobs': 2}}
+          commands = None
+          scratch = None
+          integration_started = False
+          integration_terminal = False
+          try:
+              require(sys.platform == 'darwin', 'Only macOS is supported')
+              bootstrap, authority, proof = diagnostic.admit()
+              receipt['diagnostic_source_selection'] = proof
+              bootstrap.disk_admission(out, receipt)
+              profile = authority.load_profile()
+              receipt['source_inputs'] = authority.source_inputs(profile)
+              receipt['source_inputs_sha256'] = authority.source_digest(receipt['source_inputs'])
+              jdk, android = bootstrap.hosted_environment(os.environ)
+              env, receipt['apple_producer'] = bootstrap.apple_environment(os.environ, authority)
+              commands = authority.Commands(out / 'bootstrap-commands', env, seconds=1200, command_seconds=300)
+              run = commands.run
+              receipt['revision'] = run('revision', ['git', 'rev-parse', 'HEAD']).strip()
+              receipt['git_tree'] = run('git-tree', ['git', 'rev-parse', 'HEAD^{tree}']).strip()
+              receipt['image'] = {k: os.environ.get(k) for k in ('ImageOS', 'ImageVersion', 'RUNNER_OS', 'RUNNER_ARCH')}
+              receipt['bootstrap_system_tools'] = {p: authority.identity(Path(p).resolve(strict=True))
+                  for p in ('/usr/bin/curl', '/usr/sbin/pkgutil', '/usr/bin/tar', '/usr/bin/ditto', '/bin/bash')}
+              receipt['curl_version'] = run('curl-version', ['/usr/bin/curl', '--version'])
+              receipt['tar_version'] = run('tar-version', ['/usr/bin/tar', '--version'])
+              scratch = Path(tempfile.mkdtemp(prefix='owned-', dir=out))
+              env['TMPDIR'] = str(scratch / 'tmp')
+              (scratch / 'tmp').mkdir()
+              host, sdk = scratch / 'swift.pkg', scratch / 'android.tar.gz'
+              receipt['host_download'] = bootstrap.download(run, authority.identity, 'download-swift-host', bootstrap.HOST_URL, host, bootstrap.HOST_BYTES)
+              swift = bootstrap.extract_host(run, host, scratch / 'expanded', scratch / 'swift.xctoolchain')
+              receipt['host_package_trust'] = 'macOS trusted package signature; full output retained in bootstrap-commands'
+              receipt['sdk_download'] = bootstrap.download(run, authority.identity, 'download-swift-android', bootstrap.SDK_URL, sdk, bootstrap.SDK_BYTES, bootstrap.SDK_SHA256)
+              sdks = scratch / 'swift-sdks'
+              sdks.mkdir()
+              run('extract-swift-android', ['/usr/bin/tar', '-xzf', sdk, '-C', sdks])
+              sdk.unlink()
+              art = sdks / f'{bootstrap.TAG}_android.artifactbundle/swift-android'
+              ndk = art / 'android-ndk-r27d'
+              # Copy into the hashed bundle: canonical tree() rejects directory links
+              # escaping the bundle root. Never mutate the image-supplied NDK.
+              run('copy-image-ndk', ['/usr/bin/ditto', android / 'ndk/27.3.13750724', ndk])
+              env.update(ANDROID_NDK_HOME=str(ndk), SWIFT_ANDROID_NDK_LINK='1')
+              run('official-sdk-setup', ['/bin/bash', art / 'scripts/setup-android-sdk.sh'], cwd=art)
+              selected, paths, tool_env = bootstrap.inspect_paths(authority, swift, sdks, art, jdk, android)
+              env.update(tool_env)
+              # tool_environment copies the process env: restore explicit Apple paths,
+              # private temp and NDK setup routing afterwards.
+              env.update(DEVELOPER_DIR=str(bootstrap.DEVELOPER), SDKROOT=str(bootstrap.SDKROOT), TMPDIR=str(scratch / 'tmp'),
+                         ANDROID_NDK_HOME=str(ndk), SWIFT_ANDROID_NDK_LINK='1')
+              env.pop('TOOLCHAINS', None)
+              receipt['official_inspect'] = authority.unique_json(run('official-inspect', [sys.executable, '-B', bootstrap.DRIVER, 'inspect']))
+              bootstrap.validate_inspection(receipt['official_inspect'], paths)
+              authority.save(out / 'bootstrap-receipt.json', receipt)
+              # This is the sole actual integration invocation. Keep child custody in process.
+              integration_env = dict(env)
+              integration_env.pop('MIXER_ANDROID_INSPECTION_PHASE_DIR', None)
+              phase_dir = out / 'inspection-phases'
+              try:
+                  phase_dir.mkdir(mode=0o700)
+              except OSError:
+                  pass
+              else:
+                  receipt['inspection_phase_dir'] = str(phase_dir)
+                  integration_env['MIXER_ANDROID_INSPECTION_PHASE_DIR'] = str(phase_dir)
+              entry_argv = [str(entry_path), '--swift', str(swift), '--swift-sdks', str(sdks),
+                  '--android-artifact', str(art), '--jdk', str(jdk), '--android-sdk', str(android),
+                  '--output', str(out / 'integration'), '--execute-toolchains']
+              receipt['diagnostic_entry_argv'] = [sys.executable, '-I', '-B', '-S', *entry_argv]
+              authority.save(out / 'bootstrap-receipt.json', receipt)
+              previous_env, previous_argv = os.environ.copy(), sys.argv
+              integration_started = True
+              try:
+                  os.environ.clear()
+                  os.environ.update(integration_env)
+                  sys.argv = entry_argv
+                  entry_status = diagnostic.main()
+              finally:
+                  os.environ.clear()
+                  os.environ.update(previous_env)
+                  sys.argv = previous_argv
+              receipt['diagnostic_entry_exit'] = entry_status
+              result = json.loads((out / 'integration/receipt.json').read_bytes())
+              integration_terminal = result.get('cleanup', {}).get('command_custody_terminal') is True
+              if 'inspection_failure_frontier' in result:
+                  receipt['inspection_failure_frontier'] = result['inspection_failure_frontier']
+              require(entry_status == 0, result.get('error') or 'Diagnostic entry failed')
+              bootstrap.validate_result(result)
+              require(result['official_toolchain'] == receipt['official_inspect'], 'Tool identity changed after bootstrap')
+              require(authority.source_inputs(profile) == receipt['source_inputs'], 'Owning source changed')
+              receipt['status'] = 'passed-hosted-java-crosscompile-only'
+          except Exception as error:
+              receipt['error'] = str(error)
+          finally:
+              terminal = (commands is not None and (not commands.records or commands.custody_terminal()) and
+                          (not integration_started or integration_terminal))
+              receipt['commands'] = commands.records if commands else []
+              receipt['cleanup'] = {'terminal_custody': terminal, 'owned_path': str(scratch) if scratch else None,
+                                    'owned_removed': scratch is None}
+              if scratch is not None and terminal:
+                  try:
+                      shutil.rmtree(scratch)
+                      receipt['cleanup']['owned_removed'] = not scratch.exists()
+                  except Exception as error:
+                      receipt['cleanup']['error'] = str(error)
+              if not terminal or not receipt['cleanup']['owned_removed']:
+                  receipt['status'] = 'failed'
+              (out / 'bootstrap-receipt.json').write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
+          print(json.dumps({'status': receipt['status'], 'error': receipt.get('error')}))
+          raise SystemExit(0 if receipt['status'] == 'passed-hosted-java-crosscompile-only' else 1)
+          PY
+      - name: Preserve all bootstrap, Java, DEX and refusal evidence
+        if: always()
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: inspection-actual-r1496-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: ${{ runner.temp }}/generated-java-ci/

@@ -325,6 +325,8 @@ def main():
         integration_started = True
         result = run_integration(authority, selected, integration_env, out / 'integration')
         integration_terminal = result.get('cleanup', {}).get('command_custody_terminal') is True
+        if 'inspection_failure_frontier' in result:
+            receipt['inspection_failure_frontier'] = result['inspection_failure_frontier']
         validate_result(result)
         require(result['official_toolchain'] == receipt['official_inspect'], 'Tool identity changed after bootstrap')
         require(authority.source_inputs(profile) == receipt['source_inputs'], 'Owning source changed')
