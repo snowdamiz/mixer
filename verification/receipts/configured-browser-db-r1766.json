@@ -1,0 +1,127 @@
+{
+  "task": "R1766 actual DB-backed configured Application.start prerequisite",
+  "status": "REQUEST_CHANGES",
+  "gate": "Required loopback TCP port 5432 unavailable before owned PostgreSQL launch",
+  "recorded_utc": "2026-11-12T22:39:24.008269+00:00",
+  "command": {
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "operation": "socket.socket(AF_INET, SOCK_STREAM); bind((127.0.0.1, 5432)); close() in finally",
+    "network_connect_calls": 0,
+    "attempts": 1,
+    "timeout_or_wait": false,
+    "result": {
+      "available": false,
+      "errno": 48,
+      "error": "[Errno 48] Address already in use",
+      "port": 5432
+    }
+  },
+  "raw_preflight": {
+    "path": "verification/local/configured-browser-db-r1766/port-preflight.json",
+    "sha256": "6c0b792e6ff3ec2a2b61f4a74e7e40fcbb5cbe77803acd2d3718204b24804017"
+  },
+  "tools": {
+    "python": "3.14.8",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "no_PostgreSQL_Mix_BEAM_commands": true
+  },
+  "decision": "Stopped at the explicitly required first bind-availability gate. No owner identification, connection to foreign DB, retry, global hosts change, port proxy, reroute or validation relaxation.",
+  "cases": {
+    "bind_preflight": {
+      "attempted": 1,
+      "passed": 0,
+      "blocked": 1
+    },
+    "focused_BEAM_Mix_batches": 0,
+    "runtime_test_cases": 0,
+    "PostgreSQL_instances_launched": 0
+  },
+  "source_identities": {
+    "canonical_read_only_references": {
+      "AGENTS.md": {
+        "sha256": "b0abcb2d4e6e1d0aa1cb222e4ae954fe189b3d0c99250ee959903aac0d778960",
+        "bytes": 47628,
+        "role": "read-only canonical rules/fixture/reference; not composed or compiled"
+      },
+      "hosted/test/support/ordinary_browser_startup_fixture.ex": {
+        "sha256": "486fbf75691a8f3e8168442c7727324817c14c8560f0b796b805a0221a5e19a5",
+        "bytes": 25298,
+        "role": "read-only canonical rules/fixture/reference; not composed or compiled"
+      },
+      "hosted/test/support/browser_storage_fixture.ex": {
+        "sha256": "6e44facb19caf863eab5800ffe27d6c5e82816ada26af3c979a5ebf63e9abe0b",
+        "bytes": 7105,
+        "role": "read-only canonical rules/fixture/reference; not composed or compiled"
+      },
+      "hosted/lib/mixer_hosted/application.ex": {
+        "sha256": "12832d9bd53cceabb657fb115b7ef6678a7cbd0d836ab2e505c50d252a0ba39b",
+        "bytes": 3777,
+        "role": "read-only canonical rules/fixture/reference; not composed or compiled"
+      },
+      "hosted/mix.exs": {
+        "sha256": "bf32132975d04d66315974a6a5ef0bc9d9718b6392824d92bbc8e9d764062f0d",
+        "bytes": 1270,
+        "role": "read-only canonical rules/fixture/reference; not composed or compiled"
+      }
+    },
+    "R1758_delivery_identities": {
+      "hosted/lib/mixer_hosted/browser_auth/installation.ex": {
+        "sha256": "c9148d2e7547b6ee7eb3cae9851ebfabfb061f855fafcb364b143ec51b699e7e",
+        "provenance": "previous delivered R1758 compact receipt; not revalidated, copied or compiled in R1766"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/supervisor.ex": {
+        "sha256": "0be221930726bdc9b266de3ea4b703ebb4a74617dcd2b9fe51a806127c16fe50",
+        "provenance": "previous delivered R1758 compact receipt; not revalidated, copied or compiled in R1766"
+      }
+    },
+    "private_composition_created": false,
+    "source_revision": "Not inspected; Git/sourceauthority operations prohibited. Reference SHA256 identities recorded instead."
+  },
+  "required_proofs": {
+    "owned_data_directory_before_DDL": "NOT_RUN; no DB connection or DDL",
+    "both_current_SQL_catalogs": "NOT_RUN",
+    "StorageSchema_and_provision_functions": "NOT_RUN",
+    "four_distinct_roles_and_pool_budgets": "NOT_RUN; guards unchanged",
+    "real_RuntimeOwner_Store_admit": "NOT_RUN",
+    "real_Repo_Oban_Endpoint": "NOT_RUN",
+    "fixed_trust_provider_actors": "NOT_RUN",
+    "actual_Application_start": "NOT_RUN",
+    "Application_startup_ok": "NOT_RUN",
+    "root_Boot_ETS_owner_exact_Supervisor_PID": "NOT_RUN",
+    "projection_drift_fail_closed": "NOT_RUN",
+    "all_owned_application_components_down": "NOT_APPLICABLE; none launched"
+  },
+  "custody_cleanup": {
+    "PostgreSQL_process_or_group_created": false,
+    "BEAM_process_or_group_created": false,
+    "owned_database_created": false,
+    "owned_listening_port_created": false,
+    "availability_socket_closed": true,
+    "managed_OS_group_absence": "NOT_APPLICABLE; no managed child or daemon launched",
+    "positive_PG_stop": "NOT_APPLICABLE; no PostgreSQL launched",
+    "port_reuse": "NOT_RUN; occupied port was never owned and was not retried",
+    "runtime_scratch_created": false,
+    "retained_artifacts": [
+      "compact receipt",
+      "port-preflight.json"
+    ],
+    "new_UNKNOWN_custody": false,
+    "foreign_process_or_database_inspection": false
+  },
+  "bounds": {
+    "max_minutes": 10,
+    "max_BEAM_Mix_focused_batches": 2,
+    "max_PostgreSQL_instances": 1,
+    "consumed_BEAM_Mix_focused_batches": 0,
+    "consumed_PostgreSQL_instances": 0
+  },
+  "scope": {
+    "writes_only_own_local_namespace_and_compact_receipt": true,
+    "canonical_index_Git_sourceauthority_docs_deploy_liveprovider_realcredential_native_device_ADB_subchildren_actions": false,
+    "r1728_access": false,
+    "held_resource_access_or_release": false,
+    "runtime_PASS_claim": false
+  },
+  "next_required_action": "Parent must resolve the required 5432 availability gate through an authorized owner, then select a fresh bounded configured real-DB run. This agent did not identify or alter any existing listener.",
+  "qualification_limits": "No development DB startup proof was obtained. No Neon/Cloudflare provenance, external provider exchange, rotation or GA acceptance."
+}

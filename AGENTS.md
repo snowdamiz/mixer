@@ -521,3 +521,44 @@ absence observations do not release these cleanup holds; descriptors remained
 open. The terminal outer40809 does not release them. Fresh canonical-source
 work in distinct namespaces remains permitted. See
 `verification/receipts/output-budget-unit-fix-r1728.json`.
+
+The R1772 callback-map continuation recorded UNKNOWN during launch setup after
+its wrapper supplied a nonexistent working directory, before a reliable inner
+PID/PGID was persisted. Preserve the entire
+`verification/local/pair21-owner-ci-r1772` namespace without inspection,
+enumeration, stat, probing, signals, waits, retries or cleanup. Only the external
+compact `verification/receipts/pair21-owner-ci-r1772.json` is a reference when
+delivered. The outer exit74 does not establish inner absence. No compiler/JVM
+payload is known to have run. Fresh canonical-source work in the separately
+selected R1778 namespace remains permitted; no earlier hold is released.
+
+The R1768 formatted hosted-suite campaign recorded UNKNOWN after a redundant
+PostgreSQL stop. All 71 recorded groups were terminal, but that does not release
+the hold. Preserve the entire `verification/local/hosted-v17-formatted-r1768`
+namespace without inspection, enumeration, stat, probing, signals, waits,
+retries or cleanup. Only the external compact
+`verification/receipts/hosted-v17-formatted-r1768.json` is a reference. Its
+full Mix command failed; actual suite counts and failure details remain
+unobserved. Fresh canonical-source work in a separate namespace is permitted.
+
+The R1782 configured-startup recipe left PostgreSQL PID/PGID31506 UNKNOWN after
+its Unix-socket path exceeded the platform limit and cleanup raised before
+collecting the foreground child. Preserve that exact group and the entire
+`verification/local/configured-browser-db-start-r1782` namespace, including its
+database, socket, sources and logs, without inspection, enumeration, stat,
+probing, signals, waits, retries or cleanup. Do not reuse or probe its reserved
+`::1:5432` lane. Read only the external compact
+`verification/receipts/configured-browser-db-start-r1782.json`. The other eight
+inner groups and both outer groups being terminal do not release this hold.
+Fresh isolated work that cannot contact those resources remains permitted.
+
+The R1794 FieldLog create review recorded UNKNOWN for CLI PID/PGID61320 after
+its scanner rejected the retained macOS resource-bundle layout. Preserve that
+exact group and the entire `verification/local/fieldlog-durable-review-r1794`
+namespace without inspection, enumeration, stat, probing, signals, waits,
+retries or cleanup. Read only the external compact
+`verification/receipts/fieldlog-durable-review-r1794.json`. The direct create
+exit0 and recorded inspection child61499 terminal result do not establish
+outer/descendant absence. No accepted create pass is claimed. Fresh separately
+selected source work may use the unheld R1784 candidate and original retained
+CLI inputs; this hold does not release any older chain.

@@ -1,0 +1,110 @@
+{
+  "id": "configured-browser-review-r1762",
+  "status": "PASS",
+  "status_scope": "source and production-mode supervision-boundary only",
+  "completed_utc": "2026-11-12T22:23:55.247119+00:00",
+  "findings": [],
+  "reviewed_afterimages": {
+    "hosted/lib/mixer_hosted/browser_auth/installation.ex": {
+      "sha256": "c9148d2e7547b6ee7eb3cae9851ebfabfb061f855fafcb364b143ec51b699e7e",
+      "bytes": 5628
+    },
+    "hosted/lib/mixer_hosted/browser_auth/supervisor.ex": {
+      "sha256": "0be221930726bdc9b266de3ea4b703ebb4a74617dcd2b9fe51a806127c16fe50",
+      "bytes": 2315
+    }
+  },
+  "patch_sha256": "5aadf2459054c6c0b2add302f295bebc8e6f97b859b5c7fceb1fd535f95ccb58",
+  "independent_verification": {
+    "manifest_members_matched": 195,
+    "patch_reproduces_afterimages": true,
+    "producer_logs_hash_matched": true,
+    "application_source_unchanged": true,
+    "fresh_BEAM_batches": 0,
+    "method": "source/harness/diagnostics/raw-log/hash review"
+  },
+  "producer_boundary_tests": {
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "excluded": 0,
+    "real_trust_and_provider_owners": true,
+    "test_leaves": [
+      "LifecycleRepo",
+      "RuntimeOwner",
+      "Endpoint.config_change"
+    ],
+    "batch_1": "Harness diagnostic assertion failure before tests; preserved, not counted as pass"
+  },
+  "format_compile": {
+    "default_formatter": "Producer driver Code.format_string!/1; exact resulting sources hash-verified",
+    "producer_compile_warnings": [],
+    "producer_runtime_warnings": [],
+    "producer_stderr_bytes": 0,
+    "full_hosted_compile": false,
+    "fresh_independent_compilation": false
+  },
+  "accepted_dependency_hashes": {
+    "ProviderOwner": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192",
+    "ProviderHTTPS": "02fb29c723d7394148a170a40dd39db86f15d007d0777b9f31f938a6032c79c4",
+    "StartupSecrets_original": "38750e7d7da59e5c65fe4bf5fd00ca2829afa1f53c3bd44cb02c7125a0a11d32",
+    "StartupSecrets_R1756_AST_identical_successor": "2dd8d96d21eb270d986cd55070c0a5135923eca9176e957d48799cd875500990"
+  },
+  "required_next_test": "configured_browser_application_start_with_current_catalogs_and_root_boot_ownership: actual Repo/Oban/Endpoint/LifecycleRepo/RuntimeOwner, both trust graphs, both current catalogs, positive Application.start, root Boot ETS ownership, exact startup tuple, storage_ready, failure redaction and bounded teardown",
+  "limitations": [
+    "No fresh runtime replay",
+    "Actual database catalog admission and ordinary Repo/Oban/Endpoint startup untested",
+    "Positive Application.start and root Boot ETS ownership untested",
+    "Real database child-start failure logging untested",
+    "No caller authority or environment/provenance attestation",
+    "Full hosted compilation/test-mode regressions/CI pending",
+    "Provider external TLS and deployed secrets/rotation/GA pending"
+  ],
+  "os_custody": {
+    "review_managed_runtime_commands": 0,
+    "synchronous_audit_exit_code": 0,
+    "producer_evidence_only": [
+      {
+        "pid": 28335,
+        "pgid": 28335,
+        "exit_code": 1,
+        "direct_reaped": true,
+        "owned_group_absent_ESRCH": true,
+        "descriptors_closed": true
+      },
+      {
+        "pid": 30490,
+        "pgid": 30490,
+        "exit_code": 0,
+        "direct_reaped": true,
+        "owned_group_absent_ESRCH": true,
+        "descriptors_closed": true
+      }
+    ],
+    "producer_processes_probed_by_reviewer": false,
+    "new_hold": false,
+    "historical_holds_released": false
+  },
+  "scope": {
+    "writes_only_assigned_namespace_and_receipt": true,
+    "canonical_index_Git_sourceauthority_docs_writes": false,
+    "network_provider_live_credentials_DB_native_device_ADB_deployment_subchildren": false,
+    "r1728_or_held_resources_touched": false,
+    "canonical_activation": false,
+    "production_provenance_GA_acceptance": false
+  },
+  "tools": {
+    "python": "3.14.8",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "producer_elixir": "1.20.4",
+    "producer_otp": "29",
+    "producer_mode": "prod",
+    "producer_schedulers": 2,
+    "producer_nice": 10
+  },
+  "artifacts": {
+    "report": "verification/local/configured-browser-review-r1762/REPORT.md",
+    "audit": "verification/local/configured-browser-review-r1762/source-log-audit.json"
+  },
+  "report_sha256": "5460e8117861bb07c6885e3a0dce17ae7a934587a2668b7eab8ac81591f6c74e"
+}

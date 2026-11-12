@@ -1,0 +1,218 @@
+{
+  "id": "fieldlog-durable-report-r1784",
+  "status": "IMPLEMENTED_HOST_VERIFIED_PRIVATE_CANDIDATE_FOR_ROOT_DELIVERY",
+  "provider": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "provider_comparison": false,
+    "subchildren": 0
+  },
+  "scope": "Additive generated FieldLog app/report integration in separate app candidate; no canonical Mixer source, index, refs, commits, pushes, remotes, native/device/UI or credentials changed.",
+  "baseline": {
+    "repository": "snowdamiz/fieldlog",
+    "revision": "00c8fe0400bc9a06242371ce7b02cd440f64f31e",
+    "frozen_source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1780/remote-base",
+    "unchanged_files": 46,
+    "original_package_lock_ios_sources_workflow_tests_preserved": true
+  },
+  "inputs": {
+    "accepted_app_zip": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1780/inputs/FieldLog-r974-app-source.zip",
+      "bytes": 1451798,
+      "sha256": "b9b725460ccb69e78cc4962217b089ebc323ce2fc3244f48a451a38fcdeb472b"
+    },
+    "reviewed_fix": "verification/receipts/fieldlog-share-source-review-r1708.json",
+    "public_sdk": {
+      "repository": "snowdamiz/mixer",
+      "revision": "8efc1a9e5b1602117f8211c95bfd4203cc91f689",
+      "acquisition_manifest": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/sdk-acquisition.json",
+      "verified_blobs": 78,
+      "source_bytes": 809232,
+      "local_source_removed_after_terminal_tests": true
+    }
+  },
+  "implementation": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/candidate/Integrations/GeneratedReport",
+    "added_files": 41,
+    "public_activity_exact_reviewed_afterimage": true,
+    "report_files_and_report_intent_suffix_exact_reviewed_afterimage": true,
+    "root_change": "Extract the reviewed getCanonicalFile call into the app-owned ReportRoot helper, used before Swift open and executable without Android stubs.",
+    "sdk_renderer_ownership": "Mixer; no NativeRendererSDK copy in app",
+    "target_mismatches_fixed": [
+      "Original remote lacks generated Android host and EntryEditor/attachPhoto support; additive separate package preserves original targets.",
+      "Generated product AppAndroid now owns Swift module FieldLogAndroid so actual host test imports match.",
+      "Generated app root uses only real FieldLog modules, without obsolete starter AppModels/AppFeatures targets."
+    ],
+    "cli_recipe": "Integrations/GeneratedReport/scripts/build-android.py --mixer /absolute/public/mixer --sdk-checkout /absolute/pinned-mixer --output /absolute/fresh/FieldLogGenerated --prepare-only"
+  },
+  "delivery": {
+    "patch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/app.diff",
+    "patch_bytes": 425238,
+    "patch_sha256": "844b668af4934e2555335e6f59a0540c8f468c690e729e3cb85446c444cd88af",
+    "candidate_tree_sha256": "c39ac3da39d92d8a1c7bfe96d611d4310d6cf3c661e55c91877a7aae719b62fc",
+    "manifest": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/candidate-manifest.json",
+    "source_proof": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/source-proof.json",
+    "patch_applied_with_usr_bin_patch_and_tree_exact_match": true,
+    "root_owns_review_delivery_and_publication": true
+  },
+  "validation": {
+    "swift": {
+      "command_label": "00003-swift-host-suite",
+      "tool": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+      "platform": "arm64-apple-macosx27.0.0",
+      "build_commands": 1,
+      "xctest_passed": 34,
+      "swift_testing_passed": 61,
+      "failures": 0,
+      "report_share_tests_passed": 5,
+      "actual_app_sources": true,
+      "physical_or_native_receipt": false
+    },
+    "java": {
+      "javac": "javac 27",
+      "java": "openjdk 27 2026-09-15\nOpenJDK Runtime Environment Homebrew (build 27)\nOpenJDK 64-Bit Server VM Homebrew (build 27, mixed mode, sharing)",
+      "commands": [
+        "00006-java-compile",
+        "00007-java-report-boundary"
+      ],
+      "passed": 20,
+      "failed": 0,
+      "actual_report_files_body": true,
+      "handmade_android_or_sdk_stubs": false,
+      "coverage": [
+        "trusted root alias canonicalized",
+        "strict canonical child path/no-follow/size checks",
+        "truncated/overlong streams rejected and copies removed",
+        "exact report bytes",
+        "reader cap, revocation, expiry, retained source"
+      ]
+    },
+    "materialization": {
+      "app_inputs": 9,
+      "modules": [
+        "FieldLogModels",
+        "FieldLogStorage",
+        "FieldLogFeatures"
+      ],
+      "android_test_files": 8,
+      "sdk_blobs_unchanged": 78,
+      "scope": "actual installer; public CLI create and native build not invoked"
+    },
+    "generated_target_model": {
+      "command_label": "00009-generated-target-model",
+      "action": "swift package describe --type json; no app compilation",
+      "module": "FieldLogAndroid",
+      "product": "AppAndroid",
+      "source_files": [
+        "NativeEntry.swift",
+        "PublicFactory.swift"
+      ],
+      "test_source_files": 8
+    },
+    "patch_replay": {
+      "command_label": "00010-patch-replay",
+      "matches_candidate_tree": true
+    },
+    "commands": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/commands.json",
+    "raw_logs": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/logs"
+  },
+  "budget": {
+    "allowed_swift_builds": 1,
+    "used_swift_builds": 1,
+    "java_compile_and_execute_commands": 2,
+    "campaign_seconds": 720,
+    "cleanup_reserve_seconds": 45,
+    "actual_command_elapsed_seconds_sum": 58.731,
+    "no_native_crossbuild": true
+  },
+  "cleanup": {
+    "managed_command_count": 10,
+    "all_direct_reaped_eof_descriptors_closed_group_ESRCH": true,
+    "signals_sent": false,
+    "removed": [
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/swift-build",
+        "bytes": 225733854,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/recipe-model-build",
+        "bytes": 219,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/cache",
+        "bytes": 30933497,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/tmp",
+        "bytes": 0,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/scratch",
+        "bytes": 518236,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/java-source",
+        "bytes": 12047,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/java-classes",
+        "bytes": 25367,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/recipe-layout",
+        "bytes": 296887,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/sdk",
+        "bytes": 809232,
+        "removed": true
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/replay",
+        "removed": true,
+        "purpose": "post-replay disposable source or empty scratch"
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/scratch",
+        "removed": true,
+        "purpose": "post-replay disposable source or empty scratch"
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/cache",
+        "removed": true,
+        "purpose": "post-replay disposable source or empty scratch"
+      },
+      {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-durable-report-r1784/tmp",
+        "removed": true,
+        "purpose": "post-replay disposable source or empty scratch"
+      }
+    ],
+    "bytes_removed": 258329339,
+    "all_holds_preserved": true,
+    "scope": "R1784-owned disposable outputs only; no older namespace inspected for cleanup",
+    "patch_replay_exact_match": true
+  },
+  "limitations": [
+    "Private candidate and patch only; root delivery/review remains.",
+    "Original remote package at its older SDK pin was preserved, not independently rebuilt.",
+    "Public CLI create admission and unsigned APK/native cross-compilation were not executed; actual app-input installation and SwiftPM target discovery passed.",
+    "Full PublicActivity/bridge Android compilation, JNI/device sharing and recipient behavior not rerun here.",
+    "No immutable published-package, signing, store, physical-device, D0-D8 or GA qualification.",
+    "No historical custody hold released."
+  ],
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "custody_adapter_sha256": "afe0219539ad0bb2ba2ef5578689f3594f554bc6897323e293ccee555365b340",
+    "command_records_sha256": "94bda14ade97d0b47f9b10a458b7b68d35388e8ee234b86f6835eee4c8d78462"
+  }
+}

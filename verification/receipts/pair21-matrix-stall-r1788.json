@@ -1,0 +1,765 @@
+{
+  "id": "R1788",
+  "at": "2026-11-12T23:08:46.509607+00:00",
+  "completed_at": "2026-11-12T23:15:01.658731+00:00",
+  "status": "COMPLETE_HOST_DIAGNOSTIC",
+  "limits": {
+    "campaign_active_seconds": 600,
+    "cleanup_reserve_seconds": 60,
+    "full_jvm_seconds": 300,
+    "canonical_active_seconds": 360,
+    "exact_case_seconds": 30,
+    "max_exact_case_controls": 2,
+    "max_compiler_batches": 2
+  },
+  "outer_adapter": {
+    "bytes": 7268,
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+  },
+  "selected_control": {
+    "site": "NativeAppearanceViewsV2:L753:C57:1",
+    "witness": "positive",
+    "case": "dirty-at-entry",
+    "reason": "case active at full JVM deadline"
+  },
+  "predecessor_inputs": {
+    "native/android/app/src/dev/mixer/android/NativeRenderer.java": {
+      "bytes": 113138,
+      "sha256": "a065e2bef70d9ed886fd09fc29357318360a9ad14e4b98bb9d21f1784eb8c1d3"
+    },
+    "native/android/tests/private-owner-barrier-map.json": {
+      "bytes": 223721,
+      "sha256": "b40e7100d398c9a3f71a74f82d2e4d3b1da31a0429ddb7c98a25fb249e91f3e3"
+    },
+    "native/android/tests/private-owner-barrier-bindings.json": {
+      "bytes": 107930,
+      "sha256": "c873846a5b660bb81a60b7c13e93715cb546c59018a6fa0d120d5c6cc6cfffd0"
+    }
+  },
+  "profiles": {
+    "candidate": {
+      "available": true,
+      "JFR": {
+        "bytes": 3225862,
+        "sha256": "54d0a565bbc518e98b75df65fca5080d7913f32dcb250e31a91b6f775b30211d"
+      },
+      "events": 386,
+      "main_thread_execution_samples": 386,
+      "main_samples_with_stack_capture_in_top12": 144,
+      "top_main_sample_frames": [
+        [
+          "jdk/internal/util/ArraysSupport.mismatch",
+          81
+        ],
+        [
+          "java/lang/String.split",
+          28
+        ],
+        [
+          "dev/mixer/android/NativeOwnerV2ConcreteHostTests$Barrier.matches",
+          24
+        ],
+        [
+          "java/util/HashMap.merge",
+          14
+        ],
+        [
+          "sun/invoke/util/BytecodeDescriptor.parseMethod",
+          13
+        ],
+        [
+          "java/lang/invoke/DirectMethodHandle.allocateInstance",
+          11
+        ],
+        [
+          "java/lang/StringLatin1.replace",
+          10
+        ],
+        [
+          "sun/invoke/util/BytecodeDescriptor.parseSig",
+          9
+        ],
+        [
+          "java/util/Objects.equals",
+          9
+        ],
+        [
+          "java/util/stream/AbstractPipeline.wrapSink",
+          9
+        ]
+      ],
+      "interpretation": "diagnostic sampled stacks from one exact-case JVM including unchanged preamble; not a speed comparison or whole-matrix profile"
+    },
+    "predecessor": {
+      "available": true,
+      "JFR": {
+        "bytes": 2209115,
+        "sha256": "a625f7cd3a197a3e451e1e0435d66003b0c661e11b98025a3b673b804bcf4e6d"
+      },
+      "events": 253,
+      "main_thread_execution_samples": 252,
+      "main_samples_with_stack_capture_in_top12": 83,
+      "top_main_sample_frames": [
+        [
+          "jdk/internal/util/ArraysSupport.mismatch",
+          66
+        ],
+        [
+          "dev/mixer/android/NativeOwnerV2ConcreteHostTests.collect",
+          11
+        ],
+        [
+          "java/lang/StringLatin1.replace",
+          7
+        ],
+        [
+          "java/util/HashMap.merge",
+          7
+        ],
+        [
+          "dev/mixer/android/NativeOwnerV2ConcreteHostTests$Barrier.matches",
+          7
+        ],
+        [
+          "java/lang/StringLatin1.hashCode",
+          7
+        ],
+        [
+          "jdk/internal/util/ArraysSupport.vectorizedMismatch",
+          6
+        ],
+        [
+          "sun/invoke/util/BytecodeDescriptor.parseMethod",
+          6
+        ],
+        [
+          "java/lang/String.split",
+          5
+        ],
+        [
+          "java/lang/StackStreamFactory$StackFrameTraverser.tryAdvance",
+          4
+        ]
+      ],
+      "interpretation": "diagnostic sampled stacks from one exact-case JVM including unchanged preamble; not a speed comparison or whole-matrix profile"
+    }
+  },
+  "verdict": {
+    "full_matrix": "failed",
+    "current_and_predecessor_exact_case_both_pass": true,
+    "counterfactual": "same selected callback case, same assertions and host bounds; independent predecessor renderer plus matching maps; all other production and leaf inputs fixed",
+    "full_case_progress_observed": true,
+    "whole_matrix_pass_claim": false,
+    "product_defect_proven": false,
+    "product_fix_made": false,
+    "budget_increased": false,
+    "downstream_environment_and_public_surface": "UNRUN"
+  },
+  "elapsed_seconds": 375.15161320904735,
+  "removed_owned_disposable_paths": [
+    "candidate-root",
+    "predecessor-root",
+    "full/inputs",
+    "full/classes",
+    "exact-predecessor/classes"
+  ],
+  "scope": "actual production closure B, controlled Android/JNI leaves, private diagnostic harness; host only",
+  "canonical_writes": false,
+  "held_resources_accessed": false,
+  "holds_released": false,
+  "new_unknown": false,
+  "source_manifest": {
+    "path": "verification/local/pair21-matrix-stall-r1788/source-manifest.json",
+    "bytes": 22200,
+    "sha256": "61202e58a038160c739d662b93c49d75b7e2379f399fadf521f2817b9eaa89bd"
+  },
+  "all_canonical_input_hashes_unchanged": true,
+  "source_count": 115,
+  "renderer_sha256": "f23b3f4ddcc2503f9b5ef00f88f3f6ccb40882e0fbbce97789a5a8ff7b868b51",
+  "bindings": 189,
+  "required_cases": 1323,
+  "required_helpers": 15,
+  "full": {
+    "status": "failed",
+    "failure": {
+      "message": "host failed: timeout",
+      "type": "RuntimeError"
+    },
+    "matrix": null,
+    "host_stdout": null,
+    "source_stable": true,
+    "elapsed_seconds": 305.06891954201274,
+    "cleanup": {
+      "aggregateBytes": 2048317,
+      "aggregateLimit": 67108864,
+      "allTerminalCustody": true,
+      "hold": null,
+      "scratchRemoved": true
+    }
+  },
+  "diagnosis": {
+    "case_starts": 1271,
+    "case_completes": 1270,
+    "last_started": "case-start\t299554\tNativeAppearanceViewsV2:L753:C57:1\tpositive\tdirty-at-entry",
+    "last_completed": "case-complete\t299554\tNativeAppearanceViewsV2:L753:C57:1\tpositive\tterminal-before-return\tevents=0",
+    "stacks": [
+      "main-stack\t30028\tNativeRenderer:L344:C98:1\trollbackState\tfatal-throw-after-callback state=RUNNABLE <- java.base/java.lang.StackTraceElement.initStackTraceElement(Native Method) <- java.base/java.lang.StackTraceElement.of(StackTraceElement.java:572) <- java.base/java.lang.StackFrameInfo.toStackTraceElement(StackFrameInfo.java:152) <- java.base/java.lang.StackFrameInfo.getLineNumber(StackFrameInfo.java:127) <- dev.mixer.android.ConcreteHostProbe.lambda$hit$2(ConcreteHostProbe.java:35) <- java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:214) <- java.base/java.util.stream.SliceOps$1$1.accept(SliceOps.java:200) <- java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197) <- java.base/java.lang.StackStreamFactory$StackFrameTraverser.tryAdvance(StackStreamFactory.java:594) <- java.base/java.util.stream.ReferencePipeline.forEachWithCancel(ReferencePipeline.java:147) <- java.base/java.util.stream.AbstractPipeline.copyIntoWithCancel(AbstractPipeline.java:588) <- java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:574) <- java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560) <- java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:635) <- java.base/java.util.stream.AbstractPipeline.evaluateToArrayNode(AbstractPipeline.java:291) <- java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:652) <- java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:658) <- java.base/java.util.stream.ReferencePipeline.toList(ReferencePipeline.java:663) <- dev.mixer.android.ConcreteHostProbe.lambda$hit$0(ConcreteHostProbe.java:35) <- java.base/java.lang.StackStreamFactory$StackFrameTraverser.consumeFrames(StackStreamFactory.java:531) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.doStackWalk(StackStreamFactory.java:324) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.callStackWalk(Native Method) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.beginStackWalk(StackStreamFactory.java:418) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.walkHelper(StackStreamFactory.java:261) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.walk(StackStreamFactory.java:253) <- java.base/java.lang.StackWalker.walk(StackWalker.java:502) <- dev.mixer.android.ConcreteHostProbe.hit(ConcreteHostProbe.java:34) <- android.view.View.done(View.java:16) <- android.view.View.measure(View.java:42) <- dev.mixer.android.NativeAppearanceViewsV2.layout(NativeAppearanceViewsV2.java:747) <- dev.mixer.android.NativeAppearanceViewsV2$Group.onLayout(NativeAppearanceViewsV2.java:766) <- dev.mixer.android.NativeAppearanceViewsV2$Group.onLayout(NativeAppearanceViewsV2.java:760) <- android.view.View.layout(View.java:44) <- dev.mixer.android.NativeAppearanceViewsV2.layout(NativeAppearanceViewsV2.java:749) <- dev.mixer.android.NativeAppearanceViewsV2$Group.onLayout(NativeAppearanceViewsV2.java:766) <- dev.mixer.android.NativeAppearanceViewsV2$Group.onLayout(NativeAppearanceViewsV2.java:760) <- android.view.View.layout(View.java:44) <- dev.mixer.android.NativeAppearanceViewsV2.layout(NativeAppearanceViewsV2.java:749) <- dev.mixer.android.NativeAppearanceViewsV2.layoutRoot(NativeAppearanceViewsV2.java:737) <- dev.mixer.android.NativeRenderer.prepareV2(NativeRenderer.java:510)",
+      "main-stack\t90029\tNativeAppearanceViewsV2:L153:C21:1\tsmoke\tdirty-before-return state=RUNNABLE <- java.base/java.lang.Class.forName0(Native Method) <- java.base/java.lang.Class.forName(Class.java:547) <- java.base/sun.invoke.util.BytecodeDescriptor.parseSig(BytecodeDescriptor.java:93) <- java.base/sun.invoke.util.BytecodeDescriptor.parseMethod(BytecodeDescriptor.java:60) <- java.base/sun.invoke.util.BytecodeDescriptor.parseMethod(BytecodeDescriptor.java:45) <- java.base/java.lang.invoke.MethodType.fromDescriptor(MethodType.java:1201) <- java.base/java.lang.invoke.MethodHandleImpl$1.getMethodType(MethodHandleImpl.java:1543) <- java.base/java.lang.StackFrameInfo.getMethodType(StackFrameInfo.java:93) <- java.base/java.lang.StackFrameInfo.getDescriptor(StackFrameInfo.java:104) <- dev.mixer.android.ConcreteHostProbe.lambda$hit$2(ConcreteHostProbe.java:35) <- java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:214) <- java.base/java.util.stream.SliceOps$1$1.accept(SliceOps.java:200) <- java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197) <- java.base/java.lang.StackStreamFactory$StackFrameTraverser.tryAdvance(StackStreamFactory.java:594) <- java.base/java.util.stream.ReferencePipeline.forEachWithCancel(ReferencePipeline.java:147) <- java.base/java.util.stream.AbstractPipeline.copyIntoWithCancel(AbstractPipeline.java:588) <- java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:574) <- java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560) <- java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:635) <- java.base/java.util.stream.AbstractPipeline.evaluateToArrayNode(AbstractPipeline.java:291) <- java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:652) <- java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:658) <- java.base/java.util.stream.ReferencePipeline.toList(ReferencePipeline.java:663) <- dev.mixer.android.ConcreteHostProbe.lambda$hit$0(ConcreteHostProbe.java:35) <- java.base/java.lang.StackStreamFactory$StackFrameTraverser.consumeFrames(StackStreamFactory.java:531) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.doStackWalk(StackStreamFactory.java:324) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.callStackWalk(Native Method) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.beginStackWalk(StackStreamFactory.java:418) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.walkHelper(StackStreamFactory.java:261) <- java.base/java.lang.StackStreamFactory$AbstractStackWalker.walk(StackStreamFactory.java:253) <- java.base/java.lang.StackWalker.walk(StackWalker.java:502) <- dev.mixer.android.ConcreteHostProbe.hit(ConcreteHostProbe.java:34) <- android.view.View.hit(View.java:16) <- android.widget.TextView.setEllipsize(TextView.java:55) <- dev.mixer.android.NativeAppearanceViewsV2.text(NativeAppearanceViewsV2.java:485) <- dev.mixer.android.NativeAppearanceViewsV2.bindTitle(NativeAppearanceViewsV2.java:491) <- dev.mixer.android.NativeAppearanceViewsV2$Record.bind(NativeAppearanceViewsV2.java:421) <- dev.mixer.android.NativeRenderer.prepareV2(NativeRenderer.java:501) <- dev.mixer.android.NativeCoordinatorV2.refreshEnvironment(NativeCoordinatorV2.java:154) <- dev.mixer.android.NativeOwnerV2.operate(NativeOwnerV2.java:373)"
+    ],
+    "first_started": "case-start\t11741\tNativeRenderer:L101:C57:1\tsmoke\tclean",
+    "full_matrix_pass": false,
+    "cross_case_history_after_collect": [
+      "events=0"
+    ]
+  },
+  "timing_diagnostics": {
+    "completed": 1270,
+    "sum_case_ms": 287102,
+    "slowest_completed": [
+      {
+        "site": "NativeAppearanceViewsV2:L187:C21:1",
+        "witness": "positive",
+        "case": "dirty-at-entry",
+        "elapsed_ms": 2636
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L506:C81:1",
+        "witness": "positive",
+        "case": "clean",
+        "elapsed_ms": 2567
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L104:C87:2",
+        "witness": "positive",
+        "case": "dirty-at-entry",
+        "elapsed_ms": 2536
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L506:C81:1",
+        "witness": "positive",
+        "case": "terminal-before-return",
+        "elapsed_ms": 2464
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L101:C21:1",
+        "witness": "positive",
+        "case": "dirty-at-entry",
+        "elapsed_ms": 2456
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L186:C138:1",
+        "witness": "positive",
+        "case": "dirty-before-return",
+        "elapsed_ms": 2443
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L506:C81:1",
+        "witness": "positive",
+        "case": "terminal-at-entry",
+        "elapsed_ms": 2437
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L187:C21:1",
+        "witness": "positive",
+        "case": "clean",
+        "elapsed_ms": 2382
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L506:C81:1",
+        "witness": "positive",
+        "case": "dirty-before-return",
+        "elapsed_ms": 2373
+      },
+      {
+        "site": "NativeAppearanceViewsV2:L506:C81:1",
+        "witness": "positive",
+        "case": "dirty-at-entry",
+        "elapsed_ms": 2140
+      }
+    ],
+    "performance_comparison_claim": false
+  },
+  "exact_controls": {
+    "candidate": {
+      "status": "PASS_EXACT_CASE_ONLY",
+      "site": "NativeAppearanceViewsV2:L753:C57:1",
+      "case": "dirty-at-entry",
+      "preflight_bindings": 189,
+      "failure": null,
+      "cleanup": {
+        "aggregateBytes": 254,
+        "aggregateLimit": 67108864,
+        "allTerminalCustody": true,
+        "hold": null,
+        "scratchRemoved": true
+      },
+      "progress_before_cleanup": [
+        "preamble-start\t0\tmain",
+        "preamble-complete\t26390\twitnesses=189",
+        "case-start\t26392\tNativeAppearanceViewsV2:L753:C57:1\tpositive\tdirty-at-entry",
+        "case-complete\t26970\tNativeAppearanceViewsV2:L753:C57:1\tpositive\tdirty-at-entry\tevents=0",
+        "matrix-complete\t26974\trequired=1323"
+      ]
+    },
+    "predecessor": {
+      "status": "PASS_EXACT_CASE_ONLY",
+      "site": "NativeAppearanceViewsV2:L753:C57:1",
+      "case": "dirty-at-entry",
+      "preflight_bindings": 189,
+      "failure": null,
+      "cleanup": {
+        "aggregateBytes": 2038581,
+        "aggregateLimit": 67108864,
+        "allTerminalCustody": true,
+        "hold": null,
+        "scratchRemoved": true
+      },
+      "progress_before_cleanup": [
+        "preamble-start\t0\tmain",
+        "preamble-complete\t14707\twitnesses=189",
+        "case-start\t14710\tNativeAppearanceViewsV2:L753:C57:1\tpositive\tdirty-at-entry",
+        "case-complete\t15158\tNativeAppearanceViewsV2:L753:C57:1\tpositive\tdirty-at-entry\tevents=0",
+        "matrix-complete\t15159\trequired=1323"
+      ]
+    }
+  },
+  "inner_commands": [
+    {
+      "lane": "full",
+      "label": "java-version",
+      "pid": 83398,
+      "owned_pgid": 83398,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 10
+    },
+    {
+      "lane": "full",
+      "label": "javac-version",
+      "pid": 83418,
+      "owned_pgid": 83418,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 10
+    },
+    {
+      "lane": "full",
+      "label": "javap-version",
+      "pid": 83429,
+      "owned_pgid": 83429,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 10
+    },
+    {
+      "lane": "full",
+      "label": "compile",
+      "pid": 83436,
+      "owned_pgid": 83436,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 60
+    },
+    {
+      "lane": "full",
+      "label": "bytecode",
+      "pid": 84706,
+      "owned_pgid": 84706,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 30
+    },
+    {
+      "lane": "full",
+      "label": "host",
+      "pid": 84785,
+      "owned_pgid": 84785,
+      "state": "TERMINAL",
+      "exit_code": -9,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": "timeout",
+      "requested_timeout_seconds": 300
+    },
+    {
+      "lane": "candidate",
+      "label": "exact-host",
+      "pid": 31974,
+      "owned_pgid": 31974,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 30
+    },
+    {
+      "lane": "predecessor",
+      "label": "compile",
+      "pid": 33077,
+      "owned_pgid": 33077,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 60
+    },
+    {
+      "lane": "predecessor",
+      "label": "bytecode",
+      "pid": 33234,
+      "owned_pgid": 33234,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 30
+    },
+    {
+      "lane": "predecessor",
+      "label": "exact-host",
+      "pid": 33427,
+      "owned_pgid": 33427,
+      "state": "TERMINAL",
+      "exit_code": 0,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "terminal_custody": true,
+      "stop": null,
+      "requested_timeout_seconds": 30
+    }
+  ],
+  "outer_commands": [
+    {
+      "label": "full-diagnostic",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/full.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/candidate-root",
+      "pid": 83365,
+      "pgid": 83365,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 305.2202304590028,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "predecessor-input-0",
+      "argv": [
+        "/usr/bin/git",
+        "show",
+        "41acff46f:native/android/app/src/dev/mixer/android/NativeRenderer.java"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 31956,
+      "pgid": 31956,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.08378604101017118,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "predecessor-input-1",
+      "argv": [
+        "/usr/bin/git",
+        "show",
+        "41acff46f:native/android/tests/private-owner-barrier-map.json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 31962,
+      "pgid": 31962,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.075527457986027,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "predecessor-input-2",
+      "argv": [
+        "/usr/bin/git",
+        "show",
+        "41acff46f:native/android/tests/private-owner-barrier-bindings.json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 31965,
+      "pgid": 31965,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.10012158297467977,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "exact-candidate",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/control.py",
+        "candidate",
+        "NativeAppearanceViewsV2:L753:C57:1",
+        "dirty-at-entry"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/candidate-root",
+      "pid": 31969,
+      "pgid": 31969,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 28.097194792004302,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "exact-predecessor",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/control.py",
+        "predecessor",
+        "NativeAppearanceViewsV2:L753:C57:1",
+        "dirty-at-entry"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/predecessor-root",
+      "pid": 33063,
+      "pgid": 33063,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 24.147837582975626,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "profile-candidate",
+      "argv": [
+        "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/jfr",
+        "print",
+        "--json",
+        "--events",
+        "jdk.ExecutionSample",
+        "--stack-depth",
+        "12",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/exact-candidate/exact-profile.jfr"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/exact-candidate",
+      "pid": 34712,
+      "pgid": 34712,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.8355762918945402,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "profile-predecessor",
+      "argv": [
+        "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/jfr",
+        "print",
+        "--json",
+        "--events",
+        "jdk.ExecutionSample",
+        "--stack-depth",
+        "12",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/exact-predecessor/exact-profile.jfr"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pair21-matrix-stall-r1788/exact-predecessor",
+      "pid": 34781,
+      "pgid": 34781,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.44067237502895296,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "head-revision",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 39885,
+      "pgid": 39885,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06024270807392895,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "artifacts": {
+    "campaign.py": {
+      "path": "verification/local/pair21-matrix-stall-r1788/campaign.py",
+      "bytes": 8322,
+      "sha256": "708de2d4042328a2e52d62d442e57842aea936b8771fbff2d4663978118a35fb"
+    },
+    "control.py": {
+      "path": "verification/local/pair21-matrix-stall-r1788/control.py",
+      "bytes": 4514,
+      "sha256": "3ab7659da642d03688609d8250680242427043c978884b83caebe918046d4987"
+    },
+    "decide.py": {
+      "path": "verification/local/pair21-matrix-stall-r1788/decide.py",
+      "bytes": 5190,
+      "sha256": "38658a690961ef1b5ae96ecdf7a9487fdd876082facaddf6cdad6e6782917c42"
+    },
+    "finish.py": {
+      "path": "verification/local/pair21-matrix-stall-r1788/finish.py",
+      "bytes": 8199,
+      "sha256": "19aea940f3eeccb150d1a18e4ac3bbb1cb1e13ec6cb16f2c3fba7aa1cb8f4c5c"
+    },
+    "result.json": {
+      "path": "verification/local/pair21-matrix-stall-r1788/result.json",
+      "bytes": 221075,
+      "sha256": "0869803eea2a11c3d2c977feee6d1c27d0bf90e37b25afb1031aaf4034ae56d1"
+    },
+    "live-diagnostic-checkpoint.json": {
+      "path": "verification/local/pair21-matrix-stall-r1788/live-diagnostic-checkpoint.json",
+      "bytes": 7300,
+      "sha256": "1bf35992c33fdf0d95849f79cb3809025c315deded336aec4184e0ca564eb3e7"
+    },
+    "diagnostic-harness.diff": {
+      "path": "verification/local/pair21-matrix-stall-r1788/diagnostic-harness.diff",
+      "bytes": 6002,
+      "sha256": "f3fc9fd36e132689ab2af9f718133aa65b0d62acc8e4534da3dc1f861cd6101a"
+    },
+    "NativeOwnerV2ConcreteHostTests.diagnostic.java": {
+      "path": "verification/local/pair21-matrix-stall-r1788/NativeOwnerV2ConcreteHostTests.diagnostic.java",
+      "bytes": 91435,
+      "sha256": "90257ef4b0c020cccc977eb94841405f4539fdcf783acca02a2d80d22b4e7b74"
+    },
+    "full/matrix-progress.tsv": {
+      "path": "verification/local/pair21-matrix-stall-r1788/full/matrix-progress.tsv",
+      "bytes": 221242,
+      "sha256": "05ee3a5b08bd5ec37d8534d25ca94fb5aa999d41ba7989bbc151eecdcfaaae12"
+    },
+    "full/receipt.json": {
+      "path": "verification/local/pair21-matrix-stall-r1788/full/receipt.json",
+      "bytes": 79758,
+      "sha256": "00c293f05bc28edb0c6fcf92a6b734e4d9e83dea52b22fe3da9d1231b9062b9c"
+    },
+    "full/barrier-preflight.json": {
+      "path": "verification/local/pair21-matrix-stall-r1788/full/barrier-preflight.json",
+      "bytes": 164749,
+      "sha256": "1433a018d3c4ab19c1570a21629e686c1b603a443076733404075e8c4e115a31"
+    },
+    "exact-candidate/result.json": {
+      "path": "verification/local/pair21-matrix-stall-r1788/exact-candidate/result.json",
+      "bytes": 25773,
+      "sha256": "d9f4ee8e4bffd936e91827aa14ced069946d18f39268fc5f09b9e437590a9ded"
+    },
+    "exact-predecessor/result.json": {
+      "path": "verification/local/pair21-matrix-stall-r1788/exact-predecessor/result.json",
+      "bytes": 53498,
+      "sha256": "53276d24f12095241ddc64395ab9b5bd97f72b340d3dc141738e2ed2f1cd4929"
+    },
+    "receipt-completion.py": {
+      "path": "verification/local/pair21-matrix-stall-r1788/receipt-completion.py",
+      "bytes": 3734,
+      "sha256": "517533423be2cbd82034c7de9b3b1ffc702b354163f936f0c14baa3d0c634c40"
+    }
+  },
+  "pending": [
+    "Independent slice review",
+    "Production Android/native/device acceptance",
+    "Physical-phone matrix",
+    "Immutable separate-repository package qualification",
+    "Environment/public-surface checks",
+    "Release/GA qualification"
+  ],
+  "revision": "50fcbb593f7ac917d3c628c1ed78a79fdc94d7ae",
+  "tool_versions": {
+    "java-version": "openjdk version \"25.0.4.1\" 2026-08-18\nOpenJDK Runtime Environment Homebrew (build 25.0.4.1)\nOpenJDK 64-Bit Server VM Homebrew (build 25.0.4.1, mixed mode, sharing)",
+    "javac-version": "javac 25.0.4.1",
+    "javap-version": "25.0.4.1"
+  },
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "canonical_explicit_tree_sha256": "954d2181187a796c917d4991d3fa934646c6cdcb6b078d5f501760f5dea78ee5",
+  "diagnostic_constraints": {
+    "full_B_only": true,
+    "full_JVM_runs": 1,
+    "exact_case_JVM_runs": 2,
+    "compiler_batches": 2,
+    "JDK_release_target": 17,
+    "host_heap": "256m",
+    "host_active_processors": 2,
+    "all_189_source_and_BCI_bindings_each_renderer": true,
+    "full_case_and_helper_obligations_preserved": [
+      1323,
+      15
+    ],
+    "production_or_profile_changes": false,
+    "canonical_runner_and_custodian_unchanged": true,
+    "all_outer_calls_explicit_existing_cwd": true,
+    "no_devices_cloud_providers_subagents": true
+  },
+  "interpretation": {
+    "proven": "Full JVM continued completing cases until 299554ms; deadline interrupted case 1271 after 1270 completions. That exact case passes independently with both renderer bytes and their matching fixtures.",
+    "sampled_observation": "30s and 90s full-run stacks were RUNNABLE inside ConcreteHostProbe StackWalker descriptor/source-line extraction. Bounded JFR exact-case samples also include harness Barrier.matches/collect/string and stack-capture work.",
+    "not_proven": "No full 1323-case acceptance, whole-matrix performance attribution, renderer regression, or independence from accumulated scenario state is established.",
+    "cross_case_history": "All 1270 completed cases logged zero retained probe events after collect/reset; no unbounded cross-case event history observed.",
+    "next_decisive_scope": "Independent review of private diagnostics and a separately authorized harness-cost experiment; do not increase timeouts or change product behavior from this result."
+  },
+  "all_outer_terminal_ESRCH": true,
+  "all_inner_terminal": true,
+  "fresh_namespace_retained_bytes": 30368379
+}

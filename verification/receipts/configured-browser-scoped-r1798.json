@@ -1,0 +1,203 @@
+{
+  "id": "configured-browser-scoped-r1798",
+  "status": "BLOCKED_LOCAL_SCOPE",
+  "started_epoch": 1794525304.516108,
+  "BEAM_batches_consumed": 1,
+  "PostgreSQL_instances_launched": 0,
+  "bind_only_initial": "fe80::1%lo0:5432",
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-scoped-r1798/capability.py\", line 15, in <module>\n    with listener.accept()[0] as conn:\n         ~~~~~~~~~~~~~~~^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py\", line 298, in accept\n    fd, addr = self._accept()\n               ~~~~~~~~~~~~^^\nTimeoutError: timed out\n",
+  "BEAM_exit": 1,
+  "listener_FD_closed": true,
+  "commands": [
+    {
+      "label": "00001-scoped-postgrex-capability",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-scoped-r1798/capability.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-scoped-r1798",
+      "started": 1794525304.603528,
+      "pid": 35490,
+      "pgid": 35490,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 1,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794525309.61124,
+      "stdout": {
+        "path": "logs/00001-scoped-postgrex-capability.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/00001-scoped-postgrex-capability.stderr",
+        "bytes": 326,
+        "sha256": "bfe8c4c83f007c93b3f31e7ed1b4a48e59c0eae28eac0b507df6ed8765926f81"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    }
+  ],
+  "OS_scoped_control": [
+    {
+      "scope_id": 0,
+      "IPV6_BOUND_IF_readback": 1,
+      "connected": false,
+      "error": "TimeoutError('timed out')",
+      "errno": null
+    },
+    {
+      "scope_id": 1,
+      "IPV6_BOUND_IF_readback": 1,
+      "connected": true,
+      "local": [
+        "fe80::1",
+        51400,
+        0,
+        1
+      ],
+      "peer": [
+        "fe80::1",
+        5432,
+        0,
+        1
+      ]
+    }
+  ],
+  "status_scope": "Process-local IPV6_BOUND_IF does not supply the destination IPv6 scope required by this host; actual Application.start remains NOT_RUN",
+  "first_failure_observed": "TimeoutError('timed out')",
+  "driver_first_failure": "** (MatchError) no match of right hand side value:\n\n    {:error,\n     %DBConnection.ConnectionError{\n       message: \"tcp connect (ep-fixture.us-east-2.aws.neon.tech:5432): timeout\",\n       severity: :error,\n       reason: :error\n     }}\n\n    capability.exs:9: (file)\n    (elixir 1.20.4) lib/code.ex:1639: Code.require_file/2\n",
+  "first_failure_retention": "The outer accept TimeoutError and traceback were written to this external receipt before collecting the BEAM command and closing the listener. Exact driver stderr was retained by the unchanged adapter during terminal collection and copied here afterwards.",
+  "limits": {
+    "minutes": 12,
+    "cleanup_reserve_seconds": 60,
+    "max_BEAM_batches": 2,
+    "BEAM_batches_consumed": 1,
+    "max_PostgreSQL_instances": 1,
+    "PostgreSQL_instances_launched": 0
+  },
+  "obstruction": {
+    "required_destination": "fe80::1%lo0:5432",
+    "logical_hostname": "ep-fixture.us-east-2.aws.neon.tech",
+    "logical_port": 5432,
+    "ERL_INETRC": "lookup=file; inet6=true; tcp=inet6_tcp; sole logical-host mapping fe80::1; IPv4 nxdomain asserted before connect",
+    "process_default": "kernel inet_default_connect_options [{raw,41,125,<<1:32/native>>}]",
+    "actual_Postgrex_result": "DBConnection.ConnectionError: tcp connect (ep-fixture.us-east-2.aws.neon.tech:5432): timeout",
+    "OS_control": "With IPV6_BOUND_IF readback=1 on both clients, destination scope_id=0 timed out; scope_id=1 connected and peer/local scope IDs were both1. Both clients targeted only the new owned fe80::1 listener and were interface-bound to lo0.",
+    "source_boundary": "Postgrex.Protocol.connect uses gen_tcp.connect(host,port,opts,timeout). inet6_tcp tuple-address path calls prim_inet.connect(S,Addr,Port,Time); only the separate sockaddr-map path can supply explicit destination scope_id. inet_default_connect_options feeds socket options, not destination metadata.",
+    "conclusion": "The proposed interface-bound process default is insufficient on this macOS host. No tested route can express the required destination scope through the unchanged hostname/port Postgrex path. Stopped at the capability gate; no product change, alternate DB address, proxy, global scope default or transport override was attempted.",
+    "scope_capability_runtime_seconds": 5.007711887359619
+  },
+  "required_proofs": {
+    "actual_Application_start_startup_ok": "NOT_RUN",
+    "real_LifecycleRepo": "NOT_RUN",
+    "real_RuntimeOwner_Store_admit": "NOT_RUN",
+    "ordinary_Repo_Oban_Endpoint": "NOT_RUN",
+    "trust_first_actors": "NOT_RUN",
+    "root_Boot_ETS_exact_Supervisor_owner": "NOT_RUN",
+    "projection_drift_fail_closed": "NOT_RUN",
+    "both_SQL_catalogs_provisioning": "NOT_RUN",
+    "all_application_components_DOWN": "NOT_RUN"
+  },
+  "canonical_Installation": "CLOSED; unchanged; private R1758 successor was not compiled or activated",
+  "source_evidence": {
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-scoped-r1798/commands.py": {
+      "sha256": "258cd17bcffad92a55e58c3c31ac6378dc2804323f92cfd4da48b69d7af64fd3",
+      "bytes": 6893
+    },
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-scoped-r1798/capability.py": {
+      "sha256": "4afb130520cef6c88f52d1064d0c73da254cc1ab1a1d4c75982b220c7e2f734c",
+      "bytes": 1777
+    },
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-scoped-r1798/capability.exs": {
+      "sha256": "04732ce7c4773adb9135eb405753c4de036b1b14b3d40a0c32b1b6cbcea51abb",
+      "bytes": 1245
+    },
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-scoped-r1798/inetrc": {
+      "sha256": "caf28b15aa7955ee61704a32ba12729276c8266285bbbdb64d192def6044d5f6",
+      "bytes": 119
+    },
+    "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/netinet6/in6.h": {
+      "sha256": "0c5af27c35561b09b988f7eba5ace52de8f22fccfa62e3d1225fc666b2bf8119",
+      "bytes": 27221
+    },
+    "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/netinet/in.h": {
+      "sha256": "e97c1992215250067fb553af2722633a240fdeb675e7560551e872b81a90e8bd",
+      "bytes": 31513
+    },
+    "/opt/homebrew/lib/erlang/lib/kernel-11.0.4/src/inet.erl": {
+      "sha256": "a8b5c3ab91129e8dbb17fea669beae90a518c574a4f3aed19f7f53c0396c0bdd",
+      "bytes": 164780
+    },
+    "/opt/homebrew/lib/erlang/lib/kernel-11.0.4/src/inet6_tcp.erl": {
+      "sha256": "ab5954dd79e3d6c4fc8d7d2d96f1ed8aa61aa39d22dbcf61e965295c27994ad8",
+      "bytes": 7260
+    },
+    "verification/local/hosted-v17-full-r1764/candidate/hosted/deps/postgrex/lib/postgrex/protocol.ex": {
+      "sha256": "b9de5d55f6e4928742b6d1f33e1da8f5963c779534ee22f08ffc780a5b9ef8e5",
+      "bytes": 115339
+    }
+  },
+  "tree_digest": "3b3fa14e2f32707fe3abc6796fb1344fb4674d0d73ea9901fb326921d3f738df",
+  "source_revision": "No Git operation. SHA256 manifest of actual local fixture, SDK/OTP and verified pinned Postgrex source.",
+  "official_primary_sources": [
+    {
+      "url": "https://www.erlang.org/docs/27/apps/kernel/kernel_app.html",
+      "relevance": "inet_default_connect_options process-local kernel configuration"
+    },
+    {
+      "url": "https://www.erlang.org/docs/27/apps/kernel/inet.html",
+      "relevance": "raw option native-endian setsockopt mapping"
+    },
+    {
+      "url": "https://www.erlang.org/docs/27/apps/kernel/gen_tcp.html",
+      "relevance": "address/port API and sockaddr API distinction"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/netinet6/in6_pcb.c",
+      "relevance": "Primary OS IPv6 PCB source reference; installed SDK and actual OS A/B control were decisive."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/netinet6/scope6.c",
+      "relevance": "Primary OS scope source reference; no OS scope setting was changed."
+    }
+  ],
+  "tools": {
+    "python": "3.14.8",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "installed_kernel_source": "11.0.4",
+    "Postgrex": "0.22.4 (pinned R1770/R1764 dependency source)",
+    "Elixir": "1.20.4 observed in actual command exception",
+    "SDK_IPPROTO_IPV6": 41,
+    "SDK_IPV6_BOUND_IF": 125,
+    "lo0_index": 1
+  },
+  "scope": {
+    "all_historical_holds_preserved": true,
+    "held_namespaces_read_or_touched": false,
+    "reserved_loopback_5432_contacted_bound_or_reused": false,
+    "foreign_IPv4_5432_contacted": false,
+    "global_hosts_CA_interface_sysctl_changes": false,
+    "canonical_index_Git_docs_authority_credential_changes": false,
+    "provider_cloud_subagents_native_UI_ADB_phone_actions": false,
+    "activation_provenance_external_provider_claim": false
+  },
+  "cleanup": {
+    "managed_groups": 1,
+    "direct_reaped": true,
+    "both_pipe_EOF": true,
+    "descriptors_closed": true,
+    "group_ESRCH": true,
+    "scope_control_client_and_listener_FDs_closed": true,
+    "PostgreSQL_retirement_obligation": "NOT_CREATED; no PostgreSQL instance started",
+    "all_application_components": "NOT_CREATED; no application start attempted",
+    "new_UNKNOWN": false,
+    "owned_fe80_lo0_5432_reusable": true
+  },
+  "completed_epoch": 1794525426.925205,
+  "capability_failure_logged_before_cleanup": true
+}

@@ -1,0 +1,577 @@
+{
+  "id": "configured-browser-ipv6-r1770",
+  "status": "REQUEST_CHANGES",
+  "status_scope": "IPv6 Postgrex transport capability PASS; configured real Application.start NOT_RUN because private source layout failed compilation",
+  "started_utc": "2026-11-12T22:46:00Z",
+  "execution_completed_utc": "2026-11-12T22:52:16.912632+00:00",
+  "elapsed_execution_seconds_from_task_start": 376.913,
+  "bounds": {
+    "total_minutes_limit": 12,
+    "cleanup_reserve_seconds": 45,
+    "BEAM_batches_limit": 2,
+    "BEAM_batches_consumed": 2,
+    "PostgreSQL_instances_limit": 1,
+    "PostgreSQL_instances_launched": 1,
+    "further_runtime_attempts": 0
+  },
+  "findings": {
+    "route_capability": {
+      "status": "PASS",
+      "logical_FQDN": "ep-fixture.us-east-2.aws.neon.tech",
+      "fixed_port": 5432,
+      "route": "process-scoped ERL_INETRC static file mapping solely to ::1; tcp=inet6_tcp; lookup=[file]; inet6=true",
+      "IPv4_lookup": ":nxdomain; no logical IPv4 fallback",
+      "actual_driver": "Postgrex.Protocol.connect/1 from exact local Postgrex0.22.4",
+      "actual_peer": "::1",
+      "actual_bytes_received_by_owned_listener": "0000000804d2162f (PostgreSQL SSLRequest 80877103)",
+      "SSL_refusal_control": "Owned capability socket replies N; unmodified driver refuses SSL-unavailable server as expected. This is transport/SSL-demand proof, not successful TLS or database authentication.",
+      "production_Postgrex_options_unchanged": true,
+      "socket_options_injected": false
+    },
+    "owned_PostgreSQL": {
+      "status": "PASS_FOR_START_DIRECTORY_AND_STOP_ONLY",
+      "version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "host": "::1",
+      "port": 5432,
+      "data_directory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/pgdata",
+      "directory_verified_before_product_DDL": true,
+      "verification": "psql -X -h ::1 -p 5432 -U r1770_admin -d postgres -At -v ON_ERROR_STOP=1 -c SHOW data_directory",
+      "unix_sockets": "disabled; no shared filesystem socket; only owned IPv6 TCP listener",
+      "server_TLS_enabled": true,
+      "full_TLS_hostname_validation": "NOT_RUN; product compiler failed before configured connection",
+      "synthetic_product_roles_created": 0,
+      "product_SQL_catalog_DDL_or_provisioning_statements_executed": 0
+    },
+    "batch1": {
+      "exit": 1,
+      "body_executed": false,
+      "reason": "Harness compile-time Postgrex.Error struct expansion occurred before dependency Code.prepend_path executed.",
+      "correction_in_batch2": "Use map pattern with __struct__ field; load dependencies before dynamically required scripts."
+    },
+    "batch2": {
+      "exit": 1,
+      "capability_executed": true,
+      "real_product_compile_attempted": true,
+      "actual_Application_start_called": false,
+      "reason": "RelationManifest compile-time source binding expects candidate/hosted/deps/oban/lib/oban/migration.ex. All pinned dependency bytes were hash verified but copied under the private top-level deps directory.",
+      "root_cause": "Private harness copied dependency bytes to a layout different from production compile-time pinned relative paths. This is not evidence of an IPv6 or product implementation defect.",
+      "failing_module": "MixerHosted.BrowserAuth.RelationManifest",
+      "failing_line": 27,
+      "exact_missing_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/candidate/hosted/deps/oban/lib/oban/migration.ex",
+      "diagnosis": "delivery/layout-diagnosis.json",
+      "no_third_batch": "The explicit two-BEAM-batch limit is exhausted."
+    }
+  },
+  "required_proofs": {
+    "four_distinct_synthetic_roles": "NOT_RUN",
+    "current_production_SQL_catalogs_and_provisioning": "NOT_RUN",
+    "real_LifecycleRepo_binding": "NOT_RUN",
+    "real_RuntimeOwner_Store_admit": "NOT_RUN",
+    "ordinary_Repo_Oban_Endpoint": "NOT_RUN",
+    "actual_Application_start_startup_ok": "NOT_RUN",
+    "root_Boot_ETS_exact_Supervisor_owner": "NOT_RUN",
+    "database_role_drift_fail_closed": "NOT_RUN",
+    "projection_drift_fail_closed": "NOT_RUN",
+    "ordinary_Endpoint_compatibility_with_process_IPv6_default": "NOT_RUN"
+  },
+  "cleanup": {
+    "capability_5432_reusable": true,
+    "postgres_stop_confirmed": true,
+    "postgres_group_ESRCH": true,
+    "owned_5432_reusable": true,
+    "owned_http_port_reusable": true,
+    "new_UNKNOWN": false,
+    "managed_groups": 9,
+    "all_groups_direct_reaped": true,
+    "all_groups_positive_ESRCH": true,
+    "all_pipe_outputs_EOF": true,
+    "all_parent_FDs_closed": true,
+    "postgres_output_transport": "regular files; no output pipes; parent FDs closed and owned group ESRCH",
+    "application_components_created": false,
+    "unknown_holds_created": false
+  },
+  "source": {
+    "canonical_activation": false,
+    "canonical_Installation": "CLOSED; unchanged",
+    "frozen_source_files": 265,
+    "source_manifest": "verification/local/configured-browser-ipv6-r1770/source-manifest.json",
+    "source_tree_digest": "8778b5a8e3b3a88531adb6d63f9588d201a638999bf34a9bb9a6e2e15edf8fac",
+    "key_sources": {
+      "hosted/lib/mixer_hosted/application.ex": {
+        "sha256": "12832d9bd53cceabb657fb115b7ef6678a7cbd0d836ab2e505c50d252a0ba39b",
+        "bytes": 3777,
+        "origin": "hosted/lib/mixer_hosted/application.ex"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/installation.ex": {
+        "sha256": "c9148d2e7547b6ee7eb3cae9851ebfabfb061f855fafcb364b143ec51b699e7e",
+        "bytes": 5628,
+        "origin": "verification/local/configured-browser-startup-r1758/afterimages/hosted/lib/mixer_hosted/browser_auth/installation.ex"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/provider_https.ex": {
+        "sha256": "02fb29c723d7394148a170a40dd39db86f15d007d0777b9f31f938a6032c79c4",
+        "bytes": 16230,
+        "origin": "hosted/lib/mixer_hosted/browser_auth/provider_https.ex"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/provider_owner.ex": {
+        "sha256": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192",
+        "bytes": 16519,
+        "origin": "hosted/lib/mixer_hosted/browser_auth/provider_owner.ex"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex": {
+        "sha256": "6e6fd520d4b3e37af2d4c3c5cd4c40caf7a1cadc473baed6246db05a49df35da",
+        "bytes": 1463,
+        "origin": "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/startup_secrets.ex": {
+        "sha256": "2dd8d96d21eb270d986cd55070c0a5135923eca9176e957d48799cd875500990",
+        "bytes": 4256,
+        "origin": "hosted/lib/mixer_hosted/browser_auth/startup_secrets.ex"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/supervisor.ex": {
+        "sha256": "0be221930726bdc9b266de3ea4b703ebb4a74617dcd2b9fe51a806127c16fe50",
+        "bytes": 2315,
+        "origin": "verification/local/configured-browser-startup-r1758/afterimages/hosted/lib/mixer_hosted/browser_auth/supervisor.ex"
+      }
+    },
+    "manifest_after_runtime_reverified": true,
+    "revision": "No Git operation; explicit SHA256 working-tree snapshot independent of concurrent R1768 formatting test.",
+    "private_script_status": "Unaccepted harness; startup.exs never loaded or executed; no runtime assertion therein is evidence."
+  },
+  "dependencies": {
+    "copied_and_hash_verified_files": 1884,
+    "explicit_manifest": "verification/local/configured-browser-ipv6-r1770/dependency-manifest.json",
+    "source": "Explicit entries from unheld R1764 dependency-reuse.json; no broad verification/local scan or copy.",
+    "product_BEAMs_reused": false,
+    "new_dependency_added": false
+  },
+  "adapter": {
+    "origin": "verification/local/hosted-v17-full-r1764/commands.py",
+    "sha256": "258cd17bcffad92a55e58c3c31ac6378dc2804323f92cfd4da48b69d7af64fd3",
+    "copied_without_changes": true,
+    "Popen_finalizer": "InertPopen.__del__ is pass",
+    "exec_identity": "Gated launch with persisted PID/PGID and readback before exec",
+    "bounded_results": "Per-command direct reaping, both pipe EOFs/regular-file closure, positive group ESRCH; preserve/stop on UNKNOWN"
+  },
+  "commands": [
+    {
+      "label": "00001-ipv6-postgrex-capability",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/bin/elixir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/capability.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523705.8624902,
+      "pid": 5673,
+      "pgid": 5673,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 1,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794523706.734366,
+      "stdout": {
+        "path": "logs/00001-ipv6-postgrex-capability.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/00001-ipv6-postgrex-capability.stderr",
+        "bytes": 828,
+        "sha256": "d5fe2c241bb00218ddedf578a946494cae9ba1aeccb947887bc268f048c5f469"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "00002-configured-real-start-batch2",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/bin/elixir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/main.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523928.450272,
+      "pid": 41295,
+      "pgid": 41295,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 1,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794523936.7565289,
+      "stdout": {
+        "path": "logs/00002-configured-real-start-batch2.stdout",
+        "bytes": 462,
+        "sha256": "5503b6e3c5d536c640b312289030e77cd61ac908fbe5b1193c4c6a180f0519b6"
+      },
+      "stderr": {
+        "path": "logs/00002-configured-real-start-batch2.stderr",
+        "bytes": 3122,
+        "sha256": "c2a91d8827c83e11d4183e68cc451ef16a04d5651797804452e875f59fc8cd79"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "00003-postgres-version",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523930.800075,
+      "pid": 41664,
+      "pgid": 41664,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794523930.8444202,
+      "stdout": {
+        "path": "logs/00003-postgres-version.stdout",
+        "bytes": 39,
+        "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+      },
+      "stderr": {
+        "path": "logs/00003-postgres-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "00004-openssl-version",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/opt/openssl@3/bin/openssl",
+        "version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523930.845449,
+      "pid": 41667,
+      "pgid": 41667,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794523930.90287,
+      "stdout": {
+        "path": "logs/00004-openssl-version.stdout",
+        "bytes": 63,
+        "sha256": "274b40e1fe43001d8dfc409de34925f93a508c634bf9b5756222d61e3cabe5e9"
+      },
+      "stderr": {
+        "path": "logs/00004-openssl-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "00005-initdb",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/pgdata",
+        "-U",
+        "r1770_admin",
+        "--pwfile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/admin-password",
+        "--auth-local=trust",
+        "--auth-host=scram-sha-256",
+        "--locale=C",
+        "--encoding=UTF8"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523930.9037309,
+      "pid": 41674,
+      "pgid": 41674,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794523931.759001,
+      "stdout": {
+        "path": "logs/00005-initdb.stdout",
+        "bytes": 1032,
+        "sha256": "8e7d2b117b9808e4033ab69bc07fb80bc15c314ca0d834c5f25f508db19e8e24"
+      },
+      "stderr": {
+        "path": "logs/00005-initdb.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "00006-certificate",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/opt/openssl@3/bin/openssl",
+        "req",
+        "-x509",
+        "-newkey",
+        "rsa:2048",
+        "-nodes",
+        "-keyout",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/server.key",
+        "-out",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/server.crt",
+        "-subj",
+        "/CN=ep-fixture.us-east-2.aws.neon.tech",
+        "-addext",
+        "subjectAltName=DNS:ep-fixture.us-east-2.aws.neon.tech",
+        "-days",
+        "1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523931.7600121,
+      "pid": 41872,
+      "pgid": 41872,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794523931.9018729,
+      "stdout": {
+        "path": "logs/00006-certificate.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/00006-certificate.stderr",
+        "bytes": 2650,
+        "sha256": "5748733c7b362e0c85f01b0fa8b0eb9423482b6f724ecbc4433843edcc649767"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "00007-postgres-foreground",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/pgdata",
+        "-h",
+        "::1",
+        "-p",
+        "5432",
+        "-c",
+        "unix_socket_directories=",
+        "-c",
+        "ssl=on",
+        "-c",
+        "ssl_cert_file=/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/server.crt",
+        "-c",
+        "ssl_key_file=/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/server.key",
+        "-c",
+        "max_connections=40",
+        "-c",
+        "shared_buffers=16MB"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523931.903022,
+      "output_kind": "regular_files",
+      "pid": 41903,
+      "pgid": 41903,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "descriptors_closed": true,
+      "finished": 1794523936.912191,
+      "pipe_eof": "not applicable; regular files",
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH",
+      "stdout": {
+        "path": "logs/00007-postgres-foreground.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/00007-postgres-foreground.stderr",
+        "bytes": 1222,
+        "sha256": "531d7bb2fb733f07220e71393322ede211538e2bdba0c55e76fc4b3d13d1dab6"
+      }
+    },
+    {
+      "label": "00008-verify-data-directory",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-X",
+        "-h",
+        "::1",
+        "-p",
+        "5432",
+        "-U",
+        "r1770_admin",
+        "-d",
+        "postgres",
+        "-At",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "SHOW data_directory"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523932.0109582,
+      "pid": 41919,
+      "pgid": 41919,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794523932.1182709,
+      "stdout": {
+        "path": "logs/00008-verify-data-directory.stdout",
+        "bytes": 108,
+        "sha256": "5738b92bd606458bc8f46339aefd575e7f8516c5fde5f0088d40eda8fac17370"
+      },
+      "stderr": {
+        "path": "logs/00008-verify-data-directory.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    {
+      "label": "00009-postgres-stop",
+      "argv": [
+        "/usr/bin/nice",
+        "-n",
+        "10",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770/pgdata",
+        "-m",
+        "fast",
+        "-w",
+        "-t",
+        "15",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-browser-ipv6-r1770",
+      "started": 1794523936.75941,
+      "pid": 45739,
+      "pgid": 45739,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794523936.910773,
+      "stdout": {
+        "path": "logs/00009-postgres-stop.stdout",
+        "bytes": 56,
+        "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+      },
+      "stderr": {
+        "path": "logs/00009-postgres-stop.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    }
+  ],
+  "official_primary_docs": [
+    {
+      "url": "https://www.erlang.org/doc/apps/erts/inet_cfg.html",
+      "verified": "ERL_INETRC, {host,IP,Aliases}, lookup=file, inet6 resolver option, tcp module selection; inet6=true alone affects DNS and is not a TCP family selector."
+    },
+    {
+      "url": "https://www.erlang.org/doc/apps/kernel/inet.html",
+      "verified": "Node-local network configuration and IPv6 addresses."
+    },
+    {
+      "url": "https://postgrex.hexdocs.pm/Postgrex.html",
+      "verified": "Postgrex0.22.4 transport/SSL options; installed protocol.ex confirms gen_tcp.connect without an injected socket_options family."
+    }
+  ],
+  "platform": {
+    "python": "3.14.8",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "Postgrex": "0.22.4",
+    "command_versions": {
+      "00003-postgres-version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "00004-openssl-version": "OpenSSL 3.6.5 29 Sep 2026 (Library: OpenSSL 3.6.5 29 Sep 2026)"
+    },
+    "ERL_FLAGS": "+S 2:2 +SDcpu 1 +SDio 1 +A 1 +sbwt none",
+    "nice": 10,
+    "unique_build_deps_cache_TMPDIR": true
+  },
+  "scope": {
+    "canonical_index_Git_docs_authority_writes": false,
+    "existing_IPv4_5432_contact_inspection_or_change": false,
+    "foreign_PID_probes": false,
+    "global_hosts_CA_changes": false,
+    "proxy_or_guard_relaxation": false,
+    "held_namespaces_accessed": false,
+    "R1728_R684_accessed": false,
+    "liveprovider_cloud_subchildren_native_UI_ADB_or_credentials_changes": false,
+    "holds_released": false
+  },
+  "next_discriminating_test": "Fresh separately selected campaign: mirror the already verified compile-time bound Oban files under candidate/hosted/deps before the first BEAM batch, then actual configured Application.start against the owned IPv6 PG17.11 with current catalogs. Preserve unchanged product guards. No further batch or PG launched in R1770.",
+  "limitations": [
+    "No full configured startup acceptance, storage readiness, provider exchange, external TLS, deployed credential provenance, rotation, package qualification or GA result.",
+    "Postgrex IPv6 route capability is proven, while ordinary Endpoint compatibility and successful verified-TLS authentication remain unexecuted.",
+    "The stopping failure is private harness preparation, not a proof that an IPv6 route cannot support unchanged production configuration. Therefore no Docker daemon/container inspection/start or cloud action occurred."
+  ]
+}
