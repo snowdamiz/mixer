@@ -17,7 +17,9 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
     :expected_roles,
     :custody
   ]
-  defstruct @enforce_keys
+  @type admission_profile :: :browser_auth_v2 | :build_catalog_v3
+  defstruct @enforce_keys ++ [admission_profile: :browser_auth_v2]
+  @type t :: %__MODULE__{}
 
   @error {:error, :session_unavailable}
   @hosted_keys ~w(role repo oban endpoint database_connection_bound identity_startup)a
@@ -43,6 +45,17 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
   end
 
   def new(_, _, _, _), do: @error
+
+  @doc "Trusted server composition selecting the fixed catalog surface; disabled is refused."
+  def new_with_build_catalog(browser_env, hosted, lifecycle, custody) do
+    case new(browser_env, hosted, lifecycle, custody) do
+      {:ok, %__MODULE__{mode: :configured} = runtime} ->
+        {:ok, %{runtime | admission_profile: :build_catalog_v3}}
+
+      _ ->
+        @error
+    end
+  end
 
   defp construct(%Config{mode: :disabled}, _hosted, nil, nil) do
     {:ok,

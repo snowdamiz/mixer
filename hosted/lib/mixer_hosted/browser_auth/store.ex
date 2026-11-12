@@ -132,6 +132,36 @@ defmodule MixerHosted.BrowserAuth.Store do
   def failure(phase, outcome),
     do: {:error, %Failure{code: :session_unavailable, phase: phase, outcome: outcome}}
 
+  defp relation_admission!(
+         %RuntimeConfig{admission_profile: :browser_auth_v2} = runtime,
+         deadline
+       ),
+       do:
+         RelationCatalog.check_relation_surface!(LifecycleRepo, runtime.expected_roles, deadline)
+
+  defp relation_admission!(
+         %RuntimeConfig{admission_profile: :build_catalog_v3} = runtime,
+         deadline
+       ) do
+    :relation_surface_verified =
+      RelationCatalog.check_build_catalog_surface!(
+        LifecycleRepo,
+        runtime.expected_roles,
+        deadline
+      )
+
+    :ok =
+      MixerHosted.BrowserAuth.BuildCatalogAdmission.check!(
+        LifecycleRepo,
+        runtime.expected_roles,
+        deadline
+      )
+
+    :relation_surface_verified
+  end
+
+  defp relation_admission!(_, _), do: raise(RelationCatalog.Unavailable)
+
   defp transact(runtime, deadline, lease, operation) do
     with true <- not Process.get(@owned, false),
          true <- is_nil(Process.get(@ordinary_context)),
@@ -164,12 +194,7 @@ defmodule MixerHosted.BrowserAuth.Store do
                     2
                   )
 
-                :relation_surface_verified =
-                  RelationCatalog.check_relation_surface!(
-                    LifecycleRepo,
-                    runtime.expected_roles,
-                    deadline
-                  )
+                :relation_surface_verified = relation_admission!(runtime, deadline)
 
                 checkpoint!(lease, deadline)
                 Process.put(@phase, :effect)

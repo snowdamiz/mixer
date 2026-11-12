@@ -2,10 +2,11 @@ import { A, Navigate, Route, Router, useCurrentMatches } from "@solidjs/router";
 import { lazy, Show } from "solid-js";
 import type { ParentProps } from "solid-js";
 import { ReleaseChecks } from "./components/ReleaseChecks.js";
-import { BuildOverview } from "./components/BuildOverview.js";
+import { ApplicationBuildPage } from "./components/ApplicationBuildPage.js";
+import { createBuildSelectionBinding } from "./state/build-selection-binding.js";
 import { WorkspacePage } from "./components/WorkspacePage.js";
-import { WorkspaceProvider } from "./state/workspace-context.js";
-import type { WorkspaceSession } from "./state/workspace-controller.js";
+import { WorkspaceProvider, useWorkspace } from "./state/workspace-context.js";
+import type { ConsoleSession } from "./state/browser-session-controller.js";
 
 const Preview = import.meta.env.DEV ? lazy(() => import("./preview/ReleaseChecksPreview.js")) : undefined;
 const BuildsPreview = import.meta.env.DEV ? lazy(() => import("./preview/BuildOverviewPreview.js")) : undefined;
@@ -54,11 +55,19 @@ function NotFound() {
   return <div class="empty-state"><h1>Page not found</h1><p><A href="/releases">Go to releases</A></p></div>;
 }
 
-export function ConsoleRoutes() {
+type ConsoleSessionProps = { readonly session?: ConsoleSession | undefined; readonly onRetrySession?: () => void };
+
+function ApplicationBuildRoute(props: ConsoleSessionProps) {
+  const workspace = useWorkspace();
+  const binding = createBuildSelectionBinding(() => props.session, workspace.state);
+  return <ApplicationBuildPage binding={binding} workspace={workspace.state()} onRetrySession={() => props.onRetrySession?.()} />;
+}
+
+export function ConsoleRoutes(props: ConsoleSessionProps = {}) {
   return <>
     <Route path="/" component={() => <Navigate href="/releases" />} />
     <Route path="/workspace" component={WorkspacePage} />
-    <Route path="/builds" component={() => <BuildOverview state={{ kind: "unavailable" }} />} />
+    <Route path="/builds" component={() => <ApplicationBuildRoute session={props.session} onRetrySession={() => props.onRetrySession?.()} />} />
     <Route path="/releases" component={() => <ReleaseChecks state={{ kind: "unavailable" }} />} />
     <Show when={BuildsPreview}>{Component => <Route path="/preview/builds" component={Component()} />}</Show>
     <Show when={Preview}>{Component => <Route path="/preview/release-checks" component={Component()} />}</Show>
@@ -66,8 +75,8 @@ export function ConsoleRoutes() {
   </>;
 }
 
-export default function App(props: { readonly workspaceSession?: WorkspaceSession; readonly onRetrySession?: () => void } = {}) {
+export default function App(props: { readonly workspaceSession?: ConsoleSession; readonly onRetrySession?: () => void } = {}) {
   return <WorkspaceProvider session={props.workspaceSession} onRetrySession={() => props.onRetrySession?.()}>
-    <Router root={ConsoleShell}><ConsoleRoutes /></Router>
+    <Router root={ConsoleShell}><ConsoleRoutes session={props.workspaceSession} onRetrySession={() => props.onRetrySession?.()} /></Router>
   </WorkspaceProvider>;
 }

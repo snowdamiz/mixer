@@ -14,7 +14,9 @@ defmodule MixerHostedWeb.BrowserHTTP do
              "/auth/session",
              "/console-api/v1/orgs",
              "/console-api/v1/projects",
-             "/console-api/v1/builds"
+             "/console-api/v1/builds",
+             "/console-api/v1/applications",
+             "/console-api/v1/build-catalog"
            ],
          {:ok, _} <- Protocol.parse_session_cookie(conn.req_headers),
          false <-
@@ -33,7 +35,9 @@ defmodule MixerHostedWeb.BrowserHTTP do
                 "/auth/session",
                 "/console-api/v1/orgs",
                 "/console-api/v1/projects",
-                "/console-api/v1/builds"
+                "/console-api/v1/builds",
+                "/console-api/v1/applications",
+                "/console-api/v1/build-catalog"
               ],
             do: 400,
             else: 404
@@ -75,6 +79,28 @@ defmodule MixerHostedWeb.BrowserHTTP do
   end
 
   defp dispatch(%{request_path: "/auth/session"} = conn), do: error(conn, 400)
+
+  defp dispatch(%{request_path: path} = conn)
+       when path in ["/console-api/v1/applications", "/console-api/v1/build-catalog"] do
+    with {:ok, request} <-
+           MixerHostedWeb.BrowserBuildCatalogRequest.parse(path, conn.query_string) do
+      case RuntimeOwner.read_build_catalog(conn.req_headers, request) do
+        {:ok, %{status: status, headers: headers, body: body}} ->
+          conn |> merge_resp_headers(headers) |> send_resp(status, body)
+
+        {:error, :invalid_request} ->
+          error(conn, 400)
+
+        {:error, :unauthenticated} ->
+          error(conn, 401)
+
+        _ ->
+          error(conn, 503)
+      end
+    else
+      _ -> error(conn, 400)
+    end
+  end
 
   defp dispatch(%{request_path: "/console-api/v1/builds"} = conn) do
     with {:ok, selection} <- MixerHostedWeb.BrowserBuildRequest.parse(conn.query_string) do

@@ -1,3 +1,6 @@
+import { A } from "@solidjs/router";
+import { createMemo, Show } from "solid-js";
+import { resolveWorkspaceDirectory, workspaceDisplayName } from "../domain/workspace-directory.js";
 import { WorkspaceDirectory } from "./WorkspaceDirectory.js";
 import { useWorkspace } from "../state/workspace-context.js";
 
@@ -5,7 +8,8 @@ import { useWorkspace } from "../state/workspace-context.js";
 export function WorkspacePage() {
   const workspace = useWorkspace();
   const controller = workspace.controller;
-  return <WorkspaceDirectory {...workspace.state()}
+  const view = createMemo(() => resolveWorkspaceDirectory(workspace.state()));
+  return <><WorkspaceDirectory {...workspace.state()}
     onSelectOrganization={controller.selectOrganization}
     onSelectProject={controller.selectProject}
     onNextOrganizations={controller.nextOrganizations}
@@ -13,5 +17,10 @@ export function WorkspacePage() {
     onFirstOrganizations={controller.firstOrganizations}
     onFirstProjects={controller.firstProjects}
     onRetryOrganizations={controller.retryOrganizations}
-    onRetryProjects={controller.retryProjects} />;
+    onRetryProjects={controller.retryProjects} />
+    <Show when={view().selectedProject}>{project => <div class="workspace-current-selection">
+      <p>Continue with <strong><bdi>{workspaceDisplayName(project())}</bdi></strong>.</p>
+      <A class="workspace-page-button" href="/builds">View builds</A>
+    </div>}</Show>
+  </>;
 }

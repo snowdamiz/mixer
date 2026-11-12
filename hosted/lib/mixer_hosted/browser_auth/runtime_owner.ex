@@ -121,6 +121,18 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     _ -> {:error, :invalid_request}
   end
 
+  @doc "Private closed catalog read; discovery input grants no authority."
+  def read_build_catalog(raw_headers, {kind, scope, page} = request) do
+    case MixerHosted.CustomerBuildCatalog.Input.new(kind, scope, page) do
+      {:ok, _} -> read_private(raw_headers, {:build_catalog, request})
+      _ -> {:error, :invalid_request}
+    end
+  rescue
+    _ -> {:error, :invalid_request}
+  end
+
+  def read_build_catalog(_, _), do: {:error, :invalid_request}
+
   defp read_private(raw_headers, operation) do
     deadline = System.monotonic_time(:millisecond) + 5000
     wall = System.system_time(:second)
@@ -128,7 +140,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     with {:ok, cookie} <- Protocol.parse_session_cookie(raw_headers),
          {:ok, lease} <- reserve(deadline, wall) do
       execute(lease, fn ->
-        if is_binary(cookie) do
+        if is_binary(cookie) and catalog_profile?(lease.runtime, operation) do
           input = %PreauthDraft.Load{lease: lease, cookie_digest: :crypto.hash(:sha256, cookie)}
 
           case Store.active_read(lease, {:discover, input}) do
@@ -177,6 +189,15 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   catch
     _, _ -> Store.failure(:admission, :not_started)
   end
+
+  defp catalog_profile?(
+         %RuntimeConfig{admission_profile: :build_catalog_v3},
+         {:build_catalog, _}
+       ),
+       do: true
+
+  defp catalog_profile?(_, {:build_catalog, _}), do: false
+  defp catalog_profile?(_, _), do: true
 
   def load(cookie) do
     deadline = System.monotonic_time(:millisecond) + 5000
@@ -470,16 +491,17 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
 
   @impl true
   def init(%RuntimeConfig{mode: :disabled} = runtime) do
-    if Enum.all?(
-         [
-           runtime.browser_config,
-           runtime.configuration_digest,
-           runtime.lifecycle_repo,
-           runtime.expected_roles,
-           runtime.custody
-         ],
-         &is_nil/1
-       ),
+    if runtime_shape?(runtime) and runtime.admission_profile === :browser_auth_v2 and
+         Enum.all?(
+           [
+             runtime.browser_config,
+             runtime.configuration_digest,
+             runtime.lifecycle_repo,
+             runtime.expected_roles,
+             runtime.custody
+           ],
+           &is_nil/1
+         ),
        do: {:ok, %{phase: :disabled, generation: 0, operations: %{}, monitors: %{}}},
        else: {:stop, :session_unavailable}
   end
@@ -713,8 +735,22 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     end
   end
 
+  defp runtime_shape?(runtime) do
+    is_struct(runtime, RuntimeConfig) and map_size(runtime) == 8 and
+      Enum.sort(Map.keys(runtime)) ===
+        Enum.sort(
+          ~w(__struct__ mode browser_config configuration_digest lifecycle_repo expected_roles custody admission_profile)a
+        )
+  end
+
   defp validate_runtime(runtime) do
-    with true <- map_size(runtime) == 7,
+    with true <- runtime_shape?(runtime),
+         true <- runtime.mode === :configured,
+         true <- runtime.admission_profile in [:browser_auth_v2, :build_catalog_v3],
+         true <-
+           is_map(runtime.expected_roles) and
+             Enum.sort(Map.keys(runtime.expected_roles)) ===
+               Enum.sort(~w(lifecycle_login writer relation_owner ordinary_runtime_login)a),
          {:ok, digest} <- ConfigurationDigest.digest(runtime.browser_config),
          true <- digest === runtime.configuration_digest,
          %Custody{reference: reference, key: key} <- runtime.custody,

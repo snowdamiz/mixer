@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - 'hosted/**'
+      - 'console/src/state/browser-session-controller.ts'
+      - 'console/src/state/workspace-controller.ts'
+      - 'console/src/api/cookie-build-catalog-client.ts'
+      - 'console/src/domain/build-catalog.ts'
       - '.github/workflows/identity-network.yml'
       - 'docs/hosted-identity-production-network-ci-contract.md'
       - 'verification/identity-production-network-contract/**'
@@ -21,6 +25,10 @@ on:
   pull_request:
     paths:
       - 'hosted/**'
+      - 'console/src/state/browser-session-controller.ts'
+      - 'console/src/state/workspace-controller.ts'
+      - 'console/src/api/cookie-build-catalog-client.ts'
+      - 'console/src/domain/build-catalog.ts'
       - '.github/workflows/identity-network.yml'
       - 'docs/hosted-identity-production-network-ci-contract.md'
       - 'verification/identity-production-network-contract/**'
@@ -67,6 +75,10 @@ jobs:
             /console/src/api/cookie-workspace-client.ts
             /console/src/api/browser-session-client.ts
             /console/package.json
+            /console/src/state/browser-session-controller.ts
+            /console/src/state/workspace-controller.ts
+            /console/src/api/cookie-build-catalog-client.ts
+            /console/src/domain/build-catalog.ts
             /.github/workflows/identity-network.yml
             /.github/workflows/verify.yml
             /docs/hosted-identity-production-network-ci-contract.md
@@ -87,6 +99,10 @@ jobs:
             /verification/identity-network-current-source-v10/**
             /verification/identity-network-current-source-v11/selection.json
             /verification/identity-network-current-source-v11/selected-source-manifest.json
+            /verification/identity-network-current-source-v12/selection.json
+            /verification/identity-network-current-source-v12/selected-source-manifest.json
+            /verification/identity-network-current-source-v13/selection.json
+            /verification/identity-network-current-source-v13/selected-source-manifest.json
       - name: Admit the explicitly selected current hosted source
         run: python3 -B hosted/scripts/test-identity-network.py --check-source
       - name: Check collector fault decisions without Docker

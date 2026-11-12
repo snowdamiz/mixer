@@ -20,7 +20,13 @@ def provision_customer_authorization_fixture(pg_bin, port, run_command):
     run_command("authz-fixture-roles", psql + ["-c",
         "CREATE ROLE authz_fixture_admin LOGIN SUPERUSER; "
         "CREATE ROLE mixer_authz_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS; "
-        "CREATE ROLE mixer_authz_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;"])
+        "CREATE ROLE mixer_authz_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS; "
+        "CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;"])
+    run_command("catalog-definer-role-preflight", psql + ["-c",
+        "DO $$ BEGIN IF (SELECT count(*) FROM pg_roles WHERE rolname='mixer_customer_build_catalog_definer_v1' "
+        "AND NOT rolcanlogin AND NOT rolsuper AND NOT rolbypassrls AND NOT rolcreatedb "
+        "AND NOT rolcreaterole AND NOT rolreplication AND NOT rolinherit) <> 1 "
+        "THEN RAISE EXCEPTION 'catalog fixture role attributes mismatch'; END IF; END $$;"])
     run_command("authz-fixture-database", [str(pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
         "-U", "mixer_fixture", "-O", "mixer_authz_owner", "mixer_authz_test"])
     run_command("authz-fixture-grants", [str(pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
@@ -283,6 +289,10 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
     env["R932_FAILURE_EVIDENCE"] = str(output / "browser-activation-rollback.json")
     env["R1104_POSITIVE"] = str(output / "browser-build-positive.json")
     env["R1104_CONTROLS"] = str(output / "browser-build-controls.json")
+    catalog_fixture = output / "browser-build-catalog"
+    (catalog_fixture / "proof").mkdir(parents=True)
+    env["MIXER_BROWSER_CATALOG_FIXTURE_ROOT"] = str(catalog_fixture)
+    env["MIXER_BROWSER_CATALOG_EVIDENCE"] = str(catalog_fixture / "positive.json")
     test_argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace"]
     if additional_tests:
         if not args.only_additional_tests:

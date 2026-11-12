@@ -426,6 +426,7 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
     start_supervised!({LifecycleRepo, life})
 
     runtime = %RuntimeConfig{
+      admission_profile: :build_catalog_v3,
       mode: :configured,
       browser_config: config,
       configuration_digest: digest,
@@ -782,6 +783,142 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
     end
   end
 
+  defp compiled_catalog_join(c, cookie, page, phase, expected) do
+    root = System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT")
+
+    fixture =
+      Path.join(
+        System.tmp_dir!(),
+        "mixer-catalog-" <>
+          Integer.to_string(System.unique_integer([:positive])) <> "-" <> phase <> ".json"
+      )
+
+    output = Path.join(root, "compiled-" <> phase <> ".json")
+
+    File.write!(
+      fixture,
+      Jason.encode!(%{
+        url: "http://127.0.0.1:#{c.http_port}",
+        publicOrigin: c.config.public_origin,
+        cookie: cookie,
+        project: Map.take(page, ["organizationId", "projectId"]),
+        phase: phase,
+        output: output,
+        previous: Path.join(root, "compiled-queued.json")
+      })
+    )
+
+    try do
+      {out, code} =
+        System.cmd(
+          System.find_executable("node") || raise("node unavailable"),
+          [System.fetch_env!("MIXER_BROWSER_CATALOG_NODE_DRIVER"), fixture],
+          stderr_to_stdout: true
+        )
+
+      File.write!(Path.join(root, "node-" <> phase <> ".stdout"), out)
+      assert code == 0, out
+      result = output |> File.read!() |> Jason.decode!()
+      assert result["status"] == "PASS"
+      assert result["dto"] == expected
+      assert map_size(result["selection"]) == 8
+    after
+      File.rm!(fixture)
+    end
+  end
+
+  defp catalog_fixture_rows do
+    builds =
+      F.q!(
+        Admin,
+        "SELECT id::text, request_key, revision, journal FROM mixer_builds WHERE organization_id='org-a' AND project_id='project-a' AND application_id='fieldlog' AND build_id='build-a' AND platform='ios'"
+      ).rows
+
+    jobs =
+      F.q!(
+        Admin,
+        "SELECT id, args FROM oban_jobs WHERE args->>'organization_id'='org-a' AND args->>'project_id'='project-a' AND args->>'application_id'='fieldlog' AND args->>'build_id'='build-a' AND args->>'platform'='ios' ORDER BY id"
+      ).rows
+
+    %{builds: builds, jobs: jobs}
+  end
+
+  defp own_catalog_fixture! do
+    assert catalog_fixture_rows() == %{builds: [], jobs: []}
+
+    assert [] ==
+             F.q!(
+               Admin,
+               "SELECT id FROM mixer_authz_applications WHERE (organization_id='org-a' AND project_id='project-a' AND id='empty-app') OR (organization_id='org-b' AND project_id='project-b' AND id='fieldlog')"
+             ).rows
+
+    root = System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT")
+    owner = Path.join(root, "owned-build.json")
+    File.write!(Path.join(root, "prior-absence.json"), Jason.encode!(catalog_fixture_rows()))
+
+    on_exit(fn ->
+      if File.exists?(owner) do
+        %{"build_id" => id, "job_ids" => jobs} = owner |> File.read!() |> Jason.decode!()
+        rows = catalog_fixture_rows()
+
+        assert Enum.all?(rows.builds, fn [actual, key, _, _] ->
+                 actual == id and key == "r1104-build"
+               end)
+
+        assert Enum.all?(rows.jobs, fn [job, args] ->
+                 job in jobs and args["build_record_id"] == id
+               end)
+
+        {:ok, cleaned} =
+          Admin.transaction(fn ->
+            deleted_jobs =
+              F.q!(
+                Admin,
+                "DELETE FROM oban_jobs WHERE id=ANY($1::bigint[]) AND args->>'build_record_id'=$2 RETURNING id",
+                [jobs, id]
+              ).rows
+
+            deleted_build =
+              F.q!(
+                Admin,
+                "DELETE FROM mixer_builds WHERE id=$1::uuid AND request_key='r1104-build' AND organization_id='org-a' AND project_id='project-a' AND application_id='fieldlog' AND build_id='build-a' AND platform='ios' RETURNING id::text",
+                [Ecto.UUID.dump!(id)]
+              ).rows
+
+            assert deleted_build == [[id]]
+            assert Enum.sort(List.flatten(deleted_jobs)) == Enum.sort(jobs)
+
+            apps =
+              F.q!(
+                Admin,
+                "DELETE FROM mixer_authz_applications WHERE (organization_id='org-a' AND project_id='project-a' AND id='empty-app') OR (organization_id='org-b' AND project_id='project-b' AND id='fieldlog') RETURNING organization_id,project_id,id"
+              ).rows
+
+            %{
+              build_id: id,
+              job_ids: jobs,
+              removed_applications: apps,
+              terminal_before_cleanup: rows
+            }
+          end)
+
+        assert catalog_fixture_rows() == %{builds: [], jobs: []}
+        File.write!(Path.join(root, "fixture-cleanup.json"), Jason.encode!(cleaned))
+      end
+    end)
+  end
+
+  defp capture_catalog_fixture! do
+    %{builds: [[id, "r1104-build", 0, _]], jobs: jobs} = catalog_fixture_rows()
+    assert jobs != []
+    assert Enum.all?(jobs, fn [_, args] -> args["build_record_id"] == id end)
+
+    File.write!(
+      Path.join(System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT"), "owned-build.json"),
+      Jason.encode!(%{build_id: id, job_ids: Enum.map(jobs, &hd/1)})
+    )
+  end
+
   defp build_selection do
     %{
       organization_id: "org-a",
@@ -822,6 +959,190 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
 
     assert {:ok, _} = Admin.transaction(multi)
     s
+  end
+
+  # R1166 explicit private catalog authority installer; production migration set unchanged.
+  setup_all c do
+    observe = fn profile, expected ->
+      runtime = %{c.runtime | admission_profile: profile}
+      pid = start_supervised!({RuntimeOwner, runtime})
+      assert RuntimeOwner.status().phase === expected
+      result = RuntimeOwner.bootstrap(%{request_id: String.duplicate("a", 32)})
+
+      if expected == :storage_ready do
+        assert match?({:ok, _}, result), inspect(result)
+      else
+        assert match?({:error, _}, result), inspect(result)
+      end
+
+      assert Process.alive?(pid)
+      stop_supervised!(RuntimeOwner)
+      %{profile: profile, startup: expected, subsequent_store: inspect(elem(result, 0))}
+    end
+
+    baseline = [
+      observe.(:browser_auth_v2, :storage_ready),
+      observe.(:build_catalog_v3, :unavailable)
+    ]
+
+    for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
+
+    installed = [
+      observe.(:browser_auth_v2, :unavailable),
+      observe.(:build_catalog_v3, :storage_ready)
+    ]
+
+    File.write!(
+      Path.join(
+        System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT"),
+        "four-startup-store-cases.json"
+      ),
+      Jason.encode!(%{baseline: baseline, installed: installed})
+    )
+
+    :ok
+  end
+
+  @tag :catalog_browser_current_surface_join
+  @tag :r1158
+  test "R1158 genuine PKCE application selection catalog queued detail terminal refresh", c do
+    own_catalog_fixture!()
+    create_build()
+    capture_catalog_fixture!()
+
+    F.q!(
+      Admin,
+      "INSERT INTO mixer_authz_applications VALUES('org-a','project-a','empty-app',true),('org-b','project-b','fieldlog',true)"
+    )
+
+    preauth = bootstrap_http(c)
+    login = begin_http(c, preauth)
+    activation = http(c, "/auth/callback?" <> login.query, login.headers)
+    assert activation.status == 303
+    cookie = response_cookie(activation)
+    hs = headers(cookie)
+    project = "organization_id=org-a&project_id=project-a"
+    applications = http(c, "/console-api/v1/applications?" <> project, hs)
+    assert applications.status == 200
+    page = Jason.decode!(applications.body)
+
+    assert page == %{
+             "organizationId" => "org-a",
+             "projectId" => "project-a",
+             "applications" => [
+               %{"applicationId" => "empty-app"},
+               %{"applicationId" => "fieldlog"}
+             ],
+             "nextCursor" => nil
+           }
+
+    assert http(c, "/console-api/v1/build-catalog?" <> project <> "&application_id=empty-app", hs).body
+           |> Jason.decode!() == %{
+             "organizationId" => "org-a",
+             "projectId" => "project-a",
+             "applicationId" => "empty-app",
+             "builds" => [],
+             "nextCursor" => nil
+           }
+
+    catalog_path = "/console-api/v1/build-catalog?" <> project <> "&application_id=fieldlog"
+    listed = http(c, catalog_path, hs)
+    assert listed.status == 200
+    [dto] = Jason.decode!(listed.body)["builds"]
+    assert dto["state"] == "queued" and map_size(dto) == 14
+
+    wire = [
+      {"organizationId", :organization_id},
+      {"projectId", :project_id},
+      {"applicationId", :application_id},
+      {"buildId", :build_id},
+      {"platform", :platform},
+      {"sourceSha256", :source_sha256},
+      {"toolchainLockSha256", :toolchain_lock_sha256},
+      {"buildDefinitionSha256", :build_definition_sha256}
+    ]
+
+    selected = Map.new(wire, fn {key, atom} -> {atom, Map.fetch!(dto, key)} end)
+    assert {:ok, _} = MixerHosted.CustomerBuilds.Selection.new(selected)
+    detail = http(c, build_path(selected), hs)
+    assert detail.status == 200
+    assert Jason.decode!(detail.body)["build"] == dto
+    compiled_catalog_join(c, cookie, page, "queued", dto)
+
+    [[journal]] =
+      F.q!(
+        Admin,
+        "SELECT journal FROM mixer_builds WHERE organization_id='org-a' AND project_id='project-a' AND application_id='fieldlog' AND build_id='build-a' AND platform='ios'"
+      ).rows
+
+    assert {:ok, build} = MixerHosted.Builds.Journal.restore(journal)
+    assert {:ok, ref} = MixerHosted.Builds.Lifecycle.worker_ref(build)
+
+    assert {:ok, running, _, :applied} =
+             MixerHosted.Builds.Journal.append(
+               journal,
+               "r1158-start",
+               %{type: :start, ref: ref},
+               1
+             )
+
+    assert {:ok, failed, _, :applied} =
+             MixerHosted.Builds.Journal.append(
+               running,
+               "r1158-fail",
+               %{
+                 type: :completed,
+                 ref: ref,
+                 result: %{
+                   outcome: :failed,
+                   class: :compiler,
+                   code: :compiler_error,
+                   diagnostic_sha256: String.duplicate("d", 64)
+                 }
+               },
+               2
+             )
+
+    F.q!(
+      Admin,
+      "UPDATE mixer_builds SET journal=$1,revision=2 WHERE organization_id='org-a' AND project_id='project-a' AND application_id='fieldlog' AND build_id='build-a' AND platform='ios'",
+      [failed]
+    )
+
+    refreshed = http(c, build_path(selected), hs)
+    assert refreshed.status == 200
+    terminal = Jason.decode!(refreshed.body)["build"]
+
+    assert terminal["state"] == "failed" and terminal["revision"] == 2 and
+             terminal["failureCode"] == "compiler_error"
+
+    [^terminal] = Jason.decode!(http(c, catalog_path, hs).body)["builds"]
+    compiled_catalog_join(c, cookie, page, "terminal", terminal)
+
+    assert http(c, "/console-api/v1/applications?organization_id=org-b&project_id=project-b", hs).status ==
+             404
+
+    assert {:error, %Postgrex.Error{postgres: %{code: :insufficient_privilege}}} =
+             Ecto.Adapters.SQL.query(MixerHosted.Repo, "SELECT journal FROM mixer_builds", [])
+
+    assert [] == F.q!(MixerHosted.Repo, "SELECT id FROM mixer_authz_applications").rows
+    assert http(c, "/v3/build-catalog", hs).status == 404
+
+    File.write!(
+      System.fetch_env!("MIXER_BROWSER_CATALOG_EVIDENCE"),
+      Jason.encode!(%{
+        applications: page,
+        catalog: dto,
+        selected: selected,
+        detail: Jason.decode!(detail.body),
+        terminal: terminal,
+        real_pkce: true,
+        build_select: "42501",
+        direct_application_rows: 0
+      })
+    )
+
+    leases_clean()
   end
 
   @tag :r1104
