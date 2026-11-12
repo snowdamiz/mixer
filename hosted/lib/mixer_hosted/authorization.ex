@@ -108,9 +108,13 @@ defmodule MixerHosted.Authorization do
       _ -> {:error, :authorization_unavailable}
     end
   rescue
-    _ -> {:error, :authorization_unavailable}
+    error ->
+      r1370_caught(:error, error)
+      {:error, :authorization_unavailable}
   catch
-    _, _ -> {:error, :authorization_unavailable}
+    kind, reason ->
+      r1370_caught(kind, reason)
+      {:error, :authorization_unavailable}
   end
 
   defp evaluate!(repo, identity, action, target, evidence, now) do
@@ -118,5 +122,54 @@ defmodule MixerHosted.Authorization do
       {:ok, decision} -> decision
       {:error, reason} -> repo.rollback(reason)
     end
+  end
+
+  defp r1370_caught(kind, error) do
+    key = {:mixer_transaction_minimal_frontier_r1370, :observation}
+
+    case Process.get(key) do
+      %{armed: true, first_caught: nil, phase: phase, membership_count: count} = observation
+      when phase in [
+             nil,
+             :authorize,
+             :initial_membership_assert,
+             :sleep,
+             :explicit_checkpoint,
+             :fresh_membership_assert,
+             :initial_context_assert,
+             :ordinary_callback_return
+           ] and count in [nil, 0, 1, 2, :"3_to64", :over64] ->
+        typeclass =
+          case kind do
+            :error ->
+              case if(is_map(error), do: Map.get(error, :__struct__), else: nil) do
+                :"Elixir.ExUnit.AssertionError" -> :assertion_error
+                :"Elixir.MixerHosted.Authorization.Transaction.Context.Invalid" -> :context_invalid
+                :"Elixir.Postgrex.Error" -> :postgrex_error
+                :"Elixir.DBConnection.ConnectionError" -> :db_connection_error
+                :"Elixir.MatchError" -> :match_error
+                :"Elixir.ArgumentError" -> :argument_error
+                :"Elixir.RuntimeError" -> :runtime_error
+                _ -> :other_error
+              end
+
+            :throw -> :throw
+            :exit -> :exit
+            _ -> :other_error
+          end
+
+        Process.put(key, %{
+          observation
+          | first_caught: %{typeclass: typeclass, phase: phase, membership_count: count}
+        })
+
+      _ -> :ok
+    end
+
+    :ok
+  rescue
+    _ -> :ok
+  catch
+    _, _ -> :ok
   end
 end

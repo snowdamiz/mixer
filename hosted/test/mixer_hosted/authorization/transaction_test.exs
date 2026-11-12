@@ -760,21 +760,35 @@ defmodule MixerHosted.Authorization.TransactionTest do
   end
 
   test "fresh snapshots select surviving membership rows without modifying the initial Context" do
-    F.sql("UPDATE public.mixer_authz_memberships SET expires_at=$1", [F.now() + 1])
+    r1370_arm()
 
-    F.sql(
-      "INSERT INTO public.mixer_authz_memberships VALUES ('surviving','person','org','project','exact_project','viewer',true,0,NULL,8)"
-    )
+    try do
+      F.sql("UPDATE public.mixer_authz_memberships SET expires_at=$1", [F.now() + 1])
 
-    assert {:ok, :survived} =
-             F.run(fn ctx ->
-               assert Enum.map(ctx.snapshot.memberships, & &1.id) == ["member", "surviving"]
-               Process.sleep(1_100)
-               fresh = Context.checkpoint!(ctx, Runtime, "artifact.read", F.target())
-               assert Enum.map(fresh.memberships, & &1.id) == ["surviving"]
-               assert Enum.map(ctx.snapshot.memberships, & &1.id) == ["member", "surviving"]
-               {:ok, :survived}
-             end)
+      F.sql(
+        "INSERT INTO public.mixer_authz_memberships VALUES ('surviving','person','org','project','exact_project','viewer',true,0,NULL,8)"
+      )
+
+      r1370_phase(:authorize)
+
+      assert {:ok, :survived} =
+               F.run(fn ctx ->
+                 r1370_phase(:initial_membership_assert, ctx.snapshot.memberships)
+                 assert Enum.map(ctx.snapshot.memberships, & &1.id) == ["member", "surviving"]
+                 r1370_phase(:sleep)
+                 Process.sleep(1_100)
+                 r1370_phase(:explicit_checkpoint)
+                 fresh = Context.checkpoint!(ctx, Runtime, "artifact.read", F.target())
+                 r1370_phase(:fresh_membership_assert, fresh.memberships)
+                 assert Enum.map(fresh.memberships, & &1.id) == ["surviving"]
+                 r1370_phase(:initial_context_assert, ctx.snapshot.memberships)
+                 assert Enum.map(ctx.snapshot.memberships, & &1.id) == ["member", "surviving"]
+                 r1370_phase(:ordinary_callback_return)
+                 {:ok, :survived}
+               end)
+    after
+      r1370_flush()
+    end
   end
 
   test "monotonic full-transaction deadline rolls back SQL despite an otherwise unexpired identity" do
@@ -913,5 +927,108 @@ defmodule MixerHosted.Authorization.TransactionTest do
     end
 
     assert {:ok, :accepted} = F.run()
+  end
+
+  defp r1370_arm do
+    Process.put({:mixer_transaction_minimal_frontier_r1370, :observation}, %{
+      armed: true,
+      started_ms: System.monotonic_time(:millisecond),
+      phase: nil,
+      membership_count: nil,
+      phase_events: [],
+      truncated: false,
+      first_caught: nil
+    })
+
+    :ok
+  rescue
+    _ -> :ok
+  catch
+    _, _ -> :ok
+  end
+
+  defp r1370_phase(phase, memberships \\ nil) do
+    key = {:mixer_transaction_minimal_frontier_r1370, :observation}
+
+    case Process.get(key) do
+      %{armed: true} = observation ->
+        count =
+          if is_nil(memberships) do
+            observation.membership_count
+          else
+            case length(memberships) do
+              n when n in 0..2 -> n
+              n when n <= 64 -> :"3_to64"
+              _ -> :over64
+            end
+          end
+
+        full = length(observation.phase_events) >= 32
+        event = %{phase: phase, membership_count: count}
+        events = if full, do: observation.phase_events, else: observation.phase_events ++ [event]
+
+        Process.put(key, %{
+          observation
+          | phase: phase,
+            membership_count: count,
+            phase_events: events,
+            truncated: observation.truncated or full
+        })
+
+      _ -> :ok
+    end
+
+    :ok
+  rescue
+    _ -> :ok
+  catch
+    _, _ -> :ok
+  end
+
+  defp r1370_flush do
+    key = {:mixer_transaction_minimal_frontier_r1370, :observation}
+
+    try do
+      case Process.get(key) do
+        %{armed: true} = observation ->
+          elapsed = System.monotonic_time(:millisecond) - observation.started_ms
+          summary = %{
+            schema: 1,
+            diagnostic: :transaction_minimal_frontier_r1370,
+            armed: true,
+            phase: observation.phase,
+            membership_count: observation.membership_count,
+            first_caught: observation.first_caught,
+            phase_events: observation.phase_events,
+            truncated: observation.truncated,
+            elapsed_ms: min(max(elapsed, 0), 60_000),
+            elapsed_saturated: elapsed > 60_000,
+            elapsed_unavailable: elapsed < 0
+          }
+
+          encoded = Jason.encode!(summary)
+
+          if byte_size(encoded) + 1 <= 8_192 do
+            IO.puts(encoded)
+          else
+            IO.puts(
+              Jason.encode!(%{
+                schema: 1,
+                diagnostic: :transaction_minimal_frontier_r1370,
+                truncated: true,
+                observation_unavailable: true
+              })
+            )
+          end
+
+        _ -> :ok
+      end
+    rescue
+      _ -> :ok
+    catch
+      _, _ -> :ok
+    after
+      Process.delete(key)
+    end
   end
 end

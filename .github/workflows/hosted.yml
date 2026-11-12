@@ -186,6 +186,9 @@ jobs:
       - name: Phoenix and disposable PostgreSQL host checks
         working-directory: hosted
         run: |
+          sha256sum lib/mixer_hosted/authorization.ex test/mixer_hosted/authorization/transaction_test.exs
+          mix format lib/mixer_hosted/authorization.ex test/mixer_hosted/authorization/transaction_test.exs
+          sha256sum lib/mixer_hosted/authorization.ex test/mixer_hosted/authorization/transaction_test.exs
           python3 scripts/test-local.py \
             --pg-bin /usr/lib/postgresql/17/bin \
             --output "$RUNNER_TEMP/phoenix-foundation" \
