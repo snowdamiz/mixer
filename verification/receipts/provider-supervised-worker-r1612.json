@@ -1,0 +1,261 @@
+{
+  "schema": 1,
+  "id": "provider-supervised-worker-r1612",
+  "status": "PASS_PRIVATE_FIX_PENDING_PARENT_REVIEW",
+  "recordedUTC": "2026-11-12T19:20:56.618473+00:00",
+  "model": {
+    "name": "gpt-6.1-sol",
+    "reasoningEffort": "xhigh",
+    "speed": "standard"
+  },
+  "finding": "R1600 P2 actual transport overlap across KeyOwner replacement",
+  "producerReceipt": "verification/receipts/provider-lifecycle-independent-r1600.json",
+  "P2ResolvedInPrivateFixture": true,
+  "independentReview": "PENDING_PARENT_OWNED",
+  "canonicalAdoptionAllowed": false,
+  "afterimage": {
+    "path": "verification/local/provider-supervised-worker-r1612/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex",
+    "bytes": 12951,
+    "sha256": "92953b0c6608eb27d9f6dd5e1341f1271b9990fa5492bd8e0384b782bc92eafd"
+  },
+  "baseline": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-permit-owner-r1594/afterimages/hosted/lib/mixer_hosted/browser_auth/provider_owner.ex",
+    "bytes": 12277,
+    "sha256": "c99f763b58c1c7e6e617862d53960d050e9234bfdea1ed9ad22bcdb36179728c"
+  },
+  "implementation": "Temporary Task children on pinned existing FetchSupervisor PID, brutal_kill shutdown, original KeyOwner identity checks and provider link/monitor; exact worker-owned permits/leases preserved; start_child errors/exits fail closed.",
+  "diff": "verification/local/provider-supervised-worker-r1612/provider-owner.patch",
+  "replayPreparation": "verification/local/provider-supervised-worker-r1612/prepare-replay.py",
+  "testFixtureChanges": {
+    "baselineFilesByteExact": [
+      "base-integration.exs",
+      "integration.exs"
+    ],
+    "adaptedCrossOwnerDiff": "verification/local/provider-supervised-worker-r1612/rig-changes.patch",
+    "invariantsWeakened": false,
+    "budgetExtensions": 0
+  },
+  "execution": {
+    "BEAMLaunches": 1,
+    "namedBatch": "supervised-worker-batch-1",
+    "result": {
+      "total": 4,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "command": {
+      "label": "supervised-worker-batch-1",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-supervised-worker-r1612/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-supervised-worker-r1612",
+      "pid": 11770,
+      "pgid": 11770,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 9.519759708899073,
+      "ownedGroupAbsentESRCH": true
+    },
+    "maxBatches": 2,
+    "maxSecondsPerBatch": 240,
+    "maxTotalSeconds": 480,
+    "secondBatchUsed": false,
+    "sourceCorrectionsAfterFailure": 0,
+    "postPayloadCandidateChanges": 0,
+    "versions": {
+      "otp": "29",
+      "elixir": "1.20.4",
+      "python": "3.14.8",
+      "jason": "1.4.5",
+      "jose": "1.11.13",
+      "mint": "1.11.0",
+      "hpax": "1.1.0",
+      "mint_hpax_jason_basis": "outer-lock-admitted source manifests checked before and after; direct official compiler APIs"
+    },
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "externalNetworkContacts": 0,
+    "loopbackTLSRequests": 8,
+    "dependencyFetches": 0,
+    "dependencyCopies": 0,
+    "subchildren": 0
+  },
+  "observations": {
+    "originalGracefulSingleUseAndLifecycle": "PASS",
+    "sameKeyOwnerProviderDeathAndExpiry": "PASS",
+    "provider_and_keyowner": {
+      "capacity": 16,
+      "old_transport_workers_alive": 0,
+      "replacement_transport_workers_alive": 16,
+      "simultaneous_actual_transport_workers": 16,
+      "old_live_before_replacement_admission": 0,
+      "remaining_original_deadline_ms": 3984,
+      "same_provider_survived": false,
+      "raw_workers_verified_Task_children": true,
+      "original_deadlines_unextended": true,
+      "exactIdentitiesAndDOWN": "verification/local/provider-supervised-worker-r1612/delivery/provider_and_keyowner-cross-owner-observations.json"
+    },
+    "keyowner_only": {
+      "capacity": 16,
+      "old_transport_workers_alive": 0,
+      "replacement_transport_workers_alive": 16,
+      "simultaneous_actual_transport_workers": 16,
+      "old_live_before_replacement_admission": 0,
+      "remaining_original_deadline_ms": 3983,
+      "same_provider_survived": true,
+      "raw_workers_verified_Task_children": true,
+      "original_deadlines_unextended": true,
+      "exactIdentitiesAndDOWN": "verification/local/provider-supervised-worker-r1612/delivery/keyowner_only-cross-owner-observations.json"
+    }
+  },
+  "productCleanup": {
+    "allRecordedChecksPass": true,
+    "replacementCases": {
+      "provider_and_keyowner": {
+        "original_owner_dead": true,
+        "transport_dead": true,
+        "all_32_exact_worker_DOWN": true,
+        "all_32_caller_DOWN": true,
+        "full_capacity_restored": true,
+        "browser_dead": true,
+        "fixture_dead": true,
+        "names_absent": true,
+        "replacement_owner_dead": true,
+        "original_fetch_dead": true,
+        "replacement_fetch_dead": true,
+        "providers_dead": true,
+        "both_tables_deleted": true,
+        "loopback_TLS_peers_closed": true,
+        "all_32_exact_workers_dead": true
+      },
+      "keyowner_only": {
+        "original_owner_dead": true,
+        "transport_dead": true,
+        "all_32_exact_worker_DOWN": true,
+        "all_32_caller_DOWN": true,
+        "full_capacity_restored": true,
+        "browser_dead": true,
+        "fixture_dead": true,
+        "names_absent": true,
+        "replacement_owner_dead": true,
+        "original_fetch_dead": true,
+        "replacement_fetch_dead": true,
+        "providers_dead": true,
+        "both_tables_deleted": true,
+        "loopback_TLS_peers_closed": true,
+        "all_32_exact_workers_dead": true
+      }
+    },
+    "originalControls": {
+      "crash-cleanup.json": {
+        "transport_dead": true,
+        "all_32_exact_worker_DOWN": true,
+        "all_32_caller_DOWN": true,
+        "full_capacity_restored": true,
+        "table_deleted": true,
+        "owner_dead": true,
+        "fetch_dead": true,
+        "browser_dead": true,
+        "fixture_dead": true,
+        "names_absent": true
+      },
+      "beam-cleanup.json": {
+        "provider_dead": true,
+        "original_owner_dead": true,
+        "workers_dead": true,
+        "browser_supervisor_dead": true,
+        "transport_dead": true,
+        "tls_dead": true,
+        "owner_name_absent": true,
+        "provider_name_absent": true,
+        "worker_name_absent": true,
+        "original_table_deleted": true
+      }
+    },
+    "application": {
+      "jose_stopped": true,
+      "jose_supervisor_dead": true,
+      "provider_owner_started": true,
+      "fixture_tmp_entries_after": []
+    }
+  },
+  "osCustody": {
+    "inner": {
+      "label": "supervised-worker-batch-1",
+      "argv": [
+        "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-supervised-worker-r1612/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-supervised-worker-r1612",
+      "pid": 11770,
+      "pgid": 11770,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 9.519759708899073,
+      "ownedGroupAbsentESRCH": true
+    },
+    "outer": {
+      "outerPID": 11407,
+      "outerPGID": 11407,
+      "execSession": 44186,
+      "transportExit": 0,
+      "completeInitialAndTerminalResponseReadBack": true,
+      "terminalTransportBasis": "Completed exec transport; internals not separately instrumented",
+      "UTC": "2026-11-12T19:18:03.007152+00:00",
+      "originalKillpg0ESRCH": true
+    },
+    "separateFromProductCleanup": true
+  },
+  "sourceProof": {
+    "path": "verification/local/provider-supervised-worker-r1612/source-proof.json",
+    "namedExactBeforeAfterAndHandoff": 382,
+    "canonicalV15SelectedExactBeforeAfterAndHandoff": 272,
+    "adapterUnchangedSHA256": "c2cc6d2eff7e587a06eba80ebcabccaa446eff4d1083cdb9cde6fc1b9affeb5b",
+    "sourceDigestSHA256": "a9e9e15138106125f3056498a01fd8461ec46935f84ecaf8b51b5a5d5ffa35ec",
+    "sourceIdentities": "verification/local/provider-supervised-worker-r1612/reviewed-source-identities.json"
+  },
+  "report": "verification/local/provider-supervised-worker-r1612/REPORT.md",
+  "artifactManifest": {
+    "path": "verification/local/provider-supervised-worker-r1612/artifact-manifest.json",
+    "bytes": 10591,
+    "sha256": "f8f521c2977fe75543fa865fc4daeaa4f4a604dd77bf43e399c3414d01d18159"
+  },
+  "artifactBytesExcludingManifestAndReceipt": 1095305,
+  "revision": {
+    "latestLocalUserProvided": "44a1f99a3f3535b84b9fec82b157254dde384a9f",
+    "owningProduct": "v15/272",
+    "owningProductRevision": "64bd540a044766c4d4e2b30485dcf9e9546afd2d",
+    "basis": "Inherited task/receipts; no Git operation. Fresh exact272 source hashes observed."
+  },
+  "limitations": [
+    "Private fixture only. Canonical adoption and independent review remain parent-owned and pending; no production activation or GA qualification.",
+    "One deterministic four-test batch covers the named orderings, not every possible scheduler interleaving or full crash matrix.",
+    "Raw token transport is the real private GenServer fixture; official Mint/TLS trust acquisition is loopback only. No external provider or credentials exercised.",
+    "Same-KeyOwner expiry retains the original R1594 public suspension of owned workers. Neither replacement test suspends old workers or extends the original four-second deadline.",
+    "start_child error/exit handling is implemented but no injected start_child-failure runtime control was added. No internally raised transport RuntimeError control.",
+    "Replacement worker DOWN was directly observed before the first replacement Admission.acquire; publication ordering additionally relies on unchanged OTP one_for_all supervisor shutdown semantics.",
+    "Outer transport completed and its original group was observed ESRCH; outer transport internal reap/EOF/descriptor facts are not separately instrumented.",
+    "Fresh replay preparation script was syntax-checked only; the delivered batch/dispatcher is the executed payload. Replay must use a new owned namespace and fresh outer identity/readback gate.",
+    "Revision IDs are inherited from task/receipts. No Git command, DB, native/device, external network, commit or push ran."
+  ],
+  "canonicalEdits": false,
+  "sourceManifestEdits": false,
+  "workflowEdits": false,
+  "gitOperations": 0,
+  "DB": false,
+  "nativeDevices": false,
+  "productionActivation": false,
+  "GA": false,
+  "historicalHoldsAccessed": false,
+  "holdsReleased": false,
+  "newHolds": []
+}

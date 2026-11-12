@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_ordinary_browser_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, ORDINARY_BROWSER_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_supervised_provider_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, SUPERVISED_PROVIDER_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_ordinary_browser_source_manifest", return_value=collector.ORDINARY_BROWSER_MANIFEST), \
+                    mock.patch.object(collector, "validate_supervised_provider_source_manifest", return_value=collector.SUPERVISED_PROVIDER_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_ordinary_browser_source_manifest", return_value=collector.ORDINARY_BROWSER_MANIFEST), \
+                    mock.patch.object(collector, "validate_supervised_provider_source_manifest", return_value=collector.SUPERVISED_PROVIDER_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_ordinary_browser_source_manifest", return_value=collector.ORDINARY_BROWSER_MANIFEST), \
+                    mock.patch.object(collector, "validate_supervised_provider_source_manifest", return_value=collector.SUPERVISED_PROVIDER_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_ordinary_browser_source_manifest", return_value=collector.ORDINARY_BROWSER_MANIFEST), \
+                            mock.patch.object(collector, "validate_supervised_provider_source_manifest", return_value=collector.SUPERVISED_PROVIDER_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_ordinary_browser_source_manifest", return_value=collector.ORDINARY_BROWSER_MANIFEST), \
+                            mock.patch.object(collector, "validate_supervised_provider_source_manifest", return_value=collector.SUPERVISED_PROVIDER_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.ORDINARY_BROWSER_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.SUPERVISED_PROVIDER_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -2991,6 +2991,9 @@ def _catalog_join_source_bytes(root):
         observed={'bytes':len(body),'sha256':hashlib.sha256(body).hexdigest()}
         if observed!=expected[p] or collector.PROVIDER_HTTPS_MANIFEST[p]!=expected[p]:raise RuntimeError('independent v14 predecessor pin '+p)
         source[p]=body
+    legacy_provider = base64.b64decode('ZGVmbW9kdWxlIE1peGVySG9zdGVkLkJyb3dzZXJBdXRoLlByb3ZpZGVyT3duZXIgZG8KICBAbW9kdWxlZG9jICJSYXcgcHJvdmlkZXIgYm91bmRhcnkuIFByb2R1Y3Rpb24gdHJhbnNwb3J0IGlzIGRlbGliZXJhdGVseSB1bmNvbmZpZ3VyZWQgYW5kIGZhaWxzIGNsb3NlZC4iCiAgdXNlIEdlblNlcnZlcgogIGFsaWFzIE1peGVySG9zdGVkLkJyb3dzZXJBdXRoLkNvbmZpZ3VyYXRpb25EaWdlc3QKICBhbGlhcyBNaXhlckhvc3RlZC5JZGVudGl0eS5UcnVzdFNuYXBzaG90CgogIGRlZiBleGNoYW5nZShjb25maWcsIGNvZGUsIHZlcmlmaWVyLCBkZWFkbGluZSkgZG8KICAgIEdlblNlcnZlci5jYWxsKF9fTU9EVUxFX18sIHs6ZXhjaGFuZ2UsIGNvbmZpZywgY29kZSwgdmVyaWZpZXIsIGRlYWRsaW5lfSwgcmVtYWluaW5nKGRlYWRsaW5lKSkKICBjYXRjaAogICAgOmV4aXQsIF8gLT4gezplcnJvciwgOnByb3ZpZGVyX3VuYXZhaWxhYmxlfQogIGVuZAoKICBkZWYgZmluaXNoKHRpY2tldCwgY29uZmlnLCBkZWFkbGluZSkgZG8KICAgIEdlblNlcnZlci5jYWxsKF9fTU9EVUxFX18sIHs6ZmluaXNoLCB0aWNrZXQsIGNvbmZpZ30sIHJlbWFpbmluZyhkZWFkbGluZSkpCiAgY2F0Y2gKICAgIDpleGl0LCBfIC0+IHs6ZXJyb3IsIDpwcm92aWRlcl91bmF2YWlsYWJsZX0KICBlbmQKCiAgZGVmIHN0YXJ0X2xpbmsoOnVuY29uZmlndXJlZCksCiAgICBkbzogR2VuU2VydmVyLnN0YXJ0X2xpbmsoX19NT0RVTEVfXywgOnVuY29uZmlndXJlZCwgbmFtZTogX19NT0RVTEVfXykKCiAgaWYgTWl4LmVudigpID09IDp0ZXN0IGRvCiAgICBAZG9jIGZhbHNlCiAgICBkZWYgc3RhcnRfZml4dHVyZShjb25maWcsIHNuYXBzaG90LCB0cmFuc3BvcnQpLAogICAgICBkbzoKICAgICAgICBHZW5TZXJ2ZXIuc3RhcnRfbGluayhfX01PRFVMRV9fLCB7OmZpeHR1cmUsIGNvbmZpZywgc25hcHNob3QsIHRyYW5zcG9ydH0sCiAgICAgICAgICBuYW1lOiBfX01PRFVMRV9fCiAgICAgICAgKQogIGVuZAoKICBkZWYgaW5pdCg6dW5jb25maWd1cmVkKSwgZG86IHs6b2ssIDp1bmNvbmZpZ3VyZWR9CgogIGlmIE1peC5lbnYoKSA9PSA6dGVzdCBkbwogICAgZGVmIGluaXQoezpmaXh0dXJlLCBjb25maWcsIHNuYXBzaG90LCB0cmFuc3BvcnR9KSB3aGVuIGlzX3BpZCh0cmFuc3BvcnQpIGRvCiAgICAgIHs6b2ssIGRpZ2VzdH0gPSBDb25maWd1cmF0aW9uRGlnZXN0LmRpZ2VzdChjb25maWcpCgogICAgICB7Om9rLAogICAgICAgJXsKICAgICAgICAgY29uZmlnOiBjb25maWcsCiAgICAgICAgIGRpZ2VzdDogZGlnZXN0LAogICAgICAgICBzbmFwc2hvdDogc25hcHNob3QsCiAgICAgICAgIHRyYW5zcG9ydDogdHJhbnNwb3J0LAogICAgICAgICBnZW5lcmF0aW9uOiBtYWtlX3JlZigpCiAgICAgICB9fQogICAgZW5kCiAgZW5kCgogIGRlZiBoYW5kbGVfY2FsbCh7OmV4Y2hhbmdlLCBjb25maWcsIGNvZGUsIHZlcmlmaWVyLCBkZWFkbGluZX0sIF9mcm9tLCAle2NvbmZpZzogY29uZmlnfSA9IHMpIGRvCiAgICBpZiBmcmVzaD8ocykgYW5kIFN5c3RlbS5tb25vdG9uaWNfdGltZSg6bWlsbGlzZWNvbmQpIDwgZGVhZGxpbmUgZG8KICAgICAgcmVxdWVzdCA9ICV7CiAgICAgICAgaXNzdWVyOiBjb25maWcuaXNzdWVyLAogICAgICAgIGNsaWVudF9pZDogY29uZmlnLmNsaWVudF9pZCwKICAgICAgICByZWRpcmVjdF91cmk6IGNvbmZpZy5yZWRpcmVjdF91cmksCiAgICAgICAgdG9rZW5fZW5kcG9pbnQ6IGNvbmZpZy50b2tlbl9lbmRwb2ludCwKICAgICAgICBjbGllbnRfYXV0aF9tZXRob2Q6IGNvbmZpZy5jbGllbnRfYXV0aF9tZXRob2QsCiAgICAgICAgY2xpZW50X2NyZWRlbnRpYWxfcmVmOiBjb25maWcuY2xpZW50X2NyZWRlbnRpYWxfcmVmLAogICAgICAgIGNvZGU6IGNvZGUsCiAgICAgICAgY29kZV92ZXJpZmllcjogdmVyaWZpZXIsCiAgICAgICAgZ3JhbnRfdHlwZTogImF1dGhvcml6YXRpb25fY29kZSIKICAgICAgfQoKICAgICAgcmVzdWx0ID0gR2VuU2VydmVyLmNhbGwocy50cmFuc3BvcnQsIHs6ZXhjaGFuZ2UsIHJlcXVlc3R9LCByZW1haW5pbmcoZGVhZGxpbmUpKQoKICAgICAgY2FzZSByZXN1bHQgZG8KICAgICAgICB7Om9rLCByYXd9IHdoZW4gaXNfYmluYXJ5KHJhdykgYW5kIGJ5dGVfc2l6ZShyYXcpIDw9IDE2Mzg0IC0+CiAgICAgICAgICBpZiBmcmVzaD8ocykgYW5kIFN5c3RlbS5tb25vdG9uaWNfdGltZSg6bWlsbGlzZWNvbmQpIDwgZGVhZGxpbmUsCiAgICAgICAgICAgIGRvOiB7OnJlcGx5LCB7Om9rLCByYXcsIHMuc25hcHNob3QsIHtzZWxmKCksIHMuZ2VuZXJhdGlvbiwgcy5kaWdlc3R9fSwgc30sCiAgICAgICAgICAgIGVsc2U6IHs6cmVwbHksIHs6ZXJyb3IsIDpwcm92aWRlcl91bmF2YWlsYWJsZX0sIHN9CgogICAgICAgIF8gLT4KICAgICAgICAgIHs6cmVwbHksIHs6ZXJyb3IsIDpwcm92aWRlcl91bmF2YWlsYWJsZX0sIHN9CiAgICAgIGVuZAogICAgZWxzZQogICAgICB7OnJlcGx5LCB7OmVycm9yLCA6cHJvdmlkZXJfdW5hdmFpbGFibGV9LCBzfQogICAgZW5kCiAgZW5kCgogIGRlZiBoYW5kbGVfY2FsbCh7OmZpbmlzaCwge3BpZCwgZ2VuZXJhdGlvbiwgZGlnZXN0fSwgY29uZmlnfSwgX2Zyb20sICV7Y29uZmlnOiBjb25maWd9ID0gcykgZG8KICAgIHZhbGlkID0gcGlkID09PSBzZWxmKCkgYW5kIGdlbmVyYXRpb24gPT09IHMuZ2VuZXJhdGlvbiBhbmQgZGlnZXN0ID09PSBzLmRpZ2VzdCBhbmQgZnJlc2g/KHMpCiAgICB7OnJlcGx5LCBpZih2YWxpZCwgZG86IDpvaywgZWxzZTogezplcnJvciwgOnByb3ZpZGVyX3VuYXZhaWxhYmxlfSksIHN9CiAgZW5kCgogIGRlZiBoYW5kbGVfY2FsbChfLCBfLCBzKSwgZG86IHs6cmVwbHksIHs6ZXJyb3IsIDpwcm92aWRlcl91bmNvbmZpZ3VyZWR9LCBzfQoKICBkZWYgZm9ybWF0X3N0YXR1cyhzdGF0dXMpLAogICAgZG86CiAgICAgIE1hcC5uZXcoc3RhdHVzLCBmbiB7aywgdn0gLT4KICAgICAgICBpZiBrIGluIFs6c3RhdGUsIDptZXNzYWdlLCA6cmVhc29uLCA6bG9nXSwgZG86IHtrLCA6cmVkYWN0ZWR9LCBlbHNlOiB7aywgdn0KICAgICAgZW5kKQoKICBkZWZwIGZyZXNoPyhzKSwgZG86IFRydXN0U25hcHNob3Quc3RhdHVzKHMuc25hcHNob3QsIFN5c3RlbS5zeXN0ZW1fdGltZSg6c2Vjb25kKSkgPT09IDpmcmVzaAogIGRlZnAgcmVtYWluaW5nKGQpLCBkbzogbWF4KDEsIG1pbig1MDAwLCBkIC0gU3lzdGVtLm1vbm90b25pY190aW1lKDptaWxsaXNlY29uZCkpKQplbmQK')
+    if {'bytes':len(legacy_provider),'sha256':hashlib.sha256(legacy_provider).hexdigest()} != collector.CATALOG_JOIN_MANIFEST['hosted/lib/mixer_hosted/browser_auth/provider_owner.ex']: raise RuntimeError('historical ProviderOwner pin')
+    source['hosted/lib/mixer_hosted/browser_auth/provider_owner.ex'] = legacy_provider
     return source
 
 class CurrentCLISelectionControls(unittest.TestCase):
@@ -2998,8 +3001,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
         import contextlib
         import io
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / collector.ORDINARY_BROWSER_SOURCE_BASE / "selection.json").read_bytes()
-        self.assertEqual(collector.ORDINARY_BROWSER_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        raw = (root / collector.SUPERVISED_PROVIDER_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.SUPERVISED_PROVIDER_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
         expected = json.loads(raw)["selected"]
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -3007,7 +3010,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-        self.assertEqual(collector.ORDINARY_BROWSER_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertEqual(collector.SUPERVISED_PROVIDER_SELECTION_SHA256, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
 
@@ -3015,8 +3018,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "79ae1d49352d6bc02da85f004c5855089ba9eaa3fe7b8d408f4bb7e99358cb8b"
-    DIGEST = "7541ccd6dc3369acac10dbfa881914eaf76e0c092a7ceaba142fc26ce00c169e"
+    PIN = "709be299b1bbe66f1a79a250bdac019cfde1165b47859597bcbe86e13c71d771"
+    DIGEST = "90557e1395e2cb9cbb5780a93799d63974220ce025ef06cce932884f4198c094"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3084,7 +3087,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(272, observed["source_count"])
+            self.assertEqual(275, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3094,7 +3097,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / "verification/identity-network-current-source-v15/selection.json").read_bytes()
+        raw = (root / "verification/identity-network-current-source-v16/selection.json").read_bytes()
         self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
         patterns = self.patterns((root / workflow_path).read_text(), job)
         self.assertNotIn(self.FAMILY, patterns)
@@ -3357,9 +3360,9 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
             with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
-        self.assertEqual(272,observed['source_count'])
-        self.assertEqual(collector.ORDINARY_BROWSER_SOURCE_DIGEST,observed['source_digest_sha256'])
-        self.assertEqual(collector.ORDINARY_BROWSER_SELECTION_SHA256,observed['selection_sha256'])
+        self.assertEqual(275,observed['source_count'])
+        self.assertEqual(collector.SUPERVISED_PROVIDER_SOURCE_DIGEST,observed['source_digest_sha256'])
+        self.assertEqual(collector.SUPERVISED_PROVIDER_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
         try:
             target.write_bytes(original+b'\n')
@@ -3452,6 +3455,73 @@ class OrdinaryBrowserSourceControls(unittest.TestCase):
                     try:
                         with self.assertRaises(FileNotFoundError):helper.check_real_main(sparse)
                     finally:target.write_bytes(body)
+
+class SupervisedProviderSourceControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.SUPERVISED_PROVIDER_SOURCE_BASE+n:(root/collector.SUPERVISED_PROVIDER_SOURCE_BASE/n).read_bytes() for n in ('selection.json','selected-source-manifest.json')}
+
+    def test_v16_exact_delta_and_complete_legacy_inverse(self):
+        value = collector.validate_supervised_provider_source_metadata(self.metadata())
+        self.assertEqual(275,len(collector.SUPERVISED_PROVIDER_MANIFEST))
+        self.assertEqual(4,len(value['exact_delta']))
+        self.assertEqual(3,sum(c['before'] is None for c in value['exact_delta'].values()))
+        inverse = dict(collector.SUPERVISED_PROVIDER_MANIFEST)
+        for p,c in value['exact_delta'].items():
+            if c['before'] is None: inverse.pop(p)
+            else: inverse[p] = c['before']
+        self.assertEqual(collector.ORDINARY_BROWSER_MANIFEST,inverse)
+        self.assertEqual('7541ccd6dc3369acac10dbfa881914eaf76e0c092a7ceaba142fc26ce00c169e',canonical_digest(inverse))
+        self.assertFalse(value['runtime_or_GA_accepted'])
+        provider = 'hosted/lib/mixer_hosted/browser_auth/provider_owner.ex'
+        self.assertEqual('92953b0c6608eb27d9f6dd5e1341f1271b9990fa5492bd8e0384b782bc92eafd',value['exact_delta'][provider]['after']['sha256'])
+        for p,r in collector.ORDINARY_BROWSER_MANIFEST.items():
+            if p != provider: self.assertEqual(r,collector.SUPERVISED_PROVIDER_MANIFEST[p])
+
+    def test_v16_forged_metadata_wrong_predecessor_and_false_runtime_refuse(self):
+        metadata = self.metadata()
+        for path in metadata:
+            with self.assertRaises(collector.CollectorError): collector.validate_supervised_provider_source_metadata({**metadata,path:metadata[path]+b' '})
+            with self.assertRaises(collector.CollectorError): collector.validate_supervised_provider_source_metadata({p:b for p,b in metadata.items() if p!=path})
+        with self.assertRaises(collector.CollectorError): collector.validate_supervised_provider_source_metadata({**metadata,'foreign':b'{}'})
+        path = collector.SUPERVISED_PROVIDER_SOURCE_BASE+'selection.json'
+        for field in ('predecessor','exact_delta','runtime_or_GA_accepted'):
+            value = json.loads(metadata[path])
+            if field=='predecessor': value[field]['source_count']=271
+            elif field=='exact_delta': value[field]={}
+            else: value[field]=True
+            body=json.dumps(value,sort_keys=True).encode()
+            with mock.patch.object(collector,'SUPERVISED_PROVIDER_SELECTION_SHA256',hashlib.sha256(body).hexdigest()):
+                with self.assertRaises(collector.CollectorError): collector.validate_supervised_provider_source_metadata({**metadata,path:body})
+
+    def test_v16_missing_changed_provider_and_constructors_refuse(self):
+        for path in collector.SUPERVISED_PROVIDER_DELTA:
+            for missing in (True,False):
+                value=copy.deepcopy(collector.SUPERVISED_PROVIDER_MANIFEST)
+                if missing: value.pop(path)
+                else: value[path]['sha256']='0'*64
+                with self.subTest(path=path,missing=missing),self.assertRaises(collector.CollectorError): collector.validate_supervised_provider_source_manifest(value)
+        stale=dict(collector.SUPERVISED_PROVIDER_MANIFEST)
+        p='hosted/lib/mixer_hosted/browser_auth/provider_owner.ex'
+        stale[p]=collector.ORDINARY_BROWSER_MANIFEST[p]
+        with self.assertRaises(collector.CollectorError): collector.validate_supervised_provider_source_manifest(stale)
+        with self.assertRaises(collector.CollectorError): collector.validate_supervised_provider_source_manifest(stale,canonical_digest(stale),275)
+
+    def test_v16_sparse_consumers_require_exact_new_metadata(self):
+        helper=WorkflowSparseSourceControls();root=COLLECTOR_PATH.resolve().parents[2]
+        for workflow,job in [('hosted.yml','phoenix'),('identity-network.yml','identity-network'),('verify.yml','services')]:
+            patterns=helper.patterns((root/'.github/workflows'/workflow).read_text(),job)
+            for name in ('selection.json','selected-source-manifest.json'):
+                self.assertIn('/'+collector.SUPERVISED_PROVIDER_SOURCE_BASE+name,patterns)
+            with self.subTest(workflow=workflow),tempfile.TemporaryDirectory(prefix='identity-v16-') as directory:
+                sparse=Path(directory);helper.materialize(root,sparse,patterns);helper.check_real_main(sparse)
+                for name in ('selection.json','selected-source-manifest.json'):
+                    target=sparse/collector.SUPERVISED_PROVIDER_SOURCE_BASE/name;body=target.read_bytes();target.unlink()
+                    try:
+                        with self.assertRaises(FileNotFoundError): helper.check_real_main(sparse)
+                    finally: target.write_bytes(body)
+
+
 
 if __name__ == "__main__":
     signal.alarm(50)

@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "id": "provider-canonical-integration-r1628",
+  "status": "PASS_CANONICAL_FIVE_LIFECYCLE_TESTS",
+  "recordedUTC": "2026-11-12T19:38:09Z",
+  "revisionBefore": "bcf757707b47f0fb827656daf15e036652f713bc",
+  "sourceVersion": 16,
+  "sourceFiles": 275,
+  "sourceDigest": "90557e1395e2cb9cbb5780a93799d63974220ce025ef06cce932884f4198c094",
+  "allSelectedInputsExactBeforeAfter": true,
+  "independentReview": "verification/receipts/provider-supervised-review-r1616.json",
+  "canonicalTest": {
+    "bytes": 41673,
+    "sha256": "0e49e497a2bc9f1cb08e395ede8704e2796855fd9b43764181568ea3eb99b8f8"
+  },
+  "provider": {
+    "bytes": 12951,
+    "sha256": "92953b0c6608eb27d9f6dd5e1341f1271b9990fa5492bd8e0384b782bc92eafd"
+  },
+  "result": {
+    "otp": "29",
+    "elixir": "1.20.4",
+    "result": {
+      "total": 5,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "compiled": {
+      "jason": 10,
+      "mint": 21,
+      "hpax": 0,
+      "hpax_reused_beams": 4,
+      "mint_erlang": 1
+    },
+    "versions": {
+      "jason": "1.4.5",
+      "jose": "1.11.13",
+      "mint": "1.11.0",
+      "hpax": "1.1.0",
+      "mint_hpax_jason_basis": "outer-lock-admitted source manifests checked before and after; direct official compiler APIs"
+    },
+    "canonical_mode": "test",
+    "production_installation_compiled_in": "prod",
+    "dependency_mode": "prod",
+    "codepaths": {
+      "jose": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-owner-fencing-r1580/build/prod/lib/jose/ebin/Elixir.JOSE.JWK.beam",
+      "mint_shims": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-canonical-integration-r1628/build/mint/ebin/mint_shims.beam",
+      "mint": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-canonical-integration-r1628/build/mint/ebin/Elixir.Mint.HTTP.beam",
+      "hpax": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/provider-trust-direct-owner-r1582/build/hpax/ebin/Elixir.HPAX.beam"
+    },
+    "provider_level_fencing": "ACTUAL_PROVIDER_OWNER",
+    "package_dependency_loader": false
+  },
+  "commands": [
+    {
+      "label": "canonical-provider-lifecycle",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-canonical-integration-r1628/batch.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 49826,
+      "pgid": 49826,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 14.9592087919591,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "productionStartup": "CLOSED_UNCHANGED",
+  "GA": false,
+  "holdsReleased": false,
+  "newHolds": [],
+  "rawOutput": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-canonical-integration-r1628/delivery/canonical-provider-lifecycle.stdout",
+  "collectorControls": {
+    "normal": 223,
+    "actualOptimized": 223,
+    "commands": [
+      {
+        "label": "collector-normal",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "hosted/scripts/test_identity_network_collector.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 81727,
+        "pgid": 81727,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 11.355484083062038,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "collector-optimized",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "-O",
+          "hosted/scripts/test_identity_network_collector.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 81942,
+        "pgid": 81942,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 10.117317209020257,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "allManagedGroupsAbsent": true
+  },
+  "rootSourceReview": {
+    "status": "PASS",
+    "sourcePacket": "verification/receipts/provider-source-successor-r1624.json",
+    "appliedPaths": 9,
+    "reviewed": "v16 exact delta4, inverse to preserved v15/272, typed count and immutable pins, actual sparse consumers, guarded idempotent application; legacy fixture replacement pinned to original bytes",
+    "canonicalExecution": "5 lifecycle tests; 223 normal +223 actual optimized collector controls; actual source CLI v16/275 passed",
+    "independentRuntimeReview": "R1616 exact candidate accepted; readiness barrier retained in canonical tests",
+    "productionActivation": false
+  }
+}
