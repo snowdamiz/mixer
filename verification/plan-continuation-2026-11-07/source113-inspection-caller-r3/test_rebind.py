@@ -43,7 +43,7 @@ class Rebinding(unittest.TestCase):
     def test_successor_binds_current_source_and_actual_cli(self):
         proof = self.base.verify(False)
         source = json.loads((HERE / 'binding.json').read_text())['source']
-        self.assertEqual(source['manifest'], 'source-inputs.json')
+        self.assertEqual(source['manifest'], 'current-source-inputs.json')
         frozen = json.loads((HERE / source['manifest']).read_text())
         digest = hashlib.sha256(''.join(
             path + '\0' + row['sha256'] + '\n'
@@ -66,7 +66,7 @@ class Rebinding(unittest.TestCase):
 
     def test_each_changed_frozen_source_is_refused(self):
         before = json.loads((HERE.parent / 'envelope-output-ownership-fix-r2/source103.json').read_text())
-        after = json.loads((HERE / 'source-inputs.json').read_text())
+        after = json.loads((HERE / 'current-source-inputs.json').read_text())
         changed = [p for p in before if before[p] != after[p]]
         historical_changed = ['cli/Package.swift', 'cli/Sources/MixerBuild/AndroidProject.swift', 'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift', 'cli/Sources/MixerBuild/AppStoreConnectBuildStatus.swift', 'cli/Sources/MixerBuild/AppleProject.swift', 'cli/Sources/MixerBuild/Configuration.swift', 'cli/Sources/MixerBuild/LocalUpdateValidation.swift', 'cli/Sources/MixerBuild/ProcessRunner.swift', 'cli/Sources/MixerBuild/ProjectGenerator.swift', 'cli/Sources/MixerBuild/Resources/android-build.py', 'cli/Sources/MixerBuild/StoreReconciliation.swift', 'cli/Sources/MixerCLI/main.swift', 'native/android/app/src/dev/mixer/android/AppearanceGeometryV2.java', 'native/android/app/src/dev/mixer/android/AppearanceResolverV2.java', 'native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java', 'native/android/app/src/dev/mixer/android/NativeCoordinatorV2.java', 'native/android/app/src/dev/mixer/android/NativeOwnerV2.java', 'native/android/app/src/dev/mixer/android/NativeRenderer.java', 'native/android/app/src/dev/mixer/android/OwnerLifecycleV2.java', 'native/android/app/src/dev/mixer/android/UiPacket.java', 'native/android/engine/Sources/MixerAndroidRuntime/DocumentSession.swift', 'scripts/ci/check-android-generated-java.py', 'sdk/Package.swift', 'sdk/Sources/MixerApple/MixerNativeView.swift', 'sdk/Sources/MixerGuest/GuestUIExchangeV1.swift', 'sdk/Sources/MixerGuest/GuestUIProtocolV1.swift', 'sdk/Sources/MixerUI/AppearanceResolutionV2.swift', 'sdk/Sources/MixerUI/NativePacketV1.swift', 'sdk/Sources/MixerUI/Protocol.swift', 'sdk/Sources/MixerUI/Reconciliation.swift', 'sdk/Sources/MixerUI/Validation.swift']
         transition = json.loads((HERE / 'binding.json').read_text())['guest_ui_v2_transition']
@@ -84,7 +84,7 @@ class Rebinding(unittest.TestCase):
                 self.base.verify(False)
 
     def test_additional_source_cannot_escape_manifest(self):
-        frozen = json.loads((HERE / 'source-inputs.json').read_text())
+        frozen = json.loads((HERE / 'current-source-inputs.json').read_text())
         projection = self.work / 'source'
         for name in frozen:
             target = projection / name

@@ -1,0 +1,85 @@
+{
+  "id": "report-share-recipient-r1646",
+  "kind": "unsigned synthetic Android ACTION_SEND text/plain recipient",
+  "role": "native-test helper only; not product implementation; no device operation",
+  "status": "BUILT",
+  "apk": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/report-share-recipient-r1646/report-share-recipient-r1646-unsigned.apk",
+    "bytes": 4598,
+    "sha256": "71cf334a00bbb6351c0a96b087cb86864ed2de89ac83bb287e1369723f32e6bd",
+    "signed": false,
+    "entries": ["AndroidManifest.xml", "resources.arsc", "classes.dex"],
+    "package": "dev.mixer.reportrecipient.r1646",
+    "activity": ".ReceiveActivity",
+    "label": "FieldLog report receiver",
+    "debuggable": true,
+    "minSdk": 36,
+    "targetSdk": 36
+  },
+  "tools": {
+    "jdk": "/opt/homebrew/opt/openjdk@25",
+    "javacRelease": 17,
+    "androidJar": "/opt/homebrew/share/android-commandlinetools/platforms/android-36/android.jar",
+    "buildTools": "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0",
+    "commands": [
+      "javac --release 17 -encoding UTF-8 -classpath android-36/android.jar -d build/classes ReceiveActivity.java",
+      "d8 --release --lib android-36/android.jar --min-api 36 --output build/dex ReceiveActivity.class",
+      "aapt2 link -o build/linked-unsigned.apk --manifest src/AndroidManifest.xml -I android-36/android.jar --min-sdk-version 36 --target-sdk-version 36 --compile-sdk-version-code 36 --compile-sdk-version-name 36 --version-code 1 --version-name 1",
+      "zip -j -u report-share-recipient-r1646-unsigned.apk classes.dex"
+    ]
+  },
+  "sources": [
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/report-share-recipient-r1646/src/AndroidManifest.xml",
+      "bytes": 857,
+      "sha256": "f6c5f1a5dcb9a7bbc0f2bb925c6e3aa18b3e6401dd0e600ebbc654b837e5a4b3"
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/report-share-recipient-r1646/src/dev/mixer/reportrecipient/r1646/ReceiveActivity.java",
+      "bytes": 7062,
+      "sha256": "dcf7b4fb96de815b987fd6d010c44a223145de7568dcfd4c5f0d5a3a69536b86"
+    }
+  ],
+  "dex": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/report-share-recipient-r1646/build/dex/classes.dex",
+    "bytes": 6196,
+    "sha256": "5ca8d22055583c6e974920b148d215189ed44b23489997ec0cc7abda5a8620ab"
+  },
+  "resultContract": {
+    "privateFile": "files/report-result.json",
+    "success": {"status": "received", "uri": "stream", "flags": "unsigned32", "mime": "text/plain", "byteCount": "int", "sha256": "lowercase hex", "base64": "NO_WRAP exact report bytes"},
+    "failureKeys": ["status", "exceptionClass"],
+    "maxReportBytes": 1048576,
+    "readBound": 1048577,
+    "screenSuccess": "Received report",
+    "screenFailure": "Report read failed"
+  },
+  "observedManifest": {
+    "debuggable": "android:debuggable=(type 0x12)0xffffffff",
+    "label": "FieldLog report receiver",
+    "package": "dev.mixer.reportrecipient.r1646",
+    "activity": ".ReceiveActivity",
+    "exported": true,
+    "action": "android.intent.action.SEND",
+    "category": "android.intent.category.DEFAULT",
+    "mime": "text/plain",
+    "minSdk": 36,
+    "targetSdk": 36
+  },
+  "cleanup": {
+    "devices": "not created, queried, or removed",
+    "adb": "not invoked",
+    "signing": "not performed",
+    "removed": ["pack-apk.py"],
+    "retained": "source, direct-build logs, intermediates, and the unsigned APK in the owned namespace"
+  },
+  "independentSourceReviewChecklist": [
+    "application android:debuggable is true so run-as can read files/report-result.json.",
+    "Package dev.mixer.reportrecipient.r1646, exported .ReceiveActivity, label exactly FieldLog report receiver.",
+    "Only ACTION_SEND, CATEGORY_DEFAULT, and text/plain. No launcher and no uses-permission.",
+    "Success JSON includes status received, byteCount, sha256, and base64 of the exact report bytes.",
+    "Also records uri, flags, and mime. Failure JSON is status plus exceptionClass only.",
+    "Open mode is r, read stops at 1MiB+1, and both the stream and descriptor close before the result file is written.",
+    "APK is unsigned. Root signs it. No device or adb was used."
+  ]
+}

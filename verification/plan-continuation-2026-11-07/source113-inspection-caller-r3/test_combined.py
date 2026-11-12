@@ -27,14 +27,14 @@ class MetadataDiagnostics(unittest.TestCase):
   s=importlib.util.spec_from_file_location('rebound_bootstrap',HERE.parent/'generated-java-ci-integration/bootstrap.py');b=importlib.util.module_from_spec(s);s.loader.exec_module(b)
   owner=b.canonical();profile=owner.load_profile();actual=owner.source_inputs(profile)
   binding=json.loads((HERE/'binding.json').read_bytes())
-  predecessor=a.cli_advisory_predecessor(self.base,binding,actual,owner)
+  predecessor=a.cli_advisory_predecessor(self.base,binding,a.play_cli_predecessor(self.base,binding,actual,owner),owner)
   source=binding['source']
   self.assertEqual((b.SOURCE_INPUT_COUNT,b.SOURCE_INPUT_SHA256),(source['count'],source['sha256']))
   self.assertEqual(b.admit_source_inputs(owner,profile),actual)
   from types import SimpleNamespace
   historical=SimpleNamespace(source_inputs=lambda p:predecessor,source_digest=owner.source_digest)
   with self.assertRaisesRegex(RuntimeError,'owning inputs'):b.admit_source_inputs(historical,profile)
-  self.assertEqual(actual,json.loads((HERE/'source-inputs.json').read_bytes()))
+  self.assertEqual(actual,json.loads((HERE/'current-source-inputs.json').read_bytes()))
   self.assertEqual((len(profile['sdk_files']),len(profile['adapter_files'])),(binding['profile']['sdk_count'],binding['profile']['adapter_count']))
   self.assertEqual(owner.source_digest(profile['sdk_files']),binding['profile']['sdk_sha256'])
   self.assertEqual(owner.source_digest(profile['adapter_files']),binding['profile']['adapter_sha256'])
@@ -82,7 +82,7 @@ class MetadataDiagnostics(unittest.TestCase):
   with patched(self.base,'module_at',changed),self.assertRaisesRegex(RuntimeError,'Current owning source closure differs'):self.base.verify(True)
  def test_each_owning_pin_drift_refuses(self):
   original=self.base.regular
-  for name in json.loads((HERE/'source-inputs.json').read_bytes()):
+  for name in json.loads((HERE/'current-source-inputs.json').read_bytes()):
    fake=self.work/'changed';fake.write_bytes(b'metadata diagnostic mutation')
    def redirect(p):return original(fake if p==ROOT/name else p)
    with self.subTest(path=name),patched(self.base,'regular',redirect),self.assertRaisesRegex(RuntimeError,'Pinned source differs'):self.base.verify(True)
@@ -186,7 +186,7 @@ class MetadataDiagnostics(unittest.TestCase):
   binding=json.loads((HERE/'binding.json').read_bytes())
   owner=self.base.module_at('diagnostic_history_owner',ROOT/'scripts/ci/check-android-generated-java.py')
   actual=owner.source_inputs(owner.load_profile(ROOT))
-  source_before_cli=a.cli_advisory_predecessor(self.base,binding,actual,owner)
+  source_before_cli=a.cli_advisory_predecessor(self.base,binding,a.play_cli_predecessor(self.base,binding,actual,owner),owner)
   source_before_pair20=a.pair20_predecessor(self.base,binding,source_before_cli,owner)
   source_before_guest=a.guest_ui_v2_predecessor(self.base,binding,source_before_pair20,owner)
   source_before_phase=a.android_inspection_phase_predecessor(self.base,binding,source_before_guest,owner)
@@ -235,6 +235,7 @@ class MetadataDiagnostics(unittest.TestCase):
   binding=json.loads((HERE/'binding.json').read_bytes())
   owner=self.base.module_at('cli_successor_owner',ROOT/'scripts/ci/check-android-generated-java.py')
   actual=owner.source_inputs(owner.load_profile(ROOT))
+  actual=a.play_cli_predecessor(self.base,binding,actual,owner)
   before=a.cli_advisory_predecessor(self.base,binding,actual,owner)
   transition=binding['cli_advisory_source_transition']
   self.assertEqual(owner.source_digest(before),transition['sourceBefore'])
@@ -270,5 +271,5 @@ class MetadataDiagnostics(unittest.TestCase):
     if row['path']=='binding.json':row.update(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
    seal['tree_sha256']=self.base.tree(seal['members']);fake_seal=self.work/'forged-seal';fake_seal.write_text(json.dumps(seal))
    def redirect(p):return original(fake if p==HERE/'binding.json' else fake_seal if p==HERE/'seal.json' else p)
-   with self.subTest(mutation=label):self.refused_main(redirect,'CLI advisory|Pair20 typed|Fixture retention typed|Bound source closure')
+   with self.subTest(mutation=label):self.refused_main(redirect,'CLI advisory|Pair20 typed|Fixture retention typed|Bound source closure|Play CLI')
 

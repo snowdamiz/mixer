@@ -72,7 +72,7 @@ class SparseControls(unittest.TestCase):
         root = B.ROOT if root is None else root
         source = json.loads((root / current_module.BINDING).read_bytes(),
                             object_pairs_hook=current_module.unique_object)['source']
-        self.assertEqual(source['manifest'], 'source-inputs.json')
+        self.assertEqual(source['manifest'], 'current-source-inputs.json')
         self.assertEqual((len(inputs), authority.source_digest(inputs)),
                          (source['count'], source['sha256']))
 

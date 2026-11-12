@@ -515,6 +515,48 @@ def swift_ci_graph(base, text):
     return text[start:last] + tail
 
 
+
+PLAY_CLI_TRANSITION = {'schema': 1, 'type': 'EXACT_PLAY_CLI119_SOURCE_AND_CALLER_SUCCESSOR', 'sourceBefore': 'd947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7', 'sourceAfter': '54194627a79eefa5e1c221e27a488267dfaee7a15f154686550d95b57c9f0f1b', 'sourceCountBefore': 118, 'sourceCountAfter': 119, 'manifest': 'current-source-inputs.json', 'historicalManifest': {'bytes': 19135, 'sha256': 'b0f4d11b006ec149420e82428cd7821da8bd5484e01037950918c791fe467120'}, 'changed': {'path': 'cli/Sources/MixerCLI/main.swift', 'before': {'bytes': 10869, 'sha256': '684df8c3d53721fab96c34c55773f4965b0d74cccc7d7f39f73089a40774f907'}, 'after': {'bytes': 12502, 'sha256': 'da6decc4d5abbad42d29969fb0d2351057ae8cab42dce614681f2aaf611399c4'}}, 'added': {'path': 'cli/Sources/MixerBuild/PlayReleaseStatus.swift', 'after': {'bytes': 12837, 'sha256': 'ce713149aee0fa48e6b8f23670e25dfb54f5fe107f8296707ea16ed55dd08966'}}, 'bootstrap': {'path': 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py', 'before': {'bytes': 18682, 'sha256': 'fe8d434f9fe5f35520838a7498b2356f5fa7cc4ad4641405ceb30191b4e22146'}, 'after': {'bytes': 18682, 'sha256': 'cc54c394e625b3326fefe9cd5cad17fefe9426d3b8caa74474479ff995f06aab'}}, 'callers': {'before': {'bytes': 2532, 'sha256': '92ab439e7e5f52c15ff9720f8dab0a336dfa72e7199e6b125bcae69d02ffdd9d'}, 'after': {'bytes': 2532, 'sha256': 'dd70b629b9ec5b1a7745dac5b1c6243b6fb2cb0e028a64a35a4ee28a595223e0'}}, 'actualSixConsumers': False, 'ordinaryCI': False, 'compilerQualification': False, 'nativePass': False, 'runtimePass': False, 'gaPass': False, 'historicalHoldsReleased': False, 'callerChanges': [{'path': 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py', 'before': {'bytes': 18682, 'sha256': 'fe8d434f9fe5f35520838a7498b2356f5fa7cc4ad4641405ceb30191b4e22146'}, 'after': {'bytes': 18682, 'sha256': 'cc54c394e625b3326fefe9cd5cad17fefe9426d3b8caa74474479ff995f06aab'}}, {'path': 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py', 'before': {'bytes': 33762, 'sha256': '919b95ee835fb3be6432a3d75a08028200721849aff3cb19a6b0fbe53e6bf5f8'}, 'after': {'bytes': 33770, 'sha256': '16935f14c846917cf55fd954ad63d4cf531c4c8891dbeadffd7e20f222dbdd5c'}}, {'path': 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py', 'before': {'bytes': 12808, 'sha256': '03cb52019d723763bf444106a2189aec2bb560c8708ab26d7e61eccbb1642e57'}, 'after': {'bytes': 12816, 'sha256': '8b1145bbd5afe2c1db3d5322772642a3ee693b60581386a95b4595abdccbd565'}}]}
+
+def play_cli_predecessor(base, binding, actual, owner):
+    t = PLAY_CLI_TRANSITION
+    base.need(same_json(binding.get('play_cli_transition'), t), 'Play CLI typed transition differs')
+    base.need(len(actual) == t['sourceCountAfter'] and owner.source_digest(actual) == t['sourceAfter'], 'Play CLI current source differs')
+    predecessor = dict(actual)
+    changed, added = t['changed'], t['added']
+    base.need(same_json(actual.get(changed['path']), changed['after']) and same_json(actual.get(added['path']), added['after']), 'Play CLI exact source rows differ')
+    predecessor[changed['path']] = changed['before']
+    del predecessor[added['path']]
+    base.need(len(predecessor) == t['sourceCountBefore'] and owner.source_digest(predecessor) == t['sourceBefore'], 'Play CLI historical118 inverse differs')
+    raw = base.regular(HERE / 'source-inputs.json').read_bytes()
+    base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, t['historicalManifest']), 'Play CLI immutable118 bytes differ')
+    base.need(same_json(predecessor, json.loads(raw, object_pairs_hook=base.unique_object)), 'Play CLI immutable118 roster differs')
+    return predecessor
+
+def play_cli_bootstrap_predecessor(base, raw):
+    t = PLAY_CLI_TRANSITION
+    base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, t['bootstrap']['after']), 'Play CLI current bootstrap differs')
+    new_count, old_count = b'SOURCE_INPUT_COUNT = 119', b'SOURCE_INPUT_COUNT = 118'
+    new_pin = ('SOURCE_INPUT_SHA256 = ' + repr(t['sourceAfter'])).encode()
+    old_pin = ('SOURCE_INPUT_SHA256 = ' + repr(t['sourceBefore'])).encode()
+    base.need(raw.count(new_count) == 1 and raw.count(new_pin) == 1, 'Play CLI bootstrap exact pins differ')
+    old = raw.replace(new_count, old_count, 1).replace(new_pin, old_pin, 1)
+    base.need(same_json({'bytes':len(old), 'sha256':hashlib.sha256(old).hexdigest()}, t['bootstrap']['before']), 'Play CLI bootstrap118 inverse differs')
+    return old
+
+def play_cli_callers_predecessor(base, raw):
+    t = PLAY_CLI_TRANSITION
+    base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, t['callers']['after']), 'Play CLI current callers differ')
+    callers = json.loads(raw, object_pairs_hook=base.unique_object)
+    base.check_rows(ROOT, callers)
+    for change in t['callerChanges']:
+        row = next(r for r in callers if r['path'] == change['path'])
+        base.need(same_json({k:row[k] for k in ('bytes','sha256')}, change['after']), 'Play CLI current caller differs')
+        row.update(change['before'])
+    old = (json.dumps(callers, indent=2) + '\n').encode()
+    base.need(same_json({'bytes':len(old), 'sha256':hashlib.sha256(old).hexdigest()}, t['callers']['before']), 'Play CLI historical caller118 inverse differs')
+    return old
+
 def bind():
     base = load()
     historical_verify = base.verify
@@ -522,7 +564,7 @@ def bind():
         proof = historical_verify(False)
         seal = json.loads(base.regular(HERE / 'seal.json').read_bytes(), object_pairs_hook=base.unique_object)
         base.check_rows(HERE, seal['members'])
-        base.need(seal['member_count'] == 32 and [r['path'] for r in seal['members']] == ["accepted-swift-job.yml","adopt_envelope.py","apple-accessibility-review.md","baseline-runtime-seal.json","binding.json","caller-inputs.json","command-lifetime-review.json","current-swift-job.yml","current-verify.yml","failure-current.json","failure-evidence.json","full-ci-fixture-review.json","full.patch","historical-closure.json","identity-deltas.json","incremental.patch","inspection-digest-review.json","inspection-review.json","job-changes.json","metadata_guard.py","predecessor-runtime-seal.json","runner-fixture-review.json","sdk-ready-input-review.json","source-inputs.json","swift-job.yml","test_binding.py","test_combined.py","test_ownership.py","test_rebind.py","test_source113.py","verify.yml.candidate","workflow.patch"] and seal['tree_sha256'] == base.tree(seal['members']), 'Successor seal differs')
+        base.need(seal['member_count'] == 33 and [r['path'] for r in seal['members']] == ["accepted-swift-job.yml","adopt_envelope.py","apple-accessibility-review.md","baseline-runtime-seal.json","binding.json","caller-inputs.json","command-lifetime-review.json","current-source-inputs.json","current-swift-job.yml","current-verify.yml","failure-current.json","failure-evidence.json","full-ci-fixture-review.json","full.patch","historical-closure.json","identity-deltas.json","incremental.patch","inspection-digest-review.json","inspection-review.json","job-changes.json","metadata_guard.py","predecessor-runtime-seal.json","runner-fixture-review.json","sdk-ready-input-review.json","source-inputs.json","swift-job.yml","test_binding.py","test_combined.py","test_ownership.py","test_rebind.py","test_source113.py","verify.yml.candidate","workflow.patch"] and seal['tree_sha256'] == base.tree(seal['members']), 'Successor seal differs')
         ignored = {'control-scratch', '__pycache__'}
         base.need(not any(p.is_symlink() for p in HERE.rglob('*') if p.relative_to(HERE).parts[0] not in ignored), 'Successor shipping symlink forbidden')
         observed = sorted(p.relative_to(HERE).as_posix() for p in HERE.rglob('*') if p.is_file() and p.relative_to(HERE).parts[0] not in ignored and p.relative_to(HERE).as_posix() != 'seal.json')
@@ -534,14 +576,19 @@ def bind():
         base.check_rows(prior, prior_seal['members'])
         base.need(prior_seal['member_count'] == 18 and prior_seal['tree_sha256'] == base.tree(prior_seal['members']), 'Historical source113 seal differs')
         frozen = json.loads(base.regular(HERE / 'source-inputs.json').read_bytes(), object_pairs_hook=base.unique_object)
-        base.check_rows(ROOT, [dict(path=p, **r) for p,r in sorted(frozen.items())])
+        current = json.loads(base.regular(HERE / 'current-source-inputs.json').read_bytes(), object_pairs_hook=base.unique_object)
+        base.check_rows(ROOT, [dict(path=p, **r) for p,r in sorted(current.items())])
         owner = base.module_at('combined_source113_owner', ROOT / 'scripts/ci/check-android-generated-java.py')
         profile = owner.load_profile(ROOT)
         actual = owner.source_inputs(profile)
-        base.need(actual == frozen, 'Current owning source closure differs')
+        base.need(actual == current, 'Current owning source closure differs')
         binding = json.loads(base.regular(HERE / 'binding.json').read_bytes(), object_pairs_hook=base.unique_object)
         base.need(same_json(binding.get('schema'), 1), 'Binding schema differs')
         base.need(same_json(binding.get('fixture_retention_transition'), FIXTURE_RETENTION_TRANSITION), 'Fixture retention typed transition differs')
+        selected_actual = actual
+        selected_digest = owner.source_digest(actual)
+        actual = play_cli_predecessor(base, binding, actual, owner)
+        base.need(actual == frozen, 'Play CLI historical118 manifest differs')
         digest = owner.source_digest(actual)
         current_actual = actual
         actual = cli_advisory_predecessor(base, binding, actual, owner)
@@ -628,16 +675,15 @@ def bind():
         base.need(same_json(binding.get('fixture_dispatch'), {'host_rust_fixture_after_exact_checks':True, 'scope':'host fixture only; installed source/job/seal/raw accepted R5 checks precede dispatch', 'combinedAccepted':False, 'runtime':False, 'GA':False, 'exactWindow':False}), 'Host-only fixture dispatch contract differs')
         base.need(same_json(binding.get('adoption'), {'allowed':False, 'status':'CANDIDATE_PENDING_COMBINED_REVIEW', 'canonicalAdopted':False})
                   and same_json(binding.get('qualification'), {'compiler':False, 'native':False, 'CLI87':False, 'TestFlight':False, 'release':False, 'GA':False}), 'Candidate authority must remain pending')
-        base.need(same_json(binding['source'], {'count': CLI_ADVISORY_SOURCE_TRANSITION['sourceCount'], 'sha256': digest, 'algorithm': 'sha256 of sorted path + NUL + file sha256 + newline; scripts/ci/check-android-generated-java.py:source_inputs', 'manifest': 'source-inputs.json'}) and len(current_actual) == CLI_ADVISORY_SOURCE_TRANSITION['sourceCount'] and digest == CLI_ADVISORY_SOURCE_TRANSITION['sourceAfter'], 'Bound source closure differs')
+        base.need(same_json(binding['historical_cli118_source'], {'count': CLI_ADVISORY_SOURCE_TRANSITION['sourceCount'], 'sha256': digest, 'algorithm': 'sha256 of sorted path + NUL + file sha256 + newline; scripts/ci/check-android-generated-java.py:source_inputs', 'manifest': 'source-inputs.json'}) and len(current_actual) == CLI_ADVISORY_SOURCE_TRANSITION['sourceCount'] and digest == CLI_ADVISORY_SOURCE_TRANSITION['sourceAfter'], 'Bound source closure differs')
         base.need(binding['profile'] == {'id':profile['id'], 'sdk_count':len(profile['sdk_files']), 'sdk_sha256':profile['sdk_compatibility_sha256'], 'adapter_count':len(profile['adapter_files']), 'adapter_sha256':profile['adapter_compatibility_sha256'], 'java_sources':len(owner.java_roster(profile))}, 'Accepted profile binding differs')
-        caller_raw = base.regular(HERE / 'caller-inputs.json').read_bytes()
+        caller_raw = play_cli_callers_predecessor(base, base.regular(HERE / 'caller-inputs.json').read_bytes())
         caller_transition = CLI_ADVISORY_CALLER_TRANSITION
         base.need(same_json(binding.get('cli_advisory_caller_transition'), caller_transition), 'CLI advisory caller transition differs')
         base.need(caller_transition['sourceBefore'] == CLI_ADVISORY_SOURCE_TRANSITION['sourceBefore'] and caller_transition['sourceAfter'] == digest and caller_transition['sourceCount'] == len(current_actual), 'CLI advisory caller source differs')
         base.need(same_json({'bytes':len(caller_raw), 'sha256':hashlib.sha256(caller_raw).hexdigest()}, caller_transition['callerAfter']), 'Accepted caller authority bytes differ')
         callers = json.loads(caller_raw, object_pairs_hook=base.unique_object)
-        base.check_rows(ROOT, callers)
-        bootstrap_raw = base.regular(ROOT / caller_transition['path']).read_bytes()
+        bootstrap_raw = play_cli_bootstrap_predecessor(base, base.regular(ROOT / caller_transition['path']).read_bytes())
         base.need(same_json({'bytes':len(bootstrap_raw), 'sha256':hashlib.sha256(bootstrap_raw).hexdigest()}, caller_transition['after']), 'CLI advisory bootstrap differs')
         old_pin = ('SOURCE_INPUT_SHA256 = ' + repr(caller_transition['sourceBefore'])).encode()
         new_pin = ('SOURCE_INPUT_SHA256 = ' + repr(caller_transition['sourceAfter'])).encode()
@@ -656,14 +702,16 @@ def bind():
         base.need(same_json(binding.get('swift_ci_independence_transition'), independence), 'Swift CI independence transition differs')
         base.need(same_json({'bytes':len(expected.encode()), 'sha256':hashlib.sha256(expected.encode()).hexdigest()}, independence['after']), 'Swift CI independently pinned graph differs')
         prior_changes = json.loads(base.regular(HERE / 'job-changes.json').read_bytes(), object_pairs_hook=base.unique_object)[:-1]
-        prior_binding = {key:value for key,value in binding.items() if key != 'swift_ci_independence_transition'}
+        prior_binding = {key:value for key,value in binding.items() if key not in ('swift_ci_independence_transition', 'play_cli_transition', 'historical_cli118_source')}
+        prior_binding['source'] = binding['historical_cli118_source']
         for value, key in ((prior_changes, 'prior_job_changes'), (prior_binding, 'prior_binding')):
             raw = (json.dumps(value, indent=2) + '\n').encode()
             base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, independence[key]), 'Swift CI historical metadata inverse differs')
         base.need(CALLER_AFTER in expected and 'scripts/ci/prepare-cli-host-tests.py' in expected, 'Accepted caller missing')
         if installed:
             base.need(swift_ci_graph(base, base.regular(WORKFLOW).read_text()) == expected, 'Installed ordinary Swift job differs from successor candidate')
-        return {**proof, 'historical_workflow_job_sha256':proof['workflow_job_sha256'], 'workflow_job_sha256':hashlib.sha256(expected.encode()).hexdigest(), 'installed_job_verified':installed, 'caller_binding_seal_sha256':base.sha(HERE / 'seal.json'), 'source_count':len(current_actual), 'source_sha256':digest, 'profile':binding['profile'], 'historical_closure_sha256':base.sha(HERE / 'historical-closure.json')}
+        base.need(same_json(binding['source'], {'count':119, 'sha256':selected_digest, 'algorithm':binding['historical_cli118_source']['algorithm'], 'manifest':'current-source-inputs.json'}) and selected_digest == PLAY_CLI_TRANSITION['sourceAfter'], 'Play CLI selected source binding differs')
+        return {**proof, 'historical_workflow_job_sha256':proof['workflow_job_sha256'], 'workflow_job_sha256':hashlib.sha256(expected.encode()).hexdigest(), 'installed_job_verified':installed, 'caller_binding_seal_sha256':base.sha(HERE / 'seal.json'), 'historical_source_count':len(current_actual), 'historical_source_sha256':digest, 'source_count':len(selected_actual), 'source_sha256':selected_digest, 'profile':binding['profile'], 'historical_closure_sha256':base.sha(HERE / 'historical-closure.json')}
     base.verify = verify
     return base
 

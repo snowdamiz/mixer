@@ -1,0 +1,239 @@
+{
+  "acceptedPrerequisites": [
+    "verification/receipts/play-testing-r1618.json",
+    "verification/receipts/play-status-review-r1632.json rootCliIntegration"
+  ],
+  "id": "PLAY_CLI_INTEGRATION_R1644",
+  "implementation": {
+    "behavior": [
+      "Both option allowlists admit --version-code and --track; option duplicate guard is unchanged.",
+      "Play dispatch precedes ASC-only StoreStatusRequest.parse and derives applicationID from ApplicationConfiguration.load(root).application.",
+      "Awaits accepted PlayReleaseStatus reader with MIXER_PLAY_BEARER_TOKEN or empty string; emits JSON report and exits using report.exitCode.",
+      "Thrown Play errors have fixed structured codes/messages; configuration failures are also redacted. ASC implementation/route preserved."
+    ],
+    "command": "mixer submit testing-status --provider play --version-code 42 --track qa [--directory PROJECT]",
+    "existingArgumentTestsIdentified": "cli/Tests/MixerBuildTests/StoreReconciliationTests.swift: argumentAdmissionAndActualCLIRefusals; inspected and unchanged",
+    "fixedErrors": {
+      "configurationLoadFailure": "play.configuration-invalid",
+      "invalidRequest": "play.invalid-request",
+      "otherThrownPlayFailure": "play.status-failed",
+      "redactedResponse": "play.redacted-response"
+    },
+    "model": "gpt-6.1-sol",
+    "offlineDriver": "verification/local/play-cli-integration-r1644/offline_controls.py",
+    "ownedSource": "cli/Sources/MixerCLI/main.swift",
+    "providerLibraryChanges": false,
+    "reasoningEffort": "xhigh",
+    "standardSpeed": true
+  },
+  "limitations": [
+    "CLI command-level success/pending exit0/2 paths were not driven with live or injected provider responses; accepted reader controls verify those report exit semantics. Empty-token command dispatch proves actual await/report/exit1 path without network.",
+    "Thrown redactedResponse CLI mapping inspected as fixed constants; existing injected reader test verifies the throw, but command batch intentionally forwarded no credentials.",
+    "New119 manifest is a proposal for root selection/review; canonical historical118/admission/backend source-v16 metadata were not edited."
+  ],
+  "localArtifacts": {
+    "build-result.json": {
+      "bytes": 1214,
+      "sha256": "ee557b8c09b2c40ecc5dfd4ab107eb4c8ea53618df527f58fb50e39494ef84b6"
+    },
+    "build.py": {
+      "bytes": 2091,
+      "sha256": "b79b67559b23f2627a9f879b771d748ca507069e757a272830c2f2d4a3074666"
+    },
+    "command-results.json": {
+      "bytes": 22003,
+      "sha256": "b6176b0b0d134a4b2e802d113bf2372cfc4c4985ab8148e17f957d76783894f1"
+    },
+    "current-source-inputs.json": {
+      "bytes": 19295,
+      "sha256": "c80a7326e402f9ec8e4436c7701b1c54f9abefbb402aa997ec0285b0b6347465"
+    },
+    "current-source-successor-proposal.json": {
+      "bytes": 1788,
+      "sha256": "b549ec032c9c60f84a1b82c4c4d3ff24dff6018002fee15bf981cf97b69570fd"
+    },
+    "final-source-proof.json": {
+      "bytes": 184,
+      "sha256": "54194f8407d63783eb9280000c31f80cb1f947e9ea3a1f5546676225ceb2919c"
+    },
+    "offline-result.json": {
+      "bytes": 313,
+      "sha256": "023196c3c135773fb52c230a41d3e7138580ca2e6fc0337e6d092b984b89aaf8"
+    },
+    "offline_controls.py": {
+      "bytes": 7355,
+      "sha256": "d7ddf5055a7bd464f08d99f4aec87dfdbf0bad91199516fbfd76e72f5d0930b3"
+    }
+  },
+  "parentGates": {
+    "androidSourcePair20": "SDK and adapter maps/digests unchanged; main is outside pair20 SDK/adapter maps but is in generated-CLI producer closure.",
+    "cliIntegration": "SCOPED_PASS_PENDING_INDEPENDENT_MAIN_REVIEW",
+    "completeCLIHostSwiftSuite": "UNRUN in this slice; existing library test suite was not rebuilt or run wholesale.",
+    "currentSuccessor": {
+      "added": {
+        "cli/Sources/MixerBuild/PlayReleaseStatus.swift": {
+          "bytes": 12837,
+          "sha256": "ce713149aee0fa48e6b8f23670e25dfb54f5fe107f8296707ea16ed55dd08966"
+        }
+      },
+      "androidSourcePair": {
+        "adapter": "89e75e827ec864eda005a0464df327e851989680483e0d91af39d2e6aa5976b0",
+        "id": "mixer.android-source-pair.20",
+        "sdk": "1aff4a8c3b9c8b25f6457a0b43617ec19f9a34b7b678029859c4ae220d7076d6"
+      },
+      "backendV16Touched": false,
+      "changed": {
+        "cli/Sources/MixerCLI/main.swift": {
+          "after": {
+            "bytes": 12502,
+            "sha256": "da6decc4d5abbad42d29969fb0d2351057ae8cab42dce614681f2aaf611399c4"
+          },
+          "before": {
+            "bytes": 10869,
+            "sha256": "684df8c3d53721fab96c34c55773f4965b0d74cccc7d7f39f73089a40774f907"
+          }
+        }
+      },
+      "current": {
+        "digest": "54194627a79eefa5e1c221e27a488267dfaee7a15f154686550d95b57c9f0f1b",
+        "rows": 119
+      },
+      "digestAlgorithm": "Owning check-android-generated-java.py source_digest: SHA256(sorted path + NUL + sha256 + LF)",
+      "historical118": {
+        "digest": "d947368432f3a27db24e901da758659274dc4b1fcce9ea5829c3a9a6a13998a7",
+        "identity": {
+          "bytes": 19135,
+          "sha256": "b0f4d11b006ec149420e82428cd7821da8bd5484e01037950918c791fe467120"
+        },
+        "path": "verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/source-inputs.json",
+        "rows": 118
+      },
+      "historicalAuthorityWritten": false,
+      "owningAdmission": "adopt_envelope.py verify requires actual source_inputs(profile) == frozen historical118; current main/reader cannot qualify under that immutable selection. Root must select/review a new current successor, including any pre-existing accepted source additions.",
+      "removed": [],
+      "status": "PROPOSED_CURRENT_SUCCESSOR_ROOT_ADOPTION_PENDING"
+    },
+    "durableCrossProcessPlayHistory": "NOT_IMPLEMENTED by accepted reader or this wiring.",
+    "immutableCLI118": "PRESERVED; main differs and new reader is outside118; never refresh historical metadata.",
+    "immutablePublishedPackageAndSeparateFieldLogConsumer": "PENDING exact newly published package/source identities and separate-repository qualification; local snapshot build and copied cache tests do not qualify a released package.",
+    "liveProviderAccountServingTesterAccessLinks": "UNRUN/UNVERIFIED; PUBLISHED alone remains provider-observation-only.",
+    "nativePhysicalDevicesReleaseProductionGA": "UNRUN/UNQUALIFIED",
+    "ordinaryCIAndGeneratedDebugReleaseConsumers": "PENDING fresh current119 selection/admission, parent review, delivery and named producer/consumer runs; no CLI118 acceptance transfer.",
+    "successorManifest": "verification/local/play-cli-integration-r1644/current-source-inputs.json",
+    "successorPacket": "verification/local/play-cli-integration-r1644/current-source-successor-proposal.json"
+  },
+  "recordedUTC": "2026-11-12T19:56:18.254264+00:00",
+  "schema": 1,
+  "scope": {
+    "artifactPolicy": "New generated outputs isolated in ignored verification/local; compact receipt only; no index changes, so staged-index artifact checker not required.",
+    "commits": 0,
+    "historicalMetadataOrHeldNamespaceAccess": false,
+    "phonesDevicesStarted": 0,
+    "providerLibraryBackendVMNativeGlobalDocsEdited": false,
+    "pushes": 0,
+    "retainedOwnedScratch": "New unheld isolated snapshot/build caches/logs retained for review; no historical scratch cleanup or holds released.",
+    "staging": false,
+    "storesUploadsResubmissionsCredentialChanges": 0,
+    "subchildren": 0,
+    "writes": [
+      "cli/Sources/MixerCLI/main.swift",
+      "verification/local/play-cli-integration-r1644",
+      "verification/receipts/play-cli-integration-r1644.json"
+    ]
+  },
+  "source": {
+    "all147CanonicalInputsEqualBuiltSnapshotAfterExecution": true,
+    "exactInputs": {
+      "cli/Sources/MixerBuild/PlayReleaseStatus.swift": {
+        "bytes": 12837,
+        "sha256": "ce713149aee0fa48e6b8f23670e25dfb54f5fe107f8296707ea16ed55dd08966"
+      },
+      "cli/Sources/MixerCLI/main.swift": {
+        "bytes": 12502,
+        "sha256": "da6decc4d5abbad42d29969fb0d2351057ae8cab42dce614681f2aaf611399c4"
+      },
+      "cli/Tests/MixerBuildTests/PlayReleaseStatusTests.swift": {
+        "bytes": 13361,
+        "sha256": "2513b19b51087a1bbafd2609027fa44ff0ca62b24a25f4a4759f16f495e622b6"
+      },
+      "sdk/Sources/MixerCore/JSONInputGuard.swift": {
+        "bytes": 8709,
+        "sha256": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c"
+      }
+    },
+    "manifest": "verification/local/play-cli-integration-r1644/source-manifest.json",
+    "manifestIdentity": {
+      "bytes": 23869,
+      "sha256": "fbf4dfac9aece96248cf49cf07ef7afbf6c0a378a6e9c35c7458d5eeee45a2e7"
+    },
+    "note": "Revision observed after execution; immutable per-file snapshot and final byte equality bind the actual build despite concurrent parent activity.",
+    "observedHead": "fdd7d2116b2aaa3e00d0285fa385a0971cb222af",
+    "observedHeadTree": "ee20954ba04493e98f4d6f12dfa80b63c4455dd9",
+    "snapshotFileCount": 147,
+    "uncommittedAcceptedReaderAndTests": true
+  },
+  "status": "PASS_SCOPED_FULL_CLI_BUILD_AND_OFFLINE_COMMAND_PATH_ROOT_REVIEW_PENDING",
+  "verification": {
+    "acceptedReaderControls": {
+      "builds": 0,
+      "method": "R1618 accepted target and harness copied into new isolated output, then swift test --skip-build. Canonical reader/tests/JSON guard match accepted harness exactly.",
+      "resultLog": "verification/local/play-cli-integration-r1644/logs/accepted-reader-controls.stdout",
+      "scope": "Injected URLProtocol responses only: lifecycle/exit 0,1,2, identity, history, timeout, auth, bounds and reflected-token refusal; these are reused reader tests, not a rebuilt CLI successful-provider execution.",
+      "sourceProof": "verification/local/play-cli-integration-r1644/accepted-reader-cache-proof.json",
+      "testsPassed": 9
+    },
+    "actualBuilds": 1,
+    "actualCLIInvocations": 30,
+    "allPayloadsReapedOwnedGroupsAbsent": true,
+    "build": {
+      "argv": [
+        "swift",
+        "build",
+        "--package-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/play-cli-integration-r1644/source/cli",
+        "--scratch-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/play-cli-integration-r1644/target",
+        "--cache-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/play-cli-integration-r1644/cache/spm",
+        "--config-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/play-cli-integration-r1644/config/spm",
+        "--security-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/play-cli-integration-r1644/security/spm",
+        "--disable-sandbox",
+        "--jobs",
+        "3",
+        "--product",
+        "mixer"
+      ],
+      "elapsedSeconds": 25.372586011886597,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "result": "verification/local/play-cli-integration-r1644/build-result.json",
+      "scope": "Full canonical SwiftPM mixer product and dependencies from isolated exact source snapshot; fresh isolated output, not a focused stub."
+    },
+    "cliBinary": {
+      "bytes": 6118384,
+      "sha256": "9b3b432735e246be84063015dc5efa8ec5c06b53dd0cc4e896e87dc5c8cf1a2e"
+    },
+    "commandControlBatches": 1,
+    "commandCoverage": [
+      "Play provider dispatch before ASC with explicit and current directory; empty credential returns unresolved/credentialRequired and exact application identity.",
+      "Help and --help list Play invocation, token environment name and testing-readiness limitation.",
+      "Canonical version validation including zero, negative, padded, overflow and arbitrary text; track traversal refusal.",
+      "Missing arguments, wrong status/upload/extra words, cross-provider options and command allowlists.",
+      "Duplicate provider/version/track, unknown and missing-value option behavior preserved.",
+      "Missing/malformed/unknown-key config errors use fixed content without reflected marker inputs.",
+      "ASC status and testing-status still reach credentialRequired; ASC duplicate and cross-provider option refusal preserved."
+    ],
+    "commands": "verification/local/play-cli-integration-r1644/command-results.json",
+    "credentialEnvironmentForwarded": false,
+    "dependencyFetch": "SwiftPM fetched official apple/swift-crypto exact 5.0.3 and resolved existing apple/swift-asn1 1.7.3; no package/dependency declarations changed.",
+    "diffCheck": "PASS git diff --check -- cli/Sources/MixerCLI/main.swift",
+    "googleOrStoreAccountCalls": 0,
+    "outputDescriptorsClosed": true,
+    "tools": {
+      "python": "3.14.8",
+      "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1); driver 1.168.6; arm64-apple-macosx27.0.0"
+    }
+  }
+}

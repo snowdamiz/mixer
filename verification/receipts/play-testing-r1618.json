@@ -1,0 +1,177 @@
+{
+  "slice": "W13 Play release lifecycle/testing status r1618",
+  "contractFrozenAt": "2026-11-12T19:26:24.990792+00:00",
+  "sourceRevision": "bcf757707b47f0fb827656daf15e036652f713bc",
+  "status": "implemented-focused-host-tests-pass-parent-review-pending",
+  "gap": "No Play source, reader or testing response implementation; StoreStatusRequest accepts app-store-connect only.",
+  "apiContract": {
+    "request": "PlayTestingRequest(applicationID:versionCode:track:) validates exact identity and builds GET applications/{package}/tracks/{track}/releases. parse(words:options:applicationID:) accepts submit testing-status --provider play --version-code CODE --track TRACK [--directory PROJECT].",
+    "reader": "PlayReleaseStatus.status(request:token:previous:) async throws -> PlayTestingReport. Throws only for credential/identity reflection; operational failures return unresolved reports. Default ephemeral URLSession; offline URLProtocol test injection.",
+    "binding": "Exact request/response URL binds package and track; every summary must repeat exact track; exact integer versionCode in activeArtifacts; multiple matching releases refuse. Display releaseName never used as identity.",
+    "states": "Provider lifecycle draft/not-sent-for-review/in-review/approved-not-published/not-approved/published preserved. Missing, unspecified, unknown, malformed or contradictory matches fail closed. No match is not-observed, never proof upload failed or safe to resubmit.",
+    "testing": "PUBLISHED is published-on-track but testing readiness stays unverified because official state includes halted releases. Upload success is not accepted as a release response. Tester links, actual access and production availability remain unverified.",
+    "timeout": "Timeout/auth/transport/parse failures retain only an exact-identity previous observation as historical; current status unresolved, no testing-ready claim, no automatic resubmission.",
+    "bounds": "30s request/resource timeout; 256KiB streamed response; <=20 releases per official API; bounded JSON guard; no redirects, cookies, shared cache or credential storage; token excluded from results.",
+    "uploadResponseLimitation": "Missing/null releases fields, including an upload-shaped response, produce not-observed with exit 2 rather than published/ready. Unknown top-level fields are ignored by Decodable; exact explicit malformed-upload classification was optional and not adopted.",
+    "tokenHandling": "Token is used only for the Authorization header; identities overlapping token refuse before network. No token field or arbitrary provider display/error text is emitted or persisted. Finite known state constants are emitted; optional constant-string overlap screening was not adopted."
+  },
+  "officialSources": [
+    "https://developers.google.com/android-publisher/api-ref/rest/v3/applications.tracks.releases",
+    "https://developers.google.com/android-publisher/api-ref/rest/v3/applications.tracks.releases/list",
+    "https://developers.google.com/android-publisher/tracks",
+    "https://developers.google.com/android-publisher/edits"
+  ],
+  "testPlan": [
+    "each provider lifecycle",
+    "exact package URL, track and version identity refusals",
+    "unknown/contradictory/duplicate JSON",
+    "timeout after success retains history and no resubmit",
+    "auth/redirect/body cap",
+    "credential reflection"
+  ],
+  "resourceBudget": {
+    "maximumActualBuilds": 2,
+    "maximumMinutes": 15,
+    "buildJobs": 1,
+    "hostLogicalCPUs": 15,
+    "hostMemoryBytes": 51539607552,
+    "observedLoadAverage1m": 30.62,
+    "reason": "Host already loaded; focused package with one job avoids competing with active root lanes."
+  },
+  "limits": [
+    "No live provider calls, account operations, uploads, submissions, credentials changes, native runs, children, commits or pushes.",
+    "Full CLI target wiring and persistence remain parent-owned; slice tests exact new canonical source in focused SwiftPM harness.",
+    "No internal-testing-ready claim from PUBLISHED alone; future independent serving/tester evidence required."
+  ],
+  "contractAmendmentBeforeBuild": "Reader is async throws only for credential reflection (to avoid echoing a reflected identity in the report). Operational failures return structured unresolved reports.",
+  "capacityUpdate": {
+    "observedAt": "2026-11-12T19:26:00Z",
+    "logicalCPUs": 15,
+    "memoryGiB": 48,
+    "loadAverage1m": 29.27,
+    "swapUsedGiB": 11.7,
+    "jobs": 1,
+    "singleTargetCache": true
+  },
+  "focusedSourceManifest": {
+    "cli/Sources/MixerBuild/PlayReleaseStatus.swift": {
+      "sha256": "ce713149aee0fa48e6b8f23670e25dfb54f5fe107f8296707ea16ed55dd08966",
+      "bytes": 12837
+    },
+    "cli/Tests/MixerBuildTests/PlayReleaseStatusTests.swift": {
+      "sha256": "2513b19b51087a1bbafd2609027fa44ff0ca62b24a25f4a4759f16f495e622b6",
+      "bytes": 13361
+    },
+    "sdk/Sources/MixerCore/JSONInputGuard.swift": {
+      "sha256": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c",
+      "bytes": 8709
+    }
+  },
+  "testStartedAt": "2026-11-12T19:29:36.990903+00:00",
+  "completedAt": "2026-11-12T19:34:21.942226+00:00",
+  "finalSourcesMatchSuccessfulFirstBuild": true,
+  "toolchain": {
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "swiftDriver": "1.168.6",
+    "macOS": "27.0.1 (26A434)",
+    "target": "arm64-apple-macosx27.0.0",
+    "testTarget": "arm64e-apple-macos14.0",
+    "testingLibrary": "2403"
+  },
+  "verification": {
+    "commandRecord": "verification/local/play-testing-r1618/command.json",
+    "logs": {
+      "verification/local/play-testing-r1618/logs/build-test-1.log": {
+        "sha256": "e57cba87f804177b31fe29dffb82763881df6bc015b4e7176d8ae3a8135c808a",
+        "bytes": 2450
+      },
+      "verification/local/play-testing-r1618/logs/build-test-2.log": {
+        "sha256": "cf75bef941c4372a74aafb99a892268aefb834db4d2c950d96c1f56c5e4d113d",
+        "bytes": 7950
+      },
+      "verification/local/play-testing-r1618/logs/final-skip-build-tests.log": {
+        "sha256": "9b7f0e1f40af6fd84c175d844cf38b0471b050c90caaf5ffea00b4bc861c0aff",
+        "bytes": 1701
+      }
+    },
+    "sourceManifest": "verification/local/play-testing-r1618/source-manifest.json",
+    "actualBuilds": 2,
+    "attempts": [
+      {
+        "name": "build-test-1",
+        "sessionID": 96991,
+        "exitCode": 0,
+        "buildCompleted": true,
+        "testsPassed": 9,
+        "buildSeconds": 25.41,
+        "scope": "Exact new canonical Play source/tests plus unchanged canonical JSONInputGuard.swift; no whole CLI or SDK build."
+      },
+      {
+        "name": "build-test-2",
+        "sessionID": 17117,
+        "exitCode": 1,
+        "testsRan": false,
+        "adopted": false,
+        "reason": "Optional extra reflection/root-shape hardening failed compilation: throwing || expression not marked try. Entire optional changes reverted; no third build performed.",
+        "preservedCandidate": "verification/local/play-testing-r1618/rejected-hardening"
+      },
+      {
+        "name": "final-skip-build-tests",
+        "sessionID": 1134,
+        "exitCode": 0,
+        "buildCompleted": false,
+        "skipBuild": true,
+        "testsPassed": 9,
+        "finalCanonicalSHA256MatchesFirstBuild": true
+      }
+    ],
+    "testCases": [
+      "Exact package/track URL, GET-only request and version identity, published status with testing qualification denied",
+      "All six official lifecycle states, explicit human-action steps and rejection state",
+      "Success then timeout then same-identity rejection reconciliation, one request per call and no automatic resubmission",
+      "Historical observations cannot cross application, version or track",
+      "Mismatched package/track URL or body track refused; absent version not treated as upload failure",
+      "Unknown/unspecified state, duplicate matching releases/artifacts, malformed numeric versions, duplicate JSON keys, missing lifecycle and release limit refused",
+      "Upload response or empty release list cannot establish published/testing-ready state",
+      "Authentication, permission, not-found, rate-limit, server, redirect, MIME, streamed/advertised size and network failures explicit",
+      "Invalid identity/options/token and credential overlapping identity refused before query"
+    ],
+    "noLiveNetworkInTests": true,
+    "networkIsolation": "All URLSession requests intercepted by the owned URLProtocol, with no forwarding fallback.",
+    "dependencyChanges": false,
+    "newStandardDependencies": [],
+    "cleanup": {
+      "devicesStarted": 0,
+      "nativeRuns": 0,
+      "testCommandsReturned": true,
+      "existingProcessesQueried": false,
+      "signalsSent": false,
+      "heldNamespacesAccessed": false,
+      "ownedBuildCacheAndLogsRetained": "verification/local/play-testing-r1618",
+      "note": "No claim of unrelated process-group absence; no device or external-account cleanup needed."
+    },
+    "staging": "No files staged; staged-index artifact guard not applicable."
+  },
+  "parentIntegration": {
+    "location": "In MixerCLI main submit case, before the ASC-only StoreStatusRequest.parse call.",
+    "invocation": "mixer submit testing-status --provider play --version-code 42 --track qa [--directory PROJECT]",
+    "snippet": "if arguments.options[\"--provider\"] == \"play\" {\n    let app = try ApplicationConfiguration.load(root).application\n    let request = try PlayTestingRequest.parse(words: words, options: arguments.options, applicationID: app)\n    let report = try await PlayReleaseStatus().status(\n        request: request,\n        token: ProcessInfo.processInfo.environment[\"MIXER_PLAY_BEARER_TOKEN\"] ?? \"\"\n    )\n    try output(report)\n    exit(report.exitCode)\n}",
+    "errorHandling": "Map thrown PlayStatusFailure.invalidRequest/redactedResponse to structured CLI errors without emitting credential or arbitrary provider strings. Operational query failures already return report.code and exitCode.",
+    "async": "Parent must compile/review the await in top-level main; it is not wired or tested by this slice.",
+    "exitSemantics": "0 means current provider lifecycle is PUBLISHED on requested track, 2 means known pending or version not observed, 1 means failure/rejection/unresolved. Exit 0 does NOT qualify testing readiness, links or production.",
+    "history": "previous: PlayReleaseObservation? enables in-process historical retention. Durable cross-process Play observation storage is not implemented or qualified.",
+    "authority": "No CLI main, Package.swift, source authority or CLI118 bytes edited by this lane."
+  },
+  "remainingGates": [
+    "Parent independent slice review and parent-owned CLI wiring/full package integration test.",
+    "Provider/credential and actual-account validation not run or authorized.",
+    "Internal testing serving state, tester enrollment/access and actual testing links require additional evidence; PUBLISHED alone includes halted/partial rollouts.",
+    "No production availability, physical-device, release or GA acceptance."
+  ],
+  "scopeOwned": [
+    "cli/Sources/MixerBuild/PlayReleaseStatus.swift",
+    "cli/Tests/MixerBuildTests/PlayReleaseStatusTests.swift",
+    "verification/local/play-testing-r1618",
+    "verification/receipts/play-testing-r1618.json"
+  ]
+}

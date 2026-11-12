@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "campaign": "native-report-renderer-fix-r1672",
+  "observed_at": "2026-11-12T20:36:44.666657+00:00",
+  "status": "PRIVATE_HOST_PASS_NATIVE_PENDING",
+  "repository_revision": "8ee63e6350dc895dd34891a35acd256e38371742",
+  "scope": "Actual Java production owner/renderer with existing controlled Android/JNI leaves; R992 source-derived model; no native runtime qualification",
+  "runtime_host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python_version": "3.14.8",
+  "public_sdk_pin": "8efc1a9e5b1602117f8211c95bfd4203cc91f689",
+  "canonical_renderer_before_after": {
+    "path": "native/android/app/src/dev/mixer/android/NativeRenderer.java",
+    "bytes": 113138,
+    "sha256": "a065e2bef70d9ed886fd09fc29357318360a9ad14e4b98bb9d21f1784eb8c1d3"
+  },
+  "canonical_renderer_unchanged": true,
+  "patch_lines_added": 23,
+  "patch_lines_removed": 1,
+  "root_cause": "retainedMeasuredFrameV3 recognized existing-node measurement changes but omitted measured preceding text insertion/removal; horizontal model handoff also omitted this source-frame-validated layout path",
+  "baseline": {
+    "expected_refusals": 3,
+    "guard": "NativeRenderer.preflightEditorsV2 retainedFieldUpdateV3 false",
+    "saved_case": {
+      "binding": true,
+      "ancestry": true,
+      "complete_candidate": true,
+      "source_frame_before": true,
+      "source_frame_after": true,
+      "handoff_value": false,
+      "retained_measured_frame": false,
+      "absolute_y_before": 1298,
+      "absolute_y_after": 1434
+    },
+    "diagnostic_instrumentation_only": true,
+    "raw_log": "verification/local/native-report-fix-r1672/baseline/002-controls.stdout"
+  },
+  "candidate": {
+    "report_cases": 18,
+    "existing_measured_cases": 17,
+    "existing_preservation_cases": 5,
+    "total_cases": 40,
+    "total_checks": 323,
+    "all_passed": true,
+    "raw_log": "verification/local/native-report-fix-r1672/candidate/002-controls.stdout"
+  },
+  "budget_used": {
+    "compiler_batches": 2,
+    "jvm_control_runs": 2,
+    "started_utc": "2026-11-12T20:27:42Z",
+    "completed_within_12_minutes": true
+  },
+  "runs": [
+    {
+      "name": "baseline",
+      "status": "PASS",
+      "commands": "verification/local/native-report-fix-r1672/baseline/commands.json",
+      "result": "verification/local/native-report-fix-r1672/baseline/result.json",
+      "source_manifest": {
+        "path": "verification/local/native-report-fix-r1672/baseline/complete-source-sha256.json",
+        "bytes": 16577,
+        "sha256": "5b2795d73fda2522d41ca2b4ad4bd37af92da920eafd757beea8a78dc9a62920"
+      },
+      "compiler_version": "javac 25.0.4.1",
+      "compiler_batches": 1,
+      "jvm_control_runs": 1,
+      "cleanup": {
+        "allTerminalCustody": true,
+        "hold": null,
+        "scratchRemoved": true,
+        "aggregateBytes": 956,
+        "aggregateLimit": 67108864
+      },
+      "groups": [
+        {
+          "label": "javac-version",
+          "pid": 57171,
+          "pgid": 57171,
+          "exit_code": 0,
+          "terminal_custody": true
+        },
+        {
+          "label": "compile",
+          "pid": 57193,
+          "pgid": 57193,
+          "exit_code": 0,
+          "terminal_custody": true
+        },
+        {
+          "label": "controls",
+          "pid": 57406,
+          "pgid": 57406,
+          "exit_code": 0,
+          "terminal_custody": true
+        }
+      ]
+    },
+    {
+      "name": "candidate",
+      "status": "PASS",
+      "commands": "verification/local/native-report-fix-r1672/candidate/commands.json",
+      "result": "verification/local/native-report-fix-r1672/candidate/result.json",
+      "source_manifest": {
+        "path": "verification/local/native-report-fix-r1672/candidate/complete-source-sha256.json",
+        "bytes": 17106,
+        "sha256": "fa8a138e2fae85528023ade5bc7849c6cf6d77ee102e22898b460e308c1423d1"
+      },
+      "compiler_version": "javac 25.0.4.1",
+      "compiler_batches": 1,
+      "jvm_control_runs": 1,
+      "cleanup": {
+        "allTerminalCustody": true,
+        "hold": null,
+        "scratchRemoved": true,
+        "aggregateBytes": 1850,
+        "aggregateLimit": 67108864
+      },
+      "groups": [
+        {
+          "label": "javac-version",
+          "pid": 82235,
+          "pgid": 82235,
+          "exit_code": 0,
+          "terminal_custody": true
+        },
+        {
+          "label": "compile",
+          "pid": 82425,
+          "pgid": 82425,
+          "exit_code": 0,
+          "terminal_custody": true
+        },
+        {
+          "label": "controls",
+          "pid": 85470,
+          "pgid": 85470,
+          "exit_code": 0,
+          "terminal_custody": true
+        }
+      ]
+    }
+  ],
+  "new_holds": [],
+  "fixtures": [
+    {
+      "path": "verification/local/native-report-fix-r1672/fixture-inputs/descriptor.json",
+      "bytes": 9587,
+      "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/fixture-inputs/before-public-reset/00.json",
+      "bytes": 2255,
+      "sha256": "31880552820db7a1e9442e3f74aada996554e9646547a1c54cee6e6dd60da72d"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/fixture-inputs/before-public-reset/04.json",
+      "bytes": 3537,
+      "sha256": "a24c606762b745fbc2086e4ac24860e7b92342928a33176318e7486a858ac1a7"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "verification/local/native-report-fix-r1672/afterimage/NativeRenderer.java",
+      "bytes": 114521,
+      "sha256": "f23b3f4ddcc2503f9b5ef00f88f3f6ccb40882e0fbbce97789a5a8ff7b868b51"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/NativeRenderer.patch",
+      "bytes": 2661,
+      "sha256": "28934a024bfe0980bb2785d0b991dd653be3f6324859672741e21c62ffd6cb27"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/ReportBoundaryHostTests.java",
+      "bytes": 11272,
+      "sha256": "fc70ebec6c0eb429846efba05ae567de02e052741b6ab5ab06b05c7d8b045c42"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/run.py",
+      "bytes": 3950,
+      "sha256": "6fa5adf63fe0cdabb866dd22ceb5f57dc2689497a4e8bc583858fad90adda449"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/REPORT.md",
+      "bytes": 4433,
+      "sha256": "7a128346a2c3bf856c052bb2678a8cf7097ca50e4ba15ec748ffccf1c515631c"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/REPACK-PLAN.md",
+      "bytes": 4298,
+      "sha256": "9d6047731363db0431639df5fddf601dc9939e5f8aaeb090e4bc82acce232d72"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/R992-repack-input-proof.json",
+      "bytes": 4287,
+      "sha256": "530ffcbbcf14901f27fa95c8d93d44bae2818ceffcad92dcb8bd695921603737"
+    },
+    {
+      "path": "verification/local/native-report-fix-r1672/R992-java-build-commands.json",
+      "bytes": 60181,
+      "sha256": "fc15e539c01aa0ff95637e7aa6469ff9ce89496dda552ce58adf2e5ed187efc0"
+    }
+  ],
+  "r992": {
+    "apk": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/fieldlog-report-final-android-r992/FieldLogGenerated/.mixer/android-build/FieldLogGenerated-unsigned.apk",
+    "apk_sha256": "9f5c4381a061801af86c319f16551342ee29b91c7b2276f07afd9d3702e4e275",
+    "source_zip": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/fieldlog-report-final-android-r992/FieldLog-r974-app-source.zip",
+    "source_zip_sha256": "b9b725460ccb69e78cc4962217b089ebc323ce2fc3244f48a451a38fcdeb472b",
+    "original_apk_all_entries_verified_against_r992_receipt": true,
+    "native_library_count": 18,
+    "candidate_repack_built": false
+  },
+  "pending_parent_owned": [
+    "One independent slice review",
+    "Java/DEX-only Android build and repack with all 18 native-library payload hashes unchanged",
+    "One remaining fresh postfix native payload under R1664 campaign"
+  ],
+  "limitations": [
+    "Frames are derived from the canonical saved C-entry packet and exact R992 source model, not captured failing native packets.",
+    "Android Layout metrics and JNI are controlled host leaves.",
+    "No chooser START, receiver JSON, native acceptance, published-package qualification, or GA claim.",
+    "Existing regression controls ran within this task and are not independent review."
+  ],
+  "mutations": {
+    "canonical_source": false,
+    "cli_or_profile_metadata": false,
+    "commits_or_pushes": false,
+    "original_apk_or_source_zip": false,
+    "native_or_emulator_operations": false,
+    "subchildren": false
+  }
+}

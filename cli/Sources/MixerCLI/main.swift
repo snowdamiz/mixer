@@ -12,7 +12,7 @@ struct Arguments {
             if value == "--help" { positional.append("help") }
             else if value == "--json" { json = true }
             else if value.hasPrefix("--") {
-                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
                 index += 1; options[value] = values[index]
             } else { positional.append(value) }
             index += 1
@@ -48,6 +48,10 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
     [--directory PROJECT]
   mixer submit testing-status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID
     [--directory PROJECT]
+  mixer submit testing-status --provider play --version-code CODE --track TRACK
+    [--directory PROJECT]
+    Read-only; uses mixer.yml application and MIXER_PLAY_BEARER_TOKEN.
+    Published-on-track does not establish tester access or testing readiness.
   mixer gates
 
 All commands emit structured JSON. Build/test errors preserve compiler diagnostics.
@@ -72,7 +76,7 @@ do {
         "build": ["--directory", "--platform"], "test": ["--directory", "--platform"],
         "run": ["--directory", "--device"], "import": ["--output"],
         "release": ["--directory"], "export": ["--directory"],
-        "submit": ["--provider", "--build-id", "--app-id", "--directory"]
+        "submit": ["--provider", "--build-id", "--app-id", "--version-code", "--track", "--directory"]
     ]
     guard Set(arguments.options.keys).isSubset(of: allowedOptions[words.first ?? "help"] ?? []) else { throw MixerFailure("arguments.unused-option", "An option does not apply to this command.") }
     let root = path(arguments.options["--directory"] ?? ".")
@@ -135,6 +139,17 @@ do {
         try output(result)
         if !result.succeeded { exit(1) }
     case "submit":
+        if arguments.options["--provider"] == "play" {
+            let applicationID: String
+            do { applicationID = try ApplicationConfiguration.load(root).application }
+            catch { throw MixerFailure("play.configuration-invalid", "Play status requires a valid application configuration.") }
+            let request = try PlayTestingRequest.parse(words: words, options: arguments.options, applicationID: applicationID)
+            let report = try await PlayReleaseStatus().status(
+                request: request,
+                token: ProcessInfo.processInfo.environment["MIXER_PLAY_BEARER_TOKEN"] ?? ""
+            )
+            try output(report); exit(report.exitCode)
+        }
         let request = try StoreStatusRequest.parse(words: words, options: arguments.options)
         if words == ["submit", "testing-status"] {
             let report = try StoreReconciliation.testingStatus(request: request, directory: root)
@@ -146,6 +161,21 @@ do {
         throw MixerFailure("workflow.not-qualified", "\(words[0]) requires native/guest/store integration that is still in progress. No build, release or submission has been performed. See mixer gates.")
     default: throw MixerFailure("arguments.command", "Unknown command: \(words[0]). Run mixer help.")
     }
+} catch let failure as PlayStatusFailure {
+    let code: String
+    let message: String
+    switch failure {
+    case .invalidRequest:
+        code = "play.invalid-request"
+        message = "Usage: mixer submit testing-status --provider play --version-code CODE --track TRACK [--directory PROJECT]."
+    case .redactedResponse:
+        code = "play.redacted-response"
+        message = "Play status cannot safely report this request."
+    default:
+        code = "play.status-failed"
+        message = "Play status could not be resolved."
+    }
+    try? output(FailureOutput(code: code, message: message)); exit(1)
 } catch let failure as MixerFailure {
     try? output(FailureOutput(code: failure.code, message: failure.description)); exit(1)
 } catch {

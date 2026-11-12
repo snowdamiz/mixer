@@ -1,0 +1,28 @@
+{
+  "id": "native-report-boundary-selection-r1664",
+  "recordedUTC": "2026-11-12T20:19:34Z",
+  "priorFailures": [
+    "R1650",
+    "R1660"
+  ],
+  "bothPriorCleanups": "all exact ownedgroupsabsent; userdata/testkeysremoved",
+  "premise": "A visible report tap reaches Android chooser before native app content disappears",
+  "hypotheses": {
+    "beforeChooser": "app event/frame/owner pipeline fails before any CHOOSER START",
+    "afterChooser": "chooser starts then Activity/native-owner lifetime or rendering fails"
+  },
+  "discriminator": "clear only newly owned device log buffers immediately before tap; capture complete bounded logs at0.5s, original Activity/PID and post-state; preserve first empty app root",
+  "bounds": {
+    "freshPayloads": 2,
+    "first": "R1664 unchangedAPKs diagnostics",
+    "second": "Only if a concrete source correction is justified",
+    "bootSeconds": 150,
+    "wholeSeconds": 480,
+    "emulatorCores": 2,
+    "nice": 10,
+    "defaultPoliciesChanged": false
+  },
+  "priorHeldResourcesUsed": false,
+  "physicalPhones": false,
+  "GA": false
+}

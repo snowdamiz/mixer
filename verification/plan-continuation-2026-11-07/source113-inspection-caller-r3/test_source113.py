@@ -26,7 +26,7 @@ class Source113(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.work = Path(self.temp.name)
         self.base = a.bind()
-        self.frozen = json.loads((HERE/'source-inputs.json').read_text())
+        self.frozen = json.loads((HERE/'current-source-inputs.json').read_text())
     def project(self):
         p = self.work/'source'
         for name in self.frozen:
@@ -50,7 +50,7 @@ class Source113(unittest.TestCase):
         actual = owner.source_inputs(owner.load_profile(ROOT))
         self.assertEqual(actual, self.frozen)
         source = json.loads((HERE / 'binding.json').read_text())['source']
-        self.assertEqual(source['manifest'], 'source-inputs.json')
+        self.assertEqual(source['manifest'], 'current-source-inputs.json')
         digest = hashlib.sha256(''.join(
             path + '\0' + row['sha256'] + '\n'
             for path, row in sorted(self.frozen.items())).encode()).hexdigest()
@@ -105,7 +105,7 @@ class Source113(unittest.TestCase):
         owner = b.canonical()
         actual = owner.source_inputs(owner.load_profile())
         binding = json.loads((HERE/'binding.json').read_bytes())
-        predecessor = a.cli_advisory_predecessor(self.base, binding, actual, owner)
+        predecessor = a.cli_advisory_predecessor(self.base, binding, a.play_cli_predecessor(self.base, binding, actual, owner), owner)
         from types import SimpleNamespace
         historical_authority = SimpleNamespace(source_inputs=lambda profile: predecessor, source_digest=owner.source_digest)
         self.assertEqual(b.admit_source_inputs(owner, owner.load_profile()), actual)
@@ -116,7 +116,7 @@ class Source113(unittest.TestCase):
         self.assertEqual((b.SOURCE_INPUT_COUNT, b.SOURCE_INPUT_SHA256), (source['count'], source['sha256']))
         # Reconstruct the independently pinned old bootstrap, retaining its refusal.
         transition = binding['cli_advisory_caller_transition']
-        raw = (HERE.parent/'generated-java-ci-integration/bootstrap.py').read_bytes()
+        raw = a.play_cli_bootstrap_predecessor(self.base, (HERE.parent/'generated-java-ci-integration/bootstrap.py').read_bytes())
         old = raw.replace(transition['sourceAfter'].encode(), transition['sourceBefore'].encode(), 1)
         self.assertEqual({'bytes':len(old), 'sha256':hashlib.sha256(old).hexdigest()}, transition['before'])
         namespace = {'__file__':str(HERE.parent/'generated-java-ci-integration/bootstrap.py'), '__name__':'old_bootstrap_control'}
