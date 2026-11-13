@@ -22,7 +22,12 @@
       "currentReadiness": {
         "observedOn": "2026-11-13T12:39:34.290339+00:00",
         "mainBeforeUpdate": "658fd3034fb7e9ba3176987c10d83da8c4ed484f",
-        "activeTasks": {},
+        "activeTasks": {
+          "R2324": "customer-create-expiry-ci-r2324",
+          "R2326": "customer-create-worker-join-r2326",
+          "R2328": "ci-discovery-source-v23-r2328",
+          "R2330": "ci-discovery-fix-review-r2330"
+        },
         "capacity": {
           "cpus": 15,
           "loadAverage": [
@@ -5522,7 +5527,9 @@
         "receipt": "verification/receipts/customer-create-source-review-r2292.json"
       },
       "pending": [
-        "coherent main delivery and fresh hosted CI",
+        "isolated-network CI first failure and correction if proven",
+        "Phoenix and engine terminal CI evidence",
+        "worker terminal integration",
         "external-provider provenance and production activation",
         "all specified GA acceptance"
       ],
@@ -5545,7 +5552,75 @@
         "bytes": 926401653,
         "budgetBytes": 1073741824,
         "beforeFinalReleaseReceipt": true
+      },
+      "delivery": {
+        "head": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+        "receipt": "verification/receipts/customer-create-delivery-r2302.json",
+        "latestHostedRuns": [
+          {
+            "conclusion": "success",
+            "head_sha": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+            "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43427406149",
+            "id": 43427406149,
+            "name": "Console checks",
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+            "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43427406034",
+            "id": 43427406034,
+            "name": "Verification artifact retention",
+            "status": "completed"
+          },
+          {
+            "conclusion": "failure",
+            "head_sha": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+            "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43427406187",
+            "id": 43427406187,
+            "name": "Isolated identity network checks",
+            "status": "completed"
+          },
+          {
+            "conclusion": null,
+            "head_sha": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+            "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43427406152",
+            "id": 43427406152,
+            "name": "Owned engine checks",
+            "status": "in_progress"
+          },
+          {
+            "conclusion": null,
+            "head_sha": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+            "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43427406157",
+            "id": 43427406157,
+            "name": "Phoenix foundation checks",
+            "status": "in_progress"
+          }
+        ]
+      },
+      "hostedFullSuite": {
+        "passed": 899,
+        "failed": 1,
+        "existingSkips": 2,
+        "receipt": "verification/receipts/hosted-v22-ci-failure-r2322.json"
+      },
+      "consoleCI": {
+        "passed": 219,
+        "omittedNewCases": 58,
+        "privateDiscoveryFixPassed": 277,
+        "receipt": "verification/receipts/console-test-discovery-r2314.json"
       }
+    },
+    "currentFloatRounding": {
+      "source": "vm/tests/differential_float_rounding_consuming.rs",
+      "sourceSHA256": "0fa1233913fbc95c1ab15b07e5bac79216d21c4b6995fbd6179c52892c1e23e7",
+      "scalarComparisons": 352,
+      "consumingCleanup": 64,
+      "environmentRefusals": 30,
+      "receipt": "verification/receipts/vm-float-rounding-root-r2334.json",
+      "scope": "local macOS debug",
+      "GA": false
     }
   },
   "packages": [
@@ -22679,6 +22754,16 @@
         "receipt": "verification/receipts/continuation-r1626.json",
         "current": "Indirect and bulk differential slices delivered; local consuming cleanup passes. Fresh combined-feature execution audit and new float conversions underway; full W07/W08 and GA pending.",
         "GA": false
+      },
+      "currentFloatRounding": {
+        "source": "vm/tests/differential_float_rounding_consuming.rs",
+        "sourceSHA256": "0fa1233913fbc95c1ab15b07e5bac79216d21c4b6995fbd6179c52892c1e23e7",
+        "scalarComparisons": 352,
+        "consumingCleanup": 64,
+        "environmentRefusals": 30,
+        "receipt": "verification/receipts/vm-float-rounding-root-r2334.json",
+        "scope": "local macOS debug",
+        "GA": false
       }
     },
     {
@@ -23870,7 +23955,17 @@
       "pendingMigrationOutboxReview": "The cumulative Worker Engine null-outbox correction passes fresh independent workerd/SQLite review: 37/37 controls, zero findings, exact source/compiled bindings and all 37 owned stores removed. Root accepts it for isolated entry integration; live Engine/entry deployment remains pending. The entry implementation is now wiring pre-registration, retained Engine initialization and scheduled audit under the existing contract. See docs/hosted-worker-pending-migration-outbox-review.md.",
       "pendingEntryIntegrationCandidate": "The isolated pending-registry entry composition passes 922 groups: 45 new entry controls, 71 controller compatibility groups, 769 accepted Engine regressions, 17 registry controls and 20 process-identity controls. Root verifies 528 artifacts. Production dependencies remain unavailable; the exact four-method DO surface and fixed scheduled audit are composed locally. Earlier failed attempts and narrowly approved legacy-test adaptations remain explicit. Fresh independent entry review is underway before live integration. See docs/hosted-worker-pending-entry-integration.md.",
       "pendingEntryIncompleteReview": "Independent entry review passes 45 baseline and 20 of 21 new local controls, reproducing a rejected-enrollment context-selection defect. Its turn then stops on an automated safety check; source/surface/schedule audits remain incomplete and no acceptance is granted. Root verifies 89 preserved artifacts and cleanup of 66 stores/81 PIDs. A separate defensive row-validation-before-context correction is underway; live integration remains withheld. See docs/hosted-worker-pending-entry-integration-review.md.",
-      "pendingEntryContextCorrection": "The isolated existing-row context-admission correction passes all 79 selected functional groups. Root rehashes 114 artifacts, 18 production sources and 16 reachable compiled files, and reviews the minimal source/compiled ordering fix. Rejected input creates no Engine and later correct enrollment succeeds on the same object. The earlier independent entry review remains incomplete; it has not been retried, and live integration remains withheld. See docs/hosted-worker-entry-context-admission.md and verification/hosted-worker-entry-context-admission-root-review/source-review.json."
+      "pendingEntryContextCorrection": "The isolated existing-row context-admission correction passes all 79 selected functional groups. Root rehashes 114 artifacts, 18 production sources and 16 reachable compiled files, and reviews the minimal source/compiled ordering fix. Rejected input creates no Engine and later correct enrollment succeeds on the same object. The earlier independent entry review remains incomplete; it has not been retried, and live integration remains withheld. See docs/hosted-worker-entry-context-admission.md and verification/hosted-worker-entry-context-admission-root-review/source-review.json.",
+      "currentDevelopment": {
+        "head": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+        "customerCreate": "Delivered authenticated atomic create/replay/rollback, admitted-input listing and console selection",
+        "backendPassed": 900,
+        "frontendPassed": 277,
+        "browserSQL": "PASS controlled provider",
+        "productionControls": 35,
+        "activationOrGA": false,
+        "receipt": "verification/receipts/customer-create-delivery-r2302.json"
+      }
     },
     {
       "id": "W13",
@@ -27930,6 +28025,16 @@
         "receipt": "verification/receipts/continuation-r1626.json",
         "current": "Current compiled console has 193 passing tests and actual controlled-fixture browser evidence for queued detail, failed refresh and empty application reset. Real backend/auth and commercial/provider qualification remain pending.",
         "GA": false
+      },
+      "currentDevelopment": {
+        "head": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+        "customerCreate": "Delivered authenticated atomic create/replay/rollback, admitted-input listing and console selection",
+        "backendPassed": 900,
+        "frontendPassed": 277,
+        "browserSQL": "PASS controlled provider",
+        "productionControls": 35,
+        "activationOrGA": false,
+        "receipt": "verification/receipts/customer-create-delivery-r2302.json"
       }
     },
     {

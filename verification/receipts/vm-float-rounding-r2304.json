@@ -1,0 +1,197 @@
+{
+  "id": "vm-float-rounding-r2304",
+  "status": "BUILD_FAILED_STATIC_FIX_UNVERIFIED_NO_RETRY",
+  "source_revision_reported_by_root": "5e6dd01a54e4ff559fdf2c36399dfd7e891c0319",
+  "custodian_source_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "scope": {
+    "git_index_API_mutations": false,
+    "native_runs": false,
+    "W08_complete": false,
+    "GA_complete": false,
+    "authority_changes": false,
+    "subagents": false
+  },
+  "retained_directory": "verification/local/vm-float-rounding-r2304",
+  "builds_attempted": 1,
+  "corpus_invocations_attempted": [],
+  "limitations": [
+    "macOS arm64 debug experimental-swift-reactor development evidence only",
+    "The new integration target was selected for the one build; compilation failed and no tests executed. All 48 manifest targets including examples were admitted as existing source paths only.",
+    "No physical devices, release builds, sanitizers, W08 completion or GA qualification",
+    "Rounding is nontrapping; no deliberate trap case added",
+    "Independent slice review and Git/index integration remain root-owned",
+    "Unix environment harness; other hosts remain unvalidated",
+    "Canonical one-line type correction is uncompiled and unexecuted; consuming cleanup and all parity/environment cases remain unverified in this campaign."
+  ],
+  "tool_paths": {
+    "cargo": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+    "rustc": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+    "rustfmt": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+    "node": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node"
+  },
+  "tool_binary_hashes": {
+    "cargo": {
+      "bytes": 32181448,
+      "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+    },
+    "rustc": {
+      "bytes": 413480,
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+    },
+    "rustfmt": {
+      "bytes": 4473176,
+      "sha256": "5f552ee4d89172baa898b816c56dd5448f4060436d979ba8690d6007833996dd"
+    },
+    "node": {
+      "bytes": 112925600,
+      "sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b"
+    }
+  },
+  "tools": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "rustfmt": "rustfmt 1.10.0-stable (b940084d7e 2026-09-28)",
+    "node": "v22.23.3"
+  },
+  "source_manifest": {
+    "bytes": 76959,
+    "sha256": "6352fe8a03136614b8ab23331a777868786d2af19d3ad3261c4187087bd008ac"
+  },
+  "source_files": 462,
+  "source_tree_digest_sha256": "d0763fa6d7b663df7ab54a78dee5e81d44914c5cb8fab26807e4ce21613eb846",
+  "target_admission": {
+    "count": 48,
+    "all_paths_exist": true,
+    "examples_included": true,
+    "manifest": {
+      "bytes": 17363,
+      "sha256": "518a50041df4200e3893e1636e7bca8b7d74308201bd5dd7cd318328adc86830"
+    }
+  },
+  "failure": {
+    "type": "AssertionError",
+    "message": "build",
+    "compiler_code": "E0308",
+    "location": "tests/differential_float_rounding_consuming.rs:418",
+    "cause": "fixture::signed takes i32; attempted caller supplied i64",
+    "build_exit_code": 101
+  },
+  "cleanup": {
+    "managed_commands": 7,
+    "all_direct_reaped_bothEOF_closedFDs_ESRCH": true,
+    "unknown": false,
+    "owned_target_cache_removed": true,
+    "source_logs_tmp_and_uncompiled_correction_retained": true,
+    "historical_holds_touched": false
+  },
+  "elapsed_seconds": 199.38875126838684,
+  "command_registry": {
+    "path": "verification/local/vm-float-rounding-r2304/logs/commands.json",
+    "bytes": 3585,
+    "sha256": "916cb4c8914408f79260b9c5ec5e17da26044e1f4138c89c5890594db22cd35d"
+  },
+  "artifact_manifest": {
+    "bytes": 83018,
+    "sha256": "c971705ee144e80b30ef8986184b3c7d370dec79010eb5632252261fae7cc6f1"
+  },
+  "attempted_test_source": {
+    "bytes": 25379,
+    "sha256": "e6ab87285eb6909c26e633c39aa8a16632bfce963cd415603dc56a0a38b1243c"
+  },
+  "test_source": {
+    "bytes": 25379,
+    "sha256": "0fa1233913fbc95c1ab15b07e5bac79216d21c4b6995fbd6179c52892c1e23e7"
+  },
+  "static_correction": {
+    "file": "vm/tests/differential_float_rounding_consuming.rs",
+    "description": "Use the fixture signed helper i32 address type; addresses are bounded 32..120",
+    "compiled": false,
+    "executed": false,
+    "diff": {
+      "bytes": 259,
+      "sha256": "2f8397ecd2879fdc769c74e27deda19232fd31e647188df34f5fd1f8a512bbc4"
+    }
+  },
+  "observed_results": {
+    "fresh_debug_builds": 1,
+    "successful_builds": 0,
+    "exact_parent_invocations": 0,
+    "blanket_ignored_invocations": 0,
+    "consuming_runtimes": 0,
+    "oracle_invocations": 0,
+    "environment_controls": 0,
+    "cleanup_zero14_tickets0": 0,
+    "replay_binary": null
+  },
+  "planned_coverage_not_execution": {
+    "original_modules": 32,
+    "widths": [
+      "f32",
+      "f64"
+    ],
+    "operations": [
+      "ceil",
+      "floor",
+      "trunc",
+      "nearest"
+    ],
+    "scalar_results": 176,
+    "bit_exact_results": 144,
+    "canonical_nan_class_results": 16,
+    "arithmetic_nan_class_results": 16,
+    "environment_controls_per_parent": 15,
+    "groups": [
+      "signed zeros",
+      "positive and negative fractional ties and non-ties, subnormals",
+      "maximum finite integrals and infinities",
+      "positive and negative canonical, quiet payload and signaling NaNs"
+    ]
+  },
+  "replay_binary": {
+    "available": false,
+    "reason": "integration test compilation failed before a test executable existed"
+  },
+  "canonical_test_equals_tested_snapshot": false,
+  "retained_attempted_source": "verification/local/vm-float-rounding-r2304/source/tests/differential_float_rounding_consuming.rs",
+  "raw_build_outputs": {
+    "stdout": {
+      "bytes": 8282,
+      "sha256": "de0efb2ba663af86179966325afa31f1015a9a3c5768707907fb040764ec99f1"
+    },
+    "stderr": {
+      "bytes": 299,
+      "sha256": "17e0f2cbd3338cfc6e41a5f0213d055b30a40aca1962e8cc8cce3c2817e73491"
+    }
+  },
+  "baseline_architecture_inputs": {
+    "vm/tests/differential_float_selection_consuming.rs": {
+      "bytes": 21369,
+      "sha256": "170cd453f1cd5e2bdba0a0290e3fd501acae729bc74f1672cdb708ce28bd9757"
+    },
+    "vm/tests/differential_integer_width_consuming.rs": {
+      "bytes": 17782,
+      "sha256": "eab014150849462da94cfa40d1f1d9ba0bcaa944d8ec959a99245b99c863bc39"
+    },
+    "vm/tests/swift_reactor_validation_fixture.rs": {
+      "bytes": 7150,
+      "sha256": "0d57c4a9d14cb48a7e729061465f19b5919cba28ae16971f640c91cbcf4d7e46"
+    },
+    "vm/tests/float.rs": {
+      "bytes": 15436,
+      "sha256": "b2545ad07317b889dd485377732d459434ff83a8c2a8b12decfebae6b7c1ec82"
+    },
+    "vm/tests/float_differential.rs": {
+      "bytes": 14079,
+      "sha256": "0dd30f053dbd2317ea42967ec5f25982029405e7fb0b9f0d7467070798bfc405"
+    },
+    "vm/src/float.rs": {
+      "bytes": 13748,
+      "sha256": "fa29916b49301247c19c0fe09157cbb69168de5a0fbf14d9fc58f59fe1249439"
+    },
+    "vm/Cargo.toml": {
+      "bytes": 995,
+      "sha256": "d408b1429bd9d8cc5c837eecaffc14b2630df2d7060a95a09940f430837a12be"
+    }
+  }
+}
