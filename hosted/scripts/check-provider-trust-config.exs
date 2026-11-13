@@ -17,8 +17,12 @@ inputs = [
   "hosted/lib/mixer_hosted/browser_auth/config.ex",
   "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
   "hosted/lib/mixer_hosted/runtime_config.ex",
-  "hosted/lib/mixer_hosted/browser_auth/installation.ex",
-  "hosted/lib/mixer_hosted/browser_auth/provider_trust_config.ex"
+  "hosted/lib/mixer_hosted/browser_auth/vault.ex",
+  "hosted/lib/mixer_hosted/browser_auth/custody.ex",
+  "hosted/lib/mixer_hosted/browser_auth/runtime_config.ex",
+  "hosted/lib/mixer_hosted/browser_auth/provider_trust_config.ex",
+  "hosted/lib/mixer_hosted/browser_auth/startup_secrets.ex",
+  "hosted/lib/mixer_hosted/browser_auth/installation.ex"
 ]
 
 Enum.each(inputs, &Code.require_file(Path.join(root, &1)))
