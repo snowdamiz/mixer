@@ -1,0 +1,207 @@
+{
+  "id": "R2456",
+  "status": "UNACCEPTED_PRIVATE_FIX_COMPILE_AND_RUNTIME_PENDING",
+  "started_epoch": 1794581422.515646,
+  "runtime_batch_limit": 3,
+  "strict_compile_limit": 2,
+  "wall_limit_seconds": 900,
+  "strict_compiles": 2,
+  "runtime_batches": 2,
+  "PG_launches": 1,
+  "PG_stops": 1,
+  "port": 39830,
+  "scope": "R2448 first-snapshot isolation regression and private five-file candidate",
+  "no_product_or_dependency_BEAM_reused": true,
+  "elapsed_seconds": 367.065,
+  "strict_compile": "PASS",
+  "postgres": {
+    "pid": 80822,
+    "pgid": 80822,
+    "state": "TERMINAL",
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-policy-order-r2456/pgdata",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "39830",
+      "-k",
+      "",
+      "-c",
+      "timezone=UTC"
+    ],
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-policy-order-r2456/pgdata",
+    "output_kind": "regular_files",
+    "direct_reaped": true,
+    "group_absent": true,
+    "absence_errno": 3,
+    "exit": 0,
+    "closedFDs": true,
+    "pipe_EOF": "not applicable; regular files"
+  },
+  "SQL_readiness_before_DDL": "SELECT1 and exact SHOW data_directory PASS",
+  "baseline_isolation_exit": 2,
+  "first_boundary": "AssertionError('baseline diagnostic failed')",
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-policy-order-r2456/run.py\", line 91, in <module>\n    assert code==0,'baseline diagnostic failed'\n           ^^^^^^^\nAssertionError: baseline diagnostic failed\n",
+  "port_reusable": true,
+  "owned_pgdata_removed": true,
+  "commands_all_terminal": true,
+  "raw_first_boundary": "AssertionError('baseline diagnostic failed')",
+  "baseline_runtime_proof": "NOT_OBTAINED: harness invalid idempotency keys contained spaces; no authorization transaction observed",
+  "corrected_test_runtime": "PENDING; one PG launch exhausted",
+  "candidate_error": "AssertionError('candidate-strict-compile')",
+  "harness_diagnostic": "PASS actual unchanged CreateInput.id?: keys containing spaces rejected; corrected keys accepted; corrected test syntax parsed only",
+  "candidate_strict_compile": "FAIL: unchanged frozen RelationManifest rejects new Session source hash",
+  "acceptance": "NOT_ADMITTED",
+  "actual_runtime": {
+    "baseline": "FAIL harness assertion, 0/1 passed, 2 original cases excluded; no RC/RR/Serializable regression proof obtained",
+    "candidate_defaults": "UNRUN",
+    "candidate_original_HTTP2": "UNRUN",
+    "SQL_early_exclusive_serialization": "UNRUN; R2420 historical baseline preserved",
+    "harness_diagnosis": "PASS actual unchanged CreateInput.id? on original/corrected keys; corrected module syntax only PASS"
+  },
+  "minimal_fix": {
+    "product_paths": 5,
+    "incremental_product_paths": 2,
+    "Session_owns_policy": true,
+    "generic_after_policy_before_identity_hook": true,
+    "policy_settings_and_early_exclusive_order": "preserved by source inspection; runtime pending",
+    "no_skip_boolean_or_feature_dependency_in_Session": true
+  },
+  "source": {
+    "root_revision_user_supplied": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+    "frozen_source_v24_count": 331,
+    "frozen_source_v24_digest": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+    "source_files": 285,
+    "complete_product_files": 137,
+    "frozen_R2430_all_four_rows_preserved": true,
+    "canonical_product137_original": true,
+    "no_canonical_index_Git_authority_provider_native_writes": true,
+    "frozen_relation_profiles_unchanged": true
+  },
+  "custody": {
+    "registries": {
+      "commands-runtime": 13,
+      "commands-outer": 1,
+      "commands-post": 2,
+      "commands-harness-diagnosis": 1
+    },
+    "all_reap_bothEOF_closedFDs_positiveESRCH": true,
+    "postgres_regular_output_FDs_closed": true,
+    "new_UNKNOWN": false,
+    "historical_holds_accessed_or_released": false
+  },
+  "product_edits_after_last_strict_compile": false,
+  "corrected_test_executed": false,
+  "remaining_limits": {
+    "strict_compiles": 0,
+    "BEAM_runtime_batches": 1,
+    "PG_launches": 0
+  },
+  "observed_UTC": "2026-11-13T14:56:29Z",
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "PostgreSQL": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "rebar": "rebar 3.28.0 on Erlang/OTP 29 Erts 17.1"
+  },
+  "limitations": [
+    "Required actual baseline isolation reproduction not obtained",
+    "Required candidate three-default and exact original HTTP proof unrun",
+    "Second strict compile refused by frozen source binding; no compile pass for candidate",
+    "Corrected test only syntax checked; cannot authorize a new database launch in this campaign",
+    "Root must decide exact candidate/API and approved successor source bindings in a fresh bounded campaign",
+    "No GA, production, delivery, native, release or historical CI causation claim"
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 3105,
+      "sha256": "5d3ff3b3f1bef5c97f4a4311e08b701764cf57db3db0a2b4ae1a5444ab82916e"
+    },
+    "application-map.json": {
+      "bytes": 1592,
+      "sha256": "ae97dbd261332dff99ab85eab089eefe66e8a756082c50f76f17ae2a8415fdfe"
+    },
+    "frozen-r2430-map.json": {
+      "bytes": 1270,
+      "sha256": "cae7e03f5c8724f69ab5f9bef241ccdc91d0ad8e36b52359d5b3b1fc5a905084"
+    },
+    "product.patch": {
+      "bytes": 4602,
+      "sha256": "26a96cc0ee08389b1559f59c5ba6ccc601f43b46c8fe95a6d5ad2c23bfd7a5e1"
+    },
+    "r2448-minimal-fix.patch": {
+      "bytes": 2423,
+      "sha256": "c8f25853975407dffe9a224129efbe8e8465c95402f43402056365653353162c"
+    },
+    "product-inventory.json": {
+      "bytes": 72998,
+      "sha256": "0b506fda98e9c65ef87dd354ef167e82b6db15aef03e13d331de7cdbd9fe5a9c"
+    },
+    "candidate-source-bindings.json": {
+      "bytes": 50689,
+      "sha256": "91903f31d9c8f67d39541d310314ee544154f021433db1fd01daf7b7c66339f6"
+    },
+    "required-binding-decision.json": {
+      "bytes": 1454,
+      "sha256": "1422d82fdab0745a087ca1c0cb3d5c15525a0e14f0c3e155576b96600b0dffed"
+    },
+    "session-caller-audit.json": {
+      "bytes": 2634,
+      "sha256": "856b893ead12ed6cdd9d605602329f4dae0602ad90119440bd09338af11ff050"
+    },
+    "new-test-binding.json": {
+      "bytes": 781,
+      "sha256": "5422a883e85007747d7881cafa51d313252ee1047cadac20f8623547156417c6"
+    },
+    "failed-baseline-test.exs": {
+      "bytes": 32067,
+      "sha256": "88847467556f3ea2bc955fb908d5d7f126ccb0088adca572219ef124c3c5eff8"
+    },
+    "corrected-isolation-test.exs": {
+      "bytes": 32120,
+      "sha256": "23dc1c393e5c8911cce30a60a8b700fdbf4f73ab585819c8cef93772787c22e0"
+    },
+    "isolation-test.fragment": {
+      "bytes": 5611,
+      "sha256": "551cc489d172c644ac76e44d04d7ce05b533751e4f852d6a19ee30435e6ec360"
+    },
+    "command-custody.json": {
+      "bytes": 14538,
+      "sha256": "d26a445270b496cacef3e0b9de9953bf5f4d49bf0bd37f6fb62ec67f01275865"
+    },
+    "cleanup.json": {
+      "bytes": 527,
+      "sha256": "f22b393173f3d5c7495763077c35e5642f998792aff89e13af8e326beaf347f5"
+    },
+    "fresh-compiled-beam-manifest.json": {
+      "bytes": 203963,
+      "sha256": "49428aade1ca55588c7b7125cef74e0dcbe14aa1f7ed379ce9fb1d36623982fa"
+    },
+    "partial-candidate-beam-manifest.json": {
+      "bytes": 210797,
+      "sha256": "e8a552d993b7b53771af029edf60600ad68782fdcf9e556a3cd0970e3de0e84e"
+    },
+    "commands-runtime/baseline-isolation.stdout": {
+      "bytes": 2625,
+      "sha256": "e9c2e269bf6f1b4183452f6ecdde06b312509b6b9db6f0e7202097e810b9d902"
+    },
+    "commands-runtime/baseline-isolation.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands-post/candidate-strict-compile.stdout": {
+      "bytes": 24,
+      "sha256": "0b98d3259f9495a110b8bae47079ec4bb0f5fb9562cffd24034660bc3a78a144"
+    },
+    "commands-post/candidate-strict-compile.stderr": {
+      "bytes": 352,
+      "sha256": "aea0908cae82a2cadfb6cfcd986f09c672e42735e7dc07bad444bb87309c54dc"
+    },
+    "commands-harness-diagnosis/actual-id-parser-and-test-syntax.stdout": {
+      "bytes": 519,
+      "sha256": "6c18c201e85278433696ef16e0f7f52b7f2a8ea5d6d546ec02120ae808f33216"
+    }
+  }
+}
