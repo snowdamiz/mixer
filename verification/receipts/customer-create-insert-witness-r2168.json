@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "id": "customer-create-insert-witness-r2168",
+  "status": "REQUEST_CHANGES",
+  "accepted": false,
+  "scope": "private TEST afterimage only",
+  "baseline_map_sha256": "0014ae971678f5e24c5fb761e721c2dee528c5bf0ecc798d0383a75514a51e59",
+  "actual_hook_cause": "original unqualified table-prefix predicate missed actual qualified public.oban_jobs INSERT",
+  "actual_observation": {
+    "command": "insert",
+    "source": "oban_jobs",
+    "query": "INSERT INTO \"public\".\"oban_jobs\" (\"args\",\"meta\",\"state\",\"max_attempts\",\"queue\",\"worker\",\"errors\",\"tags\",\"attempt\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING \"id\"",
+    "repo": "MixerHosted.CustomerBuilds.CreateRepo",
+    "event": [
+      "mixer_hosted",
+      "customer_builds",
+      "create_repo",
+      "query"
+    ],
+    "num_rows": 1,
+    "in_transaction": true,
+    "backend": 15036,
+    "xact": "1517",
+    "current_user": "mixer_build_create",
+    "session_user": "mixer_build_create"
+  },
+  "same_connection": {
+    "successful_job_insert": {
+      "command": "insert",
+      "source": "oban_jobs",
+      "query": "INSERT INTO \"public\".\"oban_jobs\" (\"args\",\"meta\",\"state\",\"max_attempts\",\"queue\",\"worker\",\"errors\",\"tags\",\"attempt\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING \"id\"",
+      "repo": "MixerHosted.CustomerBuilds.CreateRepo",
+      "event": [
+        "mixer_hosted",
+        "customer_builds",
+        "create_repo",
+        "query"
+      ],
+      "num_rows": 1,
+      "in_transaction": true,
+      "backend": 15036,
+      "xact": "1517",
+      "current_user": "mixer_build_create",
+      "session_user": "mixer_build_create"
+    },
+    "original_prefix_matches_actual_query": false,
+    "actual_command_num_rows": true,
+    "at_least_four_auth_observations_and_same_unique_pair_assertions_passed": true,
+    "job_pairs_equals_unique_auth_pair_assertion_passed": true,
+    "positive_handler_alive_assertion_passed": true,
+    "all_new_positive_role_repo_context_assertions_passed": true,
+    "auth_pair": [
+      15036,
+      "1517"
+    ],
+    "raw_complete_auth_observation_list_persisted": false,
+    "basis": "actual full test advanced through positive assertions to Jason.encode! at line205; executed-batch-3 source and complete ExUnit failure preserved",
+    "fullcase_pass": false
+  },
+  "fullcase": {
+    "passed": 0,
+    "executed": 2,
+    "syntax_invalid_batches": 1,
+    "framework_final": "1/2 passed; full named case failed; no separate teardown failure",
+    "focused_observer_passes": 2,
+    "original_assertions_retained": 38,
+    "last_failure": {
+      "batch": 3,
+      "phase": "safe physical evidence JSON serialization after all positive same-transaction assertions",
+      "SQLSTATE": null,
+      "predicate": "Jason.encode!(%{physical_connections: pairs,job_insert: witness})",
+      "observed": "Protocol.UndefinedError: Jason.Encoder not implemented for Tuple {15036, \"1517\"}",
+      "cause": "original witness serializes list of {pid,xact} tuples, unsupported by pinned Jason 1.4.5",
+      "fix": "convert pairs to two-element JSON lists; only representation changes, assertions retained",
+      "fix_executed": false,
+      "remaining_batch_budget": 0
+    },
+    "positive_assertions_before_failure": [
+      "POST201",
+      "one queued revision0 journal and available Oban row",
+      "job args/state verified without logging",
+      "Journal.restore",
+      ">=4 same-PID/xact Auth observations",
+      "actual successful job INSERT same PID/xact",
+      "current_user=session_user=mixer_build_create",
+      "actual metadata.repo CreateRepo and in_transaction true",
+      "handler alive"
+    ]
+  },
+  "unexecuted_correction": {
+    "path": "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs",
+    "reason": "Jason cannot encode physical_connections tuples",
+    "change": "encode [pid,xact] arrays only",
+    "executed": false
+  },
+  "limits": {
+    "compile_commands": 1,
+    "compile_limit": 1,
+    "actual_BEAM_batches": 3,
+    "batch_limit": 3,
+    "actual_full_named_case_executions": 2,
+    "full_named_case_passes": 0,
+    "focused_observer_case_passes": 2,
+    "PG_launches": 1,
+    "PG_stops": 1,
+    "port": 39580,
+    "runtime_setup_and_batches_seconds": 186.79,
+    "wall_limit_seconds": 900,
+    "owned_campaign_elapsed_seconds": 343.727
+  },
+  "custody": {
+    "managed_commands": 14,
+    "outer_commands": 1,
+    "all_direct_reaped_both_pipe_EOF_FD_closed_positive_ESRCH": true,
+    "postgres": {
+      "pid": 96692,
+      "pgid": 96692,
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-insert-witness-r2168/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39580",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-insert-witness-r2168/pgdata",
+      "output_kind": "regular_files",
+      "state": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "descriptors_closed": true,
+      "pipe_eof": "not applicable; regular files"
+    },
+    "regular_file_EOF": true,
+    "port_reuse": true,
+    "new_UNKNOWN": false,
+    "historical_holds_touched": false,
+    "cleanup": "cleanup.json"
+  },
+  "preservation": {
+    "all_original_canonical_files_unchanged": 269,
+    "all32_canonical_preimages_unchanged": true,
+    "only_baseline_relative_source_change": "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs",
+    "SourcePinnedSession_unchanged": true,
+    "product_edits": false,
+    "git_index_authority_producer_writes": false
+  },
+  "limitations": [
+    "No full named case pass: final framework Result1/2 passed; teardown completed without a separate failure.",
+    "Final tuple-to-list evidence encoding fix is unexecuted: all three BEAM batches consumed.",
+    "Not reached: exact and concurrent replay200/201, pin/key409 and scope404 hides, CSRF/Origin/duplicate-JSON/role denials, ordinary42501, existingGET, job-error rollback, actual-INSERT-then-expiry rollback, missing-create-scope denial and revocation.",
+    "No R2166 guard bytes copied; effective CREATE guard composition and R2180 review remain parent-owned. R2170 scope PASS_SOURCE is user-supplied follow-up; exact scope bytes preserved.",
+    "Normal-role development observation is not canonical/GA adoption, package qualification or physical-device evidence."
+  ],
+  "report": "verification/local/customer-create-insert-witness-r2168/REPORT.md",
+  "report_sha256": "7cb9d6a387535f9b15d06f8d3f3f9210711cab495db05872b0068b190f03eae6",
+  "source_map_sha256": "56730b8d0cbdb94c6fa819591f813d4eb607e90680266210b45473e8902ac27c",
+  "application_map_sha256": "a44fd5d42da4c326e7fbe20bb08865d8ed939458b1a0e57fd28b1ec1331a40a0",
+  "tools": {
+    "Elixir_OTP": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "PostgreSQL": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "R986_AST_helpers_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "all_relation_source_bindings": 29
+  },
+  "next": "Parent compose reviewed R2166 guard with TEST and reviewed scope; authorize a fresh separately bounded execution of complete case with corrected evidence encoder. No fullcase/rollback pass may be inferred."
+}

@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "customer-create-composed-r2162",
+  "status": "REQUEST_CHANGES",
+  "accepted": false,
+  "contracts": {
+    "verification/local/customer-build-create-architecture-r2108/selection.json": {
+      "bytes": 5666,
+      "sha256": "aaa9fadc03239466e0a839e279826a4967562883f3f454b40edfecd21821554e"
+    },
+    "verification/local/customer-create-admission-contract-r2154/contract.json": {
+      "bytes": 3414,
+      "sha256": "20e6c3fcee4932856433af5776ec486deab9154fb639f81af30417a6ee5955d6"
+    },
+    "verification/local/customer-create-admission-contract-r2154/contract-v2-r2164.json": {
+      "bytes": 4052,
+      "sha256": "8490e478b4d860ea4b912daa744f3cea071e84c0faa37f59cf6c5a01aff27c4b"
+    },
+    "verification/receipts/customer-create-admission-review-r2164.json": {
+      "bytes": 12307,
+      "sha256": "bc924a31cd7d17a98f59f476f4ed9022ad2ecfccc2f2bd684ba14df387dec5d3"
+    }
+  },
+  "composition": {
+    "base_sha256": "b22449a703b3c09c850e391cf8d9369867bf6d6ad67273ae26f8a6ee368b3018",
+    "R2154_map_sha256": "4037b0e4b2e46ce603cbde5dea8ea6aac4e14155e2478b3155d2bdfe4147df34",
+    "R2156_own_delta_sha256": "e2e489f1615f5f75ccbb04913bec2914ba200c339b1e66364cb64202810c49b2",
+    "whole_R2156_map_used": false,
+    "combined_paths": 32,
+    "complete_product_files": 281,
+    "original_preimages_verified": true,
+    "source_map_sha256": "b819a57a9e0dd85710a3b6f6e94a2734a8e6155931a27ec040df5b6f9b07b14d",
+    "application_map": "verification/local/customer-create-composed-r2162/application-map.json"
+  },
+  "actual_components": {
+    "RuntimeOwner": "storage_ready",
+    "relation_v4": "PASS",
+    "build_create_true": "PASS",
+    "strict_LifecycleRepo": true,
+    "grant_refuse_restore": 5,
+    "policy_refuse_restore": 10,
+    "successful_component_tests": 2,
+    "fullcase_passes": 0
+  },
+  "private_scope_fix": {
+    "path": "hosted/lib/mixer_hosted/identity/access_token_verifier.ex",
+    "before": {
+      "bytes": 5114,
+      "sha256": "bd435b0237079f8f7d9610a0ccd95032dedd14b45939d21dd0ff0e8b015f262b"
+    },
+    "after": {
+      "bytes": 5140,
+      "sha256": "889b6bde65166d1ef2dc9987bccedb2f711002f548310c41068b0540f41268f4"
+    },
+    "actual_baseline_proof": "evidence/batch-2/signed-scope-control.json",
+    "full_http_baseline": "POST expected201 observed permission_denied403; authentication succeeded",
+    "delta": "recognize only exact mixer.build.create alongside existing scopes; unknown scope filtering unchanged",
+    "source_pins_or_manifests_changed": false,
+    "grants_or_guards_relaxed": false
+  },
+  "full_HTTP": {
+    "original_body_binding": {
+      "original_file_sha256": "3ab9634465e2b83db8203880e27a4ee82892875e91a6dc4892ec7aa65e0ea6ad",
+      "full_named_body_sha256": "3289ca4139a4b9c940ee9918b0d2d31eaee6e3e0564dd1f86f857a50c95f6f0c",
+      "body_bytes": 7129,
+      "all_original_assertions_preserved_in_all3_batches": true,
+      "all3_body_binding": true,
+      "driver_final": {
+        "bytes": 21613,
+        "sha256": "1ba6e5f1b36caf6b765d6bce5af3c944ad77faf803ef6b0b71ea7bb2f86ea8d9"
+      },
+      "no_assertion_excluded": true,
+      "fixtures": "same proven original full setup, dedicated F.connection! provisioning, full Application started exactly once per batch"
+    },
+    "attempts": 3,
+    "passed": 0,
+    "final_observed_POST": 201,
+    "journal_rows": 1,
+    "Oban_rows": 1,
+    "journal_queued_revision": 0,
+    "job_available_and_args_verified": true,
+    "Journal_restore": true,
+    "first_final_failure": {
+      "batch": 3,
+      "phase": "actual job INSERT physical observation",
+      "SQLSTATE": null,
+      "predicate": "job_pairs == Enum.uniq(pairs)",
+      "expected": [
+        [
+          31582,
+          "1990"
+        ]
+      ],
+      "observed": [],
+      "assertion_location": "external driver line231; original named body unchanged",
+      "earlier_assertions": "POST201; exactly1 journal/1 Oban row; queued revision0; job args/state; Journal.restore; >=4 same-backend/xact connection observations; no fullcase pass"
+    },
+    "same_transaction_job_witness": false,
+    "remaining_assertions_not_reached": [
+      "exact/concurrent replays",
+      "409 conflicts/404 hides",
+      "role/scope/CSRF/Origin/revocation denials",
+      "ordinary42501",
+      "existingGET",
+      "job_error_rollback",
+      "successful jobINSERT witness before expiry rollback"
+    ]
+  },
+  "review_followup": {
+    "R2164": "REQUEST_CHANGES",
+    "contract_v2": "verification/local/customer-create-admission-contract-r2154/contract-v2-r2164.json",
+    "P1": "PENDING: effective schema/current-database CREATE guards and controls; original budgets exhausted",
+    "P2": "Executed SELECT(id) in both external driver commands; imported standalone test unchanged, source correction pending",
+    "scope_fix_targeted_review": "PENDING"
+  },
+  "first_failures": [
+    {
+      "batch": 1,
+      "phase": "column_SELECT fixture DDL",
+      "SQLSTATE": "42703",
+      "expected": "column GRANT admission refusal/recovery on existing column",
+      "observed": "undefined column profile_id; admission not called for that control",
+      "correction": "external driver GRANT and REVOKE now SELECT(id); both ran and passed in batches2/3"
+    },
+    {
+      "batch": 1,
+      "phase": "first authenticated HTTP POST",
+      "SQLSTATE": null,
+      "expected": 201,
+      "observed": 403,
+      "error": "permission_denied",
+      "confirmed_cause": "signed RS256 control in batch2 proved exact mixer.build.create dropped by fixed AccessTokenVerifier known-scope projection",
+      "private_fix": "exact scope added; signed control batch3 retained it and still discarded mixer.unknown"
+    },
+    {
+      "batch": 1,
+      "phase": "diagnostic tracer teardown",
+      "observed": "trace flush timeout; separate failing setup_all callback",
+      "correction": "boundary MFA and exception events only; disable trace before flush; no teardown failure batches2/3"
+    },
+    {
+      "batch": 3,
+      "phase": "actual job INSERT physical observation",
+      "SQLSTATE": null,
+      "predicate": "job_pairs == Enum.uniq(pairs)",
+      "expected": [
+        [
+          31582,
+          "1990"
+        ]
+      ],
+      "observed": [],
+      "assertion_location": "external driver line231; original named body unchanged",
+      "earlier_assertions": "POST201; exactly1 journal/1 Oban row; queued revision0; job args/state; Journal.restore; >=4 same-backend/xact connection observations; no fullcase pass"
+    }
+  ],
+  "limits": {
+    "wall_seconds": 771.214,
+    "wall_limit": 900,
+    "compiles": 2,
+    "compile_limit": 2,
+    "actual_BEAM_batches": 3,
+    "batch_limit": 3,
+    "PG_launches": 1,
+    "PG_stops": 1,
+    "port": 39560
+  },
+  "custody": {
+    "managed_commands": 15,
+    "outer_commands": 1,
+    "all_reaped_both_pipe_EOF_FD_closed_positive_ESRCH": true,
+    "postgres": {
+      "pid": 98821,
+      "pgid": 98821,
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-composed-r2162/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39560",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-composed-r2162/pgdata",
+      "output_kind": "regular_files",
+      "state": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "descriptors_closed": true,
+      "pipe_eof": "not applicable; regular files"
+    },
+    "regular_file_output_EOF": true,
+    "port_reusable": true,
+    "new_UNKNOWN": false,
+    "historical_holds_touched": false,
+    "owned_transient_cleanup": "cleanup.json"
+  },
+  "preservation": {
+    "canonical_files_unchanged": 269,
+    "producer_hashes_unchanged": true,
+    "source_pinned_Session_unchanged": true,
+    "canonical_Git_index_authority_producer_writes": false,
+    "canonical_adoption": false,
+    "GA": false
+  },
+  "report": "verification/local/customer-create-composed-r2162/REPORT.md",
+  "report_sha256": "1fe2cea7975024a9e63c2126e59970be8c7d42b8bfbdb1ea0a907a64aeb5bab2",
+  "next": [
+    "Root review concrete scope-fix bytes",
+    "Implement contract-v2 effective CREATE denial and equivalent standalone SELECT(id) correction",
+    "Fresh bounded run with safe job INSERT observation and complete original HTTP case",
+    "Full regression before canonical adoption"
+  ],
+  "tools": {
+    "elixir_OTP": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "PostgreSQL": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "Rebar_SHA256": "4df37f2f7570e0b5af15b5dcbad6b7a864202575d94e1d8663166c7643ee3a09",
+    "R986_AST_helpers_SHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "R986_source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "all_relation_source_bindings": 29,
+    "command_registry": "verification/local/customer-create-composed-r2162/logs/commands.json",
+    "outer_registry": "verification/local/customer-create-composed-r2162/outer/commands.json"
+  }
+}

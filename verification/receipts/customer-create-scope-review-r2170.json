@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "id": "customer-create-scope-review-r2170",
+  "status": "PASS_SOURCE",
+  "findings": [],
+  "scope": "Only the exact R2162 AccessTokenVerifier known-scope addition; independent source/evidence review, no replay",
+  "reviewed_at_utc": "2026-11-13T10:33:25.087156+00:00",
+  "contract": {
+    "path": "verification/local/customer-build-create-architecture-r2108/selection.json",
+    "bytes": 5666,
+    "sha256": "aaa9fadc03239466e0a839e279826a4967562883f3f454b40edfecd21821554e"
+  },
+  "producer": {
+    "receipt": {
+      "path": "verification/receipts/customer-create-composed-r2162.json",
+      "bytes": 9341,
+      "sha256": "f219c97461d12eaf6d8e6aa61ad60ffa721cae07490eb49ebd2173d133e92e2d"
+    },
+    "report": {
+      "path": "verification/local/customer-create-composed-r2162/REPORT.md",
+      "bytes": 4744,
+      "sha256": "1fe2cea7975024a9e63c2126e59970be8c7d42b8bfbdb1ea0a907a64aeb5bab2"
+    },
+    "application_map": {
+      "path": "verification/local/customer-create-composed-r2162/application-map.json",
+      "bytes": 15772,
+      "sha256": "0014ae971678f5e24c5fb761e721c2dee528c5bf0ecc798d0383a75514a51e59"
+    },
+    "status_remains": "REQUEST_CHANGES"
+  },
+  "row": {
+    "path": "hosted/lib/mixer_hosted/identity/access_token_verifier.ex",
+    "before": {
+      "bytes": 5114,
+      "sha256": "bd435b0237079f8f7d9610a0ccd95032dedd14b45939d21dd0ff0e8b015f262b"
+    },
+    "after": {
+      "bytes": 5140,
+      "sha256": "889b6bde65166d1ef2dc9987bccedb2f711002f548310c41068b0540f41268f4"
+    },
+    "canonical_equals_before": true,
+    "actual_candidate_equals_after": true,
+    "exact_delta": "Only add exact mixer.build.create to @scopes, including the list comma",
+    "source_map_entries": 281,
+    "composed_to_final_changed_paths": [
+      "hosted/lib/mixer_hosted/identity/access_token_verifier.ex"
+    ]
+  },
+  "security_checks": {
+    "signed_scope_intersection_unchanged": true,
+    "unknown_filter_unchanged": true,
+    "existing_recognized_scopes_unchanged": true,
+    "no_scope_manufactured_when_absent_from_signed_claim": true,
+    "existing_token_note": "Existing signed create claims are now recognized when re-verified; tokens without that signed claim gain none. No signed token is modified.",
+    "signature_issuer_audience_profile_client_expiry_checks_byte_identical": true,
+    "policy_binding_membership_required_scope_checks_preserved": true,
+    "service_identity_rejected_by_policy": true,
+    "create_roles": [
+      "owner",
+      "administrator",
+      "developer"
+    ],
+    "scope_recognition_is_not_authorization": true
+  },
+  "signed_controls": {
+    "driver": {
+      "paths": [
+        "verification/local/customer-create-composed-r2162/evidence/executed-batch-2-driver.exs",
+        "verification/local/customer-create-composed-r2162/evidence/executed-batch-3-driver.exs"
+      ],
+      "bytes": 21613,
+      "sha256": "1ba6e5f1b36caf6b765d6bce5af3c944ad77faf803ef6b0b71ea7bb2f86ea8d9",
+      "control_lines": "128-142",
+      "method": "Real generated RSA2048/RS256; real public TrustSnapshot and production verifier; read scopes asserted; unknown rejected"
+    },
+    "before": {
+      "path": "verification/local/customer-create-composed-r2162/evidence/batch-2/signed-scope-control.json",
+      "bytes": 99,
+      "sha256": "c79840571cc0651b0b9fd091af95f268f157991dba2c33cdfa99465825148327",
+      "create_retained": false,
+      "unknown_retained": false
+    },
+    "after": {
+      "path": "verification/local/customer-create-composed-r2162/evidence/batch-3/signed-scope-control.json",
+      "bytes": 97,
+      "sha256": "27ab3c2a6f9fcf7dc571bb398bc07bf84d5b83db72f21564135ac62ca79ec80e",
+      "create_retained": true,
+      "unknown_retained": false
+    },
+    "raw_outputs": [
+      {
+        "path": "verification/local/customer-create-composed-r2162/logs/011-http-sql-batch-2.stdout",
+        "bytes": 2073785,
+        "sha256": "6d70ff9b12959a0d74b43706e6555a92459e8fbe29731aae97cbc12a52244b04"
+      },
+      {
+        "path": "verification/local/customer-create-composed-r2162/logs/014-http-sql-batch-3.stdout",
+        "bytes": 2073783,
+        "sha256": "0c25f13c38049a43bffa71030cef3217e27e03efc5b843a693f6863c764e3abc"
+      }
+    ],
+    "selected_raw_hashes_match_producer_manifest": true,
+    "independent_crypto_replay": false
+  },
+  "observed_limits": {
+    "fullcase_attempts": 3,
+    "fullcase_passes": 0,
+    "POST_before": 403,
+    "POST_after": 201,
+    "after_journal_rows": 1,
+    "after_Oban_rows": 1,
+    "next_failure": "job_pairs [] versus [{31582,\"1990\"}] at unchanged driver231",
+    "atomicity_accepted": false,
+    "replay_or_rollback_or_denial_matrix_accepted": false,
+    "R2166_effective_CREATE_guards_column_control": "Separate review/work, not accepted here",
+    "R2168_INSERT_witness": "Separate work, not accepted here",
+    "full_test_body_preserved_all3": true
+  },
+  "custody": {
+    "helper_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "helper_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "helper_AST_definitions_unchanged": [
+      "InertPopen",
+      "run"
+    ],
+    "registry": "verification/local/customer-create-scope-review-r2170/logs/commands.json",
+    "managed_inspection_commands": 6,
+    "all_direct_reaped_both_EOF_FD_closed_positive_ESRCH": true,
+    "nonzero_inspection": "inspect-2 exit1: assumed profile.ex absent; terminal custody positive; actual TrustSnapshot inspected separately",
+    "new_UNKNOWN": false,
+    "holds_touched_or_released": false,
+    "producer_recorded_terminal_custody": "15 inner and 1 outer records inspected; no fresh process operations"
+  },
+  "execution": {
+    "wall_limit_seconds": 360,
+    "seconds_since_first_owned_launcher": 214.91,
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "product_runtime_or_DB_or_compile_or_native_or_provider_or_subchildren": false,
+    "Git_operations": false,
+    "canonical_or_producer_or_index_writes": false,
+    "canonical_adoption": false,
+    "GA": false,
+    "reuse_condition": "Only this exact unchanged row after root composed full test; no whole packet acceptance"
+  },
+  "artifacts": {
+    "verification/local/customer-create-scope-review-r2170/REPORT.md": {
+      "bytes": 4989,
+      "sha256": "072c63bc27de1a34b5f0423404df8e07b4aadbcd8115e59081e76e57d1e8c23d"
+    },
+    "verification/local/customer-create-scope-review-r2170/scope-only.diff": {
+      "bytes": 386,
+      "sha256": "12f58ac13e0557f62157d4da1115951955924ed5b2df16d2ac3fc5db5c0131a4"
+    },
+    "verification/local/customer-create-scope-review-r2170/review-inputs.json": {
+      "bytes": 5811,
+      "sha256": "80b8d33cd4748c0eb1a43170e3193ecfc7bd29557b0069ec72e4b0d12bc3b42d"
+    },
+    "verification/local/customer-create-scope-review-r2170/hash-proof.json": {
+      "bytes": 1325,
+      "sha256": "cb8221c869ab2e0d0f04b65b48b66740107999dff6ee0e1a34e4e480f8187a29"
+    },
+    "verification/local/customer-create-scope-review-r2170/snapshot-proof.json": {
+      "bytes": 491,
+      "sha256": "45bb2912c3309eb999927bcc324f36b3e6a33929866201884e79f167fa4cc003"
+    },
+    "verification/local/customer-create-scope-review-r2170/logs/commands.json": {
+      "bytes": 3110,
+      "sha256": "0aa2e62c3fb1cbfe420bbb9a6a6d6aa12b17f97a3e8c877ead7fa97798f2fd4d"
+    }
+  }
+}

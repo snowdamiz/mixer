@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "id": "customer-create-effective-fix-review-r2180",
+  "status": "PASS_SOURCE",
+  "reviewed_slice": "R2166 exact three-file delta over R2162",
+  "application_map_sha256": "53a0782890158e5f57f50021ff65c32aa5a3eef9e93baf9f8e54212e22125734",
+  "baseline_map_sha256": "0014ae971678f5e24c5fb761e721c2dee528c5bf0ecc798d0383a75514a51e59",
+  "findings": [],
+  "prior_findings": {
+    "R2164_P1": "resolved in exact delta; source and actual recorded controls verified",
+    "R2164_P2": "resolved in exact GRANT/REVOKE pair; actual recorded rejection/restoration verified"
+  },
+  "reviewed_files": [
+    {
+      "path": "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+      "before": {
+        "bytes": 50537,
+        "sha256": "e92f7d22db5cc5752997f1d54d3c23a1af3cd308b6b7e64654bb6c5367c33628"
+      },
+      "canonical_before": {
+        "bytes": 48754,
+        "sha256": "fef31903c1ac4f1a3aa3c4e0f22e55623ed878d68c4ceaf0a78a6087c2a54556"
+      },
+      "after": {
+        "bytes": 51295,
+        "sha256": "23f64e6d1672af1be2de18cbb9e577fe8b0cf95558925c46e624dac60372116b"
+      }
+    },
+    {
+      "path": "hosted/test/mixer_hosted/browser_auth/actual_create_relation_profile_pg_join_test.exs",
+      "before": {
+        "bytes": 8887,
+        "sha256": "82811b954c0e652ac58e453e307be035d0e6dc0b0e51d29103041eb847bb5f5a"
+      },
+      "canonical_before": null,
+      "after": {
+        "bytes": 8871,
+        "sha256": "1f7e77c9e35348f772acdeedbbd90e05825a89c626c7c132b5744bf032e6d59e"
+      }
+    },
+    {
+      "path": "hosted/test/mixer_hosted/browser_auth/actual_creator_effective_create_privileges_pg_join_test.exs",
+      "before": null,
+      "canonical_before": null,
+      "after": {
+        "bytes": 10175,
+        "sha256": "d49e55d7fae8d374a168d0f46de1d877b7264265fae97016c7ea0e4a4115c6c0"
+      }
+    }
+  ],
+  "evidence": {
+    "receipt_artifact_hashes_verified": 10,
+    "raw_evidence_hashes_verified": 27,
+    "actual_recorded_effective_create_controls": 9,
+    "actual_recorded_column_controls": 1,
+    "recorded_test_passes": 1,
+    "recorded_RuntimeOwner_storage_ready": true,
+    "baseline_creator_oid": 17073,
+    "baseline_acl_rows": 143,
+    "producer_source_tree_digest": "ed6faa6c5597982661b72dd5e4b811e544d51092ffc037e745de5e06c7550ed4",
+    "entire_source_tree_independently_rehashed": false
+  },
+  "custody": {
+    "R2166_recorded": {
+      "inner_commands": 10,
+      "outer_commands": 1,
+      "positive_terminal": true,
+      "postgres_regular_file_EOF": true
+    },
+    "admitted_custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "managed_review_commands": [
+      {
+        "label": "source-evidence-only",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-effective-fix-review-r2180/verify-source-evidence.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-effective-fix-review-r2180",
+        "pid": 25601,
+        "pgid": 25601,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.050592874991707504,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "new_holds": [],
+    "historical_holds_released": false
+  },
+  "scope": {
+    "new_PG_BEAM_compiler_launches": 0,
+    "new_DB_native_provider_operations": 0,
+    "canonical_or_Git_or_index_or_source_authority_changes": false,
+    "full_HTTP_atomicity": false,
+    "pending_composition": "R2168",
+    "canonical_adoption": false,
+    "production": false,
+    "GA": false
+  },
+  "review_started_utc": "2026-11-13T10:34:39Z",
+  "review_completed_utc": "2026-11-13T10:38:46.109Z",
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "read_only_file_access": "node:fs/promises"
+  },
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 5286,
+      "sha256": "63ac05276b2e8731fd380e0381ded1ab31034fa0993d03d8480e0ab45eb4b711"
+    },
+    "source-evidence-checks.json": {
+      "bytes": 3600,
+      "sha256": "fb946a9802b5784c79b9b57587dbe49b428d262e48ffd57dc62b38304c203c69"
+    },
+    "reviewed-inputs.json": {
+      "bytes": 665,
+      "sha256": "38242eed73a9780899726492b4f6c6cbb97f66ad880aebf33e65ffbbef8b9f6b"
+    },
+    "verified-delta.patch": {
+      "bytes": 13044,
+      "sha256": "c4bf90f9194ae219e110e6224eb58812a858568871f97c51be9a7d6d282734a8"
+    },
+    "review.py": {
+      "bytes": 1028,
+      "sha256": "7b4281923983d0b74c6788f14e190878cc9dd4d6b1b2364fee8959125b7b24af"
+    },
+    "verify-source-evidence.py": {
+      "bytes": 6680,
+      "sha256": "b2247ea5d51ed2ed5f013390096014da96e99d27c2e7f9e574e458a30e40de33"
+    },
+    "admitted-custodian-extracted.py": {
+      "bytes": 2213,
+      "sha256": "6f98ef75388ffaf146915881d8d16d1e0193fff1f0a623db0ae71abdea9694b9"
+    },
+    "commands/commands.json": {
+      "bytes": 613,
+      "sha256": "8497cf1b27c8e0be8b2647c646c58009048e98a676fdbbcfbc2ee2a57982d6e8"
+    }
+  }
+}

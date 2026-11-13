@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "id": "continuation-checkpoint-r2182",
+  "observedUTC": "2026-11-13T10:39:26.116416+00:00",
+  "head": "658fd3034fb7e9ba3176987c10d83da8c4ed484f",
+  "status": "DEVELOPMENT_PROGRESS_CREATE_ACCEPTANCE_PENDING",
+  "sourceBindings": [
+    {
+      "path": "verification/receipts/customer-create-composed-r2162.json",
+      "bytes": 9341,
+      "sha256": "f219c97461d12eaf6d8e6aa61ad60ffa721cae07490eb49ebd2173d133e92e2d"
+    },
+    {
+      "path": "verification/receipts/customer-create-admission-review-r2164.json",
+      "bytes": 12307,
+      "sha256": "bc924a31cd7d17a98f59f476f4ed9022ad2ecfccc2f2bd684ba14df387dec5d3"
+    },
+    {
+      "path": "verification/receipts/customer-create-effective-privileges-r2166.json",
+      "bytes": 6311,
+      "sha256": "a689744b62925f2d4f81cb39cd854db6271b365bfb0885d93f82436ac98e6560"
+    },
+    {
+      "path": "verification/receipts/customer-create-scope-review-r2170.json",
+      "bytes": 7414,
+      "sha256": "336873ce7bdb14a6da4c6e4b3fdc6d9a57f5dc43306a74941cb7c2ac6aaa537c"
+    },
+    {
+      "path": "verification/receipts/vm-integer-width-ci-r2174.json",
+      "bytes": 12085,
+      "sha256": "96b8ce9af25796db9085fd8ad3268ae143f271271de0fa6d27d6a4a3e811e279"
+    },
+    {
+      "path": "verification/receipts/customer-create-insert-witness-r2168.json",
+      "bytes": 7608,
+      "sha256": "90cea4bba61f0eadf4a8b465331589f0d337ceef7f0bcd10db5d8bffb9f26333"
+    },
+    {
+      "path": "verification/receipts/customer-create-effective-fix-review-r2180.json",
+      "bytes": 5184,
+      "sha256": "ef6b17efa47c5f4454cb6bbe33452864194ce15fc36b624c840c0639c06a10aa"
+    }
+  ],
+  "customerBuildCreation": {
+    "state": "PRIVATE_POST_201_OBSERVED_EFFECTIVE_CREATE_FIX_TESTED_FULL_ATOMICITY_PENDING",
+    "currentComposedPacket": "verification/receipts/customer-create-composed-r2162.json",
+    "startupStorageReady": true,
+    "positiveCreateObserved": true,
+    "positiveCreate": false,
+    "positiveCreateAccepted": false,
+    "journalRowsObserved": 1,
+    "availableJobRowsObserved": 1,
+    "SQLAtomicityPassed": false,
+    "runtimeAcceptance": false,
+    "canonicalChanges": false,
+    "remainingFirstRefusal": "Tuple-to-JSON evidence encoding fails after positive same-transaction job witness; full replay and rollback assertions not reached.",
+    "active": [
+      "customer-create-final-http-r2184",
+      "vm-float-selection-r2178"
+    ],
+    "effectiveCREATEFix": {
+      "receipt": "verification/receipts/customer-create-effective-privileges-r2166.json",
+      "status": "TESTED_PRIVATE_REVIEW_PASS_SOURCE",
+      "creatorOidBound": true,
+      "currentDatabaseAndEverySchema": true,
+      "rejectionRecoveryControls": 10,
+      "scope": "Nine effective CREATE mutations preserve 143 ACL rows, role flags and membership checks; one corrected SELECT(id) mutation.",
+      "independentReview": "verification/receipts/customer-create-effective-fix-review-r2180.json"
+    },
+    "scopeRecognition": {
+      "receipt": "verification/receipts/customer-create-scope-review-r2170.json",
+      "status": "PASS_SOURCE",
+      "afterSHA256": "889b6bde65166d1ef2dc9987bccedb2f711002f548310c41068b0540f41268f4"
+    },
+    "insertWitness": {
+      "receipt": "verification/receipts/customer-create-insert-witness-r2168.json",
+      "executed": true,
+      "actualRepo": "CreateRepo",
+      "currentUser": "mixer_build_create",
+      "sessionUser": "mixer_build_create",
+      "backend": 15036,
+      "transaction": "1517",
+      "matchesAuthorizationObservations": true,
+      "fullHTTPPassed": false,
+      "finalEvidenceEncodingFixExecuted": false
+    },
+    "sourceFindings": [
+      "Post-insert expiry rollback and replay require actual execution.",
+      "Effective CREATE correction requires final composition and full regression."
+    ],
+    "grantAndPolicyControls": {
+      "receipt": "verification/receipts/customer-create-composed-r2162.json",
+      "passed": 15
+    },
+    "remainingAcceptance": [
+      "execute evidence encoding correction",
+      "idempotent replay and conflict",
+      "authorization, CSRF and origin denials",
+      "ordinary-role SQL refusal",
+      "job-insert error rollback",
+      "post-insert expiry rollback",
+      "final guarded composition, source admission and full regression"
+    ]
+  },
+  "activeTasks": {
+    "R2184": "customer-create-final-http-r2184",
+    "R2178": "vm-float-selection-r2178"
+  },
+  "vmIntegerWidthCI": {
+    "job": 131821034238,
+    "completeLogBytes": 3890825,
+    "completeLogSHA256": "83f0498d1c7bf18e89ad6ff458606f7740fc88cb9d714a0954be4ba772f307a0",
+    "actualParentPasses": [
+      {
+        "profile": "debug",
+        "binary": {
+          "line": 4695,
+          "text": "2026-11-13T10:08:26.4568550Z      Running tests/differential_integer_width_consuming.rs (vm/target/debug/deps/differential_integer_width_consuming-e58fc80dc3601278)"
+        },
+        "actualParentPass": {
+          "line": 4698,
+          "text": "2026-11-13T10:08:27.4865013Z test integer_width_conversions_match_node ... ok"
+        }
+      },
+      {
+        "profile": "release",
+        "binary": {
+          "line": 4990,
+          "text": "2026-11-13T10:09:18.4575264Z      Running tests/differential_integer_width_consuming.rs (vm/target/release/deps/differential_integer_width_consuming-f5ef12a1f46f48ff)"
+        },
+        "actualParentPass": {
+          "line": 4993,
+          "text": "2026-11-13T10:09:19.4749198Z test integer_width_conversions_match_node ... ok"
+        }
+      }
+    ],
+    "perCaseCounts": "SOURCE_IMPLIED"
+  },
+  "GA": false,
+  "historicalHoldsReleased": false,
+  "rootMethodLimitations": [
+    "Initial direct pwd used ordinary transport.",
+    "Initial managed relative PLAN.md read failed because wrapper cwd is its own output directory; direct reap/EOF/FD/ESRCH complete. Corrected observation uses absolute paths.",
+    "Initial staged artifact checker used system Python 3.9, which lacks zip(strict=); that failed command has terminal custody and is preserved. The required check must pass with the selected modern Python before commit.",
+    "Transport/bootstrap lifetime is not separately established."
+  ]
+}
