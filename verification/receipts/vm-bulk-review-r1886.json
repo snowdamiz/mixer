@@ -1,0 +1,122 @@
+{
+  "schema": "mixer-vm-bulk-review-r1886-v1",
+  "status": "PASS",
+  "findings": [],
+  "scope": "private W08 host debug experimental-swift-reactor development; root owns delivery",
+  "reviewed_test": "vm/tests/differential_bulk_memory_consuming.rs",
+  "source_sha256": "64d12c196eb7f384e07d41576b03e3f5b99db460eb20b5ecbc10b5ff115bdb10",
+  "producer_receipt": "verification/receipts/vm-bulk-r1880.json",
+  "producer_receipt_sha256": "2ea59cd9e331baf1c24187dda9232d34e96777912623d2daedfa3f37f56e18d3",
+  "producer_source_manifest_sha256": "e9324afc480ef37757e874dd58b11f1a4b8a7ca6b7f0d56f7a02c2c42e680203",
+  "source_preservation": {
+    "canonical_and_private_package_files_verified": 146,
+    "all_match": true,
+    "review_final_canonical_recheck": true,
+    "canonical_writes": false,
+    "provider_cli_changes": false
+  },
+  "verified_actual_counts": {
+    "unique_modules": 16,
+    "corpus_invocations": 2,
+    "builds": 1,
+    "node_comparisons": 32,
+    "values": 20,
+    "bounds_traps": 12,
+    "admitted_consuming_runtimes": 32,
+    "fourteen_zero_currents_zero_tickets_no_cleanup_invariant": 32,
+    "validation_rejections": 0,
+    "top_level_tests": 2,
+    "worker_tests": 32
+  },
+  "evidence_verification": {
+    "receipt_listed_files": 14,
+    "all_hashes_and_sizes_exact": true,
+    "retained_module_files": 16,
+    "all_module_hashes_and_sizes_exact": true,
+    "both_logs_module_bytes_exact": true,
+    "independent_binary_decoder_and_static_memory_calculation": true,
+    "node_or_vm_reruns": false,
+    "build_cargo_artifact_profile_exact": true,
+    "producer_binary_hash_recorded_only": "699a2b109262c6d6af6bba7fda4da25b5d0196df028062b4b412fa1c021fd05e"
+  },
+  "coverage": [
+    "overlap both directions",
+    "self copy",
+    "copy source/destination exact end",
+    "positive low-byte fill",
+    "negative low-byte fill exact end",
+    "fill truncated to zero",
+    "zero-length copy/fill at valid end",
+    "zero-length copy source/destination and fill past end",
+    "positive-length copy source/destination and fill crossing end",
+    "actual 48-byte Node/Mixer observations or exact GuestTrap/memory_out_of_bounds",
+    "consuming cleanup independent of success/trap classification",
+    "blanket ignored test discovery with case environment removed"
+  ],
+  "source_only_checks": {
+    "invalid_case_environment": "fail closed before runtime; not executed",
+    "worker_reentry": "one exact worker index then return; no recursive parent corpus; not executed as a negative control",
+    "ci_ignored_discovery": "workflow source inspected; local blanket invocation passed; CI not run",
+    "profile_guard": "test is feature-gated and ignored; recorded artifact exactly host debug reactor; release/combined features unqualified"
+  },
+  "cleanup": {
+    "producer_managed_groups": 13,
+    "all_records_explicit_cwd": true,
+    "all_direct_reaped": true,
+    "all_both_EOF": true,
+    "all_closed_FDs": true,
+    "all_owned_groups_ESRCH": true,
+    "unknown": false,
+    "reviewer_process_probes": false,
+    "owned_target_absent": true,
+    "owned_cache_absent": true,
+    "tmp_and_source_logs_retained": true,
+    "historical_holds_released": false
+  },
+  "custodian": {
+    "source_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "matches_user_pin": true,
+    "producer_definitions_whitespace_semicolon_normalized_equal": true
+  },
+  "review_actions": {
+    "vm_builds": 0,
+    "vm_test_runs": 0,
+    "node_oracle_runs": 0,
+    "existing_binary_controls": 0,
+    "static_verifier_executed_in_process": true,
+    "git": false,
+    "docs": false,
+    "native": false,
+    "database": false,
+    "provider": false,
+    "subchildren": false,
+    "held_paths_read_or_probed": false,
+    "initial_pwd_probe": "Explicit cwd, tool exit0; separate reap/EOF/closedFD/ESRCH fields not captured. No payload run. All later reviewer work used in-process filesystem access."
+  },
+  "limitations": [
+    "Host debug supported profile only; release, combined features, native, whole-VM, published-package, performance and GA are unqualified.",
+    "No post-trap memory atomicity observation.",
+    "Invalid environment/reentry and CI discovery checks are source-only; no negative control or hosted CI was run.",
+    "Producer binary was already removed with target; its recorded SHA is not independently rehashed.",
+    "Process cleanup is corroborated from original custodian source and retained command records, without forbidden re-probing.",
+    "One initial read-only pwd was outside the pinned custodian; no separate full custody receipt was captured for that shell command.",
+    "Staging verification-artifact index check and delivery belong to root; no staging, push or merge occurred."
+  ],
+  "artifacts": {
+    "verification/local/vm-bulk-review-r1886/verify-evidence.mjs": {
+      "bytes": 8870,
+      "sha256": "cdde0a67302b9b7869c52fb7b54210eefdde73b576d039788454dc94d79ae0ed"
+    },
+    "verification/local/vm-bulk-review-r1886/evidence-audit.json": {
+      "bytes": 10151,
+      "sha256": "4bd02608aaf236a22359f04d9efd919712ed77ba9441dada8607696956906533"
+    },
+    "verification/local/vm-bulk-review-r1886/review-details.json": {
+      "bytes": 9148,
+      "sha256": "b2e5d8fd3623a9e44519aadff6f7f82fa76fcb128697e26920d3896a8e6e56b9"
+    }
+  },
+  "official_specification": "https://webassembly.github.io/spec/core/exec/instructions.html",
+  "delivery": "PENDING_ROOT",
+  "GA": false
+}
