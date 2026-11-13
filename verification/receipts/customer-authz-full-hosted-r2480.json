@@ -1,0 +1,357 @@
+{
+  "id": "R2480",
+  "status": "FULL_SUITE_PASS_FORMAT_FAIL",
+  "strict_compiles": 1,
+  "runtime_batches": 1,
+  "PG_launches": 1,
+  "PG_stops": 1,
+  "port": 39860,
+  "suite_bound_seconds": 450,
+  "wall_bound_seconds": 900,
+  "new_holds": [],
+  "root_main_user_supplied": "0e8c97d3dd351d7ed94560372fc3d95dae8c3b8e",
+  "custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only": true,
+    "unchanged": true,
+    "per_label_registry": true,
+    "explicit_existing_cwd": true
+  },
+  "preparation": {
+    "source_files": 599,
+    "canonical_pins": 336,
+    "authority_files": 331,
+    "product_files": 137,
+    "overrides": 4,
+    "other133_product_and_all_canonical_tests_unchanged": true,
+    "dependency_source_files": 914,
+    "official_Hex_files": 133,
+    "BEAM_reused": "official Hex tool only; no product/dependency BEAM",
+    "fresh_build_directory_absent": true
+  },
+  "fixture_observation": {
+    "canonical_fixture": {
+      "bytes": 25547,
+      "sha256": "1f63dd91ab149c2f4633189123595bd2c958d31876145e477bd9707647872663"
+    },
+    "canonical_byte_exact": true,
+    "DROP_15s_client20s_present": false,
+    "observation": "Current canonical fixture still uses query!(conn, DROP DATABASE, []) and 5s connection statement_timeout; no private teardown changes made."
+  },
+  "format_check": "FAIL_EXACT_TWO_CANDIDATE_FILES",
+  "first_actual_failure": "mix format --check-formatted exit1; two exact candidate files unformatted",
+  "format_failure_preserved": "first-format-boundary.json",
+  "elapsed_seconds": 378.114,
+  "fresh_node_client_compile": "PASS",
+  "strict_compile": "PASS",
+  "postgres": {
+    "pid": 33582,
+    "pgid": 33582,
+    "state": "TERMINAL",
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-authz-full-hosted-r2480/pgdata",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "39860",
+      "-k",
+      "",
+      "-c",
+      "timezone=UTC"
+    ],
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-authz-full-hosted-r2480/pgdata",
+    "output_kind": "regular_files",
+    "exit": 0,
+    "direct_reaped": true,
+    "group_absent": true,
+    "absence_errno": 3,
+    "closedFDs": true,
+    "pipe_EOF": "not applicable; regular files"
+  },
+  "SQL_readiness_before_DDL": "SELECT1 and exact SHOW data_directory PASS",
+  "complete_fixture_DDL_and_catalog_roles": "PASS",
+  "full_suite": {
+    "argv": [
+      "mix",
+      "test",
+      "--no-start",
+      "--no-compile",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--max-cases",
+      "1",
+      "--trace"
+    ],
+    "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-authz-full-hosted-r2480/candidate/hosted",
+    "timeout_seconds": 450,
+    "unfiltered": true,
+    "extra_exclusions": [],
+    "optional_campaign_R_vars": [],
+    "required_legacy_fixture_exports": [
+      "R1026_EVIDENCE",
+      "R1026_PG_PORT",
+      "R1072_TRANSACTION_EVIDENCE",
+      "R1104_CONTROLS",
+      "R1104_POSITIVE",
+      "R932_BARRIER_EVIDENCE",
+      "R932_FAILURE_EVIDENCE"
+    ],
+    "exit": 0,
+    "totals_lines": [
+      "Result: 900 passed, 2 skipped"
+    ],
+    "totals_present": true,
+    "complete": true,
+    "first_failure_excerpt": "",
+    "passed": 900,
+    "failures": 0,
+    "skipped": 2,
+    "skipped_cases": [
+      {
+        "module": "MixerHosted.Identity.KeyOwnerLinuxNetworkTest [test/mixer_hosted/identity/key_owner_linux_network_test.exs]",
+        "test": "* test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched (skipped) [L#32]"
+      },
+      {
+        "module": "MixerHosted.Identity.StartupLinuxNetworkTest [test/mixer_hosted/identity/startup_linux_network_test.exs]",
+        "test": "* test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle (skipped) [L#29]"
+      }
+    ],
+    "seconds_reported_by_ExUnit": 163.6,
+    "test_compilation_warnings_as_errors": true,
+    "stdout": "commands/full-unfiltered/full-unfiltered.stdout",
+    "stderr": "commands/full-unfiltered/full-unfiltered.stderr"
+  },
+  "all_BEAMs_retired_before_only_faststop": true,
+  "port_reusable": true,
+  "canonical_source_unchanged": true,
+  "source": {
+    "authority_v24_count": 331,
+    "authority_v24_digest": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+    "product_count": 137,
+    "product_source_sha256": "c0736b6d9fa1d31a8926243a69656ac84cf36991d352357f7eb47812c803da61",
+    "exact_four_overrides": {
+      "hosted/lib/mixer_hosted/browser_auth/active_create.ex": {
+        "before": {
+          "bytes": 4884,
+          "sha256": "3c412d8d3d13ba26d46e073c575216b65855714b46c1c0e1997689b724b0371b"
+        },
+        "after": {
+          "bytes": 5447,
+          "sha256": "c8bb46fb5c9861edb072142107fa3e544cdea1be9b478f7b634856fe3252bacd"
+        }
+      },
+      "hosted/lib/mixer_hosted/browser_auth/active_catalog.ex": {
+        "before": {
+          "bytes": 24603,
+          "sha256": "8d08f660eb19575ab6ccd07d7cfd1f92cd88075ed7a69e68126af70a92b80894"
+        },
+        "after": {
+          "bytes": 24582,
+          "sha256": "b26e0dd68e137cf862fef678e12d37820ee826a60b7be03ee3351f00c17ec5d6"
+        }
+      },
+      "hosted/lib/mixer_hosted/customer_builds/create_schema.ex": {
+        "before": {
+          "bytes": 16307,
+          "sha256": "fe85d7ff26a3258c0d750baa66148c82b00f06e40e996b5f7551caa9736ef87f"
+        },
+        "after": {
+          "bytes": 16308,
+          "sha256": "75985f7a2be6c64696a2baed26330acf6ca74b80ed725885dc07ac40c64b7459"
+        }
+      },
+      "hosted/lib/mixer_hosted/authorization.ex": {
+        "before": {
+          "bytes": 4323,
+          "sha256": "2d6410d61f0ab62e22acf890ecdcfd6ace8b593fc30ff1f9f342b3539aeb46db"
+        },
+        "after": {
+          "bytes": 4589,
+          "sha256": "76dd846547e50b3e3efc3c41a33f20fb2558037719849624601f58d6f459b11c"
+        }
+      }
+    },
+    "other133_and_all_canonical_tests_unchanged": true,
+    "Session_canonical_byte_exact": true,
+    "before_after_exact": true,
+    "bindings_before_after_exact": true,
+    "canonical_check_source": "NOT RUN or claimed. Exact four map bindings are diagnostic admission; canonical root retains v24 authority, metadata fixtures in the known complete R2274 packet are through v21. v25 admission is pending.",
+    "source_inventory_files": 599,
+    "all_canonical_test_files": 111,
+    "canonical_root_v24_manifest_unchanged": true,
+    "map_source_bindings_recomputed_after": true
+  },
+  "cleanup": {
+    "commands": 56,
+    "all_reaped_bothEOF_closedFDs_ESRCH": true,
+    "removed_owned": [
+      "candidate/hosted/deps",
+      "candidate/hosted/_build",
+      "candidate/console/node_modules",
+      "cache",
+      "tmp",
+      "mix-home",
+      "hex-home",
+      "pgdata"
+    ],
+    "raw_logs_source_pins_retained": true,
+    "no_historical_holds_accessed_or_released": true
+  },
+  "limits": [
+    "macOS27/OTP29/PostgreSQL17.11 local host evidence, not a hosted Linux CI run",
+    "Two original Linux network namespace tests skipped; no extra exclusions or filters",
+    "Exact candidate has formatting failures in authorization.ex and create_schema.ex; no source changes made",
+    "Current canonical ordinary-browser fixture lacks brief-reported admin DROP15s/client20s change; its original 5s setup was kept byte exact",
+    "Canonical root v24 source authority checked before and after; no canonical --check-source or v25 acceptance claimed",
+    "Full suite does not replace SourceReview/security/production/GA; parent owns pending R2474/R2476 and activation",
+    "No canonical/index/Git/authority/provider/native/CI writes, no historical hold access or release"
+  ],
+  "format_failure": {
+    "exit": 1,
+    "files": [
+      "hosted/lib/mixer_hosted/authorization.ex",
+      "hosted/lib/mixer_hosted/customer_builds/create_schema.ex"
+    ],
+    "preserved_exact_product_bytes": true,
+    "raw_stderr": "commands/format-check/format-check.stderr",
+    "runtime_and_compile_consumed_before_failure": 0,
+    "same_check_not_repeated": true
+  },
+  "warnings": {
+    "observations": {
+      "node-clients": {
+        "raw_stderr": "commands/node-clients/node-clients.stderr",
+        "bytes": 0,
+        "warning_headers": 0
+      },
+      "strict-compile": {
+        "raw_stderr": "commands/strict-compile/strict-compile.stderr",
+        "bytes": 606,
+        "warning_headers": 1
+      },
+      "full-unfiltered": {
+        "raw_stderr": "commands/full-unfiltered/full-unfiltered.stderr",
+        "bytes": 42143,
+        "warning_headers": 95
+      }
+    },
+    "strict_compile": "Mix dependency xref exclusion deprecation was emitted; command exited0",
+    "runtime": "Migration module redefinition warnings preserved in full stderr; command exited0",
+    "suppression_or_new_exclusions": false
+  },
+  "outer_custody": {
+    "commands": 2,
+    "all_direct_reaped_bothEOF_closedFDs_ESRCH": true,
+    "PGIDs": [
+      16762,
+      33026
+    ]
+  },
+  "preparation_correction": {
+    "path": "preparation-failure.json",
+    "before_any_compile_or_runtime": true,
+    "cause": "initial line-digest convention replaced with owning canonical compact JSON digest"
+  },
+  "continuation": {
+    "path": "continuation.json",
+    "reason": "finish authorized remaining Node/strict compile/full suite after preserving format failure",
+    "compile_test_or_PG_retry": false
+  },
+  "artifact_policy_check": "not run; no staging or index writes authorized",
+  "artifacts": {
+    "application-map.json": {
+      "bytes": 1270,
+      "sha256": "ef78422d21e65e2a221918b4151e9310836de5e541e3a57f80ea3aa607fa81a3"
+    },
+    "source-before.json": {
+      "bytes": 106495,
+      "sha256": "e4095c5403057c8cc02e35dd0bc378ef0a24927b4a5dd3e2b9b484b7859dc5b4"
+    },
+    "source-after.json": {
+      "bytes": 106495,
+      "sha256": "e4095c5403057c8cc02e35dd0bc378ef0a24927b4a5dd3e2b9b484b7859dc5b4"
+    },
+    "product137-before.json": {
+      "bytes": 22622,
+      "sha256": "02ccae17366afd88a0a151a988fa9ccc5e92294fe226d61d2a856a5b70a105e3"
+    },
+    "product137-after.json": {
+      "bytes": 22622,
+      "sha256": "02ccae17366afd88a0a151a988fa9ccc5e92294fe226d61d2a856a5b70a105e3"
+    },
+    "authority-before.json": {
+      "bytes": 54795,
+      "sha256": "b40652883aca12032136fcb78d2fb1249b012e6da668bfd477af54f81ea1ec66"
+    },
+    "canonical-before.json": {
+      "bytes": 55586,
+      "sha256": "17193d14b1e6e63c2df451c892d749d033eeffc5447d72f464d20962a15bd4ea"
+    },
+    "canonical-after.json": {
+      "bytes": 55586,
+      "sha256": "17193d14b1e6e63c2df451c892d749d033eeffc5447d72f464d20962a15bd4ea"
+    },
+    "canonical-tests-final.json": {
+      "bytes": 19128,
+      "sha256": "5bb316505c4bc2327c29526bd1bd6c0d2ee3660165e981e640ba23847df6a224"
+    },
+    "map-source-bindings-before.json": {
+      "bytes": 17849,
+      "sha256": "316055c35abf3e53e2aa1a63ec0bf9be29c5cc3b29d12c9ec1ef87b00c4a575f"
+    },
+    "map-source-bindings-after.json": {
+      "bytes": 17849,
+      "sha256": "316055c35abf3e53e2aa1a63ec0bf9be29c5cc3b29d12c9ec1ef87b00c4a575f"
+    },
+    "fresh-compiled-beam-manifest.json": {
+      "bytes": 203963,
+      "sha256": "15ab8f0d478df434152064e0b19afd8f6c1ccd6d395d4edc21d223556fbcd85e"
+    },
+    "fixture-plan.json": {
+      "bytes": 21784,
+      "sha256": "e09ab2f00375f48ee659480820daa0762852d4faa2547fd36cc4d6508b0ae94b"
+    },
+    "fixture-observation.json": {
+      "bytes": 365,
+      "sha256": "1328c39a0873767b6d0888529e536f7b12284491db6488f35cce1744b6e4dc13"
+    },
+    "command-custody.json": {
+      "bytes": 39775,
+      "sha256": "a8032ae4d8dfabf97fc0cab1cd4b2412a5c24610bac4c4fbda09a2f80144cf42"
+    },
+    "first-format-boundary.json": {
+      "bytes": 8595,
+      "sha256": "f053d251ed6855f861fa71707f09bc2d78421f2d39833b0d2a39346574a66269"
+    },
+    "outer/commands.json": {
+      "bytes": 591,
+      "sha256": "aa57e2b72c955a8afdd535d26e81535611a876d71fa09be27384525b7ce24ef8"
+    },
+    "outer-continuation/commands.json": {
+      "bytes": 596,
+      "sha256": "ccc2c373ff1b9dec9aff06f8a713c44b1cfa159f9a51cbd4682b08ee7bbec797"
+    },
+    "commands/full-unfiltered/full-unfiltered.stdout": {
+      "bytes": 210576,
+      "sha256": "d64845f7c624becb20ce2b063e1af7144a64df746ec62770b10090304c18b641"
+    },
+    "commands/full-unfiltered/full-unfiltered.stderr": {
+      "bytes": 42143,
+      "sha256": "569d0386c8a072dd77d431c62861f78def4f266ce6233be7655f033d5692d3cf"
+    },
+    "commands/format-check/format-check.stderr": {
+      "bytes": 1437,
+      "sha256": "dae17806c188981929fd31e0ce8915aa0477a86f7d40a2f3032cc4f8d40c07c1"
+    },
+    "raw-artifact-manifest.json": {
+      "bytes": 161287,
+      "sha256": "3a03fc14e16266dc42ef5ef1b2632848b09e865c43c3a72d5d2f9f0ab3cb2962"
+    }
+  },
+  "retained_namespace_bytes_excluding_final_receipt": 25172103,
+  "elapsed_to_finalization_seconds": 511.174
+}

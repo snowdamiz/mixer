@@ -144,10 +144,30 @@ end
 
 defmodule MixerHosted.BrowserAuth.ActiveCreateSchema do
   @moduledoc false
+
+  def function do
+    MixerHosted.BrowserAuth.ActiveReadSchema.function()
+    |> String.replace("mixer_browser_current_active_load", "mixer_browser_create_active_load")
+    |> String.replace(
+      "WHERE id=d.profile_id AND version=d.profile_version FOR UPDATE;",
+      "WHERE id=d.profile_id AND version=d.profile_version AND id=i.profile_id AND version=i.profile_version FOR UPDATE;"
+    )
+  end
+
+  def manifest do
+    [_, source, _] = String.split(function(), "$active_read$")
+
+    spec =
+      MixerHosted.BrowserAuth.ActiveReadSchema.manifest()
+      |> Map.fetch!("mixer_browser_current_active_load")
+      |> Map.put(:source, source)
+
+    %{"mixer_browser_create_active_load" => spec}
+  end
+
   def statements do
     [
-      MixerHosted.BrowserAuth.ActiveReadSchema.function()
-      |> String.replace("mixer_browser_current_active_load", "mixer_browser_create_active_load"),
+      function(),
       "REVOKE ALL ON FUNCTION public.mixer_browser_create_active_load(bytea,bytea,bigint,public.mixer_browser_access_evidence) FROM PUBLIC"
     ]
   end

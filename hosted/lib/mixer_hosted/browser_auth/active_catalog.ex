@@ -59,8 +59,8 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
   }
   @create_name "mixer_browser_create_active_load"
   @create_function Map.fetch!(
-                     MixerHosted.BrowserAuth.ActiveReadSchema.manifest(),
-                     "mixer_browser_current_active_load"
+                     MixerHosted.BrowserAuth.ActiveCreateSchema.manifest(),
+                     @create_name
                    )
                    |> Map.put(:runtime_execute, false)
   @v3 %{

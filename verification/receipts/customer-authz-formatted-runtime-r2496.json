@@ -1,0 +1,606 @@
+{
+  "id": "R2496",
+  "status": "PASS_FORMATTED_COMPILE_THREE_DEFAULTS_AND_ORIGINAL_HTTP",
+  "strict_compiles": 1,
+  "runtime_batches": 2,
+  "PG_launches": 1,
+  "PG_stops": 1,
+  "port": 39880,
+  "wall_bound_seconds": 900,
+  "new_holds": [],
+  "root_main_user_supplied": "0e8c97d3dd351d7ed94560372fc3d95dae8c3b8e",
+  "custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only": true,
+    "unchanged": true,
+    "per_label_registry": true,
+    "explicit_existing_cwd": true
+  },
+  "preparation": {
+    "source_files": 599,
+    "canonical_pins": 336,
+    "authority_files": 331,
+    "product_files": 137,
+    "overrides": 4,
+    "other133_product_and_all_canonical_tests_unchanged": true,
+    "dependency_source_files": 914,
+    "official_Hex_files": 133,
+    "BEAM_reused": "official Hex tool only; no product/dependency BEAM",
+    "fresh_build_directory_absent": true
+  },
+  "fixture_observation": {
+    "canonical_fixture": {
+      "bytes": 25547,
+      "sha256": "1f63dd91ab149c2f4633189123595bd2c958d31876145e477bd9707647872663"
+    },
+    "canonical_byte_exact": true,
+    "DROP_15s_client20s_present": false,
+    "observation": "Current canonical fixture still uses query!(conn, DROP DATABASE, []) and 5s connection statement_timeout; no private teardown changes made."
+  },
+  "tools": {
+    "elixir-version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "node-version": "v22.23.3",
+    "postgres-version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "rebar-version": "rebar 3.28.0 on Erlang/OTP 29 Erts 17.1",
+    "Python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "format_check": "PASS",
+  "elapsed_seconds": 64.66,
+  "strict_compile": "PASS",
+  "postgres": {
+    "pid": 25137,
+    "pgid": 25137,
+    "state": "TERMINAL",
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-authz-formatted-runtime-r2496/pgdata",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "39880",
+      "-k",
+      "",
+      "-c",
+      "timezone=UTC"
+    ],
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-authz-formatted-runtime-r2496/pgdata",
+    "output_kind": "regular_files",
+    "exit": 0,
+    "direct_reaped": true,
+    "group_absent": true,
+    "absence_errno": 3,
+    "closedFDs": true,
+    "pipe_EOF": "not applicable; regular files"
+  },
+  "SQL_readiness_before_DDL": "SELECT1 and exact SHOW data_directory PASS",
+  "complete_fixture_DDL_and_catalog_roles": "PASS",
+  "original_HTTP": {
+    "tests_passed": 2,
+    "tests_failed": 0,
+    "tests_skipped": 0,
+    "test_names": [
+      "observer_handles_nonquery_nil_failed_and_qualified_metadata",
+      "authenticated_customer_create_build_atomic_replay_pg_join"
+    ],
+    "assertions": "38+8 original byte-exact assertions",
+    "module": {
+      "bytes": 26509,
+      "sha256": "6e1a17ce04c7ea601b85bb16296623717c85ceac3bffa5a3af72f7fc8b3c4e5e"
+    },
+    "five_invariant_groups": {
+      "concurrency": {
+        "statuses": [
+          200,
+          201
+        ],
+        "one_build_job_pair": "original count and replay assertions passed"
+      },
+      "physical_transaction": {
+        "backend": 25757,
+        "xact": "1168",
+        "observations": 6,
+        "current_user": "mixer_build_create",
+        "session_user": "mixer_build_create",
+        "one_backend_and_xact": true
+      },
+      "failed_INSERT_rollback_and_same_key_retry": {
+        "sqlstate": "lock_not_available",
+        "HTTP_failure": 503,
+        "HTTP_retry": 201,
+        "build_and_job_counts": "original unchanged assertions passed"
+      },
+      "post_INSERT_expiry_rollback": {
+        "original_under_5000ms_assertion_passed": true,
+        "actual_INSERT_witness": {
+          "command": "insert",
+          "source": "oban_jobs",
+          "query": "INSERT INTO \"public\".\"oban_jobs\" (\"args\",\"meta\",\"state\",\"max_attempts\",\"queue\",\"worker\",\"errors\",\"tags\",\"attempt\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING \"id\"",
+          "repo": "MixerHosted.CustomerBuilds.CreateRepo",
+          "event": [
+            "mixer_hosted",
+            "customer_builds",
+            "create_repo",
+            "query"
+          ],
+          "num_rows": 1,
+          "in_transaction": true,
+          "backend": 25760,
+          "xact": "1254",
+          "current_user": "mixer_build_create",
+          "session_user": "mixer_build_create",
+          "expiry_delay_ms": 4050,
+          "at_ms": 1794586577970
+        },
+        "no_build_or_job_effect": "original unchanged assertions passed"
+      },
+      "missing_scope_and_revocation": {
+        "missing_scope_HTTP": 403,
+        "revocation_HTTP": "original status in [401,503] assertion passed",
+        "no_build_or_job_effect": "original unchanged assertions passed"
+      }
+    },
+    "all_original_controls": [
+      "actual_http_pkce_cookie_csrf_atomic_one_physical_transaction",
+      "exact_and_concurrent_replay",
+      "changed_pin_idempotency_and_hidden_source_scope",
+      "csrf_origin_duplicate_json_and_role_refusals",
+      "ordinary_direct_dml_42501",
+      "existing_get",
+      "actual_oban_insertion_error_rollback",
+      "post_job_insert_final_expiry_rollback",
+      "authenticated_missing_create_scope_cookie",
+      "revocation_no_effect"
+    ]
+  },
+  "isolation": {
+    "tests_passed": 1,
+    "original_tests_excluded_only_in_probe": 2,
+    "totals": "Result: 1 passed, 2 excluded",
+    "three_actual_HTTP_controls": [
+      {
+        "default": "read committed",
+        "wire_key": "r2468-rc-candidate",
+        "HTTP": 201,
+        "backend": 27627,
+        "outside_transaction_default_proof": {
+          "actual": "read committed",
+          "backend": 27627,
+          "before": "read committed",
+          "outside_transaction": true
+        },
+        "errors": [],
+        "counts_before": [
+          [
+            [
+              0
+            ]
+          ],
+          [
+            [
+              0
+            ]
+          ]
+        ],
+        "counts_after": [
+          [
+            [
+              1
+            ]
+          ],
+          [
+            [
+              1
+            ]
+          ]
+        ],
+        "query_order": {
+          "first_isolation": 1,
+          "early_exclusive_active": 2,
+          "unchanged_repeated_isolation": 3,
+          "jit_check": 8,
+          "shared_profile_lock": 26
+        },
+        "queries": 75
+      },
+      {
+        "default": "repeatable read",
+        "wire_key": "r2468-rr-candidate",
+        "HTTP": 201,
+        "backend": 27627,
+        "outside_transaction_default_proof": {
+          "actual": "repeatable read",
+          "backend": 27627,
+          "before": "read committed",
+          "outside_transaction": true
+        },
+        "errors": [],
+        "counts_before": [
+          [
+            [
+              1
+            ]
+          ],
+          [
+            [
+              1
+            ]
+          ]
+        ],
+        "counts_after": [
+          [
+            [
+              2
+            ]
+          ],
+          [
+            [
+              2
+            ]
+          ]
+        ],
+        "query_order": {
+          "first_isolation": 1,
+          "early_exclusive_active": 2,
+          "unchanged_repeated_isolation": 3,
+          "jit_check": 8,
+          "shared_profile_lock": 26
+        },
+        "queries": 75
+      },
+      {
+        "default": "serializable",
+        "wire_key": "r2468-serial-candidate",
+        "HTTP": 201,
+        "backend": 27628,
+        "outside_transaction_default_proof": {
+          "actual": "serializable",
+          "backend": 27628,
+          "before": "repeatable read",
+          "outside_transaction": true
+        },
+        "errors": [],
+        "counts_before": [
+          [
+            [
+              2
+            ]
+          ],
+          [
+            [
+              2
+            ]
+          ]
+        ],
+        "counts_after": [
+          [
+            [
+              3
+            ]
+          ],
+          [
+            [
+              3
+            ]
+          ]
+        ],
+        "query_order": {
+          "first_isolation": 1,
+          "early_exclusive_active": 2,
+          "unchanged_repeated_isolation": 3,
+          "jit_check": 8,
+          "shared_profile_lock": 26
+        },
+        "queries": 75
+      }
+    ],
+    "all_four_pool_defaults_restored": [
+      {
+        "actual": "read committed",
+        "backend": 27629,
+        "before": "serializable",
+        "outside_transaction": true
+      },
+      {
+        "actual": "read committed",
+        "backend": 27626,
+        "before": "serializable",
+        "outside_transaction": true
+      },
+      {
+        "actual": "read committed",
+        "backend": 27627,
+        "before": "serializable",
+        "outside_transaction": true
+      },
+      {
+        "actual": "read committed",
+        "backend": 27628,
+        "before": "serializable",
+        "outside_transaction": true
+      }
+    ],
+    "same_backend_defaults_set_and_observed_outside_transaction": true,
+    "no_manual_admission_GUC_preflight": true,
+    "unchanged_500ms_lock_and_5s_guards": true
+  },
+  "all_BEAMs_retired_before_only_faststop": true,
+  "port_reusable": true,
+  "canonical_source_unchanged": true,
+  "source": {
+    "root_main_user_supplied": "0e8c97d3dd351d7ed94560372fc3d95dae8c3b8e",
+    "canonical_v24_count": 331,
+    "canonical_v24_digest_sha256": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+    "full_source_files": 599,
+    "full_source_sha256": "351998c63e85ed112ef22f2fbf05e3c774dc9a30896d50bc5d89b75b4ff9bd78",
+    "product_files": 137,
+    "product_source_sha256": "eb7e2e95547595ff2a56267bee030f99a34a6bd42003254412464c572037aee4",
+    "digest_recipe": "SHA256(sorted compact JSON path->{bytes,sha256})",
+    "exact_formatted_four": {
+      "hosted/lib/mixer_hosted/authorization.ex": {
+        "after": {
+          "bytes": 4653,
+          "sha256": "4057795367e1ac75be5762690b286dd6212846f0fd90eafc9af2f9de9ff8ddf8"
+        },
+        "before": {
+          "bytes": 4323,
+          "sha256": "2d6410d61f0ab62e22acf890ecdcfd6ace8b593fc30ff1f9f342b3539aeb46db"
+        }
+      },
+      "hosted/lib/mixer_hosted/browser_auth/active_catalog.ex": {
+        "after": {
+          "bytes": 24582,
+          "sha256": "b26e0dd68e137cf862fef678e12d37820ee826a60b7be03ee3351f00c17ec5d6"
+        },
+        "before": {
+          "bytes": 24603,
+          "sha256": "8d08f660eb19575ab6ccd07d7cfd1f92cd88075ed7a69e68126af70a92b80894"
+        }
+      },
+      "hosted/lib/mixer_hosted/browser_auth/active_create.ex": {
+        "after": {
+          "bytes": 5447,
+          "sha256": "c8bb46fb5c9861edb072142107fa3e544cdea1be9b478f7b634856fe3252bacd"
+        },
+        "before": {
+          "bytes": 4884,
+          "sha256": "3c412d8d3d13ba26d46e073c575216b65855714b46c1c0e1997689b724b0371b"
+        }
+      },
+      "hosted/lib/mixer_hosted/customer_builds/create_schema.ex": {
+        "after": {
+          "bytes": 16332,
+          "sha256": "37218cf1bd8c83c9eba5c07098971517f314c4afa0a363b7ae9655050e639524"
+        },
+        "before": {
+          "bytes": 16307,
+          "sha256": "fe85d7ff26a3258c0d750baa66148c82b00f06e40e996b5f7551caa9736ef87f"
+        }
+      }
+    },
+    "other133_byte_exact": true,
+    "all_canonical_test_files": 111,
+    "all_canonical_tests_and_fixture_bytes_unchanged": true,
+    "Session_canonical_byte_exact": {
+      "bytes": 6489,
+      "sha256": "8ae27291a2e0777dfde6f995cf8c1a64c6ac8e2e7b0e7660afdb7cac76382727"
+    },
+    "source_before_after_equal": true,
+    "canonical_before_after_equal": true,
+    "all137_bound_to_actual_compiled_inputs": true,
+    "canonical_check_source": "NOT RUN or claimed; diagnostic frozen overlay admission only, v25 metadata qualification pending"
+  },
+  "cleanup": {
+    "commands": 56,
+    "all_reaped_bothEOF_closedFDs_ESRCH": true,
+    "removed_owned": [
+      "candidate/hosted/deps",
+      "candidate/hosted/_build",
+      "cache",
+      "tmp",
+      "mix-home",
+      "hex-home",
+      "pgdata"
+    ],
+    "raw_logs_source_pins_retained": true,
+    "no_historical_holds_accessed_or_released": true
+  },
+  "limits": [
+    "macOS host PostgreSQL17 fixture integration only; no hosted CI executed",
+    "Focused formatted-byte revalidation only; prior R2480 900-pass full suite and R2474 review are carryover, not rerun; no GA activation",
+    "Private diagnostic candidate only; no canonical/index/Git/authority/provider/native/CI writes",
+    "Fixture mismatch retained without private teardown changes"
+  ],
+  "observed_UTC": "2026-11-13T16:18:09Z",
+  "elapsed_to_finalization_seconds": 165.435,
+  "runtime_order": [
+    "unchanged original canonical module first",
+    "exact R2468 corrected candidate-defaults probe second"
+  ],
+  "runtime_timeout_seconds": {
+    "original-http": 120,
+    "candidate-defaults": 100
+  },
+  "five_executed_case_or_control_outcomes": [
+    {
+      "control": "read committed",
+      "HTTP": 201,
+      "outcome": "PASS"
+    },
+    {
+      "control": "repeatable read",
+      "HTTP": 201,
+      "outcome": "PASS"
+    },
+    {
+      "control": "serializable",
+      "HTTP": 201,
+      "outcome": "PASS"
+    },
+    {
+      "original_test": "observer_handles_nonquery_nil_failed_and_qualified_metadata",
+      "outcome": "PASS"
+    },
+    {
+      "original_test": "authenticated_customer_create_build_atomic_replay_pg_join",
+      "outcome": "PASS"
+    }
+  ],
+  "custody": {
+    "inner_commands": 56,
+    "outer_commands": 1,
+    "all_direct_reaped_bothEOF_closedFDs_positive_ESRCH": true,
+    "PG_exit": 0,
+    "PG_positive_ESRCH": true,
+    "all_BEAMs_retired_before_one_faststop": true,
+    "port39880_reusable": true,
+    "new_UNKNOWN": false,
+    "historical_holds_accessed_or_released": false
+  },
+  "carryover": {
+    "R2474": "SourceReview supplied by parent; not rerun",
+    "R2492_format_proof": {
+      "bytes": 4528,
+      "sha256": "710ad6792cc9850600490e61012f3b015c986f3d58c7a2a556e819e4bc109e16"
+    },
+    "R2492_AST_proven": true,
+    "AST_ignored_metadata_only": [
+      "line",
+      "column"
+    ],
+    "all_binary_SQL_literals": "byte exact per frozen format proof",
+    "R2480": "900 passed, 2 original Linux skips on unformatted AST-equivalent candidate; not rerun"
+  },
+  "warnings": {
+    "strict_compile_stderr": {
+      "bytes": 606,
+      "sha256": "79d9da2d35209d5a838063b212747bc1b6d64f41b27a90d95e54fa73e1c18678"
+    },
+    "strict_compile_observation": "xref exclusion deprecation retained; warnings-as-errors command exited0",
+    "runtime_observation": "fixture migration ordering warnings retained; no warning suppression added"
+  },
+  "limitations": [
+    "Private macOS27/arm64 OTP29 PostgreSQL17 fixture evidence; not production or Linux CI qualification",
+    "One fresh compile and two runtime batches; full900 suite not repeated",
+    "Original canonical private login fixture retained actual 5s connection timeout and original DROP behavior; no R1854 teardown changes injected",
+    "R2474 and frozen R2492 AST/literal proof carry over; no recursive review",
+    "No canonical/index/Git/authority/provider/native/CI writes, publication, merge or GA activation",
+    "Canonical source-v25 metadata qualification remains parent-owned and pending"
+  ],
+  "artifact_policy_check": "Not run; no staging/index writes authorized",
+  "artifacts": {
+    "application-map.json": {
+      "bytes": 1270,
+      "sha256": "e2ebc3d8da7cc4eb0e9441b176f4f7e1ac6a588ba15c8baceead265efddeb856"
+    },
+    "source-before.json": {
+      "bytes": 106495,
+      "sha256": "55b3d72c5fe8029d9d0f9122b31eae246c44bb26b1574795df8e6cc5d00ea7b0"
+    },
+    "source-after.json": {
+      "bytes": 106495,
+      "sha256": "55b3d72c5fe8029d9d0f9122b31eae246c44bb26b1574795df8e6cc5d00ea7b0"
+    },
+    "product137-before.json": {
+      "bytes": 22622,
+      "sha256": "99e3eb9eb3870e2944a8de66612cfdd938daa9ed3310b89e9a1c98b7a58720b3"
+    },
+    "product137-after.json": {
+      "bytes": 22622,
+      "sha256": "99e3eb9eb3870e2944a8de66612cfdd938daa9ed3310b89e9a1c98b7a58720b3"
+    },
+    "canonical-before.json": {
+      "bytes": 55586,
+      "sha256": "17193d14b1e6e63c2df451c892d749d033eeffc5447d72f464d20962a15bd4ea"
+    },
+    "canonical-after.json": {
+      "bytes": 55586,
+      "sha256": "17193d14b1e6e63c2df451c892d749d033eeffc5447d72f464d20962a15bd4ea"
+    },
+    "authority-before.json": {
+      "bytes": 54795,
+      "sha256": "b40652883aca12032136fcb78d2fb1249b012e6da668bfd477af54f81ea1ec66"
+    },
+    "source-bindings-final.json": {
+      "bytes": 214022,
+      "sha256": "315dcfb5d16d74061a596fb4d05a460117ed4e489afa5d20e470099a0ea9eb8b"
+    },
+    "actual-isolation-proof.json": {
+      "bytes": 4514,
+      "sha256": "a2eb5dfd59c93509d5d114685044a909c9e781ddfeead745f7ffdaadce646ec6"
+    },
+    "actual-http-proof.json": {
+      "bytes": 3464,
+      "sha256": "8a54449af548f4f409a930377aa51c545d607b5c80e293d27ce26bf4271736b9"
+    },
+    "raw-hashes.json": {
+      "bytes": 32847,
+      "sha256": "f249b8ffff475ce619fe5cd71dbcae9acc29a1d523c1e26a0ac6d9937f53a18a"
+    },
+    "command-custody-final.json": {
+      "bytes": 43918,
+      "sha256": "625df65d763d369893500365cf5da2574f9b84e849dd30b356db19e9e9b14822"
+    },
+    "format-proof-carryover.json": {
+      "bytes": 4528,
+      "sha256": "710ad6792cc9850600490e61012f3b015c986f3d58c7a2a556e819e4bc109e16"
+    },
+    "fresh-compiled-beam-manifest.json": {
+      "bytes": 203963,
+      "sha256": "e7624a22976f8e31c8fbae0b48f0ae55d34d2c9afed69df390701bfde2e24154"
+    },
+    "fixture-observation.json": {
+      "bytes": 365,
+      "sha256": "1328c39a0873767b6d0888529e536f7b12284491db6488f35cce1744b6e4dc13"
+    },
+    "fixture-plan.json": {
+      "bytes": 21137,
+      "sha256": "6a33ef843ac59fbc931b422f91eeaa885c132df2a4a26051f0d85a8cdb80e432"
+    },
+    "preparation.json": {
+      "bytes": 355,
+      "sha256": "19ac0f3d6d9cfa7138c2bf4378e907cad805768fe63049baee5378e7ab72ceeb"
+    },
+    "original-test.exs": {
+      "bytes": 26509,
+      "sha256": "6e1a17ce04c7ea601b85bb16296623717c85ceac3bffa5a3af72f7fc8b3c4e5e"
+    },
+    "corrected-isolation-test.exs": {
+      "bytes": 32418,
+      "sha256": "2431c307638c9cd498f1a7639947e3ffba88b39601975ff3afdfc82365af36d4"
+    },
+    "prepare.py": {
+      "bytes": 5255,
+      "sha256": "a496db8d5b5af078c00f0c601c7bbd8983e590920a4e7973afc18324bae8a229"
+    },
+    "run.py": {
+      "bytes": 14705,
+      "sha256": "3edc5f2df4344972f9841cdb384340c35eedc490a512a0a39a1d8c6c8629d64f"
+    },
+    "launch.py": {
+      "bytes": 1119,
+      "sha256": "2a534d53e7c4f4d59c50c0a2feae3cf6aab2dcd6dfd72480e784e271cce1060b"
+    },
+    "finalize.py": {
+      "bytes": 14431,
+      "sha256": "f907fd23851d5d5ad44e2fab4ac31ec18f8290ecf60eb350a0a56faf59900748"
+    },
+    "report-only-correction.json": {
+      "bytes": 308,
+      "sha256": "6a1607918876b2d3f1d459f50f9b03c8709b5cb17ca6e536ac60cece06ba2bba"
+    },
+    "finalize-initial.py": {
+      "bytes": 14333,
+      "sha256": "9b539ec2bf3fbc784b8be4a55c8ee7af7907f5f54e961fe2aa0be14c59205607"
+    }
+  },
+  "report_only_correction": {
+    "first_report_error": "NameError: name test is not defined",
+    "location": "finalize.py:59",
+    "failed_finalizer_sha256": "9b539ec2bf3fbc784b8be4a55c8ee7af7907f5f54e961fe2aa0be14c59205607",
+    "correction": "bind original canonical test path in report finalizer",
+    "runtime_or_compile_repeated": false
+  }
+}

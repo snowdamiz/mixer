@@ -241,7 +241,9 @@ defmodule MixerHosted.CustomerBuilds.CreateSchema do
         """,
         [
           "SELECT " <> guard(),
-          MixerHosted.BrowserAuth.ActiveReadSchema.manifest()["mixer_browser_current_active_load"].source
+          MixerHosted.BrowserAuth.ActiveCreateSchema.manifest()[
+            "mixer_browser_create_active_load"
+          ].source
         ],
         :authorization_unavailable
       )

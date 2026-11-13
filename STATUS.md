@@ -2,6 +2,22 @@
 
 ## Continuation: November 13, 2026
 
+The formatted authorization correction is applied as source v25: 331 selected paths, four product replacements and 327 unchanged rows, with a complete typed v24 inverse. Build creation initializes Read Committed before taking the early exclusive authorization lock; Session remains byte-exact. All five root acceptance conditions passed. Canonical source and installed caller admission pass normally and with optimized Python. [Root review](verification/receipts/customer-authz-v25-root-review-r2510.json) and [adoption](verification/receipts/customer-authz-v25-root-adoption-r2516.json).
+
+The exact formatted sources pass the original HTTP module's two cases and return 201 under Read Committed, Repeatable Read and Serializable connection defaults. Concurrent replay, physical transaction evidence, failed-INSERT rollback/retry, post-INSERT expiry, missing scope and revocation assertions pass. A fresh production release passes 35 controls: 20 use release modules and 15 use the specified composition leaves. The earlier unformatted full suite passed 900 tests with two existing Linux skips; formatter AST and binary-literal equality carries that evidence forward. Fresh final v25 full CI remains pending. [Formatted runtime](verification/receipts/customer-authz-formatted-runtime-r2496.json) and [release](verification/receipts/customer-authz-formatted-production-r2498.json).
+
+V25 collector admission passes 283 tests in normal Python and 283 in actual optimized Python, plus 32 guarded-apply refusals per mode. Historical validator bytes, CLI119, Pair21, immutable118 and the 1 GiB artifact budget remain exact. Two preparation failures and their corrections remain preserved in the producer packet; two root review-script failures are also preserved. No historical custody hold was released.
+
+Observed hosted evidence at delivered v24 head `0e8c97d3d` is green: Phoenix ran 900 passing tests with two skips and 35 constructor/composition checks. Isolated-network execution passed K03 and combined IS04/IS05 without skips; all 276 collector tests completed in 53.266 seconds under the 120-second allowance. Exact source331 bindings and three-container absence are recorded; inner process custody remains partially unexposed. [Hosted proof](verification/receipts/v24-green-ci-proof-r2486.json).
+
+Float arithmetic now has actual combined-feature debug and release parent passes at the same delivered head. Its 320 scalar comparisons, 40 cleanups and 30 environment denials remain source-implied in CI; local per-case evidence remains separate. This does not qualify the entire Engine or W08. [CI proof](verification/receipts/vm-float-arithmetic-ci-proof-r2508.json).
+
+The private customer-create-to-worker join remains accepted for development: four real Oban drains, terminal failed readback and duplicate replay passed under explicit privileged fixture authority with a modeled compiler failure. Restricted production processing, real compiler integration, provider provenance, production activation and the specified GA matrix remain pending. Physical phones remain disconnected; GA stays 0/38.
+
+## Previous checkpoint: before formatted v25 admission
+
+## Continuation: November 13, 2026
+
 The independently reviewed float-arithmetic corpus passes 320 Node scalar comparisons across two runs of 20 original modules. Results include 196 exact-bit, 72 canonical-NaN, and 52 permitted arithmetic-NaN comparisons. All 40 consuming runtimes finish with fourteen zero currents and zero tickets; 30 malformed environments are rejected before payload. One debug build compiled all 50 manifest targets, but the full suite was not executed. [Root acceptance](verification/receipts/vm-float-arithmetic-root-r2464.json) and [independent review](verification/receipts/vm-float-arithmetic-review-r2452.json).
 
 Complete delivered scalar-memory CI output now proves actual combined-feature debug and release parent passes at `ae5c399a8`. Its 48 comparisons, 48 cleanups, and 30 denials remain source-implied in CI; local per-case evidence remains separate. The complete log is 3,903,203 bytes. [CI proof](verification/receipts/vm-memory-access-ci-proof-r2434.json).

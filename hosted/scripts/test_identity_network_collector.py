@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_customer_expiry_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, CUSTOMER_EXPIRY_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_customer_authz_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, CUSTOMER_AUTHZ_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
+                    mock.patch.object(collector, "validate_customer_authz_source_manifest", return_value=collector.CUSTOMER_AUTHZ_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
+                    mock.patch.object(collector, "validate_customer_authz_source_manifest", return_value=collector.CUSTOMER_AUTHZ_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
+                    mock.patch.object(collector, "validate_customer_authz_source_manifest", return_value=collector.CUSTOMER_AUTHZ_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
+                            mock.patch.object(collector, "validate_customer_authz_source_manifest", return_value=collector.CUSTOMER_AUTHZ_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
+                            mock.patch.object(collector, "validate_customer_authz_source_manifest", return_value=collector.CUSTOMER_AUTHZ_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.CUSTOMER_EXPIRY_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.CUSTOMER_AUTHZ_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -3009,8 +3009,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
         import contextlib
         import io
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / collector.CUSTOMER_EXPIRY_SOURCE_BASE / "selection.json").read_bytes()
-        self.assertEqual(collector.CUSTOMER_EXPIRY_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        raw = (root / collector.CUSTOMER_AUTHZ_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.CUSTOMER_AUTHZ_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
         expected = json.loads(raw)["selected"]
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -3018,7 +3018,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-        self.assertEqual(collector.CUSTOMER_EXPIRY_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertEqual(collector.CUSTOMER_AUTHZ_SELECTION_SHA256, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
 
@@ -3026,8 +3026,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "d86d35be4f9e570480b5f7e9f29c41d63f2a4df0d499531bd2c92d0eaa104f80"
-    DIGEST = "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027"
+    PIN = "e91518b9362fdb00cc17b338f23a3ce313e2eafcb5b14dcb270e65946b9c62a6"
+    DIGEST = "f8b6be3e87cb50f8c5bb5dc02616e0bfbd63a6e99c54d8446774db1c9699fa62"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3105,7 +3105,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / "verification/identity-network-current-source-v24/selection.json").read_bytes()
+        raw = (root / "verification/identity-network-current-source-v25/selection.json").read_bytes()
         self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
         patterns = self.patterns((root / workflow_path).read_text(), job)
         self.assertNotIn(self.FAMILY, patterns)
@@ -3369,8 +3369,8 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
         self.assertEqual(331,observed['source_count'])
-        self.assertEqual(collector.CUSTOMER_EXPIRY_SOURCE_DIGEST,observed['source_digest_sha256'])
-        self.assertEqual(collector.CUSTOMER_EXPIRY_SELECTION_SHA256,observed['selection_sha256'])
+        self.assertEqual(collector.CUSTOMER_AUTHZ_SOURCE_DIGEST,observed['source_digest_sha256'])
+        self.assertEqual(collector.CUSTOMER_AUTHZ_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
         try:
             target.write_bytes(original+b'\n')
@@ -3869,7 +3869,7 @@ class PublicConsoleSigninSourceControls(unittest.TestCase):
                 self.assertEqual(0, exited.exception.code)
                 observed = json.loads(output.getvalue())
                 self.assertEqual(331, observed['source_count'])
-                self.assertEqual(collector.CUSTOMER_EXPIRY_SELECTION_SHA256, observed['selection_sha256'])
+                self.assertEqual(collector.CUSTOMER_AUTHZ_SELECTION_SHA256, observed['selection_sha256'])
 
     def test_v19_actual_collect_refuses_changed_new_source_before_docker(self):
         helper = CollectorMethodWiringControls()
@@ -4305,6 +4305,94 @@ class CustomerExpirySourceControls(unittest.TestCase):
             body = json.dumps(value, sort_keys=True).encode()
             with mock.patch.object(collector, 'CUSTOMER_EXPIRY_SELECTION_SHA256', hashlib.sha256(body).hexdigest()):
                 with self.assertRaises(collector.CollectorError): collector.validate_customer_expiry_source_metadata({**metadata, base + 'selection.json': body})
+
+class CustomerAuthzSourceControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        base = collector.CUSTOMER_AUTHZ_SOURCE_BASE
+        return {base+n:(root/base/n).read_bytes() for n in ('selection.json','selected-source-manifest.json')}
+
+    def test_exact_four_replacements_complete_typed_inverse_and_original137(self):
+        value = collector.validate_customer_authz_source_metadata(self.metadata())
+        self.assertEqual(collector.CUSTOMER_EXPIRY_MANIFEST, value['inverse_v24'])
+        self.assertEqual(331, len(value['inverse_v24']))
+        expected = ['hosted/lib/mixer_hosted/authorization.ex', 'hosted/lib/mixer_hosted/browser_auth/active_catalog.ex', 'hosted/lib/mixer_hosted/browser_auth/active_create.ex', 'hosted/lib/mixer_hosted/customer_builds/create_schema.ex']
+        self.assertEqual(expected, list(value['exact_delta']))
+        self.assertEqual(327, sum(collector.CUSTOMER_AUTHZ_MANIFEST[p] == e for p,e in value['inverse_v24'].items()))
+        self.assertEqual(137, sum(p.startswith('hosted/lib/') for p in value['inverse_v24']))
+        session = 'hosted/lib/mixer_hosted/authorization/postgres/session.ex'
+        self.assertEqual(value['inverse_v24'][session], collector.CUSTOMER_AUTHZ_MANIFEST[session])
+        inverse = dict(collector.CUSTOMER_AUTHZ_MANIFEST)
+        for p,c in value['exact_delta'].items(): inverse[p] = c['before']
+        self.assertEqual(value['inverse_v24'], inverse)
+        self.assertFalse(value['runtime_or_GA_accepted'])
+
+    def test_every_selected_and_inverse_row_type_hash_role_and_membership(self):
+        for original, validator in ((collector.CUSTOMER_AUTHZ_MANIFEST, collector.validate_customer_authz_source_manifest), (collector.CUSTOMER_EXPIRY_MANIFEST, collector._customer_authz_inverse)):
+            for p in original:
+                for key,val in [('bytes', True), ('bytes', float(original[p]['bytes'])), ('sha256','0'*64), ('role','foreign')]:
+                    bad = copy.deepcopy(original); bad[p][key] = val
+                    with self.subTest(p=p,key=key), self.assertRaises(collector.CollectorError): validator(bad)
+            for bad in ({}, dict(reversed(list(original.items()))), {**original,'hosted/foreign':{'bytes':0,'sha256':'0'*64}}):
+                with self.assertRaises(collector.CollectorError): validator(bad)
+
+    def test_current_full_manifest_cannot_be_replaced_by_sourcecaller(self):
+        bad = copy.deepcopy(collector.CUSTOMER_AUTHZ_MANIFEST)
+        p = next(iter(bad)); bad[p]['sha256'] = '0'*64
+        for kwargs in ({'expected_count':True},{'expected_count':331.0},{'expected_digest':canonical_digest(bad)},{'expected_count':4}):
+            with self.assertRaises(collector.CollectorError): collector.validate_customer_authz_source_manifest(bad, **kwargs)
+        with self.assertRaises(collector.CollectorError): collector.validate_customer_authz_source_manifest(collector.CUSTOMER_EXPIRY_MANIFEST)
+        for p in collector.CUSTOMER_AUTHZ_DELTA:
+            bad = copy.deepcopy(collector.CUSTOMER_AUTHZ_MANIFEST); bad.pop(p)
+            with self.assertRaises(collector.CollectorError): collector.validate_customer_authz_source_manifest(bad)
+
+    def test_duplicate_reordered_nonfinite_json_refused(self):
+        for body in (b'{"a":1,"a":2}', b'{"b":1,"a":2}', b'{"a":NaN}'):
+            with self.assertRaises(collector.CollectorError): collector._customer_authz_json(body)
+
+    def test_repinned_metadata_numeric_alias_activation_inverse_and_delta_refused(self):
+        base = collector.CUSTOMER_AUTHZ_SOURCE_BASE; metadata = self.metadata()
+        mutations = [lambda v:v.update(schema=True), lambda v:v['selected'].update(source_count=331.0), lambda v:v['predecessor'].update(source_count=True), lambda v:v['selected']['manifest'].update(bytes=True), lambda v:v.update(runtime_or_GA_accepted=True), lambda v:v['inverse_v24'][next(iter(v['inverse_v24']))].update(bytes=True)]
+        for p in collector.CUSTOMER_AUTHZ_DELTA:
+            for role in ('before','after'):
+                mutations.append(lambda v,p=p,role=role:v['exact_delta'][p][role].update(bytes=float(v['exact_delta'][p][role]['bytes'])))
+        for mutation in mutations:
+            v = json.loads(metadata[base+'selection.json']); mutation(v)
+            b = json.dumps(v,sort_keys=True).encode()
+            with mock.patch.object(collector,'CUSTOMER_AUTHZ_SELECTION_SHA256',hashlib.sha256(b).hexdigest()):
+                with self.assertRaises(collector.CollectorError): collector.validate_customer_authz_source_metadata({**metadata,base+'selection.json':b})
+        for p in metadata:
+            for bad in ({**metadata,p:metadata[p]+b' '},{k:v for k,v in metadata.items() if k!=p},{**metadata,'foreign':b'{}'}):
+                with self.assertRaises(collector.CollectorError): collector.validate_customer_authz_source_metadata(bad)
+
+    def test_each_changed_product_refuses_before_docker_dispatch(self):
+        helper = CollectorMethodWiringControls()
+        for path in collector.CUSTOMER_AUTHZ_DELTA:
+            with tempfile.TemporaryDirectory(prefix='authz-v25-') as directory:
+                subject,calls = helper._amendment_preflight_subject(directory,exact_format_metadata())
+                original = subject.git_blobs
+                def blobs(paths):
+                    result = original(paths)
+                    if path in result: result[path] += b'corrupt'
+                    return result
+                subject.git_blobs = blobs
+                with mock.patch.dict('os.environ',{'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64'},clear=True), mock.patch.object(collector.os,'uname',return_value=collector.os.uname_result(('Linux','control','0','0','x86_64'))):
+                    with self.assertRaises(collector.CollectorError): subject.collect()
+                self.assertFalse(any(argv[0]=='docker' for argv in calls))
+
+    def test_all_three_actual_sparse_callers_require_v25_and_four_sources(self):
+        root = COLLECTOR_PATH.resolve().parents[2]; helper = WorkflowSparseSourceControls()
+        for workflow,job in [('hosted.yml','phoenix'),('identity-network.yml','identity-network'),('verify.yml','services')]:
+            with tempfile.TemporaryDirectory(prefix='authz-sparse-v25-') as directory:
+                sparse = Path(directory)
+                helper.materialize(root,sparse,helper.patterns((root/'.github/workflows'/workflow).read_text(),job))
+                helper.check_real_main(sparse)
+                for p in list(collector.CUSTOMER_AUTHZ_DELTA)+[collector.CUSTOMER_AUTHZ_SOURCE_BASE+n for n in ('selection.json','selected-source-manifest.json')]:
+                    target = sparse/p; b = target.read_bytes(); target.unlink()
+                    try:
+                        with self.assertRaises(FileNotFoundError): helper.check_real_main(sparse)
+                    finally: target.write_bytes(b)
+
 
 if __name__ == "__main__":
     signal.alarm(120)

@@ -55,6 +55,15 @@ defmodule MixerHosted.Authorization do
       case repo.transaction(
              fn ->
                try do
+                 if action == "build.create" do
+                   Session.query!(repo, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+
+                   MixerHosted.BrowserAuth.ActiveCreate.check_current!(%{
+                     repo: repo,
+                     identity: identity
+                   })
+                 end
+
                  linkage = Session.prepare!(repo, lookup)
                  evidence = Evidence.load!(repo, lookup, linkage)
                  now = System.system_time(:second)
