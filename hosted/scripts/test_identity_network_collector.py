@@ -3886,10 +3886,6 @@ class PublicConsoleSigninSourceControls(unittest.TestCase):
 
 
 
-if __name__ == "__main__":
-    signal.alarm(50)
-    unittest.main(verbosity=2)
-
 class ConsoleCoherenceSourceControls(unittest.TestCase):
     def metadata(self):
         root = COLLECTOR_PATH.resolve().parents[2]
@@ -4079,3 +4075,7 @@ class BuildClockSourceControls(unittest.TestCase):
                             helper.check_real_main(sparse)
                     finally:
                         target.write_bytes(original)
+
+if __name__ == "__main__":
+    signal.alarm(50)
+    unittest.main(verbosity=2)

@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "id": "build-create-architecture-a-r2108",
+  "candidate": "A",
+  "status": "DESIGN_ONLY_NOT_IMPLEMENTED_NOT_TESTED",
+  "observed_at": "2026-11-13T07:23:24.971Z",
+  "brief": "verification/local/customer-build-create-architecture-r2108/brief.md",
+  "output": "verification/local/customer-build-create-architecture-r2108/candidate-a",
+  "baseline": {
+    "main_user_supplied": "21f4894db17d56a2dae4004ae41da909efc22826",
+    "v21_user_supplied": {
+      "count": 290,
+      "sha256": "13cbf07d04bcbceaaaebb6278166bc18630e4d63f0fcf9857bca3e7319203463"
+    },
+    "git_reverified": false
+  },
+  "grounding": {
+    "contract": "verification/local/customer-build-workflow-grounding-r2100/contract.json",
+    "before_hashes": "inherited by reference: all 41 entries",
+    "observed_matches": 41,
+    "observed_drift": [],
+    "additional_read_hashes": {
+      "hosted/lib/mixer_hosted/authorization/scope.ex": {
+        "sha256": "b98c7c6f2f3592bf2fcfd0890d86bb503e3c9cdd6558fa1c7b0766ddb61c7b7a",
+        "bytes": 2264
+      },
+      "hosted/lib/mixer_hosted/customer_builds/selection.ex": {
+        "sha256": "82f438b7c71ad6d93ebda29b479396f5dd963fe321439573e24c78163431cf07",
+        "bytes": 1336
+      },
+      "hosted/lib/mixer_hosted/browser_auth/active_read_schema.ex": {
+        "sha256": "07a3d1a08388f4cdca2e2c9943d577c0d4d0ed1c73d7b17de1eb219d552b628b",
+        "bytes": 6717
+      },
+      "hosted/priv/repo/migrations/20261025000003_add_customer_authorization.exs": {
+        "sha256": "110997b341449a04135296b000c6434f84526305c2f70c16b1e51f38dffc3f6c",
+        "bytes": 12665
+      }
+    }
+  },
+  "artifacts": {
+    "README.md": {
+      "sha256": "4800a141c619ef942e8574382abf966c393a2aa7087203635aaf187db7b27060",
+      "bytes": 26480
+    },
+    "sketch.ex": {
+      "sha256": "e0bf4a8cec33713220915161e270fc547c3587f1053044472be2848b6e059b5b",
+      "bytes": 4504
+    },
+    "rationale.md": {
+      "sha256": "69b3f7c6d3f844f8ab685e3bf6a8e185c49cbccea344317982ce18195de37e01",
+      "bytes": 6341
+    }
+  },
+  "approach": "Guarded scoped SQL lookup/create under live Authorization transaction; Storage retains common replay/job contract; Coordinator retains scheduling",
+  "public_facade": "CustomerBuilds.create(VerifiedIdentity, CreateInput, RequestKey)",
+  "wire_proposal": "POST /console-api/v1/builds; closed 8-field body; cookie+Origin+synchronizer CSRF; 201 applied/200 duplicate",
+  "first_executable_test": {
+    "name": "authenticated_customer_create_build_atomic_replay_pg_join",
+    "path": "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs",
+    "status": "PROPOSED_NOT_CREATED_NOT_RUN"
+  },
+  "smallest_first_implementation": "create action/application target + source admission/binding + narrow SQL Storage path + retained active POST; then execute named real Endpoint/PKCE/Pg integration",
+  "new_product_paths_proposed": [
+    "hosted/lib/mixer_hosted/customer_builds/create_input.ex",
+    "hosted/lib/mixer_hosted/customer_builds/request_key.ex",
+    "hosted/lib/mixer_hosted/customer_builds/create_result.ex",
+    "hosted/lib/mixer_hosted/customer_builds/source_input.ex",
+    "hosted/lib/mixer_hosted/builds/create_command.ex",
+    "hosted/priv/repo/migrations/20261113002108_add_customer_build_create.exs",
+    "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs",
+    "hosted/test/support/customer_build_create_fixture.ex"
+  ],
+  "additional_minimal_typespec_edit": "hosted/lib/mixer_hosted/customer_builds/selection.ex adds t/0 only to support sketch; no read behavior change",
+  "verification": {
+    "kind": "static source reads + SHA-256 only",
+    "payload_tests_run": 0,
+    "builds": 0,
+    "db_api_native_cloud_payloads": 0,
+    "subchildren": 0,
+    "git_index_canonical_writes": 0,
+    "held_namespace_access": false,
+    "all_holds_preserved": true,
+    "artifact_readback": true,
+    "tools": "exec_command static pwd/cat/rg and Node REPL node:fs/promises/node:crypto; tool versions not queried; no runtime/custody qualification claimed"
+  },
+  "limits": {
+    "maximum_seconds": 300,
+    "budget_compliance": false,
+    "first_recorded_clock": "2026-11-13 07:14:23 UTC",
+    "already_observed_clock": "2026-11-13 07:22:49 UTC",
+    "minimum_elapsed_between_those_observations_seconds": 506,
+    "reason": "Runner exceeded wall-clock budget during source-grounded design and artifact authoring; no executed-test claim"
+  },
+  "risks": [
+    "SQL job insert adapter must faithfully preserve selected Oban defaults/notification contract; reject A if not possible",
+    "Browser-session logout after active admission is not claimed to fence domain commit; credential authorization remains live/final",
+    "Immutable local source admission supports development only; repository ingestion/credentials/worker execution unqualified"
+  ],
+  "scope": "Private Phase B candidate only. Parent synthesizes; next campaign implements and runs integration, no further preparation-only packet."
+}
