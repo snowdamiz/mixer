@@ -233,19 +233,26 @@ def integration_diagnostic(result):
     def mapping(value):
         return value if type(value) is dict else {}
 
-    def scalar(value):
+    def scalar(value, escaped_limit=480):
         if type(value) is str:
-            return value if len(value) <= 96 else value[:93] + '...'
+            value = value if len(value) <= 96 else value[:93] + '...'
+            while len(json.dumps(value)) > escaped_limit + 2:
+                value = value[:-4] + '...'
+            return value
         if value is None or type(value) is bool:
             return value
         if type(value) is int and -(2**63) <= value < 2**63:
             return value
         return None
 
-    def fields(value, keys):
-        value = mapping(value)
-        return {key: scalar(value.get(key)) for key in keys}
+    def hold_scalar(value):
+        return scalar(value, escaped_limit=96)
 
+    def fields(value, keys, project=scalar):
+        value = mapping(value)
+        return {key: project(value.get(key)) for key in keys}
+
+    result = mapping(result)
     cleanup = fields(result.get('cleanup'), (
         'command_custody_terminal', 'owned_scratch_started', 'owned_scratch_removed',
         'error', 'evidence_persistence_error', 'retention_reason'))
@@ -256,6 +263,9 @@ def integration_diagnostic(result):
         'direct_child_reaped', 'stdout_eof', 'stderr_eof', 'owned_group_absent',
         'descriptors_closed'))
     command['execution_error'] = fields(last.get('execution_error'), ('type', 'message'))
+    command['inner_hold'] = fields(last.get('inner_hold'), (
+        'parent_label', 'operation', 'error', 'retained_cli_tmp'), hold_scalar)
+    command['hold_persistence_error'] = hold_scalar(last.get('hold_persistence_error'))
     errors = last.get('cleanup_errors')
     command['cleanup_errors'] = [fields(error, ('operation', 'type', 'message'))
                                  for error in errors[:2]] if type(errors) is list else []

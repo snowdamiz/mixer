@@ -227,6 +227,7 @@ class SwiftCIIndependence(unittest.TestCase):
         self.assertEqual(binding.pop('play_cli_transition'), a.PLAY_CLI_TRANSITION)
         binding['source'] = binding.pop('historical_cli118_source')
         self.assertTrue(a.same_json(binding.pop('bootstrap_diagnostic_transition'), a.BOOTSTRAP_DIAGNOSTIC_TRANSITION))
+        self.assertTrue(a.same_json(binding.pop('inner_hold_diagnostic_transition'), a.INNER_HOLD_DIAGNOSTIC_TRANSITION))
         del binding['swift_ci_independence_transition']
         self.assertEqual(identity((json.dumps(binding, indent=2) + '\n').encode()), transition['prior_binding'])
 

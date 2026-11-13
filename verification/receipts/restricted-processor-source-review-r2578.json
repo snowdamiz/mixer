@@ -1,0 +1,206 @@
+{
+  "id": "R2578",
+  "status": "REQUEST_CHANGES",
+  "verdict": "PROVEN_SOURCE_FINDINGS",
+  "review_round": 1,
+  "reviewer": "independent Sol source/security reviewer",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "xhigh",
+  "frozen_packet": "verification/local/restricted-processor-actual-r2562",
+  "contract": {
+    "path": "verification/local/restricted-processor-architecture-r2532/synthesis.md",
+    "bytes": 5773,
+    "sha256": "6cc6ef23fe8ac36ea162fa80b984a2903d95098a4eaf6a705d56587037092407"
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "priority": "P2",
+      "path": "hosted/lib/mixer_hosted/builds/processor_admission.ex",
+      "line": 280,
+      "title": "Function admission omits proisstrict; STRICT drift skips locking for supported NULL dimensions",
+      "proof": "counterexamples-final.json strictness + pinned source + official PostgreSQL 17 catalog/CREATE FUNCTION/ALTER FUNCTION docs",
+      "minimum_owning_fix": "Select proisstrict and require false; later SQL negative must reject STRICT drift and confirm empty/partial-scope locking."
+    },
+    {
+      "id": "F2",
+      "priority": "P2",
+      "path": "hosted/lib/mixer_hosted/runtime_config.ex",
+      "line": 68,
+      "title": "Configured Oban Postgres notifier uses SimpleConnection without Repo after_connect admission",
+      "proof": "pinned Oban notifier lines49-62,103-120; Postgrex SimpleConnection lines350-364; Protocol has no after_connect; hashes retained",
+      "minimum_owning_fix": "Gate the notifier actual backend on admission before LISTEN/connected use on initial connect and every replacement."
+    }
+  ],
+  "identity": {
+    "producer_receipt": {
+      "path": "verification/receipts/restricted-processor-actual-r2562.json",
+      "bytes": 6736,
+      "sha256": "85e02b67701e4ada197b00abd1c7929c05a6d386b14a1e14e026c6bcd178c7fd"
+    },
+    "product_paths": 14,
+    "existing_preimages": 11,
+    "new_null_paths": 3,
+    "all_product_pre_after_sets_exact": true,
+    "all285_current_canonical_source_pins_exact": true,
+    "all331_current_authority_pins_exact": true,
+    "all288_frozen_candidate_files_exact": true,
+    "candidate_digest": "2c06b41f1f2b0c59e018690eeff0b95dfd6124fed218fd20eb4035bec98f30e3",
+    "all914_dependency_source_hashes_exact": true,
+    "alias_fix_only_exact": true,
+    "Git_HEAD_independently_read": false
+  },
+  "producer_evidence": {
+    "REPORT.md": {
+      "bytes": 6990,
+      "sha256": "9dd01f8c4d1872690d6bbb63722d3c780793929267f1ba4b45f38ea4598dd1ae"
+    },
+    "application-map.json": {
+      "bytes": 4095,
+      "sha256": "c99876564e7bd1deef2673cfac728ba5bf3ebe39b8ac5a196ce6be9cb36ecc74"
+    },
+    "r2550-to-final.patch": {
+      "bytes": 2765,
+      "sha256": "4e4f3418e9d73a4f5956cb2b258bee653e589f9ea339c6d74ac1d00a09c77005"
+    },
+    "implementation.patch": {
+      "bytes": 40980,
+      "sha256": "567685391947fc3dcef976ddf4f180237e6eb7a30688b8f509e20ec3abb5a7bd"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 6707,
+      "sha256": "d870b0d4432ad7df3864634f19eada2357bc37d27d2951decf72ee5775802d54"
+    },
+    "command-manifest.json": {
+      "bytes": 10884,
+      "sha256": "cd23c3f1239e3426abf4ca2f2ead025e6627ad7d3d26eb6dfeccea751cca1d39"
+    },
+    "final-source-manifest.json": {
+      "bytes": 48366,
+      "sha256": "cc4373a71101fa62f9c7c4c8d89cdf95dfaf9091c14d853d2a318887ea3b3272"
+    },
+    "first-attempt-source-manifest.json": {
+      "bytes": 2283,
+      "sha256": "af1f53146726908bcf80e2333fa561875e706ee397451ab447b7cbcc9acecc75"
+    },
+    "first-failure-source/hosted/lib/mixer_hosted/builds/processor_admission.ex": {
+      "bytes": 11937,
+      "sha256": "a7a638b69f00176604a5137bd0068f9aa72ba277a4729dd45cfecceb1466de83"
+    },
+    "commands-runtime/postgres-foreground.stderr": {
+      "bytes": 3914,
+      "sha256": "54012d788a595d5307942d96e6e4ce5520345fe58038d982e9cb7fbe8f4cf20a"
+    },
+    "commands-runtime/constructors.stdout": {
+      "bytes": 143,
+      "sha256": "18510c4054ce6a774a2b9abacb2490d4e3ba8a2a059a703f1c63447c21e118c4"
+    },
+    "commands-runtime/strict-compile.stdout": {
+      "bytes": 1428,
+      "sha256": "499f47d95f95d70792059edd4613c7e1c0cd30c34191682af61536d84aa01465"
+    },
+    "commands/strict-compile-2/strict-compile-2.stdout": {
+      "bytes": 53,
+      "sha256": "c7baa4cede744f7b4f57e63667d987380a929486a3845bbb6cce486dc8001dfd"
+    },
+    "commands-api/api-test.stdout": {
+      "bytes": 2998,
+      "sha256": "5a111ae86b75d314e60d69d9e318e69b55e23cee900ced987716163625e78163"
+    },
+    "commands-processor/processor.stderr": {
+      "bytes": 1164,
+      "sha256": "771c8e43f66ecb24b60a6f4e78e01412481543bde2e42ced501f43d63cbcdd73"
+    },
+    "evidence/created-response.json": {
+      "bytes": 512,
+      "sha256": "4bc8a5045d720b9cb4f3393e444da3f370609ae4d99033f4d7f3012cb3d1fdff"
+    }
+  },
+  "producer_custody": {
+    "all45_raw_files_exact": true,
+    "raw_bytes": 290622,
+    "all16_managed_records_match_individual_registries": true,
+    "all16_record_positive_reap_EOF_FDclose_ESRCH": true,
+    "postgres_custody": "producer receipt records positive terminal foreground custody; no fresh process probe",
+    "UNKNOWN_in_delivered_records": false
+  },
+  "review_artifacts": {
+    "REPORT.md": {
+      "bytes": 10522,
+      "sha256": "64fd6325d24f0a0fb506f92f02d0925a632856ba955f9b4d6389c1630991c997"
+    },
+    "integrity.json": {
+      "bytes": 790,
+      "sha256": "fe1ffe45f8ec8b64895baef12c28fb0b644c93c4bde637ac9080103880a880bc"
+    },
+    "final-source-proof.json": {
+      "bytes": 861,
+      "sha256": "69eb45f9549387ea68be6e100847b5a56956e35fb203d7a7a163c28deb51e8b4"
+    },
+    "reviewed-supporting-source-hashes.json": {
+      "bytes": 1936,
+      "sha256": "9bf4ab13c8f424e6988dcecead2262cb6b204d1c3a023938e14127678e8a977a"
+    },
+    "counterexamples-final.json": {
+      "bytes": 1662,
+      "sha256": "fa5e5a19d52183369916083ecf530460c1f2215a24d909971d7d7f19c1aa1094"
+    },
+    "rejected-public-policy-counterexample.json": {
+      "bytes": 702,
+      "sha256": "2c81ba360f1a94f8e6e459943eac34ba0e5b15b04d5375640714cba9b5e101dc"
+    },
+    "review-failure-note.json": {
+      "bytes": 270,
+      "sha256": "32e7f6209b039069a7182805dd8dbb9ebff5c6b1c8e54ba45a7bd0ba7f42929d"
+    }
+  },
+  "observed_limits": {
+    "producer_compiles_passed": 2,
+    "producer_constructor_passed": 31,
+    "constructors_after_final_alias_fix": "UNRUN",
+    "named_case_passed": 0,
+    "named_case_failed": 1,
+    "Oban_drains_observed": 0,
+    "canonical_quota_negatives_four_drains_terminal_replay_drift_restore_fleet_rollback": "UNRUN in R2562",
+    "R2576_inspected_or_claimed": false,
+    "new_compile_app_runtime_PG_native_runs": 0,
+    "full_runtime_or_GA_acceptance": false
+  },
+  "review_custodian": {
+    "definitions_only": true,
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "command_records": "verification/local/restricted-processor-source-review-r2578/commands.json",
+    "UNKNOWN_stops_and_preserves": true
+  },
+  "scope": {
+    "writes_only_owned_review_dir_and_receipt": true,
+    "canonical_index_Git_writes": false,
+    "children": 0,
+    "remote_writes": false,
+    "held_resources_accessed_or_released": false,
+    "held_v5_used": false,
+    "root_owns_adoption_and_delivery": true
+  },
+  "rejected_candidate": "PUBLIC + named role SQL normalizes to PUBLIC alone and is refused; not a finding",
+  "first_review_failure": "Wrong expected ExUnit summary format in check11 retained; corrected check13 passed with positive custody",
+  "primary_sources": [
+    "https://www.postgresql.org/docs/17/catalog-pg-proc.html",
+    "https://www.postgresql.org/docs/17/sql-createfunction.html",
+    "https://www.postgresql.org/docs/17/sql-alterfunction.html",
+    "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/commands/policy.c#L146-L163"
+  ],
+  "started_utc": "2026-11-13T17:51:55Z",
+  "completed_utc": "2026-11-13T18:01:06.671854+00:00",
+  "wall_limit_seconds": 600,
+  "tool_versions": {
+    "python": "3.14.8",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "report": "verification/local/restricted-processor-source-review-r2578/REPORT.md",
+  "review_final_verification": {
+    "artifact_hashes_and_frozen14_preimages_afterimages": "PASS",
+    "all15_prior_review_commands_positive_reap_EOF_FDclose_ESRCH": true,
+    "check15_failure": "Count included the active gated checker; corrected by excluding check16 current label. All source/artifact comparisons had passed.",
+    "new_holds": 0
+  }
+}

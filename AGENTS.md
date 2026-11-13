@@ -647,3 +647,17 @@ verification/receipts/generated-java-ci-failure-r2338.json and
 verification/receipts/generated-java-hosted-hold-r2350.json are references.
 Fresh separately selected source diagnostics and CI namespaces remain permitted;
 they release neither this chain nor any historical hold.
+
+The hosted generated-Java release export in run 43466434718, job 132026695748,
+head 681ca7a4a67296851ff53b3a80cf16ba6f31189b, reported UNKNOWN custody for
+PID/PGID 18165. Preserve that exact release-export command, descendants and
+retained scratch without inspection, enumeration, probing, signals, waits,
+retry or cleanup. Only the metadata prefix
+/Users/runner/work/_temp/generated-java-ci was exposed; it is not an exact
+recovered scratch path. Direct return and GitHub cleanup prove no absence.
+No underlying exception or errno was exposed. Read only the delivered compact
+verification/receipts/v25-generated-java-ci-failure-r2554.json and root
+verification/receipts/generated-java-release-export-hold-r2560.json as custody
+references. Artifact inspection stopped with zero downloads. Fresh separately
+selected synthetic/source diagnostics and unrelated CI remain permitted;
+neither releases this or any historical hold.

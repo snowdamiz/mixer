@@ -575,7 +575,34 @@ def renderer_pair21_predecessor_raw(base, path):
 BOOTSTRAP_DIAGNOSTIC_TRANSITION = {'schema': 1, 'type': 'EXACT_REVIEWED_BOOTSTRAP_DIAGNOSTIC_CALLER_SUCCESSOR', 'bootstrap': {'path': 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py', 'before': {'bytes': 18682, 'sha256': 'e42931e0d062d40648bf9a6de11469ba4aa4396cfefaabf25c71eed00ae55354'}, 'after': {'bytes': 20797, 'sha256': 'dfc061f13363c7ac51603d5627d2b6c43095c5b37942b037f1c4123bc9a7c140'}, 'reverseEdits': [{'afterStartLine': 225, 'afterEndLine': 267, 'beforeText': ''}, {'afterStartLine': 369, 'afterEndLine': 370, 'beforeText': ''}, {'afterStartLine': 390, 'afterEndLine': 392, 'beforeText': ''}, {'afterStartLine': 393, 'afterEndLine': 393, 'beforeText': "    print(json.dumps({'status': receipt['status'], 'error': receipt.get('error')}))\n"}]}, 'callers': {'before': {'bytes': 2532, 'sha256': 'bbfa7e600dda614374c966e6920b50a6a52c925a1b0da563d189e4af343c7c63'}, 'after': {'bytes': 2532, 'sha256': 'b44a461445c403804e2cb05726b234d236a64b5b9bf3d2bb5dfcbd98e0c3999c'}}, 'owningSourceCount': 119, 'owningSourceSHA256': '80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c', 'qualification': False}
 
 
+INNER_HOLD_DIAGNOSTIC_TRANSITION = {'schema': 1, 'type': 'EXACT_MEMORY_ONLY_INNER_HOLD_DIAGNOSTIC_CALLER_SUCCESSOR_R2566', 'bootstrap': {'path': 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py', 'before': {'bytes': 20797, 'sha256': 'dfc061f13363c7ac51603d5627d2b6c43095c5b37942b037f1c4123bc9a7c140'}, 'after': {'bytes': 21298, 'sha256': 'd7cbafa5a6e106fb76ff93834a9b5537b1f9263b001e8d9d399db9f694aad18d'}, 'reverseEdits': [{'afterStartLine': 235, 'afterEndLine': 236, 'beforeText': '    def scalar(value):\n'}, {'afterStartLine': 237, 'afterEndLine': 241, 'beforeText': "            return value if len(value) <= 96 else value[:93] + '...'\n"}, {'afterStartLine': 247, 'afterEndLine': 251, 'beforeText': '    def fields(value, keys):\n'}, {'afterStartLine': 252, 'afterEndLine': 253, 'beforeText': '        return {key: scalar(value.get(key)) for key in keys}\n'}, {'afterStartLine': 254, 'afterEndLine': 255, 'beforeText': ''}, {'afterStartLine': 265, 'afterEndLine': 268, 'beforeText': ''}]}, 'callers': {'before': {'bytes': 2532, 'sha256': 'b44a461445c403804e2cb05726b234d236a64b5b9bf3d2bb5dfcbd98e0c3999c'}, 'after': {'bytes': 2532, 'sha256': 'd04ca40bc94e770a7b97b2efbc70b296bce25e69070f64662d04c6d999fcb228'}}, 'owningSourceCount': 119, 'owningSourceSHA256': '80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c', 'qualification': False}
+
+
+def inner_hold_bootstrap_predecessor(base, raw):
+    t = INNER_HOLD_DIAGNOSTIC_TRANSITION['bootstrap']
+    base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, t['after']), 'Inner hold bootstrap exact successor differs')
+    lines = raw.decode().splitlines(True)
+    for edit in reversed(t['reverseEdits']):
+        lines[edit['afterStartLine']:edit['afterEndLine']] = [edit['beforeText']]
+    old = ''.join(lines).encode()
+    base.need(same_json({'bytes':len(old), 'sha256':hashlib.sha256(old).hexdigest()}, t['before']), 'Inner hold bootstrap exact inverse differs')
+    return old
+
+def inner_hold_callers_predecessor(base, raw):
+    t = INNER_HOLD_DIAGNOSTIC_TRANSITION
+    base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, t['callers']['after']), 'Inner hold caller exact successor differs')
+    rows = json.loads(raw, object_pairs_hook=base.unique_object)
+    base.check_rows(ROOT, rows)
+    bootstrap = next(r for r in rows if r['path'] == t['bootstrap']['path'])
+    base.need(same_json({k:bootstrap[k] for k in ('bytes','sha256')}, t['bootstrap']['after']), 'Inner hold caller bootstrap row differs')
+    inner_hold_bootstrap_predecessor(base, base.regular(ROOT / t['bootstrap']['path']).read_bytes())
+    bootstrap.update(t['bootstrap']['before'])
+    old = (json.dumps(rows, indent=2) + '\n').encode()
+    base.need(same_json({'bytes':len(old), 'sha256':hashlib.sha256(old).hexdigest()}, t['callers']['before']), 'Inner hold caller exact inverse differs')
+    return old
+
 def diagnostic_bootstrap_predecessor(base, raw):
+    raw = inner_hold_bootstrap_predecessor(base, raw)
     t = BOOTSTRAP_DIAGNOSTIC_TRANSITION['bootstrap']
     base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, t['after']), 'Diagnostic bootstrap exact successor differs')
     lines = raw.decode().splitlines(True)
@@ -586,13 +613,12 @@ def diagnostic_bootstrap_predecessor(base, raw):
     return old
 
 def diagnostic_callers_predecessor(base, raw):
+    raw = inner_hold_callers_predecessor(base, raw)
     t = BOOTSTRAP_DIAGNOSTIC_TRANSITION
     base.need(same_json({'bytes':len(raw), 'sha256':hashlib.sha256(raw).hexdigest()}, t['callers']['after']), 'Diagnostic caller exact successor differs')
     rows = json.loads(raw, object_pairs_hook=base.unique_object)
-    base.check_rows(ROOT, rows)
     bootstrap = next(r for r in rows if r['path'] == t['bootstrap']['path'])
     base.need(same_json({k:bootstrap[k] for k in ('bytes','sha256')}, t['bootstrap']['after']), 'Diagnostic caller bootstrap row differs')
-    diagnostic_bootstrap_predecessor(base, base.regular(ROOT / t['bootstrap']['path']).read_bytes())
     bootstrap.update(t['bootstrap']['before'])
     old = (json.dumps(rows, indent=2) + '\n').encode()
     base.need(same_json({'bytes':len(old), 'sha256':hashlib.sha256(old).hexdigest()}, t['callers']['before']), 'Diagnostic caller exact inverse differs')
@@ -692,6 +718,7 @@ def bind():
         base.need(actual == current, 'Current owning source closure differs')
         binding = json.loads(base.regular(HERE / 'binding.json').read_bytes(), object_pairs_hook=base.unique_object)
         base.need(same_json(binding.get('schema'), 1), 'Binding schema differs')
+        base.need(same_json(binding.get('inner_hold_diagnostic_transition'), INNER_HOLD_DIAGNOSTIC_TRANSITION), 'Inner hold diagnostic typed transition differs')
         base.need(same_json(binding.get('bootstrap_diagnostic_transition'), BOOTSTRAP_DIAGNOSTIC_TRANSITION), 'Diagnostic bootstrap typed transition differs')
         base.need(same_json(binding.get('fixture_retention_transition'), FIXTURE_RETENTION_TRANSITION), 'Fixture retention typed transition differs')
         selected_actual = actual
@@ -811,7 +838,7 @@ def bind():
         base.need(same_json(binding.get('swift_ci_independence_transition'), independence), 'Swift CI independence transition differs')
         base.need(same_json({'bytes':len(expected.encode()), 'sha256':hashlib.sha256(expected.encode()).hexdigest()}, independence['after']), 'Swift CI independently pinned graph differs')
         prior_changes = json.loads(base.regular(HERE / 'job-changes.json').read_bytes(), object_pairs_hook=base.unique_object)[:-1]
-        prior_binding = {key:value for key,value in binding.items() if key not in ('swift_ci_independence_transition', 'play_cli_transition', 'historical_cli118_source', 'renderer_pair21_transition', 'bootstrap_diagnostic_transition')}
+        prior_binding = {key:value for key,value in binding.items() if key not in ('swift_ci_independence_transition', 'play_cli_transition', 'historical_cli118_source', 'renderer_pair21_transition', 'bootstrap_diagnostic_transition', 'inner_hold_diagnostic_transition')}
         prior_binding['source'] = binding['historical_cli118_source']
         prior_binding['profile'] = dict(binding['profile'], id=RENDERER_PAIR21_TRANSITION['profileBefore']['id'], adapter_sha256=RENDERER_PAIR21_TRANSITION['profileBefore']['adapter_compatibility_sha256'])
         for value, key in ((prior_changes, 'prior_job_changes'), (prior_binding, 'prior_binding')):

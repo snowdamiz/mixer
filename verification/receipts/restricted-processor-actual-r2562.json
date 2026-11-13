@@ -1,0 +1,182 @@
+{
+  "id": "R2562",
+  "status": "FIRST_CAUSE_REPRODUCED_FINAL_ALIAS_FIX_COMPILES_RUNTIME_UNRUN",
+  "accepted": false,
+  "named_case": "restricted_processor_customer_create_to_worker_terminal_pg_join",
+  "named_case_actually_run": true,
+  "tests": {
+    "constructors": {
+      "passed": 31,
+      "failed": 0,
+      "when": "initial final R2550 source, before alias correction"
+    },
+    "named": {
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0
+    },
+    "Oban_drains_completed": 0
+  },
+  "observed": {
+    "PKCE_cookie_session": true,
+    "input_GET": 200,
+    "POST": 201,
+    "POST_state": "queued",
+    "POST_revision": 0,
+    "initial_domain_and_job_rows": "real customer POST; no administrator-manufactured journal",
+    "full_canonical_schema_and_profile_install": "completed before API storage_ready",
+    "processor_admission": "failed inside real restricted connection admission, before Oban",
+    "terminal_GET": "UNRUN",
+    "replay": "UNRUN",
+    "capacity_locks_and_denied_writes": "UNRUN on canonical migrated schema",
+    "drift_membership_fleet_and_rollback_discriminators": "UNRUN; later harness work not qualified"
+  },
+  "first_cause": {
+    "first_cause": "PostgreSQL 42601 syntax_error at reserved alias right in ProcessorAdmission.privileges!",
+    "observed_SQL": "CROSS JOIN unnest(...) p(right)",
+    "masked_by": "after search_path restoration SQL runs in aborted transaction and reports 25P02",
+    "fix": "Rename exact three SQL output aliases to privilege and matching references; no ACL or expected-right change",
+    "runtime_after_fix": "UNRUN: three BEAM batches consumed",
+    "source_before": {
+      "bytes": 11937,
+      "sha256": "a7a638b69f00176604a5137bd0068f9aa72ba277a4729dd45cfecceb1466de83"
+    }
+  },
+  "final_fix": {
+    "path": "hosted/lib/mixer_hosted/builds/processor_admission.ex",
+    "change": "p(right)/p.right -> p(privilege)/p.privilege in exactly three privilege catalog queries",
+    "strict_compile": "PASS, second and final compile",
+    "runtime": "UNRUN; no fourth BEAM batch or second PostgreSQL launch",
+    "independent_review": "PENDING; exact delta r2550-to-final.patch",
+    "error_masking": "25P02 from existing search_path restoration remains a known diagnostic issue; not changed"
+  },
+  "limits": {
+    "total_seconds": 900,
+    "cleanup_reserve_seconds": 60,
+    "strict_compiles": 2,
+    "strict_compile_limit": 2,
+    "runtime_BEAM_batches": 3,
+    "runtime_BEAM_batch_limit": 3,
+    "batches": [
+      "constructors",
+      "API named test",
+      "separate processor mix run"
+    ],
+    "PG_launches": 1,
+    "PG_fast_stops": 1,
+    "port": 39920,
+    "first_named_launch_campaign_seconds": 146.6413130760193
+  },
+  "source": {
+    "declared_base_revision": "34c2f6c63c089059138bcae525b145d7babeda68",
+    "Git_HEAD_independently_read": false,
+    "product_source_selection": "v25/331 unchanged",
+    "canonical_source_files": 285,
+    "all_canonical_and_authority_pins_match_after": true,
+    "final_candidate_files": 288,
+    "final_candidate_digest": "2c06b41f1f2b0c59e018690eeff0b95dfd6124fed218fd20eb4035bec98f30e3",
+    "original_preimage_final_afterimage_paths": 14,
+    "changed_product_paths_vs_R2550": 1,
+    "pinned_dependency_source_files": 914,
+    "official_Hex_files": 133,
+    "general_purpose_rebar_sha256": "4df37f2f7570e0b5af15b5dcbad6b7a864202575d94e1d8663166c7643ee3a09",
+    "product_or_dependency_BEAM_reused": false,
+    "final_compiled_BEAM_files": 1066,
+    "lock_helper_body_matches_R2550": true
+  },
+  "tool_versions": {
+    "Elixir": "1.20.4",
+    "Erlang_OTP": "29 / erts17.1",
+    "schedulers": "2 SMP, 1 dirty CPU, 1 dirty IO",
+    "Rebar": "3.28.0",
+    "PostgreSQL": "17.11 Homebrew"
+  },
+  "custodian": {
+    "definitions_only": true,
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchanged": true,
+    "explicit_cwd_and_per_registry_commands": true
+  },
+  "cleanup": {
+    "managed_commands": 16,
+    "all_direct_reaped_both_EOF_FDs_closed_ESRCH": true,
+    "postgres": {
+      "pid": 3629,
+      "pgid": 3629,
+      "state": "TERMINAL",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/restricted-processor-actual-r2562/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39920",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/restricted-processor-actual-r2562/pgdata",
+      "output_kind": "regular_files",
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "exit": 0,
+      "closedFDs": true,
+      "pipe_EOF": "not applicable; regular files"
+    },
+    "port39920_reusable": true,
+    "removed_owned_terminal_transients": [
+      "candidate/hosted/_build",
+      "pgdata",
+      "tmp",
+      "cache",
+      "mix-home",
+      "hex-home"
+    ],
+    "UNKNOWN_custody": false,
+    "new_holds": 0,
+    "historical_holds_accessed_or_released": false
+  },
+  "scope": {
+    "writes_only_owned_R2562_and_compact_receipt": true,
+    "canonical_index_Git_policy_authority_writes": false,
+    "children": 0,
+    "native_provider_remote_credentials_deployment": false,
+    "held_v5_startup_used": false,
+    "root_owns_delivery": true
+  },
+  "limitations": [
+    "Named join failed before any Oban drain; restricted processor qualification is NOT passed.",
+    "Alias fix compiles but has no post-fix runtime, SQL or constructor rerun.",
+    "No canonical composite-key lock test, four-drain terminal/replay, fleet cross-organization count, drift refusal/restore or successor rollback result.",
+    "Compiler failure remains modeled and was not reached; no compiler/provider/production release/full-suite/source-v26/GA claim."
+  ],
+  "artifacts": {
+    "application_map": {
+      "bytes": 4095,
+      "sha256": "c99876564e7bd1deef2673cfac728ba5bf3ebe39b8ac5a196ce6be9cb36ecc74"
+    },
+    "asset_map": {
+      "bytes": 2422,
+      "sha256": "e850d3e7110064e72119d93a533cd7f7d16270c9b9e735a295004ea36f64b402"
+    },
+    "raw_manifest": {
+      "bytes": 6707,
+      "sha256": "d870b0d4432ad7df3864634f19eada2357bc37d27d2951decf72ee5775802d54"
+    },
+    "raw_files": 45,
+    "raw_bytes": 290622,
+    "source_manifest": {
+      "bytes": 48366,
+      "sha256": "cc4373a71101fa62f9c7c4c8d89cdf95dfaf9091c14d853d2a318887ea3b3272"
+    },
+    "report": {
+      "bytes": 6990,
+      "sha256": "9dd01f8c4d1872690d6bbb63722d3c780793929267f1ba4b45f38ea4598dd1ae"
+    }
+  },
+  "report": "verification/local/restricted-processor-actual-r2562/REPORT.md",
+  "elapsed_total_seconds_to_delivery": 398.784
+}
