@@ -1,0 +1,68 @@
+{
+  "id": "darwin-signal-zero-r1990",
+  "recordedUTC": "2026-11-13T04:45:01.526157+00:00",
+  "status": "PASS_CURRENT_HOST_EXPECTED_RAW_EPERM_THEN_TERMINAL_ESRCH",
+  "result": {
+    "test": "DarwinZombieOnlyGroupSignalZeroControl",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "kernel": "27.0.0",
+    "childMaximum": 1,
+    "signalsOtherThanZero": 0,
+    "historicalHoldsAccessedOrReleased": false,
+    "state": "TERMINAL",
+    "pid": 56633,
+    "pgid": 56633,
+    "waitid": {
+      "pid": 56633,
+      "code": 1,
+      "status": 42
+    },
+    "expectedRawProbeIsNotAnAbsenceClaim": true,
+    "signalZeroBeforeReap": {
+      "result": "EPERM",
+      "errno": 1
+    },
+    "directReaped": true,
+    "signalZeroAfterReap": {
+      "result": "ESRCH",
+      "errno": 3
+    },
+    "status": "PASS",
+    "bothEOF": true,
+    "closedFDs": true,
+    "ownedGroupAbsentESRCH": true,
+    "hypothesisObservedOnThisHost": true,
+    "failedHostedPID1153StateProved": false
+  },
+  "driver": {
+    "path": "verification/local/darwin-signal-zero-r1990/control.py",
+    "sha256": "74864c1c6a4d215c24dea02bb671cfad7728cd5d445aaef31cb83a695ac19f72"
+  },
+  "outerManagedCommand": {
+    "label": "darwin-zombie-signal-zero-r1990",
+    "argv": [
+      "python3",
+      "-B",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/darwin-signal-zero-r1990/control.py"
+    ],
+    "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+    "pid": 56630,
+    "pgid": 56630,
+    "state": "direct_reaped",
+    "exitCode": 0,
+    "bothEOF": true,
+    "closedFDs": true,
+    "seconds": 0.09485754207707942,
+    "ownedGroupAbsentESRCH": true
+  },
+  "interpretation": "A zombie-only directly owned group returned EPERM on signal-zero while WNOWAIT independently proved exit; explicit reap preceded positive ESRCH. This observation is not an absence claim.",
+  "limitations": [
+    "Current host macOS27.0.1 Darwin27.0.0, not the exact Darwin24.6 hosted kernel",
+    "No proof about held PID1153 or any historical resource",
+    "No cache-controller source change or new future observation policy adopted"
+  ],
+  "nonzeroSignalsSent": 0,
+  "childProcesses": 1,
+  "historicalHoldsReleased": false,
+  "newHold": false
+}

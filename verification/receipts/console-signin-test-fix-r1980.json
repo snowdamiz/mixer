@@ -1,0 +1,26 @@
+{
+  "id": "console-signin-test-fix-r1980",
+  "recordedUTC": "2026-11-13T04:36:53.227413+00:00",
+  "status": "PRIVATE_FIX_READY_FOR_JOINT_MODULE_REPLAY_AND_CHANGED_FIX_REVIEW",
+  "finding": "R1968 P2 evidence namespace collision in Fixture.prepare! ordinary-r1422",
+  "changedPathsComparedToR1948": [
+    "hosted/lib/mixer_hosted_web/browser_login_http.ex",
+    "hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs"
+  ],
+  "implementation": "New dedicated module owns browser-login-json-http child base, restores parent env through on_exit; existing shared Fixture unchanged",
+  "formatASTEquality": true,
+  "backendHTTPChange": "Formatting only, AST equality proved against R1948",
+  "otherSevenCandidatePathsUnchanged": true,
+  "applicationMap": "verification/local/console-signin-fix-r1980/application-map.json",
+  "canonicalWrites": false,
+  "runtimeTestsForFix": 0,
+  "holdsReleased": false,
+  "GA": false,
+  "rootDevelopmentFailure": "Initial finalization expected formatter to leave HTTP bytes unchanged; assertion rejected that assumption after formatter correctly changed15bytes. No canonical mutation or runtime retry.",
+  "formatterProof": {
+    "path": "verification/local/configured-root-adoption-r1902/format-signin-fix-r1980.stdout",
+    "bytes": 229,
+    "sha256": "3c8c7efa888d7317b5bb4f3636b6f738dbecea4edda58dc104a38925c35c46b3",
+    "reviewerCaveat": "R1986 did not inspect this raw stdout pointer; root inspected the actual managed output and both AST equalities"
+  }
+}

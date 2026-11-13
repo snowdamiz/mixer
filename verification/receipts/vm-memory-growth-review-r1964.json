@@ -1,0 +1,138 @@
+{
+  "id": "R1964_VM_MEMORY_GROWTH_INDEPENDENT_REVIEW",
+  "reviewed_at_utc": "2026-11-13T04:27:08.275783+00:00",
+  "status": "PASS_PRIVATE_DEBUG_SCOPE",
+  "producer": "R1954",
+  "scope": "W08 / product-plan 10.4 original command-mode memory.grow and memory.size corpus; independent source/hash/raw-log review",
+  "source": {
+    "path": "vm/tests/differential_memory_growth_consuming.rs",
+    "bytes": 14859,
+    "sha256": "b473734986d059bb562a3b6710addb41c432411c4c72d3ba90b1648a4097b005"
+  },
+  "source_sha256": "b473734986d059bb562a3b6710addb41c432411c4c72d3ba90b1648a4097b005",
+  "findings": [],
+  "accepted_private_debug_scope": true,
+  "accepted_scope": "Existing macOS debug host evidence for 12 original cases in each of exact and blanket ignored invocation modes; unchanged experimental reactor profile and default budgets",
+  "producer_receipt": {
+    "path": "verification/receipts/vm-memory-growth-r1954.json",
+    "bytes": 22905,
+    "sha256": "b82c375f262f55866fa799b320ccc38f2ef686d5793aec8e07b8b5195851870c"
+  },
+  "evidence": {
+    "frozen_and_current_inputs_matching": 142,
+    "frozen_input_tree_sha256": "b35ac6a7fc76599654e8e6af1bf21d2b4624f243aa1cc43c00727d82e2f30a88",
+    "raw_outputs_hash_verified": 20,
+    "manifest_targets": 43,
+    "manifest_test_targets": 40,
+    "tool_hashes_verified": 4,
+    "exact": {
+      "cases": 12,
+      "growth_operations": 24,
+      "memory_size_observations": 48,
+      "node_parities": 12,
+      "consuming_cleanups_fourteen_zero_currents_tickets0_invariant_none": 12,
+      "environment_rejections": 7
+    },
+    "blanket": {
+      "cases": 12,
+      "growth_operations": 24,
+      "memory_size_observations": 48,
+      "node_parities": 12,
+      "consuming_cleanups_fourteen_zero_currents_tickets0_invariant_none": 12,
+      "environment_rejections": 7
+    },
+    "exact_stdout_sha256": "4e20606b280c6efbe580f7a4230a7177be5bc65ab626e366638428d7aba9118a",
+    "blanket_stdout_sha256": "071b97dbcf0c16a7a2950bd2fdf7106bbb3089b7eb2c9d53ad7a2157bfadfa64",
+    "retained_replay_binary": {
+      "path": "verification/local/vm-memory-growth-r1954/replay/differential_memory_growth_consuming",
+      "bytes": 2859912,
+      "sha256": "39081b65c6e734e509bac5d6b0968053cff7cfae4e11aaa57aa0b66de77131a1"
+    },
+    "recorded_commands": 10,
+    "all_recorded_commands_direct_reaped_bothEOF_closedFDs_ownedGroupAbsentESRCH": true,
+    "float_conversion_hash_preserved": "c97032c4ca83b0bb8bc250b756964aa160e460f31f26e8737989973de121615a"
+  },
+  "semantic_review": {
+    "supported_profile": true,
+    "previous_size_and_minus_one": true,
+    "unsigned_deltas": true,
+    "failed_growth_size_and_payload_immutability": true,
+    "zeroing_new_pages_and_preserving_old_payload": true,
+    "subsequent_valid_growth_after_denial": true,
+    "scratch_exclusion": "First 64 bytes hold ABI scratch; preservation claim begins at byte64",
+    "node_executes_same_original_module_bytes": true,
+    "node_adapter_duplicates_growth_arithmetic": false,
+    "discovery_and_environment_reentry_reviewed": true,
+    "independent_authored_expectations_checked_against_spec": true,
+    "budgets_unchanged": true
+  },
+  "producer_timing_clarification": {
+    "debug_build_seconds": 4.995747291017324,
+    "campaign_seconds": 37.08765612496063
+  },
+  "custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchanged_ast_definitions": [
+      "InertPopen",
+      "read",
+      "row",
+      "run",
+      "save"
+    ],
+    "producer_explicit_existing_cwd_and_serial_registry": true,
+    "review_new_managed_runtime_commands": 0
+  },
+  "verification_method": {
+    "source_and_raw_log_audit": "PASS",
+    "review_driver_exit_code": 0,
+    "new_compile": false,
+    "existing_binary_replay": false,
+    "reason_no_replay": "No concrete source/evidence concern remained after the independent hash, module-operand and raw-record checks",
+    "review_python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "metadata_assertion_correction": "An initial static parser assumed a fixed fd_write import index; corrected to decode the original import section. No engine payload, compile, or replay ran in either audit invocation."
+  },
+  "official_spec_references": [
+    "https://webassembly.github.io/spec/core/exec/instructions.html#exec-memory-grow",
+    "https://webassembly.github.io/spec/core/exec/modules.html#grow-mem",
+    "https://webassembly.github.io/spec/core/syntax/values.html#integers"
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "path": "verification/local/vm-memory-growth-review-r1964/REPORT.md",
+      "bytes": 6355,
+      "sha256": "dc86598ed70a40e3e564a8026794888b7e8ec2044e786359ec975212c28be157"
+    },
+    "review.py": {
+      "path": "verification/local/vm-memory-growth-review-r1964/review.py",
+      "bytes": 14041,
+      "sha256": "0914bce596f9dd7056a12ec79eaff0c9d98cab5b460d7499d80a7ba73729b4e5"
+    },
+    "audit.json": {
+      "path": "verification/local/vm-memory-growth-review-r1964/audit.json",
+      "bytes": 19154,
+      "sha256": "71365a7d18228d20e0adca41d922461a32cfea04f00a4f1084c13764952ecd6a"
+    }
+  },
+  "canonical_source_index_git_writes": false,
+  "historical_hold_payload_access_or_process_operations": false,
+  "holds_released": false,
+  "hosted1153_r1930_archive_and_all_native_holds_preserved": true,
+  "subchildren_native_provider_ci_retries": false,
+  "staging_or_delivery_performed": false,
+  "root_owns_delivery": true,
+  "pending": [
+    "root final admission and delivery",
+    "combined-suite qualification",
+    "release-profile qualification",
+    "CI qualification",
+    "remaining W08/GA requirements"
+  ],
+  "limitations": [
+    "Bounded original cases, not standards completeness",
+    "Host allocation failure, runtime budget exhaustion and memory pressure unqualified",
+    "Ignored opt-in development oracle; ordinary unignored test discovery provides no execution evidence",
+    "Local macOS debug host evidence only; no native/device/production or GA claim"
+  ],
+  "ga_qualification": false
+}

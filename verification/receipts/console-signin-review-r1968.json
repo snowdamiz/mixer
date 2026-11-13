@@ -1,0 +1,291 @@
+{
+  "id": "console-signin-review-r1968",
+  "recordedUTC": "2026-11-13T04:32:26.847359+00:00",
+  "status": "REQUEST_CHANGES",
+  "findings": [
+    {
+      "id": "R1968-F1",
+      "priority": "P2",
+      "title": "Isolate the new test module before reusing the ordinary fixture",
+      "path": "hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs",
+      "lines": [
+        9,
+        11
+      ],
+      "reviewedSHA256": "bd8787cdb58edcdb4c270768a8717f3f8f57e1f00aa304f1bf7532574bfca7d8",
+      "proofKind": "SOURCE_TRACE_NO_RUNTIME_REPRODUCTION",
+      "trigger": "Normal hosted/scripts/test-local.py full-suite selection includes the new dedicated module and the existing ordinary catalog module in one ExUnit run.",
+      "proof": [
+        {
+          "path": "hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs",
+          "lines": [
+            9,
+            11
+          ],
+          "fact": "New setup_all directly calls Fixture.prepare! without a module-owned parent evidence namespace."
+        },
+        {
+          "path": "hosted/test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs",
+          "lines": [
+            21,
+            23
+          ],
+          "fact": "Existing setup_all directly calls the same Fixture.prepare!."
+        },
+        {
+          "path": "hosted/test/support/ordinary_browser_startup_fixture.ex",
+          "lines": [
+            42,
+            62
+          ],
+          "fact": "prepare_evidence! appends fixed ordinary-r1422, asserts :ok = File.mkdir(root), restores environment on exit and retains that directory."
+        },
+        {
+          "path": "hosted/test/support/ordinary_browser_startup_fixture.ex",
+          "lines": [
+            117,
+            120
+          ],
+          "fact": "prepare! invokes prepare_evidence! before PostgreSQL construction."
+        },
+        {
+          "path": "hosted/scripts/test-local.py",
+          "lines": [
+            292,
+            301
+          ],
+          "fact": "One shared catalog evidence root is passed to ordinary mix test with all test files."
+        },
+        {
+          "path": ".github/workflows/hosted.yml",
+          "lines": [
+            263,
+            269
+          ],
+          "fact": "Hosted CI invokes this full-suite runner."
+        }
+      ],
+      "impact": "Whichever module runs second reaches :error/:eexist at File.mkdir for the retained directory; its setup_all fails before the HTTP tests. async:false serializes the modules but does not isolate their evidence paths.",
+      "fix": "Give the new module a unique parent fixture/evidence namespace and restore the prior environment on exit before calling Fixture.prepare!, following InitialAdmitQueueFixture.prepare!/0. Preserve refusal-on-occupied-path rather than replacing File.mkdir with mkdir_p or deleting prior evidence.",
+      "validationLimit": "R1970 dedicated-file execution in a fresh fixture cannot disprove a collision that requires both modules in the same ordinary full-suite namespace. Root owns any selected validation of the packaging fix."
+    }
+  ],
+  "scope": "Independent exact R1948 source/log/hash review only; dedicated runtime and own-browser queued-to-failed integration belong to root R1970.",
+  "skills": [
+    "typescript-best-practices",
+    "principle-type-system-discipline"
+  ],
+  "source": {
+    "contract": {
+      "path": "verification/local/console-signin-r1948/parent-contract.json",
+      "bytes": 2696,
+      "sha256": "b476fe0db6cae466bf0be3801e7ffc69632d7cd3ea75cbe106eb9047d24fbdfe"
+    },
+    "applicationMap": {
+      "path": "verification/local/console-signin-r1948/delivery/application-map.json",
+      "bytes": 2176,
+      "sha256": "0f60763c6c8aae50b68e0c96bf9dde946b32081cfe7decb9d0d8a4eac3ea0032"
+    },
+    "patch": {
+      "path": "verification/local/console-signin-r1948/delivery/candidate.patch",
+      "bytes": 25084,
+      "sha256": "a5c918ad38103c3c9328ac9d0a3b401100d7d712a97a3612e6a62de87aa38563"
+    },
+    "reviewedPaths": {
+      "console/src/App.tsx": {
+        "before": {
+          "bytes": 5661,
+          "sha256": "b4cc432c7d6aa2e2d33202f1360e7f59076f6e44eb17c01fc3bbb851ffd62b3c"
+        },
+        "after": {
+          "bytes": 5720,
+          "sha256": "e92ef3796bfdf1adf81ae8fc0ed3c12f662e6e724ada3841d7327b84c5fbc4c6"
+        }
+      },
+      "console/src/main.tsx": {
+        "before": {
+          "bytes": 510,
+          "sha256": "402bdb5c59aec268668c52f01e48e767e6233c88b588b6df543cc6a97fa20fdf"
+        },
+        "after": {
+          "bytes": 667,
+          "sha256": "25b1c1dc079585dcc8c032e96d17e0c4c65e3ae009c3638125c4e7d5be1b7d58"
+        }
+      },
+      "console/src/styles.css": {
+        "before": {
+          "bytes": 10361,
+          "sha256": "e8da6e671919d432cf5f6f0c6d53bdd39f27009c5ac82200a83eb4dd905a347d"
+        },
+        "after": {
+          "bytes": 10472,
+          "sha256": "b9c7c7219c16fdfd52d0329de062102241baae16fe7f861e2dfabf2cbf2acaf2"
+        }
+      },
+      "console/src/api/browser-login-client.ts": {
+        "before": null,
+        "after": {
+          "bytes": 5081,
+          "sha256": "cda65a5bc6289047715082163d59bb07a63934342a2076023c7c95c9bed55546"
+        }
+      },
+      "console/src/state/sign-in-action.ts": {
+        "before": null,
+        "after": {
+          "bytes": 1722,
+          "sha256": "c52a614cef0fb2893c91e778b022780d91b957febce0b9fec6aaea38aabf7b4f"
+        }
+      },
+      "console/src/components/SignIn.tsx": {
+        "before": null,
+        "after": {
+          "bytes": 2297,
+          "sha256": "d8958b4d291c85d65495ed9d65dcde298cbfa77f1d6542911a721e4ec2124aa1"
+        }
+      },
+      "console/tests/browser-login.test.mjs": {
+        "before": null,
+        "after": {
+          "bytes": 7063,
+          "sha256": "461c2ea40c48ca4d641c5fb9c1602294019a2d1a9ffe9c6fb02a2717adcf2c36"
+        }
+      },
+      "hosted/lib/mixer_hosted_web/browser_login_http.ex": {
+        "before": {
+          "bytes": 4724,
+          "sha256": "ef1f3408474b9e8c1581253f5cfc4371b2edc1315072bf6677f1d6e6f009facb"
+        },
+        "after": {
+          "bytes": 5285,
+          "sha256": "ad23d6a4c8a4dc9791c69ad7c5948e4dfa8aeeb338b31b4da507833074faed1a"
+        }
+      },
+      "hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs": {
+        "before": null,
+        "after": {
+          "bytes": 4323,
+          "sha256": "bd8787cdb58edcdb4c270768a8717f3f8f57e1f00aa304f1bf7532574bfca7d8"
+        }
+      }
+    },
+    "allNinePinned": true,
+    "patchRegeneratesExactly": true,
+    "canonicalNineStillPreimagesAtReport": true,
+    "candidateManifest": {
+      "count": 36,
+      "bytes": 5476,
+      "sha256": "13c36249b1e9aae280ba298b12ba6b2267aec016e53939d439fad0b93fc532f9",
+      "allExactFixtureInputs": true
+    },
+    "focusedFrontendTestEqualsExecutedCopy": true,
+    "backendLibSourcesCompared": 130,
+    "backendDifferences": [
+      "hosted/lib/mixer_hosted_web/browser_login_http.ex"
+    ],
+    "proofSourcePins": {
+      "hosted/test/support/ordinary_browser_startup_fixture.ex": {
+        "bytes": 25298,
+        "sha256": "486fbf75691a8f3e8168442c7727324817c14c8560f0b796b805a0221a5e19a5"
+      },
+      "hosted/test/support/initial_admit_queue_fixture.ex": {
+        "bytes": 9184,
+        "sha256": "fd9098bd9b3fcc71a46bc60e723875c651968f0b010468da61297d468dd30eb4"
+      },
+      "hosted/test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs": {
+        "bytes": 16203,
+        "sha256": "c90b4209b38f8948cf783669ea005274eb3f43c94f5a6fb35ae5cd2be108de49"
+      },
+      "hosted/scripts/test-local.py": {
+        "bytes": 25951,
+        "sha256": "f0585945da899d16f36c1c15531c867445ee390fea5fa8fa81f4f16f3dc1e5e7"
+      },
+      "hosted/mix.exs": {
+        "bytes": 1270,
+        "sha256": "bf32132975d04d66315974a6a5ef0bc9d9718b6392824d92bbc8e9d764062f0d"
+      },
+      ".github/workflows/hosted.yml": {
+        "bytes": 16109,
+        "sha256": "61a8cfd4cc3eeec6fa0d1b2f7bb928a1596fad2ae2632cd305ac861513ba9b06"
+      }
+    },
+    "mainRevision": "59f62941e (parent reported; no Git command used)",
+    "canonicalSelection": "v18/278 (parent reported; no v19 qualification)"
+  },
+  "securityStateContract": "No additional concrete product defect found; source review is not operational/provider qualification.",
+  "producerEvidence": {
+    "frontendPassed": 199,
+    "frontendFailed": 0,
+    "frontendSkipped": 0,
+    "typecheck": "PASS_PRODUCER_EXIT0",
+    "build": "PASS_PRODUCER_RAW_OUTPUT",
+    "JSONControls": "PASS_PRODUCER_RAW_OUTPUT",
+    "aggregateExUnit": {
+      "total": 2,
+      "failures": 1,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "aggregateFailure": "refreshed.status 401 vs 200; cause not proven",
+    "browser": "producer real button through queued only; failed detail unexecuted",
+    "dedicatedModuleDispatched": false
+  },
+  "unresolved": [
+    "R1968-F1 new test module evidence namespace isolation",
+    "R1970 dedicated exact-file result",
+    "R1970 own-browser queued-to-failed result",
+    "Root source admission and adoption; v19 hashes outside review",
+    "Production/real provider/device/GA qualification"
+  ],
+  "activity": {
+    "testsRun": 0,
+    "runtimeLaunches": 0,
+    "subchildren": 0,
+    "browserNativeDBProviderCloudCI": false,
+    "canonicalIndexGitWrites": false,
+    "producerWrites": false,
+    "heldPayloadReadsOrProcessOperations": false,
+    "holdsReleased": false,
+    "newHold": false,
+    "GitHubOrPublication": false
+  },
+  "custody": {
+    "helperPath": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "helperSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "ASTDefinitions": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "explicitExistingCwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+    "managedCommands": 19,
+    "allDirectReapedBothEOFClosedFDsESRCH": true,
+    "UNKNOWN": [],
+    "failedInspectionCommands": [
+      {
+        "label": "dispatch-routes",
+        "exitCode": 2
+      },
+      {
+        "label": "provider-fixture-definitions",
+        "exitCode": 2
+      }
+    ],
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 5219,
+      "sha256": "a10c869653ff7696c21aacf2dec9efc490c3ecf5701d6e5059ae79dfb32cda2b"
+    },
+    "finding.json": {
+      "bytes": 2729,
+      "sha256": "e15812f3d4646360d2d1e2f829d82ad1e9f44c87b8c5bc7b5ba6c2b91d68ab73"
+    },
+    "all-command-records.json": {
+      "bytes": 20836,
+      "sha256": "eb44bd640f6e09014275ffa7731b6a083f39bc08ba9e4978aa8d61399fa1c52a"
+    }
+  }
+}

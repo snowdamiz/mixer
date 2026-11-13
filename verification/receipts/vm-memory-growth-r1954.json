@@ -1,0 +1,631 @@
+{
+  "id": "R1954_VM_MEMORY_GROWTH",
+  "status": "IMPLEMENTED_LOCAL_CORPUS_PASSED_ROOT_REVIEW_PENDING",
+  "scope": "W08 product-plan 10.4 bounded command-mode memory.grow/memory.size differential corpus",
+  "new_test": "vm/tests/differential_memory_growth_consuming.rs",
+  "test_sha256": "b473734986d059bb562a3b6710addb41c432411c4c72d3ba90b1648a4097b005",
+  "concrete_cases": 12,
+  "observations": {
+    "exact": {
+      "cases": 12,
+      "node_parities": 12,
+      "one_consuming_runtime_per_case_subprocess": true,
+      "case_worker_pids": [
+        "38002",
+        "38068",
+        "38110",
+        "38113",
+        "38115",
+        "38117",
+        "38221",
+        "38337",
+        "38369",
+        "38372",
+        "38399",
+        "38665"
+      ],
+      "cleanup_fourteen_zero_currents": 12,
+      "zero_tickets": 12,
+      "no_cleanup_invariant": 12,
+      "invalid_environment_rejections": 7,
+      "test_passed": true,
+      "seconds": 16.16177762497682
+    },
+    "blanket": {
+      "cases": 12,
+      "node_parities": 12,
+      "one_consuming_runtime_per_case_subprocess": true,
+      "case_worker_pids": [
+        "38677",
+        "38681",
+        "38683",
+        "38685",
+        "38735",
+        "38823",
+        "38918",
+        "38922",
+        "38924",
+        "38930",
+        "38981",
+        "38984"
+      ],
+      "cleanup_fourteen_zero_currents": 12,
+      "zero_tickets": 12,
+      "no_cleanup_invariant": 12,
+      "invalid_environment_rejections": 7,
+      "test_passed": true,
+      "seconds": 14.46110433305148
+    }
+  },
+  "oracle": "Node built-in WebAssembly engine executes identical original fixture-encoded bytes; fd_write observer only; independent expected status/size/zero-mismatch records",
+  "content_observation": "Every four-byte word from byte64 through existing memory end must retain 0xa7; every byte of newly grown pages must initially be zero; new pages dirtied after observation for subsequent preservation checks. First64 ABI scratch bytes excluded.",
+  "declared_maximum_vs_product_budget": {
+    "module_maximum_pages": [
+      2,
+      3,
+      4
+    ],
+    "runtime_default_memory_pages": 768,
+    "denials_exercise": "module maximum and unsigned deltas, not runtime product-budget exhaustion"
+  },
+  "budgets": {
+    "validation": "SwiftValidationBudget::default()",
+    "runtime": "SwiftRunBudget::default()",
+    "wasi": "WasiBudget::default()",
+    "all_fields_unchanged": true
+  },
+  "versions": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustfmt": "rustfmt 1.10.0-stable (b940084d7e 2026-09-28)",
+    "node": "v22.23.3"
+  },
+  "tool_hashes": {
+    "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc": {
+      "bytes": 413480,
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+    },
+    "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo": {
+      "bytes": 32181448,
+      "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+    },
+    "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt": {
+      "bytes": 4473176,
+      "sha256": "5f552ee4d89172baa898b816c56dd5448f4060436d979ba8690d6007833996dd"
+    },
+    "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node": {
+      "bytes": 112925600,
+      "sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b"
+    }
+  },
+  "input_manifest": "verification/local/vm-memory-growth-r1954/inputs.json",
+  "input_files": 142,
+  "input_tree_sha256": "b35ac6a7fc76599654e8e6af1bf21d2b4624f243aa1cc43c00727d82e2f30a88",
+  "complete_copy_roots": [
+    "vm/src",
+    "vm/tests",
+    "vm/examples",
+    "vm/Cargo.toml",
+    "vm/Cargo.lock"
+  ],
+  "manifest_targets": 43,
+  "all_manifest_target_sources_included": true,
+  "format_check_before_freeze": true,
+  "all_frozen_input_hashes_preserved": true,
+  "float_conversion_test": {
+    "path": "vm/tests/differential_float_conversion_consuming.rs",
+    "bytes": 16691,
+    "sha256": "c97032c4ca83b0bb8bc250b756964aa160e460f31f26e8737989973de121615a",
+    "policy": "snapshot once; no writes to accepted float conversion test"
+  },
+  "fresh_debug_builds": 1,
+  "corrective_compiles": 0,
+  "debug_profile_unchanged": true,
+  "invocation_limit_seconds": 240,
+  "campaign_limit_seconds": 600,
+  "campaign_elapsed_seconds": 37.08765612496063,
+  "custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchanged_ast_definitions": [
+      "InertPopen",
+      "read",
+      "row",
+      "run",
+      "save"
+    ],
+    "explicit_existing_cwd_every_call": true,
+    "serialized_command_registry": true
+  },
+  "commands": [
+    {
+      "label": "version-rustc",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37324,
+      "pgid": 37324,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.29617674998007715,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "version-cargo",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37339,
+      "pgid": 37339,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.11195604200474918,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "version-rustfmt",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37349,
+      "pgid": 37349,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.2461211250629276,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "version-node",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37361,
+      "pgid": 37361,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.12699058291036636,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "format-new-corpus",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--edition",
+        "2021",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/vm/tests/differential_memory_growth_consuming.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37366,
+      "pgid": 37366,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.15803916694130749,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "check-format-before-freeze",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/vm/tests/differential_memory_growth_consuming.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37376,
+      "pgid": 37376,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.08435050002299249,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "manifest-targets",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "metadata",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--no-deps",
+        "--format-version",
+        "1",
+        "--no-default-features",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37396,
+      "pgid": 37396,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.09164929203689098,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "debug-build",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "experimental-swift-reactor",
+        "--test",
+        "differential_memory_growth_consuming",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37411,
+      "pgid": 37411,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 4.995747291017324,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "corpus-exact",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/target/debug/deps/differential_memory_growth_consuming-1d46c58baa0b37fa",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1",
+        "--exact",
+        "memory_growth_matches_node"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 37970,
+      "pgid": 37970,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 16.16177762497682,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "corpus-blanket",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/target/debug/deps/differential_memory_growth_consuming-1d46c58baa0b37fa",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-memory-growth-r1954/source",
+      "pid": 38669,
+      "pgid": 38669,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 14.46110433305148,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "raw_outputs": {
+    "check-format-before-freeze.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "check-format-before-freeze.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "corpus-blanket.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "corpus-blanket.stdout": {
+      "bytes": 62833,
+      "sha256": "071b97dbcf0c16a7a2950bd2fdf7106bbb3089b7eb2c9d53ad7a2157bfadfa64"
+    },
+    "corpus-exact.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "corpus-exact.stdout": {
+      "bytes": 62833,
+      "sha256": "4e20606b280c6efbe580f7a4230a7177be5bc65ab626e366638428d7aba9118a"
+    },
+    "debug-build.stderr": {
+      "bytes": 205,
+      "sha256": "64ae06e7c2a3b8ffba416be466ee5cc2d728a48f2b5d19e134b86bf42d90ff91"
+    },
+    "debug-build.stdout": {
+      "bytes": 3504,
+      "sha256": "0b544d973563d6756eeff7135e261e73e155ac9de8dcc8575b9cb2c9c78eac8d"
+    },
+    "format-new-corpus.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "format-new-corpus.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "manifest-targets.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "manifest-targets.stdout": {
+      "bytes": 13966,
+      "sha256": "12fe8305725d48b25510213fdda383368a8765b803877ed0f727028c390e383e"
+    },
+    "version-cargo.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version-cargo.stdout": {
+      "bytes": 36,
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    "version-node.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version-node.stdout": {
+      "bytes": 9,
+      "sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+    },
+    "version-rustc.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version-rustc.stdout": {
+      "bytes": 36,
+      "sha256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+    },
+    "version-rustfmt.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version-rustfmt.stdout": {
+      "bytes": 46,
+      "sha256": "32ae47248d3c1c88781660ad9acdfd0496c040eda7e0759c5f1fec8122c97a0a"
+    }
+  },
+  "retained_replay_binary": {
+    "path": "verification/local/vm-memory-growth-r1954/replay/differential_memory_growth_consuming",
+    "bytes": 2859912,
+    "sha256": "39081b65c6e734e509bac5d6b0968053cff7cfae4e11aaa57aa0b66de77131a1"
+  },
+  "cleanup": {
+    "all_commands_direct_reaped_bothEOF_closedFDs_groupAbsentESRCH": true,
+    "removed_owned_paths": [
+      "verification/local/vm-memory-growth-r1954/target",
+      "verification/local/vm-memory-growth-r1954/cargo-home",
+      "verification/local/vm-memory-growth-r1954/tmp"
+    ],
+    "retained": [
+      "source",
+      "logs",
+      "replay",
+      "inputs.json",
+      "targets.json",
+      "tool-hashes.json",
+      "command.py",
+      "float-conversion-preserved.rs",
+      "float-conversion-preservation.json",
+      "replay.json"
+    ],
+    "historical_holds_touched": false,
+    "removed_owned_paths_confirmed_absent": true
+  },
+  "product_defect_reproduced": false,
+  "product_sources_profiles_limits_manifest_unchanged": true,
+  "git_or_index_writes": false,
+  "subchildren_native_cloud_provider_ci_reruns": false,
+  "independent_root_review_pending": true,
+  "delivery_pending": true,
+  "holds_released": false,
+  "ga_qualification": false,
+  "limitations": [
+    "12 original cases, not exhaustive standards or memory-pressure qualification",
+    "Runtime product-budget exhaustion and host allocation failure are not differential claims",
+    "Local macOS debug host evidence; root owns independent review and delivery"
+  ],
+  "coverage": [
+    {
+      "index": 0,
+      "name": "grow-zero",
+      "initial_pages": 1,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(0, 1, 1)]",
+      "module_bytes": 1796,
+      "module_sha256": "773be2c280bd9d2df8c29ec32470ac7979c784efba4b8030b0d1fccdc0511f15",
+      "observed_hex": {
+        "exact": "0100000001000000010000000000000000000000",
+        "blanket": "0100000001000000010000000000000000000000"
+      }
+    },
+    {
+      "index": 1,
+      "name": "grow-one",
+      "initial_pages": 1,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(1, 1, 2)]",
+      "module_bytes": 1810,
+      "module_sha256": "bb0c5a05a185ab20d3a05566c172993ebf736f6b2bb2a222a7b53221d5fea1e0",
+      "observed_hex": {
+        "exact": "0100000001000000020000000000000000000000",
+        "blanket": "0100000001000000020000000000000000000000"
+      }
+    },
+    {
+      "index": 2,
+      "name": "exact-declared-maximum",
+      "initial_pages": 1,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(2, 1, 3)]",
+      "module_bytes": 1810,
+      "module_sha256": "216cea257a84c501289df8176078299ac38478ae275949db2c28c7c9dfcf4179",
+      "observed_hex": {
+        "exact": "0100000001000000030000000000000000000000",
+        "blanket": "0100000001000000030000000000000000000000"
+      }
+    },
+    {
+      "index": 3,
+      "name": "grow-zero-at-maximum",
+      "initial_pages": 2,
+      "declared_maximum_pages": 2,
+      "steps_delta_result_size": "[(0, 2, 2)]",
+      "module_bytes": 1796,
+      "module_sha256": "8f46c47c2642666c941a4b5e32469963190ccc921db5b58fcde93d2eb22d498b",
+      "observed_hex": {
+        "exact": "0200000002000000020000000000000000000000",
+        "blanket": "0200000002000000020000000000000000000000"
+      }
+    },
+    {
+      "index": 4,
+      "name": "denied-at-maximum-then-zero",
+      "initial_pages": 2,
+      "declared_maximum_pages": 2,
+      "steps_delta_result_size": "[(1, -1, 2), (0, 2, 2)]",
+      "module_bytes": 1868,
+      "module_sha256": "086fb4d515fd848c8bdc137e7a2369f7c1e848235842e7f8dca44d286d4707cc",
+      "observed_hex": {
+        "exact": "02000000ffffffff0200000000000000000000000200000002000000020000000000000000000000",
+        "blanket": "02000000ffffffff0200000000000000000000000200000002000000020000000000000000000000"
+      }
+    },
+    {
+      "index": 5,
+      "name": "oversize-then-one",
+      "initial_pages": 1,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(3, -1, 1), (1, 1, 2)]",
+      "module_bytes": 1882,
+      "module_sha256": "c6c9297f612679a44be13af9a5a8e7edb6c268124ad97179a6504bdac113ac54",
+      "observed_hex": {
+        "exact": "01000000ffffffff0100000000000000000000000100000001000000020000000000000000000000",
+        "blanket": "01000000ffffffff0100000000000000000000000100000001000000020000000000000000000000"
+      }
+    },
+    {
+      "index": 6,
+      "name": "huge-positive-then-exact",
+      "initial_pages": 1,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(2147483647, -1, 1), (2, 1, 3)]",
+      "module_bytes": 1886,
+      "module_sha256": "a5ad6f5cc7d0d28a3b0948601320867094bdd238084af7912a36bdcb0fcbc9c7",
+      "observed_hex": {
+        "exact": "01000000ffffffff0100000000000000000000000100000001000000030000000000000000000000",
+        "blanket": "01000000ffffffff0100000000000000000000000100000001000000030000000000000000000000"
+      }
+    },
+    {
+      "index": 7,
+      "name": "unsigned-minus-one-then-one",
+      "initial_pages": 1,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(-1, -1, 1), (1, 1, 2)]",
+      "module_bytes": 1882,
+      "module_sha256": "4b1559305aed06329658159641e4afdc235c71b040cf960a3e0e7d599c909455",
+      "observed_hex": {
+        "exact": "01000000ffffffff0100000000000000000000000100000001000000020000000000000000000000",
+        "blanket": "01000000ffffffff0100000000000000000000000100000001000000020000000000000000000000"
+      }
+    },
+    {
+      "index": 8,
+      "name": "unsigned-sign-bit-then-exact",
+      "initial_pages": 1,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(-2147483648, -1, 1), (2, 1, 3)]",
+      "module_bytes": 1886,
+      "module_sha256": "e7ad645a4733fd42d328c64e63c28adb54c051393e806ccf7ba0e6ac3387d4d0",
+      "observed_hex": {
+        "exact": "01000000ffffffff0100000000000000000000000100000001000000030000000000000000000000",
+        "blanket": "01000000ffffffff0100000000000000000000000100000001000000030000000000000000000000"
+      }
+    },
+    {
+      "index": 9,
+      "name": "success-denial-zero",
+      "initial_pages": 1,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(1, 1, 2), (1, 2, 3), (1, -1, 3), (0, 3, 3)]",
+      "module_bytes": 2038,
+      "module_sha256": "0c437e3fe9878807256c4f95dadc4fccd9f5abb1f6bcaf7fe31026310c1c83a8",
+      "observed_hex": {
+        "exact": "0100000001000000020000000000000000000000020000000200000003000000000000000000000003000000ffffffff0300000000000000000000000300000003000000030000000000000000000000",
+        "blanket": "0100000001000000020000000000000000000000020000000200000003000000000000000000000003000000ffffffff0300000000000000000000000300000003000000030000000000000000000000"
+      }
+    },
+    {
+      "index": 10,
+      "name": "two-denials-then-two-successes",
+      "initial_pages": 1,
+      "declared_maximum_pages": 4,
+      "steps_delta_result_size": "[(-1, -1, 1), (4, -1, 1), (1, 1, 2), (2, 2, 4)]",
+      "module_bytes": 2038,
+      "module_sha256": "f62251da72392ff4d9ab6a2aadca35bf33eb0ad3ed4414ae63d29fca6f6a451d",
+      "observed_hex": {
+        "exact": "01000000ffffffff01000000000000000000000001000000ffffffff01000000000000000000000001000000010000000200000000000000000000000200000002000000040000000000000000000000",
+        "blanket": "01000000ffffffff01000000000000000000000001000000ffffffff01000000000000000000000001000000010000000200000000000000000000000200000002000000040000000000000000000000"
+      }
+    },
+    {
+      "index": 11,
+      "name": "two-initial-pages-then-denial",
+      "initial_pages": 2,
+      "declared_maximum_pages": 3,
+      "steps_delta_result_size": "[(1, 2, 3), (1, -1, 3)]",
+      "module_bytes": 1882,
+      "module_sha256": "f5df61b8923b2526d6e1e93902e878ddc6ea87307feffe34b117742ceb35b1d8",
+      "observed_hex": {
+        "exact": "020000000200000003000000000000000000000003000000ffffffff030000000000000000000000",
+        "blanket": "020000000200000003000000000000000000000003000000ffffffff030000000000000000000000"
+      }
+    }
+  ],
+  "manifest_target_kinds": {
+    "rlib": 1,
+    "staticlib": 1,
+    "cdylib": 1,
+    "bin": 1,
+    "example": 1,
+    "test": 40
+  },
+  "command_registry_count": 10,
+  "source_snapshot_complete_tests": 40,
+  "final_source_verified": true,
+  "grow_operations_per_invocation": 24,
+  "canonical_writes_owned_only": [
+    "vm/tests/differential_memory_growth_consuming.rs",
+    "verification/receipts/vm-memory-growth-r1954.json"
+  ],
+  "receipt_enrichment_note": "A metadata-only parser initially missed libtest-prefixed MODULE case0; corrected without rerunning or changing the frozen corpus."
+}

@@ -1,0 +1,71 @@
+{
+  "id": "console-signin-runtime-acceptance-r1996",
+  "recordedUTC": "2026-11-13T04:52:02.039762+00:00",
+  "status": "ROOT_ACCEPTED_SCOPED_CAPTURED_LOGIN_AND_DETAIL_FLOW",
+  "producer": "verification/receipts/console-browser-escalation-r1982.json",
+  "sourceReview": "verification/receipts/console-signin-review-r1968.json",
+  "changedFixReview": "verification/receipts/console-signin-fix-review-r1986.json",
+  "allNineR1980BytesExact": true,
+  "observedBehavior": [
+    "Actual Sign in control, same-browser CSRF/session POST200",
+    "Exact server authorization URL and actual synthetic provider callback303",
+    "Authenticated workspace -> organization/project/application/build selection",
+    "Queued selected build detail -> Refresh -> Failed selected detail with human-readable compiler explanation"
+  ],
+  "jointHTTP": {
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0,
+    "evidenceNamespaceCollisionAbsent": true
+  },
+  "browserDriverStatus": "FAIL_PRESERVED",
+  "browserDriverFailure": "Literal compiler_error expected in rendered text; actual UI renders the correct human-readable compiler-failure explanation",
+  "browserBatchReclassifiedAsPass": false,
+  "rootInspectedBothImagesAndDOM": true,
+  "newRuntimeOrRerun": false,
+  "cleanup": {
+    "managedCommands": 14,
+    "allRecordedReapEOFClosedFDsESRCH": true,
+    "postgresStoppedOnce": true,
+    "exactContainerRemoved": true,
+    "portsReusable": true,
+    "newHold": false
+  },
+  "knownRemainingProductIssue": {
+    "id": "console-catalog-detail-status-coherence",
+    "observation": "After selected detail refresh shows Failed, the same selected catalog row still says Queued",
+    "scope": "Pre-existing catalog snapshot/detail freshness issue; separate follow-up required, not closed by sign-in acceptance"
+  },
+  "limitations": [
+    "Private loopback origin/callback proxy and synthetic provider, not external-provider/TLS/production acceptance",
+    "No full browser-test pass claim",
+    "No deployment, credentials, signing, store, native or GA qualification"
+  ],
+  "files": {
+    "browser-result.json": {
+      "bytes": 78250,
+      "sha256": "a8cfb2478f8894f05b396ff1fa4b6d6fcb8d779546228f4ea224125ef0d42fbd"
+    },
+    "queued-detail.png": {
+      "bytes": 100754,
+      "sha256": "bf85eaded47c5be577f092d3247e51935f77efb28b953aeeb19a7a3b908a90a5"
+    },
+    "failed-detail.png": {
+      "bytes": 109826,
+      "sha256": "1809ad772f8c02662c99012b8e8ab1485e8e88657a56658c8a207ccecf2b9c17"
+    },
+    "http-events.json": {
+      "bytes": 1782,
+      "sha256": "da3762530b1dc926dbdfc053b61374d6b8041600aafe62b0e3f2696d5f033f81"
+    },
+    "output/http-exunit.json": {
+      "bytes": 50,
+      "sha256": "167f82c7f5378ac645a25e1393999b7a17fb0f330c43305785e174bfbbc12621"
+    },
+    "all-command-records.json": {
+      "bytes": 11256,
+      "sha256": "62e66d1c4f49b794c553d87d0493d4faba11aa2d41c00577e5e9997b700f3081"
+    }
+  },
+  "holdsReleased": false
+}
