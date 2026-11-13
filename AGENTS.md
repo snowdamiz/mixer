@@ -597,3 +597,13 @@ waits, retry or cleanup. Only the external compact
 `verification/receipts/hosted-drop-full-r1846.json` is a reference. Direct reap,
 both EOFs and closed descriptors do not establish absence. No PostgreSQL,
 compiler or full-suite payload ran; no older hold is released.
+
+The R1872 complete FieldLog recipe recorded UNKNOWN nested CLI custody after
+its collector rejected an unexpected inner command count. No reliable nested
+PID/PGID was recovered. Preserve the entire
+`verification/local/fieldlog-apk-r1872` namespace without inspection,
+enumeration, stat, probing, signals, waits, retries or cleanup. Read only the
+external compact `verification/receipts/fieldlog-apk-r1872.json`. The terminal
+outer recipe transport does not establish nested absence, and no APK result
+is qualified. No device was used. Fresh separately selected source or build
+work in a distinct namespace remains permitted; no earlier hold is released.

@@ -1,9 +1,16 @@
 defmodule MixerHosted.BrowserAuth.ProviderOwner do
-  @moduledoc "Raw provider boundary. Production transport is deliberately unconfigured and fails closed."
+  @moduledoc "Raw provider boundary. Trusted restart-scoped production IO; Installation remains closed."
   use GenServer
   alias MixerHosted.BrowserAuth.ConfigurationDigest
   alias MixerHosted.Identity.{Admission, KeyOwner, TrustSnapshot}
   alias MixerHosted.BrowserAuth.Config
+
+  defmodule Material do
+    @moduledoc false
+    @derive {Inspect, only: []}
+    defstruct [:identity, :secret, :destination]
+  end
+
   @trust_owner MixerHosted.BrowserAuth.ProviderTrustOwner
 
   defmodule TrustTicket do
@@ -11,6 +18,7 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
     @enforce_keys [
       :owner,
       :owner_monitor,
+      :workers,
       :lease,
       :permit,
       :deadline,
@@ -37,7 +45,31 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
   def start_link(:unconfigured),
     do: GenServer.start_link(__MODULE__, :unconfigured, name: __MODULE__)
 
+  def start_link({%Config{} = config, %MixerHosted.Identity.StartupConfig{} = identity, secret}) do
+    start_production(config, identity, secret, :production)
+  end
+
+  def start_link(_), do: {:error, :invalid_provider_configuration}
+
+  defp start_production(config, identity, secret, destination) do
+    with true <- is_binary(secret) and byte_size(secret) in 1..4096 and String.valid?(secret),
+         {:ok, _} <- MixerHosted.BrowserAuth.ProviderTrustConfig.new(config, identity) do
+      material = %Material{identity: identity, secret: secret, destination: destination}
+      GenServer.start_link(__MODULE__, {:production, config, material}, name: __MODULE__)
+    else
+      _ -> {:error, :invalid_provider_configuration}
+    end
+  rescue
+    _ -> {:error, :invalid_provider_configuration}
+  catch
+    _, _ -> {:error, :invalid_provider_configuration}
+  end
+
   if Mix.env() == :test do
+    def start_production_fixture(config, identity, secret, port, roots)
+        when is_integer(port) and port in 1..65535 and is_list(roots),
+        do: start_production(config, identity, secret, {:fixture, port, roots})
+
     @doc false
     def start_trust_fixture(%Config{} = config, transport) when is_pid(transport),
       do: GenServer.start_link(__MODULE__, {:trust_fixture, config, transport}, name: __MODULE__)
@@ -48,6 +80,21 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
         GenServer.start_link(__MODULE__, {:fixture, config, snapshot, transport},
           name: __MODULE__
         )
+  end
+
+  def init({:production, config, %Material{} = material}) do
+    Process.flag(:trap_exit, true)
+    {:ok, digest} = ConfigurationDigest.digest(config)
+
+    {:ok,
+     %{
+       mode: :trust_fixture,
+       config: config,
+       digest: digest,
+       transport: material,
+       generation: make_ref(),
+       tickets: %{}
+     }}
   end
 
   def init(:unconfigured), do: {:ok, :unconfigured}
@@ -102,14 +149,13 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
       transport = s.transport
       request = request(config, code, verifier)
 
-      case start_trust_worker(workers, fn ->
-             trust_work(parent, ref, caller, owner, workers, transport, request, deadline)
-           end) do
+      case launch(workers, parent, ref, caller, owner, transport, request, config, deadline) do
         {:ok, worker} ->
           monitor = Process.monitor(worker)
 
           entry = %TrustTicket{
             owner: owner,
+            workers: workers,
             owner_monitor: Process.monitor(owner),
             lease: nil,
             permit: nil,
@@ -266,8 +312,41 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
 
   defp live_entry?(entry),
     do:
-      Process.whereis(@trust_owner) === entry.owner and Process.alive?(entry.caller) and
+      Process.whereis(@trust_owner) === entry.owner and
+        Process.whereis(Module.concat(@trust_owner, FetchSupervisor)) === entry.workers and
+        Process.alive?(entry.caller) and
         System.monotonic_time(:millisecond) < entry.deadline
+
+  defp launch(
+         workers,
+         parent,
+         ref,
+         caller,
+         owner,
+         %Material{} = material,
+         request,
+         config,
+         deadline
+       ) do
+    MixerHosted.BrowserAuth.ProviderHTTPS.start_trusted(workers, %{
+      parent: parent,
+      ref: ref,
+      caller: caller,
+      owner: owner,
+      workers: workers,
+      material: material,
+      config: config,
+      code: request.code,
+      verifier: request.code_verifier,
+      deadline: deadline
+    })
+  end
+
+  defp launch(workers, parent, ref, caller, owner, transport, request, _config, deadline),
+    do:
+      start_trust_worker(workers, fn ->
+        trust_work(parent, ref, caller, owner, workers, transport, request, deadline)
+      end)
 
   defp start_trust_worker(workers, work) do
     child = Supervisor.child_spec({Task, work}, restart: :temporary, shutdown: :brutal_kill)
@@ -288,7 +367,7 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
          true <- System.monotonic_time(:millisecond) < deadline,
          {:ok, permit} <- Admission.acquire(@trust_owner, :configured),
          {:ok, lease} <- KeyOwner.checkout(owner, permit, System.system_time(:second)),
-         true <- worker_current?(parent, caller, owner, lease, deadline) do
+         true <- worker_current?(parent, caller, owner, workers, lease, deadline) do
       result =
         try do
           GenServer.call(transport, {:exchange, request}, remaining(deadline))
@@ -298,13 +377,13 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
 
       case result do
         {:ok, raw} when is_binary(raw) and byte_size(raw) <= 16384 ->
-          if worker_current?(parent, caller, owner, lease, deadline) do
+          if worker_current?(parent, caller, owner, workers, lease, deadline) do
             send(parent, {:trust_transport, ref, self(), {:ok, raw, lease.snapshot}})
 
             receive do
               {:trust_finish, ^parent, ^ref} ->
                 result =
-                  if worker_current?(parent, caller, owner, lease, deadline),
+                  if worker_current?(parent, caller, owner, workers, lease, deadline),
                     do: :ok,
                     else: {:error, :provider_unavailable}
 
@@ -337,10 +416,11 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
     :ok
   end
 
-  defp worker_current?(parent, caller, owner, lease, deadline),
+  defp worker_current?(parent, caller, owner, workers, lease, deadline),
     do:
       Process.alive?(parent) and Process.alive?(caller) and
         Process.whereis(@trust_owner) === owner and
+        Process.whereis(Module.concat(@trust_owner, FetchSupervisor)) === workers and
         System.monotonic_time(:millisecond) < deadline and
         KeyOwner.finish(owner, lease) === :ok and
         System.monotonic_time(:millisecond) < deadline and
@@ -356,7 +436,7 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
         Process.demonitor(entry.owner_monitor, [:flush])
         Process.demonitor(entry.caller_monitor, [:flush])
         reply_failure(entry.phase)
-        reap_worker(entry.phase)
+        reap_worker(entry.phase, s.transport)
         %{s | tickets: rest}
     end
   end
@@ -368,6 +448,24 @@ defmodule MixerHosted.BrowserAuth.ProviderOwner do
   defp worker_monitor({_, _, _, monitor}), do: monitor
   defp worker_monitor({:issued, _, monitor}), do: monitor
   defp worker_monitor(:terminal), do: nil
+  defp reap_worker(:terminal, _), do: :ok
+
+  defp reap_worker(phase, %Material{}) do
+    {worker, monitor} =
+      case phase do
+        {:issued, w, m} -> {w, m}
+        {_, _, w, m} -> {w, m}
+      end
+
+    send(worker, :provider_cancel)
+
+    receive do
+      {:DOWN, ^monitor, :process, ^worker, _} -> :ok
+    end
+  end
+
+  defp reap_worker(phase, _), do: reap_worker(phase)
+
   defp reap_worker({_, _, worker, monitor}), do: reap_worker({:issued, worker, monitor})
 
   defp reap_worker({:issued, worker, monitor}) do

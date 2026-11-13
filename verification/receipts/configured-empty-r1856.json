@@ -1,0 +1,190 @@
+{
+  "id": "configured-empty-r1856",
+  "status": "REQUEST_CHANGES_FIXTURE_CONTROL_RESULT_SHAPE",
+  "recordedUTC": "2026-11-13T01:43:51.332832+00:00",
+  "scope": "Fresh private real-PostgreSQL discriminating control; startup gated on control completion; no canonical writes",
+  "goal": "configured_browser_application_start_with_current_catalogs_and_root_boot_ownership",
+  "goalExecuted": false,
+  "ApplicationStartupAccepted": false,
+  "canonicalInstallation": "CLOSED",
+  "limits": {
+    "maximumSeconds": 1200,
+    "maximumBEAMBatches": 2,
+    "actualBEAMBatches": 1,
+    "maximumPostgreSQLLaunches": 1,
+    "actualPostgreSQLLaunches": 1,
+    "remainingDatabaseLaunches": 0,
+    "newFullStartupAttempts": 0,
+    "actualApplicationStartCalls": 0
+  },
+  "firstPriorFixtureFailure": {
+    "origin": "MixerHosted.CustomerBuildCatalog.Schema.private_statements/0",
+    "indexZeroBased": 20,
+    "inputBytes": 1,
+    "inputHex": "0A",
+    "inputSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "submittingCall": "R1844 input/startup.exs: q.(admin, sql) for CustomerBuildCatalog.Schema.private_statements/0",
+    "cause": "String.split(prefix, \";\", trim: true) retains the final newline entry; Postgrex0.22.4 text/simple protocol dispatches msg_empty_query to handle_msg/3 without a matching clause",
+    "reproducedOnRealOwnedPostgreSQL": true,
+    "onlyWhitespaceEntryInFourOperatorPlans": true
+  },
+  "fixtureCorrection": {
+    "scope": "Only private fixture handling of exact one-byte newline at the proven catalog-array index; no DDL semantics filtered",
+    "executedExactNewlineNoop": true,
+    "subsequentUnchangedNonemptySELECTExecuted": true,
+    "subsequentSELECTObservedResult": "%Postgrex.Result{command: :select, rows: [[\"1856\"]]}",
+    "originalProductOrDependencyOrSQLChanges": false
+  },
+  "firstFreshFixtureFailure": {
+    "file": "/input/control.exs",
+    "line": 44,
+    "exception": "MatchError",
+    "reason": "Control expected a one-element list; Postgrex returned one Postgrex.Result struct for the single successful SELECT",
+    "productFailureObserved": false,
+    "firstProductFailure": null,
+    "downstreamStartupNotAttempted": true,
+    "correctedAfterimage": "verification/local/configured-empty-r1856/successor-fixture/control.exs",
+    "correctedAfterimageRerun": false
+  },
+  "actualSQL": {
+    "DDLCount": 0,
+    "DDLCountScope": "fixture/operator DDL and canonical migrations; initdb server bootstrap excluded",
+    "migrationsExecuted": 0,
+    "ApplicationStartCalls": 0,
+    "psqlExactEmptyControlExecuted": false
+  },
+  "observedControls": {
+    "TLSControls": 3,
+    "correctCAAndHostnameAccepted": true,
+    "wrongCARejected": true,
+    "wrongHostnameRejected": true,
+    "productionTLSOptionsUnchanged": true,
+    "dataDirectory": "/work/pgdata",
+    "dataDirectoryVerifiedBeforeFixtureQueries": true,
+    "expectedEmptyQueryFailureReproduced": true,
+    "baselineSQLConnectionDOWNObserved": true,
+    "correctedSQLConnectionDOWNObserved": false,
+    "correctedSQLConnectionScopeEndedWithContainer": true,
+    "overallDiscriminatingControlAccepted": false
+  },
+  "environment": {
+    "image": "sha256:011f225612f5a1e6c21eea57249d7025f447e890c00fa6ba1b4665371886e6d0",
+    "PostgreSQLActual": "17.12",
+    "ElixirActual": "1.20.4",
+    "OTPReleaseActual": "29",
+    "ERTSActual": "17.1.1",
+    "OTPFullPatchSuppliedByParent": "29.1.2",
+    "DockerVersionSuppliedByParent": "29.8.2",
+    "DockerVersionFreshlyQueried": false,
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8",
+    "port": 5432,
+    "hostname": "ep-fixture.us-east-2.aws.neon.tech",
+    "network": "none",
+    "SSL": "verify_peer with production hostname, explicit process-local CA cache controls"
+  },
+  "cleanup": {
+    "container": "mixer-configured-empty-r1856",
+    "containerID": "ede74eb99f14ff465b914fc57a31d177da250990b0f74a001bacfa2915b3b5c1",
+    "PostgreSQLStopCalls": 1,
+    "PostgreSQLStopped": true,
+    "positivelyObservedRunningFalsePid0": true,
+    "containerRemoved": true,
+    "exactFilteredRosterEmpty": true,
+    "hostManagedGroups": 6,
+    "allDirectReaped": true,
+    "allBothEOF": true,
+    "allFDsClosed": true,
+    "allGroupESRCH": true,
+    "newHold": false
+  },
+  "limitations": [
+    "Actual ordinary Repo/Oban/Endpoint/LifecycleRepo/RuntimeOwner/Store.admit/both-catalogs/root-Boot-ETS startup remains unexecuted.",
+    "Projection drift, database role drift and Application actor DOWN checks were not reached.",
+    "No private Application startup pass, canonical activation, provider/provenance qualification or GA acceptance.",
+    "One permitted PostgreSQL launch was consumed; no relaunch or second BEAM batch was attempted."
+  ],
+  "canonicalSourceUnchanged": true,
+  "allCopiedProductDependencyRolesAndMigrationsUnchanged": true,
+  "heldResourcesAccessed": false,
+  "holdsReleased": false,
+  "GitActions": false,
+  "nativeActions": false,
+  "subchildren": false,
+  "externalProviderNetwork": false,
+  "nextRequiredTest": "With a separately authorized fresh DB launch, use the single-result control assertion correction, finish the official psql exact-empty control, then execute the same actual configured Application startup unchanged.",
+  "evidence": {
+    "verification/local/configured-empty-r1856/commands.json": {
+      "bytes": 4379,
+      "sha256": "00d4990ddb34ce22beafada19cfffec60f50026a5a7c22202c24bccbb0d3f25a"
+    },
+    "verification/local/configured-empty-r1856/input-manifest.json": {
+      "bytes": 232516,
+      "sha256": "d716df748af3e4f2b1e16b0d64ec76b58d6dab27826e5ac0e6891be2575ddde5"
+    },
+    "verification/local/configured-empty-r1856/input-baseline-manifest.json": {
+      "bytes": 232010,
+      "sha256": "bf506ebb77cad1b1bc5357ba95e558f0c7cd3d61bc578c2767e711b7a6bda8a2"
+    },
+    "verification/local/configured-empty-r1856/source-proof.json": {
+      "bytes": 2314,
+      "sha256": "380210e2e2d9b10a14c7083cf67b3c5a28a355bf3236c6f7e9c2fe201caa8a49"
+    },
+    "verification/local/configured-empty-r1856/container-admission.json": {
+      "bytes": 567,
+      "sha256": "811bdac1980f3a6ffd9a1a7fc8a6a3af81bb063d4198cf08b578b54ce2e33313"
+    },
+    "verification/local/configured-empty-r1856/positive-terminal-admission.json": {
+      "bytes": 425,
+      "sha256": "d9172945f79b9521561dd27f2cc7d643ea8571598a316b9465c952887966a48e"
+    },
+    "verification/local/configured-empty-r1856/inspect-owned-terminal.stdout": {
+      "bytes": 224,
+      "sha256": "de3675f64b27ea2d2ebdf1ee02eafc95054aab9f61085fb6659f6487b3300df9"
+    },
+    "verification/local/configured-empty-r1856/verify-owned-absent.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "verification/local/configured-empty-r1856/output/exact-empty-input.json": {
+      "bytes": 374,
+      "sha256": "f302e2fc1c0f8166587515db77c21481e53e0e748e89634f636b81fa9076b3f7"
+    },
+    "verification/local/configured-empty-r1856/output/exact-empty-input.sql": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "verification/local/configured-empty-r1856/output/tls-controls-result.json": {
+      "bytes": 147,
+      "sha256": "36dd2ee9afcf2b10e6d0dde664c6797bdd9797d49f89bbc27af6e78915775f49"
+    },
+    "verification/local/configured-empty-r1856/output/first-test-failure.txt": {
+      "bytes": 796,
+      "sha256": "4a457fc03de8410c42f3bff51f3ba98dc4af8261cf7b16f6c080640e4eea6d10"
+    },
+    "verification/local/configured-empty-r1856/output/first-result.json": {
+      "bytes": 69,
+      "sha256": "cda3f86aec2016ad3ed33c49ab267f4f81408ec17d6c4e68fded7783aa9db4ad"
+    },
+    "verification/local/configured-empty-r1856/output/runtime.log": {
+      "bytes": 19081,
+      "sha256": "662d788fa660c3f691d5d5482316ff464795133d5952163894b7135818a24610"
+    },
+    "verification/local/configured-empty-r1856/output/pg-cleanup.txt": {
+      "bytes": 17,
+      "sha256": "1222dda001b6f6a0ec59a9a9a2983bbb9c0a3315b99fb8efedf39f4b4ecdb0cb"
+    },
+    "verification/local/configured-empty-r1856/control-return-shape-correction.patch": {
+      "bytes": 685,
+      "sha256": "61a5272b5e039f0007d297f1bc5ef3d97b78c4b2bfbccd7f31a4df6ab04897cf"
+    },
+    "verification/local/configured-empty-r1856/successor-fixture/control.exs": {
+      "bytes": 3554,
+      "sha256": "8a663899ccd6fdb0599a15bb60bc4dbb3d960d06d335665d2b6c2342a8f27517"
+    },
+    "verification/local/configured-empty-r1856/REPORT.md": {
+      "bytes": 2847,
+      "sha256": "8d8e68f2f9acba061d9f985d6a256d01126ecf4aee2b3a6a28a6a18db7d8e6be"
+    }
+  }
+}

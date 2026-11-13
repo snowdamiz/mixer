@@ -1,0 +1,487 @@
+{
+  "schema": 1,
+  "id": "provider-release-review-r1866",
+  "status": "REQUEST_CHANGES",
+  "scope": "Independent actual canonical formatted provider-v17 source review and one fresh isolated MIX_ENV=prod warnings-as-errors compile/release attempt. No application/DB/provider startup.",
+  "finding": {
+    "severity": "P1",
+    "path": "hosted/lib/mixer_hosted/browser_auth/supervisor.ex",
+    "line": 19,
+    "summary": "Production compilation fails on an unreachable success clause in BrowserAuth.Supervisor.init/1.",
+    "reproduction": {
+      "label": "production-build",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "mix",
+        "do",
+        "compile",
+        "--warnings-as-errors,",
+        "release",
+        "--no-compile"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866/candidate/hosted",
+      "pid": 89393,
+      "pgid": 89393,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 28.20060087495949,
+      "ownedGroupAbsentESRCH": true
+    },
+    "compiler_evidence": "children(installation) has dynamic(:error); {:ok, children} can never match; Compilation failed due to warnings while using --warnings-as-errors.",
+    "baseline_source": {
+      "unchanged_from_v16": true,
+      "bytes": 1361,
+      "sha256": "41f0dacb08c8212d69b0ca8f63e47c387b121ff6b327579a08d26b2e2b5ade2c"
+    },
+    "remedy_scope": "Root must make production Supervisor initialization warning-free while retaining CLOSED Installation, then separately qualify a fresh release. Review lane made no canonical edits."
+  },
+  "source_admission": {
+    "identity": "hosted-current-provider-io-v17",
+    "runtime_or_GA_accepted": false,
+    "selection_sha256": "4b3ad5d2b3ef7f5843dd9a996eb02a179f0e80b052a28dd400769750b30f3460",
+    "source_count": 277,
+    "source_digest_sha256": "6021237e9cdf0dcc0cdf25ef841e754c93591723045031d06fa7a572e5d34661"
+  },
+  "product_hashes": {
+    "hosted/lib/mixer_hosted/browser_auth/provider_owner.ex": "c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192",
+    "hosted/lib/mixer_hosted/browser_auth/provider_https.ex": "02fb29c723d7394148a170a40dd39db86f15d007d0777b9f31f938a6032c79c4",
+    "hosted/lib/mixer_hosted/browser_auth/startup_secrets.ex": "2dd8d96d21eb270d986cd55070c0a5135923eca9176e957d48799cd875500990"
+  },
+  "metadata_review": {
+    "status": "PASS",
+    "strict_count": 277,
+    "delta_rows": 4,
+    "added_rows": 2,
+    "v16_inverse_exact": true,
+    "old_authority_files_unchanged": 32,
+    "R1756_product_and_workflow_afterimages_exact": true,
+    "collector_refreshed_hashes_and_test_size_only": true,
+    "startup_test_default_formatter_exact_and_AST_equal": true,
+    "workflow_sparse_consumers": 3,
+    "targeted_controls": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sparse_consumers": 3,
+      "full228_matrix_rerun": false
+    },
+    "v17_policy_blob_sizes_exact": true,
+    "canonical_inputs_unchanged": 287
+  },
+  "build": {
+    "status": "FAIL",
+    "warnings_as_errors": true,
+    "MIX_ENV": "prod",
+    "invocations": 1,
+    "max_builds": 1,
+    "BEAM_commands": 2,
+    "max_BEAM_commands": 2,
+    "compiler_schedulers": 2,
+    "product_BEAM_reused": false,
+    "dependency_BEAM_reused": false,
+    "versions": {
+      "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "elixir": "1.20.4",
+      "otp": "29.1.1",
+      "erts": "17.1"
+    },
+    "dependency_source_files_verified": 914,
+    "pinned_Hex_archive_files_verified": 133,
+    "dependencies_compiled": 21,
+    "compiled_dependency_versions": [
+      {
+        "name": "bandit",
+        "version": "1.14.0",
+        "modules": 77
+      },
+      {
+        "name": "db_connection",
+        "version": "2.10.2",
+        "modules": 27
+      },
+      {
+        "name": "decimal",
+        "version": "3.2.0",
+        "modules": 7
+      },
+      {
+        "name": "ecto",
+        "version": "3.14.2",
+        "modules": 102
+      },
+      {
+        "name": "ecto_sql",
+        "version": "3.14.0",
+        "modules": 30
+      },
+      {
+        "name": "hpax",
+        "version": "1.1.0",
+        "modules": 4
+      },
+      {
+        "name": "jason",
+        "version": "1.4.5",
+        "modules": 28
+      },
+      {
+        "name": "jose",
+        "version": "1.11.13",
+        "modules": 120
+      },
+      {
+        "name": "mime",
+        "version": "2.0.7",
+        "modules": 1
+      },
+      {
+        "name": "mint",
+        "version": "1.11.0",
+        "modules": 22
+      },
+      {
+        "name": "oban",
+        "version": "2.24.2",
+        "modules": 75
+      },
+      {
+        "name": "phoenix",
+        "version": "1.8.16",
+        "modules": 93
+      },
+      {
+        "name": "phoenix_pubsub",
+        "version": "2.4.1",
+        "modules": 15
+      },
+      {
+        "name": "phoenix_template",
+        "version": "1.1.0",
+        "modules": 4
+      },
+      {
+        "name": "plug",
+        "version": "1.20.3",
+        "modules": 62
+      },
+      {
+        "name": "plug_crypto",
+        "version": "2.2.1",
+        "modules": 5
+      },
+      {
+        "name": "postgrex",
+        "version": "0.22.4",
+        "modules": 95
+      },
+      {
+        "name": "telemetry",
+        "version": "1.4.2",
+        "modules": 7
+      },
+      {
+        "name": "thousand_island",
+        "version": "1.6.0",
+        "modules": 18
+      },
+      {
+        "name": "websock",
+        "version": "0.5.3",
+        "modules": 1
+      },
+      {
+        "name": "websock_adapter",
+        "version": "0.6.0",
+        "modules": 3
+      }
+    ],
+    "build_seconds": 28.20060087495949
+  },
+  "release": {
+    "status": "NOT_PRODUCED",
+    "expected_identity": "mixer_hosted-0.1.0",
+    "release_directory_absent": true,
+    "release_dependency_source_inclusion": "UNVERIFIED",
+    "release_config_binary_consistency": "UNVERIFIED",
+    "runtime": "UNVERIFIED"
+  },
+  "partial_binary_inspection": {
+    "status": "PASS_EMITTED_COMPILER_OUTPUT_ONLY",
+    "product_modules": 216,
+    "product_sources": 130,
+    "all_compile_source_hashes_exact": true,
+    "all_fixture_exports_absent": true,
+    "required_modules_present": [
+      "Elixir.MixerHosted.BrowserAuth.StartupSecrets",
+      "Elixir.MixerHosted.BrowserAuth.ProviderHTTPS",
+      "Elixir.MixerHosted.BrowserAuth.ProviderOwner",
+      "Elixir.MixerHosted.BrowserAuth.Installation"
+    ],
+    "command": {
+      "label": "failed-build-inspection",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "elixir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866/inspect-failed-build.exs",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 14993,
+      "pgid": 14993,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.5675632919883355,
+      "ownedGroupAbsentESRCH": true
+    }
+  },
+  "process_cleanup": {
+    "managed_commands_including_two_outer_and_preflight": 6,
+    "all_direct_reaped": true,
+    "both_stdout_stderr_EOF": true,
+    "all_descriptors_closed": true,
+    "all_exact_groups_ESRCH": true,
+    "new_holds": [],
+    "historical_holds_accessed_or_released": false,
+    "scratch_retained": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866"
+  },
+  "execution_limitations": {
+    "build_was_not_retried": true,
+    "no_deps_get_or_explicit_network_resolution_command": true,
+    "HEX_OFFLINE": "1",
+    "automatic_platform_tool_creation_observed": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866/mix-home/elixir/1-20-otp-29/rebar3",
+      "version_from_file_header": "3.28.0",
+      "bytes": 823379,
+      "sha256": "4df37f2f7570e0b5af15b5dcbad6b7a864202575d94e1d8663166c7643ee3a09"
+    },
+    "strict_offline_tool_provenance": "NOT_ESTABLISHED; Mix auto-provisioned local Rebar3 during the dependency compile. No network capture was collected.",
+    "preflight_harness_count_correction": "Five metadata controls passed; harness initially expected6 and exited before any BEAM command. Preserved preflight1. Count corrected without repeating controls."
+  },
+  "authority": {
+    "Installation": "CLOSED",
+    "runtime_or_GA_accepted": false,
+    "canonical_git_or_index_mutations": false,
+    "device_provider_HTTP_DB_or_product_application_started": false,
+    "subchildren": false,
+    "production_publication": false,
+    "root_retains_canonical_staging_artifact_index_guards_and_delivery": true
+  },
+  "limitations": [
+    "No release was packaged; emitted compiler BEAMs are not release evidence.",
+    "No application startup, runtime config evaluation, DB, provider HTTP/TLS, device, deployed/live environment, immutable package or GA check.",
+    "R1854 full suite evidence stays scoped to its private15s privileged teardown variant; canonical teardown-timeout acceptance is not claimed.",
+    "One build consumed; root must address the observed production warning before a new release check."
+  ],
+  "adapter": {
+    "R986_origin": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "R986_SHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "AST_definitions_only": true,
+    "every_managed_command_explicit_cwd": true
+  },
+  "commands": [
+    {
+      "label": "source-admission",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 89346,
+      "pgid": 89346,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.18759750004392117,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "production-build",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "mix",
+        "do",
+        "compile",
+        "--warnings-as-errors,",
+        "release",
+        "--no-compile"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866/candidate/hosted",
+      "pid": 89393,
+      "pgid": 89393,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 28.20060087495949,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "failed-build-inspection",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "elixir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866/inspect-failed-build.exs",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 14993,
+      "pgid": 14993,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.5675632919883355,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "source-admission",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 75257,
+      "pgid": 75257,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.2152444999665022,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "campaign",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 75255,
+      "pgid": 75255,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 1.6598987500183284,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "campaign",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/provider-release-review-r1866/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 89320,
+      "pgid": 89320,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 28.513784916955046,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "artifacts": {
+    "logs/production-build.stdout": {
+      "path": "verification/local/provider-release-review-r1866/logs/production-build.stdout",
+      "bytes": 1548,
+      "sha256": "1fb72875463f3a3c8495196114b53e3ac40af70b301c5f8e28b7dd47bda742af"
+    },
+    "logs/production-build.stderr": {
+      "path": "verification/local/provider-release-review-r1866/logs/production-build.stderr",
+      "bytes": 1702,
+      "sha256": "a91a9a121612bcb40717efebd698950f137a38423b70faddd54f84fb1e4f316f"
+    },
+    "logs/failed-build-inspection.stdout": {
+      "path": "verification/local/provider-release-review-r1866/logs/failed-build-inspection.stdout",
+      "bytes": 2906,
+      "sha256": "3322df2233f6e94dd82cf5eeacbaa4f668ced49363919aebead1c29ef8dd01a8"
+    },
+    "logs/failed-build-inspection.stderr": {
+      "path": "verification/local/provider-release-review-r1866/logs/failed-build-inspection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/commands.json": {
+      "path": "verification/local/provider-release-review-r1866/logs/commands.json",
+      "bytes": 1645,
+      "sha256": "1ecce84703907b01c6df89ff4f5ab7e5e263a5cc88c1288171643796373efcab"
+    },
+    "outer/commands.json": {
+      "path": "verification/local/provider-release-review-r1866/outer/commands.json",
+      "bytes": 505,
+      "sha256": "5b70224d1743f4abfcca458f1fddb12746a237ef20cd771c2686657172eb2cd3"
+    },
+    "preflight1/receipt.json": {
+      "path": "verification/local/provider-release-review-r1866/preflight1/receipt.json",
+      "bytes": 7038,
+      "sha256": "5fd2f276775ac72dded5508ff01579495de190ba81cd36768ddf9bdb26e703d5"
+    },
+    "targeted-controls.log": {
+      "path": "verification/local/provider-release-review-r1866/targeted-controls.log",
+      "bytes": 977,
+      "sha256": "5a80148516f798b92451af0108e1d7fc45ebf0d446d8daaf4f53d6cd1dca39f2"
+    },
+    "source-before.json": {
+      "path": "verification/local/provider-release-review-r1866/source-before.json",
+      "bytes": 47795,
+      "sha256": "a3364d9ae716f4b5b2c1bdf52df1c876dda21f8f691050c33c79c5e27851343d"
+    },
+    "metadata-review.json": {
+      "path": "verification/local/provider-release-review-r1866/metadata-review.json",
+      "bytes": 3630,
+      "sha256": "26c30d7503fedbc62fa0ae53662441f7409d59bd22bbe32d187d6ce53677853e"
+    },
+    "dependency-inputs.json": {
+      "path": "verification/local/provider-release-review-r1866/dependency-inputs.json",
+      "bytes": 179960,
+      "sha256": "75b28e9758bf07be8dbf886f530c57ff044be4b262b41649a998632c23754fad"
+    },
+    "emitted-product-modules.json": {
+      "path": "verification/local/provider-release-review-r1866/emitted-product-modules.json",
+      "bytes": 74708,
+      "sha256": "eb3daf719a8bf7acbf4388d58c4aa6b5b61cb9faea72f3db8a032ef5affb10d9"
+    },
+    "prepare.py": {
+      "path": "verification/local/provider-release-review-r1866/prepare.py",
+      "bytes": 5727,
+      "sha256": "75b0eb818b8e45218593bcba6637c34b60399d4d8f62624307fac4aa84f0d60e"
+    },
+    "run.py": {
+      "path": "verification/local/provider-release-review-r1866/run.py",
+      "bytes": 5953,
+      "sha256": "3a59574fbc147108a230c3d7d432002b66fd2c4379519be9c2d82097df87ac25"
+    },
+    "launch.py": {
+      "path": "verification/local/provider-release-review-r1866/launch.py",
+      "bytes": 1637,
+      "sha256": "69fc0a2332a780d11a9d58f58acf7574f1593ffeff84c3c7597071d7d44b85b8"
+    },
+    "inspect-failed-build.exs": {
+      "path": "verification/local/provider-release-review-r1866/inspect-failed-build.exs",
+      "bytes": 4284,
+      "sha256": "55c18acb91c4548b6900d4fb165828d5217a512c61373c384968a00b1a978668"
+    }
+  }
+}

@@ -26,13 +26,45 @@ defmodule MixerHosted.BrowserAuth.ProviderHTTPS do
     def post_fixture(_, _, _, _, _, _, _, _), do: @failure
   end
 
+  # A trusted watcher is the admission holder and the supervised child. Its IO
+  # worker reuses post/6 with this local watchdog context; no second watcher.
+  def start_trusted(workers, job) do
+    spec = %{
+      id: make_ref(),
+      start: {GenServer, :start_link, [__MODULE__, {:trusted, job}]},
+      restart: :temporary,
+      shutdown: :infinity
+    }
+
+    case DynamicSupervisor.start_child(workers, spec) do
+      {:ok, pid} -> {:ok, pid}
+      _ -> @failure
+    end
+  rescue
+    _ -> @failure
+  catch
+    _, _ -> @failure
+  end
+
   defp run(args) do
+    case Process.get({__MODULE__, :watcher}) do
+      watcher when is_pid(watcher) -> exchange(args, watcher)
+      nil -> run_standalone(args)
+    end
+  end
+
+  defp run_standalone(args) do
     case GenServer.start(__MODULE__, {self(), args}) do
       {:ok, pid} -> GenServer.call(pid, :await, :infinity)
       _ -> @failure
     end
   catch
     :exit, _ -> @failure
+  end
+
+  def init({:trusted, job}) do
+    Process.flag(:trap_exit, true)
+    {:ok, %{pending_job: job}, {:continue, :trusted_start}}
   end
 
   def init({caller, {_, _, _, _, deadline, _, _} = args}) do
@@ -43,7 +75,16 @@ defmodule MixerHosted.BrowserAuth.ProviderHTTPS do
       :erlang.spawn_opt(
         fn ->
           Process.flag(:max_heap_size, %{size: 1_000_000, kill: true, error_logger: false})
-          send(owner, {:candidate, self(), exchange(args, owner)})
+          Process.put({__MODULE__, :watcher}, owner)
+          {config, secret, code, verifier, deadline, identity, destination} = args
+
+          result =
+            case destination do
+              :production -> post(config, secret, code, verifier, deadline, identity)
+              _ -> fixture_post(args)
+            end
+
+          send(owner, {:candidate, self(), result})
         end,
         [:link, :monitor]
       )
@@ -68,8 +109,91 @@ defmodule MixerHosted.BrowserAuth.ProviderHTTPS do
      }}
   end
 
+  def handle_continue(:trusted_start, %{pending_job: job}) do
+    with true <- trusted_current?(job),
+         {:ok, permit} <-
+           MixerHosted.Identity.Admission.acquire(
+             MixerHosted.BrowserAuth.ProviderTrustOwner,
+             :configured
+           ),
+         {:ok, lease} <-
+           MixerHosted.Identity.KeyOwner.checkout(job.owner, permit, System.system_time(:second)),
+         true <- trusted_current?(job),
+         :ok <- MixerHosted.Identity.KeyOwner.finish(job.owner, lease) do
+      m = job.material
+
+      args =
+        {job.config, m.secret, job.code, job.verifier, job.deadline, m.identity, m.destination}
+
+      {:ok, state} = init({job.caller, args})
+      safe = Map.drop(job, [:material, :code, :verifier]) |> Map.put(:lease, lease)
+
+      {:noreply,
+       Map.merge(state, %{
+         provider: safe,
+         parent_monitor: Process.monitor(job.parent),
+         owner_monitor: Process.monitor(job.owner)
+       })}
+    else
+      _ -> {:stop, :normal, %{pending_job: :redacted}}
+    end
+  rescue
+    _ -> {:stop, :normal, %{pending_job: :redacted}}
+  catch
+    _, _ -> {:stop, :normal, %{pending_job: :redacted}}
+  end
+
+  defp fixture_post(args) do
+    if Mix.env() == :test do
+      {config, secret, code, verifier, deadline, identity, {:fixture, port, roots}} = args
+
+      apply(__MODULE__, :post_fixture, [
+        config,
+        secret,
+        code,
+        verifier,
+        deadline,
+        identity,
+        port,
+        roots
+      ])
+    else
+      @failure
+    end
+  end
+
+  defp trusted_current?(p) do
+    Process.alive?(p.parent) and Process.alive?(p.caller) and
+      Process.whereis(MixerHosted.BrowserAuth.ProviderTrustOwner) === p.owner and
+      Process.whereis(Module.concat(MixerHosted.BrowserAuth.ProviderTrustOwner, FetchSupervisor)) ===
+        p.workers and
+      remaining(p.deadline) > 0
+  end
+
+  defp trusted_lease?(p),
+    do:
+      trusted_current?(p) and
+        MixerHosted.Identity.KeyOwner.finish(p.owner, p.lease) === :ok and trusted_current?(p)
+
   def handle_call(:await, from, %{completed: false} = s), do: {:noreply, %{s | from: from}}
   def handle_call(:await, _, s), do: {:stop, :normal, final(s), s}
+
+  def handle_info(:provider_cancel, %{provider: _} = s), do: {:stop, :normal, s}
+
+  def handle_info(
+        {:trust_finish, parent, ref},
+        %{provider: %{parent: parent, ref: ref} = p, completed: true} = s
+      ) do
+    result = if trusted_lease?(p), do: :ok, else: @failure
+    send(parent, {:trust_finished, ref, self(), result})
+    {:stop, :normal, s}
+  end
+
+  def handle_info({:DOWN, m, :process, _, _}, %{provider: _, parent_monitor: m} = s),
+    do: {:stop, :normal, s}
+
+  def handle_info({:DOWN, m, :process, _, _}, %{provider: _, owner_monitor: m} = s),
+    do: {:stop, :normal, s}
 
   def handle_info({:register_raw_socket, w, socket, ref}, %{worker: w, raw: nil} = s) do
     if is_port(socket) and Port.info(socket, :connected) == {:connected, w} do
@@ -111,8 +235,6 @@ defmodule MixerHosted.BrowserAuth.ProviderHTTPS do
   end
 
   def handle_info({:DOWN, m, :process, _, _}, %{caller: m} = s) do
-    Process.exit(s.worker, :kill)
-    close(s)
     {:stop, :normal, s}
   end
 
@@ -122,11 +244,24 @@ defmodule MixerHosted.BrowserAuth.ProviderHTTPS do
     await_closed(s)
     s = %{s | completed: true}
 
-    if s.from do
-      GenServer.reply(s.from, final(s))
-      {:stop, :normal, s}
+    if Map.has_key?(s, :provider) do
+      p = s.provider
+
+      result =
+        case final(s) do
+          {:ok, raw} -> if trusted_lease?(p), do: {:ok, raw, p.lease.snapshot}, else: @failure
+          _ -> @failure
+        end
+
+      send(p.parent, {:trust_transport, p.ref, self(), result})
+      if match?({:ok, _, _}, result), do: {:noreply, s}, else: {:stop, :normal, s}
     else
-      {:noreply, s}
+      if s.from do
+        GenServer.reply(s.from, final(s))
+        {:stop, :normal, s}
+      else
+        {:noreply, s}
+      end
     end
   end
 
@@ -136,19 +271,39 @@ defmodule MixerHosted.BrowserAuth.ProviderHTTPS do
   def handle_info({:DOWN, m, :process, _, _}, %{connection_monitor: m} = s),
     do: {:noreply, %{s | connection_down: true}}
 
+  def handle_info({:EXIT, pid, _}, %{provider: %{workers: pid}} = s), do: {:stop, :normal, s}
   def handle_info({:EXIT, _, _}, s), do: {:noreply, s}
   def handle_info(_, s), do: {:noreply, s}
+
+  def terminate(_, %{pending_job: _}), do: :ok
 
   def terminate(_, s) do
     Process.cancel_timer(s.timer)
 
     unless s.completed do
       Process.exit(s.worker, :kill)
+      s = retire_worker(s)
       close(s)
       await_closed(s)
     end
 
     :ok
+  end
+
+  defp retire_worker(s) do
+    receive do
+      {:register_raw_socket, w, socket, _} when w == s.worker ->
+        retire_worker(%{s | raw: socket, raw_monitor: :erlang.monitor(:port, socket)})
+
+      {:register_connection, w, _, pid, _} when w == s.worker ->
+        retire_worker(%{s | connection: pid, connection_monitor: Process.monitor(pid)})
+
+      {:register_socket, w, socket, _} when w == s.worker ->
+        retire_worker(%{s | socket: socket})
+
+      {:DOWN, monitor, :process, worker, _} when monitor == s.monitor and worker == s.worker ->
+        s
+    end
   end
 
   def format_status(status) do

@@ -1,0 +1,220 @@
+{
+  "id": "configured-direct-r1864",
+  "status": "STOPPED_AT_FIRST_FIXTURE_DEPENDENCY_GATE",
+  "recordedUTC": "2026-11-13T01:54:07.313452+00:00",
+  "namedTest": "configured_browser_application_start_with_current_catalogs_and_root_boot_ownership",
+  "directActualStartupScriptExecuted": true,
+  "separateDiscriminatingOrTLSPreflightBEAM": false,
+  "ApplicationStartupAccepted": false,
+  "canonicalInstallation": "CLOSED",
+  "firstFailure": {
+    "classification": "private fixture compilation/loading dependency failure; no product failure established",
+    "stage": "positive-production-TLS-and-owned-data-directory",
+    "file": "/input/startup.exs",
+    "line": 7,
+    "dependency_call": "R1758.Fixture.fixtures/0 -> MixerHosted.RuntimeConfig.load!/1",
+    "exception": "UndefinedFunctionError",
+    "message": "function MixerHosted.RuntimeConfig.load!/1 is undefined (module MixerHosted.RuntimeConfig is not available)",
+    "SQLStage": "before admin Postgrex connection, roles, operator DDL, migrations, and named Application.start calls",
+    "observed_compile_output": "Generated mixer_hosted app without any preceding hosted source-compilation line; only dependency source compilation was logged",
+    "misleading_driver_compile_marker": "FRESH_LINUX_DEPENDENCY_AND_PRODUCT_COMPILE_PASS is an unconditional fixture marker, not evidence that product source compiled",
+    "fixture_layout": {
+      "project_module_defined_in": "/input/batch.exs",
+      "original_elixirc_paths": [
+        "lib"
+      ],
+      "actual_product_source_root": "/work/candidate/hosted/lib",
+      "input_lib_exists": false,
+      "present_product_lib_files": 130
+    },
+    "root_cause_inference": "The replacement Mix.Project is defined in /input/batch.exs while retaining original relative elixirc_paths [lib]. The observed empty product compile and missing modules are consistent with resolution against /input rather than the copied hosted project. No second BEAM was run to verify that inferred path resolution.",
+    "product_failure_observed": false,
+    "no_retry_after_first_gate": true
+  },
+  "actualSQL": {
+    "DDLCount": 0,
+    "DDLCountScope": "fixture/operator DDL and canonical migrations; initdb server bootstrap excluded",
+    "migrationsExecuted": 0,
+    "ApplicationStartCalls": 0,
+    "positiveApplicationStartCalls": 0,
+    "projectionRefusalApplicationStartCalls": 0
+  },
+  "exactLFNoop": {
+    "fixture_in_startup": true,
+    "indexZeroBased": 20,
+    "exactBytesHex": "0A",
+    "exactSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "actualReturnedCatalogAssertionAndFactsPersistenceImplemented": true,
+    "actualReturnedCatalogReachedThisRun": false,
+    "oldExactEmptyOutputDependency": false,
+    "skipOnlyOneExactCatalogIndex": true,
+    "allProductRolesDDLAndMigrationBytesRetained": true,
+    "priorProof": "verification/receipts/configured-empty-r1856.json"
+  },
+  "limits": {
+    "maximumSeconds": 900,
+    "elapsedSecondsFromFreshPreparation": 190.775,
+    "maximumPGInstances": 1,
+    "actualPGInstances": 1,
+    "maximumBEAMBatches": 2,
+    "actualBEAMBatches": 1,
+    "freshProdCompileInvocations": 1,
+    "productSourceCompilationEstablished": false,
+    "secondBatchUsed": false,
+    "instanceRetry": false
+  },
+  "environment": {
+    "image": "sha256:011f225612f5a1e6c21eea57249d7025f447e890c00fa6ba1b4665371886e6d0",
+    "PostgreSQLActual": "17.12",
+    "ElixirActual": "1.20.4",
+    "OTPReleaseActual": "29",
+    "ERTSActual": "17.1.1",
+    "OTPFullPatchSuppliedByParent": "29.1.2",
+    "DockerVersionFreshlyQueried": false,
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8",
+    "network": "none",
+    "localOnlyDatabaseAddress": "127.0.0.1:5432 inside own isolated container",
+    "TLSHostname": "ep-fixture.us-east-2.aws.neon.tech",
+    "native": false
+  },
+  "observedSecurityChecks": {
+    "syntheticCertificateChainAndHostnameVerifiedByOpenSSL": true,
+    "correctCAAndHostnameAcceptedByPsql": true,
+    "psqlVerifyFullDataDirectoryGuardBeforeFixtureDDL": true,
+    "ownedDataDirectory": "/work/pgdata",
+    "actualStartupTLSLoadHelperExecuted": true,
+    "actualProductionPostgrexPositiveQueryExecuted": false,
+    "negativeTLSControlsRerun": false,
+    "priorNegativeTLSReferences": [
+      "verification/receipts/configured-browser-root-r1844.json",
+      "verification/receipts/configured-empty-r1856.json"
+    ],
+    "containerSecurityAdmission": "verification/local/configured-direct-r1864/container-admission.json"
+  },
+  "notReached": [
+    "actual returned catalog exact LF assertion and runtime facts",
+    "all fixture/operator DDL and migrations",
+    "actual Application.start",
+    "root Boot ETS owner and startup snapshot",
+    "both real storage catalog checks and actual RuntimeOwner Store.admit",
+    "storage_ready",
+    "ordinary Repo/Oban/Endpoint",
+    "configured ProviderOwner production destination and actual mode inspection",
+    "projection/role drift fail-closed checks",
+    "registered Application actor DOWN and Boot table disappearance"
+  ],
+  "privateProviderModeContractNote": {
+    "sourceObserved": "Production init in unchanged ProviderOwner sets state.mode=:trust_fixture and transport.destination=:production. The existing direct test asserts the production destination and records the actual mode separately.",
+    "runtimeObserved": false,
+    "requestedLiteralModeProductionProven": false,
+    "productSourceChanged": false
+  },
+  "cleanup": {
+    "container": "mixer-configured-r1864",
+    "containerID": "9edda5287aa74507691604297c0c549384278393bbec3a7ec91933141eec8bbc",
+    "PostgreSQLStopCalls": 1,
+    "PostgreSQLStopSucceeded": true,
+    "positivelyObservedRunningFalsePid0": true,
+    "containerRemoved": true,
+    "exactFilteredRosterEmpty": true,
+    "hostManagedGroups": 6,
+    "allDirectReaped": true,
+    "allBothEOF": true,
+    "allFDsClosed": true,
+    "allGroupESRCH": true,
+    "newHold": false,
+    "ApplicationActorDownAssertionsExecuted": false,
+    "ApplicationActorsStarted": false
+  },
+  "source": {
+    "R1856InputFilesVerified": 1349,
+    "copiedProductAndDependencyBytesUnchanged": true,
+    "privateSourceBaseline": "canonical v17/277 plus only the exact R1758 Installation and Supervisor afterimages",
+    "canonicalV17SourceDigest": "6021237e9cdf0dcc0cdf25ef841e754c93591723045031d06fa7a572e5d34661",
+    "inputTreeDigest": "943d57df9e76b71d3e45292df0a4ff4276e67d3cfc4e11f700f601ade5256ec9",
+    "canonicalSourceReadOrWritten": false,
+    "onlyFixtureChanged": [
+      "batch.exs",
+      "run.sh",
+      "startup.exs",
+      "sql-facts.exs"
+    ]
+  },
+  "canonicalWrites": false,
+  "GitActions": false,
+  "nativeActions": false,
+  "subchildren": false,
+  "heldResourcesAccessed": false,
+  "holdsReleased": false,
+  "externalProviderNetwork": false,
+  "providerOrProvenanceOrGAQualified": false,
+  "limitations": [
+    "The requested direct actual script was launched, but the first missing-module gate prevented all DDL and actual Application.start calls.",
+    "The fixture compile-success marker did not establish product source compilation.",
+    "No second batch or instance retry was permitted for this fixture-only failure, so none was run.",
+    "Canonical Installation remains CLOSED pending independent root admission and CI. No application integration, external provider/provenance, or GA pass."
+  ],
+  "evidence": {
+    "verification/local/configured-direct-r1864/commands.json": {
+      "bytes": 4351,
+      "sha256": "a2b7a0dfe163830b74f09833a4b1bf7385f79d0e06af41e14d47ce90c140740e"
+    },
+    "verification/local/configured-direct-r1864/input-manifest.json": {
+      "bytes": 232516,
+      "sha256": "26b0d68c66a221c5e050c705fefe5ec7104d3aff5f74805626260948fffcdd3c"
+    },
+    "verification/local/configured-direct-r1864/source-proof.json": {
+      "bytes": 2761,
+      "sha256": "b36f799fed685600a5fe5eff52e882a7ace0c09df41a3999620ff7ea70c8c986"
+    },
+    "verification/local/configured-direct-r1864/container-admission.json": {
+      "bytes": 609,
+      "sha256": "b7c3f0d32601fc6b9565fbda33eaec0f73d3203f5c0b7880d64348acd24bbb49"
+    },
+    "verification/local/configured-direct-r1864/positive-terminal-admission.json": {
+      "bytes": 539,
+      "sha256": "9f4083b4678b1596eda1894c7814aa65138a1d4ee03fc5177ac2e3fe70d7eafe"
+    },
+    "verification/local/configured-direct-r1864/inspect-owned-terminal.stdout": {
+      "bytes": 224,
+      "sha256": "9be00974c11d54b5f197d696f9e6f0302f9558cfd8fdaea7636e35a4faace6e6"
+    },
+    "verification/local/configured-direct-r1864/verify-owned-absent.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "verification/local/configured-direct-r1864/output/runtime.log": {
+      "bytes": 8260,
+      "sha256": "eb8ad2749dfff9d054573ae14b40e0145eaf9129dfd9b56e1a1449a999f1d90b"
+    },
+    "verification/local/configured-direct-r1864/output/first-test-failure.txt": {
+      "bytes": 1573,
+      "sha256": "2bfe7b13911745272ea094ddca9e0d113974a3d858da8996fdc29d4ba47ea0b6"
+    },
+    "verification/local/configured-direct-r1864/output/first-result.json": {
+      "bytes": 104,
+      "sha256": "3efd5a4094f7a8af612f6837f72a2d0ef97890d8f785dfb94ca9924cd669018f"
+    },
+    "verification/local/configured-direct-r1864/output/data-directory-before-ddl.txt": {
+      "bytes": 13,
+      "sha256": "0efff078b61076b51151a1cf4f0e134d21cfc9308d97b1b0b9dbd9cf61d311cd"
+    },
+    "verification/local/configured-direct-r1864/output/trust-direct-actual-startup.json": {
+      "bytes": 320,
+      "sha256": "7df7eaa00b0183e0fa318e8456177908874c2c8d0a5af4983b09e7eeb173f622"
+    },
+    "verification/local/configured-direct-r1864/output/pg-cleanup.txt": {
+      "bytes": 17,
+      "sha256": "1222dda001b6f6a0ec59a9a9a2983bbb9c0a3315b99fb8efedf39f4b4ecdb0cb"
+    },
+    "verification/local/configured-direct-r1864/output/pg-stop.log": {
+      "bytes": 56,
+      "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+    },
+    "verification/local/configured-direct-r1864/REPORT.md": {
+      "bytes": 3059,
+      "sha256": "1e70b7d50f8b0a72aa62a1f0ff0ca70a0d992ed227cb1322815b89c0468bfc16"
+    }
+  }
+}
