@@ -84,6 +84,10 @@ defmodule MixerHosted.Authorization do
                      # The last successful checkpoint is immediately before
                      # returning to Ecto's commit. No user callback follows it.
                      Context.checkpoint!(context, repo, action, scope)
+
+                     if action == "build.create",
+                       do: MixerHosted.BrowserAuth.ActiveCreate.check_current!(context)
+
                      {:ok, value}
 
                    {:error, reason} when reason in @errors ->

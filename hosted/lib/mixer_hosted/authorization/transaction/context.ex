@@ -14,6 +14,7 @@ defmodule MixerHosted.Authorization.Transaction.Context do
 
   @key {__MODULE__, :active}
   @required_scopes %{
+    "build.create" => "mixer.build.create",
     "artifact.read" => "mixer.artifact.read",
     "artifact.upload" => "mixer.artifact.upload",
     "audit.read" => "mixer.audit.read"

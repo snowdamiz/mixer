@@ -7,7 +7,7 @@ defmodule MixerHosted.RuntimeConfig do
   """
   @derive {Inspect, only: [:role, :database_connection_bound]}
   @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound, :identity_startup]
-  defstruct @enforce_keys
+  defstruct @enforce_keys ++ [create_repo: nil]
 
   @queues [:builds, :signing, :submissions, :releases, :telemetry, :billing]
 
@@ -47,6 +47,16 @@ defmodule MixerHosted.RuntimeConfig do
       ]
     ]
 
+    create_repo =
+      if Map.get(env, "MIXER_BUILD_CREATE_ENABLED", "false") == "true" and role == :api do
+        repo
+        |> Keyword.put(:username, "mixer_build_create")
+        |> Keyword.put(:password, required!(env, "MIXER_BUILD_CREATE_PASSWORD"))
+        |> Keyword.put(:pool_size, 2)
+      else
+        nil
+      end
+
     queues =
       if role == :processor do
         for queue <- @queues do
@@ -59,10 +69,12 @@ defmodule MixerHosted.RuntimeConfig do
 
     %__MODULE__{
       role: role,
+      create_repo: create_repo,
       identity_startup: identity_startup,
       repo: repo,
       oban: [
         repo: MixerHosted.Repo,
+        insert_trigger: role != :api,
         notifier: Oban.Notifiers.Postgres,
         queues: queues,
         plugins: if(role == :api, do: false, else: []),
@@ -72,7 +84,7 @@ defmodule MixerHosted.RuntimeConfig do
       ],
       endpoint: endpoint!(env, role),
       # Oban's Postgres notifier holds one additional direct connection.
-      database_connection_bound: pool_size + 1
+      database_connection_bound: pool_size + 1 + if(is_nil(create_repo), do: 0, else: 2)
     }
   end
 

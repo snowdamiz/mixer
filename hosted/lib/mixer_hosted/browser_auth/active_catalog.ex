@@ -57,14 +57,33 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
     type_acl_limit: 13,
     escape_limit: 21
   }
-  for manifest <- [@v1, @v2] do
+  @create_name "mixer_browser_create_active_load"
+  @create_function Map.fetch!(
+                     MixerHosted.BrowserAuth.ActiveReadSchema.manifest(),
+                     "mixer_browser_current_active_load"
+                   )
+                   |> Map.put(:runtime_execute, false)
+  @v3 %{
+        @v2
+        | functions: Map.put(@v2.functions, @create_name, @create_function),
+          returns: Map.put(@v2.returns, @create_name, "jsonb"),
+          argument_names:
+            Map.put(@v2.argument_names, @create_name, ~w(p_cookie p_config p_revision i)),
+          function_count: 21,
+          function_limit: 22,
+          function_acl_limit: 34,
+          escape_limit: 22
+      }
+      |> Map.put(:create_function, @create_name)
+  for manifest <- [@v1, @v2, @v3] do
     unless map_size(manifest.functions) == manifest.function_count and
              map_size(manifest.composites) == manifest.composite_count and
              manifest.function_limit == manifest.function_count + 1 and
              manifest.escape_limit == manifest.function_count + 1 and
              manifest.function_acl_limit ==
                manifest.function_count +
-                 Enum.count(manifest.functions, fn {_n, f} -> f.runtime_execute end) + 1 and
+                 Enum.count(manifest.functions, fn {_n, f} -> f.runtime_execute end) +
+                 if(Map.has_key?(manifest, :create_function), do: 1, else: 0) + 1 and
              manifest.composite_limit == manifest.composite_count + 1 and
              manifest.field_limit ==
                Enum.sum(Enum.map(manifest.composites, fn {_n, f} -> length(f) end)) + 1 and
@@ -105,6 +124,7 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
   # map, callback or supplied module can provide a catalog expectation.
   defp selected_manifest!(version) when version === 1, do: @v1
   defp selected_manifest!(version) when version === 2, do: @v2
+  defp selected_manifest!(version) when version === 3, do: @v3
   defp selected_manifest!(_), do: raise(Unavailable)
 
   defp validate_roles!(roles) do
@@ -413,6 +433,12 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
             do: [[name, roles.lifecycle_login, roles.writer, "EXECUTE", false]],
             else: []
       end)
+
+    expected_acls =
+      expected_acls ++
+        if Map.has_key?(manifest, :create_function),
+          do: [[manifest.create_function, "mixer_build_create", roles.writer, "EXECUTE", false]],
+          else: []
 
     require!(Enum.sort(acls) == Enum.sort(expected_acls))
   end

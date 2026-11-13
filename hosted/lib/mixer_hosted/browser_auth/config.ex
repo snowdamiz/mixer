@@ -79,7 +79,8 @@ defmodule MixerHosted.BrowserAuth.Config do
          true <-
            object["scope"] in [
              "openid mixer.workspace.read",
-             "openid mixer.workspace.read mixer.build.read"
+             "openid mixer.workspace.read mixer.build.read",
+             "openid mixer.workspace.read mixer.build.read mixer.build.create"
            ],
          "query" <- object["response_mode"],
          true <- object["response_iss_required"],

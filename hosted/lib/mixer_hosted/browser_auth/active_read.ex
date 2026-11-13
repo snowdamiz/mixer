@@ -159,7 +159,8 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
                {:ok, expires} <- Store.active_read(lease, {:admit, source, identity}),
                :ok <- RuntimeOwner.checkpoint(lease),
                :ok <- KeyOwner.finish(KeyOwner, key_lease),
-               {:ok, value} <- value(operation, token, csrf, source, expires),
+               {:ok, value} <-
+                 value(operation, token, csrf, source, expires, lease, identity, key_lease),
                :ok <- KeyOwner.finish(KeyOwner, key_lease),
                receipt = RuntimeOwner.active_receipt(lease, expires, value),
                true <- is_struct(receipt, PreauthDraft.Publication) do
@@ -194,6 +195,23 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
     KeyOwner.release(KeyOwner, p)
     Admission.release(p)
   end
+
+  defp value({:create, input, key, headers}, _token, csrf, source, expires, lease, identity, kl),
+    do:
+      MixerHosted.BrowserAuth.ActiveCreate.run(
+        lease,
+        source,
+        identity,
+        csrf,
+        headers,
+        input,
+        key,
+        kl,
+        expires
+      )
+
+  defp value(operation, token, csrf, source, expires, _lease, _identity, _kl),
+    do: value(operation, token, csrf, source, expires)
 
   defp value(:session, _token, csrf, s, expires),
     do: {:ok, {:authenticated, csrf, s.browser["revision"], s.browser["generation"], expires}}

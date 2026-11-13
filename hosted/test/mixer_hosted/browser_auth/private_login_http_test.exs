@@ -46,7 +46,8 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
       conn = F.connection!("browser_admin", "postgres")
 
       try do
-        Postgrex.query!(conn, "DROP DATABASE browser_login_storage", [])
+        Postgrex.query!(conn, "SET statement_timeout='15s'", [])
+        Postgrex.query!(conn, "DROP DATABASE browser_login_storage", [], timeout: 20_000)
       after
         GenServer.stop(conn)
       end
@@ -1109,7 +1110,9 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
     assert http(c, path, hs ++ hs).status == 400
     assert http(c, path, hs ++ [{"authorization", "Bearer fake"}]).status == 400
     assert http(c, path, hs ++ [{"content-length", "1"}], "GET", "x").status == 400
-    assert http(c, path, hs, "POST").status == 404
+    invalid_post = http(c, path, hs, "POST")
+    assert invalid_post.status == 400
+    assert Jason.decode!(invalid_post.body)["error"]["code"] == "invalid_request"
 
     assert http(c, "/v3/orgs/org-a/projects/project-a/apps/fieldlog/builds/build-a/ios", hs).status ==
              404

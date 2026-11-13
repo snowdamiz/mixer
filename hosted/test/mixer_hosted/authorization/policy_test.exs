@@ -94,6 +94,27 @@ defmodule MixerHosted.Authorization.PolicyTest do
   defp evaluate(evidence, action \\ "artifact.upload", identity \\ identity(), now \\ @now),
     do: Policy.evaluate(identity, action, target(action), evidence, now)
 
+  test "build create requires exact application target, write role and create scope" do
+    app = Map.drop(@scope, [:environment_id])
+
+    for role <- @roles do
+      i = identity(%{scopes: ["mixer.build.create"]})
+      result = Policy.evaluate(i, "build.create", app, evidence(role, app), @now)
+
+      if role in ~w(owner administrator developer),
+        do: assert(match?({:ok, _}, result)),
+        else: assert(result == {:error, :permission_denied})
+
+      assert Policy.evaluate(identity(), "build.create", app, evidence(role, app), @now) ==
+               {:error, :permission_denied}
+    end
+
+    assert Policy.request(identity(), "build.create", @scope, @now) == {:error, :invalid_request}
+
+    assert Policy.request(identity(), "build.create", @project, @now) ==
+             {:error, :invalid_request}
+  end
+
   test "the six-role matrix intersects the exact supported token scope" do
     for role <- @roles, action <- @actions do
       allowed =
@@ -263,7 +284,7 @@ defmodule MixerHosted.Authorization.PolicyTest do
 
   test "build, billing, release, approval and member operations all fail closed" do
     for action <-
-          ~w(build.read build.create build.cancel billing.read billing.manage usage.read
+          ~w(build.read build.cancel billing.read billing.manage usage.read
       release.validate release.publish release.promote release.rollback release.halt approval.create
       member.manage organization.transfer project.create source.read logs.read symbols.read source_map.read),
         role <- @roles do

@@ -1,3 +1,5 @@
+import { captureBuildAttempt } from "../domain/build-submission.js";
+import type { BuildInput, BuildInputPage, BuildAttempt, BuildReceipt } from "../domain/build-submission.js";
 import { WorkspaceClientError } from "../api/workspace-client.js";
 import { catalogRecord, parseApplicationPage, parseBuildPage, snapshotProjectSelection } from "../domain/build-catalog.js";
 import type { ApplicationPage, BuildPage, ProjectSelection, CatalogPageRequest } from "../domain/build-catalog.js";
@@ -15,7 +17,15 @@ type ReadyDetail = { readonly kind: "ready"; readonly selection: BuildReadSelect
 export type DetailLoad = Pending | ReadyDetail |
   { readonly kind: "loading"; readonly previous: ReadyDetail } |
   { readonly kind: "error"; readonly reason: "invalid_response" | "request_failed"; readonly previous: ReadyDetail };
+export type SubmissionState =
+  | { readonly kind: "loading" }
+  | { readonly kind: "error"; readonly reason: string }
+  | { readonly kind: "ready"; readonly page: BuildInputPage; readonly input?: BuildInput }
+  | { readonly kind: "submitting" | "unknown"; readonly page: BuildInputPage; readonly attempt: BuildAttempt }
+  | { readonly kind: "committed"; readonly receipt: BuildReceipt };
 export interface BuildSelectionState {
+  readonly submission?: SubmissionState;
+  readonly priorSubmissionUnknown?: boolean;
   readonly applications: CatalogLoad<ApplicationPage>;
   readonly builds: CatalogLoad<BuildPage>;
   readonly detail: DetailLoad;
@@ -33,6 +43,12 @@ export interface BuildSelectionController {
   firstBuilds(): void;
   nextBuilds(): void;
   refreshSelected(): void;
+  beginCreate(): void;
+  nextInputs(): void;
+  selectInput(platform: string, sourceInputId: string): void;
+  submitBuild(): void;
+  retrySubmit(): void;
+  cancelSubmit(): void;
   dispose(): void;
 }
 type ReadySession = Extract<ConsoleSession, { kind: "ready" }>;
@@ -93,10 +109,69 @@ function failure(error: unknown): Pending {
 export function createBuildSelectionController(): BuildSelectionController {
   let state = initial({ kind: "unavailable" }), session: ConsoleSession = { kind: "unavailable" };
   let workspace: WorkspaceDirectoryState | undefined, project: ProjectSelection | undefined;
-  let active: Request | undefined, selected: { selection: BuildReadSelection; revision: number } | undefined;
+  let active: Request | undefined, selected: { selection: BuildReadSelection; revision: number; committedState?: BuildReceipt["state"] } | undefined;
   let generation = 0, workspaceGeneration = 0, revision = 0, disposed = false, notifying = false;
   let applicationAttempt: CatalogPageRequest = first, buildAttempt: CatalogPageRequest = first;
   const subscriptions = new Set<Subscription>();
+  let createGeneration = 0, createWork: AbortController | undefined;
+  function clearCreate(): void {
+    createGeneration++;
+    const cancelled = createWork; createWork = undefined;
+    cancelled?.abort();
+  }
+  function createScope() {
+    if (session.kind !== "ready" || !project || !state.selectedApplicationId || !session.buildClients.create) return undefined;
+    return { session, client: session.buildClients.create, scope: Object.freeze({ ...project, applicationId: state.selectedApplicationId }) };
+  }
+  function loadInputs(page: CatalogPageRequest = first): void {
+    const captured = createScope(); if (!captured) return;
+    clearCreate(); const version = createGeneration, controller = new AbortController(); createWork = controller;
+    update({ ...state, submission: { kind: "loading" } });
+    const live = () => !disposed && version === createGeneration && session === captured.session && session.kind === "ready" && session.buildClients.create === captured.client &&
+      project?.organizationId === captured.scope.organizationId && project?.projectId === captured.scope.projectId &&
+      state.selectedApplicationId === captured.scope.applicationId && !controller.signal.aborted;
+    if (!live()) return;
+    void captured.client.inputs(captured.scope, page, controller.signal).then(result => {
+      if (live()) { createWork = undefined; update({ ...state, submission: { kind: "ready", page: result } }); }
+    }).catch(error => {
+      if (!live()) return; createWork = undefined;
+      if (error instanceof WorkspaceClientError && error.code === "unauthenticated") { setSession({ kind: "unavailable" }); return; }
+      update({ ...state, submission: { kind: "error", reason: error instanceof WorkspaceClientError ? error.code : "invalid_response" } });
+    });
+  }
+  function submit(attempt: BuildAttempt, page: BuildInputPage): void {
+    const captured = createScope(); if (!captured) return;
+    clearCreate(); const version = createGeneration, controller = new AbortController(); createWork = controller;
+    const live = () => !disposed && version === createGeneration && session === captured.session && session.kind === "ready" && session.buildClients.create === captured.client &&
+      project?.organizationId === captured.scope.organizationId && project?.projectId === captured.scope.projectId &&
+      state.selectedApplicationId === captured.scope.applicationId && !controller.signal.aborted;
+    // Install duplicate-click exclusion before dispatch or observer callbacks.
+    update({ ...state, submission: { kind: "submitting", attempt, page } });
+    if (!live()) return;
+    void captured.client.submit(attempt, controller.signal).then(receipt => {
+      if (!live()) return;
+      update({ ...state, submission: { kind: "committed", receipt } });
+      if (!live()) return;
+      loadDetail({ selection: receipt.selection, revision: receipt.revision, committedState: receipt.state });
+      // Refresh only through the real catalog GET. The receipt is never a catalog row.
+      if (!live()) return;
+      void captured.session.buildClients.catalog.builds(captured.scope, buildAttempt, controller.signal).then(raw => {
+        if (!live()) return;
+        const parsed = checkedBuildPage(raw, captured.scope);
+        if (live()) update({ ...state, builds: { kind: parsed.builds.length ? "ready" : "empty", page: parsed } });
+      }).catch(error => {
+        if (!live()) return;
+        if (error instanceof WorkspaceClientError && error.code === "unauthenticated") { setSession({ kind: "unavailable" }); return; }
+        update({ ...state, builds: failure(error) });
+      });
+    }).catch(error => {
+      if (!live()) return; createWork = undefined;
+      if (error instanceof WorkspaceClientError && error.code === "unauthenticated") { setSession({ kind: "unavailable" }); return; }
+      const reason = error instanceof WorkspaceClientError ? error.code : "unavailable";
+      update({ ...state, submission: reason === "permission_denied" || reason === "not_found" || reason === "invalid_request"
+        ? { kind: "error", reason } : { kind: "unknown", page, attempt } });
+    });
+  }
   function notify(): void {
     if (notifying || disposed) return;
     notifying = true;
@@ -115,7 +190,10 @@ export function createBuildSelectionController(): BuildSelectionController {
     } finally { notifying = false; }
   }
   function update(next: BuildSelectionState, cancelled?: Request): void {
-    state = Object.freeze(next); revision++;
+    const priorUnknown = state.priorSubmissionUnknown ||
+      ((state.submission?.kind === "submitting" || state.submission?.kind === "unknown") &&
+        next.submission?.kind !== "submitting" && next.submission?.kind !== "unknown" && next.submission?.kind !== "committed");
+    state = Object.freeze(priorUnknown ? { ...next, priorSubmissionUnknown: true } : next); revision++;
     cancelled?.controller.abort();
     notify();
   }
@@ -149,6 +227,7 @@ export function createBuildSelectionController(): BuildSelectionController {
     }
   }
   function loadApplications(page: CatalogPageRequest): void {
+    clearCreate();
     const value = request(); if (!value) return;
     const cancelled = active; active = value; selected = undefined; applicationAttempt = page; buildAttempt = first;
     update(initial({ kind: "loading" }), cancelled);
@@ -165,6 +244,7 @@ export function createBuildSelectionController(): BuildSelectionController {
     })();
   }
   function loadBuilds(applicationId: string, page: CatalogPageRequest): void {
+    clearCreate();
     const value = request(); if (!value) return;
     const scope = Object.freeze({ ...value.project, applicationId });
     const cancelled = active; active = value; selected = undefined; buildAttempt = page;
@@ -182,10 +262,10 @@ export function createBuildSelectionController(): BuildSelectionController {
       } catch (error) { fail(value, error, "builds"); }
     })();
   }
-  function loadDetail(row: { readonly selection: BuildReadSelection; readonly revision: number }): void {
+  function loadDetail(row: { readonly selection: BuildReadSelection; readonly revision: number; readonly committedState?: BuildReceipt["state"] }): void {
     const value = request(); if (!value) return;
     const selection = snapshotBuildReadSelection(row.selection), floor = row.revision;
-    const cancelled = active; active = value; selected = { selection, revision: floor };
+    const cancelled = active; active = value; selected = { selection, revision: floor, ...(row.committedState === undefined ? {} : { committedState: row.committedState }) };
     const previous = state.detail.kind === "ready" ? state.detail : "previous" in state.detail ? state.detail.previous : undefined;
     const retained = previous && Object.keys(selection).every(key => Reflect.get(previous.selection, key) === Reflect.get(selection, key)) &&
       previous.snapshot.revision >= floor ? previous : undefined;
@@ -197,14 +277,15 @@ export function createBuildSelectionController(): BuildSelectionController {
         if (!current(value)) return;
         const snapshot = checkedSnapshot(input, selection);
         if (!current(value)) return;
-        if (snapshot.revision < floor) throw new TypeError();
-        active = undefined; selected = { selection, revision: snapshot.revision };
+        if (snapshot.revision < floor || (snapshot.revision === floor && row.committedState !== undefined && snapshot.report.state !== row.committedState)) throw new TypeError();
+        active = undefined; selected = { selection, revision: snapshot.revision, committedState: snapshot.report.state };
         update({ ...state, detail: Object.freeze({ kind: "ready", selection, snapshot }) });
       } catch (error) { fail(value, error, "detail"); }
     })();
   }
   function setSession(next: ConsoleSession): void {
     if (disposed || next === session) return;
+    clearCreate();
     const cancelled = active; active = undefined; generation++; workspaceGeneration++;
     session = next; workspace = undefined; project = undefined; selected = undefined;
     applicationAttempt = first; buildAttempt = first;
@@ -230,6 +311,7 @@ export function createBuildSelectionController(): BuildSelectionController {
       project?.organizationId === scope?.organizationId && project?.projectId === scope?.projectId;
     workspace = next;
     if (samePages) return;
+    clearCreate();
     const cancelled = active; active = undefined; generation++; project = scope; selected = undefined;
     applicationAttempt = first; buildAttempt = first;
     update(initial(session.kind === "ready" ? unselected : { kind: session.kind }), cancelled);
@@ -256,8 +338,11 @@ export function createBuildSelectionController(): BuildSelectionController {
         row = state.builds.page.builds.find(row => row.selection.buildId === key.buildId && row.selection.platform === key.platform);
       } catch { return; }
       if (disposed || !row || state.builds.kind !== "ready" || !state.builds.page.builds.includes(row)) return;
+      clearCreate();
+      if (state.submission) { const { submission, ...rest } = state; update(rest); }
       const previous = selected;
-      loadDetail({ selection: row.selection, revision: previous && Object.keys(row.selection).every(key => Reflect.get(previous.selection, key) === Reflect.get(row.selection, key)) ? previous.revision : row.snapshot.revision });
+      loadDetail(previous && Object.keys(row.selection).every(key => Reflect.get(previous.selection, key) === Reflect.get(row.selection, key))
+        ? previous : { selection: row.selection, revision: row.snapshot.revision });
     },
     firstApplications(): void { if (!disposed && applicationAttempt.cursor !== undefined) loadApplications(first); },
     nextApplications(): void {
@@ -271,9 +356,37 @@ export function createBuildSelectionController(): BuildSelectionController {
       if (!disposed && (value.kind === "ready" || value.kind === "empty") && value.page.nextCursor !== null && state.selectedApplicationId !== undefined)
         loadBuilds(state.selectedApplicationId, Object.freeze({ cursor: value.page.nextCursor }));
     },
+    beginCreate(): void { if (!disposed && state.submission?.kind !== "submitting" && state.submission?.kind !== "unknown") loadInputs(); },
+    nextInputs(): void {
+      const value = state.submission;
+      if (value?.kind === "ready" && value.page.nextCursor !== null) loadInputs({ cursor: value.page.nextCursor });
+    },
+    selectInput(platform: string, sourceInputId: string): void {
+      const value = state.submission;
+      if (disposed || (value?.kind !== "ready" && value?.kind !== "submitting" && value?.kind !== "unknown")) return;
+      const input = value.page.inputs.find(row => row.platform === platform && row.sourceInputId === sourceInputId);
+      if (!input || (value.kind === "ready" ? value.input === input :
+        value.attempt.input.platform === input.platform && value.attempt.input.sourceInputId === input.sourceInputId)) return;
+      clearCreate();
+      const cancelled = active; active = undefined; generation++; selected = undefined;
+      update({ ...state, detail: unselected, submission: { kind: "ready", page: value.page, input } }, cancelled);
+    },
+    submitBuild(): void {
+      const value = state.submission, captured = createScope();
+      if (!disposed && value?.kind === "ready" && value.input && captured) {
+        try { submit(captureBuildAttempt(captured.scope, value.input), value.page); }
+        catch { update({ ...state, submission: { kind: "error", reason: "unavailable" } }); }
+      }
+    },
+    retrySubmit(): void { const value = state.submission; if (!disposed && value?.kind === "unknown") submit(value.attempt, value.page); },
+    cancelSubmit(): void {
+      const value = state.submission; if (disposed || value?.kind !== "submitting") return;
+      clearCreate(); update({ ...state, submission: { kind: "unknown", attempt: value.attempt, page: value.page } });
+    },
     refreshSelected(): void { if (!disposed && selected) loadDetail(selected); },
     dispose(): void {
       if (disposed) return;
+      clearCreate();
       disposed = true; generation++; workspaceGeneration++; session = { kind: "unavailable" };
       project = undefined; workspace = undefined; selected = undefined;
       const cancelled = active; active = undefined; subscriptions.clear(); update(initial({ kind: "unavailable" }), cancelled);

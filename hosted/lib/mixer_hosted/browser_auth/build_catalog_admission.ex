@@ -4,7 +4,8 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
   alias MixerHosted.BrowserAuth.RelationCatalog.Unavailable
 
   # Fixed metadata only. Never executes the capabilities as the lifecycle login.
-  def check!(repo, roles, deadline) do
+  def check!(repo, roles, deadline, create_enabled \\ false) do
+    if create_enabled, do: MixerHosted.CustomerBuilds.CreateSchema.compatibility!(repo)
     true = repo.in_transaction?()
 
     %{rows: [[backend, 17]]} =
@@ -149,12 +150,12 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
       backend,
       """
       SELECT count(*)=12 AND bool_and(c.relowner=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$2)
-        AND c.relkind='r' AND c.relrowsecurity=(c.relname<>'mixer_builds')
-        AND c.relforcerowsecurity=(c.relname<>'mixer_builds'))
+        AND c.relkind='r' AND c.relrowsecurity=(c.relname<>'mixer_builds' OR $3::boolean)
+        AND c.relforcerowsecurity=(c.relname<>'mixer_builds' OR $3::boolean))
       FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
       WHERE n.nspname::text||'.'||c.relname::text=ANY($1::text[])
       """,
-      [Enum.uniq(relations), owner]
+      [Enum.uniq(relations), owner, create_enabled]
     )
 
     policies =
@@ -193,9 +194,12 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
           WHERE polrelid='public.mixer_authz_applications'::regclass)=4
         AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_policy p WHERE
         (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1)=ANY(p.polroles)
-        AND NOT(p.polrelid='public.mixer_authz_applications'::regclass AND p.polname=ANY($2::text[])))
+        AND NOT((p.polrelid='public.mixer_authz_applications'::regclass AND p.polname=ANY($2::text[]))
+          OR ($3::boolean AND p.polrelid='public.mixer_builds'::regclass
+            AND p.polroles=ARRAY[(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1)]
+            AND p.polname=ANY(ARRAY['build_catalog_owner','build_catalog_lock']::text[]))))
       """,
-      [role, Enum.map(contract.policies, & &1.name)]
+      [role, Enum.map(contract.policies, & &1.name), create_enabled]
     )
 
     :ok

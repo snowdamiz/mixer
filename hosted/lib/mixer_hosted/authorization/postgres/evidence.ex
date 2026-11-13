@@ -175,6 +175,24 @@ defmodule MixerHosted.Authorization.Postgres.Evidence do
     }
   end
 
+  defp target!(repo, %Scope{application_id: app, environment_id: nil} = target)
+       when not is_nil(app) do
+    [oa, pa, aa] =
+      Session.one!(
+        repo,
+        """
+        SELECT o.active,p.active,a.active FROM public.mixer_authz_applications a
+        JOIN public.mixer_authz_projects p ON (p.organization_id,p.id)=(a.organization_id,a.project_id)
+        JOIN public.mixer_authz_organizations o ON o.id=p.organization_id
+        WHERE a.organization_id=$1 AND a.project_id=$2 AND a.id=$3
+        """,
+        [target.organization_id, target.project_id, target.application_id],
+        :not_found
+      )
+
+    %{scope: target, active: oa and pa and aa}
+  end
+
   defp target!(repo, target) do
     [organization, project, application, environment, oa, pa, aa, ea] =
       Session.one!(

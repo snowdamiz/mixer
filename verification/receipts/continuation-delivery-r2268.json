@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "id": "continuation-delivery-r2268",
+  "observedUTC": "2026-11-13T11:44:27.651463+00:00",
+  "status": "DELIVERED_OBSERVED_DEVELOPMENT_CHECKPOINT_CANONICAL_PRODUCT_UNCHANGED",
+  "head": "d1c15ff009200376b9ecf0200025153118abf36b",
+  "remoteMain": "d1c15ff009200376b9ecf0200025153118abf36b",
+  "nonForcePush": true,
+  "runs": [
+    {
+      "conclusion": "success",
+      "head_sha": "d1c15ff009200376b9ecf0200025153118abf36b",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43419119300",
+      "id": 43419119300,
+      "name": "Verification artifact retention",
+      "status": "completed"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "d1c15ff009200376b9ecf0200025153118abf36b",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43419119386",
+      "id": 43419119386,
+      "name": "Owned engine checks",
+      "status": "in_progress"
+    }
+  ],
+  "parent": "33ae3ab6053dda75bba5e0d4065e834ec917efc7",
+  "checkpoint": "verification/receipts/continuation-checkpoint-r2262.json",
+  "scope": "Exactly25 plan/status/graph/gate-metadata and compact receipt paths; no private API/UI source adoption.",
+  "canonicalSource": {
+    "version": "v21",
+    "count": 290,
+    "digest": "13cbf07d04bcbceaaaebb6278166bc18630e4d63f0fcf9857bca3e7319203463"
+  },
+  "artifactPolicy": {
+    "passed": true,
+    "files": 47726,
+    "bytes": 926210244
+  },
+  "managedDeliveryCommands": [
+    {
+      "label": "stage-observed-product-checkpoint-r2262",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-c",
+        "from pathlib import Path; import json,subprocess; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); git=lambda *a:subprocess.run([\"git\",\"-C\",str(r),*a],capture_output=True,text=True,check=True).stdout; paths=json.loads((r/\"verification/local/customer-create-checkpoint-r2262/staging-paths.json\").read_text()); assert not git(\"diff\",\"--cached\",\"--name-only\").strip(); git(\"add\",\"--\",*paths); assert set(git(\"diff\",\"--cached\",\"--name-only\").splitlines())==set(paths); git(\"diff\",\"--cached\",\"--check\"); a=json.loads(git(\"show\",\"HEAD:gates/ga.json\")); b=json.loads((r/\"gates/ga.json\").read_text()); filt=lambda x:{k:v for k,v in x.items() if k not in [\"executionPolicy\",\"verificationPolicy\"]}; assert filt(a)==filt(b); assert all(git(\"show\",\"HEAD:\"+n).split(\"## Previous checkpoint\",1)[1]==(r/n).read_text().split(\"## Previous checkpoint\",1)[1] for n in [\"PLAN.md\",\"STATUS.md\"]); print(git(\"diff\",\"--cached\",\"--stat\"))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 84840,
+      "pgid": 84840,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.3040334170218557,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "product-checkpoint-artifact-policy-r2262",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/check-verification-artifacts.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 84894,
+      "pgid": 84894,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.6813647500239313,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "product-checkpoint-canonical-source-r2262",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 84903,
+      "pgid": 84903,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.20406120794359595,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "commit-product-checkpoint-r2262",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "commit",
+        "-m",
+        "Record create rollback closure and strict configuration blocker"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 87076,
+      "pgid": 87076,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.41195166704710573,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "push-product-checkpoint-r2262",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "push",
+        "origin",
+        "HEAD:main"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 87085,
+      "pgid": 87085,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 2.6714193749940023,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "product-checkpoint-delivery-observation-r2268",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-c",
+        "from pathlib import Path; import json,subprocess; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); call=lambda a:subprocess.run(a,capture_output=True,text=True,check=True).stdout.strip(); h=call([\"git\",\"-C\",str(r),\"rev-parse\",\"HEAD\"]); remote=call([\"git\",\"-C\",str(r),\"ls-remote\",\"origin\",\"refs/heads/main\"]).split()[0]; assert h==remote,(h,remote); runs=json.loads(call([\"/opt/homebrew/bin/gh\",\"api\",\"repos/snowdamiz/mixer/actions/runs?head_sha=\"+h+\"&per_page=20\",\"--jq\",\"[.workflow_runs[] | {id,name,head_sha,status,conclusion,html_url}]\" ])); print(json.dumps({\"head\":h,\"remoteMain\":remote,\"nonForcePush\":True,\"runs\":runs})); print(call([\"git\",\"-C\",str(r),\"status\",\"--short\"]))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 87396,
+      "pgid": 87396,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.9541033749701455,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "browserPreflight": {
+    "tool": "Acid collaborative browser",
+    "ownedIncognitoBlankTabAvailable": true,
+    "closeRequestedThroughOwnedTabAPI": true,
+    "rendererOrOSAbsenceClaimed": false,
+    "applicationWorkflowExecuted": false
+  },
+  "activeTask": "customer-create-runtime-shape-r2266",
+  "limitations": [
+    "Ordinary full suite877pass14fail2existing skips exposes constructor integration; fix/rerun remains active.",
+    "Input-listing diagnostic packaging, combined source admission and actual browser acceptance remain.",
+    "Private scoped40/40joint,6/6listing,277/277UI andR2204release proof do not establish production or GA.",
+    "Transport/bootstrap lifetime is not separately established."
+  ],
+  "historicalHoldsReleased": false,
+  "GA": false
+}

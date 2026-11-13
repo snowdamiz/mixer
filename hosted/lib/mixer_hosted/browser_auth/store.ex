@@ -143,18 +143,32 @@ defmodule MixerHosted.BrowserAuth.Store do
          %RuntimeConfig{admission_profile: :build_catalog_v3} = runtime,
          deadline
        ) do
+    create_enabled =
+      runtime.browser_config.scope ==
+        "openid mixer.workspace.read mixer.build.read mixer.build.create"
+
     :relation_surface_verified =
-      RelationCatalog.check_build_catalog_surface!(
-        LifecycleRepo,
-        runtime.expected_roles,
-        deadline
-      )
+      if create_enabled do
+        RelationCatalog.check_create_catalog_surface!(
+          LifecycleRepo,
+          runtime.expected_roles,
+          deadline
+        )
+      else
+        RelationCatalog.check_build_catalog_surface!(
+          LifecycleRepo,
+          runtime.expected_roles,
+          deadline
+        )
+      end
 
     :ok =
       MixerHosted.BrowserAuth.BuildCatalogAdmission.check!(
         LifecycleRepo,
         runtime.expected_roles,
-        deadline
+        deadline,
+        runtime.browser_config.scope ==
+          "openid mixer.workspace.read mixer.build.read mixer.build.create"
       )
 
     :relation_surface_verified
@@ -191,7 +205,12 @@ defmodule MixerHosted.BrowserAuth.Store do
                     LifecycleRepo,
                     runtime.expected_roles,
                     deadline,
-                    2
+                    if(
+                      runtime.browser_config.scope ==
+                        "openid mixer.workspace.read mixer.build.read mixer.build.create",
+                      do: 3,
+                      else: 2
+                    )
                   )
 
                 :relation_surface_verified = relation_admission!(runtime, deadline)

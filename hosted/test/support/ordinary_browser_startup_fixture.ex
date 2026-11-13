@@ -114,7 +114,7 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
     Map.merge(c, %{http_port: port, root: root})
   end
 
-  def prepare! do
+  def prepare!(create \\ false) do
     refuse_names!(@all_names)
     prepare_evidence!()
     conn = F.connection!("browser_admin", "postgres")
@@ -258,7 +258,11 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
       "client_auth_method" => "client_secret_basic",
       "client_credential_ref" => "secret://fixture/client",
       "session_vault_ref" => "vault://fixture/browser",
-      "scope" => "openid mixer.workspace.read mixer.build.read",
+      "scope" =>
+        if(create,
+          do: "openid mixer.workspace.read mixer.build.read mixer.build.create",
+          else: "openid mixer.workspace.read mixer.build.read"
+        ),
       "response_mode" => "query",
       "response_iss_required" => true
     }
@@ -458,7 +462,14 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
       | repo: ordinary,
         endpoint: endpoint,
         identity_startup: identity,
-        oban: [repo: Admin, queues: false, plugins: false, testing: :manual]
+        oban: [
+          repo: Admin,
+          queues: false,
+          plugins: false,
+          peer: false,
+          insert_trigger: false,
+          testing: :manual
+        ]
     }
 
     installation = Installation.fixture!(runtime, config, snapshot, provider)

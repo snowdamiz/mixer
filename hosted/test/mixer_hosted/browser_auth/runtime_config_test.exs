@@ -252,7 +252,127 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
 
     for key <- Map.keys(Map.from_struct(hosted)) do
       assert construct(Map.delete(hosted, key)) == @error
+      assert RuntimeConfig.new(%{}, Map.delete(hosted, key), nil, nil) == @error
     end
+  end
+
+  defp create_hosted do
+    ordinary_env()
+    |> Map.put("MIXER_BUILD_CREATE_ENABLED", "true")
+    |> Map.put("MIXER_BUILD_CREATE_PASSWORD", "synthetic-separate-create-password")
+    |> HostedConfig.load!()
+  end
+
+  test "actual loader optional create connection retains exact endpoint and honest total bound" do
+    ordinary = hosted()
+    assert ordinary.create_repo == nil
+    assert {:ok, _} = construct(ordinary)
+    enabled = create_hosted()
+    assert enabled.create_repo[:username] == "mixer_build_create"
+    assert enabled.create_repo[:pool_size] === 2
+    refute enabled.create_repo[:password] == ordinary.repo[:password]
+    assert enabled.database_connection_bound === ordinary.database_connection_bound + 2
+    assert {:ok, runtime} = construct(enabled)
+    assert runtime.lifecycle_repo[:pool_size] === 2
+    assert enabled.database_connection_bound + runtime.lifecycle_repo[:pool_size] === 13
+    assert runtime.expected_roles.ordinary_runtime_login == ordinary.repo[:username]
+    assert {:ok, disabled} = RuntimeConfig.new(%{}, enabled, nil, nil)
+    assert disabled.mode == :disabled
+
+    assert {:ok, catalog} =
+             RuntimeConfig.new_with_build_catalog(browser_env(), enabled, lifecycle(), custody())
+
+    assert catalog.admission_profile === :build_catalog_v3
+    refute inspect(runtime) =~ enabled.create_repo[:password]
+    refute inspect(enabled) =~ enabled.create_repo[:password]
+
+    for pool <- [2, 20] do
+      input = %{
+        enabled
+        | repo: Keyword.put(enabled.repo, :pool_size, pool),
+          database_connection_bound: pool + 3
+      }
+
+      assert {:ok, _} = construct(input)
+    end
+  end
+
+  test "optional privileged connection rejects missing duplicate extra and cross-endpoint options" do
+    hosted = create_hosted()
+    create = hosted.create_repo
+
+    for {key, value} <- create do
+      assert construct(%{hosted | create_repo: Keyword.delete(create, key)}) == @error
+      assert construct(%{hosted | create_repo: [{key, value} | create]}) == @error
+    end
+
+    for value <- [[], %{}, Map.new(create), false, [hostname: create[:hostname]]] do
+      assert construct(%{hosted | create_repo: value}) == @error
+      assert RuntimeConfig.new(%{}, %{hosted | create_repo: value}, nil, nil) == @error
+    end
+
+    caller = self()
+    hook = fn _ -> send(caller, :unexpected_create_hook) end
+
+    for {key, value} <- [
+          hostname: "other.example.invalid",
+          database: "other_database",
+          port: 5433,
+          username: "other_creator",
+          username: hosted.repo[:username],
+          password: hosted.repo[:password],
+          password: nil,
+          password: "",
+          password: String.duplicate("x", 4097),
+          pool_size: 3,
+          pool_size: 2.0,
+          pool_count: 2,
+          timeout: 10_000,
+          connect_timeout: 10_000,
+          queue_target: 51,
+          queue_interval: 2_000,
+          show_sensitive_data_on_connection_error: true,
+          ssl: Keyword.put(create[:ssl], :verify, :verify_none),
+          ssl: Keyword.put(create[:ssl], :server_name_indication, ~c"other.example.invalid"),
+          ssl: Keyword.put(create[:ssl], :customize_hostname_check, match_fun: hook),
+          after_connect: hook,
+          configure: hook,
+          parameters: [],
+          url: "synthetic-forbidden",
+          queue: false
+        ] do
+      changed = %{hosted | create_repo: Keyword.put(create, key, value)}
+      assert construct(changed) == @error
+      assert RuntimeConfig.new(%{}, changed, nil, nil) == @error
+    end
+
+    for bound <- [hosted.repo[:pool_size] + 1, hosted.database_connection_bound + 1, 11.0, nil] do
+      assert construct(%{hosted | database_connection_bound: bound}) == @error
+    end
+
+    aliased = %{hosted | repo: Keyword.put(hosted.repo, :username, "mixer_build_create")}
+    assert construct(aliased) == @error
+    assert construct(%{hosted | role: :processor}) == @error
+    assert RuntimeConfig.new(%{}, %{hosted | role: :processor}, nil, nil) == @error
+    assert construct(Map.delete(hosted, :create_repo)) == @error
+    assert RuntimeConfig.new(%{}, Map.delete(hosted, :create_repo), nil, nil) == @error
+    refute_received :unexpected_create_hook
+  end
+
+  test "processor loader never creates privileged connection and disabled constructors remain closed" do
+    input =
+      ordinary_env()
+      |> Map.put("MIXER_HOSTED_ROLE", "processor")
+      |> Map.put("MIXER_IDENTITY_MODE", "disabled")
+      |> Map.delete("MIXER_IDENTITY_CONFIG")
+      |> Map.put("MIXER_BUILD_CREATE_ENABLED", "true")
+
+    hosted = HostedConfig.load!(input)
+    assert hosted.create_repo == nil
+    assert hosted.database_connection_bound === hosted.repo[:pool_size] + 1
+    assert {:ok, config} = RuntimeConfig.new(%{}, hosted, nil, nil)
+    assert config.mode == :disabled
+    assert RuntimeConfig.new(%{}, Map.put(hosted, :extra, nil), nil, nil) == @error
   end
 
   test "current configured identity matching is delegated to the real Config and Manifest" do

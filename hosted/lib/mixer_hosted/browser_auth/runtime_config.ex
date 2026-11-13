@@ -22,7 +22,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
   @type t :: %__MODULE__{}
 
   @error {:error, :session_unavailable}
-  @hosted_keys ~w(role repo oban endpoint database_connection_bound identity_startup)a
+  @hosted_keys ~w(role repo oban endpoint database_connection_bound identity_startup create_repo)a
   @repo_keys ~w(hostname port database username password pool_size pool_count timeout
     connect_timeout queue_target queue_interval show_sensitive_data_on_connection_error ssl)a
   @ssl_keys ~w(verify cacerts server_name_indication customize_hostname_check)a
@@ -32,6 +32,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
   @doc "Constructs disabled settings or one bounded dedicated lifecycle connection policy."
   def new(browser_env, %HostedConfig{} = hosted, lifecycle, custody) do
     with true <- exact_map?(hosted, [:__struct__ | @hosted_keys]),
+         true <- create_repo?(hosted),
          true <- browser_env?(browser_env),
          {:ok, config} <- Config.load(browser_env, hosted.role, hosted.identity_startup) do
       construct(config, hosted, lifecycle, custody)
@@ -71,7 +72,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
 
   defp construct(%Config{mode: :configured} = config, hosted, lifecycle, custody) do
     with true <- exact_map?(lifecycle, @lifecycle_keys),
-         true <- repo?(hosted.repo, hosted.database_connection_bound),
+         true <- repo?(hosted.repo, hosted.database_connection_bound, create_connections(hosted)),
          true <- bounded_binary?(lifecycle.password),
          roles = %{
            lifecycle_login: lifecycle.username,
@@ -126,11 +127,33 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
 
   defp browser_env?(_), do: false
 
-  defp repo?(repo, connection_bound) do
+  defp create_connections(%HostedConfig{create_repo: nil}), do: 0
+  defp create_connections(%HostedConfig{}), do: 2
+
+  defp create_repo?(%HostedConfig{create_repo: nil}), do: true
+
+  defp create_repo?(%HostedConfig{role: :api, create_repo: create} = hosted) do
+    repo = hosted.repo
+
+    repo?(repo, hosted.database_connection_bound, 2) and
+      exact_keyword?(create, @repo_keys) and
+      create[:username] === "mixer_build_create" and
+      create[:username] !== repo[:username] and
+      bounded_binary?(create[:password]) and create[:password] !== repo[:password] and
+      create[:pool_size] === 2 and
+      Enum.all?(@repo_keys -- [:username, :password, :pool_size], fn key ->
+        create[key] === repo[key]
+      end)
+  end
+
+  defp create_repo?(_), do: false
+
+  defp repo?(repo, connection_bound, create_connections) do
     exact_keyword?(repo, @repo_keys) and host?(repo[:hostname]) and repo[:port] === 5432 and
       bounded_binary?(repo[:database]) and bounded_binary?(repo[:username]) and
       bounded_binary?(repo[:password]) and is_integer(repo[:pool_size]) and
-      repo[:pool_size] in 2..20 and connection_bound === repo[:pool_size] + 1 and
+      repo[:pool_size] in 2..20 and
+      connection_bound === repo[:pool_size] + 1 + create_connections and
       repo[:pool_count] === 1 and repo[:timeout] === 5_000 and
       repo[:connect_timeout] === 5_000 and repo[:queue_target] === 50 and
       repo[:queue_interval] === 1_000 and

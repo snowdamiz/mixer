@@ -1,3 +1,5 @@
+import { sessionBuildSubmission } from "../api/build-submission.js";
+import type { BuildSubmissionClient } from "../api/build-submission.js";
 import { BrowserSessionClientError, createBrowserSessionClient } from "../api/browser-session-client.js";
 import type { BrowserSessionClientOptions, BrowserSessionMetadata } from "../api/browser-session-client.js";
 import { createCookieWorkspaceClient } from "../api/cookie-workspace-client.js";
@@ -13,7 +15,7 @@ import type { ProjectSelection, ApplicationSelection, CatalogPageRequest } from 
 
 export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" }> |
   { readonly kind: "ready"; readonly client: WorkspaceClient;
-    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient }> };
+    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient }> };
 
 export interface BrowserSessionController {
   getSession(): ConsoleSession;
@@ -159,7 +161,15 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
     const read: CookieBuildClient = Object.freeze({
       read: (selection: BuildReadSelection, signal?: AbortSignal) => delegate(value, owned => rawRead.read(selection, owned), signal),
     });
-    const buildClients = Object.freeze({ catalog, read });
+    const rawCreate = sessionBuildSubmission(settings, () => {
+      if (!live(value)) return aborted();
+      return metadata.csrf_token;
+    });
+    const create: BuildSubmissionClient = Object.freeze({
+      inputs: (scope: ApplicationSelection, page: CatalogPageRequest, signal?: AbortSignal) => delegate(value, owned => rawCreate.inputs(scope, page, owned), signal),
+      submit: (attempt: Parameters<BuildSubmissionClient["submit"]>[0], signal?: AbortSignal) => delegate(value, owned => rawCreate.submit(attempt, owned), signal),
+    });
+    const buildClients = Object.freeze({ catalog, read, create });
     active = undefined;
     capability = value;
     // Each accepted check is a fresh local epoch, including equal server generation strings.

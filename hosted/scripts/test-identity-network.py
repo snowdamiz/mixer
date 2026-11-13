@@ -1937,6 +1937,131 @@ def _load_build_clock_source_authority():
     return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
 
 
+# Installed v22 authority: exact final composition and complete typed v21 inverse.
+CUSTOMER_CREATE_SOURCE_BASE = 'verification/identity-network-current-source-v22/'
+CUSTOMER_CREATE_SELECTION_SHA256 = '7c20dad54c6eec8e1c172d3200bd6b038db40f018a0326c7afdb5cc9070f3cee'
+CUSTOMER_CREATE_SOURCE_DIGEST = 'aed55457231b1e9a2191c071f2b718bd7f271addf892e209602f38873587089c'
+CUSTOMER_CREATE_PARENT_CONTRACT_SHA256 = 'c2fc3802b19e59226cb8aa58388c8d1e99d6d775be5db9895f31bfbb9a02d8e4'
+CUSTOMER_CREATE_PRODUCT_MAP_SHA256 = '87a4f5e67135f7280241ba44e20291adb8c3b1f6844ad70b14b1f9e6288a13b9'
+CUSTOMER_CREATE_EXPECTED_COUNT = 331
+CUSTOMER_CREATE_DELTA = {'console/package-lock.json': {'before': None, 'after': {'bytes': 55047, 'sha256': 'c9211456af0220053efefcddcbfffa8bcbe506c1a96e754f8d3d58a4934bc1f0'}}, 'console/src/api/build-submission.ts': {'before': None, 'after': {'bytes': 6423, 'sha256': 'f56231a3e49db9e4633c03260103d35a96913ab567b5c009a667e62ede4214f0'}}, 'console/src/brand.css': {'before': None, 'after': {'bytes': 575, 'sha256': '46db875694691dfbcfa35306c66c01ed1439f14a0b542da4e37e9950b849db75'}}, 'console/src/build-submission-test-runtime.tsx': {'before': None, 'after': {'bytes': 282, 'sha256': '7b8602502c425b946e7567ec24094cc689e1f14de52d672b6ecaa5700a010bff'}}, 'console/src/build-submission.test.mjs': {'before': None, 'after': {'bytes': 28156, 'sha256': 'dcd02cd21463102ed287d487b9b18ecf0c2da7b728a028ecf21d7a53a2b20c43'}}, 'console/src/components/ApplicationBuildPage.tsx': {'before': {'bytes': 11229, 'sha256': '88c1032fc3758da8acdd166c1bef3e9ede2a55d5107749bd29964a87f3a94fce'}, 'after': {'bytes': 11620, 'sha256': '0e437a72bea2904441ef21aa5094deb87104059e6009e4b944153995612799aa'}}, 'console/src/components/BuildCreation.tsx': {'before': None, 'after': {'bytes': 4625, 'sha256': 'c55f8d2dd053a147e56101ecbfbcd4ec634b95a884760ddba5209bddf3c60d61'}}, 'console/src/components/BuildOverview.tsx': {'before': None, 'after': {'bytes': 7888, 'sha256': '688988e19f3c3dbbae7e85fd648c5240ef2740a608e984563b8383e69b260a26'}}, 'console/src/components/ReleaseChecks.tsx': {'before': None, 'after': {'bytes': 6500, 'sha256': 'c2b5289f1fd5052bb4d04c86e4e65166736bd8f01b36851b9d28542b122d29fa'}}, 'console/src/components/WorkspaceDirectory.tsx': {'before': None, 'after': {'bytes': 12267, 'sha256': '7d10ba66fe60817dae649dc8d6760a4f76030d8cd8104b1b1a10c9cb0d04adf3'}}, 'console/src/components/WorkspacePage.tsx': {'before': None, 'after': {'bytes': 1334, 'sha256': '2e7a40d1ff729cea79977e020f8a61dbd749db127ceb95c4f77633c1af90776f'}}, 'console/src/components/application-build-page.css': {'before': None, 'after': {'bytes': 1239, 'sha256': '8d72c2e05860d9e3ce8ee474e61bfef525a46dd62dac3e18202dbe9598974eb7'}}, 'console/src/components/build-overview.css': {'before': None, 'after': {'bytes': 2319, 'sha256': '930a9818a69e96ffe2dab295a824c0caa51f42cff853e1aaccf380e570ddf810'}}, 'console/src/components/workspace-directory.css': {'before': None, 'after': {'bytes': 4516, 'sha256': 'e36629fd8c829d2a0223bc48708cba67168209cbf181f8585216cac53a9f036f'}}, 'console/src/domain/build-submission.ts': {'before': None, 'after': {'bytes': 7933, 'sha256': '5f17401570d93108521022ac489a7e7bfd7c42428a70560650c272bff4b1d589'}}, 'console/src/domain/release-check-summary.ts': {'before': None, 'after': {'bytes': 4511, 'sha256': '977649821d19b1bd9793c6f58f37512291ac7626f6c7715c7c6898372b4ec272'}}, 'console/src/preview/BuildOverviewPreview.tsx': {'before': None, 'after': {'bytes': 3532, 'sha256': '60c7b720806e2d4720a80c2c1e83ca9aae606307905a664b8e792bb8d36ab57f'}}, 'console/src/preview/ReleaseChecksPreview.tsx': {'before': None, 'after': {'bytes': 2382, 'sha256': '33d112dddd11c6bc779087777c412d891d1fef6dbf2d99626e9cc01badb5083f'}}, 'console/src/reselection-regression.test.mjs': {'before': None, 'after': {'bytes': 19078, 'sha256': 'be3a073b7fcb792e7874c9f62c9b4033be98ea7b8e1d94b68b6f72846f383a69'}}, 'console/src/state/browser-session-binding.ts': {'before': None, 'after': {'bytes': 4062, 'sha256': '797c5b7280aad68b1eb8376d67b9e265f760bd984edfdcb041420e36480a79fc'}}, 'console/src/state/browser-session-controller.ts': {'before': {'bytes': 9983, 'sha256': '4751c2020c4689d51f5b19053483843dad93f9af58244941cd5a7da3d271292e'}, 'after': {'bytes': 10710, 'sha256': '407229c1fb4eaba6cfe8cc9c0e3b88f69c7b4799c0798bf0de6e428f94db70e8'}}, 'console/src/state/build-selection-binding.ts': {'before': None, 'after': {'bytes': 3826, 'sha256': 'c7bf169f652c33093a47c0cc99e048991cd61214a0b93566dad2839a396928d1'}}, 'console/src/state/build-selection-controller.ts': {'before': {'bytes': 17475, 'sha256': '034a1811233df08970f5f30a78f9ee70e46f13765fc2f0b0f7f329d0b547e2b3'}, 'after': {'bytes': 25152, 'sha256': 'aa45fb237eedd996898a95410f6baf2078e4e3b958225c53c6844eacccd51626'}}, 'console/src/state/workspace-binding.ts': {'before': None, 'after': {'bytes': 3564, 'sha256': 'fc600a50991a2cec7ce95127b8b2e336dcde164611d2319759820d38cc90bc04'}}, 'console/src/state/workspace-context.tsx': {'before': None, 'after': {'bytes': 904, 'sha256': 'c7106d272423321e6f60c81bf3cfee3891b88c2edde26aa9d9e55efe8b225872'}}, 'console/tests/application-build-page-runtime.tsx': {'before': None, 'after': {'bytes': 1435, 'sha256': '37ab6839437740eada5f66cf403357dde492efded5065e447a00955822c7ac6a'}}, 'console/tests/helpers/build-selection-compiled.mjs': {'before': None, 'after': {'bytes': 5746, 'sha256': '36129454dfaea1b7c2432fb3d1973dec195db8bd380a729976f058b2cc8e4d23'}}, 'console/vite.config.ts': {'before': None, 'after': {'bytes': 280, 'sha256': 'a779fa0a40fe3cb64de2bb890a08df0ff8549782cbd853ecfdab729972dd9b9f'}}, 'hosted/lib/mixer_hosted/application.ex': {'before': {'bytes': 3777, 'sha256': '12832d9bd53cceabb657fb115b7ef6678a7cbd0d836ab2e505c50d252a0ba39b'}, 'after': {'bytes': 3953, 'sha256': 'd87c62d28f66b0772576c3248e48ca8e7736f4b87f31424e06d4fbf4b9a2fcae'}}, 'hosted/lib/mixer_hosted/authorization.ex': {'before': {'bytes': 4183, 'sha256': 'ac5b8a0ed8edc40598d8b02036066460fa8ce7d4cb55abbd05229d18a18a10d3'}, 'after': {'bytes': 4323, 'sha256': '2d6410d61f0ab62e22acf890ecdcfd6ace8b593fc30ff1f9f342b3539aeb46db'}}, 'hosted/lib/mixer_hosted/authorization/policy.ex': {'before': {'bytes': 14476, 'sha256': '53a60ab1055d82d3bfc3e89bf67925b190fb3f6feb5a9e326a58b935b78f94d1'}, 'after': {'bytes': 14684, 'sha256': '04cc0c27df8ef6ae17b71635547e4d85fd7cb5e3d16033f31275fec582d6efa2'}}, 'hosted/lib/mixer_hosted/authorization/postgres/evidence.ex': {'before': {'bytes': 6737, 'sha256': 'fe5e34d6e66b84aa6f4786c7922eeb75faf5d2b142de82d17f184b5b08fff1f7'}, 'after': {'bytes': 7410, 'sha256': '89e48c18eecb4db77785c3b48e1016e6538d2b5ee69b5e7c4e8a148a02ac9560'}}, 'hosted/lib/mixer_hosted/authorization/transaction/context.ex': {'before': {'bytes': 6912, 'sha256': '36c10584932aca726e855891f8c7ef54e35a19625a922cc779fe0eb6238b0bfc'}, 'after': {'bytes': 6956, 'sha256': '9e1914a01acd261244fc372f6feafb3a209c7d688b16129a61fbf60630552f90'}}, 'hosted/lib/mixer_hosted/browser_auth/active_catalog.ex': {'before': {'bytes': 23496, 'sha256': '3a74edecf889964b03b2050f35ff06c9ec1dcc4f025a63514715d7b686727b65'}, 'after': {'bytes': 24603, 'sha256': '8d08f660eb19575ab6ccd07d7cfd1f92cd88075ed7a69e68126af70a92b80894'}}, 'hosted/lib/mixer_hosted/browser_auth/active_create.ex': {'before': None, 'after': {'bytes': 4884, 'sha256': '3c412d8d3d13ba26d46e073c575216b65855714b46c1c0e1997689b724b0371b'}}, 'hosted/lib/mixer_hosted/browser_auth/active_read.ex': {'before': {'bytes': 8201, 'sha256': '76b369e9f8117862bbac751734d09e2e8f6426eec9c3c5f9c1e24d293badc8e2'}, 'after': {'bytes': 8680, 'sha256': 'a721531b628e6dafa952f5549ec62951d3e01563be7ced00606e4b07d9123674'}}, 'hosted/lib/mixer_hosted/browser_auth/build_catalog_admission.ex': {'before': {'bytes': 10797, 'sha256': '35e59b49ccfa230111778c6abb485bec8559cbb909ff78d609bc5188b0e684f1'}, 'after': {'bytes': 11226, 'sha256': 'bc48160695205e3d1ef993a4f093ebc98cc0d13e41fa14ecf4528f8e58140b62'}}, 'hosted/lib/mixer_hosted/browser_auth/config.ex': {'before': {'bytes': 8174, 'sha256': '8bffc13202a1712118b6fe446876fb6650b37f837216598a28c9f62248d0ccda'}, 'after': {'bytes': 8254, 'sha256': 'e59295a2b2169275d29224b66635dea7ab0626b120f642343a57d2fb475c70d7'}}, 'hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex': {'before': {'bytes': 2935, 'sha256': '6dfcdf68e819607b4d35c2e76a4992203015ff97df81d17a4f972dfb425ba7b8'}, 'after': {'bytes': 3015, 'sha256': '26039b48f48c8b158d4b88f1e059004d200cfb5cc79ad097910450f37b4e6a9f'}}, 'hosted/lib/mixer_hosted/browser_auth/protocol.ex': {'before': {'bytes': 10569, 'sha256': 'bd43ea281228e10921448dfe3d964debeb9f5cae66d25a8d7c1afad1f1921967'}, 'after': {'bytes': 10649, 'sha256': '379a210d9e5c79a2e088ed7c09da617d4c97492f2587c859abdabf0815411467'}}, 'hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex': {'before': {'bytes': 48754, 'sha256': 'fef31903c1ac4f1a3aa3c4e0f22e55623ed878d68c4ceaf0a78a6087c2a54556'}, 'after': {'bytes': 51589, 'sha256': '87297ee4b15d021d9444cc9a4bccdb41ece5e4828a2d8dee3bcb79fdce01232b'}}, 'hosted/lib/mixer_hosted/browser_auth/relation_manifest_v4.ex': {'before': None, 'after': {'bytes': 793, 'sha256': '9e1f8bb1a90c43fd95b5982b769d6e3def7bf8487d1ebdf72b9710968adb850f'}}, 'hosted/lib/mixer_hosted/browser_auth/runtime_config.ex': {'before': {'bytes': 8396, 'sha256': '2fac58266ac73065b88ac2846bf401c0a32c122c84a9ad3564945c92c8c59c4a'}, 'after': {'bytes': 9295, 'sha256': 'a7c172dcff9a53da2cae852604cb21ae19358590b23f747213a4a8bec848861a'}}, 'hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex': {'before': {'bytes': 27533, 'sha256': '81c54c0a7ec53dd3d788be0d130c6d9abf68e95d0d0a3ae269fe0130e51bf537'}, 'after': {'bytes': 27776, 'sha256': '49028ff1f1fcadc722bc587ecf7e28eb66555ed1302d126bb66034e08221d156'}}, 'hosted/lib/mixer_hosted/browser_auth/store.ex': {'before': {'bytes': 24845, 'sha256': 'd265b30252f322fc02da88e2a6e88ced7a19947d77d891ee32655e9387706425'}, 'after': {'bytes': 25525, 'sha256': '47993da19a16af64722fbd6994508543429305e4cf8235e5c78f0fa89216a04a'}}, 'hosted/lib/mixer_hosted/customer_builds.ex': {'before': {'bytes': 376, 'sha256': 'baab181ca383873ba91c8989cdac77bfd8e1c3a92465d9f26a52bf4fa26c9455'}, 'after': {'bytes': 572, 'sha256': '93bd0609b07b9bf3749cf21c651da16946aa5a220b636e37de7a14cc98675d23'}}, 'hosted/lib/mixer_hosted/customer_builds/create.ex': {'before': None, 'after': {'bytes': 4587, 'sha256': '1bc4ebc3b6b25cc30c9615a03f81f969ad0ba5c231d4b62a71d8957716721159'}}, 'hosted/lib/mixer_hosted/customer_builds/create_input.ex': {'before': None, 'after': {'bytes': 2098, 'sha256': '6840e0c443f758854e5ec805695a98ce2b1cbe11b9484c47e26e0bb133418553'}}, 'hosted/lib/mixer_hosted/customer_builds/create_schema.ex': {'before': None, 'after': {'bytes': 16307, 'sha256': 'fe85d7ff26a3258c0d750baa66148c82b00f06e40e996b5f7551caa9736ef87f'}}, 'hosted/lib/mixer_hosted/customer_builds/inputs.ex': {'before': None, 'after': {'bytes': 6816, 'sha256': '4f52ee006232af38dded9e29240b3d3e038697f978ec6795a50aefcb500e4db0'}}, 'hosted/lib/mixer_hosted/identity/access_token_verifier.ex': {'before': {'bytes': 5114, 'sha256': 'bd435b0237079f8f7d9610a0ccd95032dedd14b45939d21dd0ff0e8b015f262b'}, 'after': {'bytes': 5140, 'sha256': '889b6bde65166d1ef2dc9987bccedb2f711002f548310c41068b0540f41268f4'}}, 'hosted/lib/mixer_hosted/runtime_config.ex': {'before': {'bytes': 4199, 'sha256': 'e3b8ab88ae4c12788b09d470a71d051bd817ee919db5fe6281054231d38f0286'}, 'after': {'bytes': 4664, 'sha256': '3199440283af7bedc0222ea2f2fe62602232e01240358cab769bc707b341acdc'}}, 'hosted/lib/mixer_hosted_web/browser_create_http.ex': {'before': None, 'after': {'bytes': 2524, 'sha256': 'b91b0bada7ec5d7e98fb1fd7f4564d700fcf0e5d7a1e20bd228e3dc0a0e8a1f2'}}, 'hosted/lib/mixer_hosted_web/browser_http.ex': {'before': {'bytes': 6763, 'sha256': '929f9affec444dfa23fbe57ec9a5d96a380be759595ba63097253ea62327df02'}, 'after': {'bytes': 7715, 'sha256': 'c76b233195d56960098f9e7288cd1c4ada400d3ad5ced0b38756bd480b025042'}}, 'hosted/priv/customer_build_create/20261113000000_customer_build_create.exs': {'before': None, 'after': {'bytes': 361, 'sha256': '0f5b3813cdaf65d29ac79bcf79a540d8d31e8f4d3bbbce17d09aa26e70f3da22'}}, 'hosted/test/mixer_hosted/authorization/policy_test.exs': {'before': {'bytes': 21932, 'sha256': '3b1595799b3cbe5cc080546d07efabb258dd4891bae9702259d95031b9416ae7'}, 'after': {'bytes': 22741, 'sha256': '79b7fb91cfe20a3eefbdb0e68b8777ac43b9c8b2c5a811712d2136612c2f5a22'}}, 'hosted/test/mixer_hosted/browser_auth/actual_create_relation_profile_pg_join_test.exs': {'before': None, 'after': {'bytes': 10349, 'sha256': '7df53cb86c6510888643a575979e7da5a83c7b52a7beb378ae08fd1baefb450a'}}, 'hosted/test/mixer_hosted/browser_auth/actual_creator_effective_create_privileges_pg_join_test.exs': {'before': None, 'after': {'bytes': 12134, 'sha256': 'ac977b303c3376551c7b0c53a14d1306c08213b89d554570fb4b9382a2e38004'}}, 'hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs': {'before': None, 'after': {'bytes': 21824, 'sha256': '2d1b01399b9e36f9614a3df05e30744b3bb597d7318be5aa6b6830a6babbc6a4'}}, 'hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs': {'before': None, 'after': {'bytes': 25617, 'sha256': '32456a19b2dbdb009c730bee7715abf4c4d7963a3faee9ac75bd9ba95990f297'}}, 'hosted/test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs': {'before': None, 'after': {'bytes': 17582, 'sha256': '2155db44c75b25d748639cf71b78209eb283baac9623953c1b7df443111a7258'}}, 'hosted/test/mixer_hosted/browser_auth/customer_create_policy_evidence_test.exs': {'before': None, 'after': {'bytes': 11386, 'sha256': '4e94f5c93d421e9d743554aa8e9f3582de705003791e2867ba07858e8ea777ce'}}, 'hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs': {'before': {'bytes': 56454, 'sha256': 'ea8705368c9c5a14d4d6775b76b17546690900a88f53fb71b0d8110c59233ce7'}, 'after': {'bytes': 56650, 'sha256': '1a1f300270c53c5203d9cb0f70272f6e8d29f9af9849eb3453b97c32806f90ac'}}, 'hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs': {'before': {'bytes': 21236, 'sha256': 'c12b571e3a213955eee7b484d96af048c7f44b6e0dcaff81830bb80e4ec26c63'}, 'after': {'bytes': 26227, 'sha256': '6c4b5ac24eec2c964399aa4709f11134b71b7fca095b692d126a4021eccea3a4'}}, 'hosted/test/mixer_hosted/customer_builds/create_input_test.exs': {'before': None, 'after': {'bytes': 1824, 'sha256': 'e11f4bdc7224e3e14850d915426c8485d869947c15c18c490f85ab3d7e2fb238'}}, 'hosted/test/mixer_hosted/customer_builds/inputs_test.exs': {'before': None, 'after': {'bytes': 3268, 'sha256': 'c100bb4f2f6e94e8f8628f3aa2143d5b2b047dfdb7e94035925a0b642bcf39e7'}}, 'hosted/test/support/ordinary_browser_startup_fixture.ex': {'before': {'bytes': 25298, 'sha256': '486fbf75691a8f3e8168442c7727324817c14c8560f0b796b805a0221a5e19a5'}, 'after': {'bytes': 25547, 'sha256': '1f63dd91ab149c2f4633189123595bd2c958d31876145e477bd9707647872663'}}}
+
+
+def _customer_create_json(body):
+    def pairs(rows):
+        require(all(type(k) is str for k, _ in rows), 'customer create JSON key type')
+        keys = [k for k, _ in rows]
+        require(keys == sorted(set(keys)), 'customer create duplicate or unordered JSON keys')
+        return dict(rows)
+    require(type(body) is bytes, 'customer create JSON bytes')
+    try:
+        return json.loads(body, object_pairs_hook=pairs, parse_constant=lambda x: require(False, 'customer create nonfinite JSON'))
+    except (ValueError, TypeError) as error:
+        raise CollectorError('customer create JSON') from error
+
+
+def _customer_create_row(value):
+    require(type(value) is dict and set(value) == {'bytes', 'sha256'}, 'customer create row shape')
+    require(type(value['bytes']) is int and 0 <= value['bytes'] <= MAX_COMMAND_BYTES, 'customer create typed bytes')
+    require(type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']) is not None, 'customer create SHA256')
+
+
+def _customer_create_path(path):
+    require(type(path) is str and path and not PurePosixPath(path).is_absolute() and
+            '..' not in PurePosixPath(path).parts and str(PurePosixPath(path)) == path,
+            'customer create unsafe path')
+
+
+def _customer_create_inverse(inverse):
+    require(type(inverse) is dict and list(inverse) == sorted(BUILD_CLOCK_MANIFEST), 'customer create complete ordered v21 inverse membership')
+    for path, value in inverse.items():
+        _customer_create_path(path)
+        _customer_create_row(value)
+    require(inverse == BUILD_CLOCK_MANIFEST and canonical_digest(inverse) == BUILD_CLOCK_SOURCE_DIGEST, 'customer create exact complete v21 inverse')
+
+
+def _validate_customer_create_source_manifest(manifest, count):
+    require(type(count) is int and count == CUSTOMER_CREATE_EXPECTED_COUNT, 'customer create fixed source count')
+    require(type(manifest) is dict and list(manifest) == sorted(set(BUILD_CLOCK_MANIFEST) | set(CUSTOMER_CREATE_DELTA)), 'customer create exact ordered source membership')
+    require(len(manifest) == count, 'customer create source count')
+    for path, value in manifest.items():
+        _customer_create_path(path)
+        _customer_create_row(value)
+    delta = {p: {'before': BUILD_CLOCK_MANIFEST.get(p), 'after': v} for p, v in manifest.items() if BUILD_CLOCK_MANIFEST.get(p) != v}
+    require(delta == CUSTOMER_CREATE_DELTA, 'customer create exact composition forward rows')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            inverse.pop(path)
+        else:
+            inverse[path] = change['before']
+    _customer_create_inverse(dict(sorted(inverse.items())))
+    require(canonical_digest(manifest) == CUSTOMER_CREATE_SOURCE_DIGEST, 'customer create frozen digest')
+    return manifest
+
+
+def validate_customer_create_source_manifest(manifest, expected_digest=CUSTOMER_CREATE_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == CUSTOMER_CREATE_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == CUSTOMER_CREATE_SOURCE_COUNT), 'caller cannot replace customer create authority')
+    return _validate_customer_create_source_manifest(manifest, CUSTOMER_CREATE_SOURCE_COUNT)
+
+
+def _customer_create_metadata(metadata):
+    require(type(metadata) is dict and set(metadata) == {CUSTOMER_CREATE_SOURCE_BASE + n for n in ('selection.json', 'selected-source-manifest.json')}, 'customer create metadata membership')
+    body = metadata[CUSTOMER_CREATE_SOURCE_BASE + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == CUSTOMER_CREATE_SELECTION_SHA256, 'customer create selection pin')
+    value = _customer_create_json(body)
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'inverse_v21', 'runtime_or_GA_accepted', 'parent_contract_sha256', 'product_map_sha256'}, 'customer create selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-customer-create-v22', 'customer create schema identity')
+    require(type(value['operation']) is str and value['operation'] == 'admit-final-R2274-composition-after-v21', 'customer create operation')
+    require(type(value['scope']) is str and value['scope'] == 'Source admission only; root product/runtime acceptance and independent packet review required.', 'customer create scope')
+    require(value['runtime_or_GA_accepted'] is False and value['parent_contract_sha256'] == CUSTOMER_CREATE_PARENT_CONTRACT_SHA256 and value['product_map_sha256'] == CUSTOMER_CREATE_PRODUCT_MAP_SHA256, 'customer create composition contract')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'customer create predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': BUILD_CLOCK_SOURCE_COUNT, 'source_digest_sha256': BUILD_CLOCK_SOURCE_DIGEST, 'selection_sha256': BUILD_CLOCK_SELECTION_SHA256}, 'customer create typed predecessor')
+    _customer_create_inverse(value['inverse_v21'])
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'customer create selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == CUSTOMER_CREATE_EXPECTED_COUNT and selected['source_digest_sha256'] == CUSTOMER_CREATE_SOURCE_DIGEST, 'customer create selected count digest')
+    ref = selected['manifest']
+    require(type(ref) is dict and set(ref) == {'path', 'bytes', 'sha256'} and ref['path'] == 'selected-source-manifest.json', 'customer create manifest reference')
+    _customer_create_row({k: ref[k] for k in ('bytes', 'sha256')})
+    manifest_body = metadata[CUSTOMER_CREATE_SOURCE_BASE + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {k: ref[k] for k in ('bytes', 'sha256')}, 'customer create manifest byte pin')
+    manifest = _customer_create_json(manifest_body)
+    _validate_customer_create_source_manifest(manifest, selected['source_count'])
+    delta = value['exact_delta']
+    require(type(delta) is dict and list(delta) == sorted(CUSTOMER_CREATE_DELTA), 'customer create delta membership order')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'customer create composition role shape')
+        if change['before'] is not None:
+            _customer_create_row(change['before'])
+        _customer_create_row(change['after'])
+    require(delta == CUSTOMER_CREATE_DELTA, 'customer create exact typed composition delta')
+    return value, manifest
+
+
+def validate_customer_create_source_metadata(metadata):
+    value, manifest = _customer_create_metadata(metadata)
+    require(manifest == CUSTOMER_CREATE_MANIFEST, 'customer create installed manifest')
+    return value
+
+
+def check_customer_create_source(root):
+    metadata = {CUSTOMER_CREATE_SOURCE_BASE + n: (root / CUSTOMER_CREATE_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_customer_create_source_metadata(metadata)
+    observed = {p: _file_row((root / p).read_bytes()) for p in CUSTOMER_CREATE_MANIFEST}
+    validate_customer_create_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': CUSTOMER_CREATE_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_customer_create_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    metadata = {CUSTOMER_CREATE_SOURCE_BASE + n: (root / CUSTOMER_CREATE_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _customer_create_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
@@ -1956,7 +2081,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_build_clock_source_manifest(prepared["source"])
+    validate_customer_create_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -2123,7 +2248,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_build_clock_source_manifest(manifest["source"])
+    validate_customer_create_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -2146,7 +2271,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(BUILD_CLOCK_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CUSTOMER_CREATE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -2917,10 +3042,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_build_clock_source_manifest(BUILD_CLOCK_MANIFEST)
-        product = self.git_blobs(sorted(BUILD_CLOCK_MANIFEST))
+        validate_customer_create_source_manifest(CUSTOMER_CREATE_MANIFEST)
+        product = self.git_blobs(sorted(CUSTOMER_CREATE_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_build_clock_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_customer_create_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -3007,10 +3132,13 @@ class Collector:
         historical_coherence = self.git_blobs([CONSOLE_COHERENCE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         validate_console_coherence_source_metadata(historical_coherence)
         metadata.update(historical_coherence)
-        signin_metadata = self.git_blobs([BUILD_CLOCK_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
-        validate_build_clock_source_metadata(signin_metadata)
+        historical_clock = self.git_blobs([BUILD_CLOCK_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_build_clock_source_metadata(historical_clock)
+        metadata.update(historical_clock)
+        signin_metadata = self.git_blobs([CUSTOMER_CREATE_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_customer_create_source_metadata(signin_metadata)
         metadata.update(signin_metadata)
-        self.state["source"].update(current_source_selection_sha256=BUILD_CLOCK_SELECTION_SHA256, current_source_digest_sha256=BUILD_CLOCK_SOURCE_DIGEST)
+        self.state["source"].update(current_source_selection_sha256=CUSTOMER_CREATE_SELECTION_SHA256, current_source_digest_sha256=CUSTOMER_CREATE_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -3028,7 +3156,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(BUILD_CLOCK_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CUSTOMER_CREATE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -3050,7 +3178,7 @@ class Collector:
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
-        require(prepared_manifest["source"] == BUILD_CLOCK_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == CUSTOMER_CREATE_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -3148,7 +3276,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in BUILD_CLOCK_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in CUSTOMER_CREATE_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -3599,7 +3727,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_build_clock_source(root), sort_keys=True))
+        print(json.dumps(check_customer_create_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -3699,6 +3827,9 @@ CONSOLE_COHERENCE_SOURCE_COUNT, CONSOLE_COHERENCE_MANIFEST = CONSOLE_COHERENCE_A
 
 BUILD_CLOCK_AUTHORITY = _load_build_clock_source_authority()
 BUILD_CLOCK_SOURCE_COUNT, BUILD_CLOCK_MANIFEST = BUILD_CLOCK_AUTHORITY.count, BUILD_CLOCK_AUTHORITY.manifest
+
+CUSTOMER_CREATE_AUTHORITY = _load_customer_create_source_authority()
+CUSTOMER_CREATE_SOURCE_COUNT, CUSTOMER_CREATE_MANIFEST = CUSTOMER_CREATE_AUTHORITY.count, CUSTOMER_CREATE_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:

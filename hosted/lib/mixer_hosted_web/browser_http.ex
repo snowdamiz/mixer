@@ -5,10 +5,14 @@ defmodule MixerHostedWeb.BrowserHTTP do
   alias MixerHostedWeb.BrowserWorkspaceDispatcher.Request
   import Plug.Conn
 
-  @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog)
+  @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog /console-api/v1/build-inputs)
   def owns_path?(path), do: path in @paths
 
   def init([]), do: []
+
+  def call(%{method: "POST", request_path: "/console-api/v1/builds"} = conn, []) do
+    MixerHostedWeb.BrowserCreateHTTP.call(conn)
+  end
 
   def call(conn, []) do
     with true <- conn.method == "GET",
@@ -37,6 +41,29 @@ defmodule MixerHostedWeb.BrowserHTTP do
     _ -> error(conn, 503)
   catch
     _, _ -> error(conn, 503)
+  end
+
+  defp dispatch(%{request_path: "/console-api/v1/build-inputs"} = conn) do
+    with [] <- get_req_header(conn, "x-http-method-override"),
+         [] <- get_req_header(conn, "x-method-override"),
+         [] <- get_req_header(conn, "content-encoding"),
+         {:ok, input} <- MixerHosted.CustomerBuilds.Inputs.parse(conn.query_string) do
+      case RuntimeOwner.read_build_inputs(conn.req_headers, input) do
+        {:ok, %{status: status, headers: headers, body: body}} ->
+          conn |> merge_resp_headers(headers) |> send_resp(status, body)
+
+        {:error, :invalid_request} ->
+          error(conn, 400)
+
+        {:error, :unauthenticated} ->
+          error(conn, 401)
+
+        _ ->
+          error(conn, 503)
+      end
+    else
+      _ -> error(conn, 400)
+    end
   end
 
   defp dispatch(%{request_path: "/auth/session", query_string: ""} = conn) do

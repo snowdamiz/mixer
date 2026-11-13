@@ -20,7 +20,8 @@ defmodule MixerHosted.Identity.AccessTokenVerifier do
     "mixer.artifact.upload",
     "mixer.audit.read",
     "mixer.workspace.read",
-    "mixer.build.read"
+    "mixer.build.read",
+    "mixer.build.create"
   ]
 
   @spec verify(binary(), integer(), TrustSnapshot.t() | nil) ::

@@ -33,7 +33,12 @@ defmodule MixerHosted.Application do
     unless Installation.valid?(installation, hosted),
       do: raise(ArgumentError, "browser installation unavailable: configuration")
 
-    base = [MixerHosted.Repo, {Oban, hosted.oban}]
+    create_children =
+      if is_list(hosted.create_repo),
+        do: [{MixerHosted.CustomerBuilds.CreateRepo, hosted.create_repo}],
+        else: []
+
+    base = [MixerHosted.Repo] ++ create_children ++ [{Oban, hosted.oban}]
 
     case {hosted.role, hosted.identity_startup} do
       {:processor, %StartupConfig{mode: :disabled}} when installation == :disabled ->

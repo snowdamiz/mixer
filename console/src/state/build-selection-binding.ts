@@ -6,7 +6,8 @@ import type { BuildSelectionController, BuildSelectionState } from "./build-sele
 import type { WorkspaceDirectoryState } from "../domain/workspace-directory.js";
 
 export type BuildSelectionActions = Pick<BuildSelectionController, "selectApplication" | "selectBuild" |
-  "firstApplications" | "nextApplications" | "firstBuilds" | "nextBuilds" | "refreshSelected">;
+  "firstApplications" | "nextApplications" | "firstBuilds" | "nextBuilds" | "refreshSelected" |
+  "beginCreate" | "nextInputs" | "selectInput" | "submitBuild" | "retrySubmit" | "cancelSubmit">;
 export interface BuildSelectionBinding {
   readonly state: Accessor<BuildSelectionState>;
   readonly controller: Readonly<BuildSelectionActions>;
@@ -40,6 +41,12 @@ export function createBuildSelectionBinding(
     nextApplications() { if (current()) controller.nextApplications(); },
     firstBuilds() { if (current()) controller.firstBuilds(); },
     nextBuilds() { if (current()) controller.nextBuilds(); },
+    beginCreate() { if (current()) controller.beginCreate(); },
+    nextInputs() { if (current()) controller.nextInputs(); },
+    selectInput(platform: string, input: string) { if (current()) controller.selectInput(platform, input); },
+    submitBuild() { if (current()) controller.submitBuild(); },
+    retrySubmit() { if (current()) controller.retrySubmit(); },
+    cancelSubmit() { if (current()) controller.cancelSubmit(); },
     refreshSelected() { if (current()) controller.refreshSelected(); },
   });
   onCleanup(() => { disposed = true; unsubscribe(); controller.dispose(); setAdmitted(undefined); setSnapshot(controller.getState()); });

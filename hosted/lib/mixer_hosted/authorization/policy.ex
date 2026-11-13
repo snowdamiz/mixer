@@ -16,6 +16,7 @@ defmodule MixerHosted.Authorization.Policy do
   @read_roles ~w(owner administrator developer release_manager viewer)
   @write_roles ~w(owner administrator developer)
   @actions %{
+    "build.create" => {"mixer.build.create", ~w(owner administrator developer)},
     "artifact.read" => {"mixer.artifact.read", @read_roles},
     "artifact.upload" => {"mixer.artifact.upload", @write_roles},
     "audit.read" => {"mixer.audit.read", @read_roles}
@@ -233,6 +234,9 @@ defmodule MixerHosted.Authorization.Policy do
   end
 
   defp valid_identity?(_), do: false
+
+  defp valid_action_target?("build.create", scope),
+    do: not is_nil(scope.application_id) and is_nil(scope.environment_id)
 
   defp valid_action_target?("audit.read", scope), do: Scope.project_only?(scope)
   defp valid_action_target?(_action, scope), do: Scope.environment?(scope)

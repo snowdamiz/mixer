@@ -94,6 +94,12 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   @spec read_session(raw_headers()) ::
           {:ok, public_session(), :unchanged}
           | {:error, :invalid_request | :unauthenticated | struct()}
+  def create_build(raw_headers, input, key),
+    do: read_private(raw_headers, {:create, input, key, raw_headers})
+
+  def read_build_inputs(raw_headers, input),
+    do: read_private(raw_headers, {:create, {:inputs, input}, nil, raw_headers})
+
   def read_session(raw_headers) do
     case read_private(raw_headers, :session) do
       {:ok, public} -> {:ok, public, :unchanged}

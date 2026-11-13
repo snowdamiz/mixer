@@ -1,3 +1,4 @@
+import { BuildCreation } from "./BuildCreation.js";
 import { A } from "@solidjs/router";
 import { createMemo, For, Match, Show, Switch } from "solid-js";
 import type { BuildCatalogRow } from "../domain/build-catalog.js";
@@ -118,6 +119,8 @@ export function ApplicationBuildPage(props: {
           </>}</Show>
         </section>
       </div>
+      <Show when={state().selectedApplicationId}><BuildCreation state={state().submission} actions={props.binding.controller} /></Show>
+      <Show when={state().priorSubmissionUnknown}><p role="alert">An earlier submission may have committed. Its outcome is unknown; check its application builds before starting another build.</p></Show>
       <section class="application-build-detail" aria-label="Selected build" aria-busy={state().detail.kind === "loading"}>
         <Show when={overview()} fallback={<LoadMessage state={state().detail} noun="a build" onRetrySession={props.onRetrySession} />}>{input => <>
           <div class="application-build-detail-actions"><h2>Selected platform build</h2><button type="button" class="workspace-page-button" onClick={props.binding.controller.refreshSelected}>Refresh build</button></div>

@@ -28,6 +28,9 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   def check_build_catalog_surface!(repo, expected_roles, original_monotonic_deadline_ms),
     do: check!(repo, expected_roles, original_monotonic_deadline_ms, :build_catalog_v3)
 
+  def check_create_catalog_surface!(repo, expected_roles, original_monotonic_deadline_ms),
+    do: check!(repo, expected_roles, original_monotonic_deadline_ms, :build_create_catalog_v4)
+
   defp check!(repo, expected_roles, original_monotonic_deadline_ms, profile) do
     try do
       check_roles!(expected_roles)
@@ -40,8 +43,14 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
 
       manifest =
         case profile do
-          :browser_auth_v2 -> RelationManifest.for_major(context.major)
-          :build_catalog_v3 -> MixerHosted.BrowserAuth.RelationManifestV3.for_major(context.major)
+          :browser_auth_v2 ->
+            RelationManifest.for_major(context.major)
+
+          :build_catalog_v3 ->
+            MixerHosted.BrowserAuth.RelationManifestV3.for_major(context.major)
+
+          :build_create_catalog_v4 ->
+            MixerHosted.BrowserAuth.RelationManifestV4.for_major(context.major)
         end
 
       {extra_acl, state} = catalog_acl!(state, profile, role_oids)
@@ -79,6 +88,83 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
     [row] = rows
     demand(row["oid"] not in Map.values(roles))
     {MixerHosted.BrowserAuth.RelationManifestV3.acl_rows(row["oid"], roles.relation_owner), state}
+  end
+
+  defp catalog_acl!(state, :build_create_catalog_v4, roles) do
+    {catalog_rows, state} = catalog_acl!(state, :build_catalog_v3, roles)
+    [%{"grantee" => catalog_oid} | _] = catalog_rows
+
+    schema = [
+      {"oid", :oid},
+      {"login", :bool},
+      {"super", :bool},
+      {"bypass", :bool},
+      {"createdb", :bool},
+      {"createrole", :bool},
+      {"replication", :bool},
+      {"inherit", :bool},
+      {"edges", :bool},
+      {"reachable", :bool}
+    ]
+
+    sql = """
+    SELECT r.oid::pg_catalog.int8 AS oid,r.rolcanlogin AS login,r.rolsuper AS super,
+      r.rolbypassrls AS bypass,r.rolcreatedb AS createdb,r.rolcreaterole AS createrole,
+      r.rolreplication AS replication,r.rolinherit AS inherit,
+      EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members m WHERE m.roleid=r.oid OR m.member=r.oid) AS edges,
+      pg_catalog.pg_has_role($2::pg_catalog.oid,r.oid,'MEMBER') AS reachable
+    FROM pg_catalog.pg_roles r WHERE r.rolname=$1 LIMIT 2
+    """
+
+    {[row], state} =
+      fetch!(state, sql, ["mixer_build_create", roles.ordinary_runtime_login], schema, 1, 1)
+
+    creator_oid = row["oid"]
+    demand(creator_oid > 0 and creator_oid not in [catalog_oid | Map.values(roles)])
+
+    demand(
+      Map.delete(row, "oid") === %{
+        "login" => true,
+        "super" => false,
+        "bypass" => false,
+        "createdb" => false,
+        "createrole" => false,
+        "replication" => false,
+        "inherit" => false,
+        "edges" => false,
+        "reachable" => false
+      }
+    )
+
+    {[%{"database_create" => database_create, "schema_create" => schema_create}], state} =
+      fetch!(
+        state,
+        """
+        SELECT EXISTS(
+          SELECT 1 FROM pg_catalog.pg_database d
+          WHERE d.datname=pg_catalog.current_database()
+            AND (d.datdba=$1::pg_catalog.oid OR
+              pg_catalog.has_database_privilege($1::pg_catalog.oid,d.oid,'CREATE'))
+        ) AS database_create,
+        EXISTS(
+          SELECT 1 FROM pg_catalog.pg_namespace n
+          WHERE n.nspowner=$1::pg_catalog.oid OR
+            pg_catalog.has_schema_privilege($1::pg_catalog.oid,n.oid,'CREATE')
+        ) AS schema_create
+        """,
+        [creator_oid],
+        [{"database_create", :bool}, {"schema_create", :bool}],
+        1,
+        1
+      )
+
+    demand(database_create === false and schema_create === false)
+
+    {MixerHosted.BrowserAuth.RelationManifestV4.acl_rows(
+       catalog_oid,
+       creator_oid,
+       roles.relation_owner
+     ), state}
   end
 
   defp demand(true), do: :ok
