@@ -1,0 +1,335 @@
+{
+  "schema": "mixer-vm-indirect-review-r1868-v1",
+  "status": "PASS",
+  "profile": "debug experimental-swift-reactor only",
+  "test_sha256": "7fd6884647253e8072eb7f845bf860aa8994234e609d35432729d4177f3c2c76",
+  "custodian_ast_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+  "limits": {
+    "builds_max": 1,
+    "compiler_jobs": 2,
+    "corpus_invocations_max": 2,
+    "cases_per_run": 16,
+    "campaign_seconds_max": 600
+  },
+  "commands": [
+    {
+      "label": "metadata",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "metadata",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/source/Cargo.toml",
+        "--offline",
+        "--no-deps",
+        "--locked",
+        "--format-version=1",
+        "--features",
+        "experimental-swift-reactor"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/source",
+      "pid": 84629,
+      "pgid": 84629,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03888408304192126,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "build",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/source/Cargo.toml",
+        "--locked",
+        "--offline",
+        "-j",
+        "2",
+        "--features",
+        "experimental-swift-reactor",
+        "--test",
+        "differential_indirect_call_consuming",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/source",
+      "pid": 84630,
+      "pgid": 84630,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 2.625588750001043,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "exact",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/target/debug/deps/differential_indirect_call_consuming-2af8d52f65da9c65",
+        "--ignored",
+        "--exact",
+        "indirect_calls_match_node",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/source",
+      "pid": 84788,
+      "pgid": 84788,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.5599703750340268,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "blanket",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/target/debug/deps/differential_indirect_call_consuming-2af8d52f65da9c65",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/source",
+      "pid": 84828,
+      "pgid": 84828,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.47589433297980577,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "results": {
+    "exact": {
+      "cases": 16,
+      "admitted": 16,
+      "node_matches": 16,
+      "consuming_cleanup": 16,
+      "values": 4,
+      "null_traps": 2,
+      "bounds_traps": 6,
+      "type_mismatch_traps": 4,
+      "validation_rejections": 0,
+      "top_level_tests": 1,
+      "worker_children": 16,
+      "case_environment_removed": true
+    },
+    "blanket": {
+      "cases": 16,
+      "admitted": 16,
+      "node_matches": 16,
+      "consuming_cleanup": 16,
+      "values": 4,
+      "null_traps": 2,
+      "bounds_traps": 6,
+      "type_mismatch_traps": 4,
+      "validation_rejections": 0,
+      "top_level_tests": 1,
+      "worker_children": 16,
+      "case_environment_removed": true
+    }
+  },
+  "findings": [],
+  "ownership": {
+    "test_edits": false,
+    "product_edits": false,
+    "git_operations": false,
+    "native_operations": false,
+    "subchildren": false,
+    "held_path_operations": false,
+    "holds_released": false
+  },
+  "limitations": [
+    "Host debug experimental-swift-reactor only; no release, combined-feature, full VM suite, native, package, performance or GA qualification.",
+    "Invalid environment handling reviewed in source; no extra invalid-env executable invocation within the two-run budget.",
+    "No staging; artifact index check belongs to root when staging."
+  ],
+  "producer_receipt_sha256": "cd3011d53052cff60e21ec57a915cd7e187aa3891f0952006bfcde5d250c6eb2",
+  "historical_revision_reference": "e2b61290a0220b214ec5747a0e07e5c3f49ac34b",
+  "revision_note": "Historical R1860 reference, not a current Git assertion; current source bound by complete input hashes.",
+  "source_tree_sha256": "6108948e5aa403c43f58a7fe3be78265f9fc589059cd19525bf8c97064a91bda",
+  "source_manifest_files": 139,
+  "producer_input_comparison": {
+    "old_files": 94,
+    "changed_or_missing": [],
+    "added": [
+      "examples/taskeditor_owned_command.rs",
+      "tests/capability_ffi/fixture.rs",
+      "tests/capability_ffi/internal.rs",
+      "tests/capability_ffi/ledger.rs",
+      "tests/capability_ffi_allocations.rs",
+      "tests/capability_ffi_public.rs",
+      "tests/capability_ffi_smoke.c",
+      "tests/capability_registry.rs",
+      "tests/cli.rs",
+      "tests/differential.rs",
+      "tests/differential_branch_table_consuming.rs",
+      "tests/experimental_allocations.rs",
+      "tests/experimental_capability_allocations.rs",
+      "tests/experimental_capability_guest.rs",
+      "tests/experimental_capability_guest_allocations.rs",
+      "tests/experimental_capability_mailbox.rs",
+      "tests/experimental_guest_ui_allocations.rs",
+      "tests/experimental_guest_ui_validation.rs",
+      "tests/experimental_oracle.rs",
+      "tests/experimental_stream.rs",
+      "tests/experimental_swift_command.rs",
+      "tests/ffi_numeric_smoke.c",
+      "tests/ffi_session_smoke.c",
+      "tests/ffi_smoke.c",
+      "tests/ffi_table_memory_smoke.c",
+      "tests/float.rs",
+      "tests/float_differential.rs",
+      "tests/guest_ui/fixture.rs",
+      "tests/interpreter.rs",
+      "tests/review_boundaries.rs",
+      "tests/review_session_lifetime.rs",
+      "tests/sessions.rs",
+      "tests/span_control_extraction.rs",
+      "tests/span_execution.rs",
+      "tests/span_execution_allocations.rs",
+      "tests/span_execution_oracle.rs",
+      "tests/span_function_cache.rs",
+      "tests/span_function_cache_allocations.rs",
+      "tests/span_numeric_extraction.rs",
+      "tests/swift_reactor_validation.rs",
+      "tests/swift_reactor_validation_allocations.rs",
+      "tests/swift_wasi.rs",
+      "tests/swift_wasi_allocations.rs",
+      "tests/table_memory.rs",
+      "tests/table_memory_differential.rs"
+    ]
+  },
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "cargo": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+      "bytes": 32181448,
+      "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382",
+      "installed_channel_package_version": "0.100.0 (5f94df478 2026-08-27)",
+      "prior_R1860_reported_version": "cargo 1.99.0 (5f94df478 2026-08-27)"
+    },
+    "rustc": {
+      "path": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "bytes": 413480,
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0",
+      "installed_channel_version": "1.99.0 (b940084d7 2026-09-28)"
+    },
+    "node": {
+      "path": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+      "bytes": 112925600,
+      "sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b",
+      "installed_path_version": "v22.23.3"
+    },
+    "version_method": "Installed toolchain manifest/path and tool binary hashes recorded during actual metadata/build/corpus work; no version-only subprocesses."
+  },
+  "compiler_environment": {
+    "PATH": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin:/Users/andreyyurlov/.local/share/vite-plus/bin:/Users/andreyyurlov/.codex/packages/standalone/releases/0.167.0-aarch64-apple-darwin/codex-path:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/51334_1794534590373/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/andreyyurlov/.codex-t3/accounts/codex_51f1ef76-e792-4af0-bbfe-7a6cf61746b3/tmp/arg0-macos/codex-arg0T5ahDu:/Users/andreyyurlov/.codex/packages/standalone/releases/0.167.0-aarch64-apple-darwin/codex-path:/Users/andreyyurlov/.local/bin:/Users/andreyyurlov/.bun/bin:/Users/andreyyurlov/.local/state/fnm_multishells/22826_1794508311111/bin:/opt/homebrew/sbin:/Users/andreyyurlov/.docker/bin:/Users/andreyyurlov/.docker/bin:/Users/andreyyurlov/.local/share/vite-plus/fallback-bin",
+    "RUSTC": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+    "RUSTDOC": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustdoc",
+    "CARGO_HOME": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/cache/cargo-home",
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/target",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-indirect-review-r1868/tmp",
+    "MIXER_NODE": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node"
+  },
+  "case_environment_removed": true,
+  "source_review": {
+    "verdict": "NO_SOURCE_FINDINGS",
+    "single_ignored_parent_ordinary_helper": true,
+    "R1638_pattern": "Valid env calls isolated_indirect_case and returns; absent env dispatches sixteen exact parent children. No ignored env-required worker test.",
+    "invalid_env": "parse::<usize> rejects empty/non-numeric/negative/overflow; case < 16 rejects range; non-Unicode is explicit error. All before module/oracle/runtime.",
+    "reentry": "Present valid CASE_ENV branch returns before parent loop; executable runs below must prove one ADMITTED/CLEANUP/PARITY row per case.",
+    "oracle": "Original module independently validated/compiled/instantiated/executed by Node; exact little-endian value bytes or WebAssembly.RuntimeError category, no provider error-text matching.",
+    "engine_traps": "GuestTrap kind and exact null/bounds/type-mismatch code; validation rejection cannot substitute for execution trap.",
+    "cleanup": "Execute report cleanup_completed plus fourteen reservation/live currents zero, live tickets zero, cleanup invariant absent, independently in each child before terminal assertions.",
+    "defaults": "SwiftValidationBudget, SwiftRunBudget, WasiBudget unchanged; stdout grant only."
+  },
+  "active_command": null,
+  "elapsed_seconds": 3.974,
+  "manifest_admission": {
+    "targets": 40,
+    "all_target_sources_present": true,
+    "example_required_features": [
+      "experimental-swift-reactor"
+    ],
+    "explicit_package_inputs": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "src",
+      "tests",
+      "examples"
+    ]
+  },
+  "builds_used": 1,
+  "build_features": [
+    "default",
+    "experimental-stream-validation",
+    "experimental-swift-reactor",
+    "experimental-swift-wasi"
+  ],
+  "binary_sha256": "7e3367aab361d92073cb6ee2f03824ff31dde8a973bfefa78806e3cb7cf299b0",
+  "binary_profile": {
+    "opt_level": "0",
+    "debuginfo": 0,
+    "debug_assertions": true,
+    "overflow_checks": true,
+    "test": true
+  },
+  "canonical_snapshot_still_matches": true,
+  "cleanup": {
+    "managed_groups": 4,
+    "all_direct_reaped_EOF_FD_closed_ESRCH": true,
+    "consuming_runtimes": 32,
+    "fourteen_zero_currents_and_zero_tickets_each": 32,
+    "unknown_custody": false,
+    "unknown_ledger": false,
+    "historical_holds": "Untouched; none released.",
+    "owned_target_and_cache_removed": true,
+    "retained": "Exact complete source, source manifest/comparison, driver, results, raw stdout/stderr and command receipts, tmp directory."
+  },
+  "corpus_invocations_used": 2,
+  "driver_sha256": "3a9b6bbf8f5f66b5a76b5e73e69e94c14e4468785e3e49bd8cb81ceecd20e210",
+  "evidence_sha256": {
+    "verification/local/vm-indirect-review-r1868/review.py": "3a9b6bbf8f5f66b5a76b5e73e69e94c14e4468785e3e49bd8cb81ceecd20e210",
+    "verification/local/vm-indirect-review-r1868/source-manifest.json": "6108948e5aa403c43f58a7fe3be78265f9fc589059cd19525bf8c97064a91bda",
+    "verification/local/vm-indirect-review-r1868/source-comparison.json": "cc11fec2f12a898ca95a49377c0518e6f687621d97788936bb12785b58eb8a01",
+    "verification/local/vm-indirect-review-r1868/results.json": "9cbbe99e10c3debb3662ce89175ee8f874213d19de6327015a96e80420d4c9ca",
+    "verification/local/vm-indirect-review-r1868/logs/commands.json": "31308c664ca15ecf579b0af3d56b553f0e0e2248ca96ae93cc2a3f71ec9e19fb",
+    "verification/local/vm-indirect-review-r1868/logs/metadata.stdout": "a2ed9b03827741c38f982d5914a27cc1997dcc663a5f89fab6c5a3e34a540dac",
+    "verification/local/vm-indirect-review-r1868/logs/metadata.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/local/vm-indirect-review-r1868/logs/build.stdout": "ec66463d3b8897f551f8c59442e430da831d57278bc6306667d6efa1861f1d1a",
+    "verification/local/vm-indirect-review-r1868/logs/build.stderr": "de95ea1828517a644c30094c51abe65451a63b09c0350167c664386ae3e089d1",
+    "verification/local/vm-indirect-review-r1868/logs/exact.stdout": "578b40a83fb6ea56d8bec7b4e781bc89116f892d51465d366e23359fcdb66e42",
+    "verification/local/vm-indirect-review-r1868/logs/exact.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/local/vm-indirect-review-r1868/logs/blanket.stdout": "0aeb621e06ad6dfb4cf29d62a94266e6bf38431dfa5a02d979195ce097dde7a5",
+    "verification/local/vm-indirect-review-r1868/logs/blanket.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "coverage_totals": {
+    "unique_cases": 16,
+    "executed_cases": 32,
+    "node_matches": 32,
+    "consuming_runtimes": 32,
+    "values": 8,
+    "null_traps": 4,
+    "bounds_traps": 12,
+    "type_mismatch_traps": 8,
+    "validation_rejections": 0,
+    "per_runtime_fourteen_zero_currents_zero_tickets_no_invariant": 32
+  },
+  "independent_review": {
+    "verdict": "PASS",
+    "findings": [],
+    "source_fix_needed": false,
+    "preparation_fix": "Fresh complete explicit package contains all 40 manifest target paths, including the required-feature example; all 94 R1860 source rows unchanged, 45 closure files added.",
+    "scope": "Only one debug build and exact/blanket invocations of the new indirect-call test binary; compiler jobs2; original source and default budgets unchanged."
+  }
+}
