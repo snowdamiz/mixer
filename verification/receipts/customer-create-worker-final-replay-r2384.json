@@ -1,0 +1,307 @@
+{
+  "id": "R2384",
+  "status": "PASS_PRIVATE_MODELED_COMPILER_FAILURE_JOIN",
+  "goal": "customer_create_to_worker_terminal_pg_join",
+  "actual_execution": true,
+  "named_integration_test_passed": true,
+  "tests": {
+    "passed": 1,
+    "failures": 0,
+    "skips": 0
+  },
+  "observed": {
+    "POST": 201,
+    "initial_state": "queued",
+    "initial_revision": 0,
+    "record_id": "f595aeff-9f62-40fc-8cce-6fa43930e844",
+    "original_job_id": 1,
+    "actual_drains": [
+      {
+        "discard": 0,
+        "cancelled": 0,
+        "success": 1,
+        "failure": 0,
+        "snoozed": 0
+      },
+      {
+        "discard": 0,
+        "cancelled": 0,
+        "success": 0,
+        "failure": 0,
+        "snoozed": 1
+      },
+      {
+        "discard": 0,
+        "cancelled": 0,
+        "success": 1,
+        "failure": 0,
+        "snoozed": 0
+      },
+      {
+        "discard": 0,
+        "cancelled": 0,
+        "success": 1,
+        "failure": 0,
+        "snoozed": 0
+      }
+    ],
+    "terminal_state": "failed",
+    "terminal_revision": 2,
+    "terminal_attempt": 1,
+    "terminal_fence": 2,
+    "terminal_GET": 200,
+    "GET_envelope": "build",
+    "GET_after_replay": 200,
+    "failureCode": "compiler_error",
+    "workerCompletionPending": false,
+    "POST_replay": 200,
+    "replay_outcome": "duplicate",
+    "same_selection_and_build_id": true,
+    "total_jobs": 3,
+    "all_jobs_completed": true,
+    "extra_jobs": 0,
+    "extra_domain_events": 0,
+    "domain_snapshot_unchanged": true,
+    "modeled_operation_creations": 1,
+    "terminal_reservation": [
+      "f595aeff-9f62-40fc-8cce-6fa43930e844",
+      false,
+      1,
+      1,
+      "coordinator:1:1:completed"
+    ],
+    "terminal_lease": [
+      "f595aeff-9f62-40fc-8cce-6fa43930e844",
+      null,
+      3,
+      null
+    ]
+  },
+  "controls": {
+    "four_real_Oban_drains": true,
+    "physical_PostgreSQL_storage_Oban_row_scope_linkage": true,
+    "fence_and_capacity_assertions": true,
+    "drain4_no_domain_effects": true,
+    "wrong_operation_wrong_ref_stale_adapter": "PASS after four-drain positive",
+    "stale_original_job_direct_perform": "PASS separate negative after four-drain positive",
+    "API_denied_UPDATE_builds_DELETE_jobs": "PASS after replay; insufficient_privilege",
+    "runtime_operation_leases_empty": "PASS",
+    "hand_mutated_jobs_or_journals": false
+  },
+  "source": {
+    "source_files": 285,
+    "hosted_digest": "8cd48ec07200dddff730fe79257f115ee4b0cff48ab43dbddd16f2d04953c37f",
+    "product_lib_files": 137,
+    "dependency_files": 914,
+    "Hex_files": 133,
+    "rebar": {
+      "bytes": 823379,
+      "sha256": "4df37f2f7570e0b5af15b5dcbad6b7a864202575d94e1d8663166c7643ee3a09"
+    },
+    "current_v24_exact": true,
+    "only_private_test_and_helper_deltas": true,
+    "BEAM_reused": "official Hex tool only; no product or dependency BEAM",
+    "canonical_authority_count": 331,
+    "canonical_authority_digest": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+    "all331_match_snapshot_after": true,
+    "all285_match_snapshot_after": true,
+    "product137_unchanged_vs_R2274": true,
+    "no_stale_metadata_copied_to_canonical": true
+  },
+  "limits": {
+    "wall_seconds": 900,
+    "strict_compiles": 1,
+    "runtime_batches": 1,
+    "runtime_batch_limit": 2,
+    "separate_no_DB_preflight_batches": 0,
+    "PG_launches": 1,
+    "PG_fast_stops": 1,
+    "port": 39770
+  },
+  "custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only": true,
+    "unchanged": true,
+    "explicit_cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-worker-final-replay-r2384/candidate/hosted",
+    "separate_registries": true
+  },
+  "private_delta": "response envelope decode; stronger final GET/replay SQL no-extra-effects assertions; processor port39770 only",
+  "preparation_failure": "preserved preparation-failure.json; hash-convention defect corrected before child/runtime launch",
+  "authority": {
+    "API_session_and_current_user": "browser_ordinary",
+    "processor_session_user": "browser_admin",
+    "processor_superuser": true,
+    "processor_current_user": "browser_schema_owner",
+    "processor_memberships": [],
+    "new_role_membership_or_API_privilege_delta": false,
+    "scope": "explicit preexisting private fixture authority; no restricted production qualification"
+  },
+  "cleanup": {
+    "commands": 14,
+    "all_reaped_bothEOF_closedFDs_ESRCH": true,
+    "postgres": {
+      "pid": 22339,
+      "pgid": 22339,
+      "state": "TERMINAL",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-worker-final-replay-r2384/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39770",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-worker-final-replay-r2384/pgdata",
+      "output_kind": "regular_files",
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "exit": 0,
+      "closedFDs": true,
+      "pipe_EOF": "not applicable; regular files"
+    },
+    "BEAMs_retired_before_only_fast_stop": true,
+    "port39770_reusable": true,
+    "owned_pgdata_removed": true,
+    "new_holds": 0,
+    "transients_removed": [
+      "candidate/hosted/_build",
+      "tmp",
+      "cache",
+      "mix-home",
+      "hex-home"
+    ],
+    "elapsed_seconds": 196.014
+  },
+  "limitations": [
+    "BuildDispatchFixture supplies modeled compiler_error; no actual compiler invoked",
+    "loopback fixture provider and private superuser processor; no restricted production processor security qualification",
+    "no real provider, native device, published package or GA qualification"
+  ],
+  "scope": {
+    "writes_only_new_R2384_namespace_and_compact_receipt": true,
+    "canonical_index_Git_source_authority_writes": false,
+    "provider_native_browser_writes": false,
+    "historical_holds_accessed_or_released": false,
+    "children": 0,
+    "root_owns_delivery": true
+  },
+  "raw_manifest": {
+    "bytes": 7506,
+    "sha256": "76d4198a69de908bd12034355622dd4096c54aeab6bb6d55af1a7ee0fdc3c07f"
+  },
+  "private_inputs": {
+    "processor.exs": {
+      "bytes": 11246,
+      "sha256": "5a31530cdf52bdcd69410bd3927fa2563a4a70eef00648feb4177b008c397edc"
+    },
+    "processor-entry.exs": {
+      "bytes": 111,
+      "sha256": "e5517e5ba61c04b4104709d446d9402110ae4802b5e213e1c1b4f5a4977a6875"
+    },
+    "customer_create_to_worker_terminal_pg_join_test.exs": {
+      "bytes": 14298,
+      "sha256": "11ab8032c2ce32d977ffb5eb5b0672c22944466a945fd707623f9aece4fbfe56"
+    },
+    "private-delta.patch": {
+      "bytes": 4653,
+      "sha256": "ceaf44c5db97d78917d391d5945e97a342bd681c6688bebc6311ecb50c7d9e12"
+    },
+    "response-envelope-fix.patch": {
+      "bytes": 737,
+      "sha256": "366ad2b7a1c2b1b218642cccdaf8bce4bc26a67d74773a7cc75c4b024f084a6d"
+    }
+  },
+  "report": "verification/local/customer-create-worker-final-replay-r2384/REPORT.md",
+  "report_identity": {
+    "bytes": 6031,
+    "sha256": "fab69967e1747fb52cfc31b185e49c891f6b9e592d51745ac8aaf16bbe3d0e7b"
+  },
+  "elapsed_to_finalization_seconds": 227.624,
+  "finalization_failure": "Private finalizer expected older ExUnit formatting; actual Result: 1 passed. Corrected finalizer only, no runtime repeat; finalization-failure.json preserves it.",
+  "raw_fixture_log_observations": [
+    "Existing migration-order warnings remain in API raw output.",
+    "Processor stderr recorded a nonfatal Oban.Notifiers.Postgres connect error: missing the :database key in options for nil. All actual manual drains and processor exited0; notifier health is not qualified.",
+    "API stderr recorded the temporary Mix build-directory lock wait while the separate processor owned it; no compilation was repeated."
+  ],
+  "artifacts": {
+    "customer_create_to_worker_terminal_pg_join_test.exs": {
+      "bytes": 14298,
+      "sha256": "11ab8032c2ce32d977ffb5eb5b0672c22944466a945fd707623f9aece4fbfe56"
+    },
+    "processor.exs": {
+      "bytes": 11246,
+      "sha256": "5a31530cdf52bdcd69410bd3927fa2563a4a70eef00648feb4177b008c397edc"
+    },
+    "processor-entry.exs": {
+      "bytes": 111,
+      "sha256": "e5517e5ba61c04b4104709d446d9402110ae4802b5e213e1c1b4f5a4977a6875"
+    },
+    "response-envelope-fix.patch": {
+      "bytes": 737,
+      "sha256": "366ad2b7a1c2b1b218642cccdaf8bce4bc26a67d74773a7cc75c4b024f084a6d"
+    },
+    "private-delta.patch": {
+      "bytes": 4653,
+      "sha256": "ceaf44c5db97d78917d391d5945e97a342bd681c6688bebc6311ecb50c7d9e12"
+    },
+    "source-pins.json": {
+      "bytes": 47868,
+      "sha256": "e20ed8d137fdd99ff29412abdeb0087e36b13cf926aa62e200e178cac073d5c1"
+    },
+    "private-input-manifest.json": {
+      "bytes": 697,
+      "sha256": "d3e4d1ed6e878ea07448d90b717fa53642a53474af8e3e589d98c85ec45623a4"
+    },
+    "fresh-compiled-beam-manifest.json": {
+      "bytes": 203963,
+      "sha256": "977db6efa616951ef53d2f43035e799a0e77d002df74e7afa8791ececb96a765"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 7506,
+      "sha256": "76d4198a69de908bd12034355622dd4096c54aeab6bb6d55af1a7ee0fdc3c07f"
+    },
+    "evidence/api-proof.json": {
+      "bytes": 4304,
+      "sha256": "98ff767de7d972a5210e83a6b4200e4dd1d3d3af5144651169859c79ecb64351"
+    },
+    "evidence/processor-proof.json": {
+      "bytes": 10513,
+      "sha256": "8437c0c375909a8e7cd6e59b9c3017945bbb33c3806cdb00a490c4dc1f62f039"
+    },
+    "evidence/replay-domain-proof.json": {
+      "bytes": 5310,
+      "sha256": "0913d473c7664b37426f83098679492b0018a6b5ce160440ac342dff7c0b5f77"
+    },
+    "evidence/terminal-get-response.json": {
+      "bytes": 570,
+      "sha256": "018d2f55ed9bcbaf6f048be15cd53b7c26c0e33d3e18b938af8837ee63ef5b4c"
+    },
+    "evidence/duplicate-response.json": {
+      "bytes": 514,
+      "sha256": "6b69a37306213671564191bda51cbfbf927429b477c43cfd0e7e571a3a0b593a"
+    },
+    "evidence/after-replay-get-response.json": {
+      "bytes": 570,
+      "sha256": "018d2f55ed9bcbaf6f048be15cd53b7c26c0e33d3e18b938af8837ee63ef5b4c"
+    },
+    "preparation-failure.json": {
+      "bytes": 344,
+      "sha256": "48811bfba77330294ae792d0aed4542e8548ba853dc77442ce7e40e474b87593"
+    },
+    "finalization-failure.json": {
+      "bytes": 505,
+      "sha256": "2b76982e2f686e9ccc8d6c5558fb6f15213dd55c328146e2ad00207bfaebd9c6"
+    },
+    "observed-log-limitations.json": {
+      "bytes": 639,
+      "sha256": "56f02cab1e3ce9a262a0a81fb5b16a3f74c0b2b955ec82db0ff52e7144381008"
+    }
+  }
+}
