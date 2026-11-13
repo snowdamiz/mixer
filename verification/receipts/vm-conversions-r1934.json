@@ -1,0 +1,431 @@
+{
+  "id": "R1934_VM_FLOAT_CONVERSIONS",
+  "status": "IMPLEMENTED_LOCAL_CORPUS_PASSED_ROOT_REVIEW_PENDING",
+  "scope": "W08 product-plan 10.4 command-mode trapping f32/f64 to signed/unsigned i32/i64",
+  "new_test": "vm/tests/differential_float_conversion_consuming.rs",
+  "test_sha256": "c97032c4ca83b0bb8bc250b756964aa160e460f31f26e8737989973de121615a",
+  "concrete_cases": 24,
+  "supported_opcodes": [
+    "0xa8",
+    "0xa9",
+    "0xaa",
+    "0xab",
+    "0xae",
+    "0xaf",
+    "0xb0",
+    "0xb1"
+  ],
+  "coverage": [
+    {
+      "name": "i32.trunc_f32_s-negative-fraction",
+      "opcode": "0xa8"
+    },
+    {
+      "name": "i32.trunc_f32_s-last-below-upper",
+      "opcode": "0xa8"
+    },
+    {
+      "name": "i32.trunc_f32_s-upper-exclusive",
+      "opcode": "0xa8"
+    },
+    {
+      "name": "i32.trunc_f32_u-negative-fraction",
+      "opcode": "0xa9"
+    },
+    {
+      "name": "i32.trunc_f32_u-last-below-upper",
+      "opcode": "0xa9"
+    },
+    {
+      "name": "i32.trunc_f32_u-negative-one",
+      "opcode": "0xa9"
+    },
+    {
+      "name": "i32.trunc_f64_s-below-min-fraction",
+      "opcode": "0xaa"
+    },
+    {
+      "name": "i32.trunc_f64_s-below-min-integer",
+      "opcode": "0xaa"
+    },
+    {
+      "name": "i32.trunc_f64_s-above-max-fraction",
+      "opcode": "0xaa"
+    },
+    {
+      "name": "i32.trunc_f64_u-above-max-fraction",
+      "opcode": "0xab"
+    },
+    {
+      "name": "i32.trunc_f64_u-upper-exclusive",
+      "opcode": "0xab"
+    },
+    {
+      "name": "i32.trunc_f64_u-payload-nan",
+      "opcode": "0xab"
+    },
+    {
+      "name": "i64.trunc_f32_s-min-inclusive",
+      "opcode": "0xae"
+    },
+    {
+      "name": "i64.trunc_f32_s-next-below-min",
+      "opcode": "0xae"
+    },
+    {
+      "name": "i64.trunc_f32_s-positive-infinity",
+      "opcode": "0xae"
+    },
+    {
+      "name": "i64.trunc_f32_u-last-below-upper",
+      "opcode": "0xaf"
+    },
+    {
+      "name": "i64.trunc_f32_u-upper-exclusive",
+      "opcode": "0xaf"
+    },
+    {
+      "name": "i64.trunc_f32_u-negative-payload-nan",
+      "opcode": "0xaf"
+    },
+    {
+      "name": "i64.trunc_f64_s-last-below-upper",
+      "opcode": "0xb0"
+    },
+    {
+      "name": "i64.trunc_f64_s-upper-exclusive",
+      "opcode": "0xb0"
+    },
+    {
+      "name": "i64.trunc_f64_s-negative-infinity",
+      "opcode": "0xb0"
+    },
+    {
+      "name": "i64.trunc_f64_u-last-below-upper",
+      "opcode": "0xb1"
+    },
+    {
+      "name": "i64.trunc_f64_u-next-above-negative-one",
+      "opcode": "0xb1"
+    },
+    {
+      "name": "i64.trunc_f64_u-negative-one",
+      "opcode": "0xb1"
+    }
+  ],
+  "oracle": "independent Node built-in WebAssembly engine executes identical original module bytes; hand-authored expected integer bytes/traps",
+  "versions": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "node": "v22.23.3",
+    "host": "hw.memsize: 51539607552\nhw.logicalcpu: 15"
+  },
+  "input_manifest": "verification/local/vm-conversions-r1934/inputs.json",
+  "input_files": 141,
+  "input_tree_sha256": "d25261766fbc8c557ac442e6c3da8a61bbe056f6810fa313fb2879e8789f8660",
+  "explicit_copy_roots": [
+    "vm/src",
+    "vm/tests",
+    "vm/examples",
+    "vm/Cargo.toml",
+    "vm/Cargo.lock"
+  ],
+  "all_copied_hashes_preserved": true,
+  "manifest_example_included": "examples/taskeditor_owned_command.rs",
+  "fresh_debug_builds": 1,
+  "corrective_compiles": 0,
+  "actual_corpus_invocations": 2,
+  "invocation_limit_seconds": 240,
+  "campaign_limit_seconds": 600,
+  "campaign_elapsed_seconds": 142.851,
+  "observations": {
+    "exact": {
+      "concrete_cases": 24,
+      "node_parities": 24,
+      "consuming_cleanups": 24,
+      "zero_currents_each": 14,
+      "zero_tickets_each": true,
+      "invalid_environment_rejections": 7,
+      "passed": true
+    },
+    "blanket": {
+      "concrete_cases": 24,
+      "node_parities": 24,
+      "consuming_cleanups": 24,
+      "zero_currents_each": 14,
+      "zero_tickets_each": true,
+      "invalid_environment_rejections": 7,
+      "passed": true
+    }
+  },
+  "custodian": {
+    "source": "original t3-84a22cd4 verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "extracted": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "unchanged": true,
+    "every_run_explicit_existing_cwd": true
+  },
+  "commands": [
+    {
+      "label": "version-rustc",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source",
+      "pid": 26127,
+      "pgid": 26127,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.19999295799061656,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "version-cargo",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source",
+      "pid": 26130,
+      "pgid": 26130,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.07444779202342033,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "version-node",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source",
+      "pid": 26131,
+      "pgid": 26131,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04758258303627372,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "version-host",
+      "argv": [
+        "/usr/sbin/sysctl",
+        "hw.memsize",
+        "hw.logicalcpu"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source",
+      "pid": 26133,
+      "pgid": 26133,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03172262501902878,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "format-new-corpus",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--edition",
+        "2021",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/vm/tests/differential_float_conversion_consuming.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source",
+      "pid": 26134,
+      "pgid": 26134,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.09239012491889298,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "debug-build",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "experimental-swift-reactor",
+        "--test",
+        "differential_float_conversion_consuming",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source",
+      "pid": 26136,
+      "pgid": 26136,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 4.277171749970876,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "corpus-exact",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/target/debug/deps/differential_float_conversion_consuming-d5155f51e8310d62",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1",
+        "--exact",
+        "float_conversions_match_node"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source",
+      "pid": 26318,
+      "pgid": 26318,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 1.1516471250215545,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "corpus-blanket",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/target/debug/deps/differential_float_conversion_consuming-d5155f51e8310d62",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-conversions-r1934/source",
+      "pid": 27975,
+      "pgid": 27975,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 1.1001280419295654,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "raw_outputs": {
+    "version-rustc.stdout": {
+      "bytes": 36,
+      "sha256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+    },
+    "version-rustc.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version-cargo.stdout": {
+      "bytes": 36,
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    "version-cargo.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version-node.stdout": {
+      "bytes": 9,
+      "sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+    },
+    "version-node.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version-host.stdout": {
+      "bytes": 42,
+      "sha256": "c6370cd129b4611934c7f3a962e72d3b66a2e178c833703521c95a6e2649ef4f"
+    },
+    "version-host.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "format-new-corpus.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "format-new-corpus.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "debug-build.stdout": {
+      "bytes": 3484,
+      "sha256": "3903a6f6c1260867254dda8ef2ac172ac7a41f35fecbf2f0b5a31c0b11e4bfaa"
+    },
+    "debug-build.stderr": {
+      "bytes": 203,
+      "sha256": "74b00235ab4da91abcc61a0b5a322745af0342b69ac8de8fb10b0c2e255a41ff"
+    },
+    "corpus-exact.stdout": {
+      "bytes": 93895,
+      "sha256": "0adabd1ed16d7ec71ae667ec712440f0e6dec374a26daed53549822c996b395a"
+    },
+    "corpus-exact.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "corpus-blanket.stdout": {
+      "bytes": 93895,
+      "sha256": "eee3e59f489486f2a2f29c149b9bbd59a1e77029855caa9e1706be976c5948cc"
+    },
+    "corpus-blanket.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "retained_replay_binary": {
+    "path": "verification/local/vm-conversions-r1934/replay/differential_float_conversion_consuming",
+    "bytes": 2857480,
+    "sha256": "cad3558effbaef609673c86c3a0439f6ce3101e8f93de2129012903d60b2db19"
+  },
+  "cleanup": {
+    "all_eight_commands_positive_terminal": true,
+    "direct_reaped": true,
+    "bothEOF": true,
+    "closedFDs": true,
+    "ownedGroupAbsentESRCH": true,
+    "removed_owned_paths": [
+      "verification/local/vm-conversions-r1934/target",
+      "verification/local/vm-conversions-r1934/cargo-home",
+      "verification/local/vm-conversions-r1934/tmp"
+    ],
+    "retained": [
+      "source",
+      "logs",
+      "replay",
+      "inputs.json",
+      "versions.json",
+      "command.py"
+    ],
+    "historical_holds_touched": false
+  },
+  "product_defect_reproduced": false,
+  "product_profile_manifest_ci_changed": false,
+  "default_budgets_changed": false,
+  "git_writes": false,
+  "subchildren": false,
+  "native_or_cloud": false,
+  "root_independent_review_pending": true,
+  "delivery_pending": true,
+  "ga_qualification": false,
+  "holds_released": false,
+  "limitations": [
+    "24 original cases, not exhaustive conversion or standards qualification",
+    "Node RuntimeError parity; Mixer trap codes additionally checked against explicit expected codes",
+    "Local macOS debug host evidence only; independent review and delivery belong to root"
+  ]
+}

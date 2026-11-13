@@ -1,0 +1,91 @@
+{
+  "id": "R1942_VM_FLOAT_CONVERSIONS_INDEPENDENT_REVIEW",
+  "decision": "PASS",
+  "status": "SOURCE_AND_PRODUCER_RAW_LOG_REVIEW_PASSED",
+  "observed_utc": "2026-11-13T04:06:52.675542+00:00",
+  "scope": "R1934 only; W08 product-plan 10.4 command-mode trapping f32/f64 to signed/unsigned i32/i64",
+  "findings": [],
+  "source": {
+    "path": "vm/tests/differential_float_conversion_consuming.rs",
+    "bytes": 16691,
+    "sha256": "c97032c4ca83b0bb8bc250b756964aa160e460f31f26e8737989973de121615a",
+    "observed_repository_head": "22800f805b57e75c1524b5120f7500e85b3a740b"
+  },
+  "producer_receipt": {
+    "path": "verification/receipts/vm-conversions-r1934.json",
+    "sha256": "78058f43d40d53ede7c451aaade4046ae2e8bcb9fb1476cacd107d5a71d71e4a"
+  },
+  "verified": {
+    "original_cases": 24,
+    "conversion_opcodes": 8,
+    "cases_per_opcode": 3,
+    "value_cases": 12,
+    "trap_cases": 12,
+    "ieee_input_and_boundary_expectations_exact": true,
+    "expectation_check": "Independent IEEE sign/exponent/significand rational decoding, truncate toward zero, signed/unsigned integer range and little-endian bit-pattern checks",
+    "node_oracle_independence": "Built-in WebAssembly executes identical original bytes; output adapter performs no conversion arithmetic",
+    "logged_modules_independently_decoded": 48,
+    "private_input_files_hashed": 141,
+    "private_input_tree_sha256": "d25261766fbc8c557ac442e6c3da8a61bbe056f6810fa313fb2879e8789f8660",
+    "raw_output_hashes_matched": 16,
+    "retained_binary_sha256": "cad3558effbaef609673c86c3a0439f6ce3101e8f93de2129012903d60b2db19",
+    "producer_fresh_debug_builds": 1,
+    "feature": "experimental-swift-reactor",
+    "producer_command_records_positive_terminal": 8,
+    "exact_and_blanket_ignored_discovery": true,
+    "node_comparisons_total": 48,
+    "consuming_cleanups_total": 48,
+    "zero_current_counters_each": 14,
+    "zero_tickets_each": true,
+    "cleanup_invariant_each": "none",
+    "invalid_environment_rejections_each_run": 7,
+    "reentry": "Single discoverable ignored test; canonical selector; fresh process and one consuming runtime per case",
+    "environment_controls": "Producer clears inherited case selector and pins Node; oracle removes NODE_OPTIONS and NODE_PATH; invalid selectors and Node prerequisites reject before admission"
+  },
+  "versions": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "node": "v22.23.3",
+    "review_python": "3.14.8"
+  },
+  "review_execution": {
+    "runtime_replays": 0,
+    "compiles": 0,
+    "reason": "Source, exact rational boundary checks, module decoding and actual hash-verified logs resolved the review without a concrete replay concern",
+    "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "custodian_definitions_unchanged": ["read", "save", "row", "InertPopen", "run"],
+    "explicit_existing_cwd": true,
+    "serial_command_registry": "verification/local/vm-conversions-review-r1942/commands.json",
+    "report": "verification/local/vm-conversions-review-r1942/REPORT.md",
+    "audit": {
+      "path": "verification/local/vm-conversions-review-r1942/audit.json",
+      "bytes": 17440,
+      "sha256": "d4086be6eef5f42185f2336e29858b1e982e90eeb3e749fd41ca92ddf94d90c2"
+    },
+    "audit_script": {
+      "path": "verification/local/vm-conversions-review-r1942/audit.py",
+      "sha256": "c9a85e7456dc75203f5e248df83577161a49f6eb7b00253590009a077af61bbb"
+    }
+  },
+  "semantic_primary_sources": [
+    "https://webassembly.github.io/spec/core/exec/numerics.html#op-trunc",
+    "https://webassembly.github.io/spec/core/binary/instructions.html#numeric-instructions"
+  ],
+  "limitations": [
+    "Scoped 24-case macOS debug development corpus; not exhaustive standards qualification",
+    "Node checks trap/value parity; explicit trap categories are additionally asserted by Mixer",
+    "Rejected workers retain generic aggregate markers, not individual stderr or selector values; seven-control mapping is source-established",
+    "Non-Unicode selector rejection is source-reviewed, not separately executed",
+    "No reviewer runtime replay or compilation; producer executions are independently audited evidence",
+    "No release, optimized-build, combined-corpus, native-device, CI or GA qualification; root owns adoption and delivery"
+  ],
+  "canonical_product_profile_test_index_git_mutations": false,
+  "indirect_and_bulk_corpora_rereviewed": false,
+  "subchildren": false,
+  "native_provider_ci_retry": false,
+  "historical_held_payloads_read_or_probed": false,
+  "holds_released": false,
+  "release_or_combined_qualification_claimed": false,
+  "ga_qualification": false,
+  "delivery_performed": false
+}
