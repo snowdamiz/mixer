@@ -1,0 +1,53 @@
+{
+  "schema": "mixer.root-test-budget-selection.1",
+  "id": "collector-alarm-root-r2422",
+  "status": "ACCEPT_BOUNDED_HOSTED_EXPERIMENT_AND_APPLY",
+  "producer": "verification/receipts/v24-isolated-ci-failure-r2394.json",
+  "changes": {
+    "hosted/scripts/test_identity_network_collector.py": {
+      "before": {
+        "bytes": 1098146,
+        "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+      },
+      "after": {
+        "bytes": 1098147,
+        "sha256": "f422c74a3acce762f2235c8cf191c21cf11d4ddfa265fd2761e015f9d0d48a27"
+      }
+    }
+  },
+  "decision": "Allow the growing pure collector suite 120 aggregate seconds within the unchanged 15-minute CI job. A fresh hosted pass is required before declaring this bound sufficient.",
+  "observedHosted": {
+    "passedBeforeCutoff": 240,
+    "aggregateAlarmSeconds": 50,
+    "exitCode": 142,
+    "assertionFailureObserved": false,
+    "DockerAttempted": false
+  },
+  "localEvidence": {
+    "baseline50": 276,
+    "candidate120Normal": 276,
+    "candidate120ActualO": 276,
+    "rerunByRoot": false
+  },
+  "profile": {
+    "scope": "local active-method profile only",
+    "freshSparseMainCalls": 36,
+    "limitingMeasuredPath": "36 cold sparse main/import executions; no hosted CPU profile or speedup claim"
+  },
+  "unchanged": [
+    "all test definitions and assertions",
+    "all product deadlines and security guards",
+    "15-minute outer CI bound",
+    "v24 selected source331 and exact digest",
+    "CLI119 and Pair21"
+  ],
+  "source": {
+    "version": 24,
+    "count": 331,
+    "digest": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027"
+  },
+  "freshHostedConfirmation": "PENDING",
+  "historicalHoldsReleased": false,
+  "GA": false,
+  "rootReviewCorrection": "Initial read-only verifier looked for unit logs in the compact artifact list. Their explicit command stderr files matched the independently supplied proof hashes. Initial verifier failure retained; no tests repeated."
+}

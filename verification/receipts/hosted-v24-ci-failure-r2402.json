@@ -1,0 +1,263 @@
+{
+  "id": "hosted-v24-ci-failure-r2402",
+  "status": "FIRST_CAUSE_OBSERVED_LOCK_UPGRADE_HYPOTHESIS_PENDING_DB_DISCRIMINATOR_NO_FIX",
+  "observed_UTC": "2026-11-13T14:17:40.008315+00:00",
+  "campaign_started_UTC": "2026-11-13T14:09:21+00:00",
+  "wall_limit_seconds": 600,
+  "CI": {
+    "run": 43439013628,
+    "job": 131931435198,
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/43439013628/job/131931435198",
+    "head": "a82cc695d8d855e46e884e2723c1f1c8deb142cc",
+    "step": "Phoenix and disposable PostgreSQL host checks",
+    "conclusion": "failure",
+    "actual_command": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "test",
+      "/home/runner/work/mixer/mixer/hosted/diagnostics/browser_login_trace_test.exs"
+    ],
+    "test_command_started_UTC": "2026-11-13T14:04:34.463450+00:00",
+    "test_exit": 2,
+    "full_CI_input_files": 287,
+    "full_CI_input_tree_sha256": "523547f6724efb0897703ffebdbdc6bcb50dcb1f148d0ab22a5b8824e5c07361"
+  },
+  "root_source": {
+    "user_supplied_browser_version": 24,
+    "user_supplied_browser_count": 331,
+    "user_supplied_browser_digest": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+    "later_user_reported_root_head": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+    "later_head_not_substituted_for_CI_head": true,
+    "selected_CI_source_files_byte_equal_current": 11,
+    "full331_replay_not_run": true
+  },
+  "first_cause": {
+    "event_UTC": "2026-11-13 14:05:56.838",
+    "backend": 6919,
+    "SQLSTATE_symbol": "lock_not_available",
+    "SQLSTATE": "55P03",
+    "query": "mixer_browser_create_active_load -> SELECT mixer_authz_profiles FOR UPDATE",
+    "response": {
+      "status": 503,
+      "body": "{\"error\":{\"code\":\"authorization_unavailable\",\"message\":\"Build request refused.\"}}"
+    },
+    "failed_assertion_line": 643,
+    "CI_tests_log_lines": [
+      1436,
+      1437,
+      1438,
+      1439,
+      1440,
+      1441
+    ],
+    "CI_postgres_log_lines": [
+      7834,
+      7835,
+      7836,
+      7837,
+      7838
+    ]
+  },
+  "actual_assertion": {
+    "file": "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs",
+    "line": 643,
+    "expression": "assert statuses == [200, 201], inspect(statuses)",
+    "actual": [
+      201,
+      503
+    ],
+    "test_log": "selected/_temp/phoenix-foundation/tests.log",
+    "test_log_failure_lines": [
+      1436,
+      1441
+    ],
+    "postgres_log": "selected/_temp/phoenix-foundation/postgres.log",
+    "postgres_error_lines": [
+      7834,
+      7838
+    ]
+  },
+  "counts": {
+    "passed": 899,
+    "failed": 1,
+    "skipped": 2,
+    "non_skipped_tests": 900,
+    "suite_seconds": 202.4,
+    "test_seconds": 2.2659,
+    "query_INSERT_events": 5,
+    "successful_job_INSERT_witnesses": 2,
+    "exception_records": 3,
+    "selected_members": 26,
+    "selected_bytes": 2444183,
+    "CI_input_files": 287
+  },
+  "tools": {
+    "CI_Elixir": "1.20.4",
+    "CI_Erlang_OTP": "29",
+    "CI_erts": "17.1",
+    "CI_schedulers": "4:4",
+    "CI_PostgreSQL": "17.12 (Ubuntu17.12-1.pgdg24.04+1)",
+    "gh": "2.102.0 (2026-09-30)",
+    "proof_Python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "proof_platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "premise_test": {
+    "result": "FALSE_FOR_THIS_FAILURE",
+    "old_expiry_missing_INSERT_theory": "FALSE_FOR_THIS_FAILURE: corrected fixture is present; failure at line643 prevents expiry setup at line733 and assertion746",
+    "admitted_test_sha256": "6e1a17ce04c7ea601b85bb16296623717c85ceac3bffa5a3af72f7fc8b3c4e5e",
+    "admitted_provider_fixture_sha256": "df20f5a5dc43f3e0777095e4e79c5f9b571d2b62e55e672aac2fbcb80a7c03a7",
+    "expiry_setup_line": 733,
+    "expiry_job_assertion_line": 746,
+    "baseline_witness_backend_xact": [
+      6916,
+      "6074"
+    ],
+    "additional_job_witness_backend_xact": [
+      6918,
+      "6087"
+    ],
+    "intentional_oban_discriminator_error": "Earlier14:05:54.652/backend6912 lock failure belongs to explicit ROW EXCLUSIVE versus SHARE test, which passed; it is not the replay failure."
+  },
+  "hypothesis": {
+    "observed": "blocked FOR UPDATE on profile;500ms function lock_timeout",
+    "source_supported": "Authorization.Session.prepare! obtains FOR SHARE locks via fixed helpers; ActiveCreate clones ActiveReadSchema with FOR UPDATE and runs in the same transaction",
+    "not_observed": [
+      "blocker PID",
+      "both transaction shared-lock acquisition times",
+      "whether mutual upgrade versus one long exclusive holder",
+      "winner lock duration",
+      "concurrent request start times"
+    ],
+    "classification": "SOURCE_SUPPORTED_HYPOTHESIS_NOT_RUNTIME_PROVEN"
+  },
+  "source_lines": {
+    "authorization.ex": "55-58 Session.prepare before callback",
+    "authorization/postgres/session.ex": "31 lock_timeout500ms;60 profiles helper",
+    "20261025000003_add_customer_authorization.exs": "190-207 helper FOR SHARE",
+    "browser_auth/active_create.ex": "74-108 current active function;147-151 clones ActiveReadSchema unchanged except name",
+    "browser_auth/active_read_schema.ex": "48 lock_timeout500ms;68 profile FOR UPDATE;70-72 principal/family/credentials FOR UPDATE"
+  },
+  "artifact": {
+    "id": 14045492234,
+    "name": "phoenix-foundation-a82cc695d8d855e46e884e2723c1f1c8deb142cc",
+    "bytes": 1504408,
+    "sha256": "1d9dfbed798858676688d3d2ad8675c7b3d7f98c5d1722ec7716170a50580324",
+    "content_lengths": [
+      1504408
+    ],
+    "ContentLength_verified": true,
+    "API_size_verified": true,
+    "API_digest_verified": true,
+    "under_8MiB": true,
+    "selected_members_including_nested_archive_entries": 26,
+    "selected_total_bytes": 2444183,
+    "whole_extraction": false,
+    "archive_SHA256": "a4d0ac9980005362c16f96179eb9a6aa83d913408c9ccfa0394f30cc51b9f683",
+    "selected_read_operations_including_repeated_active_create": 27,
+    "selected_read_bytes_including_repeated_active_create": 2449067
+  },
+  "complete_log_download": {
+    "bytes": 42987,
+    "sha256": "70d39c93c785c6fece84c1d533eafe07f5f96a47f5a5f0fbf21e328305da9c9a",
+    "content_lengths": [],
+    "ContentLength_verified": false,
+    "under_8MiB": true,
+    "accepted_for_member_inspection": false,
+    "reason": "GET response omittedContent-Length; separate HEAD returned405. No second complete log download; actual cause read from independently ContentLength/API-size/API-digest-verified artifact."
+  },
+  "bounds": {
+    "read_only_GitHub_calls": 5,
+    "limit_GitHub_calls": 6,
+    "complete_log_downloads": 1,
+    "selected_member_limit": 40,
+    "selected_entry_limit_bytes": 2097152,
+    "selected_total_limit_bytes": 8388608,
+    "proof_batches": 1,
+    "proof_batch_limit": 2,
+    "local_DB_launches": 0,
+    "local_compile_runs": 0,
+    "local_full_suite_runs": 0,
+    "CI_mutations": 0,
+    "actual_selected_member_read_operations": 27,
+    "actual_selected_read_bytes": 2449067
+  },
+  "custody": {
+    "R986_source_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only": true,
+    "explicit_existing_cwd_per_label_registries": true,
+    "managed_commands": 7,
+    "all_direct_reap_bothEOF_closedFD_positive_ESRCH": true,
+    "new_UNKNOWN": false,
+    "owned_cleanup": false,
+    "raw_evidence_retained": true,
+    "historical_holds_accessed_or_released": false,
+    "old_generated_Java_run43427406152_job131892127446_accessed": false,
+    "remote_receipt_cleanup_report": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "remote_process_absence_independently_established_here": false
+  },
+  "local_harness_corrections": [
+    {
+      "failure": "download validation assertion failed on missing Content-Length; no complete-log member read",
+      "resolution": "used ContentLength+API-size+digest verified artifact instead; log length requirement remains unsatisfied"
+    },
+    {
+      "failure": "run-proof initial import failed because select.py shadowed Python select before any child launch",
+      "resolution": "renamed own member-reader to artifact-member-reader.py; single managed metadata proof batch then passed"
+    },
+    {
+      "failure": "two source member lookups used nonexistent module filenames; no process launched",
+      "resolution": "Read exact module paths from pinned receipt; selected26unique members and27read operations include the duplicate ActiveCreate read before failed lookup. Total decompressed read bytes remain under8MiB."
+    }
+  ],
+  "artifacts": {
+    "metadata-proof.json": {
+      "bytes": 6860,
+      "sha256": "1524619573daa1b7dc5006c19ec405cb40939ba21fa313cf4f78d2c30086a49f"
+    },
+    "proof.py": {
+      "bytes": 5365,
+      "sha256": "22ab0df1efbe8334fa8bf4a0b0d66097bd36371eb91660dd19e270b43735449b"
+    },
+    "next-test.json": {
+      "bytes": 2735,
+      "sha256": "0b6828ab7557e9631232d814de93b84053717bf3003a670ff0e99b332f272956"
+    },
+    "evidence.zip": {
+      "bytes": 1504408,
+      "sha256": "1d9dfbed798858676688d3d2ad8675c7b3d7f98c5d1722ec7716170a50580324"
+    },
+    "artifact-download-metadata.json": {
+      "bytes": 259,
+      "sha256": "1e9dcf041e7f68e45f7c6a276811575f7ada1a2231a7085bc4a8c33216fc7521"
+    },
+    "download-metadata.json": {
+      "bytes": 183,
+      "sha256": "e9f3ade5da4c5fbd798e47472ff15fb4f493c75908d1072f1a5150f6a93c9ddc"
+    },
+    "selected-artifact-members.json": {
+      "bytes": 8033,
+      "sha256": "1aa5527ec3e901365ac8a262a19f775cd33680a75faf00856289e08c0efe8ac2"
+    },
+    "artifact-members.json": {
+      "bytes": 31755,
+      "sha256": "7c0c5f13804a2e93d0945de8df5dd070c37842107666da3d90b548a441e5797e"
+    }
+  },
+  "next_smallest_test": "next-test.json: fresh two-connection FOR SHARE barrier then FOR UPDATE at unchanged500ms, read-only blocker/lock timeline observer, serial control; requires root DB coordination. SQL-only evidence does not accept application replay.",
+  "unrun": [
+    "database lock-upgrade discriminator",
+    "product candidate",
+    "focused realHTTP replay regression",
+    "fresh LinuxCI after candidate"
+  ],
+  "scope": "Only ignored verification/local/hosted-v24-ci-failure-r2402 and this compact receipt written. No canonical,index,Git,source-authority,other-lane,CI dispatch/rerun,production/native/customer actions. No fix or GA acceptance claimed.",
+  "artifact_policy": "Not run: no staging/index changes authorized.",
+  "elapsed_seconds": 499.008487
+}

@@ -1,0 +1,194 @@
+{
+  "id": "R2430",
+  "status": "PARTIAL_PRIVATE_CANDIDATE_COMPILED_STARTUP_ADMITTED_PREFLIGHT_HARNESS_REFUSED",
+  "started_epoch": 1794580356.616703,
+  "runtime_batch_limit": 2,
+  "strict_compile_limit": 2,
+  "wall_limit_seconds": 900,
+  "strict_compiles": 1,
+  "runtime_batches": 2,
+  "PG_launches": 1,
+  "PG_stops": 1,
+  "port": 39810,
+  "scope": "actual SQL lock-upgrade and private candidate real HTTP replay",
+  "no_product_or_dependency_BEAM_reused": true,
+  "elapsed_seconds": 81.587,
+  "strict_compile": "PASS",
+  "postgres": {
+    "pid": 92543,
+    "pgid": 92543,
+    "state": "TERMINAL",
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-lock-closure-r2430/pgdata",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "39810",
+      "-k",
+      "",
+      "-c",
+      "timezone=UTC"
+    ],
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-lock-closure-r2430/pgdata",
+    "output_kind": "regular_files",
+    "direct_reaped": true,
+    "group_absent": true,
+    "absence_errno": 3,
+    "exit": 0,
+    "closedFDs": true,
+    "pipe_EOF": "not applicable; regular files"
+  },
+  "SQL_readiness_before_DDL": "SELECT1 and exact SHOW data_directory PASS",
+  "candidate_http_exit": 2,
+  "first_boundary": "Added direct ActiveCatalog preflight returned unavailable while CreateSchema.compatibility! passed; no named test ran",
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-lock-closure-r2430/run.py\", line 94, in <module>\n    assert code==0,'candidate HTTP assertions failed'\n           ^^^^^^^\nAssertionError: candidate HTTP assertions failed\n",
+  "port_reusable": true,
+  "owned_pgdata_removed": true,
+  "commands_all_terminal": true,
+  "observed_UTC": "2026-11-13T14:36:45Z",
+  "acceptance": "UNACCEPTED",
+  "preflight": {
+    "original_runtime_storage_ready_assertion": "PASS",
+    "direct_CreateSchema_compatibility": "PASS",
+    "direct_ActiveCatalog": "UNAVAILABLE",
+    "source_diagnosis": "Added harness omitted Store.policy! LOCAL session setup required by ActiveCatalog.session!: search_path=pg_catalog, jit=off, statement_timeout=5s, lock_timeout=500ms, idle timeout=5s, bytea_output=hex. Exact failing require was not instrumented. Candidate source mismatch is not established.",
+    "executed_harness": "probe.executed.exs",
+    "proposed_correction": "probe-corrected-UNRUN.exs; source only, not compiled or executed"
+  },
+  "candidate": {
+    "product_files": 4,
+    "strict_compile": "PASS",
+    "syntax_pre_DB": "PASS",
+    "new_SQL_controls": "UNRUN",
+    "HTTP": "0 tests;2invalid before either original test body",
+    "source_mutation_refusals": "UNRUN",
+    "postINSERT_expiry_missing_scope_revocation": "UNRUN",
+    "broad_read_and_revoked_read": "UNRUN",
+    "physical_CREATE_witnesses": "UNRUN",
+    "independent_changed_product_review": "Pending root; not claimed"
+  },
+  "product": {
+    "lock_sequence": "build.create only: owning active function takes its original exclusive authority locks before Session.prepare! obtains shared locks; existing later and final checks retained",
+    "SQL_change": "First profile FOR UPDATE also binds i.profile_id/version before locking; all four authority FOR UPDATE modes retained",
+    "exact_guards": [
+      "ActiveCatalog @create_function -> ActiveCreateSchema.manifest, full source == expected.source retained",
+      "CreateSchema.compatibility! -> same exact manifest body, p.prosrc=$2 retained"
+    ],
+    "deadlines": "unchanged 500ms lock /5s product",
+    "unchanged": "All policies,roles,RLS,ACLs,source331 manifests,historical inverse fixtures and original test assertion bytes",
+    "private_product_patch": "product.patch",
+    "full_original_preimage_application_map": "application-map.json",
+    "all_changed_rows": "all-private-changes.json"
+  },
+  "source": {
+    "user_reported_main": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+    "source_count": 285,
+    "product_files": 137,
+    "authority_count": 331,
+    "authority_unchanged": true,
+    "canonical_unchanged_except_declared_collector_drift": true,
+    "collector_original": {
+      "bytes": 1098146,
+      "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+    },
+    "unrelated_drift": {
+      "hosted/scripts/test_identity_network_collector.py": {
+        "original": {
+          "bytes": 1098146,
+          "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+        },
+        "current": {
+          "bytes": 1098147,
+          "sha256": "f422c74a3acce762f2235c8cf191c21cf11d4ddfa265fd2761e015f9d0d48a27"
+        }
+      }
+    },
+    "dependency_source_files": 914,
+    "official_Hex_files": 133,
+    "no_product_dependency_BEAM_reuse": true
+  },
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "elixir_OTP": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "Rebar": "rebar 3.28.0 on Erlang/OTP 29 Erts 17.1",
+    "PostgreSQL": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "custody": {
+    "managed_commands": 15,
+    "all_direct_reap_bothEOF_FDclosed_ESRCH": true,
+    "PG_reap_ESRCH_regular_outputFDclosed": true,
+    "new_UNKNOWN": false,
+    "historical_holds_accessed_or_released": false
+  },
+  "scope_limits": [
+    "Only R2430 ignored namespace and authorized compact receipt written",
+    "No canonical/index/Git/authority/provider/native/CI writes",
+    "No R2426 overlap",
+    "1 strict compile;2 BEAM batches including syntax;1 PG17launch/faststop;port39810reusable",
+    "Runtime and launch ceilings consumed; no retry or second cluster permitted",
+    "Historical R2420 causal baseline retained; not repeated",
+    "No current SQL/HTTP proof; no acceptance,adoption,publication or GA claim"
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 2712,
+      "sha256": "ba99524c08fabc2f470789072489dbe17638849541c9ad5b48e3cc15b85e0252"
+    },
+    "application-map.json": {
+      "bytes": 1270,
+      "sha256": "cae7e03f5c8724f69ab5f9bef241ccdc91d0ad8e36b52359d5b3b1fc5a905084"
+    },
+    "product.patch": {
+      "bytes": 2863,
+      "sha256": "52a258b63eba4768da705c7bc9c22d14f660054f246de09ea03cf571832292b0"
+    },
+    "all-private-changes.json": {
+      "bytes": 1627,
+      "sha256": "6c5192a981b16737a039be76d9665062b30e2752313df21cedec5847f3995381"
+    },
+    "source-preflight.json": {
+      "bytes": 763,
+      "sha256": "ab9cd9e3b100881d4ec219270f7e849fd41499cf33b2af682a726ac34a1117fb"
+    },
+    "source-witness-inventory.json": {
+      "bytes": 9823,
+      "sha256": "bed11d9968deb7cf0a3f0cc72cc76b998071246423656523453a59cb7b3649dc"
+    },
+    "supplemental-exact-witness-inventory.json": {
+      "bytes": 3983,
+      "sha256": "e34fd2034037bf0ae70102a5b4fb57352d7fb9e4a6320862327b8428b1d7e883"
+    },
+    "source-observation.json": {
+      "bytes": 52502,
+      "sha256": "20065d15f5568ba5d0a2901431071a5d106f9989b0f6fe949d639b99f42eac4e"
+    },
+    "command-custody.json": {
+      "bytes": 12091,
+      "sha256": "c71436ed7bdbde282cb5fcb4e49c82e6a69f3fb7241c20526736efd15ba20822"
+    },
+    "cleanup.json": {
+      "bytes": 363,
+      "sha256": "7752857b976553e58553dc7c4f963c72e5c5c4353af638a643d1a0b0041c420c"
+    },
+    "probe.executed.exs": {
+      "bytes": 6770,
+      "sha256": "9c0c2d076395c465fe66e0f2d4f0aeac90375ae8391f4bf36e33dd859fcfe8eb"
+    },
+    "probe-corrected-UNRUN.exs": {
+      "bytes": 7258,
+      "sha256": "5e0f57c0da0c9ab7074d5145af3cd23c16ac69547191c3c04db2c798e309d4c7"
+    },
+    "commands-runtime/candidate-http.stdout": {
+      "bytes": 2317,
+      "sha256": "be9e160169c155ce74d8a7d88621d6a20bfd8001d06d21dd0cda9329625a3f85"
+    },
+    "commands-runtime/candidate-http.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "elapsed_to_finalization_seconds": 248.401
+}

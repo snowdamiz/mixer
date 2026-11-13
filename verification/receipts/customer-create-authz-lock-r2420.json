@@ -1,0 +1,235 @@
+{
+  "id": "R2420",
+  "status": "SQL_UPGRADE_MECHANISM_PROVEN_PRIVATE_CANDIDATE_UNACCEPTED",
+  "started_epoch": 1794579600.0,
+  "runtime_batch_limit": 3,
+  "strict_compile_limit": 2,
+  "wall_limit_seconds": 900,
+  "strict_compiles": 2,
+  "runtime_batches": 3,
+  "PG_launches": 1,
+  "PG_stops": 1,
+  "port": 39800,
+  "scope": "actual SQL lock-upgrade and private candidate real HTTP replay",
+  "no_product_or_dependency_BEAM_reused": true,
+  "elapsed_seconds": 316.407,
+  "strict_compile": "PASS",
+  "postgres": {
+    "pid": 39542,
+    "pgid": 39542,
+    "state": "TERMINAL",
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-lock-r2420/pgdata",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "39800",
+      "-k",
+      "",
+      "-c",
+      "timezone=UTC"
+    ],
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-lock-r2420/pgdata",
+    "output_kind": "regular_files",
+    "direct_reaped": true,
+    "group_absent": true,
+    "absence_errno": 3,
+    "exit": 0,
+    "closedFDs": true,
+    "pipe_EOF": "not applicable; regular files"
+  },
+  "SQL_readiness_before_DDL": "SELECT1 and exact SHOW data_directory PASS",
+  "baseline_http_exit": 0,
+  "causal_SQL_proof": "two shared holders; actual owning active function lock upgrade55P03; serialcontrol PASS",
+  "candidate_http_exit": 2,
+  "first_boundary": "AssertionError('candidate HTTP assertions failed')",
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-lock-r2420/run.py\", line 111, in <module>\n    assert code==0,'candidate HTTP assertions failed'\n           ^^^^^^^\nAssertionError: candidate HTTP assertions failed\n",
+  "port_reusable": true,
+  "owned_pgdata_removed": true,
+  "commands_all_terminal": true,
+  "observed_UTC": "2026-11-13T14:27:35Z",
+  "historical_CI_causation": "UNPROVEN; this campaign does not observe historical blockers",
+  "baseline": {
+    "SQL": {
+      "actual_owning_function": true,
+      "profile_shared_holders": 2,
+      "mutual_blocker_edges": [
+        [
+          39635,
+          [
+            39636
+          ]
+        ],
+        [
+          39636,
+          [
+            39635
+          ]
+        ]
+      ],
+      "results": [
+        {
+          "code": "lock_not_available",
+          "label": "A",
+          "pid": 39635,
+          "elapsed_ms": 504,
+          "xact": "1128"
+        },
+        {
+          "code": "lock_not_available",
+          "label": "B",
+          "pid": 39636,
+          "elapsed_ms": 504,
+          "xact": "1127"
+        }
+      ],
+      "serial_controls": [
+        "ok",
+        "ok"
+      ],
+      "lock_deadline": "500ms",
+      "server_context": "mixer_authz_profiles FOR UPDATE; active function line19"
+    },
+    "HTTP": {
+      "passed": 2,
+      "failed": 0,
+      "concurrent_statuses": [
+        200,
+        201
+      ],
+      "one_new_journal_and_one_job": true,
+      "missing_scope_revocation_expiry_refusals": "PASS original assertions",
+      "all_original_assertion_bytes_unchanged": true
+    }
+  },
+  "candidate": {
+    "product_files": 2,
+    "strict_compile": "PASS",
+    "HTTP": "SETUP_REFUSED",
+    "passed": 0,
+    "invalid": 2,
+    "RuntimeOwner_phase": "unavailable",
+    "SQL_after_fix": "UNRUN; admission refused before login/probe",
+    "acceptance": "REQUEST_CHANGES",
+    "source_diagnosis": "CreateSchema.compatibility!/1 still compares create function prosrc to ActiveReadSchema original body at create_schema.ex:244; candidate ActiveCreateSchema body now differs. This predicate necessarily rejects the new body; exact runtime branch was not instrumented.",
+    "next_minimal_correction": "Use ActiveCreateSchema.manifest()[\"mixer_browser_create_active_load\"].source in CreateSchema.compatibility!/1; preserve exact source/catalog checks and all ACLs. Not applied or compiled in this campaign.",
+    "concurrent_revocation_write_controls": "Added to private probe, NOT REACHED",
+    "root_independent_review": "Pending; no canonical adoption authorized or claimed"
+  },
+  "source": {
+    "user_reported_main": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+    "source_files": 285,
+    "authority_count": 331,
+    "authority_digest": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+    "all331_current_match": true,
+    "product_lib_files": 137,
+    "owning_canonical_source_unchanged": true,
+    "private_map": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-lock-r2420/application-map.json",
+    "collector_snapshot": {
+      "bytes": 1098146,
+      "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+    },
+    "declared_unrelated_collector_drift": {
+      "hosted/scripts/test_identity_network_collector.py": {
+        "snapshot": {
+          "bytes": 1098146,
+          "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+        },
+        "current": {
+          "bytes": 1098147,
+          "sha256": "f422c74a3acce762f2235c8cf191c21cf11d4ddfa265fd2761e015f9d0d48a27"
+        }
+      }
+    },
+    "no_product_or_dependency_BEAM_reuse": true,
+    "official_dependency_files": 914,
+    "official_Hex_files": 133
+  },
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "elixir_OTP": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "Rebar": "rebar 3.28.0 on Erlang/OTP 29 Erts 17.1",
+    "PostgreSQL": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "custody": {
+    "R986_SHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only_unchanged": true,
+    "explicit_candidate_hosted_cwd": true,
+    "registries": "commands-runtime; distinct labels; commands-api and commands-processor unused",
+    "managed_commands": 17,
+    "all_direct_reap_bothEOF_closedFD_ESRCH": true,
+    "postgres_regular_outputs_closed_direct_reap_ESRCH": true,
+    "new_UNKNOWN": false,
+    "historical_holds_accessed_or_released": false,
+    "outer_transport": "Primary Python exec transport exit0; outside R986 group claims"
+  },
+  "scope_limits": [
+    "Only own ignored namespace and compact receipt written",
+    "No canonical/index/Git/authority/native/provider/CI writes",
+    "No root change or product acceptance",
+    "No historical R2184/R2204 causal attribution",
+    "No production or GA claim",
+    "No full suite; no broad shared Authorization change",
+    "Budget consumed: 2 strict compiles;3 BEAM runtime batches (syntax,baseline,candidate);1 PostgreSQL launch/faststop"
+  ],
+  "raw_manifest": "raw-manifest.json",
+  "artifact_policy": "No staging/index changes; index artifact check not applicable",
+  "artifacts": {
+    "REPORT.txt": {
+      "bytes": 2459,
+      "sha256": "088c726e7c43b1aeaa65871a054802e1048119141b31457f83806a47a01e759d"
+    },
+    "raw-manifest.json": {
+      "bytes": 63408,
+      "sha256": "d70d0e8150d9f13fa350a88ed8a41de7d56b615f8804fcff0f6008121416bd69"
+    },
+    "application-map.json": {
+      "bytes": 642,
+      "sha256": "8f8ee6315c85bee0d417387c34a489fae45623dc06c58d1c04b8595d65b18857"
+    },
+    "product.patch": {
+      "bytes": 1690,
+      "sha256": "ca0110ed7083f9c5bf58450c42fb8dfaf866f5280b5a28706b00be5cd7ab87b0"
+    },
+    "evidence/sql-baseline.json": {
+      "bytes": 6019,
+      "sha256": "8e707be0cae8163b719c65c5b47c9324fe56decc31fbd4938b7cacd5f0e72dab"
+    },
+    "source-observation.json": {
+      "bytes": 51816,
+      "sha256": "3760adfcb1788362841c17065a3ec621d59df8a409f61e75bd7f155ea16a299b"
+    },
+    "command-custody.json": {
+      "bytes": 13058,
+      "sha256": "7dc61785d3f99764f7cb5ed88c72822975cc606facd5b2c870432275cf7c9947"
+    },
+    "cleanup.json": {
+      "bytes": 388,
+      "sha256": "fa8aea29af624870a0ca33162475b25f1cdbe49186a6f2534ead7dc29d7c56ab"
+    },
+    "commands-runtime/baseline-http.stdout": {
+      "bytes": 2516,
+      "sha256": "f04e009bd72a8af7f58a55d4421b6fed26830920513b32f0abe0cfb8ad058a60"
+    },
+    "commands-runtime/candidate-http.stdout": {
+      "bytes": 2273,
+      "sha256": "663027b75f0ebe94fac3d24b10bf7060db6de7e666229a9dbcdd859c3efa233d"
+    },
+    "commands-runtime/postgres-foreground.stderr": {
+      "bytes": 6242,
+      "sha256": "de06eb3906b2337e57f664eff5d28eb27b89655a82cf03f2b02f992f480d1353"
+    },
+    "baseline/sql-probe.exs": {
+      "bytes": 4323,
+      "sha256": "da94a80b2645aa5c7fb0625a3a88d6199e204f947a640f71e559f4f946763526"
+    },
+    "sql-probe.exs": {
+      "bytes": 5159,
+      "sha256": "0ce49606acabd4a2938f5add89fab6068bb2af6563497292566f9bcbc393bc24"
+    }
+  },
+  "elapsed_to_finalization_seconds": 455.92
+}

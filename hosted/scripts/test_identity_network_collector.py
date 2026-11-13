@@ -4307,5 +4307,5 @@ class CustomerExpirySourceControls(unittest.TestCase):
                 with self.assertRaises(collector.CollectorError): collector.validate_customer_expiry_source_metadata({**metadata, base + 'selection.json': body})
 
 if __name__ == "__main__":
-    signal.alarm(50)
+    signal.alarm(120)
     unittest.main(verbosity=2)

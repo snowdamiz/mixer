@@ -1,0 +1,107 @@
+{
+  "id": "R2448",
+  "status": "FINDINGS_SOURCE",
+  "recommendation": "REQUEST_CHANGES",
+  "observed_UTC": "2026-11-13T14:43:34Z",
+  "source_main_user_reported": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+  "authority331_user_reported": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+  "authority331_reread": false,
+  "packet": {
+    "bytes": 1270,
+    "sha256": "cae7e03f5c8724f69ab5f9bef241ccdc91d0ad8e36b52359d5b3b1fc5a905084"
+  },
+  "patch": {
+    "bytes": 2863,
+    "sha256": "52a258b63eba4768da705c7bc9c22d14f660054f246de09ea03cf571832292b0"
+  },
+  "canonical_product137_original": true,
+  "four_file_bindings_exact": true,
+  "raw_artifact_hashes_verified": 14,
+  "findings": [
+    {
+      "id": "R2448-F1",
+      "priority": "P2",
+      "path": "hosted/lib/mixer_hosted/authorization.ex",
+      "line": 58,
+      "candidate_sha256": "d9288b1beadb17f55c7f4c09315c38b758ede75e0a70f49bbfc39edc3aaf9ecf",
+      "title": "Initialize transaction isolation before the early SQL check",
+      "condition": "Bound browser build.create on a connection defaulting to Repeatable Read or Serializable",
+      "path_proof": [
+        "authorization.ex:58-61",
+        "browser_auth/active_create.ex:87-105",
+        "authorization/postgres/session.ex:29",
+        "authorization.ex:117-120"
+      ],
+      "effect": "First query takes snapshot; later READ COMMITTED change fails; authorization_unavailable / HTTP503",
+      "proof": "Exact candidate code path plus official PostgreSQL17 check_transaction_isolation FirstSnapshotSet branch; source-only, no runtime reproduction",
+      "official_source": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/commands/variable.c#L550-L586",
+      "limit": "No failure claimed for already-Read-Committed connections",
+      "suggestion": "Set transaction policy first, then exclusive ActiveCreate check, then existing shared authorization locks"
+    }
+  ],
+  "R2430_acceptance": "UNACCEPTED; storage_ready/direct compatibility only; candidate SQL/HTTP 0 tests,2invalid",
+  "baseline_counterexample": {
+    "bytes": 6019,
+    "sha256": "8e707be0cae8163b719c65c5b47c9324fe56decc31fbd4938b7cacd5f0e72dab"
+  },
+  "new_product_runtime_compiler_DB_commands": 0,
+  "custody": {
+    "runner": "R986 definitions-only",
+    "runner_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "commands": [
+      {
+        "label": "source-bindings",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-source-review-r2448/check.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 41796,
+        "pgid": 41796,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.046936500002630055,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "UNKNOWN": false,
+    "cleanup": "none required; static regular files retained"
+  },
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 6306,
+      "sha256": "4cbcef820dd685e97d7ef483b5c913c02135622af743cf746e50d9a1827e1fcd"
+    },
+    "bindings.json": {
+      "bytes": 3198,
+      "sha256": "991cff3707f7aa9dd24ac335676b13822cc74c36c63f176e9675ab7774ca8074"
+    },
+    "check.py": {
+      "bytes": 5688,
+      "sha256": "ac824a485efdbd2ae904dec29b1b11643118a0ec7fd910aeba0333f6e7d320e6"
+    },
+    "run.py": {
+      "bytes": 1127,
+      "sha256": "f8da511a93620182ef7d5ebabe7ac03d18ace5876efd88c752a29610ce5c989f"
+    },
+    "commands-static/source-bindings.stdout": {
+      "bytes": 3198,
+      "sha256": "991cff3707f7aa9dd24ac335676b13822cc74c36c63f176e9675ab7774ca8074"
+    },
+    "commands-static/source-bindings.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "constraints": [
+    "Only own ignored namespace and compact receipt written",
+    "No canonical/index/Git/authority/native/provider writes",
+    "No R2446 or historical hold access",
+    "No release or GA claim",
+    "Root owns correction/composition/sourcev25/delivery"
+  ]
+}

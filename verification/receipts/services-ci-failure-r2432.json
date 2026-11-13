@@ -1,0 +1,247 @@
+{
+  "schema": 1,
+  "id": "SERVICES_CI_FAILURE_R2432",
+  "status": "SAME_KNOWN_ALARM_CAUSE_BYTE_EQUALITY_PROVEN_NO_NEW_FIX",
+  "completedUTC": "2026-11-13T14:33:17.295122+00:00",
+  "budget": {
+    "limitSeconds": 300,
+    "firstRecordedClockUTC": "2026-11-13T14:30:50Z",
+    "elapsedSinceFirstRecordedClockSeconds": 147.295122,
+    "campaignCreatedUTC": "2026-11-13T14:31:28.174718+00:00",
+    "githubReadOnlyAPICalls": 4,
+    "apiPaths": [
+      "GET /repos/snowdamiz/mixer/actions/jobs/131937862415",
+      "GET /repos/snowdamiz/mixer/actions/jobs/131937862415/logs",
+      "GET /repos/snowdamiz/mixer/contents/hosted/scripts/test_identity_network_collector.py?ref=ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+      "GET /repos/snowdamiz/mixer/contents/hosted/scripts/test_identity_network_collector.py?ref=a82cc695d8d855e46e884e2723c1f1c8deb142cc"
+    ],
+    "signedLogGETs": 1,
+    "logDownloads": 1,
+    "maxLogDownloadBytes": 8388608,
+    "zipDownloadsOrExtractions": 0,
+    "CIrerunsOrPolling": 0
+  },
+  "job": {
+    "run": 43440883403,
+    "id": 131937862415,
+    "name": "services",
+    "status": "completed",
+    "conclusion": "failure",
+    "head": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/43440883403/job/131937862415",
+    "host": "Ubuntu 24.04.5, ubuntu-24.04 image 20261111.370.1",
+    "go": "go1.26.4 linux/amd64",
+    "hostedPythonVersion": "not emitted by this job; not inferred"
+  },
+  "finding": {
+    "finding": "SAME_ALREADY_REVIEWED_50_SECOND_AGGREGATE_COLLECTOR_ALARM",
+    "firstActualFailedCommand": "python3 -B hosted/scripts/test_identity_network_collector.py",
+    "step": "Admit current hosted source and collector controls",
+    "commandLineInStep": 2,
+    "firstFailureLogLine": 657,
+    "exitRecordLogLine": 658,
+    "exitCode": 142,
+    "signal": "SIGALRM",
+    "aggregateAlarmSeconds": 50,
+    "testFileLine": 4310,
+    "activeMethod": "PublicConsoleSigninSourceControls.test_v19_all_three_cold_sparse_consumers_require_every_new_path",
+    "completedSuccessfulMethods": 240,
+    "observedAssertionFailures": 0,
+    "incompleteMethodCount": 1,
+    "suiteSummaryProduced": false,
+    "negativeFixturesCountedAsFailures": false,
+    "failureExcerpt": "2026-11-13T14:15:49.9208110Z test_v19_all_three_cold_sparse_consumers_require_every_new_path (__main__.PublicConsoleSigninSourceControls.test_v19_all_three_cold_sparse_consumers_require_every_new_path) ... /home/runner/work/_temp/bff1c1aa-e2fa-454e-97e9-7d8fb2cf6a99.sh: line 2:  2883 Alarm clock             python3 -B hosted/scripts/test_identity_network_collector.py",
+    "followingRaceTests": "SKIPPED",
+    "optimizedCollector": "NOT_RUN_AFTER_NORMAL_COMMAND_FAILED",
+    "sourceAdmission": {
+      "identity": "hosted-current-customer-expiry-v24",
+      "runtime_or_GA_accepted": false,
+      "selection_sha256": "d86d35be4f9e570480b5f7e9f29c41d63f2a4df0d499531bd2c92d0eaa104f80",
+      "source_count": 331,
+      "source_digest_sha256": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027"
+    },
+    "newFix": "NONE; existing root-reviewed 50-to-120 experiment was absent from ae5",
+    "hosted120Sufficiency": "PENDING, this run contains the byte-exact 50-second baseline"
+  },
+  "download": {
+    "runId": 43440883403,
+    "jobId": 131937862415,
+    "jobName": "services",
+    "headSHA": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+    "download": "GitHub 302 signed URL, binary streaming, EOF and exact Content-Length",
+    "signedHost": "productionresultssa1.blob.core.windows.net",
+    "contentType": "text/plain",
+    "contentEncoding": null,
+    "contentLength": 75895,
+    "savedBytes": 75895,
+    "sha256": "f15c583a96bc19388ac6a2d7c8ab890e9da7c7e9637ab9fa70e2b0cf8a8f217d",
+    "apiCalls": 1,
+    "complete": true,
+    "md5": "3f2a5882966fde185a3ff514ac314b82",
+    "contentMD5": "PypYgpZv3hhaP/UUrDFLgg==",
+    "contentMD5Verified": true,
+    "checksumSHA256": null,
+    "checksumSHA256Verified": false
+  },
+  "sourceEquality": {
+    "ae5": {
+      "revision": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+      "path": "hosted/scripts/test_identity_network_collector.py",
+      "bytes": 1098146,
+      "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+    },
+    "a82": {
+      "revision": "a82cc695d8d855e46e884e2723c1f1c8deb142cc",
+      "path": "hosted/scripts/test_identity_network_collector.py",
+      "bytes": 1098146,
+      "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+    },
+    "equality": {
+      "ae5_equals_a82_equals_R2394_baseline": true,
+      "exactByteComparison": true,
+      "root_current_only_alarm_50_to_120": true,
+      "rootCurrentBytes": 1098147,
+      "rootCurrentSHA256": "f422c74a3acce762f2235c8cf191c21cf11d4ddfa265fd2761e015f9d0d48a27",
+      "suiteBodiesChanged": false,
+      "alarm50Line": 4310
+    },
+    "tools": {
+      "gh": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0",
+      "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+    }
+  },
+  "priorReviewedReferences": [
+    "verification/receipts/v24-isolated-ci-failure-r2394.json",
+    "verification/receipts/collector-alarm-root-r2422.json"
+  ],
+  "custody": {
+    "R986SHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "adapter": "Unchanged definitions-only load; explicit existing cwd; one registry per label. App exec is bootstrap/analysis transport; managed network/tool commands use admitted R986.",
+    "managedCommandCount": 5,
+    "allDirectReapedBothEOFClosedFDsESRCH": true,
+    "newUNKNOWN": false,
+    "rawRegistry": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/services-ci-failure-r2432/custody-summary.json",
+    "hostedDescendantAbsence": "not established by job logs; no hosted process operations or retry",
+    "historicalHoldsInspectedOrReleased": false,
+    "cleanup": "No scratch cleanup performed; own evidence retained"
+  },
+  "protectedScope": {
+    "canonicalIndexGitSourceAuthorityProviderNativeCIMutations": false,
+    "otherActiveLanesTouched": false,
+    "extraDatabaseCompilerFullSuiteOrLimitBump": false,
+    "source331v24": "admission log exact 31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+    "CLI119Pair21Immutable118": "No writes or executions; not requalified in this diagnostic",
+    "GA": false
+  },
+  "artifacts": {
+    "job.complete.log": {
+      "bytes": 75895,
+      "sha256": "f15c583a96bc19388ac6a2d7c8ab890e9da7c7e9637ab9fa70e2b0cf8a8f217d"
+    },
+    "download.json": {
+      "bytes": 687,
+      "sha256": "7b50ee2b9b39e6c2c4b4464904ae4be830413d72d5642eb0fcce99003e32f4da"
+    },
+    "api-calls.json": {
+      "bytes": 244,
+      "sha256": "5c0d25d2b199633a66a4115292e330cdbf50c4f3902201ab44eb255c1dc3abce"
+    },
+    "log-response-headers.json": {
+      "bytes": 1132,
+      "sha256": "e3763506450da50735f976630045849f0ed82cdba1418f078a72a413dacd4749"
+    },
+    "custodian.py": {
+      "bytes": 1638,
+      "sha256": "dd15f98d984ed3f7c7d4d16c5bcb95bfc467ba0dd6016fd1ea67d732afbf634b"
+    },
+    "fetch_log.py": {
+      "bytes": 4001,
+      "sha256": "af43560d9f78a9764ff6b546c605c798c4250537dee7e20c5356854d1c08007e"
+    },
+    "research.py": {
+      "bytes": 662,
+      "sha256": "1a6727edb1f95af6a6c46d8afc59c98ddbd435f5b32fa34b6110a55fe0f5f2ba"
+    },
+    "compare.py": {
+      "bytes": 1596,
+      "sha256": "718c657b637da7896b02fdb52d9444edcf577de19590fb8de752e3179b3e52ff"
+    },
+    "finalize.py": {
+      "bytes": 6363,
+      "sha256": "0673c3ab50d55f8ea14b53cc9f83e8eff5fd9af403e12340fab397bb9e89e0fc"
+    },
+    "source-equality.json": {
+      "bytes": 1081,
+      "sha256": "1346f601266a92c25b543c744d9c91aa60f79c74a8bc93a5717269bc8989c2f1"
+    },
+    "custody-summary.json": {
+      "bytes": 2510,
+      "sha256": "98cfdf361bb277b073fcc56399a9c292f4416350818d9a104ca7785c080f9b6e"
+    },
+    "finding.json": {
+      "bytes": 1712,
+      "sha256": "fe6a16624dcd13a9a6a2658fd4231fa2540ea64b4f68488916c401db29b7a51c"
+    },
+    "commands/job-metadata/commands.json": {
+      "bytes": 443,
+      "sha256": "cf63c19ce13bf54fea2a9396587fa931c1bc37ac5bc534064d4f216036e58dc0"
+    },
+    "commands/job-metadata/job-metadata.stdout": {
+      "bytes": 2383,
+      "sha256": "02778a0f8e22ccb946e50adaa428668962cbd0c3a03da7fa023665a4cffa1ed5"
+    },
+    "commands/job-metadata/job-metadata.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/download-complete-log/commands.json": {
+      "bytes": 547,
+      "sha256": "d5830f5235d6e8897cf26eec30f1ab58cf3d1d4128f495b411c78b4d2c16dbd7"
+    },
+    "commands/download-complete-log/download-complete-log.stdout": {
+      "bytes": 359,
+      "sha256": "3730523a7c56f03a03b2578d4ff8c62e4959c2c4dddd18d69a75b436511842d6"
+    },
+    "commands/download-complete-log/download-complete-log.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/committed-collector-ae5/commands.json": {
+      "bytes": 588,
+      "sha256": "2a5e5f0238140f0c0041236f7b72064da2992997777d57445ad849595490a10e"
+    },
+    "commands/committed-collector-ae5/committed-collector-ae5.stdout": {
+      "bytes": 1098146,
+      "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+    },
+    "commands/committed-collector-ae5/committed-collector-ae5.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/committed-collector-a82/commands.json": {
+      "bytes": 587,
+      "sha256": "98cf9292fffe3512c4d9023bad57bcbc145a9d6765ba510103ccf53ae30f4e41"
+    },
+    "commands/committed-collector-a82/committed-collector-a82.stdout": {
+      "bytes": 1098146,
+      "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+    },
+    "commands/committed-collector-a82/committed-collector-a82.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/gh-version/commands.json": {
+      "bytes": 357,
+      "sha256": "3434444e8c9b04f654d93cf735afb0d3131cd42ee79dcc20d2d58207184c7353"
+    },
+    "commands/gh-version/gh-version.stdout": {
+      "bytes": 81,
+      "sha256": "a679442459bed23fdc13efb977dec3b17c3c923d8d48abc0d8e522182250955f"
+    },
+    "commands/gh-version/gh-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

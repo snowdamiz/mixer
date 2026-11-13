@@ -1,0 +1,253 @@
+{
+  "id": "R2446",
+  "status": "PASS_ORIGINAL_TWO_CASE_HTTP",
+  "started_epoch": 1794580832.558526,
+  "runtime_batch_limit": 2,
+  "strict_compile_limit": 1,
+  "wall_limit_seconds": 900,
+  "strict_compiles": 1,
+  "runtime_batches": 1,
+  "PG_launches": 1,
+  "PG_stops": 1,
+  "port": 39820,
+  "scope": "exact canonical v24 original two-case HTTP module against frozen four-file R2430 candidate",
+  "no_product_or_dependency_BEAM_reused": true,
+  "elapsed_seconds": 53.395,
+  "strict_compile": "PASS",
+  "postgres": {
+    "pid": 25390,
+    "pgid": 25390,
+    "state": "TERMINAL",
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-original-http-r2446/pgdata",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "39820",
+      "-k",
+      "",
+      "-c",
+      "timezone=UTC"
+    ],
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-authz-original-http-r2446/pgdata",
+    "output_kind": "regular_files",
+    "direct_reaped": true,
+    "group_absent": true,
+    "absence_errno": 3,
+    "exit": 0,
+    "closedFDs": true,
+    "pipe_EOF": "not applicable; regular files"
+  },
+  "SQL_readiness_before_DDL": "SELECT1 and exact SHOW data_directory PASS",
+  "candidate_http_exit": 0,
+  "SQL_counterfactual_validation": {
+    "status": "PENDING",
+    "reason": "No standalone reuse of the R2420 in-case active-session SQL helper selected. The exact original HTTP module ends with credential revocation and fixture teardown; no fresh session factory, extra hook, manual GUC setup, second batch or second PG launch attempted.",
+    "baseline_R2420": "preserved historical reference, not rerun",
+    "candidate_serialization_and_serial_control": "UNRUN"
+  },
+  "port_reusable": true,
+  "owned_pgdata_removed": true,
+  "commands_all_terminal": true,
+  "acceptance": "ORIGINAL_HTTP_SLICE_PASS; candidate adoption and independent review remain root decisions",
+  "observed_UTC": "2026-11-13T14:43:25Z",
+  "source": {
+    "root_revision_read_from_git": "ae5c399a80afc9943d0a1d2ec2e9fd070ab817f4",
+    "source_v24_digest": "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027",
+    "authority_count": 331,
+    "product_files": 137,
+    "source_snapshot_files": 285,
+    "product_inventory": {
+      "bytes": 22622,
+      "sha256": "3b644188d6c5f07531938f8862c3f6c921aa148550ef4481f90089a2aa574e0f"
+    },
+    "application_map": {
+      "hosted/lib/mixer_hosted/browser_auth/active_create.ex": {
+        "before": {
+          "bytes": 4884,
+          "sha256": "3c412d8d3d13ba26d46e073c575216b65855714b46c1c0e1997689b724b0371b"
+        },
+        "after": {
+          "bytes": 5447,
+          "sha256": "c8bb46fb5c9861edb072142107fa3e544cdea1be9b478f7b634856fe3252bacd"
+        }
+      },
+      "hosted/lib/mixer_hosted/browser_auth/active_catalog.ex": {
+        "before": {
+          "bytes": 24603,
+          "sha256": "8d08f660eb19575ab6ccd07d7cfd1f92cd88075ed7a69e68126af70a92b80894"
+        },
+        "after": {
+          "bytes": 24582,
+          "sha256": "b26e0dd68e137cf862fef678e12d37820ee826a60b7be03ee3351f00c17ec5d6"
+        }
+      },
+      "hosted/lib/mixer_hosted/customer_builds/create_schema.ex": {
+        "before": {
+          "bytes": 16307,
+          "sha256": "fe85d7ff26a3258c0d750baa66148c82b00f06e40e996b5f7551caa9736ef87f"
+        },
+        "after": {
+          "bytes": 16308,
+          "sha256": "75985f7a2be6c64696a2baed26330acf6ca74b80ed725885dc07ac40c64b7459"
+        }
+      },
+      "hosted/lib/mixer_hosted/authorization.ex": {
+        "before": {
+          "bytes": 4323,
+          "sha256": "2d6410d61f0ab62e22acf890ecdcfd6ace8b593fc30ff1f9f342b3539aeb46db"
+        },
+        "after": {
+          "bytes": 4480,
+          "sha256": "d9288b1beadb17f55c7f4c09315c38b758ede75e0a70f49bbfc39edc3aaf9ecf"
+        }
+      }
+    },
+    "original_test": {
+      "bytes": 26509,
+      "sha256": "6e1a17ce04c7ea601b85bb16296623717c85ceac3bffa5a3af72f7fc8b3c4e5e"
+    },
+    "five_second_provider_fixture": {
+      "bytes": 5523,
+      "sha256": "df20f5a5dc43f3e0777095e4e79c5f9b571d2b62e55e672aac2fbcb80a7c03a7"
+    },
+    "declared_collector_drift": {
+      "hosted/scripts/test_identity_network_collector.py": {
+        "original": {
+          "bytes": 1098146,
+          "sha256": "e632fb38862e624b15f39640ec3ba5618fdadfa3954479afd27373225eea0a4a"
+        },
+        "observed": {
+          "bytes": 1098147,
+          "sha256": "f422c74a3acce762f2235c8cf191c21cf11d4ddfa265fd2761e015f9d0d48a27"
+        }
+      }
+    },
+    "canonical_external_changes_during_run": {},
+    "authority_external_changes_during_run": {},
+    "canonical_product_preimages_preserved": true,
+    "no_canonical_index_git_authority_provider_native_writes": true
+  },
+  "actual_HTTP": {
+    "module": "MixerHosted.CustomerCreateBuildAtomicReplayPGJoinTest",
+    "result": "2 passed",
+    "original_case_names": [
+      "observer_handles_nonquery_nil_failed_and_qualified_metadata",
+      "authenticated_customer_create_build_atomic_replay_pg_join"
+    ],
+    "original_assertion_bytes_exact": true,
+    "original_38_plus_8_assertions": "retained as exact original canonical module; no assertion additions/removals",
+    "concurrent_statuses": [
+      200,
+      201
+    ],
+    "physical_backend": 25478,
+    "physical_xact": "1130",
+    "physical_connection_observations": 6,
+    "create_repo_role": "mixer_build_create",
+    "controls": [
+      "actual_http_pkce_cookie_csrf_atomic_one_physical_transaction",
+      "exact_and_concurrent_replay",
+      "changed_pin_idempotency_and_hidden_source_scope",
+      "csrf_origin_duplicate_json_and_role_refusals",
+      "ordinary_direct_dml_42501",
+      "existing_get",
+      "actual_oban_insertion_error_rollback",
+      "post_job_insert_final_expiry_rollback",
+      "authenticated_missing_create_scope_cookie",
+      "revocation_no_effect"
+    ],
+    "original_deadlines": "unchanged 500ms lock and <5000ms expiry request",
+    "added_R2430_diagnostics": "none executed"
+  },
+  "unrun_additional_guard_controls": [
+    "R2430 source/role/schema/RLS mutation refusal diagnostics",
+    "R2430 added revoked existing GET diagnostic",
+    "separate SQL concurrency/serial/revocation-lock controls"
+  ],
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "Rebar": "rebar 3.28.0 on Erlang/OTP 29 Erts 17.1",
+    "PostgreSQL": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "Elixir_OTP_version_reference": {
+      "source": "verification/local/customer-create-authz-lock-closure-r2430/commands-runtime/elixir-version.stdout",
+      "value": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+      "fresh_runtime_version_command_not_run": true
+    }
+  },
+  "custody": {
+    "managed_runtime_commands": 13,
+    "managed_outer_commands": 1,
+    "all_direct_reap_bothEOF_closedFDs_ESRCH": true,
+    "PG_direct_reap_exit0_ESRCH_regular_outputFDclosed": true,
+    "new_UNKNOWN": false,
+    "historical_holds_accessed_or_released": false
+  },
+  "limitations": [
+    "Private frozen candidate only; no canonical product adoption",
+    "Independent review R2448 is owned by root; not inspected or claimed",
+    "No SQL counterfactual acceptance, GA, publication, native or historical causation claim"
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 2579,
+      "sha256": "11814433b301cab105a973ba390431e2331bcd44f13a8cdce68c0196ca4fb973"
+    },
+    "application-map.json": {
+      "bytes": 1270,
+      "sha256": "cae7e03f5c8724f69ab5f9bef241ccdc91d0ad8e36b52359d5b3b1fc5a905084"
+    },
+    "product.patch": {
+      "bytes": 2863,
+      "sha256": "52a258b63eba4768da705c7bc9c22d14f660054f246de09ea03cf571832292b0"
+    },
+    "all-private-changes.json": {
+      "bytes": 1270,
+      "sha256": "c9409c7967bbb783c29d1bc848435820f6435841d545b8f8c4aea48a98ec2613"
+    },
+    "product-inventory.json": {
+      "bytes": 22622,
+      "sha256": "3b644188d6c5f07531938f8862c3f6c921aa148550ef4481f90089a2aa574e0f"
+    },
+    "source-observation.json": {
+      "bytes": 159574,
+      "sha256": "073a49a581131f816f6cd880d9846357786d9719fda6131d9e130d1f77731a4a"
+    },
+    "source-witness-inventory.json": {
+      "bytes": 9823,
+      "sha256": "bed11d9968deb7cf0a3f0cc72cc76b998071246423656523453a59cb7b3649dc"
+    },
+    "supplemental-exact-witness-inventory.json": {
+      "bytes": 3983,
+      "sha256": "e34fd2034037bf0ae70102a5b4fb57352d7fb9e4a6320862327b8428b1d7e883"
+    },
+    "actual-http-proof.json": {
+      "bytes": 3876,
+      "sha256": "05bc5284f8656611d362a126090ac1436476a2d125dcbb434a149705bb02e18c"
+    },
+    "command-custody.json": {
+      "bytes": 11384,
+      "sha256": "f58e2a089c52ebd017abd992f21bf270a7e31c219e3974821393c589cd3030d7"
+    },
+    "compiled-beam-manifest.json": {
+      "bytes": 203963,
+      "sha256": "77a54db49e0a39dbb85522cae10fc17f69842968f5617b8cf5b87aec1c3289be"
+    },
+    "cleanup.json": {
+      "bytes": 381,
+      "sha256": "e066052347047dc0d07f19fb857c41430d78f41d8c7bdcc8f839500f9bea7d82"
+    },
+    "commands-runtime/candidate-http.stdout": {
+      "bytes": 2325,
+      "sha256": "35cbf39b273bde70a68d597b76c8aeb21714a2836bec800715e5eb00702e22bd"
+    },
+    "commands-runtime/candidate-http.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "elapsed_to_finalization_seconds": 172.796
+}
