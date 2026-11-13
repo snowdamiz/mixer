@@ -510,6 +510,21 @@ absence. The underlying OS operation/error remains unproven. Fresh isolated
 source controls and unrelated product/native work remain authorized; no earlier
 hold is released.
 
+The fresh cache-state fixture job in run43360853269, job131673742834, recorded
+UNKNOWN custody for PID/PGID1153 after EPERM at `commands.py:16` in `gone`,
+calling `os.killpg(1153, 0)` after SIGKILL and direct-child reap. Preserve the
+exact hosted group and its retained
+`/Users/runner/work/mixer/mixer/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/evidence/original-normal-d33mwrsv/scratch/mixer-cache-runner-controls-gfwoykvm`
+without inspection, enumeration, probing, signals, waits, retries or cleanup.
+Also preserve the downloaded archive
+`verification/local/cache-ci-failure-r1930/job-evidence-zip.stdout` and copied
+`verification/local/cache-ci-failure-r1930/hosted-03-runner-controls.stderr`
+against further payload reads or extraction. Read only the external compact
+`verification/receipts/cache-ci-failure-r1930.json` and separately delivered
+static-source report. The later GitHub job cleanup, direct-child reap and
+recorded SIGKILL do not establish group absence. No historical hold is released;
+fresh isolated source and product work remains permitted.
+
 
 The R1728 output-budget unit discovery recorded denied SIGKILL/EPERM and
 UNKNOWN terminal cleanup for PID/PGID41018 (`overflow`) and41034 (`second`).

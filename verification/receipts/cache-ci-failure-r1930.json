@@ -1,0 +1,285 @@
+{
+  "schema": 1,
+  "campaign": "cache-ci-failure-r1930",
+  "state": "diagnosis complete; hosted custody hold preserved",
+  "recorded_utc": "2026-11-13T03:56:10.851162+00:00",
+  "source_revision": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+  "source_tree": "84cdcd5d9957c98d374e8d3c748db770e66b5a93",
+  "job_url": "https://github.com/snowdamiz/mixer/actions/runs/43360853269/job/131673742834",
+  "full_console_log": {
+    "path": "verification/local/cache-ci-failure-r1930/job-log-complete.stdout",
+    "bytes": 21938,
+    "sha256": "34c3ee89945a6a7498f3e1a16435a1ca1fcb238fb99a10630dd78bd3f1e3b89b"
+  },
+  "artifact": {
+    "id": 14008117530,
+    "bytes": 1347253,
+    "sha256": "c285819c366660281fdd470e3ef1288faa87f2f6c42d96f3fa33c2ecdb4ad31b",
+    "further_payload_access": "prohibited after detected custody hold"
+  },
+  "first_failure": {
+    "step": "Shared fixture runner, materializer and adoption focused controls",
+    "test": "test_owned_descendant_group_is_stopped",
+    "suite_ran": 29,
+    "suite_expected": 36,
+    "failures": 1,
+    "message": "AssertionError: False is not true",
+    "first_error": "PermissionError errno=1 in commands.gone at commands.py:16",
+    "prior_adoption_tests": 16,
+    "prior_materializer_tests": 9,
+    "primary_error": "PermissionError: [Errno 1] Operation not permitted",
+    "operation": "os.killpg(1153, 0)",
+    "location": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/commands.py:16",
+    "caller_chain": [
+      "Commands.run:95",
+      "Commands.stop:49",
+      "Commands.gone:16"
+    ],
+    "assertion_location": "verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-controls.py:102",
+    "assertion": "row[owned_group_gone] is false",
+    "suite_passed": 28,
+    "suite_unrun": 7,
+    "expected_timeout_seconds": 0.7,
+    "timeout_is_control_setup": "The test deliberately patches CHILD_SECONDS to 0.7 for parent and descendant that sleep 20 seconds. Timeout triggers cleanup under test; EPERM is the first unexpected failure."
+  },
+  "hold": {
+    "status": "UNKNOWN",
+    "run_id": 43360853269,
+    "job_id": 131673742834,
+    "command": "descendant",
+    "pid": 1153,
+    "pgid": 1153,
+    "cwd": "/Users/runner/work/mixer/mixer/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/evidence/original-normal-d33mwrsv/scratch/mixer-cache-runner-controls-gfwoykvm",
+    "scratch": "/Users/runner/work/mixer/mixer/verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/evidence/original-normal-d33mwrsv/scratch/mixer-cache-runner-controls-gfwoykvm/out/scratch",
+    "exception": {
+      "type": "PermissionError",
+      "errno": 1,
+      "message": "[Errno 1] Operation not permitted",
+      "phase": "active"
+    },
+    "first_permission_origin": {
+      "file": "commands.py",
+      "function": "gone",
+      "line": 16,
+      "callers": [
+        {
+          "function": "run",
+          "line": 95
+        },
+        {
+          "function": "stop",
+          "line": 49
+        }
+      ]
+    },
+    "child_returned": true,
+    "exit": null,
+    "stdout_eof": false,
+    "stderr_eof": false,
+    "owned_group_gone": false,
+    "owned_group_killed": true,
+    "timed_out": true,
+    "custody_hold": true,
+    "unknown_custody": true,
+    "local_downloaded_archive_held": "verification/local/cache-ci-failure-r1930/job-evidence-zip.stdout",
+    "restrictions": "Preserve the exact hosted group and retained scratch; no inspection, probing, signals, waits, retries or cleanup. Preserve downloaded archive against further payload reads/extraction. Job completion and direct child return release nothing.",
+    "local_copied_error_log_held": "verification/local/cache-ci-failure-r1930/hosted-03-runner-controls.stderr",
+    "unobserved_descendant_identity": "No inner descendant identity exposed; no held payload inspected to recover it.",
+    "fd_closure_proof": "No aggregate descriptors-closed field exposed; EOF flags are false."
+  },
+  "limits": {
+    "no_ci_retry": true,
+    "no_ci_rerun": true,
+    "no_builds": true,
+    "no_devices": true,
+    "no_subchildren": true,
+    "canonical_source_read_only": true
+  },
+  "completed_utc": "2026-11-13T03:59:58.412334+00:00",
+  "sequence": [
+    {
+      "stage": "Adoption controls",
+      "result": "16 passed"
+    },
+    {
+      "stage": "Materializer controls",
+      "result": "9 passed"
+    },
+    {
+      "stage": "Original normal runner controls",
+      "result": "29/36 ran; 28 passed, descendant-group control failed and stopped test admission"
+    },
+    {
+      "stage": "Optimized runner controls, normal/optimized contracts, selection controls",
+      "result": "Unrun after set -e halted the focused-controls step"
+    },
+    {
+      "stage": "One complete shared fixture / compiler admission",
+      "result": "Skipped per job metadata"
+    },
+    {
+      "stage": "Postflight and artifact upload",
+      "result": "Succeeded; does not release hosted custody"
+    },
+    {
+      "stage": "GitHub Cleaning up orphan processes",
+      "result": "Later housekeeping; neither failure attribution nor absence proof"
+    }
+  ],
+  "sources": [
+    {
+      "path": ".github/workflows/verify.yml",
+      "revision": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+      "bytes": 50031,
+      "sha256": "3a47da46dece324b1fbc00d783bc97aab61f0e4f454611c43a9b7c20602aca7a",
+      "retained_static_copy": "verification/local/cache-ci-failure-r1930/canonical-workflow.stdout"
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/commands.py",
+      "revision": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+      "bytes": 9090,
+      "sha256": "7cacf4d5ccc2158924b9b2f7b782fc68fcbf49b10b0cc860ed94ac03b3520d13",
+      "retained_static_copy": "verification/local/cache-ci-failure-r1930/canonical-commands.stdout"
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/test_original.py",
+      "revision": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+      "bytes": 4052,
+      "sha256": "338ccbc6842bb02286cbfe206842120cc071f37a76205e6970bbb92a4212c404",
+      "retained_static_copy": "verification/local/cache-ci-failure-r1930/canonical-cache-test.stdout"
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/cache-deadline-control-fix/runner-controls.py",
+      "revision": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+      "bytes": 24309,
+      "sha256": "1ec5eeb5a80d257aaebd22544f715abdaa0765daa24a45f077554422ff770ab2",
+      "retained_static_copy": "verification/local/cache-ci-failure-r1930/canonical-runner-controls.stdout"
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/original_adapter.py",
+      "revision": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+      "bytes": 1349,
+      "sha256": "a17233453a90cfa2c1edc66329593f7b1c72f0efdbd0ec754760a5750e385404",
+      "retained_static_copy": "verification/local/cache-ci-failure-r1930/canonical-original-adapter.stdout"
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/adopt_fixture.py",
+      "revision": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+      "bytes": 5978,
+      "sha256": "9ada7e4b63a60d87ef7831c187044155526f90179304959e0972aee0938def30",
+      "retained_static_copy": "verification/local/cache-ci-failure-r1930/canonical-adopt-fixture.stdout"
+    },
+    {
+      "path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/original_safety.py",
+      "revision": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+      "bytes": 4253,
+      "sha256": "6450e9c3cb804c8000b242f6e0a939933694a3599fcb63c99a3323bac99f8fbc",
+      "retained_static_copy": "verification/local/cache-ci-failure-r1930/canonical-original-safety.stdout"
+    }
+  ],
+  "source_diagnosis": {
+    "proved": [
+      "Installed commands_sha256 equals canonical Commands SHA256.",
+      "run:95 invokes stop; initial group check stop:43 returned present, stop:44 dispatched SIGKILL and stop:46 reaped the direct child. The repeated group observation stop:49 raised EPERM in gone:16.",
+      "gone:18-20 and stop:55-57 mark UNKNOWN and rethrow; run:114 closes process-operation admission when UNKNOWN and run:120-122 retains custody.",
+      "Triggering control creates a descendant without explicit wait/reap at runner-controls.py:97; line102 requires positive group absence.",
+      "original_adapter.py:13-18 changes only a fake clock helper and verifies all 36 test bodies unchanged.",
+      "original_safety.py:77-80 stops further tests after a hold."
+    ],
+    "not_proved": [
+      "Underlying macOS reason for EPERM, descendant terminal state, or group disappearance.",
+      "A compiler, engine, cache algorithm, Rust admission or artifact upload defect.",
+      "A safe corrective source patch."
+    ],
+    "corrective_target": null,
+    "exact_failure_source": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/commands.py:14-20 (gone), reached via stop:43-49; triggering control is cache-deadline-control-fix/runner-controls.py:96-102.",
+    "decision": "Preserve fail-closed custody behavior. Do not treat EPERM as ESRCH, weaken group-absence assertions, infer absence from direct-child return, or claim a higher timeout fixes this failure. No source edit justified by this campaign."
+  },
+  "log_evidence": {
+    "members_read_before_hold": [
+      {
+        "member": "verification/shared-fixture-clock-controls-correction/logs/preflight.stdout",
+        "saved": "hosted-00-preflight.stdout",
+        "bytes": 18822,
+        "sha256": "6049ffd167a8e4c4b3e0825deb11de98c1d5b7de56ca4eef67479c9e5943d235"
+      },
+      {
+        "member": "verification/shared-fixture-clock-controls-correction/logs/adoption-controls.stderr",
+        "saved": "hosted-01-adoption-controls.stderr",
+        "bytes": 2331,
+        "sha256": "a971e1416427da84cd9f982a466a188dfa69edf2f237c7987f40bf877b967a9f"
+      },
+      {
+        "member": "verification/cache-fixture-shared-input-candidate-v2/logs/materializer-controls.stderr",
+        "saved": "hosted-02-materializer-controls.stderr",
+        "bytes": 1451,
+        "sha256": "cf7be694d032c75c3749ce51c1297d022b04d8bb33d60bb74fdd901e9dd8bcdc"
+      },
+      {
+        "member": "verification/cache-fixture-shared-input-candidate-v2/logs/runner-controls.stderr",
+        "saved": "hosted-03-runner-controls.stderr",
+        "bytes": 9242,
+        "sha256": "2a66fdd11277ea291c222f10bf2c60c95cd58225c1a06a21fa452a429982cc75"
+      }
+    ],
+    "first_console_error_line": 186,
+    "first_console_error_utc": "2026-11-13T03:43:48.6992590Z",
+    "artifact_inspection_stopped_at": "verification/cache-fixture-shared-input-candidate-v2/logs/runner-controls.stderr",
+    "post_hold_payload_reads": 0
+  },
+  "network_budget": {
+    "total_official_gh_api_calls": 4,
+    "successful_downloads": 2,
+    "job_metadata_calls": 1,
+    "initial_rejected_log_output_calls": 1,
+    "explanation": "Initial gh log output rejected terminal escape sequences and retained zero stdout; corrected with --allow-escape-sequences. One metadata call confirmed revision/step. Direct artifact download used the console-provided ID. No further remote calls or CI retries/reruns."
+  },
+  "tool_versions": {
+    "gh": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0",
+    "local_python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "hosted_python": "3.15.2",
+    "hosted_git": "2.56.0",
+    "hosted_os": "Darwin 24.6.0 arm64; macos-15-arm64 image 20261104.0514.1",
+    "local_git": "Version attempt stopped before launch on malformed local registry; not collected."
+  },
+  "custodian": {
+    "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchanged_ast_definitions": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "explicit_existing_cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cache-ci-failure-r1930",
+    "command_records_path": "verification/local/cache-ci-failure-r1930/commands-recovered.json",
+    "command_count": 14,
+    "all_local_groups_direct_reaped_bothEOF_closedFDs_positiveESRCH": true,
+    "evidence_basis": "Complete individual tool-returned records, reconstructed with declared provenance; shared commands.json is malformed and preserved.",
+    "registry_error": {
+      "original_path": "verification/local/cache-ci-failure-r1930/commands.json",
+      "original_bytes": 3692,
+      "original_sha256": "0137491cfc50b0f123879e973661b82089b2135fbc5a4a0b7b7b99345146971e",
+      "parse_error": "Extra data: line 134 column 3 (char 3688)",
+      "cause": "My parallel invocations used the same OUT/commands.json; the unmodified custodian does not coordinate concurrent writers.",
+      "recovered_path": "verification/local/cache-ci-failure-r1930/commands-recovered.json",
+      "recovery_basis": "Individual tool-returned complete custody records for all 14 commands.",
+      "subsequent_git_version_attempt": "Prelaunch JSONDecodeError before InertPopen invocation; no inner child launched.",
+      "no_record_recovery_retries_or_probes": true
+    },
+    "hosted_custody_distinct": true
+  },
+  "scope": {
+    "canonical_edits": 0,
+    "shared_root_record_writes": 0,
+    "owned_paths": [
+      "verification/local/cache-ci-failure-r1930",
+      "verification/receipts/cache-ci-failure-r1930.json"
+    ],
+    "no_build_device_runtime_or_ci_rerun": true,
+    "no_subchildren": true,
+    "no_custody_hold_released": true,
+    "diagnosis_only": true
+  }
+}

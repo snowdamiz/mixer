@@ -1,0 +1,634 @@
+{
+  "schema": "mixer.vm-delivered-ci-audit.v1",
+  "campaign": "r1928",
+  "observed_at_utc": "2026-11-13T03:59:41.838823+00:00",
+  "scope": "Read-only W08 delivered ignored indirect-call and bulk-memory parents; one independent audit; no subchildren",
+  "verdict": "PASS_HOSTED_PARENT_EXECUTION",
+  "findings": [],
+  "selection": {
+    "policy": "Latest completed VM job among the two supplied candidates whose test sources match the delivered hashes",
+    "status_query_count": 2,
+    "status_queries_per_candidate": 1,
+    "polled_or_watched": false,
+    "selected": {
+      "id": 131673742525,
+      "run_id": 43360853269,
+      "head_sha": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+      "name": "vm",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-13T03:43:37Z",
+      "completed_at": "2026-11-13T03:53:42Z",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43360853269/job/131673742525"
+    },
+    "earlier": {
+      "id": 131670925495,
+      "run_id": 43359988686,
+      "head_sha": "74f21325e6ea7e4dfc2c5c4081eb6e4d015da3fb",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-13T03:46:02Z"
+    },
+    "pending": false
+  },
+  "source": {
+    "delivered_commit": "74f21325e6ea7e4dfc2c5c4081eb6e4d015da3fb",
+    "audited_commit": "a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b",
+    "git_tree": "84cdcd5d9957c98d374e8d3c748db770e66b5a93",
+    "direct_parent_is_delivered_commit": true,
+    "followup_changed_files": [
+      "hosted/scripts/check-provider-trust-config.exs",
+      "verification/receipts/provider-trust-cold-loader-r1922.json"
+    ],
+    "tests": [
+      {
+        "path": "vm/tests/differential_indirect_call_consuming.rs",
+        "bytes": 10881,
+        "sha256": "7fd6884647253e8072eb7f845bf860aa8994234e609d35432729d4177f3c2c76",
+        "expected_sha256": "7fd6884647253e8072eb7f845bf860aa8994234e609d35432729d4177f3c2c76",
+        "matches": true,
+        "copied_source": "head-indirect-source.stdout",
+        "ignored_parent": "indirect_calls_match_node",
+        "parent_source_lines": [
+          272,
+          307
+        ],
+        "cases_per_parent_from_source": 16
+      },
+      {
+        "path": "vm/tests/differential_bulk_memory_consuming.rs",
+        "bytes": 10764,
+        "sha256": "64d12c196eb7f384e07d41576b03e3f5b99db460eb20b5ecbc10b5ff115bdb10",
+        "expected_sha256": "64d12c196eb7f384e07d41576b03e3f5b99db460eb20b5ecbc10b5ff115bdb10",
+        "matches": true,
+        "copied_source": "head-bulk-source.stdout",
+        "ignored_parent": "bulk_memory_matches_node",
+        "parent_source_lines": [
+          287,
+          322
+        ],
+        "cases_per_parent_from_source": 16
+      }
+    ],
+    "workflow": {
+      "path": ".github/workflows/verify.yml",
+      "bytes": 50031,
+      "sha256": "3a47da46dece324b1fbc00d783bc97aab61f0e4f454611c43a9b7c20602aca7a"
+    },
+    "actual_job_head": {
+      "line": 230,
+      "text": "2026-11-13T03:43:42.1058032Z a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b"
+    }
+  },
+  "log": {
+    "http_response": {
+      "bytes": 3871460,
+      "sha256": "81dc937dcc2a4a05062fc7941311756e711748b570ff8252310371ce5d5806ca"
+    },
+    "log": {
+      "bytes": 3870574,
+      "sha256": "42bb1eafdcce702a750fcda131de89ab8592d98abf8846330ab76fd5d64ea856"
+    },
+    "content_length": 3870574,
+    "length_matches": true,
+    "etag": "\"0x8DF4139B583AD3C\"",
+    "raw_terminal_escapes_preserved": true,
+    "transport_file_limit": {
+      "shell_ulimit_f_blocks": 65536,
+      "at_least_bytes": 33554432
+    },
+    "timeout_seconds": 60,
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928/job.log",
+    "lines": 6975,
+    "complete_http_body_verified": true,
+    "last_line": {
+      "line": 6975,
+      "text": "2026-11-13T03:53:40.9092202Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/"
+    }
+  },
+  "host_tools": {
+    "auditor_gh": "gh version 2.102.0 (2026-09-30)",
+    "auditor_python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "runner": {
+      "line": 231,
+      "text": "2026-11-13T03:43:42.1067814Z Linux runnervm8axu0 7.0.0-1017-azure #17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 18:46:57 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux"
+    },
+    "rustc": {
+      "line": 232,
+      "text": "2026-11-13T03:43:42.3144562Z rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+    },
+    "cargo": {
+      "line": 239,
+      "text": "2026-11-13T03:43:43.4931849Z cargo 1.99.1 (5f94df478 2026-08-27)"
+    },
+    "node": {
+      "line": 248,
+      "text": "2026-11-13T03:43:43.6273881Z v22.23.4"
+    }
+  },
+  "combined_feature_commands": [
+    {
+      "profile": "debug",
+      "command": "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored",
+      "workflow_line": 570,
+      "echo": {
+        "line": 955,
+        "text": "2026-11-13T03:44:12.6053581Z \u001b[36;1mcargo test --locked --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored\u001b[0m"
+      },
+      "echo_is_execution_proof": false,
+      "actual_finished_profile": {
+        "line": 4478,
+        "text": "2026-11-13T03:48:38.7287957Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 9.51s"
+      }
+    },
+    {
+      "profile": "release",
+      "command": "cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored",
+      "workflow_line": 571,
+      "echo": {
+        "line": 956,
+        "text": "2026-11-13T03:44:12.6056088Z \u001b[36;1mcargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native -- --ignored\u001b[0m"
+      },
+      "echo_is_execution_proof": false,
+      "actual_finished_profile": {
+        "line": 4738,
+        "text": "2026-11-13T03:49:08.8302895Z     Finished `release` profile [optimized] target(s) in 22.81s"
+      }
+    }
+  ],
+  "actual_parent_executions": [
+    {
+      "profile": "debug",
+      "parent": "bulk_memory_matches_node",
+      "status": "ok",
+      "binary": {
+        "line": 4531,
+        "text": "2026-11-13T03:48:39.8031762Z      Running tests/differential_bulk_memory_consuming.rs (vm/target/debug/deps/differential_bulk_memory_consuming-84d3d4e11fe60e0f)"
+      },
+      "running": {
+        "line": 4533,
+        "text": "2026-11-13T03:48:39.8041214Z running 1 test"
+      },
+      "ok": {
+        "line": 4534,
+        "text": "2026-11-13T03:48:40.3519586Z test bulk_memory_matches_node ... ok"
+      },
+      "summary": {
+        "line": 4536,
+        "text": "2026-11-13T03:48:40.3520386Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s"
+      },
+      "cases_implied_by_matching_source": 16,
+      "case_rows_directly_observed": 0
+    },
+    {
+      "profile": "debug",
+      "parent": "indirect_calls_match_node",
+      "status": "ok",
+      "binary": {
+        "line": 4538,
+        "text": "2026-11-13T03:48:40.3522837Z      Running tests/differential_indirect_call_consuming.rs (vm/target/debug/deps/differential_indirect_call_consuming-bb45dab5cb21abf8)"
+      },
+      "running": {
+        "line": 4540,
+        "text": "2026-11-13T03:48:40.3535021Z running 1 test"
+      },
+      "ok": {
+        "line": 4541,
+        "text": "2026-11-13T03:48:40.9107269Z test indirect_calls_match_node ... ok"
+      },
+      "summary": {
+        "line": 4543,
+        "text": "2026-11-13T03:48:40.9108812Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.56s"
+      },
+      "cases_implied_by_matching_source": 16,
+      "case_rows_directly_observed": 0
+    },
+    {
+      "profile": "release",
+      "parent": "bulk_memory_matches_node",
+      "status": "ok",
+      "binary": {
+        "line": 4791,
+        "text": "2026-11-13T03:49:09.7767447Z      Running tests/differential_bulk_memory_consuming.rs (vm/target/release/deps/differential_bulk_memory_consuming-ed23e3cd7af466d3)"
+      },
+      "running": {
+        "line": 4793,
+        "text": "2026-11-13T03:49:09.7777574Z running 1 test"
+      },
+      "ok": {
+        "line": 4794,
+        "text": "2026-11-13T03:49:10.3290851Z test bulk_memory_matches_node ... ok"
+      },
+      "summary": {
+        "line": 4796,
+        "text": "2026-11-13T03:49:10.3292112Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s"
+      },
+      "cases_implied_by_matching_source": 16,
+      "case_rows_directly_observed": 0
+    },
+    {
+      "profile": "release",
+      "parent": "indirect_calls_match_node",
+      "status": "ok",
+      "binary": {
+        "line": 4798,
+        "text": "2026-11-13T03:49:10.3293390Z      Running tests/differential_indirect_call_consuming.rs (vm/target/release/deps/differential_indirect_call_consuming-11a80408838dcb90)"
+      },
+      "running": {
+        "line": 4800,
+        "text": "2026-11-13T03:49:10.3305578Z running 1 test"
+      },
+      "ok": {
+        "line": 4801,
+        "text": "2026-11-13T03:49:10.8803031Z test indirect_calls_match_node ... ok"
+      },
+      "summary": {
+        "line": 4803,
+        "text": "2026-11-13T03:49:10.8803766Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s"
+      },
+      "cases_implied_by_matching_source": 16,
+      "case_rows_directly_observed": 0
+    }
+  ],
+  "ordinary_nonignored_invocations": {
+    "ignored_parent_lines": [
+      {
+        "line": 1495,
+        "text": "2026-11-13T03:47:17.2538309Z test bulk_memory_matches_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor"
+      },
+      {
+        "line": 1502,
+        "text": "2026-11-13T03:47:17.2548133Z test indirect_calls_match_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor"
+      },
+      {
+        "line": 3253,
+        "text": "2026-11-13T03:48:25.0728089Z test bulk_memory_matches_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor"
+      },
+      {
+        "line": 3260,
+        "text": "2026-11-13T03:48:25.0737834Z test indirect_calls_match_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor"
+      },
+      {
+        "line": 5502,
+        "text": "2026-11-13T03:52:17.4901846Z test bulk_memory_matches_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor"
+      },
+      {
+        "line": 5509,
+        "text": "2026-11-13T03:52:17.4911470Z test indirect_calls_match_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor"
+      },
+      {
+        "line": 6339,
+        "text": "2026-11-13T03:53:16.6315255Z test bulk_memory_matches_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor"
+      },
+      {
+        "line": 6346,
+        "text": "2026-11-13T03:53:16.6325643Z test indirect_calls_match_node ... ignored, development Node oracle; run explicitly with experimental-swift-reactor"
+      }
+    ],
+    "interpretation": "These ignored results are excluded from the four explicit --ignored parent passes. Baseline builds with no reactor feature contain zero tests in these binaries."
+  },
+  "case_evidence": {
+    "direct_parent_ok_lines": 4,
+    "direct_case_row_markers": {
+      "PARITY case=": 0,
+      "CLEANUP case=": 0,
+      "ADMITTED case=": 0,
+      "ORACLE case=": 0,
+      "MODULE case=": 0,
+      "16 original indirect-call cases matched Node": 0,
+      "16 original bulk-memory cases matched Node": 0
+    },
+    "cases_implied_from_matching_source_per_profile_per_domain": 16,
+    "source_implied_comparisons_per_domain_both_profiles": 32,
+    "source_implied_comparisons_total": 64,
+    "direct_case_rows_observed": 0,
+    "qualification": "Successful outer libtest capture hides parent and nested output because CI omits outer --nocapture. Sixteen child cases per domain/profile are source-backed implications of the passing parents, not independently visible hosted rows.",
+    "separate_local_evidence": "User-supplied R1868 and R1886 accepted local evidence each has 32 Node comparisons; neither local receipt was read or counted as hosted evidence."
+  },
+  "custody": {
+    "admitted_custodian": {
+      "custodian": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+      "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+      "selected_definitions": [
+        "read",
+        "save",
+        "row",
+        "InertPopen",
+        "run"
+      ],
+      "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "platform": "darwin",
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+      "scope": "read-only delivered CI audit; no builds, runtime reruns, held chains or children",
+      "created_at": "2026-11-13T03:54:35.342407+00:00"
+    },
+    "commands": [
+      {
+        "label": "gh-version",
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 87068,
+        "pgid": 87068,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.11681641696486622,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "latest-vm-job",
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "repos/snowdamiz/mixer/actions/jobs/131673742525"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 87105,
+        "pgid": 87105,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.4217057500500232,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "earlier-run-jobs",
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "repos/snowdamiz/mixer/actions/runs/43359988686/jobs?per_page=100"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 87178,
+        "pgid": 87178,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.6303262920118868,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "head-indirect-source",
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "-H",
+          "Accept: application/vnd.github.raw+json",
+          "repos/snowdamiz/mixer/contents/vm/tests/differential_indirect_call_consuming.rs?ref=a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 88163,
+        "pgid": 88163,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.3270946249831468,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "head-bulk-source",
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "-H",
+          "Accept: application/vnd.github.raw+json",
+          "repos/snowdamiz/mixer/contents/vm/tests/differential_bulk_memory_consuming.rs?ref=a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 88506,
+        "pgid": 88506,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.29903270909562707,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "followup-commit",
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "repos/snowdamiz/mixer/commits/a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 88855,
+        "pgid": 88855,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.46846433402970433,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "workflow-list",
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "repos/snowdamiz/mixer/contents/.github/workflows?ref=a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 89433,
+        "pgid": 89433,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.3601947500137612,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "full-job-log-download",
+        "argv": [
+          "/bin/sh",
+          "-c",
+          "ulimit -f 65536\nexec \"$1\" api --include repos/snowdamiz/mixer/actions/jobs/131673742525/logs > \"$2\"",
+          "vm-ci-log-r1928",
+          "/opt/homebrew/bin/gh",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928/job-log.http"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 89503,
+        "pgid": 89503,
+        "state": "direct_reaped",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.7826809999532998,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "full-job-log-download-raw",
+        "argv": [
+          "/bin/sh",
+          "-c",
+          "ulimit -f 65536\nexec \"$1\" api --allow-escape-sequences --include repos/snowdamiz/mixer/actions/jobs/131673742525/logs > \"$2\"",
+          "vm-ci-log-r1928",
+          "/opt/homebrew/bin/gh",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928/job-log-full.http"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 90342,
+        "pgid": 90342,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.8184703330043703,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "head-workflow",
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "-H",
+          "Accept: application/vnd.github.raw+json",
+          "repos/snowdamiz/mixer/contents/.github/workflows/verify.yml?ref=a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-delivered-ci-r1928",
+        "pid": 90353,
+        "pgid": 90353,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.33961374999489635,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "all_10_owned_groups_reaped_eof_closed_and_absent": true,
+    "holds_created": false,
+    "initial_download_failure": {
+      "exitCode": 1,
+      "reason": "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway",
+      "resolution": "One bounded log-download retry using the requested gh --allow-escape-sequences flag; no status requery; full raw bytes and header length verified."
+    },
+    "hosted_descendant_absence": "Not independently audited; job success is not descendant-custody proof."
+  },
+  "artifacts": {
+    "job.log": {
+      "bytes": 3870574,
+      "sha256": "42bb1eafdcce702a750fcda131de89ab8592d98abf8846330ab76fd5d64ea856"
+    },
+    "workflow-list.stdout": {
+      "bytes": 30307,
+      "sha256": "2c3965c1d6a4cd8e961fcbca6e693f86b7d4d58e60ea4cbd1d9262b8c14000b4"
+    },
+    "job-log.http": {
+      "bytes": 886,
+      "sha256": "1ef819c6d2459793eb376228e2796302124e7e5f21ac63172481cf91b571793a"
+    },
+    "audit.py": {
+      "bytes": 13300,
+      "sha256": "006edc494f521aa26375a71a901772c3f0aaeabb4ef75327d3198341bf3c67dc"
+    },
+    "followup-commit.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "job-log-full.http": {
+      "bytes": 3871460,
+      "sha256": "81dc937dcc2a4a05062fc7941311756e711748b570ff8252310371ce5d5806ca"
+    },
+    "followup-commit.stdout": {
+      "bytes": 7002,
+      "sha256": "7eadf55579a0ad9add7acdf075826746df8ec09f1ba4cbc72f8b90b3ba83f168"
+    },
+    "log-integrity.json": {
+      "bytes": 508,
+      "sha256": "08bd7ac33a43c0cfaafc95ff154c99697c866c2d8a33cfe64fac91fcc93d7e22"
+    },
+    "workflow-list.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands.json": {
+      "bytes": 5572,
+      "sha256": "654b41765b80af1229a4ed4273f81c05da09d7fc0a6d27e3654c70257e679e80"
+    },
+    "gh-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "head-indirect-source.stdout": {
+      "bytes": 10881,
+      "sha256": "7fd6884647253e8072eb7f845bf860aa8994234e609d35432729d4177f3c2c76"
+    },
+    "full-job-log-download.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "head-workflow.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "earlier-run-jobs.stdout": {
+      "bytes": 23353,
+      "sha256": "3b00bbaf8e75f0f1c7a1e6e08eddb67fbad5ce5cdce610ad00f21416a3289e5e"
+    },
+    "latest-vm-job.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "full-job-log-download-raw.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "head-bulk-source.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "full-job-log-download-raw.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "head-bulk-source.stdout": {
+      "bytes": 10764,
+      "sha256": "64d12c196eb7f384e07d41576b03e3f5b99db460eb20b5ecbc10b5ff115bdb10"
+    },
+    "latest-vm-job.stdout": {
+      "bytes": 3002,
+      "sha256": "a68c96bbacaf91f9c49f27abb7f19c82a31a1a7f323faebe988557d05b85a989"
+    },
+    "head-workflow.stdout": {
+      "bytes": 50031,
+      "sha256": "3a47da46dece324b1fbc00d783bc97aab61f0e4f454611c43a9b7c20602aca7a"
+    },
+    "earlier-run-jobs.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "admission.json": {
+      "bytes": 680,
+      "sha256": "b6cd5e4efda30d72e8990626ba8df0db7da9c2a1ac5b30c373a926039e37ec63"
+    },
+    "gh-version.stdout": {
+      "bytes": 81,
+      "sha256": "a679442459bed23fdc13efb977dec3b17c3c923d8d48abc0d8e522182250955f"
+    },
+    "head-indirect-source.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "full-job-log-download.stderr": {
+      "bytes": 99,
+      "sha256": "8b6407b2fdbca54bf3d53fb93e79a3560dbe59567fa5044cfee4bed1b5b6e467"
+    }
+  },
+  "limitations": [
+    "No builds or runtime reruns performed.",
+    "No held chain, device, external process or retained scratch was inspected or operated on.",
+    "No canonical, index, Git, gate, queue or workflow mutation performed.",
+    "No GA, device, immutable-package, rollout or production qualification follows from this audit.",
+    "Only the owned local directory and compact receipt were written; no staging occurred, so the post-staging artifact check was not applicable."
+  ]
+}
