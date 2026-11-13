@@ -1,0 +1,193 @@
+{
+  "id": "generated-java-compact-diagnostics-r2352",
+  "status": "PRIVATE_PATCH_REVIEW_REQUIRED_OUTPUT_TEST_CONTRACT",
+  "proofBatches": 2,
+  "firstProof": "Expected-size assertion failed at 18725 bytes, corrected cap96; terminal owned group absent",
+  "proof": {
+    "status": "PASS_IN_MEMORY_SOURCE_ONLY",
+    "batches": 2,
+    "baseline": {
+      "exit": 1,
+      "stdout": "{\"status\": \"failed\", \"error\": \"Actual integration did not pass\"}\n"
+    },
+    "candidate": {
+      "exit": 1,
+      "stdout": "{\"integration_failure\": {\"status\": \"failed\", \"error\": \"R2352_MEMORY_ERROR_EPERM\", \"cleanup\": {\"command_custody_terminal\": false, \"owned_scratch_started\": null, \"owned_scratch_removed\": false, \"error\": null, \"evidence_persistence_error\": null, \"retention_reason\": null}, \"last_command\": {\"label\": \"debug-create\", \"pid\": 2352001, \"owned_pgid\": 2352001, \"exit_code\": 74, \"stop\": null, \"terminal_custody\": false, \"direct_child_reaped\": true, \"stdout_eof\": true, \"stderr_eof\": true, \"owned_group_absent\": false, \"descriptors_closed\": false, \"execution_error\": {\"type\": \"PermissionError\", \"message\": \"[Errno 1] Operation not permitted\"}, \"cleanup_errors\": [{\"operation\": \"observe-owned-group\", \"type\": \"PermissionError\", \"message\": \"EPERM\"}], \"group_observation\": {\"outcome\": \"denied\", \"attempts\": 1}}}}\n{\"status\": \"failed\", \"error\": \"Actual integration did not pass\"}\n"
+    },
+    "allOriginalGuardASTUnchanged": true,
+    "unknownNoReadProbeCleanup": true,
+    "retainedBoundaryExit74Events": [
+      74,
+      74,
+      74
+    ],
+    "worstProjectionJSONBytes": 14117,
+    "canonicalOwningInputsMatchPrivateBeforeMap": true,
+    "workflowV23PrefixExact": true,
+    "successArtifacts": 48,
+    "alwaysMetadata": 8,
+    "rawGeneratedJavaRetention": "not claimed"
+  },
+  "yamlAndShell": "PASS actual Ruby YAML parser and bash -n",
+  "application": {
+    "verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py": {
+      "before": {
+        "bytes": 18682,
+        "sha256": "e42931e0d062d40648bf9a6de11469ba4aa4396cfefaabf25c71eed00ae55354",
+        "oid": "b4feaa434761dc7177121c09dcb65a7a9e4c3dfd"
+      },
+      "after": {
+        "bytes": 20791,
+        "sha256": "f2e6266fa04f1336bab2dab541dd8f3ac75ef146e6ddc623c834996a262c2dfa",
+        "oid": "cb3a81f0de7893b7696c86ecbdf3bb0028d1694a"
+      }
+    },
+    ".github/workflows/verify.yml": {
+      "before": {
+        "bytes": 52734,
+        "sha256": "cc2905802192b4e82a5b7f250f74b90aeeb7229d380d604f400bda5c103150d5",
+        "oid": "1654ff4842d8185b90ef99152d8ef4df7abbffcf"
+      },
+      "after": {
+        "bytes": 58510,
+        "sha256": "1fd42e8fc714efdc0f74eb13f1d33f10af35fae76966d1cb4fde3d46b06b44f3",
+        "oid": "003946b6ba2c35f292cc7829926423c88ed1a8d4"
+      }
+    }
+  },
+  "dependencyContract": "verification/local/generated-java-compact-diagnostics-r2352/dependency-contract.json",
+  "current331": {
+    "count": 331,
+    "sha256": "98b32fe965445b59a4a809135671c5e35ae52911c30df121273162cbaa151bf8",
+    "bootstrapOrWorkflowMember": false,
+    "sha256Basis": "Parent supplied confirmed source digest; local accidental CLI digest formula check failed, no source drift inferred or qualification claimed",
+    "selectionTopLevel": {
+      "identity": "hosted-current-ci-discovery-v23",
+      "operation": "admit-R2310-R2314-after-v22",
+      "parent_contract_sha256": "ec023dc394b881435b76bde4c153368f831848cf6693e5eb9a1f9d04c04b8ed1",
+      "product_map_sha256": "75e34b20f5fc60cd0c696d09cb45f8753c64e6a4a060e9577693c8c4762585bf",
+      "runtime_or_GA_accepted": false,
+      "schema": 1,
+      "scope": "Source admission only; root product/runtime acceptance and independent packet review required."
+    }
+  },
+  "managedCommands": [
+    {
+      "label": "proof-second-final",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-compact-diagnostics-r2352/prove.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 90606,
+      "pgid": 90606,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06777645903639495,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "yaml",
+      "argv": [
+        "/usr/bin/ruby",
+        "-ryaml",
+        "-e",
+        "d=YAML.load_file(ARGV[0]); s=d['jobs']['android-generated-java']['steps']; a=s.find_index{|x|x['name']=='Preserve generated Java top-level metadata first'}; raise unless a && s[a]['if']=='always()' && s[a+1]['if']=='success()'; raise unless s[a]['with']['path'].lines.length==8 && s[a+1]['with']['path'].lines.length==48; puts 'YAML parse, metadata-first and positive-success roster PASS'",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-compact-diagnostics-r2352/workflow.after.yml"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 90607,
+      "pgid": 90607,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.11106620891951025,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "shell-syntax",
+      "argv": [
+        "/bin/bash",
+        "-n",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-compact-diagnostics-r2352/integration-step.sh"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 90612,
+      "pgid": 90612,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.01649591699242592,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "previousManagedRegistries": [
+    "commands-prepare/commands.json",
+    "commands-prepare-final/commands.json",
+    "commands-proof/commands.json"
+  ],
+  "R986": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52 AST definitions only; explicit cwd; serialized registries",
+  "historicalHostedHold": {
+    "run": 43427406152,
+    "job": 131892127446,
+    "pid": null,
+    "pgid": null,
+    "custody": "UNKNOWN unchanged; no inspection/probe/download/rerun"
+  },
+  "canonicalOwningInputsUnchangedByThisLane": true,
+  "authorizedParallelV23AndAGENTSEdits": "outside lane; v23 workflow beforemap captured after parent application",
+  "commandsTerminal": true,
+  "artifacts": {
+    "bootstrap.diff": {
+      "bytes": 2971,
+      "sha256": "eb68dd888c34521784ad688303077f7035ba2b6c239fd286658c6847381d9c0d"
+    },
+    "workflow.diff": {
+      "bytes": 6773,
+      "sha256": "9de4bbc6ce861fde9375b0aca2ab5625a25276a2c3e32f8463e11ccd3c2afb17"
+    },
+    "bootstrap.after.py": {
+      "bytes": 20791,
+      "sha256": "f2e6266fa04f1336bab2dab541dd8f3ac75ef146e6ddc623c834996a262c2dfa"
+    },
+    "workflow.after.yml": {
+      "bytes": 58510,
+      "sha256": "1fd42e8fc714efdc0f74eb13f1d33f10af35fae76966d1cb4fde3d46b06b44f3"
+    },
+    "application-map.json": {
+      "bytes": 877,
+      "sha256": "cdff5c47a9a5cc2301249b915b8c52542b089be00485ef9b1f02b1e761229e7f"
+    },
+    "dependency-contract.json": {
+      "bytes": 9551,
+      "sha256": "f468330dd284db472ed83e6c10e38df0fa10336b859294f2d7b5df8d5452c948"
+    },
+    "artifact-roster.json": {
+      "bytes": 3015,
+      "sha256": "50a28496afc464aa9678bbbde6a602c3efb0a285ded08dfedd3e30b0a6ac599b"
+    },
+    "proof.json": {
+      "bytes": 1558,
+      "sha256": "e3d5b3508be35e9a57c6dd89683af12c99d5ffe41fd23d0c579c54b205007f55"
+    }
+  },
+  "limitations": [
+    "No compiler/CLI/CI/native/provider/DB/API or product qualification run.",
+    "Raw emitted Java removed by canonical successful cleanup; exact48 durable success outputs only, no dynamic command-log retention promised.",
+    "No canonical, index, Git or authority writes; root must apply exact bootstrap policy delta and retain 1GiB budget.",
+    "Root reviews and selects one fresh CI run; no additional preparation proposed.",
+    "Existing test_bootstrap.py inert integration test asserts one stdout line (observed source line519); immediate diagnostic plus final summary produces two. Root must authorize/update that exact test expectation or select a reviewed single-line emission design before fresh CI. No additional owned path was edited and no third proof batch was run."
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "startedUTC": "2026-11-13T13:12:54Z",
+  "completedUTC": "2026-11-13T13:18:45Z",
+  "elapsedSecondsMaximum": 360,
+  "finalizationNote": "No proof rerun: reused completed second-batch in-memory/YAML/bash evidence after correcting unrelated digest-formula accounting"
+}

@@ -276,7 +276,8 @@ defmodule MixerHosted.CustomerCreateBuildAtomicReplayPGJoinTest do
               :ok
 
             expiry ->
-              delay = max(0, expiry * 1000 - System.system_time(:millisecond) + 20)
+              before_ms = System.system_time(:millisecond)
+              delay = max(0, expiry * 1000 - before_ms + 20)
 
               safe_save(
                 "expiry-witness.jsonl",
@@ -287,6 +288,16 @@ defmodule MixerHosted.CustomerCreateBuildAtomicReplayPGJoinTest do
               )
 
               Process.sleep(delay)
+
+              send(
+                pid,
+                {:expiry_crossed,
+                 %{
+                   before_ms: before_ms,
+                   after_ms: System.system_time(:millisecond),
+                   expires_at: expiry
+                 }}
+              )
           end
         else
           safe_save("observer-defect.jsonl", %{
@@ -421,7 +432,7 @@ defmodule MixerHosted.CustomerCreateBuildAtomicReplayPGJoinTest do
            )
   end
 
-  defp login(c) do
+  defp login(c, return_session \\ false) do
     preauth = bootstrap_http(c)
     b = begin_http(c, preauth)
     r = http(c, "/auth/callback?" <> b.query, b.headers)
@@ -429,7 +440,8 @@ defmodule MixerHosted.CustomerCreateBuildAtomicReplayPGJoinTest do
     cookie = response_cookie(r)
     r = http(c, "/auth/session", headers(cookie))
     assert r.status == 200
-    {cookie, Jason.decode!(r.body)["csrf_token"]}
+    session = Jason.decode!(r.body)
+    if return_session, do: {cookie, session}, else: {cookie, session["csrf_token"]}
   end
 
   defp body(overrides \\ %{}) do
@@ -718,15 +730,16 @@ defmodule MixerHosted.CustomerCreateBuildAtomicReplayPGJoinTest do
     assert r.status == 201, r.body
     assert counts() == {[[3]], [[3]]}
     # A fresh PKCE identity expires after actual INSERT via test telemetry only.
-    :ok = GenServer.call(c.provider, {:mode, :short})
-    {short_cookie, short_csrf} = login(c)
-
-    session =
-      http(c, "/auth/session", headers(short_cookie)) |> Map.fetch!(:body) |> Jason.decode!()
+    :ok = GenServer.call(c.provider, {:mode, :create_expiry})
+    {short_cookie, session} = login(c, true)
+    short_csrf = session["csrf_token"]
+    assert is_integer(session["expires_at"])
 
     :persistent_term.put({__MODULE__, :expire}, session["expires_at"])
     collect([])
+    expiry_started_ms = System.monotonic_time(:millisecond)
     r = post(c, short_cookie, short_csrf, "rollback-expiry")
+    expiry_request_ms = System.monotonic_time(:millisecond) - expiry_started_ms
     expiry_events = collect([])
     observer_alive!()
 
@@ -749,6 +762,15 @@ defmodule MixerHosted.CustomerCreateBuildAtomicReplayPGJoinTest do
              expiry_witness.session_user == "mixer_build_create"
 
     refute Enum.any?(expiry_events, &match?({:observer_defect, _}, &1))
+
+    assert [{:expiry_crossed, crossing}] =
+             Enum.filter(expiry_events, &match?({:expiry_crossed, _}, &1))
+
+    assert crossing.expires_at == session["expires_at"]
+    assert crossing.before_ms < crossing.expires_at * 1000
+    assert crossing.after_ms >= crossing.expires_at * 1000
+    assert expiry_request_ms < 5000
+
     :persistent_term.erase({__MODULE__, :expire})
     assert r.status in [401, 503], r.body
     assert counts() == {[[3]], [[3]]}
@@ -773,7 +795,8 @@ defmodule MixerHosted.CustomerCreateBuildAtomicReplayPGJoinTest do
              :job_insert,
              :job_insert_failed,
              :job_insert_witness,
-             :observer_defect
+             :observer_defect,
+             :expiry_crossed
            ] ->
         collect([e | acc])
     after

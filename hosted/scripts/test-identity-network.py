@@ -2062,6 +2062,255 @@ def _load_customer_create_source_authority():
     return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
 
 
+# Installed v22 authority: exact final composition and complete typed v22 inverse.
+CI_DISCOVERY_SOURCE_BASE = 'verification/identity-network-current-source-v23/'
+CI_DISCOVERY_SELECTION_SHA256 = '3a8561f548d8bf78cf77beb574f31f99f8537a35036faecb4d62b22f02fa32d6'
+CI_DISCOVERY_SOURCE_DIGEST = '98b32fe965445b59a4a809135671c5e35ae52911c30df121273162cbaa151bf8'
+CI_DISCOVERY_PARENT_CONTRACT_SHA256 = 'ec023dc394b881435b76bde4c153368f831848cf6693e5eb9a1f9d04c04b8ed1'
+CI_DISCOVERY_PRODUCT_MAP_SHA256 = '75e34b20f5fc60cd0c696d09cb45f8753c64e6a4a060e9577693c8c4762585bf'
+CI_DISCOVERY_EXPECTED_COUNT = 331
+CI_DISCOVERY_DELTA = {'console/package.json': {'before': {'bytes': 551, 'sha256': '902a8ccf228ecc357720592d258212701519c50635b5f5a04f37a7f7213189c0'}, 'after': {'bytes': 566, 'sha256': '762ca48b0da7717efa58d30b315f36a9d80817d2df4fe523b922de5c6372cb86'}}}
+
+
+def _ci_discovery_json(body):
+    def pairs(rows):
+        require(all(type(k) is str for k, _ in rows), 'ci discovery JSON key type')
+        keys = [k for k, _ in rows]
+        require(keys == sorted(set(keys)), 'ci discovery duplicate or unordered JSON keys')
+        return dict(rows)
+    require(type(body) is bytes, 'ci discovery JSON bytes')
+    try:
+        return json.loads(body, object_pairs_hook=pairs, parse_constant=lambda x: require(False, 'ci discovery nonfinite JSON'))
+    except (ValueError, TypeError) as error:
+        raise CollectorError('ci discovery JSON') from error
+
+
+def _ci_discovery_row(value):
+    require(type(value) is dict and set(value) == {'bytes', 'sha256'}, 'ci discovery row shape')
+    require(type(value['bytes']) is int and 0 <= value['bytes'] <= MAX_COMMAND_BYTES, 'ci discovery typed bytes')
+    require(type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']) is not None, 'ci discovery SHA256')
+
+
+def _ci_discovery_path(path):
+    require(type(path) is str and path and not PurePosixPath(path).is_absolute() and
+            '..' not in PurePosixPath(path).parts and str(PurePosixPath(path)) == path,
+            'ci discovery unsafe path')
+
+
+def _ci_discovery_inverse(inverse):
+    require(type(inverse) is dict and list(inverse) == sorted(CUSTOMER_CREATE_MANIFEST), 'ci discovery complete ordered v22 inverse membership')
+    for path, value in inverse.items():
+        _ci_discovery_path(path)
+        _ci_discovery_row(value)
+    require(inverse == CUSTOMER_CREATE_MANIFEST and canonical_digest(inverse) == CUSTOMER_CREATE_SOURCE_DIGEST, 'ci discovery exact complete v22 inverse')
+
+
+def _validate_ci_discovery_source_manifest(manifest, count):
+    require(type(count) is int and count == CI_DISCOVERY_EXPECTED_COUNT, 'ci discovery fixed source count')
+    require(type(manifest) is dict and list(manifest) == sorted(set(CUSTOMER_CREATE_MANIFEST) | set(CI_DISCOVERY_DELTA)), 'ci discovery exact ordered source membership')
+    require(len(manifest) == count, 'ci discovery source count')
+    for path, value in manifest.items():
+        _ci_discovery_path(path)
+        _ci_discovery_row(value)
+    delta = {p: {'before': CUSTOMER_CREATE_MANIFEST.get(p), 'after': v} for p, v in manifest.items() if CUSTOMER_CREATE_MANIFEST.get(p) != v}
+    require(delta == CI_DISCOVERY_DELTA, 'ci discovery exact composition forward rows')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            inverse.pop(path)
+        else:
+            inverse[path] = change['before']
+    _ci_discovery_inverse(dict(sorted(inverse.items())))
+    require(canonical_digest(manifest) == CI_DISCOVERY_SOURCE_DIGEST, 'ci discovery frozen digest')
+    return manifest
+
+
+def validate_ci_discovery_source_manifest(manifest, expected_digest=CI_DISCOVERY_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == CI_DISCOVERY_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == CI_DISCOVERY_SOURCE_COUNT), 'caller cannot replace ci discovery authority')
+    return _validate_ci_discovery_source_manifest(manifest, CI_DISCOVERY_SOURCE_COUNT)
+
+
+def _ci_discovery_metadata(metadata):
+    require(type(metadata) is dict and set(metadata) == {CI_DISCOVERY_SOURCE_BASE + n for n in ('selection.json', 'selected-source-manifest.json')}, 'ci discovery metadata membership')
+    body = metadata[CI_DISCOVERY_SOURCE_BASE + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == CI_DISCOVERY_SELECTION_SHA256, 'ci discovery selection pin')
+    value = _ci_discovery_json(body)
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'inverse_v22', 'runtime_or_GA_accepted', 'parent_contract_sha256', 'product_map_sha256'}, 'ci discovery selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-ci-discovery-v23', 'ci discovery schema identity')
+    require(type(value['operation']) is str and value['operation'] == 'admit-R2310-R2314-after-v22', 'ci discovery operation')
+    require(type(value['scope']) is str and value['scope'] == 'Source admission only; root product/runtime acceptance and independent packet review required.', 'ci discovery scope')
+    require(value['runtime_or_GA_accepted'] is False and value['parent_contract_sha256'] == CI_DISCOVERY_PARENT_CONTRACT_SHA256 and value['product_map_sha256'] == CI_DISCOVERY_PRODUCT_MAP_SHA256, 'ci discovery composition contract')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'ci discovery predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': CUSTOMER_CREATE_SOURCE_COUNT, 'source_digest_sha256': CUSTOMER_CREATE_SOURCE_DIGEST, 'selection_sha256': CUSTOMER_CREATE_SELECTION_SHA256}, 'ci discovery typed predecessor')
+    _ci_discovery_inverse(value['inverse_v22'])
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'ci discovery selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == CI_DISCOVERY_EXPECTED_COUNT and selected['source_digest_sha256'] == CI_DISCOVERY_SOURCE_DIGEST, 'ci discovery selected count digest')
+    ref = selected['manifest']
+    require(type(ref) is dict and set(ref) == {'path', 'bytes', 'sha256'} and ref['path'] == 'selected-source-manifest.json', 'ci discovery manifest reference')
+    _ci_discovery_row({k: ref[k] for k in ('bytes', 'sha256')})
+    manifest_body = metadata[CI_DISCOVERY_SOURCE_BASE + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {k: ref[k] for k in ('bytes', 'sha256')}, 'ci discovery manifest byte pin')
+    manifest = _ci_discovery_json(manifest_body)
+    _validate_ci_discovery_source_manifest(manifest, selected['source_count'])
+    delta = value['exact_delta']
+    require(type(delta) is dict and list(delta) == sorted(CI_DISCOVERY_DELTA), 'ci discovery delta membership order')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'ci discovery composition role shape')
+        if change['before'] is not None:
+            _ci_discovery_row(change['before'])
+        _ci_discovery_row(change['after'])
+    require(delta == CI_DISCOVERY_DELTA, 'ci discovery exact typed composition delta')
+    return value, manifest
+
+
+def validate_ci_discovery_source_metadata(metadata):
+    value, manifest = _ci_discovery_metadata(metadata)
+    require(manifest == CI_DISCOVERY_MANIFEST, 'ci discovery installed manifest')
+    return value
+
+
+def check_ci_discovery_source(root):
+    metadata = {CI_DISCOVERY_SOURCE_BASE + n: (root / CI_DISCOVERY_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_ci_discovery_source_metadata(metadata)
+    observed = {p: _file_row((root / p).read_bytes()) for p in CI_DISCOVERY_MANIFEST}
+    validate_ci_discovery_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': CI_DISCOVERY_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_ci_discovery_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    metadata = {CI_DISCOVERY_SOURCE_BASE + n: (root / CI_DISCOVERY_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _ci_discovery_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
+CUSTOMER_EXPIRY_SOURCE_BASE = 'verification/identity-network-current-source-v24/'
+CUSTOMER_EXPIRY_SELECTION_SHA256 = 'd86d35be4f9e570480b5f7e9f29c41d63f2a4df0d499531bd2c92d0eaa104f80'
+CUSTOMER_EXPIRY_SOURCE_DIGEST = '31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027'
+CUSTOMER_EXPIRY_PARENT_CONTRACT_SHA256 = 'c142807be7e405bdd4aab902f43523b7439f58736d128bc53cbb16f97417ca35'
+CUSTOMER_EXPIRY_PRODUCT_MAP_SHA256 = '5b5ea97bf16e6163f9bd8f6c50fd6d35cfcb72da8176b4a995921174906d86e6'
+CUSTOMER_EXPIRY_EXPECTED_COUNT = 331
+CUSTOMER_EXPIRY_DELTA = {'hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs': {'before': {'bytes': 25617, 'sha256': '32456a19b2dbdb009c730bee7715abf4c4d7963a3faee9ac75bd9ba95990f297'}, 'after': {'bytes': 26509, 'sha256': '6e1a17ce04c7ea601b85bb16296623717c85ceac3bffa5a3af72f7fc8b3c4e5e'}}, 'hosted/test/support/browser_login_provider_fixture.ex': {'before': {'bytes': 5379, 'sha256': '2b0107bc357277f080d39ad01b5e6c7fda65d29fcd7fb5ba5a4afe662eb1e9c9'}, 'after': {'bytes': 5523, 'sha256': 'df20f5a5dc43f3e0777095e4e79c5f9b571d2b62e55e672aac2fbcb80a7c03a7'}}}
+
+
+def _customer_expiry_json(body):
+    def pairs(rows):
+        require(all(type(k) is str for k, _ in rows), 'customer expiry JSON key type')
+        keys = [k for k, _ in rows]
+        require(keys == sorted(set(keys)), 'customer expiry duplicate or unordered JSON keys')
+        return dict(rows)
+    require(type(body) is bytes, 'customer expiry JSON bytes')
+    try:
+        return json.loads(body, object_pairs_hook=pairs, parse_constant=lambda x: require(False, 'customer expiry nonfinite JSON'))
+    except (ValueError, TypeError) as error:
+        raise CollectorError('customer expiry JSON') from error
+
+
+def _customer_expiry_row(value):
+    require(type(value) is dict and set(value) == {'bytes', 'sha256'}, 'customer expiry row shape')
+    require(type(value['bytes']) is int and 0 <= value['bytes'] <= MAX_COMMAND_BYTES, 'customer expiry typed bytes')
+    require(type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']) is not None, 'customer expiry SHA256')
+
+
+def _customer_expiry_path(path):
+    require(type(path) is str and path and not PurePosixPath(path).is_absolute() and
+            '..' not in PurePosixPath(path).parts and str(PurePosixPath(path)) == path,
+            'customer expiry unsafe path')
+
+
+def _customer_expiry_inverse(inverse):
+    require(type(inverse) is dict and list(inverse) == sorted(CI_DISCOVERY_MANIFEST), 'customer expiry complete ordered v23 inverse membership')
+    for path, value in inverse.items():
+        _customer_expiry_path(path)
+        _customer_expiry_row(value)
+    require(inverse == CI_DISCOVERY_MANIFEST and canonical_digest(inverse) == CI_DISCOVERY_SOURCE_DIGEST, 'customer expiry exact complete v23 inverse')
+
+
+def _validate_customer_expiry_source_manifest(manifest, count):
+    require(type(count) is int and count == CUSTOMER_EXPIRY_EXPECTED_COUNT, 'customer expiry fixed source count')
+    require(type(manifest) is dict and list(manifest) == sorted(set(CI_DISCOVERY_MANIFEST) | set(CUSTOMER_EXPIRY_DELTA)), 'customer expiry exact ordered source membership')
+    require(len(manifest) == count, 'customer expiry source count')
+    for path, value in manifest.items():
+        _customer_expiry_path(path)
+        _customer_expiry_row(value)
+    delta = {p: {'before': CI_DISCOVERY_MANIFEST.get(p), 'after': v} for p, v in manifest.items() if CI_DISCOVERY_MANIFEST.get(p) != v}
+    require(delta == CUSTOMER_EXPIRY_DELTA, 'customer expiry exact composition forward rows')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            inverse.pop(path)
+        else:
+            inverse[path] = change['before']
+    _customer_expiry_inverse(dict(sorted(inverse.items())))
+    require(canonical_digest(manifest) == CUSTOMER_EXPIRY_SOURCE_DIGEST, 'customer expiry frozen digest')
+    return manifest
+
+
+def validate_customer_expiry_source_manifest(manifest, expected_digest=CUSTOMER_EXPIRY_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == CUSTOMER_EXPIRY_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == CUSTOMER_EXPIRY_SOURCE_COUNT), 'caller cannot replace customer expiry authority')
+    return _validate_customer_expiry_source_manifest(manifest, CUSTOMER_EXPIRY_SOURCE_COUNT)
+
+
+def _customer_expiry_metadata(metadata):
+    require(type(metadata) is dict and set(metadata) == {CUSTOMER_EXPIRY_SOURCE_BASE + n for n in ('selection.json', 'selected-source-manifest.json')}, 'customer expiry metadata membership')
+    body = metadata[CUSTOMER_EXPIRY_SOURCE_BASE + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == CUSTOMER_EXPIRY_SELECTION_SHA256, 'customer expiry selection pin')
+    value = _customer_expiry_json(body)
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'inverse_v23', 'runtime_or_GA_accepted', 'parent_contract_sha256', 'product_map_sha256'}, 'customer expiry selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-customer-expiry-v24', 'customer expiry schema identity')
+    require(type(value['operation']) is str and value['operation'] == 'admit-R2342-test-only-expiry-after-v23', 'customer expiry operation')
+    require(type(value['scope']) is str and value['scope'] == 'Source admission only; root product/runtime acceptance and independent packet review required.', 'customer expiry scope')
+    require(value['runtime_or_GA_accepted'] is False and value['parent_contract_sha256'] == CUSTOMER_EXPIRY_PARENT_CONTRACT_SHA256 and value['product_map_sha256'] == CUSTOMER_EXPIRY_PRODUCT_MAP_SHA256, 'customer expiry composition contract')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'customer expiry predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': CI_DISCOVERY_SOURCE_COUNT, 'source_digest_sha256': CI_DISCOVERY_SOURCE_DIGEST, 'selection_sha256': CI_DISCOVERY_SELECTION_SHA256}, 'customer expiry typed predecessor')
+    _customer_expiry_inverse(value['inverse_v23'])
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'customer expiry selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == CUSTOMER_EXPIRY_EXPECTED_COUNT and selected['source_digest_sha256'] == CUSTOMER_EXPIRY_SOURCE_DIGEST, 'customer expiry selected count digest')
+    ref = selected['manifest']
+    require(type(ref) is dict and set(ref) == {'path', 'bytes', 'sha256'} and ref['path'] == 'selected-source-manifest.json', 'customer expiry manifest reference')
+    _customer_expiry_row({k: ref[k] for k in ('bytes', 'sha256')})
+    manifest_body = metadata[CUSTOMER_EXPIRY_SOURCE_BASE + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {k: ref[k] for k in ('bytes', 'sha256')}, 'customer expiry manifest byte pin')
+    manifest = _customer_expiry_json(manifest_body)
+    _validate_customer_expiry_source_manifest(manifest, selected['source_count'])
+    delta = value['exact_delta']
+    require(type(delta) is dict and list(delta) == sorted(CUSTOMER_EXPIRY_DELTA), 'customer expiry delta membership order')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'customer expiry composition role shape')
+        if change['before'] is not None:
+            _customer_expiry_row(change['before'])
+        _customer_expiry_row(change['after'])
+    require(delta == CUSTOMER_EXPIRY_DELTA, 'customer expiry exact typed composition delta')
+    return value, manifest
+
+
+def validate_customer_expiry_source_metadata(metadata):
+    value, manifest = _customer_expiry_metadata(metadata)
+    require(manifest == CUSTOMER_EXPIRY_MANIFEST, 'customer expiry installed manifest')
+    return value
+
+
+def check_customer_expiry_source(root):
+    metadata = {CUSTOMER_EXPIRY_SOURCE_BASE + n: (root / CUSTOMER_EXPIRY_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_customer_expiry_source_metadata(metadata)
+    observed = {p: _file_row((root / p).read_bytes()) for p in CUSTOMER_EXPIRY_MANIFEST}
+    validate_customer_expiry_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': CUSTOMER_EXPIRY_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_customer_expiry_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    metadata = {CUSTOMER_EXPIRY_SOURCE_BASE + n: (root / CUSTOMER_EXPIRY_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _customer_expiry_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
@@ -2081,7 +2330,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_customer_create_source_manifest(prepared["source"])
+    validate_customer_expiry_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -2248,7 +2497,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_customer_create_source_manifest(manifest["source"])
+    validate_customer_expiry_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -2271,7 +2520,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CUSTOMER_CREATE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CUSTOMER_EXPIRY_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -3042,10 +3291,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_customer_create_source_manifest(CUSTOMER_CREATE_MANIFEST)
-        product = self.git_blobs(sorted(CUSTOMER_CREATE_MANIFEST))
+        validate_customer_expiry_source_manifest(CUSTOMER_EXPIRY_MANIFEST)
+        product = self.git_blobs(sorted(CUSTOMER_EXPIRY_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_customer_create_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_customer_expiry_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -3135,10 +3384,16 @@ class Collector:
         historical_clock = self.git_blobs([BUILD_CLOCK_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         validate_build_clock_source_metadata(historical_clock)
         metadata.update(historical_clock)
-        signin_metadata = self.git_blobs([CUSTOMER_CREATE_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
-        validate_customer_create_source_metadata(signin_metadata)
+        historical_customer = self.git_blobs([CUSTOMER_CREATE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_customer_create_source_metadata(historical_customer)
+        metadata.update(historical_customer)
+        historical_ci = self.git_blobs([CI_DISCOVERY_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_ci_discovery_source_metadata(historical_ci)
+        metadata.update(historical_ci)
+        signin_metadata = self.git_blobs([CUSTOMER_EXPIRY_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_customer_expiry_source_metadata(signin_metadata)
         metadata.update(signin_metadata)
-        self.state["source"].update(current_source_selection_sha256=CUSTOMER_CREATE_SELECTION_SHA256, current_source_digest_sha256=CUSTOMER_CREATE_SOURCE_DIGEST)
+        self.state["source"].update(current_source_selection_sha256=CUSTOMER_EXPIRY_SELECTION_SHA256, current_source_digest_sha256=CUSTOMER_EXPIRY_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -3156,7 +3411,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CUSTOMER_CREATE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CUSTOMER_EXPIRY_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -3178,7 +3433,8 @@ class Collector:
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
-        require(prepared_manifest["source"] == CUSTOMER_CREATE_MANIFEST, "prepare source changed")
+        prepared_manifest["source"] = dict(sorted(prepared_manifest["source"].items()))
+        require(prepared_manifest["source"] == CUSTOMER_EXPIRY_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -3276,7 +3532,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in CUSTOMER_CREATE_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in CUSTOMER_EXPIRY_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -3727,7 +3983,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_customer_create_source(root), sort_keys=True))
+        print(json.dumps(check_customer_expiry_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -3830,6 +4086,12 @@ BUILD_CLOCK_SOURCE_COUNT, BUILD_CLOCK_MANIFEST = BUILD_CLOCK_AUTHORITY.count, BU
 
 CUSTOMER_CREATE_AUTHORITY = _load_customer_create_source_authority()
 CUSTOMER_CREATE_SOURCE_COUNT, CUSTOMER_CREATE_MANIFEST = CUSTOMER_CREATE_AUTHORITY.count, CUSTOMER_CREATE_AUTHORITY.manifest
+
+CI_DISCOVERY_AUTHORITY = _load_ci_discovery_source_authority()
+CI_DISCOVERY_SOURCE_COUNT, CI_DISCOVERY_MANIFEST = CI_DISCOVERY_AUTHORITY.count, CI_DISCOVERY_AUTHORITY.manifest
+
+CUSTOMER_EXPIRY_AUTHORITY = _load_customer_expiry_source_authority()
+CUSTOMER_EXPIRY_SOURCE_COUNT, CUSTOMER_EXPIRY_MANIFEST = CUSTOMER_EXPIRY_AUTHORITY.count, CUSTOMER_EXPIRY_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:

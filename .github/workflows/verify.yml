@@ -684,6 +684,10 @@ jobs:
             /verification/identity-network-current-source-v21/selected-source-manifest.json
             /verification/identity-network-current-source-v22/selection.json
             /verification/identity-network-current-source-v22/selected-source-manifest.json
+            /verification/identity-network-current-source-v23/selection.json
+            /verification/identity-network-current-source-v23/selected-source-manifest.json
+            /verification/identity-network-current-source-v24/selection.json
+            /verification/identity-network-current-source-v24/selected-source-manifest.json
             /console/src/api/build-submission.ts
             /console/src/brand.css
             /console/src/build-submission-test-runtime.tsx
@@ -898,13 +902,79 @@ jobs:
           set -euo pipefail
           python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py \
             --output "$RUNNER_TEMP/generated-java-ci" --execute
-      - name: Preserve all bootstrap, Java, DEX and refusal evidence
+      - name: Preserve generated Java top-level metadata first
         if: always()
+        timeout-minutes: 2
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-java-top-level-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/generated-java-ci/bootstrap-receipt.json
+            ${{ runner.temp }}/generated-java-ci/bootstrap-commands/commands.json
+            ${{ runner.temp }}/generated-java-ci/bootstrap-commands/COMMAND-HOLD.json
+            ${{ runner.temp }}/generated-java-ci/integration/receipt.json
+            ${{ runner.temp }}/generated-java-ci/integration/receipt-before-cleanup.json
+            ${{ runner.temp }}/generated-java-ci/integration/commands/commands.json
+            ${{ runner.temp }}/generated-java-ci/integration/commands/COMMAND-HOLD.json
+            ${{ runner.temp }}/generated-java-ci/integration/commands/INNER-HOLD.json
+      # Success requires bootstrap validation, positive custody and owned cleanup.
+      # Raw generated Java lived in deleted scratch; these are durable outputs only.
+      - name: Preserve bounded six-consumer receipt, DEX and reference evidence
+        if: success()
         timeout-minutes: 5
         uses: actions/upload-artifact@v4
         with:
           name: generated-java-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 14
-          if-no-files-found: warn
-          include-hidden-files: true
-          path: ${{ runner.temp }}/generated-java-ci/
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/generated-java-ci/integration/debug-original/receipt.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-original/consumer-inventory.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-original/consumer-directories.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-original/mixer.lock
+            ${{ runner.temp }}/generated-java-ci/integration/debug-original/descriptor.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-original/member-references.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-original/member-references.javap.txt
+            ${{ runner.temp }}/generated-java-ci/integration/debug-original/dex/classes.dex
+            ${{ runner.temp }}/generated-java-ci/integration/debug-relocated/receipt.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-relocated/consumer-inventory.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-relocated/consumer-directories.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-relocated/mixer.lock
+            ${{ runner.temp }}/generated-java-ci/integration/debug-relocated/descriptor.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-relocated/member-references.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-relocated/member-references.javap.txt
+            ${{ runner.temp }}/generated-java-ci/integration/debug-relocated/dex/classes.dex
+            ${{ runner.temp }}/generated-java-ci/integration/debug-exported/receipt.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-exported/consumer-inventory.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-exported/consumer-directories.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-exported/mixer.lock
+            ${{ runner.temp }}/generated-java-ci/integration/debug-exported/descriptor.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-exported/member-references.json
+            ${{ runner.temp }}/generated-java-ci/integration/debug-exported/member-references.javap.txt
+            ${{ runner.temp }}/generated-java-ci/integration/debug-exported/dex/classes.dex
+            ${{ runner.temp }}/generated-java-ci/integration/release-original/receipt.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-original/consumer-inventory.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-original/consumer-directories.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-original/mixer.lock
+            ${{ runner.temp }}/generated-java-ci/integration/release-original/descriptor.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-original/member-references.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-original/member-references.javap.txt
+            ${{ runner.temp }}/generated-java-ci/integration/release-original/dex/classes.dex
+            ${{ runner.temp }}/generated-java-ci/integration/release-relocated/receipt.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-relocated/consumer-inventory.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-relocated/consumer-directories.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-relocated/mixer.lock
+            ${{ runner.temp }}/generated-java-ci/integration/release-relocated/descriptor.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-relocated/member-references.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-relocated/member-references.javap.txt
+            ${{ runner.temp }}/generated-java-ci/integration/release-relocated/dex/classes.dex
+            ${{ runner.temp }}/generated-java-ci/integration/release-exported/receipt.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-exported/consumer-inventory.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-exported/consumer-directories.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-exported/mixer.lock
+            ${{ runner.temp }}/generated-java-ci/integration/release-exported/descriptor.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-exported/member-references.json
+            ${{ runner.temp }}/generated-java-ci/integration/release-exported/member-references.javap.txt
+            ${{ runner.temp }}/generated-java-ci/integration/release-exported/dex/classes.dex

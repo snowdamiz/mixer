@@ -60,7 +60,13 @@ defmodule R686.Provider do
           "sub" => "subject-1",
           "client_id" => s.config.client_id,
           "iat" => now - 1,
-          "exp" => now + if(s.mode === :short, do: 2, else: 120),
+          "exp" =>
+            now +
+              case s.mode do
+                :short -> 2
+                :create_expiry -> 5
+                _ -> 120
+              end,
           "jti" => Protocol.random_token(),
           "scope" =>
             if(s.mode == :no_build_scope,
@@ -81,6 +87,7 @@ defmodule R686.Provider do
             now +
               case s.mode do
                 :short -> 2
+                :create_expiry -> 5
                 :session_short -> 45
                 _ -> 120
               end,

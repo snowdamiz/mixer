@@ -223,6 +223,48 @@ def run_integration(authority, args, env, output):
         os.environ.update(previous)
 
 
+def integration_diagnostic(result):
+    """Project only returned memory; never reopen a retained command tree.
+
+    Strings are limited to 96 characters; two cleanup errors and one last
+    command keep the complete JSON below 16KiB even with escaped Unicode.
+    argv, environment, logs and nested receipt/hold payloads are excluded.
+    """
+    def mapping(value):
+        return value if type(value) is dict else {}
+
+    def scalar(value):
+        if type(value) is str:
+            return value if len(value) <= 96 else value[:93] + '...'
+        if value is None or type(value) is bool:
+            return value
+        if type(value) is int and -(2**63) <= value < 2**63:
+            return value
+        return None
+
+    def fields(value, keys):
+        value = mapping(value)
+        return {key: scalar(value.get(key)) for key in keys}
+
+    cleanup = fields(result.get('cleanup'), (
+        'command_custody_terminal', 'owned_scratch_started', 'owned_scratch_removed',
+        'error', 'evidence_persistence_error', 'retention_reason'))
+    records = result.get('command_records')
+    last = mapping(records[-1]) if type(records) is list and records else {}
+    command = fields(last, (
+        'label', 'pid', 'owned_pgid', 'exit_code', 'stop', 'terminal_custody',
+        'direct_child_reaped', 'stdout_eof', 'stderr_eof', 'owned_group_absent',
+        'descriptors_closed'))
+    command['execution_error'] = fields(last.get('execution_error'), ('type', 'message'))
+    errors = last.get('cleanup_errors')
+    command['cleanup_errors'] = [fields(error, ('operation', 'type', 'message'))
+                                 for error in errors[:2]] if type(errors) is list else []
+    command['group_observation'] = fields(last.get('group_observation'), ('outcome', 'attempts'))
+    diagnostic = fields(result, ('status', 'error'))
+    diagnostic.update(cleanup=cleanup, last_command=command if last else None)
+    return diagnostic
+
+
 def validate_result(value):
     require(value['status'] == 'passed-java-crosscompile-only', 'Actual integration did not pass')
     expected = {m + '-' + f for m in ('debug', 'release') for f in ('original', 'relocated', 'exported')}
@@ -325,6 +367,7 @@ def main():
         integration_started = True
         result = run_integration(authority, selected, integration_env, out / 'integration')
         integration_terminal = result.get('cleanup', {}).get('command_custody_terminal') is True
+        receipt['integration_failure'] = integration_diagnostic(result)
         validate_result(result)
         require(result['official_toolchain'] == receipt['official_inspect'], 'Tool identity changed after bootstrap')
         require(authority.source_inputs(profile) == receipt['source_inputs'], 'Owning source changed')
@@ -345,8 +388,9 @@ def main():
                 receipt['cleanup']['error'] = str(error)
         if not terminal or not receipt['cleanup']['owned_removed']:
             receipt['status'] = 'failed'
+        print(json.dumps({'status': receipt['status'], 'error': receipt.get('error'),
+                          'integration_failure': receipt.get('integration_failure')}), flush=True)
         authority.save(out / 'bootstrap-receipt.json', receipt)
-    print(json.dumps({'status': receipt['status'], 'error': receipt.get('error')}))
     return 0 if receipt['status'] == 'passed-hosted-java-crosscompile-only' else 1
 
 

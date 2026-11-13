@@ -1,0 +1,476 @@
+{
+  "id": "generated-java-diagnostics-review-r2364",
+  "status": "REQUEST_CHANGES",
+  "reason": "Requested stderr correction conflicts with unchanged test_bootstrap.py:517 empty-stderr assertion",
+  "reviewScope": "R2352 complete diagnostics packet plus exact root-selected stderr fix",
+  "finding": {
+    "priority": "P1",
+    "owningPath": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py",
+    "proposedLine": 371,
+    "existingTest": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py",
+    "testLine": 517,
+    "normal": {
+      "testsRun": 41,
+      "assertionFailures": 6,
+      "exit": 1
+    },
+    "actualO": {
+      "testsRun": 41,
+      "assertionFailures": 6,
+      "exit": 1
+    },
+    "baselineNormal": {
+      "testsRun": 41,
+      "exit": 0
+    },
+    "baselineActualO": {
+      "testsRun": 41,
+      "exit": 0
+    },
+    "stdoutTestEdited": false,
+    "parentCoordinationNeeded": "New stderr output requires a separately authorized exact stderr-test expectation change, or a revised emission contract; not authorized to modify that test here."
+  },
+  "proofBatches": 2,
+  "proofBatchLimit": 2,
+  "fullModuleResults": {
+    "baseline-normal": {
+      "exit": 0,
+      "summary": [
+        "----------------------------------------------------------------------",
+        "Ran 41 tests in 0.094s",
+        "",
+        "OK"
+      ],
+      "stdout": "",
+      "failedTestHeaders": [],
+      "testsSourceUnchanged": true,
+      "actualOptimize": false
+    },
+    "baseline-actual-O": {
+      "exit": 0,
+      "summary": [
+        "----------------------------------------------------------------------",
+        "Ran 41 tests in 0.097s",
+        "",
+        "OK"
+      ],
+      "stdout": "",
+      "failedTestHeaders": [],
+      "testsSourceUnchanged": true,
+      "actualOptimize": true
+    },
+    "candidate-normal": {
+      "exit": 1,
+      "summary": [
+        "----------------------------------------------------------------------",
+        "Ran 41 tests in 0.093s",
+        "",
+        "FAILED (failures=6)"
+      ],
+      "stdout": "",
+      "failedTestHeaders": [
+        "FAIL: test_default_execute_activates_and_restores_absent_parent_flag (__main__.PhaseActivationControls.test_default_execute_activates_and_restores_absent_parent_flag)",
+        "FAIL: test_default_execute_activates_and_restores_existing_parent_flag (__main__.PhaseActivationControls.test_default_execute_activates_and_restores_existing_parent_flag)",
+        "FAIL: test_mkdir_failure_dispatches_without_absent_parent_flag (__main__.PhaseActivationControls.test_mkdir_failure_dispatches_without_absent_parent_flag)",
+        "FAIL: test_mkdir_failure_dispatches_without_inherited_parent_flag (__main__.PhaseActivationControls.test_mkdir_failure_dispatches_without_inherited_parent_flag)",
+        "FAIL: test_primary_result_failure_remains_failed_after_mkdir_error (__main__.PhaseActivationControls.test_primary_result_failure_remains_failed_after_mkdir_error) (inherited=None)",
+        "FAIL: test_primary_result_failure_remains_failed_after_mkdir_error (__main__.PhaseActivationControls.test_primary_result_failure_remains_failed_after_mkdir_error) (inherited='existing parent value')"
+      ],
+      "testsSourceUnchanged": true,
+      "actualOptimize": false
+    },
+    "candidate-actual-O": {
+      "exit": 1,
+      "summary": [
+        "----------------------------------------------------------------------",
+        "Ran 41 tests in 0.097s",
+        "",
+        "FAILED (failures=6)"
+      ],
+      "stdout": "",
+      "failedTestHeaders": [
+        "FAIL: test_default_execute_activates_and_restores_absent_parent_flag (__main__.PhaseActivationControls.test_default_execute_activates_and_restores_absent_parent_flag)",
+        "FAIL: test_default_execute_activates_and_restores_existing_parent_flag (__main__.PhaseActivationControls.test_default_execute_activates_and_restores_existing_parent_flag)",
+        "FAIL: test_mkdir_failure_dispatches_without_absent_parent_flag (__main__.PhaseActivationControls.test_mkdir_failure_dispatches_without_absent_parent_flag)",
+        "FAIL: test_mkdir_failure_dispatches_without_inherited_parent_flag (__main__.PhaseActivationControls.test_mkdir_failure_dispatches_without_inherited_parent_flag)",
+        "FAIL: test_primary_result_failure_remains_failed_after_mkdir_error (__main__.PhaseActivationControls.test_primary_result_failure_remains_failed_after_mkdir_error) (inherited=None)",
+        "FAIL: test_primary_result_failure_remains_failed_after_mkdir_error (__main__.PhaseActivationControls.test_primary_result_failure_remains_failed_after_mkdir_error) (inherited='existing parent value')"
+      ],
+      "testsSourceUnchanged": true,
+      "actualOptimize": true
+    }
+  },
+  "memoryProof": {
+    "status": "PASS_IN_MEMORY_SOURCE_ONLY_SUITE_SEPARATELY_FAILS_STDERR_CONTRACT",
+    "batches": 1,
+    "baseline": {
+      "exit": 1,
+      "stdout": "{\"status\": \"failed\", \"error\": \"Actual integration did not pass\"}\n"
+    },
+    "candidate": {
+      "exit": 1,
+      "stdout": "{\"status\": \"failed\", \"error\": \"Actual integration did not pass\"}\n",
+      "stderr": "{\"integration_failure\": {\"status\": \"failed\", \"error\": \"R2352_MEMORY_ERROR_EPERM\", \"cleanup\": {\"command_custody_terminal\": false, \"owned_scratch_started\": null, \"owned_scratch_removed\": false, \"error\": null, \"evidence_persistence_error\": null, \"retention_reason\": null}, \"last_command\": {\"label\": \"debug-create\", \"pid\": 2352001, \"owned_pgid\": 2352001, \"exit_code\": 74, \"stop\": null, \"terminal_custody\": false, \"direct_child_reaped\": true, \"stdout_eof\": true, \"stderr_eof\": true, \"owned_group_absent\": false, \"descriptors_closed\": false, \"execution_error\": {\"type\": \"PermissionError\", \"message\": \"[Errno 1] Operation not permitted\"}, \"cleanup_errors\": [{\"operation\": \"observe-owned-group\", \"type\": \"PermissionError\", \"message\": \"EPERM\"}], \"group_observation\": {\"outcome\": \"denied\", \"attempts\": 1}}}}\n"
+    },
+    "allOriginalGuardASTUnchanged": true,
+    "unknownNoReadProbeCleanup": true,
+    "retainedBoundaryExit74Events": [
+      74,
+      74,
+      74
+    ],
+    "worstProjectionJSONBytes": 14117,
+    "frozenOwningInputsMatchPrivateBeforeMap": true,
+    "workflowV23PrefixExact": true,
+    "successArtifacts": 48,
+    "alwaysMetadata": 8,
+    "rawGeneratedJavaRetention": "not claimed"
+  },
+  "producerExecutableProof": "FAILED_PRIVATE_HARNESS_MISSING_JAVAP_STDOUT_BYTES_NO_RETRY",
+  "producerStaticReview": "8 actual durable filenames times6 consumers, exact source references in producer-path-review.json",
+  "yamlAndShellR2364": "NOT RUN: second batch stopped before commands; historical R2352 parser pass is not a fresh R2364 pass",
+  "sourceClosure": {
+    "files": 125,
+    "allFrozenBeforeTests": true,
+    "CLI119": {
+      "count": 119,
+      "sha256": "80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c"
+    },
+    "testSource": {
+      "path": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py",
+      "bytes": 33770,
+      "sha256": "16935f14c846917cf55fd954ad63d4cf531c4c8891dbeadffd7e20f222dbdd5c",
+      "oid": "75be8e95a6ba5cc35772fec5a499578eb2d5fa90"
+    },
+    "manifest": "closure-manifest.json"
+  },
+  "minimalDeltaContract": "rebase-contract.json",
+  "application": {
+    "bootstrap": {
+      "path": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py",
+      "before": {
+        "bytes": 18682,
+        "sha256": "e42931e0d062d40648bf9a6de11469ba4aa4396cfefaabf25c71eed00ae55354",
+        "oid": "b4feaa434761dc7177121c09dcb65a7a9e4c3dfd"
+      },
+      "after": {
+        "bytes": 20808,
+        "sha256": "47ca3534319c8bfc34f6039c01a9916a1afff1d64cc4603af97d309ddd926564",
+        "oid": "18938bf4cb76e41dd8ecc452da584cd64b58f264"
+      },
+      "patch": "bootstrap.diff"
+    },
+    "workflowBefore": {
+      "bytes": 52734,
+      "sha256": "cc2905802192b4e82a5b7f250f74b90aeeb7229d380d604f400bda5c103150d5",
+      "oid": "1654ff4842d8185b90ef99152d8ef4df7abbffcf"
+    },
+    "workflowAfterAtFrozenV23": {
+      "bytes": 58510,
+      "sha256": "1fd42e8fc714efdc0f74eb13f1d33f10af35fae76966d1cb4fde3d46b06b44f3",
+      "oid": "003946b6ba2c35f292cc7829926423c88ed1a8d4"
+    },
+    "policyEntryBefore": {
+      "oid": "b4feaa434761dc7177121c09dcb65a7a9e4c3dfd",
+      "reason": "Reviewed exact Pair21 renderer admission successor; count119, immutable118 and delivered Play119 bytes preserved;176controls pass each mode and actualAPI36renderer/URIread passed.",
+      "size": 18682
+    },
+    "policyEntryAfter": {
+      "oid": "18938bf4cb76e41dd8ecc452da584cd64b58f264",
+      "size": 20808,
+      "reason": "Future-only bounded in-memory integration diagnostic on stderr; strict stdout, CLI119/Pair21 admission and command custody unchanged."
+    },
+    "mustRebaseOnV24": true,
+    "noWholeWorkflowOrPolicyCopy": true,
+    "onlyAdditionalPin": "bootstrap generated_files entry",
+    "otherSealDelta": false
+  },
+  "canonicalObservation": {
+    "verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py": {
+      "frozen": {
+        "bytes": 18682,
+        "sha256": "e42931e0d062d40648bf9a6de11469ba4aa4396cfefaabf25c71eed00ae55354",
+        "oid": "b4feaa434761dc7177121c09dcb65a7a9e4c3dfd"
+      },
+      "current": {
+        "bytes": 18682,
+        "sha256": "e42931e0d062d40648bf9a6de11469ba4aa4396cfefaabf25c71eed00ae55354"
+      },
+      "sameBytesAndSHA256": true
+    },
+    "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py": {
+      "frozen": {
+        "bytes": 33770,
+        "sha256": "16935f14c846917cf55fd954ad63d4cf531c4c8891dbeadffd7e20f222dbdd5c",
+        "oid": "75be8e95a6ba5cc35772fec5a499578eb2d5fa90"
+      },
+      "current": {
+        "bytes": 33770,
+        "sha256": "16935f14c846917cf55fd954ad63d4cf531c4c8891dbeadffd7e20f222dbdd5c"
+      },
+      "sameBytesAndSHA256": true
+    },
+    ".github/workflows/verify.yml": {
+      "frozen": {
+        "bytes": 52734,
+        "sha256": "cc2905802192b4e82a5b7f250f74b90aeeb7229d380d604f400bda5c103150d5",
+        "oid": "1654ff4842d8185b90ef99152d8ef4df7abbffcf"
+      },
+      "current": {
+        "bytes": 52734,
+        "sha256": "cc2905802192b4e82a5b7f250f74b90aeeb7229d380d604f400bda5c103150d5"
+      },
+      "sameBytesAndSHA256": true
+    },
+    "scripts/verification-artifact-policy.json": {
+      "frozen": {
+        "bytes": 1203070,
+        "sha256": "7344849d5728e9b96df2720945c6ca2c230cb1c62986ca323c8e53bb4ed570eb",
+        "oid": "ca358622f08f204aa383213ec1416a417bdff227"
+      },
+      "current": {
+        "bytes": 1203070,
+        "sha256": "7344849d5728e9b96df2720945c6ca2c230cb1c62986ca323c8e53bb4ed570eb"
+      },
+      "sameBytesAndSHA256": true
+    },
+    "AGENTS.md": {
+      "frozen": {
+        "bytes": 56006,
+        "sha256": "5221eddf513bffdba44c6cad852df3f065c077734d5139f5ae645adc97a435d8",
+        "oid": "9e8fc9a50c370996a2171e019ebb0fbd7366741f"
+      },
+      "current": {
+        "bytes": 56006,
+        "sha256": "5221eddf513bffdba44c6cad852df3f065c077734d5139f5ae645adc97a435d8"
+      },
+      "sameBytesAndSHA256": true
+    }
+  },
+  "managedCommands": [
+    {
+      "label": "baseline-normal",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/baseline",
+      "pid": 45318,
+      "pgid": 45318,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.17719104199204594,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "baseline-actual-O",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "-O",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/baseline",
+      "pid": 45319,
+      "pgid": 45319,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.18274904193822294,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "candidate-normal",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/candidate",
+      "pid": 45320,
+      "pgid": 45320,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.1594734590034932,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "candidate-actual-O",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "-O",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/candidate",
+      "pid": 45321,
+      "pgid": 45321,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.16322154190856963,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "memory-proof",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/proof.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 61896,
+      "pgid": 61896,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06453258299734443,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "actual-python-producer-fakes",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/producer-proof.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 61897,
+      "pgid": 61897,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06031349999830127,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "allOwnedOSCommandsTerminal": true,
+  "ownedCleanup": [
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/baseline",
+      "removed": true,
+      "afterPositiveOSCustody": true
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/candidate",
+      "removed": true,
+      "afterPositiveOSCustody": true
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/generated-java-diagnostics-review-r2364/producer-fake",
+      "removed": true,
+      "afterPositiveOSCustody": true
+    }
+  ],
+  "R986": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "load": "AST definitions only, explicit cwd, commands serialized"
+  },
+  "historicalHeldHosted": {
+    "run": 43427406152,
+    "job": 131892127446,
+    "custody": "UNKNOWN",
+    "pid": null,
+    "noAccess": true,
+    "holdReleased": false
+  },
+  "limits": {
+    "compiler": false,
+    "realCLI": false,
+    "network": false,
+    "DB": false,
+    "devices": false,
+    "providers": false,
+    "delegatedChildren": false,
+    "APIMutations": false,
+    "rootGitOrIndex": false,
+    "canonicalWrites": false,
+    "R2358Writes": false,
+    "productOrGAQualification": false,
+    "elapsedSecondsFromPrivateFreeze": 279.015447666985,
+    "proofSeconds": 0.8074811678379774,
+    "elapsedLimitSeconds": 360
+  },
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "completedUTC": "2026-11-13T13:32:46.839351+00:00",
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 4174,
+      "sha256": "34f0a65f4c7728756d8b01d696e8e7c50ca838cc3c8afbcc207bcb1c1c6b9c3a"
+    },
+    "bootstrap.diff": {
+      "bytes": 2988,
+      "sha256": "707867c4ef0d6fef78b12c3d5b2e902af38037c828b93c8babe234f8ffb4e87d"
+    },
+    "stderr-correction.diff": {
+      "bytes": 807,
+      "sha256": "05420f9441919d8deac5cc4aa2f97a535c4be77feed9e253948443240aaa908c"
+    },
+    "bootstrap.after.py": {
+      "bytes": 20808,
+      "sha256": "47ca3534319c8bfc34f6039c01a9916a1afff1d64cc4603af97d309ddd926564"
+    },
+    "workflow.after.yml": {
+      "bytes": 58510,
+      "sha256": "1fd42e8fc714efdc0f74eb13f1d33f10af35fae76966d1cb4fde3d46b06b44f3"
+    },
+    "rebase-contract.json": {
+      "bytes": 11476,
+      "sha256": "7d80ae219ea663e1158174df7290474e5fdc30ad02601ad0cf4f9acd6723de02"
+    },
+    "closure-manifest.json": {
+      "bytes": 27349,
+      "sha256": "e00285c40ad65cf6de59ea368a56c2ec702f3ad4726689975d76622f1153a07f"
+    },
+    "source119.json": {
+      "bytes": 19295,
+      "sha256": "49c5442e2e7a9c34a33d3f22120f083f29d77d7b4887b867725f55a4b7885f1f"
+    },
+    "suite-results.json": {
+      "bytes": 6224,
+      "sha256": "06f34ebf901add9ce3562863d54135154c7013af777719378e1892246da6adb2"
+    },
+    "proof.json": {
+      "bytes": 1612,
+      "sha256": "c22b3c4d44ffaea4ee4a943e64189a325fb1ffc1a5028019b682a92503848618"
+    },
+    "producer-path-review.json": {
+      "bytes": 6520,
+      "sha256": "8c328ee5767024fb12f4e7749edf56fed90d8847c15759d4ec8e8d628ed879ec"
+    },
+    "commands-batch1/candidate-normal.stderr": {
+      "bytes": 8958,
+      "sha256": "ef195129d2e42a6999a29e9782db8a2309160c0bcf6d5bc3f72ffadcedaae7f0"
+    },
+    "commands-batch1/candidate-actual-O.stderr": {
+      "bytes": 8958,
+      "sha256": "c61159f0c98a2df796713f04bab07296586e2bfe36d7a79fd18da47030d4c3e7"
+    },
+    "commands-batch2/actual-python-producer-fakes.stderr": {
+      "bytes": 856,
+      "sha256": "f13450d0a9e728990aef75bf2f5a8b977a988c1a571535a450d7040598b4d5b4"
+    }
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "id": "R2362",
+  "status": "REQUEST_CHANGES_PRIVATE_HARNESS",
+  "goal": "customer_create_to_worker_terminal_pg_join",
+  "actual_execution": true,
+  "test_completed": false,
+  "observed": {
+    "storage_ready": true,
+    "PKCE_callback": 303,
+    "session": 200,
+    "admitted_inputs_GET": 200,
+    "POST": 201,
+    "record_id": "2c365741-83c8-404e-80a4-c7d9953686e2",
+    "original_job_id": 1,
+    "actual_drains": [
+      {
+        "discard": 0,
+        "cancelled": 0,
+        "success": 1,
+        "failure": 0,
+        "snoozed": 0
+      },
+      {
+        "discard": 0,
+        "cancelled": 0,
+        "success": 0,
+        "failure": 0,
+        "snoozed": 1
+      }
+    ],
+    "running_revision": 1,
+    "reservation_held": true,
+    "reservation_count": 1,
+    "modeled_creations": 1,
+    "query_ensure_started_outside_SQL_transaction": true,
+    "lease_epoch": 2,
+    "api_exit": 2,
+    "processor_exit": 1,
+    "terminal_readback": false
+  },
+  "first_boundary": {
+    "owner": "R2362-added private assertion",
+    "path": "verification/local/customer-create-worker-drains-r2362/processor.exs:49",
+    "expected": "nil owner/expiry at yielded epoch2",
+    "actual": [
+      "oban:2:9f4147bc-1c29-4a8f-92de-85756ad23266",
+      2,
+      "2026-11-13T13:28:07.705948"
+    ],
+    "cause": "yield_multi expires at DB now while retaining owner/epoch; only terminal release clears them",
+    "raw": {
+      "bytes": 1025,
+      "sha256": "7ec8f13b3286af1121f348284b844c3c3b3975bc9def494e65c7a0193c7c187a"
+    },
+    "product_defect_proven": false
+  },
+  "unexecuted_private_correction": {
+    "patch": "verification/local/customer-create-worker-drains-r2362/yield-assertion-fix.patch",
+    "bytes": 986,
+    "sha256": "dcfeae9752d78ca658155270cb9abb4bbcaccd56f42cb3346c82a377555f1020",
+    "runtime_status": "NOT_RUN"
+  },
+  "independent_review": {
+    "all_four_exact_five_counter_maps": "PASS_SOURCE_REVIEW",
+    "all_inherited_assertions_preserved": true,
+    "whole_harness": "REQUEST_CHANGES"
+  },
+  "limits": {
+    "strict_compiles": 1,
+    "no_database_preflight_batches": 1,
+    "integration_batches": 1,
+    "runtime_BEAM_batches_total": 2,
+    "PG_launches": 1,
+    "PG_fast_stops": 1,
+    "port": 39750,
+    "actual_positive_drains": 2,
+    "positive_drains_limit": 4,
+    "wall_limit": 900,
+    "elapsed_to_PG_cleanup": 148.035,
+    "elapsed_to_transient_cleanup": 217.684
+  },
+  "authority": {
+    "session_user": "browser_admin",
+    "session_superuser": true,
+    "current_user": "browser_schema_owner",
+    "memberships": [],
+    "API": "browser_ordinary",
+    "production_restricted_processor_qualified": false,
+    "real_compiler_qualified": false
+  },
+  "cleanup": {
+    "commands": 16,
+    "all_direct_reaped_bothEOF_closedFDs_groupAbsentESRCH": true,
+    "PG_reaped_exit0_ESRCH": true,
+    "BEAMs_retired_before_PG_stop": true,
+    "port_reusable": true,
+    "owned_transients_removed": true,
+    "new_holds": 0
+  },
+  "source": {
+    "hosted_files": 285,
+    "dependency_sources": 914,
+    "Hex_files": 133,
+    "product_dependency_BEAM_reused": false,
+    "canonical_backend_stable": 180,
+    "canonical_backend_digest": "0dd121af876dd59c8902ebb84c4168dc008d4d274758f2bdec94d263ceaf8b17",
+    "source_digests": {
+      "candidate/hosted/deps/oban/lib/oban/queues/drainer.ex": {
+        "bytes": 1938,
+        "sha256": "958e004b3bda1c3189aa4c9d6bdd7fa3cc77bf459f08643dcfb0eec1f4b73470"
+      },
+      "candidate/hosted/deps/oban/lib/oban/queues/executor.ex": {
+        "bytes": 9225,
+        "sha256": "025bc7d6c446a5a4e44ad6d93eae47de0ba3fe4117a66f4ca2ce3bc79d755708"
+      },
+      "candidate/hosted/lib/mixer_hosted/builds/coordinator.ex": {
+        "bytes": 13494,
+        "sha256": "8ca79ae9638d71a39ecd57cc2992bf30bd1b8a846657ad2921cbabda0e311ef4"
+      },
+      "candidate/hosted/lib/mixer_hosted/builds/admission.ex": {
+        "bytes": 26456,
+        "sha256": "87bd56955fa99c2978a407c74cfcc87819ac6059a0bc4a86a36df763424ab0eb"
+      },
+      "candidate/hosted/test/support/build_dispatch_fixture.ex": {
+        "bytes": 4675,
+        "sha256": "a2c601c4cdab3a2bb2683fb8564da0fa61a4bf543123b81f5ee1d63418af4c62"
+      }
+    },
+    "private_manifest": {
+      "bytes": 676,
+      "sha256": "f85087bdff0a5c0bf6eb73b1eff91a27e872eadbd2fe8c728cfc0ed8580a7f0f"
+    },
+    "old_R2346_inputs_stable": 11
+  },
+  "pending": [
+    "modeled compiler_error terminal/reservation release/fence2/lease clear",
+    "drains3-4 and terminal successor no-effect",
+    "customer terminal GET and original POST200 duplicate/no extra job",
+    "separate negative and stale-redelivery controls",
+    "real compiler/provider/durable operation/restricted production authority"
+  ],
+  "scope": {
+    "canonical_index_Git_writes": false,
+    "held_resources_accessed": false,
+    "GA_promoted": false
+  },
+  "report": "verification/local/customer-create-worker-drains-r2362/REPORT.md",
+  "report_identity": {
+    "bytes": 7872,
+    "sha256": "6e8bac726be23c8620fd525263f831c3a9b39f6779b1c8f2e82df9f43c02ac26"
+  },
+  "artifact_manifest": {
+    "bytes": 216270,
+    "sha256": "727b4ff2411511383e2a4e840851ce4b67b63e074d6af6c8f6def67b6924a6a2"
+  },
+  "elapsed_to_report_seconds": 301.52
+}

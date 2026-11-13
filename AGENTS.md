@@ -634,3 +634,16 @@ outside those held paths remain available for source review. No native or photo
 payload ran. The R1914 dispatch is blocked and must not be executed; any fresh
 campaign requires a separately selected namespace and root admission. No earlier
 hold is released.
+
+
+The generated-Java six-consumer job in run 43427406152, job 131892127446,
+ended with exit 74 and UNKNOWN hosted custody. No reliable inner PID/PGID was
+exposed, and the bulk evidence upload timed out without a retained artifact.
+Preserve that exact hosted command and its source/output/scratch chain, whose
+workflow-declared output is $RUNNER_TEMP/generated-java-ci, without inspection,
+enumeration, process operations, waiting, retries or cleanup. Direct exit and
+GitHub job cleanup establish no group absence. Only the delivered compact
+verification/receipts/generated-java-ci-failure-r2338.json and
+verification/receipts/generated-java-hosted-hold-r2350.json are references.
+Fresh separately selected source diagnostics and CI namespaces remain permitted;
+they release neither this chain nor any historical hold.

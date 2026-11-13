@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_customer_create_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, CUSTOMER_CREATE_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_customer_expiry_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, CUSTOMER_EXPIRY_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_customer_create_source_manifest", return_value=collector.CUSTOMER_CREATE_MANIFEST), \
+                    mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_customer_create_source_manifest", return_value=collector.CUSTOMER_CREATE_MANIFEST), \
+                    mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_customer_create_source_manifest", return_value=collector.CUSTOMER_CREATE_MANIFEST), \
+                    mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_customer_create_source_manifest", return_value=collector.CUSTOMER_CREATE_MANIFEST), \
+                            mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_customer_create_source_manifest", return_value=collector.CUSTOMER_CREATE_MANIFEST), \
+                            mock.patch.object(collector, "validate_customer_expiry_source_manifest", return_value=collector.CUSTOMER_EXPIRY_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.CUSTOMER_CREATE_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.CUSTOMER_EXPIRY_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -3001,6 +3001,7 @@ def _catalog_join_source_bytes(root):
     for p, encoded in legacy_v21.items():
         body = base64.b64decode(encoded)
         if p in collector.CATALOG_JOIN_MANIFEST and {"bytes":len(body),"sha256":hashlib.sha256(body).hexdigest()} == collector.CATALOG_JOIN_MANIFEST[p]: source[p] = body
+    source['console/package.json'] = base64.b64decode('ewogICJuYW1lIjogIm1peGVyLWNvbnNvbGUiLAogICJ2ZXJzaW9uIjogIjAuMC4wIiwKICAicHJpdmF0ZSI6IHRydWUsCiAgInR5cGUiOiAibW9kdWxlIiwKICAiZW5naW5lcyI6IHsKICAgICJub2RlIjogIj49MjIuMTguMCIKICB9LAogICJzY3JpcHRzIjogewogICAgInRlc3QiOiAibm9kZSAtLXRlc3QgdGVzdHMvKi50ZXN0Lm1qcyIsCiAgICAidHlwZWNoZWNrIjogInRzYyAtLW5vRW1pdCIsCiAgICAiZGV2IjogInZpdGUgLS1ob3N0IDEyNy4wLjAuMSIsCiAgICAiYnVpbGQiOiAidHNjIC0tbm9FbWl0ICYmIHZpdGUgYnVpbGQiLAogICAgInByZXZpZXciOiAidml0ZSBwcmV2aWV3IC0taG9zdCAxMjcuMC4wLjEiCiAgfSwKICAiZGV2RGVwZW5kZW5jaWVzIjogewogICAgInR5cGVzY3JpcHQiOiAiNS45LjMiLAogICAgInZpdGUiOiAiOC4zLjUiLAogICAgInZpdGUtcGx1Z2luLXNvbGlkIjogIjIuMTEuMTQiCiAgfSwKICAiZGVwZW5kZW5jaWVzIjogewogICAgIkBzb2xpZGpzL3JvdXRlciI6ICIxLjAuMCIsCiAgICAic29saWQtanMiOiAiMS45LjE3IgogIH0KfQo=')
     return source
 
 class CurrentCLISelectionControls(unittest.TestCase):
@@ -3008,8 +3009,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
         import contextlib
         import io
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / collector.CUSTOMER_CREATE_SOURCE_BASE / "selection.json").read_bytes()
-        self.assertEqual(collector.CUSTOMER_CREATE_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        raw = (root / collector.CUSTOMER_EXPIRY_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.CUSTOMER_EXPIRY_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
         expected = json.loads(raw)["selected"]
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -3017,7 +3018,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-        self.assertEqual(collector.CUSTOMER_CREATE_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertEqual(collector.CUSTOMER_EXPIRY_SELECTION_SHA256, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
 
@@ -3025,8 +3026,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "7c20dad54c6eec8e1c172d3200bd6b038db40f018a0326c7afdb5cc9070f3cee"
-    DIGEST = "aed55457231b1e9a2191c071f2b718bd7f271addf892e209602f38873587089c"
+    PIN = "d86d35be4f9e570480b5f7e9f29c41d63f2a4df0d499531bd2c92d0eaa104f80"
+    DIGEST = "31f1bb54cacceda486cae725d4d10091aa024a900ba3998b3a47c96ba8222027"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3104,7 +3105,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / "verification/identity-network-current-source-v22/selection.json").read_bytes()
+        raw = (root / "verification/identity-network-current-source-v24/selection.json").read_bytes()
         self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
         patterns = self.patterns((root / workflow_path).read_text(), job)
         self.assertNotIn(self.FAMILY, patterns)
@@ -3368,8 +3369,8 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
         self.assertEqual(331,observed['source_count'])
-        self.assertEqual(collector.CUSTOMER_CREATE_SOURCE_DIGEST,observed['source_digest_sha256'])
-        self.assertEqual(collector.CUSTOMER_CREATE_SELECTION_SHA256,observed['selection_sha256'])
+        self.assertEqual(collector.CUSTOMER_EXPIRY_SOURCE_DIGEST,observed['source_digest_sha256'])
+        self.assertEqual(collector.CUSTOMER_EXPIRY_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
         try:
             target.write_bytes(original+b'\n')
@@ -3868,7 +3869,7 @@ class PublicConsoleSigninSourceControls(unittest.TestCase):
                 self.assertEqual(0, exited.exception.code)
                 observed = json.loads(output.getvalue())
                 self.assertEqual(331, observed['source_count'])
-                self.assertEqual(collector.CUSTOMER_CREATE_SELECTION_SHA256, observed['selection_sha256'])
+                self.assertEqual(collector.CUSTOMER_EXPIRY_SELECTION_SHA256, observed['selection_sha256'])
 
     def test_v19_actual_collect_refuses_changed_new_source_before_docker(self):
         helper = CollectorMethodWiringControls()
@@ -4206,6 +4207,104 @@ class CustomerCreateSourceControls(unittest.TestCase):
             self.assertEqual({'before':None,'after':row},collector.CUSTOMER_CREATE_DELTA[p])
             changed=dict(collector.CUSTOMER_CREATE_MANIFEST);changed.pop(p)
             with self.assertRaises(collector.CollectorError):collector.validate_customer_create_source_manifest(changed)
+
+
+class CIDiscoverySourceControls(unittest.TestCase):
+    def test_complete_typed_v22_inverse_and_only_package_delta(self):
+        root=COLLECTOR_PATH.resolve().parents[2]
+        metadata={collector.CI_DISCOVERY_SOURCE_BASE+n:(root/collector.CI_DISCOVERY_SOURCE_BASE/n).read_bytes() for n in ('selection.json','selected-source-manifest.json')}
+        value=collector.validate_ci_discovery_source_metadata(metadata)
+        self.assertEqual(collector.CUSTOMER_CREATE_MANIFEST,value['inverse_v22'])
+        self.assertEqual(331,len(value['inverse_v22']))
+        self.assertEqual(['console/package.json'],list(value['exact_delta']))
+        inv=dict(collector.CI_DISCOVERY_MANIFEST)
+        inv['console/package.json']=value['exact_delta']['console/package.json']['before']
+        self.assertEqual(value['inverse_v22'],inv)
+        self.assertEqual(collector.CUSTOMER_CREATE_SOURCE_DIGEST,canonical_digest(inv))
+    def test_each_inverse_row_types_hash_roles_and_membership(self):
+        for p in collector.CUSTOMER_CREATE_MANIFEST:
+            for key,val in [('bytes',True),('bytes',1.0),('sha256','0'*64),('role','source')]:
+                bad=copy.deepcopy(collector.CUSTOMER_CREATE_MANIFEST);bad[p][key]=val
+                with self.subTest(path=p,key=key),self.assertRaises(collector.CollectorError):collector._ci_discovery_inverse(bad)
+        for bad in ({},dict(reversed(list(collector.CUSTOMER_CREATE_MANIFEST.items())))):
+            with self.assertRaises(collector.CollectorError):collector._ci_discovery_inverse(bad)
+    def test_current_manifest_guards_missing_foreign_hash_and_type(self):
+        for label in ('missing','foreign','hash','bool','float'):
+            bad=copy.deepcopy(collector.CI_DISCOVERY_MANIFEST);p='console/package.json'
+            if label=='missing':bad.pop(p)
+            elif label=='foreign':bad['console/foreign']={'bytes':0,'sha256':'0'*64}
+            elif label=='hash':bad[p]['sha256']='0'*64
+            else:bad[p]['bytes']=True if label=='bool' else 566.0
+            with self.assertRaises(collector.CollectorError):collector.validate_ci_discovery_source_manifest(bad)
+    def test_typed_selection_inverse_reference_and_roles(self):
+        root=COLLECTOR_PATH.resolve().parents[2];base=collector.CI_DISCOVERY_SOURCE_BASE
+        metadata={base+n:(root/base/n).read_bytes() for n in ('selection.json','selected-source-manifest.json')}
+        for mutate in (lambda v:v['inverse_v22'][sorted(v['inverse_v22'])[-1]].update(bytes=True),lambda v:v['selected']['manifest'].update(bytes=True),lambda v:v['exact_delta']['console/package.json'].update(role='foreign'),lambda v:v['predecessor'].update(source_count=True)):
+            value=json.loads(metadata[base+'selection.json']);mutate(value);body=json.dumps(value,sort_keys=True).encode()
+            with mock.patch.object(collector,'CI_DISCOVERY_SELECTION_SHA256',hashlib.sha256(body).hexdigest()):
+                with self.assertRaises(collector.CollectorError):collector.validate_ci_discovery_source_metadata({**metadata,base+'selection.json':body})
+
+
+class CustomerExpirySourceControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        base = collector.CUSTOMER_EXPIRY_SOURCE_BASE
+        return {base + n: (root / base / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+
+    def test_complete_typed_v23_inverse_exact_two_test_deltas_and_product_unchanged(self):
+        value = collector.validate_customer_expiry_source_metadata(self.metadata())
+        self.assertEqual(collector.CI_DISCOVERY_MANIFEST, value['inverse_v23'])
+        self.assertEqual(331, len(value['inverse_v23']))
+        expected = ['hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs', 'hosted/test/support/browser_login_provider_fixture.ex']
+        self.assertEqual(expected, list(value['exact_delta']))
+        inverse = dict(collector.CUSTOMER_EXPIRY_MANIFEST)
+        for p, change in value['exact_delta'].items(): inverse[p] = change['before']
+        self.assertEqual(value['inverse_v23'], inverse)
+        self.assertEqual(collector.CI_DISCOVERY_SOURCE_DIGEST, canonical_digest(inverse))
+        product = [p for p in inverse if p.startswith('hosted/lib/')]
+        self.assertEqual(137, len(product))
+        for p in product: self.assertEqual(inverse[p], collector.CUSTOMER_EXPIRY_MANIFEST[p])
+        self.assertEqual({'bytes': 566, 'sha256': '762ca48b0da7717efa58d30b315f36a9d80817d2df4fe523b922de5c6372cb86'}, collector.CUSTOMER_EXPIRY_MANIFEST['console/package.json'])
+
+    def test_every_inverse_row_types_hash_roles_membership_and_order_fail_closed(self):
+        for p in collector.CI_DISCOVERY_MANIFEST:
+            for key, val in [('bytes', True), ('bytes', 1.0), ('sha256', '0' * 64), ('role', 'source')]:
+                bad = copy.deepcopy(collector.CI_DISCOVERY_MANIFEST)
+                bad[p][key] = val
+                with self.subTest(path=p, key=key), self.assertRaises(collector.CollectorError): collector._customer_expiry_inverse(bad)
+        for bad in ({}, dict(reversed(list(collector.CI_DISCOVERY_MANIFEST.items())))):
+            with self.assertRaises(collector.CollectorError): collector._customer_expiry_inverse(bad)
+
+    def test_current_manifest_missing_foreign_hash_type_and_caller_override_refused(self):
+        for p in collector.CUSTOMER_EXPIRY_DELTA:
+            for label in ('missing', 'foreign', 'hash', 'bool', 'float', 'role'):
+                bad = copy.deepcopy(collector.CUSTOMER_EXPIRY_MANIFEST)
+                if label == 'missing': bad.pop(p)
+                elif label == 'foreign': bad['hosted/test/foreign'] = {'bytes': 0, 'sha256': '0' * 64}
+                elif label == 'hash': bad[p]['sha256'] = '0' * 64
+                elif label == 'role': bad[p]['role'] = 'source'
+                else: bad[p]['bytes'] = True if label == 'bool' else float(bad[p]['bytes'])
+                with self.subTest(path=p, label=label), self.assertRaises(collector.CollectorError): collector.validate_customer_expiry_source_manifest(bad)
+        for kwargs in ({'expected_count': True}, {'expected_count': 331.0}, {'expected_digest': collector.CI_DISCOVERY_SOURCE_DIGEST}):
+            with self.assertRaises(collector.CollectorError): collector.validate_customer_expiry_source_manifest(collector.CUSTOMER_EXPIRY_MANIFEST, **kwargs)
+
+    def test_typed_selection_inverse_reference_and_both_delta_roles(self):
+        metadata = self.metadata()
+        base = collector.CUSTOMER_EXPIRY_SOURCE_BASE
+        mutations = [lambda v: v['inverse_v23'][sorted(v['inverse_v23'])[-1]].update(bytes=True),
+            lambda v: v['selected']['manifest'].update(bytes=True),
+            lambda v: v['predecessor'].update(source_count=True),
+            lambda v: v.update(runtime_or_GA_accepted=True)]
+        for p in collector.CUSTOMER_EXPIRY_DELTA:
+            mutations.append(lambda v, p=p: v['exact_delta'][p].update(role='foreign'))
+            mutations.append(lambda v, p=p: v['exact_delta'][p]['before'].update(bytes=True))
+            mutations.append(lambda v, p=p: v['exact_delta'][p]['after'].update(bytes=float(v['exact_delta'][p]['after']['bytes'])))
+        for mutate in mutations:
+            value = json.loads(metadata[base + 'selection.json'])
+            mutate(value)
+            body = json.dumps(value, sort_keys=True).encode()
+            with mock.patch.object(collector, 'CUSTOMER_EXPIRY_SELECTION_SHA256', hashlib.sha256(body).hexdigest()):
+                with self.assertRaises(collector.CollectorError): collector.validate_customer_expiry_source_metadata({**metadata, base + 'selection.json': body})
 
 if __name__ == "__main__":
     signal.alarm(50)
