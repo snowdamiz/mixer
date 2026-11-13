@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "id": "customer-build-inputs-review-r2254",
+  "review_status": "REQUEST_CHANGES",
+  "GET_security_status": "PASS_SOURCE",
+  "scope": "entire seven-path GET slice plus R2238 readonly permission correction; inherited accepted POST/schema/relations preserved",
+  "review_method": "independent bounded source/evidence review; no new product execution",
+  "final_map": {
+    "bytes": 24284,
+    "sha256": "73b2dceb11fe2d13d3cb7d8ecdfe6502e35d3861294d8edbefb2f0134577b32d"
+  },
+  "contract_sha256": "2e48ec25545cb8f480b444daf78d3fc0538e7700261b08c2d5c18bb81fe551fe",
+  "bindings": {
+    "map_rows": 36,
+    "source_bindings": 285,
+    "source_digest": "ab644d2660e80f8fa3349f35c2482adc56ce8ae7107b0b244221d1402fb49d82",
+    "raw_files": 59,
+    "all_hashes_exact": true,
+    "all_original_and_layer_preimages_exact": true,
+    "final_equals_executed": true,
+    "commands": 19,
+    "all_terminal": true
+  },
+  "accepted_anchors": {
+    "hosted/lib/mixer_hosted/customer_builds/create.ex": {
+      "bytes": 3009,
+      "sha256": "957b846069d0410dbba32366ed78479c2e83649d85045f9fcc22659d3c0ad7e4"
+    },
+    "hosted/lib/mixer_hosted_web/browser_create_http.ex": {
+      "bytes": 2321,
+      "sha256": "3ed0d608b811e74fd1673b4e497c58352c45212ee150551cda2d80d07af9f9e7"
+    },
+    "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex": {
+      "bytes": 51295,
+      "sha256": "23f64e6d1672af1be2de18cbb9e577fe8b0cf95558925c46e624dac60372116b"
+    },
+    "hosted/lib/mixer_hosted/identity/access_token_verifier.ex": {
+      "bytes": 5140,
+      "sha256": "889b6bde65166d1ef2dc9987bccedb2f711002f548310c41068b0540f41268f4"
+    },
+    "hosted/lib/mixer_hosted/authorization/scope.ex": {
+      "bytes": 2264,
+      "sha256": "b98c7c6f2f3592bf2fcfd0890d86bb503e3c9cdd6558fa1c7b0766ddb61c7b7a"
+    }
+  },
+  "findings": [
+    {
+      "priority": "P1",
+      "category": "ordinary_CI_packaging",
+      "title": "Remove the listing tests\u2019 required R2210_EVIDENCE diagnostic environment",
+      "path": "hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs",
+      "lines": [
+        43,
+        337,
+        588
+      ],
+      "primary_line": 337,
+      "source_sha256": "83d82ec3c12b9ed0add0c6b7511dae45801e8a6857c2898d3187e15f9be19b3b",
+      "trigger": "Run the repository hosted suite with its standard MIXER_BROWSER_* fixture environment and R2210_EVIDENCE unset.",
+      "impact": "The creator test and readonly test throw System.EnvError at required diagnostic output writes; their on_exit callbacks also throw. The unchanged ordinary CI launcher does not set this campaign variable, so this packet cannot pass ordinary suite adoption as delivered.",
+      "evidence": "packaging-proof.json; frozen hosted/scripts/test-local.py:294-300; .github/workflows/hosted.yml:314-320; private R2238 run.py:93 supplies the missing campaign variable. Proven source path; no new suite or BEAM run.",
+      "root_disposition": "Root has selected correction during composition, retaining assertions and validating the combined suite; this review did not edit the producer or inspect mutable R2250."
+    }
+  ],
+  "actual_prior_server_proof": {
+    "packet": "R2238",
+    "passed": 6,
+    "failed": 0,
+    "new_review_run": false,
+    "compiles": 1,
+    "BEAM_batches": 1,
+    "postgres_port": 39630,
+    "terminal_custody": true
+  },
+  "root_selected_packaging_correction_pending": true,
+  "pending": [
+    "combined ordinary full suite",
+    "canonical composition and typed-source admission",
+    "real browser integration",
+    "published-package/device/operational/GA gates"
+  ],
+  "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 4789,
+      "sha256": "744ccc8da961fd6e75041865bc11a6df083e667c35a50df7c221315a429d5292"
+    },
+    "artifact-checks.json": {
+      "bytes": 2767,
+      "sha256": "f896cbf7dacc65c81456e3b40ff971a3cd45a898ff0ab5474bf8d816e548d6cc"
+    },
+    "binding-checks.json": {
+      "bytes": 306,
+      "sha256": "c5892e333aff1cc5a606eabc9c9efa957696ea199198f7c6961220c88be74462"
+    },
+    "packaging-proof.json": {
+      "bytes": 971,
+      "sha256": "4f208c6f88776d3fb1e749aa6c23389342b62ef6d3fe4f78be23ac441b54900f"
+    }
+  },
+  "writes_only_assigned_review_namespace_and_receipt": true,
+  "canonical_Git_index_producer_native_provider_DB_compiler_runtime_subchildren_writes": false,
+  "held_resources_accessed_or_released": false,
+  "new_holds": [],
+  "completed_utc": "2026-11-13T11:25:33.330076+00:00"
+}

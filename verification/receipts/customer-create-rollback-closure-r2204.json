@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "id": "customer-create-rollback-closure-r2204",
+  "status": "REQUEST_CHANGES_JOINT_COMPONENTS",
+  "full_named_HTTP_test_passed": true,
+  "full_named_HTTP_passed_batches": [
+    2,
+    3
+  ],
+  "module_batch2": {
+    "passed": 2,
+    "failed": 0
+  },
+  "joint": {
+    "total": 40,
+    "passed": 37,
+    "failed": 3,
+    "full_named_body_and_observer": "PASS again",
+    "effective_creator_controls": 10,
+    "relation_profile_controls": 19,
+    "remaining_failures": [
+      {
+        "module": "CustomerCreateBuildPolicyExclusivityR2156Test",
+        "test": "actual_create_build_policy_exclusivity_pg_join",
+        "line": 110,
+        "observed": "DBConnection.ConnectionError connection not available and queuing is disabled at initial admission(c.roles,false)",
+        "scope": "initial component admission not reached; exact readiness cause unproven",
+        "no_fourth_batch": true
+      },
+      {
+        "module": "CustomerCreatePolicyEvidenceTest",
+        "test": "exact policy admission refuses catalog drift and restores",
+        "line": 57,
+        "observed": "System.EnvError R2134_POLICY_ROWS unset",
+        "scope": "policy rows loaded; baseline/mutations not reached"
+      },
+      {
+        "module": "CustomerCreatePolicyEvidenceTest",
+        "test": "failed INSERT and nil rows preserve telemetry attachment without SQL",
+        "line": 85,
+        "observed": "assert_receive {:job_insert_failed,_,:owned_failure} mailbox empty",
+        "source_mismatch": "bare INSERT INTO \"oban_jobs\" ends at quote; current observer regex requires whitespace or parenthesis; raw atom error also differs from normalized SQLSTATE event contract",
+        "scope": "source diagnosis only; subsequent actual SQL/handler assertions unreached"
+      }
+    ]
+  },
+  "budget": {
+    "product_compiles": 2,
+    "runtime_BEAM_batches": 3,
+    "postgres_launches": 1,
+    "postgres_stops": 1,
+    "port": 39600,
+    "fourth_retry": false,
+    "runtime_elapsed_seconds": 249.756,
+    "wall_limit_seconds": 900,
+    "finalization_elapsed_seconds": 415.907,
+    "compile_accounting_note": "runtime-result.json preserves the original driver counter1; fixed-product-compile.json and fix-compile-logs independently record the parent-authorized second/final compile; commands-all.json proves total2."
+  },
+  "source": {
+    "map": "verification/local/customer-create-rollback-closure-r2204/application-map.json",
+    "map_identity": {
+      "bytes": 19841,
+      "sha256": "1831997b4d4ced71c31ebab4797506992ba7c71b147476be39bb42e22e4abde8"
+    },
+    "paths": 33,
+    "files": 282,
+    "tree_digest_sha256": "12414c46a9a1c8c92e46f890b0f7d72f72148dd9f6eb178bb18af71cc4f5cbf9",
+    "digest_recipe": "sorted relative path + NUL + sha256 + newline",
+    "changed_from_R2184": [
+      "hosted/lib/mixer_hosted_web/browser_create_http.ex",
+      "hosted/test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs",
+      "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs"
+    ],
+    "original_canonical_preimages_preserved": true,
+    "all_other_279_bindings_exact": true
+  },
+  "checks_before_PG": {
+    "syntax_and_JSON": true,
+    "original_body_assertions": 38,
+    "composed_body_assertions": 46,
+    "all_original_assertions_in_order": true,
+    "R2140_pinned_bindings": 29,
+    "explicit_rebar_sha256": "4df37f2f7570e0b5af15b5dcbad6b7a864202575d94e1d8663166c7643ee3a09",
+    "loaded_exports_passed": true,
+    "product_warnings_as_errors": true,
+    "schedulers": 2
+  },
+  "HTTP_fix": {
+    "path": "hosted/lib/mixer_hosted_web/browser_create_http.ex",
+    "original_canonical_preimage": null,
+    "before": {
+      "bytes": 2218,
+      "sha256": "beaf64597ec8bcd36cffdac5661a97b7a9e54c6a6214edff90ac67e488b09e49"
+    },
+    "after": {
+      "bytes": 2321,
+      "sha256": "3ed0d608b811e74fd1673b4e497c58352c45212ee150551cda2d80d07af9f9e7"
+    },
+    "frozen_R2184_before": "base-preimages/hosted/lib/mixer_hosted_web/browser_create_http.ex",
+    "afterimage": "afterimages/hosted/lib/mixer_hosted_web/browser_create_http.ex",
+    "root_authorization": "ROOT COORDINATION 2026-11-13: explicitly normalize {:error,%Store.Failure{}} to fixed503 authorization_unavailable; second/final compile; no deadline/assertion/rollback changes",
+    "accepted_Create957b846": "R2202 PASS_SOURCE per parent",
+    "baseline400": "post-insert-expiry-counterexample.json + evidence/batch-1 + logs/011-http-sql-batch-1.stdout",
+    "targeted_review": "pending root after actual execution"
+  },
+  "semantic_receipts": "verification/local/customer-create-rollback-closure-r2204/semantic-receipts.json",
+  "actual_lock_discriminator_passed": true,
+  "actual_INSERT_failure_rollback_retry_passed": true,
+  "post_insert_expiry_actual_INSERT_witness_and_both_row_rollback_passed": true,
+  "missing_scope_and_revocation_passed": true,
+  "baseline400_preserved": true,
+  "prior_concurrency503_cause_proven": false,
+  "cleanup": {
+    "all_19_managed_terminal_ESRCH_EOF_FDs": true,
+    "PG_direct_reap_ESRCH_closed_regular_FDs": true,
+    "port39600_reusable": true,
+    "owned_transients_removed": [
+      "pgdata",
+      "candidate/hosted/deps",
+      "candidate/hosted/_build",
+      "home",
+      "tmp",
+      "cache",
+      "hex-home",
+      "mix-home"
+    ],
+    "new_holds": []
+  },
+  "raw_evidence": {
+    "manifest": "verification/local/customer-create-rollback-closure-r2204/raw-evidence-manifest.json",
+    "files": 82,
+    "manifest_identity": {
+      "bytes": 12136,
+      "sha256": "0051ec24d4240d999a0a2759f59d961960564088a9a9f4c7947b6e6e280004ee"
+    }
+  },
+  "root_review": "targeted BrowserCreateHTTP and fixture/test delta review pending; R2202 exactCreate PASS_SOURCE per root",
+  "canonical_or_index_or_Git_or_sourceauthority_operations": false,
+  "production_GA_or_canonical_adoption": false,
+  "native_provider_mutations_subchildren_held_resource_operations": false
+}

@@ -1,0 +1,296 @@
+{
+  "schema": 1,
+  "id": "console-build-submit-review-r2240",
+  "recordedUTC": "2026-11-13T11:16:28.263664+00:00",
+  "decision": "REQUEST_CHANGES",
+  "findingCount": 1,
+  "findings": [
+    {
+      "id": "R2240-F2",
+      "priority": "P2",
+      "title": "Preserve the accepted state when reselecting the same created build",
+      "sourcePath": "console/src/state/build-selection-controller.ts",
+      "line": 344,
+      "relatedLines": [
+        265,
+        268,
+        280,
+        281
+      ],
+      "frozenAfterimage": "verification/local/console-build-submit-r2212/afterimages/console/src/state/build-selection-controller.ts",
+      "trigger": "Create a build, accept exact detail Failed revision4 while its actual catalog row remains Queued revision1, click that same row, then receive an otherwise valid Succeeded revision4 detail for identical eight-field identity and unchanged session.",
+      "observed": "Selected panel changes from Compilation failed to Succeeded / This platform build completed successfully.",
+      "cause": "selectBuild retains previous.revision for the same selection but omits previous.committedState from loadDetail. loadDetail overwrites selected without it; its equal-revision coherence guard is conditional on row.committedState being present.",
+      "impact": "A contradictory same-revision response can replace an accepted terminal failure with false success without any selection/session reset. This bypasses the new creation-receipt/detail coherence safeguard.",
+      "reproduction": "One focused invocation of src/r2240-adversarial.test.mjs, test R2240-F2; fails its expected no-false-success assertion.",
+      "suggestedFix": "Carry the accepted committedState with the revision when the immutable selection is unchanged; permit a new floor only at a genuine selection/workspace/session reset. Add this observed component case to producer tests.",
+      "producerEdited": false
+    }
+  ],
+  "reviewedReceipt": {
+    "path": "verification/receipts/console-build-submit-r2212.json",
+    "bytes": 8561,
+    "sha256": "d60ac69b528f87da2fe9965fdb69cea5a41eca9ba7e45f9585f93575ae7c8dac"
+  },
+  "selectedContract": {
+    "path": "verification/local/customer-build-inputs-contract-r2208/selection.json",
+    "sha256": "2e48ec25545cb8f480b444daf78d3fc0538e7700261b08c2d5c18bb81fe551fe",
+    "wireChanged": false
+  },
+  "source": {
+    "revision": "33ae3ab6053dda75bba5e0d4065e834ec917efc7",
+    "inputTreeSHA256": "9b31b514cf75b7c1c9e9dd53c15409cbcbaeb465da4031311716bca1d678f605",
+    "canonicalBase": "browser v21",
+    "baselineFiles": 76,
+    "supportFiles": 46,
+    "privateDeltaFiles": 9,
+    "finalCopiedInputs": 127,
+    "dependencyFiles": 2751,
+    "allSelectedBytesHashMatchedBeforeAfter": true,
+    "candidateDiffReconstructedExactly": true,
+    "canonicalAdoption": false
+  },
+  "tests": {
+    "fullSuite": {
+      "tests": 268,
+      "pass": 268,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "singleFreshCompleteInvocation": true,
+    "existing219Passed": true,
+    "final49NewPassed": true,
+    "focusedAdversarial": {
+      "tests": 2,
+      "pass": 1,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "focusedInvocations": 1,
+    "provenFinding": "R2240-F2",
+    "nonfinding": "Initial-catalog/pending-submission ordering probe passed.",
+    "additionalTypechecksOrApplicationBuilds": 0,
+    "standardTestHarnessCompilation": "private caches only"
+  },
+  "producerVerification": {
+    "managedCommands": 10,
+    "allDirectReapedBothEOFClosedFDsPositiveESRCH": true,
+    "rawFilesPinnedAndUnchanged": 20,
+    "historicalFullFailurePreserved": {
+      "invocations": 1,
+      "tests": 255,
+      "pass": 222,
+      "fail": 33,
+      "existing219": {
+        "pass": 219,
+        "fail": 0
+      },
+      "new36": {
+        "pass": 3,
+        "fail": 33
+      },
+      "fullPass": false
+    },
+    "finalTypecheckAndViteBuild": "producer PASS verified from selected raw artifacts, not rerun"
+  },
+  "custody": {
+    "pinnedCustodianSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "ASTDefinitions": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "managedCommands": [
+      {
+        "label": "full",
+        "argv": [
+          "/Users/andreyyurlov/.local/state/fnm_multishells/23804_1794568316027/bin/node",
+          "--test",
+          "tests/application-build-page.test.mjs",
+          "tests/brand-parity.test.mjs",
+          "tests/browser-login.test.mjs",
+          "tests/browser-session-binding.test.mjs",
+          "tests/browser-session-client.test.mjs",
+          "tests/browser-session-controller.test.mjs",
+          "tests/build-overview-domain.test.mjs",
+          "tests/build-overview-text-boundaries.test.mjs",
+          "tests/build-overview-view.test.mjs",
+          "tests/build-selection-binding.test.mjs",
+          "tests/build-selection-controller.test.mjs",
+          "tests/cookie-build-catalog-client.test.mjs",
+          "tests/cookie-build-client.test.mjs",
+          "tests/cookie-workspace-client.test.mjs",
+          "tests/release-check-summary.test.mjs",
+          "tests/release-check-view.test.mjs",
+          "tests/workspace-app.test.mjs",
+          "tests/workspace-binding.test.mjs",
+          "tests/workspace-client.test.mjs",
+          "tests/workspace-controller.test.mjs",
+          "tests/workspace-directory-domain.test.mjs",
+          "tests/workspace-directory-scope-parity.test.mjs",
+          "tests/workspace-directory-view.test.mjs",
+          "src/build-submission.test.mjs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-build-submit-review-r2240/work/console",
+        "pid": 26170,
+        "pgid": 26170,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 1.7395375419873744,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "adversarial",
+        "argv": [
+          "/Users/andreyyurlov/.local/state/fnm_multishells/23804_1794568316027/bin/node",
+          "--test",
+          "src/r2240-adversarial.test.mjs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-build-submit-review-r2240/work/console",
+        "pid": 45519,
+        "pgid": 45519,
+        "state": "direct_reaped",
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.37822504190262407,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "allDirectReapedBothEOFClosedFDsPositiveESRCH": true,
+    "UNKNOWN": [],
+    "newHold": false,
+    "cleanup": {
+      "ownedDependenciesAndCachesRemoved": true,
+      "sourceDependenciesUntouched": true,
+      "allManagedPayloadsReapedBothEOFClosedFDsPositiveESRCH": true,
+      "UNKNOWN": [],
+      "newHold": false,
+      "historicalHoldsReleased": false,
+      "ownedSourceTmpAndRawEvidenceRetained": true
+    }
+  },
+  "versions": {
+    "typescript": "5.9.3",
+    "vite": "8.3.5",
+    "solid": "1.9.17",
+    "node": "v22.23.3",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "binaries": {
+    "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node": {
+      "bytes": 112925600,
+      "sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b"
+    },
+    "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14": {
+      "bytes": 34640,
+      "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+    },
+    "producerNodeExecutable": {
+      "path": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+      "bytes": 112925600,
+      "sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b"
+    },
+    "@rolldown/binding-darwin-arm64/rolldown-binding.darwin-arm64.node": {
+      "bytes": 17134016,
+      "sha256": "9d4c0a2b9bb218fe7d335528a6e46afcba641596cde17921be7c0ae2f76c78db"
+    },
+    "typescript/bin/tsc": {
+      "bytes": 45,
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    "vite/bin/vite.js": {
+      "bytes": 2995,
+      "sha256": "de5833362e640673962f16e255bf8738d4380a68601b9af26217eee4e1bac36d"
+    }
+  },
+  "limits": [
+    "Actual installed ConsoleRoutes/Shell/ApplicationBuildPage executed in inert DOM with controlled network; no real browser/main bootstrap runtime/backend/DB.",
+    "No canonical, producer, test-afterimage, Git/index, authority, DB, browser, native, provider or subchildren writes. One read-only git rev-parse recorded revision metadata.",
+    "No worker success/build-source ingestion, package/release or GA claim. Canonical admission, actual backend/browser composition and hosted CI remain root pending.",
+    "All historical holds untouched; no merge or publication."
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 3762,
+      "sha256": "880e021bb30ad8eee2b0873c18ea059e64e15d430eaabcbd81eb6df668efde98"
+    },
+    "review.py": {
+      "bytes": 5662,
+      "sha256": "6fef7e693fda558d07c3cd65b69e4368fa7007704b63b1f3cb50ed9b388e274e"
+    },
+    "run-adversarial.py": {
+      "bytes": 1590,
+      "sha256": "f8f60e4354c37875dbd7df08d97cb25a1c2a9a7ab1f08df62a81bd563dfd9124"
+    },
+    "custodian-extracted.py": {
+      "bytes": 1849,
+      "sha256": "96246e6a3733707f95ff6bf7342a959b50fc018cfc1b77b19a11f32913e53fdd"
+    },
+    "preflight.json": {
+      "bytes": 2753,
+      "sha256": "0f141d89c7918b40b0a19234e6ac880f1c4ddbf4bf06eb41d6c3434ef46953e4"
+    },
+    "validated-inputs.json": {
+      "bytes": 19062,
+      "sha256": "a61b1f257569b77b47217d1b66ec8d73b72d9b2e8fed70262e5b194f03e28aad"
+    },
+    "producer-raw-pins.json": {
+      "bytes": 3845,
+      "sha256": "8d992d581860209f34a2aee813d04fa8c088356d7ccc1af0025e7f7e1df733fb"
+    },
+    "post-full-hash-check.json": {
+      "bytes": 117,
+      "sha256": "21fd97720f09cfa4795dbceea8f5a0f9d37b047dc2a3571518c04201cdf16e5b"
+    },
+    "final-integrity.json": {
+      "bytes": 3262,
+      "sha256": "0b633db0d66c850e64c3bed4abb12e91fc311e743259999fda82a18a7b61309c"
+    },
+    "cleanup.json": {
+      "bytes": 273,
+      "sha256": "7a2cf6aee8912acd08a69e010d74d9b85bd97b6cfb4da9fe7ad0e9f7f806f944"
+    },
+    "adversarial-observations.json": {
+      "bytes": 2266,
+      "sha256": "9b22c14c0256f27a31dc20a2d953cc9a0aae8c0a5f28cc173da6ee1a79955cd5"
+    },
+    "commands-full/commands.json": {
+      "bytes": 1594,
+      "sha256": "0043662628f5df17ab18af51e07711cf7b29a7837e5a67d1c7b90bfe33d8b0ba"
+    },
+    "commands-full/full.stdout": {
+      "bytes": 77593,
+      "sha256": "714c60359b29beab6ca444edc5b9f183469dc4328871687079e40748903bcb4c"
+    },
+    "commands-full/full.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands-adversarial/commands.json": {
+      "bytes": 535,
+      "sha256": "5e074a0dd2d638afdcac233a34747ed70cca329e1f277f1f0adfba83f2f4846b"
+    },
+    "commands-adversarial/adversarial.stdout": {
+      "bytes": 4268,
+      "sha256": "0d8b1876389a2d5822b092af3ca88cac1adb7fbe5529f71b5bc02a5d967f436d"
+    },
+    "commands-adversarial/adversarial.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "work/console/src/r2240-adversarial.test.mjs": {
+      "bytes": 14845,
+      "sha256": "3ba9f6a8056e35cdcbb05091abd6bc6df0136acd2c3481f50e28b5ad8c7580b8"
+    }
+  },
+  "report": "verification/local/console-build-submit-review-r2240/REPORT.md"
+}

@@ -1,0 +1,211 @@
+{
+  "schema": 1,
+  "id": "customer-create-http-review-r2226",
+  "status": "PASS_SOURCE",
+  "scope": "Exact R2204 typed HTTP failure normalization and fixture deltas; verified named HTTP body",
+  "findings": [],
+  "parent_pin_correction": {
+    "old_pre_final_map_sha256": "4d76dc51dd6cdffe4b7f33b23dc26a8ee5cb9158e9602b4469bd3fb0ebd491d4",
+    "final_map": {
+      "bytes": 19841,
+      "sha256": "1831997b4d4ced71c31ebab4797506992ba7c71b147476be39bb42e22e4abde8"
+    },
+    "producer_compact_receipt_agrees": true,
+    "stale_pin_guard_refusal_occurred": false
+  },
+  "product": {
+    "path": "hosted/lib/mixer_hosted_web/browser_create_http.ex",
+    "original_canonical_preimage": null,
+    "before": {
+      "bytes": 2218,
+      "sha256": "beaf64597ec8bcd36cffdac5661a97b7a9e54c6a6214edff90ac67e488b09e49"
+    },
+    "after": {
+      "bytes": 2321,
+      "sha256": "3ed0d608b811e74fd1673b4e497c58352c45212ee150551cda2d80d07af9f9e7"
+    },
+    "frozen_R2184_before": "base-preimages/hosted/lib/mixer_hosted_web/browser_create_http.ex",
+    "afterimage": "afterimages/hosted/lib/mixer_hosted_web/browser_create_http.ex",
+    "root_authorization": "ROOT COORDINATION 2026-11-13: explicitly normalize {:error,%Store.Failure{}} to fixed503 authorization_unavailable; second/final compile; no deadline/assertion/rollback changes",
+    "accepted_Create957b846": "R2202 PASS_SOURCE per parent",
+    "baseline400": "post-insert-expiry-counterexample.json + evidence/batch-1 + logs/011-http-sql-batch-1.stdout",
+    "targeted_review": "pending root after actual execution"
+  },
+  "identity_verification": {
+    "map": {
+      "bytes": 19841,
+      "sha256": "1831997b4d4ced71c31ebab4797506992ba7c71b147476be39bb42e22e4abde8"
+    },
+    "map_count": 33,
+    "source_count": 282,
+    "raw_count": 82,
+    "afterimage_mismatches": [],
+    "source_mismatches": [],
+    "raw_mismatches": [],
+    "changed_from_baseline": [
+      "hosted/lib/mixer_hosted_web/browser_create_http.ex",
+      "hosted/test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs",
+      "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs"
+    ],
+    "unchanged_from_baseline": 279,
+    "commands": 19,
+    "custody_missing": [],
+    "compile_commands": [
+      "003-compile",
+      "03-second-and-final-compile"
+    ],
+    "original_preimages_checked": 33,
+    "original_null_preimages": 13,
+    "source_digest": "12414c46a9a1c8c92e46f890b0f7d72f72148dd9f6eb178bb18af71cc4f5cbf9",
+    "actual_raw_file_count": 82,
+    "raw_unmanifested": [],
+    "raw_missing": []
+  },
+  "failure_classification": {
+    "phases": [
+      "admission",
+      "effect",
+      "decode",
+      "commit"
+    ],
+    "outcomes": [
+      "not_started",
+      "rolled_back",
+      "committed",
+      "unknown"
+    ],
+    "mapping": "503 authorization_unavailable; constant body; no fields serialized",
+    "basis": "source review; not new runtime cases",
+    "deadline_expiry_guard_state_unchanged": true,
+    "rollback_not_inferred_from_failure_outcome_or_HTTP_status": true
+  },
+  "assertions": {
+    "original": 38,
+    "final": 46,
+    "base_final_exact": true,
+    "original_preserved_in_order": true,
+    "producer_executed_AST_check_reviewed": true
+  },
+  "named_HTTP": {
+    "status": "PASS_EVIDENCE",
+    "batches": [
+      2,
+      3
+    ],
+    "batch2": {
+      "passed": 2,
+      "failed": 0
+    },
+    "observer_passed_twice": true,
+    "actual_INSERT_55P03_rollback_retry": true,
+    "actual_successful_INSERT_expiry_both_rows_rollback": true,
+    "actual_CreateRepo_role_backend_xact_verified": true,
+    "scope_revocation_and_denials": true
+  },
+  "joint": {
+    "status": "UNACCEPTED",
+    "passed": 37,
+    "total": 40,
+    "failed": 3,
+    "failures": [
+      "R2156 initial queue-disabled checkout; cause unproven",
+      "R2134_POLICY_ROWS missing before baseline/mutations",
+      "legacy synthetic observer raw-error/query contract"
+    ],
+    "R2224_inspected": false
+  },
+  "baseline400_preserved": true,
+  "historical_concurrent503_cause_proven": false,
+  "producer_custody": {
+    "managed_commands": 19,
+    "all_direct_reaped_EOF_closedFDs_positive_ESRCH": true,
+    "postgres_direct_reaped_positive_ESRCH_regularFDs_closed": true,
+    "regular_file_pipe_EOF": "not applicable",
+    "port_reuse_recorded": true,
+    "cleanup_after_proof": true
+  },
+  "review": {
+    "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "extracted_only": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "budget_seconds": 360,
+    "elapsed_seconds_at_report": 267.194,
+    "runtime_DB_compiles_replayed": 0,
+    "inspection_errors_preserved": 3,
+    "new_holds": [],
+    "command_registry": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-http-review-r2226/commands/commands.json",
+    "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-http-review-r2226/REPORT.md",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "all_10_review_commands_terminal_ESRCH_EOF_closedFDs": true,
+    "command_count": 10,
+    "inspection_command_exits": [
+      {
+        "label": "02-verify",
+        "exit": 1
+      },
+      {
+        "label": "03-verify",
+        "exit": 1
+      },
+      {
+        "label": "07-body",
+        "exit": 1
+      }
+    ]
+  },
+  "root_admission_delivery_required": true,
+  "canonical_Git_index_sourceauthority_producer_native_provider_subchildren_writes": false,
+  "production_GA_qualified": false,
+  "historical_holds_released": false,
+  "artifacts": {
+    "application-map.json": {
+      "bytes": 19841,
+      "sha256": "1831997b4d4ced71c31ebab4797506992ba7c71b147476be39bb42e22e4abde8"
+    },
+    "browser-http-fix.patch": {
+      "bytes": 566,
+      "sha256": "a96e1957c53a6ca992ea906f488ea83a1186afd8dfd4a48d5b50c1aca79d853c"
+    },
+    "fixture-only.patch": {
+      "bytes": 3532,
+      "sha256": "3ae19b9fd85cd3563fe252a59c048de8c3f9c7827cce9ae69a92bfcd825414e9"
+    },
+    "joint-fixture-only.patch": {
+      "bytes": 1321,
+      "sha256": "2f0d9db768529a04702cd5404fba1ac02506aa096bb68b00c3a2f3016d2636fb"
+    },
+    "http-fix-identity.json": {
+      "bytes": 956,
+      "sha256": "a207eb135f7a26ed07c9df4d6e810ddc8cc04cb3ac9edd333baec68b612d9f8a"
+    },
+    "semantic-receipts.json": {
+      "bytes": 15725,
+      "sha256": "3836a5bd53ef5753416d406af4f42fd47c7189971469a9819e19060c5f07b4f1"
+    },
+    "source-executed-final.json": {
+      "bytes": 47343,
+      "sha256": "3058138d87e659528ac12bffe990ebb37fc571dd76fff3b2323a70da2b16b965"
+    },
+    "baseline-r2184-source-inventory.json": {
+      "bytes": 47343,
+      "sha256": "85ee49d19ed9c2a0097a6e352e7d5f3fa029e2b89d12ece9b2c2ad87a10f8f4f"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 12136,
+      "sha256": "0051ec24d4240d999a0a2759f59d961960564088a9a9f4c7947b6e6e280004ee"
+    },
+    "commands-all.json": {
+      "bytes": 13486,
+      "sha256": "b8167744feb36fbdcce9410b85e6a36f324a478882959c234f0ade18ff589b62"
+    },
+    "REPORT.md": {
+      "bytes": 4965,
+      "sha256": "ab8ef918c5b005d08b30723d2a1b12fb92eb59c8d1c25a42b0ec5ec803013702"
+    }
+  }
+}

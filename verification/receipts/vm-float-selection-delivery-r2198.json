@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "id": "vm-float-selection-delivery-r2198",
+  "observedUTC": "2026-11-13T10:49:35.041510+00:00",
+  "status": "DELIVERED_REVIEWED_DEVELOPMENT_CORPUS_FRESH_CI_PENDING",
+  "head": "33ae3ab6053dda75bba5e0d4065e834ec917efc7",
+  "remoteMain": "33ae3ab6053dda75bba5e0d4065e834ec917efc7",
+  "nonForcePush": true,
+  "runs": [
+    {
+      "conclusion": null,
+      "head_sha": "33ae3ab6053dda75bba5e0d4065e834ec917efc7",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43411917518",
+      "id": 43411917518,
+      "name": "Owned engine checks",
+      "status": "queued"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "33ae3ab6053dda75bba5e0d4065e834ec917efc7",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43411917599",
+      "id": 43411917599,
+      "name": "Verification artifact retention",
+      "status": "in_progress"
+    }
+  ],
+  "parent": "7be3571a74a147c79b448041bb6a650a74ed33fc",
+  "sourceSHA256": "170cd453f1cd5e2bdba0a0290e3fd501acae729bc74f1672cdb708ce28bd9757",
+  "localObserved": {
+    "comparisons": 64,
+    "consumingCleanups": 64,
+    "exactBits": 48,
+    "allowedNaNClass": 16,
+    "environmentRejections": 30
+  },
+  "review": "verification/receipts/vm-float-selection-review-r2186.json",
+  "rootAcceptance": "verification/receipts/vm-float-selection-root-r2196.json",
+  "artifactPolicy": {
+    "passed": true,
+    "files": 47705,
+    "bytes": 926038965
+  },
+  "managedDeliveryCommands": [
+    {
+      "label": "float-selection-format-r2196",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/vm/tests/differential_float_selection_consuming.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 77277,
+      "pgid": 77277,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.14682291692588478,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "float-selection-v21-source-r2196",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 81150,
+      "pgid": 81150,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.13867670902982354,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "prepare-float-selection-adoption-r2196",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-float-selection-root-r2196/prepare.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 83964,
+      "pgid": 83964,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.0573623749660328,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "stage-float-selection-r2196",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-c",
+        "from pathlib import Path; import json,subprocess; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); git=lambda *a:subprocess.run([\"git\",\"-C\",str(r),*a],capture_output=True,text=True,check=True).stdout; paths=json.loads((r/\"verification/local/vm-float-selection-root-r2196/staging-paths.json\").read_text()); assert not git(\"diff\",\"--cached\",\"--name-only\").strip(); git(\"add\",\"--\",*paths); assert set(git(\"diff\",\"--cached\",\"--name-only\").splitlines())==set(paths); git(\"diff\",\"--cached\",\"--check\"); old=json.loads(git(\"show\",\"HEAD:gates/ga.json\")); new=json.loads((r/\"gates/ga.json\").read_text()); filt=lambda d:{k:v for k,v in d.items() if k not in [\"executionPolicy\",\"verificationPolicy\"]}; assert filt(old)==filt(new); assert all(git(\"show\",\"HEAD:\"+x).split(\"## Previous checkpoint\",1)[1]==(r/x).read_text().split(\"## Previous checkpoint\",1)[1] for x in [\"PLAN.md\",\"STATUS.md\"]); print(git(\"diff\",\"--cached\",\"--stat\"))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 84980,
+      "pgid": 84980,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.19897399994079024,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "float-selection-artifact-policy-r2196",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/check-verification-artifacts.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 85002,
+      "pgid": 85002,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.504267624928616,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "commit-float-selection-r2196",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "commit",
+        "-m",
+        "Verify consuming floating-point selection against Node"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 85013,
+      "pgid": 85013,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.1370725000742823,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "push-float-selection-r2196",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "push",
+        "origin",
+        "HEAD:main"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 85020,
+      "pgid": 85020,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 2.6000023330561817,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "float-selection-delivery-observation-r2198",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-c",
+        "from pathlib import Path; import json,subprocess; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); run=lambda a:subprocess.run(a,capture_output=True,text=True,check=True).stdout.strip(); h=run([\"git\",\"-C\",str(r),\"rev-parse\",\"HEAD\"]); remote=run([\"git\",\"-C\",str(r),\"ls-remote\",\"origin\",\"refs/heads/main\"]).split()[0]; assert h==remote,(h,remote); runs=json.loads(run([\"/opt/homebrew/bin/gh\",\"api\",\"repos/snowdamiz/mixer/actions/runs?head_sha=\"+h+\"&per_page=20\",\"--jq\",\"[.workflow_runs[] | {id,name,head_sha,status,conclusion,html_url}]\" ])); print(json.dumps({\"head\":h,\"remoteMain\":remote,\"nonForcePush\":True,\"runs\":runs})); print(run([\"git\",\"-C\",str(r),\"status\",\"--short\"]))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 85180,
+      "pgid": 85180,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.6793845420470461,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "limitations": [
+    "Actual delivered combined-feature debug/release execution remains pending.",
+    "Local evidence is macOS debug with Unix-only environment controls.",
+    "Customer-create full replay/rollback acceptance remains private and pending.",
+    "No W08, native, production or GA completion; all historical holds remain.",
+    "Transport/bootstrap lifetime is not separately established."
+  ],
+  "historicalHoldsReleased": false,
+  "GA": false
+}

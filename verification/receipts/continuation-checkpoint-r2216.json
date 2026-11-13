@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "id": "continuation-checkpoint-r2216",
+  "observedUTC": "2026-11-13T11:12:55.664116+00:00",
+  "head": "33ae3ab6053dda75bba5e0d4065e834ec917efc7",
+  "status": "NAMED_CREATE_HTTP_CLOSURE_JOINT_AND_UI_IMPLEMENTATION_PENDING",
+  "evidence": [
+    {
+      "path": "verification/receipts/customer-create-final-http-r2184.json",
+      "bytes": 29198,
+      "sha256": "cf8264d036fb6418e8e9e70e23d7f0c886c2d9ff0442d3b4808acf2d8abb44ba"
+    },
+    {
+      "path": "verification/receipts/customer-create-error-review-r2202.json",
+      "bytes": 3887,
+      "sha256": "9f15519e89c2f6bd5856c8c7ae36a19c61496fcd8ab4348bf1b64a62e2b3f8dc"
+    },
+    {
+      "path": "verification/receipts/customer-create-rollback-closure-r2204.json",
+      "bytes": 5955,
+      "sha256": "6997e306004b6d2233e148c90beee745e770bb74ff5c8a9599b9bc5ec04ef5dc"
+    },
+    {
+      "path": "verification/receipts/build-submit-ui-grounding-r2190.json",
+      "bytes": 2943,
+      "sha256": "ceaae30be2f248b6074b95aa7a6f21eea2f1f7a742c25f03bd6474c12f17c24d"
+    },
+    {
+      "path": "verification/receipts/customer-build-inputs-contract-r2208.json",
+      "bytes": 1539,
+      "sha256": "ec34a636661f576239c62dfc24f08eac5851a6a56d4f176b6f4d7a06c11f55d2"
+    },
+    {
+      "path": "verification/receipts/vm-float-selection-delivery-r2198.json",
+      "bytes": 8283,
+      "sha256": "08f0d3882e1a3b2f520c640a234faa38f928fc44b275a3f91f12aeaa8a2a3c9a"
+    },
+    {
+      "path": "verification/receipts/customer-create-http-review-r2226.json",
+      "bytes": 7274,
+      "sha256": "8b6e0a71c30eebed1a1d31bc70db8fcb7598b75f12263579c904df18b45e4449"
+    },
+    {
+      "path": "verification/receipts/customer-build-inputs-server-r2210.json",
+      "bytes": 7178,
+      "sha256": "eb0e246a931e4400318fd715d78d1d791b8751eaaf2c533598d14f6dd32c325f"
+    },
+    {
+      "path": "verification/receipts/console-build-submit-r2212.json",
+      "bytes": 8561,
+      "sha256": "d60ac69b528f87da2fe9965fdb69cea5a41eca9ba7e45f9585f93575ae7c8dac"
+    }
+  ],
+  "verifiedFinalMap": {
+    "bytes": 19841,
+    "sha256": "1831997b4d4ced71c31ebab4797506992ba7c71b147476be39bb42e22e4abde8"
+  },
+  "verifiedAfterimages": 33,
+  "namedTestPasses": 2,
+  "joint": {
+    "total": 40,
+    "passed": 37,
+    "failed": 3,
+    "full_named_body_and_observer": "PASS again",
+    "effective_creator_controls": 10,
+    "relation_profile_controls": 19,
+    "remaining_failures": [
+      {
+        "module": "CustomerCreateBuildPolicyExclusivityR2156Test",
+        "test": "actual_create_build_policy_exclusivity_pg_join",
+        "line": 110,
+        "observed": "DBConnection.ConnectionError connection not available and queuing is disabled at initial admission(c.roles,false)",
+        "scope": "initial component admission not reached; exact readiness cause unproven",
+        "no_fourth_batch": true
+      },
+      {
+        "module": "CustomerCreatePolicyEvidenceTest",
+        "test": "exact policy admission refuses catalog drift and restores",
+        "line": 57,
+        "observed": "System.EnvError R2134_POLICY_ROWS unset",
+        "scope": "policy rows loaded; baseline/mutations not reached"
+      },
+      {
+        "module": "CustomerCreatePolicyEvidenceTest",
+        "test": "failed INSERT and nil rows preserve telemetry attachment without SQL",
+        "line": 85,
+        "observed": "assert_receive {:job_insert_failed,_,:owned_failure} mailbox empty",
+        "source_mismatch": "bare INSERT INTO \"oban_jobs\" ends at quote; current observer regex requires whitespace or parenthesis; raw atom error also differs from normalized SQLSTATE event contract",
+        "scope": "source diagnosis only; subsequent actual SQL/handler assertions unreached"
+      }
+    ]
+  },
+  "activeTasks": {
+    "R2224": "customer-create-joint-fixtures-r2224",
+    "R2228": "customer-create-production-release-r2228",
+    "R2234": "vm-float-selection-ci-r2234",
+    "R2238": "customer-build-inputs-readonly-r2238",
+    "R2240": "console-build-submit-review-r2240"
+  },
+  "limitations": [
+    "No canonical customer-create adoption or full joint-suite pass.",
+    "Private production artifact, joint fixtures, read-only refusal and final frontend review remain pending.",
+    "Fresh delivered float-selection VM CI was observed in progress; counts are not promoted.",
+    "The parent initially pinned an R2204 progress map before final metadata. Final compact receipt/map identity was verified and corrected in all three active downstream tasks; source identities unchanged.",
+    "Transport/bootstrap lifetime is not separately established."
+  ],
+  "GA": false,
+  "historicalHoldsReleased": false
+}

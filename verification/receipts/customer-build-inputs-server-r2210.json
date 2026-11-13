@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "id": "customer-build-inputs-server-r2210",
+  "status": "REQUEST_CHANGES",
+  "canonical_adoption": false,
+  "GA": false,
+  "deployment": false,
+  "held_resources_accessed_or_released": false,
+  "contract_sha256": "2e48ec25545cb8f480b444daf78d3fc0538e7700261b08c2d5c18bb81fe551fe",
+  "base_map_sha256": "a8bfc11dcbf44babcbf107cea2dce60c485b85730a40490ba69c8e1e66f07f9d",
+  "complete_composed_sources": 285,
+  "delta_paths": 7,
+  "combined_map_paths": 36,
+  "source_tree_sha256": "eb9633adcac5285a23a0cf956ef492657611962e26a790b577348ced18e6b8af",
+  "limits": {
+    "wall_seconds": 1200,
+    "strict_compiles": 2,
+    "test_BEAM_batches": 3,
+    "postgres_launches": 1,
+    "postgres_stops": 1,
+    "schedulers": 2,
+    "PG17": "127.0.0.1:39610; Unix sockets disabled"
+  },
+  "used": {
+    "compilers": 2,
+    "runtime_batches": 3,
+    "postgres_launches": 1,
+    "postgres_stops": 1,
+    "elapsed_seconds": 517.12
+  },
+  "strict_compile_exit_codes": [
+    0,
+    0
+  ],
+  "relation_source_bindings_preflight": 29,
+  "exports_passed": 7,
+  "AST_preservation": {
+    "proof": [
+      {
+        "path": "hosted/lib/mixer_hosted/customer_builds.ex",
+        "unchanged_top_level_AST_nodes": 4
+      },
+      {
+        "path": "hosted/lib/mixer_hosted/browser_auth/active_create.ex",
+        "unchanged_top_level_AST_nodes": 7
+      },
+      {
+        "path": "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+        "unchanged_top_level_AST_nodes": 82
+      },
+      {
+        "path": "hosted/lib/mixer_hosted_web/browser_http.ex",
+        "unchanged_top_level_AST_nodes": 18
+      }
+    ],
+    "passed": true
+  },
+  "test_batches": [
+    {
+      "batch": 1,
+      "passed": 4,
+      "failed": 1,
+      "invalid": 1,
+      "cause": "Evidence JSON writer attempted tuple encoding; readonly fixture incorrectly installed create-only schema."
+    },
+    {
+      "batch": 2,
+      "passed": 4,
+      "failed": 1,
+      "invalid": 1,
+      "cause": "Bearer header correctly refused400 under existing cookie grammar, test expected401; readonly fixture still granted unexpected create ACLs."
+    },
+    {
+      "batch": 3,
+      "passed": 5,
+      "failed": 1,
+      "invalid": 0,
+      "cause": "Readonly configuration GET returned503 instead of required403; named server integration and all four pure tests passed."
+    }
+  ],
+  "named_server_integration": {
+    "name": "authenticated_console_create_selects_admitted_input_and_displays_queued_build",
+    "passed": true,
+    "whole_browser_or_DOM": false,
+    "controls": [
+      "actual_cookie_create_role_select26_fixed25_C_keyset_projection",
+      "canonical_crossscope_cursor_body_override_bearer_hidden_refusals_no_effect",
+      "GET_select_unchanged_POST201_exact_GETqueued_replay200_no_list_POST_control",
+      "existing_roles_and_missing_create_scope_denied_each_request",
+      "malformed_trusted_row503_and_actual_exact25_no_cursor",
+      "post_SELECT_expiry_guard_typed_failure503_no_effect",
+      "revocation_retained_checks_no_effect"
+    ]
+  },
+  "remaining_failure": {
+    "test": "configured readonly login remains readonly despite developer role",
+    "expected_GET": 403,
+    "observed_GET": 503,
+    "response_code": "authorization_unavailable",
+    "source_diagnosis": "CreateRepo absent in readonly installation; scope permission is deferred until after repository entry.",
+    "proposal": "readonly-proposal.json; formatted but not compiled/tested"
+  },
+  "unreached": [
+    "Readonly test assertions after failing GET403, including POST status/count and lease-clean assertions.",
+    "Whole browser DOM/TLS integration owned by parent/frontend lane."
+  ],
+  "custody": {
+    "all_command_groups_positive_ESRCH": true,
+    "all_commands_direct_reaped": true,
+    "all_command_pipe_EOF": true,
+    "all_command_FDs_closed": true,
+    "postgres": {
+      "pid": 66645,
+      "pgid": 66645,
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-build-inputs-server-r2210/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39610",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-build-inputs-server-r2210/pgdata",
+      "output_kind": "regular_files",
+      "state": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "descriptors_closed": true,
+      "pipe_eof": "not applicable; regular files"
+    },
+    "sql_SELECT1_and_SHOW_data_directory_before_DDL": true,
+    "one_shot_stop": true,
+    "port_reuse": true,
+    "new_holds": [],
+    "owned_transient_cleanup_complete": true
+  },
+  "artifacts": {
+    "application-map.json": {
+      "bytes": 19925,
+      "sha256": "d442f8b7c95d3a60f64836247db250951912ba448b867c458bc08090e95f353a"
+    },
+    "delta-application-map.json": {
+      "bytes": 3553,
+      "sha256": "1968b89265491fc300e8ab0eacdc0222bf1fdbcb31d7600b8d8d32d049c1cb49"
+    },
+    "source-executed-batch3.json": {
+      "bytes": 47865,
+      "sha256": "bde59ded8b3604735c03194875253f44669b2fb3b03a41bfdb3ea226aede837e"
+    },
+    "source-preservation.json": {
+      "bytes": 1000,
+      "sha256": "9b4e7eb6d2b883ef25ed66658eafb2fbd5a16b78e7a351d79eacaf4c39b99042"
+    },
+    "commands-complete.json": {
+      "bytes": 16320,
+      "sha256": "18e816c0132ba0406e1dad1849e8d603e2d5f653ebcb482fd9d0e2b7de6e4451"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 8692,
+      "sha256": "a1bdd36a7c5fd65995cf38c587138f6ffcdfa4f7fdb635371d19ebb59c061876"
+    },
+    "implementation.patch": {
+      "bytes": 41578,
+      "sha256": "cc15049454ab8eb2b019340e950e91f205c83a911aa09aa623eb2a827a40d26e"
+    },
+    "readonly-proposal.json": {
+      "bytes": 832,
+      "sha256": "367b0cca5515c51f40cbe0e26ae94494fa8597437be87b4d2126113e3b698e78"
+    },
+    "readonly-proposal.patch": {
+      "bytes": 1375,
+      "sha256": "b68eb98fd88c8804e4f8e2350922f16637ac90abe6a23d7c9f0937fec8e94750"
+    },
+    "cleanup.json": {
+      "bytes": 1075,
+      "sha256": "71b32131212f97a3ef61899296fe11b29971c1476396aefc6079138bf033fdcc"
+    }
+  },
+  "tools": {
+    "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "rebar3_sha256": "4df37f2f7570e0b5af15b5dcbad6b7a864202575d94e1d8663166c7643ee3a09",
+    "elixir_version_output": {
+      "bytes": 143,
+      "sha256": "e92ef5035bb63ab8ed3164b41f674be99e2aeb2a9e59f47837de334cf41a13a7"
+    },
+    "postgres_version_output": {
+      "bytes": 39,
+      "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    }
+  },
+  "evidence_limitations": [
+    "The complete final source inventory was frozen before batch3. Per-batch1/2 test source snapshots were not captured; first failures and raw command outputs remain preserved.",
+    "Raw loopback fixture HTTP/PKCE is local server evidence; no live provider, TLS browser, native, package or GA qualification.",
+    "R2204 POST normalizer is deliberately excluded; root must compose it separately."
+  ]
+}
