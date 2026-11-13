@@ -1,0 +1,322 @@
+{
+  "schema": 1,
+  "id": "customer-create-policy-test-fix-r2134",
+  "status": "PRIVATE_FOCUSED_TESTS_PASS",
+  "compilers": 2,
+  "runtime_batches": 2,
+  "postgres_launches": 1,
+  "postgres_stops": 1,
+  "controls": [
+    "  * test exact policy admission refuses catalog drift and restores [L#48]R2134_PASS baseline_admission",
+    "R2134_PASS false_to_true_reject_restore",
+    "R2134_PASS using_reject_restore",
+    "R2134_PASS role_reject_restore",
+    "R2134_PASS missing_reject_restore",
+    "R2134_PASS permissiveness_reject_restore",
+    "R2134_PASS extra_reject_restore",
+    "R2134_PASS command_reject_restore",
+    "  * test failed INSERT and nil rows preserve telemetry attachment without SQL [L#77]R2134_PASS failed_insert_nil_unrelated_handler_alive"
+  ],
+  "new_holds": [],
+  "elapsed_seconds": 398.947,
+  "compiled_exports": {
+    "verified": true,
+    "artifact": "compiled-exports.json"
+  },
+  "bind_free_proof": true,
+  "postgres": {
+    "pid": 51156,
+    "pgid": 51156,
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-policy-test-fix-r2134/pgdata",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "39500",
+      "-k",
+      "",
+      "-c",
+      "timezone=UTC"
+    ],
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-policy-test-fix-r2134/pgdata",
+    "output_kind": "regular_files",
+    "state": "TERMINAL",
+    "exit": 0,
+    "direct_reaped": true,
+    "group_absent": true,
+    "absence_errno": 3,
+    "descriptors_closed": true,
+    "pipe_eof": "not applicable; regular files"
+  },
+  "sql_readiness_exact_owned_data_before_ddl": true,
+  "batches": [
+    {
+      "batch": 1,
+      "exit": 2,
+      "controls": [
+        "  * test exact policy admission refuses catalog drift and restores [L#44]R2134_PASS baseline_admission",
+        "R2134_PASS false_to_true_reject_restore",
+        "R2134_PASS using_reject_restore",
+        "R2134_PASS role_reject_restore",
+        "R2134_PASS extra_reject_restore",
+        "R2134_PASS command_reject_restore"
+      ]
+    },
+    {
+      "batch": 2,
+      "exit": 0,
+      "controls": [
+        "  * test exact policy admission refuses catalog drift and restores [L#48]R2134_PASS baseline_admission",
+        "R2134_PASS false_to_true_reject_restore",
+        "R2134_PASS using_reject_restore",
+        "R2134_PASS role_reject_restore",
+        "R2134_PASS missing_reject_restore",
+        "R2134_PASS permissiveness_reject_restore",
+        "R2134_PASS extra_reject_restore",
+        "R2134_PASS command_reject_restore",
+        "  * test failed INSERT and nil rows preserve telemetry attachment without SQL [L#77]R2134_PASS failed_insert_nil_unrelated_handler_alive"
+      ]
+    }
+  ],
+  "port_reusable": true,
+  "all_commands_terminal": true,
+  "accepted": false,
+  "baseline": {
+    "map_sha256": "3b63732691fcc3a49d1632a2ac1c29d717d49084dc3895ad938a4b7a35e20c1c",
+    "patch_sha256": "0319e53eede805902f074a96af8d0dba04cf6f9486452ce3d0c14d4297874bfd",
+    "canonical_files": 269,
+    "afterimages": 26,
+    "all_rechecked_exact": true
+  },
+  "source_changes": [
+    {
+      "path": "hosted/lib/mixer_hosted/customer_builds/create_schema.ex",
+      "before": {
+        "bytes": 10597,
+        "sha256": "e6448b4ed841ce6058e092008187c2be134abc8f985324e3fcf9490f24b98fb9"
+      },
+      "after": {
+        "bytes": 14597,
+        "sha256": "98c821d459621b588cbf0ffc08c44a8efba7a57339504e928b2b25c9ccbc87ee"
+      },
+      "afterimage": "afterimages/hosted/lib/mixer_hosted/customer_builds/create_schema.ex",
+      "kind": "modify",
+      "baseline": "R2126 final afterimage"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs",
+      "before": {
+        "bytes": 11900,
+        "sha256": "1ff0e0c1b840d10f3a8c22a1e2a99478353538954d859b610e5171bc719d093f"
+      },
+      "after": {
+        "bytes": 13001,
+        "sha256": "3ab9634465e2b83db8203880e27a4ee82892875e91a6dc4892ec7aa65e0ea6ad"
+      },
+      "afterimage": "afterimages/hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs",
+      "kind": "modify",
+      "baseline": "R2126 final afterimage"
+    },
+    {
+      "path": "hosted/test/mixer_hosted/browser_auth/customer_create_policy_evidence_test.exs",
+      "before": null,
+      "after": {
+        "bytes": 7651,
+        "sha256": "45ac85e7d4d4f8edd704801e3f12ff3da438369f0267ece0e15b2f50a310fed7"
+      },
+      "afterimage": "afterimages/hosted/test/mixer_hosted/browser_auth/customer_create_policy_evidence_test.exs",
+      "kind": "add",
+      "baseline": "absent R2126"
+    }
+  ],
+  "actual_policy_results": {
+    "baseline": "PASS",
+    "mutations_rejected_then_restored_pass": [
+      "WITH CHECK false->true",
+      "USING true",
+      "role",
+      "missing",
+      "permissiveness",
+      "additional",
+      "command"
+    ],
+    "policy_rows": 11
+  },
+  "telemetry": {
+    "real_failed_insert_observed": true,
+    "rollback_observed": true,
+    "handler_alive": true,
+    "nil_and_unrelated_metadata": "PASS",
+    "successful_insert_callback_executed": false,
+    "full_HTTP_post_job_expiry_executed": false
+  },
+  "isolation": {
+    "parent_restore": {
+      "parent": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-policy-test-fix-r2134/evidence/batch-2/catalog",
+      "actual": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-policy-test-fix-r2134/evidence/batch-2/catalog"
+    },
+    "failed_namespaces_retained": true
+  },
+  "remaining": [
+    "targeted independent review",
+    "parent source admission",
+    "R2136 HTTP bootstrap",
+    "full HTTP create/replay/physical transaction/successful job INSERT/final-expiry rollback",
+    "authenticated missing-create-scope actual HTTP assertion"
+  ],
+  "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+  "outer_commands": [
+    {
+      "label": "campaign-1",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-policy-test-fix-r2134/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-policy-test-fix-r2134",
+      "pid": 41593,
+      "pgid": 41593,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 4.421222416101955,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "campaign-2",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-policy-test-fix-r2134/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-policy-test-fix-r2134",
+      "pid": 50116,
+      "pgid": 50116,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 76.85121283400804,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "consumption": {
+    "compiles": 2,
+    "BEAM_test_batches": 2,
+    "PG_launches": 1,
+    "PG_stops": 1,
+    "wall_limit_seconds": 600,
+    "elapsed_seconds": 545.042
+  },
+  "cleanup": {
+    "after_all_primary_outer_and_pg_terminal": true,
+    "postgres_regular_file_eof": "not applicable; handles closed, direct reaped and ESRCH3",
+    "port_reusable": true,
+    "removed": [
+      "pgdata",
+      "candidate/hosted/_build",
+      "candidate/hosted/deps",
+      "cache",
+      "hex-home",
+      "mix-home",
+      "home",
+      "tmp",
+      "tools"
+    ],
+    "retained": [
+      "all failed/passed raw logs",
+      "evidence",
+      "afterimages",
+      "candidate source",
+      "registries",
+      "scripts"
+    ],
+    "holds_touched": false
+  },
+  "limitations": {
+    "compile1_failed_missing_pinned_rebar": true,
+    "batch1_failed_expected_commit_after_actual_statement_error": true,
+    "full_HTTP_excluded": true,
+    "independent_review_or_canonical_acceptance": false,
+    "bootstrap_outer_identity_limit": "direct source-only commands not independently registered"
+  },
+  "artifacts": {
+    "application-map.json": {
+      "bytes": 1807,
+      "sha256": "ffa85afb125f5e2c3cbabc7e1cf087b2cf2670cdd907c58d9ca4640fd9eec3e0"
+    },
+    "implementation.patch": {
+      "bytes": 17686,
+      "sha256": "58749c5658d28948e366f7f8c7ad0dc4fb7fb0961b538cbdb6350a1e37c869e5"
+    },
+    "source-before-after.json": {
+      "bytes": 92403,
+      "sha256": "2ab881339f001ab730b58fbd635a58a02c787965c25c690e0ec60e0abbfff761"
+    },
+    "source-final.json": {
+      "bytes": 46555,
+      "sha256": "1b756af640190c16fe3b65a227ba82d2c27098baed7fed2a94dd99aeb090d250"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 4334,
+      "sha256": "40d7e50dafdfc8cbdee611bbdfefa4719ea15fa96cad3c7a3383c7c6eb5d769f"
+    },
+    "runtime-result.json": {
+      "bytes": 16925,
+      "sha256": "919755dda0ec649af1a8fbbe7441a4942dd917119ec733468f8f2498503b301b"
+    },
+    "cleanup.json": {
+      "bytes": 516,
+      "sha256": "57e4009a48dc7bd4c9d2b67d7f26d615e91660ca19cf006eeed5acccb02d76ad"
+    },
+    "REPORT.md": {
+      "bytes": 5872,
+      "sha256": "b9481ac5f87b14e8c3cbd0422be66a47d2cb7129a7e24f536dfa040776d7c442"
+    },
+    "baseline-map.json": {
+      "bytes": 12200,
+      "sha256": "3b63732691fcc3a49d1632a2ac1c29d717d49084dc3895ad938a4b7a35e20c1c"
+    },
+    "dependency-reuse.json": {
+      "bytes": 339724,
+      "sha256": "aa5db5ea2db1f65e260d2587d71a17a637160487e0fcc713d014bf061aa28460"
+    },
+    "hex-tool-reuse.json": {
+      "bytes": 24775,
+      "sha256": "a989fc97b270cd02e5f1435ed3898896ceabce1bf94232ad21c8e4db869f2847"
+    },
+    "compiled-exports.json": {
+      "bytes": 1375,
+      "sha256": "13ec9c53b84b433dfc07d03640b50706f3c27c724c13581dd0ceb5731f861c78"
+    },
+    "run.py": {
+      "bytes": 9696,
+      "sha256": "03b5f825fe4269112d5e5b78d7cb344c9011b85a6f1ddfedf3cee3682b360a58"
+    },
+    "launch.py": {
+      "bytes": 910,
+      "sha256": "9fccc394aaafc8b434526892247678614c93eb2f32863af10dc8027bc747f32c"
+    },
+    "prepare.py": {
+      "bytes": 9993,
+      "sha256": "33f7ce3b980cea649fc8b43b79ff9854b00d2350fc87101e116c3c08b6faa362"
+    },
+    "fix.py": {
+      "bytes": 3874,
+      "sha256": "8e6fdf992e6df61ae66b800cf815d61a7a1a3ea948ad93df8587a681d6085171"
+    },
+    "finalize.py": {
+      "bytes": 12724,
+      "sha256": "5b7f67654eefc7014753d511dde23b3e0ec81a445ca0daee182a98132d406460"
+    }
+  },
+  "primary_custody": {
+    "commands": 10,
+    "all_reaped_both_EOF_FDs_closed_positive_ESRCH": true,
+    "registry": "verification/local/customer-create-policy-test-fix-r2134/logs/commands.json"
+  },
+  "frozen_baseline_afterimages_byteverified_before_changes": true
+}

@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "id": "customer-build-create-actual-r2126",
+  "status": "REQUEST_CHANGES_HTTP_BOOTSTRAP_503",
+  "accepted": false,
+  "results": {
+    "first_frozen_run": {
+      "reached_test_body": true,
+      "exit": 2,
+      "test_line": 76,
+      "refusal": "GET /auth/session bootstrap 503, expected200",
+      "fixture_line": 551,
+      "PKCE_reached": false,
+      "SQLSTATE": null
+    },
+    "batch2": {
+      "exit": 2,
+      "invalid_setup": true,
+      "SQLSTATE": "42710",
+      "branch": "duplicate_object role mixer_build_create already exists",
+      "test_line": 22
+    },
+    "batch3": {
+      "reached_test_body": true,
+      "exit": 2,
+      "test_line": 79,
+      "frozen_v2_rejection_reproduced": true,
+      "live_browser_functions": 21,
+      "v2_exact_count": 20,
+      "refusal": "GET /auth/session bootstrap503 after explicit create manifest selected",
+      "fixture_line": 551,
+      "remaining_exact_internal_refusal": "UNISOLATED",
+      "SQLSTATE": null,
+      "diagnostic_failure": "telemetry handler detached on transaction metadata rows=nil at test line87; no expiry proof",
+      "v2_functions_branch_label": "Inference from live21/fixed20 source; exact thrown internal first branch was not captured."
+    },
+    "private_changes": [
+      {
+        "path": "hosted/lib/mixer_hosted/browser_auth/active_catalog.ex",
+        "change": "Separate exact create manifest v3,21 functions, exact derived helper source/signature/owner/settings and fixed mixer_build_create EXECUTE ACL; v1/v2 remain20/18 unchanged. Compiled and exercised, but bootstrap remains503."
+      },
+      {
+        "path": "hosted/lib/mixer_hosted/browser_auth/store.ex",
+        "change": "Select v3 only for exact configured create-enabled scope; historical/read path continues v2."
+      },
+      {
+        "path": "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs",
+        "change": "Validate persisted constrained fixture role attributes instead of unconditional second CREATE; reproduce exact v2 refusal against live21; diagnostic telemetry added; authenticated missing-create-scope denial added but UNREACHED."
+      }
+    ],
+    "root_review_findings_received_after_final_batch": [
+      {
+        "finding": "CreateSchema must bind exact USING/WITH CHECK expressions, including create-lock WITH CHECK(false).",
+        "status": "PENDING; no weakening or speculative fix applied; mutation/behavioral proof not run."
+      },
+      {
+        "finding": "Only inspect successful Oban INSERT metadata; prove handler remains attached and an INSERT actually succeeded before expiry rollback assertion.",
+        "status": "PENDING; existing observer inspects failed inserts, and no successful INSERT/expiry assertion reached."
+      }
+    ],
+    "pending": [
+      "Bootstrap remaining exact internal refusal branch",
+      "Actual PKCE active-cookie CSRF create201 and exactly one queued journal/Oban row",
+      "Exact200 and concurrent replay",
+      "Pin/key409 and hiding404",
+      "Role/Origin/CSRF/revocation HTTP denials",
+      "Authenticated missing-create-scope cookie denial (added source, unexecuted)",
+      "Ordinary direct DML42501",
+      "Existing GET under additive forced RLS",
+      "Same backend PID/xact Authorization and successful job INSERT",
+      "Job insertion failure rollback",
+      "Successful actual INSERT then final-expiry rollback, handler alive",
+      "Exact all policy USING/WITH CHECK expression admission and restrictive-lock mutation refusal",
+      "Independent behavioral review and canonical source admission"
+    ],
+    "producer_truth": {
+      "R2112_final_packaging_seconds": 1227,
+      "R2112_budget_seconds": 1200,
+      "R2112_compiles": 4,
+      "R2112_pure_tests": 33,
+      "R2112_SQL_batches_invalid_before_body": 2,
+      "R2112_outer_registry_overwrite": "historical disclosed; no producer file changed"
+    },
+    "no_acceptance": true
+  },
+  "baseline": {
+    "reported_revision": "72c48190d9e72f606588ac31098a2fad9bfbd4e0",
+    "v21_count": 290,
+    "v21_digest": "13cbf07d04bcbceaaaebb6278166bc18630e4d63f0fcf9857bca3e7319203463",
+    "frozen_map_sha256": "9c3dcc99f2c5bdbe78773c690fca1873466858fb9137b6ed70e87a6f6614b1d3",
+    "complete_hosted_snapshot_files": 269,
+    "frozen_afterimages_exact_before_first_run": 25,
+    "canonical_beforeimages_rechecked_unchanged": true
+  },
+  "consumption": {
+    "wall_limit_seconds": 900,
+    "first_productive_utc": "2026-11-13T08:33:15Z",
+    "elapsed_seconds": 726.833,
+    "compilers": 2,
+    "compiler_limit": 2,
+    "runtime_batches": 3,
+    "runtime_limit": 3,
+    "PG_launches": 1,
+    "PG_stops": 1,
+    "PG_launch_limit": 1,
+    "no_more_payload_budget": true
+  },
+  "custody": {
+    "postgres": {
+      "pid": 78666,
+      "pgid": 78666,
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-build-create-actual-r2126/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39480",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-build-create-actual-r2126/pgdata",
+      "output_kind": "regular_files",
+      "state": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "descriptors_closed": true,
+      "pipe_eof": "not applicable; regular files"
+    },
+    "port_reusable": true,
+    "finite_commands": 11,
+    "outer_commands": 2,
+    "all_reaped_both_EOF_FD_closed_positive_ESRCH": true,
+    "postgres_regular_file_EOF": "not applicable; regular files; handles closed and process reaped, ESRCH3",
+    "removed_after_terminal_proof": [
+      "pgdata",
+      "candidate/hosted/_build",
+      "candidate/hosted/deps",
+      "cache",
+      "hex-home",
+      "mix-home",
+      "home",
+      "tmp",
+      "tools"
+    ],
+    "retained": [
+      "candidate source without deps/build",
+      "afterimages",
+      "patch",
+      "all raw logs/evidence",
+      "all registries"
+    ],
+    "new_holds": [],
+    "historical_holds_touched": false
+  },
+  "tools": {
+    "elixir": "1.20.4",
+    "OTP": "29",
+    "postgres": "17.11",
+    "port": 39480,
+    "unix_sockets": false,
+    "SQL_SELECT1_exact_owned_directory_before_DDL": true,
+    "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "AST_extracted_helpers_unchanged": true,
+    "compiled_exports_checked_before_PG": true,
+    "wrapper_defect": "Initial Python export checker did not understand OTP29 compact atom lengths; terminal command preserved. Checker fixed without recompiling and compiled-module names corrected. Both outer records append and retain identities; no registry reset."
+  },
+  "artifacts": {
+    "application-map.json": {
+      "bytes": 12200,
+      "sha256": "3b63732691fcc3a49d1632a2ac1c29d717d49084dc3895ad938a4b7a35e20c1c"
+    },
+    "implementation.patch": {
+      "bytes": 53123,
+      "sha256": "0319e53eede805902f074a96af8d0dba04cf6f9486452ce3d0c14d4297874bfd"
+    },
+    "source-final.json": {
+      "bytes": 46364,
+      "sha256": "6c6511166aa38671b1b73521a18c31b0dbab68b91ec9f3be88a5e7c51e25b39f"
+    },
+    "snapshot-before.json": {
+      "bytes": 44970,
+      "sha256": "6a232c27f5bd1909cc619ca97aa68e0f9c5f6b1bbe1876128e1a2680f7690ddc"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 4194,
+      "sha256": "02c10cc29ed4a5c7f6e5266652851288aaecf6ccc45dee79021f7e6b2cbb7cfc"
+    },
+    "runtime-result.json": {
+      "bytes": 18953,
+      "sha256": "c7382b77ee120c355695a54cc7b6578480512443df94715b0e85fdfe1d87f4c8"
+    },
+    "cleanup.json": {
+      "bytes": 1386,
+      "sha256": "b84a00f3cb339be7e38df22bb0194314d5885f5f8062310dff04f104c222b3f4"
+    },
+    "compiled-exports.json": {
+      "bytes": 1375,
+      "sha256": "4e42a3deb9c7568c8a111f934cc8263ccdef42cd96ac534d2a3258af0ccb5a69"
+    },
+    "logs/commands.json": {
+      "bytes": 7224,
+      "sha256": "0dd740a0e8e1912b281eae1fc27f3fdddc33afe8fc06316a36f22265ff51d8be"
+    },
+    "outer/commands.json": {
+      "bytes": 1126,
+      "sha256": "7fbf118fdfab4acaf465e1c6459e3901c402ab2937d4b8ab2a631cbb42ae5e7b"
+    },
+    "run.py": {
+      "bytes": 9640,
+      "sha256": "25446c80d578c61a9fb505bf2d64949d070b7fe9a2f50fcd3cdd54a4b1731df1"
+    },
+    "launch.py": {
+      "bytes": 910,
+      "sha256": "9fccc394aaafc8b434526892247678614c93eb2f32863af10dc8027bc747f32c"
+    },
+    "findings.json": {
+      "bytes": 3523,
+      "sha256": "bf37070adffffc14306820ba0a9ef943692297d128f8c458ba3c32658bac149f"
+    },
+    "REPORT.md": {
+      "bytes": 6222,
+      "sha256": "d6bdb11d6b4d7a576c1957c4731b6e73f13bab51b9681cdf34aee1ec81c38c7c"
+    },
+    "frozen-application-map.json": {
+      "bytes": 13292,
+      "sha256": "9c3dcc99f2c5bdbe78773c690fca1873466858fb9137b6ed70e87a6f6614b1d3"
+    },
+    "preparation.json": {
+      "bytes": 390,
+      "sha256": "f698ce4d36f065dddea51e8a7f4adccd7ef16b401d4b61fd72463cfcc91aa399"
+    },
+    "campaign.json": {
+      "bytes": 246,
+      "sha256": "22f6bfa7006202128fbd718722d7beaca6426309161618cc7dbbb327540b78af"
+    }
+  },
+  "restrictions": {
+    "canonical_index_git_authority_producer_untouched": true,
+    "native_phones": false,
+    "Git_API_writes": false,
+    "production_DDL_deployment_credentials": false,
+    "subchildren": false,
+    "workers_appcode_sourceingestion_provider_network": false,
+    "generalpurpose_deps_only": "1884 dependency and133 Hex/tool static files verified from unheld R2070 plus pinned official Rebar; no product BEAM reused",
+    "source_skip_flags_or_current290_rebound": false
+  },
+  "afterimages": 26,
+  "changed_after_frozen_packet": [
+    "hosted/lib/mixer_hosted/browser_auth/active_catalog.ex",
+    "hosted/lib/mixer_hosted/browser_auth/store.ex",
+    "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs"
+  ]
+}
