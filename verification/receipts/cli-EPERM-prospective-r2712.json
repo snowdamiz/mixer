@@ -1,0 +1,550 @@
+{
+  "id": "R2712",
+  "status": "PRIVATE_PROSPECTIVE_CANDIDATE_TESTED_ROOT_REVIEW_PENDING",
+  "frozen_at_utc": "2026-11-13T21:17:31.012704+00:00",
+  "packet": "verification/local/cli-EPERM-prospective-r2712",
+  "change": {
+    "path": "cli/Sources/MixerBuild/POSIXCommandControl.swift",
+    "before": {
+      "bytes": 13525,
+      "sha256": "9c7b2d86b8f69ca987068a2dd5686a44513e5f52325f5f16cd5cf3b08929b752"
+    },
+    "after": {
+      "bytes": 13697,
+      "sha256": "1ab842557ddf888b5a43c7554c15b652952a7bcee0127af7cc1eb171ba1e53a4"
+    },
+    "afterimage": "verification/local/cli-EPERM-prospective-r2712/afterimages/cli/Sources/MixerBuild/POSIXCommandControl.swift",
+    "only_behavior_change": "At the already post-direct-reap group-absence boundary, EPERM returns false (absence unproven). Other errno still throws. Existing cleanup bounds, signals, UNKNOWN freeze, positive ESRCH and closed-FD requirements are unchanged.",
+    "canonical_applied": false,
+    "ChangedOwningFiles": 1,
+    "OwnedCommand_and_process_c_unchanged": true
+  },
+  "kernel_cases": {
+    "normal": {
+      "after_member_reap": {
+        "errno": 3,
+        "return": -1,
+        "signal": 0,
+        "target": -38604
+      },
+      "baseline_executed_in_owning_execution_context": false,
+      "baseline_refusal": "observe-owned-group: errno 1",
+      "baseline_scope": "Adapter observation only; independent fixture custodian owns both direct children. No UNKNOWN execution context is resumed.",
+      "candidate_intermediate": {
+        "absent": false,
+        "descriptorsClosed": false,
+        "errno": 1,
+        "terminalCustody": false
+      },
+      "cleanup_bound_seconds": 1,
+      "descriptorsClosed": true,
+      "direct_leader_reaped": true,
+      "helper_closed_descriptor_count": 9,
+      "leader": 38604,
+      "leader_WNOWAIT": {
+        "pid": 38604,
+        "si_code": 1,
+        "status": 31,
+        "WNOWAIT": 32
+      },
+      "live": {
+        "errno": 0,
+        "return": 0,
+        "signal": 0,
+        "target": -38604
+      },
+      "member": 38605,
+      "member_reaped": true,
+      "member_WNOWAIT": {
+        "pid": 38605,
+        "si_code": 1,
+        "status": 32,
+        "WNOWAIT": 32
+      },
+      "pgid": 38604,
+      "post_leader_reap_zombie_member": {
+        "errno": 1,
+        "return": -1,
+        "signal": 0,
+        "target": -38604
+      },
+      "same_session_fixture": true,
+      "seconds": 0.024242,
+      "session_ownership_claimed": false,
+      "signals_sent": 0,
+      "stderrEOF": true,
+      "stdoutEOF": true,
+      "terminalCustody": true,
+      "test": "OwnedZombieGroupWaitsForPositiveESRCH"
+    },
+    "optimized": {
+      "after_member_reap": {
+        "errno": 3,
+        "return": -1,
+        "signal": 0,
+        "target": -41125
+      },
+      "baseline_executed_in_owning_execution_context": false,
+      "baseline_refusal": "observe-owned-group: errno 1",
+      "baseline_scope": "Adapter observation only; independent fixture custodian owns both direct children. No UNKNOWN execution context is resumed.",
+      "candidate_intermediate": {
+        "absent": false,
+        "descriptorsClosed": false,
+        "errno": 1,
+        "terminalCustody": false
+      },
+      "cleanup_bound_seconds": 1,
+      "descriptorsClosed": true,
+      "direct_leader_reaped": true,
+      "helper_closed_descriptor_count": 9,
+      "leader": 41125,
+      "leader_WNOWAIT": {
+        "pid": 41125,
+        "si_code": 1,
+        "status": 31,
+        "WNOWAIT": 32
+      },
+      "live": {
+        "errno": 0,
+        "return": 0,
+        "signal": 0,
+        "target": -41125
+      },
+      "member": 41126,
+      "member_reaped": true,
+      "member_WNOWAIT": {
+        "pid": 41126,
+        "si_code": 1,
+        "status": 32,
+        "WNOWAIT": 32
+      },
+      "pgid": 41125,
+      "post_leader_reap_zombie_member": {
+        "errno": 1,
+        "return": -1,
+        "signal": 0,
+        "target": -41125
+      },
+      "same_session_fixture": true,
+      "seconds": 0.012055,
+      "session_ownership_claimed": false,
+      "signals_sent": 0,
+      "stderrEOF": true,
+      "stdoutEOF": true,
+      "terminalCustody": true,
+      "test": "OwnedZombieGroupWaitsForPositiveESRCH"
+    }
+  },
+  "controls": {
+    "normal": {
+      "existing_unchanged_OwnedCommandProof_groups": 296,
+      "prospective_passed": [
+        "OwnedZombieGroupWaitsForPositiveESRCH",
+        "PermanentEPERMBecomesStickyUNKNOWNAtExistingDeadline",
+        "FaultedDescriptorClosureNeverReopensAdmission",
+        "NonEPERMStillImmediatelyUNKNOWN"
+      ],
+      "runtime_outer": {
+        "label": "runtime-normal",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/normal/controls",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/normal"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+        "pid": 38603,
+        "pgid": 38603,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 3.2935730420285836,
+        "ownedGroupAbsentESRCH": true
+      }
+    },
+    "optimized": {
+      "existing_unchanged_OwnedCommandProof_groups": 296,
+      "prospective_passed": [
+        "OwnedZombieGroupWaitsForPositiveESRCH",
+        "PermanentEPERMBecomesStickyUNKNOWNAtExistingDeadline",
+        "FaultedDescriptorClosureNeverReopensAdmission",
+        "NonEPERMStillImmediatelyUNKNOWN"
+      ],
+      "runtime_outer": {
+        "label": "runtime-optimized",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/optimized/controls",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/optimized"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+        "pid": 41124,
+        "pgid": 41124,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.14031979197170585,
+        "ownedGroupAbsentESRCH": true
+      }
+    }
+  },
+  "negative_control_facts": {
+    "permanent_EPERM": "At the exact existing one-second fake-clock cleanup boundary (tick 10), state becomes sticky UNKNOWN without positive absence or descriptor closure. Last operation is clock; held admission performs zero further process operations.",
+    "descriptor_close_fault": "Positive absence alone cannot set descriptorsClosed or terminalCustody; failed close freezes admission.",
+    "non_EPERM": "EIO still creates immediate UNKNOWN at probe (tick zero).",
+    "all_existing_fault_freeze_assertions": "296 unchanged suite groups pass in each mode."
+  },
+  "source_preservation": {
+    "initial_owning_preimages": {
+      "cli/Sources/MixerBuild/OwnedCommand.swift": {
+        "bytes": 12219,
+        "sha256": "a28f7361767dee2dccf158e857e9f32011f273f21a6805b9b30ea8bcd70766e8"
+      },
+      "cli/Sources/MixerBuild/POSIXCommandControl.swift": {
+        "bytes": 13525,
+        "sha256": "9c7b2d86b8f69ca987068a2dd5686a44513e5f52325f5f16cd5cf3b08929b752"
+      },
+      "cli/Sources/MixerProcessIO/process.c": {
+        "bytes": 8361,
+        "sha256": "f0034762637830cfedc48428db75f7f360208ead13dc9896d08481c8c0134bde"
+      },
+      "cli/Sources/MixerProcessIO/include/MixerProcessIO.h": {
+        "bytes": 826,
+        "sha256": "83e07035e3c6668e6a433030aa8e139186021aa3f1f2ae61efa93dfa6046103c"
+      },
+      "cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift": {
+        "bytes": 16153,
+        "sha256": "0fadef21852a5c94d77726c08fc46f1903b070deb7aaaac527590f2d90af054f"
+      },
+      "cli/Sources/MixerBuild/Configuration.swift": {
+        "bytes": 9054,
+        "sha256": "0fe83a633e1c55681f80f3a138920dc0fedd4f6cf2929a6e8495d26228031d74"
+      },
+      "cli/Sources/MixerBuild/ProcessRunner.swift": {
+        "bytes": 4864,
+        "sha256": "c8a63c35085d601c5a5d0c07a884cc21e28e49ae8d1f1d984297a6cfbe9142de"
+      }
+    },
+    "all_initial_owning_preimages_unchanged": true,
+    "authorities": {
+      "source119": {
+        "manifest_path": "verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/current-source-inputs.json",
+        "manifest": {
+          "bytes": 19295,
+          "sha256": "49c5442e2e7a9c34a33d3f22120f083f29d77d7b4887b867725f55a4b7885f1f"
+        },
+        "count": 119,
+        "digest": "80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c",
+        "all_rows_match_immutable_declared_preimages": true,
+        "sourceauthority_admission_executed": false
+      },
+      "v25source331": {
+        "manifest_path": "verification/identity-network-current-source-v25/selected-source-manifest.json",
+        "manifest": {
+          "bytes": 54795,
+          "sha256": "88b9708ec32beeec057af80a2ed64d3ae41e8ecc03dfcd7de712936db924581b"
+        },
+        "count": 331,
+        "digest": "5c65caefb83b12c841aea7b7bbb8d2726f03e72516d021e645a129fe071972d0",
+        "all_rows_match_immutable_declared_preimages": true,
+        "sourceauthority_admission_executed": false
+      }
+    },
+    "Pair21_before_after_exact": {
+      "native/android/app/src/dev/mixer/android/NativeAppearanceViewsV2.java": {
+        "bytes": 152917,
+        "sha256": "355953f4ddc7a4e75edfc41f2b61e3c869e4d69030b47a6321faab0112a99633"
+      },
+      "native/android/app/src/dev/mixer/android/NativeEditorConnectionV2.java": {
+        "bytes": 9528,
+        "sha256": "b0cf2beb17ed46c57466eadddfcef14c4bf56dd57b6060d9e1fe801a21726c97"
+      },
+      "native/android/app/src/dev/mixer/android/NativeRenderer.java": {
+        "bytes": 114521,
+        "sha256": "f23b3f4ddcc2503f9b5ef00f88f3f6ccb40882e0fbbce97789a5a8ff7b868b51"
+      },
+      "native/android/app/src/dev/mixer/android/AppearanceGeometryV2.java": {
+        "bytes": 6216,
+        "sha256": "aad14cedc41c9ce31811ec49833115948e2152fd812ccf67cba11ac097384bc4"
+      },
+      "native/android/tests/private-owner-barrier-map.json": {
+        "bytes": 223721,
+        "sha256": "3498cafe9bae21bbef0234eb7e98e1c36fe4a4d5905614f96f2245a2d2ed0976"
+      },
+      "native/android/tests/private-owner-barrier-bindings.json": {
+        "bytes": 107930,
+        "sha256": "407ba4986d0d3e25d6e6d60517eb569c507ea91bdabcb74213b885ef4705e85a"
+      }
+    },
+    "policy_unchanged": {
+      "bytes": 1204677,
+      "sha256": "7bdb1134c09ec2aea9346edd5f1bd92bcef5a524ecaf4c6aa1db043fa2a38f0e"
+    },
+    "preservation_snapshot_timing": "This preservation snapshot follows the two private runtimes; the canonical source119 signed manifest comparison also verifies the pre-existing immutable authority. Initial seven owning-source preimages precede all builds."
+  },
+  "host": {
+    "uname": [
+      "Darwin",
+      "Andreys-MacBook-Pro.local",
+      "27.0.0",
+      "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "arm64"
+    ],
+    "macOS": [
+      "27.0.1",
+      [
+        "",
+        "",
+        ""
+      ],
+      "arm64"
+    ],
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "tool_versions": {
+    "swift-version": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0\n",
+    "clang-version": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
+    "macos-version": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434\n"
+  },
+  "outer_custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only": true,
+    "unchanged": true
+  },
+  "outer_commands": [
+    {
+      "label": "swift-version",
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 38004,
+      "pgid": 38004,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.9934128749882802,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "clang-version",
+      "argv": [
+        "/usr/bin/clang",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 38094,
+      "pgid": 38094,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.18019754195120186,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "macos-version",
+      "argv": [
+        "/usr/bin/sw_vers"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 38116,
+      "pgid": 38116,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.043535292032174766,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "compile-canonical-c",
+      "argv": [
+        "/usr/bin/clang",
+        "-c",
+        "-Dmx_group_absent=mx_group_absent_real",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/process.c",
+        "-I",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/process.o"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 38119,
+      "pgid": 38119,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.25889341603033245,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "compile-test-kernel-control",
+      "argv": [
+        "/usr/bin/clang",
+        "-c",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/control.c",
+        "-I",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/control.o"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 38146,
+      "pgid": 38146,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.09585450007580221,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "swift-build-normal",
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-D",
+        "MIXER_BOUNDARY_STANDALONE",
+        "-Onone",
+        "-I",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile",
+        "-module-cache-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/swift-cache-normal",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/OwnedCommand.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/CandidatePOSIXCommandControl.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/BaselinePOSIXCommandControl.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/Support.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/OwnedCommandControlTests.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/ProspectiveTests.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/process.o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/control.o",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/normal/controls"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 38162,
+      "pgid": 38162,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 7.9696889580227435,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "runtime-normal",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/normal/controls",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/normal"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 38603,
+      "pgid": 38603,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 3.2935730420285836,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "swift-build-optimized",
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-D",
+        "MIXER_BOUNDARY_STANDALONE",
+        "-O",
+        "-I",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile",
+        "-module-cache-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/swift-cache-optimized",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/OwnedCommand.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/CandidatePOSIXCommandControl.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/BaselinePOSIXCommandControl.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/Support.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/OwnedCommandControlTests.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/ProspectiveTests.swift",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/process.o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/compile/control.o",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/optimized/controls"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 38628,
+      "pgid": 38628,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 21.59390087495558,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "runtime-optimized",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/optimized/controls",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/optimized"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+      "pid": 41124,
+      "pgid": 41124,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.14031979197170585,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "bounds": {
+    "inclusive_limit_seconds": 900,
+    "conservative_bootstrap_utc": "2026-11-13T21:09:00Z",
+    "completed_utc": "2026-11-13T21:17:31.014693+00:00",
+    "swift_build_invocations": 2,
+    "C_build_invocations": 2,
+    "runtime_batches": 2,
+    "per_kernel_control_seconds": 1,
+    "per_synthetic_control_seconds": 1,
+    "runtime_batch_outer_timeout_seconds": 15,
+    "compiler_payload_invocations": 0,
+    "package_creation": 0,
+    "retries": 0
+  },
+  "artifacts_manifest": {
+    "path": "verification/local/cli-EPERM-prospective-r2712/frozen-artifacts.json",
+    "bytes": 8053,
+    "sha256": "8eb10d350589a3b1280bf4a8a4fae48f436ef6caa27f4c9dcea3a407287a495b",
+    "entries": 57,
+    "selected_artifact_bytes": 1273870,
+    "compiler_caches_excluded": true
+  },
+  "limits": [
+    "This is a private prospective candidate; root independent source review and adoption remain pending. No public CLI120, source-authority success, immutable package, native, provider, release or GA claim.",
+    "Actual kernel experiment proves only these two fresh same-session sibling groups on macOS 27.0.1 / Darwin 27.0.0. It does not reproduce the full session-owning launch path or infer historical R2644 causes.",
+    "Baseline refusal is the unchanged adapter method on the actual post-leader-reap EPERM snapshot, not an OwnedCommandExecution transitioned to UNKNOWN. Independent fixture custody stays known; no UNKNOWN execution was resumed for cleanup.",
+    "State-machine permanent-error, descriptor-close and held-admission controls use synthetic OS boundaries and clock. PID 90001 is intercepted before any kernel process operation. Those synthetic receipts are not real resource-custody receipts.",
+    "C test linkage renames only the copied canonical mx_group_absent symbol to mx_group_absent_real; the test shim forwards all actual owned PIDs unchanged and injects only fake PID 90001. The C source itself and R986 definitions are byte-identical.",
+    "Test-only same-file initializers are present only in compilation copies, absent from the single declared afterimage. Existing Swift control suite is byte-identical.",
+    "Historical resources including the entire R2644 mutable compiler/tmp chain and remote 18165 were not read, probed, waited, signalled, retried or released.",
+    "No Git/index or artifact-policy mutation occurred. Staged-index artifact checks are root delivery work; nothing was staged here."
+  ],
+  "historical_cause": "UNPROVEN",
+  "new_unknown_owned_resources": false,
+  "holds_released": false,
+  "scope": {
+    "canonical_edits": false,
+    "git_actions": false,
+    "sourceauthority_changes": false,
+    "subagents": 0,
+    "historical_hold_access": false,
+    "holds_released": false,
+    "publication": false,
+    "historical_cause": "UNPROVEN"
+  }
+}

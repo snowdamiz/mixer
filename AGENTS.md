@@ -661,3 +661,17 @@ verification/receipts/generated-java-release-export-hold-r2560.json as custody
 references. Artifact inspection stopped with zero downloads. Fresh separately
 selected synthetic/source diagnostics and unrelated CI remain permitted;
 neither releases this or any historical hold.
+
+
+The R2644 real-compiler join left UNKNOWN nested public CLI custody
+after `observe-owned-group: errno 1`. The nested PID/PGID is unexposed.
+Preserve the exact `/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/development-dispatch-deadline-join-r2644/tmp/mixer-command-receipts-543724AF-7E60-486A-ABAC-C5AD0B4D9D27/command-3750659B-9C2E-42A5-9212-06D7F9EBC509` command and the entire mutable R2644 compiler/worker
+operation chain, including tmp, worker-state, source/build/cache and retained
+CLI resources. Do not enumerate, stat, inspect logs/scratch, probe, signal, wait,
+retry or clean those resources, or read them to recover an identity. Only the
+copied compact receipts, delivered top-level REPORT/application map, and the
+separately frozen two product afterimages are permitted references for fresh
+source-only review. PostgreSQL PID/PGID24272 and external worker PID/PGID21282
+are recorded terminal and ports40080/40081 reusable; those facts release no
+nested hold. See `verification/receipts/development-compiler-custody-hold-r2654.json`.
+Independent new namespaces remain authorized; all earlier holds remain active.

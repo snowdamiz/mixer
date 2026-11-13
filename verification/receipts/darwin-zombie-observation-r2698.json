@@ -1,0 +1,271 @@
+{
+  "id": "R2698",
+  "test": "OwnedZombieOnlyGroupSignalZeroControl",
+  "observed_at": "2026-11-13T21:00:50.022727+00:00",
+  "outer_custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "unchanged": true
+  },
+  "host": {
+    "uname": [
+      "Darwin",
+      "Andreys-MacBook-Pro.local",
+      "27.0.0",
+      "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "arm64"
+    ],
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "python_executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "waitid_exposed": true,
+    "WNOWAIT_exposed": true,
+    "macos": [
+      "27.0.1",
+      [
+        "",
+        "",
+        ""
+      ],
+      "arm64"
+    ],
+    "identity_at_final_metadata": {
+      "uid": 501,
+      "euid": 501,
+      "gid": 20,
+      "egid": 20,
+      "python_platform": "darwin"
+    }
+  },
+  "tools_preflight": {
+    "cc": "/usr/bin/cc",
+    "cc_version": "Apple clang version 21.0.0 (clang-2100.4.1.1), arm64-apple-darwin27.0.0",
+    "macOS_product_version": "27.0.1",
+    "macOS_build": "26A434"
+  },
+  "compile_count": 0,
+  "compiled_hash": null,
+  "compile_reason": "Python exposes waitid and WNOWAIT; original Python POSIX helper needs no C compilation.",
+  "helper_execution_count": 1,
+  "child_limit": 1,
+  "scope": {
+    "canonical_edits": false,
+    "git_actions": false,
+    "children_subagents": 0,
+    "historical_process_actions": false,
+    "historical_claims": false,
+    "holds_released": false,
+    "controller_changes": false,
+    "production_or_GA_claims": false
+  },
+  "hashes": {
+    "owned-zombie.py": "89961167fd69dba428f13031a311fb7b9d189ab78b9872a7b9d0de8ab803a3e0",
+    "run.py": "dfec02da25089f250b0b9e8a664fea191b0f788902fd8f8f610ab1485285954b"
+  },
+  "source_revision": "No Git operation performed; exact experiment source SHA256 recorded. Canonical source not executed.",
+  "bootstrap_scope": "Initial host/source reads use app exec transport, outside R986 managed custody; no retroactive descendant-absence claim.",
+  "inner": {
+    "test": "OwnedZombieOnlyGroupSignalZeroControl",
+    "parent_pid": 78990,
+    "parent_pgid": 78990,
+    "started_monotonic": 760331.197803666,
+    "child_count": 1,
+    "terminal": true,
+    "historical_claims": false,
+    "preflight": {
+      "output_files_exclusive": true,
+      "gate_deadline_seconds": 5,
+      "zombie_deadline_seconds": 5,
+      "child_self_exit_on_gate_failure": true,
+      "cleanup": "Only direct waitpid of known child after WNOWAIT proof; require group ESRCH, pipe EOF and closed descriptors. UNKNOWN stops without further process operations.",
+      "pipes": {
+        "gate": [
+          5,
+          6
+        ],
+        "status": [
+          7,
+          8
+        ]
+      },
+      "source_sha256": "89961167fd69dba428f13031a311fb7b9d189ab78b9872a7b9d0de8ab803a3e0",
+      "fork_count_limit": 1
+    },
+    "child_pid": 79014,
+    "child_pgid": 79014,
+    "state": "TERMINAL",
+    "descriptor_closure": {
+      "parent_status_write": {
+        "fd": 8,
+        "close_return": null,
+        "fstat_errno": 9,
+        "closed": true
+      },
+      "parent_gate_read": {
+        "fd": 5,
+        "close_return": null,
+        "fstat_errno": 9,
+        "closed": true
+      },
+      "parent_gate_write": {
+        "fd": 6,
+        "close_return": null,
+        "fstat_errno": 9,
+        "closed": true
+      },
+      "parent_status_read": {
+        "fd": 7,
+        "close_return": null,
+        "fstat_errno": 9,
+        "closed": true
+      }
+    },
+    "child_handshake_raw": "{\"pid\": 79014, \"pgid\": 79014, \"setpgid_return\": null, \"setpgid_errno\": 0}\n",
+    "child_handshake": {
+      "pid": 79014,
+      "pgid": 79014,
+      "setpgid_return": null,
+      "setpgid_errno": 0
+    },
+    "live_signal_zero": {
+      "target": -79014,
+      "signal": 0,
+      "return": 0,
+      "errno": 0,
+      "errno_name": "SUCCESS"
+    },
+    "exit_handshake_write_return": 1,
+    "waitid": {
+      "idtype": 1,
+      "id": 79014,
+      "options": 37,
+      "option_names": [
+        "WEXITED",
+        "WNOWAIT",
+        "WNOHANG"
+      ],
+      "si_pid": 79014,
+      "si_uid": 0,
+      "si_signo": 20,
+      "si_status": 37,
+      "si_code": 1,
+      "CLD_EXITED": 1,
+      "return": 0,
+      "errno": 0,
+      "reaped": false
+    },
+    "zombie_proven_without_reap": true,
+    "zombie_signal_zero": {
+      "target": -79014,
+      "signal": 0,
+      "return": -1,
+      "errno": 1,
+      "errno_name": "EPERM"
+    },
+    "zombie_phase_is_not_absence": true,
+    "waitpid": {
+      "requested_pid": 79014,
+      "options": 1,
+      "returned_pid": 79014,
+      "raw_status": 9472,
+      "exit_code": 37,
+      "errno": 0
+    },
+    "after_reap_signal_zero": {
+      "target": -79014,
+      "signal": 0,
+      "return": -1,
+      "errno": 3,
+      "errno_name": "ESRCH"
+    },
+    "owned_pipe_eof": {
+      "read_return_bytes": 0,
+      "raw_hex": "",
+      "eof": true
+    },
+    "seconds": 0.011013500043191016,
+    "zombie_only_EPERM_observed": true
+  },
+  "outer_commands": [
+    {
+      "label": "OwnedZombieOnlyGroupSignalZeroControl",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/darwin-zombie-observation-r2698/owned-zombie.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/darwin-zombie-observation-r2698",
+      "pid": 78990,
+      "pgid": 78990,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.08105383301153779,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "status": "COMPLETE",
+  "conclusion": "REPRODUCED on macOS 27.0.1 / Darwin 27.0.0: this fresh owned one-child group returned kill(-79014,0)=0 live, -1/EPERM after waitid WEXITED|WNOWAIT proved an unreaped CLD_EXITED child, then -1/ESRCH after the exact direct waitpid reap.",
+  "limitations": [
+    "Only this fresh one-child group on this host was tested.",
+    "Historical EPERM causes, exact historical kernel equivalence and corrective product policy remain UNPROVEN.",
+    "Existing immediate EPERM-to-UNKNOWN controller contracts and Commands tests are untouched."
+  ],
+  "test_outcome": "KNOWN_ZOMBIE_EPERM_REPRODUCED_WITH_CONFIRMED_TERMINAL_CUSTODY",
+  "raw_return_scope": {
+    "signal_zero": "ctypes libc.kill returned exact C int; ctypes errno reset to zero immediately before each call and sampled immediately afterward. Exactly one zombie-phase call.",
+    "waitid": "Python os.waitid result fields recorded. return=0 / errno=0 denotes successful Python binding completion, not a separately instrumented raw syscall return.",
+    "setpgid_and_close": "None is the actual successful Python binding return; setpgid errno=0 denotes no exception, not a sampled libc errno. EBADF is observed from fstat after each parent pipe descriptor close.",
+    "waitpid": "Python returned exact child PID and raw wait status 9472; errno=0 denotes no exception. WNOHANG prevents an unbounded direct wait."
+  },
+  "artifacts": {
+    "owned-zombie.py": {
+      "bytes": 5464,
+      "sha256": "89961167fd69dba428f13031a311fb7b9d189ab78b9872a7b9d0de8ab803a3e0"
+    },
+    "run.py": {
+      "bytes": 3386,
+      "sha256": "dfec02da25089f250b0b9e8a664fea191b0f788902fd8f8f610ab1485285954b"
+    },
+    "inner-observations.json": {
+      "bytes": 2749,
+      "sha256": "3a189f91a98368a0c9723b698d940d5705972ba84fe97eba107350d9403377e4"
+    },
+    "outer/commands.json": {
+      "bytes": 585,
+      "sha256": "f446135b6c1411d463b47db7ab01ce10bc0fc26f2ffd5f862aa21835455c91f8"
+    },
+    "outer/OwnedZombieOnlyGroupSignalZeroControl.stdout": {
+      "bytes": 2239,
+      "sha256": "afdc11f32c736bb7dfca2ba473349369700acb5a1a9a209b2584982be8f2567d"
+    },
+    "outer/OwnedZombieOnlyGroupSignalZeroControl.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "bounds": {
+    "inclusive_limit_seconds": 240,
+    "observation_bootstrap_started_utc": "2026-11-13T20:58:21Z",
+    "completed_metadata_utc": "2026-11-13T21:01:35.661896+00:00",
+    "helper_outer_timeout_seconds": 15,
+    "child_gate_seconds": 5,
+    "zombie_observation_deadline_seconds": 5,
+    "compile_count": 0,
+    "helper_execution_count": 1,
+    "forked_child_count": 1,
+    "retries": 0
+  },
+  "required_unchanged_contracts": [
+    "Immediate controller EPERM-to-UNKNOWN remains unchanged.",
+    "No admission or timeout policy change proposed.",
+    "No historical process, scratch, ledger hold or automatic hold label is released."
+  ],
+  "verification": "Read and cross-checked the saved inner/outer metadata, exact identity chain, four EBADF close facts, status EOF, post-reap ESRCH and experiment source hashes. No helper rerun or subsequent process probing."
+}

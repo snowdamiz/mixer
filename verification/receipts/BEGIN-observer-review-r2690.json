@@ -1,0 +1,209 @@
+{
+  "id": "R2690",
+  "status": "REQUEST_CHANGES",
+  "scope": "ONE R2676 diagnostic fixture delta only; original R2626 and R2674 reviews remain accepted as supplied by parent",
+  "findings": [
+    {
+      "id": "R2690-F1",
+      "severity": "P2",
+      "title": "Make the diagnostic sink optional and contain its failures inside the handler",
+      "source": "verification/local/processor-BEGIN-discriminator-r2676/diagnostic-afterimages/hosted/test/customer_build_read_test.exs",
+      "line": 358,
+      "end_line": 362,
+      "trigger": "The first raw BEGIN with R2676_BEGIN_EVIDENCE unset, or an unwritable/invalid diagnostic destination, or diagnostic encoding/projection failure.",
+      "proof": "The added observer calls System.fetch_env! and File.write! without local rescue/catch. It runs before the unchanged transaction writer. The exact telemetry dependency catches handler exceptions at telemetry.erl:201-205 and calls detach(HandlerId). The ordinary canonical hosted/scripts/test-local.py supplies the older evidence variables but contains no R2676_BEGIN_EVIDENCE setting.",
+      "impact": "A successful legitimate BEGIN can detach the shared transaction/repo-query fixture handler solely because optional diagnostics failed. The old transaction write is skipped for that event and subsequent observations for both attached event types are lost. This violates the no-new-unconditional-campaign-env and no-detachment requirements; no direct product-flow crash is claimed.",
+      "requested_change": "Treat an unset diagnostic destination as disabled. Contain projection, encoding and file I/O failures within the new optional observer so the preexisting handler always continues; preserve the original assertions and existing writer. Do not add a mandatory R2676 campaign variable to ordinary CI.",
+      "evidence_kind": "direct frozen source/dependency inspection; no runtime replay permitted or performed"
+    }
+  ],
+  "checks": {
+    "composition20_entries_exact": 20,
+    "diagnostic21_entries_exact": 21,
+    "canonical_original_preimages_exact": true,
+    "new_file_null_preimages_preserved": true,
+    "independently_checked_prior_frozen_maps": true,
+    "inverse_agreement": true,
+    "sole_delta": "hosted/test/customer_build_read_test.exs",
+    "sole_delta_inserted_lines": 77,
+    "all_original_bytes_literals_assertions_preserved": true,
+    "observer_afterimage": {
+      "bytes": 29197,
+      "sha256": "05481de80964dca2d8317b22755bbd6a6f29ca52b804f5bb668b172d7a05a933"
+    },
+    "observer_preimage": {
+      "bytes": 26154,
+      "sha256": "6e1bfba126fdcaec6169ab8ec14f62b103e4cd0f5373d02e49447feb7bd916f1"
+    },
+    "receipt_artifacts_verified": 23,
+    "raw_evidence_entries_verified": 77,
+    "raw_command_manifest_entries": 127,
+    "raw_BEGIN": {
+      "focused": {
+        "records": 38,
+        "all_acknowledged": true,
+        "max_encoded_record_bytes": 379
+      },
+      "full": {
+        "records": 38,
+        "all_acknowledged": true,
+        "max_encoded_record_bytes": 379
+      }
+    },
+    "historical_managed_groups_terminal_records": 62,
+    "historical_PG40140_reusable_record": true,
+    "ordinary_fixture_launcher_does_not_supply_campaign_variable": true,
+    "logging_has_no_local_failure_containment": true,
+    "runtime_or_replay_launched": false
+  },
+  "raw_summary_checks": {
+    "focused": {
+      "label": "053-focused-suite",
+      "raw_summary": "Result: 10 passed",
+      "exit": 0,
+      "stdout": {
+        "bytes": 2737,
+        "sha256": "44f685908b2ec825e9ff56e4f988d69c9403c0cccc55972fb8c111ed165f9e90"
+      }
+    },
+    "full-unfiltered": {
+      "label": "061-full-unfiltered-suite",
+      "raw_summary": "Result: 902 passed, 2 skipped",
+      "exit": 0,
+      "stdout": {
+        "bytes": 236282,
+        "sha256": "8ca1d71dd1c09bb6f0a0a1e05c1726e982e22e1d0c95941d48097a76b8bf0f4e"
+      }
+    }
+  },
+  "input_hashes": {
+    "diagnostic-application-map-21.json": {
+      "bytes": 10103,
+      "sha256": "199a8e28d9789809078e8b7716e55c184f1d6b2a5079e7f8d7779d3cf0b258f1"
+    },
+    "diagnostic-inverse-map-21.json": {
+      "bytes": 8312,
+      "sha256": "447d5b7c0bc33d8f7ba2fc6b78f6bf40030749a73a81c39177d410b3e3eed005"
+    },
+    "observer-only.patch": {
+      "bytes": 2560,
+      "sha256": "9521598958d7a4c254ca658cf9ab3b23490024b72d341644e3a549fd535e6876"
+    },
+    "observer-formatted-only.patch": {
+      "bytes": 3533,
+      "sha256": "8abe4c1237e2db9055c3b9eed1db6498b0efb35db9db686a30fcc556dcf12881"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 13847,
+      "sha256": "923f4268944bf2e76ee3f7b9f3406e7d0a1a5130abbfbfd94295ba25871c43a8"
+    },
+    "raw-command-manifest.json": {
+      "bytes": 19582,
+      "sha256": "27d12221668deda8e2178881a9e6b360ffd7526d342c4df7b61efe55fd2d512f"
+    },
+    "receipt.json": {
+      "bytes": 7849,
+      "sha256": "1be2ca31cc401f02647b7859d7d41f5f0e06aecf8fdf17d51048276b636043d1"
+    }
+  },
+  "review_artifacts": {
+    "review.py": {
+      "bytes": 7798,
+      "sha256": "bad1a3d3a94f59037483b56b1e32eba16fd265727b5066cf87caf568c3d145e3"
+    },
+    "finalize.py": {
+      "bytes": 9112,
+      "sha256": "054e9338b5d219cc76f4cf7b68d1277df34c8e11fbf98f5384954f70cfbfd20a"
+    },
+    "REPORT.md": {
+      "bytes": 3371,
+      "sha256": "0c04a0593ee0c841d7387a6240d457b1c52f3db67b39a117d37df62822ff9adb"
+    },
+    "verification-results.json": {
+      "bytes": 1288,
+      "sha256": "960f8b48422aabea9dd72f825b5217bccc5bd01f7cd2ec7b138962e2185bac97"
+    },
+    "input-integrity.json": {
+      "bytes": 76785,
+      "sha256": "e50000bf42d33a28fea5334243be4c6b04d8d9315361703b40569f91a9236fbc"
+    },
+    "telemetry-failure-excerpts.json": {
+      "bytes": 9824,
+      "sha256": "461e65f789d8e0130ad5e7563d7949c8ba278a52bdedf6832c881921196a361c"
+    },
+    "review-environment.json": {
+      "bytes": 446,
+      "sha256": "ce25ce0eb39f901bfa0e5abc76dc4b04cb052c6826ab1366e8d197911aed2c3d"
+    },
+    "commands.json": {
+      "bytes": 1020,
+      "sha256": "2a330c736a38d59942f22a9fe0b16aa6f70130dddb826c5e3ec74d8174b0fb2b"
+    }
+  },
+  "limitations": [
+    "Source/evidence review only; no runtime replay, promotion or fresh product test.",
+    "Historical R2648 BEGIN/HTTP503 causes remain UNPROVEN; no timeout/readiness attribution.",
+    "NO_REPRO is not a product fix and does not erase the original failure.",
+    "Synchronous observer may change timing; passing instrumented runs cannot exclude recurrence.",
+    "All actual BEGIN results succeeded; no runtime error-projection or logging-failure control was run.",
+    "The 62 managed-group and PostgreSQL terminal/reusable facts are validated retained records, not fresh probing.",
+    "Four bootstrap read-only transport exec calls preceded the pinned managed inspection; not retroactively claimed as managed."
+  ],
+  "constraints": {
+    "runtime_replay": false,
+    "promotion": false,
+    "canonical_index_git_producer_edits": false,
+    "children": false,
+    "browser_native_compiler_PG_launches": false,
+    "held_resources_accessed": false,
+    "historical_holds_released": false,
+    "new_hold": false,
+    "recursive_review_proposed": false
+  },
+  "custodian": {
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only": true,
+    "managed_inspections": 2,
+    "managed_limit": 6,
+    "all_exec_transport_calls": 6
+  },
+  "tool": {
+    "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14"
+  },
+  "review_created_epoch": 1794603522.139872,
+  "own_inspection_custody": [
+    {
+      "label": "source-and-evidence-review",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/BEGIN-observer-review-r2690/review.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 64186,
+      "pgid": 64186,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.12641462497413158,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "finalize-review-receipt",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/BEGIN-observer-review-r2690/finalize.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 67830,
+      "pgid": 67830,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.713170790928416,
+      "ownedGroupAbsentESRCH": true
+    }
+  ]
+}

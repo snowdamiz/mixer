@@ -1,0 +1,253 @@
+{
+  "id": "R2730",
+  "verdict": "PASS_SOURCE",
+  "status": "PASS_SOURCE",
+  "reviewed_candidate": "R2712",
+  "reviewer": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "speed": "default",
+    "independent": true
+  },
+  "completed_utc": "2026-11-13T21:31:38.900499+00:00",
+  "findings": [],
+  "intent": "Fresh-resource-only prospective EPERM absence observation within the existing post-reap cleanup deadline; retain every positive terminal fact and sticky UNKNOWN safeguard.",
+  "application_map": {
+    "bytes": 318,
+    "sha256": "b712fa2451d21905f6cb21afef72340178fefab4d9ad37c534db5bd5c0a3c9fd"
+  },
+  "source_change": {
+    "cli/Sources/MixerBuild/POSIXCommandControl.swift": {
+      "before": {
+        "bytes": 13525,
+        "sha256": "9c7b2d86b8f69ca987068a2dd5686a44513e5f52325f5f16cd5cf3b08929b752"
+      },
+      "after": {
+        "bytes": 13697,
+        "sha256": "1ab842557ddf888b5a43c7554c15b652952a7bcee0127af7cc1eb171ba1e53a4"
+      }
+    }
+  },
+  "frozen_manifest": {
+    "path": "verification/local/cli-EPERM-prospective-r2712/frozen-artifacts.json",
+    "bytes": 8053,
+    "sha256": "8eb10d350589a3b1280bf4a8a4fae48f436ef6caa27f4c9dcea3a407287a495b",
+    "entries": 57,
+    "all_entries_hash_match": true,
+    "selected_artifact_bytes": 1273870
+  },
+  "producer_receipt": {
+    "bytes": 23462,
+    "sha256": "0f94a646232c01edee49a8ca07742805e7ff5a43a912937c5944e89d12f1fed3"
+  },
+  "source_revision_basis": "Exact frozen manifest and per-file SHA-256 preimages/afterimage; no Git command or current canonical tree digest collected.",
+  "unchanged_compilation_inputs": {
+    "cli/Sources/MixerBuild/OwnedCommand.swift": {
+      "bytes": 12219,
+      "sha256": "a28f7361767dee2dccf158e857e9f32011f273f21a6805b9b30ea8bcd70766e8"
+    },
+    "cli/Sources/MixerProcessIO/process.c": {
+      "bytes": 8361,
+      "sha256": "f0034762637830cfedc48428db75f7f360208ead13dc9896d08481c8c0134bde"
+    },
+    "cli/Sources/MixerProcessIO/include/MixerProcessIO.h": {
+      "bytes": 826,
+      "sha256": "83e07035e3c6668e6a433030aa8e139186021aa3f1f2ae61efa93dfa6046103c"
+    },
+    "cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift": {
+      "bytes": 16153,
+      "sha256": "0fadef21852a5c94d77726c08fc46f1903b070deb7aaaac527590f2d90af054f"
+    }
+  },
+  "checks": {
+    "exact_diff_reconstruction": true,
+    "single_owning_file_change": true,
+    "test_initializer_excluded_from_afterimage": true,
+    "post_direct_reap_probe_guard_already_present": true,
+    "EPERM_never_positive_absence": true,
+    "cleanup_bound_unchanged": true,
+    "no_new_signals": true,
+    "other_errno_immediate_UNKNOWN": true,
+    "positive_ESRCH_direct_reap_both_EOF_and_closed_FDs_required": true,
+    "UNKNOWN_sticky_and_admission_closed": true,
+    "no_control_operations_after_UNKNOWN_in_source_or_synthetic_assertions": true,
+    "fake_PID_90001_intercepted_before_kernel": true,
+    "raw_records_and_compact_receipt_consistent": true,
+    "protected_snapshots_match": true,
+    "current_canonical_rehash_or_authority_admission": false
+  },
+  "recorded_test_evidence": {
+    "normal": {
+      "existing_groups": 296,
+      "prospective_controls": 4,
+      "kernel_seconds": 0.024242,
+      "outer_custody_record": {
+        "label": "runtime-normal",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/normal/controls",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/normal"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+        "pid": 38603,
+        "pgid": 38603,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 3.2935730420285836,
+        "ownedGroupAbsentESRCH": true
+      }
+    },
+    "optimized": {
+      "existing_groups": 296,
+      "prospective_controls": 4,
+      "kernel_seconds": 0.012055,
+      "outer_custody_record": {
+        "label": "runtime-optimized",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/optimized/controls",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712/optimized"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cli-EPERM-prospective-r2712",
+        "pid": 41124,
+        "pgid": 41124,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.14031979197170585,
+        "ownedGroupAbsentESRCH": true
+      }
+    }
+  },
+  "evidence_limits": [
+    "Actual kernel evidence is POSIX adapter observation with two fixture-owned same-session direct children. Full session-owning controller launch was not exercised.",
+    "The actual baseline adapter refusal did not transition a baseline OwnedCommandExecution to UNKNOWN. No UNKNOWN execution context was resumed.",
+    "All 296 existing proof groups and four prospective full-controller controls per mode use synthetic OS boundaries; fake PID 90001 is intercepted and never kernel-probed.",
+    "Fixture one-second check precedes final member reap; observed fixture durations are under one second. This is not an actual controller deadline qualification.",
+    "Producer outer custody facts are checked as frozen recorded evidence, without fresh process observations or runtime reruns.",
+    "Authority/source preservation is assessed from frozen producer snapshots. CLI119 admission and current canonical traversal were not rerun.",
+    "No historical cause, R2644 repair, native/provider/package or GA claim; --jobs4 steering arrived after producer builds."
+  ],
+  "adoption": {
+    "canonical_applied": false,
+    "fresh_CLI120_admission_required_if_adopted": true,
+    "immutable_CLI119_must_remain_exact": true,
+    "activation_authorized": false,
+    "GA_accepted": false,
+    "holds_released": false
+  },
+  "bounds": {
+    "inclusive_limit_seconds": 400,
+    "conservative_bootstrap_utc": "2026-11-13T21:26:00Z",
+    "inspection_command_limit": 8,
+    "inspection_commands_including_final_verification": 8,
+    "commands_completed_at_receipt_write": 8,
+    "remaining_command_reserved_for_static_readback": false,
+    "inspection_commands_completed": 8,
+    "conservative_inclusive_seconds": 338.900499,
+    "within_budget": true
+  },
+  "tools": {
+    "inspection_transport": "exec_command, synchronous Python file inspection only",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "R986": "read-only definitions inspection; not executed",
+    "R986_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "product_runtime_reruns": 0,
+    "compilers": 0,
+    "process_group_actions": 0
+  },
+  "scope": {
+    "writes": [
+      "verification/local/cli-EPERM-review-r2730",
+      "verification/receipts/cli-EPERM-review-r2730.json"
+    ],
+    "canonical_edits": false,
+    "producer_edits": false,
+    "git_or_index_actions": false,
+    "children": 0,
+    "browser_native_provider_actions": false,
+    "held_resource_access": false,
+    "historical_cause": "UNPROVEN",
+    "holds_released": false
+  },
+  "inspection_commands": [
+    {
+      "number": 1,
+      "kind": "static read",
+      "inputs": "interrogate SKILL.md; compact R2712 receipt; three guessed absent packet paths"
+    },
+    {
+      "number": 2,
+      "kind": "static read/write",
+      "inputs": "frozen-artifacts.json and pinned R986 source definitions",
+      "outputs": "inspection-02.txt; review-start.json"
+    },
+    {
+      "number": 3,
+      "kind": "static hash/read",
+      "inputs": "57 manifest-selected entries; application map/diff/preimages; owning adapter/controller/C/runner; shim; baseline; R986 definitions",
+      "outputs": "frozen-hash-audit.json"
+    },
+    {
+      "number": 4,
+      "kind": "static read",
+      "inputs": "frozen OwnedCommand.swift, ProspectiveTests.swift, Support.swift, run.py, freeze.py"
+    },
+    {
+      "number": 5,
+      "kind": "static compare/read",
+      "inputs": "unchanged proof source, C launcher, module headers; exact source transforms; raw results/journals; protection snapshots",
+      "outputs": "source-comparisons.json"
+    },
+    {
+      "number": 6,
+      "kind": "reproducible static artifact audit",
+      "command": "python3 verification/local/cli-EPERM-review-r2730/audit-frozen.py",
+      "actual_execution": "same saved script body evaluated within the synchronous inspection Python process",
+      "outputs": "audit-frozen.py; audit-result.json"
+    },
+    {
+      "number": 7,
+      "kind": "write review",
+      "outputs": "REPORT.md; compact R2730 receipt"
+    },
+    {
+      "number": 8,
+      "kind": "completed static final readback",
+      "inputs": "R2730 owned artifacts and receipt; frozen manifest hash only"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "verification/local/cli-EPERM-review-r2730/REPORT.md",
+      "bytes": 6325,
+      "sha256": "d145da658ac97ae902ce765e63b3d446b1a028949ce364225369d88841943167"
+    },
+    {
+      "path": "verification/local/cli-EPERM-review-r2730/audit-frozen.py",
+      "bytes": 7240,
+      "sha256": "02491e4add7b552a19c25174feab1914c0220405f495e1cfce220612c499e61e"
+    },
+    {
+      "path": "verification/local/cli-EPERM-review-r2730/audit-result.json",
+      "bytes": 3713,
+      "sha256": "e0fdaf074b39ea67db9916236f7a9bd85e48d298b5354a7395cc5de0c5fe152f"
+    },
+    {
+      "path": "verification/local/cli-EPERM-review-r2730/frozen-hash-audit.json",
+      "bytes": 9820,
+      "sha256": "296aa4b32427be6a4d5fffba87174573bab3e6161d93a8ca69b26d676fcab3ba"
+    },
+    {
+      "path": "verification/local/cli-EPERM-review-r2730/source-comparisons.json",
+      "bytes": 1739,
+      "sha256": "85007ad8d93a20c481c6eba76136761c565e6ef41760d96b02faf0220126ca2f"
+    },
+    {
+      "path": "verification/local/cli-EPERM-review-r2730/final-verification.json",
+      "bytes": 356,
+      "sha256": "d3515ba8d3023eed8cb77869a7294e7c1b23306074091e51003ee970cda4a7bd"
+    }
+  ]
+}

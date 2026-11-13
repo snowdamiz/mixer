@@ -1,0 +1,300 @@
+{
+  "id": "development-dispatch-review-r2634",
+  "status": "REQUEST_CHANGES",
+  "source_revision_supplied": "75e77360e576e7d084e771ef63e5448e0b52677d",
+  "independent_review_count": 1,
+  "findings": [
+    {
+      "priority": "P1",
+      "path": "hosted/priv/development/compiler_worker.py",
+      "line": 162,
+      "title": "Original deadline prevents fresh-owner query and stop during timeout reconciliation",
+      "proof": "One original-Worker temporary SQLite batch; live lease; expired original deadline; absent query/stop and stopped-result query all refuse stale",
+      "counterexample": {
+        "bytes": 565,
+        "sha256": "33626e76f17144d53e6e9334ffb353f036cd0bb51b482def4c9ebb4cc8f328b4"
+      }
+    }
+  ],
+  "report": {
+    "path": "verification/local/development-dispatch-review-r2634/REPORT.md",
+    "bytes": 9136,
+    "sha256": "9d24135234ea6fe3811e0c77de132387e52f8e44a53e86024bca62784a935954"
+  },
+  "binding_proof": {
+    "path": "verification/local/development-dispatch-review-r2634/binding-proof.json",
+    "bytes": 12286,
+    "sha256": "28cd286a088122ebc729e3795c18054fe613fd8d40d393ff1bf35280f300fc55"
+  },
+  "product_sources": {
+    "hosted/lib/mixer_hosted/builds/development_dispatch.ex": {
+      "canonical_preimage": null,
+      "afterimage": {
+        "bytes": 2964,
+        "sha256": "ac3e548fb8b294af9da3b6f0bbd2900347ad727b40ec845447a7dfbce6dcc926"
+      },
+      "retained_candidate_matches": true
+    },
+    "hosted/priv/development/compiler_worker.py": {
+      "canonical_preimage": null,
+      "afterimage": {
+        "bytes": 14908,
+        "sha256": "3aa599733e353d6aec06d40f16fc68f4859691089a01cc11777d8440233f2008"
+      },
+      "retained_candidate_matches": null
+    }
+  },
+  "preservation": {
+    "backend331": {
+      "files": 331,
+      "mismatches": {},
+      "manifest_digest": "f8b6be3e87cb50f8c5bb5dc02616e0bfbd63a6e99c54d8446774db1c9699fa62"
+    },
+    "public175": {
+      "files": 175,
+      "mismatches": {},
+      "manifest_digest": "acbcb0797e15d149a9ccda46c6bd8b77063d30a20a3078329085d96cd0729733"
+    },
+    "CLI119": {
+      "files": 119,
+      "mismatches": {},
+      "manifest_digest": "9aac8dd4b6f19748bb2319f254eb912d668c6280cfd8f5ec2bf919a7a0cb2c90"
+    },
+    "Pair21_product": {
+      "files": 179,
+      "mismatches": {},
+      "manifest_digest": "ef5e3614b55c59ae00a1b43de743f0cfbb578fb931bb004c33f0e2b18c193194"
+    }
+  },
+  "diagnostic": {
+    "exact_blob_equals_raw_framing": true,
+    "sha256": "f51410ad4d132c9d3a0dab3a63c3bb2dfee284382edecab4a4dd42efa3a80db8",
+    "bytes": 142967,
+    "exitCode": 65,
+    "nested_pgids": [
+      44012,
+      44035
+    ]
+  },
+  "adapter_beam_manifests": {
+    "compiled-beams.json": {
+      "candidate/hosted/_build/lib/mixer_hosted/ebin/Elixir.MixerHosted.Builds.DevelopmentDispatch.beam": {
+        "bytes": 11232,
+        "sha256": "e9ce932019026b7845f6ec43dcfd30551e568f3d97f887dce4eed4ffbcb9a40f"
+      }
+    },
+    "fresh-compiled-beam-manifest.json": {
+      "candidate/hosted/_build/lib/mixer_hosted/ebin/Elixir.MixerHosted.Builds.DevelopmentDispatch.beam": {
+        "bytes": 11232,
+        "sha256": "e9ce932019026b7845f6ec43dcfd30551e568f3d97f887dce4eed4ffbcb9a40f"
+      }
+    }
+  },
+  "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+  "review_python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "review_host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "completed_review_commands": [
+    {
+      "label": "read-inputs",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; r=Path(\".\"); base=r/\"verification/local/real-compiler-adapter-r2610\"; print(\"FILES\", \"\\n\".join(str(p.relative_to(base)) for p in base.rglob(\"*\") if p.is_file())); paths=[r/\"AGENTS.md\",base/\"REPORT.md\",base/\"application-map.json\",r/\"verification/receipts/real-compiler-adapter-r2610.json\",r/\"verification/local/real-compiler-boundary-r2598/REPORT.md\",r/\"verification/local/real-compiler-boundary-r2598/contract.json\"]; [(print(\"\\nFILE\",p),print(p.read_text())) for p in paths]"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 71148,
+      "pgid": 71148,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.16284933290444314,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "source-read",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path(\"verification/local/real-compiler-adapter-r2610\"); paths=[b/\"REPORT.md\",b/\"application-map.json\",b/\"afterimages/hosted/lib/mixer_hosted/builds/development_dispatch.ex\",b/\"afterimages/hosted/priv/development/compiler_worker.py\"]; [(print(\"\\nFILE\",p),print(\"\\n\".join(str(i)+\":\"+s for i,s in enumerate(p.read_text().splitlines(),1)))) for p in paths]"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 73987,
+      "pgid": 73987,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05987829191144556,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "contracts-evidence",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; r=Path(\".\"); b=r/\"verification/local/real-compiler-adapter-r2610\"; paths=[r/\"hosted/lib/mixer_hosted/builds/dispatch.ex\",r/\"hosted/lib/mixer_hosted/builds/admission.ex\",b/\"test_worker.py\",b/\"retained_controls.py\",b/\"recipe.json\",b/\"spec.json\",b/\"preservation.json\",b/\"compiled-beams.json\",b/\"fresh-compiled-beam-manifest.json\",b/\"first-compiler-start.json\",b/\"final-packet-check.json\",b/\"direct-result.json\",b/\"durable-operation-readback.json\"]; [(print(\"\\nFILE\",p),print(\"\\n\".join(str(i)+\":\"+s for i,s in enumerate(p.read_text().splitlines(),1)))) for p in paths]"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 78042,
+      "pgid": 78042,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.0843375000404194,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "focused-read",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path(\"verification/local/real-compiler-adapter-r2610\"); paths=[b/\"test_worker.py\",b/\"retained_controls.py\",b/\"compiler-diagnostic-proof.json\",b/\"public-source-before.json\",b/\"tool-identities.json\"]; [(print(\"\\nFILE\",p),print(p.read_text()[:24000] if p.suffix != \".json\" else json.dumps(json.loads(p.read_bytes()),indent=2)[:11000])) for p in paths]; [(print(\"JSON\",n), print(json.dumps(json.loads((b/n).read_bytes()),indent=2)[:18000])) for n in [\"recipe.json\",\"preservation.json\",\"compiled-beams.json\",\"delivery-artifact-identities.json\"]]"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 94250,
+      "pgid": 94250,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.07709745899774134,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "contract-flows",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import re; paths=[\"hosted/lib/mixer_hosted/builds/coordinator.ex\",\"hosted/lib/mixer_hosted/builds/lifecycle.ex\",\"hosted/test/support/build_dispatch_fixture.ex\"]; [(print(\"FILE\",p), print(\"\\n\".join(str(i)+\":\"+s for i,s in enumerate(Path(p).read_text().splitlines(),1) if (p.endswith(\"coordinator.ex\") and 240<=i<=370) or (p.endswith(\"lifecycle.ex\") and 390<=i<=455) or (p.endswith(\"build_dispatch_fixture.ex\") and i<=260)))) for p in paths]"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 94341,
+      "pgid": 94341,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06602895795367658,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "narrow-evidence",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path(\"verification/local/real-compiler-adapter-r2610\"); [(print(\"FILE\",n),print((b/n).read_text())) for n in [\"recipe.json\",\"compiled-beams.json\",\"pure-run-counts.json\",\"tool-identities.json\"]]; print(\"PRESERVATION\",json.dumps(json.loads((b/\"preservation.json\").read_bytes()),indent=2)[:9500]); print(\"BEAMFINAL\",{k:v for k,v in json.loads((b/\"fresh-compiled-beam-manifest.json\").read_bytes()).items() if \"DevelopmentDispatch\" in k}); print(\"COMPACTKEYS\",list(json.loads(Path(\"verification/receipts/real-compiler-adapter-r2610.json\").read_bytes()))); print(\"BEFORE_SNAPSHOTS\",[(str(p.relative_to(b)), p.stat().st_size) for p in b.iterdir() if any(x in p.name for x in [\"source\",\"snapshot\",\"identity\",\"identities\"])]); print(\"COORDINATOR\", \"\\n\".join(str(i)+\":\"+s for i,s in enumerate(Path(\"hosted/lib/mixer_hosted/builds/coordinator.ex\").read_text().splitlines(),1) if i<=240))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 7663,
+      "pgid": 7663,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06347549997735769,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "exact-context",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path(\"verification/local/real-compiler-adapter-r2610\"); print(\"AGENTS_SUFFIX\",Path(\"AGENTS.md\").read_text()[-22000:]); print(\"SOURCE_MANIFEST_SHAPES\",[(n,list(json.loads((b/n).read_bytes()))[:8]) for n in [\"source331-before.json\",\"public-source-before.json\",\"compiled-beams.json\",\"fresh-compiled-beam-manifest.json\"]]); print(\"BEAM\",{n:{k:v for k,v in json.loads((b/n).read_bytes()).items() if \"DevelopmentDispatch\" in k} for n in [\"compiled-beams.json\",\"fresh-compiled-beam-manifest.json\"]}); c=json.loads(Path(\"verification/receipts/real-compiler-adapter-r2610.json\").read_bytes()); print(\"COUNTS\",{k:c[k] for k in c if any(x in k for x in [\"first_\",\"elapsed\",\"named_join\",\"source_revision\"])}); print(\"SOURCE_SNAPSHOT_SEARCH\", \"\\n\".join(str(p.relative_to(b))+\":\"+str(i)+\":\"+s[:300] for n in [\"prepare.py\",\"write_delivery.py\",\"run_all.py\",\"run_integration.py\",\"finalize.py\",\"direct_compiler.py\"] for p in [b/n] for i,s in enumerate(p.read_text().splitlines(),1) if any(x in s for x in [\"sha256\",\"snapshot\",\"execute\",\"source331\",\"compiled-beam\",\"afterimages\"]))[:11000])"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 18379,
+      "pgid": 18379,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06528595893178135,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "one-counterexample-batch",
+      "argv": [
+        "python3",
+        "-B",
+        "verification/local/development-dispatch-review-r2634/counterexamples.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 23543,
+      "pgid": 23543,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.11007537506520748,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "evidence-bindings",
+      "argv": [
+        "python3",
+        "-B",
+        "verification/local/development-dispatch-review-r2634/inspect_bindings.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 46648,
+      "pgid": 46648,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.15857520804274827,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "final-evidence-read",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path(\"verification/local/real-compiler-adapter-r2610\"); print(\"LIFECYCLE_TYPES\", \"\\n\".join(Path(\"hosted/lib/mixer_hosted/builds/lifecycle.ex\").read_text().splitlines()[:100])); print(\"RAW\",{n:(b/n).read_text()[-2200:] for n in [\"pure-final12-commands/pure-controls-final12.stderr\",\"output-guard-commands/output-path-guard.stderr\",\"commands/strict-compile-1.stdout\",\"commands/strict-compile-1.stderr\",\"commands-api/api-test.stdout\",\"commands-api/api-test.stderr\",\"commands/public-cli-build.stderr\",\"direct-failure.txt\"]}); print(\"STRICTCMD\",[x for x in json.loads((b/\"commands/commands.json\").read_bytes()) if x.get(\"label\")==\"strict-compile-1\"]); print(\"CUSTODY_SHAPE\", type(json.loads((b/\"all-command-custody.json\").read_bytes())).__name__); print(\"CONFIG_SCOPE\",{k:v for k,v in json.loads((b/\"worker-config.json\").read_bytes()).items() if k not in [\"token\",\"registration\",\"policy\"]})"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 47271,
+      "pgid": 47271,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06516391690820456,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "delivery_command_custody": "Recorded by unchanged R986 run after this writer returns in commands/commands.json",
+  "tests": {
+    "counterexample_batches": 1,
+    "real_worker_launches": 0,
+    "compiler_CLI_launches": 0,
+    "database_server_launches": 0,
+    "producer_final_pure_passed": 12,
+    "producer_output_guard_passed": 2,
+    "producer_named_join": "FAIL_SQL42P01_BEFORE_DISPATCH"
+  },
+  "limits": [
+    "No final-whole-worker actual compiler source binding; missing initial snapshot",
+    "Final transport strict-compile evidence only; no real BEAM TCP callback execution",
+    "GET/replay/capacity-release/physical Oban join unverified",
+    "R986 output limit is post-communicate; streaming bound/overflow handling not qualified",
+    "Initial CLI setup failure and later direct-control failures retained",
+    "Historical receipt overwrite retained as failure; root repair reported, not independently rehashed",
+    "Local public SDK development only; no immutable package/provider/isolation/release/GA qualification"
+  ],
+  "canonical_index_git_sourceauthority_provider_native_CI_writes": 0,
+  "holds_accessed_or_released": false,
+  "children": 0,
+  "adoption_authorized_by_review": false,
+  "root_next": "Correct proven deadline contract defect, then root selects fresh SQL fixture/full join budget; no unchanged-code review loop"
+}
