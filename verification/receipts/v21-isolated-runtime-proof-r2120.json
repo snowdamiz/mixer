@@ -1,0 +1,865 @@
+{
+  "schema": "mixer.v21-isolated-runtime-proof.v1",
+  "campaign": "r2120",
+  "verdict": "PARTIAL",
+  "runtime_evidence_verdict": "PASS",
+  "strong_inner_process_custody_verdict": "PARTIAL",
+  "scope": "Existing-artifact audit: two synthetic production-path network methods only",
+  "head": "21f4894db17d56a2dae4004ae41da909efc22826",
+  "run_id": 43379598683,
+  "job_id": 131734015483,
+  "attempt": 1,
+  "artifact_id": 14015952715,
+  "run_url": "https://github.com/snowdamiz/mixer/actions/runs/43379598683",
+  "actual_runtime_rows": [
+    {
+      "module": "Elixir.MixerHosted.Identity.KeyOwnerLinuxNetworkTest",
+      "name": "test K03 production resolver/classifier pins public peer despite rebinding; private sink remains untouched",
+      "state": null,
+      "event": "test_finished"
+    },
+    {
+      "module": "Elixir.MixerHosted.Identity.StartupLinuxNetworkTest",
+      "name": "test IS04 IS05 actual configured startup cold production DNS TLS admission and lifecycle",
+      "state": null,
+      "event": "test_finished"
+    }
+  ],
+  "actual_suite_totals": {
+    "invalid": 0,
+    "total": 2,
+    "failures": 0,
+    "skipped": 0,
+    "excluded": 0,
+    "event": "suite_finished"
+  },
+  "python246_counted_as_runtime": false,
+  "semantic_receipts": {
+    "production-DNS-rebinding.json": {
+      "namespace": "disposable network-none Linux lo:1; no product resolver or loopback bypass",
+      "initialQueries": 2,
+      "authenticatedPeer": "8.8.8.8:443",
+      "publicConnections": 1,
+      "forbiddenSinkConnections": 0,
+      "newPrivateAnswerRejectedBeforeConnect": true
+    },
+    "startup-production-network.json": {
+      "resolver": "127.0.0.1:53",
+      "destination": "8.8.8.8:443",
+      "actualApplication": true,
+      "endpointLiveness": 200,
+      "namespace": "owned Linux network-none NET_ADMIN; 8.8.8.8 on lo:1",
+      "startupDNSQueries": 0,
+      "startupConnections": 0,
+      "coldTokenAdmitted": true,
+      "coldDNSQueries": 2,
+      "coldConnections": 1,
+      "oldLeaseRejectedAfterRestart": true,
+      "restartColdAdmission": true,
+      "shutdownInflightCancelled": true,
+      "allThreeConnectionsClosed": true,
+      "fixtureKeyDirectoryRemoved": true,
+      "publicAdapter": "ConfiguredVerifier.authenticate/2",
+      "productionPolicyBypasses": 0
+    }
+  },
+  "source_binding": {
+    "count": 290,
+    "recomputed_digest": "13cbf07d04bcbceaaaebb6278166bc18630e4d63f0fcf9857bca3e7319203463",
+    "selection_sha256": "0e16b7b275af0be897e1344117d479b0e52068625f1516c19d665d7ac13f3117",
+    "before_after_manifests_identical": true,
+    "before_source_equals_product_manifest": true,
+    "tests": [
+      {
+        "path": "hosted/test/mixer_hosted/identity/key_owner_linux_network_test.exs",
+        "bytes": 3183,
+        "sha256": "0ce4ba31eebfaea270e891deabdceba936bb79ee2b3b61e48c957e230844ef9f",
+        "skip_guard_lines": [
+          4,
+          5,
+          6
+        ],
+        "guard": "Linux and MIXER_ISOLATED_NETNS=1",
+        "method_definition_line": 32
+      },
+      {
+        "path": "hosted/test/mixer_hosted/identity/startup_linux_network_test.exs",
+        "bytes": 4995,
+        "sha256": "7d28b594476d349b3ca6e35c2dbadb21f6e831f53ace235e3a1e8b85cb712480",
+        "skip_guard_lines": [
+          4,
+          5,
+          6
+        ],
+        "guard": "Linux and MIXER_ISOLATED_NETNS=1",
+        "method_definition_line": 29
+      }
+    ],
+    "collector": {
+      "path": "hosted/scripts/test-identity-network.py",
+      "bytes": 320157,
+      "sha256": "40a266c45d17eaa631ad5d6b30db7f7050792ac0daa56d3d0fe9f8f136042843"
+    },
+    "loaded_compiled_module_matches": 223,
+    "loaded_paths_missing_from_selected_compiled_manifest": [
+      {
+        "module": "Elixir.Bandit.HTTPTransport",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/consolidated/Elixir.Bandit.HTTPTransport.beam",
+        "sha256": "b84e0773cbf4cd8ab22588fc38c915a3aea402c054357e10937fcf640b7b3e22"
+      },
+      {
+        "module": "Elixir.Collectable",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/consolidated/Elixir.Collectable.beam",
+        "sha256": "901d8bfc3a721874290d437dabf02427e956f54534d615f4f1f2192b950b6f62"
+      },
+      {
+        "module": "Elixir.DBConnection.Query",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/consolidated/Elixir.DBConnection.Query.beam",
+        "sha256": "789ff52709b3ca175a004fcfca120f2538fc755ee9973ae6241f36299d18d56a"
+      },
+      {
+        "module": "Elixir.Ecto.Queryable",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/consolidated/Elixir.Ecto.Queryable.beam",
+        "sha256": "49e426cc609ba673a121bc79d10c657aec0226e9a71b8cff2c73dc9a6512cf47"
+      },
+      {
+        "module": "Elixir.Enumerable",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/consolidated/Elixir.Enumerable.beam",
+        "sha256": "54450377e9ad93e38fa30d7611476b43117bdeabeb17ea96fa994d232522542d"
+      },
+      {
+        "module": "Elixir.Inspect",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/consolidated/Elixir.Inspect.beam",
+        "sha256": "904157c946dedb2e66fff810ae0052c162ec3acf189f779d355e2a8f301b29f6"
+      },
+      {
+        "module": "Elixir.List.Chars",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/consolidated/Elixir.List.Chars.beam",
+        "sha256": "4f6d40aead6c654a9f31bded6aff69747b80af4ae2e9ccfb90da1e6183d1e036"
+      },
+      {
+        "module": "Elixir.String.Chars",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/consolidated/Elixir.String.Chars.beam",
+        "sha256": "ab7ff2b78638aa8a2c94cac1bd6a41415237751f4aa448ef09e23511c2db0a1c"
+      }
+    ],
+    "critical_loaded_compiled_bindings": [
+      {
+        "module": "Elixir.MixerHosted.Application",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/ebin/Elixir.MixerHosted.Application.beam",
+        "sha256": "8a5feebb6fc5a66314e8064193a35168e474438370eab189736959abe49e4233"
+      },
+      {
+        "module": "Elixir.MixerHosted.Identity.ConfiguredVerifier",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/ebin/Elixir.MixerHosted.Identity.ConfiguredVerifier.beam",
+        "sha256": "c5a6c4c2596352722b1e016eb92ba008627a852ff30d23b62b8b43953dfad525"
+      },
+      {
+        "module": "Elixir.MixerHosted.Identity.JWKSTransport",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/ebin/Elixir.MixerHosted.Identity.JWKSTransport.beam",
+        "sha256": "b1672fcf75458c7bf12417ca8c1f6430983be6ec4656caba88356744f62c7d50"
+      },
+      {
+        "module": "Elixir.MixerHosted.Identity.KeyOwner",
+        "path": "/workspace/hosted/_build/test/lib/mixer_hosted/ebin/Elixir.MixerHosted.Identity.KeyOwner.beam",
+        "sha256": "5088e389fc64ffab5c23fa6ed02ba89079a2dae9f493cc04de34deee532dc4ee"
+      }
+    ],
+    "test_modules_and_observer_beam_digests": null
+  },
+  "runtime_environment": {
+    "elixir": "1.20.4",
+    "crypto": "[{\"OpenSSL\", 805306720, \"OpenSSL 3.0.22 25 Aug 2026\"}]",
+    "otp_patch": "29.1.1",
+    "vm": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:2] [ds:4:2:10] [async-threads:1] [jit:ns]\n",
+    "architecture": "x86_64-pc-linux-gnu"
+  },
+  "isolation": {
+    "host_namespace": "net:[4026531833]",
+    "test_namespace": "net:[4026532320]",
+    "network_mode": "none",
+    "only_loopback": true,
+    "isolation_flag": "1",
+    "skip_guard_satisfied": true
+  },
+  "runtime_output": {
+    "metadata": "logs/0126.json",
+    "exit_code": 0,
+    "stdout_complete": true,
+    "stderr_complete": true,
+    "stdout": {
+      "bytes": 1344,
+      "sha256": "d8b716d65b85cca61714b17f1d3124047543cfd2b255d553051fa9c369a0fb90"
+    },
+    "stderr": {
+      "bytes": 912,
+      "sha256": "192245962fb62f2b39b2ab71958c0365fbc5f62c9d7010cff5f069894f458658"
+    },
+    "overflow": false,
+    "timed_out": false,
+    "warnings": "Two collector-observer Jason availability warnings; complete successful observer records and Result: 2 passed."
+  },
+  "hosted_custody": {
+    "top_level_cleanup": {
+      "container_teardown_is_product_lifecycle_proof": false,
+      "errors": [],
+      "status": "verified-exact-created-IDs-absent",
+      "unresolved_creates": []
+    },
+    "finalizer": {
+      "cleanup_verified": true,
+      "no_retry_of_identity_lost_or_unknown_create": true,
+      "primary_status": "two-methods-passed-pending-owned-cleanup-and-independent-acceptance",
+      "same_original_aggregate_deadline": true,
+      "schema": 1
+    },
+    "all_three_containers_reported_removed": [
+      {
+        "cid": "692d765b2c5d094f972a07b906f4e3a399dc74d17bc48a8ebbb0f511dc5b0e59",
+        "image_id": "sha256:857e84a618d1f76390220fbff2e7d54d588aea4f772ab1e60dacfe3fa02602cc",
+        "label": "mixer-identity-net-43379598683-1-1af41b7e3eb340db8c14c249f8d8b8cb",
+        "name": "mixer-identity-net-43379598683-1-1af41b7e3eb340db8c14c249f8d8b8cb-prepare",
+        "role": "prepare",
+        "state": "removed"
+      },
+      {
+        "cid": "a81753f60eb9dfa512e7937935b8e6ed8b3626c8ad1c6b6e00a701dfbf32fbfc",
+        "image_id": "sha256:857e84a618d1f76390220fbff2e7d54d588aea4f772ab1e60dacfe3fa02602cc",
+        "label": "mixer-identity-net-43379598683-1-1af41b7e3eb340db8c14c249f8d8b8cb",
+        "name": "mixer-identity-net-43379598683-1-1af41b7e3eb340db8c14c249f8d8b8cb-test",
+        "role": "test",
+        "state": "removed"
+      },
+      {
+        "cid": "7fdcc2dffec97ba7cc9f60a599611056cb39f37ec13ff764a803a0b38e4f116a",
+        "image_id": "sha256:6a35283e53fbe883da6a6ffbce8d3999dc66076cc5c4e2f1d21bdbd9e26bf86f",
+        "label": "mixer-identity-net-43379598683-1-1af41b7e3eb340db8c14c249f8d8b8cb",
+        "name": "mixer-identity-net-43379598683-1-1af41b7e3eb340db8c14c249f8d8b8cb-pg",
+        "role": "pg",
+        "state": "removed"
+      }
+    ],
+    "raw_positive_container_absence": [
+      {
+        "role": "pg",
+        "cid": "7fdcc2dffec97ba7cc9f60a599611056cb39f37ec13ff764a803a0b38e4f116a",
+        "terminal": {
+          "Dead": false,
+          "Error": "",
+          "ExitCode": 0,
+          "FinishedAt": "2026-11-13T06:35:36.020175554Z",
+          "OOMKilled": false,
+          "Paused": false,
+          "Pid": 0,
+          "Restarting": false,
+          "Running": false,
+          "StartedAt": "2026-11-13T06:34:54.585264861Z",
+          "Status": "exited"
+        },
+        "inspect_metadata": "logs/0149.json",
+        "positive_absence_response": "logs/0149.stderr"
+      },
+      {
+        "role": "test",
+        "cid": "a81753f60eb9dfa512e7937935b8e6ed8b3626c8ad1c6b6e00a701dfbf32fbfc",
+        "terminal": {
+          "Dead": false,
+          "Error": "",
+          "ExitCode": 0,
+          "FinishedAt": "2026-11-13T06:35:36.428178088Z",
+          "OOMKilled": false,
+          "Paused": false,
+          "Pid": 0,
+          "Restarting": false,
+          "Running": false,
+          "StartedAt": "2026-11-13T06:34:51.899503172Z",
+          "Status": "exited"
+        },
+        "inspect_metadata": "logs/0158.json",
+        "positive_absence_response": "logs/0158.stderr"
+      }
+    ],
+    "fixture_key_directories_remaining": [],
+    "inner_PID_PGID_or_ESRCH_records": false,
+    "unknown_or_hold_receipt_observed": false,
+    "absence_of_hold_markers_used_as_absence_proof": false
+  },
+  "selected_members": [
+    {
+      "name": "state.json",
+      "bytes": 4939,
+      "sha256": "8a95462176658dc4e623ae7385dadb621822c8a12e5243ef1bee905b42e7fc09",
+      "crc32": "0f453680",
+      "crcVerified": true
+    },
+    {
+      "name": "finalizer.json",
+      "bytes": 236,
+      "sha256": "62a41ded408df249469e12b20673bba4025e748447dc718251e974775e1364ec",
+      "crc32": "937c9369",
+      "crcVerified": true
+    },
+    {
+      "name": "test-terminal.json",
+      "bytes": 7054,
+      "sha256": "17fe6f5dec541bef50da90040927df6567fa2bf06293eb69dddd1a8973a8abfe",
+      "crc32": "c96772c1",
+      "crcVerified": true
+    },
+    {
+      "name": "pg-terminal.json",
+      "bytes": 7712,
+      "sha256": "397fb48266b71856463fdd206156113f18949dd304c8dc14657d31b342238d3a",
+      "crc32": "bdbfc73d",
+      "crcVerified": true
+    },
+    {
+      "name": "prepare-terminal.json",
+      "bytes": 6951,
+      "sha256": "ca4007c1fa4c832f9d4029405426c8db8f1f8a9e60faab76aaad2874529bb8ba",
+      "crc32": "66735d2d",
+      "crcVerified": true
+    },
+    {
+      "name": "production-DNS-rebinding.json",
+      "bytes": 264,
+      "sha256": "73702494891ae2a6da35e9e2e6b7e4a0123d4aa09a997a8b94ab1a946322fb33",
+      "crc32": "83287cb4",
+      "crcVerified": true
+    },
+    {
+      "name": "startup-production-network.json",
+      "bytes": 592,
+      "sha256": "d23ebc3f9ca2bf8fd1a5e74e9669b374f01ea0440dae89e2f4accd2e6a830f81",
+      "crc32": "ca966ef3",
+      "crcVerified": true
+    },
+    {
+      "name": "test-authorization.json",
+      "bytes": 1229,
+      "sha256": "ab50614007b396f398166811a3db1fb7577c32bc8f6fe21e70f29292e03330c3",
+      "crc32": "220e0986",
+      "crcVerified": true
+    },
+    {
+      "name": "collector-source-bindings.json",
+      "bytes": 641,
+      "sha256": "ffc22bde06df2c0ea6e8f90999b4a04a194eaa2043aa095a8c636c61fc361b6f",
+      "crc32": "5b9a0eff",
+      "crcVerified": true
+    },
+    {
+      "name": "product-source-manifest.json",
+      "bytes": 48071,
+      "sha256": "800850c0a0af1d29287d7113e5b0e25d1ff43ade74e3af81422ce02897d1adfc",
+      "crc32": "66eada87",
+      "crcVerified": true
+    },
+    {
+      "name": "artifact-manifest.json",
+      "bytes": 69556,
+      "sha256": "6c9562a29f50a1e9dbd14a7269b31d42fb2b01080230a36b887fec8a3f761ce6",
+      "crc32": "d08d719a",
+      "crcVerified": true
+    },
+    {
+      "name": "host.json",
+      "bytes": 335,
+      "sha256": "9776c5d97da880d7b88bbd56318ab1917a3eb1e7d3fa16c96ade86b1730b0a82",
+      "crc32": "c66d0a80",
+      "crcVerified": true
+    },
+    {
+      "name": "test-namespace.json",
+      "bytes": 768,
+      "sha256": "decaf8df49d3c0eeaca773676cd7cc37e43d94fdc78040a42e2eaa56b72e0277",
+      "crc32": "5ff8b371",
+      "crcVerified": true
+    },
+    {
+      "name": "observer-events.jsonl",
+      "bytes": 923,
+      "sha256": "72e46c364d5e2079237b4b9ec5e5b8b061b925636528223a2e07e0535226a0f7",
+      "crc32": "58f33586",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0124.json",
+      "bytes": 1862,
+      "sha256": "cc32e56077bde9030452e8524ae8f2436469243e0c6a7fc918ebfce08ef6ac48",
+      "crc32": "e01c21cf",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0126.json",
+      "bytes": 2555,
+      "sha256": "1090be83be8a9d2ab09920960ee1e4f99a798b8cdc8e0e70b6c8aeaf2fc84bba",
+      "crc32": "c64f8178",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0148.json",
+      "bytes": 825,
+      "sha256": "ad521375259cfa4ba2fa6a7bb5989a7fdd6bdb134aa284d22e43124c5f23083b",
+      "crc32": "a0f410bb",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0149.json",
+      "bytes": 832,
+      "sha256": "05d64a032cc06857c5e92785ace9d31d5fb7761d091eb9ddc15241a4d738bc37",
+      "crc32": "6605b6ed",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0157.json",
+      "bytes": 824,
+      "sha256": "828f52fea800777e72818c0b68594ad42491f41bf2097be58f692e1650cb8638",
+      "crc32": "8351e1e7",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0158.json",
+      "bytes": 832,
+      "sha256": "6cd97d5d4985beed537cd473c27cad8e70402a2bfee57da7850b4302c2fc6497",
+      "crc32": "d95396c0",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0126.stdout",
+      "bytes": 1344,
+      "sha256": "d8b716d65b85cca61714b17f1d3124047543cfd2b255d553051fa9c369a0fb90",
+      "crc32": "b855318d",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0126.stderr",
+      "bytes": 912,
+      "sha256": "192245962fb62f2b39b2ab71958c0365fbc5f62c9d7010cff5f069894f458658",
+      "crc32": "51d6a563",
+      "crcVerified": true
+    },
+    {
+      "name": "before-tests-manifest.json",
+      "bytes": 232912,
+      "sha256": "e5bfc96c2d0de1599eefb1b5bf33cf9f9a246fccc5c0462da6517ac1e75ef152",
+      "crc32": "13afa20f",
+      "crcVerified": true
+    },
+    {
+      "name": "after-tests-manifest.json",
+      "bytes": 232912,
+      "sha256": "e5bfc96c2d0de1599eefb1b5bf33cf9f9a246fccc5c0462da6517ac1e75ef152",
+      "crc32": "13afa20f",
+      "crcVerified": true
+    },
+    {
+      "name": "loaded-runtime.json",
+      "bytes": 163798,
+      "sha256": "6014a5a94c1713f5c254536e37ba95010dbea45893fc798ceedeace5df092204",
+      "crc32": "3f68b34c",
+      "crcVerified": true
+    },
+    {
+      "name": "compiled-input-validation.json",
+      "bytes": 682,
+      "sha256": "51ad9e472196725116500dd382672ecfce89dbce6b9dbbab12cb617f26e1d6db",
+      "crc32": "e7c13dd9",
+      "crcVerified": true
+    },
+    {
+      "name": "literal-helper-bindings.json",
+      "bytes": 948,
+      "sha256": "d191c7aefe9c0e00665b550d344714268af24f4bf7329bccca33d60abf8bc972",
+      "crc32": "25f0dd3a",
+      "crcVerified": true
+    },
+    {
+      "name": "key-directory-cleanup.json",
+      "bytes": 38,
+      "sha256": "7e89b4d153c7936f9f63951795f6016b99ce92cabf95534726890235a3ab06ce",
+      "crc32": "c9abd34e",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0149.stdout",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "crc32": "7068d244",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0149.stderr",
+      "bytes": 112,
+      "sha256": "5e9f777493d65294f88b161168f1107f56d6758f7cd7494861e2a1b7dca831b6",
+      "crc32": "956c040c",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0158.stdout",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "crc32": "7068d244",
+      "crcVerified": true
+    },
+    {
+      "name": "logs/0158.stderr",
+      "bytes": 112,
+      "sha256": "7558e91758665f20356ffb596c4abc3545ff10a0b6cb7fda48d5aa6f480d3605",
+      "crc32": "1403e485",
+      "crcVerified": true
+    },
+    {
+      "name": "compiled-modules-before-tests.json",
+      "bytes": 164247,
+      "sha256": "74d5e92e8a36803efc79064119000321649382b3a12ac0d33f3f114fcd6182de",
+      "crc32": "15120cf3",
+      "crcVerified": true
+    }
+  ],
+  "zip_safety": {
+    "compressed_bytes": 13334741,
+    "sha256": "b55458a8a6218090fb98600029f4a62024f695848114cee9d0a6ef9dcd9cfcba",
+    "roster_members": 511,
+    "roster_expanded_bytes": 41927281,
+    "selected_members": 33,
+    "selected_total_bytes": 955024,
+    "paths_duplicates_symlinks_encryption_local_headers_ranges_nonoverlap_checked": true,
+    "selected_CRCs_sizes_and_artifact_manifest_hashes_verified": true,
+    "full_extraction": false,
+    "unselected_payloads_read": false
+  },
+  "limitations": [
+    "PASS proves the actual two unskipped fixture methods at the selected v21 head, not complete descendant process custody.",
+    "IS04 and IS05 are one combined executed ExUnit method, not two separately observed methods.",
+    "Artifact explicitly lacks syscall/child-command custody trace and discards successful OpenSSL child output. No inner PID/PGID or positive ESRCH record is available; an unexposed fact is not a reported UNKNOWN chain.",
+    "Exact test/PG container absence and fixture socket/key cleanup do not substitute for unrecorded host CLI process-group facts. Prepare-container removal is corroborated by state/finalizer only in the selected member set.",
+    "Test modules/observer are loaded from source with null BEAM digests; exact test source matches the pre/post manifests and critical production BEAM digests match pre-test compilation records.",
+    "No running collector-fix CI, deployment, external live provider, physical/native, production release, or GA qualification. No gate promoted or hold released.",
+    "8 loaded consolidated protocol paths have no entry in the selected pre-test compiled manifest; all 223 loaded paths that do have entries match, including four named critical production modules. Missing entries are reported, not assumed bound."
+  ],
+  "audit_preparation_failure": {
+    "first_script_preparation": "Python quoting SyntaxError; no file written",
+    "following_validation_command": "missing audit-proof.py, exit2; direct reap/both EOF/closed FDs/positive ESRCH recorded",
+    "next_metadata_validation": "KeyError on consolidated protocol module absent from pre-test compilation manifest; stopped cleanly; unmatched paths now reported explicitly rather than assumed bound",
+    "product_payload_or_extra_API_request": false,
+    "failed_outputs_preserved": true
+  },
+  "restrictions": {
+    "Git_index_canonical_writes": false,
+    "held_resource_reads_or_operations": false,
+    "R1930_reads": false,
+    "compiler_or_product_runtime_execution": false,
+    "CI_polling_or_retries_or_dispatch": false,
+    "provider_writes": false,
+    "subchildren": false
+  },
+  "elapsed_at_proof_seconds": 423.6152825410245,
+  "audit_environment": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "source_validation": "Read-only artifact data/hash checks; product collector not imported or executed",
+  "reused_R2104": {
+    "receipt": {
+      "path": "verification/receipts/v21-main-ci-proof-r2104.json",
+      "bytes": 60816,
+      "sha256": "c20de717a23bebf3b4405181c8dc6c6f95ccf62cc4f6aa79a592bef47b06639e"
+    },
+    "complete_isolated_log": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/v21-main-ci-proof-r2104/isolated-log.body",
+      "bytes": 68574,
+      "sha256": "8b66cb9ea17a3bc41cbf06a372b4ecb78d53568f6851cf956cd884f8880a557f",
+      "content_length": 68574,
+      "content_length_matches": true,
+      "source_admission_line": 204,
+      "artifact_upload_digest_corresponds": true,
+      "original_download_used_allow_escape_sequences": true
+    },
+    "no_new_job_log_download": true
+  },
+  "bounds": {
+    "elapsed_seconds": 485.18390666600317,
+    "finite_limit_seconds": 600,
+    "read_only_GitHub_API_calls": 3,
+    "API_limit": 6,
+    "artifact_downloads": 1,
+    "artifact_download_limit": 1,
+    "compressed_limit_bytes": 67108864,
+    "selected_members": 33,
+    "selected_member_limit": 40,
+    "selected_bytes": 955024,
+    "selected_total_limit_bytes": 8388608,
+    "selected_member_limit_bytes": 2097152,
+    "API_calls": [
+      {
+        "method": "GET",
+        "endpoint": "repos/snowdamiz/mixer/actions/jobs/131734015483",
+        "response": {
+          "bytes": 3903,
+          "sha256": "3afcb61a3d56b1bb97b1a427cafc608a582c70ee810d53da6fa24bd665dac5d3"
+        },
+        "output": "pin-selected-job.stdout"
+      },
+      {
+        "method": "GET",
+        "endpoint": "repos/snowdamiz/mixer/actions/runs/43379598683/artifacts?per_page=100",
+        "response": {
+          "bytes": 2173,
+          "sha256": "4b2eec95cb506b57355345946236e0f888672f171c0ae71831479de3ed4edb4b"
+        },
+        "output": "selected-artifacts.stdout"
+      },
+      {
+        "method": "GET",
+        "endpoint": "repos/snowdamiz/mixer/actions/artifacts/14015952715/zip",
+        "response": {
+          "bytes": 13335838,
+          "sha256": "1617841952aaee4005bfca62754ef37523a28e7cd8dad0ac4aa47ba92d5fa3e1"
+        },
+        "artifact_bytes": 13334741,
+        "artifact_sha256": "b55458a8a6218090fb98600029f4a62024f695848114cee9d0a6ef9dcd9cfcba",
+        "final_content_length": 13334741,
+        "content_length_matches": true,
+        "output": "artifact.http",
+        "explicit_allow_escape_sequences": true
+      }
+    ],
+    "CI_polling": false,
+    "new_CI_or_runtime_dispatch": false
+  },
+  "local_custody": {
+    "helper_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "helper_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "AST_definitions_unchanged": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+    "registry": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/v21-isolated-runtime-proof-r2120/commands.json",
+      "bytes": 6539,
+      "sha256": "e7053203237e2bfbe33ccf797347606251d8d3ef4e22b57346801496c4e8c878"
+    },
+    "root1902_registry_used": false,
+    "all_managed_commands_direct_reaped_both_EOF_FDs_closed_positive_ESRCH": true,
+    "commands": [
+      {
+        "label": "gh-version",
+        "pid": 79305,
+        "pgid": 79305,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 81,
+          "sha256": "a679442459bed23fdc13efb977dec3b17c3c923d8d48abc0d8e522182250955f"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "pin-selected-job",
+        "pid": 79310,
+        "pgid": 79310,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 3903,
+          "sha256": "3afcb61a3d56b1bb97b1a427cafc608a582c70ee810d53da6fa24bd665dac5d3"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "selected-artifacts",
+        "pid": 80255,
+        "pgid": 80255,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 2173,
+          "sha256": "4b2eec95cb506b57355345946236e0f888672f171c0ae71831479de3ed4edb4b"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "download-selected-artifact",
+        "pid": 82281,
+        "pgid": 82281,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "read-top-receipts",
+        "pid": 82669,
+        "pgid": 82669,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 26981,
+          "sha256": "0a44921d884fe60324df0934794285b8e63b3d4dd0c1077035af3026651cb5a7"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "read-semantic-and-bindings",
+        "pid": 83142,
+        "pgid": 83142,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 5048,
+          "sha256": "88a736550134dcf5707891bfdedad699a17de75a0b0317f90eefdd426ff30e1e"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "read-runtime-command-metadata",
+        "pid": 83855,
+        "pgid": 83855,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 7826,
+          "sha256": "0593f61b1332e69c6a8c357ba7b1f98d7a55d6afc0efc7c689301e0c0a4fd053"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "read-runtime-outputs-and-source-proof",
+        "pid": 84927,
+        "pgid": 84927,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 4530,
+          "sha256": "ac495c7776cac8b9d5557f5f36a503fc75ab838a27673d687ed9831c9cd9b432"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "read-compiled-module-bindings",
+        "pid": 2680,
+        "pgid": 2680,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 70,
+          "sha256": "7b9aa11a70d95877f7e58a3672c9dced8cae2f07ff5053a6a8609c3748fcfe91"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "label": "validate-artifact-proof",
+        "pid": 16996,
+        "pgid": 16996,
+        "exitCode": 2,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 300,
+          "sha256": "9e2c0115264e27d0ea723644fc1b2eac23e1f1aedd82f5ea9f23138a21de0e84"
+        }
+      },
+      {
+        "label": "validate-metadata-proof",
+        "pid": 22046,
+        "pgid": 22046,
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 381,
+          "sha256": "b9a9043ffd425861c987c638427ee33b95f397a3a7a4eec77a6d92d43940526f"
+        }
+      },
+      {
+        "label": "validate-selected-evidence",
+        "pid": 23105,
+        "pgid": 23105,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true,
+        "stdout": {
+          "bytes": 356,
+          "sha256": "2ae8d0f032ca6af091eeec6345460760ef45f9f720b9a4d2f2458eeafe65085d"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    ],
+    "tool_version": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0",
+    "outer_tool_bootstrap_lifetime": "outside inner managed registry; tool returned terminal responses",
+    "failed_preparation_commands_kept_as_failures": true
+  },
+  "accountable_review": {
+    "reviewer": "R2120 independent review sub-agent",
+    "acceptance_scope": "Runtime evidence PASS; full inner process custody PARTIAL; root acceptance remains separate",
+    "observed_utc": "2026-11-13T08:27:30Z"
+  }
+}

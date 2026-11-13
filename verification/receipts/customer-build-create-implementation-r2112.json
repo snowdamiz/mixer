@@ -1,0 +1,456 @@
+{
+  "schema": 1,
+  "id": "customer-build-create-implementation-r2112",
+  "status": "REQUEST_CHANGES_HTTP_SQL_ACCEPTANCE_UNPROVEN",
+  "selected_contract": "verification/local/customer-build-create-architecture-r2108/selection.json",
+  "baseline": {
+    "supplied_main": "21f4894db17d56a2dae4004ae41da909efc22826",
+    "root_checkpoint_reported": "72c48190d9e72f606588ac31098a2fad9bfbd4e0",
+    "browser_digest": "13cbf07d04bcbceaaaebb6278166bc18630e4d63f0fcf9857bca3e7319203463",
+    "design_hashes_exact": 41,
+    "reviewed_migrations_byte_exact": 12
+  },
+  "artifacts": {
+    "directory": "verification/local/customer-build-create-implementation-r2112",
+    "patch": {
+      "path": "implementation.patch",
+      "bytes": 429378,
+      "sha256": "8d7e184ac3a7f2a384d141e50a4d2132bc374881ae3ba86e5162eccafcbbb8fb"
+    },
+    "map": {
+      "path": "application-map.json",
+      "bytes": 13292,
+      "sha256": "9c3dcc99f2c5bdbe78773c690fca1873466858fb9137b6ed70e87a6f6614b1d3"
+    },
+    "afterimages": 25,
+    "rerunnable_packet_check": "node verification/local/customer-build-create-implementation-r2112/verify-packet.mjs",
+    "full_command_registry": "commands.json",
+    "raw_database_attempts": [
+      "logs/00008-http-sql-batch-1.stdout",
+      "logs/00009-http-sql-batch-2.stdout"
+    ],
+    "source_hashes": "application-map.json",
+    "dependency_identities": "reused-dependency-identity.json"
+  },
+  "implementation": [
+    "Closed eight-field POST and bounded duplicate-rejecting JSON, CSRF/Origin,409 and413 responses.",
+    "Versioned length-prefixed server build identity; server-owned immutable application/platform input metadata with expected digests.",
+    "Explicit build.create role/scope application authority, fixed CreateRepo before Authorization; existing Storage.create_multi and fixed Coordinator factory.",
+    "Same-transaction active-session/vault/authority helper and retained lease/key checks before commit.",
+    "Additive development schema with forced RLS and scoped create grants plus explicit internal/read-owner compatibility. Existing12 migrations untouched.",
+    "Opt-in create login scope and trusted pool; API insert_trigger=false, queues/plugins/peer disabled."
+  ],
+  "verification": {
+    "compilers": {
+      "invocations": 4,
+      "passed": 4,
+      "limit": 6,
+      "final_label": "00014-compile-body-bound-final"
+    },
+    "runtime_batches": {
+      "consumed": 3,
+      "limit": 3,
+      "database_batches": 2,
+      "setup_invalid": [
+        {
+          "batch": 1,
+          "result": "0 tests,1 invalid",
+          "cause": "Missing existing catalog definer role in focused fixture prerequisite"
+        },
+        {
+          "batch": 2,
+          "result": "0 tests,1 invalid",
+          "cause": "Fixture evidence directory already exists"
+        }
+      ],
+      "pure_batch": {
+        "passed": 33,
+        "failed": 0,
+        "scope": "Authorization Policy and CreateInput; no HTTP/SQL acceptance"
+      }
+    },
+    "named_http_sql_test": {
+      "name": "authenticated_customer_create_build_atomic_replay_pg_join",
+      "body_reached": false,
+      "passed_controls": 0,
+      "corrected_fixture_and_final_telemetry_test_executed": false,
+      "reason": "Runner120-second correction window expired and stopped the one owned database after second setup failure. No second launch permitted."
+    },
+    "pending": [
+      "Actual PKCE active-cookie/CSRF create201 and committed exactly one queued journal/Oban row",
+      "Exact200 replay and concurrent replay",
+      "Changed pin/key409 and hidden input/application404",
+      "HTTP role/scope/CSRF/Origin/revocation refusal matrix",
+      "Ordinary direct DML42501 under new schema",
+      "Oban failure rollback and post-insert authorization expiry rollback",
+      "Same-physical backend PID/xact observation for Authorization and actual job insertion",
+      "Existing GET under new forced-RLS schema",
+      "Independent slice review and root source admission"
+    ],
+    "static_packet": {
+      "afterimages_exact": true,
+      "migrations_unchanged": 12,
+      "canonical_changed_anchors_unchanged": true
+    }
+  },
+  "custody": {
+    "admitted_custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "postgres_launches": 1,
+    "postgres_stops": 1,
+    "postgres_pid_pgid": 71675,
+    "sql_select1_and_owned_directory_before_ddl": true,
+    "unix_sockets": false,
+    "port": 39470,
+    "port_reusable": true,
+    "all_primary_commands_terminal": true,
+    "new_holds": [],
+    "retained_outer_records": [
+      "outer/compiler-final-collection.json",
+      "outer/last-check-collection.json",
+      "outer/body-bound-collection.json"
+    ],
+    "outer_registry_limitation": "The launcher reset its outer records list on each invocation; earlier compile/runtime outer identities were overwritten. Those invocations returned OUTER_TERMINAL after unchanged R986 success; full primary command identities and terminal facts are retained. No UNKNOWN result occurred.",
+    "historical_holds_accessed": false,
+    "resources_retained_for_review": true
+  },
+  "commands": [
+    {
+      "label": "00001-compile",
+      "pid": 47624,
+      "pgid": 47624,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00001-compile.stdout",
+        "bytes": 1428,
+        "sha256": "22d549c1023eb5bde5ea66ad9a5e4e274ea5ff5edb4f130a1aba722708a397ed"
+      },
+      "stderr": {
+        "path": "logs/00001-compile.stderr",
+        "bytes": 606,
+        "sha256": "79d9da2d35209d5a838063b212747bc1b6d64f41b27a90d95e54fa73e1c18678"
+      }
+    },
+    {
+      "label": "00002-tool-versions",
+      "pid": 71627,
+      "pgid": 71627,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00002-tool-versions.stdout",
+        "bytes": 143,
+        "sha256": "e92ef5035bb63ab8ed3164b41f674be99e2aeb2a9e59f47837de334cf41a13a7"
+      },
+      "stderr": {
+        "path": "logs/00002-tool-versions.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00003-initdb",
+      "pid": 71665,
+      "pgid": 71665,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00003-initdb.stdout",
+        "bytes": 1058,
+        "sha256": "468101432f2dc6333fc67cbc8b537bda6f108b0d9d0b08d14749a1bbe6e1eb4a"
+      },
+      "stderr": {
+        "path": "logs/00003-initdb.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00004-postgres-foreground",
+      "pid": 71675,
+      "pgid": 71675,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": "not applicable; regular file",
+      "stderr_eof": "not applicable; regular file",
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00004-postgres-foreground.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/00004-postgres-foreground.stderr",
+        "bytes": 1847,
+        "sha256": "bd971582618dbb487a91eae01d90b63b82adc9237beaf0d0a1ea7a71a21ebb3e"
+      }
+    },
+    {
+      "label": "00005-sql-readiness",
+      "pid": 71676,
+      "pgid": 71676,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00005-sql-readiness.stdout",
+        "bytes": 123,
+        "sha256": "4e3e3bd595d66cfb3984c857965e483d7f7e1237d553234f2030ae1e219b427b"
+      },
+      "stderr": {
+        "path": "logs/00005-sql-readiness.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00006-browser-read-roles",
+      "pid": 71684,
+      "pgid": 71684,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00006-browser-read-roles.stdout",
+        "bytes": 60,
+        "sha256": "4982da64c0ba03fcbd29f1878c4569b2be646026c4ed233aa765ab2d37fbdf5c"
+      },
+      "stderr": {
+        "path": "logs/00006-browser-read-roles.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00007-browser-read-database",
+      "pid": 71686,
+      "pgid": 71686,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00007-browser-read-database.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/00007-browser-read-database.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00008-http-sql-batch-1",
+      "pid": 71688,
+      "pgid": 71688,
+      "exit": 2,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00008-http-sql-batch-1.stdout",
+        "bytes": 2451,
+        "sha256": "f61cefc182027d13f2889998bf7412dcce08d9bfee8def21259e21e893f96c28"
+      },
+      "stderr": {
+        "path": "logs/00008-http-sql-batch-1.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00009-http-sql-batch-2",
+      "pid": 78601,
+      "pgid": 78601,
+      "exit": 2,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00009-http-sql-batch-2.stdout",
+        "bytes": 1269,
+        "sha256": "f8c0985910ea8f6b621d9f069811743119bd69cf28d6bc861f23410553a72398"
+      },
+      "stderr": {
+        "path": "logs/00009-http-sql-batch-2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00010-postgres-stop",
+      "pid": 83877,
+      "pgid": 83877,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00010-postgres-stop.stdout",
+        "bytes": 56,
+        "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+      },
+      "stderr": {
+        "path": "logs/00010-postgres-stop.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00011-compile-final",
+      "pid": 5851,
+      "pgid": 5851,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00011-compile-final.stdout",
+        "bytes": 24,
+        "sha256": "aaf3aa0b3540a9cb9e79911476ee96af0664f3466d1eaa8e3381039c4cd785bc"
+      },
+      "stderr": {
+        "path": "logs/00011-compile-final.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00012-compile-closed-final",
+      "pid": 17014,
+      "pgid": 17014,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00012-compile-closed-final.stdout",
+        "bytes": 24,
+        "sha256": "b43114f449bca2f5e1948a7d5c554edeb4a54aad83d07c98cd270bb631d4d165"
+      },
+      "stderr": {
+        "path": "logs/00012-compile-closed-final.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00013-pure-policy-input-batch3",
+      "pid": 17052,
+      "pgid": 17052,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00013-pure-policy-input-batch3.stdout",
+        "bytes": 145,
+        "sha256": "d573a7dc7a727db673afbbe3423b475aa8fee75002c9a3af2939fd5d81809020"
+      },
+      "stderr": {
+        "path": "logs/00013-pure-policy-input-batch3.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "00014-compile-body-bound-final",
+      "pid": 52502,
+      "pgid": 52502,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "stdout": {
+        "path": "logs/00014-compile-body-bound-final.stdout",
+        "bytes": 24,
+        "sha256": "03d47c6b429a076348282533b9725f493e889974a689133db39f187fac79a634"
+      },
+      "stderr": {
+        "path": "logs/00014-compile-body-bound-final.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "consumption": {
+    "wall_budget_seconds": 1200,
+    "first_productive_action_utc": "2026-11-13T08:10:40Z",
+    "elapsed_seconds": 1227,
+    "compiler_limit": 6,
+    "runtime_limit": 3
+  },
+  "restrictions": {
+    "canonical_index_git_source_authority_untouched": true,
+    "subchildren": false,
+    "native": false,
+    "external_api": false,
+    "commits_pushes_deployments": false,
+    "production_ddl": false,
+    "worker_dispatch": false,
+    "new_dependencies": false
+  },
+  "limitations": [
+    "Private implementation is unaccepted; successful compiles and33 pure tests do not establish the frozen HTTP/SQL contract.",
+    "Final RLS compatibility changes and final HTTP test source require fresh actual database acceptance in a root-selected campaign.",
+    "No worker execution, native build, source ingestion, signing, deployment, immutable package or GA qualification."
+  ],
+  "frozen": {
+    "at_utc": "2026-11-13T08:31:07.043Z",
+    "map_sha256": "9c3dcc99f2c5bdbe78773c690fca1873466858fb9137b6ed70e87a6f6614b1d3",
+    "patch_sha256": "8d7e184ac3a7f2a384d141e50a4d2132bc374881ae3ba86e5162eccafcbbb8fb",
+    "afterimages": 25,
+    "corrected_fixture_prerequisites": "fresh-campaign-handoff.json",
+    "no_further_runtime_selected": true
+  }
+}
