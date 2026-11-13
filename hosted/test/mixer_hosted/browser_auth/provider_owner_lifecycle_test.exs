@@ -430,7 +430,7 @@ defmodule MixerHosted.BrowserAuth.ProviderOwnerLifecycleTest do
       identity_startup: source
     }
 
-    assert_raise ArgumentError, "browser installation unavailable: production readiness", fn ->
+    assert_raise ArgumentError, "browser installation unavailable: configuration", fn ->
       Installation.load!(browser_env(), hosted)
     end
 

@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_provider_io_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, PROVIDER_IO_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_configured_startup_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, CONFIGURED_STARTUP_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_provider_io_source_manifest", return_value=collector.PROVIDER_IO_MANIFEST), \
+                    mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_provider_io_source_manifest", return_value=collector.PROVIDER_IO_MANIFEST), \
+                    mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_provider_io_source_manifest", return_value=collector.PROVIDER_IO_MANIFEST), \
+                    mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_provider_io_source_manifest", return_value=collector.PROVIDER_IO_MANIFEST), \
+                            mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_provider_io_source_manifest", return_value=collector.PROVIDER_IO_MANIFEST), \
+                            mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.PROVIDER_IO_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.CONFIGURED_STARTUP_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -3001,8 +3001,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
         import contextlib
         import io
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / collector.PROVIDER_IO_SOURCE_BASE / "selection.json").read_bytes()
-        self.assertEqual(collector.PROVIDER_IO_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        raw = (root / collector.CONFIGURED_STARTUP_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.CONFIGURED_STARTUP_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
         expected = json.loads(raw)["selected"]
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -3010,7 +3010,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-        self.assertEqual(collector.PROVIDER_IO_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertEqual(collector.CONFIGURED_STARTUP_SELECTION_SHA256, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
 
@@ -3018,8 +3018,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "4b3ad5d2b3ef7f5843dd9a996eb02a179f0e80b052a28dd400769750b30f3460"
-    DIGEST = "6021237e9cdf0dcc0cdf25ef841e754c93591723045031d06fa7a572e5d34661"
+    PIN = "7af785eb990044eb7528cb8e5cca2db9baff8fc6fde06aa981775e7d8ec49470"
+    DIGEST = "776dd25ade6103b33dada33cca0d84a312470d7119c376026f2699212edd490f"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3087,7 +3087,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(277, observed["source_count"])
+            self.assertEqual(278, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3097,7 +3097,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / "verification/identity-network-current-source-v17/selection.json").read_bytes()
+        raw = (root / "verification/identity-network-current-source-v18/selection.json").read_bytes()
         self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
         patterns = self.patterns((root / workflow_path).read_text(), job)
         self.assertNotIn(self.FAMILY, patterns)
@@ -3360,9 +3360,9 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
             with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
-        self.assertEqual(277,observed['source_count'])
-        self.assertEqual(collector.PROVIDER_IO_SOURCE_DIGEST,observed['source_digest_sha256'])
-        self.assertEqual(collector.PROVIDER_IO_SELECTION_SHA256,observed['selection_sha256'])
+        self.assertEqual(278,observed['source_count'])
+        self.assertEqual(collector.CONFIGURED_STARTUP_SOURCE_DIGEST,observed['source_digest_sha256'])
+        self.assertEqual(collector.CONFIGURED_STARTUP_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
         try:
             target.write_bytes(original+b'\n')
@@ -3605,6 +3605,110 @@ class ProviderIOSourceControls(unittest.TestCase):
         self.assertIn('hosted/test/mixer_hosted/browser_auth/startup_secrets_test.exs', driver)
         self.assertIn('result.total != 8', driver)
         self.assertIn('result.skipped != 0', driver)
+
+
+
+class ConfiguredStartupSourceControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.CONFIGURED_STARTUP_SOURCE_BASE+n: (root/collector.CONFIGURED_STARTUP_SOURCE_BASE/n).read_bytes()
+                for n in ('selection.json', 'selected-source-manifest.json')}
+
+    def test_v18_six_row_delta_and_complete_v17_inverse(self):
+        value = collector.validate_configured_startup_source_metadata(self.metadata())
+        self.assertEqual(278, len(collector.CONFIGURED_STARTUP_MANIFEST))
+        self.assertEqual(6, len(value['exact_delta']))
+        self.assertEqual(272, sum(v == collector.CONFIGURED_STARTUP_MANIFEST[p] for p, v in collector.PROVIDER_IO_MANIFEST.items()))
+        self.assertEqual({'hosted/lib/mixer_hosted/browser_auth/supervisor.ex', 'hosted/test/mixer_hosted/browser_auth/provider_trust_config_test.exs', 'hosted/test/mixer_hosted/browser_auth/provider_owner_lifecycle_test.exs', 'hosted/test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs', 'hosted/lib/mixer_hosted/browser_auth/installation.ex', 'hosted/scripts/check-configured-startup.exs'}, set(value['exact_delta']))
+        self.assertEqual(1, sum(c['before'] is None for c in value['exact_delta'].values()))
+        inverse = dict(collector.CONFIGURED_STARTUP_MANIFEST)
+        for path, change in value['exact_delta'].items():
+            if change['before'] is None: inverse.pop(path)
+            else: inverse[path] = change['before']
+        self.assertEqual(collector.PROVIDER_IO_MANIFEST, inverse)
+        self.assertEqual('6021237e9cdf0dcc0cdf25ef841e754c93591723045031d06fa7a572e5d34661', canonical_digest(inverse))
+        for path, expected in collector.PROVIDER_IO_MANIFEST.items():
+            if path not in value['exact_delta']: self.assertEqual(expected, collector.CONFIGURED_STARTUP_MANIFEST[path])
+        self.assertEqual('c9aa46dfee58f17368f4089d10b27e1b1eb592ecb1df245ece445dca95313192', collector.CONFIGURED_STARTUP_MANIFEST['hosted/lib/mixer_hosted/browser_auth/provider_owner.ex']['sha256'])
+        self.assertEqual('02fb29c723d7394148a170a40dd39db86f15d007d0777b9f31f938a6032c79c4', collector.CONFIGURED_STARTUP_MANIFEST['hosted/lib/mixer_hosted/browser_auth/provider_https.ex']['sha256'])
+        self.assertFalse(value['runtime_or_GA_accepted'])
+
+    def test_v18_metadata_pin_membership_predecessor_delta_and_false_runtime_refuse(self):
+        metadata = self.metadata()
+        for path in metadata:
+            with self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_metadata({**metadata, path: metadata[path]+b' '})
+            with self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_metadata({p:b for p,b in metadata.items() if p != path})
+        with self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_metadata({**metadata, 'foreign': b'{}'})
+        path = collector.CONFIGURED_STARTUP_SOURCE_BASE+'selection.json'
+        for field in ('predecessor', 'exact_delta', 'runtime_or_GA_accepted'):
+            value = json.loads(metadata[path])
+            if field == 'predecessor': value[field]['source_count'] = 274
+            elif field == 'exact_delta': value[field] = {}
+            else: value[field] = True
+            body = json.dumps(value, sort_keys=True).encode()
+            with mock.patch.object(collector, 'CONFIGURED_STARTUP_SELECTION_SHA256', hashlib.sha256(body).hexdigest()):
+                with self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_metadata({**metadata, path: body})
+
+    def test_v18_missing_stale_superseded_and_extra_sources_refuse(self):
+        for path in collector.CONFIGURED_STARTUP_DELTA:
+            for missing in (True, False):
+                value = copy.deepcopy(collector.CONFIGURED_STARTUP_MANIFEST)
+                if missing: value.pop(path)
+                else: value[path]['sha256'] = '0'*64
+                with self.subTest(path=path, missing=missing), self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_manifest(value)
+        stale = copy.deepcopy(collector.CONFIGURED_STARTUP_MANIFEST)
+        stale['hosted/lib/mixer_hosted/browser_auth/provider_https.ex']['sha256'] = '60e6bc274a7d05eb1eee4b63feb4cb2f50a695ecd03dad191b73b464686e147c'
+        with self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_manifest(stale)
+        extra = {**collector.CONFIGURED_STARTUP_MANIFEST, 'hosted/future.ex': {'bytes': 0, 'sha256': '0'*64}}
+        with self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_manifest(extra, canonical_digest(extra), 278)
+        with self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_manifest(collector.PROVIDER_IO_MANIFEST)
+        for count in (True, 278.0, 277):
+            with self.assertRaises(collector.CollectorError): collector.validate_configured_startup_source_manifest(collector.CONFIGURED_STARTUP_MANIFEST, expected_count=count)
+
+    def test_v18_sparse_consumers_require_metadata_module_and_controls(self):
+        helper = WorkflowSparseSourceControls(); root = COLLECTOR_PATH.resolve().parents[2]
+        for workflow, job in [('hosted.yml','phoenix'), ('identity-network.yml','identity-network'), ('verify.yml','services')]:
+            patterns = helper.patterns((root/'.github/workflows'/workflow).read_text(), job)
+            for name in ('selection.json', 'selected-source-manifest.json'):
+                self.assertIn('/'+collector.CONFIGURED_STARTUP_SOURCE_BASE+name, patterns)
+            with self.subTest(workflow=workflow), tempfile.TemporaryDirectory(prefix='identity-v18-') as directory:
+                sparse = Path(directory); helper.materialize(root, sparse, patterns); helper.check_real_main(sparse)
+                paths = [collector.CONFIGURED_STARTUP_SOURCE_BASE+n for n in ('selection.json','selected-source-manifest.json')]
+                paths += ['hosted/lib/mixer_hosted/browser_auth/installation.ex', 'hosted/lib/mixer_hosted/browser_auth/supervisor.ex', 'hosted/scripts/check-configured-startup.exs']
+                for path in paths:
+                    target = sparse/path; body = target.read_bytes(); target.unlink()
+                    try:
+                        with self.assertRaises(FileNotFoundError): helper.check_real_main(sparse)
+                    finally: target.write_bytes(body)
+
+    def test_v18_production_constructor_job_uses_exact_script_and_test_inputs(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        workflow = (root/'.github/workflows/hosted.yml').read_text()
+        command = 'hosted/scripts/check-startup-secrets.exs hosted/deps/jason/lib'
+        self.assertEqual(1, workflow.count(command))
+        driver = (root/'hosted/scripts/check-startup-secrets.exs').read_text()
+        self.assertIn('Mix.env(:prod)', driver)
+        self.assertIn('hosted/lib/mixer_hosted/browser_auth/startup_secrets.ex', driver)
+        self.assertIn('hosted/test/mixer_hosted/browser_auth/startup_secrets_test.exs', driver)
+        self.assertIn('result.total != 8', driver)
+        self.assertIn('result.skipped != 0', driver)
+
+
+
+    def test_v18_configured_composition_driver_is_durable_and_workflow_bound(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        path = 'hosted/scripts/check-configured-startup.exs'
+        body = (root/path).read_bytes()
+        self.assertEqual(collector.CONFIGURED_STARTUP_MANIFEST[path], collector._file_row(body))
+        workflow = (root/'.github/workflows/hosted.yml').read_text()
+        self.assertEqual(1, workflow.count(path+' hosted/deps/jason/lib'))
+        self.assertIn(b'Mix.env(:prod)', body)
+        self.assertIn(b'result.total != 15', body)
+        self.assertIn(b'database_admission_proved: false', body)
+        self.assertIn(b'fake_leaves:', body)
+        self.assertEqual(7, body.count(b'  test "'))
+        self.assertEqual('c9148d2e7547b6ee7eb3cae9851ebfabfb061f855fafcb364b143ec51b699e7e', collector.CONFIGURED_STARTUP_MANIFEST['hosted/lib/mixer_hosted/browser_auth/installation.ex']['sha256'])
+        self.assertEqual('0be221930726bdc9b266de3ea4b703ebb4a74617dcd2b9fe51a806127c16fe50', collector.CONFIGURED_STARTUP_MANIFEST['hosted/lib/mixer_hosted/browser_auth/supervisor.ex']['sha256'])
 
 
 

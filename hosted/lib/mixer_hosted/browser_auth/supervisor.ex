@@ -21,9 +21,40 @@ defmodule MixerHosted.BrowserAuth.Supervisor do
     end
   end
 
-  if Mix.env() == :test do
-    alias MixerHosted.BrowserAuth.{Installation, LifecycleRepo, ProviderOwner, RuntimeOwner}
+  alias MixerHosted.BrowserAuth.{Installation, LifecycleRepo, ProviderOwner, RuntimeOwner}
 
+  defp children(%Installation{provider: {:configured, _, _}} = installation) do
+    if Installation.valid?(installation, installation.hosted) do
+      {:ok,
+       [
+         %{
+           id: LifecycleRepo,
+           start: {Installation, :start_lifecycle_repo, [installation]},
+           restart: :permanent,
+           type: :supervisor,
+           shutdown: :infinity
+         },
+         %{
+           id: MixerHosted.BrowserAuth.ProviderTrustOwner,
+           start:
+             {MixerHosted.Identity.KeyOwnerSupervisor, :start_link,
+              [installation.trust.owner_options]},
+           type: :supervisor,
+           shutdown: :infinity
+         },
+         %{
+           id: ProviderOwner,
+           start: {Installation, :start_provider, [installation]},
+           restart: :permanent
+         },
+         Supervisor.child_spec({RuntimeOwner, installation.runtime}, restart: :permanent)
+       ]}
+    else
+      :error
+    end
+  end
+
+  if Mix.env() == :test do
     defp children(%Installation{
            runtime: runtime,
            provider: {:fixture, config, snapshot, transport}

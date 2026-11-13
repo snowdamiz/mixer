@@ -20,9 +20,11 @@ on:
       - 'verification/identity-network-current-source-v15/selection.json'
       - 'verification/identity-network-current-source-v16/selection.json'
       - 'verification/identity-network-current-source-v17/selection.json'
+      - 'verification/identity-network-current-source-v18/selection.json'
       - 'verification/identity-network-current-source-v15/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v16/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v17/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v18/selected-source-manifest.json'
       - 'services/protocol/testdata/signed-release-v3.json'
       - 'services/protocol/testdata/release-v3-cases.json'
       - '.github/workflows/hosted.yml'
@@ -60,9 +62,11 @@ on:
       - 'verification/identity-network-current-source-v15/selection.json'
       - 'verification/identity-network-current-source-v16/selection.json'
       - 'verification/identity-network-current-source-v17/selection.json'
+      - 'verification/identity-network-current-source-v18/selection.json'
       - 'verification/identity-network-current-source-v15/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v16/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v17/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v18/selected-source-manifest.json'
       - 'services/protocol/testdata/signed-release-v3.json'
       - 'services/protocol/testdata/release-v3-cases.json'
       - '.github/workflows/hosted.yml'
@@ -139,9 +143,11 @@ jobs:
             /verification/identity-network-current-source-v15/selection.json
             /verification/identity-network-current-source-v16/selection.json
             /verification/identity-network-current-source-v17/selection.json
+            /verification/identity-network-current-source-v18/selection.json
             /verification/identity-network-current-source-v15/selected-source-manifest.json
             /verification/identity-network-current-source-v16/selected-source-manifest.json
             /verification/identity-network-current-source-v17/selected-source-manifest.json
+            /verification/identity-network-current-source-v18/selected-source-manifest.json
             /verification/hosted-browser-auth-protocol/run.py
             /verification/hosted-customer-workspace-http-integration/node-client-driver.mjs
             /verification/hosted-customer-artifact-event/golden_event.hex
@@ -210,6 +216,18 @@ jobs:
         run: >-
           elixir --erl '+S 2:2 +SDcpu 1 +SDio 1 +sbwt none'
           hosted/scripts/check-startup-secrets.exs hosted/deps/jason/lib
+      - name: Compile locked dependencies for composition controls
+        working-directory: hosted
+        env:
+          MIX_ENV: prod
+        run: mix deps.compile hpax mint jose
+      - name: Run isolated configured startup composition controls with fake leaves
+        run: >-
+          elixir --erl '+S 2:2 +SDcpu 1 +SDio 1 +sbwt none'
+          -pa hosted/_build/prod/lib/hpax/ebin
+          -pa hosted/_build/prod/lib/mint/ebin
+          -pa hosted/_build/prod/lib/jose/ebin
+          hosted/scripts/check-configured-startup.exs hosted/deps/jason/lib
       - name: Compile workspace client for real HTTP integration
         working-directory: console
         run: |

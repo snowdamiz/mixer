@@ -6,9 +6,11 @@ Mix.env(:prod)
 {:ok, _} = Application.ensure_all_started(:public_key)
 jason_sources = Path.wildcard(Path.join(jason_lib, "**/*.ex"))
 true = jason_sources != []
-{_, []} = Code.with_diagnostics(fn ->
-  {:ok, _, _} = Kernel.ParallelCompiler.compile(jason_sources, return_diagnostics: true)
-end)
+
+{_, []} =
+  Code.with_diagnostics(fn ->
+    {:ok, _, _} = Kernel.ParallelCompiler.compile(jason_sources, return_diagnostics: true)
+  end)
 
 inputs = [
   "hosted/lib/mixer_hosted/identity/encoding.ex",
@@ -25,19 +27,35 @@ inputs = [
   "hosted/lib/mixer_hosted/browser_auth/startup_secrets.ex"
 ]
 
-{_, []} = Code.with_diagnostics(fn ->
-  Enum.each(inputs, &Code.require_file(Path.join(root, &1)))
-end)
+{_, []} =
+  Code.with_diagnostics(fn ->
+    Enum.each(inputs, &Code.require_file(Path.join(root, &1)))
+  end)
+
 ExUnit.start(autorun: false, seed: 0, trace: true)
 test = "hosted/test/mixer_hosted/browser_auth/startup_secrets_test.exs"
 {_, []} = Code.with_diagnostics(fn -> Code.require_file(Path.join(root, test)) end)
 result = ExUnit.run()
 
-identities = Map.new(inputs ++ [test], fn path ->
-  bytes = File.read!(Path.join(root, path))
-  {path, %{bytes: byte_size(bytes), sha256: Base.encode16(:crypto.hash(:sha256, bytes), case: :lower)}}
-end)
-IO.puts(Jason.encode!(%{result: result, source: identities, elixir: System.version(),
-  otp: List.to_string(:erlang.system_info(:otp_release)), mix_env: Mix.env(),
-  jason_sources: length(jason_sources), compile_diagnostics: [], production_activation: false}))
+identities =
+  Map.new(inputs ++ [test], fn path ->
+    bytes = File.read!(Path.join(root, path))
+
+    {path,
+     %{bytes: byte_size(bytes), sha256: Base.encode16(:crypto.hash(:sha256, bytes), case: :lower)}}
+  end)
+
+IO.puts(
+  Jason.encode!(%{
+    result: result,
+    source: identities,
+    elixir: System.version(),
+    otp: List.to_string(:erlang.system_info(:otp_release)),
+    mix_env: Mix.env(),
+    jason_sources: length(jason_sources),
+    compile_diagnostics: [],
+    production_activation: false
+  })
+)
+
 if result.failures != 0 or result.total != 8 or result.skipped != 0, do: System.halt(1)

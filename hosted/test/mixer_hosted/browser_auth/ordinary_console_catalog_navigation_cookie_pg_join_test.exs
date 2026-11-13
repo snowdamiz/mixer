@@ -208,9 +208,9 @@ defmodule MixerHosted.BrowserAuth.OrdinaryConsoleCatalogNavigationCookiePGJoinTe
   end
 
   @tag :without_application
-  test "processor and malformed installations refuse before any children; configured production stays closed",
+  test "processor, malformed and missing-material installations refuse before any children",
        c do
-    assert_raise ArgumentError, "browser installation unavailable: production readiness", fn ->
+    assert_raise ArgumentError, "browser installation unavailable: configuration", fn ->
       Installation.load!(c.browser_env, c.hosted)
     end
 

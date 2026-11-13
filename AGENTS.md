@@ -607,3 +607,15 @@ external compact `verification/receipts/fieldlog-apk-r1872.json`. The terminal
 outer recipe transport does not establish nested absence, and no APK result
 is qualified. No device was used. Fresh separately selected source or build
 work in a distinct namespace remains permitted; no earlier hold is released.
+
+The R1914 report-driver host cleanup control recorded UNKNOWN after EPERM for
+PID/PGID75794. Preserve that exact group and
+`verification/local/public-report-driver-r1914/cleanup-control`, plus the exact
+`host-controls/cleanup-control.stdout` and `host-controls/cleanup-control.stderr`
+under that R1914 namespace, without inspection, enumeration, stat, probing,
+signals, waits, retries or cleanup. Read only the external compact
+`verification/receipts/public-report-driver-r1914.json`. Static driver and diff
+outside those held paths remain available for source review. No native or photo
+payload ran. The R1914 dispatch is blocked and must not be executed; any fresh
+campaign requires a separately selected namespace and root admission. No earlier
+hold is released.

@@ -238,7 +238,7 @@ defmodule MixerHosted.BrowserAuth.ProviderTrustConfigTest do
            ])
   end
 
-  test "admitted trust settings preserve configured production refusal and disabled installation" do
+  test "admitted trust settings require secret material and preserve disabled installation" do
     source = identity()
     config = config()
     assert {:ok, _} = ProviderTrustConfig.new(config, source)
@@ -252,7 +252,7 @@ defmodule MixerHosted.BrowserAuth.ProviderTrustConfigTest do
       identity_startup: source
     }
 
-    assert_raise ArgumentError, "browser installation unavailable: production readiness", fn ->
+    assert_raise ArgumentError, "browser installation unavailable: configuration", fn ->
       Installation.load!(browser_env(object()), hosted)
     end
 
