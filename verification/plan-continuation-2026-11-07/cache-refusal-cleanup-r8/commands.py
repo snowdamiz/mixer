@@ -76,7 +76,7 @@ class Commands:
   need(not self.unknown_custody,'UNKNOWN custody; command admission closed')
   need(self.active is None,'One child group only');need(re.fullmatch('[A-Za-z0-9_-]+',name),'Command name')
   start=time.monotonic();budget=min(CHILD_SECONDS,self.deadline-start);need(budget>0,'Active deadline exhausted');env=self.child_environment(env)
-  row={'name':name,'argv':list(map(str,argv)),'cwd':str(cwd),'started_utc':now(),'per_child_limit_seconds':CHILD_SECONDS,'effective_timeout_seconds':budget,'per_stream_cap_bytes':OUTPUT_CAP,'environment_overrides':env or {},'exit':None,'timed_out':False,'output_capped':False,'child_returned':False,'owned_group_gone':False,'stdout_eof':False,'stderr_eof':False,'errors':[]}
+  row={'name':name,'argv':list(map(str,argv)),'cwd':str(cwd),'started_utc':now(),'per_child_limit_seconds':CHILD_SECONDS,'effective_timeout_seconds':budget,'per_stream_cap_bytes':OUTPUT_CAP,'environment_overrides':env or {},'exit':None,'timed_out':False,'output_capped':False,'child_returned':False,'owned_group_gone':False,'stdout_eof':False,'stderr_eof':False,'stdout_closed':False,'stderr_closed':False,'selector_closed':False,'errors':[]}
   self.receipt['commands'].append(row);self.save();paths=[self.out/'commands'/(name+'.'+suffix)for suffix in ['stdout','stderr']]
   selector=selectors.DefaultSelector();failure=None;primary=None;cleanup_errors=[];usage_before=None
   def cleanup_error(phase,error):
@@ -95,7 +95,7 @@ class Commands:
      row['stop_attempted']=True;self.begin_cleanup(row);self.stop(proc,row)
     for key,_ in selector.select(.02):
      b=os.read(key.fileobj.fileno(),65536)
-     if not b:row[key.data['stream']+'_eof']=True;key.data['file'].close();selector.unregister(key.fileobj);key.fileobj.close();continue
+     if not b:row[key.data['stream']+'_eof']=True;key.data['file'].close();selector.unregister(key.fileobj);key.fileobj.close();row[key.data['stream']+'_closed']=True;continue
      space=OUTPUT_CAP-key.data['count'];key.data['file'].write(b[:space]);key.data['count']+=min(space,len(b))
      if len(b)>space:row['output_capped']=True;failure='output-cap'
    self.observe(proc.wait,timeout=min(5,self.cleanup_remaining(row))if row.get('stop_attempted')else 5);row['child_returned']=True;row['exit']=proc.returncode
@@ -106,11 +106,14 @@ class Commands:
    if isinstance(e,OSError)and self.active is None:row['spawn_error']=str(e)
   finally:
    for key in list(selector.get_map().values()):
+    closed=True
     for stream in [key.data['file'],key.fileobj]:
      try:stream.close()
-     except BaseException as e:cleanup_error('close-stream',e)
-   try:selector.close()
+     except BaseException as e:closed=False;cleanup_error('close-stream',e)
+    if closed:row[key.data['stream']+'_closed']=True
+   try:selector.close();row['selector_closed']=True
    except BaseException as e:cleanup_error('close-selector',e)
+   if not row['selector_closed']or self.active is not None and not(row['stdout_closed']and row['stderr_closed']):self.unknown_custody=True
    if self.active is not None and not self.unknown_custody:
     try:self.begin_cleanup(row);self.stop(self.active,row);row['exit']=self.active.returncode
     except BaseException as e:
