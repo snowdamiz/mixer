@@ -263,9 +263,16 @@ console.log(terminal + ':' + Buffer.concat(output).toString('hex'));
 "#;
 
 fn node_path() -> PathBuf {
-    let path = PathBuf::from(
-        std::env::var_os("MIXER_NODE").expect("ENVIRONMENT_REJECTED: MIXER_NODE required"),
-    );
+    let path = std::env::var_os("MIXER_NODE")
+        .map(PathBuf::from)
+        .or_else(|| {
+            std::env::var_os("PATH").and_then(|paths| {
+                std::env::split_paths(&paths)
+                    .map(|directory| directory.join("node"))
+                    .find(|path| path.is_absolute() && path.is_file())
+            })
+        })
+        .expect("ENVIRONMENT_REJECTED: Node executable required via MIXER_NODE or PATH");
     assert!(
         path.is_absolute() && path.is_file(),
         "ENVIRONMENT_REJECTED: absolute Node executable required"
@@ -484,6 +491,7 @@ fn float_conversions_match_node() {
     rejected(
         worker("0")
             .env_remove("MIXER_NODE")
+            .env("PATH", "")
             .output()
             .expect("UNKNOWN missing-Node subprocess"),
     );
