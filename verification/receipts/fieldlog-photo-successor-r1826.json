@@ -1,0 +1,178 @@
+{
+  "id": "R1826",
+  "recordedUTC": "2026-11-12T23:53:01.422186+00:00",
+  "status": "HOST_CONTROL_PASS_ROOT_SOURCE_REVIEW_AND_FINAL_NATIVE_PAYLOAD_PENDING",
+  "parentFrozenDriver": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-photo-preparation-r1816/native-photo.py",
+    "bytes": 21990,
+    "sha256": "862a072c1f98ecec4afb10922310aedd3e7388ef372e8f637f46f987970dfe01"
+  },
+  "admittedAdapter": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "bytes": 7268,
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+  },
+  "driver": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-photo-successor-r1826/native-photo.py",
+    "bytes": 26290,
+    "sha256": "cb70e337e7a4b8d5a5b08074dafa6b4356a07616d3b3b22324a1672ad4c81b04"
+  },
+  "diff": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-photo-successor-r1826/driver.diff",
+    "bytes": 12978,
+    "sha256": "42087b0ee4f188b767d47fe2c07f6aa2a48b20872dda2c760afd5477631d9fb5"
+  },
+  "hostControlScript": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-photo-successor-r1826/host-cleanup-control.py",
+    "bytes": 3118,
+    "sha256": "5dec68175a09073e0a749bb59acec21efd8aca392bb73685a0d3a09e09918a13"
+  },
+  "hostTestedDriver": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-photo-successor-r1826/native-photo-host-tested.py",
+    "bytes": 26055,
+    "sha256": "10377a07e209c38532d24163d706f41c95ea3d2edcbe5999fee6dd3f5be5561d"
+  },
+  "testedCleanupFunctionSHA256": "31dc8facac6e9e4ac7f2261c8bff51b466c8d9f291d3363887c6cdb7b1d6ca86",
+  "testedBackgroundFunctionSHA256": "1929e80cae19566193d46c09eb2566559dbbdac19e03590916bd212fb1172927",
+  "testedFunctionsUnchangedInFinalDriver": true,
+  "postHostEdits": "ADB timeout capped by existing 45s cleanup reservation and <=50s command ceiling; explicit chooser phase class only. Cleanup/background unchanged.",
+  "sourceInputAPK": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-share-boundary-r1702/FieldLogGenerated-r1702-unsigned.apk",
+    "bytes": 28716821,
+    "sha256": "cb338611930dc86acf42f1486a3fd1641c22ad1b55fb2e78eb430b458d8bd84b"
+  },
+  "nativeLibrariesExpectedUnchanged": 18,
+  "sourceInputReview": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-photo-preparation-r1816/source-review.json",
+    "bytes": 8194,
+    "sha256": "7006d640201b0a65cd0faad983c1140356b0f95858c0cd1ecf950c7708f28ae9"
+  },
+  "host": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "command": "python3 -B verification/local/fieldlog-photo-successor-r1826/host-cleanup-control.py",
+    "result": {
+      "status": "PASS",
+      "results": [
+        {
+          "label": "parent-exit-term-default",
+          "pid": 73226,
+          "pgid": 73226,
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-c",
+            "import os,signal,time,sys\nr,w=os.pipe()\npid=os.fork()\nif pid==0:\n os.close(r)\n signal.signal(signal.SIGTERM, signal.SIG_IGN if sys.argv[1]=='ignore' else signal.SIG_DFL)\n os.write(w,b'R');os.close(w)\n print('owned descendant ready',flush=True)\n print('owned descendant stderr',file=sys.stderr,flush=True)\n while True: signal.pause()\nos.close(w)\nassert os.read(r,1)==b'R'\nos.close(r)\nos._exit(0)\n",
+            "default"
+          ],
+          "state": "TERMINAL",
+          "signals": [
+            "SIGTERM"
+          ],
+          "exitCode": 0,
+          "directReaped": true,
+          "logFDsClosed": true,
+          "regularLogsEOF": true,
+          "eofKind": "regular-file-after-group-absence",
+          "ownedGroupAbsentESRCH": true,
+          "parentExitedBeforeCleanup": true,
+          "descendantPresentAfterParentExit": true,
+          "termIgnoringDescendant": false,
+          "elapsedSeconds": 0.1382832919480279,
+          "caseBudgetSeconds": 30
+        },
+        {
+          "label": "parent-exit-term-ignored",
+          "pid": 73237,
+          "pgid": 73237,
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-c",
+            "import os,signal,time,sys\nr,w=os.pipe()\npid=os.fork()\nif pid==0:\n os.close(r)\n signal.signal(signal.SIGTERM, signal.SIG_IGN if sys.argv[1]=='ignore' else signal.SIG_DFL)\n os.write(w,b'R');os.close(w)\n print('owned descendant ready',flush=True)\n print('owned descendant stderr',file=sys.stderr,flush=True)\n while True: signal.pause()\nos.close(w)\nassert os.read(r,1)==b'R'\nos.close(r)\nos._exit(0)\n",
+            "ignore"
+          ],
+          "state": "TERMINAL",
+          "signals": [
+            "SIGTERM",
+            "SIGKILL"
+          ],
+          "exitCode": 0,
+          "directReaped": true,
+          "logFDsClosed": true,
+          "regularLogsEOF": true,
+          "eofKind": "regular-file-after-group-absence",
+          "ownedGroupAbsentESRCH": true,
+          "parentExitedBeforeCleanup": true,
+          "descendantPresentAfterParentExit": true,
+          "termIgnoringDescendant": true,
+          "elapsedSeconds": 5.16544537502341,
+          "caseBudgetSeconds": 30
+        }
+      ],
+      "groupsMaximum": 2,
+      "nativeActions": 0,
+      "driverSHA256": "10377a07e209c38532d24163d706f41c95ea3d2edcbe5999fee6dd3f5be5561d",
+      "adapterSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+      "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+    }
+  },
+  "parse": {
+    "driver": true,
+    "hostControl": true
+  },
+  "assertionPreservation": {
+    "signedPayloadVerifierUnchanged": true,
+    "all18NativePayloadGuardUnchanged": true,
+    "productStoryAfterChooserUnchanged": true,
+    "storageOutboxAndPhotoBytesUnchanged": true,
+    "commitActivations": 1,
+    "inputEqualsStoredReportedNotRequired": true,
+    "runAdapterUnchanged": true,
+    "gatedBackgroundLaunchUnchanged": true
+  },
+  "exclusions": {
+    "consolePorts": [
+      5586,
+      5587,
+      5670,
+      5671
+    ],
+    "privateADBPorts": [
+      51264,
+      5037
+    ],
+    "heldGroupsNeverProbedOrSignalled": [
+      39297,
+      38105
+    ],
+    "candidateConsolePorts": [
+      5672,
+      5674,
+      5676,
+      5678
+    ]
+  },
+  "limits": {
+    "driverSeconds": 480,
+    "bootSeconds": 150,
+    "deviceCommandSecondsMaximum": 50,
+    "cleanupReserveSeconds": 45,
+    "backgroundCleanupMaximumSecondsEach": 20,
+    "hostGroupsMaximum": 2,
+    "hostSecondsMaximumEach": 30,
+    "chooserObservationsMaximum": 4,
+    "chooserObservationSecondsMaximum": 25
+  },
+  "rootCommand": "python3 -B verification/local/fieldlog-photo-successor-r1826/native-photo.py --root-selected fieldlog-api36-photo-saf-draft-reopen-commit 2",
+  "rootReviewRequired": true,
+  "remainingOriginalCampaignNativePayloads": 1,
+  "nativeActionsExecuted": 0,
+  "historicalHoldsReleased": false,
+  "SAFVerified": false,
+  "photoPersistenceVerified": false,
+  "diagnosticsExternalPath": "verification/receipts/fieldlog-photo-successor-r1826-p2-diagnostics.json",
+  "limitations": [
+    "Host regular-file EOF after group absence is recorded; no pipe-EOF claim for background regular logs.",
+    "Final API36 SAF/draft reopen/photo persistence/one Commit remains pending the single remaining root payload.",
+    "Original R1816 UNKNOWN resources remain untouched; fresh R1826 namespace cannot release any historical hold.",
+    "Native cleanup still fails closed to UNKNOWN on denied observation/signalling or finite deadline; no operations resume after UNKNOWN."
+  ]
+}

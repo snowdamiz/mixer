@@ -1,0 +1,1569 @@
+{
+  "schema": 1,
+  "id": "browser-drop-teardown-r1838",
+  "status": "FOCUSED_PASS_ORIGINAL_CAUSE_UNRESOLVED",
+  "source": {
+    "selected_files": 277,
+    "explicit_inputs": 290,
+    "source_digest": "6021237e9cdf0dcc0cdf25ef841e754c93591723045031d06fa7a572e5d34661",
+    "official_dependency_files_byteverified": 1884,
+    "product_BEAM_reuse": false,
+    "node_files_byteverified": 17,
+    "adapter_origin_sha256": "258cd17bcffad92a55e58c3c31ac6378dc2804323f92cfd4da48b69d7af64fd3",
+    "adapter_sha256": "dd5067b0cccd0acc9076f910bb8f08b6838dbd7dd3bae35057509ae028cf1c6d",
+    "inert_finalizer_semantics": "unchanged",
+    "base": "verification/local/browser-sql-ready-r1828",
+    "full_R1786_fixture_recipe_preserved": true,
+    "canonical_product_inputs_before": 287,
+    "canonical_product_inputs_match_R1786": true,
+    "private_diagnostics": [
+      {
+        "path": "client/browser-read-driver.mjs",
+        "before": "5f52ba0e2efc8cbcdfd79cdd3c68ce673046a7224e68adcdfb2d2384eb6dc8eb",
+        "after": "3a7e1a6076ccf57841d02dd3e37139edb11db9714d83e23bca0a5749ad22d82b",
+        "origin": "verification/local/browser-first-failure-r1806/client/browser-read-driver.mjs"
+      },
+      {
+        "path": "candidate/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+        "before": "81c54c0a7ec53dd3d788be0d130c6d9abf68e95d0d0a3ae269fe0130e51bf537",
+        "after": "d0a67dc23b2c5959eaa620ee4e697f44e7b7cacd22879ad9636b5c0c6974f072",
+        "origin": "verification/local/browser-complete-fixture-r1822/candidate/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex"
+      }
+    ],
+    "official_hex_archive_files_byteverified": 133,
+    "source_pins_are_actual_file_hashes": true,
+    "copied_source_files": 265,
+    "canonical_287_match_R1828": true,
+    "canonical_product_inputs_checked": 287,
+    "canonical_product_inputs_unchanged": true,
+    "selected_files_actually_byteverified": 277,
+    "selected_bytes_stable": true
+  },
+  "budget_seconds": 600,
+  "suite_deadline_seconds": 450,
+  "cleanup_reserve_seconds": 60,
+  "premise": "Observe teardown DDL wait and owned actor lifetimes before choosing a private fix.",
+  "baseline_10s_failure": {
+    "reference": "verification/receipts/browser-complete-fixture-r1822.json",
+    "failure": {
+      "label": "00010-billing-fixture-mixer_billing_r325",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "54746",
+        "-U",
+        "mixer_fixture",
+        "mixer_billing_r325"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/browser-complete-fixture-r1822/candidate/hosted",
+      "started": 1794526936.623806,
+      "pid": 71830,
+      "pgid": 71830,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "timed_out": true,
+      "exit": -15,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794526946.675618,
+      "stdout": {
+        "path": "logs/00010-billing-fixture-mixer_billing_r325.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/00010-billing-fixture-mixer_billing_r325.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    "diagnosis": {
+      "target_declaration": "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs:1175",
+      "target_assertion": "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs:1211",
+      "exact_case_executed": false,
+      "focused_BEAM_batches": 0,
+      "HTTP_request_or_status_observed": false,
+      "RuntimeOwner_reason_observed": false,
+      "isolated_PASS": false,
+      "product_defect_reproduced": false,
+      "first_attempt_failure": "The complete unchanged R1786 fixture first createdb exceeded its original 10-second command timeout. The server log retained CREATE DATABASE until fast shutdown; root cause remains unproven.",
+      "approved_restart_failure": "The original raw TCP-connect readiness check admitted psql before SQL readiness: psql exited2 with FATAL: the database system is starting up.",
+      "startup_race_proven": true,
+      "recoverable_setup_change_not_executed": "Replace the private raw TCP-ready predicate with bounded pg_isready acceptance, then SHOW data_directory before any DDL; no fixture removal or deadline weakening. Another launch requires root selection because the one approved restart is consumed.",
+      "canonical_fixture_preparation_removed_or_narrowed": false,
+      "fixture_command_timeouts": {
+        "attempt1_seconds": 10,
+        "approved_attempt2_seconds": 30
+      },
+      "third_postgres_launch": false,
+      "not_a_setup_success_claim": true
+    },
+    "replayed": false
+  },
+  "setup_experiment": {
+    "createdb_budget_seconds": 30,
+    "other_fixture_budget_seconds": 10,
+    "product_deadlines_changed": false,
+    "max_postgres_launches": 1,
+    "max_focused_BEAM_batches": 2
+  },
+  "sql_readiness": {
+    "status": "PASS",
+    "pg_isready_attempts": [
+      {
+        "exit": 0,
+        "output": "127.0.0.1:50192 - accepting connections",
+        "elapsed_seconds": 20.745
+      }
+    ],
+    "pg_isready_exit": 0,
+    "select1": "1",
+    "owned_data_directory": "/tmp/mx1838-qn2k4omc/data",
+    "before_any_DDL": true
+  },
+  "first_createdb_wait_control": {
+    "status": "PASS",
+    "pid": 31997,
+    "pgid": 31997,
+    "identity_gated": true,
+    "command_budget_seconds": 30,
+    "started_monotonic": 690411.404196458,
+    "recorded_before_observation": true,
+    "pending_after_2_seconds": false,
+    "observation_elapsed_seconds": 0.206,
+    "exit": 0,
+    "elapsed_seconds": 0.207,
+    "timed_out": false,
+    "exceeded_original_10s_budget": false,
+    "terminal_before_fixture_continuation": true
+  },
+  "suite": {
+    "status": "PASS",
+    "invocations": 1,
+    "retries": 0,
+    "total": 1,
+    "failures": 0,
+    "skipped": 0,
+    "excluded": 11,
+    "full_unfiltered": false,
+    "target": "test/mixer_hosted/browser_auth/private_login_http_test.exs:1175",
+    "started_monotonic": 690482.872522333,
+    "batch": 2,
+    "body_assertions_completed": true,
+    "teardown_observations": {
+      "events": [
+        {
+          "event": "ddl_settings",
+          "statement_timeout": "15s",
+          "lock_timeout": "500ms"
+        },
+        {
+          "result": "ok",
+          "event": "drop_result",
+          "elapsed_ms": 29
+        }
+      ],
+      "snapshots": [
+        {
+          "phase": "before_drop",
+          "elapsed_ms": 9667,
+          "repeat": 1,
+          "last_elapsed_ms": null,
+          "rows": [
+            {
+              "application_name": "r1838_drop",
+              "backend_type": "client backend",
+              "datname": "postgres",
+              "state": "idle",
+              "wait_event": "ClientRead",
+              "wait_event_type": "Client"
+            }
+          ],
+          "target_database_sessions": 0,
+          "monitored_actors": 622,
+          "actors_alive": 0,
+          "monitor_DOWN": 622
+        },
+        {
+          "phase": "after_drop",
+          "elapsed_ms": 9698,
+          "repeat": 1,
+          "last_elapsed_ms": null,
+          "rows": [
+            {
+              "application_name": "r1838_drop",
+              "backend_type": "client backend",
+              "datname": "postgres",
+              "state": "idle",
+              "wait_event": "ClientRead",
+              "wait_event_type": "Client"
+            }
+          ],
+          "target_database_sessions": 0,
+          "monitored_actors": 622,
+          "actors_alive": 0,
+          "monitor_DOWN": 622
+        }
+      ],
+      "monitored_actors": 622,
+      "monitor_DOWN_events": 622,
+      "all_monitored_actors_gone_before_DROP": true,
+      "raw_event_count": 628,
+      "full_safe_observations": {
+        "path": "verification/local/browser-drop-teardown-r1838/batch2-observations.json",
+        "bytes": 437936,
+        "sha256": "e8c4cc549aa31aa903d6b5079ee787f5885dded78d6e263cf60ae1fe40215fd0"
+      },
+      "saved_externally_before_cleanup": true
+    },
+    "exit": 0,
+    "process_terminal_before_finally_cleanup": true,
+    "timed_out": false,
+    "passed": 1,
+    "counts_line": "Result: 1 passed, 11 excluded",
+    "counts_read_from_terminal_raw_output": true,
+    "node_client": {
+      "synthetic_fixture": true,
+      "httpOnly_fixture_cookie_attached_outside_product": true,
+      "client_unchanged": true,
+      "session_retry": true,
+      "pagination": true,
+      "traffic": [
+        {
+          "stage": "unknown-session",
+          "path": "/auth/session",
+          "status": 503,
+          "elapsed_ms": 128
+        },
+        {
+          "stage": "active-session-revalidate",
+          "path": "/auth/session",
+          "status": 200,
+          "elapsed_ms": 608
+        },
+        {
+          "stage": "active-session-read",
+          "path": "/auth/session",
+          "status": 200,
+          "elapsed_ms": 819
+        },
+        {
+          "stage": "organizations-first",
+          "path": "/console-api/v1/orgs",
+          "status": 200,
+          "elapsed_ms": 1157
+        },
+        {
+          "stage": "organizations-next",
+          "path": "/console-api/v1/orgs",
+          "status": 200,
+          "elapsed_ms": 1464
+        },
+        {
+          "stage": "projects-first",
+          "path": "/console-api/v1/projects",
+          "status": 200,
+          "elapsed_ms": 1760
+        },
+        {
+          "stage": "projects-next",
+          "path": "/console-api/v1/projects",
+          "status": 200,
+          "elapsed_ms": 2024
+        }
+      ]
+    },
+    "exact_case_body_and_teardown_passed": true
+  },
+  "cleanup": {
+    "pg_ctl_stop_exit": 0,
+    "foreground_terminal": {
+      "label": "00008-postgres-foreground",
+      "pid": 31982,
+      "pgid": 31982,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    "postgres_group_absent": true,
+    "port_reusable": true,
+    "obligation_retired_before_port_validation": true,
+    "all_managed_groups_terminal": true,
+    "historical_holds_accessed_or_released": false,
+    "scratch_retained_for_root_review": "/tmp/mx1838-qn2k4omc",
+    "new_holds": [],
+    "managed_command_count": 58,
+    "pg_ctl_stop_invocations": 1,
+    "postgres_launch_count": 1,
+    "outer_group_absent": true,
+    "counts": {
+      "direct_reaped": 58,
+      "stdout_eof": 58,
+      "stderr_eof": 58,
+      "descriptors_closed": 58,
+      "group_absent": 58
+    }
+  },
+  "commands": [
+    {
+      "label": "00001-elixir-version",
+      "pid": 25072,
+      "pgid": 25072,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00002-node-version",
+      "pid": 25110,
+      "pgid": 25110,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00003-postgres-version",
+      "pid": 25111,
+      "pgid": 25111,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00004-python-version",
+      "pid": 25112,
+      "pgid": 25112,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00005-hex-load",
+      "pid": 25113,
+      "pgid": 25113,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00006-compile",
+      "pid": 25155,
+      "pgid": 25155,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00007-initdb",
+      "pid": 31967,
+      "pgid": 31967,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00008-postgres-foreground",
+      "pid": 31982,
+      "pgid": 31982,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00009-postgres-sql-status",
+      "pid": 31983,
+      "pgid": 31983,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00010-postgres-owned-sql-readiness",
+      "pid": 31995,
+      "pgid": 31995,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00011-billing-fixture-mixer_billing_r325",
+      "pid": 31997,
+      "pgid": 31997,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00012-billing-fixture-mixer_billing_r354",
+      "pid": 32001,
+      "pgid": 32001,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00013-billing-fixture-mixer_usage_r398",
+      "pid": 32005,
+      "pgid": 32005,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00014-authz-fixture-roles",
+      "pid": 32014,
+      "pgid": 32014,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00015-catalog-definer-role-preflight",
+      "pid": 32016,
+      "pgid": 32016,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00016-authz-fixture-database",
+      "pid": 32018,
+      "pgid": 32018,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00017-authz-fixture-grants",
+      "pid": 32020,
+      "pgid": 32020,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00018-transaction-fixture-roles",
+      "pid": 32022,
+      "pgid": 32022,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00019-transaction-fixture-database",
+      "pid": 32024,
+      "pgid": 32024,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00020-transaction-fixture-grants",
+      "pid": 32026,
+      "pgid": 32026,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00021-storage-fixture-roles",
+      "pid": 32028,
+      "pgid": 32028,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00022-storage-fixture-database",
+      "pid": 32031,
+      "pgid": 32031,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00023-storage-fixture-grants",
+      "pid": 32033,
+      "pgid": 32033,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00024-read_scope-fixture-roles",
+      "pid": 32035,
+      "pgid": 32035,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00025-read_scope-fixture-database",
+      "pid": 32037,
+      "pgid": 32037,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00026-read_scope-fixture-grants",
+      "pid": 32039,
+      "pgid": 32039,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00027-facade-fixture-roles",
+      "pid": 32041,
+      "pgid": 32041,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00028-facade-fixture-database",
+      "pid": 32043,
+      "pgid": 32043,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00029-facade-fixture-grants",
+      "pid": 32047,
+      "pgid": 32047,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00030-http_artifact-fixture-roles",
+      "pid": 32050,
+      "pgid": 32050,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00031-http_artifact-fixture-database",
+      "pid": 32058,
+      "pgid": 32058,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00032-http_artifact-fixture-grants",
+      "pid": 32060,
+      "pgid": 32060,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00033-workspace-fixture-roles",
+      "pid": 32062,
+      "pgid": 32062,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00034-workspace-fixture-database",
+      "pid": 32064,
+      "pgid": 32064,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00035-workspace-fixture-grants",
+      "pid": 32066,
+      "pgid": 32066,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00036-workspace_http-fixture-roles",
+      "pid": 32068,
+      "pgid": 32068,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00037-workspace_http-fixture-database",
+      "pid": 32070,
+      "pgid": 32070,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00038-workspace_http-fixture-grants",
+      "pid": 32072,
+      "pgid": 32072,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00039-createdb",
+      "pid": 32074,
+      "pgid": 32074,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00040-createdb-operation-admission",
+      "pid": 32077,
+      "pgid": 32077,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00041-createdb-startup",
+      "pid": 32079,
+      "pgid": 32079,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00042-createdb-builds",
+      "pid": 32081,
+      "pgid": 32081,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00043-createdb-admission",
+      "pid": 32083,
+      "pgid": 32083,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00044-createdb-aggregate-admission",
+      "pid": 32085,
+      "pgid": 32085,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00045-createdb-coordinator",
+      "pid": 32087,
+      "pgid": 32087,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00046-createdb-coordinator-intent",
+      "pid": 32093,
+      "pgid": 32093,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00047-createdb-builds-review",
+      "pid": 32095,
+      "pgid": 32095,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00048-createdb-admission-review",
+      "pid": 32097,
+      "pgid": 32097,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00049-createdb-aggregate-admission-review",
+      "pid": 32099,
+      "pgid": 32099,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00050-createdb-coordinator-review",
+      "pid": 32101,
+      "pgid": 32101,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00051-browser-read-roles",
+      "pid": 32104,
+      "pgid": 32104,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00052-browser-read-database",
+      "pid": 32106,
+      "pgid": 32106,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00053-customer-build-roles",
+      "pid": 32108,
+      "pgid": 32108,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00054-customer-build-database",
+      "pid": 32113,
+      "pgid": 32113,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00055-customer-build-grants",
+      "pid": 32117,
+      "pgid": 32117,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00056-batch1-tests",
+      "pid": 32120,
+      "pgid": 32120,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00057-batch2-tests",
+      "pid": 43871,
+      "pgid": 43871,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00058-postgres-stop",
+      "pid": 44177,
+      "pgid": 44177,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "group_absent": true,
+      "absence_errno": 3
+    }
+  ],
+  "accepted_prior_proofs": {
+    "reference": "verification/receipts/hosted-v17-formatted-r1768.json",
+    "source_proofs_reused": true,
+    "held_artifacts_read_or_reused": false,
+    "format_release_constructors_not_rerun": true
+  },
+  "limits": {
+    "canonical_readonly": true,
+    "production_installation": "CLOSED",
+    "native_cloud_live_provider_subchildren": false,
+    "GA": false,
+    "remaining_focused_batches": 0,
+    "independent_root_review_pending": true
+  },
+  "outer": {
+    "pid": 25067,
+    "pgid": 25067,
+    "session": 25067,
+    "group_absent": true,
+    "absence_errno": 3,
+    "absence_method": "original os.killpg(pgid,0) ESRCH",
+    "transport_exit": 0,
+    "exec_session": 12830
+  },
+  "cleanup_controls": {
+    "status": "PASS",
+    "extra_processes": 0,
+    "post_terminal_exception_then_finally": [
+      "stop",
+      "collect",
+      "validate"
+    ],
+    "failed_readiness_nonzero_stop_still_collects": [
+      "stop-nonzero",
+      "collect",
+      "validate"
+    ],
+    "already_exited_collect_without_signal": [
+      "collect",
+      "validate"
+    ]
+  },
+  "elapsed_seconds": 106.737,
+  "scratch": "/tmp/mx1838-qn2k4omc",
+  "versions": {
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "node": "v22.23.3",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "Python 3.14.8"
+  },
+  "pinned_hex_loaded_before_compile_and_postgres": true,
+  "fresh_product_compile": {
+    "status": "PASS",
+    "warnings_as_errors": true,
+    "product_BEAM_reuse": false,
+    "environment": "test"
+  },
+  "postgres": {
+    "port": 50192,
+    "address": "127.0.0.1",
+    "unix_sockets": false,
+    "data_directory": "/tmp/mx1838-qn2k4omc/data",
+    "foreground": true,
+    "pid": 31982,
+    "pgid": 31982,
+    "data_directory_verified_before_DDL": true
+  },
+  "batches": [
+    {
+      "status": "PASS",
+      "invocations": 1,
+      "retries": 0,
+      "total": 1,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 11,
+      "full_unfiltered": false,
+      "target": "test/mixer_hosted/browser_auth/private_login_http_test.exs:1175",
+      "started_monotonic": 690417.974844666,
+      "body_assertions_completed": true,
+      "teardown_observations": {
+        "events": [
+          {
+            "event": "ddl_settings",
+            "statement_timeout": "5s",
+            "lock_timeout": "500ms"
+          },
+          {
+            "result": "ok",
+            "event": "drop_result",
+            "elapsed_ms": 3831
+          }
+        ],
+        "snapshots": [
+          {
+            "phase": "before_drop",
+            "elapsed_ms": 9980,
+            "repeat": 1,
+            "last_elapsed_ms": null,
+            "rows": [
+              {
+                "application_name": "r1838_drop",
+                "backend_type": "client backend",
+                "datname": "postgres",
+                "state": "idle",
+                "wait_event": "ClientRead",
+                "wait_event_type": "Client"
+              }
+            ],
+            "target_database_sessions": 0,
+            "monitored_actors": 622,
+            "actors_alive": 0,
+            "monitor_DOWN": 622
+          },
+          {
+            "phase": "before_drop",
+            "elapsed_ms": 10091,
+            "repeat": 25,
+            "last_elapsed_ms": 13415,
+            "rows": [
+              {
+                "application_name": "r1838_drop",
+                "backend_type": "client backend",
+                "datname": "postgres",
+                "state": "active",
+                "wait_event": "CheckpointDone",
+                "wait_event_type": "IPC"
+              }
+            ],
+            "target_database_sessions": 0,
+            "monitored_actors": 622,
+            "actors_alive": 0,
+            "monitor_DOWN": 622
+          },
+          {
+            "phase": "before_drop",
+            "elapsed_ms": 13634,
+            "repeat": 1,
+            "last_elapsed_ms": null,
+            "rows": [
+              {
+                "application_name": "r1838_drop",
+                "backend_type": "client backend",
+                "datname": "postgres",
+                "state": "active",
+                "wait_event": "ProcSignalBarrier",
+                "wait_event_type": "IPC"
+              }
+            ],
+            "target_database_sessions": 0,
+            "monitored_actors": 622,
+            "actors_alive": 0,
+            "monitor_DOWN": 622
+          },
+          {
+            "phase": "before_drop",
+            "elapsed_ms": 13811,
+            "repeat": 1,
+            "last_elapsed_ms": null,
+            "rows": [
+              {
+                "application_name": "r1838_drop",
+                "backend_type": "client backend",
+                "datname": "postgres",
+                "state": "active",
+                "wait_event": null,
+                "wait_event_type": null
+              }
+            ],
+            "target_database_sessions": 0,
+            "monitored_actors": 622,
+            "actors_alive": 0,
+            "monitor_DOWN": 622
+          },
+          {
+            "phase": "after_drop",
+            "elapsed_ms": 13898,
+            "repeat": 1,
+            "last_elapsed_ms": null,
+            "rows": [
+              {
+                "application_name": "r1838_drop",
+                "backend_type": "client backend",
+                "datname": "postgres",
+                "state": "idle",
+                "wait_event": "ClientRead",
+                "wait_event_type": "Client"
+              }
+            ],
+            "target_database_sessions": 0,
+            "monitored_actors": 622,
+            "actors_alive": 0,
+            "monitor_DOWN": 622
+          }
+        ],
+        "monitored_actors": 622,
+        "monitor_DOWN_events": 622,
+        "all_monitored_actors_gone_before_DROP": true,
+        "raw_event_count": 655,
+        "full_safe_observations": {
+          "path": "verification/local/browser-drop-teardown-r1838/batch1-observations.json",
+          "bytes": 766920,
+          "sha256": "6c6a4ba1e9ab70ba52b4d4ecc9e45c6ee2232d3769e367cab4bdfe93f36fdf71"
+        },
+        "saved_externally_before_cleanup": true
+      },
+      "exit": 0,
+      "process_terminal_before_finally_cleanup": true,
+      "timed_out": false,
+      "batch": 1,
+      "passed": 1,
+      "counts_line": "Result: 1 passed, 11 excluded",
+      "counts_read_from_terminal_raw_output": true,
+      "node_client": {
+        "synthetic_fixture": true,
+        "httpOnly_fixture_cookie_attached_outside_product": true,
+        "client_unchanged": true,
+        "session_retry": true,
+        "pagination": true,
+        "traffic": [
+          {
+            "stage": "unknown-session",
+            "path": "/auth/session",
+            "status": 503,
+            "elapsed_ms": 672
+          },
+          {
+            "stage": "active-session-revalidate",
+            "path": "/auth/session",
+            "status": 200,
+            "elapsed_ms": 1229
+          },
+          {
+            "stage": "active-session-read",
+            "path": "/auth/session",
+            "status": 200,
+            "elapsed_ms": 1730
+          },
+          {
+            "stage": "organizations-first",
+            "path": "/console-api/v1/orgs",
+            "status": 200,
+            "elapsed_ms": 2424
+          },
+          {
+            "stage": "organizations-next",
+            "path": "/console-api/v1/orgs",
+            "status": 200,
+            "elapsed_ms": 3014
+          },
+          {
+            "stage": "projects-first",
+            "path": "/console-api/v1/projects",
+            "status": 200,
+            "elapsed_ms": 3728
+          },
+          {
+            "stage": "projects-next",
+            "path": "/console-api/v1/projects",
+            "status": 200,
+            "elapsed_ms": 4205
+          }
+        ]
+      },
+      "exact_case_body_and_teardown_passed": true
+    },
+    {
+      "status": "PASS",
+      "invocations": 1,
+      "retries": 0,
+      "total": 1,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 11,
+      "full_unfiltered": false,
+      "target": "test/mixer_hosted/browser_auth/private_login_http_test.exs:1175",
+      "started_monotonic": 690482.872522333,
+      "batch": 2,
+      "body_assertions_completed": true,
+      "teardown_observations": {
+        "events": [
+          {
+            "event": "ddl_settings",
+            "statement_timeout": "15s",
+            "lock_timeout": "500ms"
+          },
+          {
+            "result": "ok",
+            "event": "drop_result",
+            "elapsed_ms": 29
+          }
+        ],
+        "snapshots": [
+          {
+            "phase": "before_drop",
+            "elapsed_ms": 9667,
+            "repeat": 1,
+            "last_elapsed_ms": null,
+            "rows": [
+              {
+                "application_name": "r1838_drop",
+                "backend_type": "client backend",
+                "datname": "postgres",
+                "state": "idle",
+                "wait_event": "ClientRead",
+                "wait_event_type": "Client"
+              }
+            ],
+            "target_database_sessions": 0,
+            "monitored_actors": 622,
+            "actors_alive": 0,
+            "monitor_DOWN": 622
+          },
+          {
+            "phase": "after_drop",
+            "elapsed_ms": 9698,
+            "repeat": 1,
+            "last_elapsed_ms": null,
+            "rows": [
+              {
+                "application_name": "r1838_drop",
+                "backend_type": "client backend",
+                "datname": "postgres",
+                "state": "idle",
+                "wait_event": "ClientRead",
+                "wait_event_type": "Client"
+              }
+            ],
+            "target_database_sessions": 0,
+            "monitored_actors": 622,
+            "actors_alive": 0,
+            "monitor_DOWN": 622
+          }
+        ],
+        "monitored_actors": 622,
+        "monitor_DOWN_events": 622,
+        "all_monitored_actors_gone_before_DROP": true,
+        "raw_event_count": 628,
+        "full_safe_observations": {
+          "path": "verification/local/browser-drop-teardown-r1838/batch2-observations.json",
+          "bytes": 437936,
+          "sha256": "e8c4cc549aa31aa903d6b5079ee787f5885dded78d6e263cf60ae1fe40215fd0"
+        },
+        "saved_externally_before_cleanup": true
+      },
+      "exit": 0,
+      "process_terminal_before_finally_cleanup": true,
+      "timed_out": false,
+      "passed": 1,
+      "counts_line": "Result: 1 passed, 11 excluded",
+      "counts_read_from_terminal_raw_output": true,
+      "node_client": {
+        "synthetic_fixture": true,
+        "httpOnly_fixture_cookie_attached_outside_product": true,
+        "client_unchanged": true,
+        "session_retry": true,
+        "pagination": true,
+        "traffic": [
+          {
+            "stage": "unknown-session",
+            "path": "/auth/session",
+            "status": 503,
+            "elapsed_ms": 128
+          },
+          {
+            "stage": "active-session-revalidate",
+            "path": "/auth/session",
+            "status": 200,
+            "elapsed_ms": 608
+          },
+          {
+            "stage": "active-session-read",
+            "path": "/auth/session",
+            "status": 200,
+            "elapsed_ms": 819
+          },
+          {
+            "stage": "organizations-first",
+            "path": "/console-api/v1/orgs",
+            "status": 200,
+            "elapsed_ms": 1157
+          },
+          {
+            "stage": "organizations-next",
+            "path": "/console-api/v1/orgs",
+            "status": 200,
+            "elapsed_ms": 1464
+          },
+          {
+            "stage": "projects-first",
+            "path": "/console-api/v1/projects",
+            "status": 200,
+            "elapsed_ms": 1760
+          },
+          {
+            "stage": "projects-next",
+            "path": "/console-api/v1/projects",
+            "status": 200,
+            "elapsed_ms": 2024
+          }
+        ]
+      },
+      "exact_case_body_and_teardown_passed": true
+    }
+  ],
+  "private_diagnostic_lines": [
+    "R1822_RUNTIME {\"reason\":\"initial_admission\",\"phase\":\"storage_ready\"}",
+    "R1822_RUNTIME {\"reason\":\"initial_admission\",\"phase\":\"unavailable\"}",
+    "R1822_RUNTIME {\"reason\":\"initial_admission\",\"phase\":\"unavailable\"}",
+    "R1822_RUNTIME {\"reason\":\"initial_admission\",\"phase\":\"storage_ready\"}"
+  ],
+  "decision": "FOCUSED_CAMPAIGN_COMPLETE",
+  "private_fix_decision": {
+    "run_second": true,
+    "scope": "private fixture teardown only",
+    "fix": "15s server statement_timeout for dedicated privileged DROP connection; 20s Postgrex ceiling; existing 500ms lock limit preserved",
+    "reason": "Baseline observed zero target sessions and all622 monitored actors DOWN; DROP spent3.831s in CheckpointDone and ProcSignalBarrier waits. Privileged database deletion has cluster synchronization work distinct from product5s request SQL.",
+    "baseline_R1838": "PASS; historical R1828 57014 preserved, not reproduced or retrospectively attributed",
+    "observer_before_sha256": "cf9fa07d07a1a3e9a9e0ac5490b0d883200686a4996ed7d798241cba52aa3e0d",
+    "observer_after_sha256": "0701cb22857988e43383331e33c1d696cf1a0b541f1501ec483c7009463f80d1",
+    "production_SQL_timeouts_changed": false,
+    "force_DROP_or_session_termination": false
+  },
+  "diagnosis": {
+    "observed_R1838_wait": "Baseline DROP waited on IPC CheckpointDone and ProcSignalBarrier after all622 monitored actor DOWN events and with zero target-database sessions in all samples.",
+    "baseline_DROP": "PASS at unchanged server5s/client default;3831ms.",
+    "private_fix_DROP": "PASS at server15s/client20s, existing lock500ms;29ms.",
+    "live_pool_or_actor_leak": "Not observed in either focused batch; monitored actors and target sessions absent before DROP.",
+    "historical_R1828_failure_cause": "UNPROVEN: no wait/actor snapshot exists at its57014 failure; R1838 did not reproduce failure.",
+    "private_fixture_fix": "Separate bounded privileged DROP deadline from product request SQL. Actual checkpoint/barrier wait supports this test-only distinction.",
+    "timeout_threshold": "15s is an experimental finite fixture ceiling, not a measured minimum or proof against every resource wait.",
+    "original_R1786_CLIENT_FAILURE": "Not reproduced or explained; full-suite ordering remains unresolved."
+  },
+  "limitations": [
+    "Both actual focused batches passed including teardown; historical R1828 timeout was not reproduced, so its exact cause remains unproven.",
+    "The second batch reused the single owned PostgreSQL cluster; its29ms DROP does not prove an operation exceeding5s succeeds, or that15s is sufficient under all load.",
+    "Actor monitors and sampled pg_stat_activity cover this owned VM and target database only; no global leak claim.",
+    "Product SQL5s deadlines, lock limits, grants, security and canonical authority unchanged. Private diagnostics and fixture-only timeout variant require root review before adoption.",
+    "No full-suite/native/UI/ADB/phone/cloud/provider/credential/subchild/Git/index/docs/authority/remote actions. Historical holds remain protected.",
+    "One macOS development experiment; production installation remains CLOSED; no immutable-package or GA qualification."
+  ],
+  "recipe_sha256": "476cb1822170c9eac1874ec5df7f5db377f013bcddf155b21054a1b145e3512a",
+  "adapter_sha256": "dd5067b0cccd0acc9076f910bb8f08b6838dbd7dd3bae35057509ae028cf1c6d",
+  "named_case_body_identity": {
+    "matches_R1828_exactly": true,
+    "declaration_line": 1175,
+    "body_sha256": "8bb3d496c2ddeb7ab6d6e7dc23ea4a6a6e586f1175b434166985625ca1011dd1"
+  },
+  "baseline_R1828_teardown_failure": {
+    "stage": "ExUnit.setup_all.on_exit",
+    "sqlstate": "57014",
+    "reason": "statement_timeout",
+    "operation": "DROP DATABASE browser_login_storage",
+    "source": "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs:49",
+    "occurred_after_named_case_body_completed": true,
+    "failure_saved_externally_before_campaign_cleanup": true,
+    "underlying_wait_or_live_connection_cause": "UNPROVEN: no contemporaneous teardown pg_stat_activity snapshot was selected.",
+    "safe_owned_postgres_log_lines": [
+      "2026-11-12 18:56:57.365 EST [17123] ERROR:  canceling statement due to statement timeout",
+      "2026-11-12 18:56:57.365 EST [17123] STATEMENT:  DROP DATABASE browser_login_storage",
+      "2026-11-12 18:56:58.383 EST [15064] LOG:  database system is shut down"
+    ],
+    "reproduced_in_R1838": false
+  },
+  "raw_summary_parser_correction": {
+    "defect": "Runner did not recognize ExUnit1.20 Result: 1 passed, 11 excluded.",
+    "original_machine_status": "REQUEST_CHANGES because counts were null despite both exit0.",
+    "correction": "Both exact raw terminal summaries and completed body markers read and byteverified; no additional batch.",
+    "original_result_preserved": {
+      "path": "verification/local/browser-drop-teardown-r1838/result-before-finalization.json",
+      "bytes": 2004761,
+      "sha256": "b3053e001a3ef1d2728ce9882691b545791bdfa84f32c988e52593c6573fa8c3"
+    }
+  },
+  "finite_bounds": {
+    "postgres_launches": 1,
+    "focused_BEAM_batches": 2,
+    "campaign_elapsed_seconds": 106.737,
+    "work_budget_seconds": 600,
+    "cleanup_reserve_seconds": 60,
+    "restarts": 0,
+    "full_unfiltered_suites": 0
+  },
+  "artifacts": {
+    "recipe": {
+      "path": "verification/local/browser-drop-teardown-r1838/run.py",
+      "bytes": 25122,
+      "sha256": "476cb1822170c9eac1874ec5df7f5db377f013bcddf155b21054a1b145e3512a"
+    },
+    "adapter": {
+      "path": "verification/local/browser-drop-teardown-r1838/commands.py",
+      "bytes": 7114,
+      "sha256": "dd5067b0cccd0acc9076f910bb8f08b6838dbd7dd3bae35057509ae028cf1c6d"
+    },
+    "finalizer": {
+      "path": "verification/local/browser-drop-teardown-r1838/finalize.py",
+      "bytes": 11374,
+      "sha256": "67079f94467c58a12e3332ebd2e4c48c32772066e3591945e9eb703fc2c952eb"
+    },
+    "fixture_instrumentation_patch": {
+      "path": "verification/local/browser-drop-teardown-r1838/fixture-diagnostics.patch",
+      "bytes": 1856,
+      "sha256": "4c806adde68c934e7612b7e809e3463f069b841e87236974156d8acabeab8294"
+    },
+    "private_fixture_fix_patch": {
+      "path": "verification/local/browser-drop-teardown-r1838/private-fixture-fix.patch",
+      "bytes": 896,
+      "sha256": "9ece1e906ab6e4f3dff0ccfcb4e5b33c9dde8ece71748131264af67c83051fae"
+    },
+    "observer_baseline": {
+      "path": "verification/local/browser-drop-teardown-r1838/observer-baseline.exs",
+      "bytes": 4629,
+      "sha256": "cf9fa07d07a1a3e9a9e0ac5490b0d883200686a4996ed7d798241cba52aa3e0d"
+    },
+    "observer_afterimage": {
+      "path": "verification/local/browser-drop-teardown-r1838/observer.exs",
+      "bytes": 4707,
+      "sha256": "0701cb22857988e43383331e33c1d696cf1a0b541f1501ec483c7009463f80d1"
+    },
+    "commands_with_exact_argv_cwd_and_outputs": {
+      "path": "verification/local/browser-drop-teardown-r1838/commands.json",
+      "bytes": 75740,
+      "sha256": "2b7b8a9dda468c15f971b57802319e6a48acc465637e7254ae4b09438cb0d569"
+    },
+    "fixture_block_proof": {
+      "path": "verification/local/browser-drop-teardown-r1838/fixture-block-proof.json",
+      "bytes": 140,
+      "sha256": "5e91dc69c6fa676a12714a6e3a9aa0c0ade8e5421e928c462509093c33afb9be"
+    },
+    "baseline_test_stdout": {
+      "path": "verification/local/browser-drop-teardown-r1838/logs/00056-batch1-tests.stdout",
+      "bytes": 2187997,
+      "sha256": "062b8e6ca542a312a4c31ba7b0582d1ef186deaa159585af3e63b34b698c1398"
+    },
+    "fixed_test_stdout": {
+      "path": "verification/local/browser-drop-teardown-r1838/logs/00057-batch2-tests.stdout",
+      "bytes": 308572,
+      "sha256": "7738bf37e7a0ef37e3c8350e85fe5798c498109f8ac0ac6e64561d446c75bed2"
+    },
+    "canonical_before": {
+      "path": "verification/local/browser-drop-teardown-r1838/source-before.json",
+      "bytes": 47795,
+      "sha256": "a3364d9ae716f4b5b2c1bdf52df1c876dda21f8f691050c33c79c5e27851343d"
+    },
+    "canonical_after": {
+      "path": "verification/local/browser-drop-teardown-r1838/source-after.json",
+      "bytes": 47795,
+      "sha256": "a3364d9ae716f4b5b2c1bdf52df1c876dda21f8f691050c33c79c5e27851343d"
+    }
+  }
+}

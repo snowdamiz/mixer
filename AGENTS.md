@@ -562,3 +562,38 @@ exit0 and recorded inspection child61499 terminal result do not establish
 outer/descendant absence. No accepted create pass is claimed. Fresh separately
 selected source work may use the unheld R1784 candidate and original retained
 CLI inputs; this hold does not release any older chain.
+
+The R1816 photo payload1 left UNKNOWN custody for emulator PGID39297 after
+direct exit0: group absence was false. Its private ADB PID/PGID38105 was then
+preserved with that chain. Preserve both exact groups, serial `emulator-5670`,
+private ADB port51264, the entire
+`verification/local/fieldlog-photo-preparation-r1816/payload-1` namespace, and
+`/Users/andreyyurlov/.t3/userdata/mixer-photo-native-r1816-9pz6btq6` without
+inspection, enumeration, stat, probing, signals, waits, retries or cleanup.
+Read only the copied top-level HOLD metadata in external compact receipt
+`verification/receipts/fieldlog-photo-native-r1816-p1.json`. Direct reap and
+closed parent log descriptors do not release the hold. The static preparation
+driver and source-review packet outside `payload-1` are unchanged inputs for
+separately selected fresh source work. The remaining payload was subsequently consumed by R1826 below;
+both payloads are exhausted and no in-place retry is authorized.
+
+The final R1826 photo payload2 recorded UNKNOWN after private-port reuse
+returned EADDRINUSE. Emulator group18447 and private ADB group18025 were
+positively observed absent, but that does not release this cleanup hold.
+Preserve `verification/local/fieldlog-photo-successor-r1826/payload-2` and
+`/Users/andreyyurlov/.t3/userdata/mixer-photo-native-r1826-r9sz_glm`, serial
+`emulator-5674` and its ports5674/5675/62465, without inspection, enumeration,
+stat, probing, signals, waits, retries or cleanup. Read only copied top-level
+HOLD metadata in `verification/receipts/fieldlog-photo-native-r1826-p2.json`
+and the separately persisted external diagnostics. Both original photo
+payloads are consumed; no third native attempt is authorized by that campaign.
+
+The R1846 full-suite candidate stopped before compilation when the Python
+version command exited0 but group-absence observation for PID/PGID97151
+returned EPERM. Preserve that exact group, the entire
+`verification/local/hosted-drop-full-r1846` namespace and
+`/tmp/mx1846-49h2p49s` without inspection, enumeration, stat, probing, signals,
+waits, retry or cleanup. Only the external compact
+`verification/receipts/hosted-drop-full-r1846.json` is a reference. Direct reap,
+both EOFs and closed descriptors do not establish absence. No PostgreSQL,
+compiler or full-suite payload ran; no older hold is released.

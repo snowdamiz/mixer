@@ -1,0 +1,387 @@
+{
+  "schema": 1,
+  "id": "hosted-drop-full-r1846",
+  "status": "UNKNOWN",
+  "source": {
+    "selected_files": 277,
+    "explicit_inputs": 290,
+    "source_digest": "6021237e9cdf0dcc0cdf25ef841e754c93591723045031d06fa7a572e5d34661",
+    "official_dependency_files_byteverified": 1884,
+    "product_BEAM_reuse": false,
+    "node_files_byteverified": 17,
+    "adapter_origin_sha256": "258cd17bcffad92a55e58c3c31ac6378dc2804323f92cfd4da48b69d7af64fd3",
+    "adapter_sha256": "dd5067b0cccd0acc9076f910bb8f08b6838dbd7dd3bae35057509ae028cf1c6d",
+    "inert_finalizer_semantics": "unchanged",
+    "base": "verification/local/hosted-v17-decisive-r1786",
+    "full_R1786_fixture_recipe_preserved": true,
+    "canonical_product_inputs_before": 287,
+    "canonical_product_inputs_match_R1786": true,
+    "private_diagnostics": [
+      {
+        "path": "client/browser-read-driver.mjs",
+        "before": "5f52ba0e2efc8cbcdfd79cdd3c68ce673046a7224e68adcdfb2d2384eb6dc8eb",
+        "after": "3a7e1a6076ccf57841d02dd3e37139edb11db9714d83e23bca0a5749ad22d82b",
+        "origin": "verification/local/browser-first-failure-r1806/client/browser-read-driver.mjs"
+      },
+      {
+        "path": "candidate/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+        "before": "81c54c0a7ec53dd3d788be0d130c6d9abf68e95d0d0a3ae269fe0130e51bf537",
+        "after": "d0a67dc23b2c5959eaa620ee4e697f44e7b7cacd22879ad9636b5c0c6974f072",
+        "origin": "verification/local/browser-complete-fixture-r1822/candidate/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex"
+      }
+    ],
+    "official_hex_archive_files_byteverified": 133,
+    "source_pins_are_actual_file_hashes": true,
+    "selected_files_actually_byteverified": 277,
+    "original_inputs_byteverified": 290,
+    "actual_private_overlays": [
+      "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+      "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs"
+    ],
+    "test_overlay": {
+      "bytes": 56536,
+      "sha256": "c3885612daa5a3b48d934dd08be7241f7dfd49befbb1ed3749a6937ab42bd84a"
+    },
+    "test_overlay_patch": {
+      "bytes": 546,
+      "sha256": "7c07e1fd764adc7b0c28bd41b5c0b2616701e068f020dba3376a68986227ce88"
+    },
+    "actual_product_source_manifest": "actual-product-sources.json",
+    "check_source_run": false,
+    "check_source_note": "Intentionally private test and RuntimeOwner diagnostics; no --check-source PASS claimed.",
+    "hex_version": "2.5.1",
+    "dependency_BEAM_only_reused": true,
+    "additional_diagnostic_test": {
+      "bytes": 8708,
+      "sha256": "f65de3f250bc8dc81181bf3c2946b35b724ad7e8c931f6950ed060531f6bf83c"
+    }
+  },
+  "budget_seconds": 720,
+  "suite_deadline_seconds": 450,
+  "cleanup_reserve_seconds": 60,
+  "premise": "TCP-listening does not prove SQL-ready; original 10s createdb budget may be insufficient on this host.",
+  "baseline_10s_failure": {
+    "reference": "verification/receipts/browser-complete-fixture-r1822.json",
+    "failure": {
+      "label": "00010-billing-fixture-mixer_billing_r325",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "54746",
+        "-U",
+        "mixer_fixture",
+        "mixer_billing_r325"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/browser-complete-fixture-r1822/candidate/hosted",
+      "started": 1794526936.623806,
+      "pid": 71830,
+      "pgid": 71830,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "timed_out": true,
+      "exit": -15,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794526946.675618,
+      "stdout": {
+        "path": "logs/00010-billing-fixture-mixer_billing_r325.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "logs/00010-billing-fixture-mixer_billing_r325.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    },
+    "diagnosis": {
+      "target_declaration": "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs:1175",
+      "target_assertion": "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs:1211",
+      "exact_case_executed": false,
+      "focused_BEAM_batches": 0,
+      "HTTP_request_or_status_observed": false,
+      "RuntimeOwner_reason_observed": false,
+      "isolated_PASS": false,
+      "product_defect_reproduced": false,
+      "first_attempt_failure": "The complete unchanged R1786 fixture first createdb exceeded its original 10-second command timeout. The server log retained CREATE DATABASE until fast shutdown; root cause remains unproven.",
+      "approved_restart_failure": "The original raw TCP-connect readiness check admitted psql before SQL readiness: psql exited2 with FATAL: the database system is starting up.",
+      "startup_race_proven": true,
+      "recoverable_setup_change_not_executed": "Replace the private raw TCP-ready predicate with bounded pg_isready acceptance, then SHOW data_directory before any DDL; no fixture removal or deadline weakening. Another launch requires root selection because the one approved restart is consumed.",
+      "canonical_fixture_preparation_removed_or_narrowed": false,
+      "fixture_command_timeouts": {
+        "attempt1_seconds": 10,
+        "approved_attempt2_seconds": 30
+      },
+      "third_postgres_launch": false,
+      "not_a_setup_success_claim": true
+    },
+    "replayed": false
+  },
+  "setup_experiment": {
+    "createdb_budget_seconds": 30,
+    "other_fixture_budget_seconds": 10,
+    "product_deadlines_changed": false,
+    "max_postgres_launches": 1,
+    "max_full_BEAM_batches": 1
+  },
+  "sql_readiness": {
+    "status": "NOT_RUN"
+  },
+  "first_createdb_wait_control": {
+    "status": "NOT_RUN"
+  },
+  "suite": {
+    "status": "NOT_RUN_CUSTODY_HOLD",
+    "invocations": 0,
+    "retries": 0,
+    "total": null,
+    "failures": null,
+    "skipped": null,
+    "excluded": null,
+    "passed": null,
+    "final_ExUnit_summary_observed": false
+  },
+  "cleanup": {
+    "status": "UNKNOWN_HOLD_PRESERVED",
+    "new_holds": [
+      {
+        "namespace": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/hosted-drop-full-r1846",
+          "/tmp/mx1846-49h2p49s"
+        ],
+        "pid": 97151,
+        "pgid": 97151,
+        "reason": "group absence 00004-python-version PermissionError(1, 'Operation not permitted')"
+      }
+    ],
+    "postgres_stop": "NOT_APPLICABLE_NOT_LAUNCHED",
+    "port_reuse": "NOT_APPLICABLE_NO_PORT_SELECTED",
+    "all_managed_groups_terminal": false
+  },
+  "commands": [
+    {
+      "label": "00001-elixir-version",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/hosted-drop-full-r1846/candidate/hosted",
+      "pid": 95796,
+      "pgid": 95796,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "stdout": {
+        "path": "logs/00001-elixir-version.stdout",
+        "bytes": 143,
+        "sha256": "e92ef5035bb63ab8ed3164b41f674be99e2aeb2a9e59f47837de334cf41a13a7"
+      },
+      "stderr": {
+        "path": "logs/00001-elixir-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00002-node-version",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "node",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/hosted-drop-full-r1846/candidate/hosted",
+      "pid": 97090,
+      "pgid": 97090,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "stdout": {
+        "path": "logs/00002-node-version.stdout",
+        "bytes": 9,
+        "sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+      },
+      "stderr": {
+        "path": "logs/00002-node-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00003-postgres-version",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/hosted-drop-full-r1846/candidate/hosted",
+      "pid": 97133,
+      "pgid": 97133,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "stdout": {
+        "path": "logs/00003-postgres-version.stdout",
+        "bytes": 39,
+        "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+      },
+      "stderr": {
+        "path": "logs/00003-postgres-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3
+    },
+    {
+      "label": "00004-python-version",
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/hosted-drop-full-r1846/candidate/hosted",
+      "pid": 97151,
+      "pgid": 97151,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "stdout": {
+        "path": "logs/00004-python-version.stdout",
+        "bytes": 14,
+        "sha256": "f615dc9512de8b165e2b595e5cdc608a3ba7927ae92f959c5b42ec3d58e2ffa8"
+      },
+      "stderr": {
+        "path": "logs/00004-python-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "accepted_prior_proofs": {
+    "reference": "verification/receipts/hosted-v17-formatted-r1768.json",
+    "source_proofs_reused": true,
+    "held_artifacts_read_or_reused": false,
+    "format_release_constructors_not_rerun": true
+  },
+  "limits": {
+    "canonical_readonly": true,
+    "production_installation": "CLOSED",
+    "native_cloud_live_provider_subchildren": false,
+    "GA": false
+  },
+  "outer": {
+    "pid": 95791,
+    "pgid": 95791,
+    "session": 95791
+  },
+  "cleanup_controls": {
+    "status": "PASS",
+    "extra_processes": 0,
+    "post_terminal_exception_then_finally": [
+      "stop",
+      "collect",
+      "validate"
+    ],
+    "failed_readiness_nonzero_stop_still_collects": [
+      "stop-nonzero",
+      "collect",
+      "validate"
+    ],
+    "already_exited_collect_without_signal": [
+      "collect",
+      "validate"
+    ]
+  },
+  "elapsed_seconds": 6.985,
+  "scratch": "/tmp/mx1846-49h2p49s",
+  "versions": {
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:2:2] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "node": "v22.23.3",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "custody": {
+    "status": "UNKNOWN",
+    "reason": "group absence 00004-python-version PermissionError(1, 'Operation not permitted')",
+    "preserve": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/hosted-drop-full-r1846",
+      "/tmp/mx1846-49h2p49s"
+    ],
+    "no_further_process_or_log_operations": true
+  },
+  "decision": "STOP_PRESERVE_NEW_UNKNOWN_NO_RETRY",
+  "first_actual_failure": {
+    "stage": "tool-version control, before pinned-Hex load or compile",
+    "command": [
+      "nice",
+      "-n",
+      "10",
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "--version"
+    ],
+    "pid": 97151,
+    "pgid": 97151,
+    "operation": "os.killpg(pgid, 0) to establish group absence",
+    "error": "PermissionError: errno 1 EPERM / Operation not permitted",
+    "cause_scope": "Custody observation failed; underlying OS denial cause unproven.",
+    "direct_exit": 0,
+    "direct_reaped": true,
+    "stdout_eof": true,
+    "stderr_eof": true,
+    "descriptors_closed": true,
+    "group_absence_established": false,
+    "persisted_externally_before_stop": true
+  },
+  "execution_scope": {
+    "fresh_compile_invocations": 0,
+    "postgres_launches": 0,
+    "full_suite_invocations": 0,
+    "node_HTTP_payloads": 0,
+    "runtime_owner_payloads": 0,
+    "additional_broad_testing": false,
+    "primary_exec_session": 14190,
+    "primary_transport_exit": 74,
+    "transport_exit_proves_group_absence": false,
+    "new_unknown_namespace_preserved": true,
+    "held_namespace_or_process_operations_after_collection": false,
+    "canonical_index_Git_docs_authority_changes": false,
+    "historical_holds_accessed_or_released": false
+  },
+  "limitations": [
+    "The sole selected candidate stopped at a tool-version custody control; no full-suite result or product failure was observed.",
+    "Direct child exit0, EOF and descriptor closure do not establish process-group absence after EPERM.",
+    "No new probe, signal, wait, retry, cleanup or held-namespace inspection is authorized; all resources preserved.",
+    "Actual private overlay and product-source snapshots were written before launch and remain preserved inside the held namespace.",
+    "No Node traffic or RuntimeOwner diagnostics exist because those payloads never started."
+  ]
+}

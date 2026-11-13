@@ -1,0 +1,163 @@
+{
+  "id": "fieldlog-ci-r1834",
+  "recordedUTC": "2026-11-13T01:02:30.267775+00:00",
+  "status": "PASS_PRIVATE_WORKFLOW_STRUCTURE_AND_COMMAND_REVIEW_HOSTED_EXECUTION_PENDING",
+  "scope": "One additive separate FieldLog workflow; development host only",
+  "inputs": {
+    "fieldlogRepository": "snowdamiz/fieldlog",
+    "deliveredBaseRevision": "c6562ba80b992016c0c963cf4c67a59f1f605fd0",
+    "readOnlyCandidate": "verification/local/fieldlog-recipe-fix-r1804/candidate",
+    "candidateTreeSHA256": "a344087e73ce6318eac6c87007142bc2356a3f187d9039f19d137f2de6a42446",
+    "all88ManifestFilesVerifiedBeforeAndAfter": true,
+    "baseFilesUnchanged": 46,
+    "integrationFilesUnchanged": 42,
+    "remoteTreeProofReference": "verification/local/fieldlog-delivery-r1820/remote-tree-proof.json",
+    "publicSDKRepository": "snowdamiz/mixer",
+    "publicSDKRevision": "8efc1a9e5b1602117f8211c95bfd4203cc91f689",
+    "acceptedR1804SDKCompatibilitySHA256": "1aff4a8c3b9c8b25f6457a0b43617ec19f9a34b7b678029859c4ae220d7076d6",
+    "observedFrozenSDKFiles": 24,
+    "observedFrozenSDKFileListSHA256": "7ee9bda886ced847d297cfd6e564dc1e0b877ea93ef5af2ecfc0f9d849031867",
+    "sdkManifestFormat": "Sorted lowercase SHA-256, two spaces, POSIX path relative to sdk, LF; runtime workflow records its own public checkout manifest",
+    "checkoutAction": "11d5960a326750d5838078e36cf38b85af677262",
+    "uploadArtifactAction": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+  },
+  "delivery": {
+    "patch": "verification/local/fieldlog-ci-r1834/generated-report-host.diff",
+    "patchSHA256": "30a67884b09839322ed80914a2e69d76fa67fdb815eaa181ed826cce0c87b59d",
+    "patchBytes": 5904,
+    "files": [
+      ".github/workflows/generated-report-host.yml"
+    ],
+    "fileCount": 1,
+    "workflow": "verification/local/fieldlog-ci-r1834/delivery/.github/workflows/generated-report-host.yml",
+    "workflowSHA256": "3f914dfeff5f6bf6077451fbf063811b2e23bbe094c923dab43a67c7f7381b59",
+    "workflowBytes": 5690,
+    "preservedRootWorkflowSHA256": "35713e632b1e855f5825399ab622d31ca9f96a9467dc5df635b96fc023b9c3a5",
+    "patchReplayExact": true
+  },
+  "validation": {
+    "yamlParser": "Ruby Psych YAML.load_file; YAML 1.1 on key normalized for validation only",
+    "tools": {
+      "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+      "python": "3.14.8",
+      "ruby": "4.0.7",
+      "bash": "3.2.57"
+    },
+    "checks": [
+      {
+        "name": "Record actual toolchain and source inputs",
+        "bashSyntaxExit": 0
+      },
+      {
+        "name": "Run GeneratedReport Swift host tests",
+        "bashSyntaxExit": 0
+      },
+      {
+        "name": "Run real ReportRoot and ReportFiles JVM checks",
+        "bashSyntaxExit": 0
+      },
+      {
+        "name": "Run recipe boundary controls",
+        "bashSyntaxExit": 0
+      },
+      {
+        "name": "pipeline success preserves command status",
+        "exit": 0
+      },
+      {
+        "name": "pipeline failure preserves command status",
+        "exit": 37
+      },
+      {
+        "name": "tee log ceiling fails pipeline",
+        "exit": 153,
+        "bytes": 1024
+      },
+      {
+        "name": "one-file patch replay exact",
+        "exit": 0
+      }
+    ],
+    "workflowStructureVerified": true,
+    "referencedCandidatePathsVerified": true,
+    "inlinePythonSyntaxVerified": true,
+    "readmeCommandsVerified": true,
+    "defaultFullSwiftSuiteNoFilter": true,
+    "javaUsesRealReportRootAndExactReportFilesExtractor": true,
+    "newSourceBuilds": 0,
+    "new95SwiftHostTestExecutions": 0,
+    "new20JavaCheckExecutions": 0,
+    "new8RecipeControlExecutions": 0,
+    "historicalAcceptedAppResults": {
+      "XCTest": 34,
+      "SwiftTesting": 61,
+      "JavaChecks": 20,
+      "recipeControls": 8
+    },
+    "historicalAppEvidence": "R1784; unchanged application bodies. Recipe evidence R1804. No results inferred for Xcode 26.3.",
+    "actionlintExecuted": false,
+    "githubActionsExecuted": false
+  },
+  "workflowBehavior": {
+    "events": [
+      "workflow_dispatch",
+      "push",
+      "pull_request"
+    ],
+    "paths": [
+      "Integrations/GeneratedReport/**",
+      ".github/workflows/generated-report-host.yml"
+    ],
+    "runner": "macos-15",
+    "developerDir": "/Applications/Xcode_26.3.app/Contents/Developer",
+    "toolchains": "com.apple.dt.toolchain.XcodeDefault",
+    "missingToolchainFails": true,
+    "actualSwiftVersionRecordedAtRuntime": true,
+    "SDKOverride": "FIELDLOG_MIXER_SDK=${{ github.workspace }}/.ci-generated-report-sdk/sdk",
+    "sparseSDKOnly": true,
+    "scratchAndCaches": "Unique RUNNER_TEMP prefix per run ID and attempt; no HOME or CODEX_HOME override",
+    "commands": [
+      "swift test --package-path . --scratch-path \"$FIELDLOG_CI_ROOT/swift-build\" --cache-path \"$FIELDLOG_CI_ROOT/swift-cache\" --jobs 4",
+      "python3 scripts/prepare-report-files-tests.py --output \"$FIELDLOG_CI_ROOT/java-source\"",
+      "javac -encoding UTF-8 -d \"$FIELDLOG_CI_ROOT/classes\" \"$FIELDLOG_CI_ROOT/java-source/PublicBridge.java\" Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/ReportRoot.java Tests/ReportFilesJava/ReportFilesChecks.java",
+      "java -cp \"$FIELDLOG_CI_ROOT/classes\" dev.fieldlog.generatedr90.androidhost.ReportFilesChecks \"$FIELDLOG_CI_ROOT/report-workspace\"",
+      "python3 -B -m unittest discover -s Tests/Recipe -p 'test_*.py' -v"
+    ],
+    "bounds": "15 minute job; preflight 2, Swift 9, JVM 2, recipe 1 minutes; per-log tee file-size ceiling 8192 shell blocks",
+    "exitStatus": "bash set -euo pipefail; real commands and tee exit statuses; no synthetic result parser",
+    "upload": "Only evidence logs and SDK file manifest, always, 14 day retention; no build/cache trees",
+    "independentControls": "Java and recipe execute after Swift failure when input preflight succeeded and job is not cancelled"
+  },
+  "nextExecutableGate": {
+    "name": "GeneratedReport host development / generated-report-host",
+    "owner": "root",
+    "action": "Publish this one-file patch to separate FieldLog, then inspect the actual path-triggered CI run at the published head; do not start another preparation cycle.",
+    "manualDispatchIfNeeded": "gh workflow run generated-report-host.yml --repo snowdamiz/fieldlog --ref main",
+    "acceptance": "Actual Xcode 26.3 tool/version log, Swift XCTest and Swift Testing summaries, JVM RESULT summary, unittest summary and successful real command exits"
+  },
+  "limitations": [
+    "Hosted Xcode 26.3 execution is pending; prior local Swift 6.4.2 qualification is historical only.",
+    "Development host evidence does not qualify JNI, APK/native/UI/device behavior, immutable published packages, dogfood or GA.",
+    "No remote fetch was needed: review used accepted unheld R1804 static inputs and root-delivered R1820 proof. Actual second checkout is exercised by hosted CI."
+  ],
+  "ownership": {
+    "canonicalMixerWrites": 0,
+    "gitOrIndexWrites": 0,
+    "remoteWrites": 0,
+    "githubMessages": 0,
+    "subchildren": 0,
+    "credentialsOrCloud": 0,
+    "nativeUIADBPhone": 0,
+    "dockerOperations": 0,
+    "holdsReleased": false,
+    "allHistoricalHoldsPreserved": true
+  },
+  "retention": {
+    "newWritesOnlyUnder": [
+      "verification/local/fieldlog-ci-r1834",
+      "verification/receipts/fieldlog-ci-r1834.json"
+    ],
+    "stagedVerificationChanges": false,
+    "artifactPolicyCheck": "Not run: no staging or index mutation is authorized; root runs policy check if staging this compact receipt."
+  }
+}
