@@ -1,0 +1,178 @@
+{
+  "id": "console-coherence-review-r2006",
+  "recordedUTC": "2026-11-13T05:06:51.423460+00:00",
+  "decision": "REQUEST_CHANGES",
+  "reviewedCandidate": "verification/receipts/console-status-coherence-r1998.json",
+  "findingCount": 1,
+  "findings": [
+    {
+      "id": "R2006-F1",
+      "priority": "P2",
+      "title": "Accepted Failed row rolls back to the older catalogue outcome on same-selection refresh",
+      "path": "console/src/components/ApplicationBuildPage.tsx",
+      "startLine": 51,
+      "endLine": 58,
+      "proofKind": "EXACT_SOURCE_PATH_NO_NEW_RUNTIME_REPLAY",
+      "trigger": "Catalogue Queued revision2; accepted detail Failed revision4; refresh same selected build in same session; reject lower revision2 or wrong-identity response.",
+      "actual": "Detail loading/error makes detail() undefined; rowSnapshot falls back to immutable Queued revision2. The row remains Queued after rejection.",
+      "required": "Do not present an older outcome as current after a newer accepted observation; preserve exact-identity/generation/parser/capability fences and precise loading/error feedback.",
+      "testGap": "Existing line75 test asserts Failed before refresh and only not-Succeeded afterward, allowing Queued rollback.",
+      "supportingSource": [
+        {
+          "path": "console/src/components/ApplicationBuildPage.tsx",
+          "lines": [
+            50,
+            58,
+            110
+          ]
+        },
+        {
+          "path": "console/src/state/build-selection-controller.ts",
+          "lines": [
+            128,
+            141,
+            177,
+            192
+          ]
+        },
+        {
+          "path": "console/tests/application-build-page.test.mjs",
+          "lines": [
+            75
+          ]
+        }
+      ]
+    }
+  ],
+  "passedBoundaries": [
+    "all eight identity fields compared",
+    "unchanged live-generation/session/workspace/request/client/abort fences",
+    "parsed typed snapshots only; no new cast/raw-data trust or capability grant",
+    "accepted detail floor rejects lower revision",
+    "immutable page/row/cursor data unchanged",
+    "existing closed permission/not-found/session/unavailable behavior preserved"
+  ],
+  "evidence": {
+    "producerArtifactHashes": 23,
+    "frontendManifestHashes": 76,
+    "exactTwoFilePatchReconstruction": true,
+    "restoredInputsByteEqualToCanonical": 4,
+    "baseline": {
+      "tests": 6,
+      "pass": 4,
+      "fail": 2
+    },
+    "producerFocused": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    "producerFullSuite": {
+      "tests": 201,
+      "pass": 199,
+      "fail": 2
+    },
+    "restoredTwoOriginalCases": {
+      "tests": 2,
+      "pass": 2,
+      "fail": 0
+    },
+    "freshSingleRun201Pass": false,
+    "producerTypecheck": "PASS saved exit0",
+    "producerBuild": "PASS saved exit0",
+    "existingScreenshotVisuallyReviewed": true,
+    "existingBrowserCoherenceAndBoundRead": "PASS local synthetic-provider scope",
+    "newReviewerRuntimeReplays": 0,
+    "custody": {
+      "commands": 17,
+      "allRecordsTerminal": true,
+      "packetCustodianFile": {
+        "bytes": 2552,
+        "sha256": "69f4f377ee29f9e0e1842be3a6d86563a50cd006c12230dbb0cd59b2fd0e519a"
+      },
+      "declaredOriginalCustodianSourceSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+      "ASTDefinitions": [
+        "read",
+        "save",
+        "row",
+        "InertPopen",
+        "run"
+      ],
+      "reviewerReprobedAnyGroup": false,
+      "originalASTEquivalenceIndependentlyChecked": false,
+      "scopeNote": "The receipt pins the original R986 source, while the packet contains an extracted definitions wrapper. These are different file identities. Only the packet definitions and saved command facts were inspected; original R986 source was not rediscovered."
+    }
+  },
+  "sourceRevision": {
+    "headMetadata": "ref: refs/heads/t3/continue-plan-md",
+    "frontendInputsDigest": {
+      "bytes": 19437,
+      "sha256": "32b92998efcb19ecde59100d6ae53a861b6a3c833747b895d21f20d418bb6ea5"
+    },
+    "note": "Direct HEAD metadata read; file digests are the review pin for this dirty shared checkout."
+  },
+  "ownership": {
+    "writesOnly": [
+      "verification/local/console-coherence-review-r2006",
+      "verification/receipts/console-coherence-review-r2006.json"
+    ],
+    "canonicalProducerGitIndexReadOnly": true,
+    "noGitCommands": true,
+    "noSubchildren": true,
+    "noHeldNamespaceAccess": true,
+    "noNewHold": true,
+    "holdsReleased": false
+  },
+  "limitations": [
+    "Finding is source-proven; no independent runtime replay performed. Existing UI test invokes a frontend build, excluded by this review scope.",
+    "No fresh frontend build, DB/browser/native/cloud/provider/CI action.",
+    "Producer full-suite run remains 199/201, followed by two passing restored-input cases.",
+    "Original R986 source AST equivalence not independently rechecked; extracted packet definitions and saved command facts inspected.",
+    "External provider/TLS, production, published-package and GA qualification remain pending."
+  ],
+  "rootNext": "Resolve R2006-F1 before admitting the candidate; root owns any version20 source admission and delivery.",
+  "reviewerCheckHistory": [
+    {
+      "attempt": 1,
+      "exitCode": 1,
+      "reason": "Whole-file comparison incorrectly conflated extracted custodian wrapper with declared original source pin; no product payload ran."
+    },
+    {
+      "attempt": 2,
+      "exitCode": 0,
+      "reason": "Recorded the two custody source identities separately; all packet checks passed."
+    }
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "path": "verification/local/console-coherence-review-r2006/REPORT.md",
+      "bytes": 6540,
+      "sha256": "a53de4af623cb4f6d51f5478f30cec7a3f1a0dd2f663a10d518e1c83af72a76f"
+    },
+    "inspect.py": {
+      "path": "verification/local/console-coherence-review-r2006/inspect.py",
+      "bytes": 8781,
+      "sha256": "b1cdd46ac8aa72f1971b5c2afb0c2507ae2642d17d477fcafd391e55f376dfcb"
+    },
+    "proof.json": {
+      "path": "verification/local/console-coherence-review-r2006/proof.json",
+      "bytes": 38178,
+      "sha256": "e6097196f7e1c1ba4ec96c2d3551cabb1a0a58d8fbb5e376b354ac37ddfab755"
+    },
+    "inspection-command.json": {
+      "path": "verification/local/console-coherence-review-r2006/inspection-command.json",
+      "bytes": 940,
+      "sha256": "7d7ef661ba407da60faee8ee9a79d6aa282036295930a5fedf35200ef7d6673a"
+    },
+    "inspection-result.json": {
+      "path": "verification/local/console-coherence-review-r2006/inspection-result.json",
+      "bytes": 184,
+      "sha256": "d49338d2d6afea4018add3a4e5634bb45638b49b1bfef9d2af4d5191c3f073bc"
+    },
+    "canonical-readback.json": {
+      "path": "verification/local/console-coherence-review-r2006/canonical-readback.json",
+      "bytes": 26205,
+      "sha256": "66782c4e8fb9af8c415bb6acd89a4c3591aa9f10c1e5b332d6bc3dc8bec4c521"
+    }
+  }
+}

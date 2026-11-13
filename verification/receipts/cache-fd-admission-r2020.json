@@ -1,0 +1,488 @@
+{
+  "schema": 1,
+  "id": "cache-fd-admission-r2020",
+  "created_utc": "2026-11-13T05:27:13.302929+00:00",
+  "status": "PRIVATE_FIX_FINAL_SELECTOR_GUARD_UNEXECUTED",
+  "source_admission": "NOT_ADOPTED",
+  "root_independent_review": "PENDING",
+  "published": false,
+  "candidate": {
+    "canonical_path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/commands.py",
+    "baseline_sha256": "7cacf4d5ccc2158924b9b2f7b782fc68fcbf49b10b0cc860ed94ac03b3520d13",
+    "path": "verification/local/cache-fd-admission-r2020/commands.py",
+    "bytes": 9446,
+    "sha256": "735fd6da9255efd56b7c152c5a54a3ea95684e37044c766146f3591a52a33ad3",
+    "changed_method": "run",
+    "unchanged_methods": [
+      "__init__",
+      "bind_scratch",
+      "child_environment",
+      "save",
+      "gone",
+      "observe",
+      "begin_cleanup",
+      "cleanup_remaining",
+      "stop",
+      "permission_diagnostic"
+    ],
+    "diff_added_lines": 7,
+    "diff_removed_lines": 4,
+    "diff": {
+      "path": "verification/local/cache-fd-admission-r2020/commands.diff",
+      "bytes": 3302,
+      "sha256": "f7ed917e39527eab5439e536abace80df8c57e7a25e788130d90a2fb90386d85"
+    },
+    "final_candidate_runtime_validated": false,
+    "tested_predecessor": {
+      "path": "verification/local/cache-fd-admission-r2020/commands-tested.py",
+      "bytes": 9443,
+      "sha256": "6b5e51f7c0a828c649fdee9442847422ea153311d8a31ea6667909455d393102"
+    },
+    "unexecuted_final_delta": "Require positive selector closure even when spawn refused before setting active. Remaining tested predicates are unchanged."
+  },
+  "behavior": "Require positive stdout sink+pipe, stderr sink+pipe, and selector closure before releasing active/capacity/admission. Unconfirmed closure sets sticky UNKNOWN before further process operations. Reap, both EOFs and positive group absence remain required. Accounting delta stays withheld on a hold.",
+  "eperm_policy": {
+    "immediate_unknown": true,
+    "observation_only_polling_adopted": false,
+    "stop_gone_observe_cleanup_deadlines_byte_exact": true,
+    "r1994_commands_used": false,
+    "test_fakes_file_unchanged": true,
+    "test_fakes_sha256": "4958987f5db7fde0ee3dc6eaa4f39615db613b086ba4c96a886ca6f8021bf4ec",
+    "line203": "                self.assertEqual(world.events[denial + 1:], [])",
+    "line203_passed_normal_and_actual_O": true,
+    "r2002_transient_world_postkill_denials_per_selection_per_mode": 1,
+    "runtime_results_bind_tested_predecessor": true,
+    "further_fake_process_operations_after_unknown": 0
+  },
+  "r2002_regression": {
+    "reference": "verification/receipts/cache-observation-review-r2002.json",
+    "proof": "verification/local/cache-observation-review-r2002/replay.py",
+    "original_world_class_used_unchanged_in_isolated_namespace": true,
+    "original_transient_case": "Both canonical baseline and private fix declare UNKNOWN at the first postkill EPERM; no pending observation path.",
+    "isolated_inherited_gap": "Use the same R2002 World and denied stderr close with no postkill denial, reaching successful stop before closure. Actual canonical source incorrectly clears active and marks accounting terminal; its second run reaches the environment marker. Private afterimage retains active, UNKNOWN, closed admission and withheld accounting delta.",
+    "selector_baseline_counterexample_also_reproduced": true,
+    "denials_injected_only": true,
+    "real_os_close_eperm_claimed": false,
+    "no_second_real_process_launched_for_admission_probe": true
+  },
+  "qualification_limit": {
+    "method": "test_seals_and_frozen_fixture",
+    "line": 260,
+    "cause": "Unchanged historical negative assertion expects installed workflow mismatch, but current canonical workflow is installed; real adoption.verify(True) returns instead of raising.",
+    "independent_of_private_fix": "This method reads canonical adoption/workflow/seals and never calls the private Commands runner.",
+    "normal_and_actual_O": "Same sole failure on the tested predecessor; not waived or relabeled as a pass.",
+    "final_source_not_executed": true,
+    "unexecuted_regression": "Regression.test_spawn_refusal_selector_close_failure_is_sticky",
+    "reason": "Both authorized batches consumed; no third batch or assertion weakening.",
+    "no_third_batch": true
+  },
+  "batches": [
+    {
+      "mode": "normal",
+      "actual_optimize": 0,
+      "command": "python3 -B verification/local/cache-fd-admission-r2020/run-batch.py normal",
+      "state": "FAIL",
+      "managed_payload_exit": 1,
+      "executed_candidate_sha256": "6b5e51f7c0a828c649fdee9442847422ea153311d8a31ea6667909455d393102",
+      "original36": {
+        "run": 36,
+        "passed": 36,
+        "failed": 0,
+        "test_bodies_unchanged": true
+      },
+      "existing_fakes": {
+        "run": 10,
+        "passed": 9,
+        "failed": 1,
+        "line203_passed": true,
+        "test_bodies_unchanged": true
+      },
+      "regressions": {
+        "methods": 8,
+        "passed": 8,
+        "failed": 0,
+        "scenarios": 14
+      },
+      "total": {
+        "run": 54,
+        "passed": 53,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failure": {
+        "method": "test_seals_and_frozen_fixture",
+        "line": 260,
+        "assertion": "with self.assertRaisesRegex(RuntimeError, 'Installed job differs'):",
+        "observed": "RuntimeError not raised",
+        "assertion_weakened": false
+      },
+      "outer_managed": [
+        {
+          "label": "controls-normal",
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cache-fd-admission-r2020/controls.py",
+            "normal"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+          "pid": 56264,
+          "pgid": 56264,
+          "state": "direct_reaped",
+          "exitCode": 1,
+          "bothEOF": true,
+          "closedFDs": true,
+          "seconds": 3.6091242500115186,
+          "ownedGroupAbsentESRCH": true
+        }
+      ],
+      "outer_terminal": true,
+      "inner_cache_command_rows": 7,
+      "expected_missing_executable_refusals": 1,
+      "inner_admitted_pgids": [
+        56271,
+        56272,
+        56274,
+        56276,
+        56284,
+        56288
+      ],
+      "inner_admitted_full_terminal_facts": true,
+      "direct_control": {
+        "pgids": [
+          56270
+        ],
+        "terminal_custody": true,
+        "cleanup": {
+          "aggregateBytes": 1383,
+          "aggregateLimit": 8388608,
+          "allTerminalCustody": true,
+          "hold": null,
+          "scratchRemoved": true
+        }
+      },
+      "timer_disarmed": true,
+      "new_real_hold": false,
+      "seconds": 3.6104315840639174,
+      "timeout_seconds": 110,
+      "stdout": {
+        "path": "verification/local/cache-fd-admission-r2020/normal-outer/controls-normal.stdout",
+        "bytes": 1046,
+        "sha256": "169239b5a33f81e0b75fbd364c72067865bfffaf1d95a3c673bc49f98c20e856"
+      },
+      "stderr": {
+        "path": "verification/local/cache-fd-admission-r2020/normal-outer/controls-normal.stderr",
+        "bytes": 11201,
+        "sha256": "89f3132dd40c810f3ee37c19549023e44325bacdbdac42370191ed2b2abc4384"
+      },
+      "full_result": {
+        "path": "verification/local/cache-fd-admission-r2020/normal-summary.json",
+        "bytes": 77551,
+        "sha256": "02146feb1d0e69011446852e0356a40381d3b85af65084cd801331e66bd4e71a"
+      },
+      "custody_registry": {
+        "path": "verification/local/cache-fd-admission-r2020/normal-outer/commands.json",
+        "bytes": 528,
+        "sha256": "b35f4d33a8da69ded275a830d78cd2a84b36add2fedf510ffa0e85eb107fc6a4"
+      },
+      "original36_identity": {
+        "adapted_sha256": "0d41e07c37fa32e1870b30e93e7f090e0ff7e8bc3c542a3a8d7e94e8d05eeddd",
+        "changed_helper_only": "accounting_row: clock keeps its last value after the original three observations; no test assertion changed",
+        "source_sha256": "1ec5eeb5a80d257aaebd22544f715abdaa0765daa24a45f077554422ff770ab2",
+        "test_bodies": {
+          "test_File_expected_counts_and_full_results_bound": "1dc00b2889bf661f2e2837b113d15723a4340d7b1ad57743bab4690e37dab9e6",
+          "test_changed_scratch_marker_preserves_recovery": "e34f11e586f25ec4abb9eab28743e7ab48709e8c7af3e4d16427e5b9291af66a",
+          "test_checks_active_under_optimized_python": "899e690ce69946f76b9c39842bd29b16dbe6a2239c93a4fa943d0bca7489a80f",
+          "test_cleanup_hashes_and_retains_before_delete": "5a2084ca543006541209a01aefab0e1adf2160575894da5d218bea40a19953d0",
+          "test_closed_pack_source_and_manifest": "c0adbcf5d2b541b03f152a43835f1b2e066aab5115a87cf3c864418ea22e7b03",
+          "test_commands_without_owned_scratch_start_nothing": "c4cf28cd82b83da0cc7dc0d8413720d8883e3f255b1383a654d7dcdd4d82c59a",
+          "test_derivative_exact_roster_and_suffix": "6da92a78f70bde278f5c224444840003043b880a166eae25d6ebd0ce157a8ae1",
+          "test_environment_scrubs_all_test_flags_and_caller_scratch": "594f5df4646c40362acf2341e3a0139e90ba4ba24789b96b29658e2a64485dc1",
+          "test_every_child_gets_owned_default_temporary_directory": "e55fd85bdb4e9a91a2256901cd5c6fe3c57563e8477cc2c45fdca00bc1231e1c",
+          "test_exact_methods_full_and_partition": "c80394cce170a09531da804e8b1ff9a9ab7355b0d09a5d67b4a4b74e0c259250",
+          "test_expired_global_deadline_starts_no_child": "e45c4e1d38a0ad56440a9244926484eb0677d341943cb319382927afd33f916d",
+          "test_fixture_temporary_override_stays_inside_owned_scratch": "27de48aa432cc10dc7e5a72a34bb32c0b56bdfd29a621ac1e0a732e74d9df14e",
+          "test_foreign_mismatched_or_symlink_temporary_directory_refused": "c5fdf657cd1b26cdfd6e561a9b74735e37972c73fbde9006d2daf02690920dd8",
+          "test_fresh_output_fixed_directory": "65494769ebed3858ac967678c6a1aeba7aa3fdefea506b9f93a9a1e63a5f750b",
+          "test_layouts_complete_and_no_duplicates": "e5c3dc6c8a8922c5ef2a1af0df9c2115158899fa200718708307bc8af6cf8287",
+          "test_manifest_rewrite_and_source_hash_override_rejected": "f2271ea650909eecf52d0dbf3cd783ee894d370a81aeea752e6a5e9657bfb833",
+          "test_missing_and_failed_commands_keep_raw_receipts": "075c0037af8e0216c688b0fcf89c2704d80a71748dfaff6f1f85ac4c9f59fbfa",
+          "test_missing_extra_mutated_pack_rejected": "816343d0eef771a3cdfdb233ba98aa384f5a736f1f563a5f4b7f7b73b596ac4b",
+          "test_mocked_cleanup_only_exception_is_reported_and_held": "e8a3a792324166ad56032eb60ac60927f3866fa45b2a2b15f34830aef742322f",
+          "test_mocked_cpu_custody_hold_withholds_delta": "62c043ff880f4020e03aace89f3d700225dcb099c06fc3c954bc9d899bed8ecc",
+          "test_mocked_cpu_failure_retains_aggregate_after_terminal_facts": "ca98d7dacfee112b808983e8380a177fd8679d3d779f01da2f1f4c1d6a0647d4",
+          "test_mocked_cpu_success_has_raw_snapshots_and_aggregate_delta": "c151f34469b8fa24d74d36b5d86caafc0981ce6717250637a8d863ba44e35f1e",
+          "test_mocked_cpu_timeout_retains_failure_and_aggregate": "5903cff6271431db11e4b889310875a7324344aca1ccccd8486a0297e6b942a8",
+          "test_mocked_primary_and_stop_exceptions_retain_terminal_receipt": "3b4fe52218219fbbc02527e479c0a80a5b7dc865a8d181b6e0fdbad0708ffc47",
+          "test_mocked_success_still_requires_positive_group_disappearance": "8c8e1c2dc909c79b66b06abd2022b80426045d012aafd1601191e30d0f5a2509",
+          "test_negative_api_binary_or_changed_source_refused": "31d49bfde46ce236d8556b2edc5bd853c6b7862c84c2f020ab556451f8275155",
+          "test_negative_api_exact_primary_closure": "d27236332c739291aed567a2634619e8d10a0cc004586e448c858f4e3e787fd3",
+          "test_negative_command_timeout_descendant_or_unreturned_refused": "0cb16fe12dc499628dfa0bf724d703269b9c6ac40def82eed4881e8afbfdcbcf",
+          "test_owned_descendant_group_is_stopped": "2c761c721cfb71bdcf2b182dfa05e7a6e575e3f39cf0a2743c85c6ba13f20e49",
+          "test_parent_components_refuse_binding_and_child_before_spawn": "8dd1a5fe3b8b93077c4bedd8df7a1139deb8e947cb1ea7e35ce15c665a06ca23",
+          "test_paths_symlinks_special_members": "296826b740d28997b4498a9a993149db3f534a95f8a46438dc623bc60c77b122",
+          "test_postflight_deadline_is_terminal_and_preserves_scratch": "c09c517103db8647f954a04f4102353c0ab44116ea2a2eb4fb116bbeca0ea5a3",
+          "test_retention_deadline_is_terminal_and_preserves_scratch": "fadb59444ff94e8129b548f07573a8f5de19710f6c5e824525feba254d7a9085",
+          "test_selected_compiler_identity_only": "0b08b0b421e2c5478f59f79108141ca34e3800e740571cefc67dc45d138f172b",
+          "test_timeout_owned_child_group_and_output_cap": "ece0ce5e0ca577698f16948c6417119879e762ff6e89d638e6b24dde9e30fce4",
+          "test_unclassified_nested_or_duplicate_diagnostic_errors_rejected": "b96f5b8cf46b4f771037a9f4844241e616f347c1a97e9dde3ebe86a21f81e65d"
+        }
+      },
+      "existing_fake_body_hashes": {
+        "test_actual_permission_denial_stays_unknown": "e4a89828589361d81f604120e754008476338c61125e85c55a4c5431eb61ee37",
+        "test_derivative_mutation_refused": "2d7d49fcc8d0ac31fe49f3e461d9603012182d87eddf521e3079f3f49748141f",
+        "test_forced_close_does_not_claim_eof": "edaea69113c985b7d0c948d8998bd0ab2db2deacc3f06d4d36a01819925a102d",
+        "test_inherited_timeout_post_reap_denial_and_finalizer": "52caa98796fd61ad3dc30d09a3d7e7e02d821661ed3a6dbd9dec94b594edc9e9",
+        "test_live_descendant_survives_leader_reap": "1b3dd14f43bc48e659b07de247ae591d75f2fa2ff89a87d6f773ccf4871f424e",
+        "test_positive_absence_and_both_eofs_release": "f48127a193a2fdb50663b23f73ea277e30492f8b7ae694466c7fd4c9f0ef9a08",
+        "test_prospective_wrapper_reuses_compiler_and_fixture": "d44f5fe426f4f2648ae446966b8b23477113d6fd8998e0385bc0df191ad85fe7",
+        "test_seals_and_frozen_fixture": "3316e3fb4bb0b4349ae8fe413a1ef5450dd0d6996fe0d79027707b3026aa9e88",
+        "test_successful_timeout_cleanup_still_fails_command": "979a3756266a9ac2a15dd092ee27c21ec9fbb54a15549da0765c718a80a19e6d",
+        "test_unreaped_leader_discriminates_order": "8b4ad8ce906880c3d7ca5a7de6839a56da3edb4aaf17c072595ed4226cc9fbb7"
+      }
+    },
+    {
+      "mode": "optimized",
+      "actual_optimize": 1,
+      "command": "python3 -B verification/local/cache-fd-admission-r2020/run-batch.py optimized",
+      "state": "FAIL",
+      "managed_payload_exit": 1,
+      "executed_candidate_sha256": "6b5e51f7c0a828c649fdee9442847422ea153311d8a31ea6667909455d393102",
+      "original36": {
+        "run": 36,
+        "passed": 36,
+        "failed": 0,
+        "test_bodies_unchanged": true
+      },
+      "existing_fakes": {
+        "run": 10,
+        "passed": 9,
+        "failed": 1,
+        "line203_passed": true,
+        "test_bodies_unchanged": true
+      },
+      "regressions": {
+        "methods": 8,
+        "passed": 8,
+        "failed": 0,
+        "scenarios": 14
+      },
+      "total": {
+        "run": 54,
+        "passed": 53,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failure": {
+        "method": "test_seals_and_frozen_fixture",
+        "line": 260,
+        "assertion": "with self.assertRaisesRegex(RuntimeError, 'Installed job differs'):",
+        "observed": "RuntimeError not raised",
+        "assertion_weakened": false
+      },
+      "outer_managed": [
+        {
+          "label": "controls-optimized",
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "-O",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/cache-fd-admission-r2020/controls.py",
+            "optimized"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+          "pid": 61603,
+          "pgid": 61603,
+          "state": "direct_reaped",
+          "exitCode": 1,
+          "bothEOF": true,
+          "closedFDs": true,
+          "seconds": 3.4211851250147447,
+          "ownedGroupAbsentESRCH": true
+        }
+      ],
+      "outer_terminal": true,
+      "inner_cache_command_rows": 7,
+      "expected_missing_executable_refusals": 1,
+      "inner_admitted_pgids": [
+        61609,
+        61619,
+        61621,
+        61622,
+        61625,
+        61629
+      ],
+      "inner_admitted_full_terminal_facts": true,
+      "direct_control": {
+        "pgids": [
+          61604
+        ],
+        "terminal_custody": true,
+        "cleanup": {
+          "aggregateBytes": 1407,
+          "aggregateLimit": 8388608,
+          "allTerminalCustody": true,
+          "hold": null,
+          "scratchRemoved": true
+        }
+      },
+      "timer_disarmed": true,
+      "new_real_hold": false,
+      "seconds": 3.4219750420888886,
+      "timeout_seconds": 110,
+      "stdout": {
+        "path": "verification/local/cache-fd-admission-r2020/optimized-outer/controls-optimized.stdout",
+        "bytes": 1061,
+        "sha256": "15fbfc41db252c48100071389c1955d675daa00c51cc281c8353ff41a0864f66"
+      },
+      "stderr": {
+        "path": "verification/local/cache-fd-admission-r2020/optimized-outer/controls-optimized.stderr",
+        "bytes": 11309,
+        "sha256": "19d199951ad5e92fe4a930aede57059a9b1d2f60a4c51c478fdf5aa66bf876a8"
+      },
+      "full_result": {
+        "path": "verification/local/cache-fd-admission-r2020/optimized-summary.json",
+        "bytes": 77921,
+        "sha256": "9317d0b00231433ef91dd36a904da1dea320f41af434c3d1407cdee2bc5c1893"
+      },
+      "custody_registry": {
+        "path": "verification/local/cache-fd-admission-r2020/optimized-outer/commands.json",
+        "bytes": 546,
+        "sha256": "0a4f2dd0e63781c9df76ecd210c0634bd2bf7415fe036d5d716a5a560da7f9e7"
+      },
+      "original36_identity": {
+        "adapted_sha256": "0d41e07c37fa32e1870b30e93e7f090e0ff7e8bc3c542a3a8d7e94e8d05eeddd",
+        "changed_helper_only": "accounting_row: clock keeps its last value after the original three observations; no test assertion changed",
+        "source_sha256": "1ec5eeb5a80d257aaebd22544f715abdaa0765daa24a45f077554422ff770ab2",
+        "test_bodies": {
+          "test_File_expected_counts_and_full_results_bound": "1dc00b2889bf661f2e2837b113d15723a4340d7b1ad57743bab4690e37dab9e6",
+          "test_changed_scratch_marker_preserves_recovery": "e34f11e586f25ec4abb9eab28743e7ab48709e8c7af3e4d16427e5b9291af66a",
+          "test_checks_active_under_optimized_python": "899e690ce69946f76b9c39842bd29b16dbe6a2239c93a4fa943d0bca7489a80f",
+          "test_cleanup_hashes_and_retains_before_delete": "5a2084ca543006541209a01aefab0e1adf2160575894da5d218bea40a19953d0",
+          "test_closed_pack_source_and_manifest": "c0adbcf5d2b541b03f152a43835f1b2e066aab5115a87cf3c864418ea22e7b03",
+          "test_commands_without_owned_scratch_start_nothing": "c4cf28cd82b83da0cc7dc0d8413720d8883e3f255b1383a654d7dcdd4d82c59a",
+          "test_derivative_exact_roster_and_suffix": "6da92a78f70bde278f5c224444840003043b880a166eae25d6ebd0ce157a8ae1",
+          "test_environment_scrubs_all_test_flags_and_caller_scratch": "594f5df4646c40362acf2341e3a0139e90ba4ba24789b96b29658e2a64485dc1",
+          "test_every_child_gets_owned_default_temporary_directory": "e55fd85bdb4e9a91a2256901cd5c6fe3c57563e8477cc2c45fdca00bc1231e1c",
+          "test_exact_methods_full_and_partition": "c80394cce170a09531da804e8b1ff9a9ab7355b0d09a5d67b4a4b74e0c259250",
+          "test_expired_global_deadline_starts_no_child": "e45c4e1d38a0ad56440a9244926484eb0677d341943cb319382927afd33f916d",
+          "test_fixture_temporary_override_stays_inside_owned_scratch": "27de48aa432cc10dc7e5a72a34bb32c0b56bdfd29a621ac1e0a732e74d9df14e",
+          "test_foreign_mismatched_or_symlink_temporary_directory_refused": "c5fdf657cd1b26cdfd6e561a9b74735e37972c73fbde9006d2daf02690920dd8",
+          "test_fresh_output_fixed_directory": "65494769ebed3858ac967678c6a1aeba7aa3fdefea506b9f93a9a1e63a5f750b",
+          "test_layouts_complete_and_no_duplicates": "e5c3dc6c8a8922c5ef2a1af0df9c2115158899fa200718708307bc8af6cf8287",
+          "test_manifest_rewrite_and_source_hash_override_rejected": "f2271ea650909eecf52d0dbf3cd783ee894d370a81aeea752e6a5e9657bfb833",
+          "test_missing_and_failed_commands_keep_raw_receipts": "075c0037af8e0216c688b0fcf89c2704d80a71748dfaff6f1f85ac4c9f59fbfa",
+          "test_missing_extra_mutated_pack_rejected": "816343d0eef771a3cdfdb233ba98aa384f5a736f1f563a5f4b7f7b73b596ac4b",
+          "test_mocked_cleanup_only_exception_is_reported_and_held": "e8a3a792324166ad56032eb60ac60927f3866fa45b2a2b15f34830aef742322f",
+          "test_mocked_cpu_custody_hold_withholds_delta": "62c043ff880f4020e03aace89f3d700225dcb099c06fc3c954bc9d899bed8ecc",
+          "test_mocked_cpu_failure_retains_aggregate_after_terminal_facts": "ca98d7dacfee112b808983e8380a177fd8679d3d779f01da2f1f4c1d6a0647d4",
+          "test_mocked_cpu_success_has_raw_snapshots_and_aggregate_delta": "c151f34469b8fa24d74d36b5d86caafc0981ce6717250637a8d863ba44e35f1e",
+          "test_mocked_cpu_timeout_retains_failure_and_aggregate": "5903cff6271431db11e4b889310875a7324344aca1ccccd8486a0297e6b942a8",
+          "test_mocked_primary_and_stop_exceptions_retain_terminal_receipt": "3b4fe52218219fbbc02527e479c0a80a5b7dc865a8d181b6e0fdbad0708ffc47",
+          "test_mocked_success_still_requires_positive_group_disappearance": "8c8e1c2dc909c79b66b06abd2022b80426045d012aafd1601191e30d0f5a2509",
+          "test_negative_api_binary_or_changed_source_refused": "31d49bfde46ce236d8556b2edc5bd853c6b7862c84c2f020ab556451f8275155",
+          "test_negative_api_exact_primary_closure": "d27236332c739291aed567a2634619e8d10a0cc004586e448c858f4e3e787fd3",
+          "test_negative_command_timeout_descendant_or_unreturned_refused": "0cb16fe12dc499628dfa0bf724d703269b9c6ac40def82eed4881e8afbfdcbcf",
+          "test_owned_descendant_group_is_stopped": "2c761c721cfb71bdcf2b182dfa05e7a6e575e3f39cf0a2743c85c6ba13f20e49",
+          "test_parent_components_refuse_binding_and_child_before_spawn": "8dd1a5fe3b8b93077c4bedd8df7a1139deb8e947cb1ea7e35ce15c665a06ca23",
+          "test_paths_symlinks_special_members": "296826b740d28997b4498a9a993149db3f534a95f8a46438dc623bc60c77b122",
+          "test_postflight_deadline_is_terminal_and_preserves_scratch": "c09c517103db8647f954a04f4102353c0ab44116ea2a2eb4fb116bbeca0ea5a3",
+          "test_retention_deadline_is_terminal_and_preserves_scratch": "fadb59444ff94e8129b548f07573a8f5de19710f6c5e824525feba254d7a9085",
+          "test_selected_compiler_identity_only": "0b08b0b421e2c5478f59f79108141ca34e3800e740571cefc67dc45d138f172b",
+          "test_timeout_owned_child_group_and_output_cap": "ece0ce5e0ca577698f16948c6417119879e762ff6e89d638e6b24dde9e30fce4",
+          "test_unclassified_nested_or_duplicate_diagnostic_errors_rejected": "b96f5b8cf46b4f771037a9f4844241e616f347c1a97e9dde3ebe86a21f81e65d"
+        }
+      },
+      "existing_fake_body_hashes": {
+        "test_actual_permission_denial_stays_unknown": "e4a89828589361d81f604120e754008476338c61125e85c55a4c5431eb61ee37",
+        "test_derivative_mutation_refused": "2d7d49fcc8d0ac31fe49f3e461d9603012182d87eddf521e3079f3f49748141f",
+        "test_forced_close_does_not_claim_eof": "edaea69113c985b7d0c948d8998bd0ab2db2deacc3f06d4d36a01819925a102d",
+        "test_inherited_timeout_post_reap_denial_and_finalizer": "52caa98796fd61ad3dc30d09a3d7e7e02d821661ed3a6dbd9dec94b594edc9e9",
+        "test_live_descendant_survives_leader_reap": "1b3dd14f43bc48e659b07de247ae591d75f2fa2ff89a87d6f773ccf4871f424e",
+        "test_positive_absence_and_both_eofs_release": "f48127a193a2fdb50663b23f73ea277e30492f8b7ae694466c7fd4c9f0ef9a08",
+        "test_prospective_wrapper_reuses_compiler_and_fixture": "d44f5fe426f4f2648ae446966b8b23477113d6fd8998e0385bc0df191ad85fe7",
+        "test_seals_and_frozen_fixture": "3316e3fb4bb0b4349ae8fe413a1ef5450dd0d6996fe0d79027707b3026aa9e88",
+        "test_successful_timeout_cleanup_still_fails_command": "979a3756266a9ac2a15dd092ee27c21ec9fbb54a15549da0765c718a80a19e6d",
+        "test_unreaped_leader_discriminates_order": "8b4ad8ce906880c3d7ca5a7de6839a56da3edb4aaf17c072595ed4226cc9fbb7"
+      }
+    }
+  ],
+  "budget": {
+    "batches": 2,
+    "maximum_batches": 2,
+    "total_seconds_limit": 240,
+    "per_batch_timeout_seconds": [
+      110,
+      110
+    ],
+    "maximum_combined_timeouts_with_cleanup_seconds": 230,
+    "aggregate_managed_seconds": 7.032406626152806,
+    "monotonic_campaign_deadline_enforced": true
+  },
+  "custody": {
+    "new_real_hold": false,
+    "managed_outer_pgids": [
+      56264,
+      61603
+    ],
+    "managed_outer_direct_reaped_both_eof_parent_fds_closed_positive_esrch": true,
+    "original_suite_real_groups_all_terminal": true,
+    "injected_denial_real_processes": 0,
+    "synthetic_unknown_cases_retained_as_fake_evidence": true,
+    "unmanaged_tool_bootstrap_custody": "NOT_INDEPENDENTLY_OBSERVED",
+    "historical_held_resources_accessed": false,
+    "historical_holds_released": false
+  },
+  "custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchanged_ast_definitions": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "explicit_existing_cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+    "serial_own_registry": true,
+    "launcher_gate_adjustment_between_batches": "Allow completed FAIL with terminal custody and all 54 tests to run the independent actual-O batch; no test assertion, fixture, payload or candidate change."
+  },
+  "environment": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "kernel_release": "27.0.0",
+    "machine": "arm64"
+  },
+  "source_tree_digest_sha256": "ab2bd4b65f49c72fd43de6293747256d2b84170d379e90f8c22cc14b5994ad66",
+  "protected_preimages": {
+    "path": "verification/local/cache-fd-admission-r2020/preimages.json",
+    "bytes": 1712,
+    "sha256": "19e991dbc6ee023ca051c877e61e43b55f5e669084205024dd919084f28d0584"
+  },
+  "all_protected_preimages_unchanged": true,
+  "executed_private_payload": {
+    "path": "verification/local/cache-fd-admission-r2020/controls-tested.py",
+    "bytes": 19260,
+    "sha256": "33122fe252d00becd67bd2497684ce3e6d96b08b1718f344c4872fd591736fe8"
+  },
+  "prospective_private_payload_with_unexecuted_case": {
+    "path": "verification/local/cache-fd-admission-r2020/controls.py",
+    "bytes": 21092,
+    "sha256": "08a2529a5449ca3e2d18d0bff6d6e1fb87e03eaec54f54bc7e12333825cb73ed"
+  },
+  "source_proof": {
+    "path": "verification/local/cache-fd-admission-r2020/source-proof.json",
+    "bytes": 622,
+    "sha256": "25322387830cb2cb5f00c3d382efb025a574a31960472c3a01cdcb1408446591"
+  },
+  "canonical_writes": 0,
+  "original_test_writes": 0,
+  "index_or_git_writes": 0,
+  "compiler_db_browser_native_cloud_provider_ci_actions": 0,
+  "subchildren": 0,
+  "owned_paths": [
+    "verification/local/cache-fd-admission-r2020",
+    "verification/receipts/cache-fd-admission-r2020.json"
+  ]
+}

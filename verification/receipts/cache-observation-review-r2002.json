@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "id": "cache-observation-review-r2002",
+  "verdict": "REQUEST_CHANGES",
+  "source_admission": "NOT_ADOPTED",
+  "future_observation_state": "LEGITIMATE_IN_PRINCIPLE_IF_OWNERSHIP_ADMISSION_AND_COMPLETE_TERMINAL_FACTS_ARE_RETAINED",
+  "candidate": {
+    "path": "verification/local/cache-postkill-observation-r1994/commands.py",
+    "sha256": "1f653020c56a83fdf93ded277c10a15f648a6670128ff0bdfebc58c226021470",
+    "canonical_path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/commands.py",
+    "canonical_sha256": "7cacf4d5ccc2158924b9b2f7b782fc68fcbf49b10b0cc860ed94ac03b3520d13",
+    "only_stop_changed": true,
+    "nine_producer_source_bindings_verified": true
+  },
+  "findings": [
+    {
+      "priority": "P1",
+      "title": "Descriptor-close EPERM reopens admission after transient post-kill observation",
+      "source_lines": [112, 128, 133, 134],
+      "mechanism": "EOF flags precede close; final release predicate omits positive descriptor closure",
+      "counterexample": {
+        "injected_failure_only": true,
+        "real_os_failure_claimed": false,
+        "successful_sigkill": true,
+        "direct_wait_returned": true,
+        "postkill_eperm_count": 3,
+        "positive_synthetic_esrch": true,
+        "both_eof": true,
+        "stderr_closed": false,
+        "candidate_active_retained": false,
+        "candidate_unknown": false,
+        "candidate_custody_hold": false,
+        "candidate_new_admission_reached_environment": true,
+        "candidate_accounting_marked_terminal": true,
+        "baseline_active_retained": true,
+        "baseline_unknown": true,
+        "command_still_raised": "PermissionError",
+        "second_process_launched": false
+      },
+      "evidence": "verification/local/cache-observation-review-r2002/replay-result.json",
+      "test": "Checks.test_late_descriptor_eperm_candidate_and_baseline"
+    }
+  ],
+  "existing_test_contract": {
+    "path": "verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8/test_fakes.py",
+    "line": 203,
+    "assertion": "self.assertEqual(world.events[denial + 1:], [])",
+    "status": "UNRESOLVED_ROOT_AUTHORIZATION_REQUIRED",
+    "conflict_proof": "Exact source assertion versus executed persistent trace containing further signal-zero observations",
+    "original_assertion_changed": false,
+    "executed_failure_at_line203_claimed": false,
+    "review_harness_limitation": "Two AST-extracted fake classes shared global World; wrong class reached the frozen branch, which errored before line203. Preserved without rerun."
+  },
+  "producer_evidence": {
+    "receipt": "verification/receipts/cache-postkill-observation-r1994.json",
+    "normal_original36_passed": true,
+    "normal_prospective8_passed": true,
+    "actual_optimized_original36_passed": true,
+    "actual_optimized_prospective8_passed": true,
+    "original_test_body_hashes_verified": 36,
+    "raw_producer_log_hashes_verified": true,
+    "both_inner_registries_terminal_without_holds": true,
+    "cache_rows_per_mode": 7,
+    "expected_spawn_refusal_per_mode": 1,
+    "admitted_cache_commands_per_mode": 6,
+    "direct_optimized_control_recorded_terminal_per_mode": true,
+    "normal_managed_exit": 1,
+    "optimized_managed_exit": 0,
+    "normal_failure": "After all tests: platform.platform -> uname setup -> stdin_guard DEVNULL refusal before _execute_child",
+    "metadata_setup_descriptor_closure_independently_verified": false,
+    "managed_transport_custody_verified": true,
+    "unmanaged_bootstrap_group_absence_claimed": false,
+    "aggregate_descriptor_closure_claimed_for_cache_rows": false,
+    "actual_postkill_eperm_observed_in_real_descendant_samples": 0
+  },
+  "review_execution": {
+    "command": "python3 -B verification/local/cache-observation-review-r2002/run-payload.py",
+    "payloads": 1,
+    "checks": 4,
+    "passed": 3,
+    "failed_due_to_review_harness": 1,
+    "overall_successful": false,
+    "managed_payload_exit": 1,
+    "preceding_preflight_refusal": "Log matcher did not allow diagnostic-split ok output; no replay case ran",
+    "managed_command_groups": [38846, 41159],
+    "both_managed_groups_direct_reaped_both_eof_closed_parent_fds_positive_esrch": true,
+    "unmanaged_bootstrap_custody": "NOT_INDEPENDENTLY_OBSERVED",
+    "registry": "verification/local/cache-observation-review-r2002/transport/commands.json",
+    "inner_real_processes": 0,
+    "inner_real_group_operations": 0,
+    "python": "3.14.8",
+    "kernel": "Darwin 27.0.0 arm64"
+  },
+  "custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchanged_ast_definitions": ["read", "save", "row", "InertPopen", "run"],
+    "explicit_existing_cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+    "serial_own_registry": true
+  },
+  "admission_conditions": [
+    "Require positive descriptor/selector closure before custody/accounting/admission release; retain ownership on closure failure",
+    "Root explicitly resolves unchanged fake assertion; do not merely remove or waive it",
+    "Narrow successful-SIGKILL plus successful direct reap entry; observation only, no nonzero signals, unchanged bound, complete positive terminal facts",
+    "Persistent or other refusals remain fail-closed; UNKNOWN stays sticky; timeout remains command failure",
+    "Authorized future validation includes relevant existing fakes, original36 normal and actual-O, and descriptor-failure counterexample",
+    "Fresh admitted resources only; no historical hold access, reset, probe, retry or release"
+  ],
+  "report": "verification/local/cache-observation-review-r2002/REPORT.md",
+  "canonical_or_candidate_writes": 0,
+  "original_test_writes": 0,
+  "index_or_git_writes": 0,
+  "provider_or_ci_actions": 0,
+  "compiler_native_browser_cloud_actions": 0,
+  "subchildren": 0,
+  "historical_held_resources_accessed": false,
+  "historical_holds_released": false,
+  "new_real_inner_hold": false,
+  "owned_paths": [
+    "verification/local/cache-observation-review-r2002",
+    "verification/receipts/cache-observation-review-r2002.json"
+  ]
+}

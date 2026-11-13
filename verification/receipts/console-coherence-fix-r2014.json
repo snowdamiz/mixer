@@ -1,0 +1,296 @@
+{
+  "id": "console-coherence-fix-r2014",
+  "recordedUTC": "2026-11-13T05:19:49.522281+00:00",
+  "status": "PRIVATE_FIX_IMPLEMENTED_VALIDATION_INCOMPLETE_TEST_CAP_REACHED",
+  "decision": "R2006-F1 is fixed in private frontend afterimages. Do not admit as fully verified: the sole complete candidate run was 217/219, and corrected test expectations remain unexecuted under the explicit two-invocation cap. Root owns independent review and any v20 admission.",
+  "finding": "R2006-F1 P2: accepted Failed revision4 regressed to catalogue Queued revision2 during same-selection refresh and after invalid replies.",
+  "implementation": {
+    "files": {
+      "console/src/components/ApplicationBuildPage.tsx": {
+        "before": {
+          "bytes": 10309,
+          "sha256": "f41d6843e031eeecd6cb737ba66437b4c25c2289e3f6869ee6873397f93ad005"
+        },
+        "r1998Before": {
+          "bytes": 11112,
+          "sha256": "4b1bf2ca18345ffde152880992d4aa7137593f00a004124be0364b40038aef32"
+        },
+        "after": {
+          "bytes": 11229,
+          "sha256": "88c1032fc3758da8acdd166c1bef3e9ede2a55d5107749bd29964a87f3a94fce"
+        }
+      },
+      "console/src/state/build-selection-controller.ts": {
+        "before": {
+          "bytes": 16513,
+          "sha256": "d62c21c36a11aed19cbaa65d1938d0872c07327008df044843d006a4ed045f6c"
+        },
+        "r1998Before": {
+          "bytes": 16513,
+          "sha256": "d62c21c36a11aed19cbaa65d1938d0872c07327008df044843d006a4ed045f6c"
+        },
+        "after": {
+          "bytes": 17475,
+          "sha256": "034a1811233df08970f5f30a78f9ee70e46f13765fc2f0b0f7f329d0b547e2b3"
+        }
+      },
+      "console/tests/application-build-page.test.mjs": {
+        "before": {
+          "bytes": 14133,
+          "sha256": "64c91a54908465757eee764f18b232cadfa1b7a7cb44d3b42442d14cba2b90d0"
+        },
+        "r1998Before": {
+          "bytes": 16287,
+          "sha256": "860867e72fbba2482f19bfabcee82fca1b1bdd9b0a8212bb948edb2fd26096b8"
+        },
+        "after": {
+          "bytes": 18004,
+          "sha256": "df7babc4e38bf72a085aa3327bee06de3b8cca20867659f511f88680172a0be2"
+        }
+      },
+      "console/tests/build-selection-controller.test.mjs": {
+        "before": {
+          "bytes": 24567,
+          "sha256": "bb7f1041b0708d1bc5f3474585239074dc9715c02e8e286bcc6c9d3a2aaa4592"
+        },
+        "r1998Before": {
+          "bytes": 24567,
+          "sha256": "bb7f1041b0708d1bc5f3474585239074dc9715c02e8e286bcc6c9d3a2aaa4592"
+        },
+        "after": {
+          "bytes": 24692,
+          "sha256": "d534d18a38d69f933287255ed8d22d03bb267f3289a09deb1e4e52ba7502510d"
+        }
+      }
+    },
+    "semantics": "Controller carries one already parsed and accepted ready snapshot in typed loading/recoverable-error variants only when all immutable selection fields match and its revision is at least the retained floor. Row presentation consumes that observation under the unchanged eight-field identity and row revision comparison. Overview still displays the existing loading/error message. New selection, applications/build-page/workspace/session reset, disposal and authorization/availability failures erase the observation. Live request, generation, client, parser, read-capability and abort fences remain unchanged. No previous-observation chains.",
+    "publicStateChange": "DetailLoad adds previous: ReadyDetail to loading and invalid_response/request_failed variants. Existing loading/error discriminants remain unchanged. Controller test expectations updated accordingly.",
+    "backendSignInDependenciesAuthorityChanges": false
+  },
+  "verification": {
+    "baseline": {
+      "tests": 18,
+      "pass": 0,
+      "fail": 18,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "baselineFailure": "All 18 cases actually rendered iOSb-iosQueued instead of retained Failed: nine pending and nine after rejected reply.",
+    "candidateFocused": {
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "scope": "Compiled real Solid handlers with existing inert DOM substrate and actual session/controller/parser/HTTP-client code; not browser layout qualification."
+    },
+    "completeFrontendSuite": {
+      "tests": 219,
+      "pass": 217,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "singleAllGreenCompleteSuite": false,
+    "failuresAndTestCorrections": {
+      "testInvocationsUsed": 2,
+      "thirdInvocationForbidden": true,
+      "completeSuiteRecorded": {
+        "tests": 219,
+        "pass": 217,
+        "fail": 2
+      },
+      "failures": [
+        {
+          "test": "changing selected build drops its observation and never blends a late refresh",
+          "actual": "iOSb-iosQueued\u2192Androidc-androidSucceeded\u2192",
+          "reason": "New assertion omitted the existing arrow separator; replaced with independent exact row assertions."
+        },
+        {
+          "test": "BROWSER_WRAPPER: build-selection-controller",
+          "reason": "Existing deepEqual error-state assertions omit newly retained previous: accepted.detail; five expectations updated. Inner failure output was not surfaced by existing wrapper; diagnosis is source-based."
+        }
+      ],
+      "correctedTestAfterimagesExecuted": false,
+      "productTSChangedAfterCandidateSuite": false
+    },
+    "typecheck": "PASS tsc --noEmit",
+    "frontendApplicationBuild": "PASS one Vite build",
+    "productTypeScriptBytesUnchangedAfterSuite": true,
+    "finalTestExpectationsExecuted": false,
+    "original201SuiteRelationship": "R1998 201 top-level tests minus one weak case plus 18 checkpoint cases plus one selected-build reset case =219. 217/219 is not represented as 201/201 or 219/219.",
+    "allWebsiteAndHostedScopeCopiedAndVerifiedBeforeEitherTest": true,
+    "sourceProof": "input-proof-before-any-test.json, baseline-input-proof.json, candidate-input-proof.json, final-input-proof.json, final-source-proof.json"
+  },
+  "browser": {
+    "freshCampaigns": 0,
+    "reason": "R1998 real local browser proof already covers coherent row/detail ready rendering through the unchanged sign-in/backend/bridge. New compiled Solid checkpoint tests directly cover pending and rejected-reply behavior. No repeated DB/browser campaign solely for counts.",
+    "existingEvidence": "verification/receipts/console-status-coherence-r1998.json",
+    "inheritedScope": "Local synthetic provider and fixed R1982 bridge; external provider/TLS, production and GA remain unqualified."
+  },
+  "source": {
+    "canonicalBase": "v19 sign-in-only per task; all 76 canonical frontend input bytes rechecked against R1998 manifest/preimages before execution and after packaging. Authority metadata unchanged.",
+    "finalTreeSHA256": "35b38c198d69817fa8b07bffbd8bcbece3a3282a9e0ec8de6f4ff84e214e0d82",
+    "candidateAfterimageFiles": 4,
+    "canonicalAndR1998ProducerWrites": false
+  },
+  "custody": {
+    "ASTDefinitionsOnly": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "definitionsUnchangedFromR1998ExtractedR986": true,
+    "sourceProof": {
+      "packet": {
+        "bytes": 2552,
+        "sha256": "69f4f377ee29f9e0e1842be3a6d86563a50cd006c12230dbb0cd59b2fd0e519a"
+      },
+      "definitionNames": [
+        "read",
+        "save",
+        "row",
+        "InertPopen",
+        "run"
+      ],
+      "ASTDefinitionsUnchanged": true,
+      "originalDeclaredSourceSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+      "note": "R1998 extracted R986 definitions used unchanged; packet whole-file identity differs from original."
+    },
+    "explicitExistingCwd": true,
+    "ownSerialRegistries": true,
+    "managedCommands": 5,
+    "directReapedBothEOFClosedFDsGroupAbsentESRCH": true,
+    "UNKNOWN": [],
+    "newHold": false,
+    "historicalHoldsReleased": false
+  },
+  "limits": {
+    "testInvocations": 2,
+    "testInvocationCap": 2,
+    "frontendApplicationBuilds": 1,
+    "subchildren": 0,
+    "freshDBBrowserCampaigns": 0,
+    "nativePhysicalCloudProviderCIWrites": false,
+    "secondsFromPrivatePreparation": 225.293,
+    "wallBudgetSeconds": 720
+  },
+  "versions": {
+    "node": "v22.23.3",
+    "typescript": "5.9.3",
+    "vite": "8.3.5",
+    "solid": "1.9.17"
+  },
+  "ownership": {
+    "writesOnly": [
+      "verification/local/console-coherence-fix-r2014",
+      "verification/receipts/console-coherence-fix-r2014.json"
+    ],
+    "gitIndexCanonicalR1998ReadOnly": true,
+    "stagingOrDelivery": false
+  },
+  "rootNext": [
+    "Independently review the changed controller/component contract and final test afterimages.",
+    "Do not claim a full suite pass from this packet. A separately authorized fresh complete suite must execute the corrected test expectations before acceptance.",
+    "Root alone owns v20 source admission and delivery."
+  ],
+  "artifacts": {
+    "application-map.json": {
+      "path": "verification/local/console-coherence-fix-r2014/application-map.json",
+      "bytes": 1791,
+      "sha256": "b43fe08f8b6b76159ebca669c589106fd3a7b7add04fedd60b8c6c6ee7186285"
+    },
+    "candidate.diff": {
+      "path": "verification/local/console-coherence-fix-r2014/candidate.diff",
+      "bytes": 20723,
+      "sha256": "1ddb4e02552fe5a100574553f15a9cf9e40c07dc2f6cd979f016a3416adb8bfb"
+    },
+    "r1998-fix.diff": {
+      "path": "verification/local/console-coherence-fix-r2014/r1998-fix.diff",
+      "bytes": 14735,
+      "sha256": "82022b9dfac09f0784a209bb4e21b65d4c69f20672411d5ec6a48a7ba5990d04"
+    },
+    "input-proof-before-any-test.json": {
+      "path": "verification/local/console-coherence-fix-r2014/input-proof-before-any-test.json",
+      "bytes": 45473,
+      "sha256": "fdbbe6c2ba3e50e161a18d149ccd3f281ba8f4000c39fc2539fdac20688f03fe"
+    },
+    "baseline-input-proof.json": {
+      "path": "verification/local/console-coherence-fix-r2014/baseline-input-proof.json",
+      "bytes": 19401,
+      "sha256": "d3e36ef1276a96ba5c82c97f46bf020677b05e63d18ad02f354417c01b7cdc59"
+    },
+    "candidate-input-proof.json": {
+      "path": "verification/local/console-coherence-fix-r2014/candidate-input-proof.json",
+      "bytes": 19401,
+      "sha256": "7b9b5ca14d8a3ef07e42d0590b3941c3bbea236d24667456c748bd55ee9de845"
+    },
+    "final-input-proof.json": {
+      "path": "verification/local/console-coherence-fix-r2014/final-input-proof.json",
+      "bytes": 19401,
+      "sha256": "b4cb01c5b60541651492fac045f742f7d399912f0438c70ca49cdc727687dba7"
+    },
+    "final-source-proof.json": {
+      "path": "verification/local/console-coherence-fix-r2014/final-source-proof.json",
+      "bytes": 33094,
+      "sha256": "fb65b39225a0df97fff86e3fade6920f003c4864e27bf16e330df75313377a3a"
+    },
+    "all-command-records.json": {
+      "path": "verification/local/console-coherence-fix-r2014/all-command-records.json",
+      "bytes": 4006,
+      "sha256": "74104a4a03c0df125c58d25beb0e10b6b2031cd0eb3c500f73f1ee010a147b5c"
+    },
+    "focused-proof.json": {
+      "path": "verification/local/console-coherence-fix-r2014/focused-proof.json",
+      "bytes": 2006,
+      "sha256": "1034ecfdbb23ed1930b0d92ebf73db1b951652efa10f6b57b8001b3262e79f0c"
+    },
+    "test-expectation-corrections.json": {
+      "path": "verification/local/console-coherence-fix-r2014/test-expectation-corrections.json",
+      "bytes": 854,
+      "sha256": "7fbac24b8a2d11f89c9c472008dcfe668a8a8a8c6d16bde3320bdf61b8764a7b"
+    },
+    "custodian-source-proof.json": {
+      "path": "verification/local/console-coherence-fix-r2014/custodian-source-proof.json",
+      "bytes": 462,
+      "sha256": "0f4fd27632c4261223560be4c0bce3a4c476173e5743d862a24f7d8fb648b055"
+    },
+    "run-validation.py": {
+      "path": "verification/local/console-coherence-fix-r2014/run-validation.py",
+      "bytes": 3134,
+      "sha256": "93aea2e316bf9a2ab01d64959c73109cb0e5eacd7024ed8e6876f7829451a7b4"
+    },
+    "finish-validation.py": {
+      "path": "verification/local/console-coherence-fix-r2014/finish-validation.py",
+      "bytes": 2804,
+      "sha256": "f86f61a29f3dfb2098046bfbcc5797fd119fa19190de1dd239d1b34d80824664"
+    },
+    "baseline/baseline.stdout": {
+      "path": "verification/local/console-coherence-fix-r2014/baseline/baseline.stdout",
+      "bytes": 18058,
+      "sha256": "e8efbd7e06eab9ca5b23e96d395b98f85e5a223e5fc82d132a4f6d4b10aff9f6"
+    },
+    "candidate-suite/candidate-suite.stdout": {
+      "path": "verification/local/console-coherence-fix-r2014/candidate-suite/candidate-suite.stdout",
+      "bytes": 70024,
+      "sha256": "1a1abdd6a60447341bf7555ab950bc68f46032d780ff8afb3b58fe8d8037ff4c"
+    },
+    "typecheck/commands.json": {
+      "path": "verification/local/console-coherence-fix-r2014/typecheck/commands.json",
+      "bytes": 523,
+      "sha256": "cf7ad51f17f3e1aef916423b4017a882b386bb54108c0be5a74e96e2e3ddc4fe"
+    },
+    "candidate-build/candidate-build.stdout": {
+      "path": "verification/local/console-coherence-fix-r2014/candidate-build/candidate-build.stdout",
+      "bytes": 348,
+      "sha256": "e7b482b9fd7986c9c40e758716ab4bafa7e912f5c350fd8ea9f8c12e5ca87f0c"
+    },
+    "executed-application-build-page.test.mjs": {
+      "path": "verification/local/console-coherence-fix-r2014/executed-application-build-page.test.mjs",
+      "bytes": 17978,
+      "sha256": "72d8423d836ea370d8d04cf54d856fa493c6a8bc91282164e26eca13d1ac84d4"
+    }
+  }
+}

@@ -1,0 +1,285 @@
+{
+  "schema": 1,
+  "id": "build-read-boundary-r2026",
+  "status": "BLOCKED_CONTROL_HARNESS",
+  "source": {
+    "source_digest": "dd08dae24b94f7f0d9a2075ce427ee6dad895c6e68d4fcae9ad7691e78997867",
+    "source_count": 286,
+    "complete_inputs": 528,
+    "hash_verified_BEAM_files": 1233,
+    "hash_verified_dependency_files": 1884,
+    "hash_verified_hex_files": 133,
+    "canonical_readonly": true,
+    "three_BEAM_batches_max": true,
+    "compile_info_and_exports_before_pg": {
+      "exports": true,
+      "compile_info": true
+    },
+    "canonical_selected_inputs_unchanged": true,
+    "canonical_source_index_Git_readonly": true,
+    "complete_private_inputs_manifest": "verification/local/build-read-boundary-r2026/private-before.json"
+  },
+  "baseline": {
+    "exit": 0,
+    "diagnostics": [
+      {
+        "result": "ok",
+        "role": "owner",
+        "stage": "role_result"
+      },
+      {
+        "result": "ok",
+        "role": "administrator",
+        "stage": "role_result"
+      },
+      {
+        "result": "ok",
+        "role": "developer",
+        "stage": "role_result"
+      },
+      {
+        "result": "ok",
+        "role": "release_manager",
+        "stage": "role_result"
+      },
+      {
+        "result": "ok",
+        "role": "viewer",
+        "stage": "role_result"
+      }
+    ],
+    "stdout": {
+      "path": "logs/00001-baseline.stdout",
+      "bytes": 3735,
+      "sha256": "11642aaf4d53b26bdc3309648c3b431781b7bac86c6692591d16d6edb52b9f63"
+    },
+    "stderr": {
+      "path": "logs/00001-baseline.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "actual_test_body": true,
+    "full_suite": false,
+    "status": "PASS",
+    "executed": 1,
+    "passed": 1,
+    "failed": 0,
+    "excluded": 10,
+    "role_case_title": "build purpose accepts each allowed human role, viewer needs no environment, billing alone denied",
+    "canonical_location": "hosted/test/customer_build_read_test.exs:613",
+    "case_elapsed_ms": 130.7,
+    "fixture_role_migrations_from_R2004_R2010": true,
+    "billing_forged_role_scope_nil_assertions_completed": true
+  },
+  "control": {
+    "exit": 2,
+    "diagnostics": [
+      {
+        "role": "owner",
+        "stage": "exception",
+        "error_class": "ArgumentError"
+      },
+      {
+        "result": "authorization_unavailable",
+        "role": "owner",
+        "stage": "role_result"
+      }
+    ],
+    "stdout": {
+      "path": "logs/00014-control.stdout",
+      "bytes": 6180,
+      "sha256": "85c0040f41286e4d5ed583ffeb1ccb34de28bdc518523db6ef6915e5e8f86900"
+    },
+    "stderr": {
+      "path": "logs/00014-control.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "actual_test_body": true,
+    "full_suite": false,
+    "status": "INVALID_HARNESS_COUNTEREXAMPLE",
+    "executed": 1,
+    "passed": 0,
+    "failed": 1,
+    "excluded": 10,
+    "case_elapsed_ms": 59.8,
+    "role": "owner",
+    "observed_error_class": "ArgumentError",
+    "controlled_second_crossing_observed": false,
+    "deadline_remaining_ms": null,
+    "publication_guard_decision": "UNPROVEN",
+    "diagnostic_defects": [
+      {
+        "source": "probe.exs",
+        "expression": "not Process.get(:r2026_crossed)",
+        "problem": "Elixir strict not rejects the initial nil value; the scheduling hook raises ArgumentError before it can wait across a second.",
+        "attribution": "diagnostic source + emitted ArgumentError; no exception stack was captured"
+      },
+      {
+        "source": "run.py",
+        "problem": "After fixture provisioning env is replaced by dict(C.ENV), dropping R1072_TRANSACTION_EVIDENCE. The control telemetry handler raises System.EnvError and detaches; the baseline retained that variable.",
+        "direct_log_evidence": true
+      }
+    ],
+    "no_product_counterexample_claim": true
+  },
+  "cleanup": {
+    "single_pg_stop_exit": 0,
+    "postgres_group_absent": true,
+    "port_reusable": true,
+    "managed_commands": 15,
+    "all_direct_reaped_EOF_FD_closed_group_ESRCH": true
+  },
+  "scope": "One canonical focused role case, one real SQL post-COMMIT boundary control, and conditional private minimal fix with negative controls; original 5s deadline.",
+  "elapsed_seconds": 3.768,
+  "port_preflight": {
+    "port": 39440,
+    "ordinary_free_bind": true,
+    "shared_5432_access": false
+  },
+  "postgres": {
+    "pid": 60673,
+    "pgid": 60673,
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-boundary-r2026/tmp/data",
+    "launches": 1,
+    "port": 39440,
+    "unix_sockets": false
+  },
+  "sql_readiness": {
+    "pg_isready_exit": 0,
+    "select1": true,
+    "owned_data_directory_verified": true,
+    "before_DDL": true
+  },
+  "controlled_SQL_bug_reproduced": null,
+  "historical_R2004_cause": "UNPROVEN",
+  "error": {
+    "class": "AssertionError",
+    "message": "real SQL counterexample not established; no candidate authorized",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-boundary-r2026/run.py\", line 84, in <module>\n    assert reproduced,'real SQL counterexample not established; no candidate authorized'\n           ^^^^^^^^^^\nAssertionError: real SQL counterexample not established; no candidate authorized\n"
+  },
+  "limitations": [
+    "Local SQL experiment; historical R2004 causation remains unproven.",
+    "Canonical source, index and Git unchanged; candidate and regression afterimages private only.",
+    "No full-suite retry, native/cloud/provider credentials/CI/subchildren; original 5s deadline preserved."
+  ],
+  "product_fix_made": false,
+  "candidate_tests_executed": false,
+  "blocking_failure": {
+    "reason": "The sole controlled SQL attempt failed in private diagnostics; the single authorized PostgreSQL launch/stop is already consumed.",
+    "no_second_PG_launch": true,
+    "no_fix_authorized_without_reproduction": true,
+    "next_required_execution": "A separately authorized fresh SQL control must use an explicit nil-safe sentinel check and retain the evidence environment, then cross the real post-COMMIT guard before considering a private fix.",
+    "no_new_attempt_or_request_made": true
+  },
+  "custody": {
+    "R986_source_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "outer": [
+      {
+        "label": "campaign",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-boundary-r2026/run.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-boundary-r2026",
+        "pid": 60603,
+        "pgid": 60603,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 3.8346178750507534,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "inner_registry": "verification/local/build-read-boundary-r2026/commands.json",
+    "all_inner_reaped_EOF_FD_closed_ESRCH": true,
+    "UNKNOWN": false,
+    "new_holds": [],
+    "historical_holds_touched": false,
+    "whole_namespace_retained": true
+  },
+  "bounds": {
+    "postgres_launches": 1,
+    "postgres_stop_invocations": 1,
+    "BEAM_batches": 2,
+    "full_suite_retries": 0,
+    "port": 39440,
+    "shared_5432_access": false,
+    "runtime_elapsed_seconds": 3.768,
+    "maximum_total_seconds": 480,
+    "budget_exceeded": false,
+    "subchildren": 0
+  },
+  "versions": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir": "1.20.4",
+    "erlang_OTP": "29",
+    "postgres": "17.11",
+    "elixir_erlang_basis": "hash-verified reuse of R2004 compiled artifacts; no fresh version command",
+    "postgres_basis": "fresh postgres --version managed command logs"
+  },
+  "artifacts": {
+    "run.py": {
+      "bytes": 10939,
+      "sha256": "dd19754185ae69c2b2405d41d5cbad7741ecac04348dd94e097fe88357b276bd"
+    },
+    "launch.py": {
+      "bytes": 1349,
+      "sha256": "d0e8d934bc974e9519a1200b2d49832ec96b2005b9883eea1104eaed3e6af243"
+    },
+    "commands.py": {
+      "bytes": 7604,
+      "sha256": "49c35dbaaec9b3d8e40b686930cf2b8931136f7fc7c65202713021cfd5ae92bb"
+    },
+    "probe.exs": {
+      "bytes": 1384,
+      "sha256": "6b4a79a67d9489b1b0986dc8e0815f66eb98829d64e99d9ca601320c2c2bf1a0"
+    },
+    "context-baseline.ex": {
+      "bytes": 7552,
+      "sha256": "4a1b3604ad5616b7060e9678e1031e3c0afa19c5f90d75144f0cc66970024212"
+    },
+    "instrumented-context.ex": {
+      "bytes": 7616,
+      "sha256": "2ff8aa487917ca076c5fea4211eb8312c54d0e1300b1c94b7758488a4353b542"
+    },
+    "focused_test.exs": {
+      "bytes": 27619,
+      "sha256": "465ae90549c56f86fdcfad14780af7d2c8a09c0b95fb6f1f1e310ab9db60fafc"
+    },
+    "candidate/hosted/test/test_helper.exs": {
+      "bytes": 1659,
+      "sha256": "1ec459cedf6c50ac68ffc33ef0b50f4b1bd3f54da4ccfebad47e4f876285b219"
+    },
+    "preparation.json": {
+      "bytes": 314,
+      "sha256": "6ba8b5c6d9ef57d90092b7fb10a35a054408edee14e7ab45c1aacfe6a4c06c96"
+    },
+    "commands.json": {
+      "bytes": 18765,
+      "sha256": "bba9558f78bf6d2354b30b77d3f63e2931f236e5c1de1c800abfb9c2327c1fe5"
+    },
+    "outer/commands.json": {
+      "bytes": 546,
+      "sha256": "d5ec74730c1f150e591692424dd2b580ef3c75e96374c0724ba95fbd9728cbd5"
+    },
+    "beam-inputs.json": {
+      "bytes": 240713,
+      "sha256": "869d0bdc83f497b90b1729fb6323c76d91ab27fbcd9e1e9cc5c69c8c91f6ff57"
+    },
+    "private-before.json": {
+      "bytes": 95403,
+      "sha256": "b00cd8518bca6ff071a5b871658130419a2ebbad158f20e1c1c43ac1e63c16ad"
+    },
+    "dependency-reuse.json": {
+      "bytes": 339723,
+      "sha256": "d15939fe6b60253781bfce12cdda80c1d0603ef789a30d00ab55c14bbfaf6938"
+    },
+    "hex-tool-reuse.json": {
+      "bytes": 24774,
+      "sha256": "755d4bf233a2f369151dee3ed4b0027973fbe9f8e5b469d5ef35cd9155076e88"
+    }
+  }
+}

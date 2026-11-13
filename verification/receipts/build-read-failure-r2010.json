@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "id": "build-read-failure-r2010",
+  "status": "UNRESOLVED_HARNESS_FAILURE",
+  "source": {
+    "source_count": 286,
+    "source_digest": "dd08dae24b94f7f0d9a2075ce427ee6dad895c6e68d4fcae9ad7691e78997867",
+    "complete_private_inputs": 528,
+    "pinned_build_files": 1233,
+    "product_compile": false,
+    "dependency_files": 1884,
+    "hex_files": 133,
+    "R2004_first_failure_preserved": true,
+    "compiled_source_proof": {
+      "status": "PASS",
+      "application_started": false,
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-failure-r2010/candidate/hosted",
+      "mix_project": "MixerHosted.MixProject",
+      "environment": "test",
+      "product_sources": 130,
+      "product_modules": 216,
+      "total_modules": 243,
+      "all_compile_info_private_source_hashes_exact": true
+    },
+    "instrumentation_export_before_pg": true,
+    "canonical_selected_inputs_unchanged": true
+  },
+  "baseline": {
+    "exit": 1,
+    "status": "NOT_RUN_HARNESS_REFUSAL",
+    "diagnostics": [],
+    "stdout": {
+      "path": "logs/00012-baseline.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "logs/00012-baseline.stderr",
+      "bytes": 1220,
+      "sha256": "aa18e1839bc926c3e9d51b50aa2cd086993bd00bc405421396e6d11dbcd08bb7"
+    },
+    "timed_out": false,
+    "full_suite": false,
+    "first_refusal": "Mix argument parser: --require unknown option; before test load, migrations, role iteration or customer read.",
+    "role_iteration": null,
+    "product_refusal_branch": null
+  },
+  "control": {
+    "status": "PASS",
+    "exit": 0,
+    "kind": "isolated exact final publication guard; no SQL or ExUnit product assertion",
+    "diagnostics": [
+      {
+        "code": "PASS",
+        "stage": "exact_final_guard_baseline"
+      },
+      {
+        "code": "MatchError",
+        "stage": "exact_final_guard_cross_second",
+        "deadline_remaining_ms": 4032,
+        "wall_clock_delta_seconds": 1
+      }
+    ],
+    "command": {
+      "label": "00014-isolated-clock-guard-control",
+      "argv": [
+        "mix",
+        "run",
+        "--no-compile",
+        "--no-start",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-failure-r2010/clock-control.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-failure-r2010/candidate/hosted",
+      "started": 1794547103.6540558,
+      "pid": 35882,
+      "pgid": 35882,
+      "gated": true,
+      "identity_persist_readback_before_exec_G": true,
+      "exit": 0,
+      "direct_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "descriptors_closed": true,
+      "finished": 1794547105.007222,
+      "stdout": {
+        "path": "logs/00014-isolated-clock-guard-control.stdout",
+        "bytes": 186,
+        "sha256": "fff3e0a95af6f36201d0d58fea15d66f4a6986121fc2e8979eb6bda97d5ff17e"
+      },
+      "stderr": {
+        "path": "logs/00014-isolated-clock-guard-control.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "group_absent": true,
+      "absence_errno": 3,
+      "absence_method": "original os.killpg(pgid,0) ESRCH"
+    }
+  },
+  "cleanup": {
+    "single_pg_stop_exit": 0,
+    "postgres_group_absent": true,
+    "port_reusable": true,
+    "managed_commands": 14,
+    "all_direct_reaped_EOF_FD_closed_group_ESRCH": true
+  },
+  "scope": "One focused role-loop baseline, at most one boundary control; no product fixes or timeout changes.",
+  "elapsed_seconds": 2.976,
+  "port_preflight": {
+    "port": 39430,
+    "ordinary_free_bind": true,
+    "shared_5432_access": false
+  },
+  "postgres": {
+    "pid": 31959,
+    "pgid": 31959,
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-failure-r2010/tmp/data",
+    "launches": 1,
+    "port": 39430,
+    "unix_sockets": false
+  },
+  "sql_readiness": {
+    "pg_isready_exit": 0,
+    "select1": true,
+    "owned_data_directory_verified": true,
+    "before_DDL": true
+  },
+  "limitations": [
+    "Local focused test only; historical R2004 role not retrospectively observable.",
+    "Product code/index/Git unchanged; private diagnostics and one injected scheduling control only.",
+    "No full-suite retry, source fix, native/cloud/provider credentials/CI or subchildren."
+  ],
+  "diagnosis": {
+    "R2004_cause": "unproven",
+    "clock_guard": "A standalone exact-source guard rejects a second-boundary crossing while its original 5000ms deadline remains live. This confirms susceptibility, not historical attribution.",
+    "deadline_pool_fixture_data": "No focused product execution; deadline, pool, fixture and data causes cannot be ruled in or out for R2004.",
+    "smallest_corrective_target": "Private harness: load probe from focused_test.exs using Code.require_file before modules, remove unsupported --require arguments. Another SQL attempt requires root to select a fresh campaign because the single PG launch/stop is spent.",
+    "source_fix_made": false
+  },
+  "harness_correction": {
+    "applied_privately": true,
+    "executed_after_correction": false,
+    "reason": "Original single PostgreSQL launch/stop consumed; preserved failed invocation, no restart."
+  },
+  "custody": {
+    "outer_initial_campaign": [
+      {
+        "label": "campaign",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-failure-r2010/run.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-failure-r2010",
+        "pid": 31860,
+        "pgid": 31860,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 3.038215999957174,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "inner_registry": "verification/local/build-read-failure-r2010/commands.json",
+    "all_inner_commands_terminal": true,
+    "UNKNOWN": false,
+    "new_holds": [],
+    "historical_holds_touched": false
+  },
+  "artifacts": {
+    "run.py": {
+      "bytes": 7229,
+      "sha256": "679f207a393982c173092ae7a1a8b3b7db97d7335bec53f5af9769a88ea5822f"
+    },
+    "control.py": {
+      "bytes": 2400,
+      "sha256": "b72af4d354906ee5f0002c3787950bd8af2139df95f1d05acd3bcd9266d43790"
+    },
+    "commands.py": {
+      "bytes": 7604,
+      "sha256": "49c35dbaaec9b3d8e40b686930cf2b8931136f7fc7c65202713021cfd5ae92bb"
+    },
+    "launch.py": {
+      "bytes": 1347,
+      "sha256": "c3cf4261f1c3017e1e160f0b6766a78f21766d3219ad171ba033761e5b134841"
+    },
+    "focused_test.exs": {
+      "bytes": 26095,
+      "sha256": "e06720e6c8a57408e7954f69264e58bc7bca887ee282c392834cc573a571ce18"
+    },
+    "probe.exs": {
+      "bytes": 695,
+      "sha256": "3928f5f4e7ab8b4bb64c1fa2e29304fbd2fd63fd187f2313ba397c0af8e9e16d"
+    },
+    "instrumented-context.ex": {
+      "bytes": 7997,
+      "sha256": "95652badcf5a3f8b70c9a472b63b02e80006712ba5b45bd38b67760ff386f399"
+    },
+    "clock-control.exs": {
+      "bytes": 1020,
+      "sha256": "bf54880836faf94b638ecb04fe6275c8d9d832c76b8080c0209b28e2f22aa0b1"
+    },
+    "beam-inputs.json": {
+      "bytes": 240713,
+      "sha256": "869d0bdc83f497b90b1729fb6323c76d91ab27fbcd9e1e9cc5c69c8c91f6ff57"
+    },
+    "commands.json": {
+      "bytes": 17816,
+      "sha256": "f4d8c32bed01691c0b745bb720d8c5dc05a367792e065b3e8a5cd7d0a2b9a40e"
+    },
+    "r2004-first-failure.txt": {
+      "bytes": 736,
+      "sha256": "fa5591b0aa1d512ace57f5a69e61af829c40fe599083c6dd0f951a3d9af6be64"
+    }
+  }
+}
