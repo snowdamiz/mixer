@@ -1,0 +1,301 @@
+{
+  "schema": 1,
+  "campaign": "R2088_VM_INTEGER_DIVISION_INDEPENDENT_REVIEW",
+  "observed_at_utc": "2026-11-13T06:26:33.294Z",
+  "verdict": "PASS",
+  "findings": [],
+  "scope": {
+    "canonical": "vm/tests/differential_integer_division_consuming.rs",
+    "producer_receipt": "verification/receipts/vm-integer-division-r2074.json",
+    "producer_packet": "verification/local/vm-integer-division-r2074",
+    "review_kind": "Independent source and retained-evidence review; no product compilation or execution"
+  },
+  "identities": {
+    "canonical_test": {
+      "bytes": 18928,
+      "sha256": "9445d65e0d92ba897954e89cb8c055f847d55cd1c3d08deb9d46730a15efa84f"
+    },
+    "source_package": {
+      "files": 143,
+      "tree_sha256": "938023ab5270d6fac506a7710d3c895ba52f8868d56def4132a703c58ab6f572",
+      "canonical_matches": 143,
+      "canonical_drifts": []
+    },
+    "producer_receipt": {
+      "bytes": 23064,
+      "sha256": "ec7f21ae882061935ad045b585892f5ee35d52a186fe842866c5d98001045313"
+    },
+    "corpus_test_binary": {
+      "bytes": 2884680,
+      "sha256": "314c061df8d5c8c0706ec922ee0ba8f57fae183d8c26df38f9caa4cff61de0b4"
+    },
+    "node_binary": {
+      "bytes": 112925600,
+      "sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b"
+    },
+    "rustc_binary": {
+      "bytes": 413480,
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+    },
+    "cargo_binary": {
+      "bytes": 32181448,
+      "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+    },
+    "oracle_javascript": {
+      "bytes": 1624,
+      "sha256": "8cefc4a76cfe93c36b4ee36a78fb840b01675c82f18ae3048b6011d3107ce564"
+    },
+    "module_manifest": {
+      "bytes": 10262,
+      "sha256": "219a0b0de095b542657f5e2a51da57f998a0d0d350a6df465a4c1f80bc09d18a"
+    },
+    "inner_commands": {
+      "bytes": 128459,
+      "sha256": "045b9ca93713e5b23ac46dbdfba2c5b5578753e35df03ea19505be396fc48819"
+    }
+  },
+  "counts": {
+    "distinct_cases": 24,
+    "supported_opcodes": [
+      "0x6d",
+      "0x6e",
+      "0x6f",
+      "0x70",
+      "0x7f",
+      "0x80",
+      "0x81",
+      "0x82"
+    ],
+    "cases_per_opcode": 3,
+    "exact_and_blanket": {
+      "exact": {
+        "cases": 24,
+        "numerical_values": 14,
+        "node_generic_traps": 10,
+        "mixer_zero_divisor_contracts": 8,
+        "mixer_overflow_contracts": 2,
+        "cleanup_zero_currents": 14,
+        "zero_tickets_each": true,
+        "environment_rejections": 9,
+        "successful_inner_workers": 24,
+        "parent_passes": 1,
+        "expected_rejected_workers": 9
+      },
+      "blanket": {
+        "cases": 24,
+        "numerical_values": 14,
+        "node_generic_traps": 10,
+        "mixer_zero_divisor_contracts": 8,
+        "mixer_overflow_contracts": 2,
+        "cleanup_zero_currents": 14,
+        "zero_tickets_each": true,
+        "environment_rejections": 9,
+        "successful_inner_workers": 24,
+        "parent_passes": 1,
+        "expected_rejected_workers": 9
+      }
+    },
+    "totals": {
+      "node_comparisons": 48,
+      "consuming_runtime_cleanups": 48,
+      "numerical_values": 28,
+      "node_generic_traps": 20,
+      "mixer_zero_divisor": 16,
+      "mixer_overflow": 4,
+      "expected_environment_rejections": 18,
+      "case_workers": 48,
+      "node_children": 48,
+      "rejection_workers": 18
+    },
+    "binary_artifacts": {
+      "cargo_compiler_artifacts": 3,
+      "cargo_executable_artifacts": 2,
+      "corpus_test_executables": 1,
+      "cargo_fresh_flag": false,
+      "profile": "debug",
+      "requested_features": [
+        "experimental-swift-reactor"
+      ],
+      "effective_features": [
+        "experimental-stream-validation",
+        "experimental-swift-reactor",
+        "experimental-swift-wasi"
+      ]
+    },
+    "ignored_discovery": {
+      "tests": 1,
+      "benchmarks": 0,
+      "name": "integer_division_matches_node",
+      "worker_is_ordinary_helper": true
+    },
+    "output_files_hash_matched": 25,
+    "source_files_hash_matched": 143,
+    "current_canonical_matches": 143,
+    "identical_default_budget_rows": 48
+  },
+  "semantics": {
+    "official_primary_sources": [
+      {
+        "url": "https://webassembly.github.io/spec/core/exec/numerics.html#op-idiv",
+        "scope": "div_s/div_u: truncation, zero-divisor and signed overflow"
+      },
+      {
+        "url": "https://webassembly.github.io/spec/core/exec/numerics.html#op-irem",
+        "scope": "rem_s/rem_u: zero-divisor, dividend sign, signed MIN%-1=0"
+      },
+      {
+        "url": "https://webassembly.github.io/spec/core/binary/instructions.html#numeric-instructions",
+        "scope": "eight target opcode encodings"
+      }
+    ],
+    "case_table": {
+      "file": "vm/tests/differential_integer_division_consuming.rs",
+      "lines": [
+        36,
+        202
+      ]
+    },
+    "decoded_all_module_bodies": true,
+    "matched_exact_operands_opcode_and_store": true,
+    "distinct_module_hashes": 24,
+    "oracle_no_reference_arithmetic": true,
+    "node_traps_generic_only": true,
+    "mixer_GuestTrap_and_codes_asserted": true,
+    "cleanup_before_success_or_trap_assertion": true,
+    "default_budgets_and_stdout_only_capabilities": true,
+    "strict_unset_only_Node_fallback": true,
+    "Node_helper_exact_R2064_precedent": true,
+    "invalid_environment_before_VM_admission": true,
+    "worker_exact_reentry_and_one_runtime": true
+  },
+  "producer_custody": {
+    "managed_groups": 12,
+    "pids": [
+      64927,
+      64928,
+      64929,
+      64930,
+      64931,
+      64932,
+      64933,
+      64934,
+      64935,
+      64997,
+      65053,
+      65171
+    ],
+    "direct_reaped": true,
+    "both_EOF": true,
+    "FDs_closed": true,
+    "owned_group_absent_ESRCH": true,
+    "new_process_probes": false,
+    "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "source_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchanged_AST_definitions": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "isolated_registry": "verification/local/vm-integer-division-r2074/commands/commands.json",
+    "explicit_existing_cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+    "inner_scope": "Inner Node/case/rejection children inherit corpus groups; ESRCH recorded for whole managed group, not per inner PID",
+    "removed_owned_paths": [
+      "target",
+      "cargo-home",
+      "tmp"
+    ],
+    "holds_released": false
+  },
+  "collector": {
+    "baseline_failure": {
+      "exception": "AssertionError",
+      "message": "",
+      "elapsed_seconds": 4.146557040978223,
+      "no_retry_or_cleanup_performed": true
+    },
+    "driver": {
+      "bytes": 15448,
+      "sha256": "c34398e884d0942f865f53a406feafa02aa6d5d0b9331a1ee6ebe3cb22a2ed09"
+    },
+    "corrected_collector": {
+      "bytes": 14270,
+      "sha256": "069611928e59ae210d854cb5b201c7635d38353a2906e7e569d03a356e12a605"
+    },
+    "correction": "Parse already-completed retained MODULE records after libtest prefix",
+    "additional_product_builds_or_test_runs": 0
+  },
+  "review_execution": {
+    "tool": "persistent node_repl; in-process filesystem hashing and structural Wasm evidence decoding",
+    "managed_commands": [],
+    "initial_readonly_transport": "pwd executed using ordinary exec transport; no product, Git or process inspection",
+    "new_process_group_probes": 0,
+    "new_compiles": 0,
+    "new_product_runtime_batches": 0,
+    "new_Node_oracle_invocations": 0,
+    "optional_cheap_batch_used": false,
+    "subchildren": 0,
+    "native": false,
+    "cloud": false,
+    "provider_API": false,
+    "hosted_API": false,
+    "official_spec_web_reads": true
+  },
+  "artifacts": {
+    "directory": "verification/local/vm-integer-division-review-r2088",
+    "files": {
+      "audit.mjs": {
+        "bytes": 13074,
+        "sha256": "9bf4ee97c69058afb068e95fccf7d5dfa53da739db9b31378757f85d225ad403"
+      },
+      "audit-result.json": {
+        "bytes": 57237,
+        "sha256": "6ed7b0347898662d07b383983e745b785dba5273c350762aa19f509a78c14fc3"
+      },
+      "semantic-checks.json": {
+        "bytes": 2335,
+        "sha256": "2942fa9112ab69b59614d725d9a0e767fc9964967bf1a3f57315a9231b14cbde"
+      },
+      "REPORT.md": {
+        "bytes": 8121,
+        "sha256": "a36162a302a06cc2eafd2ca05b5e518a6c227532ecf08397577f318af95c880d"
+      }
+    }
+  },
+  "reference_receipts": [
+    {
+      "path": "verification/receipts/vm-node-ci-proof-r2064.json",
+      "bytes": 24934,
+      "sha256": "e826eaa42c0c2c4674ab26826c0f15858b9b75be37b9ccf4c430bdf542ead3f3"
+    },
+    {
+      "path": "verification/receipts/vm-node-discovery-review-r2032.json",
+      "bytes": 10391,
+      "sha256": "7197180315457203c32c2c49b4bc7012c19943259fdc1e111584f2aa83335580"
+    }
+  ],
+  "limitations": [
+    "Finite macOS/Rust1.99.0/Node22.23.3 local debug component evidence; no release or combined-feature qualification for this new corpus.",
+    "No new full VM suite, hosted CI, device, delivery, W08 or GA acceptance; root review/integration/delivery remain separate.",
+    "Node provides generic WebAssembly.RuntimeError parity, not a portable zero-divisor/overflow classification.",
+    "Nine runtime environment controls per batch; non-Unicode and all PATH variants are source-reviewed only.",
+    "Discovery checks absolute existing files, not executable permission, immutable inode identity or version; launch failure occurs before VM admission.",
+    "Producer custody verified from retained positive records without fresh process observation. Initial read-only pwd was outside R986 custody."
+  ],
+  "boundaries": {
+    "canonical_writes": false,
+    "index_writes": false,
+    "Git_operations": false,
+    "producer_writes": false,
+    "staged_changes": false,
+    "authority_or_gate_writes": false,
+    "holds_accessed": false,
+    "holds_released": false,
+    "release_qualified": false,
+    "combined_feature_qualified": false,
+    "W08_complete": false,
+    "GA_complete": false,
+    "root_delivery_pending": true
+  }
+}

@@ -1,0 +1,550 @@
+{
+  "id": "R2074_VM_INTEGER_DIVISION_CONSUMING",
+  "observed_utc": "2026-11-13T06:15:41.423833+00:00",
+  "status": "LOCAL_DEBUG_CORPUS_PASSED_ROOT_INDEPENDENT_REVIEW_AND_DELIVERY_PENDING",
+  "scope": "W08 supported command-profile i32/i64 signed/unsigned div/rem development differential slice",
+  "canonical_new_test": "vm/tests/differential_integer_division_consuming.rs",
+  "test_identity": {
+    "bytes": 18928,
+    "sha256": "9445d65e0d92ba897954e89cb8c055f847d55cd1c3d08deb9d46730a15efa84f"
+  },
+  "concrete_cases": 24,
+  "supported_opcodes": [
+    "0x6d",
+    "0x6e",
+    "0x6f",
+    "0x70",
+    "0x7f",
+    "0x80",
+    "0x81",
+    "0x82"
+  ],
+  "cases_per_opcode": 3,
+  "opcode_admission": {
+    "checked_before_authoring_cases": true,
+    "opcodes": [
+      "0x6d",
+      "0x6e",
+      "0x6f",
+      "0x70",
+      "0x7f",
+      "0x80",
+      "0x81",
+      "0x82"
+    ],
+    "validator": "src/experimental/validate.rs:485 numeric 0x45..=0xc4 with numeric_type",
+    "decoder": "src/experimental/cache/decode.rs:427 numeric 0x67..=0x8a",
+    "reactor_execution": "src/experimental_swift_reactor/value_operations.rs:573 primitive_numeric admits 0x45..=0xc4 and calls shared numeric primitive",
+    "runtime_admission": "All 24 validate_swift_command calls must succeed in each of two actual corpus batches"
+  },
+  "source_package": {
+    "path": "verification/local/vm-integer-division-r2074/source",
+    "files": 143,
+    "tree_sha256": "938023ab5270d6fac506a7710d3c895ba52f8868d56def4132a703c58ab6f572",
+    "manifest": "verification/local/vm-integer-division-r2074/inputs.json",
+    "copy_roots": [
+      "src",
+      "tests",
+      "examples",
+      "Cargo.toml",
+      "Cargo.lock"
+    ],
+    "all_manifest_targets_examples_present": true,
+    "all_copied_hashes_preserved": true
+  },
+  "oracle": {
+    "executable": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+    "binary_identity": {
+      "bytes": 112925600,
+      "sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b"
+    },
+    "javascript_identity": {
+      "bytes": 1624,
+      "sha256": "8cefc4a76cfe93c36b4ee36a78fb840b01675c82f18ae3048b6011d3107ce564"
+    },
+    "numerical_comparison": true,
+    "reference_arithmetic_implemented": false,
+    "trap_contract": "Node generic WebAssembly.RuntimeError parity only; Mixer GuestTrap zero-divisor and overflow codes separately asserted. No Node message parsing."
+  },
+  "versions": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)\nrelease: 1.99.0\ncommit-hash: 5f94df4789f005f9a352888e8355ffc645b7ed0e\ncommit-date: 2026-08-27\nhost: aarch64-apple-darwin\nlibgit2: 1.9.6 (sys:0.21.0 vendored)\nlibcurl: 8.7.1 (sys:0.4.90+curl-8.21.0 system ssl:(SecureTransport) LibreSSL/3.3.6)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Mac OS 27.0.1 [64-bit]",
+    "rustfmt": "rustfmt 1.10.0-stable (b940084d7e 2026-09-28)",
+    "node": "v22.23.3",
+    "node-engine": "{\"node\":\"22.23.3\",\"acorn\":\"8.16.0\",\"ada\":\"2.9.2\",\"amaro\":\"1.1.8\",\"ares\":\"1.34.8\",\"brotli\":\"1.1.0\",\"cjs_module_lexer\":\"2.2.0\",\"cldr\":\"48.0\",\"icu\":\"78.3\",\"llhttp\":\"9.4.3\",\"modules\":\"127\",\"napi\":\"10\",\"nbytes\":\"0.1.3\",\"ncrypto\":\"0.0.1\",\"nghttp2\":\"1.69.0\",\"openssl\":\"3.5.8\",\"simdjson\":\"4.5.0\",\"simdutf\":\"6.4.2\",\"sqlite\":\"3.51.3\",\"tz\":\"2026c\",\"undici\":\"6.28.1\",\"unicode\":\"17.0\",\"uv\":\"1.51.0\",\"uvwasi\":\"0.0.23\",\"v8\":\"12.4.254.21-node.57\",\"zlib\":\"1.3.1-e00f703\",\"zstd\":\"1.5.7\"}",
+    "host": "hw.logicalcpu: 15\nhw.memsize: 51539607552",
+    "memory": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                   749429.\nPages active:                                 849551.\nPages inactive:                               835145.\nPages speculative:                             15711.\nPages throttled:                                   0.\nPages wired down:                             381304.\nPages purgeable:                               36811.\n\"Translation faults\":                    73878652975.\nPages copy-on-write:                      3388543482.\nPages zero filled:                       39516434073.\nPages reactivated:                        8275395037.\nPages purged:                              188269370.\nFile-backed pages:                            520156.\nAnonymous pages:                             1180251.\nPages stored in compressor:                   493965.\nPages occupied by compressor:                 257980.\nDecompressions:                           6713852058.\nCompressions:                             8304846151.\nPageins:                                  2356569475.\nPageouts:                                    2351864.\nSwapins:                                    73457661.\nSwapouts:                                   90947633.\nPages tagged:                                 194079.\nPages tagged resident:                        176966.\nPages tagged compressed:                       17113.\nPages tag-storage:                             98304.\nPages tag-storage holding tags:                13178.\nPages tag-storage free:                         6143.\nPages tag-storage non-tag pageable:            78899.\nPages tag-storage non-tag wired:                   8.\nBytes of compressed tags:                    2700352.\nTagged compressions:                        52161605.\nTagged decompressions:                      50231154."
+  },
+  "capacity": {
+    "logical_cpus": 15,
+    "memory_bytes": 51539607552,
+    "load_average": [
+      4.53271484375,
+      7.1435546875,
+      9.158203125
+    ],
+    "other_active_build_suite_workers_from_brief": 2,
+    "cargo_build_jobs": 5,
+    "basis": "15 CPU / (two existing workers + this worker) = five local Cargo jobs; host memory snapshot retained"
+  },
+  "build": {
+    "profile": "debug",
+    "features": [
+      "experimental-swift-reactor"
+    ],
+    "fresh_builds": 1,
+    "corrective_compiles": 0,
+    "product_or_compile_failure": false,
+    "binary_identity": {
+      "bytes": 2884680,
+      "sha256": "314c061df8d5c8c0706ec922ee0ba8f57fae183d8c26df38f9caa4cff61de0b4"
+    },
+    "replay_binary": "verification/local/vm-integer-division-r2074/replay/differential_integer_division_consuming",
+    "rustc_binary_identity": {
+      "bytes": 413480,
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+    },
+    "cargo_binary_identity": {
+      "bytes": 32181448,
+      "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+    },
+    "environment": {
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "5",
+      "CARGO_HOME": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/cargo-home",
+      "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/target",
+      "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/tmp",
+      "RUST_BACKTRACE": "0",
+      "RUSTC": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+      "RUSTDOC": "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustdoc"
+    },
+    "isolated_package": true
+  },
+  "limits": {
+    "campaign_execution_bound_seconds": 480,
+    "execution_elapsed_seconds": 4.146557040978223,
+    "corpus_batches_max": 2,
+    "corpus_batches_actual": 2,
+    "one_debug_build_actual": true
+  },
+  "observations": {
+    "exact": {
+      "module": 24,
+      "worker": 24,
+      "oracle": 24,
+      "budgets": 24,
+      "admitted": 24,
+      "cleanup": 24,
+      "parity": 24,
+      "numerical_values": 14,
+      "node_generic_traps": 10,
+      "mixer_zero_divisor_contracts": 8,
+      "mixer_overflow_contracts": 2,
+      "environment_rejections": 9,
+      "zero_currents_each": 14,
+      "zero_tickets_each": true,
+      "node_resolution": "strict MIXER_NODE override",
+      "passed": true
+    },
+    "blanket": {
+      "module": 24,
+      "worker": 24,
+      "oracle": 24,
+      "budgets": 24,
+      "admitted": 24,
+      "cleanup": 24,
+      "parity": 24,
+      "numerical_values": 14,
+      "node_generic_traps": 10,
+      "mixer_zero_divisor_contracts": 8,
+      "mixer_overflow_contracts": 2,
+      "environment_rejections": 9,
+      "zero_currents_each": 14,
+      "zero_tickets_each": true,
+      "node_resolution": "MIXER_NODE absent; PATH fallback",
+      "passed": true
+    }
+  },
+  "module_and_exact_stdin_manifest": "verification/local/vm-integer-division-r2074/module-inputs.json",
+  "inner_commands": {
+    "path": "verification/local/vm-integer-division-r2074/inner-commands.json",
+    "case_workers": 48,
+    "node_processes": 48,
+    "identity": {
+      "bytes": 128459,
+      "sha256": "045b9ca93713e5b23ac46dbdfba2c5b5578753e35df03ea19505be396fc48819"
+    },
+    "nine_rejection_subprocesses_per_batch": "worker argv identical to case worker; full failures retained in corpus stdout; no module or runtime constructed"
+  },
+  "custodian": {
+    "source": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchanged_ast_definitions": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "independent_serial_registry": "verification/local/vm-integer-division-r2074/commands/commands.json",
+    "all_commands_explicit_existing_cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+    "commands": [
+      {
+        "label": "version-rustc",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+          "-vV"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64927,
+        "pgid": 64927,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.13372137490659952,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "version-cargo",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "-Vv"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64928,
+        "pgid": 64928,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04378008295316249,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "version-rustfmt",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64929,
+        "pgid": 64929,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.043691541999578476,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "version-node",
+        "argv": [
+          "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64930,
+        "pgid": 64930,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.026240792009048164,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "version-node-engine",
+        "argv": [
+          "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+          "-p",
+          "JSON.stringify(process.versions)"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64931,
+        "pgid": 64931,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.036333207972347736,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "version-host",
+        "argv": [
+          "/usr/sbin/sysctl",
+          "hw.logicalcpu",
+          "hw.memsize"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64932,
+        "pgid": 64932,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.01597212499473244,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "version-memory",
+        "argv": [
+          "/usr/bin/vm_stat"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64933,
+        "pgid": 64933,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.015886625042185187,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "format-new-corpus",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+          "--edition",
+          "2021",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/vm/tests/differential_integer_division_consuming.rs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64934,
+        "pgid": 64934,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.046868833946064115,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "debug-build",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source/Cargo.toml",
+          "--offline",
+          "--locked",
+          "--no-default-features",
+          "--features",
+          "experimental-swift-reactor",
+          "--test",
+          "differential_integer_division_consuming",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64935,
+        "pgid": 64935,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 2.161900292034261,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "ignored-discovery",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/target/debug/deps/differential_integer_division_consuming-9fb6feee982ab69d",
+          "--ignored",
+          "--list"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 64997,
+        "pgid": 64997,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.10926900000777096,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "corpus-exact",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/target/debug/deps/differential_integer_division_consuming-9fb6feee982ab69d",
+          "--ignored",
+          "--exact",
+          "integer_division_matches_node",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 65053,
+        "pgid": 65053,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.704824166954495,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "corpus-blanket",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/target/debug/deps/differential_integer_division_consuming-9fb6feee982ab69d",
+          "--ignored",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-division-r2074/source",
+        "pid": 65171,
+        "pgid": 65171,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.7464854579884559,
+        "ownedGroupAbsentESRCH": true
+      }
+    ]
+  },
+  "full_outputs": {
+    "commands/commands.json": {
+      "bytes": 6682,
+      "sha256": "85bb31a5778b2f6a23c03cd6d991608d6156e64183a09047adf1365a9d33a0e2"
+    },
+    "commands/corpus-blanket.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/corpus-blanket.stdout": {
+      "bytes": 116891,
+      "sha256": "f58f728139f79c28bdab5b154f281d257b4bd7ca71a84b2c5bd3327895a3fbcd"
+    },
+    "commands/corpus-exact.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/corpus-exact.stdout": {
+      "bytes": 116891,
+      "sha256": "70876dccad3c0d9af6724194a1ea6ec7454f7b042b50623827574f0d81f3f0a0"
+    },
+    "commands/debug-build.stderr": {
+      "bytes": 208,
+      "sha256": "0ded878ac51f43b4545f46c4d4449ced493c244d72c315598911d01bb9ed67d8"
+    },
+    "commands/debug-build.stdout": {
+      "bytes": 3564,
+      "sha256": "b53c36e95bc064d28ee04abf427e11dc1cc704cb7a6e85118c891ffd2298fe29"
+    },
+    "commands/format-new-corpus.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/format-new-corpus.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/ignored-discovery.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/ignored-discovery.stdout": {
+      "bytes": 58,
+      "sha256": "2b826f4d2ddb0237fcb68181c068c71f8beec563ee3f4c41bbbdce8e6ee95424"
+    },
+    "commands/version-cargo.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/version-cargo.stdout": {
+      "bytes": 335,
+      "sha256": "85e64e95b6dd5ba44476f91800ea454677ce55524a5e8ea5166b47d6f607eb74"
+    },
+    "commands/version-host.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/version-host.stdout": {
+      "bytes": 42,
+      "sha256": "89ad518cc5b21a871705d490e398b61ed0751656a9b703fd853a6cddfc3159c4"
+    },
+    "commands/version-memory.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/version-memory.stdout": {
+      "bytes": 1841,
+      "sha256": "cdfe7ff8bbde1cfb9846daac4a0f6bb8bfa11272353b2b4f9438a933fe0e8991"
+    },
+    "commands/version-node-engine.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/version-node-engine.stdout": {
+      "bytes": 470,
+      "sha256": "932a62395cbb8e90d96934d74af6637d52414e4f3e7fcfca5f8ca2285c8ac0ee"
+    },
+    "commands/version-node.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/version-node.stdout": {
+      "bytes": 9,
+      "sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+    },
+    "commands/version-rustc.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/version-rustc.stdout": {
+      "bytes": 192,
+      "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"
+    },
+    "commands/version-rustfmt.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "commands/version-rustfmt.stdout": {
+      "bytes": 46,
+      "sha256": "32ae47248d3c1c88781660ad9acdfd0496c040eda7e0759c5f1fec8122c97a0a"
+    }
+  },
+  "collector_baseline_failure": {
+    "path": "verification/local/vm-integer-division-r2074/campaign-failure.json",
+    "identity": {
+      "bytes": 134,
+      "sha256": "a4acfc3d7621e82a3243e7f48bc68a81c034c6c5018ca89e5837d0eed5f05243"
+    },
+    "cause": "Collector anchored MODULE to start of line; libtest prefixes every child first line with the test name.",
+    "correction": "collect.py reads existing full outputs using the MODULE marker; original campaign.py and failure retained unchanged.",
+    "additional_builds_or_corpus_runs": 0
+  },
+  "cleanup": {
+    "managed_groups": 12,
+    "direct_reaped": true,
+    "both_EOF": true,
+    "FDs_closed": true,
+    "owned_group_absent_ESRCH": true,
+    "removed_owned_build_cache_paths": [
+      "verification/local/vm-integer-division-r2074/target",
+      "verification/local/vm-integer-division-r2074/cargo-home",
+      "verification/local/vm-integer-division-r2074/tmp"
+    ],
+    "retained_source_replay_inputs_full_outputs": true,
+    "held_resources_touched": false
+  },
+  "default_budgets_or_capabilities_changed": false,
+  "canonical_engine_changed": false,
+  "dependencies_added": false,
+  "git_or_index_writes": false,
+  "authority_writes": false,
+  "subchildren": false,
+  "native_provider_cloud_used": false,
+  "root_independent_review_pending": true,
+  "delivery_pending": true,
+  "W08_complete": false,
+  "GA_complete": false,
+  "limitations": [
+    "Finite local macOS debug development evidence, not exhaustive standards or release/platform qualification.",
+    "Node does not promise separate zero-divisor and overflow RuntimeError categories.",
+    "Initial read-only source/skill/host commands used ordinary exec transport. Full R986 group custody records cover the 12 listed version/format/build/discovery/corpus commands.",
+    "Root review, integration, delivery and W08/GA acceptance remain pending."
+  ]
+}
