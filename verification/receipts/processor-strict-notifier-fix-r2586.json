@@ -1,0 +1,201 @@
+{
+  "id": "R2586",
+  "status": "REQUEST_CHANGES_RUNTIME_ADMISSION_FAILED",
+  "accepted": false,
+  "source": {
+    "declared_base_revision": "34c2f6c63c089059138bcae525b145d7babeda68",
+    "Git_HEAD_independently_read": false,
+    "original_product_paths": 14,
+    "complete_product_paths": 15,
+    "changed_vs_R2576": [
+      "hosted/lib/mixer_hosted/builds/processor_profile.ex",
+      "hosted/lib/mixer_hosted/builds/processor_admission.ex",
+      "hosted/lib/mixer_hosted/builds/processor_notifier.ex"
+    ],
+    "canonical_source_pins": 285,
+    "candidate_files": 289,
+    "candidate_digest": "236f05ad2b330709ebbb1627cd362d36d1f57aa093423c3fe67c27c6edda26b6",
+    "final_afterimages": "last strict-compiled and actually runtime-attempted product bytes; FAILED; no post-run product edits",
+    "unrun_proposal": "unrun-proposal/role-literal-fix.patch; separate from afterimages and not compiled/executed",
+    "API_named_test_byte_exact_R2576": true,
+    "Auth4_Session_API_source_preserved": true,
+    "all914_dependency_sources_and_Hex133_pinned": true,
+    "no_product_or_dependency_BEAM_reuse": true
+  },
+  "observed": {
+    "strict_compile_1": "FAIL warnings; retained",
+    "strict_compile_2": "PASS",
+    "actual_PG17_SQL_readiness": "PASS exact data_directory",
+    "normal_restricted_catalog_snapshot": "actual backend 6434; identity check passed; effective locker-table check FAILED",
+    "named_case": {
+      "passed": 0,
+      "failed": 1,
+      "drains": 0
+    },
+    "PKCE_session_input_POST": "reached input GET200 and POST201; processor failed before first drain",
+    "notifier_backend_started": false,
+    "controls_batch": "started, fixture database already dropped; no control assertions ran",
+    "constructors": "R2562 historical31/31 only; late R2586 requires unrun and separately preserved"
+  },
+  "unrun": [
+    "baseline admission pass",
+    "ALTER FUNCTION STRICT reject and restore",
+    "NULL/partial-scope mutex and canonical FOR UPDATE",
+    "processor quota/key/no-op UPDATE denial",
+    "locker quota/key/no-op UPDATE denial",
+    "missing ACL reject/restore",
+    "extra ACL reject/restore",
+    "persistence FORCE RLS drift reject/restore",
+    "policy drift reject/restore",
+    "function body drift reject/restore",
+    "PUBLIC EXECUTE drift reject/restore",
+    "membership drift reject/restore",
+    "other queue/worker/job args denied",
+    "domain DELETE and forbidden domain UPDATE denied",
+    "browser authorization read denied",
+    "closed CreateSchema legacy11/profile16",
+    "fleet count across two organizations without quota UPDATE",
+    "actual successor insert failure rolls back journal/reservation/lease/job",
+    "actual notifier initial backend admitted before LISTEN",
+    "actual notifier reconnect drift refuses before LISTEN/use",
+    "actual notifier restored reconnect new backend ID",
+    "notify after caller COMMIT and none after caller ROLLBACK",
+    "restored four real Oban drains, terminal GET/replay",
+    "R2586 constructor rerun"
+  ],
+  "limits": {
+    "wall_limit_seconds": 1200,
+    "cleanup_reserve_seconds": 60,
+    "strict_compiles": 2,
+    "strict_compile_limit": 2,
+    "runtime_BEAM_batches": 3,
+    "runtime_BEAM_batch_limit": 3,
+    "PG_launches": 1,
+    "PG_fast_stops": 1,
+    "port": 39960,
+    "first_actual_SQL_before_seconds": 449.4488000869751,
+    "first_SQL_value_is_upper_bound": true,
+    "execution_through_PG_stop_seconds": 453.876
+  },
+  "tool_versions": {
+    "Elixir": "1.20.4",
+    "Erlang": "OTP29/erts17.1;2SMP,1dirtyCPU,1dirtyIO",
+    "PostgreSQL": "17.11",
+    "Rebar": "3.28.0",
+    "Python": "3.14.8"
+  },
+  "custody": {
+    "managed_commands": 20,
+    "all_direct_reaped_both_EOF_FDclosed_ESRCH": true,
+    "postgres": {
+      "pid": 6111,
+      "pgid": 6111,
+      "state": "TERMINAL",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/processor-strict-notifier-fix-r2586/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39960",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC",
+        "-c",
+        "log_statement=all",
+        "-c",
+        "log_line_prefix=%p "
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/processor-strict-notifier-fix-r2586/pgdata",
+      "output_kind": "regular_files",
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "exit": 0,
+      "closedFDs": true,
+      "pipe_EOF": "not applicable; regular files"
+    },
+    "port39960_reusable": true,
+    "removed_only_owned_terminal_transients": [
+      "candidate/hosted/_build",
+      "pgdata",
+      "tmp",
+      "cache",
+      "mix-home",
+      "hex-home"
+    ],
+    "UNKNOWN": false,
+    "new_holds": 0,
+    "historical_holds_accessed_released": false,
+    "delivery_finalization_terminal": true
+  },
+  "custodian": {
+    "definitions_only": true,
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+  },
+  "scope": {
+    "canonical_index_Git_policy_authority_writes": false,
+    "children": 0,
+    "native_provider_real_credentials_deployment": false,
+    "remote_writes": false,
+    "held_resources_accessed_or_released": false,
+    "held_v5_startup_used": false,
+    "root_owns_adoption_delivery": true
+  },
+  "limitations": [
+    "No candidate adoption or qualification.",
+    "All mandatory negative/notifier/rollback/fleet assertions UNRUN.",
+    "No second cluster, fourth runtime or third compile attempted.",
+    "One changed-fix independent review remains pending actual proof; no child permitted.",
+    "Full900/sourcev26/release/production/GA remain pending."
+  ],
+  "artifacts": {
+    "application-map.json": {
+      "bytes": 5715,
+      "sha256": "c076150d4469e4c38f9e88dff33d8fe49fe181adb73538e97f7a6494a53764d6"
+    },
+    "r2576-changed-fix-map.json": {
+      "bytes": 938,
+      "sha256": "770200ff7ccf6e2b1732b3186feef716b33e1f73cfaca67a5aa4fb5643abc9c5"
+    },
+    "asset-map.json": {
+      "bytes": 2998,
+      "sha256": "fc6bc3bcec8f71673c252fa0f94fd779466f22738eb973ce21be9544f73fe9cc"
+    },
+    "final-source-manifest.json": {
+      "bytes": 48531,
+      "sha256": "f88a92c733f73e157f0ff615c90ab7e23f1c1dd1a33ebbf56cbb73e1dcb0e858"
+    },
+    "command-manifest.json": {
+      "bytes": 13400,
+      "sha256": "ab31361440bdfe8f49f7df054b481fd0236bed27d2aade10baff258f7eb10737"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 9033,
+      "sha256": "c13c0451acff8b42fd18de2bc4df6c532c194cd17e1f77a8dd7632e6ae984a95"
+    },
+    "source-proof.json": {
+      "bytes": 776,
+      "sha256": "24b928a3a71312ccd8353ac8cb32b842f7b21e1600c9ce6178d1e92aa8829f28"
+    },
+    "retained-snapshot-source-witness.json": {
+      "bytes": 1168,
+      "sha256": "c3f0f5aa8ca00ed646de709fda49523bca42c83a100e31f140d8dbc94436da03"
+    },
+    "unrun-proposal/role-literal-fix.patch": {
+      "bytes": 10596,
+      "sha256": "82182d82d417041cfa69c7557ecdc290d0097ef69b3dd53021a4d5922bf523c4"
+    },
+    "REPORT.md": {
+      "bytes": 9849,
+      "sha256": "701d43dbf32bd925bd6690fb678e8c92a5c28abda5194c06b8942d33b53f6fbe"
+    }
+  },
+  "report": "verification/local/processor-strict-notifier-fix-r2586/REPORT.md",
+  "elapsed_to_delivery_seconds": 801.042,
+  "raw_files": 60,
+  "raw_bytes": 2666844,
+  "delivery_wrapper_prelaunch_failure": "Missing ROOT default before unchanged custodian definitions loaded; no inner process launched; retained delivery-prelaunch-failure.json."
+}
