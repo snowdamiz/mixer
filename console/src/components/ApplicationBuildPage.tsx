@@ -1,5 +1,6 @@
 import { A } from "@solidjs/router";
 import { createMemo, For, Match, Show, Switch } from "solid-js";
+import type { BuildCatalogRow } from "../domain/build-catalog.js";
 import type { BuildOverviewInput, BuildState } from "../domain/build-overview.js";
 import { resolveWorkspaceDirectory, workspaceDisplayName } from "../domain/workspace-directory.js";
 import type { WorkspaceDirectoryState } from "../domain/workspace-directory.js";
@@ -47,6 +48,16 @@ export function ApplicationBuildPage(props: {
   const applications = () => { const value = state().applications; return value.kind === "ready" || value.kind === "empty" ? value.page : undefined; };
   const builds = () => { const value = state().builds; return value.kind === "ready" || value.kind === "empty" ? value.page : undefined; };
   const detail = () => { const value = state().detail; return value.kind === "ready" ? value : undefined; };
+  const rowSnapshot = (row: BuildCatalogRow) => {
+    const current = state().detail, selection = row.selection;
+    const value = current.kind === "ready" ? current : "previous" in current ? current.previous : undefined;
+    return value && value.selection.organizationId === selection.organizationId &&
+      value.selection.projectId === selection.projectId && value.selection.applicationId === selection.applicationId &&
+      value.selection.buildId === selection.buildId && value.selection.platform === selection.platform &&
+      value.selection.sourceSha256 === selection.sourceSha256 && value.selection.toolchainLockSha256 === selection.toolchainLockSha256 &&
+      value.selection.buildDefinitionSha256 === selection.buildDefinitionSha256 && value.snapshot.revision >= row.snapshot.revision
+      ? value.snapshot : row.snapshot;
+  };
   const overview = createMemo((): BuildOverviewInput | undefined => {
     const value = detail();
     if (!value) return undefined;
@@ -97,7 +108,7 @@ export function ApplicationBuildPage(props: {
                 <button type="button" class="workspace-row-button" aria-current={detail()?.selection.buildId === row.selection.buildId && detail()?.selection.platform === row.selection.platform ? "true" : undefined}
                   onClick={() => props.binding.controller.selectBuild({ buildId: row.selection.buildId, platform: row.selection.platform })}>
                   <span class="workspace-row-identity"><strong>{row.selection.platform === "ios" ? "iOS" : "Android"}</strong><code><bdi>{row.selection.buildId}</bdi></code>
-                    <span>{labels[row.snapshot.report.state]}</span><Show when={row.snapshot.report.workerCompletionPending}><span>Waiting for the build worker to finish.</span></Show>
+                    <span>{labels[rowSnapshot(row).report.state]}</span><Show when={rowSnapshot(row).report.workerCompletionPending}><span>Waiting for the build worker to finish.</span></Show>
                   </span><span aria-hidden="true">→</span>
                 </button>
               </li>}</For></ul>

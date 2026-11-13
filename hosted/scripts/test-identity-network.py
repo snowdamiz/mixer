@@ -1637,6 +1637,306 @@ def _load_configured_startup_source_authority():
     return CurrentSourceAuthority(count, canonical_digest(manifest), manifest)
 
 
+PUBLIC_SIGNIN_SOURCE_BASE = 'verification/identity-network-current-source-v19/'
+PUBLIC_SIGNIN_SELECTION_SHA256 = '81350b91385040121791f93ba6b44b39d8fe4429e79b891727e9c797624a75a7'
+PUBLIC_SIGNIN_SOURCE_DIGEST = 'dd08dae24b94f7f0d9a2075ce427ee6dad895c6e68d4fcae9ad7691e78997867'
+PUBLIC_SIGNIN_PARENT_CONTRACT_SHA256 = 'b476fe0db6cae466bf0be3801e7ffc69632d7cd3ea75cbe106eb9047d24fbdfe'
+PUBLIC_SIGNIN_PRODUCT_MAP_SHA256 = '5920b6a5705465a786fa6589dedfafeb2e8704786414ed93b708452659e046e7'
+PUBLIC_SIGNIN_DELTA = {'hosted/lib/mixer_hosted_web/browser_login_http.ex': {'before': {'bytes': 4724, 'sha256': 'ef1f3408474b9e8c1581253f5cfc4371b2edc1315072bf6677f1d6e6f009facb'}, 'after': {'bytes': 5300, 'sha256': '6255155b291327d0a8268d767477b1b4399bd66b5663e748d5d6b58780e2675f'}}, 'console/src/App.tsx': {'before': None, 'after': {'bytes': 5720, 'sha256': 'e92ef3796bfdf1adf81ae8fc0ed3c12f662e6e724ada3841d7327b84c5fbc4c6'}}, 'console/src/main.tsx': {'before': None, 'after': {'bytes': 667, 'sha256': '25b1c1dc079585dcc8c032e96d17e0c4c65e3ae009c3638125c4e7d5be1b7d58'}}, 'console/src/styles.css': {'before': None, 'after': {'bytes': 10472, 'sha256': 'b9c7c7219c16fdfd52d0329de062102241baae16fe7f861e2dfabf2cbf2acaf2'}}, 'console/src/api/browser-login-client.ts': {'before': None, 'after': {'bytes': 5081, 'sha256': 'cda65a5bc6289047715082163d59bb07a63934342a2076023c7c95c9bed55546'}}, 'console/src/state/sign-in-action.ts': {'before': None, 'after': {'bytes': 1722, 'sha256': 'c52a614cef0fb2893c91e778b022780d91b957febce0b9fec6aaea38aabf7b4f'}}, 'console/src/components/SignIn.tsx': {'before': None, 'after': {'bytes': 2297, 'sha256': 'd8958b4d291c85d65495ed9d65dcde298cbfa77f1d6542911a721e4ec2124aa1'}}, 'console/tests/browser-login.test.mjs': {'before': None, 'after': {'bytes': 7063, 'sha256': '461c2ea40c48ca4d641c5fb9c1602294019a2d1a9ffe9c6fb02a2717adcf2c36'}}, 'hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs': {'before': None, 'after': {'bytes': 4670, 'sha256': '1a9063d05d3f76307a6121fa94af9d490e2263c050ea3eb8543cca196606bb12'}}}
+
+
+def _public_signin_row(value):
+    require(type(value) is dict and set(value) == {'bytes', 'sha256'}, 'public signin row shape')
+    require(type(value['bytes']) is int and 0 <= value['bytes'] <= MAX_COMMAND_BYTES, 'public signin byte bound')
+    require(type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']) is not None, 'public signin hash shape')
+
+
+def _validate_public_signin_source_manifest(manifest, count):
+    require(type(count) is int and count == 286, 'public signin closed source count')
+    require(type(manifest) is dict and len(manifest) == count, 'public signin source count')
+    require(set(manifest) == set(CONFIGURED_STARTUP_MANIFEST) | set(PUBLIC_SIGNIN_DELTA), 'public signin source membership')
+    for path, value in manifest.items():
+        require(type(path) is str and not PurePosixPath(path).is_absolute() and '..' not in PurePosixPath(path).parts and str(PurePosixPath(path)) == path, 'public signin unsafe path')
+        _public_signin_row(value)
+    delta = {path: {'before': CONFIGURED_STARTUP_MANIFEST.get(path), 'after': value}
+             for path, value in manifest.items() if CONFIGURED_STARTUP_MANIFEST.get(path) != value}
+    require(delta == PUBLIC_SIGNIN_DELTA, 'public signin exact delta')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            inverse.pop(path)
+        else:
+            inverse[path] = change['before']
+    require(inverse == CONFIGURED_STARTUP_MANIFEST and canonical_digest(inverse) == CONFIGURED_STARTUP_SOURCE_DIGEST, 'public signin complete v18 inverse')
+    require(canonical_digest(manifest) == PUBLIC_SIGNIN_SOURCE_DIGEST, 'public signin frozen source digest')
+    return manifest
+
+
+def validate_public_signin_source_manifest(manifest, expected_digest=PUBLIC_SIGNIN_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == PUBLIC_SIGNIN_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == PUBLIC_SIGNIN_SOURCE_COUNT), 'caller cannot replace public signin authority')
+    return _validate_public_signin_source_manifest(manifest, PUBLIC_SIGNIN_SOURCE_COUNT)
+
+
+def _public_signin_metadata(metadata):
+    require(type(metadata) is dict and set(metadata) == {PUBLIC_SIGNIN_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')}, 'public signin metadata membership')
+    body = metadata[PUBLIC_SIGNIN_SOURCE_BASE + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == PUBLIC_SIGNIN_SELECTION_SHA256, 'public signin selection pin mismatch')
+    try:
+        value = json.loads(body)
+    except (ValueError, TypeError) as error:
+        raise CollectorError('public signin selection JSON') from error
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'runtime_or_GA_accepted', 'parent_contract_sha256', 'product_map_sha256'}, 'public signin selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-public-console-signin-v19', 'public signin typed schema')
+    require(value['runtime_or_GA_accepted'] is False and value['parent_contract_sha256'] == PUBLIC_SIGNIN_PARENT_CONTRACT_SHA256 and value['product_map_sha256'] == PUBLIC_SIGNIN_PRODUCT_MAP_SHA256, 'public signin scope contract')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'public signin predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': CONFIGURED_STARTUP_SOURCE_COUNT, 'source_digest_sha256': CONFIGURED_STARTUP_SOURCE_DIGEST, 'selection_sha256': CONFIGURED_STARTUP_SELECTION_SHA256}, 'public signin typed predecessor')
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'public signin selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == 286 and selected['source_digest_sha256'] == PUBLIC_SIGNIN_SOURCE_DIGEST, 'public signin selected count digest')
+    reference = selected['manifest']
+    require(type(reference) is dict and set(reference) == {'path', 'bytes', 'sha256'} and reference['path'] == 'selected-source-manifest.json', 'public signin manifest reference')
+    _public_signin_row({key: reference[key] for key in ('bytes', 'sha256')})
+    manifest_body = metadata[PUBLIC_SIGNIN_SOURCE_BASE + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {key: reference[key] for key in ('bytes', 'sha256')}, 'public signin manifest byte pin')
+    try:
+        manifest = json.loads(manifest_body)
+    except (ValueError, TypeError) as error:
+        raise CollectorError('public signin manifest JSON') from error
+    _validate_public_signin_source_manifest(manifest, selected['source_count'])
+    delta = value['exact_delta']
+    require(type(delta) is dict and set(delta) == set(PUBLIC_SIGNIN_DELTA), 'public signin delta membership')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'public signin delta row')
+        if change['before'] is not None:
+            _public_signin_row(change['before'])
+        _public_signin_row(change['after'])
+    require(delta == PUBLIC_SIGNIN_DELTA, 'public signin typed inverse delta')
+    return value, manifest
+
+
+def validate_public_signin_source_metadata(metadata):
+    value, manifest = _public_signin_metadata(metadata)
+    require(manifest == PUBLIC_SIGNIN_MANIFEST, 'public signin installed manifest')
+    return value
+
+
+def check_public_signin_source(root):
+    metadata = {PUBLIC_SIGNIN_SOURCE_BASE + name: (root / PUBLIC_SIGNIN_SOURCE_BASE / name).read_bytes() for name in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_public_signin_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in PUBLIC_SIGNIN_MANIFEST}
+    validate_public_signin_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': PUBLIC_SIGNIN_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_public_signin_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    metadata = {PUBLIC_SIGNIN_SOURCE_BASE + name: (root / PUBLIC_SIGNIN_SOURCE_BASE / name).read_bytes() for name in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _public_signin_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
+CONSOLE_COHERENCE_SOURCE_BASE = 'verification/identity-network-current-source-v20/'
+CONSOLE_COHERENCE_SELECTION_SHA256 = '86bd7b4d6bc7c8176029f7c8c40ba6204e108187ea70ce08b70bca95ad9a2818'
+CONSOLE_COHERENCE_SOURCE_DIGEST = '957e64f869982b0172e452f1f59a990c784984667aac835044d5ed14f4e11fe0'
+CONSOLE_COHERENCE_PARENT_CONTRACT_SHA256 = 'aded4f2708f24767502663ae28c16a4997e2fe685103845a522876f2ef9d91c3'
+CONSOLE_COHERENCE_PRODUCT_MAP_SHA256 = 'b43fe08f8b6b76159ebca669c589106fd3a7b7add04fedd60b8c6c6ee7186285'
+CONSOLE_COHERENCE_DELTA = {'console/src/components/ApplicationBuildPage.tsx': {'before': None, 'after': {'bytes': 11229, 'sha256': '88c1032fc3758da8acdd166c1bef3e9ede2a55d5107749bd29964a87f3a94fce'}}, 'console/src/state/build-selection-controller.ts': {'before': None, 'after': {'bytes': 17475, 'sha256': '034a1811233df08970f5f30a78f9ee70e46f13765fc2f0b0f7f329d0b547e2b3'}}, 'console/tests/application-build-page.test.mjs': {'before': None, 'after': {'bytes': 18004, 'sha256': 'df7babc4e38bf72a085aa3327bee06de3b8cca20867659f511f88680172a0be2'}}, 'console/tests/build-selection-controller.test.mjs': {'before': None, 'after': {'bytes': 24692, 'sha256': 'd534d18a38d69f933287255ed8d22d03bb267f3289a09deb1e4e52ba7502510d'}}}
+
+
+def _console_coherence_row(value):
+    require(type(value) is dict and set(value) == {'bytes', 'sha256'}, 'console coherence row shape')
+    require(type(value['bytes']) is int and 0 <= value['bytes'] <= MAX_COMMAND_BYTES, 'console coherence byte bound')
+    require(type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']) is not None, 'console coherence hash shape')
+
+
+def _validate_console_coherence_source_manifest(manifest, count):
+    require(type(count) is int and count == 290, 'console coherence closed source count')
+    require(type(manifest) is dict and len(manifest) == count, 'console coherence source count')
+    require(set(manifest) == set(PUBLIC_SIGNIN_MANIFEST) | set(CONSOLE_COHERENCE_DELTA), 'console coherence source membership')
+    for path, value in manifest.items():
+        require(type(path) is str and not PurePosixPath(path).is_absolute() and '..' not in PurePosixPath(path).parts and str(PurePosixPath(path)) == path, 'console coherence unsafe path')
+        _console_coherence_row(value)
+    delta = {path: {'before': PUBLIC_SIGNIN_MANIFEST.get(path), 'after': value}
+             for path, value in manifest.items() if PUBLIC_SIGNIN_MANIFEST.get(path) != value}
+    require(delta == CONSOLE_COHERENCE_DELTA, 'console coherence exact delta')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            inverse.pop(path)
+        else:
+            inverse[path] = change['before']
+    require(inverse == PUBLIC_SIGNIN_MANIFEST and canonical_digest(inverse) == PUBLIC_SIGNIN_SOURCE_DIGEST, 'console coherence complete v19 inverse')
+    require(canonical_digest(manifest) == CONSOLE_COHERENCE_SOURCE_DIGEST, 'console coherence frozen source digest')
+    return manifest
+
+
+def validate_console_coherence_source_manifest(manifest, expected_digest=CONSOLE_COHERENCE_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == CONSOLE_COHERENCE_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == CONSOLE_COHERENCE_SOURCE_COUNT), 'caller cannot replace console coherence authority')
+    return _validate_console_coherence_source_manifest(manifest, CONSOLE_COHERENCE_SOURCE_COUNT)
+
+
+def _console_coherence_metadata(metadata):
+    require(type(metadata) is dict and set(metadata) == {CONSOLE_COHERENCE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')}, 'console coherence metadata membership')
+    body = metadata[CONSOLE_COHERENCE_SOURCE_BASE + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == CONSOLE_COHERENCE_SELECTION_SHA256, 'console coherence selection pin mismatch')
+    try:
+        value = json.loads(body)
+    except (ValueError, TypeError) as error:
+        raise CollectorError('console coherence selection JSON') from error
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'runtime_or_GA_accepted', 'parent_contract_sha256', 'product_map_sha256'}, 'console coherence selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-console-coherence-v20', 'console coherence typed schema')
+    require(value['runtime_or_GA_accepted'] is False and value['parent_contract_sha256'] == CONSOLE_COHERENCE_PARENT_CONTRACT_SHA256 and value['product_map_sha256'] == CONSOLE_COHERENCE_PRODUCT_MAP_SHA256, 'console coherence scope contract')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'console coherence predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': PUBLIC_SIGNIN_SOURCE_COUNT, 'source_digest_sha256': PUBLIC_SIGNIN_SOURCE_DIGEST, 'selection_sha256': PUBLIC_SIGNIN_SELECTION_SHA256}, 'console coherence typed predecessor')
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'console coherence selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == 290 and selected['source_digest_sha256'] == CONSOLE_COHERENCE_SOURCE_DIGEST, 'console coherence selected count digest')
+    reference = selected['manifest']
+    require(type(reference) is dict and set(reference) == {'path', 'bytes', 'sha256'} and reference['path'] == 'selected-source-manifest.json', 'console coherence manifest reference')
+    _console_coherence_row({key: reference[key] for key in ('bytes', 'sha256')})
+    manifest_body = metadata[CONSOLE_COHERENCE_SOURCE_BASE + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {key: reference[key] for key in ('bytes', 'sha256')}, 'console coherence manifest byte pin')
+    try:
+        manifest = json.loads(manifest_body)
+    except (ValueError, TypeError) as error:
+        raise CollectorError('console coherence manifest JSON') from error
+    _validate_console_coherence_source_manifest(manifest, selected['source_count'])
+    delta = value['exact_delta']
+    require(type(delta) is dict and set(delta) == set(CONSOLE_COHERENCE_DELTA), 'console coherence delta membership')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'console coherence delta row')
+        if change['before'] is not None:
+            _console_coherence_row(change['before'])
+        _console_coherence_row(change['after'])
+    require(delta == CONSOLE_COHERENCE_DELTA, 'console coherence typed inverse delta')
+    return value, manifest
+
+
+def validate_console_coherence_source_metadata(metadata):
+    value, manifest = _console_coherence_metadata(metadata)
+    require(manifest == CONSOLE_COHERENCE_MANIFEST, 'console coherence installed manifest')
+    return value
+
+
+def check_console_coherence_source(root):
+    metadata = {CONSOLE_COHERENCE_SOURCE_BASE + name: (root / CONSOLE_COHERENCE_SOURCE_BASE / name).read_bytes() for name in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_console_coherence_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in CONSOLE_COHERENCE_MANIFEST}
+    validate_console_coherence_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': CONSOLE_COHERENCE_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_console_coherence_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    metadata = {CONSOLE_COHERENCE_SOURCE_BASE + name: (root / CONSOLE_COHERENCE_SOURCE_BASE / name).read_bytes() for name in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _console_coherence_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
+BUILD_CLOCK_SOURCE_BASE = 'verification/identity-network-current-source-v21/'
+BUILD_CLOCK_SELECTION_SHA256 = '0e16b7b275af0be897e1344117d479b0e52068625f1516c19d665d7ac13f3117'
+BUILD_CLOCK_SOURCE_DIGEST = '13cbf07d04bcbceaaaebb6278166bc18630e4d63f0fcf9857bca3e7319203463'
+BUILD_CLOCK_PARENT_CONTRACT_SHA256 = '04e3509284e6d498d9b872c9c68a05debcb6d88250ee472737c916142ed543a4'
+BUILD_CLOCK_PRODUCT_MAP_SHA256 = '7cc121e0acaf68f40c284981fd2d942ed2f0edf52588af8f3a11224a69d7f0d5'
+BUILD_CLOCK_DELTA = {'hosted/lib/mixer_hosted/customer_builds/context.ex': {'before': {'bytes': 7552, 'sha256': '4a1b3604ad5616b7060e9678e1031e3c0afa19c5f90d75144f0cc66970024212'}, 'after': {'bytes': 7839, 'sha256': 'f6660527b4fafe9b8d97e67a2af0bb8ef43a61f2527067ffba422c10cf397eab'}}}
+
+
+def _build_clock_row(value):
+    require(type(value) is dict and set(value) == {'bytes', 'sha256'}, 'build clock row shape')
+    require(type(value['bytes']) is int and 0 <= value['bytes'] <= MAX_COMMAND_BYTES, 'build clock byte bound')
+    require(type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']) is not None, 'build clock hash shape')
+
+
+def _validate_build_clock_source_manifest(manifest, count):
+    require(type(count) is int and count == 290, 'build clock closed source count')
+    require(type(manifest) is dict and len(manifest) == count, 'build clock source count')
+    require(set(manifest) == set(CONSOLE_COHERENCE_MANIFEST) | set(BUILD_CLOCK_DELTA), 'build clock source membership')
+    for path, value in manifest.items():
+        require(type(path) is str and not PurePosixPath(path).is_absolute() and '..' not in PurePosixPath(path).parts and str(PurePosixPath(path)) == path, 'build clock unsafe path')
+        _build_clock_row(value)
+    delta = {path: {'before': CONSOLE_COHERENCE_MANIFEST.get(path), 'after': value}
+             for path, value in manifest.items() if CONSOLE_COHERENCE_MANIFEST.get(path) != value}
+    require(delta == BUILD_CLOCK_DELTA, 'build clock exact delta')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            inverse.pop(path)
+        else:
+            inverse[path] = change['before']
+    require(inverse == CONSOLE_COHERENCE_MANIFEST and canonical_digest(inverse) == CONSOLE_COHERENCE_SOURCE_DIGEST, 'build clock complete v20 inverse')
+    require(canonical_digest(manifest) == BUILD_CLOCK_SOURCE_DIGEST, 'build clock frozen source digest')
+    return manifest
+
+
+def validate_build_clock_source_manifest(manifest, expected_digest=BUILD_CLOCK_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == BUILD_CLOCK_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == BUILD_CLOCK_SOURCE_COUNT), 'caller cannot replace build clock authority')
+    return _validate_build_clock_source_manifest(manifest, BUILD_CLOCK_SOURCE_COUNT)
+
+
+def _build_clock_metadata(metadata):
+    require(type(metadata) is dict and set(metadata) == {BUILD_CLOCK_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')}, 'build clock metadata membership')
+    body = metadata[BUILD_CLOCK_SOURCE_BASE + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == BUILD_CLOCK_SELECTION_SHA256, 'build clock selection pin mismatch')
+    try:
+        value = json.loads(body)
+    except (ValueError, TypeError) as error:
+        raise CollectorError('build clock selection JSON') from error
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'runtime_or_GA_accepted', 'parent_contract_sha256', 'product_map_sha256'}, 'build clock selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-build-clock-v21', 'build clock typed schema')
+    require(value['runtime_or_GA_accepted'] is False and value['parent_contract_sha256'] == BUILD_CLOCK_PARENT_CONTRACT_SHA256 and value['product_map_sha256'] == BUILD_CLOCK_PRODUCT_MAP_SHA256, 'build clock scope contract')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'build clock predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': CONSOLE_COHERENCE_SOURCE_COUNT, 'source_digest_sha256': CONSOLE_COHERENCE_SOURCE_DIGEST, 'selection_sha256': CONSOLE_COHERENCE_SELECTION_SHA256}, 'build clock typed predecessor')
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'build clock selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == 290 and selected['source_digest_sha256'] == BUILD_CLOCK_SOURCE_DIGEST, 'build clock selected count digest')
+    reference = selected['manifest']
+    require(type(reference) is dict and set(reference) == {'path', 'bytes', 'sha256'} and reference['path'] == 'selected-source-manifest.json', 'build clock manifest reference')
+    _build_clock_row({key: reference[key] for key in ('bytes', 'sha256')})
+    manifest_body = metadata[BUILD_CLOCK_SOURCE_BASE + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {key: reference[key] for key in ('bytes', 'sha256')}, 'build clock manifest byte pin')
+    try:
+        manifest = json.loads(manifest_body)
+    except (ValueError, TypeError) as error:
+        raise CollectorError('build clock manifest JSON') from error
+    _validate_build_clock_source_manifest(manifest, selected['source_count'])
+    delta = value['exact_delta']
+    require(type(delta) is dict and set(delta) == set(BUILD_CLOCK_DELTA), 'build clock delta membership')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'build clock delta row')
+        if change['before'] is not None:
+            _build_clock_row(change['before'])
+        _build_clock_row(change['after'])
+    require(delta == BUILD_CLOCK_DELTA, 'build clock typed inverse delta')
+    return value, manifest
+
+
+def validate_build_clock_source_metadata(metadata):
+    value, manifest = _build_clock_metadata(metadata)
+    require(manifest == BUILD_CLOCK_MANIFEST, 'build clock installed manifest')
+    return value
+
+
+def check_build_clock_source(root):
+    metadata = {BUILD_CLOCK_SOURCE_BASE + name: (root / BUILD_CLOCK_SOURCE_BASE / name).read_bytes() for name in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_build_clock_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in BUILD_CLOCK_MANIFEST}
+    validate_build_clock_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': BUILD_CLOCK_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_build_clock_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    metadata = {BUILD_CLOCK_SOURCE_BASE + name: (root / BUILD_CLOCK_SOURCE_BASE / name).read_bytes() for name in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _build_clock_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
@@ -1656,7 +1956,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_configured_startup_source_manifest(prepared["source"])
+    validate_build_clock_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -1823,7 +2123,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_configured_startup_source_manifest(manifest["source"])
+    validate_build_clock_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -1846,7 +2146,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CONFIGURED_STARTUP_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(BUILD_CLOCK_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -2617,10 +2917,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_configured_startup_source_manifest(CONFIGURED_STARTUP_MANIFEST)
-        product = self.git_blobs(sorted(CONFIGURED_STARTUP_MANIFEST))
+        validate_build_clock_source_manifest(BUILD_CLOCK_MANIFEST)
+        product = self.git_blobs(sorted(BUILD_CLOCK_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_configured_startup_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_build_clock_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -2701,7 +3001,16 @@ class Collector:
         configured_metadata = self.git_blobs([CONFIGURED_STARTUP_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
         validate_configured_startup_source_metadata(configured_metadata)
         metadata.update(configured_metadata)
-        self.state["source"].update(current_source_selection_sha256=CONFIGURED_STARTUP_SELECTION_SHA256, current_source_digest_sha256=CONFIGURED_STARTUP_SOURCE_DIGEST)
+        historical_signin = self.git_blobs([PUBLIC_SIGNIN_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_public_signin_source_metadata(historical_signin)
+        metadata.update(historical_signin)
+        historical_coherence = self.git_blobs([CONSOLE_COHERENCE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_console_coherence_source_metadata(historical_coherence)
+        metadata.update(historical_coherence)
+        signin_metadata = self.git_blobs([BUILD_CLOCK_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_build_clock_source_metadata(signin_metadata)
+        metadata.update(signin_metadata)
+        self.state["source"].update(current_source_selection_sha256=BUILD_CLOCK_SELECTION_SHA256, current_source_digest_sha256=BUILD_CLOCK_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -2719,7 +3028,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CONFIGURED_STARTUP_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(BUILD_CLOCK_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -2741,7 +3050,7 @@ class Collector:
         self.execute(prepare, ["/usr/local/bin/mix", "deps.get", "--check-locked"], 120)
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
-        require(prepared_manifest["source"] == CONFIGURED_STARTUP_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == BUILD_CLOCK_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -2839,7 +3148,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in CONFIGURED_STARTUP_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in BUILD_CLOCK_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -3290,7 +3599,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_configured_startup_source(root), sort_keys=True))
+        print(json.dumps(check_build_clock_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -3381,6 +3690,15 @@ PROVIDER_IO_SOURCE_COUNT, PROVIDER_IO_MANIFEST = PROVIDER_IO_AUTHORITY.count, PR
 
 CONFIGURED_STARTUP_AUTHORITY = _load_configured_startup_source_authority()
 CONFIGURED_STARTUP_SOURCE_COUNT, CONFIGURED_STARTUP_MANIFEST = CONFIGURED_STARTUP_AUTHORITY.count, CONFIGURED_STARTUP_AUTHORITY.manifest
+
+PUBLIC_SIGNIN_AUTHORITY = _load_public_signin_source_authority()
+PUBLIC_SIGNIN_SOURCE_COUNT, PUBLIC_SIGNIN_MANIFEST = PUBLIC_SIGNIN_AUTHORITY.count, PUBLIC_SIGNIN_AUTHORITY.manifest
+
+CONSOLE_COHERENCE_AUTHORITY = _load_console_coherence_source_authority()
+CONSOLE_COHERENCE_SOURCE_COUNT, CONSOLE_COHERENCE_MANIFEST = CONSOLE_COHERENCE_AUTHORITY.count, CONSOLE_COHERENCE_AUTHORITY.manifest
+
+BUILD_CLOCK_AUTHORITY = _load_build_clock_source_authority()
+BUILD_CLOCK_SOURCE_COUNT, BUILD_CLOCK_MANIFEST = BUILD_CLOCK_AUTHORITY.count, BUILD_CLOCK_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:

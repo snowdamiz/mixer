@@ -1,6 +1,7 @@
 import { A, Navigate, Route, Router, useCurrentMatches } from "@solidjs/router";
 import { lazy, Show } from "solid-js";
 import type { ParentProps } from "solid-js";
+import { SignIn } from "./components/SignIn.js";
 import { ReleaseChecks } from "./components/ReleaseChecks.js";
 import { ApplicationBuildPage } from "./components/ApplicationBuildPage.js";
 import { createBuildSelectionBinding } from "./state/build-selection-binding.js";
@@ -43,7 +44,7 @@ export function ConsoleShell(props: ParentProps) {
         <p class="rail-caption">One Swift app.<br/>A world of possibility.</p>
       </aside>
       <div class="console-workspace">
-        <header class="workspace-bar"><p>Workspace <span aria-hidden="true">/</span> <strong>{section()}</strong></p><span class="workspace-product">Builds &amp; updates</span></header>
+        <header class="workspace-bar"><p>Workspace <span aria-hidden="true">/</span> <strong>{section()}</strong></p><span class="workspace-product">Builds &amp; updates</span><SignIn /></header>
         <main id="main-content" tabIndex={-1}>{props.children}</main>
         <footer class="app-footer"><span>mixer<span class="brand-period">.</span></span><span>Thoughtfully built for the things you’ll build.</span></footer>
       </div>

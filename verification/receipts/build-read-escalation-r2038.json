@@ -1,0 +1,556 @@
+{
+  "schema": 1,
+  "id": "build-read-escalation-r2038",
+  "status": "PRIVATE_CANDIDATE_PASS",
+  "source": {
+    "source_digest": "dd08dae24b94f7f0d9a2075ce427ee6dad895c6e68d4fcae9ad7691e78997867",
+    "source_count": 286,
+    "complete_inputs": 528,
+    "hash_verified_BEAM_files": 1232,
+    "hash_verified_dependency_files": 1884,
+    "hash_verified_hex_files": 133,
+    "canonical_readonly": true,
+    "canonical_selected_inputs_unchanged": true,
+    "hash_verified_BEAM_manifest_entries": 1233,
+    "excluded_noncode_mutable_cache": [
+      "candidate/hosted/_build/test/lib/mixer_hosted/.mix/.mix_test_failures"
+    ],
+    "R2004_compiled_sources_reused": true,
+    "private_context_recompiled_in_memory_only": true
+  },
+  "control": {
+    "exit": 2,
+    "diagnostics": [
+      {
+        "mode": "cross_second",
+        "role": null,
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4273,
+        "current_policy_live": false
+      },
+      {
+        "versions": {
+          "otp": "29",
+          "elixir": "1.20.4"
+        },
+        "stage": "preflight_pass",
+        "nil_safe_first_second": true,
+        "telemetry_attached_after_both_events": true,
+        "required_environment_exact": true
+      },
+      {
+        "mode": "cross_second",
+        "role": "owner",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4720,
+        "current_policy_live": true
+      },
+      {
+        "message": "no match of right hand side value:\n\n    false\n",
+        "stack": "    (mixer_hosted 0.1.0) r2038-private-context.ex:163: MixerHosted.CustomerBuilds.Context.publish!/2\n    (mixer_hosted 0.1.0) r2038-private-context.ex:48: MixerHosted.CustomerBuilds.Context.read/2\n    /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/focused_test.exs:556: anonymous fn/2 in R1026.CustomerBuildReadTest.\"test build purpose accepts each allowed human role, viewer needs no environment, billing alone denied\"/1\n    (elixir 1.20.4) lib/enum.ex:2622: Enum.\"-reduce/3-lists^foldl/2-0-\"/3\n    /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/focused_test.exs:552: R1026.CustomerBuildReadTest.\"test build purpose accepts each allowed human role, viewer needs no environment, billing alone denied\"/1\n    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2\n    (stdlib 8.1) timer.erl:599: :timer.tc/2\n    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4\n",
+        "role": "owner",
+        "stage": "exception",
+        "error_class": "MatchError"
+      },
+      {
+        "result": "authorization_unavailable",
+        "role": "owner",
+        "stage": "role_result"
+      }
+    ],
+    "stdout": {
+      "path": "logs/00002-control-with-preflight.stdout",
+      "bytes": 6584,
+      "sha256": "490d81ebc1beb9358a32cd62fb4d6cbf08e98a81d521312013b738598e222a05"
+    },
+    "stderr": {
+      "path": "logs/00002-control-with-preflight.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "actual_test_body": true,
+    "full_suite": false,
+    "status": "EXPECTED_COUNTEREXAMPLE",
+    "executed": 1,
+    "failed": 1,
+    "excluded": 10,
+    "refused_guard": "CustomerBuilds.Context.publish!/2 final same-second publication assertion; private instrumented line 163",
+    "deadline_remaining_ms": 4720,
+    "actual_COMMIT_acknowledged": true,
+    "historical_R2004_attribution": "UNPROVEN"
+  },
+  "cleanup": {
+    "single_pg_stop_exit": 0,
+    "postgres_group_absent": true,
+    "port_reusable": true,
+    "managed_commands": 16,
+    "all_direct_reaped_EOF_FD_closed_group_ESRCH": true
+  },
+  "scope": "One canonical focused role case, one real SQL post-COMMIT boundary control, and conditional private minimal fix with negative controls; original 5s deadline.",
+  "elapsed_seconds": 16.344,
+  "port_preflight": {
+    "port": 39450,
+    "ordinary_free_bind": true,
+    "shared_5432_access": false
+  },
+  "preflight": {
+    "status": "PASS",
+    "nil_safe_first_second": true,
+    "telemetry_stays_attached": true,
+    "required_environment_exact": true,
+    "exports_compile_layout_before_DB": true,
+    "first_failed_batch_preserved": "preflight-first-failure.json",
+    "first_failure": "Telemetry application was not started under --no-start. The first hook crossed safely; handler registration failed. Corrected before sole PG launch.",
+    "required_environment_survived_fixture_and_candidate": true
+  },
+  "postgres": {
+    "pid": 8180,
+    "pgid": 8180,
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/tmp/data",
+    "launches": 1,
+    "port": 39450,
+    "unix_sockets": false
+  },
+  "sql_readiness": {
+    "pg_isready_exit": 0,
+    "select1": true,
+    "owned_data_directory_verified": true,
+    "before_DDL": true
+  },
+  "controlled_SQL_bug_reproduced": true,
+  "historical_R2004_cause": "UNPROVEN",
+  "limitations": [
+    "Controlled local macOS SQL counterexample proves current susceptibility; exact cause of historical R2004 failure remains unproven.",
+    "Private candidate only; canonical source, index, Git and public delivery unchanged.",
+    "Four focused tests passed; seven excluded. No full suite, CI, native, published-package, production or GA qualification.",
+    "One failed preflight and one post-run parser failure are retained separately. No additional BEAM or SQL launch was used to collect results."
+  ],
+  "collection_harness_error_preserved": {
+    "class": "JSONDecodeError",
+    "message": "Expecting value: line 1 column 1 (char 0)",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/run.py\", line 101, in <module>\n    code=C.finish(candidate_pair,60);batch_result('candidate',candidate_pair,code)\n                                     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/run.py\", line 67, in batch_result\n    lines=[json.loads(line.split('R2038 ',1)[1]) for line in out.splitlines() if 'R2038 {' in line]\n           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/__init__.py\", line 352, in loads\n    return _default_decoder.decode(s)\n           ~~~~~~~~~~~~~~~~~~~~~~~^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/decoder.py\", line 345, in decode\n    obj, end = self.raw_decode(s, idx=_w(s, 0).end())\n               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/decoder.py\", line 363, in raw_decode\n    raise JSONDecodeError(\"Expecting value\", s, err.value) from None\njson.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)\n"
+  },
+  "candidate": {
+    "status": "PASS",
+    "exit": 0,
+    "executed": 4,
+    "passed": 4,
+    "failed": 0,
+    "excluded": 7,
+    "full_suite": false,
+    "stdout": {
+      "path": "logs/00015-candidate.stdout",
+      "bytes": 8076,
+      "sha256": "084b6079bf8f94f8949281dfe5a3445db81bad84e8d6465305efb712cc427b64"
+    },
+    "stderr": {
+      "path": "logs/00015-candidate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diagnostics": [
+      {
+        "mode": "cross_second",
+        "role": "owner",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4582,
+        "current_policy_live": true
+      },
+      {
+        "result": "ok",
+        "role": "owner",
+        "stage": "role_result"
+      },
+      {
+        "mode": "cross_second",
+        "role": "administrator",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4001,
+        "current_policy_live": true
+      },
+      {
+        "result": "ok",
+        "role": "administrator",
+        "stage": "role_result"
+      },
+      {
+        "mode": "cross_second",
+        "role": "developer",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4000,
+        "current_policy_live": true
+      },
+      {
+        "result": "ok",
+        "role": "developer",
+        "stage": "role_result"
+      },
+      {
+        "mode": "cross_second",
+        "role": "release_manager",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4000,
+        "current_policy_live": true
+      },
+      {
+        "result": "ok",
+        "role": "release_manager",
+        "stage": "role_result"
+      },
+      {
+        "mode": "cross_second",
+        "role": "viewer",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 3999,
+        "current_policy_live": true
+      },
+      {
+        "result": "ok",
+        "role": "viewer",
+        "stage": "role_result"
+      },
+      {
+        "message": "no match of right hand side value:\n\n    false\n",
+        "stack": "    (mixer_hosted 0.1.0) r2038-private-context.ex:159: MixerHosted.CustomerBuilds.Context.publish!/4\n    (mixer_hosted 0.1.0) r2038-private-context.ex:48: MixerHosted.CustomerBuilds.Context.read/2\n    /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/focused_test.exs:642: R1026.CustomerBuildReadTest.\"test post-COMMIT late publication fails closed after definite SQL acknowledgment\"/1\n    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2\n    (stdlib 8.1) timer.erl:599: :timer.tc/2\n    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4\n",
+        "role": null,
+        "stage": "exception",
+        "error_class": "MatchError"
+      },
+      {
+        "mode": "cross_second",
+        "role": null,
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4163,
+        "current_policy_live": true
+      },
+      {
+        "mode": "token_expiry",
+        "role": "developer",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4009,
+        "current_policy_live": false
+      },
+      {
+        "message": "no match of right hand side value:\n\n    false\n",
+        "stack": "    (mixer_hosted 0.1.0) r2038-private-context.ex:159: MixerHosted.CustomerBuilds.Context.publish!/4\n    (mixer_hosted 0.1.0) r2038-private-context.ex:48: MixerHosted.CustomerBuilds.Context.read/2\n    /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/focused_test.exs:665: anonymous fn/2 in R1026.CustomerBuildReadTest.\"test R2038 expiry at the real post-COMMIT second boundary stays closed\"/1\n    (elixir 1.20.4) lib/enum.ex:2622: Enum.\"-reduce/3-lists^foldl/2-0-\"/3\n    /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/focused_test.exs:655: R1026.CustomerBuildReadTest.\"test R2038 expiry at the real post-COMMIT second boundary stays closed\"/1\n    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2\n    (stdlib 8.1) timer.erl:599: :timer.tc/2\n    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4\n",
+        "role": "developer",
+        "stage": "exception",
+        "error_class": "MatchError"
+      },
+      {
+        "mode": "token_expiry",
+        "result": "closed",
+        "stage": "negative_expiry"
+      },
+      {
+        "mode": "grant_expiry",
+        "role": "developer",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4011,
+        "current_policy_live": false
+      },
+      {
+        "message": "no match of right hand side value:\n\n    false\n",
+        "stack": "    (mixer_hosted 0.1.0) r2038-private-context.ex:159: MixerHosted.CustomerBuilds.Context.publish!/4\n    (mixer_hosted 0.1.0) r2038-private-context.ex:48: MixerHosted.CustomerBuilds.Context.read/2\n    /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/focused_test.exs:665: anonymous fn/2 in R1026.CustomerBuildReadTest.\"test R2038 expiry at the real post-COMMIT second boundary stays closed\"/1\n    (elixir 1.20.4) lib/enum.ex:2622: Enum.\"-reduce/3-lists^foldl/2-0-\"/3\n    /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/focused_test.exs:655: R1026.CustomerBuildReadTest.\"test R2038 expiry at the real post-COMMIT second boundary stays closed\"/1\n    (ex_unit 1.20.4) lib/ex_unit/runner.ex:533: ExUnit.Runner.exec_test/2\n    (stdlib 8.1) timer.erl:599: :timer.tc/2\n    (ex_unit 1.20.4) lib/ex_unit/runner.ex:455: anonymous fn/6 in ExUnit.Runner.spawn_test_monitor/4\n",
+        "role": "developer",
+        "stage": "exception",
+        "error_class": "MatchError"
+      },
+      {
+        "mode": "grant_expiry",
+        "result": "closed",
+        "stage": "negative_expiry"
+      }
+    ],
+    "safe_cross_second_roles": [
+      {
+        "mode": "cross_second",
+        "role": "owner",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4582,
+        "current_policy_live": true
+      },
+      {
+        "mode": "cross_second",
+        "role": "administrator",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4001,
+        "current_policy_live": true
+      },
+      {
+        "mode": "cross_second",
+        "role": "developer",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4000,
+        "current_policy_live": true
+      },
+      {
+        "mode": "cross_second",
+        "role": "release_manager",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 4000,
+        "current_policy_live": true
+      },
+      {
+        "mode": "cross_second",
+        "role": "viewer",
+        "stage": "post_commit_final_guard",
+        "in_transaction": false,
+        "wall_delta_seconds": 1,
+        "deadline_remaining_ms": 3999,
+        "current_policy_live": true
+      }
+    ],
+    "tests": [
+      "current SQL revocation boundaries",
+      "five allowed human roles; billing, forged role, scope and nil denials",
+      "post-COMMIT late expiry refusal plus recovery",
+      "actual token and membership expiry on forced post-COMMIT boundary"
+    ],
+    "telemetry_handlers_remained_attached": true,
+    "exact_product_afterimage_matched_executed_instrumented_source": true
+  },
+  "product_fix_made": "PRIVATE_ONLY",
+  "candidate_afterimage": "verification/local/build-read-escalation-r2038/afterimages/hosted/lib/mixer_hosted/customer_builds/context.ex",
+  "candidate_patch": "verification/local/build-read-escalation-r2038/candidate.patch",
+  "fix": {
+    "bounded_validations": 2,
+    "revalidates_current_policy_at_new_wallclock": true,
+    "original_monotonic_deadline_ms": 5000,
+    "same_state_evidence_identity_runtime_scope_guards": true,
+    "no_new_SQL_or_grants_or_queue_capacity_changes": true,
+    "backward_clock_or_second_retry_exhaustion_fails_closed": true
+  },
+  "revocation_scope": "Actual SQL revocations committed before read are rejected for principals, families, credentials and memberships through build HTTP reads (and existing audit transactions), and profiles and bindings through build reads plus HTTP. No post-COMMIT concurrent revocation experiment or new guarantee is claimed.",
+  "custody": {
+    "R986_source_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "AST_definitions": [
+      "read",
+      "save",
+      "row",
+      "InertPopen",
+      "run"
+    ],
+    "explicit_existing_cwd": true,
+    "outer_registries": [
+      "outer/commands.json",
+      "outer-r2/commands.json"
+    ],
+    "outer": [
+      {
+        "label": "campaign",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/run.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038",
+        "pid": 7202,
+        "pgid": 7202,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 1.1072508749784902,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "campaign",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038/run.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-escalation-r2038",
+        "pid": 8080,
+        "pgid": 8080,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 16.434719417011365,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "inner_registry": "commands.json",
+    "all_inner_reaped_both_EOF_FDclose_ESRCH": true,
+    "UNKNOWN": false,
+    "new_holds": [],
+    "historical_holds_accessed_or_released": false
+  },
+  "bounds": {
+    "BEAM_batches_total": 3,
+    "initial_preflight_failed_before_DB": true,
+    "corrected_preflight_and_SQL_control_share_one_BEAM_batch": true,
+    "postgres_launches": 1,
+    "postgres_stops": 1,
+    "port": 39450,
+    "shared_5432_access": false,
+    "runtime_seconds_first_preflight_through_cleanup": 55.392,
+    "maximum_total_seconds": 480,
+    "full_suite_retries": 0,
+    "subchildren": 0,
+    "native_browser_cloud_provider_calls": 0,
+    "prior_R2010_R2026_campaigns_remain_failures": true,
+    "finished_utc": "2026-11-13T05:47:33Z",
+    "overall_includes_preparation_under_480_seconds": true
+  },
+  "versions": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir": "1.20.4",
+    "OTP": "29",
+    "postgres": "17.11",
+    "fresh_BEAM_and_postgres_version_evidence": true
+  },
+  "spent_campaign_not_replayable": true,
+  "artifacts": {
+    "prepare.py": {
+      "path": "verification/local/build-read-escalation-r2038/prepare.py",
+      "bytes": 9469,
+      "sha256": "a7dd9e0f52dde4c953404021203d303d7bf1db0b7deb4c54dd0badbf8e442373"
+    },
+    "run.py": {
+      "path": "verification/local/build-read-escalation-r2038/run.py",
+      "bytes": 10985,
+      "sha256": "7ff45d9dc7e1be84531e0ba074297cec55114041db055c4c492212fa37fc69fa"
+    },
+    "launch.py": {
+      "path": "verification/local/build-read-escalation-r2038/launch.py",
+      "bytes": 1351,
+      "sha256": "066b1053fcaca64327e13f61e450b461c653b400d52e4dc6714817e8aad68346"
+    },
+    "launch-r2.py": {
+      "path": "verification/local/build-read-escalation-r2038/launch-r2.py",
+      "bytes": 1354,
+      "sha256": "d5c5c5a3c3d45bda22653bd482ffc7afd909f11851c05a2b4db2844c8809559a"
+    },
+    "commands.py": {
+      "path": "verification/local/build-read-escalation-r2038/commands.py",
+      "bytes": 7604,
+      "sha256": "49c35dbaaec9b3d8e40b686930cf2b8931136f7fc7c65202713021cfd5ae92bb"
+    },
+    "preflight.exs": {
+      "path": "verification/local/build-read-escalation-r2038/preflight.exs",
+      "bytes": 1493,
+      "sha256": "2ddb2b812ec8924591b9c32b64016798cef38eb0ff86b37d15e9c8e32f322f85"
+    },
+    "probe.exs": {
+      "path": "verification/local/build-read-escalation-r2038/probe.exs",
+      "bytes": 1824,
+      "sha256": "b1ddf3e30fdd430a85d5003b08990223bb3a4c8026513fc07a483b8ec12d5a8c"
+    },
+    "telemetry.exs": {
+      "path": "verification/local/build-read-escalation-r2038/telemetry.exs",
+      "bytes": 2847,
+      "sha256": "6d95d71c08d41034f12042f918afdf91540f7f25fca15377694f8b8196075083"
+    },
+    "focused_test.exs": {
+      "path": "verification/local/build-read-escalation-r2038/focused_test.exs",
+      "bytes": 25013,
+      "sha256": "93a4987e414f583254a935b71e25c5fd4b31b2c86fe322c656731f4360a88679"
+    },
+    "context-baseline.ex": {
+      "path": "verification/local/build-read-escalation-r2038/context-baseline.ex",
+      "bytes": 7552,
+      "sha256": "4a1b3604ad5616b7060e9678e1031e3c0afa19c5f90d75144f0cc66970024212"
+    },
+    "instrumented-context.ex": {
+      "path": "verification/local/build-read-escalation-r2038/instrumented-context.ex",
+      "bytes": 7632,
+      "sha256": "733b49559706f37bfe069c3d98234eff100d6e9b357ee15671aedf70d01ee840"
+    },
+    "candidate-instrumented-context.ex": {
+      "path": "verification/local/build-read-escalation-r2038/candidate-instrumented-context.ex",
+      "bytes": 7912,
+      "sha256": "f922e426a6985122c5b465bd924d5bafba4ac698f54d6a50f0015de361ff5832"
+    },
+    "candidate.patch": {
+      "path": "verification/local/build-read-escalation-r2038/candidate.patch",
+      "bytes": 1290,
+      "sha256": "800a289d9e722a6c58a32c1c66466b68b2cfce5160ff6c77eab6087846eba26d"
+    },
+    "regression-packet.json": {
+      "path": "verification/local/build-read-escalation-r2038/regression-packet.json",
+      "bytes": 1663,
+      "sha256": "669867fc5b853931319e3005ddcfbef39e1d4db843e7393acdf3fb588427e9f6"
+    },
+    "preflight-first-failure.json": {
+      "path": "verification/local/build-read-escalation-r2038/preflight-first-failure.json",
+      "bytes": 5242,
+      "sha256": "5e9afb5b9a211a7f58e0dfda35c7a15c38b671d70dfbc082def11dcc4a6e9162"
+    },
+    "commands.json": {
+      "path": "verification/local/build-read-escalation-r2038/commands.json",
+      "bytes": 19989,
+      "sha256": "aef2aebaaef50fcf2e7eed0b86769d92391f522a9799f57d68e4a741d638237e"
+    },
+    "outer/commands.json": {
+      "path": "verification/local/build-read-escalation-r2038/outer/commands.json",
+      "bytes": 548,
+      "sha256": "93ab15d1160778cea04ffef0c0a61b738908cd4d3dde016de6a916cf74f08186"
+    },
+    "outer-r2/commands.json": {
+      "path": "verification/local/build-read-escalation-r2038/outer-r2/commands.json",
+      "bytes": 548,
+      "sha256": "6476374f0bd0b0a5e4b6482ad0a824148aa843ad4889f40fc6edb55d6a39cbe7"
+    },
+    "compiled-modules-proof.json": {
+      "path": "verification/local/build-read-escalation-r2038/compiled-modules-proof.json",
+      "bytes": 59174,
+      "sha256": "f74840feed6562e6d9dab47c22bfdb099edd4a61eacd22f8910e5e73a59067fd"
+    },
+    "product_afterimage": {
+      "path": "verification/local/build-read-escalation-r2038/afterimages/hosted/lib/mixer_hosted/customer_builds/context.ex",
+      "bytes": 7832,
+      "sha256": "f0baf622e401d68c4680d339353617a40423b0a3e6271ff9daae9834525c879c"
+    },
+    "report": {
+      "path": "verification/local/build-read-escalation-r2038/REPORT.md",
+      "bytes": 3554,
+      "sha256": "030377ee4869d66be97dc7e73fd687fcbd55384a7143b0211b641ee1881459af"
+    },
+    "transaction_evidence": {
+      "path": "verification/local/build-read-escalation-r2038/evidence/preflight-transactions.jsonl",
+      "bytes": 8697,
+      "sha256": "91af5f9bc63a78690d4ecb3604d94cda2f61fa0c83b60110e70f826982d2ec36"
+    },
+    "regression_packet": {
+      "path": "verification/local/build-read-escalation-r2038/regression-packet.json",
+      "bytes": 1663,
+      "sha256": "669867fc5b853931319e3005ddcfbef39e1d4db843e7393acdf3fb588427e9f6"
+    },
+    "finalizer": {
+      "path": "verification/local/build-read-escalation-r2038/finalize.py",
+      "bytes": 8396,
+      "sha256": "c4748f9c1bf0616ff8153dab0c862d4c4119d38dd5f3dbd982596bcf7c965b2f"
+    }
+  }
+}

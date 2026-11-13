@@ -11,7 +11,10 @@ type Failure = "permission_denied" | "not_found" | "request_failed" | "invalid_r
 type Pending = { readonly kind: "unselected" | "loading" | "unauthenticated" | "unavailable" } |
   { readonly kind: "error"; readonly reason: Failure };
 export type CatalogLoad<T> = Pending | { readonly kind: "ready" | "empty"; readonly page: T };
-export type DetailLoad = Pending | { readonly kind: "ready"; readonly selection: BuildReadSelection; readonly snapshot: BuildReadSnapshot };
+type ReadyDetail = { readonly kind: "ready"; readonly selection: BuildReadSelection; readonly snapshot: BuildReadSnapshot };
+export type DetailLoad = Pending | ReadyDetail |
+  { readonly kind: "loading"; readonly previous: ReadyDetail } |
+  { readonly kind: "error"; readonly reason: "invalid_response" | "request_failed"; readonly previous: ReadyDetail };
 export interface BuildSelectionState {
   readonly applications: CatalogLoad<ApplicationPage>;
   readonly builds: CatalogLoad<BuildPage>;
@@ -138,7 +141,12 @@ export function createBuildSelectionController(): BuildSelectionController {
     } else if (stage === "applications") update(initial(reason));
     else if (stage === "builds") update({ applications: state.applications, builds: reason, detail: unselected,
       ...(state.selectedApplicationId === undefined ? {} : { selectedApplicationId: state.selectedApplicationId }) });
-    else update({ ...state, detail: reason });
+    else {
+      const previous = state.detail.kind === "loading" && "previous" in state.detail ? state.detail.previous : undefined;
+      update({ ...state, detail: previous && reason.kind === "error" &&
+        (reason.reason === "invalid_response" || reason.reason === "request_failed")
+        ? Object.freeze({ kind: "error", reason: reason.reason, previous }) : reason });
+    }
   }
   function loadApplications(page: CatalogPageRequest): void {
     const value = request(); if (!value) return;
@@ -178,7 +186,10 @@ export function createBuildSelectionController(): BuildSelectionController {
     const value = request(); if (!value) return;
     const selection = snapshotBuildReadSelection(row.selection), floor = row.revision;
     const cancelled = active; active = value; selected = { selection, revision: floor };
-    update({ ...state, detail: { kind: "loading" } }, cancelled);
+    const previous = state.detail.kind === "ready" ? state.detail : "previous" in state.detail ? state.detail.previous : undefined;
+    const retained = previous && Object.keys(selection).every(key => Reflect.get(previous.selection, key) === Reflect.get(selection, key)) &&
+      previous.snapshot.revision >= floor ? previous : undefined;
+    update({ ...state, detail: retained ? Object.freeze({ kind: "loading", previous: retained }) : { kind: "loading" } }, cancelled);
     void (async () => {
       if (!current(value)) return;
       try {

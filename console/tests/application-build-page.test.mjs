@@ -63,10 +63,57 @@ async function admitted(f){const call=await f.request("/auth/session");call.reso
 async function listed(f){(await admitted(f)).resolve(json(apps()));await flush();f.click("Application IDapp");(await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=app")).resolve(json(catalog()));await flush();}
 const readPath="/console-api/v1/builds?organization_id=org&project_id=p&application_id=app&build_id=b-ios&platform=ios&source_sha256="+"a".repeat(64)+"&toolchain_lock_sha256="+"b".repeat(64)+"&build_definition_sha256="+"c".repeat(64);
 
-test("actual Solid handlers navigate workspace → applications → stored row → queued detail → failed refresh",async()=>{const f=fixture();try{await listed(f);assert.match(f.text(),/iOS.*b-ios.*Queued.*Android.*c-android.*Running/);f.click("b-ios");const read=await f.request(readPath);assert.doesNotMatch(f.text(),/1 of 1 platforms reported/);read.resolve(json({build:dto()}));await flush();assert.match(f.text(),/1 of 1 platforms reported/);const detail=walk(f.container).find(n=>n.getAttribute("aria-label")==="Selected build");assert.match(detail.textContent,/Queued/);assert.doesNotMatch(detail.textContent,/Android|c-android/);assert.equal(walk(f.container).some(n=>n.nodeName==="INPUT"),false);f.click("Refresh build");const refresh=await f.request(readPath);assert.doesNotMatch(f.text(),/1 of 1 platforms reported/);refresh.resolve(json({build:dto({revision:3,state:"failed",failureCode:"compiler_error"})}));await flush();assert.match(detail.textContent,/Compilation failed/);f.click("Application IDempty");assert.doesNotMatch(f.text(),/Compilation failed/);(await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=empty")).resolve(json(catalog([],"empty")));await flush();assert.match(f.text(),/No builds yet/);assert.doesNotMatch(f.text(),/Could not load|Succeeded/);}finally{f.close();}});
+test("actual Solid handlers navigate workspace → applications → stored row → queued detail → failed refresh",async()=>{const f=fixture();try{await listed(f);assert.match(f.text(),/iOS.*b-ios.*Queued.*Android.*c-android.*Running/);f.click("b-ios");const read=await f.request(readPath);assert.doesNotMatch(f.text(),/1 of 1 platforms reported/);read.resolve(json({build:dto()}));await flush();assert.match(f.text(),/1 of 1 platforms reported/);const detail=walk(f.container).find(n=>n.getAttribute("aria-label")==="Selected build");assert.match(detail.textContent,/Queued/);assert.doesNotMatch(detail.textContent,/Android|c-android/);assert.equal(walk(f.container).some(n=>n.nodeName==="INPUT"),false);f.click("Refresh build");const refresh=await f.request(readPath);assert.doesNotMatch(f.text(),/1 of 1 platforms reported/);refresh.resolve(json({build:dto({revision:3,state:"failed",failureCode:"compiler_error"})}));await flush();assert.match(detail.textContent,/Compilation failed/);const rows=walk(f.container).find(n=>n.getAttribute("aria-label")==="Platform builds");assert.match(rows.textContent,/iOSb-iosFailed/);assert.doesNotMatch(rows.textContent,/Queued/);assert.match(rows.textContent,/Androidc-androidRunning/);f.click("Application IDempty");assert.doesNotMatch(f.text(),/Compilation failed/);(await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=empty")).resolve(json(catalog([],"empty")));await flush();assert.match(f.text(),/No builds yet/);assert.doesNotMatch(f.text(),/Could not load|Succeeded/);}finally{f.close();}});
 
 test("opaque current application/build cursors and first-page actions clear selection without inventing rows",async()=>{const f=fixture();try{(await admitted(f)).resolve(json(apps(undefined,"TkVYVA")));await flush();f.click("More applications");(await f.request("/console-api/v1/applications?organization_id=org&project_id=p&cursor=TkVYVA")).resolve(json(apps([])));await flush();assert.match(f.text(),/No applications yet/);f.click("First applications");(await f.request("/console-api/v1/applications?organization_id=org&project_id=p")).resolve(json(apps()));await flush();f.click("Application IDapp");(await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=app")).resolve(json(catalog(undefined,"app","QlVJTEQ")));await flush();f.click("More builds");(await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=app&cursor=QlVJTEQ")).resolve(json(catalog([],"app")));await flush();assert.match(f.text(),/No builds yet/);f.click("First builds");await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=app");}finally{f.close();}});
 
 test("pending application, project, route, and session changes discard old detail and never retarget requests",async()=>{const f=fixture();try{await listed(f);f.click("b-ios");const old=await f.request(readPath);f.click("Application IDempty");const empty=await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=empty");assert.equal(old.signal.aborted,true);old.resolve(json({build:dto({state:"succeeded"})}));empty.resolve(json(catalog([],"empty")));await flush();assert.doesNotMatch(f.text(),/1 of 1 platforms reported|This platform build completed successfully/);f.history.back();await flush();f.click("Other project");f.click("View builds","A");const other=await f.request("/console-api/v1/applications?organization_id=org&project_id=q");other.resolve(json(apps([],null,"q")));await flush();assert.match(f.text(),/Other project/);assert.doesNotMatch(f.text(),/b-ios/);f.controller.revalidate();const auth=await f.request("/auth/session");assert.doesNotMatch(f.text(),/Other project|Application IDapp/);auth.resolve(json({state:"unauthenticated",csrf_token:"A".repeat(43)}));await flush();assert.match(f.text(),/Sign in to continue/);f.click("Check session");await f.request("/auth/session");}finally{f.close();}});
 
 test("403, 404, 503 and 401 contract refusals render closed customer copy with no private response text",async()=>{for(const [status,label]of [[403,"Build access unavailable"],[404,"Selection no longer available"],[503,"Build data unavailable"],[401,"Build data unavailable"]]){const f=fixture();try{const call=await admitted(f);call.resolve(new Response("SQL-cookie-private-sentinel",{status}));await flush();assert.ok(f.text().includes(label),status+" "+f.text());assert.doesNotMatch(f.text(),/SQL-cookie-private-sentinel|Application IDapp|b-ios/);if(status===401)assert.equal(f.controller.getSession().kind,"unavailable");}finally{f.close();}}});
+
+
+const rejectedRefreshes = [{revision:2},{organizationId:"other"},{projectId:"other"},{applicationId:"other"},
+  {buildId:"other"},{platform:"android"},{sourceSha256:"d".repeat(64)},
+  {toolchainLockSha256:"d".repeat(64)},{buildDefinitionSha256:"d".repeat(64)}];
+for (const change of rejectedRefreshes) for (const checkpoint of ["pending", "rejected"]) {
+  test(`accepted Failed revision4 remains current at ${checkpoint} refresh: ${Object.keys(change)[0]}`, async () => {
+    const f = fixture();
+    try {
+      await listed(f); f.click("b-ios");
+      (await f.request(readPath)).resolve(json({build:dto({revision:4,state:"failed",failureCode:"compiler_error"})}));
+      await flush();
+      const rows = () => walk(f.container).find(n => n.getAttribute("aria-label") === "Platform builds").textContent;
+      assert.match(rows(), /iOSb-iosFailed/);
+      f.click("Refresh build"); const request = await f.request(readPath);
+      assert.match(f.text(), /Loading a build/);
+      if (checkpoint === "rejected") {
+        request.resolve(json({build:dto({revision:5,state:"succeeded",...change})}));
+        await flush(); assert.match(f.text(), /Could not load a build/);
+      }
+      assert.match(rows(), /iOSb-iosFailed/, `${checkpoint}: last accepted outcome must remain visible`);
+      assert.doesNotMatch(rows(), /Queued|Succeeded/);
+      assert.match(rows(), /Androidc-androidRunning/);
+      assert.doesNotMatch(f.text(), /This platform build completed successfully/);
+    } finally { f.close(); }
+  });
+}
+
+test("changing selected build drops its observation and never blends a late refresh", async () => {
+  const f = fixture();
+  try {
+    await listed(f); f.click("b-ios");
+    (await f.request(readPath)).resolve(json({build:dto({revision:4,state:"failed",failureCode:"compiler_error"})}));
+    await flush(); f.click("Refresh build"); const late = await f.request(readPath);
+    f.click("c-android");
+    const next = await f.request(readPath.replace("build_id=b-ios&platform=ios", "build_id=c-android&platform=android"));
+    const rows = () => walk(f.container).find(n => n.getAttribute("aria-label") === "Platform builds").textContent;
+    assert.equal(late.signal.aborted, true);
+    assert.match(rows(), /iOSb-iosQueued/); assert.doesNotMatch(rows(), /Failed/);
+    late.resolve(json({build:dto({revision:9,state:"failed",failureCode:"compiler_error"})}));
+    next.resolve(json({build:dto({buildId:"c-android",platform:"android",revision:3,state:"succeeded"})}));
+    await flush(); assert.match(rows(), /iOSb-iosQueued/); assert.match(rows(), /Androidc-androidSucceeded/);
+    assert.doesNotMatch(rows(), /Failed/);
+  } finally { f.close(); }
+});
+
+test("late failed detail after application or session generation change cannot repaint current row",async()=>{for(const reset of ["application","session"]){const f=fixture();try{await listed(f);f.click("b-ios");(await f.request(readPath)).resolve(json({build:dto({revision:4,state:"failed",failureCode:"compiler_error"})}));await flush();f.click("Refresh build");const late=await f.request(readPath);if(reset==="application"){f.click("Application IDempty");(await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=empty")).resolve(json(catalog([],"empty")));}else{f.controller.revalidate();(await f.request("/auth/session")).resolve(json({state:"unauthenticated",csrf_token:"A".repeat(43)}));}late.resolve(json({build:dto({revision:9,state:"failed",failureCode:"compiler_error"})}));await flush();assert.equal(late.signal.aborted,true);assert.doesNotMatch(f.text(),/Compilation failed|b-ios/);}finally{f.close();}}});

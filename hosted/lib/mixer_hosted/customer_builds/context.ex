@@ -150,17 +150,25 @@ defmodule MixerHosted.CustomerBuilds.Context do
     publish!(s, e)
   end
 
-  defp publish!(s, e) do
+  defp publish!(s, e), do: publish!(s, e, s.admitted_at, 2)
+
+  defp publish!(s, e, previous, remaining) do
     now = System.system_time(:second)
     true = Process.get(@active) === s and self() == s.owner and Process.whereis(Repo) == s.runtime
 
     true =
-      Repo.get_dynamic_repo() === Repo and now >= s.admitted_at and
+      Repo.get_dynamic_repo() === Repo and now >= s.admitted_at and now >= previous and
         System.monotonic_time(:millisecond) < s.deadline and Policy.live?(s.identity, e, now)
 
-    # Withhold a result if descheduling crossed either temporal boundary.
-    true = System.system_time(:second) == now and System.monotonic_time(:millisecond) < s.deadline
-    :ok
+    # Revalidate once after a second change, retaining the original deadline.
+    final_time = System.system_time(:second)
+    true = final_time >= now and System.monotonic_time(:millisecond) < s.deadline
+
+    cond do
+      final_time == now -> :ok
+      remaining > 1 -> publish!(s, e, final_time, remaining - 1)
+      true -> raise MatchError, term: false
+    end
   end
 
   defp binding! do

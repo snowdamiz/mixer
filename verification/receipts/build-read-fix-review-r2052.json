@@ -1,0 +1,349 @@
+{
+  "schema": 1,
+  "id": "build-read-fix-review-r2052",
+  "status": "REQUEST_CHANGES",
+  "reviewer": "independent Sol xhigh standard; no subchildren",
+  "finished_utc": "2026-11-13T05:54:41.730990+00:00",
+  "scope": "Exact private R2038 CustomerBuilds.Context product patch and actual SQL evidence",
+  "findings": [
+    {
+      "id": "R2052-F1",
+      "severity": "P2",
+      "title": "Retry forgets the latest observed wall-clock sample",
+      "source": "verification/local/build-read-escalation-r2038/afterimages/hosted/lib/mixer_hosted/customer_builds/context.ex",
+      "line": 169,
+      "afterimage_sha256": "f0baf622e401d68c4680d339353617a40423b0a3e6271ff9daae9834525c879c",
+      "trigger": {
+        "wall_samples": [
+          100,
+          101,
+          100,
+          100
+        ],
+        "token_expires_at": 101,
+        "admitted_at": 100,
+        "original_deadline_ms": 5000
+      },
+      "actual": "R2038 publish! returns :ok after observed forward then backward time; baseline refuses",
+      "expected": "Backward-clock transition fails closed",
+      "smallest_correction": "Pass final_time rather than now as previous in the recursive publish! call",
+      "correction_component_result": "refuses the counterexample and still accepts an ordinary forward crossing",
+      "canonical_correction_applied": false
+    }
+  ],
+  "producer_audit": {
+    "producer_receipt": {
+      "bytes": 24570,
+      "sha256": "df08452112f766d246b83bce74fe7371b5d3b15c4ee93dbebfa9cf73191995ac"
+    },
+    "artifact_checks": 24,
+    "regression_inputs": 7,
+    "logs_checked": 32,
+    "inner_terminal": 16,
+    "outer_terminal": 2,
+    "compiled_product_module_source_proofs": 216,
+    "preimage": {
+      "bytes": 7552,
+      "sha256": "4a1b3604ad5616b7060e9678e1031e3c0afa19c5f90d75144f0cc66970024212"
+    },
+    "afterimage": {
+      "bytes": 7832,
+      "sha256": "f0baf622e401d68c4680d339353617a40423b0a3e6271ff9daae9834525c879c"
+    },
+    "patch": {
+      "bytes": 1290,
+      "sha256": "800a289d9e722a6c58a32c1c66466b68b2cfce5160ff6c77eab6087846eba26d"
+    },
+    "diagnostics_strip_exact": true,
+    "canonical_context_still_preimage": true,
+    "SQL_transaction_record_counts": {
+      "begin": 21,
+      "commit": 11,
+      "rollback": 10
+    },
+    "counts_confirmed": {
+      "control_failed": 1,
+      "control_excluded": 10,
+      "candidate_passed": 4,
+      "candidate_excluded": 7
+    },
+    "historical_R2004_causation": "UNPROVEN",
+    "elixir": "/opt/homebrew/bin/elixir",
+    "R986_hash": {
+      "bytes": 7268,
+      "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+    },
+    "initial_offline_audit_failure": "Guessed transaction count 20/11/9 was wrong; observed 21/11/10. Corrected offline only; no BEAM or SQL ran."
+  },
+  "runtime": {
+    "BEAM_batches": 1,
+    "SQL_launches": 0,
+    "assertions": 14,
+    "versions": {
+      "elixir": "1.20.4",
+      "OTP": "29"
+    },
+    "method": "Exact publish! extraction with reversible System clock-call seams; unmodified actual CustomerBuilds.Policy; process-local Repo identity stand-in; no full Context/SQL integration",
+    "results": [
+      {
+        "module": "Elixir.R2052Baseline",
+        "test": "rollback_after_observed_expiry",
+        "result": "closed",
+        "wall_samples": [
+          100,
+          101
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "rollback_after_observed_expiry",
+        "result": "ok",
+        "wall_samples": [
+          100,
+          101,
+          100,
+          100
+        ]
+      },
+      {
+        "module": "Elixir.R2052ProposedCorrection",
+        "test": "rollback_after_observed_expiry",
+        "result": "closed",
+        "wall_samples": [
+          100,
+          101,
+          100
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "forward_retry_live",
+        "result": "ok",
+        "wall_samples": [
+          100,
+          101,
+          101,
+          101
+        ]
+      },
+      {
+        "module": "Elixir.R2052ProposedCorrection",
+        "test": "forward_retry_live",
+        "result": "ok",
+        "wall_samples": [
+          100,
+          101,
+          101,
+          101
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "token_expiry_on_retry",
+        "result": "closed",
+        "wall_samples": [
+          100,
+          101,
+          101
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "grant_expiry_on_retry",
+        "result": "closed",
+        "wall_samples": [
+          100,
+          101,
+          101
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "deadline_on_retry",
+        "result": "closed",
+        "wall_samples": [
+          100,
+          101,
+          101
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "third_boundary",
+        "result": "closed",
+        "wall_samples": [
+          100,
+          101,
+          101,
+          102
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "backward_initial",
+        "result": "closed",
+        "wall_samples": [
+          99
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "backward_final",
+        "result": "closed",
+        "wall_samples": [
+          100,
+          99
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "revoked_evidence",
+        "result": "closed",
+        "wall_samples": [
+          100
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "changed_active_state",
+        "result": "closed",
+        "wall_samples": [
+          100
+        ]
+      },
+      {
+        "module": "Elixir.R2052Candidate",
+        "test": "changed_dynamic_repo",
+        "result": "closed",
+        "wall_samples": [
+          100
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "label": "clock-boundary-probe",
+        "argv": [
+          "/opt/homebrew/bin/elixir",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-fix-review-r2052/probe.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-fix-review-r2052",
+        "pid": 84158,
+        "pgid": 84158,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.45511049998458475,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "custodian_original_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "custodian_functions_unchanged": true,
+    "explicit_existing_cwd": true,
+    "isolated_registry": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-read-fix-review-r2052/commands.json",
+    "batch_allowance_spent": true
+  },
+  "security_scope": {
+    "original_5s_deadline_preserved": true,
+    "two_validations_maximum": true,
+    "SQL_locks_and_COMMIT_receipt_unchanged": true,
+    "scope_tenant_capacity_queue_changes": false,
+    "post_COMMIT_concurrent_revocation_not_qualified": true,
+    "historical_R2004_causation": "UNPROVEN"
+  },
+  "custody": {
+    "positive_reap_EOF_closedFD_ESRCH": true,
+    "UNKNOWN": false,
+    "new_holds": [],
+    "historical_holds_accessed_or_released": false
+  },
+  "limitations": [
+    "Request changes for one proven clock-discontinuity defect. Existing four focused SQL passes remain valid evidence within their scope.",
+    "One SQL-free component batch only; no full suite, new SQL, native, provider/API, cloud, Git/index, canonical or producer writes.",
+    "Private correction/source admission/full tests remain pending root action."
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "path": "verification/local/build-read-fix-review-r2052/REPORT.md",
+      "bytes": 6833,
+      "sha256": "d1d8f3017a2e4623485ff4d809f46b3e870c9306f92fd55fb403a4d3693ceb71"
+    },
+    "audit.py": {
+      "path": "verification/local/build-read-fix-review-r2052/audit.py",
+      "bytes": 5047,
+      "sha256": "df06f47480f1823a64352ebad07fff33ab0ef1c619940244cc7e0bb18714c420"
+    },
+    "artifact-audit.json": {
+      "path": "verification/local/build-read-fix-review-r2052/artifact-audit.json",
+      "bytes": 1327,
+      "sha256": "aa308eeca5f8395f70a1273308dd8dd9a3e810fbc751319a37df41bea92ded21"
+    },
+    "prepare-probe.py": {
+      "path": "verification/local/build-read-fix-review-r2052/prepare-probe.py",
+      "bytes": 1803,
+      "sha256": "6f51089842a1fef029ec78b89a3f31d94352ec9684763478210d0259d477f42f"
+    },
+    "probe.exs": {
+      "path": "verification/local/build-read-fix-review-r2052/probe.exs",
+      "bytes": 4804,
+      "sha256": "89b38c699aad4b2c29176e5a8cb7afb15dce601c8f83571dfb7c92893333e510"
+    },
+    "launch.py": {
+      "path": "verification/local/build-read-fix-review-r2052/launch.py",
+      "bytes": 1120,
+      "sha256": "0a6eb20a2bdd9cc38ed4bb16034d4227b6f4d3d4b8c6357ecebfd711f8b66f7f"
+    },
+    "clock-seam-proof.json": {
+      "path": "verification/local/build-read-fix-review-r2052/clock-seam-proof.json",
+      "bytes": 1127,
+      "sha256": "905c0abd97f8931aa2ee5524a7ea7e75815ab82ca204e07b5a95b0f85800e85c"
+    },
+    "commands.json": {
+      "path": "verification/local/build-read-fix-review-r2052/commands.json",
+      "bytes": 534,
+      "sha256": "54bac69c215e16018e4c897bc2fdc9d487fa2e201df261dd5cb856ff71882b5e"
+    },
+    "clock-boundary-probe.stdout": {
+      "path": "verification/local/build-read-fix-review-r2052/clock-boundary-probe.stdout",
+      "bytes": 1078,
+      "sha256": "e26ad2aad7f0bde34862a63fb4aed80aeb2ee6211820b52fa912813193db4899"
+    },
+    "clock-boundary-probe.stderr": {
+      "path": "verification/local/build-read-fix-review-r2052/clock-boundary-probe.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "Baseline.exact-publish.ex": {
+      "path": "verification/local/build-read-fix-review-r2052/Baseline.exact-publish.ex",
+      "bytes": 525,
+      "sha256": "95c9963e557d4c457308183276f18104ea6873caed348e2c1844b782e8f3c16c"
+    },
+    "Candidate.exact-publish.ex": {
+      "path": "verification/local/build-read-fix-review-r2052/Candidate.exact-publish.ex",
+      "bytes": 805,
+      "sha256": "b1939f00d533b7ec865e9d6e74da3f1200a5d336414254de466f58ed76f864a4"
+    },
+    "ProposedCorrection.exact-publish.ex": {
+      "path": "verification/local/build-read-fix-review-r2052/ProposedCorrection.exact-publish.ex",
+      "bytes": 812,
+      "sha256": "cf725dc75e67ae6061cae4c2b6d4161b6dc3e3b9da0415da81db2fda2284e76d"
+    },
+    "Baseline.clock-seam.ex": {
+      "path": "verification/local/build-read-fix-review-r2052/Baseline.clock-seam.ex",
+      "bytes": 662,
+      "sha256": "8bacd013e6e9c2b244a703525439b2dc761506e98e4417028d2369224f135c43"
+    },
+    "Candidate.clock-seam.ex": {
+      "path": "verification/local/build-read-fix-review-r2052/Candidate.clock-seam.ex",
+      "bytes": 943,
+      "sha256": "e0bd090128842c764aca21544e6578bfa93f7441b3e3f5ee3a8aed60cb4c8f38"
+    },
+    "ProposedCorrection.clock-seam.ex": {
+      "path": "verification/local/build-read-fix-review-r2052/ProposedCorrection.clock-seam.ex",
+      "bytes": 959,
+      "sha256": "4cf31195e2de95ca3cc541f655fbd38c3ece0ffc1b29af3e7ea7bad7873c8f2c"
+    }
+  }
+}

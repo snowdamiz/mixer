@@ -959,8 +959,8 @@ class PreparedArchiveControls(unittest.TestCase):
             data = value.fileobj.getvalue()
         bootstrap = copy.deepcopy(collector.BOOTSTRAP)
         bootstrap["rebar"]["sha512"] = hashlib.sha512(b"checked bootstrap fixture").hexdigest()
-        with mock.patch.object(collector, "validate_configured_startup_source_manifest") as source_gate, \
-                mock.patch.multiple(collector, CONFIGURED_STARTUP_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
+        with mock.patch.object(collector, "validate_build_clock_source_manifest") as source_gate, \
+                mock.patch.multiple(collector, BUILD_CLOCK_MANIFEST=manifest["source"], BOOTSTRAP=bootstrap,
                                     PREREQUISITES_EXS="prerequisites fixture", BOOTSTRAP_EXS="bootstrap fixture",
                                     MANIFEST_EXS="manifest fixture",
                                     NETNS_EXS="netns fixture", OBSERVER_EXS="observer fixture", MOUNTS_EXS="mounts fixture"):
@@ -1798,7 +1798,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -1820,7 +1820,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
+                    mock.patch.object(collector, "validate_build_clock_source_manifest", return_value=collector.BUILD_CLOCK_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before metadata admission")) as create:
                 with self.assertRaisesRegex(KeyError, "metadata/packet-manifest.json"):
                     subject.collect()
@@ -1835,7 +1835,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
                     mock.patch.object(collector.os, "readlink", return_value="net:[100]"), \
-                    mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
+                    mock.patch.object(collector, "validate_build_clock_source_manifest", return_value=collector.BUILD_CLOCK_MANIFEST), \
                     mock.patch.object(subject, "create", return_value=prepared) as create, \
                     mock.patch.object(subject, "inspect", return_value=inspected), \
                     mock.patch.object(subject, "docker"), mock.patch.object(subject, "copy_in"), \
@@ -1855,7 +1855,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             subject, calls = self._amendment_preflight_subject(directory, metadata)
             with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                    mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
+                    mock.patch.object(collector, "validate_build_clock_source_manifest", return_value=collector.BUILD_CLOCK_MANIFEST), \
                     mock.patch.object(subject, "create", side_effect=AssertionError("create before v2 seal")) as create:
                 with self.assertRaisesRegex(KeyError, "v2/metadata/packet-manifest.json"):
                     subject.collect()
@@ -1873,7 +1873,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
+                            mock.patch.object(collector, "validate_build_clock_source_manifest", return_value=collector.BUILD_CLOCK_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before fixture admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -1889,7 +1889,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
                     subject, calls = self._amendment_preflight_subject(directory, metadata)
                     with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
-                            mock.patch.object(collector, "validate_configured_startup_source_manifest", return_value=collector.CONFIGURED_STARTUP_MANIFEST), \
+                            mock.patch.object(collector, "validate_build_clock_source_manifest", return_value=collector.BUILD_CLOCK_MANIFEST), \
                             mock.patch.object(subject, "create", side_effect=AssertionError("create before format admission")) as create:
                         with self.assertRaises((collector.CollectorError, KeyError)): subject.collect()
                     self.assertFalse(create.called)
@@ -2029,7 +2029,7 @@ class GeneratedCompilerOutputControls(unittest.TestCase):
 
     def fixture(self, body=b"opaque inert DAG fixture\x00\x80\xff"):
         # Input anchors are independently written from the locked sealed archive.
-        prepared = {"source": copy.deepcopy(collector.CONFIGURED_STARTUP_MANIFEST), "deps": {
+        prepared = {"source": copy.deepcopy(collector.BUILD_CLOCK_MANIFEST), "deps": {
             "hosted/deps/telemetry/rebar.config": {"bytes": 943, "sha256": "2ac5ee04618133d912fcafe68859904ee88aa7bfac678c8165ce1dfb32cbc3b0"},
             "hosted/deps/telemetry/src/telemetry.erl": {"bytes": 17044, "sha256": "8bb2a1fa116def38f63a5b36b65fdc9af98022e6e378e047f38d49b584564278"},
             "hosted/deps/telemetry/src/telemetry.app.src": {"bytes": 533, "sha256": "29778243956492d0d255bf2289fe5e4f6b10f22d282ca5679015a478c1eb33d2"},
@@ -2994,6 +2994,9 @@ def _catalog_join_source_bytes(root):
     legacy_provider = base64.b64decode('ZGVmbW9kdWxlIE1peGVySG9zdGVkLkJyb3dzZXJBdXRoLlByb3ZpZGVyT3duZXIgZG8KICBAbW9kdWxlZG9jICJSYXcgcHJvdmlkZXIgYm91bmRhcnkuIFByb2R1Y3Rpb24gdHJhbnNwb3J0IGlzIGRlbGliZXJhdGVseSB1bmNvbmZpZ3VyZWQgYW5kIGZhaWxzIGNsb3NlZC4iCiAgdXNlIEdlblNlcnZlcgogIGFsaWFzIE1peGVySG9zdGVkLkJyb3dzZXJBdXRoLkNvbmZpZ3VyYXRpb25EaWdlc3QKICBhbGlhcyBNaXhlckhvc3RlZC5JZGVudGl0eS5UcnVzdFNuYXBzaG90CgogIGRlZiBleGNoYW5nZShjb25maWcsIGNvZGUsIHZlcmlmaWVyLCBkZWFkbGluZSkgZG8KICAgIEdlblNlcnZlci5jYWxsKF9fTU9EVUxFX18sIHs6ZXhjaGFuZ2UsIGNvbmZpZywgY29kZSwgdmVyaWZpZXIsIGRlYWRsaW5lfSwgcmVtYWluaW5nKGRlYWRsaW5lKSkKICBjYXRjaAogICAgOmV4aXQsIF8gLT4gezplcnJvciwgOnByb3ZpZGVyX3VuYXZhaWxhYmxlfQogIGVuZAoKICBkZWYgZmluaXNoKHRpY2tldCwgY29uZmlnLCBkZWFkbGluZSkgZG8KICAgIEdlblNlcnZlci5jYWxsKF9fTU9EVUxFX18sIHs6ZmluaXNoLCB0aWNrZXQsIGNvbmZpZ30sIHJlbWFpbmluZyhkZWFkbGluZSkpCiAgY2F0Y2gKICAgIDpleGl0LCBfIC0+IHs6ZXJyb3IsIDpwcm92aWRlcl91bmF2YWlsYWJsZX0KICBlbmQKCiAgZGVmIHN0YXJ0X2xpbmsoOnVuY29uZmlndXJlZCksCiAgICBkbzogR2VuU2VydmVyLnN0YXJ0X2xpbmsoX19NT0RVTEVfXywgOnVuY29uZmlndXJlZCwgbmFtZTogX19NT0RVTEVfXykKCiAgaWYgTWl4LmVudigpID09IDp0ZXN0IGRvCiAgICBAZG9jIGZhbHNlCiAgICBkZWYgc3RhcnRfZml4dHVyZShjb25maWcsIHNuYXBzaG90LCB0cmFuc3BvcnQpLAogICAgICBkbzoKICAgICAgICBHZW5TZXJ2ZXIuc3RhcnRfbGluayhfX01PRFVMRV9fLCB7OmZpeHR1cmUsIGNvbmZpZywgc25hcHNob3QsIHRyYW5zcG9ydH0sCiAgICAgICAgICBuYW1lOiBfX01PRFVMRV9fCiAgICAgICAgKQogIGVuZAoKICBkZWYgaW5pdCg6dW5jb25maWd1cmVkKSwgZG86IHs6b2ssIDp1bmNvbmZpZ3VyZWR9CgogIGlmIE1peC5lbnYoKSA9PSA6dGVzdCBkbwogICAgZGVmIGluaXQoezpmaXh0dXJlLCBjb25maWcsIHNuYXBzaG90LCB0cmFuc3BvcnR9KSB3aGVuIGlzX3BpZCh0cmFuc3BvcnQpIGRvCiAgICAgIHs6b2ssIGRpZ2VzdH0gPSBDb25maWd1cmF0aW9uRGlnZXN0LmRpZ2VzdChjb25maWcpCgogICAgICB7Om9rLAogICAgICAgJXsKICAgICAgICAgY29uZmlnOiBjb25maWcsCiAgICAgICAgIGRpZ2VzdDogZGlnZXN0LAogICAgICAgICBzbmFwc2hvdDogc25hcHNob3QsCiAgICAgICAgIHRyYW5zcG9ydDogdHJhbnNwb3J0LAogICAgICAgICBnZW5lcmF0aW9uOiBtYWtlX3JlZigpCiAgICAgICB9fQogICAgZW5kCiAgZW5kCgogIGRlZiBoYW5kbGVfY2FsbCh7OmV4Y2hhbmdlLCBjb25maWcsIGNvZGUsIHZlcmlmaWVyLCBkZWFkbGluZX0sIF9mcm9tLCAle2NvbmZpZzogY29uZmlnfSA9IHMpIGRvCiAgICBpZiBmcmVzaD8ocykgYW5kIFN5c3RlbS5tb25vdG9uaWNfdGltZSg6bWlsbGlzZWNvbmQpIDwgZGVhZGxpbmUgZG8KICAgICAgcmVxdWVzdCA9ICV7CiAgICAgICAgaXNzdWVyOiBjb25maWcuaXNzdWVyLAogICAgICAgIGNsaWVudF9pZDogY29uZmlnLmNsaWVudF9pZCwKICAgICAgICByZWRpcmVjdF91cmk6IGNvbmZpZy5yZWRpcmVjdF91cmksCiAgICAgICAgdG9rZW5fZW5kcG9pbnQ6IGNvbmZpZy50b2tlbl9lbmRwb2ludCwKICAgICAgICBjbGllbnRfYXV0aF9tZXRob2Q6IGNvbmZpZy5jbGllbnRfYXV0aF9tZXRob2QsCiAgICAgICAgY2xpZW50X2NyZWRlbnRpYWxfcmVmOiBjb25maWcuY2xpZW50X2NyZWRlbnRpYWxfcmVmLAogICAgICAgIGNvZGU6IGNvZGUsCiAgICAgICAgY29kZV92ZXJpZmllcjogdmVyaWZpZXIsCiAgICAgICAgZ3JhbnRfdHlwZTogImF1dGhvcml6YXRpb25fY29kZSIKICAgICAgfQoKICAgICAgcmVzdWx0ID0gR2VuU2VydmVyLmNhbGwocy50cmFuc3BvcnQsIHs6ZXhjaGFuZ2UsIHJlcXVlc3R9LCByZW1haW5pbmcoZGVhZGxpbmUpKQoKICAgICAgY2FzZSByZXN1bHQgZG8KICAgICAgICB7Om9rLCByYXd9IHdoZW4gaXNfYmluYXJ5KHJhdykgYW5kIGJ5dGVfc2l6ZShyYXcpIDw9IDE2Mzg0IC0+CiAgICAgICAgICBpZiBmcmVzaD8ocykgYW5kIFN5c3RlbS5tb25vdG9uaWNfdGltZSg6bWlsbGlzZWNvbmQpIDwgZGVhZGxpbmUsCiAgICAgICAgICAgIGRvOiB7OnJlcGx5LCB7Om9rLCByYXcsIHMuc25hcHNob3QsIHtzZWxmKCksIHMuZ2VuZXJhdGlvbiwgcy5kaWdlc3R9fSwgc30sCiAgICAgICAgICAgIGVsc2U6IHs6cmVwbHksIHs6ZXJyb3IsIDpwcm92aWRlcl91bmF2YWlsYWJsZX0sIHN9CgogICAgICAgIF8gLT4KICAgICAgICAgIHs6cmVwbHksIHs6ZXJyb3IsIDpwcm92aWRlcl91bmF2YWlsYWJsZX0sIHN9CiAgICAgIGVuZAogICAgZWxzZQogICAgICB7OnJlcGx5LCB7OmVycm9yLCA6cHJvdmlkZXJfdW5hdmFpbGFibGV9LCBzfQogICAgZW5kCiAgZW5kCgogIGRlZiBoYW5kbGVfY2FsbCh7OmZpbmlzaCwge3BpZCwgZ2VuZXJhdGlvbiwgZGlnZXN0fSwgY29uZmlnfSwgX2Zyb20sICV7Y29uZmlnOiBjb25maWd9ID0gcykgZG8KICAgIHZhbGlkID0gcGlkID09PSBzZWxmKCkgYW5kIGdlbmVyYXRpb24gPT09IHMuZ2VuZXJhdGlvbiBhbmQgZGlnZXN0ID09PSBzLmRpZ2VzdCBhbmQgZnJlc2g/KHMpCiAgICB7OnJlcGx5LCBpZih2YWxpZCwgZG86IDpvaywgZWxzZTogezplcnJvciwgOnByb3ZpZGVyX3VuYXZhaWxhYmxlfSksIHN9CiAgZW5kCgogIGRlZiBoYW5kbGVfY2FsbChfLCBfLCBzKSwgZG86IHs6cmVwbHksIHs6ZXJyb3IsIDpwcm92aWRlcl91bmNvbmZpZ3VyZWR9LCBzfQoKICBkZWYgZm9ybWF0X3N0YXR1cyhzdGF0dXMpLAogICAgZG86CiAgICAgIE1hcC5uZXcoc3RhdHVzLCBmbiB7aywgdn0gLT4KICAgICAgICBpZiBrIGluIFs6c3RhdGUsIDptZXNzYWdlLCA6cmVhc29uLCA6bG9nXSwgZG86IHtrLCA6cmVkYWN0ZWR9LCBlbHNlOiB7aywgdn0KICAgICAgZW5kKQoKICBkZWZwIGZyZXNoPyhzKSwgZG86IFRydXN0U25hcHNob3Quc3RhdHVzKHMuc25hcHNob3QsIFN5c3RlbS5zeXN0ZW1fdGltZSg6c2Vjb25kKSkgPT09IDpmcmVzaAogIGRlZnAgcmVtYWluaW5nKGQpLCBkbzogbWF4KDEsIG1pbig1MDAwLCBkIC0gU3lzdGVtLm1vbm90b25pY190aW1lKDptaWxsaXNlY29uZCkpKQplbmQK')
     if {'bytes':len(legacy_provider),'sha256':hashlib.sha256(legacy_provider).hexdigest()} != collector.CATALOG_JOIN_MANIFEST['hosted/lib/mixer_hosted/browser_auth/provider_owner.ex']: raise RuntimeError('historical ProviderOwner pin')
     source['hosted/lib/mixer_hosted/browser_auth/provider_owner.ex'] = legacy_provider
+    legacy_context = base64.b64decode('ZGVmbW9kdWxlIE1peGVySG9zdGVkLkN1c3RvbWVyQnVpbGRzLkNvbnRleHQgZG8KICBAbW9kdWxlZG9jIGZhbHNlCiAgYWxpYXMgTWl4ZXJIb3N0ZWQuUmVwbwogIGFsaWFzIE1peGVySG9zdGVkLkN1c3RvbWVyQnVpbGRzLntQb2xpY3ksIFNjaGVtYSwgU25hcHNob3R9CiAgYWxpYXMgTWl4ZXJIb3N0ZWQuQXV0aG9yaXphdGlvbi5Qb3N0Z3Jlcy5TZXNzaW9uCiAgQGFjdGl2ZSB7X19NT0RVTEVfXywgOmFjdGl2ZX0KICBAcmVjZWlwdCB7X19NT0RVTEVfXywgOnJlY2VpcHR9CiAgQGV2ZW50IFs6bWl4ZXJfaG9zdGVkLCA6Y3VzdG9tZXJfYnVpbGRzLCA6dHJhbnNhY3Rpb25dCiAgQGhhbmRsZXIge19fTU9EVUxFX18sIDpyZWNlaXB0X2hhbmRsZXJ9CiAgQHNldHRpbmdzIH53KHByb2ZpbGVfaWQgcHJvZmlsZV92ZXJzaW9uIGlzc3VlciBzdWJqZWN0IGNsaWVudF9pZCBpZGVudGl0eV9jbGFzcyBjcmVkZW50aWFsX3JlZiBvcmdhbml6YXRpb25faWQgcHJvamVjdF9pZCBhcHBsaWNhdGlvbl9pZCBlbnZpcm9ubWVudF9pZCBwcmluY2lwYWxfaWQgZmFtaWx5X2lkIGFjdGlvbiB0cmFuc2FjdGlvbl9tYXJrZXIgdG9rZW5faXNzdWVkX2F0IHRva2VuX2V4cGlyZXNfYXQgcmVxdWlyZWRfc2NvcGUgcGhhc2UgZGlyZWN0b3J5X21vZGUpCgogIGRlZiByZWFkKGlkZW50aXR5LCBzZWxlY3Rpb24pIGRvCiAgICB3aXRoIDpvayA8LSBQb2xpY3kucmVxdWVzdChpZGVudGl0eSksCiAgICAgICAgIHRydWUgPC0gUHJvY2Vzcy5nZXQoQGFjdGl2ZSkgPT0gbmlsLAogICAgICAgICBmYWxzZSA8LSBNaXhlckhvc3RlZC5BdXRob3JpemF0aW9uLlRyYW5zYWN0aW9uLkNvbnRleHQuYWN0aXZlPygpLAogICAgICAgICB0cnVlIDwtIFJlcG8uZ2V0X2R5bmFtaWNfcmVwbygpID09PSBSZXBvLAogICAgICAgICBmYWxzZSA8LSBSZXBvLmluX3RyYW5zYWN0aW9uPygpLAogICAgICAgICBwaWQgd2hlbiBpc19waWQocGlkKSA8LSBQcm9jZXNzLndoZXJlaXMoUmVwbykgZG8KICAgICAgc3RhdGUgPSAlewogICAgICAgIG93bmVyOiBzZWxmKCksCiAgICAgICAgcnVudGltZTogcGlkLAogICAgICAgIGlkZW50aXR5OiBpZGVudGl0eSwKICAgICAgICBzZWxlY3Rpb246IHNlbGVjdGlvbiwKICAgICAgICBhZG1pdHRlZF9hdDogU3lzdGVtLnN5c3RlbV90aW1lKDpzZWNvbmQpLAogICAgICAgIGRlYWRsaW5lOiBTeXN0ZW0ubW9ub3RvbmljX3RpbWUoOm1pbGxpc2Vjb25kKSArIDVfMDAwLAogICAgICAgIG1hcmtlcjogQmFzZS5lbmNvZGUxNig6Y3J5cHRvLnN0cm9uZ19yYW5kX2J5dGVzKDMyKSwgY2FzZTogOmxvd2VyKSwKICAgICAgICByZXF1ZXN0X2lkOiBCYXNlLmVuY29kZTE2KDpjcnlwdG8uc3Ryb25nX3JhbmRfYnl0ZXMoMTYpLCBjYXNlOiA6bG93ZXIpCiAgICAgIH0KCiAgICAgIFByb2Nlc3MucHV0KEBhY3RpdmUsIHN0YXRlKQogICAgICA6b2sgPSBoYW5kbGVyISgpCiAgICAgIHJlZiA9IG1ha2VfcmVmKCkKICAgICAgUHJvY2Vzcy5wdXQoQHJlY2VpcHQsIHtzZWxmKCksIHJlZiwgOmF3YWl0X2JlZ2lufSkKCiAgICAgIHJlc3VsdCA9CiAgICAgICAgUmVwby50cmFuc2FjdGlvbihmbiAtPiBleGVjdXRlIShzdGF0ZSkgZW5kLAogICAgICAgICAgdGltZW91dDogNV8wMDAsCiAgICAgICAgICBkZWFkbGluZTogc3RhdGUuZGVhZGxpbmUsCiAgICAgICAgICBxdWV1ZTogZmFsc2UsCiAgICAgICAgICBsb2c6IGZhbHNlLAogICAgICAgICAgdGVsZW1ldHJ5X2V2ZW50OiBAZXZlbnQsCiAgICAgICAgICB0ZWxlbWV0cnlfb3B0aW9uczogW2J1aWxkX3JlYWQ6IHtzZWxmKCksIHJlZn1dCiAgICAgICAgKQoKICAgICAgY2FzZSB7cmVzdWx0LCBQcm9jZXNzLmdldChAcmVjZWlwdCl9IGRvCiAgICAgICAge3s6b2ssIHtkdG8sIGV2aWRlbmNlLCBiYWNrZW5kfX0sIHtvd25lciwgXnJlZiwgezpjb21taXR0ZWQsIGFja19iYWNrZW5kfX19CiAgICAgICAgd2hlbiBvd25lciA9PSBzZWxmKCkgYW5kIGJhY2tlbmQgPT0gYWNrX2JhY2tlbmQgLT4KICAgICAgICAgIHB1Ymxpc2ghKHN0YXRlLCBldmlkZW5jZSkKICAgICAgICAgIHs6b2ssIGR0b30KCiAgICAgICAge3s6ZXJyb3IsIHJlYXNvbn0sIF99CiAgICAgICAgd2hlbiByZWFzb24gaW4gWzp1bmF1dGhlbnRpY2F0ZWQsIDpub3RfZm91bmQsIDpwZXJtaXNzaW9uX2RlbmllZCwgOnN0b3JhZ2VfdW5hdmFpbGFibGVdIC0+CiAgICAgICAgICB7OmVycm9yLCByZWFzb259CgogICAgICAgIF8gLT4KICAgICAgICAgIHs6ZXJyb3IsIDphdXRob3JpemF0aW9uX3VuYXZhaWxhYmxlfQogICAgICBlbmQKICAgIGVsc2UKICAgICAgezplcnJvciwgX30gPSBlIC0+IGUKICAgICAgXyAtPiB7OmVycm9yLCA6YXV0aG9yaXphdGlvbl91bmF2YWlsYWJsZX0KICAgIGVuZAogIHJlc2N1ZQogICAgXyAtPiB7OmVycm9yLCA6YXV0aG9yaXphdGlvbl91bmF2YWlsYWJsZX0KICBjYXRjaAogICAgXywgXyAtPiB7OmVycm9yLCA6YXV0aG9yaXphdGlvbl91bmF2YWlsYWJsZX0KICBhZnRlcgogICAgUHJvY2Vzcy5kZWxldGUoQHJlY2VpcHQpCiAgICBQcm9jZXNzLmRlbGV0ZShAYWN0aXZlKQogIGVuZAoKICBkZWZwIGV4ZWN1dGUhKHMpIGRvCiAgICBzY29wZSA9ICV7CiAgICAgIG9yZ2FuaXphdGlvbl9pZDogcy5zZWxlY3Rpb24ub3JnYW5pemF0aW9uX2lkLAogICAgICBwcm9qZWN0X2lkOiBzLnNlbGVjdGlvbi5wcm9qZWN0X2lkLAogICAgICBhcHBsaWNhdGlvbl9pZDogcy5zZWxlY3Rpb24uYXBwbGljYXRpb25faWQsCiAgICAgIGVudmlyb25tZW50X2lkOiBuaWwKICAgIH0KCiAgICBTZXNzaW9uLnByZXBhcmUhKFJlcG8sICV7CiAgICAgIGlkZW50aXR5OiBNaXhlckhvc3RlZC5BdXRob3JpemF0aW9uLlBvbGljeS5pZGVudGl0eV9rZXkocy5pZGVudGl0eSksCiAgICAgIHRhcmdldDogc2NvcGUKICAgIH0pCgogICAgU2Vzc2lvbi5jb250ZXh0IShSZXBvLAogICAgICBhY3Rpb246ICJidWlsZC5yZWFkIiwKICAgICAgcmVxdWlyZWRfc2NvcGU6ICJtaXhlci5idWlsZC5yZWFkIiwKICAgICAgcGhhc2U6ICJidWlsZF9yZWFkIiwKICAgICAgdHJhbnNhY3Rpb25fbWFya2VyOiBzLm1hcmtlciwKICAgICAgdG9rZW5faXNzdWVkX2F0OiBJbnRlZ2VyLnRvX3N0cmluZyhzLmlkZW50aXR5Lmlzc3VlZF9hdCksCiAgICAgIHRva2VuX2V4cGlyZXNfYXQ6IEludGVnZXIudG9fc3RyaW5nKHMuaWRlbnRpdHkuZXhwaXJlc19hdCkKICAgICkKCiAgICBTY2hlbWEuYWRtaXQhKFJlcG8pCiAgICBiaW5kaW5nID0gYmluZGluZyEoKQogICAgW2JhY2tlbmQgfCBfXSA9IGJpbmRpbmcKCiAgICBjYXNlIFByb2Nlc3MuZ2V0KEByZWNlaXB0KSBkbwogICAgICB7b3duZXIsIF8sIHs6YmVndW4sIF5iYWNrZW5kfX0gd2hlbiBvd25lciA9PSBzZWxmKCkgLT4gOm9rCiAgICAgIF8gLT4gUmVwby5yb2xsYmFjayg6YXV0aG9yaXphdGlvbl91bmF2YWlsYWJsZSkKICAgIGVuZAoKICAgICMgU1FMIGxvY2tzIHRoZSBleGFjdCBiaW5kaW5nLCB0ZW5hbnQgcm93cywgbWVtYmVyc2hpcHMgYW5kIGJ1aWxkIGJlZm9yZSBpdHMKICAgICMgY3VycmVudCBSRUFEIENPTU1JVFRFRCBldmlkZW5jZSBzdGF0ZW1lbnQuIE5vIGNhbGxiYWNrIHJ1bnMgaW4gdGhpcyBzY29wZS4KICAgIGUgPSBldmlkZW5jZSEocykKICAgIGNoZWNrcG9pbnQhKHMsIGJpbmRpbmcsIGUpCgogICAgcm93ID0KICAgICAgTWFwLm5ldygKICAgICAgICB+dyhvcmdhbml6YXRpb25faWQgcHJvamVjdF9pZCBhcHBsaWNhdGlvbl9pZCBidWlsZF9pZCBwbGF0Zm9ybSByZXF1ZXN0X2tleSByZXZpc2lvbiBqb3VybmFsKWEsCiAgICAgICAgZm4gayAtPiB7aywgTWFwLmZldGNoIShlWyJyZWNvcmQiXSwgQXRvbS50b19zdHJpbmcoaykpfSBlbmQKICAgICAgKQoKICAgIGR0byA9CiAgICAgIGNhc2UgU25hcHNob3QucHJvamVjdChyb3csIHMuc2VsZWN0aW9uKSBkbwogICAgICAgIHs6b2ssIGR0b30gLT4gZHRvCiAgICAgICAgXyAtPiBSZXBvLnJvbGxiYWNrKDpzdG9yYWdlX3VuYXZhaWxhYmxlKQogICAgICBlbmQKCiAgICAjIEEgbmV3IHN0YXRlbWVudCBhZnRlciBldmVyeSBkb21haW4gbG9jayBhbmQgaW1tZWRpYXRlbHkgYmVmb3JlIGNvbW1pdC4KICAgIGN1cnJlbnQgPSBldmlkZW5jZSEocykKICAgIGlmIGN1cnJlbnQgIT09IGUsIGRvOiBSZXBvLnJvbGxiYWNrKDphdXRob3JpemF0aW9uX3VuYXZhaWxhYmxlKQogICAgY2hlY2twb2ludCEocywgYmluZGluZywgY3VycmVudCkKICAgIHtkdG8sIGN1cnJlbnQsIGJhY2tlbmR9CiAgZW5kCgogIGRlZnAgZXZpZGVuY2UhKHMpIGRvCiAgICB4ID0gcy5zZWxlY3Rpb24KCiAgICBjYXNlIHF1ZXJ5ISgKICAgICAgICAgICAiU0VMRUNUIHB1YmxpYy5taXhlcl9jdXN0b21lcl9idWlsZF9yZWFkX3YxKCQxLCQyLCQzLCQ0LCQ1KSIsCiAgICAgICAgICAgWwogICAgICAgICAgICAgeC5idWlsZF9pZCwKICAgICAgICAgICAgIHgucGxhdGZvcm0sCiAgICAgICAgICAgICB4LnNvdXJjZV9zaGEyNTYsCiAgICAgICAgICAgICB4LnRvb2xjaGFpbl9sb2NrX3NoYTI1NiwKICAgICAgICAgICAgIHguYnVpbGRfZGVmaW5pdGlvbl9zaGEyNTYKICAgICAgICAgICBdCiAgICAgICAgICkucm93cyBkbwogICAgICBbW2VdXSB3aGVuIGlzX21hcChlKSAtPiBlCiAgICAgIF8gLT4gUmVwby5yb2xsYmFjayg6bm90X2ZvdW5kKQogICAgZW5kCiAgZW5kCgogIGRlZnAgY2hlY2twb2ludCEocywgYmluZGluZywgZSkgZG8KICAgIGlmIFByb2Nlc3MuZ2V0KEBhY3RpdmUpICE9PSBzIG9yIHMub3duZXIgIT0gc2VsZigpIG9yIFByb2Nlc3Mud2hlcmVpcyhSZXBvKSAhPSBzLnJ1bnRpbWUgb3IKICAgICAgICAgUmVwby5nZXRfZHluYW1pY19yZXBvKCkgIT09IFJlcG8gb3Igbm90IFJlcG8uaW5fdHJhbnNhY3Rpb24/KCkgb3IKICAgICAgICAgTWl4ZXJIb3N0ZWQuQXV0aG9yaXphdGlvbi5UcmFuc2FjdGlvbi5Db250ZXh0LmFjdGl2ZT8oKSBvciBiaW5kaW5nISgpICE9PSBiaW5kaW5nLAogICAgICAgZG86IFJlcG8ucm9sbGJhY2soOmF1dGhvcml6YXRpb25fdW5hdmFpbGFibGUpCgogICAgcHVibGlzaCEocywgZSkKICBlbmQKCiAgZGVmcCBwdWJsaXNoIShzLCBlKSBkbwogICAgbm93ID0gU3lzdGVtLnN5c3RlbV90aW1lKDpzZWNvbmQpCiAgICB0cnVlID0gUHJvY2Vzcy5nZXQoQGFjdGl2ZSkgPT09IHMgYW5kIHNlbGYoKSA9PSBzLm93bmVyIGFuZCBQcm9jZXNzLndoZXJlaXMoUmVwbykgPT0gcy5ydW50aW1lCgogICAgdHJ1ZSA9CiAgICAgIFJlcG8uZ2V0X2R5bmFtaWNfcmVwbygpID09PSBSZXBvIGFuZCBub3cgPj0gcy5hZG1pdHRlZF9hdCBhbmQKICAgICAgICBTeXN0ZW0ubW9ub3RvbmljX3RpbWUoOm1pbGxpc2Vjb25kKSA8IHMuZGVhZGxpbmUgYW5kIFBvbGljeS5saXZlPyhzLmlkZW50aXR5LCBlLCBub3cpCgogICAgIyBXaXRoaG9sZCBhIHJlc3VsdCBpZiBkZXNjaGVkdWxpbmcgY3Jvc3NlZCBlaXRoZXIgdGVtcG9yYWwgYm91bmRhcnkuCiAgICB0cnVlID0gU3lzdGVtLnN5c3RlbV90aW1lKDpzZWNvbmQpID09IG5vdyBhbmQgU3lzdGVtLm1vbm90b25pY190aW1lKDptaWxsaXNlY29uZCkgPCBzLmRlYWRsaW5lCiAgICA6b2sKICBlbmQKCiAgZGVmcCBiaW5kaW5nISBkbwogICAgZmllbGRzID0gRW51bS5tYXBfam9pbihAc2V0dGluZ3MsICIsIiwgJiJjdXJyZW50X3NldHRpbmcoJ21peGVyLmF1dGh6LiN7JjF9Jyx0cnVlKSIpCgogICAgW3Jvd10gPQogICAgICBxdWVyeSEoCiAgICAgICAgIlNFTEVDVCBwZ19iYWNrZW5kX3BpZCgpLHBnX2N1cnJlbnRfeGFjdF9pZCgpOjp0ZXh0LGN1cnJlbnRfdXNlcjo6dGV4dCxzZXNzaW9uX3VzZXI6OnRleHQsIiA8PgogICAgICAgICAgZmllbGRzLAogICAgICAgIFtdCiAgICAgICkucm93cwoKICAgIHJvdwogIGVuZAoKICBkZWZwIHF1ZXJ5IShzcWwsIHBhcmFtcyksCiAgICBkbzoKICAgICAgRWN0by5BZGFwdGVycy5TUUwucXVlcnkhKFJlcG8sIHNxbCwgcGFyYW1zLAogICAgICAgIHRpbWVvdXQ6IDVfMDAwLAogICAgICAgIHF1ZXVlOiBmYWxzZSwKICAgICAgICBsb2c6IGZhbHNlLAogICAgICAgIHRlbGVtZXRyeV9ldmVudDogbmlsCiAgICAgICkKCiAgZGVmcCBoYW5kbGVyISBkbwogICAgaGFuZGxlciA9ICZfX01PRFVMRV9fLnRyYW5zYWN0aW9uX2V2ZW50LzQKCiAgICBjYXNlIDp0ZWxlbWV0cnkuYXR0YWNoKEBoYW5kbGVyLCBAZXZlbnQsIGhhbmRsZXIsIG5pbCkgZG8KICAgICAgOm9rIC0+CiAgICAgICAgOm9rCgogICAgICB7OmVycm9yLCA6YWxyZWFkeV9leGlzdHN9IC0+CiAgICAgICAgdHJ1ZSA9CiAgICAgICAgICBFbnVtLmFueT8oCiAgICAgICAgICAgIDp0ZWxlbWV0cnkubGlzdF9oYW5kbGVycyhAZXZlbnQpLAogICAgICAgICAgICAmKCYxLmlkID09PSBAaGFuZGxlciBhbmQgJjEuZnVuY3Rpb24gPT09IGhhbmRsZXIgYW5kICYxLmNvbmZpZyA9PT0gbmlsKQogICAgICAgICAgKQoKICAgICAgICA6b2sKICAgIGVuZAogIGVuZAoKICBAZG9jIGZhbHNlCiAgZGVmIHRyYW5zYWN0aW9uX2V2ZW50KEBldmVudCwgXywgbWV0YWRhdGEsIG5pbCkgZG8KICAgIGNhc2UgUHJvY2Vzcy5nZXQoQHJlY2VpcHQpIGRvCiAgICAgIHtjYWxsZXIsIHJlZiwgc3RhdHVzfSB3aGVuIGNhbGxlciA9PSBzZWxmKCkgLT4KICAgICAgICBuZXh0ID0KICAgICAgICAgIGNhc2UgbWV0YWRhdGEgZG8KICAgICAgICAgICAgJXsKICAgICAgICAgICAgICB0eXBlOiA6ZWN0b19zcWxfcXVlcnksCiAgICAgICAgICAgICAgcmVwbzogUmVwbywKICAgICAgICAgICAgICBvcHRpb25zOiBbYnVpbGRfcmVhZDoge15jYWxsZXIsIF5yZWZ9XSwKICAgICAgICAgICAgICBxdWVyeTogcSwKICAgICAgICAgICAgICByZXN1bHQ6IHIKICAgICAgICAgICAgfSAtPgogICAgICAgICAgICAgIGFkdmFuY2Uoc3RhdHVzLCBxLCByKQoKICAgICAgICAgICAgXyAtPgogICAgICAgICAgICAgIDp1bmtub3duCiAgICAgICAgICBlbmQKCiAgICAgICAgUHJvY2Vzcy5wdXQoQHJlY2VpcHQsIHtjYWxsZXIsIHJlZiwgbmV4dH0pCgogICAgICBfIC0+CiAgICAgICAgOm9rCiAgICBlbmQKCiAgICA6b2sKICBlbmQKCiAgZGVmcCBhZHZhbmNlKDphd2FpdF9iZWdpbiwgImJlZ2luIiwgezpvaywgJVBvc3RncmV4LlJlc3VsdHtjb21tYW5kOiA6YmVnaW4sIGNvbm5lY3Rpb25faWQ6IGJ9fSkKICAgICAgIHdoZW4gaXNfaW50ZWdlcihiKSBhbmQgYiA+IDAsIGRvOiB7OmJlZ3VuLCBifQoKICBkZWZwIGFkdmFuY2UoCiAgICAgICAgIHs6YmVndW4sIGJ9LAogICAgICAgICAiY29tbWl0IiwKICAgICAgICAgezpvaywgJVBvc3RncmV4LlJlc3VsdHtjb21tYW5kOiA6Y29tbWl0LCBjb25uZWN0aW9uX2lkOiBifX0KICAgICAgICksCiAgICAgICBkbzogezpjb21taXR0ZWQsIGJ9CgogIGRlZnAgYWR2YW5jZSh7OmJlZ3VuLCBifSwgcSwgezpvaywgJVBvc3RncmV4LlJlc3VsdHtjb21tYW5kOiA6cm9sbGJhY2ssIGNvbm5lY3Rpb25faWQ6IGJ9fSkKICAgICAgIHdoZW4gcSBpbiBbImNvbW1pdCIsICJyb2xsYmFjayJdLCBkbzogezpyb2xsZWRfYmFjaywgYn0KCiAgZGVmcCBhZHZhbmNlKF8sIF8sIF8pLCBkbzogOnVua25vd24KZW5kCg==')
+    if {'bytes':len(legacy_context),'sha256':hashlib.sha256(legacy_context).hexdigest()} != collector.CATALOG_JOIN_MANIFEST['hosted/lib/mixer_hosted/customer_builds/context.ex']: raise RuntimeError('historical Context pin')
+    source['hosted/lib/mixer_hosted/customer_builds/context.ex'] = legacy_context
     return source
 
 class CurrentCLISelectionControls(unittest.TestCase):
@@ -3001,8 +3004,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
         import contextlib
         import io
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / collector.CONFIGURED_STARTUP_SOURCE_BASE / "selection.json").read_bytes()
-        self.assertEqual(collector.CONFIGURED_STARTUP_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        raw = (root / collector.BUILD_CLOCK_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.BUILD_CLOCK_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
         expected = json.loads(raw)["selected"]
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -3010,7 +3013,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-        self.assertEqual(collector.CONFIGURED_STARTUP_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertEqual(collector.BUILD_CLOCK_SELECTION_SHA256, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
 
@@ -3018,8 +3021,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "7af785eb990044eb7528cb8e5cca2db9baff8fc6fde06aa981775e7d8ec49470"
-    DIGEST = "776dd25ade6103b33dada33cca0d84a312470d7119c376026f2699212edd490f"
+    PIN = "0e16b7b275af0be897e1344117d479b0e52068625f1516c19d665d7ac13f3117"
+    DIGEST = "13cbf07d04bcbceaaaebb6278166bc18630e4d63f0fcf9857bca3e7319203463"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3087,7 +3090,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(278, observed["source_count"])
+            self.assertEqual(290, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3097,7 +3100,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / "verification/identity-network-current-source-v18/selection.json").read_bytes()
+        raw = (root / "verification/identity-network-current-source-v21/selection.json").read_bytes()
         self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
         patterns = self.patterns((root / workflow_path).read_text(), job)
         self.assertNotIn(self.FAMILY, patterns)
@@ -3360,9 +3363,9 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
             with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
-        self.assertEqual(278,observed['source_count'])
-        self.assertEqual(collector.CONFIGURED_STARTUP_SOURCE_DIGEST,observed['source_digest_sha256'])
-        self.assertEqual(collector.CONFIGURED_STARTUP_SELECTION_SHA256,observed['selection_sha256'])
+        self.assertEqual(290,observed['source_count'])
+        self.assertEqual(collector.BUILD_CLOCK_SOURCE_DIGEST,observed['source_digest_sha256'])
+        self.assertEqual(collector.BUILD_CLOCK_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
         try:
             target.write_bytes(original+b'\n')
@@ -3712,6 +3715,367 @@ class ConfiguredStartupSourceControls(unittest.TestCase):
 
 
 
+class PublicConsoleSigninSourceControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.PUBLIC_SIGNIN_SOURCE_BASE + name: (root / collector.PUBLIC_SIGNIN_SOURCE_BASE / name).read_bytes()
+                for name in ('selection.json', 'selected-source-manifest.json')}
+
+    def repinned_selection(self, mutate):
+        metadata = self.metadata()
+        path = collector.PUBLIC_SIGNIN_SOURCE_BASE + 'selection.json'
+        value = json.loads(metadata[path])
+        mutate(value)
+        body = json.dumps(value, sort_keys=True).encode()
+        with mock.patch.object(collector, 'PUBLIC_SIGNIN_SELECTION_SHA256', hashlib.sha256(body).hexdigest()):
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_public_signin_source_metadata({**metadata, path: body})
+
+    def test_v19_exact_nine_rows_eight_additions_complete_v18_inverse(self):
+        value = collector.validate_public_signin_source_metadata(self.metadata())
+        self.assertEqual(286, len(collector.PUBLIC_SIGNIN_MANIFEST))
+        self.assertEqual(9, len(value['exact_delta']))
+        self.assertEqual(8, sum(change['before'] is None for change in value['exact_delta'].values()))
+        inverse = dict(collector.PUBLIC_SIGNIN_MANIFEST)
+        for path, change in value['exact_delta'].items():
+            if change['before'] is None:
+                inverse.pop(path)
+            else:
+                inverse[path] = change['before']
+        self.assertEqual(collector.CONFIGURED_STARTUP_MANIFEST, inverse)
+        self.assertEqual('776dd25ade6103b33dada33cca0d84a312470d7119c376026f2699212edd490f', canonical_digest(inverse))
+        self.assertEqual('7af785eb990044eb7528cb8e5cca2db9baff8fc6fde06aa981775e7d8ec49470', value['predecessor']['selection_sha256'])
+        self.assertEqual(277, sum(collector.PUBLIC_SIGNIN_MANIFEST[path] == expected for path, expected in inverse.items()))
+        self.assertFalse(value['runtime_or_GA_accepted'])
+
+    def test_v19_fixed_parent_contract_and_all_nine_product_rows(self):
+        value = collector.validate_public_signin_source_metadata(self.metadata())
+        self.assertEqual('b476fe0db6cae466bf0be3801e7ffc69632d7cd3ea75cbe106eb9047d24fbdfe', value['parent_contract_sha256'])
+        self.assertEqual('5920b6a5705465a786fa6589dedfafeb2e8704786414ed93b708452659e046e7', value['product_map_sha256'])
+        expected = {'console/src/App.tsx', 'console/src/main.tsx', 'console/src/styles.css',
+                    'console/src/api/browser-login-client.ts', 'console/src/state/sign-in-action.ts',
+                    'console/src/components/SignIn.tsx', 'console/tests/browser-login.test.mjs',
+                    'hosted/lib/mixer_hosted_web/browser_login_http.ex',
+                    'hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs'}
+        self.assertEqual(expected, set(value['exact_delta']))
+        self.assertEqual({'bytes': 5300, 'sha256': '6255155b291327d0a8268d767477b1b4399bd66b5663e748d5d6b58780e2675f'}, collector.PUBLIC_SIGNIN_MANIFEST['hosted/lib/mixer_hosted_web/browser_login_http.ex'])
+        self.assertEqual({'bytes': 4670, 'sha256': '1a9063d05d3f76307a6121fa94af9d490e2263c050ea3eb8543cca196606bb12'}, collector.PUBLIC_SIGNIN_MANIFEST['hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs'])
+
+    def test_v19_metadata_membership_and_byte_pins(self):
+        metadata = self.metadata()
+        for path in metadata:
+            with self.subTest(path=path):
+                with self.assertRaises(collector.CollectorError):
+                    collector.validate_public_signin_source_metadata({**metadata, path: metadata[path] + b' '})
+                with self.assertRaises(collector.CollectorError):
+                    collector.validate_public_signin_source_metadata({name: body for name, body in metadata.items() if name != path})
+        with self.assertRaises(collector.CollectorError):
+            collector.validate_public_signin_source_metadata({**metadata, 'foreign': b'{}'})
+
+    def test_v19_typed_predecessor_and_schema(self):
+        for count in (True, 278.0, '278', None, 277):
+            self.repinned_selection(lambda value, count=count: value['predecessor'].__setitem__('source_count', count))
+        for schema in (True, 1.0, '1', None):
+            self.repinned_selection(lambda value, schema=schema: value.__setitem__('schema', schema))
+        self.repinned_selection(lambda value: value['predecessor'].__setitem__('selection_sha256', '0' * 64))
+        self.repinned_selection(lambda value: value['predecessor'].__setitem__('foreign', False))
+
+    def test_v19_typed_selected_manifest_and_delta_rows(self):
+        for count in (True, 286.0, '286', None, 278):
+            self.repinned_selection(lambda value, count=count: value['selected'].__setitem__('source_count', count))
+        self.repinned_selection(lambda value: value['selected']['manifest'].__setitem__('bytes', float(value['selected']['manifest']['bytes'])))
+        self.repinned_selection(lambda value: value['selected']['manifest'].__setitem__('path', '../selected-source-manifest.json'))
+        for side in ('before', 'after'):
+            self.repinned_selection(lambda value, side=side: value['exact_delta']['hosted/lib/mixer_hosted_web/browser_login_http.ex'][side].__setitem__('bytes', float(value['exact_delta']['hosted/lib/mixer_hosted_web/browser_login_http.ex'][side]['bytes'])))
+        self.repinned_selection(lambda value: value['exact_delta'].__setitem__('foreign', {}))
+        self.repinned_selection(lambda value: value['exact_delta'].pop('console/src/App.tsx'))
+
+    def test_v19_every_actual_source_row_is_pinned(self):
+        for path in collector.PUBLIC_SIGNIN_MANIFEST:
+            changed = copy.deepcopy(collector.PUBLIC_SIGNIN_MANIFEST)
+            changed[path]['sha256'] = '0' * 64
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError):
+                collector.validate_public_signin_source_manifest(changed)
+
+    def test_v19_every_source_byte_count_is_typed(self):
+        for path in collector.PUBLIC_SIGNIN_MANIFEST:
+            for scalar in (True, float(collector.PUBLIC_SIGNIN_MANIFEST[path]['bytes'])):
+                changed = copy.deepcopy(collector.PUBLIC_SIGNIN_MANIFEST)
+                changed[path]['bytes'] = scalar
+                with self.subTest(path=path, scalar=scalar), self.assertRaises(collector.CollectorError):
+                    collector.validate_public_signin_source_manifest(changed)
+
+    def test_v19_missing_stale_extra_unsafe_and_caller_authority_refuse(self):
+        for path in collector.PUBLIC_SIGNIN_DELTA:
+            missing = dict(collector.PUBLIC_SIGNIN_MANIFEST)
+            missing.pop(path)
+            with self.subTest(path=path), self.assertRaises(collector.CollectorError):
+                collector.validate_public_signin_source_manifest(missing)
+        for path in ('hosted/../future.ex', '/hosted/future.ex', 'console/future.ts'):
+            extra = {**collector.PUBLIC_SIGNIN_MANIFEST, path: {'bytes': 0, 'sha256': '0' * 64}}
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_public_signin_source_manifest(extra, canonical_digest(extra), len(extra))
+        for count in (True, 286.0, 278):
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_public_signin_source_manifest(collector.PUBLIC_SIGNIN_MANIFEST, expected_count=count)
+        with self.assertRaises(collector.CollectorError):
+            collector.validate_public_signin_source_manifest(collector.CONFIGURED_STARTUP_MANIFEST)
+
+    def test_v19_repinned_runtime_contract_scope_changes_refuse(self):
+        for field, scalar in (('runtime_or_GA_accepted', True), ('parent_contract_sha256', '0' * 64),
+                              ('product_map_sha256', '0' * 64), ('identity', 'foreign')):
+            self.repinned_selection(lambda value, field=field, scalar=scalar: value.__setitem__(field, scalar))
+
+    def test_v19_all_three_cold_sparse_consumers_require_every_new_path(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        helper = WorkflowSparseSourceControls()
+        for workflow, job in (('hosted.yml', 'phoenix'), ('identity-network.yml', 'identity-network'), ('verify.yml', 'services')):
+            patterns = helper.patterns((root / '.github/workflows' / workflow).read_text(), job)
+            with self.subTest(workflow=workflow), tempfile.TemporaryDirectory(prefix='signin-v19-') as directory:
+                sparse = Path(directory)
+                helper.materialize(root, sparse, patterns)
+                helper.check_real_main(sparse)
+                paths = list(collector.PUBLIC_SIGNIN_DELTA) + [collector.PUBLIC_SIGNIN_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')]
+                for path in paths:
+                    target = sparse / path
+                    body = target.read_bytes()
+                    target.unlink()
+                    try:
+                        with self.subTest(missing=path), self.assertRaises(FileNotFoundError):
+                            helper.check_real_main(sparse)
+                    finally:
+                        target.write_bytes(body)
+
+    def test_v19_actual_cold_caller_entrypoint_loads_exact_sparse_tree(self):
+        import contextlib
+        import runpy
+        root = COLLECTOR_PATH.resolve().parents[2]
+        helper = WorkflowSparseSourceControls()
+        for workflow, job in (('hosted.yml', 'phoenix'), ('identity-network.yml', 'identity-network'), ('verify.yml', 'services')):
+            patterns = helper.patterns((root / '.github/workflows' / workflow).read_text(), job)
+            with self.subTest(workflow=workflow), tempfile.TemporaryDirectory(prefix='signin-caller-v19-') as directory:
+                sparse = Path(directory)
+                helper.materialize(root, sparse, patterns)
+                path = sparse / 'hosted/scripts/test-identity-network.py'
+                output = io.StringIO()
+                with mock.patch.object(sys, 'argv', [str(path), '--check-source']), contextlib.redirect_stdout(output):
+                    with self.assertRaises(SystemExit) as exited:
+                        runpy.run_path(str(path), run_name='__main__')
+                self.assertEqual(0, exited.exception.code)
+                observed = json.loads(output.getvalue())
+                self.assertEqual(290, observed['source_count'])
+                self.assertEqual(collector.BUILD_CLOCK_SELECTION_SHA256, observed['selection_sha256'])
+
+    def test_v19_actual_collect_refuses_changed_new_source_before_docker(self):
+        helper = CollectorMethodWiringControls()
+        for path in collector.PUBLIC_SIGNIN_DELTA:
+            with self.subTest(path=path), tempfile.TemporaryDirectory(prefix='signin-collect-v19-') as directory:
+                subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
+                original = subject.git_blobs
+                def blobs(paths):
+                    value = original(paths)
+                    if path in value:
+                        value[path] += b'\n'
+                    return value
+                subject.git_blobs = blobs
+                with mock.patch.dict('os.environ', {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'Linux', 'RUNNER_ARCH': 'X64'}, clear=True), \
+                        mock.patch.object(collector.os, 'uname', return_value=collector.os.uname_result(('Linux', 'control', '0', '0', 'x86_64'))):
+                    with self.assertRaises(collector.CollectorError):
+                        subject.collect()
+                self.assertFalse(any(argv[0] == 'docker' for argv in calls))
+
+
+
 if __name__ == "__main__":
     signal.alarm(50)
     unittest.main(verbosity=2)
+
+class ConsoleCoherenceSourceControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.CONSOLE_COHERENCE_SOURCE_BASE + n: (root / collector.CONSOLE_COHERENCE_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+
+    def repin(self, mutate):
+        metadata = self.metadata()
+        path = collector.CONSOLE_COHERENCE_SOURCE_BASE + 'selection.json'
+        value = json.loads(metadata[path])
+        mutate(value)
+        body = json.dumps(value, sort_keys=True).encode()
+        with mock.patch.object(collector, 'CONSOLE_COHERENCE_SELECTION_SHA256', hashlib.sha256(body).hexdigest()):
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_console_coherence_source_metadata({**metadata, path: body})
+
+    def test_exact_four_rows_complete_typed_v19_inverse(self):
+        value = collector.validate_console_coherence_source_metadata(self.metadata())
+        self.assertEqual(4, len(value['exact_delta']))
+        inverse = dict(collector.CONSOLE_COHERENCE_MANIFEST)
+        for p, change in value['exact_delta'].items():
+            self.assertIsNone(change['before'])
+            self.assertIs(type(change['after']['bytes']), int)
+            inverse.pop(p)
+        self.assertEqual(collector.PUBLIC_SIGNIN_MANIFEST, inverse)
+        self.assertEqual(collector.PUBLIC_SIGNIN_SOURCE_DIGEST, canonical_digest(inverse))
+        self.assertEqual(286, sum(collector.CONSOLE_COHERENCE_MANIFEST[p] == v for p, v in inverse.items()))
+        self.assertFalse(value['runtime_or_GA_accepted'])
+
+    def test_each_source_row_hash_and_type_fail_closed(self):
+        for p in collector.CONSOLE_COHERENCE_MANIFEST:
+            for key, scalar in [('bytes', True), ('bytes', float(collector.CONSOLE_COHERENCE_MANIFEST[p]['bytes'])), ('sha256', '0' * 64)]:
+                changed = copy.deepcopy(collector.CONSOLE_COHERENCE_MANIFEST)
+                changed[p][key] = scalar
+                with self.subTest(path=p, key=key, scalar=scalar), self.assertRaises(collector.CollectorError):
+                    collector.validate_console_coherence_source_manifest(changed)
+
+    def test_typed_predecessor_and_selection_fail_closed(self):
+        for field in ('predecessor', 'selected'):
+            for scalar in (True, 290.0, '290', None, 285):
+                self.repin(lambda v, field=field, scalar=scalar: v[field].__setitem__('source_count', scalar))
+        for scalar in (True, 1.0, '1', None):
+            self.repin(lambda v, scalar=scalar: v.__setitem__('schema', scalar))
+        for field in ('parent_contract_sha256', 'product_map_sha256', 'identity'):
+            self.repin(lambda v, field=field: v.__setitem__(field, 'foreign'))
+        self.repin(lambda v: v.__setitem__('runtime_or_GA_accepted', True))
+
+    def test_every_inverse_side_typed_and_exact(self):
+        for p in collector.CONSOLE_COHERENCE_DELTA:
+            for side in ('after',):
+                self.repin(lambda v, p=p, side=side: v['exact_delta'][p][side].__setitem__('bytes', float(v['exact_delta'][p][side]['bytes'])))
+                self.repin(lambda v, p=p, side=side: v['exact_delta'][p][side].__setitem__('sha256', '0' * 64))
+            self.repin(lambda v, p=p: v['exact_delta'][p].__setitem__('before', {'bytes': True, 'sha256': '0' * 64}))
+            self.repin(lambda v, p=p: v['exact_delta'].pop(p))
+
+    def test_missing_stale_extra_unsafe_caller_authority_refuse(self):
+        for p in collector.CONSOLE_COHERENCE_DELTA:
+            for scalar in (None, {'bytes': 0, 'sha256': '0' * 64}):
+                changed = copy.deepcopy(collector.CONSOLE_COHERENCE_MANIFEST)
+                if scalar is None:
+                    changed.pop(p)
+                else:
+                    changed[p] = scalar
+                with self.assertRaises(collector.CollectorError):
+                    collector.validate_console_coherence_source_manifest(changed)
+        for p in ('/console/future.ts', 'console/../future.ts', 'foreign'):
+            changed = {**collector.CONSOLE_COHERENCE_MANIFEST, p: {'bytes': 0, 'sha256': '0' * 64}}
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_console_coherence_source_manifest(changed, canonical_digest(changed), len(changed))
+        for scalar in (True, 286.0, 285):
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_console_coherence_source_manifest(collector.CONSOLE_COHERENCE_MANIFEST, expected_count=scalar)
+
+    def test_metadata_membership_pins_and_all_cold_consumers(self):
+        metadata = self.metadata()
+        for p in metadata:
+            for changed in ({**metadata, p: metadata[p] + b' '}, {k: v for k, v in metadata.items() if k != p}):
+                with self.assertRaises(collector.CollectorError):
+                    collector.validate_console_coherence_source_metadata(changed)
+        helper = WorkflowSparseSourceControls()
+        root = COLLECTOR_PATH.resolve().parents[2]
+        for workflow, job in [('hosted.yml', 'phoenix'), ('identity-network.yml', 'identity-network'), ('verify.yml', 'services')]:
+            with tempfile.TemporaryDirectory(prefix='coherence-v20-') as directory:
+                sparse = Path(directory)
+                helper.materialize(root, sparse, helper.patterns((root / '.github/workflows' / workflow).read_text(), job))
+                helper.check_real_main(sparse)
+                for p in list(collector.CONSOLE_COHERENCE_DELTA) + list(metadata):
+                    target = sparse / p
+                    original = target.read_bytes()
+                    target.unlink()
+                    try:
+                        with self.assertRaises(FileNotFoundError):
+                            helper.check_real_main(sparse)
+                    finally:
+                        target.write_bytes(original)
+
+class BuildClockSourceControls(unittest.TestCase):
+    def metadata(self):
+        root = COLLECTOR_PATH.resolve().parents[2]
+        return {collector.BUILD_CLOCK_SOURCE_BASE + n: (root / collector.BUILD_CLOCK_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+
+    def repin(self, mutate):
+        metadata = self.metadata()
+        path = collector.BUILD_CLOCK_SOURCE_BASE + 'selection.json'
+        value = json.loads(metadata[path])
+        mutate(value)
+        body = json.dumps(value, sort_keys=True).encode()
+        with mock.patch.object(collector, 'BUILD_CLOCK_SELECTION_SHA256', hashlib.sha256(body).hexdigest()):
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_build_clock_source_metadata({**metadata, path: body})
+
+    def test_exact_four_rows_complete_typed_v20_inverse(self):
+        value = collector.validate_build_clock_source_metadata(self.metadata())
+        self.assertEqual(1, len(value['exact_delta']))
+        inverse = dict(collector.BUILD_CLOCK_MANIFEST)
+        for p, change in value['exact_delta'].items():
+            self.assertIs(type(change['before']['bytes']), int)
+            self.assertIs(type(change['after']['bytes']), int)
+            inverse[p] = change['before']
+        self.assertEqual(collector.CONSOLE_COHERENCE_MANIFEST, inverse)
+        self.assertEqual(collector.CONSOLE_COHERENCE_SOURCE_DIGEST, canonical_digest(inverse))
+        self.assertEqual(289, sum(collector.BUILD_CLOCK_MANIFEST[p] == v for p, v in inverse.items() if p not in value['exact_delta']))
+        self.assertFalse(value['runtime_or_GA_accepted'])
+
+    def test_each_source_row_hash_and_type_fail_closed(self):
+        for p in collector.BUILD_CLOCK_MANIFEST:
+            for key, scalar in [('bytes', True), ('bytes', float(collector.BUILD_CLOCK_MANIFEST[p]['bytes'])), ('sha256', '0' * 64)]:
+                changed = copy.deepcopy(collector.BUILD_CLOCK_MANIFEST)
+                changed[p][key] = scalar
+                with self.subTest(path=p, key=key, scalar=scalar), self.assertRaises(collector.CollectorError):
+                    collector.validate_build_clock_source_manifest(changed)
+
+    def test_typed_predecessor_and_selection_fail_closed(self):
+        for field in ('predecessor', 'selected'):
+            for scalar in (True, 290.0, '290', None, 285):
+                self.repin(lambda v, field=field, scalar=scalar: v[field].__setitem__('source_count', scalar))
+        for scalar in (True, 1.0, '1', None):
+            self.repin(lambda v, scalar=scalar: v.__setitem__('schema', scalar))
+        for field in ('parent_contract_sha256', 'product_map_sha256', 'identity'):
+            self.repin(lambda v, field=field: v.__setitem__(field, 'foreign'))
+        self.repin(lambda v: v.__setitem__('runtime_or_GA_accepted', True))
+
+    def test_every_inverse_side_typed_and_exact(self):
+        for p in collector.BUILD_CLOCK_DELTA:
+            for side in ('before', 'after'):
+                self.repin(lambda v, p=p, side=side: v['exact_delta'][p][side].__setitem__('bytes', float(v['exact_delta'][p][side]['bytes'])))
+                self.repin(lambda v, p=p, side=side: v['exact_delta'][p][side].__setitem__('sha256', '0' * 64))
+            self.repin(lambda v, p=p: v['exact_delta'][p].__setitem__('before', {'bytes': True, 'sha256': '0' * 64}))
+            self.repin(lambda v, p=p: v['exact_delta'].pop(p))
+
+    def test_missing_stale_extra_unsafe_caller_authority_refuse(self):
+        for p in collector.BUILD_CLOCK_DELTA:
+            for scalar in (None, {'bytes': 0, 'sha256': '0' * 64}):
+                changed = copy.deepcopy(collector.BUILD_CLOCK_MANIFEST)
+                if scalar is None:
+                    changed.pop(p)
+                else:
+                    changed[p] = scalar
+                with self.assertRaises(collector.CollectorError):
+                    collector.validate_build_clock_source_manifest(changed)
+        for p in ('/console/future.ts', 'console/../future.ts', 'foreign'):
+            changed = {**collector.BUILD_CLOCK_MANIFEST, p: {'bytes': 0, 'sha256': '0' * 64}}
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_build_clock_source_manifest(changed, canonical_digest(changed), len(changed))
+        for scalar in (True, 286.0, 285):
+            with self.assertRaises(collector.CollectorError):
+                collector.validate_build_clock_source_manifest(collector.BUILD_CLOCK_MANIFEST, expected_count=scalar)
+
+    def test_metadata_membership_pins_and_all_cold_consumers(self):
+        metadata = self.metadata()
+        for p in metadata:
+            for changed in ({**metadata, p: metadata[p] + b' '}, {k: v for k, v in metadata.items() if k != p}):
+                with self.assertRaises(collector.CollectorError):
+                    collector.validate_build_clock_source_metadata(changed)
+        helper = WorkflowSparseSourceControls()
+        root = COLLECTOR_PATH.resolve().parents[2]
+        for workflow, job in [('hosted.yml', 'phoenix'), ('identity-network.yml', 'identity-network'), ('verify.yml', 'services')]:
+            with tempfile.TemporaryDirectory(prefix='clock-v21-') as directory:
+                sparse = Path(directory)
+                helper.materialize(root, sparse, helper.patterns((root / '.github/workflows' / workflow).read_text(), job))
+                helper.check_real_main(sparse)
+                for p in list(collector.BUILD_CLOCK_DELTA) + list(metadata):
+                    target = sparse / p
+                    original = target.read_bytes()
+                    target.unlink()
+                    try:
+                        with self.assertRaises(FileNotFoundError):
+                            helper.check_real_main(sparse)
+                    finally:
+                        target.write_bytes(original)

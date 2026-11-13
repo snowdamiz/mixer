@@ -41,13 +41,23 @@ defmodule MixerHostedWeb.BrowserLoginHTTP do
 
       {"POST", "/auth/login"} ->
         with true <- conn.query_string == "",
+             {:ok, representation} <- representation(conn),
              {:ok, cookie} when is_binary(cookie) <-
                Protocol.parse_session_cookie(conn.req_headers),
              {:ok, conn} <- empty_body(conn),
              {:ok, %PreauthDraft.Authorization{url: url, expires_at: expires}} <-
                RuntimeOwner.begin_login(cookie, conn.req_headers, :workspace, metadata()),
              true <- expires > System.system_time(:second) do
-          redirect(conn, url)
+          case representation do
+            :json ->
+              conn
+              |> delete_resp_header("location")
+              |> put_resp_header("referrer-policy", "no-referrer")
+              |> json(200, %{authorization_url: url, expires_at: expires})
+
+            :redirect ->
+              redirect(conn, url)
+          end
         else
           _ -> error(conn, 503)
         end
@@ -70,6 +80,15 @@ defmodule MixerHostedWeb.BrowserLoginHTTP do
     _ -> error(conn, 503)
   catch
     _, _ -> error(conn, 503)
+  end
+
+  defp representation(conn) do
+    case get_req_header(conn, "accept") do
+      ["application/json"] -> {:ok, :json}
+      [_] -> {:ok, :redirect}
+      [] -> {:ok, :redirect}
+      _ -> :error
+    end
   end
 
   defp bootstrap(conn) do

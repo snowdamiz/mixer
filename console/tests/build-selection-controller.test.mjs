@@ -115,11 +115,11 @@ test("retained request_failed detail retries preserve the accepted floor",async(
  const f=fixture();try{
   await detailed(f,dto({revision:4}));const accepted=f.controller.getState();
   f.controller.refreshSelected();f.calls.at(-1).reject(Error("request failed"));await flush();
-  assert.deepEqual(f.controller.getState().detail,{kind:"error",reason:"request_failed"});
+  assert.deepEqual(f.controller.getState().detail,{kind:"error",reason:"request_failed",previous:accepted.detail});
   assert.strictEqual(f.controller.getState().applications,accepted.applications);assert.strictEqual(f.controller.getState().builds,accepted.builds);
   const before=f.calls.length;f.controller.refreshSelected();assert.equal(f.calls.length,before+1);
   f.calls.at(-1).resolve(parseBuildRead({build:dto({revision:3})},selection(dto())));await flush();
-  assert.deepEqual(f.controller.getState().detail,{kind:"error",reason:"invalid_response"});
+  assert.deepEqual(f.controller.getState().detail,{kind:"error",reason:"invalid_response",previous:accepted.detail});
   f.controller.selectBuild({buildId:"b",platform:"ios"});f.calls.at(-1).resolve(parseBuildRead({build:dto({revision:4})},selection(dto())));await flush();
   assert.equal(f.controller.getState().detail.snapshot.revision,4);
   f.controller.refreshSelected();f.calls.at(-1).resolve(parseBuildRead({build:dto({revision:5})},selection(dto())));await flush();assert.equal(f.controller.getState().detail.snapshot.revision,5);
@@ -185,11 +185,11 @@ test("explicit workspace session application and page resets admit a new revisio
    await f.list();const acceptedCall=await f.detail(4);const accepted=f.binding.state();assert.equal(accepted.detail.snapshot.revision,4);
    const row=accepted.builds.page.builds[0];assert.equal(row.snapshot.revision,2);assert(Object.isFrozen(row.selection));assert.deepEqual(accepted.detail.selection,row.selection);
    f.binding.controller.refreshSelected();const failedCall=await f.respond(detailPath,json({build:{...dto(),revision:"invalid"}}));
-   const afterError=f.binding.state();assert.deepEqual(afterError.detail,{kind:"error",reason:"invalid_response"});assert.strictEqual(afterError.applications,accepted.applications);assert.strictEqual(afterError.builds,accepted.builds);assert.strictEqual(afterError.builds.page.builds[0],row);assert.strictEqual(f.owner.getSession(),f.session);assert.equal(afterError.selectedApplicationId,"app");
-   const callsBeforeRefresh=f.net.calls.length;f.binding.controller.refreshSelected();const refreshedCall=await f.respond(detailPath,json({build:dto({revision:3})}));assert.equal(f.net.calls.length,callsBeforeRefresh+1);assert.deepEqual(f.binding.state().detail,{kind:"error",reason:"invalid_response"});
+   const afterError=f.binding.state();assert.deepEqual(afterError.detail,{kind:"error",reason:"invalid_response",previous:accepted.detail});assert.strictEqual(afterError.applications,accepted.applications);assert.strictEqual(afterError.builds,accepted.builds);assert.strictEqual(afterError.builds.page.builds[0],row);assert.strictEqual(f.owner.getSession(),f.session);assert.equal(afterError.selectedApplicationId,"app");
+   const callsBeforeRefresh=f.net.calls.length;f.binding.controller.refreshSelected();const refreshedCall=await f.respond(detailPath,json({build:dto({revision:3})}));assert.equal(f.net.calls.length,callsBeforeRefresh+1);assert.deepEqual(f.binding.state().detail,{kind:"error",reason:"invalid_response",previous:accepted.detail});
    const olderCall=await f.detail(3);const afterOlder=f.binding.state();assert.strictEqual(afterOlder.applications,accepted.applications);assert.strictEqual(afterOlder.builds,accepted.builds);assert.strictEqual(f.owner.getSession(),f.session);
    assert.notEqual(afterOlder.detail.kind,'ready','P2: same admitted immutable selection regressed from accepted revision 4 to revision 3 after invalid_response; fail() erased revision floor while retaining current catalog and session');
-   assert.deepEqual(afterOlder.detail,{kind:"error",reason:"invalid_response"});
+   assert.deepEqual(afterOlder.detail,{kind:"error",reason:"invalid_response",previous:accepted.detail});
    await f.detail(4);assert.equal(f.binding.state().detail.snapshot.revision,4);await f.detail(5);assert.equal(f.binding.state().detail.snapshot.revision,5);
    assert.equal(f.net.calls.filter(call=>call.path==="/auth/session").length,1);assert.equal(f.net.calls.filter(call=>call.path===applicationsPath).length,1);assert.equal(f.net.calls.filter(call=>call.path===catalogPath).length,1);
    for(const call of [failedCall,refreshedCall,olderCall])assert.equal(call.path,acceptedCall.path);
