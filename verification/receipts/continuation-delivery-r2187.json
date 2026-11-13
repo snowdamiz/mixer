@@ -1,0 +1,226 @@
+{
+  "schema": 1,
+  "id": "continuation-delivery-r2187",
+  "observedUTC": "2026-11-13T10:41:47.365315+00:00",
+  "status": "DELIVERED_DEVELOPMENT_CHECKPOINT_FRESH_CI_RUNNING",
+  "head": "7be3571a74a147c79b448041bb6a650a74ed33fc",
+  "remoteMain": "7be3571a74a147c79b448041bb6a650a74ed33fc",
+  "nonForcePush": true,
+  "parent": "658fd3034fb7e9ba3176987c10d83da8c4ed484f",
+  "scope": "Exactly thirteen plan/status/graph/gate-metadata and compact evidence paths; no product adoption.",
+  "checkpoint": "verification/receipts/continuation-checkpoint-r2182.json",
+  "initialCI": [
+    {
+      "conclusion": null,
+      "head_sha": "7be3571a74a147c79b448041bb6a650a74ed33fc",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43410872078",
+      "id": 43410872078,
+      "name": "Owned engine checks",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "7be3571a74a147c79b448041bb6a650a74ed33fc",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/43410872217",
+      "id": 43410872217,
+      "name": "Verification artifact retention",
+      "status": "completed"
+    }
+  ],
+  "artifactPolicy": {
+    "passed": true,
+    "files": 47701,
+    "bytes": 926014043
+  },
+  "managedDeliveryCommands": [
+    {
+      "label": "execute-checkpoint-r2182",
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-root-checkpoint-r2182/checkpoint.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 27072,
+      "pgid": 27072,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.09013700007926673,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "stage-checkpoint-r2182",
+      "argv": [
+        "/usr/bin/python3",
+        "-c",
+        "from pathlib import Path; import json,subprocess; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); paths=json.loads((r/\"verification/local/customer-create-root-checkpoint-r2182/staging-paths.json\").read_text()); old=subprocess.run([\"git\",\"-C\",str(r),\"diff\",\"--cached\",\"--name-only\"],capture_output=True,text=True,check=True).stdout.splitlines(); assert not old,old; subprocess.run([\"git\",\"-C\",str(r),\"add\",\"--\",*paths],check=True); got=subprocess.run([\"git\",\"-C\",str(r),\"diff\",\"--cached\",\"--name-only\"],capture_output=True,text=True,check=True).stdout.splitlines(); assert set(got)==set(paths),(got,paths); print(\"Staged exact\",len(got),\"paths\")"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 43256,
+      "pgid": 43256,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.14648137497715652,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "finalize-checkpoint-r2182",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-root-checkpoint-r2182/checkpoint.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 44349,
+      "pgid": 44349,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06620274996384978,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "restage-checkpoint-r2182",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-c",
+        "from pathlib import Path; import json,subprocess; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); paths=json.loads((r/\"verification/local/customer-create-root-checkpoint-r2182/staging-paths.json\").read_text()); old=subprocess.run([\"git\",\"-C\",str(r),\"diff\",\"--cached\",\"--name-only\"],capture_output=True,text=True,check=True).stdout.splitlines(); assert set(old)<=set(paths),old; subprocess.run([\"git\",\"-C\",str(r),\"add\",\"--\",*paths],check=True); got=subprocess.run([\"git\",\"-C\",str(r),\"diff\",\"--cached\",\"--name-only\"],capture_output=True,text=True,check=True).stdout.splitlines(); assert set(got)==set(paths),(got,paths); print(\"Staged exact\",len(got),\"paths\")"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 46535,
+      "pgid": 46535,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.1351564999204129,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "staged-artifact-policy-modern-python-r2182",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/check-verification-artifacts.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 46544,
+      "pgid": 46544,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.5934583330526948,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "checkpoint-scope-and-history-r2182",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-c",
+        "from pathlib import Path; import json,subprocess; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); git=lambda *a: subprocess.run([\"git\",\"-C\",str(r),*a],capture_output=True,text=True,check=True).stdout; paths=json.loads((r/\"verification/local/customer-create-root-checkpoint-r2182/staging-paths.json\").read_text()); assert set(git(\"diff\",\"--cached\",\"--name-only\").splitlines())==set(paths); git(\"diff\",\"--cached\",\"--check\"); suffixes=[(git(\"show\",\"HEAD:\"+x).split(\"## Previous checkpoint\",1)[1],(r/x).read_text().split(\"## Previous checkpoint\",1)[1]) for x in [\"PLAN.md\",\"STATUS.md\"]]; assert all(a==b for a,b in suffixes); a=json.loads(git(\"show\",\"HEAD:gates/ga.json\")); b=json.loads((r/\"gates/ga.json\").read_text()); filtered=lambda d:{k:v for k,v in d.items() if k not in [\"executionPolicy\",\"verificationPolicy\"]}; assert filtered(a)==filtered(b); print(git(\"diff\",\"--cached\",\"--stat\")); print(\"Historical doc suffixes and GA gates remain exact\")"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 46585,
+      "pgid": 46585,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.11831162497401237,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "commit-checkpoint-r2182",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "commit",
+        "-m",
+        "Record actual create transaction and delivered VM qualification"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 46602,
+      "pgid": 46602,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.23480845801532269,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "push-checkpoint-r2182",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "push",
+        "origin",
+        "HEAD:main"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 46613,
+      "pgid": 46613,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 2.6879292080411687,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "checkpoint-delivered-head-r2187",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-c",
+        "from pathlib import Path; import json,subprocess; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); git=lambda *a:subprocess.run([\"git\",\"-C\",str(r),*a],capture_output=True,text=True,check=True).stdout.strip(); h=git(\"rev-parse\",\"HEAD\"); remote=git(\"ls-remote\",\"origin\",\"refs/heads/main\").split()[0]; assert h==remote,(h,remote); print(json.dumps({\"head\":h,\"remoteMain\":remote,\"nonForcePush\":True})); print(git(\"status\",\"--short\"))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 51799,
+      "pgid": 51799,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.4675894579850137,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "checkpoint-initial-ci-r2187",
+      "argv": [
+        "/opt/homebrew/bin/gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/runs?head_sha=7be3571a74a147c79b448041bb6a650a74ed33fc&per_page=20",
+        "--jq",
+        "[.workflow_runs[] | {id,name,head_sha,status,conclusion,html_url}]"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/configured-root-adoption-r1902",
+      "pid": 52080,
+      "pgid": 52080,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.4445300829829648,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "failuresPreserved": [
+    "Relative-path observation failed with full terminal custody.",
+    "System-Python 3.9 artifact checker failed on zip(strict=); modern-Python required check then passed."
+  ],
+  "limitations": [
+    "Fresh Engine CI remains running at this observation.",
+    "Customer build replay and rollback acceptance remains pending.",
+    "Transport/bootstrap lifetime is not separately established."
+  ],
+  "historicalHoldsReleased": false,
+  "GA": false
+}
