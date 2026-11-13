@@ -1,0 +1,407 @@
+{
+  "schema": 1,
+  "id": "customer-create-build-policy-r2156",
+  "status": "REQUEST_CHANGES",
+  "compilers": 1,
+  "runtime_batches": 1,
+  "postgres_launches": 1,
+  "postgres_stops": 1,
+  "controls": [],
+  "new_holds": [],
+  "canonical_adoption": false,
+  "authority_adoption": false,
+  "full_http_create_accepted": false,
+  "GA": false,
+  "holds_released": false,
+  "historical_holds_accessed": false,
+  "elapsed_seconds": 48.358,
+  "commands": [
+    {
+      "label": "001-root-compile-preflight",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-admission-r2140/preflight.py",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/tools/rebar3"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156",
+      "pid": 98700,
+      "pgid": 98700,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04711133404634893,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "002-compile",
+      "argv": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 98702,
+      "pgid": 98702,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 29.77340191602707,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "003-elixir-version",
+      "argv": [
+        "elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 284,
+      "pgid": 284,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.16809674992691725,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "004-postgres-version",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 326,
+      "pgid": 326,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.02644179097842425,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "005-initdb",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/pgdata",
+        "-U",
+        "mixer_fixture",
+        "--auth-local=trust",
+        "--auth-host=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 327,
+      "pgid": 327,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.45844987500458956,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "006-sql-readiness",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39550",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "postgres",
+        "-At",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "SELECT 1; SHOW data_directory;"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 349,
+      "pgid": 349,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05025183304678649,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "007-browser-read-roles",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39550",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "CREATE ROLE browser_admin LOGIN SUPERUSER; CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 361,
+      "pgid": 361,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.033863874967209995,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "008-browser-read-database",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39550",
+        "-U",
+        "mixer_fixture",
+        "-O",
+        "browser_schema_owner",
+        "browser_storage"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 366,
+      "pgid": 366,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.07769991690292954,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "009-actual-component-matrix",
+      "argv": [
+        "mix",
+        "test",
+        "--no-start",
+        "--no-compile",
+        "--seed",
+        "0",
+        "--max-cases",
+        "1",
+        "--trace",
+        "test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 371,
+      "pgid": 371,
+      "state": "direct_reaped",
+      "exitCode": 2,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.6810673750005662,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "010-postgres-stop",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/pgdata",
+        "-m",
+        "fast",
+        "-w",
+        "-t",
+        "15",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/candidate/hosted",
+      "pid": 460,
+      "pgid": 460,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.1315919168991968,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "port_prelaunch_free": true,
+  "postgres": {
+    "pid": 348,
+    "pgid": 348,
+    "argv": [
+      "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/pgdata",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "39550",
+      "-k",
+      "",
+      "-c",
+      "timezone=UTC"
+    ],
+    "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/pgdata",
+    "output_kind": "regular_files",
+    "state": "TERMINAL",
+    "exit": 0,
+    "direct_reaped": true,
+    "group_absent": true,
+    "absence_errno": 3,
+    "descriptors_closed": true,
+    "stdin_closed": true,
+    "pipe_eof": "not applicable; regular-file EOF only",
+    "regular_file_eof": true
+  },
+  "sql_readiness_exact_owned_data_before_ddl": true,
+  "test_exit": 2,
+  "output_tail": "Running ExUnit with seed: 0, max_cases: 1\n\n\nMixerHosted.CustomerCreateBuildPolicyExclusivityR2156Test [test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs]\n  * test actual_create_build_policy_exclusivity_pg_join [L#95]\r  * test actual_create_build_policy_exclusivity_pg_join (0.00ms) [L#95]\n\n  0) MixerHosted.CustomerCreateBuildPolicyExclusivityR2156Test: failure on setup_all callback, all tests have been invalidated\n     ** (Postgrex.Error) ERROR 42501 (insufficient_privilege) browser preparation provisioning denied\n     stacktrace:\n       (ecto_sql 3.14.0) lib/ecto/adapters/sql.ex:1121: Ecto.Adapters.SQL.raise_sql_call_error/1\n       test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs:59: anonymous fn/2 in MixerHosted.CustomerCreateBuildPolicyExclusivityR2156Test.__ex_unit_setup_all_0/1\n       (elixir 1.20.4) lib/enum.ex:2622: Enum.\"-reduce/3-lists^foldl/2-0-\"/3\n       test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs:59: MixerHosted.CustomerCreateBuildPolicyExclusivityR2156Test.__ex_unit_setup_all_0/1\n       test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs:3: MixerHosted.CustomerCreateBuildPolicyExclusivityR2156Test.__ex_unit__/2\n\n\nFinished in 0.3 seconds (0.00s async, 0.3s sync)\n\nResult: 0 tests, 1 invalid\n",
+  "port_reusable": true,
+  "all_commands_terminal": true,
+  "outer_commands": [
+    {
+      "label": "campaign-1",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/run.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156",
+      "pid": 98699,
+      "pgid": 98699,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 31.530514499987476,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "outer_terminal": true,
+  "acceptance": "UNACCEPTED: named component test failed setup before any admission control",
+  "own_product_paths": [
+    "hosted/lib/mixer_hosted/browser_auth/build_catalog_admission.ex"
+  ],
+  "own_test_paths": [
+    "hosted/test/mixer_hosted/browser_auth/customer_create_build_policy_exclusivity_r2156_test.exs"
+  ],
+  "product_change_compiled": true,
+  "final_test_fixture_change_executed": false,
+  "actual_controls_passed": 0,
+  "invalid_tests": 1,
+  "source_only_fixture_diagnosis": "Provisioning BEGIN/SET LOCAL/COMMIT was routed across pooled Ecto Admin queries; restored the known dedicated F.connection! sequence. The exact failed SQL predicate is unproven.",
+  "application_map": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/application-map.json",
+  "own_delta_map": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/own-delta-map.json",
+  "own_product_patch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/own-product.patch",
+  "source_tree_sha256": "aeb88b677ac0af8687b40687aa14ec4f289f6a4eed93fc142841e3ee4f049a53",
+  "canonical_source_tree_sha256": "a8f36cf2b31a170339acfff47109fb4322d591d761890ab755a6fe16c1fc312f",
+  "source_executed_manifest": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/source-executed.json",
+  "final_source_manifest": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/source-final.json",
+  "tools": {
+    "mix": {
+      "resolved": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/mix",
+      "bytes": 169,
+      "sha256": "0a48d65a9980f2b923bba597e0ebdde3049e3271089ffffb9265d5cf7954b659"
+    },
+    "elixir": {
+      "resolved": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+      "bytes": 6658,
+      "sha256": "5cb23d89a78f75589b06fade3097e217b77e63416d61c1800f674579748c4307"
+    },
+    "erl": {
+      "resolved": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/bin/erl",
+      "bytes": 1441,
+      "sha256": "ef68f389ca08a7984d2cfbf9beedc44a111cf42215f77d020c3868a9a6ef88f1"
+    },
+    "python": {
+      "resolved": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "bytes": 34640,
+      "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+    },
+    "postgres": {
+      "version": "17.11 Homebrew",
+      "bytes": 8813760,
+      "sha256": "9d1930da02e11e446b42f9d79cf2e6bce307a6decb6a089591f8726d0f49b6f2"
+    },
+    "rebar3": {
+      "bytes": 823379,
+      "sha256": "4df37f2f7570e0b5af15b5dcbad6b7a864202575d94e1d8663166c7643ee3a09"
+    }
+  },
+  "cleanup": {
+    "only_owned_transients_removed": [
+      "candidate/hosted/_build",
+      "candidate/hosted/deps",
+      "pgdata",
+      "home",
+      "tmp",
+      "cache",
+      "hex-home",
+      "mix-home",
+      "tools"
+    ],
+    "after_terminal_custody": true,
+    "port_reusable": true,
+    "raw_proof_retained": true,
+    "canonical_preimages_and_afterimages_retained": true,
+    "historical_holds_touched": false
+  },
+  "followup": "Root must select a fresh independently scoped PG campaign for corrected component matrix; R2154 composition, full HTTP/SQL and targeted review remain pending.",
+  "artifact_validation": "No index writes/staging authorized or performed; index artifact check not invoked.",
+  "stopped_for": "One PostgreSQL launch/stop budget exhausted; no second launch or stop-repair marker.",
+  "total_wall_seconds": 525.172,
+  "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-build-policy-r2156/REPORT.md",
+  "parent_environment_restored": true,
+  "artifact_hashes": {
+    "application-map.json": {
+      "bytes": 14043,
+      "sha256": "bf35c914de7864b2ead6dca005ce8b57de5201835d2fdaac77e7c4c9ebdf9ab6"
+    },
+    "own-delta-map.json": {
+      "bytes": 1238,
+      "sha256": "e2e489f1615f5f75ccbb04913bec2914ba200c339b1e66364cb64202810c49b2"
+    },
+    "own-product.patch": {
+      "bytes": 1012,
+      "sha256": "95150e25feea296bec26e3019d40f6e55be1c0020835d6271824e69229883764"
+    },
+    "REPORT.md": {
+      "bytes": 5100,
+      "sha256": "4978744b52bfb09b975eb6f5f7136d9c634435aba3e893200d167fb25dcb2341"
+    },
+    "source-executed.json": {
+      "bytes": 46762,
+      "sha256": "ec2dc1e16e0ed3750e9ba36abf74a6cf05cf7193c403b475bec64d7ecd5205fe"
+    },
+    "source-final.json": {
+      "bytes": 46762,
+      "sha256": "ea30a81b6965ef0ac0d694e3fd6a0bbe311a01e87023ed10f9c892fb510a6f9a"
+    },
+    "fixture-correction.json": {
+      "bytes": 754,
+      "sha256": "0a27c5d98adf882bbb591bff5df7f6c148ebbb73a4d96d4906d8b4e32252c40e"
+    },
+    "canonical-preservation.json": {
+      "bytes": 437,
+      "sha256": "9f378ce6618b1b17f8c891e02be2b8d822fa8a3eed0abdec2951c8c6fc2eda33"
+    },
+    "cleanup.json": {
+      "bytes": 381,
+      "sha256": "a57ded391d7ae535c3f456f278437def2dc71cfd8ae2bf11753bcad09fbd93e7"
+    }
+  }
+}

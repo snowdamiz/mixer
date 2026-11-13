@@ -1,0 +1,851 @@
+{
+  "id": "R2150_VM_INTEGER_WIDTH_CONSUMING",
+  "status": "PASS_ROOT_REVIEW_PENDING",
+  "revision": "7dc02d85cd912ade99f1237e9c620e135c3109c7",
+  "ownedSource": "vm/tests/differential_integer_width_consuming.rs",
+  "limits": {
+    "wallSeconds": 600,
+    "cargoBuilds": 1,
+    "correctiveCompiles": 0,
+    "cargoJobs": 2,
+    "perCommandOutputBytesPerStream": 8388608,
+    "testInvocations": 2,
+    "caseCount": 32,
+    "runtimePerCaseChild": 1
+  },
+  "feature": "experimental-swift-reactor",
+  "budgets": "SwiftValidationBudget/SwiftRunBudget/WasiBudget::default unchanged",
+  "helper": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "astDefinitionsOnly": [
+      "InertPopen",
+      "run"
+    ]
+  },
+  "limitations": [
+    "New development test only; no W08, combined, native, release or GA acceptance.",
+    "Root independent review and delivery remain pending.",
+    "Single new integration target compiled; complete unchanged Cargo manifest and all target sources admitted.",
+    "Node is a development oracle only; no third-party VM or dependency added."
+  ],
+  "historicalHoldsReleased": false,
+  "rootGitWrites": false,
+  "tools": {
+    "rustc-version": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo-version": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "node-version": "v22.23.3"
+  },
+  "toolPaths": {
+    "rustc": "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+    "cargo": "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+    "node": "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+    "python": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3"
+  },
+  "sourceManifestSHA256": "9d0dd7f21f21a5db9f56c94e994d75e0dd3d25a2812a0526e89741cb0174076a",
+  "testSource": {
+    "bytes": 17782,
+    "sha256": "eab014150849462da94cfa40d1f1d9ba0bcaa944d8ec959a99245b99c863bc39"
+  },
+  "acceptedBitsSourceSHA256": "dd3382bfc0be04e70db5dd4391fc1eeaac31c271176f3836151c42a23f557d80",
+  "otherCorpusUnchangedByFormatting": true,
+  "manifestPreflight": {
+    "targets": 46,
+    "preexistingTargets": 45,
+    "integrationTargets": 43,
+    "example": "examples/taskeditor_owned_command.rs",
+    "allSourcesExact": true,
+    "manifestUnchanged": true,
+    "dependencies": 0
+  },
+  "binary": {
+    "path": "verification/local/vm-integer-width-r2150/artifacts/differential_integer_width_consuming",
+    "bytes": 2947624,
+    "sha256": "041d101795b486f4bef008070d8814fc7a6463170d2f686fea1d5493e5389b6f"
+  },
+  "results": {
+    "exact-parent": {
+      "cases": 32,
+      "actualNodeComparisons": 32,
+      "consumingCleanups": 32,
+      "invalidEnvironmentRejectionsBeforePayload": 9,
+      "selectorUnset": true,
+      "nodeSelection": "pinned explicit MIXER_NODE",
+      "rawOutput": {
+        "bytes": 155674,
+        "sha256": "aaf7aefbd9b7b95aa27a1a990ca26f647cee3ca98f8ec67aee8f1fc568bee251"
+      }
+    },
+    "blanket-ignored": {
+      "cases": 32,
+      "actualNodeComparisons": 32,
+      "consumingCleanups": 32,
+      "invalidEnvironmentRejectionsBeforePayload": 9,
+      "selectorUnset": true,
+      "nodeSelection": "MIXER_NODE unset; pinned Node first in PATH",
+      "rawOutput": {
+        "bytes": 155674,
+        "sha256": "66cc79d396af64731077c84b18b90ce8414eb44cc7721993b426b97e7ac32a6c"
+      }
+    }
+  },
+  "cases": [
+    {
+      "case": 0,
+      "name": "i32.wrap_i64-discard-bit63",
+      "opcode": "a7",
+      "input": "-9223372036854775808",
+      "exactUnsignedResult": "0",
+      "stdoutHex": "00000000",
+      "module": {
+        "bytes": 1689,
+        "sha256": "086397e498e1263ad465443a9df1e33aff7914c3c52a5ac1a26530d31fa8b877"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 1,
+      "name": "i32.wrap_i64-mixed-upper-and-lower",
+      "opcode": "a7",
+      "input": "1311768467139281697",
+      "exactUnsignedResult": "2271560481",
+      "stdoutHex": "21436587",
+      "module": {
+        "bytes": 1688,
+        "sha256": "b7ff2de2265d9c9463c5616afab79b4d8f34ad42a8c5434e3cba365e6683a613"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 2,
+      "name": "i32.wrap_i64-retain-bit31",
+      "opcode": "a7",
+      "input": "9223372034707292160",
+      "exactUnsignedResult": "2147483648",
+      "stdoutHex": "00000080",
+      "module": {
+        "bytes": 1689,
+        "sha256": "2c613411d49aacb043a1f5e5ae8ec7e42f9bd68ad215655e0ba9492b92dea5b9"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 3,
+      "name": "i32.wrap_i64-negative-input-positive-low",
+      "opcode": "a7",
+      "input": "-9223372034707292161",
+      "exactUnsignedResult": "2147483647",
+      "stdoutHex": "ffffff7f",
+      "module": {
+        "bytes": 1689,
+        "sha256": "fb872f5ff22f7ee69785e5c46a6aa75639d314ae05b6a4a6546fa66a93b41554"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 4,
+      "name": "i32.wrap_i64-all-ones",
+      "opcode": "a7",
+      "input": "-1",
+      "exactUnsignedResult": "4294967295",
+      "stdoutHex": "ffffffff",
+      "module": {
+        "bytes": 1680,
+        "sha256": "a73ae35766675e2ed779b6094c70d908bff9b6385128d0a40e8a19ee253618a9"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 5,
+      "name": "i64.extend_i32_s-bit31",
+      "opcode": "ac",
+      "input": "-2147483648",
+      "exactUnsignedResult": "18446744071562067968",
+      "stdoutHex": "00000080ffffffff",
+      "module": {
+        "bytes": 1684,
+        "sha256": "e2d09d7eece8884bca9986ec92cadc690fe4db654b2a7fa82ac144cd40427e6a"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 6,
+      "name": "i64.extend_i32_s-below-bit31",
+      "opcode": "ac",
+      "input": "2147483647",
+      "exactUnsignedResult": "2147483647",
+      "stdoutHex": "ffffff7f00000000",
+      "module": {
+        "bytes": 1684,
+        "sha256": "1f4a14c102f2cf5020ad8c7b3421f0148be471f00abd44c411d2536f7a400af2"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 7,
+      "name": "i64.extend_i32_s-all-ones",
+      "opcode": "ac",
+      "input": "-1",
+      "exactUnsignedResult": "18446744073709551615",
+      "stdoutHex": "ffffffffffffffff",
+      "module": {
+        "bytes": 1680,
+        "sha256": "77b951931673a947c3d65a7b114acdffa97707c7f2c6aa49730732b0a060d3f2"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 8,
+      "name": "i64.extend_i32_u-bit31",
+      "opcode": "ad",
+      "input": "-2147483648",
+      "exactUnsignedResult": "2147483648",
+      "stdoutHex": "0000008000000000",
+      "module": {
+        "bytes": 1684,
+        "sha256": "eb0d553507ec336aaf8df7e418ccfe554dcc81f0584baf57cac71b3a9da466be"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 9,
+      "name": "i64.extend_i32_u-below-bit31",
+      "opcode": "ad",
+      "input": "2147483647",
+      "exactUnsignedResult": "2147483647",
+      "stdoutHex": "ffffff7f00000000",
+      "module": {
+        "bytes": 1684,
+        "sha256": "1ea7b920e2eb16c51716845cad1d41caa2d7d3f6a4230fb1b6904d104231346b"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 10,
+      "name": "i64.extend_i32_u-all-ones",
+      "opcode": "ad",
+      "input": "-1",
+      "exactUnsignedResult": "4294967295",
+      "stdoutHex": "ffffffff00000000",
+      "module": {
+        "bytes": 1680,
+        "sha256": "e91380ef447b0fdef58bd3c43a67d0d8f046c8fcd0fd665ad17ef1c1091490ff"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 11,
+      "name": "i64.extend_i32_u-mixed-negative",
+      "opcode": "ad",
+      "input": "-1985229329",
+      "exactUnsignedResult": "2309737967",
+      "stdoutHex": "efcdab8900000000",
+      "module": {
+        "bytes": 1684,
+        "sha256": "1f5cf91afc17a7ca80d5e9d4a8ed6432661891fa78802e0f7f4617d904bd190a"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 12,
+      "name": "i32.extend8_s-dirty-below-sign",
+      "opcode": "c0",
+      "input": "1164413311",
+      "exactUnsignedResult": "127",
+      "stdoutHex": "7f000000",
+      "module": {
+        "bytes": 1684,
+        "sha256": "78b63dbcb5574d1732fcf33c3c579ab861b734c502fa08b16cb4a8481ca9e667"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 13,
+      "name": "i32.extend8_s-dirty-at-sign",
+      "opcode": "c0",
+      "input": "1164413312",
+      "exactUnsignedResult": "4294967168",
+      "stdoutHex": "80ffffff",
+      "module": {
+        "bytes": 1684,
+        "sha256": "2d11ecd08794cd0eb1d24bfd8d4b173beed27b40b3f17cc5685ff546c4e34960"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 14,
+      "name": "i32.extend8_s-high-bit-low-all-ones",
+      "opcode": "c0",
+      "input": "-2147483393",
+      "exactUnsignedResult": "4294967295",
+      "stdoutHex": "ffffffff",
+      "module": {
+        "bytes": 1684,
+        "sha256": "92ad4306eecd083164865be53cbdfbed79f6c957886aad9410d0d48087297440"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 15,
+      "name": "i32.extend8_s-discard-bit8-and-upper",
+      "opcode": "c0",
+      "input": "-65280",
+      "exactUnsignedResult": "0",
+      "stdoutHex": "00000000",
+      "module": {
+        "bytes": 1682,
+        "sha256": "4da854cf97117f1a9491b6783dbd6a2176bbd1a93fdf0ec2448652bd0114a590"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 16,
+      "name": "i32.extend16_s-dirty-below-sign",
+      "opcode": "c1",
+      "input": "1698922495",
+      "exactUnsignedResult": "32767",
+      "stdoutHex": "ff7f0000",
+      "module": {
+        "bytes": 1684,
+        "sha256": "16510422155f78ace9e40d263e0e7dd6f99ad460413fb4edf6dfa0b50a57ab1a"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 17,
+      "name": "i32.extend16_s-dirty-at-sign",
+      "opcode": "c1",
+      "input": "1698922496",
+      "exactUnsignedResult": "4294934528",
+      "stdoutHex": "0080ffff",
+      "module": {
+        "bytes": 1684,
+        "sha256": "c2ff58e0c2ba98ef1f860c311b91fc1a1a7f2f1f1cfe03dfb93fa442bfa0e575"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 18,
+      "name": "i32.extend16_s-high-bit-low-all-ones",
+      "opcode": "c1",
+      "input": "-2147418113",
+      "exactUnsignedResult": "4294967295",
+      "stdoutHex": "ffffffff",
+      "module": {
+        "bytes": 1684,
+        "sha256": "2657da266c38e51ec5436a36884bc7b993adb2ea55d97704706882b8a916bbac"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 19,
+      "name": "i32.extend16_s-discard-upper-half",
+      "opcode": "c1",
+      "input": "-65536",
+      "exactUnsignedResult": "0",
+      "stdoutHex": "00000000",
+      "module": {
+        "bytes": 1682,
+        "sha256": "bf8e6de9edc3867ca54f157f1183c3ebb2b0d6e301557806e3baaa5aec27a25c"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 20,
+      "name": "i64.extend8_s-bit63-dirty-below-sign",
+      "opcode": "c2",
+      "input": "-9141386507638289025",
+      "exactUnsignedResult": "127",
+      "stdoutHex": "7f00000000000000",
+      "module": {
+        "bytes": 1689,
+        "sha256": "12e62b6c826b3b34233b2d2e5fc0b2f13b09a43c92f8bdab717fc93ba8ad59e9"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 21,
+      "name": "i64.extend8_s-positive-dirty-at-sign",
+      "opcode": "c2",
+      "input": "81985529216486784",
+      "exactUnsignedResult": "18446744073709551488",
+      "stdoutHex": "80ffffffffffffff",
+      "module": {
+        "bytes": 1688,
+        "sha256": "6c25f1737d3a8e4665b83458fe97a4695310bf76dd6f7f04a1b4908a5c051d97"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 22,
+      "name": "i64.extend8_s-bit63-low-all-ones",
+      "opcode": "c2",
+      "input": "-9223372036854775553",
+      "exactUnsignedResult": "18446744073709551615",
+      "stdoutHex": "ffffffffffffffff",
+      "module": {
+        "bytes": 1689,
+        "sha256": "1fde3f3b958b8d3a0005fc41dd550d065f102a0b9be945de71a9998b173b1769"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 23,
+      "name": "i64.extend8_s-discard-upper-seven-bytes",
+      "opcode": "c2",
+      "input": "-256",
+      "exactUnsignedResult": "0",
+      "stdoutHex": "0000000000000000",
+      "module": {
+        "bytes": 1681,
+        "sha256": "1c5abcd47037a9282ef307e05f441172cd9787750cf90aa837fc919c26fb0dec"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 24,
+      "name": "i64.extend16_s-bit63-dirty-below-sign",
+      "opcode": "c3",
+      "input": "-9141386507638308865",
+      "exactUnsignedResult": "32767",
+      "stdoutHex": "ff7f000000000000",
+      "module": {
+        "bytes": 1689,
+        "sha256": "07442c86d7bfb6da502a52480c84f2e61744c4d7fd11992ff6ecd29052eff198"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 25,
+      "name": "i64.extend16_s-positive-dirty-at-sign",
+      "opcode": "c3",
+      "input": "81985529216466944",
+      "exactUnsignedResult": "18446744073709518848",
+      "stdoutHex": "0080ffffffffffff",
+      "module": {
+        "bytes": 1688,
+        "sha256": "c5858495c0c6b552606e525a797f4c8d6a60a4f122e344d7cd51b427545dbbbf"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 26,
+      "name": "i64.extend16_s-bit63-low-all-ones",
+      "opcode": "c3",
+      "input": "-9223372036854710273",
+      "exactUnsignedResult": "18446744073709551615",
+      "stdoutHex": "ffffffffffffffff",
+      "module": {
+        "bytes": 1689,
+        "sha256": "f0b4c20ec7826f011b1cddc44449352dda62f98c76d6f4c84b50cd33d2ba7c6b"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 27,
+      "name": "i64.extend16_s-discard-upper-six-bytes",
+      "opcode": "c3",
+      "input": "-65536",
+      "exactUnsignedResult": "0",
+      "stdoutHex": "0000000000000000",
+      "module": {
+        "bytes": 1682,
+        "sha256": "c9fedf0645d79106803c263f8f97ab107384ec23a137d2d9cee4390bb6ad7489"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 28,
+      "name": "i64.extend32_s-bit63-dirty-below-sign",
+      "opcode": "c4",
+      "input": "-9141386507800543233",
+      "exactUnsignedResult": "2147483647",
+      "stdoutHex": "ffffff7f00000000",
+      "module": {
+        "bytes": 1689,
+        "sha256": "b722d1bd4a3c2bb9d541e03ef89c39d6565a6b78429f32836804a6740ed3613d"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 29,
+      "name": "i64.extend32_s-positive-dirty-at-sign",
+      "opcode": "c4",
+      "input": "81985529054232576",
+      "exactUnsignedResult": "18446744071562067968",
+      "stdoutHex": "00000080ffffffff",
+      "module": {
+        "bytes": 1688,
+        "sha256": "5258193139af394f020007da690a08f08a57c5088c1ef30e58264fbfabd9b86e"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 30,
+      "name": "i64.extend32_s-bit63-low-all-ones",
+      "opcode": "c4",
+      "input": "-9223372032559808513",
+      "exactUnsignedResult": "18446744073709551615",
+      "stdoutHex": "ffffffffffffffff",
+      "module": {
+        "bytes": 1689,
+        "sha256": "31693a632bff5688db50dba3ecb6c76aef64886a8419ace4d7d63cd29e2cbfd2"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    },
+    {
+      "case": 31,
+      "name": "i64.extend32_s-discard-upper-half",
+      "opcode": "c4",
+      "input": "-4294967296",
+      "exactUnsignedResult": "0",
+      "stdoutHex": "0000000000000000",
+      "module": {
+        "bytes": 1684,
+        "sha256": "178e2e3ae83a3f43aa5c9d7ea9aa55a42c12a453b5e191849e217e65936fe486"
+      },
+      "zeroCurrents": 14,
+      "liveTickets": 0,
+      "cleanupInvariant": null
+    }
+  ],
+  "totals": {
+    "uniqueModules": 32,
+    "actualNodeComparisons": 64,
+    "consumingCleanups": 64,
+    "invalidEnvironmentRejections": 18
+  },
+  "sourcePreserved": true,
+  "otherCorpusByteExact": true,
+  "sourceSnapshot": "verification/local/vm-integer-width-r2150/source",
+  "custody": {
+    "allManagedCommandsReaped": true,
+    "bothEOF": true,
+    "closedFDs": true,
+    "positiveESRCH": true,
+    "commands": [
+      {
+        "label": "rustc-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 89457,
+        "pgid": 89457,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.125500084,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "cargo-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 89717,
+        "pgid": 89717,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.041265333000000015,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "node-version",
+        "argv": [
+          "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 89827,
+        "pgid": 89827,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.022364334000000013,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "format-new-test",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustfmt",
+          "--edition",
+          "2021",
+          "--config",
+          "skip_children=true",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/vm/tests/differential_integer_width_consuming.rs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 89968,
+        "pgid": 89968,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.056256165999999996,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "complete-manifest-targets",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "metadata",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-width-r2150/source/Cargo.toml",
+          "--no-deps",
+          "--format-version",
+          "1",
+          "--locked",
+          "--offline",
+          "--features",
+          "experimental-swift-reactor"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-width-r2150/source",
+        "pid": 90164,
+        "pgid": 90164,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.033232708,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "cargo-build-once",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-width-r2150/source/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--features",
+          "experimental-swift-reactor",
+          "--test",
+          "differential_integer_width_consuming",
+          "--no-run",
+          "--message-format=json",
+          "-j",
+          "2"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-width-r2150/source",
+        "pid": 90207,
+        "pgid": 90207,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 2.75838575,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "exact-parent",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-width-r2150/target/debug/deps/differential_integer_width_consuming-e91104154a9ebeba",
+          "--ignored",
+          "--exact",
+          "integer_width_conversions_match_node",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-width-r2150/source",
+        "pid": 94936,
+        "pgid": 94936,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.8308941659999998,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "blanket-ignored",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-width-r2150/target/debug/deps/differential_integer_width_consuming-e91104154a9ebeba",
+          "--ignored",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-integer-width-r2150/source",
+        "pid": 96270,
+        "pgid": 96270,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.7653270000000001,
+        "ownedGroupAbsentESRCH": true
+      }
+    ]
+  },
+  "rawArtifacts": {
+    "logs/blanket-ignored.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/blanket-ignored.stdout": {
+      "bytes": 155674,
+      "sha256": "66cc79d396af64731077c84b18b90ce8414eb44cc7721993b426b97e7ac32a6c"
+    },
+    "logs/cargo-build-once.stderr": {
+      "bytes": 205,
+      "sha256": "bc5fa9bbbc38a48d75d93c9d2fa56f5afe3e3c97c5860a9c15021e06083a4472"
+    },
+    "logs/cargo-build-once.stdout": {
+      "bytes": 3534,
+      "sha256": "d0b31bb6807a6f42b61d7cc3f915d0246d7cddaa6180eb810dc5b28190fb898e"
+    },
+    "logs/cargo-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/cargo-version.stdout": {
+      "bytes": 36,
+      "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+    },
+    "logs/commands.json": {
+      "bytes": 4806,
+      "sha256": "b9f991f976ddbea85a08fe137879de52af084eb441c86806379f48fa4d27e2f2"
+    },
+    "logs/complete-manifest-targets.json": {
+      "bytes": 10718,
+      "sha256": "7c0deb5075cdb1124cb69e25075bb83a9d0da3093d2b874334dd212f5e96ce4a"
+    },
+    "logs/complete-manifest-targets.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/complete-manifest-targets.stdout": {
+      "bytes": 14879,
+      "sha256": "2ec9f39715e2ffbb4310d0e55442c32b5eb79f0991f9e056afb074c06e94520a"
+    },
+    "logs/exact-parent.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/exact-parent.stdout": {
+      "bytes": 155674,
+      "sha256": "aaf7aefbd9b7b95aa27a1a990ca26f647cee3ca98f8ec67aee8f1fc568bee251"
+    },
+    "logs/format-new-test.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/format-new-test.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/node-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/node-version.stdout": {
+      "bytes": 9,
+      "sha256": "33e26f35db6e57ce0c486ddc815fe966867e4f649e418eaf323f75f4720eb8e9"
+    },
+    "logs/rustc-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logs/rustc-version.stdout": {
+      "bytes": 36,
+      "sha256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+    },
+    "logs/source-manifest.json": {
+      "bytes": 21986,
+      "sha256": "bd0d46c48d5bdd956e18fe9ab5dff95514d4d2eafc8976674582e34312860cc0"
+    }
+  },
+  "cleanup": {
+    "ownedTargetRegistryTmpRemoved": true,
+    "onlyAfterPositiveCustody": true,
+    "sourceBinaryAndRawProofRetained": true
+  },
+  "wallSeconds": 4.911867999999999,
+  "delegatedSubagents": 0,
+  "diagnosticDriver": {
+    "run.py": {
+      "bytes": 13410,
+      "sha256": "6835e66dff4d186e9c86ec69e930c7b9145e77295fbc61216c048a3dcc41eaa6"
+    },
+    "r986-definitions.py": {
+      "bytes": 2008,
+      "sha256": "1b7a362dbff7bdd616733444a897bdfd88a81156ff9b708f9e77827e5f18f4b0"
+    }
+  },
+  "finalArtifactVerification": {
+    "rawArtifactHashesExact": true,
+    "retainedBinaryHashExact": true,
+    "canonicalTestHashExact": true,
+    "ownedBuildCacheCleanupVerified": true
+  }
+}

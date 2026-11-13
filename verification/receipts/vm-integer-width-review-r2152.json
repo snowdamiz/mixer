@@ -1,0 +1,193 @@
+{
+  "id": "R2152_VM_INTEGER_WIDTH_INDEPENDENT_REVIEW",
+  "status": "PASS",
+  "findings": [],
+  "reviewedProducer": "R2150_VM_INTEGER_WIDTH_CONSUMING",
+  "scope": "Independent source and retained-evidence review of consuming integer-width development test only",
+  "startedUTC": "2026-11-13T09:43:32Z",
+  "wallLimitSeconds": 480,
+  "ownedSource": "vm/tests/differential_integer_width_consuming.rs",
+  "producerRevisionRecorded": "7dc02d85cd912ade99f1237e9c620e135c3109c7",
+  "gitRevisionIndependentlyQueried": false,
+  "helper": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "unchangedASTDefinitions": [
+      "save",
+      "InertPopen",
+      "run"
+    ]
+  },
+  "sourceReview": {
+    "oracleIndependentWASMExecution": true,
+    "i64BigIntNeverConvertedToNumber": true,
+    "singleIgnoredParentOrdinaryHelpers": true,
+    "reentryCanonicalSelectorBeforePayload": true,
+    "strictNodeOverrideUnsetOnlyPATHFallback": true,
+    "all64LoggedBudgetsMatchSnapshotDefaults": true,
+    "oneConsumingRuntimePerSelectedChild": true,
+    "cleanupAssertionsBeforeSuccessOrParityAssertions": true,
+    "returnedExecutionFailureCannotSkipCleanupChecks": true,
+    "acceptedBitsSourceSHA256": "dd3382bfc0be04e70db5dd4391fc1eeaac31c271176f3836151c42a23f557d80",
+    "boundaryCoverage": "8/16/32-bit retained sign transitions, dirty discarded upper bits, wrap truncation, signed/unsigned widening, bit63 and all-ones patterns",
+    "officialSemantics": [
+      "https://webassembly.github.io/spec/core/exec/numerics.html#op-iextendn",
+      "https://webassembly.github.io/spec/core/exec/numerics.html#op-extend",
+      "https://webassembly.github.io/spec/core/exec/numerics.html#op-wrap"
+    ]
+  },
+  "reviewActions": {
+    "compiles": 0,
+    "VMOrNodeExecutions": 0,
+    "nativeOrProviderActions": 0,
+    "subchildren": 0,
+    "gitOperations": 0,
+    "canonicalOrProducerWrites": false,
+    "heldResourceAccess": false,
+    "initialAuditParserFailure": "Preserved independent-byte-audit exit1: diagnostic parser cut denial blocks before panic stderr. Corrected parser passes; no source finding."
+  },
+  "limitations": [
+    "Independent source/byte/evidence analysis; positive runs were not replayed.",
+    "Only the new debug integration target and implicit library/binary artifacts were compiled by R2150; 46 targets were admitted, not all compiled.",
+    "Original executed target/debug/deps binary pathname is deleted. Retained binary copy was reread and its exact hash verified; copy-to-run linkage uses reviewed driver plus raw Cargo artifact paths.",
+    "64 successful consuming cleanup results are observed. Arbitrary engine panics and injected runtime failures were not exercised.",
+    "Producer process absence is supported by retained positive ESRCH records, not new probes of historical groups.",
+    "Producer-recorded revision and Rust 1.99.0 / Node 22.23.3 versions were checked against retained output; no new Git/tool-version execution was performed."
+  ],
+  "report": "verification/local/vm-integer-width-review-r2152/REPORT.md",
+  "audit": "verification/local/vm-integer-width-review-r2152/audit.json",
+  "rootDeliveryPending": true,
+  "canonicalPromotion": false,
+  "W08Accepted": false,
+  "combinedAccepted": false,
+  "releaseAccepted": false,
+  "GAAccepted": false,
+  "holdsReleased": false,
+  "verifiedEvidence": {
+    "producer_receipt": {
+      "bytes": 26609,
+      "sha256": "9a5583ad44cf7fd28811b481ec66d3814a15d1ad1288f5a611b10b0a17a84d49"
+    },
+    "test_source": {
+      "bytes": 17782,
+      "sha256": "eab014150849462da94cfa40d1f1d9ba0bcaa944d8ec959a99245b99c863bc39"
+    },
+    "snapshot_files": 145,
+    "source_manifest_digest": "9d0dd7f21f21a5db9f56c94e994d75e0dd3d25a2812a0526e89741cb0174076a",
+    "canonical_drift_since_producer": [],
+    "raw_artifacts_verified": 19,
+    "driver_hashes_verified": true,
+    "targets": 46,
+    "integration_targets": 43,
+    "build_profile": "debug; experimental-swift-reactor; one integration target plus implicit lib/bin",
+    "binary_reread": true,
+    "binary_record": {
+      "path": "verification/local/vm-integer-width-r2150/artifacts/differential_integer_width_consuming",
+      "bytes": 2947624,
+      "sha256": "041d101795b486f4bef008070d8814fc7a6463170d2f686fea1d5493e5389b6f"
+    },
+    "producer_commands_terminal": 8,
+    "source_helper_ast_exact": true,
+    "owned_target_registry_tmp_absent": true,
+    "module_count": 32,
+    "opcode_case_counts": {
+      "a7": 5,
+      "ac": 3,
+      "ad": 4,
+      "c0": 4,
+      "c1": 4,
+      "c2": 4,
+      "c3": 4,
+      "c4": 4
+    },
+    "all64_module_bytes_decoded": true,
+    "all64_results_independently_bit_derived": true,
+    "runs": {
+      "exact-parent": {
+        "module_rows": 32,
+        "oracle_rows": 32,
+        "consuming_cleanup_rows": 32,
+        "prepayload_denials": 9,
+        "worker_pids_unique": true,
+        "raw_output": {
+          "bytes": 155674,
+          "sha256": "aaf7aefbd9b7b95aa27a1a990ca26f647cee3ca98f8ec67aee8f1fc568bee251"
+        },
+        "negative_controls": [
+          "\"\"",
+          "\"-1\"",
+          "\"32\"",
+          "\"01\"",
+          "\"not-an-index\"",
+          "\"missing-node\"",
+          "\"\"",
+          "\"relative-node\"",
+          "\"/mixer-integer-width-missing-node\""
+        ]
+      },
+      "blanket-ignored": {
+        "module_rows": 32,
+        "oracle_rows": 32,
+        "consuming_cleanup_rows": 32,
+        "prepayload_denials": 9,
+        "worker_pids_unique": true,
+        "raw_output": {
+          "bytes": 155674,
+          "sha256": "66cc79d396af64731077c84b18b90ce8414eb44cc7721993b426b97e7ac32a6c"
+        },
+        "negative_controls": [
+          "\"\"",
+          "\"-1\"",
+          "\"32\"",
+          "\"01\"",
+          "\"not-an-index\"",
+          "\"missing-node\"",
+          "\"\"",
+          "\"relative-node\"",
+          "\"/mixer-integer-width-missing-node\""
+        ]
+      }
+    },
+    "review_python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "all64_budgets_match_snapshot_defaults": true
+  },
+  "finishedUTC": "2026-11-13T09:50:16.136208+00:00",
+  "wallSeconds": 404.136208,
+  "reviewerCustody": {
+    "commands": 15,
+    "allDirectReaped": true,
+    "bothEOF": true,
+    "closedFDs": true,
+    "positiveESRCH": true,
+    "UNKNOWN": false,
+    "registry": "verification/local/vm-integer-width-review-r2152/commands/commands.json",
+    "nonzeroPayloads": [
+      {
+        "label": "independent-byte-audit",
+        "exitCode": 1
+      }
+    ]
+  },
+  "reviewArtifacts": {
+    "REPORT.md": {
+      "bytes": 6061,
+      "sha256": "ad3fdc5c82dbb4063b443ca8a5b6edde1a72caf57a3ccf352fa472a19eb01fd5"
+    },
+    "audit.py": {
+      "bytes": 12628,
+      "sha256": "9d24478ac285ebba10ca3ba01e9b3358b958764a75241a6e1bb6563007b6ac24"
+    },
+    "audit.json": {
+      "bytes": 2566,
+      "sha256": "15e6e1098ef74ee2afb9458f0975714470d5f292964f944b953ea3aaebd47e47"
+    },
+    "inspect.py": {
+      "bytes": 1806,
+      "sha256": "0aaba1df74d66b7613a1f2f73fc76239b6f4c30be7531198aa668bef5916c689"
+    },
+    "managed.py": {
+      "bytes": 3338,
+      "sha256": "42338bb8209311e2585765c9a5f8db212105715cd5af946250d7e5230023d73a"
+    }
+  }
+}

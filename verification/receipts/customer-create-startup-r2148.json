@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "id": "customer-create-startup-r2148",
+  "status": "PRIVATE_POLICY_CONTEXT_FIX_PROVEN_STARTUP_RELATION_ACL_REFUSED",
+  "accepted": false,
+  "actual_SQL": true,
+  "startup": {
+    "trace_attached_before_Fixture_start": true,
+    "actual_owner_admission": true,
+    "phase": "unavailable",
+    "generation": 1,
+    "first_failure": "RelationCatalog.privileges!/7 -> fetch!/6 exact expected row count",
+    "expected": 138,
+    "observed": 143,
+    "extra_create_role_SELECT_rows": 5,
+    "SQLSTATE": null,
+    "CreateSchema_reached_by_owner": false
+  },
+  "component_fix": {
+    "path": "hosted/lib/mixer_hosted/customer_builds/create_schema.ex",
+    "passed": true,
+    "contexts": [
+      "CreateRepo/default",
+      "CreateRepo/strict pg_catalog",
+      "LifecycleRepo/default",
+      "LifecycleRepo/strict pg_catalog"
+    ],
+    "all7_mutations_reject_and_recover": true,
+    "rejection_transactions": 28,
+    "recovery_transactions": 28,
+    "settings_preserved_inside_success_and_restored_same_connection_after_both_outcomes": true,
+    "before": {
+      "bytes": 14597,
+      "sha256": "98c821d459621b588cbf0ffc08c44a8efba7a57339504e928b2b25c9ccbc87ee"
+    },
+    "after": {
+      "bytes": 15142,
+      "sha256": "cb713835cb380ea1cb171fdda9c9f5568bcd65080f8edfb1d6e9eee0e792869e"
+    }
+  },
+  "remaining_build_component": "final catalog-role policy exclusivity guard false for new mixer_builds policies",
+  "full_HTTP": {
+    "name": "authenticated_customer_create_build_atomic_replay_pg_join",
+    "passed": false,
+    "first_request": "GET /auth/session bootstrap",
+    "expected": 200,
+    "observed": 503,
+    "PKCE_create_replay_atomicity_reached": false
+  },
+  "consumption": {
+    "compiles": 2,
+    "compile_limit": 2,
+    "actual_BEAM_batches": 3,
+    "batch_limit": 3,
+    "PG_launches": 1,
+    "PG_stops": 1,
+    "port": 39530,
+    "runtime_and_stop_elapsed_seconds": 467.553,
+    "packaging_elapsed_seconds": 663.703,
+    "wall_limit_seconds": 900
+  },
+  "source": {
+    "complete_final_files": 278,
+    "combined_afterimages": 27,
+    "canonical_files_verified_unchanged": 269,
+    "original_preimages_retained": true,
+    "producer_hashes_unchanged": true,
+    "RelationManifest_bindings_unchanged_before_each_compile": true,
+    "canonical_index_Git_authority_producer_writes": false
+  },
+  "custody": {
+    "finite_commands": 14,
+    "outer_commands": 2,
+    "all_reaped_both_EOF_closed_positive_ESRCH": true,
+    "PG": {
+      "pid": 79026,
+      "pgid": 79026,
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-startup-r2148/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39530",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-startup-r2148/pgdata",
+      "output_kind": "regular_files",
+      "state": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "descriptors_closed": true,
+      "pipe_eof": "not applicable; regular files"
+    },
+    "port_reusable": true,
+    "new_holds": [],
+    "historical_holds_touched": false,
+    "cleanup": "cleanup.json"
+  },
+  "pending": [
+    "Root targeted changed-fix review",
+    "Coordinated strict relation/create-role ACL projection",
+    "Coordinated build-catalog exact policy projection",
+    "Canonical admission",
+    "Full authenticated create/replay/atomicity qualification"
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 6848,
+      "sha256": "ff0aa1f0096412dcf283a16ef405eee766311d4babd38fff3c9adc812ea31ee0"
+    },
+    "application-map.json": {
+      "bytes": 13474,
+      "sha256": "b22449a703b3c09c850e391cf8d9369867bf6d6ad67273ae26f8a6ee368b3018"
+    },
+    "implementation.patch": {
+      "bytes": 66738,
+      "sha256": "6eebc0b7586936644dfd278ca9af47d6d8146db75e421d3abb1d766652384c8e"
+    },
+    "own-fix.patch": {
+      "bytes": 7976,
+      "sha256": "8773fcfbd7716463c02f17a55940fa622284d5766f66941a0f5efc40891bc2ea"
+    },
+    "own-fix.json": {
+      "bytes": 353,
+      "sha256": "b8d02560eae5fd8e683535134d7fedbd347ad772262f709574df56699c462503"
+    },
+    "source-baseline.json": {
+      "bytes": 46555,
+      "sha256": "d2cf5eee076d5cca3dd0e270d91c9c73a9c3dd9509ac6cce833f75aab5b3be4a"
+    },
+    "source-final.json": {
+      "bytes": 46555,
+      "sha256": "6ef6419bc60a2f3f9d57ff5179d17ec1652fdcdef8bdc7ee902d861c7f46b2ed"
+    },
+    "first-startup-refusal.json": {
+      "bytes": 4965,
+      "sha256": "9fb82bedc1c6f4ea66d86c98dfcada046b032f6bcd37b9e3e0d405f9c27bf5b1"
+    },
+    "policy-counterexample.json": {
+      "bytes": 5129,
+      "sha256": "081e759629b5917f42f6a499637526fdab057b7288518db9727be34101616e47"
+    },
+    "remaining-build-component-refusal.json": {
+      "bytes": 1395,
+      "sha256": "09df08301abe20fdab9fb5ba96972281cce5acbafa241e8a0030d9912a5afb90"
+    },
+    "canonical-preservation.json": {
+      "bytes": 8062,
+      "sha256": "dbf5491f6e72900b1595ae617bd88d40f64f70706365ac664bd2da8d7c2f9152"
+    },
+    "runtime-result.json": {
+      "bytes": 16509,
+      "sha256": "1f6b602b0e3f30f11a2ffe04b38ab59c006e8b9d8f210e1f967eeb7f65a721ba"
+    },
+    "cleanup.json": {
+      "bytes": 393,
+      "sha256": "ce87c34636493e6abec6e1d5ccfced94b1f1b211822402a16d5ebdf0660909b2"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 7117,
+      "sha256": "9a9e849b16ea5d04ea20267064f195a1bcecd09a0a204512ced2eb8e04736a55"
+    },
+    "producer-hashes.json": {
+      "bytes": 7869,
+      "sha256": "947ad02da7a0364685a028aeaa1ddc095bfe87d5c89f5fc2d6bb743879789f9c"
+    },
+    "tool-identities.json": {
+      "bytes": 1056,
+      "sha256": "6bcaa43f5237c2d0e09cb28eb731af59a917525ffb2007f72c59df5ebb091939"
+    },
+    "prepare.py": {
+      "bytes": 2134,
+      "sha256": "7191d13fbe1e0a0680c5c22a86a4f6eac367ac0fe637d42fb385853fa3c254ad"
+    },
+    "run.py": {
+      "bytes": 8437,
+      "sha256": "33dca8c6cab8be586c0d986dd6cb9b6ad1c4b3d0ba6f13925ad0e8030f9dfc54"
+    },
+    "launch.py": {
+      "bytes": 910,
+      "sha256": "9fccc394aaafc8b434526892247678614c93eb2f32863af10dc8027bc747f32c"
+    },
+    "make-tests.py": {
+      "bytes": 3613,
+      "sha256": "f0cbee2d1d4ebf30e8cac4240de2643f93b065a6a7adbfa4ffea7b2addf52b95"
+    },
+    "fix-and-tests.py": {
+      "bytes": 4864,
+      "sha256": "71f7d074d57f45cf70cd9e0182fe3e47393e912df8c4a3f71f552f0d5b83a639"
+    }
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "id": "customer-create-admission-r2140",
+  "status": "PRIVATE_TYPE_ACL_CORRECTION_PROVEN_FULL_HTTP_FAILED",
+  "accepted": false,
+  "actual_SQL": true,
+  "counterexample": {
+    "name": "actual_create_type_acl_counterfactual_pg_join",
+    "passed": true,
+    "actual_type_acl_rows": 12,
+    "frozen_expected_rows": 13,
+    "first_private_caller": "ActiveCatalog.composites!/3",
+    "public_frozen_v3": "Unavailable"
+  },
+  "correction": {
+    "path": "hosted/lib/mixer_hosted/browser_auth/active_catalog.ex",
+    "delta": "remove duplicate function EXECUTE ACL append only in composites!",
+    "correct_functions_acl_retained": true,
+    "corrected_public_v3": "function_surface_verified",
+    "before": {
+      "bytes": 24627,
+      "sha256": "298ac4b8078e5594657665af2d46cf81bc837b823d0894c602f80844d3f64aa7"
+    },
+    "after": {
+      "bytes": 24426,
+      "sha256": "c51433307bea0dd75cc83e692866517262a11caab1df8aad477b4b9978d2c8f7"
+    }
+  },
+  "http_SQL": {
+    "name": "authenticated_customer_create_build_atomic_replay_pg_join",
+    "passed": false,
+    "first_request": "GET /auth/session bootstrap",
+    "expected": 200,
+    "observed": 503,
+    "remaining_internal_cause": "UNISOLATED; startup trace attached after Fixture.start!",
+    "create_replay_rollback_assertions_reached": false
+  },
+  "compilers": 2,
+  "compiler_limit": 2,
+  "actual_test_batches": 2,
+  "batch_limit": 2,
+  "PG_launches": 1,
+  "PG_stops": 1,
+  "port": 39510,
+  "runtime_and_cleanup_elapsed_seconds": 369.284,
+  "elapsed_seconds": 528.892,
+  "wall_limit_seconds": 900,
+  "source": {
+    "canonical_files_verified_unchanged": 269,
+    "complete_final_source_files": 278,
+    "frozen_r2126_afterimages": 26,
+    "r2134_overlays": 3,
+    "combined_afterimages": 27,
+    "source_pins_verified_before_each_compile": true,
+    "canonical_index_Git_authority_writes": false
+  },
+  "custody": {
+    "finite_commands": 14,
+    "outer_commands": 1,
+    "all_reaped_both_EOF_FDs_closed_positive_ESRCH": true,
+    "PG": {
+      "pid": 38002,
+      "pgid": 38002,
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-admission-r2140/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "39510",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-admission-r2140/pgdata",
+      "output_kind": "regular_files",
+      "state": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "descriptors_closed": true,
+      "pipe_eof": "not applicable; regular files"
+    },
+    "port_reusable": true,
+    "new_holds": [],
+    "historical_holds_touched": false,
+    "cleanup": "cleanup.json"
+  },
+  "pending": [
+    "Root changed-fix review and admission",
+    "Exact remaining startup/admission refusal",
+    "Full authenticated create/replay/roles/scopes/CSRF/42501/read/atomic rollback/physical PID-xact qualification"
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 5923,
+      "sha256": "26ef2da9823cba105bf13232a0f044008ae621bb01c381a60fa1e938a92efc5b"
+    },
+    "application-map.json": {
+      "bytes": 13339,
+      "sha256": "41e36e9723dceb5054bcb294dbe1f96af4af0daa75da52f749a13cd07e13d3b2"
+    },
+    "implementation.patch": {
+      "bytes": 66184,
+      "sha256": "9dfa861776de8f0dd8af5f104e5a504717f05de6df2283d1b1a54cf2d2304456"
+    },
+    "own-fix.patch": {
+      "bytes": 572,
+      "sha256": "4c147821ce258dd79a5ebb45985f2a699a2d3788bfba08cb146318c6e62f6a28"
+    },
+    "own-fix.json": {
+      "bytes": 466,
+      "sha256": "328597b80973148da690278d9baa20ad8e31506b716494797c1d1904a07460f4"
+    },
+    "source-baseline.json": {
+      "bytes": 46555,
+      "sha256": "5c7c87a44eab0d0813f7421b47611cb9c839360959c82f03b80a9a796fccb9d3"
+    },
+    "source-final.json": {
+      "bytes": 46555,
+      "sha256": "d2cf5eee076d5cca3dd0e270d91c9c73a9c3dd9509ac6cce833f75aab5b3be4a"
+    },
+    "counterexample.json": {
+      "bytes": 3654,
+      "sha256": "f6df0f3bcb91606072d049b969891e78e0a3948459d79b3393119417a962d560"
+    },
+    "remaining-refusal.json": {
+      "bytes": 1034,
+      "sha256": "51296b260538100025ecbae14dc4959f7b29f5887ce931860de0980e68de3534"
+    },
+    "canonical-preservation.json": {
+      "bytes": 8618,
+      "sha256": "bde91fcee90a0e9d9105b3861b3376653767d1a44811d29a1f6eaa8a961faf5f"
+    },
+    "runtime-result.json": {
+      "bytes": 15757,
+      "sha256": "aa95df96e72504f41614338f137b9dafbcb35fdae9fdc22ab08ee5a9a0e03c36"
+    },
+    "cleanup.json": {
+      "bytes": 393,
+      "sha256": "0655a3b64eb1e4efb34c1dbca57f3a247f14d3b9a7c0e20ff0c865cab7aff51b"
+    },
+    "raw-evidence-manifest.json": {
+      "bytes": 5828,
+      "sha256": "fa34cb54e2c25328bd8b45c705799cd2082b9309ba22e6e047c07ef22d588411"
+    },
+    "preflight.py": {
+      "bytes": 1254,
+      "sha256": "58c66f0216e701a1ffdb9893d3cec4d16bf3a08ab488fa7b4cfcbca17e26fc52"
+    },
+    "prepare.py": {
+      "bytes": 7114,
+      "sha256": "9bb8efdb7818b27e03b48165b17d435102736873fb84de870145783ccf6a1e64"
+    },
+    "run.py": {
+      "bytes": 8534,
+      "sha256": "e328d21d2aaa45682de9a0b67227fef492759e859866a9b104858d26e8bb3904"
+    },
+    "launch.py": {
+      "bytes": 910,
+      "sha256": "9fccc394aaafc8b434526892247678614c93eb2f32863af10dc8027bc747f32c"
+    },
+    "fix.py": {
+      "bytes": 2680,
+      "sha256": "f2703c1bbaf892e82c7e7ff4e45954b1fee988b683e2cbcd8778a47d8bc834d6"
+    }
+  }
+}

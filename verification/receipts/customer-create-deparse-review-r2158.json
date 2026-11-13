@@ -1,0 +1,489 @@
+{
+  "schema": 1,
+  "id": "customer-create-deparse-review-r2158",
+  "observedUTC": "2026-11-13T09:49:53.756343+00:00",
+  "status": "PASS_SOURCE / EXECUTED_CONTEXT_FIX",
+  "verdict": "PASS_SOURCE_EXECUTED_CONTEXT_FIX",
+  "findings": [],
+  "scope": "Only R2148 CreateSchema normalization versus frozen R2140; source and retained execution evidence review, no fresh runtime.",
+  "path": "hosted/lib/mixer_hosted/customer_builds/create_schema.ex",
+  "source": {
+    "before": {
+      "bytes": 14597,
+      "sha256": "98c821d459621b588cbf0ffc08c44a8efba7a57339504e928b2b25c9ccbc87ee"
+    },
+    "after": {
+      "bytes": 15142,
+      "sha256": "cb713835cb380ea1cb171fdda9c9f5568bcd65080f8edfb1d6e9eee0e792869e"
+    },
+    "application_map": {
+      "bytes": 13474,
+      "sha256": "b22449a703b3c09c850e391cf8d9369867bf6d6ad67273ae26f8a6ee368b3018"
+    },
+    "own_fix_patch": {
+      "bytes": 7976,
+      "sha256": "8773fcfbd7716463c02f17a55940fa622284d5766f66941a0f5efc40891bc2ea"
+    },
+    "only_changed_path": [
+      "hosted/lib/mixer_hosted/customer_builds/create_schema.ex"
+    ],
+    "preserved_bindings": {
+      "hosted/lib/mixer_hosted/authorization/postgres/session.ex": {
+        "bytes": 6489,
+        "sha256": "8ae27291a2e0777dfde6f995cf8c1a64c6ac8e2e7b0e7660afdb7cac76382727"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex": {
+        "bytes": 48754,
+        "sha256": "fef31903c1ac4f1a3aa3c4e0f22e55623ed878d68c4ceaf0a78a6087c2a54556"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex": {
+        "bytes": 1463,
+        "sha256": "6e6fd520d4b3e37af2d4c3c5cd4c40caf7a1cadc473baed6246db05a49df35da"
+      },
+      "hosted/lib/mixer_hosted/browser_auth/relation_manifest_v3.ex": {
+        "bytes": 859,
+        "sha256": "34a650acde4959083c0ab47aac3a4b61164a002729acab588613cdc1979f31ed"
+      }
+    },
+    "test_driver": {
+      "bytes": 18599,
+      "sha256": "81f9ad92df2e9948b16531a86145a50afe5df147120aaa1d7422eb5e2cd45fc2"
+    }
+  },
+  "binding_checks": {
+    "combined_rows": 27,
+    "all278_final_source_files_hash_match": true,
+    "receipt_artifacts_hash_match": 21,
+    "raw_evidence_hash_match": 50,
+    "prefix_guard_provisioning_and_suffix_compatibility_admit_unchanged": true,
+    "expected_rows": 11,
+    "expected_exact_equal_actual_strict_PG_rows": true
+  },
+  "executed_context_evidence": {
+    "contexts": [
+      "CreateRepo/default",
+      "CreateRepo/strict pg_catalog",
+      "LifecycleRepo/default",
+      "LifecycleRepo/strict pg_catalog"
+    ],
+    "baseline_transactions": 4,
+    "rejection_transactions": 28,
+    "recovery_transactions": 28,
+    "settings_observations": 212,
+    "recorded_policy_queries": 64,
+    "all60_context_sequences_checked": true,
+    "all7_exact_mutation_rowsets_checked_in_all4_contexts": true
+  },
+  "policy_binding": "One exact manifest under transaction-local pg_catalog; public helper/type/relation expected names, exact prior search_path parameterized restoration in after.",
+  "failure_analysis": "Policy mismatch restores before rollback. SQL/restoration exceptions cannot return success; enclosing transaction rollback restores LOCAL settings. Exceptional SQL-error branch source-reviewed only.",
+  "shadow_context_limits": "No fresh hostile namespace mutation; pre-existing unqualified metadata relation names are unchanged and not newly hardened.",
+  "R2134_tests_inherited_not_fresh_replayed": {
+    "hosted/test/mixer_hosted/browser_auth/customer_create_build_atomic_replay_pg_join_test.exs": {
+      "bytes": 13001,
+      "sha256": "3ab9634465e2b83db8203880e27a4ee82892875e91a6dc4892ec7aa65e0ea6ad"
+    },
+    "hosted/test/mixer_hosted/browser_auth/customer_create_policy_evidence_test.exs": {
+      "bytes": 7651,
+      "sha256": "45ac85e7d4d4f8edd704801e3f12ff3da438369f0267ece0e15b2f50a310fed7"
+    }
+  },
+  "startup": {
+    "first_refusal": "RelationCatalog ACL 143 versus 138; five create-role SELECT extras",
+    "CreateSchema_reached_by_owner": false,
+    "separate_build_policy_exclusivity_guard": false
+  },
+  "full_HTTP": {
+    "expected_bootstrap": 200,
+    "observed_bootstrap": 503,
+    "create_replay_atomicity_reached": false,
+    "accepted": false
+  },
+  "custody": {
+    "producer": {
+      "finite": 14,
+      "outer": 2,
+      "all_reaped_EOF_FD_closed_ESRCH": true,
+      "PG": {
+        "pid": 79026,
+        "pgid": 79026,
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-startup-r2148/pgdata",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "39530",
+          "-k",
+          "",
+          "-c",
+          "timezone=UTC"
+        ],
+        "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-startup-r2148/pgdata",
+        "output_kind": "regular_files",
+        "state": "TERMINAL",
+        "exit": 0,
+        "direct_reaped": true,
+        "group_absent": true,
+        "absence_errno": 3,
+        "descriptors_closed": true,
+        "pipe_eof": "not applicable; regular files"
+      },
+      "port_reusable": true,
+      "holds": []
+    },
+    "reviewer_helper_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "reviewer_registry": "verification/local/customer-create-deparse-review-r2158/commands/commands.json",
+    "bootstrap_outer_identity_limitation": "Initial direct source reads and tool/bootstrap outer process groups lack independent durable identities; no whole-transport claim.",
+    "new_holds": [],
+    "historical_holds_touched": false,
+    "reviewer_managed_commands": [
+      {
+        "label": "initial",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "initial"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 62656,
+        "pgid": 62656,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.06110975006595254,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "reports",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "read",
+          "verification/local/customer-create-startup-r2148/REPORT.md",
+          "verification/receipts/customer-create-startup-r2148.json",
+          "verification/local/customer-create-startup-r2148/own-fix.patch",
+          "verification/local/customer-build-create-review-r2128/REPORT.md",
+          "verification/local/customer-create-policy-fix-review-r2142/REPORT.md"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 63052,
+        "pgid": 63052,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04172791610471904,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "evidence-inventory",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "inventory"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 65758,
+        "pgid": 65758,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04713004198856652,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "source-read",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "lines",
+          "verification/local/customer-create-startup-r2148/afterimages/hosted/lib/mixer_hosted/customer_builds/create_schema.ex",
+          "hosted/lib/mixer_hosted/authorization/postgres/session.ex",
+          "verification/local/customer-create-startup-r2148/candidate/hosted/test/mixer_hosted/browser_auth/r2148_corrected_test.exs",
+          "verification/local/customer-create-startup-r2148/policy-counterexample.json"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 65772,
+        "pgid": 65772,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04443920904304832,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "session-tail",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "slice",
+          "hosted/lib/mixer_hosted/authorization/postgres/session.ex",
+          "85",
+          "250"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 66721,
+        "pgid": 66721,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03504912497010082,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "test-head",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "slice",
+          "verification/local/customer-create-startup-r2148/candidate/hosted/test/mixer_hosted/browser_auth/r2148_corrected_test.exs",
+          "1",
+          "120"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 66727,
+        "pgid": 66727,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.035445582936517894,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "owning-callers",
+        "argv": [
+          "rg",
+          "-n",
+          "CreateSchema\\.|deadline|5_000|5000|timeout",
+          "verification/local/customer-create-startup-r2148/afterimages/hosted/lib/mixer_hosted/customer_builds/create.ex",
+          "verification/local/customer-create-startup-r2148/afterimages/hosted/lib/mixer_hosted/authorization/transaction/context.ex",
+          "verification/local/customer-create-startup-r2148/afterimages/hosted/lib/mixer_hosted/browser_auth/build_catalog_admission.ex",
+          "verification/local/customer-create-startup-r2148/afterimages/hosted/lib/mixer_hosted/browser_auth/store.ex"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 67299,
+        "pgid": 67299,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.028916249983012676,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "telemetry-reader",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "read",
+          "verification/local/customer-create-startup-r2148/diagnostics/observer.exs",
+          "verification/local/customer-create-startup-r2148/cleanup.json",
+          "verification/local/customer-create-startup-r2148/first-startup-refusal.json",
+          "verification/local/customer-create-startup-r2148/remaining-build-component-refusal.json"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 67398,
+        "pgid": 67398,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.047249166993424296,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "binding-audit",
+        "argv": [
+          "python3",
+          "-B",
+          "verification/local/customer-create-deparse-review-r2158/audit.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 86572,
+        "pgid": 86572,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.12099291698541492,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "sequence-audit",
+        "argv": [
+          "python3",
+          "-B",
+          "verification/local/customer-create-deparse-review-r2158/audit.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 27622,
+        "pgid": 27622,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.0800927079981193,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "authorization-owner",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "read",
+          "verification/local/customer-create-startup-r2148/afterimages/hosted/lib/mixer_hosted/customer_builds/create.ex",
+          "verification/local/customer-create-startup-r2148/afterimages/hosted/lib/mixer_hosted/authorization.ex",
+          "verification/local/customer-create-startup-r2148/logs/013-http-sql-batch-3.stdout",
+          "verification/local/customer-create-startup-r2148/evidence/batch-3/matrix.json"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 27633,
+        "pgid": 27633,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.055897624930366874,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "context-custody-audit",
+        "argv": [
+          "python3",
+          "-B",
+          "verification/local/customer-create-deparse-review-r2158/evidence_audit.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 30852,
+        "pgid": 30852,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03955166693776846,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "exact-mutation-audit",
+        "argv": [
+          "python3",
+          "-B",
+          "verification/local/customer-create-deparse-review-r2158/evidence_audit.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 38126,
+        "pgid": 38126,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04493600002024323,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "tighter-caller-guard",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/customer-create-deparse-review-r2158/inspect.py",
+          "read",
+          "verification/local/customer-create-startup-r2148/afterimages/hosted/lib/mixer_hosted/browser_auth/active_create.ex"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 38206,
+        "pgid": 38206,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.037080958019942045,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "final-seal",
+        "argv": [
+          "python3",
+          "-B",
+          "verification/local/customer-create-deparse-review-r2158/seal.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "pid": 64108,
+        "pgid": 64108,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04523066699039191,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "reviewer_managed_commands_count": 15,
+    "reviewer_all_reaped_EOF_FD_closed_ESRCH": true
+  },
+  "review_tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O"
+  },
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 7591,
+      "sha256": "7a9546b38f432bdae4ac4f484ea905fac22db30f8e6524869b2c07c9f2f9e860"
+    },
+    "binding-proof.json": {
+      "bytes": 2212,
+      "sha256": "5de5f1cd892854729c6d4bed5f8becd5c58e013ae6e8ca9bff25704b6a4824f1"
+    },
+    "evidence-proof.json": {
+      "bytes": 20347,
+      "sha256": "3426833864f5dca352e82ad89d4e00042dc216bfd3541eed56be1f03088d51a5"
+    },
+    "context-sequence.json": {
+      "bytes": 85185,
+      "sha256": "19d0510307b34644c1306281abc066c952a8e6090c32717f30a9b0f2dd7b0209"
+    },
+    "audit.py": {
+      "bytes": 6300,
+      "sha256": "bf1848f43e996fd079153991707fc05d3263070682e81ad05462196a9946b5f2"
+    },
+    "evidence_audit.py": {
+      "bytes": 4969,
+      "sha256": "5eb5f8813b8be22d053c8ae93c3458c9cc4f2a92bcf7561ac592805526550512"
+    },
+    "managed.py": {
+      "bytes": 1956,
+      "sha256": "5633da2e8f5ab1df07b9d0483b437122601b6d52ce97c13183031ccb1b1a9705"
+    },
+    "inspect.py": {
+      "bytes": 2384,
+      "sha256": "4598807fd568f20140c19bbb18bf8ae2d419c644a1c68951b7fdfd5d1e41567f"
+    },
+    "seal.py": {
+      "bytes": 4069,
+      "sha256": "eb8cbc567156fbe35d1134c440164e0a575c77e8633bcd404c01287d26981276"
+    }
+  },
+  "writes": "Owned ignored review directory plus this compact receipt only; no index staging.",
+  "limits": {
+    "wall_seconds": 480,
+    "fresh_DB_compiler_product_runtime_native_provider_writes_subchildren": 0,
+    "full_customer_create_accepted": false,
+    "canonical_adoption": false,
+    "GA": false,
+    "holds_released": false
+  },
+  "composition_reuse_requires_exact_after_sha256": "cb713835cb380ea1cb171fdda9c9f5568bcd65080f8edfb1d6e9eee0e792869e"
+}
