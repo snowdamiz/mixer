@@ -12,6 +12,17 @@ true = jason_sources != []
     {:ok, _, _} = Kernel.ParallelCompiler.compile(jason_sources, return_diagnostics: true)
   end)
 
+false = Code.ensure_loaded?(MixerHosted.Application)
+startup_counter = :counters.new(1, [])
+:persistent_term.put({MixerHosted.Application, :constructor_calls}, startup_counter)
+
+defmodule MixerHosted.Application do
+  def startup do
+    :counters.add(:persistent_term.get({__MODULE__, :constructor_calls}), 1, 1)
+    raise "Application startup is outside the secret-constructor harness"
+  end
+end
+
 inputs = [
   "hosted/lib/mixer_hosted/identity/encoding.ex",
   "hosted/lib/mixer_hosted/identity/manifest.ex",
@@ -19,6 +30,7 @@ inputs = [
   "hosted/lib/mixer_hosted/identity/startup_config.ex",
   "hosted/lib/mixer_hosted/browser_auth/config.ex",
   "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
+  "hosted/lib/mixer_hosted/builds/processor_profile.ex",
   "hosted/lib/mixer_hosted/runtime_config.ex",
   "hosted/lib/mixer_hosted/browser_auth/vault.ex",
   "hosted/lib/mixer_hosted/browser_auth/custody.ex",
@@ -36,6 +48,12 @@ ExUnit.start(autorun: false, seed: 0, trace: true)
 test = "hosted/test/mixer_hosted/browser_auth/startup_secrets_test.exs"
 {_, []} = Code.with_diagnostics(fn -> Code.require_file(Path.join(root, test)) end)
 result = ExUnit.run()
+0 = :counters.get(startup_counter, 1)
+
+false =
+  Enum.any?(Application.started_applications(), fn {name, _, _} ->
+    name in [:mixer_hosted, :ecto_sql, :postgrex, :oban, :phoenix]
+  end)
 
 identities =
   Map.new(inputs ++ [test], fn path ->
@@ -54,6 +72,9 @@ IO.puts(
     mix_env: Mix.env(),
     jason_sources: length(jason_sources),
     compile_diagnostics: [],
+    fake_leaves: ["MixerHosted.Application.startup/0"],
+    fake_leaf_calls: 0,
+    application_or_database_started: false,
     production_activation: false
   })
 )

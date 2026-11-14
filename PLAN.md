@@ -1,6 +1,12 @@
 # Execution index
 
-## Continuation: November 13, 2026 — restricted processor admitted
+## Continuation: November 13, 2026 — standalone constructor CI repair
+
+The first v26 Phoenix job stopped before the full suite because its strict startup-secret constructor driver omitted dependencies introduced by the processor configuration. The unchanged CI command was reproduced locally. The repaired standalone driver loads the real ProcessorProfile and declares an Application.startup leaf that raises if called; a counter verifies zero calls. All eight original constructor checks pass in production mode with zero compiler diagnostics, without starting the app or database. The warning guard and test assertions remain intact. [Actual CI failure](verification/receipts/v26-ci-first-failure-r2806.json) and [direct driver proof](verification/receipts/direct-secret-driver-r2810.json).
+
+This changes only the CI constructor driver. The runtime product sources, v26's 335 selected rows and digest, CLI119, Pair21, and historical metadata remain unchanged. The isolated v26 workflow reports success; detailed runtime receipt qualification and the repaired Phoenix run remain pending. Activation, all 38 GA states and every custody hold remain unchanged.
+
+## Previous checkpoint: canonical v26 processor admission
 
 The restricted processor development slice is applied under canonical v26: 335 selected sources, a complete typed inverse to v25's 331 rows, and 33 exact writes. The API keeps its restricted role; the processor uses its own constrained login and a separate lock-only definer. Exact privilege, policy, STRICT and notifier admission checks remain enforced. The existing 19 security controls and four actual Oban drains cover terminal revision 2/fence 2, released capacity, a cleared lease and authenticated readback/replay without extra effects. Compiler failure was modeled. Production configuration and deployment remain pending. [Root admission](verification/receipts/processor-v26-admission-r2802.json), [security and worker evidence](verification/receipts/processor-fixture-final-r2618.json), and [independent fix review](verification/receipts/processor-changed-fix-review-r2626.json).
 
