@@ -1,0 +1,45 @@
+{
+  "id": "R2752",
+  "recordedAtUTC": "2026-11-13T22:06:48.157061+00:00",
+  "status": "ACTIVE_HOLD_R2740_ENTIRE_NAMESPACE",
+  "sourceReceipt": {
+    "path": "verification/receipts/real-compiler-fresh-r2740.json",
+    "bytes": 4672,
+    "sha256": "f7d9cf824fdc3bbc22ffd83f109da3891b5c4e485461ca99df771de9f582561e"
+  },
+  "failure": {
+    "location": "run.py:109",
+    "assertion": "retained==value and retained['starts']==1",
+    "exception": "AssertionError",
+    "outer_exec_session": 70419,
+    "outer_exit": 1,
+    "controller_exited_before_postgres_stop": true,
+    "readback_mismatch_cause": "UNPROVEN; no further artifact inspection"
+  },
+  "custody": {
+    "PostgreSQL": "UNKNOWN terminal custody; parent controller exited before its one fast-stop/direct-reap/ESRCH block",
+    "PGID": "not exposed in tool output; do not recover by inspecting retained resources",
+    "known_identity_record": "run-result.json contains pre-execution PostgreSQL PID/PGID; retained uninspected after failure",
+    "postgres_data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/real-compiler-fresh-r2740/pgdata",
+    "PG17_port": 40240,
+    "worker_port": 40241,
+    "PG_launches": 1,
+    "PG_fast_stop_attempts": 0,
+    "cleanup_attempts_after_unknown": 0,
+    "outer_return_does_not_release_hold": true
+  },
+  "heldNamespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/real-compiler-fresh-r2740",
+  "unexposedIdentityRecoveryForbidden": true,
+  "permittedReference": "Delivered compact R2740 receipt and this root hold record only",
+  "forbidden": [
+    "inspection or enumeration or stat of retained namespace",
+    "process probing or signals or waits",
+    "retry or compiler invocation",
+    "cleanup or deletion",
+    "recovery of unexposed identities"
+  ],
+  "actualCompilerIntegrationAccepted": false,
+  "historicalR2644AndAllOtherHoldsRemainActive": true,
+  "rootActions": "Read supplied compact receipt only; no held namespace stat/read/enumeration or process/port operations",
+  "GA": false
+}

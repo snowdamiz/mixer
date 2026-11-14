@@ -675,3 +675,55 @@ source-only review. PostgreSQL PID/PGID24272 and external worker PID/PGID21282
 are recorded terminal and ports40080/40081 reusable; those facts release no
 nested hold. See `verification/receipts/development-compiler-custody-hold-r2654.json`.
 Independent new namespaces remain authorized; all earlier holds remain active.
+
+
+The R2740 fresh compiler campaign left UNKNOWN PostgreSQL terminal custody
+after a restart-readback assertion interrupted its controller before the
+one-shot fast-stop and reap block. Its PID/PGID is unexposed. Preserve the
+entire `verification/local/real-compiler-fresh-r2740` namespace, including
+pgdata, private CLI/build/source, worker state, evidence, and every associated
+command/resource. Do not enumerate, stat, inspect, probe, signal, wait on,
+retry, or clean this chain, or recover identities from retained files. Ports
+40240 and 40241 belong to this held campaign and must not be probed or reused.
+Read only the delivered compact
+`verification/receipts/real-compiler-fresh-r2740.json` and root hold record
+`verification/receipts/development-compiler-finalization-hold-r2752.json`.
+The controller's direct exit1 and successful preceding commands establish no
+PostgreSQL absence or accepted compiler integration. All historical holds,
+including the entire mutable R2644 chain, remain active. Independent work in
+fresh namespaces and ports stays authorized.
+
+The R2764 controlled Repo gate left UNKNOWN PostgreSQL custody after its
+one-shot fast-stop failed because postmaster.pid was missing. The cleanup
+wrapper raised before direct reap and positive process-group absence were
+recorded. Its PID/PGID is unexposed. Preserve the entire
+`verification/local/actual-repo-gate-r2764` namespace and every associated
+resource without enumeration, stat, reads, probing, signals, waits, retry or
+cleanup. Port40280 is held and must not be probed or reused. Do not recover
+identities from retained live-custody files. Only the delivered compact
+`verification/receipts/actual-repo-gate-r2764.json` and root hold record
+`verification/receipts/repo-gate-custody-hold-r2766.json` may be read.
+The controller's exit1 proves no PostgreSQL absence, readiness result or
+historical BEGIN cause. All older holds remain active. Independent work in
+fresh namespaces and ports remains authorized.
+
+The R2774 formatter launch stopped with UNKNOWN inner custody before an inner
+identity or command receipt was recorded. No compiler, BEAM test or PostgreSQL
+launch was recorded. Preserve the entire `verification/local/readiness-full-r2774`
+namespace and all associated resources without enumeration, stat, reads,
+probing, signals, waits, retry or cleanup. Do not recover an identity from its
+retained command files. Reserve port40320 without probing or reuse. Only the
+delivered compact `verification/receipts/readiness-full-r2774.json` and root
+`verification/receipts/formatter-launch-custody-hold-r2778.json` are permitted
+references. The terminal outer wrapper establishes no inner absence. All older
+holds remain active. Fresh source work in separate namespaces remains authorized.
+
+The R2778 formatter preparation also recorded UNKNOWN custody before any
+inner identity, compiler, test or PostgreSQL launch was recorded. Preserve
+the entire `verification/local/readiness-full-r2778` namespace and associated
+resources without enumeration, stat, reads, probing, signals, waits, retry or
+cleanup. Port40340 is reserved without probing or reuse. Read only the
+delivered `verification/receipts/readiness-full-r2778.json` and root
+`verification/receipts/launch-global-proof-r2780.json`. The fresh R2780
+constructor proof does not release either this hold or R2774. All earlier
+holds remain in force.

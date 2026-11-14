@@ -1,0 +1,181 @@
+{
+  "id": "R2748",
+  "status": "INCOMPLETE_NONREPRODUCTION_FALLBACK_OMITTED",
+  "baseline": {
+    "original_module": "R1026.CustomerBuildReadTest",
+    "original_all_assertions_unchanged": true,
+    "optional_raw_BEGIN_diagnostic": "ON",
+    "counts": {
+      "passed": 10,
+      "failed": 0,
+      "invalid": 0,
+      "skipped": 0,
+      "exit": 0,
+      "raw_BEGIN": 38,
+      "raw_BEGIN_errors": 0,
+      "legacy_transaction_rows": 112,
+      "legacy_begin": 38,
+      "legacy_acknowledged_begin": 38,
+      "legacy_query_bindings": 36
+    },
+    "source": {
+      "bytes": 31161,
+      "sha256": "dca50fa4534f4fa4e9d2414248ece0de8f1c5e4c07e84ae379c90a0f64b1f226"
+    },
+    "stdout": "commands/049-baseline-cold-original10.stdout",
+    "stderr": "commands/049-baseline-cold-original10.stderr",
+    "wall_duration_seconds": 3.7542446249863133
+  },
+  "first_causes": [
+    {
+      "stage": "first_compile",
+      "exit": 1,
+      "cause": "Harness invoked mix run --no-compile then Mix.Task.run compile without dependency loading; Ecto.Schema and Ecto.Query unavailable",
+      "raw": "commands/002-fresh-strict-Mix-compile-and-owning-priv-preflight.stderr"
+    },
+    {
+      "stage": "nonreproduction",
+      "cause": "Cold original10 passed with zero BEGIN errors; runner lacked authorized explicit after_connect gate fallback and raised before fixture closure. PostgreSQL retired normally; one-launch budget consumed.",
+      "code": "runner.py:114"
+    }
+  ],
+  "readiness_cause": "UNPROVEN; no raw failing case matched",
+  "historical_R2648_R2728_attribution": "UNPROVEN",
+  "final_focused": "NOT_RUN",
+  "ordinary_full": "NOT_RUN; attempts0",
+  "final22_map": "NOT_CREATED; no readiness counterproof",
+  "admin_teardown": {
+    "status": "PROSPECTIVE_FORMATTED_COMPILED_ONLY_NOT_RUNTIME_TESTED",
+    "candidate": {
+      "before": {
+        "bytes": 25547,
+        "sha256": "1f63dd91ab149c2f4633189123595bd2c958d31876145e477bd9707647872663"
+      },
+      "after": {
+        "bytes": 27297,
+        "sha256": "ed7c14dc48f143066d6974d58c18a193e87ae9e271139df29c609795c3faea9c"
+      },
+      "preimage": "preimages/hosted/test/support/ordinary_browser_startup_fixture.ex",
+      "afterimage": "afterimages/hosted/test/support/ordinary_browser_startup_fixture.ex",
+      "status": "PROSPECTIVE_ONLY_RUNTIME_NOT_EXECUTED_NOT_FINAL22"
+    },
+    "original_statement_timeout": "5s",
+    "prospective_DROP_server_timeout": "15s",
+    "prospective_DROP_client_timeout_ms": 20000,
+    "business_SQL_and_lock_timeout": "UNCHANGED",
+    "effective_SHOW_and_pg_activity": "NOT_EXECUTED; ordinary fixture not exercised by focused baseline"
+  },
+  "qualification": {
+    "strict_Node": "PASS",
+    "strict_Mix": "second and final attempt PASS",
+    "SQL_free_owning_priv": "PASS actual code.priv_dir symlink plus22files/12migrations beforePG",
+    "fresh_Mixer_BEAMs": true,
+    "fresh_BEAM_count": 1068,
+    "baseline_actual_PostgreSQL17": true,
+    "readiness_fixture_accepted": false,
+    "full_ordinary_qualified": false,
+    "product_or_source_authority_adopted": false,
+    "GA": false
+  },
+  "source": {
+    "base_map21": {
+      "bytes": 10103,
+      "sha256": "9c6b001b7fbca971c3c1e0b73477f8f2542e8322749cf447994c8cf6780576aa"
+    },
+    "canonical373_unchanged": true,
+    "canonical331_unchanged": true,
+    "other20_exact": true,
+    "all21_tested_afterimages_exact": true,
+    "private_admin_delta_only": true,
+    "canonical373_jsondigest": "bdf70ed58f6237a008b33dcad2defe1a214f1145ca681456114612e15199868c",
+    "canonical331_jsondigest": "f8b6be3e87cb50f8c5bb5dc02616e0bfbd63a6e99c54d8446774db1c9699fa62",
+    "candidate377_before_admin_jsondigest": "05ff8cb26a68c93d593978b4a125cc4ce9929c7f6ebbe9c717db109672248a66",
+    "revision_identity": "Exact content manifests; no current Git HEAD claim"
+  },
+  "limits": {
+    "inclusive_limit_seconds": 1200,
+    "runtime_controller_elapsed_seconds": 652.631,
+    "receipt_elapsed_seconds": 741.283,
+    "strict_Mix_attempts": 2,
+    "strict_Node_compiles": 1,
+    "runtime_BEAM_batches": 1,
+    "SQL_free_preflight_BEAMs": 1,
+    "full_attempts": 0,
+    "PG_launches": 1,
+    "PG_faststops": 1,
+    "SMP": 2,
+    "extra_resource_retries": 0
+  },
+  "custody_cleanup": {
+    "all50_commands_terminal_ESRCH_EOF_closedFD": true,
+    "postgres": {
+      "pid": 38197,
+      "pgid": 38197,
+      "state": "TERMINAL",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/read-readiness-closure-r2748/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "40260",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "data": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/read-readiness-closure-r2748/pgdata",
+      "output_kind": "regular_files",
+      "parent_output_FDs_closed": true,
+      "direct_reaped": true,
+      "group_absent": true,
+      "absence_errno": 3,
+      "exit": 0,
+      "closedFDs": true,
+      "pipe_EOF": "not applicable regular files"
+    },
+    "port40260_reusable": true,
+    "owned_pgdata_removed_after_absence": true,
+    "new_holds": false,
+    "historical_holds_released": false,
+    "entire_R2644_R2740_accessed": false,
+    "held_ports40240_40241_probed": false
+  },
+  "ownership": {
+    "only_R2748_namespace_and_compact_receipt_written": true,
+    "canonical_index_Git_sourceauthority_product_edits": false,
+    "children_browser_native_provider_actions": 0
+  },
+  "artifacts": {
+    "raw_command_manifest": {
+      "bytes": 16044,
+      "sha256": "b2a5a0c2b67c99dd86c97c91792ac7ed6c8c1c53036594baf1ed95d2bafdaadb"
+    },
+    "base_map21": {
+      "bytes": 10103,
+      "sha256": "9c6b001b7fbca971c3c1e0b73477f8f2542e8322749cf447994c8cf6780576aa"
+    },
+    "raw_BEGIN": {
+      "bytes": 16811,
+      "sha256": "9d8805760e0ee0985b4a726d316dedac535e669d704309511dcad3ff1c6c04cb"
+    },
+    "tool_hashes": {
+      "bytes": 2446,
+      "sha256": "f09542281b86f54982827fe523db62f24763e03145abde23cd41b088777c4039"
+    },
+    "tool_versions_pinned": {
+      "bytes": 4536,
+      "sha256": "6a376fa306b83b99c061e37d3cbab38bacd9d33818137064a54cd90392b9ea67"
+    },
+    "source_preservation": {
+      "bytes": 578,
+      "sha256": "e0eec572e92792ae99d930bd72bd2cb7abec360fe195a5fbc91da92047d1502e"
+    },
+    "unwind_fake_actual_AST": {
+      "bytes": 656,
+      "sha256": "18a15127f0c3466288c79817f0afc354c12f5fdd0436ecb2cda484ccb335b69a"
+    }
+  },
+  "next_required": "A separately selected campaign must include the explicit after_connect gate fallback before PG cleanup, then original10 after a positive SELECT1 acknowledgement and at most one unfiltered full450; no historical resource reuse."
+}

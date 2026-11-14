@@ -1,0 +1,225 @@
+{
+  "id": "R2756",
+  "status": "PASS_SOURCE_ONLY_PROSPECTIVE_TEMPLATE_AND_SQLITE_CONTRACTS",
+  "recorded_utc": "2026-11-13T22:23:47.133196+00:00",
+  "scope": "Owned local template and fake/SQLite tests only; no product adoption",
+  "named_unlocks": {
+    "semantic_assertion_always_retires_known_pg_before_reporting_failure": {
+      "status": "PASS_FAKE_OWNERS_ONLY",
+      "ordinary_cleanup_order": [
+        "fast_stop",
+        "reap",
+        "fd_close",
+        "positive_absence"
+      ],
+      "cases": [
+        "success",
+        "exact_readback_assertion_failure",
+        "starts_assertion_failure",
+        "setup_error_after_acquire",
+        "preflight_error_after_acquire",
+        "save_error_after_acquire",
+        "each_cleanup_action_failure_with_and_without_semantic_error",
+        "unknown_before_finally"
+      ],
+      "sticky_freeze_no_resource_actions_after_unknown": true,
+      "original_semantic_exception_identity_preserved": true,
+      "real_pg_cleanup_qualified": false
+    },
+    "restart_readback_requires_proven_terminal_row": {
+      "status": "PASS_CONDITIONAL_SOURCE_AND_SQLITE_CONTRACT",
+      "actual_worker_handlers_executed": true,
+      "synthetic_completed_future_and_diagnostic": true,
+      "separate_sqlite_connection_observed_terminal_commit_before_restart": true,
+      "terminal_same_guard_row_and_query_equality": true,
+      "running_row_restart": "uncertain; starts remains 1; no submission",
+      "query_response_fields": [
+        "status",
+        "diagnostic_sha256_if_present"
+      ],
+      "query_response_contains_lease_or_ephemeral_time_fields": false,
+      "durable_row_fields_sensitive_to_renewal": [
+        "guard.expires_at",
+        "order_if_guard_order_changes"
+      ],
+      "renewed_lease_changes_row_but_not_query_projection": true,
+      "whole_row_equality_requires_unchanged_accepted_guard": true
+    }
+  },
+  "worker_source_sha256": "7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24",
+  "source_authority": "Unheld R2658 reviewed afterimage; exact SHA-256 verified before import",
+  "canonical_revision_or_tree_digest": "Not inspected; immutable source identities in inputs.json",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "sqlite": "3.53.4",
+  "new_assertions": 69,
+  "unchanged_R2658_controls": 80,
+  "proof_batches": 1,
+  "sql_free_only_batches": 0,
+  "managed_commands": [
+    {
+      "label": "fake-and-sqlite-counterproof",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/compiler-driver-unwind-r2756/proof.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/compiler-driver-unwind-r2756",
+      "pid": 64430,
+      "pgid": 64430,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.5268472919706255,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "receipt-finalization",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/compiler-driver-unwind-r2756/finalize.py",
+        "--payload"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/compiler-driver-unwind-r2756",
+      "pid": 90860,
+      "pgid": 90860,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.1524287920910865,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "standard_exec_commands_inclusive": 8,
+  "bootstrap_transport": "pwd/rg/cat and bounded Python wrappers; ordinary tool exits only, no separate group-absence claim for bootstrap commands",
+  "launch_interceptions": [
+    "subprocess.Popen/run/call/check_call/check_output",
+    "socket.socket/socketpair/create_connection/create_server",
+    "threading.Thread.start",
+    "os.system/fork/forkpty/posix_spawn/posix_spawnp/kill/killpg"
+  ],
+  "executor_submission_attempts": 0,
+  "forbidden_boundary_attempts": [],
+  "actual_compiler_starts": 0,
+  "actual_PG_launches": 0,
+  "actual_worker_launches": 0,
+  "listeners": 0,
+  "children_or_provider_actions": 0,
+  "native_browser_or_network_operations": 0,
+  "canonical_index_Git_producer_edits": 0,
+  "temporary_sqlite_closed_and_removed": true,
+  "historical_failure_text_inputs": {
+    "real-compiler-fresh-r2740.json": {
+      "bytes": 4672,
+      "sha256": "f7d9cf824fdc3bbc22ffd83f109da3891b5c4e485461ca99df771de9f582561e"
+    },
+    "development-compiler-finalization-hold-r2752.json": {
+      "bytes": 2049,
+      "sha256": "f71357902ab5cce4156d9dfeb66a3fd206e88f7e33555d8374866ad424d8c3f4"
+    }
+  },
+  "historical_assertion": "run.py:109 retained==value and retained[starts]==1 failed before PG cleanup",
+  "historical_readback_mismatch_cause": "UNPROVEN",
+  "historical_actual_compiler_terminal_state": "UNPROVEN",
+  "held_namespaces_accessed": false,
+  "unexposed_identity_or_port_recovery": false,
+  "all_historical_holds_active_including_entire_R2740_and_R2644": true,
+  "true_product_defect_proven": false,
+  "worker_changed": false,
+  "future_integration_requirements": [
+    "Separate explicit authorization and fresh independent namespace",
+    "Actual compiler terminal custody and diagnostic verified",
+    "Completed SQLite row committed and independently read before restart",
+    "One actual start and no extra effects",
+    "Compare query projection plus explicit durable binding/start/diagnostic invariants; whole-row equality only under same guard"
+  ],
+  "future_actual_compiler_attempt_authorized": false,
+  "adoption": false,
+  "GA": false,
+  "artifacts": {
+    "ownership_template.py": {
+      "bytes": 1862,
+      "sha256": "e01d48b93f7f797c5d7916412e1b1691fe3e86eaa782f75ae25b5095ca446b22"
+    },
+    "proof.py": {
+      "bytes": 12306,
+      "sha256": "d682412cdad98b73ad23a364b182dc8b51b0fade985dcf31b6f7d99a25d9e095"
+    },
+    "run_proof.py": {
+      "bytes": 1675,
+      "sha256": "0a8b6eccb9fdeb99428bc9b6c447aad1831282897f395dcae2d4c0eb2856b72f"
+    },
+    "finalize.py": {
+      "bytes": 7682,
+      "sha256": "9d5bc5e915a97fcdf93b0f51479c10001b861f4fe07f812486de8f0d56828c7b"
+    },
+    "REPORT.md": {
+      "bytes": 3990,
+      "sha256": "b46839c56765f5fdd190509b353ab65cae283db1a65a88cab7c4adc04d3b0229"
+    },
+    "worker_afterimage.py": {
+      "bytes": 14941,
+      "sha256": "7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24"
+    },
+    "prior_controls.py": {
+      "bytes": 10446,
+      "sha256": "e4daabcf4d1c9c791bb40d5d13db9d5a6b750a73992dd99d14da33c0a0421774"
+    },
+    "custodian-input.py": {
+      "bytes": 7268,
+      "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+    },
+    "inputs.json": {
+      "bytes": 699,
+      "sha256": "c8bdec4ed9230ad63b19f74a2dfcefe62edf4505bd2069e42b85e8fb91d3859f"
+    },
+    "source-ast-proof.json": {
+      "bytes": 5701,
+      "sha256": "75e8f43b55b9e0d70152930a850ba08e89b891708a2c94230d45f5f56d86d459"
+    },
+    "fake-traces.json": {
+      "bytes": 2096,
+      "sha256": "0efdbf7a403a7808764d456f53b210236f253c6ec88c693f77cfac27e0fce3ca"
+    },
+    "sqlite-rows.json": {
+      "bytes": 4928,
+      "sha256": "05d983d31d04dcede9d63d34f63b021de3812a0a9a9df81d6ec0768763b2639f"
+    },
+    "result.json": {
+      "bytes": 6807,
+      "sha256": "e2eabc74197fb97ae05a22bfc68c14f798269caa7f839331b3373e1084c825a3"
+    },
+    "counterproof-result.json": {
+      "bytes": 3821,
+      "sha256": "41bb283db227df64fc21ffec6bb2fa36461c75a7eda87bfa97260a89eb4873b8"
+    },
+    "commands/commands.json": {
+      "bytes": 574,
+      "sha256": "9f9adeb0bf8b5244603e497f098c28768ffc3831998743868da178663463b55b"
+    },
+    "commands/fake-and-sqlite-counterproof.stdout": {
+      "bytes": 3524,
+      "sha256": "6415790ffdae345e1b663c4f68c76bab1bfd2eb7ceacf6c4898082c58e74645b"
+    },
+    "commands/fake-and-sqlite-counterproof.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "finalization-commands/commands.json": {
+      "bytes": 588,
+      "sha256": "edc2075efe4eac0028d96292ecee3862dfcc512c19e31926cf573ddcb1d1d737"
+    },
+    "finalization-commands/receipt-finalization.stdout": {
+      "bytes": 217,
+      "sha256": "cbbb29b88bcb4adea8d8b4142e89580cac7949db501e9284cbedc27a05c275ee"
+    },
+    "finalization-commands/receipt-finalization.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "report": "verification/local/compiler-driver-unwind-r2756/REPORT.md",
+  "elapsed_seconds_inclusive_to_receipt": 279.1473939418793
+}
