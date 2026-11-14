@@ -1,10 +1,12 @@
 # Current development status
 
-## Continuation: November 13, 2026 — standalone constructor CI repair
+## Continuation: November 13, 2026 — v26 hosted CI verified
 
-The first v26 Phoenix job stopped before the full suite because its strict startup-secret constructor driver omitted dependencies introduced by the processor configuration. The unchanged CI command was reproduced locally. The repaired standalone driver loads the real ProcessorProfile and declares an Application.startup leaf that raises if called; a counter verifies zero calls. All eight original constructor checks pass in production mode with zero compiler diagnostics, without starting the app or database. The warning guard and test assertions remain intact. [Actual CI failure](verification/receipts/v26-ci-first-failure-r2806.json) and [direct driver proof](verification/receipts/direct-secret-driver-r2810.json).
+At `ecde901ad53819ad77f1514d2482ce478e541028`, the repaired Phoenix job passed the full hosted suite: **902 passed, 0 failed, 2 existing skips**. All 35 constructor checks passed: 12 trust, 8 secrets, and 15 composition controls with explicit fake leaves. The secret driver reported zero compiler diagnostics and zero fixture startup calls. All 140 product-source bindings match canonical files. The prior missing-driver-dependency failure remains preserved. [Verified hosted log and artifact](verification/receipts/v26-phoenix-ci-proof-r2822.json).
 
-This changes only the CI constructor driver. The runtime product sources, v26's 335 selected rows and digest, CLI119, Pair21, and historical metadata remain unchanged. The isolated v26 workflow reports success; detailed runtime receipt qualification and the repaired Phoenix run remain pending. Activation, all 38 GA states and every custody hold remain unchanged.
+The earlier v26 isolated run proves 290 collector checks and both network methods, with all 335 source rows exact before and after. Its container-cleanup report records three exact IDs removed; inner custody and the local audit of the earlier prepare-container absence remain partial. The current isolated workflow also reports success; its detailed artifact is not requalified here. [Scoped isolated evidence and reader limitations](verification/receipts/v26-isolated-ci-proof-r2816.json).
+
+The constructor-driver correction leaves v26/source335, CLI119, Pair21 and historical metadata unchanged. Restricted processing remains a development slice with modeled compiler failure. Real compiler integration, production activation and all 38 GA gates remain unqualified; every historical hold stays active.
 
 ## Previous checkpoint: canonical v26 processor admission
 
