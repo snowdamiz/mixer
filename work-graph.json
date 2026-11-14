@@ -5491,10 +5491,10 @@
     "currentCustomerCreateComposition": {
       "observedAt": "2026-11-13T17:08:46.084962+00:00",
       "source": {
-        "version": 25,
-        "count": 331,
-        "digest": "f8b6be3e87cb50f8c5bb5dc02616e0bfbd63a6e99c54d8446774db1c9699fa62",
-        "selectionSHA256": "e91518b9362fdb00cc17b338f23a3ce313e2eafcb5b14dcb270e65946b9c62a6"
+        "version": 26,
+        "count": 335,
+        "digest": "a6493001217d04a4fc5319480878c6fd2d5f28683ac71e4cdc8fdc8f5a1bd1d6",
+        "selectionSHA256": "43d5898f02ac3e4698417197980248a9b8607161184dd10b5f70ed7197127ffb"
       },
       "canonicalApplication": {
         "writes": 57,
@@ -5739,7 +5739,14 @@
       "latestV25Delivery": {
         "head": "681ca7a4a67296851ff53b3a80cf16ba6f31189b",
         "receipt": "verification/receipts/customer-authz-v25-delivery-r2518.json"
-      }
+      },
+      "qualifiedV25Source": {
+        "version": 25,
+        "count": 331,
+        "digest": "f8b6be3e87cb50f8c5bb5dc02616e0bfbd63a6e99c54d8446774db1c9699fa62",
+        "selectionSHA256": "e91518b9362fdb00cc17b338f23a3ce313e2eafcb5b14dcb270e65946b9c62a6"
+      },
+      "currentSourceAdmission": "verification/receipts/processor-v26-admission-r2802.json"
     },
     "currentFloatRounding": {
       "source": "vm/tests/differential_float_rounding_consuming.rs",
@@ -5913,23 +5920,23 @@
       "authenticatedGET": 200,
       "liveDuplicateReplay": "PASS",
       "compilerFailureModeled": true,
-      "fixtureAdministratorAuthority": true,
-      "restrictedProcessorQualified": false,
-      "receipt": "verification/receipts/customer-create-worker-final-replay-r2384.json",
-      "state": "PASS_SCOPED_DEVELOPMENT_INTEGRATION",
+      "fixtureAdministratorAuthority": false,
+      "restrictedProcessorQualified": true,
+      "receipt": "verification/receipts/processor-fixture-final-r2618.json",
+      "state": "RESTRICTED_PROCESSOR_DEVELOPMENT_SQL_AND_MODELED_TERMINAL_JOIN_QUALIFIED",
       "extraJobs": 0,
       "extraDomainEvents": 0,
       "sameBuild": true,
-      "rootAcceptance": "verification/receipts/customer-create-worker-root-r2392.json",
+      "rootAcceptance": "verification/receipts/processor-v26-admission-r2802.json",
       "ordinaryCIQualified": false,
       "nextRestrictedProcessor": {
-        "phase": "PRIVATE_SOURCE_REVIEW_PASS_ORDINARY_RUNTIME_UNQUALIFIED",
+        "phase": "CANONICAL_V26_DEVELOPMENT_SLICE_ADMITTED_CI_PENDING",
         "positiveJoin": "PASS_R2576_FOUR_DRAINS_GET_REPLAY",
         "positiveReceipt": "verification/receipts/restricted-processor-admission-r2576.json",
         "sourceReview": "PASS_CHANGED_FIX_R2626",
         "findings": [],
         "negativeControlsExecuted": true,
-        "canonicalProductApplied": false,
+        "canonicalProductApplied": true,
         "productionQualified": false,
         "R2586": "FAILED_ROLE_PROJECTIONS_ZERO_CONTROLS",
         "R2594": "FAILED_UUID_JSON_LOGGER_ZERO_CONTROLS",
@@ -5983,26 +5990,66 @@
         },
         "optionalDiagnostic": {
           "sourceReview": "PASS_CHANGED_FIX_R2716",
-          "formatSuccessor": "verification/receipts/read-format-successor-r2760.json",
-          "R2728": "862 passed, 7 failed, 33 invalid, 2 skipped",
-          "R2748": "original10 NO_REPRO; no readiness fallback implemented",
-          "readinessPrimitive": "verification/receipts/direct-repo-gate-r2772.json",
-          "freshRuntime": "REQUEST_CHANGES_FULL_RUNTIME",
-          "receipt": "verification/receipts/readiness-full-r2782.json",
+          "formatter": "PASS_R2760",
+          "currentFull": "902 passed, 0 failed, 0 invalid, 2 skipped",
+          "receipt": "verification/receipts/ordinary-barrier-fix-r2796.json",
           "historicalBEGINCause": "UNPROVEN"
         },
         "sourceAdmission": {
           "version": 26,
           "selectedRows": 335,
-          "mappedWrites": 29,
-          "state": "R2750_TOOLING_QUALIFIED_R2770_SOURCE_REVIEW_PASS_OLD21_BINDING",
-          "receipt": "verification/receipts/v26-budget-final-r2750.json",
-          "review": "verification/receipts/v26-source-review-r2770.json",
-          "final22Bound": false,
-          "selected": false
+          "mappedWrites": 33,
+          "state": "CANONICAL_APPLIED",
+          "digest": "a6493001217d04a4fc5319480878c6fd2d5f28683ac71e4cdc8fdc8f5a1bd1d6",
+          "selectionSHA256": "43d5898f02ac3e4698417197980248a9b8607161184dd10b5f70ed7197127ffb",
+          "collectorNormal": 290,
+          "collectorActualO": 290,
+          "refusalsPerMode": 148,
+          "receipt": "verification/receipts/processor-v26-admission-r2802.json",
+          "qualification": "verification/receipts/v26-source-escalation-r2800.json",
+          "completeTypedV25InverseRows": 331,
+          "selected": true
         },
-        "activation": false
-      }
+        "activation": false,
+        "ordinaryFull": {
+          "passed": 902,
+          "failed": 0,
+          "invalid": 0,
+          "skipped": 2,
+          "receipt": "verification/receipts/ordinary-barrier-fix-r2796.json"
+        },
+        "fixtureCounterexamples": [
+          "R2790 expired initial membership",
+          "R2796 delayed positive acknowledgement and transient lock observation"
+        ]
+      },
+      "priorPrivilegedFixture": {
+        "actualDrains": [
+          "success",
+          "snoozed",
+          "success",
+          "success"
+        ],
+        "terminalStatus": "failed",
+        "revision": 2,
+        "fence": 2,
+        "capacityReleased": true,
+        "leaseCleared": true,
+        "authenticatedGET": 200,
+        "liveDuplicateReplay": "PASS",
+        "compilerFailureModeled": true,
+        "fixtureAdministratorAuthority": true,
+        "restrictedProcessorQualified": false,
+        "receipt": "verification/receipts/customer-create-worker-final-replay-r2384.json",
+        "state": "PASS_SCOPED_DEVELOPMENT_INTEGRATION",
+        "extraJobs": 0,
+        "extraDomainEvents": 0,
+        "sameBuild": true,
+        "rootAcceptance": "verification/receipts/customer-create-worker-root-r2392.json",
+        "ordinaryCIQualified": false
+      },
+      "qualificationScope": "development restricted SQL processor; compiler outcome modeled; operational production unqualified",
+      "ordinaryHostSuiteQualified": true
     },
     "currentScalarMemoryAccess": {
       "sourceSHA256": "5479e60d291460bf526ce0b2ae36d203433a2f44da57b057d40a0b39b8008827",
@@ -6077,13 +6124,20 @@
       "rootReview": "R2510_PASS",
       "runtime": "R2496_PASS",
       "source": {
+        "version": 26,
+        "count": 335,
+        "digest": "a6493001217d04a4fc5319480878c6fd2d5f28683ac71e4cdc8fdc8f5a1bd1d6",
+        "selectionSHA256": "43d5898f02ac3e4698417197980248a9b8607161184dd10b5f70ed7197127ffb"
+      },
+      "standaloneSerializationControl": "UNRUN",
+      "receipt": "verification/receipts/v25-phoenix-ci-proof-r2534.json",
+      "qualifiedV25Source": {
         "count": 331,
         "digest": "f8b6be3e87cb50f8c5bb5dc02616e0bfbd63a6e99c54d8446774db1c9699fa62",
         "selectionSHA256": "e91518b9362fdb00cc17b338f23a3ce313e2eafcb5b14dcb270e65946b9c62a6",
         "version": 25
       },
-      "standaloneSerializationControl": "UNRUN",
-      "receipt": "verification/receipts/v25-phoenix-ci-proof-r2534.json"
+      "currentSourceAdmission": "verification/receipts/processor-v26-admission-r2802.json"
     },
     "currentSwiftHostProof": {
       "head": "0e8c97d3dd351d7ed94560372fc3d95dae8c3b8e",
@@ -6420,7 +6474,14 @@
           40340
         ]
       }
-    ]
+    ],
+    "currentSourceAuthority": {
+      "version": 26,
+      "count": 335,
+      "digest": "a6493001217d04a4fc5319480878c6fd2d5f28683ac71e4cdc8fdc8f5a1bd1d6",
+      "selectionSHA256": "43d5898f02ac3e4698417197980248a9b8607161184dd10b5f70ed7197127ffb",
+      "runtimeOrGAFromDigestAccepted": false
+    }
   },
   "packages": [
     {
@@ -31533,9 +31594,10 @@
       "latestClarificationReceipt": "verification/plan-continuation-2026-11-07/native-resumption-clarification.json"
     },
     "latestWorkCheckpoint": {
-      "receipt": "verification/receipts/continuation-checkpoint-r2784.json",
-      "canonicalAuthority": "v25/331",
-      "v26Selected": false,
+      "receipt": "verification/receipts/continuation-checkpoint-r2804.json",
+      "canonicalAuthority": "v26/335",
+      "v26Selected": true,
+      "activation": false,
       "GA": false,
       "historicalHoldsReleased": false
     }

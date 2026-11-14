@@ -57,6 +57,234 @@ defmodule MixerHosted.Identity.StartupFixture do
     }
   end
 
+  def processor_config do
+    foundation_env()
+    |> Map.merge(%{
+      "MIXER_HOSTED_ROLE" => "processor",
+      "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+      "MIXER_DATABASE_USER" => "mixer_build_processor",
+      "MIXER_DATABASE_POOL_SIZE" => "2"
+    })
+    |> MixerHosted.RuntimeConfig.load!()
+  end
+
+  # Owned loopback database and direct restricted login; no production TLS claim.
+  def processor_runtime! do
+    alias MixerHosted.Test.OrdinaryBrowserStartupFixture, as: Fixture
+    alias MixerHosted.Test.OrdinaryBrowserStartupFixture.Database, as: F
+    alias MixerHosted.BrowserAuth.StorageFixture.{Admin, Migration}
+    import ExUnit.Assertions
+    import ExUnit.Callbacks
+
+    Fixture.refuse_names!([MixerHosted.Supervisor, MixerHosted.Repo, Oban, Admin, Migration])
+    parent = System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT")
+    suffix = Base.encode16(:crypto.strong_rand_bytes(6), case: :lower)
+    database = "identity_processor_" <> suffix
+    namespace = Path.join(parent, database)
+    File.mkdir!(namespace)
+    System.put_env("MIXER_BROWSER_CATALOG_FIXTURE_ROOT", namespace)
+
+    # Registered first so restoration follows database teardown (reverse callback order).
+    on_exit(fn ->
+      System.put_env("MIXER_BROWSER_CATALOG_FIXTURE_ROOT", parent)
+      assert System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT") == parent
+      File.write!(Path.join(namespace, "parent-restored.json"), Jason.encode!(%{restored: true}))
+    end)
+
+    admin = F.connection!("browser_admin", "postgres")
+
+    try do
+      ensure_processor_fixture_role!(admin, "browser_admin", [
+        true,
+        true,
+        false,
+        true,
+        false,
+        false,
+        false
+      ])
+
+      ensure_processor_fixture_role!(admin, "browser_schema_owner", [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ])
+
+      ensure_processor_fixture_role!(admin, "mixer_customer_build_catalog_definer_v1", [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ])
+
+      ensure_processor_fixture_role!(admin, "mixer_build_create", [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ])
+
+      Postgrex.query!(admin, "CREATE DATABASE " <> database <> " OWNER browser_schema_owner", [])
+    after
+      GenServer.stop(admin)
+    end
+
+    on_exit(fn ->
+      for name <- [MixerHosted.Supervisor, MixerHosted.Repo, Oban, Admin, Migration],
+          do: assert(Process.whereis(name) == nil)
+
+      conn = F.connection!("browser_admin", "postgres")
+
+      try do
+        assert [[0]] ==
+                 Postgrex.query!(conn, "SELECT count(*) FROM pg_stat_activity WHERE datname=$1", [
+                   database
+                 ]).rows
+
+        Postgrex.query!(conn, "DROP DATABASE " <> database, [])
+
+        File.write!(
+          Path.join(namespace, "database-dropped.json"),
+          Jason.encode!(%{database: database, dropped: true})
+        )
+      after
+        GenServer.stop(conn)
+      end
+    end)
+
+    opts = [
+      hostname: "127.0.0.1",
+      port: F.port(),
+      database: database,
+      pool_size: 2,
+      ssl: false,
+      log: false
+    ]
+
+    start_supervised!({Admin, opts ++ [username: "browser_admin"]})
+
+    start_supervised!(
+      {Migration,
+       opts ++
+         [
+           username: "browser_admin",
+           after_connect: fn c -> Postgrex.query!(c, "SET ROLE browser_schema_owner", []) end
+         ]}
+    )
+
+    MixerHosted.BrowserAuth.StorageFixture.install!(Migration)
+
+    for {file, module, version} <- [
+          {"20261025000000_add_build_journals.exs", MixerHosted.Repo.Migrations.AddBuildJournals,
+           20_261_025_000_000},
+          {"20261025000001_add_build_admission.exs",
+           MixerHosted.Repo.Migrations.AddBuildAdmission, 20_261_025_000_001},
+          {"20261025000002_add_build_aggregate_limits.exs",
+           MixerHosted.Repo.Migrations.AddBuildAggregateLimits, 20_261_025_000_002}
+        ] do
+      unless Code.ensure_loaded?(module), do: Code.require_file("priv/repo/migrations/" <> file)
+      assert :ok == Ecto.Migrator.up(Migration, version, module, log: false)
+    end
+
+    assert :ok == Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
+    for sql <- MixerHosted.CustomerBuilds.CreateSchema.statements(), do: F.q!(Migration, sql)
+
+    roles = [
+      MixerHosted.Builds.ProcessorProfile.role(),
+      MixerHosted.Builds.ProcessorProfile.locker()
+    ]
+
+    for role <- roles do
+      ensure_processor_fixture_role!(Admin, role, [
+        role == "mixer_build_processor",
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ])
+    end
+
+    for sql <- MixerHosted.Builds.ProcessorProfile.statements(:builds_v1) do
+      unless Enum.any?(roles, &String.starts_with?(sql, "CREATE ROLE " <> &1 <> " ")) do
+        F.q!(Admin, String.replace(sql, ~s(:"processor_database"), ~s("#{database}")))
+      end
+    end
+
+    settings = processor_config()
+
+    repo =
+      Keyword.merge(settings.repo,
+        hostname: "127.0.0.1",
+        port: F.port(),
+        database: database,
+        ssl: false,
+        log: false
+      )
+
+    settings = %{settings | repo: repo}
+    Application.put_env(:mixer_hosted, :role, settings.role)
+    Application.put_env(:mixer_hosted, :identity_startup, settings.identity_startup)
+    Application.put_env(:mixer_hosted, MixerHosted.Repo, repo)
+    Application.put_env(:mixer_hosted, Oban, settings.oban)
+    Application.put_env(:mixer_hosted, MixerHostedWeb.Endpoint, settings.endpoint)
+    Application.put_env(:mixer_hosted, :startup, {settings, :disabled})
+
+    on_exit(fn ->
+      case Process.whereis(MixerHosted.Supervisor) do
+        nil ->
+          :ok
+
+        root ->
+          assert Application.stop(:mixer_hosted) == :ok
+          refute Process.alive?(root)
+      end
+    end)
+
+    settings
+  end
+
+  defp ensure_processor_fixture_role!(conn, role, expected) do
+    sql =
+      "SELECT rolcanlogin,rolsuper,rolbypassrls,rolinherit,rolcreatedb,rolcreaterole,rolreplication FROM pg_roles WHERE rolname=$1"
+
+    query = fn statement, params ->
+      if is_pid(conn),
+        do: Postgrex.query!(conn, statement, params),
+        else: Ecto.Adapters.SQL.query!(conn, statement, params, log: false)
+    end
+
+    case query.(sql, [role]).rows do
+      [] ->
+        [login | _] = expected
+        mode = if login, do: "LOGIN", else: "NOLOGIN"
+
+        query.(
+          "CREATE ROLE " <>
+            role <>
+            " " <>
+            mode <> " NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEDB NOCREATEROLE NOREPLICATION",
+          []
+        )
+
+        ^expected = query.(sql, [role]).rows |> hd()
+
+      [^expected] ->
+        :ok
+    end
+  end
+
   def app_settings(identity) do
     settings = MixerHosted.RuntimeConfig.load!(foundation_env())
     Application.put_env(:mixer_hosted, :role, settings.role)

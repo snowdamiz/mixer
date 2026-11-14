@@ -132,6 +132,13 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
     assert RuntimeConfig.new_with_build_catalog(%{}, hosted(), nil, nil) == @error
   end
 
+  test "installed processor profile is an explicit closed field" do
+    assert {:ok, _} = construct(%{hosted() | processor_profile: :builds_v1})
+    assert construct(%{hosted() | processor_profile: :unknown}) == @error
+    assert construct(Map.delete(hosted(), :processor_profile)) == @error
+    assert construct(Map.put(hosted(), :unrecognized_processor_field, :builds_v1)) == @error
+  end
+
   test "actual ordinary loader Config Manifest Digest and custody compose without startup wiring" do
     hosted = hosted()
     assert {:ok, _} = Manifest.validate(hosted.identity_startup.owner_options[:manifest])
@@ -192,6 +199,15 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
         |> Map.put("MIXER_HOSTED_ROLE", role)
         |> Map.put("MIXER_IDENTITY_MODE", "disabled")
         |> Map.delete("MIXER_IDENTITY_CONFIG")
+
+      env =
+        if role == "processor",
+          do:
+            Map.merge(env, %{
+              "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+              "MIXER_DATABASE_USER" => "mixer_build_processor"
+            }),
+          else: env
 
       hosted = HostedConfig.load!(env)
 
@@ -363,6 +379,8 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
     input =
       ordinary_env()
       |> Map.put("MIXER_HOSTED_ROLE", "processor")
+      |> Map.put("MIXER_PROCESSOR_PROFILE", "builds_v1")
+      |> Map.put("MIXER_DATABASE_USER", "mixer_build_processor")
       |> Map.put("MIXER_IDENTITY_MODE", "disabled")
       |> Map.delete("MIXER_IDENTITY_CONFIG")
       |> Map.put("MIXER_BUILD_CREATE_ENABLED", "true")

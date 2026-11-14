@@ -57,6 +57,7 @@ end
 
 inputs = [
   "hosted/lib/mixer_hosted/application.ex",
+  "hosted/lib/mixer_hosted/builds/processor_profile.ex",
   "hosted/lib/mixer_hosted/browser_auth/config.ex",
   "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
   "hosted/lib/mixer_hosted/browser_auth/custody.ex",
@@ -337,12 +338,29 @@ defmodule R1758.ConfiguredStartupTest do
 
     refused(env, %{hosted | role: :processor})
     refused(Map.put(env, "MIXER_BROWSER_AUTH_MODE", "disabled"), hosted)
-    disabled_identity = %MixerHosted.Identity.StartupConfig{mode: :disabled, owner_options: []}
-    processor = %{hosted | role: :processor, identity_startup: disabled_identity}
+
+    processor =
+      MixerHosted.RuntimeConfig.load!(%{
+        "MIXER_HOSTED_ROLE" => "processor",
+        "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+        "MIXER_DATABASE_HOST" => "ep-fixture.us-east-2.aws.neon.tech",
+        "MIXER_DATABASE_NAME" => "mixer_fixture",
+        "MIXER_DATABASE_USER" => "mixer_build_processor",
+        "MIXER_DATABASE_PASSWORD" => "synthetic-processor-password",
+        "MIXER_QUEUE_BUILDS_CONCURRENCY" => "2",
+        "MIXER_IDENTITY_MODE" => "disabled"
+      })
+
+    assert processor.role == :processor
+    assert processor.processor_profile == :builds_v1
+    assert processor.identity_startup.mode == :disabled
+    assert processor.repo[:username] == "mixer_build_processor"
+    assert processor.oban[:queues] == [builds: 2]
 
     assert HostedApplication.children({processor, :disabled}) == [
              MixerHosted.Repo,
-             {Oban, hosted.oban}
+             {MixerHosted.Builds.ProcessorAdmission, :builds_v1},
+             {Oban, processor.oban}
            ]
   end
 

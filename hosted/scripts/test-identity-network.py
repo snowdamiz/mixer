@@ -2435,6 +2435,130 @@ def _load_customer_authz_source_authority():
     return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
 
 
+RESTRICTED_PROCESSOR_SOURCE_BASE = 'verification/identity-network-current-source-v26/'
+RESTRICTED_PROCESSOR_SELECTION_SHA256 = '43d5898f02ac3e4698417197980248a9b8607161184dd10b5f70ed7197127ffb'
+RESTRICTED_PROCESSOR_SOURCE_DIGEST = 'a6493001217d04a4fc5319480878c6fd2d5f28683ac71e4cdc8fdc8f5a1bd1d6'
+RESTRICTED_PROCESSOR_PARENT_CONTRACT_SHA256 = '05799a3b44ac480662ff461ba95972679a2d4362a74733b64e0b6def3cd681e3'
+RESTRICTED_PROCESSOR_PRODUCT_MAP_SHA256 = '9b7af7f2b3ef0b42a40023951f10c9012e4df4191a7c7f8a4c14e8c61a2d0a70'
+RESTRICTED_PROCESSOR_EXPECTED_COUNT = 335
+RESTRICTED_PROCESSOR_DELTA = {'hosted/lib/mixer_hosted/application.ex': {'after': {'bytes': 4865, 'sha256': '226e4bcedb8f42b55b919321a80cd3c4b62d957e38082a8cbf688d79782bb9d0'}, 'before': {'bytes': 3953, 'sha256': 'd87c62d28f66b0772576c3248e48ca8e7736f4b87f31424e06d4fbf4b9a2fcae'}}, 'hosted/lib/mixer_hosted/browser_auth/build_catalog_admission.ex': {'after': {'bytes': 11278, 'sha256': '2eef8394cfde9fd0454ef76fdea2746ba9655dd5146d2f16d1582cad1e7407d5'}, 'before': {'bytes': 11226, 'sha256': 'bc48160695205e3d1ef993a4f093ebc98cc0d13e41fa14ecf4528f8e58140b62'}}, 'hosted/lib/mixer_hosted/browser_auth/runtime_config.ex': {'after': {'bytes': 9377, 'sha256': '595f4f779f55e97c69782f7714962a0d8831b834929d647f700ab9bd206f850a'}, 'before': {'bytes': 9295, 'sha256': 'a7c172dcff9a53da2cae852604cb21ae19358590b23f747213a4a8bec848861a'}}, 'hosted/lib/mixer_hosted/browser_auth/store.ex': {'after': {'bytes': 25590, 'sha256': 'ea8c45d1803ababc5739b90ad9203e975c12a8a54318b119690360cb22475a98'}, 'before': {'bytes': 25525, 'sha256': '47993da19a16af64722fbd6994508543429305e4cf8235e5c78f0fa89216a04a'}}, 'hosted/lib/mixer_hosted/builds/admission.ex': {'after': {'bytes': 27580, 'sha256': 'a0d7b432072e5d67cdf2127041e8f46b090f23c24edfa6123eff83d65023823f'}, 'before': {'bytes': 26456, 'sha256': '87bd56955fa99c2978a407c74cfcc87819ac6059a0bc4a86a36df763424ab0eb'}}, 'hosted/lib/mixer_hosted/builds/processor_admission.ex': {'after': {'bytes': 21154, 'sha256': '2cd48ec10314e3d5580010116c103238af019558277c05da1cf9d81297e703be'}, 'before': None}, 'hosted/lib/mixer_hosted/builds/processor_notifier.ex': {'after': {'bytes': 5518, 'sha256': '874248c896535e8d04b0807d1a4124221cc2adeb2be8d341c9c4397df9f726f2'}, 'before': None}, 'hosted/lib/mixer_hosted/builds/processor_profile.ex': {'after': {'bytes': 11311, 'sha256': 'a44523ee015ba87acaa9a054ccc6b0631b4a4d65a9cb37f9788f481d875e12b2'}, 'before': None}, 'hosted/lib/mixer_hosted/customer_builds/create.ex': {'after': {'bytes': 4687, 'sha256': '128a7a8b438fd5909a2070a44ea6f2dcd63a3b4b7e274fcb3075a608753796f8'}, 'before': {'bytes': 4587, 'sha256': '1bc4ebc3b6b25cc30c9615a03f81f969ad0ba5c231d4b62a71d8957716721159'}}, 'hosted/lib/mixer_hosted/customer_builds/create_schema.ex': {'after': {'bytes': 16795, 'sha256': '79372c8232cd5b80858df58a899fb96b6348d438ee4efed45370920056d6369e'}, 'before': {'bytes': 16332, 'sha256': '37218cf1bd8c83c9eba5c07098971517f314c4afa0a363b7ae9655050e639524'}}, 'hosted/lib/mixer_hosted/customer_builds/inputs.ex': {'after': {'bytes': 6916, 'sha256': '60bc5b174a8d5c742567808fed19383f9cec029074a9c338870be3008853c180'}, 'before': {'bytes': 6816, 'sha256': '4f52ee006232af38dded9e29240b3d3e038697f978ec6795a50aefcb500e4db0'}}, 'hosted/lib/mixer_hosted/runtime_config.ex': {'after': {'bytes': 6024, 'sha256': '39d277e3114f28de0ab84130de08e4732b86a07707f4d0b5bdb30bb8a5f11b1d'}, 'before': {'bytes': 4664, 'sha256': '3199440283af7bedc0222ea2f2fe62602232e01240358cab769bc707b341acdc'}}, 'hosted/priv/restricted_processor/print_install_sql.exs': {'after': {'bytes': 328, 'sha256': 'db1d5c27229179f836e03f812fa0a321f1cf537dcedfbef7828923643755481f'}, 'before': None}, 'hosted/scripts/check-configured-startup.exs': {'after': {'bytes': 17775, 'sha256': 'e61548a78b14fbae34d44c0e590dcb02ff106ad4c10dead426e64ca509c02564'}, 'before': {'bytes': 17061, 'sha256': 'ebe446f3e18f72a32719a340802d42adb18c6bcc58df0148331fba87815a84a0'}}, 'hosted/test/customer_build_read_test.exs': {'after': {'bytes': 31419, 'sha256': 'ac1b5d08f618917048c3d5fd24ffbcf54e4e26e4e0b5673198ae0938579592b4'}, 'before': {'bytes': 26154, 'sha256': '6e1bfba126fdcaec6169ab8ec14f62b103e4cd0f5373d02e49447feb7bd916f1'}}, 'hosted/test/foundation_integration_test.exs': {'after': {'bytes': 6937, 'sha256': '92b7f6e63a8eb4331a3dd535a7668770bb39cf9734954637800f402524cc738e'}, 'before': {'bytes': 6438, 'sha256': 'b65e549c79bef9028e8cea42741d1a160436f2710a6fc433b9a649c1ab447757'}}, 'hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs': {'after': {'bytes': 26985, 'sha256': '8e2681bb523e57020832214859ac3592d3ea650c726a2cf7076c57338b405d81'}, 'before': {'bytes': 26227, 'sha256': '6c4b5ac24eec2c964399aa4709f11134b71b7fca095b692d126a4021eccea3a4'}}, 'hosted/test/mixer_hosted/identity/startup_config_test.exs': {'after': {'bytes': 8322, 'sha256': '171a512f3341d30a2c8ff4ccbc870a34b744375b6ab966687e9e931db0a3574b'}, 'before': {'bytes': 8297, 'sha256': '31f2ba324282f06746aba3f47e1b89bfeb2a6fe3f8a878f90df33c9d30f12ea2'}}, 'hosted/test/mixer_hosted/identity/startup_lifecycle_test.exs': {'after': {'bytes': 7548, 'sha256': 'ce83ec4c2ff60ad47ee9ad5f61de8ddd51a450f9fcf924d4e4390e077cdf4e32'}, 'before': {'bytes': 6907, 'sha256': '15b40da21797e6e019b1e2f433babf45fb1270e2c0da9da5469b21734371c667'}}, 'hosted/test/runtime_config_test.exs': {'after': {'bytes': 4659, 'sha256': 'd339098bd201a1e75d832a02d04296ae5eb65f0f793dfa9ce7070854f0c53280'}, 'before': {'bytes': 3659, 'sha256': '818accb074ee8bdf0492a9495075f7d4c9e4adaeab74a2dd174370b406f6388f'}}, 'hosted/test/support/identity_startup_fixture.ex': {'after': {'bytes': 11596, 'sha256': 'd29a664652d04ecbc0e28ed3d88c2441227b0317acc306fb8df52d854290207c'}, 'before': {'bytes': 4782, 'sha256': 'b28d98290cc83605325b81a74986515a5a5544f4393f479b9974cea7e69b84b2'}}, 'hosted/test/support/ordinary_browser_startup_fixture.ex': {'before': {'bytes': 25547, 'sha256': '1f63dd91ab149c2f4633189123595bd2c958d31876145e477bd9707647872663'}, 'after': {'bytes': 25649, 'sha256': '40e1445029953d52e3a35c56ff73013942937109b7894efb0e38bbf88c9f7a67'}}, 'hosted/test/mixer_hosted/authorization/transaction_test.exs': {'before': {'bytes': 31291, 'sha256': '414cc74e70ca8572919ae82d4f17b10b9deb2095d4310aa6856dd8179dbae6ad'}, 'after': {'bytes': 31427, 'sha256': 'f8af04534807b1a3acd1b28180ab1edcd17cce08dd5331e2490630ca7dadb925'}}, 'hosted/test/test_helper.exs': {'before': {'bytes': 903, 'sha256': 'c8781a28fdc95e2556794163fa24036546be1959b04371f577a63418efbc503b'}, 'after': {'bytes': 932, 'sha256': '7d12db18a42a4de9cf96a9100b19c024636c2ea53803e165c3bc9ef1b215224a'}}, 'hosted/test/mixer_hosted/builds/coordinator_operation_intent_test.exs': {'before': {'bytes': 24790, 'sha256': '6848bdbbd2b580918e40f62fc9d62083e75e7ab3d11d73b3941a541e4a587476'}, 'after': {'bytes': 24980, 'sha256': '31e5e784f8dd790af2d99b4c2b6ffffe72927561897a2e5cd1203ceb0b86afd5'}}}
+
+
+def _restricted_processor_json(body):
+    def pairs(rows):
+        require(all(type(k) is str for k, _ in rows), 'restricted processor JSON key type')
+        keys = [k for k, _ in rows]
+        require(keys == sorted(set(keys)), 'restricted processor duplicate or unordered JSON keys')
+        return dict(rows)
+    require(type(body) is bytes, 'restricted processor JSON bytes')
+    try:
+        return json.loads(body, object_pairs_hook=pairs, parse_constant=lambda x: require(False, 'restricted processor nonfinite JSON'))
+    except (ValueError, TypeError) as error:
+        raise CollectorError('restricted processor JSON') from error
+
+
+def _restricted_processor_row(value):
+    require(type(value) is dict and set(value) == {'bytes', 'sha256'}, 'restricted processor row shape')
+    require(type(value['bytes']) is int and 0 <= value['bytes'] <= MAX_COMMAND_BYTES, 'restricted processor typed bytes')
+    require(type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']) is not None, 'restricted processor SHA256')
+
+
+def _restricted_processor_path(path):
+    require(type(path) is str and path and not PurePosixPath(path).is_absolute() and
+            '..' not in PurePosixPath(path).parts and str(PurePosixPath(path)) == path,
+            'restricted processor unsafe path')
+
+
+def _restricted_processor_inverse(inverse):
+    require(type(inverse) is dict and list(inverse) == sorted(CUSTOMER_AUTHZ_MANIFEST), 'restricted processor complete ordered v25 inverse membership')
+    for path, value in inverse.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(value)
+    require(inverse == CUSTOMER_AUTHZ_MANIFEST and canonical_digest(inverse) == CUSTOMER_AUTHZ_SOURCE_DIGEST, 'restricted processor exact complete v25 inverse')
+
+
+def _validate_restricted_processor_source_manifest(manifest, count):
+    require(type(count) is int and count == RESTRICTED_PROCESSOR_EXPECTED_COUNT, 'restricted processor fixed source count')
+    require(type(manifest) is dict and list(manifest) == sorted(set(CUSTOMER_AUTHZ_MANIFEST) | set(RESTRICTED_PROCESSOR_DELTA)), 'restricted processor exact ordered source membership')
+    require(len(manifest) == count, 'restricted processor source count')
+    for path, value in manifest.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(value)
+    delta = {p: {'before': CUSTOMER_AUTHZ_MANIFEST.get(p), 'after': v} for p, v in manifest.items() if CUSTOMER_AUTHZ_MANIFEST.get(p) != v}
+    require(delta == RESTRICTED_PROCESSOR_DELTA, 'restricted processor exact composition forward rows')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            inverse.pop(path)
+        else:
+            inverse[path] = change['before']
+    _restricted_processor_inverse(dict(sorted(inverse.items())))
+    require(canonical_digest(manifest) == RESTRICTED_PROCESSOR_SOURCE_DIGEST, 'restricted processor frozen digest')
+    return manifest
+
+
+def validate_restricted_processor_source_manifest(manifest, expected_digest=RESTRICTED_PROCESSOR_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == RESTRICTED_PROCESSOR_SOURCE_DIGEST and
+            (expected_count is None or type(expected_count) is int and expected_count == RESTRICTED_PROCESSOR_SOURCE_COUNT), 'caller cannot replace restricted processor authority')
+    return _validate_restricted_processor_source_manifest(manifest, RESTRICTED_PROCESSOR_SOURCE_COUNT)
+
+
+def _restricted_processor_metadata(metadata):
+    require(type(metadata) is dict and set(metadata) == {RESTRICTED_PROCESSOR_SOURCE_BASE + n for n in ('selection.json', 'selected-source-manifest.json')}, 'restricted processor metadata membership')
+    body = metadata[RESTRICTED_PROCESSOR_SOURCE_BASE + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == RESTRICTED_PROCESSOR_SELECTION_SHA256, 'restricted processor selection pin')
+    value = _restricted_processor_json(body)
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'inverse_v25', 'runtime_or_GA_accepted', 'parent_contract_sha256', 'product_map_sha256'}, 'restricted processor selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-restricted-processor-v26', 'restricted processor schema identity')
+    require(type(value['operation']) is str and value['operation'] == 'admit-R2796-exact25-after-v25', 'restricted processor operation')
+    require(type(value['scope']) is str and value['scope'] == 'Source admission for restricted processor and executed ordinary fixtures; root security/runtime/formatter/source reviews, aggregate360 and explicit v26 selection required; activation false.', 'restricted processor scope')
+    require(value['runtime_or_GA_accepted'] is False and value['parent_contract_sha256'] == RESTRICTED_PROCESSOR_PARENT_CONTRACT_SHA256 and value['product_map_sha256'] == RESTRICTED_PROCESSOR_PRODUCT_MAP_SHA256, 'restricted processor composition contract')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'restricted processor predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': CUSTOMER_AUTHZ_SOURCE_COUNT, 'source_digest_sha256': CUSTOMER_AUTHZ_SOURCE_DIGEST, 'selection_sha256': CUSTOMER_AUTHZ_SELECTION_SHA256}, 'restricted processor typed predecessor')
+    _restricted_processor_inverse(value['inverse_v25'])
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'restricted processor selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == RESTRICTED_PROCESSOR_EXPECTED_COUNT and selected['source_digest_sha256'] == RESTRICTED_PROCESSOR_SOURCE_DIGEST, 'restricted processor selected count digest')
+    ref = selected['manifest']
+    require(type(ref) is dict and set(ref) == {'path', 'bytes', 'sha256'} and ref['path'] == 'selected-source-manifest.json', 'restricted processor manifest reference')
+    _restricted_processor_row({k: ref[k] for k in ('bytes', 'sha256')})
+    manifest_body = metadata[RESTRICTED_PROCESSOR_SOURCE_BASE + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {k: ref[k] for k in ('bytes', 'sha256')}, 'restricted processor manifest byte pin')
+    manifest = _restricted_processor_json(manifest_body)
+    _validate_restricted_processor_source_manifest(manifest, selected['source_count'])
+    delta = value['exact_delta']
+    require(type(delta) is dict and list(delta) == sorted(RESTRICTED_PROCESSOR_DELTA), 'restricted processor delta membership order')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'restricted processor composition role shape')
+        if change['before'] is not None:
+            _restricted_processor_row(change['before'])
+        _restricted_processor_row(change['after'])
+    require(delta == RESTRICTED_PROCESSOR_DELTA, 'restricted processor exact typed composition delta')
+    return value, manifest
+
+
+def validate_restricted_processor_source_metadata(metadata):
+    value, manifest = _restricted_processor_metadata(metadata)
+    require(manifest == RESTRICTED_PROCESSOR_MANIFEST, 'restricted processor installed manifest')
+    return value
+
+
+def check_restricted_processor_source(root):
+    metadata = {RESTRICTED_PROCESSOR_SOURCE_BASE + n: (root / RESTRICTED_PROCESSOR_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_restricted_processor_source_metadata(metadata)
+    observed = {p: _file_row((root / p).read_bytes()) for p in RESTRICTED_PROCESSOR_MANIFEST}
+    validate_restricted_processor_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': RESTRICTED_PROCESSOR_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_restricted_processor_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    metadata = {RESTRICTED_PROCESSOR_SOURCE_BASE + n: (root / RESTRICTED_PROCESSOR_SOURCE_BASE / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _restricted_processor_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
@@ -2454,7 +2578,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_customer_authz_source_manifest(prepared["source"])
+    validate_restricted_processor_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -2621,7 +2745,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_customer_authz_source_manifest(manifest["source"])
+    validate_restricted_processor_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -2644,7 +2768,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CUSTOMER_AUTHZ_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(RESTRICTED_PROCESSOR_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -3415,10 +3539,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_customer_authz_source_manifest(CUSTOMER_AUTHZ_MANIFEST)
-        product = self.git_blobs(sorted(CUSTOMER_AUTHZ_MANIFEST))
+        validate_restricted_processor_source_manifest(RESTRICTED_PROCESSOR_MANIFEST)
+        product = self.git_blobs(sorted(RESTRICTED_PROCESSOR_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_customer_authz_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_restricted_processor_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -3514,10 +3638,10 @@ class Collector:
         historical_ci = self.git_blobs([CI_DISCOVERY_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         validate_ci_discovery_source_metadata(historical_ci)
         metadata.update(historical_ci)
-        signin_metadata = self.git_blobs([CUSTOMER_AUTHZ_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
-        validate_customer_authz_source_metadata(signin_metadata)
+        signin_metadata = self.git_blobs([RESTRICTED_PROCESSOR_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
+        validate_restricted_processor_source_metadata(signin_metadata)
         metadata.update(signin_metadata)
-        self.state["source"].update(current_source_selection_sha256=CUSTOMER_AUTHZ_SELECTION_SHA256, current_source_digest_sha256=CUSTOMER_AUTHZ_SOURCE_DIGEST)
+        self.state["source"].update(current_source_selection_sha256=RESTRICTED_PROCESSOR_SELECTION_SHA256, current_source_digest_sha256=RESTRICTED_PROCESSOR_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -3535,7 +3659,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(CUSTOMER_AUTHZ_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(RESTRICTED_PROCESSOR_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -3558,7 +3682,7 @@ class Collector:
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
         prepared_manifest["source"] = dict(sorted(prepared_manifest["source"].items()))
-        require(prepared_manifest["source"] == CUSTOMER_AUTHZ_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == RESTRICTED_PROCESSOR_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -3656,7 +3780,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in CUSTOMER_AUTHZ_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in RESTRICTED_PROCESSOR_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -4107,7 +4231,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_customer_authz_source(root), sort_keys=True))
+        print(json.dumps(check_restricted_processor_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -4219,6 +4343,9 @@ CUSTOMER_EXPIRY_SOURCE_COUNT, CUSTOMER_EXPIRY_MANIFEST = CUSTOMER_EXPIRY_AUTHORI
 
 CUSTOMER_AUTHZ_AUTHORITY = _load_customer_authz_source_authority()
 CUSTOMER_AUTHZ_SOURCE_COUNT, CUSTOMER_AUTHZ_MANIFEST = CUSTOMER_AUTHZ_AUTHORITY.count, CUSTOMER_AUTHZ_AUTHORITY.manifest
+
+RESTRICTED_PROCESSOR_AUTHORITY = _load_restricted_processor_source_authority()
+RESTRICTED_PROCESSOR_SOURCE_COUNT, RESTRICTED_PROCESSOR_MANIFEST = RESTRICTED_PROCESSOR_AUTHORITY.count, RESTRICTED_PROCESSOR_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:

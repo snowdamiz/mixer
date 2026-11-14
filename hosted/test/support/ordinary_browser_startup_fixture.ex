@@ -133,7 +133,11 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
       conn = F.connection!("browser_admin", "postgres")
 
       try do
-        Postgrex.query!(conn, "DROP DATABASE browser_ordinary_installation_r1422", [])
+        Postgrex.query!(conn, "SET statement_timeout='15s'", [])
+
+        Postgrex.query!(conn, "DROP DATABASE browser_ordinary_installation_r1422", [],
+          timeout: 20_000
+        )
       after
         GenServer.stop(conn)
       end

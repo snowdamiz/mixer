@@ -22,7 +22,14 @@ defmodule MixerHosted.Application do
     children = children(startup)
     :ets.new(@boot, [:named_table, :protected, :set])
     :ets.insert(@boot, {:startup, startup})
-    Supervisor.init(children, strategy: :one_for_one)
+
+    strategy =
+      case startup do
+        {%RuntimeConfig{role: :processor}, :disabled} -> :rest_for_one
+        _ -> :one_for_one
+      end
+
+    Supervisor.init(children, strategy: strategy)
   end
 
   @doc false
@@ -42,7 +49,29 @@ defmodule MixerHosted.Application do
 
     case {hosted.role, hosted.identity_startup} do
       {:processor, %StartupConfig{mode: :disabled}} when installation == :disabled ->
-        base
+        true = hosted.processor_profile == :builds_v1
+        true = hosted.create_repo == nil
+        true = hosted.repo[:username] == MixerHosted.Builds.ProcessorProfile.role()
+
+        true =
+          hosted.repo[:after_connect] ==
+            {MixerHosted.Builds.ProcessorAdmission, :after_connect, []}
+
+        true = Keyword.keys(hosted.oban[:queues]) == [:builds]
+        true = hosted.oban[:engine] == Oban.Engines.Basic
+        true = hosted.oban[:name] == Oban
+
+        true =
+          hosted.oban ==
+            MixerHosted.Builds.ProcessorProfile.oban(
+              Keyword.fetch!(hosted.oban[:queues], :builds)
+            )
+
+        [
+          MixerHosted.Repo,
+          {MixerHosted.Builds.ProcessorAdmission, :builds_v1},
+          {Oban, hosted.oban}
+        ]
 
       {:api, %StartupConfig{} = identity} ->
         identity_children =

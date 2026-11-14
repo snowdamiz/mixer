@@ -168,7 +168,8 @@ defmodule MixerHosted.BrowserAuth.Store do
         runtime.expected_roles,
         deadline,
         runtime.browser_config.scope ==
-          "openid mixer.workspace.read mixer.build.read mixer.build.create"
+          "openid mixer.workspace.read mixer.build.read mixer.build.create",
+        MixerHosted.RuntimeConfig.installed_processor_profile()
       )
 
     :relation_surface_verified

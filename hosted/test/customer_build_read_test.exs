@@ -273,6 +273,13 @@ defmodule R1026.CustomerBuildReadTest do
     Application.put_env(:mixer_hosted, MixerHosted.Repo, settings ++ [username: "r1026_runtime"])
     Application.put_env(:r1026, Admin, settings ++ [username: "r1026_admin"])
     start_supervised!({MixerHosted.Repo, settings ++ [username: "r1026_runtime"]})
+
+    assert %{rows: [[1]]} =
+             Ecto.Adapters.SQL.query!(MixerHosted.Repo, "SELECT 1", [],
+               queue: true,
+               timeout: 5_000
+             )
+
     {:ok, _} = Application.ensure_all_started(:oban)
     start_supervised!({Oban, repo: Admin, queues: false, plugins: false, testing: :manual})
     handler = {__MODULE__, self()}
@@ -285,6 +292,131 @@ defmodule R1026.CustomerBuildReadTest do
           active = Process.get({MixerHosted.CustomerBuilds.Context, :active})
 
           if event == [:mixer_hosted, :customer_builds, :transaction] do
+            # R2676 fixture-only observation of the actual result before legacy flattening.
+            try do
+              destination = System.get_env("R2676_BEGIN_EVIDENCE")
+
+              if is_binary(destination) and meta.query == "begin" do
+                raw =
+                  case meta.result do
+                    {:ok, %Postgrex.Result{} = value} ->
+                      %{
+                        tag: "ok",
+                        module: "Postgrex.Result",
+                        command: value.command,
+                        connection_id: value.connection_id,
+                        num_rows: value.num_rows
+                      }
+
+                    {:error, %{__struct__: module} = error} ->
+                      message = Map.get(error, :message) || ""
+
+                      message =
+                        if is_binary(message) and byte_size(message) <= 4096,
+                          do: message,
+                          else: ""
+
+                      postgres = Map.get(error, :postgres) || %{}
+
+                      tokens =
+                        for token <- [
+                              "connection not available",
+                              "connection is closed",
+                              "queue",
+                              "queue_timeout",
+                              "checkout",
+                              "timeout",
+                              "timed out",
+                              "tcp",
+                              "closed",
+                              "disconnect",
+                              "ownership",
+                              "idle",
+                              "not started",
+                              "refused"
+                            ],
+                            String.contains?(String.downcase(message), token),
+                            do: token
+
+                      %{
+                        tag: "error",
+                        module:
+                          if(module in [Postgrex.Error, DBConnection.ConnectionError],
+                            do: inspect(module),
+                            else: "redacted"
+                          ),
+                        severity:
+                          if(Map.get(error, :severity) in [:error, :fatal, :panic],
+                            do: Map.get(error, :severity),
+                            else: :redacted
+                          ),
+                        reason_atom:
+                          if(
+                            Map.get(error, :reason) in [
+                              :timeout,
+                              :closed,
+                              :queue_timeout,
+                              :disconnected
+                            ],
+                            do: Map.get(error, :reason),
+                            else: :redacted
+                          ),
+                        postgres_code:
+                          if(
+                            Map.get(postgres, :code) in [
+                              :query_canceled,
+                              :connection_exception,
+                              :connection_does_not_exist
+                            ],
+                            do: Map.get(postgres, :code),
+                            else: :redacted
+                          ),
+                        pg_code:
+                          if(Map.get(postgres, :pg_code) in ["57014", "08000", "08003", "08006"],
+                            do: Map.get(postgres, :pg_code),
+                            else: :redacted
+                          ),
+                        message_bytes: byte_size(message),
+                        message_sha256:
+                          Base.encode16(:crypto.hash(:sha256, message), case: :lower),
+                        message_allowlisted_tokens: tokens
+                      }
+
+                    {:error, reason} when is_atom(reason) ->
+                      %{
+                        tag: "error",
+                        reason_atom:
+                          if(reason in [:timeout, :closed, :queue_timeout, :disconnected],
+                            do: reason,
+                            else: :redacted
+                          )
+                      }
+
+                    _ ->
+                      %{tag: "other", values: "redacted"}
+                  end
+
+                record =
+                  Map.merge(raw, %{
+                    test: name,
+                    query: meta.query,
+                    monotonic_ms: System.monotonic_time(:millisecond),
+                    remaining_deadline_ms:
+                      active && active.deadline - System.monotonic_time(:millisecond),
+                    marker: active && active.marker
+                  })
+
+                with {:ok, encoded} <- Jason.encode(record),
+                     true <- byte_size(encoded) <= 4096 do
+                  File.write(destination, encoded <> "\n", [:append])
+                end
+              end
+            rescue
+              _ -> :ok
+            catch
+              _, _ -> :ok
+            end
+
             result =
               case meta.result do
                 {:ok, %Postgrex.Result{command: command, connection_id: backend}} ->

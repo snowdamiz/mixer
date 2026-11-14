@@ -106,7 +106,11 @@ defmodule MixerHosted.CustomerBuilds.Inputs do
         scope,
         fn c ->
           Context.effect!(c, CreateRepo, "build.create", c.target, fn _ ->
-            CreateSchema.admit!(CreateRepo)
+            CreateSchema.admit!(
+              CreateRepo,
+              MixerHosted.RuntimeConfig.installed_processor_profile()
+            )
+
             MixerHosted.BrowserAuth.ActiveCreate.require_browser_current!(c)
 
             {predicate, params} =

@@ -44,8 +44,8 @@ defmodule MixerHosted.Identity.StartupConfigTest do
     settings = MixerHosted.RuntimeConfig.load!(StartupFixture.foundation_env())
     assert settings.identity_startup.mode == :disabled
 
-    for role <- [:api, :processor] do
-      refute Enum.any?(MixerHosted.Application.children({%{settings | role: role}, :disabled}), fn
+    for role_settings <- [settings, StartupFixture.processor_config()] do
+      refute Enum.any?(MixerHosted.Application.children({role_settings, :disabled}), fn
                {MixerHosted.Identity.KeyOwnerSupervisor, _} -> true
                _ -> false
              end)

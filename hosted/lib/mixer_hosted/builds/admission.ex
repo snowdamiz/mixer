@@ -484,12 +484,42 @@ defmodule MixerHosted.Builds.Admission do
     # isolation or silently count against an old snapshot.
     case repo.query!("SELECT current_setting('transaction_isolation')") do
       %{rows: [["read committed"]]} ->
-        repo.query!("SELECT pg_advisory_xact_lock(1296648258, 1)")
-        {:ok, lock_capacity_rows(repo, scope)}
+        if MixerHosted.RuntimeConfig.installed_processor_profile() == :builds_v1 or
+             repo.query!("SELECT current_user::text").rows == [
+               [MixerHosted.Builds.ProcessorProfile.role()]
+             ] do
+          repo.query!(
+            "SELECT public.mixer_build_capacity_lock_v1($1::text,$2::text)",
+            [Map.get(scope, :organization_id), Map.get(scope, :platform)]
+          )
+
+          {:ok, read_capacity_rows(repo, scope)}
+        else
+          repo.query!("SELECT pg_advisory_xact_lock(1296648258, 1)")
+          {:ok, lock_capacity_rows(repo, scope)}
+        end
 
       _ ->
         {:error, :unsupported_admission_isolation}
     end
+  end
+
+  defp read_capacity_rows(repo, scope) do
+    %{
+      fleet: repo.one(aggregate_query(FleetCapacity, %{id: "fleet"})),
+      platform:
+        if(Map.has_key?(scope, :platform),
+          do: repo.one(aggregate_query(FleetPlatformCapacity, Map.take(scope, [:platform])))
+        ),
+      organization:
+        if(Map.has_key?(scope, :organization_id),
+          do: repo.one(aggregate_query(OrganizationCapacity, Map.take(scope, [:organization_id])))
+        ),
+      capacity:
+        if(Map.has_key?(scope, :organization_id) and Map.has_key?(scope, :platform),
+          do: repo.one(capacity_query(scope))
+        )
+    }
   end
 
   defp lock_capacity_rows(repo, scope) do

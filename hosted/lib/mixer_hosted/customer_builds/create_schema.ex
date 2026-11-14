@@ -79,7 +79,7 @@ defmodule MixerHosted.CustomerBuilds.CreateSchema do
     ]
   end
 
-  defp policies!(repo) do
+  defp policies!(repo, profile) do
     [original_search_path] =
       MixerHosted.Authorization.Postgres.Session.one!(
         repo,
@@ -101,7 +101,7 @@ defmodule MixerHosted.CustomerBuilds.CreateSchema do
           pg_get_expr(p.polqual,p.polrelid,false),pg_get_expr(p.polwithcheck,p.polrelid,false)
         FROM pg_policy p JOIN pg_class c ON c.oid=p.polrelid JOIN pg_namespace n ON n.oid=c.relnamespace
         WHERE n.nspname='public' AND c.relname IN ('mixer_builds','oban_jobs','mixer_customer_build_inputs')
-        ORDER BY c.relname,p.polname LIMIT 12
+        ORDER BY c.relname,p.polname LIMIT #{if profile == :builds_v1, do: 17, else: 12}
         """).rows
       after
         MixerHosted.Authorization.Postgres.Session.query!(
@@ -111,11 +111,23 @@ defmodule MixerHosted.CustomerBuilds.CreateSchema do
         )
       end
 
-    if rows != expected_policies(), do: repo.rollback(:authorization_unavailable)
+    if rows != expected_policies(profile), do: repo.rollback(:authorization_unavailable)
     :ok
   end
 
-  defp expected_policies do
+  @doc false
+  def expected_policies(profile \\ nil) do
+    extra =
+      case profile do
+        nil -> []
+        :builds_v1 -> MixerHosted.Builds.ProcessorProfile.create_policies()
+        _ -> raise ArgumentError, "unsupported installed processor profile"
+      end
+
+    (legacy_policies() ++ extra) |> Enum.sort_by(fn [t, n | _] -> {t, n} end)
+  end
+
+  defp legacy_policies do
     [
       [
         "mixer_builds",
@@ -211,8 +223,8 @@ defmodule MixerHosted.CustomerBuilds.CreateSchema do
     ]
   end
 
-  def compatibility!(repo) do
-    policies!(repo)
+  def compatibility!(repo, profile \\ nil) do
+    policies!(repo, profile)
 
     [safe] =
       MixerHosted.Authorization.Postgres.Session.one!(
@@ -252,8 +264,8 @@ defmodule MixerHosted.CustomerBuilds.CreateSchema do
     :ok
   end
 
-  def admit!(repo) do
-    compatibility!(repo)
+  def admit!(repo, profile \\ nil) do
+    compatibility!(repo, profile)
 
     [[true]] =
       MixerHosted.Authorization.Postgres.Session.query!(repo, """

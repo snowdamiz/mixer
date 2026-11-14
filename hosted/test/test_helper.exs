@@ -1,4 +1,4 @@
-ExUnit.start()
+ExUnit.start(assert_receive_timeout: 1_000)
 Logger.configure(level: :warning)
 Application.ensure_all_started(:phoenix)
 Application.ensure_all_started(:ecto_sql)

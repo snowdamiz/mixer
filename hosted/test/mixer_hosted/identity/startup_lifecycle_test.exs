@@ -65,23 +65,7 @@ defmodule MixerHosted.Identity.StartupLifecycleTest do
   end
 
   test "IS01 actual disabled processor starts no endpoint or identity owner" do
-    disabled = StartupConfig.load!(%{}, :processor, [])
-
-    settings =
-      MixerHosted.RuntimeConfig.load!(
-        Map.put(StartupFixture.foundation_env(), "MIXER_HOSTED_ROLE", "processor")
-      )
-
-    StartupFixture.app_settings(disabled)
-    Application.put_env(:mixer_hosted, :role, :processor)
-    Application.put_env(:mixer_hosted, Oban, settings.oban)
-    {hosted, :disabled} = Application.fetch_env!(:mixer_hosted, :startup)
-
-    Application.put_env(
-      :mixer_hosted,
-      :startup,
-      {%{hosted | role: :processor, oban: settings.oban}, :disabled}
-    )
+    settings = StartupFixture.processor_runtime!()
 
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
     assert Process.whereis(KeyOwner) == nil
@@ -89,6 +73,39 @@ defmodule MixerHosted.Identity.StartupLifecycleTest do
 
     assert Enum.map(Oban.config().queues, fn {name, options} -> {name, options[:limit]} end) ==
              settings.oban[:queues]
+
+    assert settings.processor_profile == :builds_v1
+    assert MixerHosted.RuntimeConfig.installed_processor_profile() == :builds_v1
+
+    assert settings.repo[:after_connect] ==
+             {MixerHosted.Builds.ProcessorAdmission, :after_connect, []}
+
+    assert {:ok, {^settings, :disabled}} = MixerHosted.Application.startup()
+
+    assert %{rows: [["mixer_build_processor", "mixer_build_processor", database]]} =
+             MixerHosted.Repo.query!(
+               "SELECT session_user::text,current_user::text,current_database()::text"
+             )
+
+    assert database == settings.repo[:database]
+
+    assert :admitted ==
+             Supervisor.which_children(MixerHosted.Supervisor)
+             |> List.keyfind(MixerHosted.Builds.ProcessorAdmission, 0)
+             |> elem(1)
+             |> :sys.get_state()
+
+    StartupFixture.evidence("processor-lifecycle.json", %{
+      actualApplication: true,
+      profile: "builds_v1",
+      restrictedLogin: true,
+      admissionBarrier: true,
+      endpointAbsent: true,
+      identityOwnerAbsent: true,
+      queues: ["builds"],
+      database: database,
+      transport: "local_plain_pg_development"
+    })
   end
 
   test "IS03 actual configured application owns an empty bounded component before endpoint" do

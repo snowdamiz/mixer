@@ -40,10 +40,10 @@ defmodule MixerHosted.RuntimeConfigTest do
   end
 
   test "processor has separate bounded queues and no HTTP endpoint" do
-    config = RuntimeConfig.load!(Map.put(env(), "MIXER_HOSTED_ROLE", "processor"))
+    config = RuntimeConfig.load!(processor_env())
 
     assert Keyword.keys(config.oban[:queues]) ==
-             [:builds, :signing, :submissions, :releases, :telemetry, :billing]
+             [:builds]
 
     assert Enum.all?(config.oban[:queues], fn {_, limit} -> limit == 1 end)
     assert config.endpoint == [server: false]
@@ -84,11 +84,39 @@ defmodule MixerHosted.RuntimeConfigTest do
     end
   end
 
+  defp processor_env do
+    env()
+    |> Map.merge(%{
+      "MIXER_HOSTED_ROLE" => "processor",
+      "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+      "MIXER_DATABASE_USER" => "mixer_build_processor"
+    })
+  end
+
+  test "processor requires explicit profile and direct login and refuses other queues" do
+    for bad <- [
+          Map.delete(processor_env(), "MIXER_PROCESSOR_PROFILE"),
+          Map.put(processor_env(), "MIXER_DATABASE_USER", "mixer_fixture"),
+          Map.put(processor_env(), "MIXER_QUEUE_SIGNING_CONCURRENCY", "1"),
+          Map.put(processor_env(), "MIXER_PROCESSOR_PROFILE", "unknown")
+        ] do
+      assert_raise ArgumentError, fn -> RuntimeConfig.load!(bad) end
+    end
+
+    cfg = RuntimeConfig.load!(processor_env())
+    assert cfg.processor_profile == :builds_v1
+    assert cfg.repo[:after_connect] == {MixerHosted.Builds.ProcessorAdmission, :after_connect, []}
+
+    assert [MixerHosted.Repo, {MixerHosted.Builds.ProcessorAdmission, :builds_v1}, {Oban, _}] =
+             MixerHosted.Application.children({cfg, :disabled})
+
+    assert cfg.database_connection_bound == cfg.repo[:pool_size] + 1
+  end
+
   test "queue bounds cannot be widened or interpreted as arbitrary atoms" do
     for value <- ["0", "9", "infinity", "1.0"] do
       bad =
-        env()
-        |> Map.put("MIXER_HOSTED_ROLE", "processor")
+        processor_env()
         |> Map.put("MIXER_QUEUE_BUILDS_CONCURRENCY", value)
 
       assert_raise ArgumentError, fn -> RuntimeConfig.load!(bad) end

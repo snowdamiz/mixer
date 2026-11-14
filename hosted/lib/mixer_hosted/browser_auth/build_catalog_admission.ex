@@ -4,8 +4,10 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
   alias MixerHosted.BrowserAuth.RelationCatalog.Unavailable
 
   # Fixed metadata only. Never executes the capabilities as the lifecycle login.
-  def check!(repo, roles, deadline, create_enabled \\ false) do
-    if create_enabled, do: MixerHosted.CustomerBuilds.CreateSchema.compatibility!(repo)
+  def check!(repo, roles, deadline, create_enabled \\ false, processor_profile \\ nil) do
+    if create_enabled,
+      do: MixerHosted.CustomerBuilds.CreateSchema.compatibility!(repo, processor_profile)
+
     true = repo.in_transaction?()
 
     %{rows: [[backend, 17]]} =

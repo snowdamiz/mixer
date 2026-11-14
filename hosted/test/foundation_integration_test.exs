@@ -154,9 +154,25 @@ defmodule MixerHosted.FoundationIntegrationTest do
     assert %{rows: [[0]]} = Repo.query!("SELECT count(*) FROM oban_jobs")
   end
 
-  test "processor completes a delayed job without any HTTP endpoint or request" do
-    Application.stop(:mixer_hosted)
-    boot("processor")
+  test "test-owned foundation runtime completes a delayed job without any HTTP endpoint or request" do
+    assert :ok = Application.stop(:mixer_hosted)
+    refute Process.whereis(MixerHosted.Supervisor)
+
+    # This generic worker proves Oban foundation behavior, not the builds-only processor profile.
+    start_supervised!({Repo, local_repo()})
+
+    start_supervised!(
+      {Oban,
+       name: Oban,
+       repo: Repo,
+       queues: [releases: 1],
+       plugins: [],
+       peer: Oban.Peers.Database,
+       stager: [interval: 1_000],
+       shutdown_grace_period: 15_000}
+    )
+
+    assert Oban.config().queues[:releases][:limit] == 1
     assert Process.whereis(MixerHostedWeb.Endpoint) == nil
 
     assert {:ok, job} =

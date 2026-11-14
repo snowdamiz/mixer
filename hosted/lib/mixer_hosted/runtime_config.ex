@@ -7,12 +7,30 @@ defmodule MixerHosted.RuntimeConfig do
   """
   @derive {Inspect, only: [:role, :database_connection_bound]}
   @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound, :identity_startup]
-  defstruct @enforce_keys ++ [create_repo: nil]
+  defstruct @enforce_keys ++ [create_repo: nil, processor_profile: nil]
 
   @queues [:builds, :signing, :submissions, :releases, :telemetry, :billing]
 
   def load!(env) when is_map(env) do
     role = role!(required!(env, "MIXER_HOSTED_ROLE"))
+
+    processor_profile =
+      case Map.get(env, "MIXER_PROCESSOR_PROFILE") do
+        "builds_v1" -> :builds_v1
+        nil when role == :api -> nil
+        _ -> invalid!("MIXER_PROCESSOR_PROFILE")
+      end
+
+    if role == :processor and required!(env, "MIXER_DATABASE_USER") != "mixer_build_processor",
+      do: invalid!("MIXER_DATABASE_USER")
+
+    if role == :processor do
+      for q <- @queues -- [:builds] do
+        key = "MIXER_QUEUE_" <> String.upcase(Atom.to_string(q)) <> "_CONCURRENCY"
+        if Map.has_key?(env, key), do: invalid!(key)
+      end
+    end
+
     hostname = hostname!(required!(env, "MIXER_DATABASE_HOST"))
     pool_size = integer!(env, "MIXER_DATABASE_POOL_SIZE", 8, 2..20)
 
@@ -47,6 +65,16 @@ defmodule MixerHosted.RuntimeConfig do
       ]
     ]
 
+    repo =
+      if role == :processor,
+        do:
+          Keyword.put(
+            repo,
+            :after_connect,
+            {MixerHosted.Builds.ProcessorAdmission, :after_connect, []}
+          ),
+        else: repo
+
     create_repo =
       if Map.get(env, "MIXER_BUILD_CREATE_ENABLED", "false") == "true" and role == :api do
         repo
@@ -59,7 +87,7 @@ defmodule MixerHosted.RuntimeConfig do
 
     queues =
       if role == :processor do
-        for queue <- @queues do
+        for queue <- [:builds] do
           key = "MIXER_QUEUE_" <> String.upcase(Atom.to_string(queue)) <> "_CONCURRENCY"
           {queue, integer!(env, key, 1, 1..8)}
         end
@@ -69,23 +97,41 @@ defmodule MixerHosted.RuntimeConfig do
 
     %__MODULE__{
       role: role,
+      processor_profile: processor_profile,
       create_repo: create_repo,
       identity_startup: identity_startup,
       repo: repo,
-      oban: [
-        repo: MixerHosted.Repo,
-        insert_trigger: role != :api,
-        notifier: Oban.Notifiers.Postgres,
-        queues: queues,
-        plugins: if(role == :api, do: false, else: []),
-        peer: if(role == :api, do: false, else: Oban.Peers.Database),
-        stager: [interval: if(role == :api, do: :infinity, else: 1_000)],
-        shutdown_grace_period: 15_000
-      ],
+      oban:
+        if(role == :processor,
+          do: MixerHosted.Builds.ProcessorProfile.oban(Keyword.fetch!(queues, :builds)),
+          else: [
+            repo: MixerHosted.Repo,
+            name: Oban,
+            engine: Oban.Engines.Basic,
+            insert_trigger: role != :api,
+            notifier: Oban.Notifiers.Postgres,
+            queues: queues,
+            plugins: if(role == :api, do: false, else: []),
+            peer: if(role == :api, do: false, else: Oban.Peers.Database),
+            stager: [interval: if(role == :api, do: :infinity, else: 1_000)],
+            shutdown_grace_period: 15_000
+          ]
+        ),
       endpoint: endpoint!(env, role),
       # Oban's Postgres notifier holds one additional direct connection.
       database_connection_bound: pool_size + 1 + if(is_nil(create_repo), do: 0, else: 2)
     }
+  end
+
+  @doc false
+  def installed_processor_profile do
+    case MixerHosted.Application.startup() do
+      {:ok, {%__MODULE__{processor_profile: profile}, _}} when profile in [nil, :builds_v1] ->
+        profile
+
+      _ ->
+        nil
+    end
   end
 
   defp role!("api"), do: :api

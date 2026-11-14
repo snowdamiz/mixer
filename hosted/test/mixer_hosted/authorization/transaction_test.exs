@@ -760,7 +760,8 @@ defmodule MixerHosted.Authorization.TransactionTest do
   end
 
   test "fresh snapshots select surviving membership rows without modifying the initial Context" do
-    F.sql("UPDATE public.mixer_authz_memberships SET expires_at=$1", [F.now() + 1])
+    expires_at = F.now() + 3
+    F.sql("UPDATE public.mixer_authz_memberships SET expires_at=$1", [expires_at])
 
     F.sql(
       "INSERT INTO public.mixer_authz_memberships VALUES ('surviving','person','org','project','exact_project','viewer',true,0,NULL,8)"
@@ -768,8 +769,10 @@ defmodule MixerHosted.Authorization.TransactionTest do
 
     assert {:ok, :survived} =
              F.run(fn ctx ->
+               assert F.now() < expires_at
                assert Enum.map(ctx.snapshot.memberships, & &1.id) == ["member", "surviving"]
-               Process.sleep(1_100)
+               F.await_expiry(%{expires_at: expires_at})
+               assert F.now() >= expires_at
                fresh = Context.checkpoint!(ctx, Runtime, "artifact.read", F.target())
                assert Enum.map(fresh.memberships, & &1.id) == ["surviving"]
                assert Enum.map(ctx.snapshot.memberships, & &1.id) == ["member", "surviving"]

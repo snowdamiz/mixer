@@ -579,6 +579,11 @@ defmodule MixerHosted.Builds.CoordinatorOperationIntentTest do
       [[_, "Lock", "advisory", _] = row] ->
         row
 
+      [[pid, nil, nil, "SELECT pg_advisory_xact_lock(1296648258, 1)"]]
+      when is_integer(pid) and pid > 0 ->
+        Process.sleep(10)
+        r836_wait_blocked(blocker, remaining - 1)
+
       [] ->
         Process.sleep(10)
         r836_wait_blocked(blocker, remaining - 1)

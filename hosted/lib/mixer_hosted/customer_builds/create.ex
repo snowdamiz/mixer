@@ -15,7 +15,11 @@ defmodule MixerHosted.CustomerBuilds.Create do
         target,
         fn c ->
           Context.effect!(c, CreateRepo, "build.create", c.target, fn _ ->
-            CreateSchema.admit!(CreateRepo)
+            CreateSchema.admit!(
+              CreateRepo,
+              MixerHosted.RuntimeConfig.installed_processor_profile()
+            )
+
             MixerHosted.BrowserAuth.ActiveCreate.check_current!(c)
 
             rows =
