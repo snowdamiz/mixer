@@ -1,0 +1,389 @@
+{
+  "id": "R2944_VM_GLOBALS_ISOLATION",
+  "status": "PASS_NARROW_SAME_PROCESS_OVERLAPPING_LIFETIMES",
+  "scope": "Private new test afterimage only; no canonical, product, Cargo, Git, index, authority, native or CI writes; independent root review/adoption separate.",
+  "budgets": {
+    "inclusive_seconds": 750,
+    "cargo_debug_builds": 1,
+    "jobs": 4,
+    "exact_parent": 1,
+    "blanket_ignored": 1,
+    "max_simultaneous_runtime_owners": 2
+  },
+  "actual_allocations": {
+    "cargo_builds": 1,
+    "payload_invocations": 2
+  },
+  "custodian": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py",
+    "bytes": 7268,
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+  },
+  "semantics_sources": [
+    "https://webassembly.github.io/spec/core/exec/modules.html#alloc-global",
+    "https://webassembly.github.io/spec/core/exec/instructions.html#exec-global-get",
+    "https://webassembly.github.io/spec/core/exec/instructions.html#exec-global-set"
+  ],
+  "limitations": [
+    "Same-process overlapping runtime lifetimes are exercised at synchronous output emission before outer cleanup; guest instructions are not interleaved or resumed across instances.",
+    "Both output observations precede or occur during nesting. There is no post-inner guest read of the retained outer runtime through this consuming API.",
+    "No general reactor/export API, imported-global aliasing, optimized build, full-suite, native, physical-device, release, CI, W08 or GA qualification."
+  ],
+  "owning_api": {
+    "command_abi": "vm/src/experimental/swift.rs:650 requires only memory and _start exports",
+    "lifetime_boundary": "vm/src/experimental_swift_reactor/command.rs:61-89 executes guest, writes stdout while instance owned, then cleanup_owned",
+    "execution": "execute_swift_command consumes sealed command; nested native Write callback executes inner command"
+  },
+  "source_revision": "No Git operation performed; current canonical bytes identified by exact source manifest/tree digest.",
+  "historical_baseline_revision": "fc73f1516616abd680fe1f995e572a16bf21cc4b (R2852 receipt; not asserted current)",
+  "canonical_source": {
+    "files": 163,
+    "bytes": 19799464,
+    "tree_sha256": "f9d2a89da031d2ce231133963b6c8a91440d4746b2bbe76e96427c43d99a9a94"
+  },
+  "afterimage": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/afterimages/vm/tests/differential_globals_isolation_consuming.rs",
+    "bytes": 17739,
+    "sha256": "4060ba5613168c9b15ec2039ef6c004a600284b21ab75c772667645699059eb3",
+    "canonical_preimage": null
+  },
+  "versions": {
+    "rustc-version": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo-version": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "node-version": "v22.23.3",
+    "rustfmt-version": "rustfmt 1.10.0-stable (b940084d7e 2026-09-28)"
+  },
+  "build_exit": 0,
+  "targets": {
+    "advertised": 56,
+    "compiled_unique": 56,
+    "artifact_records": 58,
+    "all_fresh": true,
+    "example_compiled": true
+  },
+  "replay_binary": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/replay/differential_globals_isolation_consuming",
+    "bytes": 2523536,
+    "sha256": "53326409c6fe4f8daf44f6cdbb0a9b3bdce97e6364bf8615c43642aea38ffb2d"
+  },
+  "runtime": {
+    "exact-parent": {
+      "exit": 0,
+      "stdout": {
+        "bytes": 16995,
+        "sha256": "9c265d857f89a504b0643e297ae4307af1bc480d18c73d733363fd658081566c"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "pid": 10036,
+      "same_process_overlap_pairs": 3,
+      "consuming_cleanups": 6,
+      "fourteen_zero_currents_each": true,
+      "zero_tickets_each": true,
+      "no_cleanup_invariant_each": true,
+      "trap_cleanups": 1,
+      "exact_raw_output_parities": 6,
+      "fresh_exact_module_reinstantiation": true,
+      "guest_instruction_interleaving": false,
+      "maximum_live_runtime_owners": 2
+    },
+    "blanket-ignored": {
+      "exit": 0,
+      "stdout": {
+        "bytes": 16995,
+        "sha256": "25b77977f31869de61abb735d05aa967edd2f62eb085db26aec5676293a13190"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "pid": 10039,
+      "same_process_overlap_pairs": 3,
+      "consuming_cleanups": 6,
+      "fourteen_zero_currents_each": true,
+      "zero_tickets_each": true,
+      "no_cleanup_invariant_each": true,
+      "trap_cleanups": 1,
+      "exact_raw_output_parities": 6,
+      "fresh_exact_module_reinstantiation": true,
+      "guest_instruction_interleaving": false,
+      "maximum_live_runtime_owners": 2
+    }
+  },
+  "totals": {
+    "invocations": 2,
+    "same_process_overlap_pairs": 6,
+    "runtimes_consumed": 12,
+    "trap_cleanups": 2,
+    "scalar_observations": 144,
+    "new_unknown_process_or_ledger_chains": 0
+  },
+  "canonical_preservation": {
+    "files": 163,
+    "all_equal": true,
+    "changed": {},
+    "new_canonical_test_absent": true
+  },
+  "cleanup": {
+    "all_managed_commands_terminal": true,
+    "owned_groups_absent": true,
+    "all_runtime_ledgers_consumed": true,
+    "historical_failures_preserved": true,
+    "holds_accessed_or_released": false,
+    "removed_owned_directories": [
+      "target",
+      "cargo-home",
+      "cache",
+      "tmp"
+    ],
+    "replay_binary_retained_hash_exact": true
+  },
+  "commands": [
+    {
+      "label": "format-afterimage",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--edition",
+        "2021",
+        "--config",
+        "skip_children=true",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/afterimages/vm/tests/differential_globals_isolation_consuming.rs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 9532,
+      "pgid": 9532,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.16549241601023823,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "rustc-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 9533,
+      "pgid": 9533,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05408270808402449,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "cargo-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 9534,
+      "pgid": 9534,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.048404542030766606,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "node-version",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/fnm/node-versions/v22.23.3/installation/bin/node",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 9535,
+      "pgid": 9535,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03382416593376547,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "rustfmt-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustfmt",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 9537,
+      "pgid": 9537,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04278545803390443,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "manifest-admission",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "metadata",
+        "--no-deps",
+        "--format-version=1",
+        "--features",
+        "experimental-swift-reactor",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/source/vm/Cargo.toml"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 9540,
+      "pgid": 9540,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.047996292007155716,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "fresh-debug-all-targets",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--no-run",
+        "--all-targets",
+        "--features",
+        "experimental-swift-reactor",
+        "--jobs",
+        "4",
+        "--message-format=json",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/source/vm/Cargo.toml"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/source/vm",
+      "pid": 9541,
+      "pgid": 9541,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 7.250667667016387,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "exact-parent",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/replay/differential_globals_isolation_consuming",
+        "--exact",
+        "globals_instances_isolate_and_consume",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/source/vm",
+      "pid": 10036,
+      "pgid": 10036,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.13894091709516943,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "blanket-ignored",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/replay/differential_globals_isolation_consuming",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/source/vm",
+      "pid": 10039,
+      "pgid": 10039,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06931308307684958,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "elapsed_seconds": 360.4905560016632,
+  "finished_utc": "2026-11-15T19:17:18.490563+00:00",
+  "private_directory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944",
+  "final_verification": {
+    "checked_utc": "2026-11-15T19:18:45.090827+00:00",
+    "compiled_source_files_exact": 164,
+    "canonical_source_files_exact": 163,
+    "new_canonical_preimage_still_null": true,
+    "afterimage_matches_compiled_source": true,
+    "module_bytes_exact": 3,
+    "output_comparison": [
+      {
+        "invocation": "exact-parent",
+        "pid": 10036,
+        "node_pid": 10038,
+        "node_and_mixer_raw_outputs_equal": 6,
+        "same_module_fresh_instance_outputs_equal": true
+      },
+      {
+        "invocation": "blanket-ignored",
+        "pid": 10039,
+        "node_pid": 10042,
+        "node_and_mixer_raw_outputs_equal": 6,
+        "same_module_fresh_instance_outputs_equal": true
+      }
+    ],
+    "replay_hash_exact": true,
+    "owned_target_cache_tmp_absent": true,
+    "new_builds_or_payloads": 0
+  },
+  "artifact_manifest": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/output-hashes.json",
+    "bytes": 5814,
+    "sha256": "c832086a5939662220baf305dd8810ea2dee3065ad570152db6f62a96658fed7"
+  },
+  "key_artifacts": {
+    "application-map.json": {
+      "bytes": 300,
+      "sha256": "7de39237498e6be671e32c716bf80f441b9644d85ecd4f8dc11fb6560cbd8e9e"
+    },
+    "REPORT.md": {
+      "bytes": 4460,
+      "sha256": "6dcbda0fb8a68bf42e0a7874d7902cb74e63efb188af381c28914ecd7ffdee23"
+    },
+    "source-manifest.json": {
+      "bytes": 25164,
+      "sha256": "2a0ed847cd62769900fde7f34774371575e7f8d3f5a270bb5d2b97647cd49727"
+    },
+    "compiled-source-manifest.json": {
+      "bytes": 25330,
+      "sha256": "4b336ffaf59a005590ae7fcb099e29cd3a762000a7fc76441b9135fe51877ddb"
+    },
+    "module-manifest.json": {
+      "bytes": 345,
+      "sha256": "885f20990f9325cf0e0ce3c5d8e1c2325b2cb3d32ebc690b13074576a43f36ab"
+    },
+    "logs/commands.json": {
+      "bytes": 5143,
+      "sha256": "ec0105793efc26bd55bc872b021ea7a899df61b528aced76031ea72644806175"
+    },
+    "final-verification.json": {
+      "bytes": 772,
+      "sha256": "ed1f8b8b24f343fc9fe7e3d5b6d4a4fd9b153e88381c8ca050a3b5ff4294a823"
+    },
+    "replay.txt": {
+      "bytes": 3339,
+      "sha256": "34d8e93fe886c32c1cd654c3fb8e05dc0569ad537c9a010fc6533cb44ec70644"
+    }
+  },
+  "finalized_elapsed_seconds": 447.09700202941895,
+  "full_receipt": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/vm-globals-isolation-r2944/receipt.json",
+    "bytes": 14948,
+    "sha256": "a546ce6fe4c747dac558f708866119f125192748c256e43c1ed56755ca46ee1e"
+  }
+}
