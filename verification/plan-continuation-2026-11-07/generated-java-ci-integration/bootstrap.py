@@ -170,7 +170,18 @@ def extract_host(run, archive, expanded, toolchain):
     # include stderr so a contradictory diagnostic cannot be silently ignored.
     signature = run('swift-package-signature', ['/usr/sbin/pkgutil', '--check-signature', archive],
                     diagnostics=True)
-    validate_host_signature(signature)
+    try:
+        validate_host_signature(signature)
+    except RuntimeError as error:
+        if str(error) == 'Swift package is not admitted by macOS package trust':
+            raw = signature.encode('utf-8')
+            text = raw[:2048].decode('utf-8', errors='ignore')
+            error.package_trust_diagnostic = {
+                'phase': 'swift-package-signature', 'combined_signature': text,
+                'original_characters': len(signature), 'original_utf8_bytes': len(raw),
+                'reported_utf8_bytes': len(text.encode('utf-8')), 'report_utf8_limit': 2048,
+                'truncated': text != signature}
+        raise
     run('swift-package-expand', ['/usr/sbin/pkgutil', '--expand', archive, expanded])
     candidates = [p for p in (expanded / 'Payload', expanded / f'{TAG}-osx-package.pkg/Payload') if p.is_file()]
     require(len(candidates) == 1, 'Official Swift package Payload topology changed')
@@ -384,6 +395,10 @@ def main():
         receipt['status'] = 'passed-hosted-java-crosscompile-only'
     except Exception as error:
         receipt['error'] = str(error)
+        if type(error) is RuntimeError and str(error) == 'Swift package is not admitted by macOS package trust':
+            diagnostic = getattr(error, 'package_trust_diagnostic', None)
+            if type(diagnostic) is dict:
+                receipt['package_trust_failure'] = diagnostic
     finally:
         terminal = (commands is not None and (not commands.records or commands.custody_terminal()) and
                     (not integration_started or integration_terminal))
@@ -399,7 +414,9 @@ def main():
         if not terminal or not receipt['cleanup']['owned_removed']:
             receipt['status'] = 'failed'
         print(json.dumps({'status': receipt['status'], 'error': receipt.get('error'),
-                          'integration_failure': receipt.get('integration_failure')}), flush=True)
+                          'integration_failure': receipt.get('integration_failure'),
+                          **({'package_trust_failure': receipt['package_trust_failure']}
+                             if 'package_trust_failure' in receipt else {})}), flush=True)
         authority.save(out / 'bootstrap-receipt.json', receipt)
     return 0 if receipt['status'] == 'passed-hosted-java-crosscompile-only' else 1
 
