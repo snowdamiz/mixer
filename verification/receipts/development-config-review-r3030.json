@@ -1,0 +1,143 @@
+{
+  "id": "R3030",
+  "status": "PASS_CHANGED_FIX_SCOPE",
+  "findings": [],
+  "scope": "R3002 minimal configuration guard and ordinary focused test delta; retained valid synthetic protocol proof",
+  "baseline_ordinary_test": {
+    "bytes": 3623,
+    "sha256": "03c168f709cb03308c41eab0f48cffa44d19ad1fbf9947ecee4d40d3fc8f77de",
+    "exact_delta_reviewed": true,
+    "other_tests_byte_unchanged": true
+  },
+  "full_raw_first_failure_and_counts_independently_read": true,
+  "strict_compile_stderr_independently_read": true,
+  "review_first_recorded_clock_UTC": "2026-11-15 19:37:07",
+  "review_final_verification_clock_UTC": "2026-11-15 19:40:13",
+  "recorded_elapsed_seconds": 186,
+  "source_revision_context": "7c1392dfffc190acce6cc3ad2a38aed03ab70a1d",
+  "source_revision_basis": "supplied context; no Git command",
+  "report": "verification/local/development-config-review-r3030/REPORT.md",
+  "packet": "verification/local/development-config-fix-r3002",
+  "product": {
+    "bytes": 3930,
+    "sha256": "4a7a9b88e68420089dd911a58ecf333f097fb57d3d55d191da4ebda4ffdc8b1b",
+    "baseline_bytes": 3302,
+    "baseline_sha256": "5165a32006f8086d9fdcc6a813f16b419697478b0ac946804e12aa052bf41cd8",
+    "exact_delta": "configuration helper, call before connect, documentation only"
+  },
+  "worker": {
+    "bytes": 14941,
+    "sha256": "7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24",
+    "unchanged": true,
+    "fresh_execution": false
+  },
+  "ordinary_test": {
+    "bytes": 6251,
+    "sha256": "359b7756352c8a912f20006dcf66b7e6ca2ed9ba80e713e9aded570034d4aef8",
+    "invalid_ports": 12,
+    "invalid_worker_token_inputs": 15,
+    "actions_per_case": 3,
+    "valid_synthetic_loopback_exchanges": 3
+  },
+  "retained_evidence": {
+    "focused": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "raw_trace_read": true,
+      "rerun": false
+    },
+    "strict_Mix_compile": "recorded PASS, not rerun",
+    "strict_Node_compile": "recorded PASS, not rerun",
+    "full": {
+      "passed": 909,
+      "failed": 1,
+      "invalid": 0,
+      "skipped": 2,
+      "registered": 912,
+      "exit": 2
+    },
+    "full_failure": "R3002 private-copy canonical audit golden fixture closure omission",
+    "R2972_failure_preserved": true,
+    "R3002_failure_preserved": true
+  },
+  "full_regression_gate": "PENDING_R3032_COMPLETE_FIXTURE_RUN",
+  "full_regression_green": false,
+  "unchanged_contracts": [
+    "normalization",
+    "operation/ref binding",
+    "observation validation",
+    "socket closure",
+    "connect/receive timeouts",
+    "loopback framing",
+    "default disabled",
+    "worker startup"
+  ],
+  "remaining_configuration_type_exit_holes_found": 0,
+  "blanket_exit_catch_added": false,
+  "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+  "custodian_globals": "explicit dictionary",
+  "managed_command_metadata": "verification/local/development-config-review-r3030/commands/commands.json",
+  "bootstrap_terminal_reads": 6,
+  "max_total_terminal_read_invocations": 8,
+  "app_runtime_starts": 0,
+  "compiler_starts": 0,
+  "postgres_starts": 0,
+  "listener_starts": 0,
+  "children": 0,
+  "Git_commands": 0,
+  "canonical_or_source_authority_writes": false,
+  "held_resources_accessed": false,
+  "holds_released": false,
+  "adoption": false,
+  "activation": false,
+  "publication": false,
+  "GA": false,
+  "limitations": [
+    "Source/evidence review only; no new application execution",
+    "Valid exchanges use synthetic peers, not actual worker/compiler integration",
+    "Complete-fixture full regression remains pending",
+    "Null map preimages remain incomplete source authority"
+  ],
+  "review_managed_commands": [
+    {
+      "label": "packet-source-evidence-read",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "\nimport difflib, hashlib, json\nfrom pathlib import Path\nroot = Path('/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6')\np = root / 'verification/local/development-config-fix-r3002'\nold = root / 'verification/local/development-dispatch-full-r2972'\ndef read(path):\n    data = path.read_bytes()\n    print(json.dumps({'path': str(path.relative_to(root)), 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}))\n    return data\nproduct = read(p / 'afterimages/hosted/lib/mixer_hosted/builds/development_dispatch.ex')\ntest = read(p / 'development_dispatch_test.exs')\nworker = read(old / 'afterimages/hosted/priv/development/compiler_worker.py')\nassert len(product) == 3930 and hashlib.sha256(product).hexdigest() == '4a7a9b88e68420089dd911a58ecf333f097fb57d3d55d191da4ebda4ffdc8b1b'\nassert len(test) == 6251 and hashlib.sha256(test).hexdigest() == '359b7756352c8a912f20006dcf66b7e6ca2ed9ba80e713e9aded570034d4aef8'\nassert len(worker) == 14941 and hashlib.sha256(worker).hexdigest() == '7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24'\nbaseline = read(old / 'afterimages/hosted/lib/mixer_hosted/builds/development_dispatch.ex')\nprint('EXACT_PRODUCT_DELTA\\n' + ''.join(difflib.unified_diff(baseline.decode().splitlines(True), product.decode().splitlines(True), fromfile='R2972', tofile='R3002')))\nworker_lines = worker.decode().splitlines()\nfor index, line in enumerate(worker_lines):\n    if 'compare_digest' in line or 'worker_id' in line and ('get(' in line or '!=' in line):\n        print('WORKER_AUTH_LINES ' + str(index + 1) + '\\n' + '\\n'.join(worker_lines[max(0,index-3):index+4]))\nraw = read(p / 'commands/005-focused-dispatch.stdout').decode()\nassert 'Result: 8 passed' in raw\nprint('FOCUSED_RAW\\n' + raw)\nfor name in ('application-map.json', 'ordinary-test-map.json'):\n    print(name + '\\n' + read(p / name).decode())\nfrozen = json.loads(read(root / 'verification/receipts/development-config-fix-r3002.json'))\nprint('FROZEN_COUNTS ' + json.dumps({key: frozen[key] for key in ('focused','full','full_failure_class','full_success_claimed','first_cause','all_managed_groups_terminal')}))\ncommands = json.loads(read(p / 'commands/commands.json'))\nprint('COMPILE_AND_FOCUSED_COMMANDS ' + json.dumps([row for row in commands if any(word in row.get('label','').lower() for word in ('compile','focused'))]))\nprint('ALL_COMMANDS_POSITIVE_CUSTODY ' + str(all(row.get('state') == 'direct_reaped' and row.get('bothEOF') and row.get('closedFDs') and row.get('ownedGroupAbsentESRCH') for row in commands)))\n"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 96700,
+      "pgid": 96700,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.0447980830213055,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "final-source-evidence-check",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "\nimport hashlib, json\nfrom pathlib import Path\nroot = Path('/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6')\np = root / 'verification/local/development-config-fix-r3002'\nr = json.loads((root / 'verification/receipts/development-config-review-r3030.json').read_bytes())\nassert r['status'] == 'PASS_CHANGED_FIX_SCOPE' and not r['full_regression_green']\nassert (root / r['report']).read_text().startswith('R3030 verdict: PASS_CHANGED_FIX_SCOPE')\nfor path, entry in [('afterimages/hosted/lib/mixer_hosted/builds/development_dispatch.ex', r['product']), ('development_dispatch_test.exs', r['ordinary_test'])]:\n    b = (p / path).read_bytes()\n    assert len(b) == entry['bytes'] and hashlib.sha256(b).hexdigest() == entry['sha256']\nfull = (p / 'commands/049-actual-FULL-unfiltered-serial.stdout').read_text()\nstart = full.index('  1) test independent canonical array bytes and all domain-separated golden digests')\nprint('FULL_FIRST_FAILURE\\n' + full[start:start+1250])\nassert 'golden_event.hex' in full[start:start+1250] and 'no such file or directory' in full[start:start+1250]\nassert 'Result: 909/910 passed, 2 skipped' in full\nfor name in ('003-strict-Mix-compile.stderr', '004-strict-Node-compile.stderr'):\n    b = (p / 'commands' / name).read_bytes()\n    print(json.dumps({'artifact': name, 'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest(), 'excerpt': b.decode()[:1200]}))\nold = root / 'verification/local/development-dispatch-full-r2972'\nprior = json.loads((root / 'verification/receipts/development-dispatch-full-r2972.json').read_bytes())\nprint('R2972_ORDINARY_TEST_MAP ' + json.dumps(prior.get('ordinary_test_map')))\nif prior.get('ordinary_test_map'):\n    import difflib\n    for path, entry in prior['ordinary_test_map'].items():\n        if path == 'hosted/test/mixer_hosted/builds/development_dispatch_test.exs':\n            before = (old / entry['afterimage']).read_bytes()\n            assert hashlib.sha256(before).hexdigest() == entry['after']['sha256']\n            after = (p / 'development_dispatch_test.exs').read_bytes()\n            print('EXACT_TEST_DELTA\\n' + ''.join(difflib.unified_diff(before.decode().splitlines(True), after.decode().splitlines(True), fromfile='R2972', tofile='R3002')))\nprint('FINAL_ARTIFACT_CHECK_PASS')\n"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 99952,
+      "pgid": 99952,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03908595803659409,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "review_managed_groups_positive_custody": true,
+  "total_terminal_read_invocations": 8,
+  "review_finished_epoch": 1794771613.540742
+}

@@ -3019,8 +3019,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
         import contextlib
         import io
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / collector.RESTRICTED_PROCESSOR_SOURCE_BASE / "selection.json").read_bytes()
-        self.assertEqual(collector.RESTRICTED_PROCESSOR_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
+        raw = (root / collector.DEVELOPMENT_DISPATCH_SOURCE_BASE / "selection.json").read_bytes()
+        self.assertEqual(collector.DEVELOPMENT_DISPATCH_SELECTION_SHA256, hashlib.sha256(raw).hexdigest())
         expected = json.loads(raw)["selected"]
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
@@ -3028,7 +3028,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
-        self.assertEqual(collector.RESTRICTED_PROCESSOR_SELECTION_SHA256, observed["selection_sha256"])
+        self.assertEqual(collector.DEVELOPMENT_DISPATCH_SELECTION_SHA256, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
 
@@ -3041,8 +3041,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "43d5898f02ac3e4698417197980248a9b8607161184dd10b5f70ed7197127ffb"
-    DIGEST = "a6493001217d04a4fc5319480878c6fd2d5f28683ac71e4cdc8fdc8f5a1bd1d6"
+    PIN = "c100111b843059a5eedd7cbc94207ff0d0611796a0fbf313d9f07f30c5ed11ca"
+    DIGEST = "9343d945412333cd603a804f62ed51284827d4c5281f25ddb3ef48fc4e9f4601"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3111,7 +3111,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(335, observed["source_count"])
+            self.assertEqual(338, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3121,7 +3121,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
-        raw = (root / "verification/identity-network-current-source-v26/selection.json").read_bytes()
+        raw = (root / "verification/identity-network-current-source-v27/selection.json").read_bytes()
         self.assertEqual(self.PIN, hashlib.sha256(raw).hexdigest())
         patterns = self.patterns((root / workflow_path).read_text(), job)
         self.assertNotIn(self.FAMILY, patterns)
@@ -3384,9 +3384,9 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
             with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
-        self.assertEqual(335,observed['source_count'])
-        self.assertEqual(collector.RESTRICTED_PROCESSOR_SOURCE_DIGEST,observed['source_digest_sha256'])
-        self.assertEqual(collector.RESTRICTED_PROCESSOR_SELECTION_SHA256,observed['selection_sha256'])
+        self.assertEqual(338,observed['source_count'])
+        self.assertEqual(collector.DEVELOPMENT_DISPATCH_SOURCE_DIGEST,observed['source_digest_sha256'])
+        self.assertEqual(collector.DEVELOPMENT_DISPATCH_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
         try:
             target.write_bytes(original+b'\n')
@@ -3884,8 +3884,8 @@ class PublicConsoleSigninSourceControls(unittest.TestCase):
                         runpy.run_path(str(path), run_name='__main__')
                 self.assertEqual(0, exited.exception.code)
                 observed = json.loads(output.getvalue())
-                self.assertEqual(335, observed['source_count'])
-                self.assertEqual(collector.RESTRICTED_PROCESSOR_SELECTION_SHA256, observed['selection_sha256'])
+                self.assertEqual(338, observed['source_count'])
+                self.assertEqual(collector.DEVELOPMENT_DISPATCH_SELECTION_SHA256, observed['selection_sha256'])
 
     def test_v19_actual_collect_refuses_changed_new_source_before_docker(self):
         helper = CollectorMethodWiringControls()
@@ -4510,6 +4510,77 @@ class RestrictedProcessorSourceControls(unittest.TestCase):
                     try:
                         with self.assertRaises(FileNotFoundError):helper.check_real_main(sparse)
                     finally:target.write_bytes(b)
+
+
+class DevelopmentDispatchV27Controls(unittest.TestCase):
+    def metadata(self):
+        root=COLLECTOR_PATH.resolve().parents[2]
+        return {collector.DEVELOPMENT_DISPATCH_SOURCE_BASE+n:(root/collector.DEVELOPMENT_DISPATCH_SOURCE_BASE/n).read_bytes() for n in ('selection.json','selected-source-manifest.json')}
+
+    def test_frozen_three_additions_complete_typed335_inverse(self):
+        manifest=collector.DEVELOPMENT_DISPATCH_MANIFEST
+        self.assertEqual(338,len(manifest));self.assertEqual(335,len(collector.RESTRICTED_PROCESSOR_MANIFEST))
+        self.assertEqual(3,len(collector.DEVELOPMENT_DISPATCH_DELTA))
+        for p,row in collector.RESTRICTED_PROCESSOR_MANIFEST.items():self.assertEqual(row,manifest[p])
+        for p,row in collector.DEVELOPMENT_DISPATCH_DELTA.items():self.assertIsNone(row['before']);self.assertEqual(row['after'],manifest[p])
+        self.assertEqual({'bytes':3930,'sha256':'4a7a9b88e68420089dd911a58ecf333f097fb57d3d55d191da4ebda4ffdc8b1b'},manifest['hosted/lib/mixer_hosted/builds/development_dispatch.ex'])
+        self.assertEqual({'bytes':14941,'sha256':'7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24'},manifest['hosted/priv/development/compiler_worker.py'])
+        self.assertEqual({'bytes':6856,'sha256':'2ccebab3b21216830e464753ed8e5e5a195c443392122c35a0f1414f8ff0b627'},manifest['hosted/test/mixer_hosted/builds/development_dispatch_test.exs'])
+        v=collector.validate_development_dispatch_source_metadata(self.metadata())
+        collector._development_dispatch_inverse(v['inverse_v26'])
+        self.assertIs(v['activation'],False);self.assertIs(v['runtime_or_GA_accepted'],False);self.assertIs(v['CLI120_selected'],False)
+
+    def test_every_source_and_inverse_row_type_hash_role_and_membership_refuse(self):
+        for original,validator in ((collector.DEVELOPMENT_DISPATCH_MANIFEST,collector.validate_development_dispatch_source_manifest),(collector.RESTRICTED_PROCESSOR_MANIFEST,collector._development_dispatch_inverse)):
+            for p in original:
+                for key,value in [('bytes',True),('bytes',float(original[p]['bytes'])),('sha256','0'*64),('role','foreign')]:
+                    bad=copy.deepcopy(original);bad[p][key]=value
+                    with self.subTest(path=p,key=key),self.assertRaises(collector.CollectorError):validator(bad)
+            for bad in ({},dict(reversed(list(original.items()))),{**original,'../foreign':{'bytes':0,'sha256':'0'*64}}):
+                with self.assertRaises(collector.CollectorError):validator(bad)
+
+    def test_caller_override_and_metadata_membership_corruption_refuse(self):
+        for kwargs in ({'expected_count':True},{'expected_count':338.0},{'expected_count':335},{'expected_digest':'0'*64}):
+            with self.assertRaises(collector.CollectorError):collector.validate_development_dispatch_source_manifest(collector.DEVELOPMENT_DISPATCH_MANIFEST,**kwargs)
+        values=self.metadata()
+        for p in values:
+            for bad in ({**values,p:values[p]+b' '},{k:v for k,v in values.items() if k!=p},{**values,'foreign':b'{}'}):
+                with self.assertRaises(collector.CollectorError):collector.validate_development_dispatch_source_metadata(bad)
+
+    def test_repinned_metadata_aliases_exact_map_and_activation_refuse(self):
+        values=self.metadata();base=collector.DEVELOPMENT_DISPATCH_SOURCE_BASE
+        mutations=[lambda v:v.update(schema=True),lambda v:v['selected'].update(source_count=338.0),lambda v:v['predecessor'].update(source_count=True),lambda v:v['selected']['manifest'].update(bytes=True),lambda v:v.update(activation=True),lambda v:v.update(runtime_or_GA_accepted=True),lambda v:v.update(CLI120_selected=True),lambda v:v.update(scope='foreign')]
+        for p in collector.DEVELOPMENT_DISPATCH_DELTA:
+            mutations.extend([lambda v,p=p:v['exact_delta'][p]['after'].update(bytes=True),lambda v,p=p:v['exact_delta'][p].update(before={'bytes':0,'sha256':'0'*64})])
+        for mutation in mutations:
+            v=json.loads(values[base+'selection.json']);mutation(v);b=json.dumps(v,sort_keys=True).encode()
+            with mock.patch.object(collector,'DEVELOPMENT_DISPATCH_SELECTION_SHA256',hashlib.sha256(b).hexdigest()):
+                with self.assertRaises(collector.CollectorError):collector.validate_development_dispatch_source_metadata({**values,base+'selection.json':b})
+        for p in collector.RESTRICTED_PROCESSOR_MANIFEST:
+            v=json.loads(values[base+'selection.json']);v['inverse_v26'][p]['bytes']=True;b=json.dumps(v,sort_keys=True).encode()
+            with mock.patch.object(collector,'DEVELOPMENT_DISPATCH_SELECTION_SHA256',hashlib.sha256(b).hexdigest()):
+                with self.assertRaises(collector.CollectorError):collector.validate_development_dispatch_source_metadata({**values,base+'selection.json':b})
+
+    def test_all_three_sparse_consumers_require_every_new_path_and_metadata(self):
+        root=COLLECTOR_PATH.resolve().parents[2];helper=WorkflowSparseSourceControls()
+        for workflow,job in [('hosted.yml','phoenix'),('identity-network.yml','identity-network'),('verify.yml','services')]:
+            with tempfile.TemporaryDirectory(prefix='dispatch-v27-') as directory:
+                sparse=Path(directory);helper.materialize(root,sparse,helper.patterns((root/'.github/workflows'/workflow).read_text(),job));helper.check_real_main(sparse)
+                for p in list(collector.DEVELOPMENT_DISPATCH_DELTA)+[collector.DEVELOPMENT_DISPATCH_SOURCE_BASE+n for n in ('selection.json','selected-source-manifest.json')]:
+                    target=sparse/p;b=target.read_bytes();target.unlink()
+                    try:
+                        with self.assertRaises(FileNotFoundError):helper.check_real_main(sparse)
+                    finally:target.write_bytes(b)
+
+    def test_real_source_check_rejects_every_corrupt_candidate(self):
+        root=COLLECTOR_PATH.resolve().parents[2];helper=WorkflowSparseSourceControls()
+        with tempfile.TemporaryDirectory(prefix='dispatch-corruption-v27-') as directory:
+            sparse=Path(directory);helper.materialize(root,sparse,helper.patterns((root/'.github/workflows/identity-network.yml').read_text(),'identity-network'))
+            for p in collector.DEVELOPMENT_DISPATCH_DELTA:
+                path=sparse/p;b=path.read_bytes();path.write_bytes(b+b'corrupt')
+                try:
+                    with self.assertRaises(collector.CollectorError):collector.check_development_dispatch_source(sparse)
+                finally:path.write_bytes(b)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,30 @@
 schema: 1
 policy: independently-owned-product-engine
 dependencies:
+  - name: CPython development worker runtime
+    origin: https://www.python.org/
+    version: 3.14.8-observed
+    license: PSF-2.0
+    license_reference: https://docs.python.org/3/license.html
+    purpose: optional-explicit-development-compiler-worker-standard-library-runtime
+    distribution: external-interpreter-not-bundled-in-hosted-release
+    owner: hosted-development-worker
+    inventory_receipts:
+      - verification/receipts/development-runtime-inventory-r3102.json
+      - verification/receipts/canonical-v27-compiler-join-r3092.json
+    qualification: development-flow-only-no-general-runtime-version-matrix
+  - name: SQLite through the Python standard library
+    origin: https://www.sqlite.org/
+    version: 3.53.4-observed
+    license: public-domain
+    license_reference: https://www.sqlite.org/copyright.html
+    purpose: optional-development-worker-durable-operation-and-lease-storage
+    distribution: supplied-by-external-Python-runtime-not-bundled-in-hosted-release
+    owner: hosted-development-worker
+    inventory_receipts:
+      - verification/receipts/development-runtime-inventory-r3102.json
+      - verification/receipts/canonical-v27-compiler-join-r3092.json
+    qualification: runtime-version-observation-and-scoped-worker-flow
   - name: Android AOSP framework source reference oracle
     origin: https://android.googlesource.com/platform/frameworks/base/
     version: exact-Android-9-through-16-tags-recorded-in-reference-inventories

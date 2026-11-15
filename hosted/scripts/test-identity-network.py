@@ -2559,6 +2559,102 @@ def _load_restricted_processor_source_authority():
     return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
 
 
+# Source-only v27 authority. Existing v0-v26 validators remain unchanged.
+DEVELOPMENT_DISPATCH_SOURCE_BASE = 'verification/identity-network-current-source-v27/'
+DEVELOPMENT_DISPATCH_SELECTION_SHA256 = 'c100111b843059a5eedd7cbc94207ff0d0611796a0fbf313d9f07f30c5ed11ca'
+DEVELOPMENT_DISPATCH_SOURCE_DIGEST = '9343d945412333cd603a804f62ed51284827d4c5281f25ddb3ef48fc4e9f4601'
+DEVELOPMENT_DISPATCH_EXPECTED_COUNT = 338
+DEVELOPMENT_DISPATCH_DELTA = {'hosted/lib/mixer_hosted/builds/development_dispatch.ex': {'after': {'bytes': 3930, 'sha256': '4a7a9b88e68420089dd911a58ecf333f097fb57d3d55d191da4ebda4ffdc8b1b'}, 'before': None}, 'hosted/priv/development/compiler_worker.py': {'after': {'bytes': 14941, 'sha256': '7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24'}, 'before': None}, 'hosted/test/mixer_hosted/builds/development_dispatch_test.exs': {'after': {'bytes': 6856, 'sha256': '2ccebab3b21216830e464753ed8e5e5a195c443392122c35a0f1414f8ff0b627'}, 'before': None}}
+DEVELOPMENT_DISPATCH_SCOPE = 'Private frozen R3002 explicit development dispatch source only; R3002 config fix, R3030 source review, R3032 actual full runtime, independent v27 packet review and explicit root v27 selection required; activation false; CLI120 not selected.'
+
+
+def _development_dispatch_inverse(inverse):
+    require(type(inverse) is dict and list(inverse) == sorted(RESTRICTED_PROCESSOR_MANIFEST), 'development dispatch complete ordered v26 inverse')
+    for path, value in inverse.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(value)
+    require(inverse == RESTRICTED_PROCESSOR_MANIFEST and canonical_digest(inverse) == RESTRICTED_PROCESSOR_SOURCE_DIGEST, 'development dispatch exact typed335 inverse')
+
+
+def validate_development_dispatch_source_manifest(manifest, expected_digest=DEVELOPMENT_DISPATCH_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == DEVELOPMENT_DISPATCH_SOURCE_DIGEST, 'caller cannot replace development dispatch digest')
+    require(expected_count is None or type(expected_count) is int and expected_count == DEVELOPMENT_DISPATCH_EXPECTED_COUNT, 'caller cannot replace development dispatch count')
+    require(type(manifest) is dict and list(manifest) == sorted(set(RESTRICTED_PROCESSOR_MANIFEST) | set(DEVELOPMENT_DISPATCH_DELTA)), 'development dispatch ordered source membership')
+    require(len(manifest) == DEVELOPMENT_DISPATCH_EXPECTED_COUNT, 'development dispatch source count')
+    for path, value in manifest.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(value)
+    delta = {p: {'before': RESTRICTED_PROCESSOR_MANIFEST.get(p), 'after': v} for p, v in manifest.items() if RESTRICTED_PROCESSOR_MANIFEST.get(p) != v}
+    require(delta == DEVELOPMENT_DISPATCH_DELTA, 'development dispatch exact frozen three-path map')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            inverse.pop(path)
+        else:
+            inverse[path] = change['before']
+    _development_dispatch_inverse(dict(sorted(inverse.items())))
+    require(canonical_digest(manifest) == DEVELOPMENT_DISPATCH_SOURCE_DIGEST, 'development dispatch frozen digest')
+    return manifest
+
+
+def _development_dispatch_metadata(metadata):
+    base = DEVELOPMENT_DISPATCH_SOURCE_BASE
+    require(type(metadata) is dict and set(metadata) == {base + n for n in ('selection.json', 'selected-source-manifest.json')}, 'development dispatch metadata membership')
+    body = metadata[base + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == DEVELOPMENT_DISPATCH_SELECTION_SHA256, 'development dispatch selection pin')
+    value = _restricted_processor_json(body)
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'inverse_v26', 'activation', 'runtime_or_GA_accepted', 'CLI120_selected'}, 'development dispatch selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-development-dispatch-v27', 'development dispatch schema identity')
+    require(value['operation'] == 'admit-frozen-R3002-three-paths-after-v26' and value['scope'] == DEVELOPMENT_DISPATCH_SCOPE, 'development dispatch exact operation scope')
+    require(value['activation'] is False and value['runtime_or_GA_accepted'] is False and value['CLI120_selected'] is False, 'development dispatch source only')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'development dispatch predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': RESTRICTED_PROCESSOR_SOURCE_COUNT, 'source_digest_sha256': RESTRICTED_PROCESSOR_SOURCE_DIGEST, 'selection_sha256': RESTRICTED_PROCESSOR_SELECTION_SHA256}, 'development dispatch pinned predecessor')
+    _development_dispatch_inverse(value['inverse_v26'])
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'development dispatch selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == DEVELOPMENT_DISPATCH_EXPECTED_COUNT and selected['source_digest_sha256'] == DEVELOPMENT_DISPATCH_SOURCE_DIGEST, 'development dispatch selected count digest')
+    ref = selected['manifest']
+    require(type(ref) is dict and set(ref) == {'path', 'bytes', 'sha256'} and ref['path'] == 'selected-source-manifest.json', 'development dispatch manifest reference')
+    _restricted_processor_row({k: ref[k] for k in ('bytes', 'sha256')})
+    manifest_body = metadata[base + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {k: ref[k] for k in ('bytes', 'sha256')}, 'development dispatch manifest byte pin')
+    manifest = _restricted_processor_json(manifest_body)
+    validate_development_dispatch_source_manifest(manifest)
+    delta = value['exact_delta']
+    require(type(delta) is dict and list(delta) == sorted(DEVELOPMENT_DISPATCH_DELTA), 'development dispatch delta membership')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'development dispatch composition roles')
+        if change['before'] is not None:
+            _restricted_processor_row(change['before'])
+        _restricted_processor_row(change['after'])
+    require(delta == DEVELOPMENT_DISPATCH_DELTA, 'development dispatch typed exact delta')
+    return value, manifest
+
+
+def validate_development_dispatch_source_metadata(metadata):
+    value, manifest = _development_dispatch_metadata(metadata)
+    require(manifest == DEVELOPMENT_DISPATCH_MANIFEST, 'development dispatch installed manifest')
+    return value
+
+
+def check_development_dispatch_source(root):
+    base = DEVELOPMENT_DISPATCH_SOURCE_BASE
+    metadata = {base + n: (root / base / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_development_dispatch_source_metadata(metadata)
+    observed = {p: _file_row((root / p).read_bytes()) for p in DEVELOPMENT_DISPATCH_MANIFEST}
+    validate_development_dispatch_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': DEVELOPMENT_DISPATCH_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_development_dispatch_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    base = DEVELOPMENT_DISPATCH_SOURCE_BASE
+    metadata = {base + n: (root / base / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _development_dispatch_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
@@ -4231,7 +4327,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_restricted_processor_source(root), sort_keys=True))
+        print(json.dumps(check_development_dispatch_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -4346,6 +4442,9 @@ CUSTOMER_AUTHZ_SOURCE_COUNT, CUSTOMER_AUTHZ_MANIFEST = CUSTOMER_AUTHZ_AUTHORITY.
 
 RESTRICTED_PROCESSOR_AUTHORITY = _load_restricted_processor_source_authority()
 RESTRICTED_PROCESSOR_SOURCE_COUNT, RESTRICTED_PROCESSOR_MANIFEST = RESTRICTED_PROCESSOR_AUTHORITY.count, RESTRICTED_PROCESSOR_AUTHORITY.manifest
+
+DEVELOPMENT_DISPATCH_AUTHORITY = _load_development_dispatch_source_authority()
+DEVELOPMENT_DISPATCH_MANIFEST = DEVELOPMENT_DISPATCH_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:
