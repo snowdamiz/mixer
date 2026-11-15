@@ -737,3 +737,6 @@ Use only `verification/receipts/fieldlog-direct-image-r2862.json` as the deliver
 metadata reference. No PID or PGID was recorded, and this record grants no
 ownership over the unrelated occupied port. Source-only corrections and fresh
 separate experiments do not release the preserved namespace or any older hold.
+
+
+The private R3252 Swift UI capacity experiment aborted in experimental/cache/borrowed.rs at the fixed 64-slot scratch array. Consuming Runtime ledger closure is UNKNOWN. Preserve the entire verification/local/swift-ui-capacity-coherence-r3252 namespace, including source, build/cache, artifacts, libraries, traces, logs and scratch, without inspection, enumeration, stat, probing, signals, waits, retries, linking, copying or cleanup. Read only the delivered canonical compact verification/receipts/swift-ui-capacity-coherence-r3252.json and the copied root summary verification/receipts/swift-ui-capacity-ledger-hold-r3270.json. The observed OS group33983 was reaped with both EOFs, closed descriptors and positive ESRCH; those facts do not release the consuming-ledger hold. Source-to-binary acceptance is incomplete; no held library or header is accepted. Fresh independent work may use canonical source and the separately closed R3238 baseline in a new namespace. All earlier holds remain active.
