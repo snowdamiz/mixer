@@ -1,0 +1,235 @@
+{
+  "schema": 1,
+  "id": "R3188_SWIFT_UI_OWNER_INDEPENDENT_SOURCE_REVIEW",
+  "decision": "REQUEST_CHANGES",
+  "recordedUTC": "2026-11-15T21:50:17.438852+00:00",
+  "elapsedSecondsAtReceipt": 412.438852,
+  "budgetSeconds": 540,
+  "budgetExceptions": [],
+  "subject": "Frozen R3118; no R3186 execution/adoption inferred",
+  "report": "verification/local/swift-ui-owner-review-r3188/REPORT.md",
+  "findings": [
+    {
+      "id": "R3188-F1",
+      "severity": "P1",
+      "title": "Foreign routed actions lose session provenance",
+      "path": "public-sdk/Sources/MixerGuest/GuestUIExchangeCore.swift",
+      "lines": [
+        223,
+        227
+      ]
+    },
+    {
+      "id": "R3188-F2",
+      "severity": "P1",
+      "title": "Native error paths lose VM owner or retained close authority",
+      "path": "host/FeatureUIHost.swift",
+      "lines": [
+        109,
+        112,
+        122,
+        132,
+        147,
+        149
+      ]
+    },
+    {
+      "id": "R3188-F3",
+      "severity": "P2",
+      "title": "Unchanged title event closes a live session",
+      "path": "public-sdk/Sources/MixerGuest/SwiftFeatureSession.swift",
+      "lines": [
+        83,
+        88
+      ]
+    }
+  ],
+  "proof": {
+    "kind": "one payload-free value-only predicate transcription",
+    "artifact": "value-counterproof.json",
+    "bytes": 672,
+    "sha256": "520dc111b70b047d030540ed3858d30c438a03065a0c897ce462c84c52f0acdf",
+    "candidateExecuted": false
+  },
+  "integrity": {
+    "maps": {
+      "before-map.json": "1c58f4d517748f9690992f65b3d5c0493d33b02c82f612b01c762d1e308bf05d",
+      "after-map.json": "1a6160c6c440c8369daf8902cccb26c29263204c37a980906102f9e22b76ec80",
+      "changes.json": "7071d9bad564db5fd90490b53f3eb9594b6c0607e81278909d81969d198b244f",
+      "private-candidate.patch": "04070835d41c3fc022bb52f99e9c624f657a8ae270417704967ad68f3fefebe6"
+    },
+    "mappedAfterimagesRehashed": 230,
+    "mappedAfterimagesAllExact": true,
+    "sourceTreeSHA256": "7c99ff46ec1828a99df6061309922b02cecc5d1036de8c8776a94439174222a0",
+    "changedPaths": 16,
+    "compositionFiles": {
+      "entry/Adapter.swift": {
+        "bytes": 3902,
+        "sha256": "92e0aed4de50d134abd561c808c5efe5fb9298d51d3093c9dee3f2fd6ff0ae88"
+      },
+      "Package.swift": {
+        "bytes": 2560,
+        "sha256": "d558cb6c1f08dbddac495467dcd2576ea156b6df2ebbd999665ff8c65d51d9a2"
+      },
+      "host/FeatureUIHost.swift": {
+        "bytes": 9734,
+        "sha256": "617c74016c3a5218977174d4eb53f1b076473ba0cbed9f45b09a1bf28f0a0415"
+      }
+    },
+    "fiveOriginalFeatureFilesRehashed": 5,
+    "baselineSourceDrift": [],
+    "module": {
+      "bytes": 66151163,
+      "sha256": "43daa651a6a61f1f371c9b64bed1b6585624430ba57e9077ab5983dbee7432c7"
+    },
+    "parentRevision": "338f3bd... parent report only; no Git command",
+    "report": {
+      "bytes": 10493,
+      "sha256": "ffbf873d308a35f99ec1b32001c394ec12597facc0e29243156077f08b20d188"
+    }
+  },
+  "actualExecution": {
+    "R3118Admission": "profile_vector_limit, attempted159, limit128, offset1747",
+    "R3118RuntimeAcquired": false,
+    "reviewGuestRuntimeAcquired": false,
+    "reviewNativePresentation": false,
+    "reviewConsumingRuntimeClose": false,
+    "candidateImports": false,
+    "builds": 0,
+    "compilerCommands": 0,
+    "runtimeOrNativeTests": 0,
+    "nativeHandoffReady": false,
+    "canonicalAdoption": false
+  },
+  "custody": {
+    "adapter": "R986 defs-only explicit globals",
+    "adapterSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "completedInspectionRecords": [
+      {
+        "label": "01-index",
+        "pid": 9858,
+        "pgid": 9858,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "02-owner",
+        "pid": 10516,
+        "pgid": 10516,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "03-engine",
+        "pid": 11071,
+        "pgid": 11071,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "04-exchange",
+        "pid": 11328,
+        "pgid": 11328,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "05-contracts",
+        "pid": 17738,
+        "pgid": 17738,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "06-predecessors",
+        "pid": 17812,
+        "pgid": 17812,
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "06-predecessors",
+        "pid": 17813,
+        "pgid": 17813,
+        "exitCode": 1,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "07-followup",
+        "pid": 17856,
+        "pgid": 17856,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "08-final-source",
+        "pid": 18619,
+        "pgid": 18619,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "09-counterproof",
+        "pid": 20903,
+        "pgid": 20903,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "managedRecordsIncludingReceiptCommand": 11,
+    "initialDirectPinReadCommands": 1,
+    "inspectionBudgetIncludingPinRead": 12,
+    "receiptCommandFinalCustody": "See commands.json final 10-finalize entry; wrapper persists custody after this receipt write",
+    "rawPreserved": true,
+    "newUNKNOWN": false,
+    "historicalHoldsReleased": false,
+    "inspectionErrors": "06-predecessors missing guessed filename; two recorded terminal groups, positively closed; raw retained"
+  },
+  "toolVersion": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "writes": [
+    "verification/local/swift-ui-owner-review-r3188",
+    "verification/receipts/swift-ui-owner-review-r3188.json"
+  ],
+  "effects": {
+    "canonicalOrProducerEdits": false,
+    "GitOrIndex": false,
+    "children": false,
+    "devices": false,
+    "listeners": false,
+    "historicalResourceProbes": false
+  },
+  "cleanup": {
+    "createdBuildCacheNativeResources": false,
+    "disposition": "retain source-only review files/raw evidence",
+    "newHold": false
+  },
+  "limitations": [
+    "Source review only; findings not guest/native runtime reproductions",
+    "No independent 19-test rerun",
+    "No actual 14-current runtime close",
+    "Full original90-model-copy rehash not independently repeated; five feature inputs and mapped230 checked",
+    "V3 descriptor consolidation and native wrong-action control pending",
+    "Artifact-policy check belongs to staging owner; nothing staged",
+    "No whole-app/immutable-package/CLI120/OTA/GA acceptance"
+  ]
+}
