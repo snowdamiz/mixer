@@ -727,3 +727,13 @@ delivered `verification/receipts/readiness-full-r2778.json` and root
 `verification/receipts/launch-global-proof-r2780.json`. The fresh R2780
 constructor proof does not release either this hold or R2774. All earlier
 holds remain in force.
+
+R2862 emitted a HOLD after an occupied-port admission refusal before any AVD,
+emulator or ADB-server acquisition was recorded. The cleanup path incorrectly
+treated that pre-acquisition refusal as an owned-resource custody failure.
+Preserve the entire `verification/local/fieldlog-direct-image-r2862` namespace
+without enumeration, stat, reads, probing, signals, waits, retry or cleanup.
+Use only `verification/receipts/fieldlog-direct-image-r2862.json` as the delivered
+metadata reference. No PID or PGID was recorded, and this record grants no
+ownership over the unrelated occupied port. Source-only corrections and fresh
+separate experiments do not release the preserved namespace or any older hold.

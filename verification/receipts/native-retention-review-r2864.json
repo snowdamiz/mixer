@@ -1,0 +1,270 @@
+{
+  "id": "R2864",
+  "status": "REQUEST_CHANGES",
+  "producer": "R2854",
+  "scope": "Independent source and existing native-build evidence review of the exact two private afterimages; no build or product runtime rerun",
+  "findings": [
+    {
+      "id": "R2864-F1",
+      "priority": "P2",
+      "title": "Reject unsupported embedded Mach-O formats before declaring the app validated",
+      "path": "verification/local/native-product-retention-r2854/afterimages/cli/Sources/MixerBuild/NativeProductCapture.swift",
+      "line": 306,
+      "related_lines": [
+        183,
+        188,
+        293,
+        300,
+        305,
+        306,
+        308,
+        319,
+        322
+      ],
+      "evidence_kind": "direct source control-flow proof; no product runtime rerun",
+      "trigger": "An otherwise accepted app/dSYM pair has an additional regular embedded native image (for example Frameworks/Extra.framework/Extra) in universal/fat, 32-bit, or byte-swapped Mach-O format, not referenced by the primary executable dependencies.",
+      "proof": [
+        "snapshot accepts regular files without imposing native-format restrictions (lines 183-194).",
+        "validate checks the primary executable and its dSYM separately (lines 293-304).",
+        "The only scan over the other app files is filtered by little-endian u32(bytes,0)==0xfeedfacf (line 306).",
+        "Universal/fat and other Mach-O magic values do not equal 0xfeedfacf, so those files never enter macho(), the platform/filetype/signature checks, or their dependency walk.",
+        "If no admitted thin image references the extra file, line 319 does not reach it either; validate returns at line 322. Capture then archives the unchecked bytes."
+      ],
+      "impact": "The claim at line 305 that every embedded native image is inspected and unsupported images fail closed is not enforced. Unsupported target images, including signed fat images, can be retained without the advertised embedded-image checks.",
+      "actual_fixture_impact": "No failure in the supplied R2854 fixture: its archive contains only CompilerProbe, Info.plist and PkgInfo. The observed native build/retention evidence remains valid for that fixture.",
+      "requested_change": "Recognize other known native-image magic values during the app scan and reject unsupported formats with Failure.target before the thin-arm64 parser. This needs no universal parser or generalized controller. Keep public admission pending until this boundary is enforced.",
+      "runtime_reproduced": false
+    }
+  ],
+  "actual_native_fixture_evidence": "PASS_SCOPED_EXISTING_EVIDENCE",
+  "source_and_evidence_hashes": {
+    "files": 17,
+    "sha256": "7a62bf47cad815e59acc16ea92692cf50c6a166a59923826853c89fd2c13f0fd",
+    "all_exact": true
+  },
+  "raw_output_manifest": {
+    "files": 21,
+    "sha256": "04ff13f8646735dd1018dcaccc587ec130dd354f0f621b63fc009f6bd9308263",
+    "all_exact": true,
+    "discovery_output_read": false
+  },
+  "afterimages": {
+    "cli/Sources/MixerBuild/NativeProductCapture.swift": {
+      "before": null,
+      "after": {
+        "bytes": 25299,
+        "sha256": "2529ee4a68dab2d7b5036b99f9b580a21a23f3bbb8963552c2ef1c39e55f8046"
+      }
+    },
+    "cli/Tests/MixerBuildTests/NativeProductCaptureTests.swift": {
+      "before": null,
+      "after": {
+        "bytes": 7352,
+        "sha256": "2d2dca369e219fc1a6d153c29d48911e493fac8e64f60b14d4b9539b85421f18"
+      }
+    }
+  },
+  "input_provenance": {
+    "admitted_files": 92,
+    "all_copied_inputs_exact": true,
+    "source_sha256": "23fba37e9247a701fcc49da9d0e4b1f124a039d46fea2aa6268a9cc440deb50c",
+    "sdk_files": 79,
+    "sdk_sha256": "2201f64c1d0c14d00ea677975c5f55f0773001c12100be5147b908d57e4b5ccc",
+    "recipe_sha256": "be899bfde3bf35dba8bf6928a06337100a03c74dbccbc383d6ebeb8ae0697a00",
+    "revision_reported": "fc73f1516616abd680fe1f995e572a16bf21cc4b",
+    "original_registration_reopened": false,
+    "external_cli_reopened": false,
+    "no_held_contents_used": true
+  },
+  "retained_objects": {
+    "nativeBinary": {
+      "sha256": "bf15b9c01505cff1da200e79c3aaa7f42e7103d8d7a99f20e5ae7e5ad5f81e8a",
+      "bytes": 3255064,
+      "regular_nlink1_mode0444": true,
+      "raw_compiler_files_byte_equal": true
+    },
+    "debugSymbols": {
+      "sha256": "06520c47e5b48a57d9936515b1a3b35fb53c595bbed932a5c970497ba0e420c7",
+      "bytes": 3435524,
+      "regular_nlink1_mode0444": true,
+      "raw_compiler_files_byte_equal": true
+    }
+  },
+  "UUID": "4bbb50266145325ea6cc53d12c6c6efb",
+  "linker_ad_hoc_pages_verified": 789,
+  "observed_prior_invocations": {
+    "public_CLI_native_build": 1,
+    "CLI_rebuild": 0,
+    "capture_build": 1,
+    "focused_tests": 2,
+    "test_failures": 0
+  },
+  "producer_custody": {
+    "top_level_commands": 7,
+    "nested_commands": 2,
+    "all_supplied_terminal_facts_present": true,
+    "live_process_observation": false
+  },
+  "aggregate": "REFUSED_MISSING_PRODUCERS_PRIVATE_DRIVER_ONLY",
+  "missing_kinds": [
+    "compatibility_report",
+    "guest_artifact",
+    "provenance",
+    "resource_inventory",
+    "sbom"
+  ],
+  "constraint_exception": {
+    "kind": "initial-discovery-search-root-too-broad",
+    "source": "producer supplied top receipt and report only",
+    "preserved": true,
+    "exonerated": false,
+    "overbroad_output_opened_or_replayed": false,
+    "held_tree_contents_used": false
+  },
+  "limitations": [
+    "Primary target and actual fixture are thin arm64 iOS Simulator; unsupported embedded formats have finding R2864-F1.",
+    "Frozen terminal-custody inputs and private single-writer store are preconditions, not enforced process admission.",
+    "0444/content addressing/revalidation does not prevent the same owner from rewriting files.",
+    "Embedded-framework/race/special-file rejection is not established by the two actual tests.",
+    "Original input registrations and external pinned CLI binary were not reopened.",
+    "Command custody is evaluated from supplied receipts only; no live process observations.",
+    "Root retains public wiring, CLI120, aggregate admission, seven-artifact success, published-package qualification and GA."
+  ],
+  "review_managed_reads": 6,
+  "managed_read_limit": 10,
+  "bootstrap_direct_reads": 2,
+  "custodian": {
+    "sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "definitions_only": true,
+    "unique_registry_per_command": true,
+    "identity_overwrites": false,
+    "all_review_commands_terminal": true
+  },
+  "managed_commands": [
+    {
+      "label": "read01",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path('verification/local/native-product-retention-r2854'); print('TOP_NAMES',sorted(p.name for p in b.iterdir())); print('REPORT'); print((b/'REPORT.md').read_text()); print('RAW_MANIFEST'); print((b/'raw-command-output-hashes.json').read_text()); print('SOURCE'); print((b/'afterimages/cli/Sources/MixerBuild/NativeProductCapture.swift').read_text()); print('TESTS'); print((b/'afterimages/cli/Tests/MixerBuildTests/NativeProductCaptureTests.swift').read_text())"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 32536,
+      "pgid": 32536,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03475537500344217,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "read02",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path('verification/local/native-product-retention-r2854'); p=b/'afterimages/cli/Sources/MixerBuild/NativeProductCapture.swift'; lines=p.read_text().splitlines(); print('SOURCE_165_300'); print('\\n'.join(f'{i}: {s}' for i,s in enumerate(lines,1) if 165<=i<=300)); print('DRIVER'); print((b/'capture_driver.py').read_text()); print('APPLICATION_MAP'); print((b/'application-map.json').read_text()); print('BINDING'); print((b/'binding.json').read_text())"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 33647,
+      "pgid": 33647,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.034159084083512425,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "read03",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path('verification/local/native-product-retention-r2854'); print('NATIVE_DRIVER'); print((b/'native.py').read_text()); print('NATIVE_RESULT'); print((b/'native-result.json').read_text()); print('ADMITTED_SOURCE'); a=json.loads((b/'admitted-source.json').read_text()); print(json.dumps(a)[:16000]); print('CUSTODY'); print((b/'all-command-custody.json').read_text()); print('NESTED'); print((b/'nested-custody.json').read_text()); print('TEST_OUTPUTS'); print((b/'logs/capture-build-and-test.stdout').read_text()); print((b/'logs/capture-build-and-test.stderr').read_text()); print((b/'logs/restart-reopen-test.stdout').read_text()); print('REPLAY_PROOF'); print((b/'replay-proof.json').read_text())"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 34186,
+      "pgid": 34186,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04091966594569385,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "read04",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path('verification/local/native-product-retention-r2854'); print('OWNED_ADAPTER'); print((b/'owned.py').read_text()); print('FINALIZER'); print((b/'finalize.py').read_text()); print('PACKAGE'); print((b/'Package.swift').read_text()); print('EVIDENCE_MANIFEST'); print((b/'source-and-evidence-hashes.json').read_text()); print('RECIPE'); print((b/'recipe.json').read_text()); p=json.loads((b/'logs/public-cli-ios-build.stdout').read_text()); print('PUBLIC_BUILD_KEYS',list(p)); print('PUBLIC_BUILD_COMPACT',json.dumps({k:v for k,v in p.items() if k not in ['stdout','stderr']})[:6000]); print('PUBLIC_BUILD_STDOUT_END',str(p.get('stdout',''))[-2500:]); print('PUBLIC_BUILD_STDERR_END',str(p.get('stderr',''))[-1000:])"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 35021,
+      "pgid": 35021,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03923525009304285,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "read05",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "exec(compile(open('verification/local/native-retention-review-r2864/audit-evidence.py').read(),'audit-evidence.py','exec'))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 36408,
+      "pgid": 36408,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.10156958305742592,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "read06",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-c",
+        "from pathlib import Path; b=Path('verification/local/native-product-retention-r2854'); p=b/'afterimages/cli/Sources/MixerBuild/NativeProductCapture.swift'; print('\\n'.join(f'{i}: {s}' for i,s in enumerate(p.read_text().splitlines(),1) if i<=100 or i>=300)); print('ACTUAL_DWARFDUMP_READBACK'); print((b/'logs/dwarfdump-app-binary.stdout').read_text()); print((b/'logs/dwarfdump-symbol-dwarf.stdout').read_text())"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 37842,
+      "pgid": 37842,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04107870801817626,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "build_or_product_runtime_rerun": false,
+  "new_device_attempts": false,
+  "held_paths_accessed": false,
+  "holds_released": false,
+  "canonical_edits": false,
+  "index_or_Git_operations": false,
+  "children": false,
+  "provider_operations": false,
+  "keys_or_distribution_signing": false,
+  "publication": false,
+  "GA": false,
+  "private_report": "verification/local/native-retention-review-r2864/REPORT.md",
+  "private_evidence_audit": "verification/local/native-retention-review-r2864/evidence-audit.json",
+  "review_elapsed_seconds_from_pin_bootstrap": 295.039,
+  "conservative_inclusive_seconds": 315.039,
+  "inclusive_bound_seconds": 360,
+  "delivery_utc": "2026-11-15T19:00:55.944070+00:00"
+}

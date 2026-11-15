@@ -1,5 +1,17 @@
 # Current development status
 
+## Continuation: November 15, 2026 — real compiler-error integration and globals
+
+The fresh private development join passed authenticated HTTP creation, the restricted Oban processor, an actual Swift compiler error, terminal readback and duplicate replay. Capacity was released and the lease cleared; worker restart retained the diagnostic and `starts=1`. One compiler invocation progressed through 36 bounded drains. Independent review found no issues in this scoped evidence. The development adapter and worker remain private; canonical dispatch and successful seven-artifact completion are still pending. [Actual join](verification/receipts/real-compiler-Oban-join-r2834.json), [review](verification/receipts/real-compiler-Oban-review-r2844.json).
+
+The reviewed globals corpus is admitted: 28 single-entry parities and 24 unsupported-ABI refusals passed in each discovery mode, with 56 consuming cleanups and all 55 advertised targets compiled. Same-process multiple-instance isolation and hosted debug/release execution remain unverified. [Runtime](verification/receipts/vm-globals-final-run-r2852.json), [review](verification/receipts/vm-globals-review-r2858.json).
+
+Two genuine producer units remain private. Native app and dSYM capture passed its real build and retention checks. The reviewed correction now rejects seven unsupported embedded native formats while preserving supported thin64 images and ordinary resources. Diagnostic-profile guest production passed validation of 79,108 function bodies, actual evaluation, retention and corruption checks. Its two outer test invocations plus nested evaluator count as three. Whole-app eligibility, public CLI wiring and the complete seven-artifact set remain pending. [Native changed-fix review](verification/receipts/native-format-review-r2920.json), [guest review](verification/receipts/guest-product-review-r2868.json).
+
+The hosted FieldLog APK passed a fresh Android smoke test: install and launch, save a new entry, force-stop, relaunch, and observe the same title with one saved entry. The owned emulator was API36/arm64 with 4 KiB pages. Both emulator and private ADB server terminated with positive custody evidence; owned AVD and IPC were removed. Existing-entry editing, note persistence, 16 KiB runtime behavior and immutable-package qualification remain pending. An earlier pre-acquisition port refusal was incorrectly classified HOLD; its namespace remains preserved without implying endpoint ownership. [Actual native evidence and cleanup](verification/receipts/fieldlog-android-persistence-r2936.json), [preserved earlier record](verification/receipts/fieldlog-direct-image-r2862.json).
+
+Canonical v26/source335, immutable CLI119, Pair21 and activation remain unchanged. No historical hold is released. GA remains **0/38**.
+
 ## Continuation: November 13, 2026 — v26 hosted CI verified
 
 At `ecde901ad53819ad77f1514d2482ce478e541028`, the repaired Phoenix job passed the full hosted suite: **902 passed, 0 failed, 2 existing skips**. All 35 constructor checks passed: 12 trust, 8 secrets, and 15 composition controls with explicit fake leaves. The secret driver reported zero compiler diagnostics and zero fixture startup calls. All 140 product-source bindings match canonical files. The prior missing-driver-dependency failure remains preserved. [Verified hosted log and artifact](verification/receipts/v26-phoenix-ci-proof-r2822.json).

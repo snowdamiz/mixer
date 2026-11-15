@@ -1,0 +1,101 @@
+{
+  "id": "R2858_VM_GLOBALS_INDEPENDENT_REVIEW",
+  "status": "PASS_NARROW_SINGLE_ENTRY_CORPUS",
+  "findings": [],
+  "scope": "Independent bounded source/evidence review of frozen corrected R2846 corpus validated by R2852; macOS debug only; root owns application and delivery.",
+  "source": {
+    "path": "verification/local/vm-globals-single-entry-r2846/afterimages/vm/tests/differential_globals_consuming.rs",
+    "bytes": 24919,
+    "sha256": "fd1cc0616bfdc81466986c1906a9eb59187198f0e5698d5431afac2275a6f917",
+    "parent_revision_from_receipts": "fc73f1516616abd680fe1f995e572a16bf21cc4b",
+    "baseline_tree_sha256": "3f7bdbfe6feddd63251dbc8790bb7f4791b6e478aabb2022f4db6344b89ec035",
+    "canonical_preimage": null,
+    "canonical_test_absent_observed": true,
+    "all_afterimages_exact": true,
+    "canonical_and_private_baseline_files_exact": 468,
+    "compiled_private_source_hashes_exact": 469
+  },
+  "input_receipt_sha256": {
+    "vm-globals-r2838.json": "e30ec9b687dab8febbb7002423d1ce62dbe6e7da2dae0dc59f24b1f4788e442f",
+    "vm-globals-single-entry-r2846.json": "dbfe54f3fc85b09c6ab83d66e27485a64d18e6de1aa3235555fe09940774e77e",
+    "vm-globals-final-run-r2852.json": "03abfd7567f2a5b09c3bd7a16365cb2fd5d9e1e47c0d2bb1d813a8ecf6dba776"
+  },
+  "verified": {
+    "all_R2852_compact_and_full_receipt_artifact_hashes": true,
+    "output_manifest_entries_exact": 126,
+    "retained_build_outputs_exact": 59,
+    "replay_binary_exact": true,
+    "historical_evidence_entries_exact": 157,
+    "unique_modules_matching_frozen_R2846": 52,
+    "R2838_multi_export_controls_byte_exact": 24,
+    "positive_pairs_differ_only_in_export_section": 24,
+    "typed_constant_initializers_and_raw_bits": true,
+    "typed_indexed_helpers_and_mutable_stores": true,
+    "global_slot_isolation_and_internal_call_persistence": true,
+    "Node_executes_identical_module_bytes_before_asserted_oracle_record": true,
+    "Node_i64_route_lossless_BigInt_or_raw_memory": true,
+    "float_bits_preserved_by_integer_reinterpret_and_memory_stores": true,
+    "tool_environment_controls_and_default_budgets_preserved": true,
+    "positive_runtime_wasi_grants_stdout_only": true,
+    "ABI_refusals_are_not_invalid_Wasm_or_global_execution_failures": true,
+    "advertised_admitted_compiled_targets": 55,
+    "fresh_compiler_artifact_records": 57,
+    "owned_command_example_compiled": true
+  },
+  "raw_evidence_per_invocation": {
+    "invocations": ["exact-parent", "blanket-ignored"],
+    "modules": 52,
+    "Node_oracles": 52,
+    "positive_admissions_parities_cleanups": 28,
+    "positive_scalar_observations": 112,
+    "unsupported_ABI_refusals_before_runtime": 24,
+    "environment_refusals_before_payload": 15,
+    "successful_reaped_workers": 52,
+    "ordered_case_ids_and_cleanup_before_next_admission": true,
+    "product_failures": 0,
+    "stderr_bytes": 0
+  },
+  "cleanup": {
+    "consuming_runtimes": 56,
+    "each_has_fourteen_zero_currents": true,
+    "each_has_zero_tickets_and_no_cleanup_invariant": true,
+    "R2852_managed_commands_reaped_EOF_closedFDs_ESRCH": 10,
+    "R2852_owned_tmp_cache_cargo_home_absent_observed": true,
+    "R2852_source_target_and_replay_retained": true,
+    "new_unknown_process_or_ledger_chains": 0,
+    "historical_failures_preserved": true,
+    "holds_accessed_or_released": false
+  },
+  "review_execution": {
+    "started_utc": "2026-11-15T18:12:58Z",
+    "review_checks_completed_utc": "2026-11-15T18:17:39Z",
+    "review_checks_elapsed_seconds": 281,
+    "inclusive_limit_seconds": 360,
+    "managed_read_commands": 9,
+    "additional_intake_read": "R986 custodian source only; no top-level execution",
+    "read_limit_including_intake": 10,
+    "custodian_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "custodian_mode": "Only InertPopen and run definitions; explicit sys/os/subprocess/signal/time imports; unique read-01 through read-09 registries",
+    "read_05_local_allowlist_failure": "Terminal exit1, both EOFs, closed descriptors, ESRCH; stopped before historical-file access; corrected receipt-only allowlist in distinct read-07",
+    "runtime_build_Node_compiler_DB_device_browser_provider_Git_index_operations": 0,
+    "subagents": 0,
+    "canonical_edits": 0,
+    "held_paths_inspected_or_statted": 0,
+    "writes": ["verification/local/vm-globals-review-r2858", "verification/receipts/vm-globals-review-r2858.json"]
+  },
+  "limitations": [
+    "One runtime per worker process: same-process simultaneous or sequential multiple-instance isolation is not established.",
+    "The isolation cases establish independence among global slots, with persistence across internal calls in one command instance.",
+    "Multi-export controls are valid Wasm rejected by the command ABI; invalid global typing/mutability and imported-global aliasing are not qualified.",
+    "No general repeated-export/reactor API, CI, full suite, optimized/release, W08, device, publication or GA qualification.",
+    "Evidence was independently inspected and re-counted; no new application execution was authorized or performed."
+  ],
+  "primary_semantics": [
+    "https://webassembly.github.io/spec/core/exec/instructions.html#exec-global-get",
+    "https://webassembly.github.io/spec/core/exec/modules.html#alloc-global",
+    "https://webassembly.github.io/spec/core/valid/instructions.html#valid-global-set"
+  ],
+  "report": "verification/local/vm-globals-review-r2858/REPORT.md",
+  "review_evidence": ["hash-checks.json", "raw-evidence-checks.json", "module-structure.json"],
+  "root_apply_or_delivery_authorized_by_review": false
+}
