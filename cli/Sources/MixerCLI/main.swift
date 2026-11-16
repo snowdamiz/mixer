@@ -12,7 +12,7 @@ struct Arguments {
             if value == "--help" { positional.append("help") }
             else if value == "--json" { json = true }
             else if value.hasPrefix("--") {
-                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track", "--request"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
                 index += 1; options[value] = values[index]
             } else { positional.append(value) }
             index += 1
@@ -36,6 +36,7 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
   mixer doctor [--json]
   mixer config validate [--directory PATH]
   mixer build [--platform host|ios|android] [--directory PATH] [--output NEW_PRIVATE_STORE (ios only)]
+  mixer report --request REQUEST.json --output NEW_PRIVATE_STORE
   mixer test [--platform host] [--directory PATH]
   mixer run ios --device SIMULATOR_UUID [--directory PATH]
   mixer import PATH [--output REPORT.json]
@@ -76,6 +77,7 @@ do {
         "build": ["--directory", "--platform", "--output"], "test": ["--directory", "--platform"],
         "run": ["--directory", "--device"], "import": ["--output"],
         "release": ["--directory"], "export": ["--directory"],
+        "report": ["--request", "--output"],
         "submit": ["--provider", "--build-id", "--app-id", "--version-code", "--track", "--directory"]
     ]
     guard Set(arguments.options.keys).isSubset(of: allowedOptions[words.first ?? "help"] ?? []) else { throw MixerFailure("arguments.unused-option", "An option does not apply to this command.") }
@@ -105,6 +107,14 @@ do {
     case "config":
         guard words == ["config", "validate"] else { throw MixerFailure("arguments.config", "Usage: mixer config validate") }
         try output(ApplicationConfiguration.load(root))
+    case "report":
+        guard words == ["report"], !arguments.json,
+              Set(arguments.options.keys) == Set(["--request", "--output"]),
+              let request = arguments.options["--request"], let destination = arguments.options["--output"] else {
+            throw MixerFailure("arguments.report", "Usage: mixer report --request REQUEST.json --output NEW_PRIVATE_STORE")
+        }
+        try output(SameBuildPublicReport.observe(request: SameBuildPublicReport.readRequest(path(request)),
+                                                output: path(destination)))
     case "build", "test":
         guard words.count == 1 else { throw MixerFailure("arguments.build", "Unexpected positional argument") }
         if let destination = arguments.options["--output"] {

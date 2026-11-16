@@ -442,4 +442,150 @@ extension NativeOutputAdmissionTests {
             XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: output.path), [])
         }
     }
+
+    // These records are synthetic UNIT evidence, never native execution qualification.
+    private func unitPublicRequest(_ root: URL, custody: [String: Any]? = nil) throws -> SameBuildPublicReport.Request {
+        let fixture = try unitFixture(root)
+        let evidence = try directory(root, "evidence")
+        func identity(_ name: String, _ data: Data) throws -> SamePublicBuildProvenance.FileIdentity {
+            let target = evidence.appendingPathComponent(name)
+            try data.write(to: target)
+            return .init(logicalPath: name, path: target.path, sha256: SourceDigest.sha256(data), sizeBytes: UInt64(data.count))
+        }
+        func json(_ object: [String: Any]) throws -> Data {
+            try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        }
+        let binding = fixture.report.binding
+        let original = fixture.parent.appendingPathComponent("native-build.json")
+        let raw = try Data(contentsOf: original)
+        let originalIdentity = SamePublicBuildProvenance.FileIdentity(logicalPath: "original-report.json",
+            path: original.path, sha256: SourceDigest.sha256(raw), sizeBytes: UInt64(raw.count))
+        let invocation = try identity("invocation.json", json(["argv": [fixture.inputs.cliBinary.path,
+            "build", "--platform", "ios", "--directory", fixture.inputs.projectRoot.path,
+            "--output", fixture.parent.path], "environment": [String: String]()]))
+        let proof = try identity("proof.json", json(["allEqualToCapturedBinding": true, "observed": [
+            "cliExecutableSHA256": binding.cliExecutableSHA256, "compilerSourceDigest": binding.compilerSourceDigest,
+            "lockSHA256": binding.lockSHA256, "projectSourceDigest": binding.authoritativeSourceDigest,
+            "sdkDigest": binding.sdkDigest]]))
+        let record = custody ?? ["command": binding.command, "directory": fixture.inputs.projectRoot.path,
+            "exitCode": 0, "state": "TERMINAL", "terminalCustody": true, "directChildReaped": true,
+            "stdoutEOF": true, "stderrEOF": true, "descriptorsClosed": true, "ownedGroupAbsent": true,
+            "released": true, "outputTruncated": false, "pid": 1, "ownedPGID": 1, "ownedSession": 1]
+        let native = try identity("custody.json", json(record))
+        let observer = try identity("observer.swift", Data("synthetic UNIT observer".utf8))
+        return .init(projectRoot: fixture.inputs.projectRoot.path, compilerRoot: fixture.inputs.compilerRoot.path,
+            sdkRoot: fixture.inputs.sdkRoot.path, cliBinary: fixture.inputs.cliBinary.path,
+            lockFile: fixture.inputs.lockFile.path, nativeStore: fixture.parent.path,
+            evidence: .init(originalReport: originalIdentity, publicInvocation: invocation, identityProof: proof,
+                nativeCustody: native, observerImplementation: observer), created: "2026-11-16T00:00:00Z")
+    }
+    func testUnitPublicReportCompositionReopensWithoutOriginalRoots() throws {
+        try temporary { root in
+            let request = try unitPublicRequest(root), output = root.appendingPathComponent("report")
+            let result = try SameBuildPublicReport.observe(request: request, output: output)
+            XCTAssertEqual(result.completeness, "verified_subset"); XCTAssertTrue(result.unsigned)
+            XCTAssertThrowsError(try SameBuildPublicReport.requireAggregateEligible(result))
+            for path in ["project", "compiler", "sdk", "cli", "locks", "parent", "evidence"] {
+                try FileManager.default.removeItem(at: root.appendingPathComponent(path))
+            }
+            let reopened = try SameBuildPublicReport.reopen(output: output)
+            XCTAssertEqual(reopened.sbom.nativeSHA256, result.sbom.nativeSHA256)
+            XCTAssertEqual(reopened.provenance.sha256, result.provenance.sha256)
+            XCTAssertEqual(reopened.snapshot, result.snapshot)
+        }
+    }
+    func testUnitPublicReportCommandResultAloneCannotClaimCustody() throws {
+        try temporary { root in
+            let request = try unitPublicRequest(root, custody: ["command": ["UNIT_FIXTURE_NO_COMPILER"],
+                "exitCode": 0, "output": "synthetic UNIT exit alone", "outputTruncated": false])
+            let output = root.appendingPathComponent("report")
+            XCTAssertThrowsError(try SameBuildPublicReport.observe(request: request, output: output))
+            XCTAssertFalse(FileManager.default.fileExists(atPath: output.appendingPathComponent("report.json").path))
+        }
+    }
+    func testUnitPublicReportChangedRawEvidenceRefusesBeforeOutput() throws {
+        try temporary { root in
+            let request = try unitPublicRequest(root), output = root.appendingPathComponent("report")
+            try unitRewrite(Data("changed raw invocation".utf8), at: URL(fileURLWithPath: request.evidence.publicInvocation.path))
+            XCTAssertThrowsError(try SameBuildPublicReport.observe(request: request, output: output))
+            XCTAssertFalse(FileManager.default.fileExists(atPath: output.path))
+        }
+    }
+    func testUnitPublicReportFailedCompilerAndMissingInventoryRefusePublication() throws {
+        for mutation in ["compiler", "inventory", "policy"] {
+            try temporary { root in
+                let request = try unitPublicRequest(root)
+                let original = URL(fileURLWithPath: request.evidence.originalReport.path)
+                var raw = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: original)) as? [String: Any])
+                if mutation == "compiler" {
+                    var command = try XCTUnwrap(raw["commandResult"] as? [String: Any])
+                    command["exitCode"] = 1; raw["commandResult"] = command
+                } else if mutation == "inventory" { raw.removeValue(forKey: "resourceInventory") }
+                else {
+                    var binding = try XCTUnwrap(raw["binding"] as? [String: Any])
+                    binding.removeValue(forKey: "resourceInventoryPolicy"); raw["binding"] = binding
+                }
+                let bytes = try JSONSerialization.data(withJSONObject: raw, options: [.sortedKeys])
+                try unitRewrite(bytes, at: original)
+                let evidence = SameBuildPublicReport.Evidence(originalReport: .init(logicalPath: "original-report.json",
+                    path: original.path, sha256: SourceDigest.sha256(bytes), sizeBytes: UInt64(bytes.count)),
+                    publicInvocation: request.evidence.publicInvocation, identityProof: request.evidence.identityProof,
+                    nativeCustody: request.evidence.nativeCustody, observerImplementation: request.evidence.observerImplementation)
+                let changed = SameBuildPublicReport.Request(projectRoot: request.projectRoot, compilerRoot: request.compilerRoot,
+                    sdkRoot: request.sdkRoot, cliBinary: request.cliBinary, lockFile: request.lockFile,
+                    nativeStore: request.nativeStore, evidence: evidence, created: request.created)
+                let output = root.appendingPathComponent("report")
+                XCTAssertThrowsError(try SameBuildPublicReport.observe(request: changed, output: output))
+                XCTAssertFalse(FileManager.default.fileExists(atPath: output.appendingPathComponent("report.json").path))
+            }
+        }
+    }
+    func testUnitPublicReportRequestIsBoundedAndRejectsSymlink() throws {
+        try temporary { root in
+            let file = root.appendingPathComponent("request.json")
+            let request = try unitPublicRequest(root)
+            let valid = try JSONEncoder().encode(request)
+            XCTAssertLessThan(valid.count, SameBuildPublicReport.requestByteLimit)
+            let oversized = valid + Data(repeating: 32,
+                count: SameBuildPublicReport.requestByteLimit + 1 - valid.count)
+            let uncheckedOversized = try JSONDecoder().decode(SameBuildPublicReport.Request.self, from: oversized)
+            XCTAssertEqual(uncheckedOversized.compilerRoot, request.compilerRoot)
+            try oversized.write(to: file)
+            XCTAssertThrowsError(try SameBuildPublicReport.readRequest(file)) { error in
+                XCTAssertEqual((error as? MixerFailure)?.code, "update.input-size")
+            }
+            let target = root.appendingPathComponent("valid-request.json")
+            try valid.write(to: target)
+            let admitted = try SameBuildPublicReport.readRequest(target)
+            XCTAssertEqual(admitted.compilerRoot, request.compilerRoot)
+            let link = root.appendingPathComponent("link.json")
+            try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
+            let uncheckedSymlink = try JSONDecoder().decode(SameBuildPublicReport.Request.self,
+                from: Data(contentsOf: link))
+            XCTAssertEqual(uncheckedSymlink.compilerRoot, request.compilerRoot)
+            XCTAssertThrowsError(try SameBuildPublicReport.readRequest(link)) { error in
+                XCTAssertEqual((error as? MixerFailure)?.code, "update.input-type")
+            }
+        }
+    }
+
+    func testUnitPublicReportEntrypointRegistersRequestAndOutput() throws {
+        try temporary { root in
+            let environment = ProcessInfo.processInfo.environment
+            let executable = try XCTUnwrap(environment["MIXER_STORE_TEST_CLI"])
+            let original = try XCTUnwrap(environment["R3974_ORIGINAL_CLI"])
+            let missing = root.appendingPathComponent("missing-request.json")
+            let output = root.appendingPathComponent("report")
+            let arguments = ["report", "--request", missing.path, "--output", output.path]
+            let baseline = try StoreCLIChild.run(original, arguments, environment: environment)
+            XCTAssertEqual(baseline.0, 1)
+            let baselineJSON = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(baseline.1.utf8)) as? [String: Any])
+            XCTAssertEqual(baselineJSON["code"] as? String, "arguments.unused-option")
+            let corrected = try StoreCLIChild.run(executable, arguments, environment: environment)
+            XCTAssertEqual(corrected.0, 1)
+            let correctedJSON = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(corrected.1.utf8)) as? [String: Any])
+            XCTAssertEqual(correctedJSON["code"] as? String, "update.input-type")
+            XCTAssertFalse(FileManager.default.fileExists(atPath: output.path))
+        }
+    }
 }

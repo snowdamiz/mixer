@@ -79,7 +79,7 @@ def owning_paths(patterns):
     # The owning job also selects immutable admission rows for current/history
     # source guards. Exercise every declared binding, without pinning a version.
     paths.update(p.lstrip('/') + 'binding.json' for p in patterns
-                 if p.startswith('/verification/native-output-') and p.endswith('/'))
+                 if p.startswith(('/verification/native-output-', '/verification/native-report-')) and p.endswith('/'))
     return sorted(paths)
 
 

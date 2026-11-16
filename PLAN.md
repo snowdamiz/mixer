@@ -1,5 +1,15 @@
 # Execution index
 
+## Continuation checkpoint, November 16, 2026 — public same-build report admitted as CLI127
+
+CLI127 is applied with the explicit public report command, its ordinary tests, exact caller/workflow bindings and fifteen new authority fixtures. Independent review passed; 292 controls passed in normal and actual optimized modes. Installed admission and idempotent readback pass. The full inverse restores corrected CLI126 exactly, and the prior authorities remain unchanged. [Root adoption](verification/receipts/public-report-root-adoption-r4030.json).
+
+The actual report binds 760 retained materials, 766 SBOM file entries and three genuine native subjects. The ordinary suite passed 394 cases, and both fresh reopens passed. The original build CLI/compiler identity remains distinct from the later observing command. These unsigned results retain verified_subset completeness and refuse aggregate eligibility. Formal schema validation remains pending: the official CUE summary still fails parsing before artifact validation. No whole-app or GA acceptance follows.
+
+The reviewed VM Clippy correction is applied after a fresh ordinary pass across all 59 harnesses: 578 tests passed, zero failed and 30 existing ignored tests remained. All 1,675 consuming rows have fourteen zero currents and zero tickets; 113 expected negative invariant rows are separate. The earlier R3978 chain remains held. At the preceding delivered head, eight Engine jobs passed; the sole VM failure was exactly the twenty Clippy diagnostics now corrected. Fresh hosted validation of these changes remains pending.
+
+Native startup and cooperative cancellation are qualified within their recorded scope. Two bounded keyboard/title attempts closed with zero ledger balances but did not produce a guest title result. A plain AppKit field did receive the PID-targeted title events, so production focus/routing remains unresolved. Screen capture and native title acceptance remain pending. All 38 GA gates remain unverified, and no historical hold is released.
+
 ## Continuation checkpoint, November 16, 2026 — real checkout admission and public report evidence
 
 The current CLI126 production selection is unchanged. A coordinated nine-file metadata and caller correction removes two derived Python bytecode declarations, rejects cache paths before source reads, and includes the owning workflow in Android's real sparse checkout. Installed admission passes in normal and actual optimized modes. Qualification covers 277 unique controls per mode from preserved source controls and final isolated apply controls; it is not a single clean 277-test batch. The exact prior metadata inverse and historical authorities remain preserved. [Root correction](verification/receipts/source126-metadata-root-adoption-r3988.json).
