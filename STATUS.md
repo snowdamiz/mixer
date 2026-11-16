@@ -1,5 +1,15 @@
 # Current development status
 
+## Continuation checkpoint, November 16, 2026 — formatted auth source and qualified SDK components
+
+The first Phoenix check after auth v28 delivery stopped on official formatter output, before runtime. The rollback regression is now officially formatted with identical Elixir AST, and its six current-source bindings are corrected. All 21 relevant source/sparse controls passed in normal and actual optimized Python. Installed source admission, CLI127 ownership and the official formatting check pass. The earlier missing-AGENTS fixture failure remains preserved. [CI diagnosis](verification/receipts/auth-v28-hosted-first-failure-r4240.json), [applied correction](verification/receipts/auth-v28-format-root-r4262.json).
+
+The final private SDK session and retirement fence pass 234 tests in each package graph, including all 18 policy cases. The optional native backend links to the accepted VM archive without execution; ordinary tests have no VM linkage. A genuine feature host using this exact SPI opt-in SDK also builds. Canonical SDK/source-profile adoption, host adapter review and actual public-SDK native control remain pending. [Component qualification](verification/receipts/public-sdk-final-component-root-r4264.json), [host build](verification/receipts/public-sdk-genuine-host-build-r4260.json).
+
+The real browser completed login and authenticated workspace/catalog reads. Two snapshot calls timed out; its target then closed before build submission. The one backend test failed on the missing submission record. PostgreSQL, Phoenix and Vite closed positively, all five owned ports were reusable, and inputs remained exact. No pixel or paired submitted-build database pass is claimed. A separate owned headless Chrome blank-page capture passed; it is tooling evidence for the next browser trial. [Closed browser attempt](verification/receipts/console-current-session-root-r4242.json), [capture capability](verification/receipts/owned-browser-snapshot-premise-r4252.json).
+
+All historical failures and holds remain preserved; all 38 GA requirements remain open.
+
 ## Continuation checkpoint, November 16, 2026 — auth v28 adopted
 
 The pending-login session correction is installed with its two ordinary regressions. The final full ordinary run passed 911 of 913 methods; the other two are existing Linux-only network tests skipped on macOS. Both Python modes completed 310 unique source controls in segmented runs. Independent review passed. The workflow update also required rebinding CLI127's owning metadata; that repair passed 20 controls per mode and preserved all 829 historical replay files and the production127 digest. Installed v28 and CLI127 checks now pass in both modes. [Root adoption](verification/receipts/session-source-v28-root-adoption-r4214.json), [actual full run](verification/receipts/active-session-diagnostic-full-r4204.json), [segmented review](verification/receipts/v28-segmented-final-review-r4208.json), [co-owner repair](verification/receipts/cli127-v28-workflow-rebind-r4226.json).

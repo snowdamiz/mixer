@@ -3041,8 +3041,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = "c588c498a213f10447bc9ecdffa5504ffbba4e682930a42d4b8676e209184112"
-    DIGEST = "2904bc9f1ea38a50f3bf101334b2c6109c30675dd4320aca7641ecbd254f8033"
+    PIN = "5f6c39100af61af00737e72022a7db2500bc8f86922fa7a49aa1b84b51653c8a"
+    DIGEST = "86f9d26a0210103066a5e241b530287276789f8398d23e3e9862136972e2e662"
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -4592,7 +4592,7 @@ class PendingSessionV28Controls(unittest.TestCase):
         old, current = collector.DEVELOPMENT_DISPATCH_MANIFEST, collector.PENDING_SESSION_MANIFEST
         self.assertEqual(338, len(old))
         self.assertEqual(set(old), set(current))
-        expected = {'hosted/lib/mixer_hosted/browser_auth/active_read.ex': {'before': {'bytes': 8680, 'sha256': 'a721531b628e6dafa952f5549ec62951d3e01563be7ced00606e4b07d9123674'}, 'after': {'bytes': 11010, 'sha256': 'd968616e3c22dea9827ab6c7f812950f3dbda950dfb0c0497c991c3816d85055'}}, 'hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs': {'before': {'bytes': 4670, 'sha256': '1a9063d05d3f76307a6121fa94af9d490e2263c050ea3eb8543cca196606bb12'}, 'after': {'bytes': 5898, 'sha256': '4ff5501a9cd1808ee52aeb1b91d2ab097df17471bde069e934cafc1be54dc848'}}, 'hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs': {'before': {'bytes': 56650, 'sha256': '1a1f300270c53c5203d9cb0f70272f6e8d29f9af9849eb3453b97c32806f90ac'}, 'after': {'bytes': 57373, 'sha256': 'eef40ac977ae5d8bbf6b1d67e680e9b62451514a90e74782e1386b008f42a022'}}}
+        expected = {'hosted/lib/mixer_hosted/browser_auth/active_read.ex': {'before': {'bytes': 8680, 'sha256': 'a721531b628e6dafa952f5549ec62951d3e01563be7ced00606e4b07d9123674'}, 'after': {'bytes': 11010, 'sha256': 'd968616e3c22dea9827ab6c7f812950f3dbda950dfb0c0497c991c3816d85055'}}, 'hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs': {'before': {'bytes': 4670, 'sha256': '1a9063d05d3f76307a6121fa94af9d490e2263c050ea3eb8543cca196606bb12'}, 'after': {'bytes': 5898, 'sha256': '4ff5501a9cd1808ee52aeb1b91d2ab097df17471bde069e934cafc1be54dc848'}}, 'hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs': {'before': {'bytes': 56650, 'sha256': '1a1f300270c53c5203d9cb0f70272f6e8d29f9af9849eb3453b97c32806f90ac'}, 'after': {'bytes': 57389, 'sha256': 'b710bbb4c10bbf199d42dd4efb817dc892f931645441dddcf35772e026bafb9a'}}}
         self.assertEqual(expected, collector.PENDING_SESSION_DELTA)
         self.assertEqual(set(expected), {p for p in current if current[p] != old[p]})
         value = collector.validate_pending_session_source_metadata(self.metadata())
