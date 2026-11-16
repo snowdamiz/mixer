@@ -1,0 +1,91 @@
+{
+  "id": "R3550",
+  "status": "PRESERVED_UI_REGRESSION_LEDGER_HOLD_DEPENDENCY_NOT_READY",
+  "originalReceipt": {
+    "path": "verification/receipts/swift-ui-profile-regression-r3544.json",
+    "sha256": "24d61a03701549334a03ead30be3a40f2b03f0723fd68b9d135eaaa5c9c01021"
+  },
+  "deliveredTopLevelHold": {
+    "schema": 1,
+    "id": "R3544",
+    "state": "LEDGER_UNKNOWN_OS_CLOSED",
+    "reason": "Actual unit-test owners were acquired; assertion panics preceded consuming retirement. Process disappearance cannot prove consuming ledger closure.",
+    "OS": {
+      "pid": 22980,
+      "pgid": 22980,
+      "directReaped": true,
+      "exitCode": 101,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true,
+      "processHold": false,
+      "receipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/commands/r3544-ordinary-combined-regression/commands.json"
+    },
+    "actualOwnerEvidence": [
+      {
+        "test": "experimental_swift_reactor::execution::frame_operations::tests::af21_warm_paths_refuse_first_allocation_and_cold_decode_is_separate",
+        "source": "source/src/experimental_swift_reactor/frame_operations_tests.rs",
+        "ownerConstructionLine": 1475,
+        "panicLine": 1480,
+        "unreachedRetirementLine": 1484,
+        "initialOwnerRetiredLine": 1473,
+        "scope": "fresh loop owner and active frame phase; not the already retired initial owner"
+      },
+      {
+        "test": "experimental_swift_reactor::execution::frame_operations::memory_growth_operations::lifecycle::tests::swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage",
+        "source": "source/src/experimental_swift_reactor/lifecycle_tests.rs",
+        "ownerConstructionLine": 942,
+        "panicLine": 968,
+        "actual": 141,
+        "expected": 172,
+        "scope": "constructed reactor owner after successful Initialize; consuming closure unobserved"
+      }
+    ],
+    "minimumActualUnclosedOwnerCases": 2,
+    "otherFailureLedgerStates": "Not fully classified; no aggregate clean-ledger claim",
+    "pureFirstFailureIsNotLedgerHold": true,
+    "preserveWithoutInspectionRetryOrCleanup": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/source",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/target",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/tmp",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/cargo-home",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/commands/r3544-ordinary-combined-regression/r3544-ordinary-combined-regression.stdout",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/commands/r3544-ordinary-combined-regression/r3544-ordinary-combined-regression.stderr"
+    ],
+    "permittedTopLevelMetadata": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/HOLD.json",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/REPORT.md",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/result.json",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/reconstruction.json",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/build-target-identity-proof.json",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/canonical-before.json",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/canonical-after.json",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-profile-regression-r3544/commands/r3544-ordinary-combined-regression/commands.json"
+    ],
+    "cleanupPerformed": false,
+    "retries": 0,
+    "historicalHoldsReleased": false
+  },
+  "observed": {
+    "targetsCompiled": 59,
+    "executedLibraryTests": 469,
+    "passed": 454,
+    "failed": 15,
+    "laterTargetsExecuted": false,
+    "firstPureLayoutActual": 16,
+    "firstPureLayoutExpected": 8
+  },
+  "firstPureFailureDoesNotItselfEstablishHold": true,
+  "otherFailedOwnerStatesFullyClassified": false,
+  "priorComponentReplayStillHistoricalEvidence": "R3454 five-turn replay passed; it does not qualify the ordinary regression",
+  "priorDevelopmentBuildDependency": "verification/receipts/swift-ui-native-build-dependency-r3464.json",
+  "furtherSDKOrNativeDependencyAcceptance": false,
+  "canonicalVMAdoption": false,
+  "allowedFreshWork": "Source-only or separately bounded tests reconstructed from canonical source and the unheld R3420 final successor, never R3544 protected resources",
+  "heldRawOutputOrSourceReadByRoot": false,
+  "rootReadOnlyDeliveredCompactAndExplicitTopLevelHold": true,
+  "holdsReleased": false,
+  "CLI120": false,
+  "activation": false,
+  "GA": false
+}

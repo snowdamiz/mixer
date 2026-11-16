@@ -1,0 +1,312 @@
+{
+  "id": "R3610",
+  "status": "FAIL_ACTUAL_SIGN_IN_FIXTURE_ENVELOPE",
+  "browserPass": false,
+  "observation": {
+    "schema": "R3610_ROOT_BROWSER_OBSERVATION_V1",
+    "rootDecision": "failed",
+    "tabId": "tab_c_6dba0bbc-643c-49aa-9012-b050f5c74a52",
+    "actualPublicSignIn": true,
+    "actualCreateClick": false,
+    "scope": {
+      "organizationId": null,
+      "projectId": null,
+      "applicationId": null,
+      "visibleText": "Sign in to view your workspace"
+    },
+    "platform": null,
+    "sourceInputId": null,
+    "createdBuildId": null,
+    "queuedDetailVisible": false,
+    "domEvidence": [
+      {
+        "stage": "sign-in",
+        "path": "/workspace",
+        "text": "Sign in",
+        "visibleAndHitTested": true,
+        "bounds": {
+          "x": 1181.265625,
+          "y": 18.9765625,
+          "width": 58.734375,
+          "height": 33.046875
+        }
+      },
+      {
+        "stage": "sign-in-failed",
+        "path": "/workspace",
+        "text": "Sign in is unavailable. Try again.",
+        "visibleAndHitTested": false
+      }
+    ],
+    "screenshots": [
+      {
+        "stage": "workspace",
+        "status": "unavailable",
+        "path": null,
+        "rawError": "Preview automation snapshot timed out after 15000ms."
+      }
+    ],
+    "limitations": [
+      "The real Sign in click issued POST /auth/login; backend recorded status 200. No authenticated session, create click or Queued detail was observed.",
+      "Fixture helper rewrites authorization_url from HTTPS to HTTP localhost. The unchanged browser-login-client.ts authorization boundary requires HTTPS; this source mismatch explains a fixture refusal, not a product defect proof.",
+      "No browser API authentication bypass, no product DOM injection and no credential insertion occurred.",
+      "Synthetic loopback/offline provider fixture only; no public provider, production or GA qualification."
+    ],
+    "APIAuthenticationBypass": false,
+    "browserPass": false,
+    "productionQualified": false,
+    "activation": false,
+    "GA": false
+  },
+  "actualEvents": [
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "status": 200,
+      "bytes": 86,
+      "actualPhoenix": true
+    },
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "status": 200,
+      "bytes": 86,
+      "actualPhoenix": true
+    },
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "status": 200,
+      "bytes": 86,
+      "actualPhoenix": true
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "status": 200,
+      "bytes": 470,
+      "actualPhoenix": true
+    }
+  ],
+  "creatorSQLRole": {
+    "sessionUser": "mixer_build_create",
+    "currentUser": "mixer_build_create",
+    "superuser": false,
+    "bypassRLS": false,
+    "actualConnection": true
+  },
+  "cleanup": {
+    "status": "BACKEND_FINISHED_BROWSER_REQUIRES_ROOT_EVIDENCE",
+    "browserPass": false,
+    "PGlaunches": 1,
+    "PGstops": 1,
+    "portsReusable": [
+      41130,
+      52313,
+      52312,
+      52279
+    ],
+    "commands": [
+      {
+        "label": "initdb",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-browser-root-r3610/live/pgdata",
+          "-U",
+          "mixer_fixture",
+          "--auth-local=trust",
+          "--auth-host=trust",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-browser-canonical-prep-r3568/replay/hosted",
+        "pid": 53017,
+        "pgid": 53017,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.35882045794278383,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "ready-0",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "41130",
+          "-U",
+          "mixer_fixture",
+          "-d",
+          "postgres",
+          "-At",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-c",
+          "SELECT 1; SHOW data_directory;"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-browser-canonical-prep-r3568/replay/hosted",
+        "pid": 53029,
+        "pgid": 53029,
+        "state": "direct_reaped",
+        "exitCode": 2,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03019220905844122,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "ready-1",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "41130",
+          "-U",
+          "mixer_fixture",
+          "-d",
+          "postgres",
+          "-At",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-c",
+          "SELECT 1; SHOW data_directory;"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-browser-canonical-prep-r3568/replay/hosted",
+        "pid": 53037,
+        "pgid": 53037,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03991891699843109,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "browser-read-roles",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "41130",
+          "-U",
+          "mixer_fixture",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-c",
+          "CREATE ROLE browser_admin LOGIN SUPERUSER; CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-browser-canonical-prep-r3568/replay/hosted",
+        "pid": 53039,
+        "pgid": 53039,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03254441590979695,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "browser-read-database",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/createdb",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "41130",
+          "-U",
+          "mixer_fixture",
+          "-O",
+          "browser_schema_owner",
+          "browser_storage"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-browser-canonical-prep-r3568/replay/hosted",
+        "pid": 53041,
+        "pgid": 53041,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.06526354094967246,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "postgres-stop",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-browser-root-r3610/live/pgdata",
+          "-m",
+          "fast",
+          "-w",
+          "-t",
+          "15",
+          "stop"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-browser-canonical-prep-r3568/replay/hosted",
+        "pid": 56417,
+        "pgid": 56417,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.129387249937281,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "children": [
+      {
+        "label": "postgres",
+        "pid": 53028,
+        "pgid": 53028,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "phoenix-fixture",
+        "pid": 53043,
+        "pgid": 53043,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 1,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      }
+    ],
+    "scratchDeleted": false,
+    "holdsReleased": false
+  },
+  "sourcePins": {
+    "files": 497,
+    "manifest": {
+      "bytes": 81621,
+      "sha256": "2d35c3fb1540b27e893c7b879a2d5a4793c6e91ca4daf5d474d1f6d04a751583"
+    },
+    "allExact": true,
+    "changedPaths": [],
+    "replayChangedPaths": []
+  },
+  "newHold": false,
+  "rootCauseCounterproof": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/commands/browser-premise-actual-client-r3624",
+  "remaining": "No login completion/create/Queued proof; keep HTTPS client unchanged",
+  "activation": false,
+  "GA": false
+}
