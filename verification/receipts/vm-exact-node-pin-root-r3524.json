@@ -1,0 +1,121 @@
+{
+  "id": "R3524",
+  "status": "VM_EXACT_NODE_PIN_APPLIED_HOSTED_CONFIRMATION_PENDING",
+  "failedHead": "49b705240cdb3e8046fabf06803bc7a0931280e2",
+  "run": 43782187436,
+  "job": 133021666713,
+  "failure": {
+    "expectedNode": "v22.23.3",
+    "observedNode": "v22.23.4",
+    "beforeCorpusChildren": true,
+    "releaseParentReached": false
+  },
+  "independentRootLog": {
+    "path": "verification/local/structured-ci-first-failure-r3508/job-133021666713.log",
+    "bytes": 3655130,
+    "sha256": "658941859de5c998c80a46b7dc2228568ce3e983f7278885a2563fc85854cfef",
+    "failureContext": "2026-11-16T00:49:53.4557937Z test memory_growth_matches_node ... ok\n2026-11-16T00:49:53.4558203Z \n2026-11-16T00:49:53.4558527Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.45s\n2026-11-16T00:49:53.4559228Z \n2026-11-16T00:49:53.4561224Z      Running tests/differential_structured_control_consuming.rs (vm/target/debug/deps/differential_structured_control_consuming-ddac210bef627125)\n2026-11-16T00:49:53.4571579Z \n2026-11-16T00:49:53.4571706Z running 1 test\n2026-11-16T00:49:53.4613595Z test structured_control_matches_node_consuming ... FAILED\n2026-11-16T00:49:53.4613808Z \n2026-11-16T00:49:53.4613881Z failures:\n2026-11-16T00:49:53.4614208Z \n2026-11-16T00:49:53.4614411Z ---- structured_control_matches_node_consuming stdout ----\n2026-11-16T00:49:53.4614866Z ENV_REJECT raw=\"\" runtimes=0 payloads=0\n2026-11-16T00:49:53.4615403Z ENV_REJECT raw=\"-1\" runtimes=0 payloads=0\n2026-11-16T00:49:53.4615757Z ENV_REJECT raw=\"+1\" runtimes=0 payloads=0\n2026-11-16T00:49:53.4616085Z ENV_REJECT raw=\"1x\" runtimes=0 payloads=0\n2026-11-16T00:49:53.4616411Z ENV_REJECT raw=\" 1\" runtimes=0 payloads=0\n2026-11-16T00:49:53.4616736Z ENV_REJECT raw=\"30\" runtimes=0 payloads=0\n2026-11-16T00:49:53.4617249Z ENV_REJECT raw=\"184467440737095516160\" runtimes=0 payloads=0\n2026-11-16T00:49:53.4617909Z ENV_REJECT raw=\"\uff11\" runtimes=0 payloads=0\n2026-11-16T00:49:53.4618130Z \n2026-11-16T00:49:53.4618597Z thread 'structured_control_matches_node_consuming' (15871) panicked at tests/differential_structured_control_consuming.rs:368:5:\n2026-11-16T00:49:53.4619241Z assertion `left == right` failed\n2026-11-16T00:49:53.4619435Z   left: \"v22.23.4\"\n2026-11-16T00:49:53.4619605Z  right: \"v22.23.3\"\n2026-11-16T00:49:53.4619867Z note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n2026-11-16T00:49:53.4620108Z \n2026-11-16T00:49:53.4620112Z \n2026-11-16T00:49:53.4620174Z failures:"
+  },
+  "producerCampaign": {
+    "receipt": "verification/receipts/structured-ci-first-failure-r3508.json",
+    "600SecondBudgetExceeded": true,
+    "failedReportingCommandPreserved": true,
+    "rootEvidenceCheckedSeparately": true
+  },
+  "workflow": {
+    "path": ".github/workflows/verify.yml",
+    "before": {
+      "bytes": 59256,
+      "sha256": "f4abb4bf56b1cc3eab64a2f3caa2f6214c41050e680966453d9e271168bf791f"
+    },
+    "after": {
+      "bytes": 59340,
+      "sha256": "460614f694a9df76ec40ad80bc0ff424479352fb11c33597353a968aabb44898"
+    },
+    "change": "Only VM job gains the existing setup-node v4 pattern with exact 22.23.3 before tool recording and both profiles"
+  },
+  "checks": [
+    {
+      "label": "verify-node-pin-yaml-r3524",
+      "argv": [
+        "/usr/bin/ruby",
+        "-e",
+        "require \"yaml\"; p=\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/.github/workflows/verify.yml\"; d=YAML.safe_load(File.read(p), aliases: true); s=d.fetch(\"jobs\").fetch(\"vm\").fetch(\"steps\"); i=s.index{|x|x[\"uses\"]==\"actions/setup-node@v4\"}; abort \"missing exact pin\" unless i && s[i].fetch(\"with\").fetch(\"node-version\")==\"22.23.3\"; abort \"pin too late\" unless i < s.index{|x|x[\"name\"]==\"Record owned VM host tools\"}; puts \"YAML valid; VM tool recording and both profiles use exact Node22.23.3\""
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 51374,
+      "pgid": 51374,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.10607087495736778,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "source-after-vm-node-pin-r3524",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 51417,
+      "pgid": 51417,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.1844251659931615,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "caller-after-vm-node-pin-r3524",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/adopt_envelope.py",
+        "verify",
+        "--workflow-installed"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 51418,
+      "pgid": 51418,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.15104712499305606,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "node-pin-exact-diff-r3524",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "diff",
+        "--",
+        ".github/workflows/verify.yml"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 51416,
+      "pgid": 51416,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.030918709002435207,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "guardsAndCorpusUnchanged": true,
+  "source338Preserved": true,
+  "CLI119Pair21Preserved": true,
+  "newLocalCorpusInvocations": 0,
+  "newHostedInvocations": 0,
+  "newHostedParentPasses": "PENDING",
+  "GA": false,
+  "holdsReleased": false
+}
