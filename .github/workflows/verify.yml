@@ -930,6 +930,33 @@ jobs:
             ${{ runner.temp }}/generated-java-ci/integration/commands/commands.json
             ${{ runner.temp }}/generated-java-ci/integration/commands/COMMAND-HOLD.json
             ${{ runner.temp }}/generated-java-ci/integration/commands/INNER-HOLD.json
+      - name: Select terminal Android inspection diagnostics
+        if: always()
+        id: inspection-diagnostics
+        shell: bash
+        run: |
+          python3 -I -B -S - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path(os.environ['RUNNER_TEMP']) / 'generated-java-ci/bootstrap-receipt.json'
+          try:
+              receipt = json.loads(path.read_text())
+              terminal = (receipt.get('cleanup', {}).get('terminal_custody') is True and
+                          receipt.get('integration_failure', {}).get('cleanup', {}).get('command_custody_terminal') is True)
+          except (OSError, ValueError, AttributeError, TypeError):
+              terminal = False
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('eligible=' + str(terminal).lower() + '\n')
+          PY
+      - name: Preserve terminal Android inspection phases
+        if: always() && steps.inspection-diagnostics.outputs.eligible == 'true'
+        timeout-minutes: 2
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-java-inspection-phases-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/generated-java-ci/inspection-phases/*.jsonl
       # Success requires bootstrap validation, positive custody and owned cleanup.
       # Raw generated Java lived in deleted scratch; these are durable outputs only.
       - name: Preserve bounded six-consumer receipt, DEX and reference evidence

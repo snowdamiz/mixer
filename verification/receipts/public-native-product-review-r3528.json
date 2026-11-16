@@ -1,0 +1,73 @@
+{
+  "id": "R3528",
+  "reviewed": "R3516",
+  "status": "REQUEST_CHANGES",
+  "scope": "Independent source/evidence/value-only review of private public-CLI native-output integration; no adoption",
+  "report": "verification/local/public-native-product-review-r3528/REPORT.md",
+  "value_proof": "verification/local/public-native-product-review-r3528/value-proof.json",
+  "findings": [
+    {
+      "id": "R3528-1",
+      "priority": "P2",
+      "title": "Manifest reopen follows a symlink outside the store before validating its file identity",
+      "source": "verification/local/public-native-product-output-r3516/afterimages/cli/Sources/MixerBuild/NativeBuildOutput.swift",
+      "lines": [
+        134,
+        140
+      ],
+      "proof": "Source/control-flow: a symlink to an external copy of the unchanged valid report is followed by Data(contentsOf:); unchanged binding/archive values pass the subsequent revalidation.",
+      "runtime_reproduction": false
+    }
+  ],
+  "verified": {
+    "application_afterimages": 7,
+    "frozen_files": 69,
+    "canonical_files_bytes_and_modes": 149,
+    "mismatches": 0,
+    "historical_managed_commands_with_positive_terminal_facts": 44,
+    "nested_raw_receipts_matching_copies_with_positive_terminal_facts": 3,
+    "durable_manifest_matches_recipe_binding": true,
+    "binding_command_matches_actual_compiler_command": true
+  },
+  "hashes": {
+    "app": "441bcf486385f34067e9b31ee0fc1d5d529b6aba688cdc37440bfc251c892714",
+    "dsym": "21e01532ac033e5da8b1e0f50adbd2432cdf3e1daba4c3cee81ae7d7f08e844a",
+    "binding_recorded_in_manifest": "5b3a29631949c227c3f3404acdeba61f31625ca6ed3839d88ce790de4796e380",
+    "durable_manifest": "45190e122c479e913d96851d0e68b286c41d02a72ce1d4093e2431b4d55b0579",
+    "capture": "6c7227a96d4f9643eb3c44ac9c73a2f077aa065508b4d97a0108899090197e1d",
+    "capture_tests": "75b9a456122709eb4f4cfffb086cdc7015eaf76bbd729a4930d936177e6a654f",
+    "prepared_wrapper": "1da88677f65823d7c1493ad72b049d36b02563033ab13d56db9c370dd37ca582",
+    "R986_pin": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+  },
+  "archive_bytes": {
+    "app": 3255192,
+    "dsym": 3435874
+  },
+  "archive_modes": "0444",
+  "review_execution": {
+    "initial_wrong_cwd_exit": 2,
+    "builds": 0,
+    "compilers": 0,
+    "test_payloads": 0,
+    "native_GUI_AX_devices_services": 0,
+    "children": 0,
+    "canonical_index_Git_CI_changes": false,
+    "held_resources_accessed_or_released": false,
+    "CLI120_adopted": false,
+    "completed_managed_inspections_before_finalization": 15,
+    "finalization_command": "r3528-17",
+    "total_managed_inspection_bound_including_finalization": 16,
+    "verified_prior_terminal_custody_records": 15,
+    "completed_at_UTC": "2026-11-16T03:19:56.350493+00:00"
+  },
+  "limitations": [
+    "Finding is proved from source and unchanged-value reasoning; no test payload was executed.",
+    "Failed-compiler branch was compiled but not exercised in R3516's successful single native-build allocation.",
+    "No-output compatibility is source preservation evidence, not a fresh runtime build.",
+    "Archive and raw evidence hashes were rechecked; historical dwarfdump, XCTest and full-byte replay were not rerun.",
+    "No adversarial stale-output runtime qualification was performed.",
+    "Unsigned arm64 iOS Simulator development only; no runtime, guest, distribution signer, package, OTA, aggregate, whole-app or GA qualification."
+  ],
+  "report_sha256": "692b9d7fae546aefcd2e77722372412081fc986138742753817ec3b5613399ce",
+  "value_proof_sha256": "53342507a417c6aade27074f0c434553c7a1d966499c89b3b87a1acc464bf2b7"
+}

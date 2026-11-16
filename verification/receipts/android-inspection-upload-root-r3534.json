@@ -1,0 +1,232 @@
+{
+  "id": "R3534",
+  "status": "ROOT_ACCEPTED_TERMINAL_ONLY_EXISTING_PHASE_UPLOAD",
+  "baseHead": "3b70cc6d332e1c66b5d98ada752f721291d79a5f",
+  "workflow": {
+    "path": ".github/workflows/verify.yml",
+    "bytes": 60688,
+    "sha256": "89671580606433c466fca075950fd374dbc90134295e637a99ba0560f2c34e65"
+  },
+  "sourceDelta": "27 added lines in two workflow steps; first eight metadata selectors unchanged",
+  "review": {
+    "path": "verification/receipts/android-phase-upload-review-r3538.json",
+    "sha256": "b7a17fdccecb9b5da133ea548b6244745791f1e06aba261723aac3f91c07a4d8",
+    "finalCommand": {
+      "label": "inspect-08",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import ast,hashlib,json,sys,datetime; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); base=Path.cwd(); freeze=json.loads((base/\"freeze.json\").read_text()); facts=json.loads((base/\"source-facts.json\").read_text()); sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest(); assert sha(r/\".github/workflows/verify.yml\")==freeze[\"workflow_sha256\"]; assert sha(base/\"prepared-command.py\")==freeze[\"wrapper_sha256\"]; \nfor name,value in facts.items(): assert sha(r/name)==value[\"sha256\"]\nbp=r/\"verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py\"; ss=bp.read_text().splitlines(); print(\"AUTHORITY_ANCHORS\\n\"+\"\\n\".join(str(i+1)+ss[i] for i in list(range(258,271))+list(range(377,388)))); proofpath=r/\"verification/local/android-inspection-upload-r3534/proof.json\"; proof=json.loads(proofpath.read_text()); assert proof[\"workflowSHA256\"]==freeze[\"workflow_sha256\"] and len(proof[\"cases\"])==12; assert all(c[\"readsOnlyTopLevelReceipt\"] is True for c in proof[\"cases\"]); assert sum(c[\"eligible\"] is True for c in proof[\"cases\"])==3; labels=[(\"inspect-01\",87363,\"Read AGENTS\"),(\"inspect-02\",88722,\"Read prepared wrapper and AGENTS first section\"),(\"inspect-03\",88788,\"Freeze workflow and inspect exact selector\"),(\"inspect-04\",88868,\"Read-only Git diff HEAD for workflow\"),(\"inspect-05\",91292,\"Read root proof and verify gate identity\"),(\"inspect-06\",91393,\"Read source custody anchors and parse gate output newline\"),(\"inspect-07\",91489,\"Read cleanup, phase class and permitted root evidence\")]; completed=[{\"label\":label,\"pid\":pid,\"pgid\":pid,\"exitCode\":0,\"bothEOF\":True,\"closedFDs\":True,\"ownedGroupAbsentESRCH\":True,\"purpose\":purpose} for label,pid,purpose in labels]; report=\"\"\"PASS \u2014 independent small source/evidence review R3538\n\nReviewed only the new terminal Android inspection phase upload contract. No source findings.\n\nThe frozen workflow SHA-256 is 89671580606433c466fca075950fd374dbc90134295e637a99ba0560f2c34e65. The read-only local Git diff against HEAD contains exactly the two added steps at verify.yml:933\u2013959; the existing eight always-upload metadata paths and later success-only evidence selector are unchanged. The task supplied root HEAD 3b70cc6d332e1c66b5d98ada752f721291d79a5f; this review did not independently resolve HEAD or query CI.\n\nAt verify.yml:941\u2013949 the gate reads only generated-java-ci/bootstrap-receipt.json. Both cleanup.terminal_custody and integration_failure.cleanup.command_custody_terminal must be literal JSON true. Missing keys, false, numbers, strings, nulls, wrong containers, missing files and malformed JSON deny eligibility. Environment/output failures cannot produce a usable true output. The output appends a real LF (AST suffix U+000A). The gate does not enumerate or read phase files or retained resources.\n\nBootstrap source anchors: integration_diagnostic selects actual result.cleanup.command_custody_terminal (bootstrap.py:258\u2013269); integration_started and integration_terminal initialize false (:328\u2013329); the actual runner result supplies integration_terminal and the durable diagnostic before validate_result (:388\u2013392). Final terminal custody combines outer command custody with started-integration custody (:403\u2013406), and the top receipt is saved after cleanup (:420). Thus outer completion alone does not authorize the new upload.\n\nThe existing phase directory is created under out/inspection-phases with mode 0700, outside transient scratch, and passed through the existing environment (:379\u2013387). Existing InspectionPhases (android-build.py:483\u2013549) excludes toolchain roots, checks directory owner/mode and creates exclusive no-follow 0600 jsonl files; its existing bounds are 64 entries and 16384 bytes per file. The new selector is a single directory-level *.jsonl glob, uses always() plus eligible == true, has a two-minute timeout and 14-day retention. It changes no timeout, trust, validation, capability, admission or refusal contract in product code.\n\nThe recorded R3534 proof has twelve cases: nine denied and three eligible. All report top-receipt-only reads; phase-file reads and acquired runtime owners are zero. Its gate source is byte-identical to the workflow inline code, SHA-256 383ed5a99dc69a5e7995d8e9a668ead5f867fc2ac071e6685ca2ba6ec4b9c236. This is an inspection of existing proof, not a newly executed test. The separately permitted R3526 top-level receipt was read only as historical context; no additional GET or retained-chain access occurred.\n\nEight prepared-wrapper commands, each with a unique label and 30-second bound, cover all inspection and delivery. Commands 01\u201307 returned exit 0 with both EOFs, closed FDs and positive owned-group absence; command 08 delivers this report and receipt, with its terminal outcome in the wrapper result. The wrapper was unchanged and checks the pinned R986 source SHA-256 ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52. Workflow, wrapper and reviewed canonical source digests were checked again before delivery.\n\nNo builds, product runtime, CI calls, delegated children, GUI actions, held-resource access, canonical writes, Git/index writes, staging, publication or merge were performed. The authorized prepared wrapper provides custody for the inspection commands. All historical holds remain absolute. Hosted phase upload is still pending; this review establishes no historical phase causation, device qualification or GA acceptance. Root retains the stage/artifact guard and future push/CI work.\n\"\"\"; (base/\"REPORT.md\").write_text(report); receipt={\"id\":\"R3538\",\"status\":\"PASS\",\"scope\":\"Independent source/evidence review of only new Android inspection phase artifact gate and selector\",\"reviewedAtUTC\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"suppliedRootHEAD\":\"3b70cc6d332e1c66b5d98ada752f721291d79a5f\",\"headIndependentlyResolved\":False,\"workflow\":freeze,\"canonicalSourceDigests\":{name:v[\"sha256\"] for name,v in facts.items()},\"gateSourceSHA256\":proof[\"gateSourceSHA256\"],\"proofSHA256\":sha(proofpath),\"rootEvidenceSHA256\":sha(r/\"verification/receipts/release-create-inspect-root-evidence-r3526.json\"),\"findings\":[],\"proof\":{\"inspectedNotRerun\":True,\"sourceByteIdentical\":True,\"cases\":12,\"denied\":9,\"eligible\":3,\"onlyTopReceiptRead\":True},\"authority\":\"Both strict booleans from final bootstrap cleanup and actual integration cleanup required\",\"selector\":\"${{ runner.temp }}/generated-java-ci/inspection-phases/*.jsonl\",\"timeoutMinutes\":2,\"retentionDays\":14,\"firstEightMetadataPathsUnchanged\":True,\"diffScope\":\"27 added workflow lines in exactly two steps; no deletions\",\"unchangedAtDelivery\":True,\"tools\":{\"python\":sys.version.split()[0],\"preparedWrapperSHA256\":freeze[\"wrapper_sha256\"],\"pinnedR986SHA256\":\"ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52\"},\"managedCommandsTotal\":8,\"perCommandTimeoutSeconds\":30,\"completedCommandFacts\":completed,\"deliveryCommand\":{\"label\":\"inspect-08\",\"purpose\":\"Check frozen source, write and read back report and compact receipt\",\"terminalOutcome\":\"See prepared-wrapper final output; not preclaimed\"},\"report\":\"verification/local/android-phase-upload-review-r3538/REPORT.md\",\"limits\":{\"newTestsRun\":0,\"builds\":0,\"productRuntime\":0,\"ciCalls\":0,\"children\":0,\"guiActions\":0,\"heldResourcesAccessed\":0,\"canonicalWrites\":0,\"gitIndexWrites\":0,\"hostedPhaseUpload\":\"PENDING\",\"historicalPhaseCausation\":\"UNPROVEN\",\"ga\":False}}; destination=r/\"verification/receipts/android-phase-upload-review-r3538.json\"; assert not destination.exists(); destination.write_text(json.dumps(receipt,indent=2)+\"\\n\"); assert json.loads(destination.read_text())[\"status\"]==\"PASS\"; assert (base/\"REPORT.md\").read_text()==report; assert sha(r/\".github/workflows/verify.yml\")==freeze[\"workflow_sha256\"]; print(\"DELIVERED\",json.dumps({\"status\":\"PASS\",\"report\":str(base/\"REPORT.md\"),\"reportSHA256\":sha(base/\"REPORT.md\"),\"receipt\":str(destination),\"receiptBytes\":destination.stat().st_size,\"workflowUnchanged\":True,\"managedCommands\":8}))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/android-phase-upload-review-r3538",
+      "pid": 95968,
+      "pgid": 95968,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05112612503580749,
+      "ownedGroupAbsentESRCH": true
+    }
+  },
+  "proof": {
+    "id": "R3534",
+    "status": "EXISTING_BOUNDED_PHASE_UPLOAD_GATED_ON_TERMINAL_CUSTODY",
+    "workflowSHA256": "89671580606433c466fca075950fd374dbc90134295e637a99ba0560f2c34e65",
+    "gateSourceSHA256": "383ed5a99dc69a5e7995d8e9a668ead5f867fc2ac071e6685ca2ba6ec4b9c236",
+    "cases": [
+      {
+        "case": "missing",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "malformed",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "wrong-root-type",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "absent-proof",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "bootstrap-unknown",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "inner-unknown",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "integer-proof",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "string-proof",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "null-integration",
+        "eligible": false,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "terminal-failure",
+        "eligible": true,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "terminal-success",
+        "eligible": true,
+        "readsOnlyTopLevelReceipt": true
+      },
+      {
+        "case": "retained-current-failure",
+        "eligible": true,
+        "readsOnlyTopLevelReceipt": true
+      }
+    ],
+    "actualCurrentFailureEligible": true,
+    "phaseFilesReadInProof": 0,
+    "processOrRuntimeOwnersAcquired": 0,
+    "existingInspector": {
+      "optional": true,
+      "entriesPerFile": 64,
+      "bytesPerFile": 16384,
+      "implementationChanged": false,
+      "runtimeSecondsChanged": false
+    },
+    "negativeCasesPreventPhaseUpload": true,
+    "source119Pair21Changed": false,
+    "historicalHoldsAccessedOrReleased": false,
+    "hostedPhaseArtifact": "PENDING",
+    "GA": false
+  },
+  "bootstrapTests": {
+    "normal": 41,
+    "actualO": 41,
+    "failed": 0,
+    "runtimeOrNativeStarts": 0
+  },
+  "commands": [
+    {
+      "label": "prove-terminal-phase-upload-r3534",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/prove-inspection-upload-gate-r3534.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 81318,
+      "pgid": 81318,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.10778270894661546,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "phase-workflow-yaml-check-r3534",
+      "argv": [
+        "/usr/bin/ruby",
+        "-e",
+        "require \"yaml\"; d=YAML.safe_load(File.read(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/.github/workflows/verify.yml\"), aliases: true); s=d.fetch(\"jobs\").fetch(\"android-generated-java\").fetch(\"steps\"); a=s.find{|x|x[\"id\"]==\"inspection-diagnostics\"}; b=s.find{|x|x[\"name\"]==\"Preserve terminal Android inspection phases\"}; abort unless a[\"if\"]==\"always()\" && b[\"if\"].include?(\"inspection-diagnostics.outputs.eligible\") && b[\"with\"][\"path\"].end_with?(\"inspection-phases/*.jsonl\"); puts \"YAML valid; phase upload depends on terminal-only gate\""
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 85698,
+      "pgid": 85698,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.136261707986705,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "phase-bootstrap-normal-r3534",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 85696,
+      "pgid": 85696,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.23842187505215406,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "phase-bootstrap-optimized-r3534",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-O",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 85731,
+      "pgid": 85731,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.2546565419761464,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "phase-caller-source-check-r3534",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/adopt_envelope.py",
+        "verify",
+        "--workflow-installed"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 85697,
+      "pgid": 85697,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.18107212497852743,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "timeoutOrTrustGateChanged": false,
+  "newControllerOrProductCode": false,
+  "source119Pair21Preserved": true,
+  "artifactClass": "Existing optional independent diagnostic sidecars; max 64 entries/16 KiB per file",
+  "custodyRequirement": "Both bootstrap and integration final custody must literally be true; missing, malformed and UNKNOWN deny upload",
+  "phaseFilesReadByProofOrReview": 0,
+  "historicalInspectorSlowPhase": "UNPROVEN",
+  "hostedUpload": "PENDING",
+  "GA": false,
+  "allHistoricalHoldsPreserved": true,
+  "preparationFailuresPreserved": [
+    "One nonexistent historical reference produced a closed read error",
+    "One orchestration JavaScript syntax error occurred before any tool launched"
+  ]
+}
