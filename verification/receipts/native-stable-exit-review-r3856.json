@@ -1,0 +1,105 @@
+{
+  "id": "R3856",
+  "status": "REQUEST_CHANGES",
+  "scope": "independent bounded changed-contract source/pure review",
+  "controllerSHA256": "b845186115eea0370b43278c38dbd3be2ced8b5b92cc68df83a75976fdd4302e",
+  "hostSHA256": "31ec7fdfe4dbdb868d96168c401b5d91ce20666bf3bda8672a904d303627f566",
+  "sourceRevisionReportedByRoot": "35477fe31d1bc490cf865bbb9de8e7c77f69d63f",
+  "revisionIndependentlyQueried": false,
+  "findings": [
+    {
+      "priority": "P2",
+      "title": "Native success ignores the reaped host exit status",
+      "path": "verification/local/swift-ui-root-native-r3850/control.py",
+      "line": 268,
+      "evidence": "pure-results.json: nonzero host exit acceptance probe; returncode 17 produces controller exit0 and SCOPED_NATIVE_PASS after wait, both FD closes and fake positive ESRCH.",
+      "impact": "A host crash or abnormal exit after publishing the consuming proof is reported as a native scenario pass. OS closure and valid accounting do not establish successful host completion.",
+      "requestedChange": "After full closure, require owner['p'].returncode == 0 in the final passed predicate; preserve safe retirement for nonzero exits and report CLOSED_SCENARIO_FAILURE."
+    },
+    {
+      "priority": "P2",
+      "title": "Build attestation identifies a different source manifest digest",
+      "path": "verification/local/native-identity-self-exit-r3848/build-attestation.json",
+      "line": 5,
+      "expected": "5706ef73bf086d1d0b7d229b71081bf9b29d92829cda11b1bd0700aa9669a8a0",
+      "actual": "55047c6babb5cc75220f3144a5d3b639a37f7f747b75bb154aab3e2ddacbbefc",
+      "evidence": "hash-verification.json: current manifest bytes agree with source-freeze.json, manifest.json and compact receipt; build-attestation.json sourceManifestSHA256 differs.",
+      "impact": "The delivered build attestation cannot be checked against the delivered frozen source-manifest bytes, despite exact host and executable hash matches.",
+      "requestedChange": "Correct the attestation digest to the delivered frozen manifest and refresh its containing manifest hash; no source rebuild is indicated by this discrepancy alone."
+    }
+  ],
+  "purePassedChecks": 44,
+  "nonzeroExitDefectReproduced": true,
+  "nativeAcceptance": false,
+  "sdkAcceptance": false,
+  "GA": false,
+  "historicalHoldsReleased": false,
+  "allHistoricalHoldsPreserved": true,
+  "subagents": 0,
+  "nativeRuns": 0,
+  "realAXCalls": 0,
+  "realProofProcessGroupOperations": 0,
+  "realProofKernelOperations": 0,
+  "mandatedWrapperSupervisorSeparate": true,
+  "terminalInvocations": 12,
+  "terminalInvocationLimit": 12,
+  "timeLimitSeconds": 420,
+  "tool": "3.9.6 (default, Oct 19 2026, 19:18:13) \n[Clang 21.0.0 (clang-2100.4.1.1)]",
+  "proofCommand": "/usr/bin/python3 -I -B verification/local/native-stable-exit-review-r3856/pure-review.py",
+  "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+  "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/native-stable-exit-review-r3856/REPORT.md",
+  "proof": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/native-stable-exit-review-r3856/pure-review.py",
+  "proofSHA256": "1cda90683fbaf6989b64727122e302e30323083f2df80ee74cc0b24a98e79127",
+  "limitations": [
+    "Source/pure only; no native/AX/frontend/VM/compiler/device operations",
+    "Host scheduling/atomic publication branches inspected statically",
+    "No re-review of unchanged178 source files",
+    "Root pure controls separate; no source or admission changes"
+  ],
+  "invocationFailures": [
+    {
+      "number": 1,
+      "error": "wrong wrapper arguments: FileExistsError /bin/cat before managed payload",
+      "correctedByInvocation": 3
+    },
+    {
+      "number": 9,
+      "error": "own pure AST extractor AttributeError before proof execution",
+      "correctedByInvocation": 10
+    }
+  ],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 4815,
+      "sha256": "5ca789440e50c47156cc6dc20bdc5fd95f16db075daa0c0622b6c2574d63f61a"
+    },
+    "pure-review.py": {
+      "bytes": 13827,
+      "sha256": "1cda90683fbaf6989b64727122e302e30323083f2df80ee74cc0b24a98e79127"
+    },
+    "pure-results.json": {
+      "bytes": 53673,
+      "sha256": "49a18030f1eabbb2fd5ff1ca07988a220ee6a5364a9ee37b78195900d9ffe04a"
+    },
+    "hash-verification.json": {
+      "bytes": 2780,
+      "sha256": "f6d81d85e010a3d62faf8759a113b23d481f5a674c4c3a644533e3462ee850c4"
+    },
+    "manifest-digest-control.json": {
+      "bytes": 149,
+      "sha256": "11612fc9e79d86d11dc9de029bb06fe7eda2e045905139f855f26f5e4257b879"
+    },
+    "source-inspection.txt": {
+      "bytes": 47844,
+      "sha256": "0a26e6a2dde4b66b3a4461039b42641eabb5cbc09d0c3b35604cd9c82b75cbaa"
+    },
+    "focused-inspection.txt": {
+      "bytes": 46583,
+      "sha256": "2c23d3c8d8ab59985fb38cdb94ec67802f4c7abaad9af7ceddf0d0cdb5b19f2d"
+    },
+    "inherited-method-inspection.txt": {
+      "bytes": 20679,
+      "sha256": "0cc9bfb58a4a6c6646378e86454ee6bf5ef190cb8f31d12f7df2d64725ed7ebc"
+    }
+  }
+}

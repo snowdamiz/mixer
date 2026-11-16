@@ -1,0 +1,92 @@
+{
+  "id": "R3832",
+  "review_status": "REQUEST_CHANGES",
+  "verdict": "REQUEST_CHANGES_CHANGED_CONTRACT_SOURCE_PURE",
+  "driver": "verification/local/swift-ui-root-native-r3830/control.py",
+  "driver_sha256": "f96f459b2b33a4c3afe31d53fb34fab2424cdfd2981c4fcdfd1ea751ed1179ad",
+  "canonical_head_supplied": "35477fe31d1bc490cf865bbb9de8e7c77f69d63f",
+  "canonical_head_independently_queried": false,
+  "support_pins": {
+    "prior-control.py": {
+      "bytes": 10670,
+      "sha256": "04ebef2f7f8de534dac5c31746f86abc34bc6a4427101e6dd9741d200d2c085f",
+      "source": "verification/local/native-owned-window-source-r3504/input-control.py"
+    },
+    "ax_client.py": {
+      "bytes": 7776,
+      "sha256": "7da9e630f5acdc60460356f583d2bd1ea4ba663957d14fe53b740b29bef98029",
+      "source": "verification/local/native-owned-window-source-r3504/prospective-ax_client.py"
+    },
+    "input/FieldLogOriginalFeature.wasm": {
+      "bytes": 66151163,
+      "sha256": "43daa651a6a61f1f371c9b64bed1b6585624430ba57e9077ab5983dbee7432c7",
+      "source": "verification/local/swift-ui-successor-replay-r3454/inputs/FieldLogGuestUIAdapter.wasm"
+    },
+    "input/initial.mui3.json": {
+      "bytes": 1515,
+      "sha256": "4dad4dbf3060b94283ab608a64d2b6434d9332c5e6e25a8d44fce8dd9d859c0b",
+      "source": "verification/local/swift-ui-successor-replay-r3454/inputs/initial.mui3.json"
+    }
+  },
+  "observed_support": {
+    "prior-control.py": {
+      "bytes": 10670,
+      "sha256": "04ebef2f7f8de534dac5c31746f86abc34bc6a4427101e6dd9741d200d2c085f"
+    },
+    "ax_client.py": {
+      "bytes": 7776,
+      "sha256": "7da9e630f5acdc60460356f583d2bd1ea4ba663957d14fe53b740b29bef98029"
+    }
+  },
+  "root_selection": {
+    "id": "R3830",
+    "host": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-fresh-host-r3828/host-build/out/Products/Debug/FeatureUIHost",
+    "host_sha256": "7c28087364b78254ab86c6e8cac2d1c232ad9651609e4fb710300b3cbfb11d19",
+    "controller_sha256": "f96f459b2b33a4c3afe31d53fb34fab2424cdfd2981c4fcdfd1ea751ed1179ad",
+    "review_status": "pending",
+    "runtime_seconds": 90,
+    "closure_seconds": 140,
+    "outer_seconds": 210,
+    "scriptMode": "actual-I-B",
+    "guestRuntimeObjects": 1,
+    "nativeAppStarts": 1,
+    "phonesUsed": 0,
+    "pixelVerification": false,
+    "GA": false
+  },
+  "findings": [
+    {
+      "severity": "P1",
+      "line": 231,
+      "title": "AX RuntimeError retries instead of immediate cooperative cancellation",
+      "first_failure": {
+        "inspect_calls": 1,
+        "STOP_requests": 0,
+        "recorded_errors": 1
+      },
+      "twentieth_failure": {
+        "inspect_calls": 20,
+        "STOP_requests": 1
+      },
+      "required_change": "Call cancel_known on first inspection RuntimeError, then observe actual consuming proof before retirement"
+    }
+  ],
+  "proof": "verification/local/native-driver-review-r3832/counterproof.py",
+  "proof_sha256": "07069b0ee778cac49597d5f3d4d39bcdf6a9fdb2d37c6c0054c0df01a210ebd5",
+  "report": "verification/local/native-driver-review-r3832/REPORT.md",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "scope": "Exact unchanged inspection try/except/finally AST executed with fake AX client and fake PID intercepted entirely in memory; no native/API/kernel calls, no controller import, no self-test or exit helper",
+  "managed_reads_proofs": 10,
+  "finalizer_count": 1,
+  "whole_controller_self_test_runs": 0,
+  "root_preflight_replayed": false,
+  "native_acceptance": false,
+  "historical_holds_released": false,
+  "review_stopped_on_counterproof": true,
+  "limitations": [
+    "Not an exhaustive clean source audit; stopped on reproduced changed-contract defect",
+    "Pinned guest input and host binary hashes are declared metadata, not independently read",
+    "Initial wrapper setup failures and two failed support-definition selection reads are retained in own namespace",
+    "First terminal invocation failed before the requested AGENTS read; AGENTS subsequently read by the same prepared wrapper"
+  ]
+}

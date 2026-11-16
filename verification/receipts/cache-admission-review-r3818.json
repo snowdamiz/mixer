@@ -1,0 +1,213 @@
+{
+  "id": "R3818",
+  "decision": "REQUEST_CHANGES_ORIGINAL36_NOT_ADMITTED",
+  "namedUnlock": "original36_cache_controls_on_reviewed_successor",
+  "unlockSatisfied": false,
+  "sourceAdmissionReview": "REQUEST_CHANGES",
+  "normalPureQualification": {
+    "normalAttempts": 1,
+    "optimizedRepeats": 0,
+    "original36Runs": 0,
+    "sourceChanges": 0,
+    "passed": true,
+    "baseline": 20,
+    "successorExisting": 20,
+    "new": 17,
+    "total": 57,
+    "blockedEffectAttempts": []
+  },
+  "optimizedEvidence": {
+    "inspectedNotRepeated": true,
+    "mode": 1,
+    "baseline": 20,
+    "successorExisting": 20,
+    "new": 17,
+    "pin": {
+      "bytes": 14036,
+      "sha256": "b7ec2b7e9c63277cb41152435bf668984b12f97c042a9a5978effd187556b8e6"
+    }
+  },
+  "findings": [
+    {
+      "priority": "P1",
+      "title": "Original36 constructor injections miss InertPopen and remain incompatible with sticky UNKNOWN",
+      "location": "verification/cache-descendant-custody-contract-v1/commands.py:130",
+      "proof": "R3818 normal qualification: legacyCalls=0 and interceptedInertConstructorCalls=1; all 36 original method bodies remain unchanged. R3812 already documents immediate UNKNOWN conflicts in mocked primary/cleanup controls.",
+      "originalMockSites": [
+        {
+          "test": "test_mocked_primary_and_stop_exceptions_retain_terminal_receipt",
+          "line": 115
+        },
+        {
+          "test": "test_mocked_cleanup_only_exception_is_reported_and_held",
+          "line": 123
+        },
+        {
+          "test": "test_mocked_success_still_requires_positive_group_disappearance",
+          "line": 130
+        }
+      ],
+      "requiredAction": "Repair and independently qualify test injection adapters in a fresh bounded allocation while preserving original assertions; do not admit original36 from this packet."
+    },
+    {
+      "priority": "P2",
+      "title": "PATH admission stops at an inaccessible earlier directory before checking a later executable",
+      "location": "verification/cache-descendant-custody-contract-v1/commands.py:9",
+      "proof": {
+        "argv": [
+          "tool"
+        ],
+        "cwd": "/cwd",
+        "env": {
+          "PATH": "/denied:/allowed"
+        },
+        "firstCandidate": "injected stat EACCES",
+        "secondCandidate": "fake regular executable with access true",
+        "observed": "PermissionError",
+        "events": [
+          [
+            "stat",
+            "/denied/tool"
+          ]
+        ],
+        "realFilesystemCalls": 0,
+        "processCalls": 0
+      },
+      "requiredAction": "Handle candidate-local stat EACCES/EPERM while continuing PATH search, retaining denial if no later executable qualifies. Constructor failures after admission must still freeze UNKNOWN."
+    }
+  ],
+  "compositionChecks": {
+    "elevenRows": true,
+    "map:verification/cache-descendant-custody-contract-v1/adopt_fixture.py": true,
+    "map:verification/cache-descendant-custody-contract-v1/commands.py": true,
+    "map:verification/cache-descendant-custody-contract-v1/process_adapter.py": true,
+    "map:verification/cache-descendant-custody-contract-v1/sources.json": true,
+    "map:verification/cache-descendant-custody-contract-v1/test_contract.py": true,
+    "map:verification/cache-descendant-custody-contract-v1/test_original.py": true,
+    "map:verification/cache-descendant-custody-contract-v1/workflow-job.yml": true,
+    "map:.github/workflows/verify.yml": true,
+    "inverse:.github/workflows/verify.yml": true,
+    "map:verification/native-output-source121-v1/binding.json": true,
+    "inverse:verification/native-output-source121-v1/binding.json": true,
+    "map:verification/native-output-source121-v1/seal.json": true,
+    "inverse:verification/native-output-source121-v1/seal.json": true,
+    "map:scripts/verification-artifact-policy.json": true,
+    "inverse:scripts/verification-artifact-policy.json": true,
+    "sevenShippingFiles": true,
+    "loaderExactCorrectedPin": true,
+    "onlyRunChangedInCommandsClass": true,
+    "admissionBeforeAllocation": true,
+    "postAdmissionStickyFreeze": true,
+    "inertAdapterUnchanged": true,
+    "soleFixtureInjectionChange": true,
+    "workflowCacheOnly": true,
+    "oneGiBBudgetPresentUnchanged": true,
+    "sealContainsExactBindingHash": true,
+    "originalRoster36": true,
+    "correctedHarnessEqualsRetainedOptimized": true,
+    "bindingInstalledAndPredecessorAfterOnly": true,
+    "policySevenAdditionsTwoReplacements": true,
+    "policyOutsideFixtureRowsUnchanged": true
+  },
+  "compositionLimits": "Exact raw seal/map pins and exact binding hash reference verified; independent CLI121 validator/tree recomputation was not executed.",
+  "sourcePins": {
+    "verification/cache-descendant-custody-contract-v1/adopt_fixture.py": {
+      "bytes": 3409,
+      "sha256": "325d6eb767c20d79a8798ea475b4569459a2b9086c4d9e7998b0a76630766fd6"
+    },
+    "verification/cache-descendant-custody-contract-v1/commands.py": {
+      "bytes": 11894,
+      "sha256": "615adf36319df56bc0f2da78c2202610a34b187f861979ead64e71166ab02609"
+    },
+    "verification/cache-descendant-custody-contract-v1/process_adapter.py": {
+      "bytes": 514,
+      "sha256": "37f9ab0ff73f243acdd5b1fb6a44bcc22577276ba2f12a4a64772748870e65a1"
+    },
+    "verification/cache-descendant-custody-contract-v1/sources.json": {
+      "bytes": 1096,
+      "sha256": "def9f462c8bab4fc167654fa58c42a5da83fb556a71124df6fb1eac998400445"
+    },
+    "verification/cache-descendant-custody-contract-v1/test_contract.py": {
+      "bytes": 10688,
+      "sha256": "5bf1034989daff4417273b796fc82c0980824516721104ec76aadfcd7052eeb4"
+    },
+    "verification/cache-descendant-custody-contract-v1/test_original.py": {
+      "bytes": 716,
+      "sha256": "c145bf1a9115998124fd542940fa65c856e68dc33ecf0fc03be5bbfe83390786"
+    },
+    "verification/cache-descendant-custody-contract-v1/workflow-job.yml": {
+      "bytes": 8751,
+      "sha256": "a80d71dd985eeaccb91cec0db2cd7aa9df8245a2f6389bb6401e83a17a370809"
+    },
+    ".github/workflows/verify.yml": {
+      "bytes": 61580,
+      "sha256": "ae6fcd32e85602136ea007aa3bb4e5d2d2ceb268b4b76867bf63dc101247b197"
+    },
+    "verification/native-output-source121-v1/binding.json": {
+      "bytes": 35414,
+      "sha256": "0dc66e48ceaa4a01af3066f4810f934bb1858ed030df0ce3c85ff871d26b9aca"
+    },
+    "verification/native-output-source121-v1/seal.json": {
+      "bytes": 2258,
+      "sha256": "1cef07e26bc304e0d7f3f4b7d38c92192490c21183ffd3d83c4d018a28363952"
+    },
+    "scripts/verification-artifact-policy.json": {
+      "bytes": 1213258,
+      "sha256": "436f0ea909659830f833a41f019a45f642660d49388bb6ab82b9c6699cff207b"
+    }
+  },
+  "mapPin": {
+    "bytes": 6934,
+    "sha256": "f472b9b7188d230629b51495995bc264effa6415403993d1d3a68a760b53ff5c"
+  },
+  "harnessPins": {
+    "input": {
+      "bytes": 9256,
+      "sha256": "ac78e02b3aca1a910f54f328d9177984dc1cbf70ae240239a2545189686d1645"
+    },
+    "corrected": {
+      "bytes": 9266,
+      "sha256": "725bdb2f6d9cd8f10cf1ceb7cb377a5f5b23a78bf2a029b25012036b52120eab"
+    },
+    "retainedOptimized": {
+      "bytes": 9266,
+      "sha256": "725bdb2f6d9cd8f10cf1ceb7cb377a5f5b23a78bf2a029b25012036b52120eab"
+    },
+    "map": {
+      "bytes": 6934,
+      "sha256": "f472b9b7188d230629b51495995bc264effa6415403993d1d3a68a760b53ff5c"
+    },
+    "optimizedResult": {
+      "bytes": 14036,
+      "sha256": "b7ec2b7e9c63277cb41152435bf668984b12f97c042a9a5978effd187556b8e6"
+    },
+    "productSourceUnchanged": true
+  },
+  "scope": {
+    "managedReadProofInvocations": 9,
+    "failedManagedReadInvocations": 1,
+    "nonManagedWrapperUsageFailure": 1,
+    "finalizerInvocations": 1,
+    "newNormalAttempts": 1,
+    "normalCasesPassed": 57,
+    "retainedOptimizedCases": 57,
+    "optimizedRepeats": 0,
+    "R3812NormalAttempts": 2,
+    "R3812BudgetReset": false,
+    "original36Runs": 0,
+    "actualProcessHelpers": 0,
+    "actualInnerExit74": 0,
+    "innerKernelProcessEffects": 0,
+    "blockedEffectAttempts": [],
+    "children": 0,
+    "compiler": 0,
+    "VM": 0,
+    "native": 0,
+    "git": 0,
+    "CI": 0,
+    "canonicalWrites": 0,
+    "sourceAuthorityWrites": 0,
+    "allHoldsPreserved": true
+  },
+  "report": "verification/local/cache-admission-review-r3818/REPORT.md"
+}

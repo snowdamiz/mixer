@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "campaign": "build-input-snapshot-review-r3858",
+  "status": "REVIEW_INCOMPLETE",
+  "verifiedProductFindings": [],
+  "unresolvedObjections": [
+    {
+      "title": "Output canonicalization before foreign-input-root overlap admission",
+      "source": "delivery/afterimages/cli/Sources/MixerBuild/BuildInputSnapshot.swift:64-69",
+      "owner": "candidate/cli/Sources/MixerBuild/NativeBuildOutput.swift:72-97",
+      "proof": "Source checks compare raw output.path against six roots; NativeBuildOutput.prepare standardizes output, checks only project exclusion, then mkdirat creates the leaf. A pure string counterexample passes raw guards while normalized output is within compiler input.",
+      "limitation": "Not a verified defect: actual Foundation URL behavior and filesystem side effect were not successfully exercised. Optional value probe called an unsupported NSURL selector and aborted. No filesystem adversary or Swift run was attempted.",
+      "next": "In a fresh bounded review, establish the actual URL value behavior and show either refusal before any foreign-root mutation or correct admission. Canonicalize and validate output before side effects if the bypass is confirmed."
+    }
+  ],
+  "byteReconciliation": "PASS",
+  "sourceSHA256": "3ce908a54d88c49d8d1b1b1e05c432d90feb12354c82de587b39ef0db8b60a49",
+  "sourceBytes": 19695,
+  "sourceRevisionProvidedByParent": "35477fe31d1bc490cf865bbb9de8e7c77f69d63f",
+  "snapshotSHA256": "a546ec27a817c3e42e07d3eedac82c29a693f441f97c5303c8ecd1c5407762c1",
+  "snapshotBytes": 587229,
+  "materialRows": 752,
+  "distinctContentObjects": 524,
+  "retainedTreeDigests": {
+    "project": "fdf59c7f8707f08bf59b4bec5cbde5e7f0d66a4f0f265c926c369d4b9a4a0486",
+    "compiler": "a697305cfe840aead8280ee15da3af65304dd46e2c8fdc4a0a47394413351266",
+    "sdk": "437e58d96d0a0d33e5e2fc9bdc6d1eac165c14030959d7b8baad6e1016966f40"
+  },
+  "originalParentRawSHA256": "2b47cbb656ad4d0cead64c08f8b577404437e846047084e04dbd529684ddfe8b",
+  "derivedRelocatedParentSHA256": "3a4e16c973bc4508174ff6d9ddf391e1e2669490174e49c836760e45d5c6fd13",
+  "parentChanges": [
+    "/nativeProduct/debugSymbols/ownedPath",
+    "/nativeProduct/nativeBinary/ownedPath",
+    "/resourceInventory/ownedPath"
+  ],
+  "allThreeParentObjectsExact": [
+    {
+      "sha256": "2ad64a1d7eeeb07e45396f1d37a5f6bfc5627363ab37cf333593199cba189b9b",
+      "sizeBytes": 3256267
+    },
+    {
+      "sha256": "d7b73d79da4359057a6d91b9a8e55ce5c576033f243a6f9de2fa0ebb101d0bf5",
+      "sizeBytes": 3438590
+    },
+    {
+      "sha256": "db56e91d97cf18d6fe7260da939104d115891b096225ba1dd4d1a8b8feaa776e",
+      "sizeBytes": 1008
+    }
+  ],
+  "rawHashEntriesVerified": 117,
+  "historicalControlsInspected": 17,
+  "historicalFreshReopenPassesInspected": 2,
+  "newBuilds": 0,
+  "children": 0,
+  "terminalInvocations": 14,
+  "newRuntimeAttempt": "Foundation URL value probe only; failed unsupported selector; no filesystem adversary",
+  "auditCommandCustody": {
+    "label": "reconcile-13",
+    "argv": [
+      "python3",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-input-snapshot-review-r3858/audit.py"
+    ],
+    "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-input-snapshot-review-r3858",
+    "pid": 53112,
+    "pgid": 53112,
+    "state": "direct_reaped",
+    "exitCode": 0,
+    "bothEOF": true,
+    "closedFDs": true,
+    "seconds": 0.16734187491238117,
+    "ownedGroupAbsentESRCH": true
+  },
+  "failedValueProbeCustody": {
+    "label": "finalize-14",
+    "argv": [
+      "python3",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-input-snapshot-review-r3858/finish.py"
+    ],
+    "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-input-snapshot-review-r3858",
+    "pid": 55044,
+    "pgid": 55044,
+    "state": "direct_reaped",
+    "exitCode": -6,
+    "bothEOF": true,
+    "closedFDs": true,
+    "seconds": 0.03900891600642353,
+    "ownedGroupAbsentESRCH": true
+  },
+  "newCustodyHold": {
+    "state": "UNKNOWN",
+    "identity": "not recorded",
+    "namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-input-snapshot-review-r3858/commands/verification/local/build-input-snapshot-review-r3858/agents-read-02",
+    "resourcesPreserved": true,
+    "noFurtherInspection": true
+  },
+  "firstTerminalSuccessfulAgentsRead": false,
+  "holdsReleased": false,
+  "canonicalAdoption": false,
+  "CLI122Acceptance": false,
+  "SBOMOrProvenanceAcceptance": false,
+  "GAAcceptance": false,
+  "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-input-snapshot-review-r3858/REPORT.md",
+  "auditResult": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/build-input-snapshot-review-r3858/audit-result.json",
+  "artifactSHA256": {
+    "REPORT.md": "c4a75fc749c165546d35b4342aa354ff1177d77af12f060e22a51351b24e51ce",
+    "audit.py": "08dc90382de90700cebc12bb93d5068d08d33da0313dbb85dc3a1d8974568e32",
+    "audit-result.json": "5a4cbba0198235d1ff215d4edd15c62202376dfe4a3effe5b27fcfee1fb5916c",
+    "finish.py": "2807b8d59d9346a42e530f5cfed5c37b48804a768c2500bedb4749c42c8bab15"
+  },
+  "completedUTC": "2026-11-16T09:33:26.639Z"
+}

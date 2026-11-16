@@ -1,0 +1,188 @@
+def admit_executable(argv,cwd,env):
+ import errno,stat
+ if not argv or not argv[0] or chr(0)in argv[0]:raise ValueError('Executable argv required')
+ executable=argv[0]
+ candidates=[executable]if os.path.dirname(executable)else[os.path.join(folder,executable)for folder in os.get_exec_path(env)]
+ denied=False
+ for candidate in candidates:
+  if not os.path.isabs(candidate):candidate=os.path.join(os.fsdecode(cwd),candidate)
+  try:mode=os.stat(candidate).st_mode
+  except (FileNotFoundError,NotADirectoryError):continue
+  except PermissionError:denied=True;continue
+  if stat.S_ISREG(mode)and os.access(candidate,os.X_OK):return
+  denied=True
+ if denied:raise PermissionError(errno.EACCES,'Executable admission denied',executable)
+ raise FileNotFoundError(errno.ENOENT,'Executable admission missing',executable)
+
+class Commands:
+ def __init__(self,out,receipt,deadline):
+  self.out,self.receipt,self.deadline=out,receipt,deadline;self.active=None;self.scratch=None;self.unknown_custody=False;(out/'commands').mkdir()
+ def bind_scratch(self,scratch):
+  need(self.scratch is None and scratch.is_absolute()and '..'not in scratch.parts and scratch.parent==self.out,'Fresh canonical owned child scratch required')
+  self.scratch=scratch;self.scratch_identity=identity(scratch);self.child_tmp=scratch/'command-tmp';self.child_tmp.mkdir();identity(self.child_tmp)
+ def child_environment(self,overrides):
+  need(self.scratch is not None and identity(self.scratch)==self.scratch_identity,'Owned child scratch is not bound')
+  env={k:str(self.child_tmp)for k in ['TMPDIR','TMP','TEMP']};env.update(overrides or {})
+  need(len({env[k]for k in ['TMPDIR','TMP','TEMP']})==1,'Child temporary directories must agree')
+  temp=Path(env['TMPDIR']);need(temp.is_absolute()and '..'not in temp.parts and temp.is_relative_to(self.scratch),'Child temporary directory outside canonical owned scratch');identity(temp)
+  return env
+ def save(self):save(self.out/'receipt.json',self.receipt)
+ def gone(self,pid):
+  need(not self.unknown_custody,'UNKNOWN custody; no further process operations')
+  row=self.receipt['commands'][-1] if self.receipt['commands'] else {}
+  try:
+   if 'cleanup_deadline'in row:self.cleanup_remaining(row)
+   try:os.killpg(pid,0);absent=False
+   except ProcessLookupError:absent=True
+   except PermissionError as error:
+    owned=(self.active is not None and self.active.pid==pid
+           and row.get('pid')==pid and row.get('pgid')==pid
+           and row.get('new_session') is True)
+    if error.errno!=1 or not owned or 'cleanup_deadline'not in row:raise
+    self.cleanup_remaining(row)
+    row['observation_eperm_pending_count']=row.get('observation_eperm_pending_count',0)+1
+    return None
+   if 'cleanup_deadline'in row:self.cleanup_remaining(row)
+   return absent
+  except BaseException:
+   self.unknown_custody=True
+   raise
+ def observe(self,operation,*args,**kwargs):
+  need(not self.unknown_custody,'UNKNOWN custody; no further process operations')
+  try:return operation(*args,**kwargs)
+  except BaseException:
+   self.unknown_custody=True
+   raise
+ def begin_cleanup(self,row):
+  if 'cleanup_deadline'not in row:row['cleanup_deadline']=min(self.deadline+CLEANUP_SECONDS,time.monotonic()+10)
+ def cleanup_remaining(self,row):
+  remaining=row['cleanup_deadline']-time.monotonic()
+  if remaining<=0:
+   self.unknown_custody=True
+   raise TimeoutError('Finite custody cleanup/drain deadline exhausted')
+  return remaining
+ def stop(self,proc,row):
+  need(not self.unknown_custody,'UNKNOWN custody; no further process operations')
+  if row.get('stop_complete'):return
+  self.begin_cleanup(row)
+  try:
+   self.cleanup_remaining(row)
+   # Poll reaps an exited direct child before the first group operation.
+   if self.observe(proc.poll)is not None:row['child_returned']=True
+   present=self.gone(proc.pid)
+   self.cleanup_remaining(row)
+   if present is False:
+    try:os.killpg(proc.pid,signal.SIGKILL);row['owned_group_killed']=True
+    except ProcessLookupError:pass
+   self.observe(proc.wait,timeout=min(5,self.cleanup_remaining(row)));self.cleanup_remaining(row);row['child_returned']=True
+   until=min(row['cleanup_deadline'],time.monotonic()+5)
+   while True:
+    if time.monotonic()>=until:raise TimeoutError('Owned group observation deadline exhausted')
+    absent=self.gone(proc.pid)
+    if time.monotonic()>=until:raise TimeoutError('Owned group observation deadline exhausted')
+    row['owned_group_gone']=absent is True
+    if row['owned_group_gone']:break
+    time.sleep(.01)
+   row['stop_complete']=True
+  except BaseException:
+   self.unknown_custody=True
+   raise
+ def freeze(self,row):
+  self.unknown_custody=True;row['unknown_custody']=True;row['custody_hold']=True
+  authority={'commands':self,'active':self.active,'resources':self.retained_authority}
+  metadata={'status':'UNKNOWN','scope':str(self.out),'row':row,'noFurtherOperations':True}
+  freeze_unknown(authority,metadata,self.out.parent/(self.out.name+'-HOLD.json'))
+  raise RuntimeError('UNKNOWN exit policy returned')
+ def permission_diagnostic(self,error,phase):
+  # Best-effort attribution only; never change the primary or custody facts.
+  try:
+   if not isinstance(error,PermissionError)or phase not in {'spawn','active'}:return
+   import json,sys
+   def bounded(value):return ''.join(c if c.isascii()and(c.isalnum()or c in '._<>-')else'_'for c in value[:64])
+   frames=[];tb=BaseException.__traceback__.__get__(error)
+   for _ in range(12):
+    if tb is None:break
+    code=tb.tb_frame.f_code;name=code.co_filename.rsplit('/',1)[-1].rsplit('\\',1)[-1]
+    frames.append({'file':bounded(name),'function':bounded(code.co_name),'line':tb.tb_lineno})
+    tb=tb.tb_next
+   number=OSError.errno.__get__(error)
+   record={'type':bounded(type(error).__name__),'errno':number if type(number)is int and -2147483648<=number<=2147483647 else None,'phase':phase,'frames':frames,'truncated':tb is not None}
+   line='CACHE_PERMISSION_ORIGIN '+json.dumps(record,ensure_ascii=True,separators=(',',':'))+'\n'
+   if len(line.encode('ascii'))<=4096:sys.stderr.write(line);sys.stderr.flush()
+  except BaseException:pass
+ def run(self,name,argv,cwd,env=None,negative=False):
+  need(not self.unknown_custody,'UNKNOWN custody; command admission closed')
+  need(self.active is None,'One child group only');need(re.fullmatch('[A-Za-z0-9_-]+',name),'Command name')
+  start=time.monotonic();budget=min(CHILD_SECONDS,self.deadline-start);need(budget>0,'Active deadline exhausted');env=self.child_environment(env)
+  row={'name':name,'argv':list(map(str,argv)),'cwd':str(cwd),'started_utc':now(),'per_child_limit_seconds':CHILD_SECONDS,'effective_timeout_seconds':budget,'per_stream_cap_bytes':OUTPUT_CAP,'environment_overrides':env or {},'exit':None,'timed_out':False,'output_capped':False,'child_returned':False,'owned_group_gone':False,'stdout_eof':False,'stderr_eof':False,'stdout_closed':False,'stderr_closed':False,'selector_closed':False,'errors':[]}
+  self.receipt['commands'].append(row);self.save();paths=[self.out/'commands'/(name+'.'+suffix)for suffix in ['stdout','stderr']]
+  selector=selectors.DefaultSelector();self.retained_authority=[selector];failure=None;primary=None;cleanup_errors=[];usage_before=None
+  def cleanup_error(phase,error):
+   cleanup_errors.append(error);row['errors'].append({'phase':phase,**exception_details(error)})
+  try:
+   child_env=environment(env or {});admit_executable(row['argv'],cwd,child_env)
+   usage_before=child_usage()
+   self.active=InertPopen.__new__(InertPopen)
+   self.retained_authority.append(self.active)
+   self.active.__init__(row['argv'],cwd=cwd,env=child_env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
+   proc=self.active;row.update(pid=proc.pid,pgid=proc.pid,new_session=True)
+   for pipe,path in zip([proc.stdout,proc.stderr],paths):
+    target=path.open('xb');self.retained_authority.extend([pipe,target])
+    selector.register(pipe,selectors.EVENT_READ,{'file':target,'count':0,'stream':path.suffix[1:]})
+   while True:
+    if row.get('stop_attempted'):self.cleanup_remaining(row)
+    if self.observe(proc.poll)is not None:row['child_returned']=True
+    if not selector.get_map()and row['child_returned']:break
+    if time.monotonic()-start>=budget:row['timed_out']=True;failure='timeout'
+    if failure and not row.get('stop_attempted'):
+     row['stop_attempted']=True;self.begin_cleanup(row);self.stop(proc,row)
+    for key,_ in selector.select(.02):
+     b=os.read(key.fileobj.fileno(),65536)
+     if not b:row[key.data['stream']+'_eof']=True;key.data['file'].close();selector.unregister(key.fileobj);key.fileobj.close();row[key.data['stream']+'_closed']=True;continue
+     space=OUTPUT_CAP-key.data['count'];key.data['file'].write(b[:space]);key.data['count']+=min(space,len(b))
+     if len(b)>space:row['output_capped']=True;failure='output-cap'
+   self.observe(proc.wait,timeout=min(5,self.cleanup_remaining(row))if row.get('stop_attempted')else 5);row['child_returned']=True;row['exit']=proc.returncode
+   if not self.gone(proc.pid):row['descendants_outlived_child']=True
+  except BaseException as e:
+   primary=e;row['errors'].append({'phase':'spawn'if self.active is None else'active',**exception_details(e)})
+   if not self.unknown_custody:self.permission_diagnostic(e,'spawn'if self.active is None else'active')
+   if isinstance(e,OSError)and self.active is None:row['spawn_error']=str(e)
+  finally:
+   if self.active is not None and (primary is not None or self.unknown_custody):self.freeze(row)
+   for key in list(selector.get_map().values()):
+    closed=True
+    for stream in [key.data['file'],key.fileobj]:
+     try:stream.close()
+     except BaseException as e:closed=False;cleanup_error('close-stream',e);self.freeze(row)
+    if closed:row[key.data['stream']+'_closed']=True
+   try:selector.close();row['selector_closed']=True
+   except BaseException as e:cleanup_error('close-selector',e);self.freeze(row)
+   if not row['selector_closed']or self.active is not None and not(row['stdout_closed']and row['stderr_closed']):self.freeze(row)
+   if self.active is not None and not self.unknown_custody:
+    try:self.begin_cleanup(row);self.stop(self.active,row);row['exit']=self.active.returncode
+    except BaseException as e:
+     cleanup_error('stop-owned-group',e);row['owned_group_gone_before_cleanup_error']=row['owned_group_gone'];row['owned_group_gone']=False;self.freeze(row)
+    # Keep custody if stop did not positively establish both terminal facts.
+    if row['child_returned']and row['owned_group_gone']and row['stdout_eof']and row['stderr_eof']:self.active=None
+   if self.active is not None:self.freeze(row)
+   self.retained_authority=[]
+   row['unknown_custody']=self.unknown_custody
+   row['custody_hold']=self.active is not None
+   try:row['child_resource_usage']=child_accounting(usage_before,child_usage(),row['child_returned']and row['owned_group_gone']and not row['custody_hold'])
+   except BaseException as e:cleanup_error('child-resource-accounting',e)
+   for p in paths:
+    try:
+     if not p.exists():p.write_bytes(b'')
+     row[p.suffix[1:]+'_sha256']=sha(p)
+    except BaseException as e:cleanup_error('retain-'+p.suffix[1:],e)
+   try:row['context_phase_progress']=context_phase_progress(paths[1].read_text())
+   except BaseException as e:cleanup_error('parse-context-progress',e)
+   row.update(elapsed_seconds=round(time.monotonic()-start,6),finished_utc=now())
+   try:self.save()
+   except BaseException as e:cleanup_error('save-receipt',e)
+   try:save(self.out/'commands'/(name+'.json'),row)
+   except BaseException as e:cleanup_error('save-command-receipt',e)
+  if primary is not None:raise primary
+  if cleanup_errors:raise cleanup_errors[0]
+  need(row['child_returned']and row.get('owned_group_gone')and not row.get('descendants_outlived_child')and not row['timed_out']and not row['output_capped']and row['exit']==(1 if negative else 0),'Command failed; retained receipt: '+name)
+  return paths[0].read_text(),paths[1].read_text(),row

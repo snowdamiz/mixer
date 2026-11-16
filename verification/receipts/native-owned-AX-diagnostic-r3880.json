@@ -1,0 +1,79 @@
+{
+  "id": "R3880",
+  "status": "NATIVE_SCENARIO_FAILED_WITH_CONFIRMED_CLOSURE",
+  "actualAttempt": "verification/receipts/swift-ui-root-native-r3850.json",
+  "nativePID": 58512,
+  "hostExitCode": -11,
+  "AXTitleActionExecuted": false,
+  "semanticFailure": "Exact owned window unavailable: RuntimeError(\"AX attribute 'AXIdentifier' copy failed: AXError -25212\")",
+  "consumingClose": {
+    "actualCurrents": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "failed": true,
+    "invariant": 0,
+    "scope": "actual consuming close",
+    "tickets": 0
+  },
+  "OS": "TERMINAL",
+  "forcedSignals": 0,
+  "newHold": false,
+  "publicAXDiscriminators": [
+    {
+      "label": "r3872-one-owned-window-value-runtime",
+      "pid": 71547,
+      "exitCode": 0,
+      "OS": "TERMINAL",
+      "rawSHA256": "36a56270fe4f983c3cbfab9bdbea4f686575b5ecf2740d52844af47039497048"
+    },
+    {
+      "label": "r3878-one-new-owned-AX-comparison",
+      "pid": 85209,
+      "exitCode": 0,
+      "OS": "TERMINAL",
+      "rawSHA256": "17f71e952d6e94c37345812e7fbadf8a84d4546c4c726c4fa42f2a75d39f5ace"
+    },
+    {
+      "label": "r3886-one-packaged-owned-probe",
+      "pid": 89103,
+      "exitCode": 0,
+      "OS": "TERMINAL",
+      "rawSHA256": "f32dc1c8c49fdf41cfcac1c40ece81ee8cc24d1ad819cec9f0f5affc44a501b5"
+    }
+  ],
+  "actualGuestRuntimeStarts": 1,
+  "miniProbeRuntimeStarts": 3,
+  "miniGuestRuntimeStarts": 0,
+  "observations": [
+    "Owned NSWindow getters contain declared identifiers; remote AXWindows members report AXApplication and AXIdentifier noValue.",
+    "Independent Swift ApplicationServices reproduces the same object roles; a Python-only bridge explanation is not supported.",
+    "Wrapping identical probe bytes in a .app with NSPrincipalClass and bundle identifier does not change this result."
+  ],
+  "hypothesesRejected": [
+    "Python ctypes alone causes wrong AX roles",
+    "Missing application bundle metadata alone causes wrong AX roles"
+  ],
+  "remainingCause": "UNPROVEN; no further full FieldLog runtime selected",
+  "screenCapture": false,
+  "nativeAcceptance": false,
+  "historicalHoldsReleased": false,
+  "GA": false,
+  "officialReferences": [
+    "https://developer.apple.com/documentation/applicationservices/axerror/novalue",
+    "https://developer.apple.com/documentation/appkit/nswindow/isreleasedwhenclosed"
+  ],
+  "ARCSourceLimit": "Apple requires isReleasedWhenClosed=false for Swift ARC; current full host lacks it. This source observation does not establish the historical signal11 cause."
+}
