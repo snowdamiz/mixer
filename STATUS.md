@@ -1,5 +1,15 @@
 # Current development status
 
+## Continuation checkpoint, November 16, 2026 — delivered fixture repair and first auth exception
+
+The public-placeholder control identified one enabled, editable title field after fresh Accessibility access was restored. Eight PID-targeted click/key events produced five Cancel actions and zero title changes; the window and controller closed cleanly. A bounded standard-focus escalation now tests focus ownership on that exact field. The auth lane has nine focused contract checks: narrow load rejects the same valid pending attempt that discovery admits; the actual caller comparison remains in progress. [Native control](verification/receipts/owned-placeholder-title-root-r4098.json), [storage contract](verification/receipts/browser-store-decode-fix-r4088.json).
+
+Both reviewed CLI127 test repairs are delivered at `397cada95`. Swift host, VM, generated Android and the downstream Linux guard now pass. The first attempt's two macOS control jobs were not acquired by a hosted runner; their capacity-cancellation annotations remain preserved. One rerun request was accepted on the unchanged commit; all nine engine jobs now pass, and artifact retention passed. [Final CI result](verification/receipts/CLI127-green-CI-r4092.json). [Delivery](verification/receipts/CLI127-fixture-delivery-r4074.json), [hosted evidence](verification/receipts/CLI127-hosted-capacity-r4080.json).
+
+A fresh isolated auth trial reproduced session 200, login 200, then immediate session 503. The first observed exception is `badmatch` in `MixerHosted.BrowserAuth.Store.decode!/2`; the underlying cause is not yet proven. PostgreSQL and Phoenix closed, owned ports are reusable, and all 5,314 copied source/compiled/dependency files remain exact. No provider traversal, browser submission or visual pass occurred. [Actual trial](verification/receipts/console-auth-first-exception-root-r4084.json).
+
+The owned AppKit semantic-tree observer closed cleanly with no title candidate and no input posted. The hosting view exposes no children through this protocol, and two decoration proxies do not conform; this does not prove absence of the title identifier. A different public-placeholder discriminator is in preparation. Native title acceptance, screen pixels and all 38 GA gates remain pending. All historical holds remain preserved. [Native observation](verification/receipts/owned-semantic-title-root-r4082.json).
+
 ## Continuation checkpoint, November 16, 2026 — fresh-checkout source127 fixture repaired
 
 At delivered head `955523711`, the VM job passes. Swift host controls fail before ordinary CLI execution because two rejection tests use an absent scratch parent; Linux Swift then stops at its prerequisite guard. The reviewed repair creates and validates the fixture-owned directory. All 20 controls pass in normal and actual optimized modes from initially absent parents, both rejection assertions are reached, and installed admission passes. Production127 remains unchanged. [Root adoption](verification/receipts/source127-scratch-root-adoption-r4068.json).

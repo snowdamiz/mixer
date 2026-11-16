@@ -1,0 +1,243 @@
+{
+  "GA": false,
+  "allChecksGreen": false,
+  "attempt1": {
+    "cancelAnnotation": "The job was not acquired by Runner of type hosted even after multiple attempts",
+    "cancelledJobs": [
+      133390413550,
+      133390413863
+    ],
+    "failedDownstreamGuard": "swift",
+    "hostedInnerCustody": "NOT_OBSERVED",
+    "jobSteps": [
+      [],
+      []
+    ],
+    "runnerIDs": [
+      0,
+      0
+    ],
+    "successJobs": [
+      "swift-host",
+      "android-generated-java",
+      "vm",
+      "swift-cache-state-fixture",
+      "services",
+      "android-owner-host"
+    ]
+  },
+  "boundedRerun": {
+    "count": 1,
+    "followupStatus": "queued",
+    "postExitCode": 0,
+    "sameHead": true,
+    "type": "rerun-failed-jobs"
+  },
+  "commands": [
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r4080-current-ci-metadata/commands.json",
+      "record": {
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "--method",
+          "GET",
+          "repos/snowdamiz/mixer/actions/runs/43893422304",
+          "--jq",
+          "{id,head_sha,status,conclusion,event,run_attempt,created_at,updated_at,cancel_url,html_url}"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r4080-current-ci-metadata",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 34779,
+        "pid": 34779,
+        "seconds": 0.3640412500826642,
+        "state": "direct_reaped"
+      },
+      "sha256": "11dbea9b2074b5df24e1ed9c1c3ef5066ed871822a8a48d83d58b682f3623a3a"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r4074-engine-jobs-first-observation/commands.json",
+      "record": {
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "--method",
+          "GET",
+          "repos/snowdamiz/mixer/actions/runs/43893422304/jobs",
+          "--jq",
+          ".jobs[] | {id,name,status,conclusion,failedSteps:[.steps[]? | select(.conclusion==\"failure\") | .name]}"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r4074-engine-jobs-first-observation",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 27499,
+        "pid": 27499,
+        "seconds": 0.7941286669811234,
+        "state": "direct_reaped"
+      },
+      "sha256": "6b24c010dbe5cfa544488d6798bf7ca2d6da8dff857a97e2acbc8c067246ee12"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r4080-cancelled-jobs-steps/commands.json",
+      "record": {
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "--method",
+          "GET",
+          "repos/snowdamiz/mixer/actions/runs/43893422304/jobs",
+          "--jq",
+          ".jobs[] | select(.conclusion==\"cancelled\" or .name==\"swift\") | {id,name,conclusion,started_at,completed_at,runner_name,steps:[.steps[] | {number,name,status,conclusion,started_at,completed_at}]}"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r4080-cancelled-jobs-steps",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 34789,
+        "pid": 34789,
+        "seconds": 0.8465918749570847,
+        "state": "direct_reaped"
+      },
+      "sha256": "08a2be1df08c5a070dbd201c6306028784452e2f342eb2fc888e9e6bb92ed5c5"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r4080-capability-cancel-annotations/commands.json",
+      "record": {
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "--method",
+          "GET",
+          "repos/snowdamiz/mixer/check-runs/133390413550/annotations",
+          "--jq",
+          ".[] | {annotation_level,title,message,raw_details}"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r4080-capability-cancel-annotations",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 36010,
+        "pid": 36010,
+        "seconds": 0.3323049589525908,
+        "state": "direct_reaped"
+      },
+      "sha256": "00969cfad68cb68fc410465a7e73d887fd162158dc35529bbdbadaef15ffaa27"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r4080-runner-cancel-annotations/commands.json",
+      "record": {
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "--method",
+          "GET",
+          "repos/snowdamiz/mixer/check-runs/133390413863/annotations",
+          "--jq",
+          ".[] | {annotation_level,title,message,raw_details}"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r4080-runner-cancel-annotations",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 36011,
+        "pid": 36011,
+        "seconds": 0.3723964170785621,
+        "state": "direct_reaped"
+      },
+      "sha256": "be86adb7f92596326183e3e171b3294e10eec475f0b0fb8f1f6107ec20d89e42"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r4080-rerun-capacity-cancelled-jobs/commands.json",
+      "record": {
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "--method",
+          "POST",
+          "repos/snowdamiz/mixer/actions/runs/43893422304/rerun-failed-jobs"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r4080-rerun-capacity-cancelled-jobs",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 36513,
+        "pid": 36513,
+        "seconds": 0.8059969580499455,
+        "state": "direct_reaped"
+      },
+      "sha256": "838100d308b05b749d4af9c4693e65277f2bdd58c11c7b0372921fc99a817949"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r4080-rerun-accepted-state/commands.json",
+      "record": {
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "--method",
+          "GET",
+          "repos/snowdamiz/mixer/actions/runs/43893422304",
+          "--jq",
+          "{id,head_sha,status,conclusion,run_attempt,updated_at}"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r4080-rerun-accepted-state",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 36523,
+        "pid": 36523,
+        "seconds": 0.7765479579102248,
+        "state": "direct_reaped"
+      },
+      "sha256": "4fce68449239e39e317486ae456a19498857d29275b4fd7b9141c94badfc3cb9"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r4080-retention-result/commands.json",
+      "record": {
+        "argv": [
+          "/opt/homebrew/bin/gh",
+          "api",
+          "--method",
+          "GET",
+          "repos/snowdamiz/mixer/actions/runs/43893422317",
+          "--jq",
+          "{id,head_sha,status,conclusion}"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r4080-retention-result",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 37227,
+        "pid": 37227,
+        "seconds": 0.3604173749918118,
+        "state": "direct_reaped"
+      },
+      "sha256": "beaa2364185c2b68537e2c47d53fea608497304a67e6a51c035077076d516f64"
+    }
+  ],
+  "engineRun": 43893422304,
+  "head": "397cada9542fdb2ed797b29c3afcb0fc3ba5d97f",
+  "holdsReleased": false,
+  "productFixForCancellation": false,
+  "retention": "success",
+  "retentionRun": 43893422317,
+  "task": "R4080"
+}
