@@ -1,0 +1,640 @@
+{
+  "schema": "R4120_BILLING_PRODUCTION_INGRESS_V1",
+  "createdAtUTC": "2026-11-16T16:39:26.411195+00:00",
+  "status": "PASS_DEVELOPMENT_PRODUCTION_CODE_BOUNDARY_ONLY",
+  "namedExecutable": "production_billing_ingress_raw_http_to_durable_inbox_oban_duplicate_pg_join",
+  "owner": "verification/local/billing-production-ingress-r4120",
+  "observed": {
+    "status": "PASS",
+    "strict_compiles": 1,
+    "runtime_batches": 1,
+    "PG_launches": 1,
+    "PG_fast_stops": 1,
+    "actual_cases": 11,
+    "billing_source_still_current": true,
+    "PG_positive_group_closure": true
+  },
+  "productionBoundary": [
+    "MixerHostedWeb.BillingWebhookEndpoint.start_link/0",
+    "MixerHostedWeb.BillingWebhookController.accept/2",
+    "WebhookTransport.capture/1 supported role/lifetime permits",
+    "RawWebhookCapture.capture/1",
+    "WebhookInbox.admit/2",
+    "real PostgreSQL transaction and Oban.Engines.Basic"
+  ],
+  "trustedFixture": "Existing ProductRouteTest dedicated-BEAM startup; telemetry inventory cleared before shipping endpoint starts, then shipping Sinks freezes and validates it. No process permit forged.",
+  "fixtureCompleteness": {
+    "canonical_source_files": 301,
+    "canonical_source_digest_sha256": "7af1d709454c2750d3dbb6ea98f68feaefa1fcda670c187c0f73289d226f7fb3",
+    "dependency_files": 1910,
+    "dependencies_match_existing_local_pins": true,
+    "source_priv_migrations_test_support_goldens_complete": true,
+    "private_current_application_has_no_precompiled_beams": true,
+    "supported_role_fixture": "hosted/test/mixer_hosted/billing/product_route_test.exs setup_all dedicated-BEAM bootstrap",
+    "production_profile": "WebhookEndpoint.start_link -> frozen WebhookTransport port 0; no modified permit or policy",
+    "compiler_runs": 0,
+    "runtime_batches": 0,
+    "PG_launches": 0
+  },
+  "sourcePins": {
+    "hosted/lib/mixer_hosted/billing/observed_subscription.ex": {
+      "bytes": 2846,
+      "sha256": "49bf9da5d873d0299b9cf99bc70a27711cad9b1145ea17e56ba294f103a08e0e"
+    },
+    "hosted/lib/mixer_hosted/billing/raw_webhook_capture.ex": {
+      "bytes": 7827,
+      "sha256": "a420d5a54868d61c3d6e9c7cb41807698eb729df3e6babda12135a727ac657ea"
+    },
+    "hosted/lib/mixer_hosted/billing/subscription_read_transport.ex": {
+      "bytes": 9245,
+      "sha256": "d9a1440060a6166eb49eac42d89bcf2c613bd60a0609d1002eeea3cf7bcaec95"
+    },
+    "hosted/lib/mixer_hosted/billing/usage_entry.ex": {
+      "bytes": 559,
+      "sha256": "6b6a5b2acdcf8a2118d34ccc15345e63ac08e3d2e2676489366bf8ebbce1322f"
+    },
+    "hosted/lib/mixer_hosted/billing/usage_ledger.ex": {
+      "bytes": 7837,
+      "sha256": "4655ef30ec1efa001bf38194701c0f7e5785df55a7efb1889f27741cb5f6c266"
+    },
+    "hosted/lib/mixer_hosted/billing/webhook_event.ex": {
+      "bytes": 505,
+      "sha256": "e353ab039a9b5d6a919888baf7e424bd126a208571019651764cf801d4d7955f"
+    },
+    "hosted/lib/mixer_hosted/billing/webhook_inbox.ex": {
+      "bytes": 6483,
+      "sha256": "d498fa87642389a4351f195a94632e2b890881bcb803e5aeb7659080a2147f87"
+    },
+    "hosted/lib/mixer_hosted/billing/webhook_signature.ex": {
+      "bytes": 4549,
+      "sha256": "3fa0a2d8bee3e4eb9a4204857aaec0d16565df7c0d3f0aa8062158d51f2e3cb6"
+    },
+    "hosted/lib/mixer_hosted/billing/webhook_transport.ex": {
+      "bytes": 22396,
+      "sha256": "56a26cf3a56f3e5a5b2d8f5104fc7c3371b0e44918b007197be5871cf94ef1a5"
+    },
+    "hosted/lib/mixer_hosted_web/billing_webhook_controller.ex": {
+      "bytes": 1547,
+      "sha256": "e054af6025aacb4fa826129681fd958c2127d95bfd0ba4b6c71a979c401792a3"
+    },
+    "hosted/lib/mixer_hosted_web/billing_webhook_endpoint.ex": {
+      "bytes": 1903,
+      "sha256": "469f02425b201e9cf81c45f7da0a83fc8d92eae3e66b17d7f5b165eed8be9ff6"
+    },
+    "hosted/priv/repo/migrations/20261110000000_add_billing_webhook_inbox.exs": {
+      "bytes": 711,
+      "sha256": "ac4cf0df76b0e7963b48d3a97a727d0a31f108a9267c32999ed7b852a393a2ff"
+    },
+    "hosted/priv/repo/migrations/20261110000001_add_billing_usage_ledger.exs": {
+      "bytes": 3732,
+      "sha256": "33d341c493b5ba7a0f170a5d4994972ba7666cc91c0cdcf64b943822b08af7c5"
+    },
+    "hosted/test/fixtures/billing/webhook-signature.json": {
+      "bytes": 3328,
+      "sha256": "064080c913395ec5105e135070b9af055f529247b1893c76f1482171df9ad9c9"
+    },
+    "hosted/test/mixer_hosted/billing/product_route_test.exs": {
+      "bytes": 7937,
+      "sha256": "7eed8000a1c8d56950986e1ef67b56ee9511be9d4aff293891dc0cfdd547ca64"
+    },
+    "hosted/test/mixer_hosted/billing/raw_webhook_capture_http2_test.exs": {
+      "bytes": 4874,
+      "sha256": "4656e1f05e20ddfe8767be837a38d8323313efd7ef77efa7176a748c518c8ce8"
+    },
+    "hosted/test/mixer_hosted/billing/raw_webhook_capture_test.exs": {
+      "bytes": 10728,
+      "sha256": "d90910cfa91d579be9ab748d6019a7048ed37f6abb4b73ac9686510589878fe7"
+    },
+    "hosted/test/mixer_hosted/billing/subscription_read_transport_test.exs": {
+      "bytes": 14451,
+      "sha256": "10cc7e5ee10e933865ed7c62afafb818053c427fdd4ff0334c4d3c6f1b9601f1"
+    },
+    "hosted/test/mixer_hosted/billing/usage_ledger_test.exs": {
+      "bytes": 15583,
+      "sha256": "71d5d292dbe025a45f4fc0b67121ac5354d55cb639c71b53de4ed6666e66ed1e"
+    },
+    "hosted/test/mixer_hosted/billing/webhook_inbox_test.exs": {
+      "bytes": 11307,
+      "sha256": "91f7f81881da4120cb940b565ae019c2a4a97376c1bdf98b652058420eb874bd"
+    },
+    "hosted/test/mixer_hosted/billing/webhook_signature_test.exs": {
+      "bytes": 8329,
+      "sha256": "dce0985cc2e42af41164a7724769b26768f4c85cc0d87f03d6ad0e61b4f84244"
+    },
+    "hosted/test/mixer_hosted/billing/webhook_transport_test.exs": {
+      "bytes": 4105,
+      "sha256": "f427b0b601e27f5b34d4d4cfe5e6d60eed452ab1d34e2a8474c6bbeb3162c27a"
+    }
+  },
+  "cases": [
+    {
+      "label": "01-first",
+      "status": 200,
+      "raw_body_sha256": "6eeacd26332f60683f713d0db404412222bb049f0ae8e4ef3f6716f7eb960388",
+      "raw_bytes": 180
+    },
+    {
+      "label": "02-duplicate",
+      "status": 200,
+      "raw_body_sha256": "6eeacd26332f60683f713d0db404412222bb049f0ae8e4ef3f6716f7eb960388",
+      "raw_bytes": 180
+    },
+    {
+      "label": "03-changed-body",
+      "status": 400,
+      "raw_body_sha256": "a41ec90101c0c883482cf96396672287666648a5b5714dc1cb8a6c0fe87c4364",
+      "raw_bytes": 181
+    },
+    {
+      "label": "04-forged",
+      "status": 400,
+      "raw_body_sha256": "2380c943f92f81a5c9e1233084277a5e70bb75c548a4e2f0216c280415a47c45",
+      "raw_bytes": 181
+    },
+    {
+      "label": "05-stale",
+      "status": 400,
+      "raw_body_sha256": "f9914506ed89d0f5ce84e20896e3d427e573c8bcf4bc1f465a95d31b4488aa61",
+      "raw_bytes": 180
+    },
+    {
+      "label": "06-wrong-account",
+      "status": 400,
+      "raw_body_sha256": "6d7dcdb926449476e56777a4136d173d0230df3d17f5b10e4007b8dfd3cdc163",
+      "raw_bytes": 211
+    },
+    {
+      "label": "07-wrong-mode",
+      "status": 400,
+      "raw_body_sha256": "757b5ff2afc0014ca3ea167b5be12814fb12d647f27ccf1c88d4d0c36145ffcd",
+      "raw_bytes": 178
+    },
+    {
+      "label": "08-wrong-endpoint-query",
+      "status": 400,
+      "raw_body_sha256": "63914c70ef312c105b61af70442baff86767a7421714b919972768034865ba8b",
+      "raw_bytes": 183
+    },
+    {
+      "label": "09-signed-conflict",
+      "status": 409,
+      "raw_body_sha256": "a41ec90101c0c883482cf96396672287666648a5b5714dc1cb8a6c0fe87c4364",
+      "raw_bytes": 181
+    },
+    {
+      "label": "10-enqueue-rollback",
+      "status": 503,
+      "raw_body_sha256": "50b34df7b590a5a4fa6ebe2c27a463d189532d3ba7bffd08a796f8e4b5477a87",
+      "raw_bytes": 180
+    },
+    {
+      "label": "11-honest-retry",
+      "status": 200,
+      "raw_body_sha256": "50b34df7b590a5a4fa6ebe2c27a463d189532d3ba7bffd08a796f8e4b5477a87",
+      "raw_bytes": 180
+    }
+  ],
+  "independentByteChecks": {
+    "allRawBodyHashes": true,
+    "allResponseStatuses": true,
+    "validAndInvalidHMACs": true,
+    "staleTimestamp": true,
+    "sameBodyRollbackThenRetry": true,
+    "rawToDatabaseHashes": true
+  },
+  "durableAssertions": {
+    "firstHTTP200CommittedInboxAndPairedJob": true,
+    "duplicateHTTP200SameInboxAndJobIDsNoAdditionalEffects": true,
+    "eachInvalid400PreservedOriginalDatabaseSnapshot": true,
+    "signedConflict409PreservedOriginal": true,
+    "invalidWorker503RolledBackInboxAndJob": true,
+    "honestConfigSameBytesRetry200CommittedPair": true,
+    "finalInboxRows": 2,
+    "finalPairedJobs": 2,
+    "allJobAttempts": 0
+  },
+  "transportCounters": {
+    "started": 11,
+    "request": 11,
+    "rejected": 1,
+    "admitted": 10,
+    "disposed": 11
+  },
+  "ports": {
+    "engine": "Oban.Engines.Basic",
+    "plugins": false,
+    "queues": false,
+    "shipping_endpoint": true,
+    "shipping_controller": true,
+    "listener_port": 57649,
+    "profile_port": "canonical frozen port 0",
+    "pg_port": 41140
+  },
+  "portScopeNote": "Only PostgreSQL uses reserved port 41140. The unmodified supported shipping transport freezes port 0 and obtained an OS-selected loopback port; 41141/41142 were checked for availability and left unused. No production listener override exists in this fixture.",
+  "toolVersions": {
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:1:1:1] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "commands": [
+    {
+      "label": "elixir-version",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/fixture/hosted",
+      "pid": 98740,
+      "pgid": 98740,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.36648000008426607,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "postgres-version",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/fixture/hosted",
+      "pid": 98835,
+      "pgid": 98835,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.046242250013165176,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "strict-current-source-compile",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "compile",
+        "--warnings-as-errors",
+        "--no-deps-check"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/fixture/hosted",
+      "pid": 98843,
+      "pgid": 98843,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 5.094883666955866,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "initdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/run/pgdata",
+        "-U",
+        "mixer_fixture",
+        "--auth-local=trust",
+        "--auth-host=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/fixture/hosted",
+      "pid": 427,
+      "pgid": 427,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.7313075830461457,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "pg-ready-0",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "41140",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "postgres",
+        "-At",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "SELECT 1; SHOW data_directory; SHOW TimeZone;"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/fixture/hosted",
+      "pid": 615,
+      "pgid": 615,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.0736765000037849,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "billing-fixture-database",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "41140",
+        "-U",
+        "mixer_fixture",
+        "mixer_billing_r4120"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/fixture/hosted",
+      "pid": 633,
+      "pgid": 633,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.11370658397208899,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "production-billing-ingress",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "--no-deps-check",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/runtime.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/fixture/hosted",
+      "pid": 659,
+      "pgid": 659,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.9732179580023512,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "postgres-fast-stop",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/run/pgdata",
+        "-m",
+        "fast",
+        "-w",
+        "-t",
+        "15",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-production-ingress-r4120/fixture/hosted",
+      "pid": 859,
+      "pgid": 859,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.14273800002411008,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "cleanup": {
+    "shippingEndpointStopped": true,
+    "RepoObanObserverStopped": true,
+    "postgres": [
+      {
+        "label": "postgres",
+        "pid": 614,
+        "pgid": 614,
+        "state": "TERMINAL",
+        "regular_file_logs": true,
+        "direct_reaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular output files, stdin closed"
+      }
+    ],
+    "allEightManagedCommandGroupsPositiveESRCH": true,
+    "outerWrapper": "continuation-root-r2332/commands/billing-r4120-actual-production-ingress/commands.json",
+    "newHolds": 0,
+    "retainedStoppedDatabase": "run/pgdata"
+  },
+  "artifactPins": {
+    "driver.py": {
+      "bytes": 11405,
+      "sha256": "c34649fe6a8a5e4eb9eada8b5fb30f9b970dae35ab9e653e388d9ef750e9551e"
+    },
+    "runtime.exs": {
+      "bytes": 7991,
+      "sha256": "38331839688e8ffa53b516fc2bc3cb2e84dd119b87971a3997e5c67784619203"
+    },
+    "finish.py": {
+      "bytes": 7916,
+      "sha256": "366f40fe3bf060458bf9d8adf238ad9797d7e6d9db4a12823e72edffade18310"
+    },
+    "source-pins.json": {
+      "bytes": 50489,
+      "sha256": "36623ff973f0d56892b4a13653b97759ed4a4fb1004771935e074241ba34a1a8"
+    },
+    "dependency-pins.json": {
+      "bytes": 321388,
+      "sha256": "e04e8d3e38ec5cbdfcb3f54501cab8357d940d15748690b9f53cac486b5791db"
+    },
+    "precompile-proof.json": {
+      "bytes": 652,
+      "sha256": "f7aa128db1b104e6b552b82d9100d6c45115726647a262921c879750e58bd047"
+    },
+    "summary.json": {
+      "bytes": 212,
+      "sha256": "7ac34926ce5dbb5d8c3edeedef00663555679a8121345bc5619cdc6a33adffc1"
+    },
+    "commands.json": {
+      "bytes": 4686,
+      "sha256": "54cccb91874d13d86bcc190007434722c80e49f9a1f4eca31032c62e562bed25"
+    },
+    "owned-children.json": {
+      "bytes": 294,
+      "sha256": "9d03368fc68d1e7cddb1fc2d50d171b3f141737338f28fa8acda401a54ee0cc1"
+    },
+    "result.json": {
+      "bytes": 7814,
+      "sha256": "1860dda2af16d868203aefd9c26eaa10735a8242fd70705e85544966fa6fa25e"
+    },
+    "runtime-started.json": {
+      "bytes": 193,
+      "sha256": "655a46e6fff45edbfc6bd3d6db2ba9f754b576ff96cfe070ed64da493a43c752"
+    },
+    "run/elixir-version.stdout": {
+      "bytes": 143,
+      "sha256": "e6d3d2a22b5bd627a7f678703722247ecf4f0e7d6bcb35f7406242017c44a761"
+    },
+    "run/elixir-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/postgres-version.stdout": {
+      "bytes": 39,
+      "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    },
+    "run/postgres-version.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/strict-current-source-compile.stdout": {
+      "bytes": 53,
+      "sha256": "435ea0a565b73d48f1002d569c4845fca2ffee8d29334d1d19f38b118cb7f8c9"
+    },
+    "run/strict-current-source-compile.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/initdb.stdout": {
+      "bytes": 1037,
+      "sha256": "545a8cd229eb720283bb3f021b389c9623b5856570f7dee2f9ba19d79a182d6b"
+    },
+    "run/initdb.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/pg-ready-0.stdout": {
+      "bytes": 121,
+      "sha256": "376c28c1cfba4a45722c6dbef0bbf37e8d00ea9e5cfc27a7a15321fa63149ab2"
+    },
+    "run/pg-ready-0.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/billing-fixture-database.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/billing-fixture-database.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/production-billing-ingress.stdout": {
+      "bytes": 11331,
+      "sha256": "8852086a716fa6f6ac8d6f39085a0e047984bcb5502445ae55dd89b9c97fe683"
+    },
+    "run/production-billing-ingress.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/postgres-fast-stop.stdout": {
+      "bytes": 56,
+      "sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+    },
+    "run/postgres-fast-stop.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "rawHTTPArtifactPins": {
+    "01-first.request.http": {
+      "bytes": 416,
+      "sha256": "d4240966ae68bc68bab34cb1a8ebdd14cf2ebc2cee039e5535dafb7ae3ca89b2"
+    },
+    "01-first.response.http": {
+      "bytes": 150,
+      "sha256": "e561e5cbdcb4ae0c243c45c2957254f6bc54ebe58cb081af29cc81a7228c89ef"
+    },
+    "02-duplicate.request.http": {
+      "bytes": 416,
+      "sha256": "d4240966ae68bc68bab34cb1a8ebdd14cf2ebc2cee039e5535dafb7ae3ca89b2"
+    },
+    "02-duplicate.response.http": {
+      "bytes": 150,
+      "sha256": "e561e5cbdcb4ae0c243c45c2957254f6bc54ebe58cb081af29cc81a7228c89ef"
+    },
+    "03-changed-body.request.http": {
+      "bytes": 417,
+      "sha256": "79fdaa6ec45f70f0280ea21becbb499ff48d26dfefc63a05ea5a5ecb4a649de5"
+    },
+    "03-changed-body.response.http": {
+      "bytes": 159,
+      "sha256": "2a5f94ee3a86b9dde5b8ad71965244f7a2473e304f0a08db04bfc832a30f4ae9"
+    },
+    "04-forged.request.http": {
+      "bytes": 417,
+      "sha256": "cc6365686074c12787a7ba632a0ca94d1837f60ee3f35d789211dd6f076d4ab4"
+    },
+    "04-forged.response.http": {
+      "bytes": 159,
+      "sha256": "2a5f94ee3a86b9dde5b8ad71965244f7a2473e304f0a08db04bfc832a30f4ae9"
+    },
+    "05-stale.request.http": {
+      "bytes": 416,
+      "sha256": "8105c6d5ea59e45109e13fff4f539aea342076a463df8b36ca0605a3a6acb505"
+    },
+    "05-stale.response.http": {
+      "bytes": 159,
+      "sha256": "2a5f94ee3a86b9dde5b8ad71965244f7a2473e304f0a08db04bfc832a30f4ae9"
+    },
+    "06-wrong-account.request.http": {
+      "bytes": 447,
+      "sha256": "c6ff14294b88087f070103ab078ec3b754ec1c82b016a6f5bc830df754aebe8d"
+    },
+    "06-wrong-account.response.http": {
+      "bytes": 159,
+      "sha256": "2a5f94ee3a86b9dde5b8ad71965244f7a2473e304f0a08db04bfc832a30f4ae9"
+    },
+    "07-wrong-mode.request.http": {
+      "bytes": 414,
+      "sha256": "1003128d5bd51302bb0303b4e0f7f30d05d8e860e0830b7c41004f80767e892a"
+    },
+    "07-wrong-mode.response.http": {
+      "bytes": 159,
+      "sha256": "2a5f94ee3a86b9dde5b8ad71965244f7a2473e304f0a08db04bfc832a30f4ae9"
+    },
+    "08-wrong-endpoint-query.request.http": {
+      "bytes": 437,
+      "sha256": "1ebdcbf046326cd4d55505100a9ac042949b2db99e6edfa9593baa1f8498e79a"
+    },
+    "08-wrong-endpoint-query.response.http": {
+      "bytes": 159,
+      "sha256": "2a5f94ee3a86b9dde5b8ad71965244f7a2473e304f0a08db04bfc832a30f4ae9"
+    },
+    "09-signed-conflict.request.http": {
+      "bytes": 417,
+      "sha256": "ef344d071c0e6408c9c1805cf7d4bd4492f1ac775e2a40d459a3d2990b97425c"
+    },
+    "09-signed-conflict.response.http": {
+      "bytes": 156,
+      "sha256": "c6d4269d8b1fb71e9e76d40086badda320fb6dfdc73ef99301a4e47e39d7c6e8"
+    },
+    "10-enqueue-rollback.request.http": {
+      "bytes": 416,
+      "sha256": "e2321e3b4291cc02ffa99cae5f6a8c4b75d51cc8dfad70d3c733c13df5e49b41"
+    },
+    "10-enqueue-rollback.response.http": {
+      "bytes": 171,
+      "sha256": "60240369b484e13d407f5357fd17e3ab479900fabe932312a1d4624e0c9fa976"
+    },
+    "11-honest-retry.request.http": {
+      "bytes": 416,
+      "sha256": "e2321e3b4291cc02ffa99cae5f6a8c4b75d51cc8dfad70d3c733c13df5e49b41"
+    },
+    "11-honest-retry.response.http": {
+      "bytes": 150,
+      "sha256": "e561e5cbdcb4ae0c243c45c2957254f6bc54ebe58cb081af29cc81a7228c89ef"
+    }
+  },
+  "scope": "Synthetic public-fixture HMAC, loopback raw HTTP, actual shipping code and local PostgreSQL durable job insertion only.",
+  "limitations": [
+    "No Stripe provider/test-mode delivery or external network exercised",
+    "No worker execution, customer billing state, reconciliation or financial activation qualified",
+    "Wrong endpoint control is a query/path selector rejection; endpoint_id itself remains trusted server configuration",
+    "No provider acceptance, release, GA, native, CI, or physical-device qualification",
+    "No canonical source, root docs, work graph, policy, Git/index/push or authority changes",
+    "No size/deadline limit stress matrix rerun; shipping guards were unmodified",
+    "Historical holds remain protected and unreleased"
+  ]
+}

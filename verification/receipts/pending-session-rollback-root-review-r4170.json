@@ -1,0 +1,30 @@
+{
+  "id": "R4170",
+  "status": "PASS_CHANGED_TEST_SOURCE_REVIEW",
+  "canonicalWrites": false,
+  "path": "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs",
+  "beforeSHA256": "1a1f300270c53c5203d9cb0f70272f6e8d29f9af9849eb3453b97c32806f90ac",
+  "afterSHA256": "db2901ffef933bd064d8c43c4560e89b8dda1f8ac1f165a5dd7fac97b9d4819a",
+  "change": "Replace one stale session-error assertion with exact preauth response, original CSRF, no-store, no cookie/redirect and protected-resource denial checks.",
+  "unchangedOutsideReplacement": true,
+  "contractEvidence": [
+    "hosted/lib/mixer_hosted/browser_auth/store.ex:341",
+    "hosted/lib/mixer_hosted/browser_auth/callback_lifecycle.ex:96",
+    "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex:159",
+    "hosted/lib/mixer_hosted_web/browser_http.ex:69"
+  ],
+  "semanticDecision": "A positively observed callback rollback leaves the valid preauth session and pending attempt intact. A session read returns unauthenticated data, not authentication authority.",
+  "unknownOutcomeContractChanged": false,
+  "targetRuntimeReceipt": "verification/receipts/pending-session-rollback-contract-r4152.json",
+  "targetRuntime": "1 passed; wrapper postflight failed solely on compile.app_cache rewrite",
+  "fullSuite": "R4166 active; R4144 failure preserved",
+  "packetReview": "R4164 pending",
+  "newRuntimeRuns": 0,
+  "newCompiles": 0,
+  "GA": false,
+  "holdsReleased": false,
+  "preservedReadErrors": [
+    "First source read used browser_auth/browser_http.ex; actual owner is mixer_hosted_web/browser_http.ex. Closed command stderr and corrected read retained.",
+    "First pure reconciliation incorrectly assumed the old assertion text was globally unique; the corrected check anchors the uniquely named rollback method and preserves every other occurrence. No product/runtime operation occurred."
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "task": "R4112",
+  "status": "INCOMPLETE_CANDIDATE_HTTP_UNRUN_HARNESS_FAILURE",
+  "completedUTC": "2026-11-16T16:39:27.295126+00:00",
+  "sourceRevision": "7b9ef88e9b638d4ef1f7fa38057a5c94fd6609f0",
+  "namespace": "verification/local/active-session-pending-fix-r4112",
+  "productFiles": [
+    "hosted/lib/mixer_hosted/browser_auth/active_read.ex"
+  ],
+  "testFiles": [
+    "hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs"
+  ],
+  "premise": {
+    "proven": true,
+    "exactProductionDecoder": "ActiveRead.decode!/2",
+    "failure": "MatchError false at line 97, valid pending metadata rejected by absent-attempt condition",
+    "beforeProductChanges": true,
+    "pureChecksPassed": 7
+  },
+  "baselineHTTP": [
+    200,
+    200,
+    503
+  ],
+  "baselineOrdinary": {
+    "total": 3,
+    "failures": 1,
+    "excluded": 0,
+    "skipped": 0
+  },
+  "candidateHTTP": "UNRUN",
+  "candidateOrdinary": "UNRUN",
+  "candidateDecoderControls": "UNRUN",
+  "candidateSource": {
+    "bytes": 11010,
+    "sha256": "d968616e3c22dea9827ab6c7f812950f3dbda950dfb0c0497c991c3816d85055"
+  },
+  "strictMix": {
+    "passed": true,
+    "filesCompiled": 159,
+    "warningsAsErrors": true
+  },
+  "runtimeFailure": "candidate recompile phase; exact inner exception not serialized; see harness-findings.json and raw outputs",
+  "budget": {
+    "explicitCompilerInvocations": 2,
+    "strictMixCompiles": 1,
+    "CodeCompileStringCalls": 1,
+    "runtimeTestBatches": 2,
+    "PGlaunches": 1,
+    "PGfastStops": 1,
+    "SMP": "4:4",
+    "runtimeRetries": 0,
+    "furtherRuntimeOrCompilerAttemptsAuthorized": false,
+    "prelaunchPreparationDefect": "prepare-baseline attempted mkdir on existing replay/tools/rebar3; corrected with no Mix/PG child launched"
+  },
+  "cleanup": {
+    "positive": true,
+    "children": [
+      {
+        "label": "postgres",
+        "pid": 73771,
+        "pgid": 73771,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "phoenix-fixture",
+        "pid": 73787,
+        "pgid": 73787,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 1,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      }
+    ],
+    "portsReusable": [
+      41120,
+      41121,
+      41122,
+      56793
+    ],
+    "scratchRetained": true,
+    "newHold": false
+  },
+  "scope": {
+    "canonicalWrites": false,
+    "authorityWrites": false,
+    "CIWrites": false,
+    "nativeRuns": 0,
+    "browserRuns": 0,
+    "delegations": 0,
+    "oldServiceOrCookieReuse": false,
+    "StoreUnchanged": true,
+    "activeBranchUnchanged": true,
+    "allPriorDiscoverGuardsPreserved": true,
+    "pendingValidationMatchesFullStoreReference": true,
+    "existingOrdinaryAssertionsUnchanged": true,
+    "GA": false,
+    "providerQualification": false,
+    "historicalHoldsInspectedOrReleased": false
+  },
+  "maps": {
+    "product": "product-map.json",
+    "tests": "test-map.json",
+    "application": "application-map.json",
+    "sourcePins": "source-pins-final.json",
+    "executablePins": "executable-identities.json",
+    "inverse": "inverse.patch"
+  },
+  "sourceReplay": {
+    "filesVerifiedBeforeAndAfter": 5314,
+    "inventoryDigest": "2e11d92bd4cd0ec51950f632549c90cd543406dd978f829799798604aece5d3f"
+  },
+  "environment": {
+    "OS": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "Elixir": "1.20.4",
+    "Erlang": "29.1.1_2",
+    "PostgreSQL": "17.11",
+    "versionSource": "pinned installation paths, exact tools_manifest, compile output and runtime frames"
+  },
+  "remaining": [
+    "independent root source review",
+    "fresh separately authorized candidate HTTP and ordinary regression plus negative controls",
+    "full hosted regression"
+  ],
+  "report": "REPORT.md"
+}

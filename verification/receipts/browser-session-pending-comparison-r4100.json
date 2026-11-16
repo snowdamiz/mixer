@@ -1,0 +1,175 @@
+{
+  "task": "R4100",
+  "status": "INCOMPLETE_HTTP_BASELINE_ONLY_WRONG_CALLER_CANDIDATE_UNEXECUTED",
+  "completedUTC": "2026-11-16T16:23:03.407910+00:00",
+  "namespace": "verification/local/browser-session-pending-comparison-r4100",
+  "sourceRevision": "7b9ef88e9b638d4ef1f7fa38057a5c94fd6609f0",
+  "sourcePins": "source-pins-final.json",
+  "replayFilesVerifiedBeforeAndAfter": 5314,
+  "firstConcreteFailure": {
+    "stage": "baseline discrimination before candidate phase",
+    "assertion": "baseline['diagnostic']['selectedCalls'].get('Store.load') == 1",
+    "observedSelectedCalls": {
+      "Store.decode!": 1
+    },
+    "outerExit": 1
+  },
+  "baseline": {
+    "http": [
+      {
+        "method": "GET",
+        "path": "/auth/session",
+        "status": 200,
+        "elapsedMs": 84.084
+      },
+      {
+        "method": "POST",
+        "path": "/auth/login",
+        "status": 200,
+        "elapsedMs": 273.318
+      },
+      {
+        "method": "GET",
+        "path": "/auth/session",
+        "status": 503,
+        "elapsedMs": 216.859
+      }
+    ],
+    "diagnostic": {
+      "step": "immediate_session",
+      "first": {
+        "kind": "exception_class",
+        "identity": "badmatch",
+        "frames": [
+          {
+            "module": "Elixir.MixerHosted.BrowserAuth.Store",
+            "function": "decode!",
+            "arity": 2
+          }
+        ]
+      },
+      "events": 3564,
+      "overflow": false,
+      "frameSource": "otp_exception_or_return_mfa",
+      "selectedCalls": {
+        "Store.decode!": 1
+      }
+    },
+    "session200": false,
+    "preauth": false
+  },
+  "owningRoute": {
+    "verifiedSource": "BrowserLoginHTTP with cookie -> BrowserHTTP /auth/session -> RuntimeOwner.read_session -> read_private -> Store.active_read(lease, {:discover, input}) -> ActiveRead.decode!",
+    "runtimeOwnerLoadOnThisRoute": false,
+    "StoreLoadObserved": 0,
+    "StoreDiscoverBeginObserved": 0,
+    "firstObservedFrame": "Store.decode!/2",
+    "possibleNextLead": "ActiveRead.decode! discover preauth branch requires attempt and attempt_envelope nil at active_read.ex:97. Not attributed by a fresh trace or repaired here.",
+    "rootCauseProven": false
+  },
+  "candidate": {
+    "status": "UNACCEPTED_WRONG_CALLER_UNCOMPILED_UNEXECUTED",
+    "paths": [
+      "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex"
+    ],
+    "applicationMap": "verification/local/browser-session-pending-comparison-r4100/application-map.json",
+    "productionPatch": "production.patch",
+    "inversePatch": "inverse.patch",
+    "storeGuardsUnchanged": true,
+    "freshCandidateSession200": "UNRUN"
+  },
+  "focusedBatch": {
+    "status": "FAILED_BEFORE_TESTS_AND_PRODUCT_COMPILE",
+    "assertion": "focused.exs:34 true = local == %{}",
+    "failure": "MatchError, false",
+    "explanation": "The proposed local-versus-exported tracing assumption was contradicted. Counts were not persisted before this assertion; no claim is made about their exact values.",
+    "testsRun": 0
+  },
+  "budget": {
+    "runtimeBatchesUsed": 2,
+    "runtimeBatchesLimit": 2,
+    "PGlaunches": 1,
+    "PGlaunchesLimit": 1,
+    "PGfaststops": 1,
+    "strictMixCompiles": 0,
+    "candidateCompileStringCalls": 0,
+    "totalExplicitProductCompiles": 0,
+    "compilerInvocationLimit": 2,
+    "runtimeScriptAndFixtureLoading": "Baseline ExUnit harness, test_helper, storage fixture and existing migrations loaded in baseline VM; no product rebuild. Focused script stopped before candidate compile and focused test definitions.",
+    "schedulers": "4:4",
+    "inheritedR4088": {
+      "runtimeBatches": 1,
+      "MixCompiles": 0,
+      "diagnosticCompileQuotedCalls": 2,
+      "PGlaunches": 0,
+      "notReexecuted": true
+    },
+    "furtherAttempts": false
+  },
+  "cleanup": {
+    "positive": true,
+    "PGfastStopExit": 0,
+    "ownedChildren": [
+      {
+        "label": "postgres",
+        "pid": 90264,
+        "pgid": 90264,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "phoenix-fixture",
+        "pid": 90375,
+        "pgid": 90375,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      }
+    ],
+    "portsReusable": [
+      41080,
+      41081,
+      41082,
+      53694
+    ],
+    "outerRecords": "execution-records.json",
+    "newHold": false,
+    "scratchRetained": true
+  },
+  "scope": {
+    "canonicalWrites": false,
+    "authorityRebinding": false,
+    "workflowChanges": false,
+    "CIStarts": 0,
+    "nativeStarts": 0,
+    "browserStarts": 0,
+    "delegations": 0,
+    "production": false,
+    "GA": false,
+    "historicalHoldsAccessedOrReleased": false,
+    "oldCookiesOrServicesReused": false,
+    "cookieOrTokenOutput": false,
+    "rawExceptionTermsPersisted": false
+  },
+  "environment": {
+    "os": "Darwin 27.0.0",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "Elixir": "1.20.4 (pinned installation and runtime error frame)",
+    "Erlang": "29.1.1_2 (pinned installation path)",
+    "PostgreSQL": "17.11 (pinned installation path)",
+    "toolManifest": "inputs/final-replay-manifest.json"
+  },
+  "testMap": "verification/local/browser-session-pending-comparison-r4100/test-map.json",
+  "report": "verification/local/browser-session-pending-comparison-r4100/REPORT.md",
+  "limitation": "The requested baseline-to-candidate HTTP comparison is incomplete; candidate 200 and downstream no-weaken controls have no fresh pass. Do not adopt or rebind v27 from this packet.",
+  "packet": "verification/local/browser-session-pending-comparison-r4100/receipt.json"
+}

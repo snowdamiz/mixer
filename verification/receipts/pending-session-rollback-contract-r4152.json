@@ -1,0 +1,285 @@
+{
+  "id": "R4152_PENDING_SESSION_ROLLBACK_CONTRACT",
+  "status": "TARGET_TEST_PASSED_WRAPPER_POSTFLIGHT_FAILED",
+  "targetedRuntimePassed": true,
+  "completeHarnessPassed": false,
+  "fullHostedRegressionAccepted": false,
+  "recordedUTC": "2026-11-16T17:35:23Z",
+  "semanticDecision": {
+    "decision": "known rollback permits canonical unauthenticated session read; callback remains 503",
+    "references": {
+      "Store": "store.ex:241-258,341-353 distinguishes rolled_back from unknown",
+      "CallbackLifecycle": "callback_lifecycle.ex:96-99 returns claim failure before complete/provider",
+      "RuntimeOwner": "runtime_owner.ex:159-176 authenticates preauth envelope and original CSRF",
+      "BrowserHTTP": "browser_http.ex:69-74 exact unauthenticated JSON HTTP200",
+      "newJSONRegression": "browser_login_json_http_test.exs preserves original CSRF after pending login",
+      "baseline": "R4144:913 registered,489 passed,1 failed at old line1325,423 unrun"
+    },
+    "productChange": false,
+    "newJSONRegressionChange": false,
+    "unknownOutcomeContractUnchanged": true,
+    "noRawSecretsLogged": true
+  },
+  "application": {
+    "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs": {
+      "before": {
+        "bytes": 56650,
+        "sha256": "1a1f300270c53c5203d9cb0f70272f6e8d29f9af9849eb3453b97c32806f90ac"
+      },
+      "after": {
+        "bytes": 57400,
+        "sha256": "db2901ffef933bd064d8c43c4560e89b8dda1f8ac1f165a5dd7fac97b9d4819a"
+      },
+      "role": "test_only_semantic_security_regression"
+    }
+  },
+  "product": {
+    "sha256": "d968616e3c22dea9827ab6c7f812950f3dbda950dfb0c0497c991c3816d85055",
+    "changed": false,
+    "newJSONRegressionChanged": false,
+    "sourceBEAMPinsUnchanged": true,
+    "productBEAMCount": 257,
+    "loadedMD5AndPathVerified": true
+  },
+  "runtime": {
+    "method": "test callback claim transaction rollback never publishes cookie",
+    "result": {
+      "total": 12,
+      "excluded": 11,
+      "failures": 0,
+      "skipped": 0
+    },
+    "actualPassed": 1,
+    "actualFailed": 0,
+    "excludedInThisFile": 11,
+    "shippingHTTP": true,
+    "realPostgreSQL": true,
+    "runtimeBatches": 1,
+    "runtimeRetries": 0,
+    "productCompiles": 0,
+    "typescriptEmits": 0,
+    "PGlaunches": 1,
+    "PGfastStops": 1,
+    "port": 41240,
+    "versions": {
+      "elixir": "1.20.4",
+      "otp": "29",
+      "erts": "17.1"
+    },
+    "postgresVersion": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "security": {
+    "knownActualRollback": true,
+    "callback503NoCookieNoLocation": true,
+    "snapshotPreauth": true,
+    "session200ExactTwoKeyUnauthenticatedJSON": true,
+    "originalCSRF": true,
+    "noAdditionalAttemptStateNonceTokenFields": true,
+    "sessionNoStoreNoSetCookieNoLocation": true,
+    "protectedOrgs401": true,
+    "noAuthenticationAuthorityGrantedBeforeHonestRetry": true,
+    "pendingRowUnchanged": true,
+    "providerExchangesBeforeHonestRetry": 0,
+    "honestRetry303AuthenticatedCookieAndOneExchange": true,
+    "finalReplay503NoCookieNoExtraExchange": true,
+    "leasesClean": true,
+    "onlyBooleanWitnessLogged": true
+  },
+  "cleanup": {
+    "positive": true,
+    "ownedChildren": [
+      {
+        "label": "postgres",
+        "pid": 79315,
+        "pgid": 79315,
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pending-session-rollback-contract-r4152/run/pgdata",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "41240",
+          "-k",
+          "",
+          "-c",
+          "timezone=UTC"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pending-session-rollback-contract-r4152/replay/hosted",
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular-file stdout/stderr, stdin closed"
+      },
+      {
+        "label": "candidate-suite-beam",
+        "pid": 79587,
+        "pgid": 79587,
+        "argv": [
+          "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/mix",
+          "run",
+          "--no-start",
+          "--no-compile",
+          "--no-deps-check",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pending-session-rollback-contract-r4152/runtime.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pending-session-rollback-contract-r4152/replay/hosted",
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular-file stdout/stderr, stdin closed"
+      }
+    ],
+    "managedCommands": 45,
+    "managedCommandsAllReapedBothEOFClosedFDsGroupESRCH": true,
+    "nestedOpenSSLCommands": 3,
+    "nestedNodeCommands": 0,
+    "nestedCommandsAndWrappersClosed": true,
+    "portsReusable": [
+      41240,
+      41241,
+      41242
+    ],
+    "outer": {
+      "label": "r4152-one-targeted-runtime-admitted-27",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pending-session-rollback-contract-r4152/driver.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 79246,
+      "pgid": 79246,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 7.107522040954791,
+      "ownedGroupAbsentESRCH": true
+    },
+    "newHold": false,
+    "historicalHoldsReleased": false,
+    "scratchRetained": true
+  },
+  "postflight": {
+    "passed": false,
+    "cause": "Mix run --no-compile rewrote compile.app_cache metadata; blanket exact-copy assertion failed after successful test and positive cleanup",
+    "drift": [
+      {
+        "path": "hosted/_build/lib/mixer_hosted/.mix/compile.app_cache",
+        "before": {
+          "bytes": 11094,
+          "sha256": "13f00a7700b60b328d297088f63a9755eb53e3640babdc7452298ac21d3e7b58"
+        },
+        "after": {
+          "bytes": 11084,
+          "sha256": "fff016ef5aaa6787fe94adecc07547c49c50f8d8c9883f72044b6bed02b10d23"
+        }
+      }
+    ],
+    "allOther5321InputPinsExact": true,
+    "productSourcesBEAMsDepsTestsJSUnchangedFromPreparedPins": true,
+    "noRetry": true
+  },
+  "prelaunchFailuresPreserved": {
+    "initialSplice": "nonunique short assertion anchor; narrowed to target-case context before any runtime",
+    "copy": "MIX_REBAR3 file treated as directory; corrected before any runtime",
+    "firstDriverInvocation": "missing local smoke/result.json reference, before run namespace/PG/BEAM; used existing R4144 qualified smoke proof",
+    "commands": [
+      "r4152-copy-freeze-18",
+      "r4152-copy-freeze-20",
+      "r4152-one-targeted-runtime-25"
+    ]
+  },
+  "baselinePreserved": {
+    "campaign": "R4144",
+    "registered": 913,
+    "passed": 489,
+    "failed": 1,
+    "unrun": 423,
+    "oldLine1325StatusExpected": 503,
+    "oldLine1325StatusActual": 200,
+    "fullPassClaim": false
+  },
+  "restrictions": {
+    "canonicalWrites": false,
+    "authorityWrites": false,
+    "CIWrites": false,
+    "GitWrites": false,
+    "children": 0,
+    "native": 0,
+    "browser": 0,
+    "externalProviders": 0,
+    "externalNetwork": 0,
+    "R4136RunTouched": false
+  },
+  "remaining": [
+    "Root review of semantic test contract",
+    "fresh root-selected full hosted suite: one attempt; remaining423 unqualified",
+    "canonical adoption and all GA gates remain pending"
+  ],
+  "artifactPins": {
+    "application.patch": {
+      "bytes": 1451,
+      "sha256": "9706fe0dec1d40773f9214051832aa954a9601eb1a4285055cab05ac520b4212"
+    },
+    "inverse.patch": {
+      "bytes": 1451,
+      "sha256": "b954ad5e0dbcc65a9f81ba73fffab0b3c0cd56de06f378cf16e0d5f8f1a2da4c"
+    },
+    "application-map.json": {
+      "bytes": 389,
+      "sha256": "d9f8bd3a0092531cf694efefc561f368a6d43af1526b1a84ad1c74d6092a4dd3"
+    },
+    "semantic-decision.json": {
+      "bytes": 811,
+      "sha256": "2da689b346cc5ed1786faba519a47a89aebd0cf30815d2e55e56b273f4d5724f"
+    },
+    "driver.py": {
+      "bytes": 12378,
+      "sha256": "9b22382db4377193a72824f3bb4acdd71ffcdc73c8fbbd5f3be64dd3a35caf52"
+    },
+    "runtime.exs": {
+      "bytes": 4194,
+      "sha256": "3854843321d85ed669104da1c7d24ce128f778c1758bf08318eac019a21ba2c9"
+    },
+    "run/ordinary-result.json": {
+      "bytes": 51,
+      "sha256": "50eeeb46ffc53ae0a15415c232a3fcee7ca438db24cac711e703d7ffdd7f16b9"
+    },
+    "run/ordinary-tests.jsonl": {
+      "bytes": 2590,
+      "sha256": "b2836b0c8efe58ac3620f85ba8713ebd6594a5ec7417fa6fbb7b7b689408d99e"
+    },
+    "run/beam-identities.json": {
+      "bytes": 139386,
+      "sha256": "d56b0a9359831826e00cf7eeb322e4c199162f5211f047ee2581274e91b96678"
+    },
+    "run/owned-children.json": {
+      "bytes": 1524,
+      "sha256": "77dfeb79abf63c7afde59dc8866bffc9f27454fcf4444f40aac78208e9e4e5d6"
+    },
+    "run/nested-closure.json": {
+      "bytes": 4748,
+      "sha256": "f843b5320ab14d2874a7e350f1c259b0ce509c7959159977a6fc1327d4e83870"
+    },
+    "run/commands.json": {
+      "bytes": 33445,
+      "sha256": "d6b5ffe7b9ac64a7da7ebbc5b8e0e9cdca59382ed110789763eb29f56a527723"
+    },
+    "run/candidate-suite-beam.stdout": {
+      "bytes": 4231,
+      "sha256": "e2d6ff5e48551dde16be80c3f3269192f99a45242939c82cd21d6d383a59e290"
+    },
+    "run/candidate-suite-beam.stderr": {
+      "bytes": 1317,
+      "sha256": "4543f3d309698300ab4618cf1df902ec099d3b66e28ae082379fec8b983e1f55"
+    }
+  }
+}
