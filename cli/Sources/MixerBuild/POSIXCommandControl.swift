@@ -77,7 +77,12 @@ final class POSIXCommandControl: OwnedCommandControl {
         try checked(mx_reap(child.pid, &code, &done), "waitpid"); return done != 0 ? code : nil
     }
     func groupAbsent() throws -> Bool {
-        var absent: Int32 = 0; try checked(mx_group_absent(child.pid, &absent), "observe-owned-group"); return absent != 0
+        var absent: Int32 = 0
+        let code = mx_group_absent(child.pid, &absent)
+        // EPERM leaves absence unproven; the caller retains its existing cleanup deadline.
+        if code == EPERM { return false }
+        try checked(code, "observe-owned-group")
+        return absent != 0
     }
     func pause() throws { try checked(mx_pause_ms(5), "pause") }
     func close() throws {

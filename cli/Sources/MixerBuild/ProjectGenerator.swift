@@ -290,6 +290,14 @@ public enum ProjectBuild {
         guard platform == "host" else { throw MixerFailure("build.unqualified-target", "\(platform) \(test ? "tests" : "build") requires pending native integration; no platform result is reported as passed. Available: host package build/test, unsigned iOS Simulator build.") }
         return try ProcessRunner.run(["swift", test ? "test" : "build", "--package-path", root.path], at: root, policy: .developmentBuild)
     }
+    public static func runRetainingNative(root: URL, test: Bool, platform: String, output: URL) throws -> NativeBuildOutput.Report {
+        guard platform == "ios", !test else {
+            throw MixerFailure("build.output-platform", "--output requires an explicit non-test --platform ios build.")
+        }
+        let store = try NativeBuildOutput.prepare(output: output, root: root)
+        let lock = try verifyLock(root: root)
+        return try AppleProject.build(root: root, retainingIn: store, lock: lock)
+    }
     public static func export(root: URL, destination: URL) throws -> String {
         let lock = try verifyLock(root: root)
         let root = root.resolvingSymlinksInPath().standardizedFileURL; let destination = destination.resolvingSymlinksInPath().standardizedFileURL

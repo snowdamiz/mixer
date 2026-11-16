@@ -1,0 +1,175 @@
+{
+  "lane": "R3672",
+  "status": "IMPLEMENTED_FOCUSED_PASS_PENDING_INDEPENDENT_REVIEW",
+  "finding": "R3644 P2 default UI admits64 pins but wide allocator requires256",
+  "fix": "Initialize pin bitmap to admitted1..256 record length; reject out-of-range free bits and impossible active count before selection/publication. Keep stock64/86, UI256/278, old algorithms/work/goldens.",
+  "productionFiles": [
+    "vm/src/experimental_swift_reactor/cache.rs",
+    "vm/src/experimental_swift_reactor/wide_storage.rs"
+  ],
+  "testOnlyAdditionalFile": "vm/src/experimental_swift_reactor/guest_ui.rs",
+  "baseline": {
+    "passed": 3,
+    "proves": "Original default64 first-pin wide_pin_layout refusal;256 returns slot0 with24 credits",
+    "owners": 0,
+    "raw": "commands/baseline-pure-run/baseline-pure-run.stdout"
+  },
+  "candidate": {
+    "passed": 12,
+    "failed": 0,
+    "ignored": 0,
+    "filtered": 467,
+    "actualDefaultUIExport": true,
+    "actualProfileUIExport": true,
+    "newClosures": 13,
+    "inheritedClosures": 4,
+    "totalClosures": 17,
+    "each14Currents": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "eachTickets": 0,
+    "eachInvariant": null,
+    "runtimeCapacities": [
+      0,
+      1,
+      63,
+      64,
+      65,
+      128,
+      255,
+      256,
+      257
+    ],
+    "runtimeAdmitted": [
+      1,
+      63,
+      64,
+      256
+    ],
+    "pureStorageCapacities": [
+      1,
+      63,
+      64,
+      65,
+      128,
+      255,
+      256
+    ],
+    "actualPinIdentityUnpin": [
+      64,
+      256
+    ],
+    "raw": "commands/candidate-pure-ui-stock-batch/candidate-pure-ui-stock-batch.stdout"
+  },
+  "source": {
+    "frozenR3586Digest": "afefc733f4ae672d78c10c4303e2113e74aea8a098430c3237e6995669ccd635",
+    "candidateDigest": "875294258dff9a6ad71cd66c465c67965111eca8d46e776e8635b42dd4ffd37d",
+    "frozenCanonicalDigest": "650690853ca482c0b5591bbb6c09e3294f45aeb362206dd550af4dc84bf6add1",
+    "sourceFiles": 479,
+    "compositionFiles": 22,
+    "canonicalExisting": 16,
+    "canonicalAdditions": 6,
+    "changedFromR3586": [
+      "src/experimental_swift_reactor/cache.rs",
+      "src/experimental_swift_reactor/guest_ui.rs",
+      "src/experimental_swift_reactor/wide_storage.rs"
+    ],
+    "canonicalChanged": false
+  },
+  "builds": {
+    "standalonePureRustc": 1,
+    "offlineCargo": 2,
+    "totalInvocations": 3,
+    "jobs": 4,
+    "executionBatches": 2
+  },
+  "custody": {
+    "allPriorManagedCommandsTerminal": 14,
+    "eachDirectReaped": true,
+    "eachBothEOF": true,
+    "eachFDClosed": true,
+    "eachGroupAbsentESRCH": true,
+    "ledgerUnknown": false,
+    "newHOLD": false,
+    "finalPackagingClosure": "commands/package-complete/commands.json"
+  },
+  "tools": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)\nrelease: 1.99.0\ncommit-hash: 5f94df4789f005f9a352888e8355ffc645b7ed0e\ncommit-date: 2026-08-27\nhost: aarch64-apple-darwin\nlibgit2: 1.9.6 (sys:0.21.0 vendored)\nlibcurl: 8.7.1 (sys:0.4.90+curl-8.21.0 system ssl:(SecureTransport) LibreSSL/3.3.6)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Mac OS 27.0.1 [64-bit]\n",
+    "python": "3.9.6 (default, Oct 19 2026, 19:18:13) \n[Clang 21.0.0 (clang-2100.4.1.1)]",
+    "host": {
+      "system": "Darwin",
+      "node": "Andreys-MacBook-Pro.local",
+      "release": "27.0.0",
+      "version": "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "machine": "arm64"
+    },
+    "preparedCommand": {
+      "bytes": 936,
+      "sha256": "1da88677f65823d7c1493ad72b049d36b02563033ab13d56db9c370dd37ca582",
+      "mode": 420
+    },
+    "custodianSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+  },
+  "elapsedSecondsAtPackaging": 869.2646961212158,
+  "gates": {
+    "rootReady": false,
+    "independentChangedFixReview": false,
+    "canonicalAdoption": false,
+    "ordinaryRegression": false,
+    "nativeSDK": false,
+    "genuineFieldLogTurn": false,
+    "GA": false
+  },
+  "paths": {
+    "report": "REPORT.md",
+    "source": "source",
+    "minimalDiff": "minimal-delta.patch",
+    "productionDiff": "production-only.patch",
+    "fullMap": "application-map.json",
+    "inverseMap": "inverse-application-map.json",
+    "fullPatch": "canonical-to-candidate.patch",
+    "inversePatch": "inverse-canonical-to-candidate.patch",
+    "canonicalPreimages": "preimages/canonical",
+    "candidateManifest": "candidate-source-manifest.json",
+    "ownerAndOS": "owner-and-os-closure.json",
+    "buildIdentity": "build-identity.json",
+    "cleanup": "cleanup.json",
+    "protocol": "protocol-notes.json"
+  },
+  "limitations": [
+    "Implementation only; R3644 finding pending independent changed-fix review.",
+    "Only one candidate host libtest target compiled and12 exact candidate tests ran; no all-target or broad ordinary regression in this lane.",
+    "Actual UI C exports, real validation/Runtime/cache/dispatcher and consuming close ran using an independently authored synthetic exact v3 module. No external Swift compiler, SDK, FieldLog turn, native/UI presentation, browser or device payload.",
+    "Root reported R3642 471/3 lib-only and58 compiled targets unrun. Its external_surface_and_borrow_privacy underlying pin error is unexposed and its ledger UNKNOWN; no P2 attribution and no access. R3702 owns separate layout/accounting correction.",
+    "No Git/index/current revision inspection, canonical adoption, authority edit, child/provider, release, publication or merge. No SDK libraries built or qualified. All historical holds preserved."
+  ],
+  "protocolNotes": [
+    {
+      "kind": "initial-unwrapped-command",
+      "actual": "Initial read-only pwd bypassed wrapper before it was read. All subsequent OS commands used prepared-command.py and absolute executable argv."
+    },
+    {
+      "kind": "build-count",
+      "actual": "One standalone baseline rustc build and two offline Cargo engine builds (first test-harness typing failure, final pass), total three. One above a two-total-build interpretation; both Cargo builds jobs4. No further compilation."
+    },
+    {
+      "kind": "ordinary-preparation-errors",
+      "actual": "First rg respected ignores and exited1; corrected --no-ignore passed. First package script creation failed on a JS template interpolation error; its wrapper launched Python against the absent script and exited2 with terminal custody. Corrected packaging is source/evidence only. A subsequent self-audit included its still-running writer; corrected by excluding the current exact PID, with its wrapper custody recorded after return."
+    }
+  ],
+  "retainedOwnBytes": 43710659
+}

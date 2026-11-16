@@ -1,0 +1,59 @@
+{
+  "schema": "android-inspection-exit-r3786-v1",
+  "recorded_utc": "2026-11-16T07:00:10.535903+00:00",
+  "revision": "5299e9828990a372084051d87ea0c42a174747b2",
+  "source_observed_utc": "2026-11-16T05:18:38.087198+00:00",
+  "run": 43809354250,
+  "job": 133107289298,
+  "job_url": "https://github.com/snowdamiz/mixer/actions/runs/43809354250/job/133107289298",
+  "decision": "The exposed inner inspection reached its configured runtime deadline and was killed with terminal custody; the CLI then returned 1. Do not classify as UNKNOWN or infer OS/regression cause. No policy/source correction yet.",
+  "clock_caution": "Original phase last JDK begin is 1270.224080542s, not briefing 1269.024s. It is 0.141991542s after the Swift terminalNS when numerically compared; no cross-clock ordering is established. Treat phase durations internally, and runtime budget/stop via the command receipt.",
+  "canonical_sources": {
+    "cli/Sources/MixerBuild/Resources/android-build.py": {
+      "sha256": "eb54ed9d2dfdc077a5f10e279fd63669ecdb2dfe9ff47e80077cbecc8902d0da",
+      "lines": [
+        483,
+        594,
+        595,
+        596,
+        597,
+        598
+      ]
+    },
+    "cli/Sources/MixerBuild/OwnedCommand.swift": {
+      "sha256": "a28f7361767dee2dccf158e857e9f32011f273f21a6805b9b30ea8bcd70766e8",
+      "lines": [
+        14
+      ]
+    },
+    "cli/Sources/MixerBuild/AndroidProject.swift": {
+      "sha256": "294a243c3a8c3e1f83eb76b21cfab4dfdcd7ded6d1cce674869f47a6e7350df0",
+      "lines": [
+        78
+      ]
+    }
+  },
+  "next_test": {
+    "decision_owner": "root; proposed only, not executed or authorized here",
+    "test": "One fresh hosted paired standalone inspection: bootstrap android-build.py inspect versus the debug producer bundled android-build.py inspect, sequentially, with the same revision-pinned official tool inputs and environment. Keep the existing 180-second runtime and 60-second cleanup policies per command; do not run the full suite or change limits.",
+    "capture": "Pin both script hashes and exact argv/environment identity, and upload each raw stdout/stderr plus existing phase and terminal receipts as standalone artifacts. Compare completed phases, JSON identity manifests where complete, and terminal stop reasons.",
+    "discrimination": "Both complete: the historical deadline is not an invariant of those inputs. Only bundled fails: investigate the observed script/context difference. Both stop at the bound: investigate shared inspection work. None of these outcomes alone establishes an OS cause.",
+    "stop": "Exactly two inspections; stop on any custody failure; no automatic retries, compiler build, host toolchain download, or numeric/source change."
+  },
+  "bounds": {
+    "managed_commands_before_finalizer": 8,
+    "finalizers": 1,
+    "initial_wrapper_argument_error_before_managed_launch": true,
+    "network_gets": 0,
+    "archive_extractions": 0,
+    "artifact_projection_bytes": 1237,
+    "builds_or_reruns": 0,
+    "children_or_native_or_git_or_ci_actions": 0,
+    "historical_holds_released": false,
+    "gates_changed": false,
+    "writes": "own namespace and exact authorized compact receipt"
+  },
+  "report": "verification/local/android-inspection-exit-r3786/REPORT.md",
+  "full_receipt": "verification/local/android-inspection-exit-r3786/receipt.json",
+  "evidence_sha256": "064f7448e22d0bb33af0a525da9218db94ab872c5a7822f2d705471efb17f2d9"
+}

@@ -56,7 +56,7 @@ impl SnapshotView for ValidatedSpans {
 impl sealed::Snapshot for crate::experimental_swift_reactor::ValidatedSwiftReactor {}
 #[cfg(feature = "experimental-swift-reactor")]
 impl SnapshotView for crate::experimental_swift_reactor::ValidatedSwiftReactor {
-    type Policy = crate::experimental::policy::SwiftSelection;
+    type Policy = crate::experimental::policy::SwiftDecodePolicy;
     fn policy(&self) -> &Self::Policy {
         self.decode_policy()
     }
@@ -129,7 +129,7 @@ impl DecodePolicy for FrozenPolicy<'_> {
 }
 #[cfg(feature = "experimental-swift-reactor")]
 pub(crate) struct SwiftPolicy<'a> {
-    pub policy: &'a crate::experimental::policy::SwiftSelection,
+    pub policy: &'a crate::experimental::policy::SwiftDecodePolicy,
     pub extent: usize,
     pub parameters: usize,
 }
@@ -438,6 +438,7 @@ pub(crate) trait CacheMode: sealed::Mode {
     ) -> Self::Meter<'a, 'op>
     where
         'op: 'a;
+    fn wide_planning(_: &Self::Snapshot) -> bool { false }
     // Frozen defaults preserve literal first-free search and original work trace.
     fn available_pin(
         pins: &[PinRecord],
@@ -828,6 +829,9 @@ fn pin_acquired<M: CacheMode>(
             return Err(meter.error(CacheFailureKind::Capacity, "entry_cannot_fit"));
         }
         meter.step(CacheStep::Planning);
+        let index = if M::wide_planning(parts.snapshot) {
+            wide_eviction::<M>(parts, meter, base, capacity, bytes)?
+        } else {
         let mut plan = [false; MAX_ENTRIES];
         let mut remaining = meter.usage().resident();
         meter.work(parts.slots.len() as u64)?;
@@ -872,6 +876,8 @@ fn pin_acquired<M: CacheMode>(
         }
         let index =
             empty.ok_or_else(|| meter.error(CacheFailureKind::Capacity, "no_entry_slot"))?;
+            index
+        };
         meter.construction(bytes)?;
         let decoded = M::build(parts.snapshot, defined, counts, &mut parts.scratch, meter);
         let entry = match decoded {
@@ -915,4 +921,51 @@ fn pin_acquired<M: CacheMode>(
     let pin = M::Pin::new(parts.owner, pin_slot, *parts.next_nonce);
     *parts.next_nonce = nonce;
     Ok(pin)
+}
+
+fn wide_eviction<M: CacheMode>(
+    parts: &mut CacheFields<'_, M>,
+    meter: &mut M::Meter<'_, '_>,
+    base: usize,
+    capacity: usize,
+    bytes: usize,
+) -> Result<usize, M::Failure> {
+        let mut plan = storage::EvictionPlan::new(parts.slots.len())
+            .ok_or_else(|| meter.error(CacheFailureKind::InvalidBudget, "cache_planning_shape"))?;
+        let mut remaining = meter.usage().resident();
+        meter.work(parts.slots.len() as u64)?;
+        let mut empty = parts.slots.iter().position(|slot| slot.entry().is_none());
+        while empty.is_none() || base + remaining + bytes > capacity {
+            let oldest=storage::oldest_victim(parts.slots.len(),|index|{
+                let slot=&parts.slots[index];
+                (!plan.contains(index)&&slot.pins()==0&&slot.entry().is_some(),slot.last_used())
+            },|n|meter.work(n))?;
+            let victim = oldest
+                .ok_or_else(|| meter.error(CacheFailureKind::AllPinned, "all_entries_pinned"))?;
+            plan.select(victim).ok_or_else(|| meter.error(CacheFailureKind::InvalidBudget, "cache_planning_index"))?;
+            remaining -= parts.slots[victim].entry().expect("selected entry").bytes;
+            empty = Some(victim);
+        }
+        meter.work(4)?; // all four bounded bitmap words
+        let evictions = plan.count() as u64;
+        // Charge the complete apply traversal before any eviction is published.
+        meter.work(parts.slots.len() as u64)?;
+        meter
+            .usage()
+            .evictions()
+            .checked_add(evictions)
+            .ok_or_else(|| meter.error(CacheFailureKind::WorkExhausted, "evictions_overflow"))?;
+        meter.check()?;
+        for index in 0..parts.slots.len() {
+            if plan.contains(index) {
+                let bytes = parts.slots[index].entry().expect("planned entry").bytes;
+                M::resident_remove(parts.slots, &mut parts.scratch, index, meter)?;
+                let old = parts.slots[index].take().expect("planned entry");
+                M::drop_entry(old, meter)?;
+                meter.usage_mut().evicted(bytes);
+            }
+        }
+        let index =
+            empty.ok_or_else(|| meter.error(CacheFailureKind::Capacity, "no_entry_slot"))?;
+    Ok(index)
 }

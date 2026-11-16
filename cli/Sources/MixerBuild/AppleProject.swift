@@ -52,6 +52,30 @@ public enum AppleProject {
         ], at: root, policy: .developmentBuild)
     }
 
+
+    static func build(root: URL, retainingIn store: NativeBuildOutput.Store, lock: ToolchainLock) throws -> NativeBuildOutput.Report {
+        let project = try generate(root: root)
+        let config = try ApplicationConfiguration.load(root)
+        // Xcode otherwise creates this source-side workspace during compilation.
+        let workspace = project.appendingPathComponent("project.xcworkspace/contents.xcworkspacedata")
+        if !FileManager.default.fileExists(atPath: workspace.path) {
+            try FileManager.default.createDirectory(at: workspace.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Workspace version=\"1.0\"><FileRef location=\"self:\"></FileRef></Workspace>\n".utf8).write(to: workspace, options: .withoutOverwriting)
+        }
+        let derived = root.appendingPathComponent(".mixer/ios-build")
+        let products = derived.appendingPathComponent("Build/Products/Debug-iphonesimulator")
+        let command = ["/usr/bin/xcodebuild", "-project", project.path, "-scheme", config.name,
+            "-configuration", "Debug", "-sdk", "iphonesimulator",
+            "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", derived.path,
+            "-clonedSourcePackagesDirPath", derived.appendingPathComponent("SourcePackages").path,
+            "-jobs", "4", "DEBUG_INFORMATION_FORMAT=dwarf-with-dsym", "ARCHS=arm64",
+            "ONLY_ACTIVE_ARCH=YES", "ENABLE_DEBUG_DYLIB=NO", "COMPILER_INDEX_STORE_ENABLE=NO",
+            "CODE_SIGNING_ALLOWED=NO", "build"]
+        return try NativeBuildOutput.build(root: root, store: store, lock: lock, command: command,
+            app: products.appendingPathComponent(config.name + ".app"),
+            symbols: products.appendingPathComponent(config.name + ".app.dSYM"))
+    }
+
     static func source(name: String, application: String) -> String {
         """
         // !$*UTF8*$!

@@ -574,3 +574,54 @@ fn swift_descriptor_preserved_layouts_are_measured() {
         layout!(super::ValidatedSpans), layout!(super::Metadata), layout!(SignatureView<'_>),
         layout!(GlobalView<'_>), layout!(super::SegmentView<'_>), layout!(super::policy::Policy<'_>));
 }
+
+#[test]
+fn r3702_pure_layout_and_plan_counterproof() {
+    use crate::experimental::cache::storage::SwiftResourcePlan;
+    println!("R3702_LAYOUT proof={} align={} selection={} frozen={} swift_metadata={} legacy={} policy={}",std::mem::size_of::<ValidatedSwiftReactor>(),std::mem::align_of::<ValidatedSwiftReactor>(),std::mem::size_of::<super::policy::SwiftSelection>(),std::mem::size_of::<super::Metadata>(),std::mem::size_of::<super::Metadata<super::metadata::SwiftDeclaration>>(),std::mem::size_of::<super::ValidatedSpans>(),std::mem::size_of::<super::policy::Policy>());
+    for (e,p,f,ui) in [(64,64,64,false),(65,64,64,false),(64,65,64,false),(64,64,65,false),(256,256,256,true),(256,256,256,false)] {
+        let plan=SwiftResourcePlan::checked(e,p,f,ui);
+        println!("R3702_PLAN entries={e} pins={p} frames={f} ui={ui} result={plan:?}");
+    }
+}
+
+#[test]
+fn r3702_sealed_ui_entries_follow_validated_exports() {
+    for reverse in [false, true] {
+        let mut bytes = b"\0asm\x01\0\0\0".to_vec();
+        let mut types = vec![37];
+        for import in WasiFunction::ALL {
+            types.push(0x60);
+            uint(import.parameters().len() as u32, &mut types);
+            types.extend(import.parameters().iter().copied().map(ty));
+            uint(import.results().len() as u32, &mut types);
+            types.extend(import.results().iter().copied().map(ty));
+        }
+        types.extend_from_slice(&[0x60,0,0, 0x60,0,1,0x7f, 0x60,1,0x7f,1,0x7f]);
+        section(1,&types,&mut bytes);
+        let mut imports=vec![34];
+        for (index,import) in WasiFunction::ALL.into_iter().enumerate() {
+            text(b"wasi_snapshot_preview1",&mut imports);text(import.name(),&mut imports);
+            imports.push(0);uint(index as u32,&mut imports);
+        }
+        section(2,&imports,&mut bytes);
+        section(3,&[4,34,35,36,34],&mut bytes);
+        section(4,&[1,0x70,1,1,1],&mut bytes);
+        section(5,&[1,0,1],&mut bytes);
+        let mut exports=vec![5];
+        let mut names=[(b"memory".as_slice(),2,0),(b"_initialize".as_slice(),0,34),
+            (b"mixer_guest_ui_start_v3".as_slice(),0,35),(b"mixer_guest_ui_event_v3".as_slice(),0,36),
+            (b"mixer_guest_ui_ready_v3".as_slice(),0,37)];
+        if reverse { names.reverse(); }
+        for (name,kind,index) in names {text(name,&mut exports);exports.push(kind);uint(index,&mut exports);}
+        section(7,&exports,&mut bytes);
+        section(10,&[4,2,0,0x0b,4,0,0x41,0,0x0b,4,0,0x20,0,0x0b,2,0,0x0b],&mut bytes);
+        let ui=super::swift::validate_swift_ui(&bytes,SwiftValidationBudget::default(),&Cancellation::default()).unwrap();
+        let (proof,entries)=ui.into_parts();
+        let identity=proof.policy_identity();let usage=proof.usage();
+        drop(proof);
+        println!("R3702_UI_ENTRIES reverse={reverse} entries={entries:?} metadata={} source={}",usage.metadata_reserved,usage.source_bytes);
+        assert_eq!(entries,[34,35,36,37]);
+        assert_eq!(identity,"mixer.swift-wasi-ui-v1");
+    }
+}

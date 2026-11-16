@@ -44,12 +44,35 @@ struct PlanInventory {
 const RESIDENT_BUCKETS: usize = 128;
 const RESIDENT_LINKS: usize = 64;
 const RESIDENT_INDEX_BYTES: usize = RESIDENT_BUCKETS + RESIDENT_LINKS;
+#[path="wide_storage.rs"] mod wide_storage;
+fn wide_profile(proof: &ValidatedSwiftReactor) -> bool {
+    matches!(proof.decode_policy(), crate::experimental::policy::SwiftDecodePolicy::UI { .. })
+}
+fn index_bytes(ui: bool) -> usize {
+    if ui { wide_storage::BYTES } else { RESIDENT_INDEX_BYTES }
+}
+fn wide_failure(e:wide_storage::Error<SwiftRunFailure>,meter:&mut SwiftMeter<'_,'_>)->SwiftRunFailure { match e {wide_storage::Error::Meter(e)=>e,wide_storage::Error::Corrupt(detail)=>meter.error(if detail=="pin_slots_exhausted" {CacheFailureKind::PinExhausted} else if detail.starts_with("wide_pin_") {CacheFailureKind::InvalidPin} else {CacheFailureKind::DecoderMismatch},detail)} }
 
 pub(crate) struct SwiftScratch<'a> {
     patches: &'a mut [decode::Patch],
     index: &'a mut [u8],
     plans: &'a mut [Option<ScanPlan>],
     free_pins: &'a mut u64,
+}
+// Additional disjoint stack storage for the wide profile's linear scans and
+// shape admission. Existing buffer/header tickets account every heap byte.
+struct WideStorageInventory {
+    shape: crate::experimental::cache::storage::CacheShape,
+    budget: SwiftRunBudget,
+    free: Option<usize>,
+    found: Option<usize>,
+    active: usize,
+    index: usize,
+    pin_iter: std::iter::Enumerate<std::slice::Iter<'static, PinRecord>>,
+    slot_iter: std::iter::Enumerate<std::slice::Iter<'static, SwiftSlot>>,
+    pin: &'static PinRecord,
+    slot: &'static SwiftSlot,
+    plan: crate::experimental::cache::storage::EvictionPlan,
 }
 struct DensePinInventory {
     pins: &'static [PinRecord],
@@ -1151,7 +1174,7 @@ const fn compute_cache_cleanup_temporary_bytes() -> Option<usize> {
         (2, size_of::<SwiftCacheUsage>()),
     ])
 }
-const fn compute_cache_header_bytes() -> Option<usize> {
+const fn compute_cache_header_bytes<const UI: bool>() -> Option<usize> {
     let Some(exclusive) =
         size_of::<SwiftFunctionCache>().checked_sub(size_of::<ValidatedSwiftReactor>())
     else {
@@ -1163,13 +1186,16 @@ const fn compute_cache_header_bytes() -> Option<usize> {
     let Some(header) = exclusive.checked_add(cleanup) else {
         return None;
     };
-    let Some(header) = header.checked_add(RESIDENT_INDEX_BYTES) else {
+    let Some(header) = header.checked_add(if UI { wide_storage::BYTES } else { RESIDENT_INDEX_BYTES }) else {
         return None;
     };
     header.checked_add(PLAN_CAPACITY * size_of::<Option<ScanPlan>>())
 }
-const fn compute_cache_construction_bytes() -> Option<usize> {
+const fn compute_cache_construction_bytes<const UI: bool>() -> Option<usize> {
     sum_named!(&[
+        (if UI { 3 } else { 0 }, size_of::<WideStorageInventory>()),
+        (if UI { 3 } else { 0 }, size_of::<wide_storage::Inventory>()),
+        (if UI { 3 } else { 0 }, size_of::<crate::experimental::cache::storage::VictimInventory>()),
         (3, size_of::<DensePinInventory>()),
         (3, size_of::<Result<Option<WasiUsage>, SwiftRunFailure>>()),
         (3, size_of::<Option<Result<WasiUsage, SwiftRunFailure>>>()),
@@ -1227,8 +1253,11 @@ const fn compute_cache_construction_bytes() -> Option<usize> {
         (4, size_of::<ReservationTicket>()),
     ])
 }
-const fn compute_cache_operation_bytes() -> Option<usize> {
+const fn compute_cache_operation_bytes<const UI: bool>() -> Option<usize> {
     sum_named!(&[
+        (if UI { 3 } else { 0 }, size_of::<WideStorageInventory>()),
+        (if UI { 3 } else { 0 }, size_of::<wide_storage::Inventory>()),
+        (if UI { 3 } else { 0 }, size_of::<crate::experimental::cache::storage::VictimInventory>()),
         (3, size_of::<DensePinInventory>()),
         (3, size_of::<Result<Option<WasiUsage>, SwiftRunFailure>>()),
         (3, size_of::<Option<Result<WasiUsage, SwiftRunFailure>>>()),
@@ -1325,7 +1354,7 @@ const fn compute_cache_operation_bytes() -> Option<usize> {
         (2, size_of::<decode::PassParts<'static>>()),
         (4, size_of::<decode::Counts>()),
         (2, size_of::<SwiftPolicy<'static>>()),
-        (1, size_of::<[bool; 64]>()),
+        (1, if UI { size_of::<crate::experimental::cache::storage::EvictionPlan>() } else { size_of::<[bool; 64]>() }),
         (3, size_of::<DecodedFunction>()),
         (3, size_of::<SwiftResident>()),
         (3, size_of::<Result<SwiftResident, SwiftRunFailure>>()),
@@ -1359,15 +1388,15 @@ const CACHE_CLEANUP_TEMPORARY_BYTES: Option<usize> = compute_cache_cleanup_tempo
 pub(crate) fn cache_cleanup_temporary_bytes() -> Option<usize> {
     CACHE_CLEANUP_TEMPORARY_BYTES
 }
-const CACHE_HEADER_BYTES: Option<usize> = compute_cache_header_bytes();
+const CACHE_HEADER_BYTES: Option<usize> = compute_cache_header_bytes::<false>();
 pub(crate) fn cache_header_bytes() -> Option<usize> {
     CACHE_HEADER_BYTES
 }
-const CACHE_CONSTRUCTION_BYTES: Option<usize> = compute_cache_construction_bytes();
+const CACHE_CONSTRUCTION_BYTES: Option<usize> = compute_cache_construction_bytes::<false>();
 pub(crate) fn cache_construction_bytes() -> Option<usize> {
     CACHE_CONSTRUCTION_BYTES
 }
-const CACHE_OPERATION_BYTES: Option<usize> = compute_cache_operation_bytes();
+const CACHE_OPERATION_BYTES: Option<usize> = compute_cache_operation_bytes::<false>();
 pub(crate) fn cache_operation_bytes() -> Option<usize> {
     CACHE_OPERATION_BYTES
 }
@@ -1479,7 +1508,7 @@ fn construction_preflight(
     let observation = pairing(control, wasi, cursor)?;
     control.check_adopted_owner(adopted, cursor, observation)?;
     let previous_bound = control.usage(observation).reservations.construction.current;
-    let enlarged = cache_construction_bytes()
+    let enlarged = (if wide_profile(adopted.proof()) { compute_cache_construction_bytes::<true>() } else { cache_construction_bytes() })
         .and_then(|n| previous_bound.checked_add(n))
         .ok_or_else(|| layout_failure(control, observation, cursor))?;
     Ok(PreparedBounds {
@@ -1500,12 +1529,14 @@ fn operation_preflight(
         .ok_or_else(|| layout_failure(control, observation, cursor))?;
     control.check_reservation_owner(header, cursor, observation)?;
     let previous = control.usage(observation).reservations.construction.current;
-    let enlarged = cache_operation_bytes()
+    let enlarged = (if wide_profile(cache.proof()) { compute_cache_operation_bytes::<true>() } else { cache_operation_bytes() })
         .and_then(|n| previous.checked_add(n))
         .ok_or_else(|| layout_failure(control, observation, cursor))?;
     Ok(PreparedBounds { previous, enlarged })
 }
 impl SwiftFunctionCache {
+    pub(super) fn trace_counts(&self) {let _=std::io::Write::write_fmt(&mut std::io::stderr().lock(),format_args!("R3312_CACHE {:?}\n",self.usage));}
+
     pub(crate) const DECODER_REVISION: u32 = 1;
     pub(crate) fn prepare<'a>(
         control: &'a mut RuntimeControl,
@@ -1849,9 +1880,15 @@ impl CacheConstructionPhase<'_> {
         partial: &mut Partial,
     ) -> Result<(u64, SwiftCacheUsage), SwiftRunFailure> {
         self.control.check()?;
-        let header = cache_header_bytes().ok_or_else(|| {
-            self.control
-                .error(CacheFailureKind::Capacity, "swift_cache_layout_overflow")
+        let ui = wide_profile(partial.adopted.as_ref().expect("proof").proof());
+        let shape_budget = self.control.control.budget();
+        if ui && crate::experimental::cache::storage::CacheShape::checked(
+            shape_budget.cache_entries, shape_budget.active_pins,
+            crate::experimental::cache::storage::PLAN_CAPACITY).is_none() {
+            return Err(self.control.error(CacheFailureKind::InvalidBudget, "swift_cache_storage_shape"));
+        }
+        let header = (if ui { compute_cache_header_bytes::<true>() } else { cache_header_bytes() }).ok_or_else(|| {
+            self.control.error(CacheFailureKind::Capacity, "swift_cache_layout_overflow")
         })?;
         partial.header = Some(self.control.admit(header)?);
         let budget = self.control.control.budget();
@@ -1904,10 +1941,15 @@ impl CacheConstructionPhase<'_> {
             self.control.work(1)?;
             partial.patches.push(decode::EMPTY_PATCH);
         }
-        reserve(&mut partial.index, RESIDENT_INDEX_BYTES, &mut self.control)?;
-        for _ in 0..RESIDENT_INDEX_BYTES {
+        reserve(&mut partial.index, index_bytes(ui), &mut self.control)?;
+        for _ in 0..index_bytes(ui) {
             self.control.work(1)?;
             partial.index.push(0);
+        }
+        if ui {
+            self.control.work(32)?;
+            wide_storage::init_pins(&mut partial.index, budget.active_pins)
+                .ok_or_else(|| self.control.error(CacheFailureKind::InvalidPin, "wide_pin_layout"))?;
         }
         // Header includes the complete payload before this allocation begins.
         reserve(&mut partial.plans, PLAN_CAPACITY, &mut self.control)?;
@@ -2149,6 +2191,7 @@ impl CacheMode for SwiftMode {
     where
         'op: 'a;
     type Scratch<'a> = SwiftScratch<'a>;
+    fn wide_planning(snapshot: &ValidatedSwiftReactor) -> bool { wide_profile(snapshot) }
     fn meter<'a, 'op>(
         usage: &'a mut SwiftCacheUsage,
         operation: &'a mut CacheControl<'op>,
@@ -2169,6 +2212,9 @@ impl CacheMode for SwiftMode {
         scratch: &mut SwiftScratch<'_>,
         meter: &mut SwiftMeter<'_, '_>,
     ) -> Result<usize, SwiftRunFailure> {
+        if scratch.index.len()==wide_storage::BYTES {
+            return wide_storage::free_pin(scratch.index,pins.len(),meter.usage().active_pins,|i|pins[i].nonce==0,|n|meter.work(n)).map_err(|e|wide_failure(e,meter));
+        }
         meter.work(3)?; // layout, availability word, live-count agreement
         if pins.len() > 64
             || *scratch.free_pins & !dense_allowed_pins(pins.len()) != 0
@@ -2194,7 +2240,7 @@ impl CacheMode for SwiftMode {
     }
     fn pin_published(scratch: &mut SwiftScratch<'_>, slot: usize) {
         // Exclusive borrow retains the preflight bit; record publication is adjacent.
-        *scratch.free_pins &= !(1u64 << slot);
+        if scratch.index.len()==wide_storage::BYTES {wide_storage::publish_pin(scratch.index,slot)} else if slot < 64 { *scratch.free_pins &= !(1u64 << slot); }
     }
     fn validate_pin_release(
         pins: &[PinRecord],
@@ -2204,8 +2250,10 @@ impl CacheMode for SwiftMode {
     ) -> Result<(), SwiftRunFailure> {
         // Original checked_record validated owner/nonce/entry. No stop polling
         // here: terminal-owner cleanup must still be able to release its pins.
-        if pins.len() > 64
-            || slot >= pins.len()
+        if scratch.index.len()==wide_storage::BYTES {
+            return if wide_storage::release_valid(scratch.index,slot) { Ok(()) } else { Err(diagnostic.invalid("swift_wide_release_slot")) };
+        }
+        if slot >= pins.len()
             || *scratch.free_pins & !dense_allowed_pins(pins.len()) != 0
             || *scratch.free_pins & (1u64 << slot) != 0
         {
@@ -2214,7 +2262,7 @@ impl CacheMode for SwiftMode {
         Ok(())
     }
     fn pin_released(scratch: &mut SwiftScratch<'_>, slot: usize) {
-        *scratch.free_pins |= 1u64 << slot;
+        if scratch.index.len()==wide_storage::BYTES {wide_storage::release_pin(scratch.index,slot)} else if slot < 64 { *scratch.free_pins |= 1u64 << slot; }
     }
     fn resident_lookup(
         slots: &[SwiftSlot],
@@ -2222,6 +2270,9 @@ impl CacheMode for SwiftMode {
         function: u32,
         meter: &mut SwiftMeter<'_, '_>,
     ) -> Result<Option<usize>, SwiftRunFailure> {
+        if scratch.index.len()==wide_storage::BYTES {
+            return wide_storage::find(scratch.index,slots.len(),function,|i|slots[i].entry().map(|e|e.function),|n|meter.work(n)).map(|r|r.map(|f|f.slot)).map_err(|e|wide_failure(e,meter));
+        }
         Ok(resident_find(scratch.index, slots, function, meter)?.map(|found| found.slot))
     }
     fn resident_remove(
@@ -2230,6 +2281,11 @@ impl CacheMode for SwiftMode {
         slot: usize,
         meter: &mut SwiftMeter<'_, '_>,
     ) -> Result<(), SwiftRunFailure> {
+        if scratch.index.len()==wide_storage::BYTES {
+            meter.work(1)?;
+            let function=slots.get(slot).and_then(|s|s.entry()).ok_or_else(||meter.error(CacheFailureKind::DecoderMismatch,"wide_victim"))?.function;
+            return wide_storage::remove(scratch.index,slots.len(),function,slot,|i|slots[i].entry().map(|e|e.function),|n|meter.work(n)).map_err(|e|wide_failure(e,meter));
+        }
         meter.work(1)?; // victim-key probe
         let function = slots
             .get(slot)
@@ -2262,6 +2318,9 @@ impl CacheMode for SwiftMode {
         slot: usize,
         meter: &mut SwiftMeter<'_, '_>,
     ) -> Result<(), SwiftRunFailure> {
+        if scratch.index.len()==wide_storage::BYTES {
+            return wide_storage::insert(scratch.index,slots.len(),function,slot,|i|slots[i].entry().map(|e|e.function),|n|meter.work(n)).map_err(|e|wide_failure(e,meter));
+        }
         if resident_find(scratch.index, slots, function, meter)?.is_some() {
             return Err(meter.error(
                 CacheFailureKind::DecoderMismatch,

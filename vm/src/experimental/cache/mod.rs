@@ -17,6 +17,7 @@ use super::ValidatedSpans;
 use crate::{Cancellation, Profile, Type, Value};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+pub(crate) mod storage;
 const MAX_ENTRIES: usize = 64;
 const MAX_PINS: usize = 64;
 static NEXT_OWNER: AtomicU64 = AtomicU64::new(1);
@@ -317,7 +318,7 @@ fn scratch_bytes() -> usize {
     // plan, two readers, meter, bounded failures and scalar temporaries are extra.
     2 * std::mem::size_of::<decode::PassState>()
         + 2 * std::mem::size_of::<decode::Reader<'static>>()
-        + std::mem::size_of::<[bool; MAX_ENTRIES]>()
+        + std::mem::size_of::<storage::EvictionPlan>()
         + std::mem::size_of::<Meter<'static>>()
         + 3 * std::mem::size_of::<CacheFailure>()
         + 256

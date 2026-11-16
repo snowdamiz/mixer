@@ -2159,22 +2159,22 @@ fn external_surface_and_borrow_privacy() {
     external_privacy();
     let bytes = fixture(0, &[0, 0x0b], 100);
     let (mut c, mut cache) = new(&bytes, SwiftRunBudget::default());
-    let p = {
-        let mut returned = None;
-        pin(&mut cache, &mut c, 34, None, &mut returned);
-        returned.unwrap()
-    }
-    .unwrap();
-    {
-        let view = cache.view(&p, &mut c, None).unwrap();
-        assert_eq!(view.function, 34);
-    }
-    cache
-        .release(p, &mut c, None)
-        .map_err(|e| e.failure)
-        .unwrap();
-    assert_eq!(cache.identity().policy, "swift-reactor-experiment-v1");
+    let mut returned = None;
+    pin(&mut cache, &mut c, 34, None, &mut returned);
+    let observed = match returned {
+        Some(Ok(p)) => {
+            let view = cache.view(&p, &mut c, None).map(|v| v.function).map_err(|e| format!("{e:?}"));
+            let release = cache.release(p, &mut c, None).map_err(|e| format!("{:?}",e.failure));
+            Ok((view, release))
+        }
+        other => Err(format!("{other:?}")),
+    };
+    let observed_policy = cache.identity().policy;
     finish(cache, c);
+    let (view, release) = observed.unwrap();
+    assert_eq!(view.unwrap(), 34);
+    release.unwrap();
+    assert_eq!(observed_policy, "swift-reactor-experiment-v1");
 }
 
 // Project-authored independent review assertions promoted into the original named tests.

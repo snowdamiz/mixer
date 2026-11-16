@@ -1,0 +1,116 @@
+{
+  "id": "cache-hold-publication-fix-r3792",
+  "status": "FIX_IMPLEMENTED_PURE_CHECKS_PASS_ROOT_REVIEW_PENDING",
+  "finding": "R3780-P1",
+  "applicationMap": "verification/local/cache-hold-publication-fix-r3792/application-map.json",
+  "deliveryBindings": "verification/local/cache-hold-publication-fix-r3792/delivery-bindings.json",
+  "sourceSeal": {
+    "bytes": 1096,
+    "sha256": "53d67363bd4565b2094258b3aa50d90b100dc9f1c209870d7702b1c2f6842258"
+  },
+  "sourceTree": "d2cdb12728b346ac204b4223e6f0006eb797f72de01c393e132fb82c0c4e440d",
+  "shippingFiles": 7,
+  "changedFromFrozenR3766": [
+    "process_adapter.py",
+    "sources.json",
+    "test_contract.py"
+  ],
+  "qualification": {
+    "waves": 1,
+    "normal": {
+      "baselineCases": 15,
+      "successorCases": 20,
+      "passed": true
+    },
+    "optimized": {
+      "baselineCases": 15,
+      "successorCases": 20,
+      "passed": true
+    },
+    "totalPureCaseExecutions": 70,
+    "originalFailureWitnessReplays": 2,
+    "interceptedCallerDispatches": 2,
+    "fakeOnlyActualExitHelpers": 1,
+    "fakeHelperExit": 74,
+    "forbiddenMarkersAbsent": true
+  },
+  "cli121": {
+    "sourceDigest": "71f1667f189ba4c4e2d7d2b89fd0aca2c37cc57f0113db0ed716fe55a3d06cfa",
+    "canonicalAdoption": "R3788 historical receipt; unchanged current canonical workflow bytes rehashed",
+    "newWorkflowGuardConflict": true,
+    "details": "verification/local/cache-hold-publication-fix-r3792/cli121-conflict.json",
+    "resolution": "Root selects a minimal exact caller-only successor before cache workflow adoption; no old validator widening"
+  },
+  "commandAccounting": {
+    "completedManagedRecordsBeforeFinalization": 15,
+    "allRecordedGroupsClosed": true,
+    "nonzeroInnerCommands": [
+      {
+        "label": "001-current-agents",
+        "exitCode": 1
+      },
+      {
+        "label": "015-fake-publication-exit",
+        "exitCode": 74
+      }
+    ],
+    "finalizationCommand": "016-finalize; wrapper writes its terminal receipt after deliverables",
+    "initialBootstrapFailure": {
+      "exit": 1,
+      "reason": "FileExistsError: prepared-command.py already existed; exclusive create left it unchanged",
+      "managed": false,
+      "payloadStarted": false
+    },
+    "helpInvocationFailure": {
+      "exit": 1,
+      "reason": "IndexError before run: prepared wrapper requires label timeout argv",
+      "payloadStarted": false
+    },
+    "firstWrappedReadFailure": {
+      "label": "001-current-agents",
+      "exit": 1,
+      "reason": "Relative AGENTS path resolved under owned lane cwd",
+      "terminalCustody": true
+    },
+    "firstTerminalRequirementSatisfied": false,
+    "deviation": "First invocation attempted unnecessary exclusive bootstrap rather than invoking existing owned wrapper; no payload or inner process launched. Second --help failed before launch; current AGENTS first successfully read by 002-current-agents. All subsequent terminal invocations use own prepared wrapper."
+  },
+  "bounds": {
+    "inclusiveCeilingSeconds": 600,
+    "elapsedAtFinalizationSeconds": 448.066,
+    "firstBootstrapAdditionalSeconds": 2,
+    "normalOptimizedQualificationWaves": 1,
+    "realDescendants": 0,
+    "kernelPopenInsideAdapter": 0,
+    "realEPERM": 0,
+    "compiler": 0,
+    "VM": 0,
+    "native": 0,
+    "buildPayloads": 0,
+    "subagents": 0,
+    "fullMaterializer": 0
+  },
+  "preserved": {
+    "frozenR3766": true,
+    "historicalR8": true,
+    "allCustodyHolds": true,
+    "historicalEPERMCause": "unproven",
+    "realR3766Closed07s": "separate unchanged-source historical caller evidence; not a R3792 real run"
+  },
+  "canonicalWrites": false,
+  "indexWrites": false,
+  "gitActions": false,
+  "CI": false,
+  "newActualUnknown": false,
+  "manufacturedRealHold": false,
+  "holdsReleased": false,
+  "GA": false,
+  "accepted": false,
+  "pending": [
+    "Root independent inspection and explicit selection",
+    "exact CLI121 caller succession for cache-only workflow change",
+    "Root installed source guard and staged verification artifact check",
+    "original36 cache materializer plus successor installed source guard; do not run here",
+    "hosted/production qualification and real EPERM attribution"
+  ]
+}

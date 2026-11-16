@@ -208,11 +208,18 @@ fn all_seventeen_dimensions_reject_widening_without_allocation_and_drop_real_pro
         let proof = proof();
         let source = proof.usage().source_bytes;
         let token = Cancellation::default();
-        let (failure, stats) = super::super::allocation_tests::measure(|| {
+        let (result, stats) = super::super::allocation_tests::measure(|| {
             RuntimeControl::adopt(proof, budget, Instant::now(), token)
-                .err()
-                .unwrap()
         });
+        let failure = match result {
+            Err(failure) => failure,
+            Ok((control, adopted)) => {
+                let cleanup = clean(control, adopted);
+                assert_empty(cleanup);
+                panic!("unexpected adoption for widened dimension {dimension}");
+            }
+        };
+        println!("R3702_REFUSAL dimension={dimension} resource={:?} attempted={} limit={} freed={} source={} cleanup={:?}",failure.resource,failure.attempted,failure.limit,stats.freed_bytes,source,failure.after_cleanup);
         no_allocations(stats);
         assert_eq!(
             failure.kind,

@@ -196,3 +196,26 @@ fn unwinding_clears_the_observer_and_fault() {
     });
     assert_eq!((stats.attempts, stats.injected_failures), (1, 0));
 }
+
+#[test]
+fn r3586_private_stderr_diagnostic_after_refused_request() {
+    let (plain_failed, plain) = measure_extended(Some(0), || {
+        let mut bytes = Vec::<u8>::new();
+        bytes.try_reserve_exact(61).is_err()
+    });
+    let stats = [3usize, 2, 2];
+    let depth = 0usize;
+    let attempted = Some(34u32);
+    let (diagnostic_failed, diagnostic) = measure_extended(Some(0), || {
+        let mut bytes = Vec::<u8>::new();
+        let failed = bytes.try_reserve_exact(61).is_err();
+        if failed {
+            eprintln!("R3238_SUMMARY entered={} returned={} highwater={} depth={} attempted={:?}",stats[0],stats[1],stats[2],depth,attempted);
+        }
+        failed
+    });
+    println!("R3586_PURE_DIAGNOSTIC plain={plain:?} with_original_summary={diagnostic:?}");
+    assert!(plain_failed && diagnostic_failed);
+    assert_eq!((plain.attempts, plain.injected_failures), (1, 1));
+    assert_eq!((diagnostic.attempts, diagnostic.injected_failures), (2, 1));
+}

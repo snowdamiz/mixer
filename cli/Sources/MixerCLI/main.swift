@@ -35,7 +35,7 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
     [--platform ios|android] [--android-adapter-path PATH] [--android-host legacy-v1|public-v3|public-v4]
   mixer doctor [--json]
   mixer config validate [--directory PATH]
-  mixer build [--platform host|ios|android] [--directory PATH]
+  mixer build [--platform host|ios|android] [--directory PATH] [--output NEW_PRIVATE_STORE (ios only)]
   mixer test [--platform host] [--directory PATH]
   mixer run ios --device SIMULATOR_UUID [--directory PATH]
   mixer import PATH [--output REPORT.json]
@@ -73,7 +73,7 @@ do {
     let words = arguments.positional
     let allowedOptions: [String: Set<String>] = [
         "create": ["--directory", "--application", "--sdk-path", "--platform", "--android-adapter-path", "--android-host"], "config": ["--directory"],
-        "build": ["--directory", "--platform"], "test": ["--directory", "--platform"],
+        "build": ["--directory", "--platform", "--output"], "test": ["--directory", "--platform"],
         "run": ["--directory", "--device"], "import": ["--output"],
         "release": ["--directory"], "export": ["--directory"],
         "submit": ["--provider", "--build-id", "--app-id", "--version-code", "--track", "--directory"]
@@ -107,6 +107,15 @@ do {
         try output(ApplicationConfiguration.load(root))
     case "build", "test":
         guard words.count == 1 else { throw MixerFailure("arguments.build", "Unexpected positional argument") }
+        if let destination = arguments.options["--output"] {
+            guard words[0] == "build", arguments.options["--platform"] == "ios" else {
+                throw MixerFailure("arguments.output-platform", "--output requires an explicit --platform ios build.")
+            }
+            let report = try ProjectBuild.runRetainingNative(root: root, test: false, platform: "ios", output: path(destination))
+            try output(report)
+            if !report.succeeded { exit(report.commandResult.exitCode == 0 ? 1 : report.commandResult.exitCode) }
+            exit(0)
+        }
         let result = try ProjectBuild.run(root: root, test: words[0] == "test", platform: arguments.options["--platform"] ?? "host")
         try output(result)
         if !result.succeeded { exit(result.exitCode == 0 ? 1 : result.exitCode) }

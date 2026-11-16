@@ -409,6 +409,13 @@ pub(super) fn retire(owner: SwiftReactorInstance) {
     let mut usage = None;
     tail.complete((owned, returned), &mut failure, &mut usage);
     let usage = usage.unwrap();
+    println!("R3570_RETIRE currents={:?} tickets={} invariant={:?}", [
+        usage.reservations.retained_source.current, usage.reservations.retained_metadata.current,
+        usage.reservations.cache.current, usage.reservations.state.current, usage.reservations.wasi.current,
+        usage.reservations.shared.current, usage.reservations.construction.current, usage.reservations.combined.current,
+        usage.live.cache_entries.current, usage.live.active_pins.current, usage.live.frames.current,
+        usage.live.values.current, usage.live.controls.current, usage.live.memory_pages.current,
+    ], usage.reservations.live_tickets, usage.cleanup_invariant);
     assert_eq!(usage.reservations.combined.current, 0);
     assert_eq!(usage.reservations.live_tickets, 0);
     assert_eq!(
@@ -1445,11 +1452,16 @@ fn af21_warm_paths_refuse_first_allocation_and_cold_decode_is_separate() {
     let mut owner = owner_with(&function, SwiftRunBudget::default());
     let mut returned = Some(owner.prepare_frames(cursor()));
     let mut phase = returned.take().unwrap().unwrap();
-    let (_, cold) = measure_extended(None, || phase.enter(34).unwrap());
-    assert!(cold.attempts > 0);
-    phase.phase.push_value(Value::I32(1)).unwrap();
-    phase.finish().unwrap();
-    complete_ok(phase, returned);
+    let (cold_result, cold) = measure_extended(None, || phase.enter(34));
+    let cold_run = cold_result.and_then(|_| phase.phase.push_value(Value::I32(1)))
+        .and_then(|_| phase.finish().map(|_| ()));
+    if cold_run.is_err() { phase.drain(); }
+    let cold_completion = complete(phase, returned);
+    if cold_run.is_err() || !matches!(cold_completion, FrameCompletion::Completed) {
+        retire(owner);
+        cold_run.unwrap();
+        panic!("cold phase completion failed: {:?}", cold_completion);
+    }
     let mut returned = Some(owner.prepare_frames(cursor()));
     let mut phase = returned.take().unwrap().unwrap();
     let (result, warm) = measure_extended(Some(0), || {
@@ -1461,27 +1473,31 @@ fn af21_warm_paths_refuse_first_allocation_and_cold_decode_is_separate() {
         phase.drain();
         Ok::<_, SwiftRunFailure>(())
     });
-    result.unwrap();
-    assert_eq!(warm.attempts, 0);
+    if result.is_err() { phase.drain(); }
     let (completion, stats) = measure_extended(Some(0), || complete(phase, returned));
-    assert!(matches!(completion, FrameCompletion::Completed));
-    assert_eq!(stats.attempts, 0);
+
     println!(
         "AF21 cold decode requests={} warm entry/finish/drain/completion requests=0",
         cold.attempts
     );
     retire(owner);
+    assert!(cold.attempts > 0);
+    result.unwrap();
+    assert_eq!(warm.attempts, 0);
+    assert!(matches!(completion, FrameCompletion::Completed));
+    assert_eq!(stats.attempts, 0);
     for ordinal in 0..cold.attempts {
         let mut owner = owner_with(&function, SwiftRunBudget::default());
         let mut returned = Some(owner.prepare_frames(cursor()));
         let mut phase = returned.take().unwrap().unwrap();
         let (result, stats) = measure_extended(Some(ordinal), || phase.enter(34));
+        phase.drain();
+        let completion = complete(phase, returned);
+        retire(owner);
         assert_eq!(stats.injected_failures, 1);
         assert_eq!(stats.attempts, ordinal + 1);
         assert_eq!(result.unwrap_err().kind, SwiftRunFailureKind::Allocation);
-        phase.drain();
-        complete_ok(phase, returned);
-        retire(owner);
+        assert!(matches!(completion, FrameCompletion::Completed));
     }
 }
 #[test]

@@ -100,6 +100,19 @@ pub(crate) fn accounted_construction_bytes() -> Option<usize> {
 }
 
 impl AccountedWasi {
+    /// Only the same live control's active sealed UI grant can provide a deadline.
+    /// Retained transfers, random/log bytes, buffers and capabilities are unchanged.
+    pub(crate) fn begin_ui_turn(&mut self,control:&mut RuntimeControl)->Result<(),SwiftRunFailure>{
+        let c=Cursor{stage:crate::experimental_swift_reactor::control::SwiftRunStage::Invocation,function:None,offset:None};
+        let grant=control.ui_grant();
+        if self.context.terminal.is_some() || grant.is_none_or(|(e,_)|self.context.ui_turn_epoch.checked_add(1)!=Some(e)) {
+            return Err(control.fail(c,Fault::new(SwiftRunFailureKind::Invariant,"ui_wasi_turn_grant"),Some(self.context.usage())))
+        }
+        let(epoch,deadline)=grant.unwrap();self.context.deadline=deadline;self.context.ui_turn_epoch=epoch;
+        self.context.ui_turn_baseline=Some((self.context.usage.calls,self.context.usage.work));
+        Ok(())
+    }
+
     /// Enlarge the existing shared construction ticket before creating any
     /// phase, partial builder, context, or accounted owner wrapper.
     pub(crate) fn prepare(
@@ -334,6 +347,8 @@ impl WasiConstructionPhase<'_> {
                 cancellation: self.control.cancellation(),
                 deadline,
                 terminal: None,
+                ui_turn_baseline: None,
+                ui_turn_epoch:0,
                 usage: WasiUsage {
                     reservations,
                     ..WasiUsage::default()

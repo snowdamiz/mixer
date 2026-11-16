@@ -948,58 +948,105 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
     );
     let deadline = o.control.as_ref().unwrap().deadline();
     let start = observed(&o);
-    assert_eq!(start.live.cache_entries.current, 0);
+
     // Constructor writes 29 slots, 64 pin records, 512 patches, 192 index cells
     // and eight charged semantic cells for each of 512 scan-plan entries.
     // Publishing the initialized free-pin bitmap costs one additional credit.
-    assert_eq!(start.cache_work, 29 + 64 + 1 + 512 + 192 + 512 * 8);
-    assert_eq!(success(&mut o, Request::Initialize), Reply::Initialized);
+
+    let initialize_reply = match request(&mut o, Request::Initialize) {
+        Completion::Completed(reply) => reply,
+        Completion::Failed { cleanup: GrowthCompletion::Retained { .. }, .. } => panic!("R3570_LEDGER_UNKNOWN retained growth completion"),
+        _ => { retire(o); panic!("actual operation did not complete"); }
+    };
+
     let initialized = observed(&o);
     // Resident Cache tickets belong to decoded entries, surviving pin release.
+
+
+
+    // Cold cost includes 13 probe/publication credits and five credits for
+    // successful bitmap pin selection: 108 + 5 + 2*body bytes + 3*instructions + 13.
+    // Init35: B14/I6; corpus62: B7/I3; callee36: B19/I9.
+
+
+    let first_reply = match request(&mut o, Request::Corpus) {
+        Completion::Completed(reply) => reply,
+        Completion::Failed { cleanup: GrowthCompletion::Retained { .. }, .. } => panic!("R3570_LEDGER_UNKNOWN retained growth completion"),
+        _ => { retire(o); panic!("actual operation did not complete"); }
+    };
+
+    let first = observed(&o);
+
+
+    let first_cache = o.cache.as_ref().unwrap().usage();
+
+
+    let second_reply = match request(&mut o, Request::Corpus) {
+        Completion::Completed(reply) => reply,
+        Completion::Failed { cleanup: GrowthCompletion::Retained { .. }, .. } => panic!("R3570_LEDGER_UNKNOWN retained growth completion"),
+        _ => { retire(o); panic!("actual operation did not complete"); }
+    };
+
+    let second = observed(&o);
+
+
+    let second_cache = o.cache.as_ref().unwrap().usage();
+    // Corpus: const+indirect+end (3); callee: get,const,add,set,const,get,store,get,end (9).
+
+
+
+    // Resident order35@0,62@1,36@2. Outer pin record0 stays live for callee.
+    // Lookup + bitmap pin selection + checked index chain: both 1+5+6.
+
+
+
+
+
+
+
+
+
+
+
+    let final_deadline = o.control.as_ref().unwrap().deadline();
+    retire(o);
+    assert_eq!(start.live.cache_entries.current, 0);
+    assert_eq!(start.cache_work, 29 + 64 + 1 + 512 + 192 + 512 * 8);
+    assert_eq!(initialize_reply, Reply::Initialized);
     assert_eq!(
         initialized.reservations.live_tickets - start.reservations.live_tickets,
         1
     );
     assert_eq!(initialized.live.cache_entries.current, 1);
     assert_eq!(initialized.instructions - start.instructions, 6);
-    // Cold cost includes 13 probe/publication credits and five credits for
-    // successful bitmap pin selection: 108 + 5 + 2*body bytes + 3*instructions + 13.
-    // Init35: B14/I6; corpus62: B7/I3; callee36: B19/I9.
     assert_eq!(
         initialized.cache_work - start.cache_work,
         108 + 5 + 2 * 14 + 3 * 6 + 13
     );
     assert_eq!(initialized.cache_work, 5_066);
-    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(2));
-    let first = observed(&o);
+    assert_eq!(first_reply, Reply::Corpus(2));
     assert_eq!(
         first.reservations.live_tickets - initialized.reservations.live_tickets,
         2
     );
     assert_eq!(first.live.cache_entries.current, 3);
-    let first_cache = o.cache.as_ref().unwrap().usage();
     assert_eq!(
         first.cache_work - initialized.cache_work,
         (108 + 5 + 2 * 7 + 3 * 3 + 13) + (108 + 5 + 2 * 19 + 3 * 9 + 13)
     );
     assert_eq!(first.cache_work, 5_406);
-    assert_eq!(success(&mut o, Request::Corpus), Reply::Corpus(3));
-    let second = observed(&o);
+    assert_eq!(second_reply, Reply::Corpus(3));
     assert_eq!(
         second.reservations.live_tickets - first.reservations.live_tickets,
         0
     );
     assert_eq!(second.live.cache_entries.current, 3);
-    let second_cache = o.cache.as_ref().unwrap().usage();
-    // Corpus: const+indirect+end (3); callee: get,const,add,set,const,get,store,get,end (9).
     assert_eq!(first.instructions - initialized.instructions, 12);
     assert_eq!(second.instructions - first.instructions, 12);
     assert!(
         second.execution_work > first.execution_work
             && first.execution_work > initialized.execution_work
     );
-    // Resident order35@0,62@1,36@2. Outer pin record0 stays live for callee.
-    // Lookup + bitmap pin selection + checked index chain: both 1+5+6.
     assert_eq!(
         second.cache_work - first.cache_work,
         (1 + 5 + 6) + (1 + 5 + 6)
@@ -1016,8 +1063,7 @@ fn swift_lifecycle_sl13_cumulative_instruction_host_and_cache_usage() {
         second.reservations.live_tickets,
         first.reservations.live_tickets
     );
-    assert_eq!(o.control.as_ref().unwrap().deadline(), deadline);
-    retire(o);
+    assert_eq!(final_deadline, deadline);
 }
 #[test]
 fn swift_lifecycle_sl14_later_calls_share_the_remaining_fuel() {

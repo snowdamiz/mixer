@@ -428,6 +428,8 @@ impl FrameOperationPhase<'_> {
         let pre_values_len = self.phase.parts.values.len();
         let pre_controls_len = self.phase.parts.controls.len();
         let result = self.enter_inner(function);
+        // Harness-only fixed scalar observations, no guest allocation or semantic change.
+        R3238_STATS.with(|s| { let mut v=s.get(); if result.is_ok() {v[0]+=1;} v[2]=v[2].max(self.phase.parts.frames.len()); s.set(v); });
         if result.is_err() {
             self.terminal();
             self.rollback_entry(pre_values_len, pre_controls_len);
@@ -436,7 +438,10 @@ impl FrameOperationPhase<'_> {
     }
     #[allow(clippy::drop_non_drop)] // End the cleared move-only guard after publication.
     fn enter_inner(&mut self, function: u32) -> Result<(), SwiftRunFailure> {
-        let frame_limit = self.phase.operation.control.budget().frames.min(64);
+        let ceiling = match self.phase.parts.cache.proof().decode_policy() {
+            crate::experimental::policy::SwiftDecodePolicy::UI { .. } => crate::experimental::cache::storage::UI_CAPACITY, _ => 64,
+        };
+        let frame_limit = self.phase.operation.control.budget().frames.min(ceiling);
         if self.phase.parts.frames.len() >= frame_limit
             || self.phase.parts.frames.len() == self.phase.parts.frames.capacity()
         {
@@ -790,6 +795,7 @@ impl FrameOperationPhase<'_> {
     }
     pub(crate) fn finish(&mut self) -> Result<FrameReturn, SwiftRunFailure> {
         let result = self.finish_inner();
+        if result.is_ok() { R3238_STATS.with(|s| {let mut v=s.get();v[1]+=1;s.set(v);}); }
         if result.is_err() {
             self.terminal();
         }
@@ -43706,3 +43712,17 @@ pub(in crate::experimental_swift_reactor) struct DiagnosticPermanentPositions {
 mod call_dispatch;
 
 pub(super) const CALLS_PERMANENT_BYTES:Option<usize>=call_dispatch::PERMANENT_BYTES;
+
+#[path = "ui_execution.rs"]
+pub(crate) mod ui_execution;
+
+// R3238 private harness diagnostic: exactly three thread-local scalars; bounded
+// borrowed walk of at most 256 already charged frames. No interpreter bypass.
+thread_local! { static R3238_STATS: std::cell::Cell<[usize;3]> = const {std::cell::Cell::new([0;3])}; }
+fn r3238_dump(phase: &FrameOperationPhase<'_>, attempted: Option<u32>) {
+    let stats=R3238_STATS.with(|s|s.get());
+    eprintln!("R3238_SUMMARY entered={} returned={} highwater={} depth={} attempted={:?}",stats[0],stats[1],stats[2],phase.phase.parts.frames.len(),attempted);
+    for (depth,f) in phase.phase.parts.frames.iter().take(256).enumerate() {
+        eprintln!("R3238_FRAME depth={} function={} pc={} base={} operands={} controls={}",depth+1,f.function,f.pc,f.base,f.operands,f.controls);
+    }
+}

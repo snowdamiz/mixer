@@ -10,9 +10,10 @@ use crate::Cancellation;
 use std::mem::size_of;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
+use crate::experimental::cache::storage::SwiftResourcePlan;
 
 const MIB: usize = 1024 * 1024;
-pub(crate) const MAX_RESERVATION_TICKETS: usize = 86;
+pub(crate) const MAX_RESERVATION_TICKETS: usize = SwiftResourcePlan::DEFAULT_TICKETS;
 static NEXT_OWNER: AtomicU64 = AtomicU64::new(1);
 
 /// Every field independently narrows the fixed experimental envelope. Zero is
@@ -369,6 +370,8 @@ pub(crate) enum Live {
 /// The sole runtime admission authority. All fields and tickets are inline.
 /// WASI retains sole ownership of its existing active counters and budgets.
 pub(crate) struct RuntimeControl {
+    ui_turns: Option<super::turn_budget::UiTurns>,
+    resource_plan: Option<SwiftResourcePlan>,
     owner: u64,
     budget: SwiftRunBudget,
     started: Instant,
@@ -564,6 +567,8 @@ impl RuntimeControl {
     ) -> Result<(Self, AdoptedProof), SwiftRunFailure> {
         let validation = proof.usage();
         let mut control = Self {
+            ui_turns: None,
+            resource_plan: None,
             owner: 0,
             budget,
             started,
@@ -588,7 +593,7 @@ impl RuntimeControl {
         let mut source = None;
         let mut metadata = None;
         let result = (|| {
-            control.check_budget(cursor)?;
+            control.check_budget(cursor, matches!(proof.decode_policy(), crate::experimental::policy::SwiftDecodePolicy::UI { .. }))?;
             control.deadline = started
                 .checked_add(Duration::from_millis(budget.deadline_ms))
                 .ok_or_else(|| {
@@ -667,8 +672,13 @@ impl RuntimeControl {
         ))
     }
 
-    fn check_budget(&mut self, cursor: Cursor) -> Result<(), SwiftRunFailure> {
-        let max = SwiftRunBudget::default();
+    fn check_budget(&mut self, cursor: Cursor, ui: bool) -> Result<(), SwiftRunFailure> {
+        let mut max = SwiftRunBudget::default();
+        // R3238 private UI-only prospective capacity. Shared defaults stay 64.
+        if ui {
+            max.frames = crate::experimental::cache::storage::UI_CAPACITY;
+            max.active_pins = max.frames; max.cache_entries = max.frames;
+        }
         let fields = [
             (
                 SwiftRunResource::Reservation(SwiftReservationCategory::RetainedSource),
@@ -769,9 +779,68 @@ impl RuntimeControl {
                 ));
             }
         }
+        let resource_plan = SwiftResourcePlan::checked(
+            self.budget.cache_entries, self.budget.active_pins, self.budget.frames, ui);
+        if resource_plan.is_none() {
+            return Err(self.fail(cursor, Fault::new(SwiftRunFailureKind::InvalidBudget, "swift_cache_storage_shape"), None));
+        }
+        self.resource_plan = resource_plan;
         Ok(())
     }
 
+
+    pub(super) fn enable_ui_turns(&mut self) -> Result<(),SwiftRunFailure> {
+        let c=Cursor{stage:SwiftRunStage::Initialization,function:None,offset:None};
+        self.check(c)?;
+        if self.ui_turns.is_some() || self.resource_plan!=Some(SwiftResourcePlan::ui_profile_1()){return Err(self.fail(c,Fault::new(SwiftRunFailureKind::Invariant,"ui_turn_policy_profile"),None))}
+        self.ui_turns=Some(super::turn_budget::UiTurns::new());Ok(())
+    }
+    fn turn_counters(&self)->super::turn_budget::Counters {
+        super::turn_budget::Counters{cache:self.cache_work,execution:self.execution_work,fuel:self.instruction_fuel,hosts:self.host_calls}
+    }
+    fn turn_quiescent(&self)->bool {
+        let Some(ticket)=self.construction.as_ref() else{return false};
+        let fixed=SwiftResourcePlan::NONCACHE-SwiftResourcePlan::TRANSIENT;
+        super::turn_budget::boundary_ready(
+            [self.live.frames.current,self.live.active_pins.current,self.live.values.current,self.live.controls.current],
+            super::turn_budget::FoundationReservation{
+                current:self.reservations.construction.current,ticket_bytes:ticket.bytes,
+                floor:foundation_construction_bytes(),owner_matches:ticket.owner==self.owner,
+                category_matches:ticket.category==SwiftReservationCategory::Construction,
+            },self.live.cache_entries.current,self.reservations.live_tickets,fixed
+        ) && self.cleanup_invariant.is_none()
+    }
+    pub(crate) fn ui_grant(&self)->Option<(u64,Instant)> {
+        if self.first_failure.is_some()||self.cancellation.is_cancelled(){return None}
+        let turns=self.ui_turns.as_ref()?;Some((turns.epoch()?,turns.deadline()?))
+    }
+    pub(super) fn begin_ui_turn(&mut self,kind:super::turn_budget::Kind,quiescent:bool)->Result<Option<u64>,SwiftRunFailure>{
+        if self.ui_turns.is_none(){return Ok(None)}
+        let c=Cursor{stage:SwiftRunStage::Invocation,function:None,offset:None};
+        if let Some(f)=self.first_failure{return Err(f)}
+        if self.cancellation.is_cancelled(){return Err(self.fail(c,Fault::new(SwiftRunFailureKind::Cancelled,"swift_run_cancelled"),None))}
+        let counters=self.turn_counters();let safe=quiescent&&self.turn_quiescent();
+        let result=self.ui_turns.as_mut().unwrap().begin(kind,counters,Instant::now(),self.budget.deadline_ms,safe,false);
+        match result {
+            Ok((epoch,deadline))=>{self.deadline=deadline;self.deadline_origin=SwiftDeadlineOrigin::Run;
+                eprintln!("R3420_SUCCESSOR_GRANT epoch={epoch} kind={kind:?} baseline={counters:?} usage={:?}",self.usage(None));
+                Ok(Some(epoch))},
+            Err(code)=>Err(self.fail(c,Fault::new(SwiftRunFailureKind::Invariant,code),None))
+        }
+    }
+    pub(super) fn end_ui_turn(&mut self,epoch:Option<u64>,quiescent:bool)->Result<(),SwiftRunFailure>{
+        let Some(epoch)=epoch else{return Ok(())};
+        let c=Cursor{stage:SwiftRunStage::Invocation,function:None,offset:None};self.check(c)?;
+        let safe=quiescent&&self.turn_quiescent();let counters=self.turn_counters();
+        if let Err(code)=self.ui_turns.as_mut().unwrap().end(epoch,safe,counters){return Err(self.fail(c,Fault::new(SwiftRunFailureKind::Invariant,code),None))}
+        eprintln!("R3420_SUCCESSOR_END epoch={epoch} cumulative={:?}",self.usage(None));Ok(())
+    }
+    fn ui_baseline(&mut self,c:Cursor,w:Option<WasiUsage>)->Result<super::turn_budget::Counters,SwiftRunFailure>{
+        match self.ui_turns.as_ref(){
+            None=>Ok(super::turn_budget::Counters::default()),
+            Some(t)=>t.baseline().ok_or_else(||self.fail(c,Fault::new(SwiftRunFailureKind::Invariant,"ui_work_outside_turn"),w))
+        }
+    }
     pub(crate) fn budget(&self) -> SwiftRunBudget {
         self.budget
     }
@@ -897,6 +966,7 @@ impl RuntimeControl {
             at_failure: self.usage(wasi),
             after_cleanup: None,
         };
+        if let Some(turns)=self.ui_turns.as_mut(){turns.terminal();}
         self.first_failure = Some(failure);
         failure
     }
@@ -993,7 +1063,12 @@ impl RuntimeControl {
         wasi: Option<WasiUsage>,
     ) -> Result<ReservationTicket, SwiftRunFailure> {
         self.check_with_wasi(cursor, wasi)?;
-        if self.reservations.live_tickets >= MAX_RESERVATION_TICKETS {
+        let ticket_limit = match self.resource_plan {
+            Some(plan) => plan.ticket_limit(),
+            None => return Err(self.fail(cursor, Fault::new(
+                SwiftRunFailureKind::InvalidBudget, "swift_run_missing_resource_plan"), wasi)),
+        };
+        if self.reservations.live_tickets >= ticket_limit {
             return Err(self.fail(
                 cursor,
                 Fault::new(
@@ -1003,7 +1078,7 @@ impl RuntimeControl {
                 .limit(
                     SwiftRunResource::TicketInventory,
                     self.reservations.live_tickets as u64 + 1,
-                    MAX_RESERVATION_TICKETS as u64,
+                    ticket_limit as u64,
                 ),
                 wasi,
             ));
@@ -1316,7 +1391,7 @@ impl RuntimeControl {
 
     // Only after actual storage drop. A mismatch consumes the unusable token but
     // conservatively retains the complete charge; it cannot create new room.
-    fn refund(&mut self, ticket: ReservationTicket) -> Result<(), SwiftRunFailure> {
+    pub(super) fn refund(&mut self, ticket: ReservationTicket) -> Result<(), SwiftRunFailure> {
         self.refund_with_wasi(ticket, None)
     }
 
@@ -1414,12 +1489,14 @@ impl RuntimeControl {
                 SwiftRunResource::ExecutionWork,
             ),
         };
-        let Some(next) = used.checked_add(credits).filter(|next| *next <= limit) else {
+        let baseline=self.ui_baseline(cursor,wasi)?;
+        let base=match component {Work::Cache=>baseline.cache,Work::Execution=>baseline.execution};
+        let Some(next) = super::turn_budget::checked_charge(used,base,credits,limit) else {
             return Err(self.fail(
                 cursor,
                 Fault::new(SwiftRunFailureKind::WorkExhausted, "swift_run_work").limit(
                     resource,
-                    used.saturating_add(credits),
+                    used.saturating_sub(base).saturating_add(credits),
                     limit,
                 ),
                 wasi,
@@ -1469,13 +1546,14 @@ impl RuntimeControl {
         wasi: Option<WasiUsage>,
     ) -> Result<(), SwiftRunFailure> {
         self.check_with_wasi(cursor, wasi)?;
-        let next = self.instruction_fuel.checked_add(credits);
-        let Some(next) = next.filter(|next| *next <= self.budget.instruction_fuel) else {
+        let baseline=self.ui_baseline(cursor,wasi)?.fuel;
+        let next = super::turn_budget::checked_charge(self.instruction_fuel,baseline,credits,self.budget.instruction_fuel);
+        let Some(next) = next else {
             return Err(self.fail(
                 cursor,
                 Fault::new(SwiftRunFailureKind::FuelExhausted, "swift_run_fuel").limit(
                     SwiftRunResource::InstructionFuel,
-                    next.unwrap_or(u64::MAX),
+                    self.instruction_fuel.checked_add(credits).and_then(|n|n.checked_sub(baseline)).unwrap_or(u64::MAX),
                     self.budget.instruction_fuel,
                 ),
                 wasi,
@@ -1494,13 +1572,14 @@ impl RuntimeControl {
         wasi: Option<WasiUsage>,
     ) -> Result<(), SwiftRunFailure> {
         self.check_with_wasi(cursor, wasi)?;
-        let next = self.host_calls.checked_add(1);
-        let Some(next) = next.filter(|next| *next <= self.budget.host_calls) else {
+        let baseline=self.ui_baseline(cursor,wasi)?.hosts;
+        let next = super::turn_budget::checked_charge(self.host_calls,baseline,1,self.budget.host_calls);
+        let Some(next) = next else {
             return Err(self.fail(
                 cursor,
                 Fault::new(SwiftRunFailureKind::HostCallLimit, "swift_run_host_calls").limit(
                     SwiftRunResource::HostCalls,
-                    next.unwrap_or(u64::MAX),
+                    self.host_calls.checked_add(1).and_then(|n|n.checked_sub(baseline)).unwrap_or(u64::MAX),
                     self.budget.host_calls,
                 ),
                 wasi,

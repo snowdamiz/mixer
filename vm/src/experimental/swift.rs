@@ -122,8 +122,8 @@ impl ValidatedSwiftCommand {
     pub fn policy_identity(&self) -> &'static str { self.proof.policy_identity() }
     pub fn entry_function(&self) -> u32 {
         match self.proof.policy {
-            policy::SwiftSelection::Command { entry } => entry,
-            policy::SwiftSelection::Reactor => unreachable!("sealed command ABI"),
+            policy::SwiftDecodePolicy::Command { entry } => entry,
+            _ => unreachable!("sealed command ABI"),
         }
     }
     pub(crate) fn into_parts(self) -> (ValidatedSwiftReactor, u32) {
@@ -179,7 +179,7 @@ pub fn validate_swift_command(
 pub struct ValidatedSwiftReactor {
     source: Box<[u8]>,
     metadata: SwiftMetadata,
-    policy: policy::SwiftSelection,
+    policy: policy::SwiftDecodePolicy,
     imports: [WasiFunction; 34],
     usage: SwiftValidationUsage,
     observations: SwiftReactorObservations,
@@ -191,8 +191,9 @@ impl ValidatedSwiftReactor {
     }
     pub fn policy_identity(&self) -> &'static str {
         match self.policy {
-            policy::SwiftSelection::Reactor => "swift-reactor-experiment-v1",
-            policy::SwiftSelection::Command { .. } => "swift-command-diagnostic-v1",
+            policy::SwiftDecodePolicy::Reactor => "swift-reactor-experiment-v1",
+            policy::SwiftDecodePolicy::Command { .. } => "swift-command-diagnostic-v1",
+            policy::SwiftDecodePolicy::UI { .. } => "mixer.swift-wasi-ui-v1",
         }
     }
     pub fn usage(&self) -> SwiftValidationUsage {
@@ -334,7 +335,7 @@ impl ValidatedSwiftReactor {
         &self.imports
     }
 
-    pub(crate) fn decode_policy(&self) -> &policy::SwiftSelection {
+    pub(crate) fn decode_policy(&self) -> &policy::SwiftDecodePolicy {
         &self.policy
     }
 }
@@ -408,12 +409,12 @@ pub fn validate_swift_reactor(
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
 
-fn validate<const COMMAND: bool>(
+fn validate<const COMMAND: bool, const UI: bool>(
     input: &[u8],
     budget: SwiftValidationBudget,
     cancellation: &Cancellation,
     started: Instant,
-    policy: policy::Policy<'static, COMMAND>,
+    policy: policy::Policy<'static, COMMAND, UI>,
 ) -> Result<ValidatedSwiftReactor, Failure> {
     let max = SwiftValidationBudget::default();
     let deadline = started.checked_add(Duration::from_millis(budget.deadline_ms));
@@ -453,7 +454,7 @@ fn validate<const COMMAND: bool>(
         + std::mem::size_of::<validate::BodyState>()
         + std::mem::size_of::<Buffer<u32>>()
         + 2 * std::mem::size_of::<SwiftValidationFailure>()
-        + std::mem::size_of::<policy::Policy<'_, COMMAND>>()
+        + std::mem::size_of::<policy::Policy<'_, COMMAND, UI>>()
         + 256;
     meter.reserve(Resource::Scratch, scratch_fixed, cursor)?;
     if input.len() > budget.source_bytes {
@@ -497,7 +498,10 @@ fn validate<const COMMAND: bool>(
     meter.check(cursor)?;
     let source = source.into_boxed_slice(); // exact capacity: no shrink allocation
     let mut metadata: SwiftMetadata = metadata::read(&source, &policy, &mut meter)?;
-    let (imports, selection) = if COMMAND {
+    let (imports, selection) = if UI {
+        let (imports, entries) = ui_abi(&source, &metadata, &mut meter)?;
+        (imports, policy::SwiftSelection::UI { entries })
+    } else if COMMAND {
         let (imports, entry) = command_abi(&source, &metadata, &mut meter)?;
         (imports, policy::SwiftSelection::Command { entry })
     } else {
@@ -534,7 +538,7 @@ fn validate<const COMMAND: bool>(
     Ok(ValidatedSwiftReactor {
         source,
         metadata,
-        policy: selection,
+        policy: selection.decode_policy(),
         imports,
         usage,
         observations,
@@ -807,3 +811,68 @@ struct ConstructionPositiveDescriptor {
 }
 pub(crate) const CONSTRUCTION_POSITIVE_DESCRIPTOR_BYTES: usize =
     std::mem::size_of::<ConstructionPositiveDescriptor>();
+
+/// Separate sealed proof: complete Swift validation plus the exact defined UI ABI.
+pub struct ValidatedSwiftUI { proof: ValidatedSwiftReactor }
+impl ValidatedSwiftUI {
+    pub fn observations(&self) -> SwiftReactorObservations { self.proof.observations() }
+    pub fn usage(&self) -> SwiftValidationUsage { self.proof.usage() }
+    pub(crate) fn into_parts(self) -> (ValidatedSwiftReactor, [u32; 4]) {
+        // Complete UI ABI validation sealed these five exact export descriptors.
+        // Read their indexes here instead of enlarging every stock proof with a
+        // second copy of UI-only metadata. No allocation or validation authority
+        // is created by this bounded traversal of the retained metadata.
+        let mut entries = [0; 4];
+        for export in self.proof.metadata.exports.as_slice() {
+            let slot = match export.name.slice(&self.proof.source) {
+                b"memory" => continue,
+                b"_initialize" => 0,
+                b"mixer_guest_ui_start_v3" => 1,
+                b"mixer_guest_ui_event_v3" => 2,
+                b"mixer_guest_ui_ready_v3" => 3,
+                _ => unreachable!("sealed UI export"),
+            };
+            entries[slot] = export.index;
+        }
+        (self.proof, entries)
+    }
+}
+pub fn validate_swift_ui(input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation)
+    -> Result<ValidatedSwiftUI, SwiftValidationFailure> {
+    let started = Instant::now();
+    validate(input, budget, cancellation, started, policy::Policy::ui())
+        .map(|proof| ValidatedSwiftUI { proof })
+        .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
+}
+fn ui_abi(source: &[u8], m: &SwiftMetadata, meter: &mut Meter<'_, account::SwiftControl>)
+    -> Result<([WasiFunction; 34], [u32; 4]), Failure> {
+    let imports = exact_imports(source, m, meter)?;
+    let cursor = Cursor::default();
+    if m.memory.is_none() || m.table.is_none() || m.exports.len() != 5 {
+        return Err(meter.error(FailureKind::Validation, "swift_ui_memory_table_exports", cursor));
+    }
+    let mut entries = [None; 4]; let mut memory = false;
+    for export in m.exports.as_slice() {
+        let cursor = Cursor { function: None, offset: export.name.offset as usize };
+        meter.work(export.name.bytes as u64 + 1, cursor)?;
+        let slot = match export.name.slice(source) {
+            b"memory" if export.kind == 2 && export.index == 0 => { memory = true; continue; },
+            b"_initialize" => 0,
+            b"mixer_guest_ui_start_v3" => 1,
+            b"mixer_guest_ui_event_v3" => 2,
+            b"mixer_guest_ui_ready_v3" => 3,
+            _ => return Err(meter.error(FailureKind::Validation, "swift_ui_unknown_export", cursor)),
+        };
+        let params: &[Type] = if slot == 2 { &[Type::I32] } else { &[] };
+        let result = if slot == 1 || slot == 2 { Some(Type::I32) } else { None };
+        if export.kind != 0 || (export.index as usize) < m.imports.len() || entries[slot].is_some()
+            || !m.signature(export.index).is_some_and(|s| m.params(s) == params && s.result == result) {
+            return Err(meter.error(FailureKind::Validation, "swift_ui_export_signature", cursor));
+        }
+        entries[slot] = Some(export.index);
+    }
+    if !memory || entries.iter().any(Option::is_none) {
+        return Err(meter.error(FailureKind::Validation, "swift_ui_missing_export", cursor));
+    }
+    Ok((imports, entries.map(Option::unwrap)))
+}

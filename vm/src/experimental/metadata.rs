@@ -188,9 +188,9 @@ fn utf8(
     }
     Ok(())
 }
-fn name<const COMMAND: bool>(
+fn name<const COMMAND: bool, const UI: bool>(
     r: &mut Reader<'_>,
-    policy: &policy::Policy<'_, COMMAND>,
+    policy: &policy::Policy<'_, COMMAND, UI>,
     meter: &mut Meter<'_, impl MeterControl>,
 ) -> Result<Span, Failure> {
     let n = r.count(policy.name_bytes(), meter)?;
@@ -255,9 +255,9 @@ fn limits(
     Ok((min, max, (flags == 1).then_some(max)))
 }
 
-pub(super) fn read<D: Declaration, const COMMAND: bool>(
+pub(super) fn read<D: Declaration, const COMMAND: bool, const UI: bool>(
     source: &[u8],
-    policy: &policy::Policy<'_, COMMAND>,
+    policy: &policy::Policy<'_, COMMAND, UI>,
     meter: &mut Meter<'_, impl MeterControl>,
 ) -> Result<Metadata<D>, Failure> {
     let mut r = Reader::new(source, 0);

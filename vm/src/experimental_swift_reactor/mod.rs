@@ -30,3 +30,10 @@ mod diagnostic_profile;
 
 // Pure unverified typed-result data; no owner authority or public export.
 mod diagnostic_result_v1;
+
+pub use crate::experimental::swift::{validate_swift_ui, ValidatedSwiftUI};
+mod guest_ui;
+mod turn_budget;
+pub use guest_ui::{PersistentSwiftUIOwner, SwiftUIOpenFailure, SwiftUICloseOutcome};
+
+mod ui_ffi;

@@ -144,9 +144,9 @@ impl BodyState {
         self.controls.dispose(meter);
     }
 }
-pub(super) fn all<const COMMAND: bool>(
+pub(super) fn all<const COMMAND: bool, const UI: bool>(
     source: &[u8],
-    limits: &policy::Policy<'_, COMMAND>,
+    limits: &policy::Policy<'_, COMMAND, UI>,
     m: &mut Metadata<impl metadata::Declaration>,
     meter: &mut Meter<'_, impl MeterControl>,
 ) -> Result<(), Failure> {
@@ -164,6 +164,13 @@ pub(super) fn all<const COMMAND: bool>(
         let mut r = Reader::new(f.body.slice(source), f.body.offset as usize);
         r.function = Some(function);
         let mut state = BodyState::new(function, r.cursor().offset, limits.operand_stack());
+        // Parameters are locals even when the body declares zero local groups.
+        // A larger UI type signature must not bypass the per-body local ceiling.
+        if signature.count as usize > limits.parameters_plus_locals() {
+            return Err(meter
+                .error(FailureKind::ResourceExhausted, "profile_parameters_plus_locals_limit", r.cursor())
+                .resource(Resource::Profile, signature.count as u64, limits.parameters_plus_locals() as u64));
+        }
         for ty in m.params(signature) {
             state.locals.push(*ty, meter, r.cursor())?;
         }

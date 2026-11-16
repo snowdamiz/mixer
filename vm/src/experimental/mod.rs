@@ -288,6 +288,10 @@ impl Failure {
 mod frozen_layout_tests {
     use super::*;
     #[test]
+    fn r3554_pure_default_profile_reservation_layout_contract() {
+        frozen_reservation_layouts_remain_exact_with_every_feature();
+    }
+    #[test]
     fn frozen_reservation_layouts_remain_exact_with_every_feature() {
         assert_eq!(std::mem::size_of::<Meter<'_>>(), 88);
         assert_eq!(std::mem::size_of::<Metadata>(), 352);

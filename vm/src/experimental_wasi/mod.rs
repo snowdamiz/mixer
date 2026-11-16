@@ -165,6 +165,8 @@ pub struct WasiContext {
     cancellation: Cancellation,
     deadline: Instant,
     terminal: Option<WasiOutcome>,
+    ui_turn_baseline: Option<(u64,u64)>,
+    ui_turn_epoch:u64,
     usage: WasiUsage,
     scratch: Vec<u8>,
     rollback: Vec<u8>,
@@ -223,6 +225,8 @@ impl WasiContext {
             cancellation,
             deadline,
             terminal: None,
+            ui_turn_baseline: None,
+                ui_turn_epoch:0,
             usage: WasiUsage {
                 reservations,
                 ..WasiUsage::default()
@@ -272,7 +276,7 @@ impl WasiContext {
             .work
             .checked_add(amount)
             .ok_or(WasiFailure::Invariant)?;
-        if next > self.budget.work {
+        if next.checked_sub(self.ui_turn_baseline.map_or(0,|b|b.1)).is_none_or(|n|n>self.budget.work) {
             return Err(WasiFailure::Budget(Resource::Work).into());
         }
         self.usage.work = next;
@@ -408,10 +412,10 @@ impl WasiContext {
         {
             return Err(WasiFailure::InvalidArguments.into());
         }
-        if self.usage.calls == self.budget.calls {
+        if self.usage.calls.checked_sub(self.ui_turn_baseline.map_or(0,|b|b.0)).is_none_or(|n|n>=self.budget.calls) {
             return Err(WasiFailure::Budget(Resource::Calls).into());
         }
-        self.usage.calls += 1;
+        self.usage.calls = self.usage.calls.checked_add(1).ok_or(WasiFailure::Invariant)?;
         self.calls_by_function[WasiFunction::ALL.iter().position(|f| *f == function).expect("closed WASI vocabulary")] += 1;
         self.work(args.len() as u64 + 1)?;
         self.check()?;
