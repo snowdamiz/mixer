@@ -1,0 +1,322 @@
+{
+  "id": "R3374",
+  "status": "REQUEST_CHANGES",
+  "reviewCompleted": true,
+  "independentSourceAcceptance": false,
+  "dependencyReady": false,
+  "ownedNamespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-storage-review-r3374",
+  "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-storage-review-r3374/REPORT.md",
+  "reportBinding": {
+    "bytes": 9493,
+    "sha256": "929342c285f8401c22ceb123050b99a57c82c823633df9ec672b7808d8e94f75"
+  },
+  "scope": "Frozen FINAL R3312 plus inherited R3294/R3274 resource/storage; independent source/evidence and zero-Runtime pure helper controls",
+  "findings": [
+    {
+      "id": "R3374-F1",
+      "priority": "P1",
+      "title": "Profile 1 rejects admitted modules with fewer than256 defined functions",
+      "sourceLocations": {
+        "allocation": "vm/src/experimental_swift_reactor/cache.rs:1889-1903",
+        "indexAllocation": "vm/src/experimental_swift_reactor/cache.rs:1939-1944",
+        "dispatch": "vm/src/experimental_swift_reactor/cache.rs:2263-2264",
+        "rejection": "vm/src/experimental_swift_reactor/wide_storage.rs:10-11",
+        "narrowMismatch": "vm/src/experimental_swift_reactor/cache.rs:138-148"
+      },
+      "directlyProvenResidentCounts": [
+        65,
+        128,
+        255
+      ],
+      "actual": "Err(Corrupt(wide_layout))",
+      "expected": "Ok(None) for a valid empty admitted cache",
+      "sourceDerivedAdditionalRange": "4..64 profile1 slots take narrow helper with wide-sized index",
+      "runtimeReproduction": false,
+      "productionHelperReproduction": true,
+      "reproSource": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-storage-review-r3374/small-module-counterproof.rs",
+      "reproCommandReceipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-storage-review-r3374/commands/r3374-run-probe/commands.json",
+      "fixDirection": "Coordinate actual resident count and index-shape selection; retain all limits"
+    }
+  ],
+  "bindings": {
+    "sourceManifest": {
+      "bytes": 23031,
+      "sha256": "748e9f96fd668ff1bf127057f650345062e14083ad0610160bccfc3a1f645d07"
+    },
+    "minimalDelta": {
+      "bytes": 19935,
+      "sha256": "e0b822d444dee76259bdce3b8f8bb6dbd715e77f5bacbd00ef2f826e50e37017"
+    },
+    "changedSources": {
+      "examples/cache_work_controls.rs": {
+        "before": null,
+        "after": {
+          "bytes": 4222,
+          "sha256": "76bae67682a3ddcfe116fc25d34736b279766fb33f434391f555f0bf63b80bc9"
+        }
+      },
+      "src/experimental_swift_reactor/cache.rs": {
+        "before": {
+          "bytes": 183056,
+          "sha256": "fbf896cc1bc94a1d7dc94b218c0ed3704dd772eef3a89b18f3ba6fae3cfd26f5"
+        },
+        "after": {
+          "bytes": 183522,
+          "sha256": "ee53d0ea14cb94bc654e350c54ff144604c44ca12c3dd4bfacca75a6cbba520f"
+        }
+      },
+      "src/experimental_swift_reactor/wide_storage.rs": {
+        "before": null,
+        "after": {
+          "bytes": 4138,
+          "sha256": "84ac455c936f69b65c3831fde4a744c9ab5a60b3617acda45771d8a0a131d8df"
+        }
+      },
+      "src/experimental_swift_reactor/guest_ui.rs": {
+        "before": {
+          "bytes": 9687,
+          "sha256": "0ce75f2dc0fb4987bb004d2f5ec759d4a7fac56f2a54bf605d0edaf57b059672"
+        },
+        "after": {
+          "bytes": 9732,
+          "sha256": "b9e13bfbe70be98b7b9dd0dcd5cec5ffff4cb37d400c188ecfab6417c6f02cf5"
+        }
+      },
+      "src/experimental/cache/storage.rs": {
+        "before": {
+          "bytes": 3593,
+          "sha256": "4f2357f7ae6f4cd5b06e04b41914eddbfb557478f48b7a74ba8f626eda440aaf"
+        },
+        "after": {
+          "bytes": 3987,
+          "sha256": "a74006e99b0e1e2c1ab1760738a0dc6d20a02ae737c4c5e0c4810a89fdd48d1c"
+        }
+      },
+      "src/experimental/cache/borrowed.rs": {
+        "before": {
+          "bytes": 28464,
+          "sha256": "251122d466a5d86d068d226c64ce37cf13c00d2419b40a73ff826b7f276d679f"
+        },
+        "after": {
+          "bytes": 28255,
+          "sha256": "845ff9f317364874ae77912ea4c5994ae4e07939ca62c5e1619ba0d77fa1221c"
+        }
+      }
+    },
+    "artifacts": {
+      "ui-export-object.o": {
+        "bytes": 78096,
+        "sha256": "3255b68c2e266160196b312bc243b0742e32e0b6681c5ed4085215045f50b11c"
+      },
+      "libmixer_vm.a": {
+        "bytes": 31543536,
+        "sha256": "fff7454e75d78a07ab3e30fb61001a64b1281a6d381a15cf8730d5ed96f4d785"
+      },
+      "mixer_swift_ui.h": {
+        "bytes": 576,
+        "sha256": "63b0c87c2bec1672d5bce56fb1bf2e8c453d7111ddcf43911b150836e853fdfb"
+      },
+      "libmixer_vm.dylib": {
+        "bytes": 2645216,
+        "sha256": "6b06c12f535770d49ff0efb9a62c92a25bd007eacf4bc266bf43bd42b33855fb"
+      },
+      "FieldLogGuestUIAdapter.wasm": {
+        "bytes": 66151163,
+        "sha256": "43daa651a6a61f1f371c9b64bed1b6585624430ba57e9077ab5983dbee7432c7"
+      },
+      "libmixer_vm.rlib": {
+        "bytes": 37899504,
+        "sha256": "272fa373fb97624787b72dbaaa6da314aca573f944190d07b2f0c902c1949650"
+      },
+      "libmixer_vm.d": {
+        "bytes": 6359,
+        "sha256": "d297fa8b2054c5bf32a66f381c21d77ac2b3e75cea4bd15e3fcf31a56cb3de08"
+      }
+    },
+    "reviewPureSource": {
+      "bytes": 3644,
+      "sha256": "5944af861bd56360aaf8914a6b167593bc7d91c39c2c17073bbeb15f94c9060b"
+    },
+    "reviewPureExecutable": {
+      "bytes": 562272,
+      "sha256": "438daaffc4c7ade0ef7b27a41e7297a60820e4d0bd2d7ad0b600d2d0aa34a641"
+    }
+  },
+  "coverage": {
+    "tickets": "5+4+5+7 persistent nonresident; one exclusive transient; N+22 => UI256/278, default64/86; inline tickets and size_of-charged control",
+    "heap": "existing bytevector1568; header precharge; slots/pins/patches checked exact capacity; no new heap owner",
+    "stack": "reviewed named construction/operation/helper/release/unwind modeled storage;3*(800+192)=2976; no additional verified inventory defect; no compiler-stack/RSS certification",
+    "default": "64/86 and old narrow algorithms retained; common header overreservation +1376 and modeled phase +2976 disclosed",
+    "wideIndex": "256-node collisions, slot256 u16, invalid link257, bounded cycle, removal/publication adjacency reviewed",
+    "pins": "all256, all-pin exhaustion, bitmap count/nonce guards, release and precharged selection reviewed",
+    "eviction": "strict oldest-time, pinned/selected exclusion, full traversal work precharge; per-victim coherence reviewed; no claim of whole-operation rollback",
+    "CABI": "unchanged profileID1 uint32 declaration; unknown0/2/UINT32_MAX before dereference; six exports and static object matched"
+  },
+  "independentPure": {
+    "runtimeObjects": 0,
+    "collisionSlots": 256,
+    "slot256Encoding": 256,
+    "mutationRefusalsPreserveBytes": 3082,
+    "cycleWorkUpperBoundObserved": 1538,
+    "pinSlots": 256,
+    "victimExhaustionCaps": 256,
+    "oldestTieStrict": true,
+    "mixedAndGreaterThan256Rejected": true,
+    "rawOutput": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-storage-review-r3374/commands/r3374-independent-run/r3374-independent-run.stdout",
+    "consumingLedger": "NOT_APPLICABLE_NO_RUNTIME_CREATED"
+  },
+  "provenance": {
+    "preimagesAndBaselineVerified": true,
+    "changed": [
+      "examples/cache_work_controls.rs",
+      "src/experimental_swift_reactor/cache.rs",
+      "src/experimental_swift_reactor/wide_storage.rs",
+      "src/experimental_swift_reactor/guest_ui.rs",
+      "src/experimental/cache/storage.rs",
+      "src/experimental/cache/borrowed.rs"
+    ],
+    "depfileSources": 46,
+    "allDepsUnderPrivateVM": true,
+    "changedProductionInputsInDepfile": true,
+    "archiveMemberIndependentlyMatched": true,
+    "closedProducerCommands": 52,
+    "nonzeroProducerCommands": [
+      {
+        "label": "cache-source",
+        "exitCode": 1
+      },
+      {
+        "label": "cache-symbols",
+        "exitCode": 1
+      },
+      {
+        "label": "admit-genuine",
+        "exitCode": 1
+      }
+    ],
+    "attestedAt": 1794786569.209366,
+    "payloadLogBirth": 1794786589.581761,
+    "genuineAdmissionBirth": 1794786576.8249018,
+    "allSixDeltaReconstructionsMatchFinal": true,
+    "chronologyExplanation": "Attestation precedes admission-start written immediately before open_profile; stdout files are persisted at command completion."
+  },
+  "genuineEvidence": {
+    "rerunByReviewer": false,
+    "validatedBodies": 86451,
+    "initializeReturned": [
+      459,
+      459
+    ],
+    "startupReturned": [
+      219780,
+      219780
+    ],
+    "initialNodes": 10,
+    "cacheWork": [
+      22037065,
+      64000000
+    ],
+    "tickets": 278,
+    "cacheEntries": 256,
+    "framePinPeak": 115,
+    "eventsExecuted": 0,
+    "replayFailure": "KeyError revision before events",
+    "actualConsume": {
+      "status": 1,
+      "currents": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "tickets": 0,
+      "invariant": 0,
+      "clean": true
+    },
+    "OSCommand": {
+      "pid": 29614,
+      "pgid": 29614,
+      "directReaped": true,
+      "bothEOF": true,
+      "closedFDs": true,
+      "positiveESRCH": true
+    },
+    "notABenchmark": true
+  },
+  "custody": {
+    "status": "CLOSED_FOR_ALL_COMPLETED_COMMANDS",
+    "closedObservedCommandCount": 71,
+    "nonzeroReviewCommands": [
+      {
+        "label": "r3374-source-close-audit",
+        "exitCode": 1
+      },
+      {
+        "label": "r3374-tickets",
+        "exitCode": 2
+      },
+      {
+        "label": "r3374-provenance-final",
+        "exitCode": 1
+      },
+      {
+        "label": "r3374-attestation-audit",
+        "exitCode": 1
+      },
+      {
+        "label": "r3374-inventory-locations",
+        "exitCode": 1
+      },
+      {
+        "label": "r3374-ffi2",
+        "exitCode": 2
+      },
+      {
+        "label": "r3374-ui-validation-location",
+        "exitCode": 1
+      },
+      {
+        "label": "r3374-ffi-locations",
+        "exitCode": 1
+      }
+    ],
+    "finalReceiptCommandClosure": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-storage-review-r3374/commands/r3374-final-receipt/commands.json",
+    "finalVerificationCommandClosure": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-storage-review-r3374/commands/r3374-final-verify/commands.json",
+    "ledger": "NO_RUNTIME_CREATED",
+    "held": false,
+    "holdsReleased": false,
+    "finalReceiptCommandPositivelyClosed": true,
+    "finalCommandReceiptWrittenByWrapperAfterReturn": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/swift-ui-storage-review-r3374/commands/r3374-final-verify/commands.json"
+  },
+  "campaign": {
+    "elapsedSeconds": 669.6326100826263,
+    "maxWallSeconds": 720,
+    "productBuilds": 0,
+    "pureHelperCompiles": 2,
+    "genuinePayloads": 0,
+    "childrenDelegated": 0,
+    "tool": "rustc1.99.0 b940084d7 aarch64-apple-darwin LLVM23.1.1"
+  },
+  "constraints": {
+    "canonicalIndexGitCIEdited": false,
+    "producerEdited": false,
+    "heldResourcesTouched": false,
+    "R3252Touched": false,
+    "R3376Touched": false,
+    "nativeFrontendDeviceProviderServiceActions": false,
+    "cleanupPerformed": false,
+    "R3298ClaimedComplete": false,
+    "nativeAcceptance": false,
+    "dependencyReadyClaim": false
+  }
+}
