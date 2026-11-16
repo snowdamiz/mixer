@@ -1,0 +1,117 @@
+{
+  "campaign": "billing-worker-ddl-privilege-fix-r4330",
+  "status": "PRIVATE_SOURCE_COMPILE_FROZEN_POSTGRES_PENDING",
+  "report": "verification/local/billing-worker-ddl-privilege-fix-r4330/REPORT.md",
+  "findings": {
+    "F1": "original14 exact;21 individual statements; actual migration pending",
+    "F2": "INSERT/SELECT-only effective observation privileges enforced by source; actual PG controls pending",
+    "F3": "effective table/column/PUBLIC/inherited/ownership matrix enforced by source; actual PG controls pending"
+  },
+  "source": {
+    "minimalChangedFiles": [
+      "hosted/lib/mixer_hosted/billing/processor_admission.ex",
+      "hosted/priv/repo/migrations/20261116000000_add_billing_reconciliation.exs"
+    ],
+    "fullFiles": 11,
+    "unchangedOriginalAfterimages": 9,
+    "newCanonicalMemberships": 8,
+    "inverseDeletesNewMembersExactly": true,
+    "patchesApplyAndInvertExactly": true,
+    "originalPacketStillExact": true,
+    "copiedPinnedInputsReattested": 1108,
+    "dependencySourceFilesReattested": 914,
+    "compiledSources": 166,
+    "boundBEAMs": 267,
+    "postgresLaunches": 0,
+    "workerRuntimeTests": 0,
+    "financialActivation": false
+  },
+  "validation": {
+    "mixCompileCommands": 1,
+    "strictCompile": "PASS166",
+    "jobs": 4,
+    "SMP": 4,
+    "pureQualificationCommands": 2,
+    "inertGuardChecks": 6,
+    "boundBEAMs": 267,
+    "officialAST": "PASS",
+    "actualPostgreSQL": 0,
+    "actualWorkerCases": 0
+  },
+  "migrationAfterCompile": {
+    "mixCompilesMigration": false,
+    "finalASTAndSQLPins": true,
+    "original14SQLUnchanged": true,
+    "additionalStatements": 7,
+    "executionPending": true
+  },
+  "outputs": {
+    "minimalDelta": "delivery/minimal-delta",
+    "full11": "delivery/full11",
+    "applicationMap": "delivery/application-map.json",
+    "compiledBinding": "delivery/compiled-source-binding.json",
+    "postgresControls": "focused-pg-controls.exs",
+    "matrix": "privilege-matrix.json"
+  },
+  "primaryExecSessions": {
+    "compile": 53397,
+    "beamBinding": 90405,
+    "bothCollectedExit0": true,
+    "fullResults": "primary-exec-results.json"
+  },
+  "custody": {
+    "allPriorCommandsPositiveClosed": 61,
+    "newHolds": 0,
+    "activeFinalizerExcluded": true,
+    "finalizerCollection": "PASS: independently collected after return; positive exit/EOF/FD/ESRCH",
+    "readbackOwnActiveWrapperExcluded": true,
+    "terminalReadback": "finalizer-terminal-readback.json"
+  },
+  "elapsedSeconds": 647.5137233734131,
+  "deadlineSeconds": 1200,
+  "withinDeadlineAtFinalize": true,
+  "toolVersions": {
+    "Elixir": "1.20.4",
+    "OTP": "29",
+    "sourceRevision": "per-file byte pins; no Git process"
+  },
+  "scope": {
+    "canonicalIndexAuthorityCIOrGitDeliveryWrites": false,
+    "originalDeliveryChanged": false,
+    "heldResourcesAccessed": false,
+    "children": 0,
+    "financialActivation": false,
+    "W14Complete": false,
+    "runtimeAccepted": false,
+    "GA": false
+  },
+  "limitations": [
+    "actual PostgreSQL migration and effective privilege behavior pending",
+    "independent slice acceptance pending",
+    "normal installed RuntimeConfig activation and broader least-privilege/RLS deployment pending",
+    "fixture-owner truncation remains explicit; processor has no TRUNCATE privilege"
+  ],
+  "pins": {
+    "REPORT.md": {
+      "bytes": 6455,
+      "sha256": "0c8528dd79f1fdf35d2e211934aad196c3ddc65326c7d2b9fea623e7543c2898"
+    },
+    "delivery/application-map.json": {
+      "bytes": 2623,
+      "sha256": "f2f7c8e76d8a514024ae28a74c18748b215dfc0a86cd63fbb34cf66d8aedbbd0"
+    },
+    "delivery/compiled-source-binding.json": {
+      "bytes": 31351,
+      "sha256": "988161740a9cb3ca0ed4ee8cdc7ab81652541b0d872b29c025162b8f1ca1f230"
+    },
+    "focused-pg-controls.exs": {
+      "bytes": 6464,
+      "sha256": "608fb3bb30858f9094f7f41d78eef52b9a18ff3e3e85b646480e19a5b06e05be"
+    },
+    "privilege-matrix.json": {
+      "bytes": 1584,
+      "sha256": "c0d41382a44617646fe395638fe09e68a6f9bfd1df856b2e728bdc7e4902960a"
+    }
+  },
+  "elapsedSecondsAtFinalizerReadback": 706.037237405777
+}

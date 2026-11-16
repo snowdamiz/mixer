@@ -1,0 +1,279 @@
+{
+  "schema": "R4386_BILLING_MINIMAL_INGRESS_RUNTIME_V1",
+  "status": "BLOCKED_WORKER_ROLE_RLS",
+  "namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-minimal-ingress-runtime-r4386",
+  "observedAt": "2026-11-16T22:41:55.983034+00:00",
+  "environment": {
+    "system": [
+      "Darwin",
+      "Andreys-MacBook-Pro.local",
+      "27.0.0",
+      "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "arm64"
+    ],
+    "python": "3.9.6 (default, Oct 19 2026, 19:18:13) \n[Clang 21.0.0 (clang-2100.4.1.1)]",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgres": "17.11"
+  },
+  "bounds": {
+    "deadlineSeconds": 1800,
+    "noPGControls": 2,
+    "integrationBatches": 1,
+    "PGlaunches": 1,
+    "PGfastStops": 1,
+    "signedHTTP": 11,
+    "workerAttempts": 1,
+    "providerReads": 0
+  },
+  "unlock": {
+    "name": "MINIMAL_INGRESS_BOOTSTRAP_WITH_EMPTY_REQUIRED_INVENTORY",
+    "status": "PASS",
+    "passingControl": 2,
+    "telemetryBefore": 0,
+    "exactShippingRegistrations": 8,
+    "uniqueSubscriberIDs": 1,
+    "telemetryAfterStop": 0,
+    "SinksInitValidStop": true,
+    "PhoenixAndWholeApplicationStarted": false,
+    "failedControl1Predicate": "single-row assertion; actual eight exact shipping event registrations",
+    "failedBaselinePreserved": true
+  },
+  "candidate": {
+    "status": "PASS",
+    "copiedAndOriginalFilesExact": 2276,
+    "compiledSourcePins": 166,
+    "boundBEAMPins": 267,
+    "shippingAfterimages": 11,
+    "dependencyPins": 914,
+    "loadedModulesPerBEAM": 12,
+    "canonicalPreimagesUnchanged": true,
+    "productCompileCommands": 0,
+    "inputTreeDigest": "8008ca92ff0350e4fd1d6ef977e91e2268b61e13a51c251b1161513f8dee89b4",
+    "sourceTreeDigest": "175fa0a9b3b0d8c560b73296ef3abdd576d2e6f0fbfb155cfc6af2fee236b681",
+    "BEAMTreeDigest": "3d3ce044716eb3eab01eaf37046b5e91be5f71eca63b94d5bc067413ba940a41"
+  },
+  "migrations": {
+    "officialFiles": 13,
+    "runs": 1,
+    "billingStatements": 21,
+    "exactR4330Grants": true,
+    "historicalR4350PrivilegeNegatives": "12 PASS historical; not rerun"
+  },
+  "executed": [
+    {
+      "name": "01 preserved eleven ingress cases and actual first-party Basic worker",
+      "outcome": "FAIL",
+      "all11HTTPAssertionsPassed": true,
+      "workerStarted": true,
+      "workerCompletedSuccessfully": false,
+      "failedAssertion": "%{success: 1, failure: 0} = normal Basic drain",
+      "actualDrain": {
+        "discard": 0,
+        "cancelled": 0,
+        "success": 0,
+        "failure": 1,
+        "snoozed": 0
+      }
+    }
+  ],
+  "unrun": [
+    "02 duplicate/replay does not read or add observation",
+    "03 reversed timestamps remain observations without grants",
+    "04 missing and revoked relationships block before I/O",
+    "05 provider failure has durable retry then actual retry succeeds",
+    "06 live contender snoozes and expired response cannot beat successor",
+    "07 pre-commit abort leaves no partial observation and expiry recovers",
+    "08 committed result survives lost acknowledgment and repeated delivery",
+    "09 credential revocation during I/O refuses T2",
+    "10 malformed extra-key and missing inbox jobs fail closed"
+  ],
+  "worker": {
+    "role": "mixer_billing_processor",
+    "repo": "shipping default MixerHosted.Repo",
+    "shippingAfterConnectReached": true,
+    "engine": "Oban.Engines.Basic",
+    "dynamicRepoHook": false,
+    "jobID": 2,
+    "inboxID": "89340652-523d-418c-b848-cfedcfb475ca",
+    "attempt": 1,
+    "state": "retryable",
+    "result": "{:error, :storage_unavailable}",
+    "finalActive": 0,
+    "maximumConcurrent": 1
+  },
+  "durableSnapshot": {
+    "kind": "database_snapshot",
+    "reconciliations": [],
+    "claims": [],
+    "observations": [],
+    "jobs": [
+      [
+        1,
+        "available",
+        "MixerHosted.Billing.ReconciliationWorker",
+        {
+          "inbox_id": "11c11909-1fc7-460a-acbb-1d29b334164a"
+        },
+        0
+      ],
+      [
+        2,
+        "retryable",
+        "MixerHosted.Billing.ReconciliationWorker",
+        {
+          "inbox_id": "89340652-523d-418c-b848-cfedcfb475ca"
+        },
+        1
+      ]
+    ],
+    "usage_entries": 0,
+    "financial_entitlement_tables": {}
+  },
+  "firstConcreteCause": {
+    "error": "permission denied for table mixer_authz_profiles",
+    "operation": "billing Bindings.resolve SELECT, including organization FOR SHARE",
+    "rawEvidence": "run/postgres.stderr",
+    "sourceContext": "hosted/priv/repo/migrations/20261025000006_add_customer_workspace_discovery.exs: directory_read policy and human directory guard",
+    "changesOrRetry": false
+  },
+  "financialEvidence": {
+    "usageEntries": 0,
+    "observations": 0,
+    "discoveredMatchingTables": {},
+    "scope": "failure snapshot only; no financial/entitlement qualification"
+  },
+  "cleanup": {
+    "status": "PASS",
+    "children": [
+      {
+        "label": "postgres",
+        "pid": 89345,
+        "pgid": 89345,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "ingress",
+        "pid": 89366,
+        "pgid": 89366,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 1,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "worker",
+        "pid": 89419,
+        "pgid": 89419,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      }
+    ],
+    "shortCommandRowsVerified": 85,
+    "shortCommandEOFReapFDGroupAbsent": true,
+    "longLivedEOF": "not applicable: regular file logs; stdin and parent log descriptors closed",
+    "portsReusable": [
+      41540,
+      41541,
+      41542
+    ],
+    "shortSocket": {
+      "path": "/private/tmp/mixer-pg-r4386-7e_luxny",
+      "inode": 804939271,
+      "device": 16777232,
+      "uid": 501,
+      "mode": "0700",
+      "socketPathBytes": 51
+    },
+    "shortSocketRemoved": true,
+    "fixture": {
+      "provider_reads": 0,
+      "tls_stopped": true,
+      "owned_handlers_stopped": true,
+      "key_dir_removed": true,
+      "ingress_stopped": true
+    },
+    "newUNKNOWN": false,
+    "historicalHoldsReleased": false,
+    "historicalResourcesAccessed": false
+  },
+  "pins": {
+    "REPORT.md": {
+      "bytes": 3886,
+      "sha256": "9dd70e744085cede3111d33f22103100c8d20a1d444ad6acb1689d5e87b3dd8e"
+    },
+    "protocol.json": {
+      "bytes": 10283,
+      "sha256": "48c8a5d1d390ac0d9a9cac38553567e1e4cb7b33261fc9dd4924685cd2128753"
+    },
+    "integration-admission.json": {
+      "bytes": 3449,
+      "sha256": "e1cff1350d229289d140c043264514a183cd3d48042b8812d5e33b6cb92a31bf"
+    },
+    "case-map.json": {
+      "bytes": 621,
+      "sha256": "c00885e40cb76ed0cd63cc03769b1cf4e63b7f2bc637fa6f947576d51e6766c7"
+    },
+    "tool-pins.json": {
+      "bytes": 2088,
+      "sha256": "0741c25a91fe9d5667d88b3f9dd762b139a6f0ef38722123a6e328716bb7a809"
+    },
+    "postflight.json": {
+      "bytes": 536,
+      "sha256": "d16a0cfc48ea627e78241e05ce2f3ae3fde02c06f6fe832a2fb2ad64fad9c5f0"
+    },
+    "loaded-module-pins.json": {
+      "bytes": 8816,
+      "sha256": "b85fda7cd7fe40df4003791ac44a1f2aa79a68df51330f4bc45d596bba3302bd"
+    },
+    "run/result.json": {
+      "bytes": 5528,
+      "sha256": "f89001ab2f435bd93c50f8c6316fa8a567c01fe1fdef9cfb9d201fabed260cc6"
+    },
+    "command-custody-before-finalizer.json": {
+      "bytes": 67870,
+      "sha256": "3c788c416ee8ae06c56d18961e01426c913e1566d488eb631670de5130c0d4b7"
+    }
+  },
+  "commandResults": "exec-*.json retain complete tool results; primary session28547 initial and terminal collection retained",
+  "finalizer": {
+    "ownActiveRowExcluded": "r4386-finalize",
+    "independentTerminalReadback": "PASS",
+    "terminalPIDPGID": 1023,
+    "terminalExitEOFClosedFDsESRCH": true,
+    "readbackOwnActiveRowExcluded": "r4386-independent-terminal-readback",
+    "readbackPin": {
+      "bytes": 775,
+      "sha256": "4facaddc67cbd062f6d9420429cc8a89bcd4dfe0cfe85232978135e344696ecb"
+    }
+  },
+  "noClaims": [
+    "worker acceptance",
+    "W14",
+    "deployment",
+    "provider/customer/financial activation",
+    "GA"
+  ],
+  "scope": {
+    "productSourcesChanged": false,
+    "productCompiles": 0,
+    "childrenDelegated": 0,
+    "GitDelivery": false,
+    "canonicalIndexAuthorityWorkflowPolicyEdits": false,
+    "nativeGUIBrowserMixerVM": false
+  }
+}

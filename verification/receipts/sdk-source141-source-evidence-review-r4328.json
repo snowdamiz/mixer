@@ -1,0 +1,206 @@
+{
+  "id": "R4328",
+  "schema": 1,
+  "status": "REQUEST_CHANGES",
+  "scope": "One independent changed-source and final-evidence review of the exact corrected R4302 source141 packet.",
+  "findings": [
+    {
+      "id": "R4328-P1-1",
+      "priority": "P1",
+      "title": "Restore the cache job adoption test and its job-local variables",
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-source141-root-qualification-r4324/packet/afterimages/.github/workflows/verify.yml",
+      "line": 852,
+      "job": "swift-cache-state-fixture",
+      "trigger": "The Shared fixture runner, materializer and adoption focused controls step reaches its first test command.",
+      "actual": "The command expands MIXER_SOURCE127_PREDECESSOR under set -u, but that variable is assigned only in the separate swift-host job. Bash exits before invoking a test. The replacement also names the envelope adoption suite instead of the cache adoption suite.",
+      "expected": "Run the cache adoption suite through \"$MIXER_ADOPTION_DIR/test_adoption.py\". Keep prepared source127 routing in the historical analyzer job.",
+      "proof": "commands/inert-cache-shell-expansion/inert-cache-shell-expansion.stderr",
+      "exitCode": 1,
+      "qualificationGap": "The final 13 controls verify selected workflow strings and sparse coverage. They do not validate this cache job command or its shell scope."
+    }
+  ],
+  "author": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-source141-admission-r4302",
+  "rootFixture": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-source141-root-qualification-r4324",
+  "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-source141-source-evidence-review-r4328/REPORT.md",
+  "sourceCount": 141,
+  "sourceSHA256": "23d01f700da6b7efe47d771d682bcda8ba28c8c43c487b7d6b8cb772d47d4487",
+  "SDK96": "4c3bef98addfc8a58a74e47873f896e738bbe15f781194ef69d51f96b5af869f",
+  "SDK26": "4534f96c51f0777112a07cfa8dec325def7279ac6a358ec0927edbfc0ebf11c2",
+  "source127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+  "frozenSHA256": "4d4b179512c56af126080ffcf6789c8184287b82bff6b494bd82eb5ad030ab80",
+  "applicationMap": {
+    "bytes": 21642,
+    "sha256": "8629e702268100810272aba394682cb6752cd1bd7131d295712f79ff85b03508"
+  },
+  "inverseApplicationMap": {
+    "bytes": 21642,
+    "sha256": "29c2aac62940b01e929ce057a479635b8e32770fd2f7beae47d9d07ac1030c2a"
+  },
+  "adopter": {
+    "bytes": 14116,
+    "sha256": "db704c38d3a40c4869e65bad1573367032e1cf8674aa594e0fdfa1dce33e3ff2"
+  },
+  "qualifier": {
+    "bytes": 15055,
+    "sha256": "b54adf7650979deb1bdf08b68cfdbdb03c7cbd64d4c3f66971a6f69b9a326190"
+  },
+  "namedInputsExact": 928,
+  "applicationPaths": 57,
+  "compiledAuthorityRoster": 25,
+  "authorityFilesIncludingSeal": 26,
+  "rootFinalQualification": {
+    "normal": {
+      "optimization": 0,
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": true,
+      "source_count": 141,
+      "source_sha256": "23d01f700da6b7efe47d771d682bcda8ba28c8c43c487b7d6b8cb772d47d4487",
+      "canonical_write_attempts": [],
+      "Git_processes": 0,
+      "compiler_commands": 0,
+      "native_runtime_commands": 0,
+      "frozen_packet_unchanged": true,
+      "canonical_preimages_unchanged": true
+    },
+    "optimized": {
+      "optimization": 1,
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": true,
+      "source_count": 141,
+      "source_sha256": "23d01f700da6b7efe47d771d682bcda8ba28c8c43c487b7d6b8cb772d47d4487",
+      "canonical_write_attempts": [],
+      "Git_processes": 0,
+      "compiler_commands": 0,
+      "native_runtime_commands": 0,
+      "frozen_packet_unchanged": true,
+      "canonical_preimages_unchanged": true
+    }
+  },
+  "finalResultsDistinguishedFromAuthorPreCorrection": true,
+  "directExtraRecomputedSealedMemberNegative": {
+    "extraMember": "extra.json",
+    "recomputedSeal": true,
+    "outcome": "Exact authority roster differs",
+    "memberReads": 0,
+    "inventoryReads": 0,
+    "guardLine": 126,
+    "inventoryLine": 128,
+    "memberReadLine": 129,
+    "directVerifyCallsAdmit": true
+  },
+  "R4306": {
+    "bytes": 8769,
+    "sha256": "11e996b7a383d0b2a402dec20df4436877b1e39a7e75514bb50a2053b3edbf6a",
+    "actualReceiptEqualsFrozenCopy": true,
+    "scope": "FeatureUIV3 SPI native PID-event development only"
+  },
+  "historicalWorkflow": {
+    "verification/native-report-source127-v1/predecessor-bytes/.github/workflows/verify.yml": {
+      "bytes": 62191,
+      "sha256": "ab46f1b39a640f1e46c7a9c676e2140476bc1b8b6f658a232324f1b7725b2b0c"
+    }
+  },
+  "currentWorkflowUnchanged": {
+    "bytes": 62939,
+    "sha256": "de84953a3ec5bfcfe77f59023ba6a2979beed713b9f1184dde828d831f87aed4"
+  },
+  "readbackEvidence": {
+    "static-checks.json": {
+      "bytes": 536511,
+      "sha256": "3d2618c6fcfc3c4780fc10b605905173d9ceb188ffdc164a8883fa371765e370"
+    },
+    "static-summary.json": {
+      "bytes": 3364,
+      "sha256": "b24b36bbda350f17ba4c4d1ce468d68eae37249c3e19aeaac630fbeb15a9d587"
+    },
+    "readback-manifest.json": {
+      "bytes": 753961,
+      "sha256": "9c84f4c822eb113209d378ae4153aaaed918b8ad5ac71504241cdeb5d662f9f2"
+    },
+    "source-evidence-proof.json": {
+      "bytes": 11384,
+      "sha256": "b880165f07d2530773052a25ee8eb9654380db695894276223332081f365a8fe"
+    },
+    "transport-readback.json": {
+      "bytes": 10673,
+      "sha256": "34f72ddff4db7d2606f04f4109490b95ef0716f40ef3bc188b098334c9edb14d"
+    }
+  },
+  "bounds": {
+    "maximumManagedCommands": 22,
+    "completedManagedCommandsExcludingActiveFinalizer": 18,
+    "activeFinalizerExcluded": true,
+    "qualificationReruns": 0,
+    "SDKCompilerCommands": 0,
+    "nativeRuntimeCommands": 0,
+    "VMCommands": 0,
+    "PostgreSQLCommands": 0,
+    "networkCommands": 0,
+    "GitProcesses": 0,
+    "nestedChildProcesses": 0,
+    "canonicalWrites": 0,
+    "indexWrites": 0,
+    "authorityWrites": 0,
+    "elapsedSecondsAtFinalizer": 527.2473080158234,
+    "completedManagedCommandsIncludingFinalizer": 19,
+    "totalManagedCommandsIncludingActiveTerminalReadback": 20,
+    "elapsedSecondsAtTerminalReadback": 559.6736931800842,
+    "terminalReadbackExcludedFromOwnCustodySnapshot": true
+  },
+  "terminalCustody": {
+    "completedCommandsAllPositive": true,
+    "metadataFinalizerClosure": {
+      "label": "finalize-review",
+      "pid": 89538,
+      "pgid": 89538,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    "newHold": false,
+    "independentTerminalReadback": "verified; wrapper collects this final readback command after payload return"
+  },
+  "preservation": {
+    "holdsReleased": false,
+    "heldPathsAccessed": false,
+    "canonicalProductionAndWorkflowBytesUnchanged": true,
+    "historicalAuthoritiesAndPair21RawBytesExact": true,
+    "R4320Untouched": true
+  },
+  "rootAdoption": false,
+  "readiness": {
+    "defaultReleasedAPI": false,
+    "OTA": false,
+    "LinuxWasm": false,
+    "Android": false,
+    "physicalPhone": false,
+    "immutablePublishedPackage": false,
+    "pixels": false,
+    "GA": false
+  },
+  "limitations": [
+    "The frozen packet needs a workflow correction before Root adoption.",
+    "Pair22 Swift consumer test changes were not compiled in this source/evidence review.",
+    "Root234, SDK234 and the static backend link are separate historical component evidence.",
+    "R4218 remains a historical failed preparation and is not counted as a test pass."
+  ],
+  "procedure": [
+    "One static component audit initially assumed R4254 afterimages were unchanged by the coordinated Pair22 refresh. Its positive terminal failure is preserved. The corrected audit verifies all preimages, exact SDK members and the three named coordinated owner/test updates.",
+    "The inert shell expansion intentionally exits1. It uses shell builtins and runs no test command.",
+    "No qualification or native runtime was rerun."
+  ],
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "reportIdentity": {
+    "bytes": 5576,
+    "sha256": "3b7606d8877f9c35113a452dc01a6dd57e43550451900dfe4789e8cc7e58c9f4"
+  },
+  "terminalReadbackPath": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-source141-source-evidence-review-r4328/terminal-readback.json"
+}

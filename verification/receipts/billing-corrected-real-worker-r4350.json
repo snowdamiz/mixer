@@ -1,0 +1,292 @@
+{
+  "campaign": "billing-corrected-real-worker-r4350",
+  "status": "MIGRATION_PRIVILEGES_PASS_INTEGRATION_SETUP_FAILED_CLOSED",
+  "owner": "verification/local/billing-corrected-real-worker-r4350",
+  "report": "verification/local/billing-corrected-real-worker-r4350/REPORT.md",
+  "source": {
+    "selected": "R4330 exact compiled source; R4318 original runtime/driver declared rebase",
+    "compiledSources": 166,
+    "boundBEAMs": 267,
+    "dependencyPins": 914,
+    "copiedPinnedFiles": 2276,
+    "fullDeliveryFiles": 11,
+    "minimalDeltaFiles": 2,
+    "allCopyAndOriginalPinsStillExact": true,
+    "loadedModulePinsMatched": 12,
+    "originalTenCaseBodiesByteExact": true,
+    "bindingRebase": "binding-rebase.json",
+    "sourceBinaryPins": "source-binary-pins.json"
+  },
+  "migration": {
+    "status": "PASS",
+    "normalEctoMigratorInvocations": 1,
+    "billingMigrationIndividualDDL": 21,
+    "freshMigrationFiles": 13,
+    "migrationExsCompiledAndExecutedByOfficialEctoRuntime": true,
+    "productMixCompileCommands": 0
+  },
+  "privileges": {
+    "status": "PASS",
+    "baselineExactMatrixAdmitted": true,
+    "forbiddenGrantCases": [
+      {
+        "case": "observations_truncate",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "PUBLIC_usage_truncate",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "observation_column_update",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "organization_domain_column_update",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "PUBLIC_column_update",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "observations_delete",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "observations_trigger",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "observations_update",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "observations_references",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      },
+      {
+        "case": "grant_option",
+        "refused": true,
+        "exact_matrix_readmitted": true
+      }
+    ],
+    "membershipRefused": true,
+    "ownerRefused": true,
+    "negativeCasesPassed": 12,
+    "exactMatrixReadmissions": 12,
+    "processorAfterConnectPoolAndIdentityReached": true,
+    "fixtureOwnerSeparated": true,
+    "fixtureGrantDelta": "only prepared exact R4330 matrix; no broadened grant",
+    "directTruncateMeans": "guard refused direct TRUNCATE grant; destructive processor TRUNCATE payload not executed"
+  },
+  "integration": {
+    "status": "STOP_SETUP_FAILURE",
+    "firstFailure": {
+      "phase": "setup_all -> BillingWebhookEndpoint.start_link -> WebhookTransport.Sinks.init/1",
+      "class": "RuntimeError",
+      "message": "unapproved telemetry subscriber",
+      "file": "hosted/lib/mixer_hosted/billing/webhook_transport.ex",
+      "line": 41,
+      "sourceContext": "Sinks.init requires telemetry.list_handlers([]) == []; unchanged original R4318 setup attaches r4318-actual-basic before endpoint startup",
+      "errno": null,
+      "stdout": "run/runtime.stdout",
+      "stderr": "run/runtime.stderr",
+      "retry": false,
+      "sourceFix": false
+    },
+    "caseBodiesExecuted": 0,
+    "caseBodiesPassed": 0,
+    "caseBodiesUnrun": [
+      "01 preserved eleven ingress cases and actual first-party Basic worker",
+      "02 duplicate/replay does not read or add observation",
+      "03 reversed timestamps remain observations without grants",
+      "04 missing and revoked relationships block before I/O",
+      "05 provider failure has durable retry then actual retry succeeds",
+      "06 live contender snoozes and expired response cannot beat successor",
+      "07 pre-commit abort leaves no partial observation and expiry recovers",
+      "08 committed result survives lost acknowledgment and repeated delivery",
+      "09 credential revocation during I/O refuses T2",
+      "10 malformed extra-key and missing inbox jobs fail closed"
+    ],
+    "exUnitRaw": {
+      "total": 1,
+      "failures": 1,
+      "excluded": 0,
+      "skipped": 0
+    },
+    "rawConsole": "Result: 0 tests, 1 invalid; --max-failures reached",
+    "signedHTTP": 0,
+    "workerAttempts": 0,
+    "providerReads": 0,
+    "maxConcurrentWorkers": 0,
+    "normalObanBasicStarted": true,
+    "actualObanBasicCompletions": 0,
+    "shippingWorkerCompletions": 0,
+    "providerOrderingBlockedRuntimeAssertion": "UNRUN; unchanged compiled Entitlements source remains ordering_unavailable",
+    "databaseZeroEffectAssertions": "UNRUN; no case body or snapshot executed",
+    "externalProviderOrFinancialEffects": false,
+    "workerPASS": false
+  },
+  "counts": {
+    "productCompiler": 0,
+    "typescript": 0,
+    "node": 0,
+    "git": 0,
+    "children": 0,
+    "postgresLaunches": 1,
+    "postgresFastStops": 1,
+    "runtimePayloadBEAMCommands": 1,
+    "versionOnlyBEAMCommands": 1,
+    "totalBEAMCommands": 2,
+    "runtimeRetries": 0,
+    "runtimeAndCleanupSeconds": 2.3260105421068147,
+    "runtimeBudgetSeconds": 300
+  },
+  "custody": {
+    "status": "CLOSED",
+    "newUNKNOWNHolds": false,
+    "holdsReleased": false,
+    "allPriorWrapperCommandsPositiveClosed": 69,
+    "managedCommandsPositiveClosed": 6,
+    "children": [
+      {
+        "label": "postgres",
+        "pid": 89732,
+        "pgid": 89732,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "runtime",
+        "pid": 89788,
+        "pgid": 89788,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 1,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      }
+    ],
+    "postgresFastStopExit": 0,
+    "portsReusable": [
+      41500,
+      41501,
+      41502
+    ],
+    "socketOwnership": {
+      "path": "/private/tmp/mixer-pg-r4350-7i80x_2t",
+      "inode": 804186119,
+      "device": 16777232,
+      "uid": 501,
+      "mode": "0700",
+      "socketPathBytes": 51
+    },
+    "ownedSocketDirectoryRemoved": true,
+    "tlsKeyDirectoriesRemainingInOwnedTmp": 0,
+    "fixtureCleanupCallback": "not reached; no fixture-cleanup.json; runtime OS group positive absent",
+    "activeFinalizerExcluded": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-corrected-real-worker-r4350/commands/finalize"
+    ],
+    "terminalFinalizerReadback": "PASS; independently collected with exit0/reap/EOF/FD/ESRCH",
+    "terminalReadback": "finalizer-terminal-readback.json",
+    "wrappersPositiveClosedAtReadback": 70,
+    "readbackOwnActiveExcluded": true
+  },
+  "primaryExec": {
+    "session_id": 82536,
+    "terminalExit": 1,
+    "completeResults": "primary-exec-results.json"
+  },
+  "tools": {
+    "Elixir": "1.20.4",
+    "OTP": "29",
+    "PostgreSQL": "17.11; pinned binary",
+    "sourceRevision": "exact per-file SHA256; no Git process"
+  },
+  "scope": {
+    "canonicalIndexAuthorityCIGitDeliveryWrites": false,
+    "financialActivation": false,
+    "W14Accepted": false,
+    "GA": false,
+    "historicalHoldsAccessed": false,
+    "browserGUIVMNative": false,
+    "externalStripeCredentialsCustomerEffects": false
+  },
+  "elapsedSeconds": 475.0138144493103,
+  "taskBoundSeconds": 1500,
+  "withinBound": true,
+  "limitations": [
+    "all ten integration case bodies remain unrun; no worker acceptance",
+    "provider ordering and zero database effects unverified in this runtime",
+    "no normal installed RuntimeConfig activation, least-privilege deployment, W14, financial activation or GA acceptance"
+  ],
+  "pins": {
+    "binding-rebase.json": {
+      "bytes": 2098,
+      "sha256": "b53bad721b29b48d8f50fd8c537f90c5434d8e62d689c54d1dbf5c64a7a3c960"
+    },
+    "source-binary-pins.json": {
+      "bytes": 85623,
+      "sha256": "e0d7113cbd73d45cbaa8024b10fb31f39609a66dac31c5c6b9292d9127442115"
+    },
+    "migration-result.json": {
+      "bytes": 98,
+      "sha256": "cbac09f56fba174e62d66c7a12d430e8d5eb15ea2cbb936d81d2fc64581695e8"
+    },
+    "privilege-results.json": {
+      "bytes": 878,
+      "sha256": "05d224928bbc21c4a3e72a640a73e131d596fca0629c47d0b5d9deeafa16f6c7"
+    },
+    "runtime-result.json": {
+      "bytes": 49,
+      "sha256": "18dfff4b05bc0470e94c7e2418b8efa9a29d64910976853854523a3203f67ea0"
+    },
+    "runtime-evidence.json": {
+      "bytes": 5402,
+      "sha256": "fdabf9a17b9528c1f710e2a92a6516cfb6d57012f721463e99b1d1fc1533581b"
+    },
+    "run/runtime.stdout": {
+      "bytes": 827,
+      "sha256": "31018e0a3e63bf8a9453e953fb59fbc31a5e648dae8082705a0bec5a85236f3f"
+    },
+    "run/runtime.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run/result.json": {
+      "bytes": 5268,
+      "sha256": "a02aef2be514e092b0455ce77042e0e4a28490b5e6fa9c0d5f2b804631db135a"
+    },
+    "run/socket-ownership.json": {
+      "bytes": 154,
+      "sha256": "12c93ac1837bb9f10481d57bcfa0b6649cdf270951b2da7b0e1ca3a19a64ff69"
+    },
+    "REPORT.md": {
+      "bytes": 4255,
+      "sha256": "df31e90cf814f19b5089670ba4bd3f18f18d7608236d627472173a445d26c16f"
+    },
+    "finalizer-terminal-readback.json": {
+      "bytes": 1652,
+      "sha256": "3839e187ea8ad3950149f1e591a34a4d7c178b239ed1a3bdca74a23eb077999e"
+    }
+  },
+  "elapsedSecondsAtReadback": 515.9521195888519,
+  "withinBoundAtReadback": true
+}
