@@ -74,7 +74,8 @@ def owning_paths(patterns):
     paths.update(('cli/Package.swift', 'sdk/Package.swift', 'updates/Package.swift',
                   'native/android/engine/Package.swift', 'scripts/ci/check-android-binding.py',
                   HERE.relative_to(ROOT).as_posix() + '/test_bootstrap.py',
-                  PATTERNS[-1].lstrip('/'), current_module.BINDING.as_posix()))
+                  PATTERNS[-1].lstrip('/'), current_module.BINDING.as_posix(),
+                  '.github/workflows/verify.yml'))
     # The owning job also selects immutable admission rows for current/history
     # source guards. Exercise every declared binding, without pinning a version.
     paths.update(p.lstrip('/') + 'binding.json' for p in patterns

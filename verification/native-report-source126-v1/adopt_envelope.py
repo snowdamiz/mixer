@@ -76,10 +76,18 @@ def module(name, path):
     return result
 
 
+def source_input_path(name):
+    p = relative(name)
+    need('__pycache__' not in p.parts and p.suffix.lower() not in {'.pyc', '.pyo'},
+         'Derived Python cache is not a source input: ' + name)
+    return p
+
+
 def check_rows(root, rows):
     need(type(rows) is dict and len(rows) <= 2048, 'Bounded rows required')
+    paths = {name: source_input_path(name) for name in rows}
     for name, expected in rows.items():
-        need(row(read(root / relative(name))) == expected, 'Owning bytes differ: ' + name)
+        need(row(read(root / paths[name])) == expected, 'Owning bytes differ: ' + name)
 
 
 def closed_members(root, members):

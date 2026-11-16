@@ -93,4 +93,22 @@ class Source126Controls(unittest.TestCase):
         for p in ('../bad','/bad','x/../bad','x\\bad','.git/HEAD','x\0bad'):
             with self.assertRaises(RuntimeError):A.relative(p)
 
+
+class SourceBoundaryControls(unittest.TestCase):
+    def test_derived_python_cache_rows_refuse_before_any_read(self):
+        from unittest.mock import patch
+        paths = [
+            'native/android/tests/__pycache__/private_owner_cleanup_control.cpython-314.pyc',
+            'native/android/tests/__pycache__/private_owner_commands.cpython-314.pyc',
+            'pkg/__pycache__/source.py', 'pkg/generated.pyc', 'pkg/generated.pyo',
+            'pkg/generated.PYC']
+        for name in paths:
+            with self.subTest(path=name), patch.object(A, 'read', side_effect=AssertionError('must not read')):
+                with self.assertRaisesRegex(RuntimeError, 'Derived Python cache'):
+                    A.check_rows(A.ROOT, {name: {'bytes': 1, 'sha256': '0' * 64}})
+    def test_valid_original_source_is_accepted(self):
+        name = 'native/android/tests/private_owner_cleanup_control.py'
+        self.assertEqual(A.source_input_path(name), Path(name))
+        A.check_rows(A.ROOT, {name: A.row(A.read(A.ROOT / name))})
+
 if __name__=='__main__':unittest.main(verbosity=2)

@@ -1,0 +1,297 @@
+{
+  "schema": "mixer.research-first-failure.v1",
+  "campaign": "VM-741-first-failure-r3948",
+  "created_at": "2026-11-16T12:03:51.551847+00:00",
+  "scope": "Read-only current pinned job metadata/log and source comparison; no product changes or reruns.",
+  "binding": {
+    "repository": "snowdamiz/mixer",
+    "head": "74131ec2968d6257ba91eb9618d3fd2d073265f1",
+    "expected_head": "74131ec2968d6257ba91eb9618d3fd2d073265f1",
+    "head_matches": true,
+    "run_id": 43859563520,
+    "job_id": 133272489105,
+    "attempt": 1,
+    "runner_labels": [
+      "ubuntu-24.04"
+    ],
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/43859563520/job/133272489105"
+  },
+  "limits": {
+    "managed_commands_including_finalizer": 10,
+    "github_gets": 3,
+    "github_gets_limit": 3,
+    "time_limit_seconds": 480,
+    "per_command_timeout_seconds": 30
+  },
+  "first_current_failed_boundary": {
+    "step": "Private Swift reactor without legacy cache or execution features",
+    "command": "cargo clippy --locked --manifest-path vm/Cargo.toml --lib --features experimental-swift-reactor -- -D warnings",
+    "first_error": "2026-11-16T11:47:21.9602355Z error: field `entries` is never read",
+    "log_line": 8373,
+    "source": {
+      "path": "vm/src/experimental/policy.rs",
+      "line": 165,
+      "column": 10
+    },
+    "error_diagnostics": 20,
+    "terminal_compile_summary": "2026-11-16T11:47:22.3717824Z error: could not compile `mixer-vm` (lib) due to 20 previous errors",
+    "exit_annotations": [
+      "2026-11-16T11:47:22.3769448Z ##[error]Process completed with exit code 101."
+    ]
+  },
+  "observed_steps": [
+    {
+      "number": 1,
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "number": 2,
+      "name": "Run actions/checkout@v4",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "number": 3,
+      "name": "Run actions/setup-node@v4",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "number": 4,
+      "name": "Record owned VM host tools",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "number": 5,
+      "name": "Owned VM debug tests",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "number": 6,
+      "name": "Owned VM release tests",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "number": 7,
+      "name": "Experimental validation, cached execution, WASI, native sessions and explicit reference checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "number": 8,
+      "name": "Private Swift reactor without legacy cache or execution features",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "number": 9,
+      "name": "Allocation observer isolation under background noise",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "number": 10,
+      "name": "Android facade and UI-entry transport host regressions",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "number": 11,
+      "name": "Public native capability C client",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "number": 21,
+      "name": "Post Run actions/setup-node@v4",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "number": 22,
+      "name": "Post Run actions/checkout@v4",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "number": 23,
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "private_test_parents": {
+    "debug": {
+      "harness_summaries": 59,
+      "passed": 589,
+      "failed": 0,
+      "ignored": 30
+    },
+    "release": {
+      "harness_summaries": 59,
+      "passed": 589,
+      "failed": 0,
+      "ignored": 30
+    }
+  },
+  "cargo_parent_summaries": [
+    {
+      "header": "2026-11-16T11:39:03.1062831Z ##[group]Run cargo test --locked --manifest-path vm/Cargo.toml",
+      "log_line": 269,
+      "harness_summaries": 59,
+      "passed": 91,
+      "failed": 0,
+      "ignored": 8
+    },
+    {
+      "header": "2026-11-16T11:39:17.9197275Z ##[group]Run cargo test --locked --release --manifest-path vm/Cargo.toml",
+      "log_line": 728,
+      "harness_summaries": 295,
+      "passed": 1569,
+      "failed": 0,
+      "ignored": 68
+    },
+    {
+      "header": "2026-11-16T11:44:04.4337688Z ##[group]Run cargo test --locked --manifest-path vm/Cargo.toml --features experimental-swift-reactor",
+      "log_line": 6210,
+      "harness_summaries": 118,
+      "passed": 1178,
+      "failed": 0,
+      "ignored": 60
+    }
+  ],
+  "node_observed": [
+    "2026-11-16T11:38:58.5173872Z node: v22.23.3",
+    "2026-11-16T11:39:03.1028821Z v22.23.3"
+  ],
+  "raw_log_integrity": {
+    "raw_http_bytes": 4037116,
+    "raw_http_sha256": "8b0df4a61140d29e21ede125b309dfa45912a0fa0ffc40e7ee934aa8dfe09843",
+    "body_bytes": 4036230,
+    "body_sha256": "bf3f024afa4de79b97d08412a521d26ed148d7b65b06aefdc42c95e8740c90da",
+    "body_md5_base64": "+WK0vG/LNavzXiJ32+46PQ==",
+    "content_length": "4036230",
+    "content_length_matches": true,
+    "content_md5": null,
+    "md5_exposure": "not exposed"
+  },
+  "metadata_integrity": {
+    "raw_http_sha256": "787ec9c92044233b58f706b195f0380f97ff8d19a2a9ae211c01b94391797b11",
+    "body_sha256": "657519eda83680358649fbc1d6df30454204e89d0294f5d9f5bad30cf4af55ff",
+    "body_bytes": 3341,
+    "content_length": null,
+    "content_md5": null,
+    "length_exposure": "not exposed"
+  },
+  "download_first_failure": {
+    "label": "job-log",
+    "error": "gh rejected terminal escape sequences; first HTTP response contains headers only",
+    "exit_code": 1,
+    "local_custody_closed": true,
+    "stdout": "commands/job-log.stdout",
+    "stderr": "commands/job-log.stderr",
+    "recovery": "Final allowed GET used --allow-escape-sequences; complete body recovered and initial failure preserved."
+  },
+  "initial_source_lookup": {
+    "issue": "Cargo-relative src paths were initially queried without vm/ and returned missing; finalizer completed corrected pinned lookups.",
+    "preserved": "source-compare.json"
+  },
+  "source_compare": [
+    {
+      "path": ".github/workflows/verify.yml",
+      "git_blob": "657d1529ae463ba7c101feeb0ecdb6eac4e4d343",
+      "bytes": 62159,
+      "sha256": "c9f34f7756fd91920acacf54131d6fcf71d9416311afb67d22c5e8f98d2aeaed",
+      "canonical_equal": true,
+      "canonical_sha256": "c9f34f7756fd91920acacf54131d6fcf71d9416311afb67d22c5e8f98d2aeaed"
+    },
+    {
+      "path": "vm/src/experimental/policy.rs",
+      "git_blob": "d8266121ef8e651199bf7f8ebc0e56582e88c879",
+      "bytes": 12429,
+      "sha256": "96b6280675d7334d6398b18fe5355466b51cbdb52af17d803571fe14b27a6a7f",
+      "canonical_equal": true,
+      "canonical_sha256": "96b6280675d7334d6398b18fe5355466b51cbdb52af17d803571fe14b27a6a7f"
+    },
+    {
+      "path": "vm/src/experimental_swift_reactor/turn_budget.rs",
+      "git_blob": "29b939cb0b32b2bdf25d1f54da7c9dc6a33236d9",
+      "bytes": 6223,
+      "sha256": "5a55eacc70cbd29bef568e2d318be5e89874e04c849ac901405c11c8b43e3159",
+      "canonical_equal": true,
+      "canonical_sha256": "5a55eacc70cbd29bef568e2d318be5e89874e04c849ac901405c11c8b43e3159"
+    },
+    {
+      "path": "vm/src/experimental/swift.rs",
+      "git_blob": "3fa1290fa976ac9b38767e37c3997ad39d2fcfed",
+      "bytes": 35785,
+      "sha256": "bdd1b11e6a7956f2615c124bfbd01b0354db38ae8f1ecf461459c1ab095d73d6",
+      "canonical_equal": true,
+      "canonical_sha256": "bdd1b11e6a7956f2615c124bfbd01b0354db38ae8f1ecf461459c1ab095d73d6"
+    },
+    {
+      "path": "vm/src/experimental/cache/borrowed.rs",
+      "git_blob": "45898a0fc2bf5a6c36d12f0a249ddae46850e3d4",
+      "bytes": 30711,
+      "sha256": "96ecac7cd3530ece1e47236b7bc432008dbf16d1f1b62d585cdec675d097c538",
+      "canonical_equal": true,
+      "canonical_sha256": "96ecac7cd3530ece1e47236b7bc432008dbf16d1f1b62d585cdec675d097c538"
+    },
+    {
+      "path": "vm/src/experimental_swift_reactor/guest_ui.rs",
+      "git_blob": "b9a2f9e78ce0ad7fa86ef85d6c4ce55512d0b029",
+      "bytes": 20382,
+      "sha256": "6b0a5ba319aee4f2bfdeb40affd56471b1b7910f9326326e0dea569fc9f9fe10",
+      "canonical_equal": true,
+      "canonical_sha256": "6b0a5ba319aee4f2bfdeb40affd56471b1b7910f9326326e0dea569fc9f9fe10"
+    }
+  ],
+  "workflow_command_source": [
+    {
+      "line": 593,
+      "text": "          cargo clippy --locked --manifest-path vm/Cargo.toml --lib --features experimental-swift-reactor -- -D warnings"
+    }
+  ],
+  "local_custody": {
+    "prior_commands": 9,
+    "all_positive_closure": true,
+    "actual_unknown_exposed": false,
+    "finalizer_custody_record": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/commands/r3948-finalizer/commands.json",
+    "finalizer_closure": "Written by unchanged wrapper after this receipt."
+  },
+  "hosted_custody": {
+    "status": "unknown exposure: complete hosted descendant identity/EOF/FD/group-absence facts are not exposed; GitHub completion is not closure proof",
+    "marker_count": 0,
+    "marker_file": "unknown-exposure-lines.json",
+    "new_hold_inferred": false,
+    "historical_holds_released": false
+  },
+  "smallest_named_next_discriminator": {
+    "name": "private-swift-production-library-clippy",
+    "command": "cargo clippy --locked --manifest-path vm/Cargo.toml --lib --features experimental-swift-reactor -- -D warnings",
+    "executed": false,
+    "condition": "Fresh root-selected namespace and authorization for the rerun."
+  },
+  "limitations": [
+    "Source inspection alone proves no product fix.",
+    "Private debug/release tests do not pass the failed production-library Clippy boundary.",
+    "Ignored tests were not executed.",
+    "Allocation-noise, Android host-regression and public C-client steps were skipped.",
+    "No children, fixes, builds/tests/native/VM/UI execution, CI/provider writes, artifact downloads, held access, canonical/index/Git mutations or release actions."
+  ],
+  "files": {
+    "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/VM-741-first-failure-r3948/REPORT.md",
+    "raw_http": "commands/job-log-raw.stdout",
+    "body": "job.log",
+    "headers": "job.headers",
+    "source_compare": "source-compare-final.json",
+    "source_excerpts": "owning-source-excerpts.json",
+    "parents": "observed-test-parents.json",
+    "tool_versions": "tool-versions.json"
+  }
+}
