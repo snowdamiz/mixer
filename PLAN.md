@@ -1,5 +1,11 @@
 # Execution index
 
+## Continuation checkpoint, November 16, 2026 — auth v28 adopted
+
+The pending-login session correction is installed with its two ordinary regressions. The final full ordinary run passed 911 of 913 methods; the other two are existing Linux-only network tests skipped on macOS. Both Python modes completed 310 unique source controls in segmented runs. Independent review passed. The workflow update also required rebinding CLI127's owning metadata; that repair passed 20 controls per mode and preserved all 829 historical replay files and the production127 digest. Installed v28 and CLI127 checks now pass in both modes. [Root adoption](verification/receipts/session-source-v28-root-adoption-r4214.json), [actual full run](verification/receipts/active-session-diagnostic-full-r4204.json), [segmented review](verification/receipts/v28-segmented-final-review-r4208.json), [co-owner repair](verification/receipts/cli127-v28-workflow-rebind-r4226.json).
+
+The full engine CI run at delivered head `c9941f03` completed successfully. Browser submission with paired database and visual evidence is the next integration. SDK session source remains private: its retirement fence passed source review, but final compiler/test/link qualification is still pending. All earlier failures and custody holds remain preserved; all 38 GA requirements remain open.
+
 ## Continuation checkpoint, November 16, 2026 — genuine native title and durable billing ingress
 
 Both SDK designs are grounded and compared. The selected design keeps the session facade portable and moves native ABI ownership into an optional backend product. Its implementation is private and uses the existing standard Swift Crypto pins; canonical SDK adoption, final source admission, portable verification and the genuine public-SDK host run remain pending. [Architecture selection](verification/receipts/sdk-session-architecture-selection-r4186.json).

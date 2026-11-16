@@ -1,0 +1,168 @@
+{
+  "id": "R4200",
+  "scenario": "FRESH_PG_START_SELECT1_FASTSTOP_LIVENESS",
+  "status": "PASS_FRESH_PG_LIVENESS",
+  "port": 41320,
+  "PGlaunches": 1,
+  "PGfastStops": 1,
+  "productCompiles": 0,
+  "productRuntimeBatches": 0,
+  "historicalHoldsReleased": false,
+  "GA": false,
+  "tools": {
+    "postgres": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+    "initdb": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+    "psql": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+    "pg_ctl": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl"
+  },
+  "toolPins": {
+    "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres": {
+      "bytes": 8813760,
+      "sha256": "9d1930da02e11e446b42f9d79cf2e6bce307a6decb6a089591f8726d0f49b6f2"
+    },
+    "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb": {
+      "bytes": 197152,
+      "sha256": "0b6e460ed82fabebd4d42bdf85ebbf7ff1922ebad20ef349930a9b0fd2bfffb6"
+    },
+    "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql": {
+      "bytes": 715520,
+      "sha256": "489412cf78f2745d95a5cf5778b6d2731406e98529ff32964007140135011557"
+    },
+    "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl": {
+      "bytes": 99008,
+      "sha256": "e35b9b7312ac500b2943eced2952f3836e606860c04f057380719855b9833cf3"
+    }
+  },
+  "custodianSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+  "templateSHA256": "060b1551df9df15c5f867cc5d8c2d5dde40d3710a09b0b5e87e7111000012ced",
+  "freshPortInitiallyReusable": true,
+  "startedUTC": "2026-11-16T18:19:33Z",
+  "postgresVersion": "postgres (PostgreSQL) 17.11 (Homebrew)",
+  "select1": "PASS",
+  "dataDirectoryMatched": true,
+  "children": [
+    {
+      "label": "postgres",
+      "pid": 49422,
+      "pgid": 49422,
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fresh-pg-liveness-r4200/run/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "41320",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fresh-pg-liveness-r4200/working",
+      "regularFileLogs": true,
+      "state": "TERMINAL",
+      "directReaped": true,
+      "exit": 0,
+      "ownedGroupAbsentESRCH": true,
+      "closedFDs": true,
+      "pipeEOF": "not applicable: regular-file stdout/stderr, stdin closed"
+    }
+  ],
+  "commands": [
+    {
+      "label": "postgres-version",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fresh-pg-liveness-r4200/working",
+      "pid": 49307,
+      "pgid": 49307,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04242933401837945,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "initdb",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fresh-pg-liveness-r4200/run/pgdata",
+        "-U",
+        "mixer_fixture",
+        "--auth-local=trust",
+        "--auth-host=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fresh-pg-liveness-r4200/working",
+      "pid": 49335,
+      "pgid": 49335,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.9436965000350028,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "select1-0",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "41320",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "postgres",
+        "-At",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "SELECT 1; SHOW data_directory;"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fresh-pg-liveness-r4200/working",
+      "pid": 49423,
+      "pgid": 49423,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.08628529100678861,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "postgres-fast-stop",
+      "argv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fresh-pg-liveness-r4200/run/pgdata",
+        "-m",
+        "fast",
+        "-w",
+        "-t",
+        "15",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fresh-pg-liveness-r4200/working",
+      "pid": 49433,
+      "pgid": 49433,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.1375654999865219,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "freshPortReusableAfterStop": true,
+  "historicalCauseProven": false,
+  "sourceAdmissionAccepted": false
+}

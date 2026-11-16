@@ -2655,6 +2655,98 @@ def _load_development_dispatch_source_authority():
     return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
 
 
+# Source-only v28 successor; all v1-v27 authority bytes and validators remain intact.
+PENDING_SESSION_SOURCE_BASE = 'verification/identity-network-current-source-v28/'
+PENDING_SESSION_SELECTION_SHA256 = 'c588c498a213f10447bc9ecdffa5504ffbba4e682930a42d4b8676e209184112'
+PENDING_SESSION_SOURCE_DIGEST = '2904bc9f1ea38a50f3bf101334b2c6109c30675dd4320aca7641ecbd254f8033'
+PENDING_SESSION_SOURCE_COUNT = 338
+PENDING_SESSION_DELTA = {'hosted/lib/mixer_hosted/browser_auth/active_read.ex': {'before': {'bytes': 8680, 'sha256': 'a721531b628e6dafa952f5549ec62951d3e01563be7ced00606e4b07d9123674'}, 'after': {'bytes': 11010, 'sha256': 'd968616e3c22dea9827ab6c7f812950f3dbda950dfb0c0497c991c3816d85055'}}, 'hosted/test/mixer_hosted/browser_auth/browser_login_json_http_test.exs': {'before': {'bytes': 4670, 'sha256': '1a9063d05d3f76307a6121fa94af9d490e2263c050ea3eb8543cca196606bb12'}, 'after': {'bytes': 5898, 'sha256': '4ff5501a9cd1808ee52aeb1b91d2ab097df17471bde069e934cafc1be54dc848'}}, 'hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs': {'before': {'bytes': 56650, 'sha256': '1a1f300270c53c5203d9cb0f70272f6e8d29f9af9849eb3453b97c32806f90ac'}, 'after': {'bytes': 57373, 'sha256': 'eef40ac977ae5d8bbf6b1d67e680e9b62451514a90e74782e1386b008f42a022'}}}
+PENDING_SESSION_SCOPE = 'Frozen R4112 pending-session ActiveRead and JSON HTTP regression plus R4152 known-rollback security regression source only; targeted/full hosted regression, independent v28 packet review and root selection required; activation false; CLI127 unchanged.'
+
+
+def _pending_session_inverse(inverse):
+    require(type(inverse) is dict and list(inverse) == sorted(DEVELOPMENT_DISPATCH_MANIFEST), 'pending session ordered complete v27 inverse')
+    for path, value in inverse.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(value)
+    require(inverse == DEVELOPMENT_DISPATCH_MANIFEST and canonical_digest(inverse) == DEVELOPMENT_DISPATCH_SOURCE_DIGEST, 'pending session exact typed v27 inverse')
+
+
+def validate_pending_session_source_manifest(manifest, expected_digest=PENDING_SESSION_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == PENDING_SESSION_SOURCE_DIGEST, 'caller cannot replace pending session digest')
+    require(expected_count is None or type(expected_count) is int and expected_count == PENDING_SESSION_SOURCE_COUNT, 'caller cannot replace pending session count')
+    require(type(manifest) is dict and list(manifest) == sorted(DEVELOPMENT_DISPATCH_MANIFEST), 'pending session exact ordered source membership')
+    require(len(manifest) == PENDING_SESSION_SOURCE_COUNT, 'pending session source count')
+    for path, value in manifest.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(value)
+    delta = {p: {'before': DEVELOPMENT_DISPATCH_MANIFEST[p], 'after': v} for p, v in manifest.items() if DEVELOPMENT_DISPATCH_MANIFEST[p] != v}
+    require(delta == PENDING_SESSION_DELTA, 'pending session exact frozen three-path delta')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        inverse[path] = change['before']
+    _pending_session_inverse(dict(sorted(inverse.items())))
+    require(canonical_digest(manifest) == PENDING_SESSION_SOURCE_DIGEST, 'pending session source digest')
+    return manifest
+
+
+def _pending_session_metadata(metadata):
+    base = PENDING_SESSION_SOURCE_BASE
+    require(type(metadata) is dict and set(metadata) == {base + n for n in ('selection.json', 'selected-source-manifest.json')}, 'pending session metadata membership')
+    body = metadata[base + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == PENDING_SESSION_SELECTION_SHA256, 'pending session selection pin')
+    value = _restricted_processor_json(body)
+    require(type(value) is dict and set(value) == {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'inverse_v27', 'activation', 'runtime_or_GA_accepted', 'CLI127_selected'}, 'pending session selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-pending-session-v28', 'pending session schema identity')
+    require(value['operation'] == 'admit-frozen-R4112-pending-session-after-v27' and value['scope'] == PENDING_SESSION_SCOPE, 'pending session operation scope')
+    require(value['activation'] is False and value['runtime_or_GA_accepted'] is False and value['CLI127_selected'] is False, 'pending session source only')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'pending session predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': DEVELOPMENT_DISPATCH_EXPECTED_COUNT, 'source_digest_sha256': DEVELOPMENT_DISPATCH_SOURCE_DIGEST, 'selection_sha256': DEVELOPMENT_DISPATCH_SELECTION_SHA256}, 'pending session pinned v27 predecessor')
+    _pending_session_inverse(value['inverse_v27'])
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'pending session selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == PENDING_SESSION_SOURCE_COUNT and selected['source_digest_sha256'] == PENDING_SESSION_SOURCE_DIGEST, 'pending session selected count digest')
+    ref = selected['manifest']
+    require(type(ref) is dict and set(ref) == {'path', 'bytes', 'sha256'} and ref['path'] == 'selected-source-manifest.json', 'pending session manifest reference')
+    _restricted_processor_row({k: ref[k] for k in ('bytes', 'sha256')})
+    manifest_body = metadata[base + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {k: ref[k] for k in ('bytes', 'sha256')}, 'pending session manifest byte pin')
+    manifest = _restricted_processor_json(manifest_body)
+    validate_pending_session_source_manifest(manifest)
+    delta = value['exact_delta']
+    require(type(delta) is dict and list(delta) == sorted(PENDING_SESSION_DELTA), 'pending session delta membership')
+    for path, change in delta.items():
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'pending session typed delta shape')
+        _restricted_processor_row(change['before'])
+        _restricted_processor_row(change['after'])
+    require(delta == PENDING_SESSION_DELTA, 'pending session exact typed delta')
+    return value, manifest
+
+
+def validate_pending_session_source_metadata(metadata):
+    value, manifest = _pending_session_metadata(metadata)
+    require(manifest == PENDING_SESSION_MANIFEST, 'pending session installed manifest')
+    return value
+
+
+def check_pending_session_source(root):
+    base = PENDING_SESSION_SOURCE_BASE
+    metadata = {base + n: (root / base / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_pending_session_source_metadata(metadata)
+    observed = {p: _file_row((root / p).read_bytes()) for p in PENDING_SESSION_MANIFEST}
+    validate_pending_session_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed), 'selection_sha256': PENDING_SESSION_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_pending_session_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    base = PENDING_SESSION_SOURCE_BASE
+    metadata = {base + n: (root / base / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _pending_session_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
@@ -2674,7 +2766,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_restricted_processor_source_manifest(prepared["source"])
+    validate_pending_session_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -2841,7 +2933,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_restricted_processor_source_manifest(manifest["source"])
+    validate_pending_session_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -2864,7 +2956,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(RESTRICTED_PROCESSOR_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PENDING_SESSION_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -3635,10 +3727,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_restricted_processor_source_manifest(RESTRICTED_PROCESSOR_MANIFEST)
-        product = self.git_blobs(sorted(RESTRICTED_PROCESSOR_MANIFEST))
+        validate_pending_session_source_manifest(PENDING_SESSION_MANIFEST)
+        product = self.git_blobs(sorted(PENDING_SESSION_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_restricted_processor_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_pending_session_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -3737,7 +3829,13 @@ class Collector:
         signin_metadata = self.git_blobs([RESTRICTED_PROCESSOR_SOURCE_BASE + name for name in ("selection.json", "selected-source-manifest.json")])
         validate_restricted_processor_source_metadata(signin_metadata)
         metadata.update(signin_metadata)
-        self.state["source"].update(current_source_selection_sha256=RESTRICTED_PROCESSOR_SELECTION_SHA256, current_source_digest_sha256=RESTRICTED_PROCESSOR_SOURCE_DIGEST)
+        dispatch_metadata = self.git_blobs([DEVELOPMENT_DISPATCH_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_development_dispatch_source_metadata(dispatch_metadata)
+        metadata.update(dispatch_metadata)
+        pending_metadata = self.git_blobs([PENDING_SESSION_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_pending_session_source_metadata(pending_metadata)
+        metadata.update(pending_metadata)
+        self.state["source"].update(current_source_selection_sha256=PENDING_SESSION_SELECTION_SHA256, current_source_digest_sha256=PENDING_SESSION_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -3755,7 +3853,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(RESTRICTED_PROCESSOR_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PENDING_SESSION_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -3778,7 +3876,7 @@ class Collector:
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
         prepared_manifest["source"] = dict(sorted(prepared_manifest["source"].items()))
-        require(prepared_manifest["source"] == RESTRICTED_PROCESSOR_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == PENDING_SESSION_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -3876,7 +3974,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in RESTRICTED_PROCESSOR_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in PENDING_SESSION_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -4327,7 +4425,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_development_dispatch_source(root), sort_keys=True))
+        print(json.dumps(check_pending_session_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -4445,6 +4543,9 @@ RESTRICTED_PROCESSOR_SOURCE_COUNT, RESTRICTED_PROCESSOR_MANIFEST = RESTRICTED_PR
 
 DEVELOPMENT_DISPATCH_AUTHORITY = _load_development_dispatch_source_authority()
 DEVELOPMENT_DISPATCH_MANIFEST = DEVELOPMENT_DISPATCH_AUTHORITY.manifest
+
+PENDING_SESSION_AUTHORITY = _load_pending_session_source_authority()
+PENDING_SESSION_MANIFEST = PENDING_SESSION_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:

@@ -63,6 +63,33 @@ defmodule MixerHosted.BrowserAuth.BrowserLoginJSONHTTPTest do
     leases_clean()
   end
 
+  test "same cookie session remains unauthenticated after JSON login", c do
+    p = bootstrap_http(c)
+    before = GenServer.call(c.provider, :count)
+    login = http(c, "/auth/login", headers(p.cookie) ++ [
+      {"origin", c.config.public_origin},
+      {"x-mixer-csrf", p.csrf},
+      {"accept", "application/json"}
+    ], "POST")
+    assert login.status == 200
+    authorization = Jason.decode!(login.body)
+    query = authorization["authorization_url"] |> URI.parse() |> Map.fetch!(:query) |> URI.decode_query()
+
+    session = http(c, "/auth/session", headers(p.cookie) ++ [{"accept", "application/json"}])
+    assert session.status == 200
+    assert Jason.decode!(session.body) == %{"state" => "unauthenticated", "csrf_token" => p.csrf}
+    assert Protocol.token?(Jason.decode!(session.body)["csrf_token"])
+    assert response_header(session, "cache-control") == ["no-store"]
+    assert response_header(session, "set-cookie") == []
+    assert response_header(session, "location") == []
+    for field <- ~w(state nonce code_challenge) do
+      assert is_binary(query[field])
+      refute String.contains?(session.body, query[field])
+    end
+    assert GenServer.call(c.provider, :count) == before
+    leases_clean()
+  end
+
   test "raw HTTP duplicates bodies origins arbitrary inputs and aliases fail closed", c do
     p = bootstrap_http(c)
     h = headers(p.cookie)

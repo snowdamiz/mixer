@@ -1,0 +1,256 @@
+{
+  "schema": 1,
+  "id": "R4190_AUTH_REGRESSION_DRIVER_PREMISE",
+  "status": "SOURCE_ONLY_CAMPAIGN_COMPLETE_HISTORICAL_CAUSE_UNPROVEN",
+  "campaign": "verification/local/auth-regression-driver-premise-r4190",
+  "startedUTC": "2026-11-16T18:00:15Z",
+  "limitSeconds": 900,
+  "scope": "Allowed static source and copied compact metadata, with pure in-process intercepted counterproofs inside admitted managed Python.",
+  "findings": {
+    "historicalStopCauseProven": false,
+    "productDefectProven": false,
+    "concreteHarnessDefect": "Shared compact diagnostic loss: command/stop exceptions are discarded before sticky HOLD.",
+    "baselineDiagnosticFailureReproduced": true,
+    "prospectiveDiagnosticChangeProven": true,
+    "cleanupRepaired": false,
+    "fullRegressionPassed": false
+  },
+  "verification": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "groups": 8,
+    "scenarios": 32,
+    "allPassed": true,
+    "interception": "Evaluated fragments receive only in-memory OS/process/socket/path facades. No real os/subprocess/socket module is supplied. All followup operations stay intercepted.",
+    "firstTerminalFileRead": {
+      "command": "/opt/homebrew/bin/python3 -B verification/local/auth-regression-driver-premise-r4190/command.py agents-read-01 20 /bin/cat AGENTS.md",
+      "artifact": "verification/local/auth-regression-driver-premise-r4190/commands/agents-read-01/agents-read-01.stdout",
+      "pin": {
+        "bytes": 76978,
+        "sha256": "0fd3b21727a508726d8d6defa40e1bbe16af76220160b0e180ed6f44abbc633d"
+      }
+    },
+    "completedManagedCommands": [
+      {
+        "label": "agents-read-01",
+        "pid": 14409,
+        "pgid": 14409,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "inspect-01",
+        "pid": 17885,
+        "pgid": 17885,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "counterproof-01",
+        "pid": 40207,
+        "pgid": 40207,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "counterproof-02",
+        "pid": 46858,
+        "pgid": 46858,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "delivery-check-01",
+        "pid": 74804,
+        "pgid": 74804,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      }
+    ]
+  },
+  "source": {
+    "R986DefinitionSHA256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "driverPins": {
+      "active-session-full-successor-r4144": {
+        "bytes": 12429,
+        "sha256": "ee4802ac24a07133a41be689e659d18c272917dd345b51e70e094ff9c57b5778"
+      },
+      "active-session-final-full-r4166": {
+        "bytes": 12973,
+        "sha256": "2416a77bc4a641bd7ca6a0a0bb430d52c809c7c5a141798f9c4e09064f9cb61b"
+      },
+      "active-session-relative-full-r4182": {
+        "bytes": 12976,
+        "sha256": "7f94aac4b01a82f23c42e4e553f93a04ba1e3a3b8f7e518869e6f9650834a407"
+      }
+    },
+    "R4180TestSHA256": "eef40ac977ae5d8bbf6b1d67e680e9b62451514a90e74782e1386b008f42a022",
+    "productSHA256": "d968616e3c22dea9827ab6c7f812950f3dbda950dfb0c0497c991c3816d85055",
+    "manifestOnlyAgreement": [
+      {
+        "baseline": "active-session-full-successor-r4144",
+        "sameTools": true,
+        "sameToolPins": true,
+        "sameEnvironmentTemplate": true,
+        "sameCompiledSourceRoot": true,
+        "runtimeByteIdentical": true,
+        "nestedByteIdentical": true,
+        "filePinDeltas": [
+          {
+            "path": "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs",
+            "before": {
+              "bytes": 56650,
+              "sha256": "1a1f300270c53c5203d9cb0f70272f6e8d29f9af9849eb3453b97c32806f90ac"
+            },
+            "after": {
+              "bytes": 57373,
+              "sha256": "eef40ac977ae5d8bbf6b1d67e680e9b62451514a90e74782e1386b008f42a022"
+            }
+          }
+        ],
+        "canonicalPinDeltas": []
+      },
+      {
+        "baseline": "active-session-final-full-r4166",
+        "sameTools": true,
+        "sameToolPins": true,
+        "sameEnvironmentTemplate": true,
+        "sameCompiledSourceRoot": true,
+        "runtimeByteIdentical": true,
+        "nestedByteIdentical": true,
+        "filePinDeltas": [
+          {
+            "path": "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs",
+            "before": {
+              "bytes": 57400,
+              "sha256": "db2901ffef933bd064d8c43c4560e89b8dda1f8ac1f165a5dd7fac97b9d4819a"
+            },
+            "after": {
+              "bytes": 57373,
+              "sha256": "eef40ac977ae5d8bbf6b1d67e680e9b62451514a90e74782e1386b008f42a022"
+            }
+          }
+        ],
+        "canonicalPinDeltas": []
+      }
+    ],
+    "physicalReplayCachesOrToolBinariesRehashed": false
+  },
+  "prospectivePatch": {
+    "before": {
+      "bytes": 12976,
+      "sha256": "7f94aac4b01a82f23c42e4e553f93a04ba1e3a3b8f7e518869e6f9650834a407"
+    },
+    "after": {
+      "bytes": 13364,
+      "sha256": "060b1551df9df15c5f867cc5d8c2d5dde40d3710a09b0b5e87e7111000012ced"
+    },
+    "inverseRoundTripExact": true,
+    "scope": "Diagnostic only. Static afterimage is not executable admission. Root must select a fresh namespace and rebind historical receipt literals before future use.",
+    "adopted": false
+  },
+  "nextTest": {
+    "name": "FRESH_PG_START_SELECT1_FASTSTOP_LIVENESS",
+    "status": "PROPOSED_UNEXECUTED_SEPARATE_ROOT_ADMISSION",
+    "starts": 1,
+    "readinessCommands": 1,
+    "stopAttempts": 1,
+    "initdbTimeoutSeconds": 30,
+    "readinessTimeoutSeconds": 3,
+    "pgCtlWaitSeconds": 15,
+    "managedStopTimeoutSeconds": 20,
+    "port": "ROOT_COORDINATED_FRESH_NONHELD_PORT_NOT_SELECTED_OR_PROBED",
+    "noBlindFullSuiteRerun": true
+  },
+  "historicalMetadata": {
+    "sources": [
+      "verification/receipts/active-session-relative-full-r4182.json",
+      "verification/receipts/active-session-relative-full-hold-r4188.json"
+    ],
+    "postgresPGID": 72292,
+    "primarySession": 67706,
+    "postgresCustody": "UNKNOWN",
+    "beam74479": "SUPPLIED_TERMINAL_NOT_PG_OR_NESTED_PROOF",
+    "actualCounts": null,
+    "firstActualFailure": null,
+    "underlyingStopError": null,
+    "loadedBEAMAgreement": null,
+    "heldMetadataRecovered": false
+  },
+  "hostContext": {
+    "source": "Supplied R4194 aggregate snapshot18:00Z",
+    "load": [
+      44.29,
+      37.25,
+      24.42
+    ],
+    "availableDiskGiB": 36,
+    "diskUsedPercent": 96,
+    "freePagesMiB": 122,
+    "compressedPagesGiB": 20,
+    "historicalAttribution": false,
+    "budgetsChanged": false
+  },
+  "restrictions": {
+    "actualPGLaunches": 0,
+    "actualProductRuntimeBatches": 0,
+    "actualBuilds": 0,
+    "actualCompilerCommands": 0,
+    "actualNetworkCommands": 0,
+    "nativeActions": 0,
+    "CICommands": 0,
+    "GitCommands": 0,
+    "childDelegations": 0,
+    "fakePIDKernelOperations": 0,
+    "heldResourceReadsStatsEnumerationsOrOperations": 0,
+    "canonicalProductOrTestWrites": 0,
+    "indexWrites": 0,
+    "authorityWrites": 0,
+    "holdsReleased": false,
+    "newHold": false,
+    "GA": false
+  },
+  "artifacts": {
+    "counterproof.py": {
+      "bytes": 23276,
+      "sha256": "2ddf6f231931050ce3e10d1d54a3186c0b60553aaf1c8d86251b6c5ec743b368"
+    },
+    "counterproof-result.json": {
+      "bytes": 30547,
+      "sha256": "4810db090d2dfd41ca35238dae6d6534835bba30c47a5a103d4ecb1c42b0796c"
+    },
+    "source-comparison.json": {
+      "bytes": 23019,
+      "sha256": "9ba356e1949075b77e97cd18eb2cf4b4b7735588f09779c59f75f21149dcf89f"
+    },
+    "prospective-driver.py": {
+      "bytes": 13364,
+      "sha256": "060b1551df9df15c5f867cc5d8c2d5dde40d3710a09b0b5e87e7111000012ced"
+    },
+    "prospective.patch": {
+      "bytes": 1206,
+      "sha256": "311774cbb6096d3eaaad303624d2856978df1c266114ed177a775067997c16aa"
+    },
+    "inverse.patch": {
+      "bytes": 1206,
+      "sha256": "35b197d508f521e7e0e56b597a9b9707fe8c10142082714e574d5721edc6ad29"
+    },
+    "REPORT.md": {
+      "bytes": 11052,
+      "sha256": "35f2cc19f8c91b0999f298ef9d2b2a1969173491973c2ba8e4a54f3e2193bce9"
+    }
+  },
+  "outputReceipt": "verification/receipts/auth-regression-driver-premise-r4190.json",
+  "completedUTC": "2026-11-16T18:11:45.536499+00:00",
+  "elapsedSeconds": 690.536499,
+  "artifactVerification": "Directly read delivered files; all seven declared artifact pins, exact forward/inverse diffs and final counterproof counts agree."
+}

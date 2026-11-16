@@ -94,7 +94,7 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
           c.credential_ref === b["credential_ref"] and
           c.credential_revision === b["credential_revision"]
     else
-      true = s.attempt === nil and s.attempt_envelope === nil
+      :ok = pending_source!(s, config)
 
       true =
         Enum.all?(
@@ -118,6 +118,73 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
 
     expires
   end
+
+  defp pending_source!(%StoredSnapshot{attempt: nil, attempt_envelope: nil}, _), do: :ok
+
+  defp pending_source!(%StoredSnapshot{} = s, config) do
+    a = s.attempt
+    b = s.browser
+    e = s.attempt_envelope
+
+    c = %{
+      purpose: :attempt,
+      state_digest: a["state_digest"],
+      browser_id: b["id"],
+      cookie_digest: b["cookie_digest"],
+      epoch: b["epoch"],
+      revision: b["revision"],
+      generation: b["generation"],
+      config_digest: b["config_digest"],
+      profile_id: config.profile_id,
+      profile_version: config.profile_version,
+      issuer: config.issuer,
+      client_id: config.client_id,
+      redirect_uri: config.redirect_uri,
+      expires_at: a["expires_at"]
+    }
+
+    true = e.context === c
+    true = raw?(a["state_digest"], 32) and raw?(a["nonce_digest"], 32)
+    true = a["created_at"] >= b["created_at"] and a["created_at"] <= System.system_time(:second)
+    true = a["expires_at"] > a["created_at"] and a["expires_at"] <= a["created_at"] + 300
+    true = a["expires_at"] <= min(b["absolute_expires_at"], b["idle_expires_at"])
+    true = a === attempt_fields(c, e.sealed, a["nonce_digest"], a["created_at"])
+    :ok
+  end
+
+  defp attempt_fields(c, sealed, nonce_digest, created_at) do
+    %{
+      "state_digest" => c.state_digest,
+      "browser_id" => c.browser_id,
+      "browser_epoch" => c.epoch,
+      "browser_revision" => c.revision,
+      "cookie_digest" => c.cookie_digest,
+      "generation" => c.generation,
+      "config_digest" => c.config_digest,
+      "profile_id" => c.profile_id,
+      "profile_version" => c.profile_version,
+      "issuer" => c.issuer,
+      "client_id" => c.client_id,
+      "redirect_uri" => c.redirect_uri,
+      "return_route" => "workspace",
+      "nonce_digest" => nonce_digest,
+      "created_at" => created_at,
+      "expires_at" => c.expires_at,
+      "status" => "pending",
+      "claim_digest" => nil,
+      "claimed_at" => nil,
+      "claim_expires_at" => nil,
+      "completion_reason" => nil,
+      "ciphertext_version" => 1,
+      "key_id" => sealed.key_id,
+      "iv" => bytea_hex(sealed.iv),
+      "tag" => bytea_hex(sealed.tag),
+      "ciphertext" => bytea_hex(sealed.ciphertext)
+    }
+  end
+
+  defp raw?(value, size), do: is_binary(value) and byte_size(value) == size
+  defp bytea_hex(value), do: "\\x" <> Base.encode16(value, case: :lower)
 
   def run(lease, source, operation) do
     config = lease.runtime.browser_config

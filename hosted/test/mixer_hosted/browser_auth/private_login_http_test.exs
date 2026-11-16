@@ -1322,7 +1322,17 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
     assert response_header(r, "set-cookie") == [] and response_header(r, "location") == []
     assert {:ok, snapshot} = StoredSnapshot.decode(raw(p.cookie, c))
     assert snapshot.browser["status"] == "preauth"
-    assert http(c, "/auth/session", headers(p.cookie)).status == 503
+    session = http(c, "/auth/session", headers(p.cookie))
+    assert session.status == 200
+    canonical_preauth? =
+      Jason.decode!(session.body) == %{"state" => "unauthenticated", "csrf_token" => p.csrf}
+    assert canonical_preauth?
+    assert response_header(session, "cache-control") == ["no-store"]
+    no_session_cookie? = response_header(session, "set-cookie") == []
+    no_session_redirect? = response_header(session, "location") == []
+    assert no_session_cookie? and no_session_redirect?
+    assert http(c, "/console-api/v1/orgs?limit=1", headers(p.cookie)).status == 401
+    IO.puts("R4152_SESSION status=200 canonical_preauth=true original_csrf=true exact_two_fields=true no_cookie=true no_redirect=true protected_orgs_unauthenticated=true provider_exchange_unchanged=true")
     assert pending.() == pending_before
     assert GenServer.call(c.provider, :count) == provider_before
     retry = http(c, "/auth/callback?" <> l.query, l.headers)
