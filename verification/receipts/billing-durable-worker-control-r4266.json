@@ -1,0 +1,368 @@
+{
+  "task": "R4266",
+  "createdAtUTC": "2026-11-16T20:10:32.193921+00:00",
+  "status": "BLOCKED_MISSING_SHIPPING_BILLING_WORKER",
+  "namedExecutable": "shipping_billing_durable_job_worker_and_replay_boundary",
+  "localDiscriminator": "PASS",
+  "actualShippingWorkerBoundary": "NOT_EXECUTABLE_MISSING_IMPLEMENTATION",
+  "owner": "verification/local/billing-durable-worker-control-r4266",
+  "elapsedSecondsSinceOwnedNamespaceCreation": 402.91475439071655,
+  "contract": {
+    "inbox": "WebhookInbox.admit/2 stores endpoint-scoped event identity and atomically inserts worker.new(%{inbox_id: id}); duplicate identical bytes preserve inbox identity and enqueue nothing. Financial state is explicitly not applied from event snapshots.",
+    "worker": "BillingWebhookEndpoint requires trusted deployment configuration to supply a real reconciliation worker; no default worker exists. Canonical hosted/lib has only Builds.Coordinator as a shipping Oban worker; other observed workers are test/support fixtures.",
+    "providerObservation": "SubscriptionReadTransport is private and unselected, with no worker behaviour, persistence or entitlement effects. ObservedSubscription has ordering_unavailable and lacks owning-account proof.",
+    "missingBoundary": "Shipping Oban billing reconciliation worker perform/1 consuming persisted inbox_id through trusted tenant/provider lookup and durable, retry-safe state transition is absent."
+  },
+  "observations": {
+    "no_default_configuration": "{:error, :billing_disabled}",
+    "shipping_nonworker_configuration": "{:error, :billing_disabled}",
+    "shipping_nonworker_start": "{:error, :billing_disabled}",
+    "public_inbox_nonworker_admission": "{:error, :verification_unavailable}",
+    "decoded_ordering": "ordering_unavailable",
+    "foreign_customer_decode": "observation_rejected"
+  },
+  "inventory": {
+    "compiledApplicationModules": 257,
+    "compiledBillingModules": 14,
+    "shippingObanWorkers": [
+      "Elixir.MixerHosted.Builds.Coordinator"
+    ],
+    "shippingBillingWorkers": 0,
+    "loadedIdentities": [
+      {
+        "md5": "5dc84d92210ce1295d64a40a76d3d9d9",
+        "module": "Elixir.MixerHostedWeb.BillingWebhookEndpoint",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/mixer_hosted/ebin/Elixir.MixerHostedWeb.BillingWebhookEndpoint.beam"
+      },
+      {
+        "md5": "86a6fef95919fad6714144da261805e1",
+        "module": "Elixir.MixerHosted.Billing.WebhookInbox",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/mixer_hosted/ebin/Elixir.MixerHosted.Billing.WebhookInbox.beam"
+      },
+      {
+        "md5": "bc41d77e49fec807c520567e66bbc25f",
+        "module": "Elixir.MixerHosted.Billing.SubscriptionReadTransport",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/mixer_hosted/ebin/Elixir.MixerHosted.Billing.SubscriptionReadTransport.beam"
+      },
+      {
+        "md5": "ab07284f66cce28d3bb74be5a9c16ed9",
+        "module": "Elixir.MixerHosted.Billing.ObservedSubscription",
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/mixer_hosted/ebin/Elixir.MixerHosted.Billing.ObservedSubscription.beam"
+      }
+    ]
+  },
+  "counts": {
+    "product_compiles": 0,
+    "runtime_batches": 1,
+    "pg_launches": 0,
+    "pg_fast_stops": 0,
+    "shipping_worker_executions": 0,
+    "fixture_worker_executions": 0,
+    "durable_inbox_insertions": 0,
+    "oban_insertions": 0,
+    "provider_calls": 0
+  },
+  "durableIDs": {
+    "freshInboxID": null,
+    "freshJobID": null,
+    "reason": "No real billing worker to configure. No manual insertion or no-op fixture worker substituted."
+  },
+  "priorIngress": {
+    "references": [
+      "verification/receipts/billing-production-ingress-r4120.json",
+      "verification/receipts/billing-production-ingress-root-review-r4130.json"
+    ],
+    "rerun": false,
+    "workersExecutedInPrior": 0,
+    "qualificationExtended": false
+  },
+  "pins": {
+    "canonicalSelectedSources": {
+      "hosted/lib/mixer_hosted/billing/observed_subscription.ex": {
+        "bytes": 2846,
+        "sha256": "49bf9da5d873d0299b9cf99bc70a27711cad9b1145ea17e56ba294f103a08e0e"
+      },
+      "hosted/lib/mixer_hosted/billing/raw_webhook_capture.ex": {
+        "bytes": 7827,
+        "sha256": "a420d5a54868d61c3d6e9c7cb41807698eb729df3e6babda12135a727ac657ea"
+      },
+      "hosted/lib/mixer_hosted/billing/subscription_read_transport.ex": {
+        "bytes": 9245,
+        "sha256": "d9a1440060a6166eb49eac42d89bcf2c613bd60a0609d1002eeea3cf7bcaec95"
+      },
+      "hosted/lib/mixer_hosted/billing/usage_entry.ex": {
+        "bytes": 559,
+        "sha256": "6b6a5b2acdcf8a2118d34ccc15345e63ac08e3d2e2676489366bf8ebbce1322f"
+      },
+      "hosted/lib/mixer_hosted/billing/usage_ledger.ex": {
+        "bytes": 7837,
+        "sha256": "4655ef30ec1efa001bf38194701c0f7e5785df55a7efb1889f27741cb5f6c266"
+      },
+      "hosted/lib/mixer_hosted/billing/webhook_event.ex": {
+        "bytes": 505,
+        "sha256": "e353ab039a9b5d6a919888baf7e424bd126a208571019651764cf801d4d7955f"
+      },
+      "hosted/lib/mixer_hosted/billing/webhook_inbox.ex": {
+        "bytes": 6483,
+        "sha256": "d498fa87642389a4351f195a94632e2b890881bcb803e5aeb7659080a2147f87"
+      },
+      "hosted/lib/mixer_hosted/billing/webhook_signature.ex": {
+        "bytes": 4549,
+        "sha256": "3fa0a2d8bee3e4eb9a4204857aaec0d16565df7c0d3f0aa8062158d51f2e3cb6"
+      },
+      "hosted/lib/mixer_hosted/billing/webhook_transport.ex": {
+        "bytes": 22396,
+        "sha256": "56a26cf3a56f3e5a5b2d8f5104fc7c3371b0e44918b007197be5871cf94ef1a5"
+      },
+      "hosted/config/config.exs": {
+        "bytes": 431,
+        "sha256": "6510b5e0f5eecb2ced799250d7bdcef91b8f8278e19e2c886c60dd624443005c"
+      },
+      "hosted/config/runtime.exs": {
+        "bytes": 695,
+        "sha256": "386315724c984b7a66daa66c5f95bbaa6fdbeacd36296167695b33a5c9933367"
+      },
+      "hosted/lib/mixer_hosted_web/billing_webhook_controller.ex": {
+        "bytes": 1547,
+        "sha256": "e054af6025aacb4fa826129681fd958c2127d95bfd0ba4b6c71a979c401792a3"
+      },
+      "hosted/lib/mixer_hosted_web/billing_webhook_endpoint.ex": {
+        "bytes": 1903,
+        "sha256": "469f02425b201e9cf81c45f7da0a83fc8d92eae3e66b17d7f5b165eed8be9ff6"
+      }
+    },
+    "canonicalMatchesQualifiedR4204Sources": {
+      "hosted/lib/mixer_hosted/billing/observed_subscription.ex": true,
+      "hosted/lib/mixer_hosted/billing/raw_webhook_capture.ex": true,
+      "hosted/lib/mixer_hosted/billing/subscription_read_transport.ex": true,
+      "hosted/lib/mixer_hosted/billing/usage_entry.ex": true,
+      "hosted/lib/mixer_hosted/billing/usage_ledger.ex": true,
+      "hosted/lib/mixer_hosted/billing/webhook_event.ex": true,
+      "hosted/lib/mixer_hosted/billing/webhook_inbox.ex": true,
+      "hosted/lib/mixer_hosted/billing/webhook_signature.ex": true,
+      "hosted/lib/mixer_hosted/billing/webhook_transport.ex": true,
+      "hosted/config/config.exs": true,
+      "hosted/config/runtime.exs": true,
+      "hosted/lib/mixer_hosted_web/billing_webhook_controller.ex": true,
+      "hosted/lib/mixer_hosted_web/billing_webhook_endpoint.ex": true
+    },
+    "canonicalBeforeAfterExact": true,
+    "privateAndOriginalCachedFiles": 1075,
+    "cachedBytes": 18058791,
+    "allCachedBeforeAfterAndOriginalExact": true,
+    "qualifiedCache": {
+      "receipt": "verification/receipts/active-session-diagnostic-full-r4204.json",
+      "pin": {
+        "bytes": 19990,
+        "sha256": "106238350a8cb36a573b05f719e5049e528128af6acbf886f5e32cda72c08e0c"
+      },
+      "status": "FULL_ORDINARY_PASSED",
+      "cleanup": true
+    },
+    "artifacts": {
+      "command.py": {
+        "bytes": 939,
+        "sha256": "15e0944dd9ce9e20644173101c7e846cc2f9e4a8407b70df0a0db4e12b147a47"
+      },
+      "prepare.py": {
+        "bytes": 2579,
+        "sha256": "70859c3ff273454896a245e01cda53d6b49e0071cc246b6dffc565482b103d5d"
+      },
+      "run.py": {
+        "bytes": 1952,
+        "sha256": "14918e9115b24504d178034fd10b92fe5b5894323a24e63f9d85bc9b01d9b2ec"
+      },
+      "finish.py": {
+        "bytes": 11448,
+        "sha256": "477089330825a13ebc286232c6595fb8550210832b387d6b06d12b422f2d4a98"
+      },
+      "discriminator.exs": {
+        "bytes": 5937,
+        "sha256": "c0298ff906ca035a134961819b0c49e1da11b1a219d5649997bef73d10217b17"
+      },
+      "source-before.json": {
+        "bytes": 2095,
+        "sha256": "e802772d2b25d60e1e8d5945e7acdb68c8d85c2b848cd2772f2903939126de83"
+      },
+      "source-after.json": {
+        "bytes": 2095,
+        "sha256": "e802772d2b25d60e1e8d5945e7acdb68c8d85c2b848cd2772f2903939126de83"
+      },
+      "cached-binaries-before.json": {
+        "bytes": 175463,
+        "sha256": "41730d2281741a8f75889a60d0c7c125604c0bd34306ae055b9f6ae2a6e984db"
+      },
+      "cached-binaries-after.json": {
+        "bytes": 175463,
+        "sha256": "41730d2281741a8f75889a60d0c7c125604c0bd34306ae055b9f6ae2a6e984db"
+      },
+      "discriminator-result.json": {
+        "bytes": 171407,
+        "sha256": "201112e4bee347ee07b11b32ebd9231332eeda15076b6dc10b0daf0c8153b47c"
+      },
+      "command-lifetimes.json": {
+        "bytes": 16725,
+        "sha256": "4d74c7d845ca09ea653f2739c54aa06c60229ce0de4e1f32f7e93ee212740c41"
+      },
+      "preparation-failures.json": {
+        "bytes": 2662,
+        "sha256": "de17719ec39eec15e9df7175c242cf342b93045285fdffb4375c3a14f78d4c45"
+      },
+      "qualified-cache-reference.json": {
+        "bytes": 255,
+        "sha256": "f3a05213789b8e85e865cae29e0ddbe9679c7c73f32a41aa48520e33922bc559"
+      },
+      "runtime-command/commands.json": {
+        "bytes": 3855,
+        "sha256": "f170069871dc5e221030e413444480a96f2dfea1ebca30cec52c2468c991730e"
+      },
+      "runtime-command/cached-shipping-worker-contract-discriminator.stdout": {
+        "bytes": 129,
+        "sha256": "e72f12ffb47225598749d4e138fa0d3bafdbd88562c22b58161e55657e10a2a5"
+      },
+      "runtime-command/cached-shipping-worker-contract-discriminator.stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "commands/agents-complete/agents-complete.stdout": {
+        "bytes": 76978,
+        "sha256": "0fd3b21727a508726d8d6defa40e1bbe16af76220160b0e180ed6f44abbc633d"
+      }
+    }
+  },
+  "runtime": {
+    "otp": "29",
+    "schedulers": 4,
+    "elixir": "1.20.4",
+    "erts": "17.1",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8"
+  },
+  "cleanup": {
+    "allRecordedCommandGroupsPositiveESRCH": true,
+    "recordedGroups": 21,
+    "runtimeCommand": {
+      "label": "cached-shipping-worker-contract-discriminator",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/bandit/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/db_connection/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/decimal/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/ecto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/ecto_sql/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/hpax/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/jason/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/jose/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/mime/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/mint/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/mixer_hosted/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/oban/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/phoenix/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/phoenix_pubsub/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/phoenix_template/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/plug/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/plug_crypto/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/postgrex/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/telemetry/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/thousand_island/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/websock/ebin",
+        "-pa",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/cached/websock_adapter/ebin",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-durable-worker-control-r4266/discriminator.exs"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+      "pid": 50246,
+      "pgid": 50246,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 1.4774639590177685,
+      "ownedGroupAbsentESRCH": true
+    },
+    "finalizationRecorder": "commands/finalize-receipt-r2/commands.json (owned by outer recorder; checked after assembly)",
+    "postgres": "NOT_ACQUIRED",
+    "beam": "direct reap + both EOF + closed FDs + group ESRCH",
+    "ports41420To41422": "NOT_ACQUIRED_NO_LISTENERS_STARTED",
+    "portReuseTest": "not needed: no sockets acquired",
+    "newHolds": 0,
+    "historicalHoldsReleased": false
+  },
+  "preservedPreparationFailures": [
+    {
+      "label": "agents-middle",
+      "exitCode": 1,
+      "closure": "reaped/EOF/FDs/ESRCH",
+      "detail": "Python display expression had an extra closing parenthesis; no runtime payload."
+    },
+    {
+      "label": "billing-cross-source",
+      "exitCode": 2,
+      "closure": "reaped/EOF/FDs/ESRCH",
+      "detail": "Search included nonexistent services/billing directory; subsequent search used existing services/internal and services/cmd."
+    },
+    {
+      "label": "finalize-receipt",
+      "exitCode": 1,
+      "closure": "reaped/EOF/FDs/ESRCH",
+      "detail": "Metadata assembly included its own live outer recorder row; excluded the owning finalizer row on the next metadata-only assembly. Runtime was not rerun."
+    },
+    {
+      "label": "source-contract",
+      "exitCode": 1,
+      "closure": "reaped/EOF/FDs/ESRCH",
+      "detail": "Assumed /opt/homebrew/bin/rg path absent; subsequent rg used discovered PATH executable."
+    },
+    {
+      "label": "r4266-agents",
+      "exitCode": 1,
+      "closure": "reaped/EOF/FDs/ESRCH",
+      "detail": "Relative AGENTS path resolved in supplied root wrapper's fixed log cwd; used owned pinned copy and absolute path subsequently."
+    }
+  ],
+  "writeScopeException": "Initial supplied-wrapper invocation created only command diagnostics under verification/local/continuation-root-r2332/commands/r4266-agents. Preserved; all subsequent output is in the assigned namespace and compact receipt.",
+  "remainingGates": [
+    "shipping_billing_reconciliation_worker_implementation",
+    "trusted_inbox_to_tenant_and_provider_scope_binding",
+    "ordered_current_provider_state_to_durable_transition_contract",
+    "normal_Oban_Basic_worker_execution_after_HTTP_ingress",
+    "durable_completion_retry_duplicate_replay_and_effect_boundaries",
+    "stale_foreign_scope_refusal_at_worker_transition_boundary",
+    "Stripe_test_mode_delivery_and_reconciliation",
+    "financial_activation_and_GA_acceptance"
+  ],
+  "limitations": [
+    "No PostgreSQL/HTTP/Oban worker runtime, drain, replay, completion, retry or financial mutation exercised; fresh durable IDs are absent.",
+    "Foreign-customer rejection is only the existing observation decoder boundary, not a worker/tenant reconciliation proof.",
+    "ObservedSubscription active status parsing conveys neither provider ordering nor entitlement activation.",
+    "No external transport method called, no provider app started, environment stripped to standard tool values and fixture options; no OS-wide egress firewall was configured.",
+    "One focused cached-BEAM batch, zero product compilation, zero PostgreSQL launches, zero runtime retries. Runtime harness R4266 module only; shipping binaries remain exact.",
+    "No canonical implementation/index/authority/CI/Git/network writes, children, GUI/native/VM actions, Stripe keys, customer financial activation, publication or messages.",
+    "No source candidate created because that would invent the absent financial transition contract.",
+    "Artifact policy index check not run: no staging or index changes were permitted or performed."
+  ],
+  "GA": false,
+  "financialActivation": false,
+  "providerAcceptance": false
+}

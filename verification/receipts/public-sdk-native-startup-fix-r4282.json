@@ -1,0 +1,92 @@
+{
+  "adoption": {
+    "GA": false,
+    "OTA": false,
+    "SPIdefault": false,
+    "finalSDK": false,
+    "physical": false,
+    "profile": false
+  },
+  "commandsAllRecordedTerminal": true,
+  "counterproof": {
+    "command": "proof-compilation-ledger.json",
+    "compilerCommandsMaximum": 2,
+    "compilerCommandsUsed": 1,
+    "compilerFailure": [
+      "UINode argument children must precede actions",
+      "FeatureDocumentV3 missing @_spi(FeatureUIV3) import"
+    ],
+    "jobs": 4,
+    "newPassProven": false,
+    "noProofExecutableRan": true,
+    "oldFailureReproduced": false,
+    "retries": 0,
+    "status": "COMPILE_FAILED_BEFORE_EXECUTION",
+    "stderr": "commands/value-compile-before/value-compile-before.stderr",
+    "stdout": "commands/value-compile-before/value-compile-before.stdout"
+  },
+  "finished": 1794861366.79162,
+  "firstCause": {
+    "runtimeEvidence": "R4280 SDK primary revisionNotIncreasing before initial/focus publication; actual request value/frame bytes were not published and are not inferred from consuming cleanup.",
+    "sourceCallgraph": "source-callgraph.json",
+    "sourceContract": "RootNativePresenter initializes MixerUIHost with request document; constructor reconciles it; presentFeature reconciles identical request document again, violating strictly-increasing revisions.",
+    "unexpectedReentranceRequired": false,
+    "valueExecutionProven": false
+  },
+  "historicalHoldsReleased": false,
+  "hostBuilds": 0,
+  "id": "R4282",
+  "independentReview": "R4268 source44-check PASS remains limited historical adapter evidence; changed fix has not been reviewed or accepted.",
+  "namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/public-sdk-native-startup-fix-r4282",
+  "nativeReady": false,
+  "newHolds": false,
+  "newImage": null,
+  "newRootArgv": null,
+  "payloadExecutions": {
+    "AX": 0,
+    "GUI": 0,
+    "Git": 0,
+    "VM": 0,
+    "actualHost": 0,
+    "backend": 0,
+    "children": 0,
+    "native": 0,
+    "proof": 0
+  },
+  "predecessor": {
+    "SDKDigest": "4c3bef98addfc8a58a74e47873f896e738bbe15f781194ef69d51f96b5af869f",
+    "SDKFiles": 96,
+    "host": {
+      "bytes": 27382,
+      "sha256": "168ba488382e8173c043a51c0dff33de0337d0f04707859be0d5788caf268b30"
+    },
+    "image": {
+      "bytes": 9535952,
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/public-sdk-genuine-host-build-r4260/build/arm64-apple-macosx/debug/FeatureUIHost",
+      "sha256": "105bb8fc7631df7551fc36993656664a09661463f405377da72faa1bd5ad3a80"
+    },
+    "sourceFiles": 194,
+    "sourceUnchanged": true
+  },
+  "preserved": {
+    "SDK96Exact": true,
+    "all10FeaturePinsExact": true,
+    "all25OldTestsExact": true,
+    "archiveR3732Unmodified": true,
+    "codecDefaultV1V2RetirementFenceDataSchemaExact": true,
+    "focusSTOPARCActivationWindowFIFO64OneFlightCloseAuthorityExact": true,
+    "source194Exact": true
+  },
+  "proposal": {
+    "SDKSourceChange": false,
+    "changedPathsIfApplied": [
+      "host/FeatureUIHost.swift"
+    ],
+    "description": "Use an empty, action-free host bootstrap at revision 0; install the unchanged genuine revision through presentFeature exactly once; keep strict revision/real native acknowledgement unchanged.",
+    "patch": "PROPOSED-UNAPPLIED-host.patch",
+    "status": "UNAPPLIED_UNCOMPILED_NOT_ACCEPTED"
+  },
+  "rootNext": "Task explicitly requires stop after compiler failure. Root must select whether a fresh corrected value proof is authorized; this packet authorizes no retry, native attempt or use of predecessor image as a fixed image.",
+  "sourceEditsApplied": 0,
+  "status": "STOPPED_COMPILER_FAILURE_NO_RETRY"
+}

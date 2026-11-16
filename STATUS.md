@@ -1,5 +1,15 @@
 # Current development status
 
+## Continuation checkpoint, November 16, 2026 — whole formatter correction and closed console trial
+
+The remaining JSON HTTP regression is now officially formatted with the same Elixir AST. The whole default formatter passes across 266 inputs; normal and actual optimized source controls each pass 21 cases. Installed current-source admission and CLI127 ownership pass. Six exact test/current-source bindings are updated; the auth product remains unchanged. The original CI formatter artifact remains unread, so the local result does not identify that historical artifact's failing file. [Applied correction](verification/receipts/auth-whole-format-root-r4292.json).
+
+The owned Chrome trial captured and visually verified the signed-out console. One login returned 200, but the actual callback returned 503; no build was submitted. PostgreSQL, Phoenix, Vite and Chrome all closed positively, all six owned ports were reusable, and source/dependency inputs stayed exact. Authenticated pixels and paired submitted-build database proof remain pending. [Actual trial](verification/receipts/console-owned-chrome-root-r4288.json).
+
+The first genuine public-SDK host attempt failed on duplicate revision-1 reconciliation, while consuming cleanup proved fourteen zero currents, zero tickets and invariant zero. A constructor-only successor passes the old-fail/new-pass SDK proof and builds; independent changed-fix review and a fresh native control remain pending. SDK consumer source review passed; coordinated successor source/profile admission is private work. [Closed native failure](verification/receipts/public-sdk-native-root-r4280.json), [startup successor](verification/receipts/native-startup-bootstrap-completion-r4290.json), [consumer review](verification/receipts/sdk-consumer-final-review-r4270.json).
+
+Billing still lacks a shipping reconciliation worker. Its first implementation task stopped during source discovery with UNKNOWN command custody and no code or runtime. The exact hold is preserved; a fresh isolated implementation uses the selected first-party worker contract. No financial activation or provider qualification follows. All 18 packages retain their scope and all 38 GA requirements remain open.
+
 ## Continuation checkpoint, November 16, 2026 — formatted auth source and qualified SDK components
 
 The first Phoenix check after auth v28 delivery stopped on official formatter output, before runtime. The rollback regression is now officially formatted with identical Elixir AST, and its six current-source bindings are corrected. All 21 relevant source/sparse controls passed in normal and actual optimized Python. Installed source admission, CLI127 ownership and the official formatting check pass. The earlier missing-AGENTS fixture failure remains preserved. [CI diagnosis](verification/receipts/auth-v28-hosted-first-failure-r4240.json), [applied correction](verification/receipts/auth-v28-format-root-r4262.json).

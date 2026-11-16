@@ -1,0 +1,99 @@
+{
+  "task": "R4274",
+  "status": "DESIGN_SELECTED_FOR_ROOT_IMPLEMENTATION",
+  "owner": "verification/local/billing-reconciliation-owner-design-r4274",
+  "report": "verification/local/billing-reconciliation-owner-design-r4274/REPORT.md",
+  "selectedPlacement": "first-party ReconciliationWorker + private transactional Reconciliation owner + typed ProviderRead; explicit deployment endpoint/provider configuration retained",
+  "rejectedPlacement": "deployment implements all billing worker, state, binding and financial policy code",
+  "documentedOwnership": [
+    "mixer-product-plan.md:165",
+    "mixer-product-plan.md:500",
+    "mixer-product-plan.md:502",
+    "mixer-product-plan.md:514",
+    "mixer-product-plan.md:524",
+    "mixer-product-plan.md:624",
+    "hosted/lib/mixer_hosted_web/billing_webhook_endpoint.ex:5",
+    "hosted/lib/mixer_hosted/billing/webhook_inbox.ex:5"
+  ],
+  "sourcePins": {
+    "kind": "exact per-file SHA256 and size manifest; no Git operation",
+    "manifest": "verification/local/billing-reconciliation-owner-design-r4274/source-manifest.json",
+    "numberedSourceCaptures": ["sources.txt", "grounding.txt", "interfaces.txt"],
+    "startingEvidence": [
+      "verification/receipts/billing-durable-worker-control-r4266.json",
+      "verification/local/billing-durable-worker-control-r4266/REPORT.md"
+    ],
+    "shippingSourceSnapshotFiles": 15,
+    "shippingSourceSnapshotBytesWithLineNumbers": 79581,
+    "sourceRevision": "not queried; per-file content pins identify the reviewed source",
+    "canonicalAfterCheck": "not performed; no canonical writes authorized or attempted"
+  },
+  "contract": {
+    "jobArgs": {"inbox_id": "checked UUID; exact sole key; never tenant/customer/account/credentials"},
+    "newModules": ["Billing.ReconciliationWorker", "Billing.Reconciliation", "Billing.Bindings", "Billing.ProviderRead", "Billing.Entitlements", "billing-specific processor profile/admission"],
+    "newPersistedOwners": ["provider endpoint/credential binding", "tenant/customer binding", "scoped resource-to-subscription link", "inbox reconciliation state and subscription claim", "checked current observation and immutable result/effect audit"],
+    "claimModel": "two bounded transactions around provider read; subscription-scoped lease, random token and increasing fence; commit CAS and fresh binding/organization revision checks",
+    "hypothesisLimits": {"leaseSeconds": 30, "providerDeadlineSeconds": 5, "dbTimeoutSeconds": 2, "obanMaxAttempts": 8},
+    "unknownOrdering": "persist checked observation and blocked ordering_unavailable result; no entitlement or financial intent",
+    "webhookTimestampsOrderState": false,
+    "decoderJSONGrantsFinancialAuthority": false,
+    "activationDefaultClosed": true,
+    "ingressHMACAndAtomicEnqueuePreserved": true,
+    "financialSemanticsInvented": false
+  },
+  "nextExecutable": {
+    "name": "shipping_billing_ingress_real_oban_reconciliation_boundary",
+    "environment": "fresh Root-owned PostgreSQL, Oban Basic, actual shipping ingress and new first-party worker; local TLS provider fixture only",
+    "newPersistedEffect": "checked subscription observation + reconciliation_blocked(ordering_unavailable) immutable receipt; zero financial intents",
+    "cases": ["HTTP-to-real-worker persistence", "identical HTTP duplicate", "reversed event-created times", "unknown/foreign binding", "transient read then actual retry", "lease expiry and stale-response fencing", "pre-commit abort and recovery", "post-commit lost acknowledgment replay", "binding revocation before commit", "bad args/missing inbox refusal"],
+    "limits": {"cases": 10, "databases": 1, "concurrentWorkers": 2, "signedHTTPRequests": 16, "jobAttempts": 20, "fixtureReads": 24, "runs": 2, "totalSeconds": 300},
+    "existingElevenHTTPTestsReplaced": false,
+    "runByR4274": false
+  },
+  "officialDocs": {
+    "readOnlyOpens": 4,
+    "urls": ["https://docs.stripe.com/webhooks", "https://docs.stripe.com/api/subscriptions/retrieve", "https://docs.stripe.com/api/accounts/retrieve"],
+    "providerAPIRequests": 0,
+    "credentialsUsed": false
+  },
+  "procedure": {
+    "fullAGENTSCapture": "verification/local/continuation-root-r2332/commands/r4274-full-instructions/r4274-full-instructions.stdout",
+    "architectSkill": "/Users/andreyyurlov/.t3/userdata/builtin-skills/f155abcccd36ba21529cb738df656004ad21cacb7491db64e20c6cbb6af2728e/skills/architect/SKILL.md",
+    "skillAdaptation": "local two-candidate grounding and selection; explicit no-child/design-only brief overrides delegated arena and implementation",
+    "shellInvocations": 24,
+    "admittedManagedCommands": 11,
+    "staticBootstrapOwnLogReadCommands": 13,
+    "wrapper": "byte-identical continuation-root-r2332/command.py copied into owned namespace; pins R986 custodian SHA256 ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+    "ownedCommandMetadata": "verification/local/billing-reconciliation-owner-design-r4274/commands/*/commands.json",
+    "initialRootWrapperLogLabels": ["r4274-instructions", "r4274-bootstrap", "r4274-full-instructions", "r4274-ground", "r4274-owned-setup"],
+    "writeScopeDeviation": "those five supplied-wrapper commands automatically wrote root wrapper diagnostics; preserved, then outputs moved to owned wrapper copy",
+    "preservedFailures": [
+      {"action": "report compaction patch", "result": "rejected before mutation: multiple operations target REPORT.md", "recovery": "separate owned-artifact deletion and replacement; no resource acquired"},
+      {"label": "r4274-instructions", "exitCode": 1, "reason": "relative AGENTS lookup in fixed wrapper cwd", "terminalEvidence": "commands.json; assertion occurred after direct reap, both EOFs, closed descriptors and owned-group ESRCH"},
+      {"label": "interfaces", "exitCode": 2, "reason": "search included nonexistent assumed entitlements.ex path", "terminalEvidence": "owned commands/interfaces/commands.json; assertion occurred after direct reap, both EOFs, closed descriptors and owned-group ESRCH"}
+    ],
+    "noActualProductResourceOwners": true,
+    "newHolds": 0,
+    "historicalHoldsInspectedOrReleased": false,
+    "productCompiles": 0,
+    "runtimeBatches": 0,
+    "postgresLaunches": 0,
+    "children": 0,
+    "canonicalIndexAuthorityCIGitWrites": 0,
+    "nativeGUIActions": 0,
+    "customerFinancialEffects": 0,
+    "credentialActions": 0
+  },
+  "limitations": [
+    "Architecture only; no implementation, executable test, independent acceptance or provider qualification occurred.",
+    "Existing read decoder lacks provider ordering and owning-account proof; its result cannot activate financial effects.",
+    "Current builds-only normal processor is not a billing processor; the selected implementation includes a separate explicit billing admission/profile.",
+    "All accepted event families still need trusted resource relationships and provider qualification; absent links remain visibly blocked.",
+    "Real financial policies, current-state consistency/order acceptance, idempotent outbound operations, complete W14/operational/customer gates remain pending.",
+    "Artifact-policy index check was not run because no staging/index operation was authorized or performed."
+  ],
+  "fullProductScopePreserved": "18 work packages; GA 0/38 per Root brief; no gate state changed",
+  "GA": false,
+  "financialActivation": false,
+  "providerAcceptance": false
+}
