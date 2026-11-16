@@ -1,0 +1,351 @@
+{
+  "id": "R4300_CONSOLE_CHROME_CALLBACK_CLOSED_DIAGNOSIS",
+  "status": "COMPLETE_FIRST_CALLBACK_PREDICATE_UNEXPOSED",
+  "scope": "closed-run/static diagnosis and prospective instrumentation only",
+  "inputR4288": "verification/local/console-owned-chrome-actual-r4288",
+  "comparisonR4242": "delivered static fixture, compact receipt and closed HTTP log only",
+  "namespace": "verification/local/console-chrome-callback-diagnosis-r4300",
+  "source338Digest": "7dbfe8484edfe7c81b413e468d2af591abc2c628566bed730b6a8b41597da243",
+  "r4288SourceHead": "38fd400be682f5568e1d64f9e3d7496109ab6e84",
+  "pythonVersion": "3.14.8",
+  "wrapperSourcePin": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52",
+  "firstTerminalUsefulPayload": "full current AGENTS.md through admitted R2332 wrapper",
+  "AGENTSSHA256": "faa687a283a9aff1e9970bae6504ccc173f3f5b071d6d1d174c0d9e5c2719675",
+  "facts": {
+    "loginPOST": 200,
+    "callbackGET": 503,
+    "buildPOSTs": 0,
+    "stage": "after-auth",
+    "screenshotCount": 1,
+    "callbackFirstPredicate": "unexposed",
+    "r4242CallbackGET": 303
+  },
+  "comparison": {
+    "directAuthAndSetupSourcesEqual": true,
+    "fullManifestsEqual": false,
+    "knownTransportDifference": "localhost origin/backend port only",
+    "cookiePolicyChanged": false,
+    "actualCookieDelivery": "unexposed",
+    "callbackCSRFDirectCheck": false,
+    "providerExchange": "unexposed"
+  },
+  "inertValueAnalysis": {
+    "cases": 2,
+    "outerCookiePatternAcceptsAbsent": true,
+    "innerCookieGuardRejectsAbsent": true,
+    "productExecution": false
+  },
+  "prospectiveInstrumentation": {
+    "path": "prospective-callback-discriminator.patch",
+    "stages": 4,
+    "executed": false,
+    "compiled": false,
+    "productFix": false,
+    "limitations": "present-cookie owner rejection remains inner-predicate unexposed; I/O/timing perturbation possible"
+  },
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 4820,
+      "sha256": "b43250c31c21222787501ee0ff3e1a7f21c3cc3de6983b186de2cd5651e5c5fc"
+    },
+    "sanitized-evidence.json": {
+      "bytes": 3982,
+      "sha256": "3bc846ea66881d63e5201843b4a71756787f579a9ad1492158f66d4abf74c66c"
+    },
+    "prospective-callback-discriminator.patch": {
+      "bytes": 1549,
+      "sha256": "d7b02bc6aaa0a492d2d1ea4060cdaebb6591224b46c7341e73d27e7f71231aef"
+    },
+    "prospective-patch-map.json": {
+      "bytes": 366,
+      "sha256": "34965fe69f21d7232d57488a33098554946ae769dae760e9793aae8870e246de"
+    },
+    "deliver.py": {
+      "bytes": 10009,
+      "sha256": "d5a7bd06057f15d8953b9e3c0b760b8d963439b564174778de06e41695dfff3e"
+    },
+    "finalize.py": {
+      "bytes": 5824,
+      "sha256": "a530db3883b0ab402dc5aecb9fd8a06567243a5120174a5499d7e3e8f2b65679"
+    },
+    "command.py": {
+      "bytes": 1607,
+      "sha256": "a8d4df80f2b7354ef8e570aa8dd9b89a3025f1f835f21d300e71bd81c8d744da"
+    }
+  },
+  "managedCommands": [
+    {
+      "label": "r4300-first-agents-read",
+      "argv": [
+        "/bin/cat",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 39347,
+      "pgid": 39347,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.016177500016056,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-wrapper-source",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); print((p/\"verification/local/continuation-root-r2332/command.py\").read_text())"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 39717,
+      "pgid": 39717,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03162883303593844,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-prepare-output-wrapper",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import hashlib; root=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); own=root/\"verification/local/console-chrome-callback-diagnosis-r4300\"; own.mkdir(exist_ok=False); (own/\"commands\").mkdir(); source=(root/\"verification/local/continuation-root-r2332/command.py\").read_text(); source=source.replace(\"print(out[-6000:],end=\\\"\\\")\", \"print(out,end=\\\"\\\")\"); (own/\"command.py\").write_text(source); print(\"prepared-own-wrapper\",hashlib.sha256(source.encode()).hexdigest())"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 39999,
+      "pgid": 39999,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.034449542057700455,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-instructions-and-closed-layout",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); print(\"FULL_AGENTS_BEGIN\"); print((r/\"AGENTS.md\").read_text()); print(\"FULL_AGENTS_END\"); print(\"PINNED_WRAPPER_SOURCE\"); print(Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py\").read_text()); p=r/\"verification/local/console-owned-chrome-actual-r4288\"; print(\"CLOSED_RUN_TOP_LEVEL\"); print(json.dumps(sorted(x.name for x in p.iterdir()))); print(\"RESULT_KEYS\"); j=json.loads((p/\"browser-evidence/result.json\").read_text()); print(json.dumps(sorted(j))); print(\"OWN_RECEIPTS_LAYOUT\"); print(json.dumps(sorted(x.name for x in Path(\"commands\").iterdir())))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 41418,
+      "pgid": 41418,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03504179196897894,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-full-rules-and-evidence-map",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json,hashlib,sys; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); print((r/\"AGENTS.md\").read_text()); p=r/\"verification/local/console-owned-chrome-actual-r4288\"; print(\"CLOSED_EVIDENCE_MAP\"); print(json.dumps({n: sorted(x.name for x in (p/n).iterdir()) for n in [\"live\",\"browser-evidence\",\"fixture\",\"root-command-registry\",\"client-command-registry\"]})); j=json.loads((p/\"browser-evidence/result.json\").read_text()); print(\"SAFE_RESULT\"); print(json.dumps({k:j[k] for k in [\"status\",\"stage\",\"loginPosts\",\"buildPosts\"]})); print(\"HTTP_SHAPE\"); h=j[\"http\"]; print(json.dumps({\"type\":type(h).__name__,\"entries\":len(h),\"keys\":[sorted(x) for x in h[:3]]} if isinstance(h,list) else {\"keys\":sorted(h)})); print(\"SOURCE_PINS_SHAPE\"); print(json.dumps(sorted(json.loads((p/\"source-pins.json\").read_text())))); print(\"PYTHON_VERSION\",sys.version.split()[0])"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 43269,
+      "pgid": 43269,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05448666703887284,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-closed-predicate-trace",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "inspect_closed.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 50354,
+      "pgid": 50354,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06839833396952599,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-deeper-static-trace",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "inspect_deeper.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 60139,
+      "pgid": 60139,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.042429833905771375,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-precise-boundaries",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import re,json,hashlib; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); p=r/\"verification/local/console-owned-chrome-actual-r4288\"; ranges={\"helper.py\":[(1,50),(135,235)],\"fixture/hosted/lib/mixer_hosted/browser_auth/protocol.ex\":[(1,28),(82,142),(145,190)],\"fixture/hosted/lib/mixer_hosted/browser_auth/callback_lifecycle.ex\":[(77,106),(108,150),(205,240)],\"fixture/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex\":[(260,286),(373,464)]}; safe={\"origin\",\"cookie\",\"set-cookie\",\"host\",\"referer\",\"content-type\",\"content-length\",\"transfer-encoding\",\"location\",\"x-mixer-csrf\",\"csrf_token\",\"state\",\"iss\",\"code\",\"error\",\"mode\",\"begun\",\"Secure\",\"__Host-mixer\",\"SameSite=Lax\",\"HttpOnly\",\"Path=/\",\"code_verifier\",\"redirect_uri\"};\nfor rel,rs in ranges.items():\n print(\"STATIC\",rel)\n for i,l in enumerate((p/rel).read_text().splitlines(),1):\n  if any(a<=i<=b for a,b in rs):\n   l=re.sub(r\"\\\"(?:\\\\.|[^\\\"\\\\])*\\\"|\\x27(?:\\\\.|[^\\x27\\\\])*\\x27\",lambda m:m[0] if m[0][1:-1] in safe else \"\\\"<literal>\\\"\",l); print(str(i)+\": \"+l)\nfor name in [\"console-current-session-root-r4242.json\",\"console-owned-chrome-root-r4288.json\"]:\n j=json.loads((r/\"verification/receipts\"/name).read_text()); print(\"RECEIPT\",name)\n for k in [\"evidence\",\"runtimeResult\",\"httpSequence\",\"outerCustody\",\"newHold\",\"sourceHead\",\"sourceFilesExact\"]:\n  if k not in j: continue\n  v=j[k]\n  if k==\"evidence\": print(k,json.dumps(v))\n  elif k==\"httpSequence\": print(k,json.dumps(v))\n  elif isinstance(v,(bool,int)): print(k,v)\n  elif isinstance(v,dict): print(k,\"keys\",sorted(v))\n  elif k==\"sourceHead\": print(k,v)\n print(\"COPY_ORIGINS\" if name.endswith(\"r4288.json\") else \"END\")\n if name.endswith(\"r4288.json\"): print((p/\"copy-origins.json\").read_text())"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 60905,
+      "pgid": 60905,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.06057220802176744,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-closed-comparison",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json,re,hashlib,ast,time,difflib; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); a=r/\"verification/local/console-owned-chrome-actual-r4288\"; b=r/\"verification/local/console-current-session-root-r4242\"; print(\"ELAPSED_SECONDS\",round(time.time()-Path(\"command.py\").stat().st_mtime));\nfor rel in [\"runtime.exs\",\"fixture/hosted/lib/mixer_hosted_web/browser_login_http.ex\",\"fixture/hosted/lib/mixer_hosted/browser_auth/protocol.ex\",\"fixture/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex\",\"fixture/hosted/lib/mixer_hosted/browser_auth/callback_lifecycle.ex\",\"fixture/hosted/test/support/ordinary_browser_startup_fixture.ex\",\"fixture/hosted/test/support/browser_login_provider_fixture.ex\"]:\n x=(a/rel).read_bytes(); y=(b/rel).read_bytes(); print(\"STATIC_COMPARISON\",rel,\"identical\",x==y)\nx=(a/\"helper.py\").read_text();y=(b/\"helper.py\").read_text(); ax=ast.parse(x);ay=ast.parse(y)\nfor method in [\"handle_owned\",\"wire\"]:\n nx=next(n for n in ast.walk(ax) if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name==method); ny=next(n for n in ast.walk(ay) if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name==method); print(\"HELPER_AST_EQUAL\",method,ast.dump(nx,include_attributes=False)==ast.dump(ny,include_attributes=False))\n for line in difflib.unified_diff(ast.get_source_segment(y,ny).splitlines(),ast.get_source_segment(x,nx).splitlines(),n=2):\n  if len(line)>400: continue\n  line=re.sub(r\"\\\"(?:\\\\.|[^\\\"\\\\])*\\\"|\\x27(?:\\\\.|[^\\x27\\\\])*\\x27\",\"\\\"<literal>\\\"\",line); print(line)\np=(a/\"fixture/hosted/lib/mixer_hosted/browser_auth/protocol.ex\").read_text(); print(\"COOKIE_POLICY\",json.dumps({\"same_site_flags\":sorted(set(re.findall(r\"SameSite=(Lax|Strict|None)\",p))),\"secure_attribute\": \"; Secure;\" in p,\"host_prefix\": \"__Host-\" in p}));\nfor name in [\"console-current-session-root-r4242.json\",\"console-owned-chrome-root-r4288.json\"]:\n j=json.loads((r/\"verification/receipts\"/name).read_text()); print(\"COMPARISON_RECEIPT\",name); print(\"evidence_shape\",{k:type(v).__name__ for k,v in j.get(\"evidence\",{}).items()} if isinstance(j.get(\"evidence\"),dict) else type(j.get(\"evidence\")).__name__); print(\"http_sequence_shape\",type(j.get(\"httpSequence\")).__name__); print(\"static_fields\",{k:j[k] for k in [\"newHold\",\"sourceFilesExact\",\"productCompilations\",\"sourceHead\"] if k in j}); print(\"result_keys\",sorted(j.get(\"runtimeResult\",{})) if isinstance(j.get(\"runtimeResult\"),dict) else type(j.get(\"runtimeResult\")).__name__)\nprint(\"OWN_RECORDS\",json.dumps([{ \"label\":p.parent.name, \"bytes\":p.stat().st_size} for p in Path(\"commands\").glob(\"*/*.stdout\")]))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 67834,
+      "pgid": 67834,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.059594333986751735,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-final-source-discriminator",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import ast,json,re,hashlib,difflib; from urllib.parse import urlsplit; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); a=r/\"verification/local/console-owned-chrome-actual-r4288\"; b=r/\"verification/local/console-current-session-root-r4242\";\nfor label,p in [(\"R4288\",a),(\"R4242\",b)]:\n t=ast.parse((p/\"helper.py\").read_text()); val=next(n.value.value for n in ast.walk(t) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id==\"origin\" for x in n.targets) and isinstance(n.value,ast.Constant)); u=urlsplit(val); print(\"SAFE_ORIGIN_CLASS\",label,{\"scheme\":u.scheme,\"host_class\":\"localhost\" if u.hostname==\"localhost\" else \"loopback-v4\" if u.hostname==\"127.0.0.1\" else \"other\",\"port\":u.port}); bridge=json.loads((p/\"live/bridge.json\").read_text()); print(\"BRIDGE\",label,{k:v for k,v in bridge.items() if isinstance(v,(bool,int))}); ev=json.loads((p/\"live/http-events.json\").read_text()); print(\"HTTP_TAGS\",label,[{\"method\":e[\"method\"],\"status\":e[\"status\"],\"route\":e[\"path\"] if e[\"path\"] in [\"/auth/session\",\"/auth/login\",\"/auth/callback\"] else \"<catalog>\"} for e in ev]); print(\"HTTP_RECORDED_FIELDS\",label,sorted(set(k for e in ev for k in e)))\nprint(\"RUNTIME_DIFF_REDACTED\")\nfor line in difflib.unified_diff((b/\"runtime.exs\").read_text().splitlines(),(a/\"runtime.exs\").read_text().splitlines(),n=2):\n print(re.sub(r\"\\\"(?:\\\\.|[^\\\"\\\\])*\\\"\",\"\\\"<literal>\\\"\",line))\np=a/\"fixture/hosted/diagnostics/browser_login_trace_test.exs\"; print(\"DIAGNOSTIC_SOURCE\",len(p.read_bytes()))\nfor i,line in enumerate(p.read_text().splitlines(),1): print(str(i)+\": \"+re.sub(r\"\\\"(?:\\\\.|[^\\\"\\\\])*\\\"\",\"\\\"<literal>\\\"\",line))\ntext=(a/\"live/phoenix-fixture.stdout\").read_text(); print(\"LOG_SAFE_MARKERS\",sorted(set(re.findall(r\"R[0-9]{3,5}_[A-Z_]+\",text)))); print(\"LOG_CALLBACK_MODULE_MENTIONS\",{n:text.count(n) for n in [\"BrowserLoginHTTP\",\"CallbackLifecycle\",\"RuntimeOwner\",\"Protocol\",\"ProviderOwner\"]}); pins=json.loads((a/\"source-pins.json\").read_text()); print(\"SOURCE_DIGEST_DERIVED\",hashlib.sha256(\"\".join(k+\"\\0\"+v[\"sha256\"]+\"\\n\" for k,v in sorted(pins.items())).encode()).hexdigest()); print(\"SOURCE338_REFERENCE\",{k:v for k,v in json.loads((r/\"verification/receipts/console-owned-chrome-root-r4288.json\").read_text()).items() if \"source\" in k.lower() and isinstance(v,(str,int,bool))})"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 70933,
+      "pgid": 70933,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.0515177920460701,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-write-reviewable-diagnosis",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "deliver.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 76434,
+      "pgid": 76434,
+      "state": "direct_reaped",
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05987066694069654,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-delivery-error-source-only",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import re,json; p=Path(\"commands/r4300-write-reviewable-diagnosis/r4300-write-reviewable-diagnosis.stderr\"); s=p.read_text(); print(\"DELIVERY_EXCEPTION_CLASS\",s.splitlines()[-1].split(\":\",1)[0]); print(\"DELIVERY_FRAMES\",re.findall(r\"File \\\"([^\\\"]+)\\\", line ([0-9]+), in ([A-Za-z0-9_<>]+)\",s)[-3:]); print(\"DELIVERY_ERROR_SOURCE_LINE\",next((l.strip() for l in s.splitlines() if l.lstrip().startswith(\"assert \")),\"none\")); p=Path(\"deliver.py\"); print(\"DELIVERY_SOURCE_LINES\",len(p.read_text().splitlines())); print(\"CLOSED_DELIVERY\",json.loads(Path(\"commands/r4300-write-reviewable-diagnosis/commands.json\").read_text())[0][\"state\"])"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 79841,
+      "pgid": 79841,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03345008403994143,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-deliver-corrected-static-diagnosis",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "deliver.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 82631,
+      "pgid": 82631,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05941462505143136,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4300-finalize",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "finalize.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/console-chrome-callback-diagnosis-r4300",
+      "pid": 85843,
+      "pgid": 85843,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04655954195186496,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "managedCommandCount": 14,
+  "finalizerClosure": "positive direct reap, both EOFs, closed descriptors and group ESRCH; appended only after run returned",
+  "elapsedSecondsBeforeFinalizerClosure": 598.94,
+  "timeBudgetSeconds": 600,
+  "commandBudget": 14,
+  "constraints": {
+    "productCompilations": 0,
+    "productRuntimeLaunches": 0,
+    "browsers": 0,
+    "services": 0,
+    "kernelOrNetworkProbes": 0,
+    "GitCommands": 0,
+    "childrenDelegated": 0,
+    "canonicalChanges": false,
+    "indexChanges": false,
+    "authorityChanges": false,
+    "heldNamespacesRead": false,
+    "holdsReleased": false,
+    "newHold": false
+  },
+  "GA": false,
+  "localDeliveryPreparationFailure": {
+    "label": "r4300-write-reviewable-diagnosis",
+    "class": "AssertionError",
+    "cause": "incorrect full-manifest equality assumption; corrected and differences retained",
+    "closed": true
+  },
+  "allManagedCommandsClosed": true
+}

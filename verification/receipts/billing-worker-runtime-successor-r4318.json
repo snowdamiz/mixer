@@ -1,0 +1,194 @@
+{
+  "campaign": "billing-worker-runtime-successor-r4318",
+  "status": "CLOSED_RUNTIME_FAILURE_STOPPED_NO_RETRY",
+  "owner": "verification/local/billing-worker-runtime-successor-r4318",
+  "report": "verification/local/billing-worker-runtime-successor-r4318/REPORT.md",
+  "startedUTC": "2026-11-16T21:19:03+00:00",
+  "finishedUTC": "2026-11-16T21:27:59.054229+00:00",
+  "taskSeconds": 536.054229,
+  "deadlineSeconds": 1200,
+  "freshRuntimeBatches": 1,
+  "runtimeAndCleanupSeconds": 1.2864655420416966,
+  "firstActualFailure": {
+    "phase": "setup_all -> Ecto.Migrator.run -> AddBillingReconciliation.up/0",
+    "file": "hosted/priv/repo/migrations/20261116000000_add_billing_reconciliation.exs",
+    "line": 6,
+    "SQLSTATE": "42601",
+    "message": "cannot insert multiple commands into a prepared statement",
+    "causeObserved": "Fourteen top-level SQL statements submitted by one migration execute/1 through the normal Ecto/Postgrex prepared-statement path",
+    "failureOutput": "verification/local/billing-worker-runtime-successor-r4318/run/runtime.stdout",
+    "runtimeStderrEmpty": true,
+    "sourceFixesAfterFailure": 0,
+    "runtimeRetries": 0
+  },
+  "counts": {
+    "integrationCaseBodiesExecuted": 0,
+    "integrationCaseBodiesPassed": 0,
+    "exUnitRawResult": {
+      "total": 1,
+      "failures": 1,
+      "excluded": 0,
+      "skipped": 0
+    },
+    "case01": "invalidated by failed setup_all; body unrun",
+    "allTenCaseBodiesUnrun": [
+      "01 preserved eleven ingress cases and actual first-party Basic worker",
+      "02 duplicate/replay does not read or add observation",
+      "03 reversed timestamps remain observations without grants",
+      "04 missing and revoked relationships block before I/O",
+      "05 provider failure has durable retry then actual retry succeeds",
+      "06 live contender snoozes and expired response cannot beat successor",
+      "07 pre-commit abort leaves no partial observation and expiry recovers",
+      "08 committed result survives lost acknowledgment and repeated delivery",
+      "09 credential revocation during I/O refuses T2",
+      "10 malformed extra-key and missing inbox jobs fail closed"
+    ],
+    "signedHTTP": 0,
+    "providerReads": 0,
+    "workerAttempts": 0,
+    "maxConcurrentWorkers": 0,
+    "actualObanBasicCompletions": 0,
+    "directShippingWorkerCompletions": 0,
+    "retriesExecuted": 0,
+    "replaysExecuted": 0,
+    "claimedInboxIDs": [],
+    "blockedResult": "UNEXERCISED: schema setup aborted before worker/ingress/TLS startup",
+    "financialEntitlementOutcome": "No worker or ingress executed; database zero-effect assertions unrun",
+    "productCompiles": 0,
+    "gitProcesses": 0,
+    "childrenDelegated": 0
+  },
+  "limits": {
+    "runtimeBatches": 1,
+    "runtimeSeconds": 300,
+    "signedHTTP": 16,
+    "workerAttempts": 20,
+    "providerReads": 24,
+    "concurrentWorkers": 2,
+    "managedCommands": 20
+  },
+  "managedCommandsObserved": 9,
+  "terminalExecCallsIncludingFinalizer": 17,
+  "custody": {
+    "postgres": {
+      "label": "postgres",
+      "pid": 52681,
+      "pgid": 52681,
+      "regularFileLogs": true,
+      "state": "TERMINAL",
+      "directReaped": true,
+      "exit": 0,
+      "ownedGroupAbsentESRCH": true,
+      "closedFDs": true,
+      "pipeEOF": "not applicable: regular file output, stdin closed"
+    },
+    "runtime": {
+      "label": "runtime",
+      "pid": 52694,
+      "pgid": 52694,
+      "regularFileLogs": true,
+      "state": "TERMINAL",
+      "directReaped": true,
+      "exit": 1,
+      "ownedGroupAbsentESRCH": true,
+      "closedFDs": true,
+      "pipeEOF": "not applicable: regular file output, stdin closed"
+    },
+    "postgresLaunches": 1,
+    "postgresFastStops": 1,
+    "fastStopExit": 0,
+    "allManagedCommandGroupsPositiveESRCH": true,
+    "regularFileServerAndRuntimeLogs": true,
+    "portsReusable": [
+      41460,
+      41461,
+      41462
+    ],
+    "socketOwnership": {
+      "path": "/private/tmp/mixer-pg-r4318-h2v3rakl",
+      "inode": 803114457,
+      "device": 16777232,
+      "uid": 501,
+      "mode": "0700",
+      "socketPathBytes": 51
+    },
+    "socketDirectoryRemoved": true,
+    "newUNKNOWNHolds": false,
+    "ownActiveFinalizerSelfHold": false,
+    "retainedPrimaryExecSession": 33152,
+    "primaryExecCollectedExit": 1,
+    "terminalResults": "verification/local/billing-worker-runtime-successor-r4318/terminal-results.json"
+  },
+  "pins": {
+    "frozenShippingFiles": 11,
+    "sourceFilesFromSuccessfulCompile": 166,
+    "applicationMap": "verification/local/billing-worker-fresh-implementation-r4304/delivery/application-map.json",
+    "compiledSourceBinding": "verification/local/billing-worker-fresh-implementation-r4304/delivery/compiled-source-binding.json",
+    "sourceBindingDigest": {
+      "bytes": 2291,
+      "sha256": "39c4073db1062e43636660b37468db563620d57b8f6ff3ba17db647cc5a6c64d"
+    },
+    "copiedInputManifest": "verification/local/billing-worker-runtime-successor-r4318/input-manifest.json",
+    "copiedInputManifestDigest": {
+      "bytes": 528914,
+      "sha256": "eedebd9571c902f208274f88e02aa0151df123d24a1c04b6c856fd7787674b86"
+    },
+    "loadedBEAMs": "verification/local/billing-worker-runtime-successor-r4318/runtime-evidence.json",
+    "runtimeArgv": "verification/local/billing-worker-runtime-successor-r4318/run/runtime-launch.json",
+    "fixtureMap": {
+      "TLS": "hosted/test/support/subscription_tls_fixture.ex",
+      "migrations": "hosted/priv/repo/migrations",
+      "relationManifests": "hosted/priv/browser_auth",
+      "compiledTLS": "hosted/_build/test/lib/mixer_hosted/ebin/Elixir.MixerHosted.Billing.SubscriptionTLSFixture.beam"
+    },
+    "frozenOriginalShippingAndCopiedSourceAndBEAMUnchanged": true,
+    "dependencySourceCopiedOnlyForExactRelationManifestBindings": true,
+    "copiedGitRepositoriesOrModuleCaches": false,
+    "mixAppCacheRefresh": false,
+    "runner": "/opt/homebrew/bin/elixir with cached ebin paths; original config loaded; no Mix compilation/dependency resolution",
+    "toolPins": "verification/local/billing-worker-runtime-successor-r4318/tool-pins.json",
+    "processFunctionPins": "verification/local/billing-worker-runtime-successor-r4318/run/process-function-binding.json"
+  },
+  "preflight": {
+    "status": "PASS before resource launch",
+    "sourceOnlyPreparationFailure": "Initial copy omitted pinned Oban dependency migration source required by relation manifest; copied exact unheld pinned fixture before launch; no compilation or runtime retry",
+    "runtimeAdaptation": "verification/local/billing-worker-runtime-successor-r4318/runtime-adaptation.json"
+  },
+  "reviewSteering": {
+    "R4316": "REQUEST_CHANGES received after the sole runtime had completed and original handle was collected",
+    "migrationFinding": "independently reproduced by this runtime",
+    "truncateImmutabilityAndEffectivePUBLICPrivileges": "reported by user from R4316; not exercised or independently qualified here",
+    "rootOwnsCorrectiveSelection": true
+  },
+  "unrunEventContracts": [
+    "transport-level Oban acknowledgment loss",
+    "original enqueue-time failure (existing harness uses invalid worker configuration)",
+    "payment/trial/renewal/cancellation/grace/refund/credit/usage dispatch",
+    "Checkout/Portal/customer UX"
+  ],
+  "limitations": [
+    "Original eleven ingress assertions remain unchanged but none executed",
+    "No actual worker completion, retry, replay, claim race, T2 revocation, rollback or blocked-result pass",
+    "No transport-level acknowledgment-loss or exact original enqueue-failure injection",
+    "No billing role/PUBLIC privilege or observation immutability qualification",
+    "No full SaaS/product billing, W14 or GA qualification"
+  ],
+  "holds": {
+    "R4304RunAndPGID94582Accessed": false,
+    "R4298InputsOrAssociatedUnknownCommandAccessed": false,
+    "anyHistoricalHoldReleased": false,
+    "historicalStartupCauseProven": false
+  },
+  "writes": {
+    "canonicalProduct": false,
+    "index": false,
+    "authority": false,
+    "CI": false,
+    "GitDelivery": false,
+    "originalR4304Artifacts": false,
+    "onlyOwnNamespaceAndCompactReceiptPlusExplicitFreshSocket": true
+  },
+  "network": "owned fresh PostgreSQL loopback only; TLS/ingress setup not reached; no external resolution",
+  "nativeBrowserVMDevicesLiveStripeSecretsCustomerActivation": false,
+  "GA": false
+}

@@ -1,0 +1,80 @@
+{
+  "campaign": "billing-worker-source-review-r4316",
+  "status": "REQUEST_CHANGES_SOURCE_REVIEW_ONLY",
+  "report": "verification/local/billing-worker-source-review-r4316/REPORT.md",
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "P1",
+      "path": "hosted/priv/repo/migrations/20261116000000_add_billing_reconciliation.exs",
+      "line": 4,
+      "summary": "Fourteen top-level DDL statements in one execute binary; normal Ecto/Postgrex prepared migration path predicts failure",
+      "database_reproduction": false
+    },
+    {
+      "id": "F2",
+      "severity": "P1",
+      "path": "hosted/lib/mixer_hosted/billing/processor_admission.ex",
+      "line": 31,
+      "summary": "Admits TRUNCATE on immutable observations; UPDATE/DELETE trigger cannot protect it",
+      "effective_acl_runtime_checked": false
+    },
+    {
+      "id": "F3",
+      "severity": "P1",
+      "path": "hosted/lib/mixer_hosted/billing/processor_admission.ex",
+      "line": 29,
+      "summary": "Current-user ACL predicate omits effective PUBLIC privileges outside billing writes",
+      "effective_acl_runtime_checked": false
+    }
+  ],
+  "source_closure": {
+    "files": 11,
+    "canonical_preimages_exact": true,
+    "forward_patch_exact": true,
+    "inverse_patch_exact": true,
+    "all_declared_compiled_source_bytes_exact": true,
+    "binary_agreement_independently_verified": false,
+    "proof": "verification/local/billing-worker-source-review-r4316/source-closure.json"
+  },
+  "static_proofs": {
+    "script": "verification/local/billing-worker-source-review-r4316/static-counterexamples.py",
+    "result": "verification/local/billing-worker-source-review-r4316/static-counterexamples.json",
+    "migration_statement_count": 14
+  },
+  "commands": {
+    "terminal_prior": 12,
+    "managed_count_including_active_finalizer": 13,
+    "max": 20,
+    "own_active_finalizer_excluded": true,
+    "finalizer_independent_readback": "PASS",
+    "initial_relative_agents_read": "failed child exit1 with positive terminal custody; corrected absolute path",
+    "orchestration_only_error": "ReferenceError btoa during report preparation; no command launched; corrected",
+    "managed_count_including_terminal_readback": 14,
+    "terminal_through_finalizer": 13,
+    "readback_own_active_excluded": true,
+    "primary_finalizer_exec": {
+      "chunk_id": "64c9ff",
+      "exit_code": 0,
+      "session_id": null
+    }
+  },
+  "elapsed_seconds_from_first_command_record": 511.174,
+  "bounded_seconds": 900,
+  "observed_at": "2026-11-16T21:25:01.362427+00:00",
+  "limits": {
+    "compilers": 0,
+    "postgresql": 0,
+    "application_runtimes": 0,
+    "native_browser_network": 0,
+    "git": 0,
+    "children": 0,
+    "runtime_pass": false,
+    "held_access_or_operations": false,
+    "canonical_index_authority_writes": false,
+    "adoption": false,
+    "ga": false
+  },
+  "driver_separate": "Root-reported prospective long AF_UNIX socket path defect; historical R4304 startup/stop cause remains unproven; no R4314/R4318 access",
+  "report_sha256": "c34a21a1ee1869ce7dbeab1c5c85783d60644b07f900a0aebccd6e5d43a1c6af"
+}

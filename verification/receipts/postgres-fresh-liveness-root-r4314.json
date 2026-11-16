@@ -1,0 +1,122 @@
+{
+  "test": "FRESH_PG_START_SELECT1_FASTSTOP_LIVENESS",
+  "status": "PASS",
+  "holdsReleased": false,
+  "failure": null,
+  "seconds": 0.29495558398775756,
+  "PGlaunches": 1,
+  "PGstops": 1,
+  "children": [
+    {
+      "label": "postgres",
+      "pid": 21800,
+      "pgid": 21800,
+      "regularFileLogs": true,
+      "state": "TERMINAL",
+      "directReaped": true,
+      "exit": 0,
+      "ownedGroupAbsentESRCH": true,
+      "closedFDs": true,
+      "pipeEOF": "not applicable: regular file output, stdin closed"
+    }
+  ],
+  "commands": [
+    {
+      "label": "version",
+      "argv": [
+        "/opt/homebrew/bin/postgres",
+        "--version"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/postgres-fresh-liveness-root-r4314",
+      "pid": 21777,
+      "pgid": 21777,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.02699679194483906,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "initdb",
+      "argv": [
+        "/opt/homebrew/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/postgres-fresh-liveness-root-r4314/run/db",
+        "-U",
+        "mixer_fixture",
+        "-A",
+        "trust",
+        "--no-locale"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/postgres-fresh-liveness-root-r4314",
+      "pid": 21778,
+      "pgid": 21778,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.439409791957587,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "select1",
+      "argv": [
+        "/opt/homebrew/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "41440",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "postgres",
+        "-At",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "SELECT 1; SHOW data_directory;"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/postgres-fresh-liveness-root-r4314",
+      "pid": 21816,
+      "pgid": 21816,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05551133304834366,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "postgres-fast-stop",
+      "argv": [
+        "/opt/homebrew/bin/pg_ctl",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/postgres-fresh-liveness-root-r4314/run/db",
+        "-m",
+        "fast",
+        "-w",
+        "-t",
+        "15",
+        "stop"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/postgres-fresh-liveness-root-r4314",
+      "pid": 21818,
+      "pgid": 21818,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.12983112502843142,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "portReusable": 41440,
+  "socketDirectory": "/private/tmp/mixer-pg-r4314-zti81aii",
+  "historicalCauseEstablished": false,
+  "workerTests": 0,
+  "productCompiles": 0,
+  "heldResourcesAccessed": false,
+  "GA": false
+}
