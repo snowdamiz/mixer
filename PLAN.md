@@ -2,6 +2,10 @@
 
 ## Continuation checkpoint, November 16, 2026 — public same-build report admitted as CLI127
 
+At delivered head955523711, the VM job passes; Swift host adoption controls fail before the ordinary CLI step, and Linux Swift stops at its prerequisite guard. The newly found ordinary baseline dependency is a separate issue now repaired locally. The console browser attempt returned authorization_unavailable before submission; all three owned service groups closed and no visual pass is claimed.
+
+The ordinary CLI registration test now uses only the current CLI; the private old-binary comparison remains historical evidence. The isolated full394-case suite passed with that private variable absent, and the coordinated six-path metadata repair passed independent review,20source controls per mode and installed normal/optimized admission. [Ordinary isolation repair](verification/receipts/public-report-ordinary-root-adoption-r4058.json).
+
 CLI127 is applied with the explicit public report command, its ordinary tests, exact caller/workflow bindings and fifteen new authority fixtures. Independent review passed; 292 controls passed in normal and actual optimized modes. Installed admission and idempotent readback pass. The full inverse restores corrected CLI126 exactly, and the prior authorities remain unchanged. [Root adoption](verification/receipts/public-report-root-adoption-r4030.json).
 
 The actual report binds 760 retained materials, 766 SBOM file entries and three genuine native subjects. The ordinary suite passed 394 cases, and both fresh reopens passed. The original build CLI/compiler identity remains distinct from the later observing command. These unsigned results retain verified_subset completeness and refuse aggregate eligibility. Formal schema validation remains pending: the official CUE summary still fails parsing before artifact validation. No whole-app or GA acceptance follows.

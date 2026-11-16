@@ -573,14 +573,9 @@ extension NativeOutputAdmissionTests {
         try temporary { root in
             let environment = ProcessInfo.processInfo.environment
             let executable = try XCTUnwrap(environment["MIXER_STORE_TEST_CLI"])
-            let original = try XCTUnwrap(environment["R3974_ORIGINAL_CLI"])
             let missing = root.appendingPathComponent("missing-request.json")
             let output = root.appendingPathComponent("report")
             let arguments = ["report", "--request", missing.path, "--output", output.path]
-            let baseline = try StoreCLIChild.run(original, arguments, environment: environment)
-            XCTAssertEqual(baseline.0, 1)
-            let baselineJSON = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(baseline.1.utf8)) as? [String: Any])
-            XCTAssertEqual(baselineJSON["code"] as? String, "arguments.unused-option")
             let corrected = try StoreCLIChild.run(executable, arguments, environment: environment)
             XCTAssertEqual(corrected.0, 1)
             let correctedJSON = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(corrected.1.utf8)) as? [String: Any])

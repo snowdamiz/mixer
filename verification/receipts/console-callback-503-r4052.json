@@ -1,0 +1,192 @@
+{
+  "schema": "R4052_CLOSED_EVIDENCE_DIAGNOSIS_V1",
+  "createdAtUTC": "2026-11-16T14:27:56Z",
+  "status": "underlying_first_exception_unproven",
+  "scope": "R4032 closed actual R4044/R4046 run only; source and closed evidence; no runtime retry",
+  "python": "3.14.8",
+  "httpSequence": [
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "path": "/auth/callback",
+      "status": 503
+    }
+  ],
+  "closedChildren": [
+    {
+      "label": "postgres",
+      "pid": 19548,
+      "pgid": 19548,
+      "exit": 0,
+      "directReaped": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "phoenix-fixture",
+      "pid": 19561,
+      "pgid": 19561,
+      "exit": 1,
+      "directReaped": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "vite-preview",
+      "pid": 19606,
+      "pgid": 19606,
+      "exit": 143,
+      "directReaped": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "sourcePins": {
+    "files": 374,
+    "manifest": {
+      "bytes": 61547,
+      "sha256": "961061d923cabcfa9f6b1cd0b45a254db31b06462fe1371f47f6b8d33b6b9aad"
+    },
+    "allExact": true,
+    "changedPaths": [],
+    "replayChangedPaths": []
+  },
+  "inputs": [
+    {
+      "path": "verification/local/console-visual-ready-r4032/launch-root-r4046.py",
+      "bytes": 1579,
+      "sha256": "6bbd884b8f63e6e427009e06367f2b5136134ea4c9625a9253793f1c76bb9e28"
+    },
+    {
+      "path": "verification/local/console-visual-ready-r4032/helper-root-r4046.py",
+      "bytes": 21361,
+      "sha256": "cb90a22853ba8ab6de655deb4d7fd27e532bb22507f67996e5a99965a7d39d3c"
+    },
+    {
+      "path": "verification/local/console-visual-ready-r4032/runtime.exs",
+      "bytes": 10588,
+      "sha256": "3a68c265b356360859b2b626e9e5bd195f5a7d5b8de6ba268114309f57dbe03c"
+    },
+    {
+      "path": "verification/local/console-visual-ready-r4032/live/http-events.json",
+      "bytes": 730,
+      "sha256": "7087df93661d16048b51937f4388304b2b439da57ced81908494f3922bdfff73"
+    },
+    {
+      "path": "verification/local/console-visual-ready-r4032/live/runtime-result.json",
+      "bytes": 49,
+      "sha256": "18dfff4b05bc0470e94c7e2418b8efa9a29d64910976853854523a3203f67ea0"
+    },
+    {
+      "path": "verification/local/console-visual-ready-r4032/live/cleanup.json",
+      "bytes": 5140,
+      "sha256": "58359485b857c84b2ab628aea865256d116b0692e8f1d92ebc88ae79e9641f5d"
+    },
+    {
+      "path": "verification/local/console-visual-ready-r4032/live/source-pins-after.json",
+      "bytes": 211,
+      "sha256": "0179a6d6c949530dd00dc89ec36bd14a8e79c08eafe980b841fb4f8073126334"
+    },
+    {
+      "path": "verification/local/console-visual-ready-r4032/live/phoenix-fixture.stdout",
+      "bytes": 3035,
+      "sha256": "332bf0fa05c8e7f64013092c24d76eb9e1772ecbfcc06052f80969581b962151"
+    },
+    {
+      "path": "verification/local/console-visual-ready-r4032/live/phoenix-fixture.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "newManagedCommands": 10,
+  "newChildren": 0,
+  "newCompilers": 0,
+  "newServices": 0,
+  "newBrowserNativeNetworkOrCIWrites": 0,
+  "canonicalGitIndexChanges": false,
+  "holdsReleased": false,
+  "boundarySourcePins": [
+    {
+      "path": "hosted/lib/mixer_hosted_web/browser_http.ex",
+      "sha256": "c76b233195d56960098f9e7288cd1c4ada400d3ad5ced0b38756bd480b025042"
+    },
+    {
+      "path": "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+      "sha256": "49028ff1f1fcadc722bc587ecf7e28eb66555ed1302d126bb66034e08221d156"
+    }
+  ],
+  "firstObservedFailure": {
+    "method": "GET",
+    "path": "/auth/session",
+    "status": 503,
+    "position": 5,
+    "beforeCallback": true
+  },
+  "underlyingExceptionOrFailedPredicate": "not exposed in permitted closed runtime records; unproven",
+  "phoenixDiagnostics": {
+    "stdoutLines": 49,
+    "stderrBytes": 0,
+    "onlyException": "File.Error at runtime.exs:150: created.json missing after no submitted build",
+    "providerTLSLifecycle": {
+      "requests": 0,
+      "accepted": 0
+    }
+  },
+  "bridge": {
+    "capturedBeforeForward": true,
+    "captures": 1,
+    "exactOriginalQuery": true,
+    "providerHTTP": 302,
+    "callbackAuthorityPathAndStateExact": true,
+    "authInjection": false,
+    "externalIdentityQualified": false
+  },
+  "interpretation": {
+    "backendInitialization": "startup/readiness and login200 succeeded; later storage or ownership failure remains possible",
+    "transportCookieTTL": "not ruled out; no exact failed cookie/session/expiry predicate is recorded",
+    "providerListener": "does not explain preceding session503; bridge302 proves synthetic authorization route if present; TLS request count zero does not identify why callback stopped",
+    "rootPublicationFinallyFix": "no evidence links it to auth failure; source pins exact"
+  },
+  "nextTest": {
+    "count": 1,
+    "runNow": false,
+    "name": "fresh isolated login then session first-failure capture",
+    "scope": "one fresh owned fixture; preserve normal login cookie jar; issue login once then immediately session once; capture only earliest failed return tag or exception class and up to three source stack frames inside BrowserHTTP/RuntimeOwner, plus readiness and monotonic elapsed seconds; if both pass perform one provider/callback traversal under same capture; redact all request and response private values; no retry",
+    "purpose": "separate pre-provider session/storage failure from cookie or elapsed-time predicates before another visual attempt"
+  },
+  "managedCommandCustody": {
+    "firstNine": "all exit0, bothEOF, closedFDs, ownedGroupAbsentESRCH observed in Root wrapper receipts",
+    "finalCommand": "authoritative wrapper summary returned after this receipt is written"
+  },
+  "scopeLimitations": [
+    "No new executable app test or runtime fix",
+    "No root cause proved",
+    "No build submitted or visual acceptance",
+    "No canonical, Git or index mutation",
+    "No historical hold read or released"
+  ]
+}
