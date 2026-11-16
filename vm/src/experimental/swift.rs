@@ -499,13 +499,13 @@ fn validate<const COMMAND: bool, const UI: bool>(
     let source = source.into_boxed_slice(); // exact capacity: no shrink allocation
     let mut metadata: SwiftMetadata = metadata::read(&source, &policy, &mut meter)?;
     let (imports, selection) = if UI {
-        let (imports, entries) = ui_abi(&source, &metadata, &mut meter)?;
-        (imports, policy::SwiftSelection::UI { entries })
+        let (imports, _) = ui_abi(&source, &metadata, &mut meter)?;
+        (imports, policy::SwiftDecodePolicy::UI {})
     } else if COMMAND {
         let (imports, entry) = command_abi(&source, &metadata, &mut meter)?;
-        (imports, policy::SwiftSelection::Command { entry })
+        (imports, policy::SwiftDecodePolicy::Command { entry })
     } else {
-        (exact_abi(&source, &metadata, &mut meter)?, policy::SwiftSelection::Reactor)
+        (exact_abi(&source, &metadata, &mut meter)?, policy::SwiftDecodePolicy::Reactor)
     };
     segments_fit(&metadata, &mut meter)?;
     validate::all(&source, &policy, &mut metadata, &mut meter)?;
@@ -538,7 +538,7 @@ fn validate<const COMMAND: bool, const UI: bool>(
     Ok(ValidatedSwiftReactor {
         source,
         metadata,
-        policy: selection.decode_policy(),
+        policy: selection,
         imports,
         usage,
         observations,
@@ -837,6 +837,7 @@ impl ValidatedSwiftUI {
         (self.proof, entries)
     }
 }
+#[allow(clippy::result_large_err, reason = "Validation failure snapshots must not allocate.")]
 pub fn validate_swift_ui(input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation)
     -> Result<ValidatedSwiftUI, SwiftValidationFailure> {
     let started = Instant::now();

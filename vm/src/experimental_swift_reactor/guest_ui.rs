@@ -12,19 +12,23 @@ pub struct PersistentSwiftUIOwner {
 }
 pub struct SwiftUIOpenFailure { pub failure: SwiftRunFailure, pub close: SwiftUICloseOutcome }
 #[must_use]
+#[allow(clippy::large_enum_variant, reason = "Frozen retains its exact owner without an unaccounted allocation.")]
 pub enum SwiftUICloseOutcome {
     Clean { usage: SwiftRunUsage, failure: Option<SwiftRunFailure> },
     Frozen { owner: Option<PersistentSwiftUIOwner>, usage: Option<SwiftRunUsage>, failure: Option<SwiftRunFailure> },
 }
 impl PersistentSwiftUIOwner {
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     pub fn construct(proof: ValidatedSwiftUI, budget: SwiftRunBudget, grants: WasiGrants,
         wasi_budget: WasiBudget, cancellation: Cancellation) -> Result<Self, SwiftUIOpenFailure> {
         Self::construct_policy(proof,budget,grants,wasi_budget,cancellation,false)
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     pub(super) fn construct_profile_1(proof:ValidatedSwiftUI,budget:SwiftRunBudget,grants:WasiGrants,
         wasi_budget:WasiBudget,cancellation:Cancellation)->Result<Self,SwiftUIOpenFailure>{
         Self::construct_policy(proof,budget,grants,wasi_budget,cancellation,true)
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     fn construct_policy(proof:ValidatedSwiftUI,budget:SwiftRunBudget,grants:WasiGrants,
         wasi_budget:WasiBudget,cancellation:Cancellation,per_turn:bool)->Result<Self,SwiftUIOpenFailure>{
         let (proof, entries) = proof.into_parts(); let started = Instant::now();
@@ -65,6 +69,7 @@ impl PersistentSwiftUIOwner {
             Fault::new(SwiftRunFailureKind::GuestTrap, code), owner.wasi.as_ref().map(|w|w.usage()));
         self.failure.get_or_insert(failure); failure
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     fn invoke(&mut self, slot: usize, argument: Option<Value>) -> Result<Option<Value>, SwiftRunFailure> {
         if let Some(failure) = self.failure { return Err(failure); }
         let (result, clean) = frame_operations::ui_execution::invoke(self.owner.as_mut().unwrap(), self.entries[slot], argument);
@@ -76,6 +81,7 @@ impl PersistentSwiftUIOwner {
         let o=self.owner.as_ref().unwrap();let s=o.state.as_ref().unwrap();
         !matches!(o.lifecycle,Lifecycle::Terminal)&&s.frames.is_empty()&&s.values.is_empty()&&s.controls.is_empty()&&s.frame_cleanup.is_empty()
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     fn begin_turn(&mut self,kind:super::turn_budget::Kind)->Result<Option<u64>,SwiftRunFailure>{
         if let Some(f)=self.failure{return Err(f)}
         let q=self.quiescent();let o=self.owner.as_mut().unwrap();
@@ -89,11 +95,13 @@ impl PersistentSwiftUIOwner {
         }
         Ok(epoch)
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     fn end_turn(&mut self,epoch:Option<u64>)->Result<(),SwiftRunFailure>{
         let q=self.quiescent();let o=self.owner.as_mut().unwrap();
         if let Err(f)=o.control.as_mut().unwrap().end_ui_turn(epoch,q){self.failure=Some(f);o.lifecycle=Lifecycle::Terminal;return Err(f)}
         Ok(())
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     pub fn initialize_and_start(&mut self) -> Result<Vec<u8>, SwiftRunFailure> {
         if !matches!(self.owner.as_ref().unwrap().lifecycle, Lifecycle::Uninitialized) {
             return Err(self.fault("swift_ui_initializer_repeated"));
@@ -107,6 +115,7 @@ impl PersistentSwiftUIOwner {
         let result = self.invoke(1, None)?;
         let frame=self.snapshot(result)?;self.end_turn(start)?;Ok(frame)
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     pub fn event(&mut self, bytes: &[u8]) -> Result<Vec<u8>, SwiftRunFailure> {
         if !matches!(self.owner.as_ref().unwrap().lifecycle, Lifecycle::Ready) || self.header.is_none() {
             return Err(self.fault("swift_ui_event_before_start"));
@@ -123,12 +132,14 @@ impl PersistentSwiftUIOwner {
         let result = self.invoke(2, Some(Value::I32(bytes.len() as i32)))?;
         let frame=self.snapshot(result)?;self.end_turn(event)?;Ok(frame)
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     fn charge_copy(&mut self, bytes: usize) -> Result<(), SwiftRunFailure> {
         match self.copy_bytes.checked_add(bytes) {
             Some(next) if next <= 8*1_048_576 => { self.copy_bytes=next; Ok(()) },
             _ => Err(self.fault("swift_ui_cumulative_copy_limit")),
         }
     }
+    #[allow(clippy::result_large_err, reason = "Inline failure and frozen-owner reporting must not allocate.")]
     fn snapshot(&mut self, result: Option<Value>) -> Result<Vec<u8>, SwiftRunFailure> {
         let offset = match result { Some(Value::I32(offset)) => offset as u32, _ => return Err(self.fault("swift_ui_header_result")) };
         let memory = &self.owner.as_ref().unwrap().state.as_ref().unwrap().memory;
@@ -137,7 +148,7 @@ impl PersistentSwiftUIOwner {
             Some(raw) => raw, None => return Err(self.fault("swift_ui_header_range")),
         };
         let mut fields = [0u32;8];
-        for (field,bytes) in fields.iter_mut().zip(raw.chunks_exact(4)) { *field=u32::from_le_bytes(bytes.try_into().unwrap()); }
+        for (field,bytes) in fields.iter_mut().zip(raw.as_chunks::<4>().0) { *field=u32::from_le_bytes(*bytes); }
         if fields[0]!=0x3349554d || fields[1]!=32 || fields[5]!=1_048_576 || fields[6]!=0 || fields[7]!=0
             || fields[3]==0 || fields[3]>1_048_576 { return Err(self.fault("swift_ui_header_fields")); }
         let ranges=[(offset as u64,32u64),(fields[2]as u64,fields[3]as u64),(fields[4]as u64,fields[5]as u64)];

@@ -33,7 +33,6 @@ impl UiTurns {
  }
  pub fn baseline(&self)->Option<Counters>{match self.phase{Phase::Running{baseline,..}=>Some(baseline),_=>None}}
  pub fn epoch(&self)->Option<u64>{match self.phase{Phase::Running{epoch,..}=>Some(epoch),_=>None}}
- pub fn running(&self)->bool{matches!(self.phase,Phase::Running{..})}
  pub fn terminal(&mut self){self.phase=Phase::Terminal}
  pub fn deadline(&self)->Option<Instant>{match self.phase{Phase::Running{deadline,..}=>Some(deadline),_=>None}}
 }
@@ -41,6 +40,7 @@ impl UiTurns {
 impl Counters {
  fn at_least(self,b:Self)->bool {self.cache>=b.cache&&self.execution>=b.execution&&self.fuel>=b.fuel&&self.hosts>=b.hosts}
 }
+#[cfg(test)]
 pub(crate) fn value_only_epoch_and_retention_controls() {
  let now=Instant::now();let c=Counters::default();
  let mut t=UiTurns{phase:Phase::Idle{epoch:u64::MAX,kind:Kind::Start,totals:c}};
@@ -79,6 +79,7 @@ pub(crate) fn boundary_ready(active:[usize;4],foundation:FoundationReservation,
  fixed_tickets.checked_add(cache_entries)==Some(live_tickets)
 }
 pub(crate) fn profile_supported(profile_id:u32)->bool {profile_id==1}
+#[cfg(test)]
 pub(crate) fn value_only_foundation_controls(fixed:usize) {
  let floor=275152;
  let f=FoundationReservation{current:floor,ticket_bytes:floor,floor:Some(floor),owner_matches:true,category_matches:true};

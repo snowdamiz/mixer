@@ -158,13 +158,13 @@ impl Policy<'static, true> {
 
 // Validation-only ABI result. UI export indexes are not retained in the
 // compact decode-policy field of a stock proof.
-#[cfg(feature = "experimental-swift-reactor")]
+#[cfg(all(test, feature = "experimental-swift-reactor"))]
 pub(crate) enum SwiftSelection {
     Reactor,
     Command { entry: u32 },
     UI { entries: [u32; 4] },
 }
-#[cfg(feature = "experimental-swift-reactor")]
+#[cfg(all(test, feature = "experimental-swift-reactor"))]
 impl SwiftSelection {
     pub(crate) fn decode_policy(&self) -> SwiftDecodePolicy {
         match *self {

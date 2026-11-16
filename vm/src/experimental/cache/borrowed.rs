@@ -874,9 +874,7 @@ fn pin_acquired<M: CacheMode>(
                 meter.usage_mut().evicted(bytes);
             }
         }
-        let index =
-            empty.ok_or_else(|| meter.error(CacheFailureKind::Capacity, "no_entry_slot"))?;
-            index
+        empty.ok_or_else(|| meter.error(CacheFailureKind::Capacity, "no_entry_slot"))?
         };
         meter.construction(bytes)?;
         let decoded = M::build(parts.snapshot, defined, counts, &mut parts.scratch, meter);

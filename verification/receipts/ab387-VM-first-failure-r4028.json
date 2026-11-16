@@ -1,0 +1,229 @@
+{
+  "task": "R4028",
+  "status": "CONFIRMED_FIRST_FAILURE_AND_PATCH_PREIMAGES",
+  "recordedAt": "2026-11-16T13:49:36.688567+00:00",
+  "run": 43874939672,
+  "job": 133325399857,
+  "head": "ab387791afc5925fb3520daa488e6200b0b81ca8",
+  "rootSuppliedRunState": "COMPLETED failure; eight other jobs successful; VM job alone failed (metadata not refetched)",
+  "jobURL": "https://github.com/snowdamiz/mixer/actions/runs/43874939672/job/133325399857",
+  "step": "Private Swift reactor without legacy cache or execution features",
+  "firstActualError": {
+    "bodyLine": 8377,
+    "rawLine": "2026-11-16T13:33:24.6735167Z error: field `entries` is never read",
+    "source": "vm/src/experimental/policy.rs:165:10",
+    "predicate": "-D dead-code implied by -D warnings",
+    "predicateLogLine": 8385
+  },
+  "failingCommand": "cargo clippy --locked --manifest-path vm/Cargo.toml --lib --features experimental-swift-reactor -- -D warnings",
+  "stepCommandBoundaryBodyLines": [
+    6212,
+    6217
+  ],
+  "priorStepCommands": [
+    "cargo test --locked --manifest-path vm/Cargo.toml --features experimental-swift-reactor",
+    "cargo test --locked --release --manifest-path vm/Cargo.toml --features experimental-swift-reactor"
+  ],
+  "failureSummary": {
+    "diagnostics": 20,
+    "compilerSummaryLine": 8601,
+    "stepExitCode": 101,
+    "stepExitCodeLine": 8602
+  },
+  "evidenceIntegrity": {
+    "responseStatus": "HTTP/1.1 200 OK",
+    "httpBytes": 4037849,
+    "bodyBytes": 4036963,
+    "bodySHA256": "68c62f1197d5b7d4cdbb30ce5483c8db32ec2654a99117d8d84570e5f0fae01f",
+    "contentLength": "4036963",
+    "contentLengthMatches": true,
+    "contentMD5": null,
+    "contentMD5Matches": null,
+    "allExposedMD5Headers": {},
+    "exposedMD5Matches": null
+  },
+  "headPins": [
+    {
+      "line": 103,
+      "text": "[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --filter=blob:none --depth=1 origin +ab387791afc5925fb3520daa488e6200b0b81ca8:refs/remotes/origin/main"
+    },
+    {
+      "line": 105,
+      "text": " * [new ref]         ab387791afc5925fb3520daa488e6200b0b81ca8 -> origin/main"
+    },
+    {
+      "line": 222,
+      "text": "ab387791afc5925fb3520daa488e6200b0b81ca8"
+    },
+    {
+      "line": 250,
+      "text": "ab387791afc5925fb3520daa488e6200b0b81ca8"
+    }
+  ],
+  "owningFilePreimages": {
+    "commit": "ab387791afc5925fb3520daa488e6200b0b81ca8",
+    "gitShowBytes": 105530,
+    "allFiveMatch": true,
+    "files": [
+      {
+        "path": "vm/src/experimental/cache/borrowed.rs",
+        "bytes": 30711,
+        "sha256": "96ecac7cd3530ece1e47236b7bc432008dbf16d1f1b62d585cdec675d097c538",
+        "candidateBeforeSHA256": "96ecac7cd3530ece1e47236b7bc432008dbf16d1f1b62d585cdec675d097c538",
+        "match": true
+      },
+      {
+        "path": "vm/src/experimental/policy.rs",
+        "bytes": 12429,
+        "sha256": "96b6280675d7334d6398b18fe5355466b51cbdb52af17d803571fe14b27a6a7f",
+        "candidateBeforeSHA256": "96b6280675d7334d6398b18fe5355466b51cbdb52af17d803571fe14b27a6a7f",
+        "match": true
+      },
+      {
+        "path": "vm/src/experimental/swift.rs",
+        "bytes": 35785,
+        "sha256": "bdd1b11e6a7956f2615c124bfbd01b0354db38ae8f1ecf461459c1ab095d73d6",
+        "candidateBeforeSHA256": "bdd1b11e6a7956f2615c124bfbd01b0354db38ae8f1ecf461459c1ab095d73d6",
+        "match": true
+      },
+      {
+        "path": "vm/src/experimental_swift_reactor/guest_ui.rs",
+        "bytes": 20382,
+        "sha256": "6b0a5ba319aee4f2bfdeb40affd56471b1b7910f9326326e0dea569fc9f9fe10",
+        "candidateBeforeSHA256": "6b0a5ba319aee4f2bfdeb40affd56471b1b7910f9326326e0dea569fc9f9fe10",
+        "match": true
+      },
+      {
+        "path": "vm/src/experimental_swift_reactor/turn_budget.rs",
+        "bytes": 6223,
+        "sha256": "5a55eacc70cbd29bef568e2d318be5e89874e04c849ac901405c11c8b43e3159",
+        "candidateBeforeSHA256": "5a55eacc70cbd29bef568e2d318be5e89874e04c849ac901405c11c8b43e3159",
+        "match": true
+      }
+    ]
+  },
+  "candidatePatchSHA256": "1d1cd3908b0b5504e465a4fa463dcdd12bd5363bf5bf35ce86c87093087269cb",
+  "adoptionReceipt": "verification/receipts/private-swift-clippy-root-adoption-r4020.json",
+  "conceptualDiagnosticCoverage": [
+    {
+      "diagnostic": "dead_code",
+      "count": 5,
+      "patch": "Make SwiftSelection and its impl test-only; production decode uses SwiftDecodePolicy directly. Remove UiTurns::running; mark both value-only controls cfg(test)."
+    },
+    {
+      "diagnostic": "result_large_err",
+      "count": 12,
+      "patch": "Reasoned scoped allowances preserve inline, allocation-free validation/owner failure reporting; snapshot allowance covers its nested closure."
+    },
+    {
+      "diagnostic": "let_and_return",
+      "count": 1,
+      "patch": "Return empty.ok_or_else(...)? directly."
+    },
+    {
+      "diagnostic": "large_enum_variant",
+      "count": 1,
+      "patch": "Reasoned scoped allowance retains exact frozen owner without an unaccounted allocation."
+    },
+    {
+      "diagnostic": "chunks_exact_to_as_chunks",
+      "count": 1,
+      "patch": "Use raw.as_chunks::<4>().0 and u32::from_le_bytes(*bytes)."
+    }
+  ],
+  "coverageScope": "All 20 reported diagnostics map to adopted patch changes; no patch execution or hosted validation performed in this research task.",
+  "warnings": [
+    {
+      "line": 8618,
+      "text": "##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/"
+    }
+  ],
+  "custodyWarningObservedInJobLog": false,
+  "remoteOSClosure": "NOT INFERRED from job/log completion",
+  "githubGETCount": 1,
+  "githubRequest": [
+    "/opt/homebrew/bin/gh",
+    "api",
+    "--include",
+    "--allow-escape-sequences",
+    "repos/snowdamiz/mixer/actions/jobs/133325399857/logs"
+  ],
+  "managedCommandCount": 8,
+  "completedPreFinalizerClosure": [
+    {
+      "label": "r4028-01-agents",
+      "pid": 69099,
+      "pgid": 69099,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4028-02-inputs",
+      "pid": 71712,
+      "pgid": 71712,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4028-03-job-log",
+      "pid": 72953,
+      "pgid": 72953,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4028-04-log-analysis",
+      "pid": 74125,
+      "pgid": 74125,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4028-05-preimages",
+      "pid": 74200,
+      "pgid": 74200,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4028-06-preimage-analysis",
+      "pid": 74942,
+      "pgid": 74942,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4028-07-gh-version",
+      "pid": 75655,
+      "pgid": 75655,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "finalizerClosureEvidence": "verification/local/continuation-root-r2332/commands/r4028-08-finalizer/commands.json (written by the manager after this writer returns; inspect its terminal result at handoff)",
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "gh": "gh version 2.102.0 (2026-09-30)"
+  },
+  "rawEvidenceDirectory": "verification/local/ab387-VM-first-failure-r4028",
+  "rawPayloadTracked": false,
+  "limitations": [
+    "No tests/builds/native execution, source or index changes, push, CI write or additional GitHub request.",
+    "Hosted patch outcome remains pending; no global CI-green, GA or remote process-closure claim.",
+    "All historical holds preserved; R3978 runtime/output/executable untouched."
+  ]
+}
