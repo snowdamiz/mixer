@@ -6,6 +6,16 @@ sys.dont_write_bytecode=True
 HERE=Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('typed127_subject',HERE/'adopt_envelope.py')
 A=importlib.util.module_from_spec(spec);spec.loader.exec_module(A)
+def control_scratch():
+ scratch = HERE/'control-scratch'
+ try:
+  scratch.mkdir(mode=0o700)
+ except FileExistsError:
+  pass
+ if scratch.is_symlink() or not scratch.is_dir():
+  raise RuntimeError('control-scratch must be an owned directory')
+ return scratch
+
 class Source127Controls(unittest.TestCase):
  def setUp(self):
   self.b=A.load_json(HERE/'binding.json');self.s=A.load_json(HERE/'current-source-inputs.json')
@@ -66,12 +76,12 @@ class Source127Controls(unittest.TestCase):
    with patch.object(A,'read',side_effect=AssertionError('read forbidden')):
     with self.assertRaises(RuntimeError):A.check_rows(A.ROOT,{n:{'bytes':1,'sha256':'0'*64}})
  def test_extra_authority_member_refuses_in_isolated_copy(self):
-  with tempfile.TemporaryDirectory(dir=HERE/'control-scratch') as d:
+  with tempfile.TemporaryDirectory(dir=control_scratch()) as d:
    p=Path(d)/'authority';shutil.copytree(HERE,p,ignore=shutil.ignore_patterns('control-scratch'))
    (p/'unsealed.json').write_text('{}')
    with self.assertRaises(RuntimeError):A.closed_members(p,{*A.load_json(HERE/'seal.json')['members'],'seal.json'})
  def test_cache_authority_member_refuses_in_isolated_copy(self):
-  with tempfile.TemporaryDirectory(dir=HERE/'control-scratch') as d:
+  with tempfile.TemporaryDirectory(dir=control_scratch()) as d:
    p=Path(d)/'authority';shutil.copytree(HERE,p,ignore=shutil.ignore_patterns('control-scratch'))
    (p/'__pycache__').mkdir()
    with self.assertRaises(RuntimeError):A.closed_members(p,{*A.load_json(HERE/'seal.json')['members'],'seal.json'})

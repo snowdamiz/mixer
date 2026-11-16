@@ -1,0 +1,114 @@
+{
+  "schema": "mixer.read-only-first-failure.r4064.v1",
+  "run": 43881007757,
+  "job": 133346566578,
+  "head": "9555237116eb07fd2165be5e4ea18a27954a7eb3",
+  "scope": "read-only hosted log and revision-pinned static source diagnosis; no tests/build/native/canonical/Git/index/CI writes",
+  "get_count": 1,
+  "managed_command_count": 10,
+  "http": {
+    "http_bytes": 141239,
+    "header_bytes": 1001,
+    "body_bytes": 140238,
+    "sha256_http": "ccb2f6e9dd6833987adf4587f76c2085a513478f31a832b3f954501f807a9d61",
+    "sha256_body": "f79d6acf688253012718a4e39f6dc6d4d2a44116fb3176f1a441b3c1e3b89b3d",
+    "content_length": "140238",
+    "content_md5": "qAg3j0sZWbT3JEdEByl+sQ==",
+    "length_matches": true,
+    "md5_matches": true
+  },
+  "first_failure": {
+    "step": "Guarded envelope and prospective compiler adoption controls",
+    "command": "python3 -I -B -S \"$GITHUB_WORKSPACE/verification/native-report-source127-v1/test_source127.py\"",
+    "file": "verification/native-report-source127-v1/test_source127.py",
+    "line": 74,
+    "test": "test_cache_authority_member_refuses_in_isolated_copy",
+    "error": "FileNotFoundError: missing parent verification/native-report-source127-v1/control-scratch during tempfile.TemporaryDirectory",
+    "second_error_line": 69,
+    "second_error_test": "test_extra_authority_member_refuses_in_isolated_copy",
+    "counts": {
+      "source127_total": 20,
+      "source127_passed": 18,
+      "source127_errors": 2,
+      "ordinary_cli_executed": false
+    },
+    "classification": "validation fixture setup; rejection predicates not reached"
+  },
+  "correction_proposal": "Root should make source127 controls create their owned control-scratch parent before tempfile.TemporaryDirectory, then run only this 20-test source127 suite from a clean isolated copy with scratch initially absent. Recompute changed test/caller bindings through owning source127 authority as applicable; leave ordinary metadata to Root.",
+  "hosted_terminal_custody": "UNEXPOSED; job completion and cleanup messages do not prove inner closure",
+  "new_hosted_unknown_warning_found": [],
+  "new_hold_created": false,
+  "all_existing_holds_preserved": true,
+  "source_manifest": {
+    "verification/native-report-source127-v1/test_source127.py": {
+      "bytes": 5278,
+      "sha256": "83428ef4de42d45139ee9008b8d6b001332710cc9ed87fd61c6b4c08f805769f",
+      "local_matches": true
+    },
+    ".github/workflows/verify.yml": {
+      "bytes": 62770,
+      "sha256": "218a4b3f6231a59c4a90fa00b9a3f3c298df4c602932d12650bd9457be1fa019",
+      "local_matches": true
+    },
+    "verification/native-report-source127-v1/adopt_envelope.py": {
+      "bytes": 14679,
+      "sha256": "e9d544ff2f0407b3a788dc9bb96a1cf8f0b7bdd5b6f34e38109901c466cbaece",
+      "local_matches": true
+    },
+    "verification/native-report-source127-v1/caller-inputs.json": {
+      "bytes": 2548,
+      "sha256": "d353af917e301ecf571428488fb48ef9ec083f6449e60971c396a88dadb4be38",
+      "local_matches": false
+    },
+    "verification/native-report-source127-v1/current-source-inputs.json": {
+      "bytes": 20594,
+      "sha256": "7a871f19d4b30939e2463bebfe7d2b8874f256dc8a9e4fe49a41be6daa8dc40c",
+      "local_matches": true
+    },
+    "verification/native-report-source127-v1/binding.json": {
+      "bytes": 34540,
+      "sha256": "a6b4a7e7fee870f40af76d116b12d5fced9d2ce54bbdfc48afe77ad02f850332",
+      "local_matches": false
+    },
+    "verification/native-report-source127-v1/owning-closure.json": {
+      "bytes": 152281,
+      "sha256": "0a39981478d5cef45817105f4f7200d913db479200419091e90056d5c2f5a29e",
+      "local_matches": false
+    }
+  },
+  "current_vs_pushed_dependency_differences": [
+    {
+      "manifest": "caller-inputs.json",
+      "current_differences": []
+    },
+    {
+      "manifest": "current-source-inputs.json",
+      "current_differences": []
+    },
+    {
+      "manifest": "binding.json",
+      "current_differences": [
+        {
+          "path": ".github/workflows/verify.yml",
+          "pinned_declared_sha256": "ab46f1b39a640f1e46c7a9c676e2140476bc1b8b6f658a232324f1b7725b2b0c",
+          "current_sha256": "218a4b3f6231a59c4a90fa00b9a3f3c298df4c602932d12650bd9457be1fa019"
+        },
+        {
+          "path": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py",
+          "pinned_declared_sha256": "809bb56aa3fea1bdfc9e5675bb0bdbdff57c2b3c4725a137738021cafce9728b",
+          "current_sha256": "95589e67d31a94db638323bcce98aa1d7e1c355f1af205da07f480814756764f"
+        },
+        {
+          "path": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py",
+          "pinned_declared_sha256": "e734bde37cbdeeacb8412adf046668932492a2e3531f54913a1f4c8a0f4ff350",
+          "current_sha256": "7f974d1e4dc9c2cf7fc2f6e33b350d5697a365de47255942de5ef0b0384998b0"
+        }
+      ]
+    }
+  ],
+  "parser_diagnostics": "Local static-output parser initially treated a Git tree listing as a file; corrected only within owned evidence directory. No test or source behavior changed.",
+  "analysis_errors": [],
+  "final_command_closure_reference": "verification/local/continuation-root-r2332/commands/r4064-10-final-receipt (written by root command wrapper after receipt emission)",
+  "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "generated_utc": "2026-11-16T14:48:53.735377+00:00"
+}

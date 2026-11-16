@@ -1,5 +1,11 @@
 # Execution index
 
+## Continuation checkpoint, November 16, 2026 — fresh-checkout source127 fixture repaired
+
+At delivered head `955523711`, the VM job passes. Swift host controls fail before ordinary CLI execution because two rejection tests use an absent scratch parent; Linux Swift then stops at its prerequisite guard. The reviewed repair creates and validates the fixture-owned directory. All 20 controls pass in normal and actual optimized modes from initially absent parents, both rejection assertions are reached, and installed admission passes. Production127 remains unchanged. [Root adoption](verification/receipts/source127-scratch-root-adoption-r4068.json).
+
+The separate ordinary-test repair passes all 394 cases without the private historical CLI variable. Both corrections are ready for delivery; fresh hosted results remain pending. The original-renderer probe closes normally but cannot identify the semantic title field through NSView traversal, so it sends no input. The next probe examines the owned accessibility tree. The console's first underlying auth failure remains unproven. Native title, screen pixels and all 38 GA gates remain pending; all historical holds remain preserved.
+
 ## Continuation checkpoint, November 16, 2026 — public same-build report admitted as CLI127
 
 At delivered head955523711, the VM job passes; Swift host adoption controls fail before the ordinary CLI step, and Linux Swift stops at its prerequisite guard. The newly found ordinary baseline dependency is a separate issue now repaired locally. The console browser attempt returned authorization_unavailable before submission; all three owned service groups closed and no visual pass is claimed.
