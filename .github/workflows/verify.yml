@@ -135,6 +135,7 @@ jobs:
             /verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/
             /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/
             /verification/native-output-source121-v1/
+            /verification/native-report-source126-v1/
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py
@@ -182,7 +183,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$GITHUB_WORKSPACE/verification/native-output-source121-v1/adopt_envelope.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/native-report-source126-v1/adopt_envelope.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
       - name: Guarded envelope and prospective compiler adoption controls
@@ -192,8 +193,12 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           MIXER_NATIVE_PREDECESSOR="$RUNNER_TEMP/native-output-source119-controls"
-          python3 -I -B -S "$GITHUB_WORKSPACE/verification/native-output-source121-v1/test_source121.py"
-          python3 -I -B -S "$GITHUB_WORKSPACE/verification/native-output-source121-v1/adopt_envelope.py" prepare-predecessor \
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/native-report-source126-v1/test_source126.py"
+          MIXER_NATIVE_SOURCE121_PREDECESSOR="$RUNNER_TEMP/native-report-source121-controls"
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/native-report-source126-v1/adopt_envelope.py" prepare-predecessor \
+            --out "$MIXER_NATIVE_SOURCE121_PREDECESSOR"
+          python3 -I -B -S "$MIXER_NATIVE_SOURCE121_PREDECESSOR/verification/native-output-source121-v1/test_source121.py"
+          python3 -I -B -S "$MIXER_NATIVE_SOURCE121_PREDECESSOR/verification/native-output-source121-v1/adopt_envelope.py" prepare-predecessor \
             --out "$MIXER_NATIVE_PREDECESSOR"
           python3 -B "$MIXER_ADOPTION_DIR/test_adoption.py" -v \
             > "$MIXER_ADOPTION_DIR/logs/controls.stdout" \
@@ -216,7 +221,7 @@ jobs:
           export RUSTUP_AUTO_INSTALL=0
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           MIXER_ENVELOPE_RUSTC_LAUNCHER="$(command -v rustc)"
-          python3 -B "$GITHUB_WORKSPACE/verification/native-output-source121-v1/adopt_envelope.py" run \
+          python3 -B "$GITHUB_WORKSPACE/verification/native-report-source126-v1/adopt_envelope.py" run \
             --rustc "$MIXER_ENVELOPE_RUSTC_LAUNCHER" \
             --out "$RUNNER_TEMP/analyzer-envelope" \
             > "$MIXER_ADOPTION_DIR/logs/fixture.stdout" \
@@ -229,7 +234,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$GITHUB_WORKSPACE/verification/native-output-source121-v1/adopt_envelope.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/native-report-source126-v1/adopt_envelope.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
       - name: Preserve standalone analyzer envelope receipts
@@ -366,6 +371,7 @@ jobs:
             /verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/
             /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/
             /verification/native-output-source121-v1/
+            /verification/native-report-source126-v1/
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py
@@ -917,6 +923,7 @@ jobs:
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/
             /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/binding.json
             /verification/native-output-source121-v1/
+            /verification/native-report-source126-v1/
       - name: Bootstrap policy controls without native tools
         timeout-minutes: 2
         run: |

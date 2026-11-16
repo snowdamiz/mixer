@@ -1,8 +1,11 @@
 import Foundation
 import Darwin
 
-/// Two retained native products from one unsigned local iOS Simulator build.
+/// Three retained native products from one unsigned local iOS Simulator build.
 public enum NativeBuildOutput {
+    public enum ResourceInventoryPolicy: String, Codable, Sendable {
+        case retainedAppFilesV1 = "retained-app-files-v1"
+    }
     public struct Binding: Codable, Sendable {
         public let authoritativeSourceDigest: String
         public let lockSHA256: String
@@ -12,13 +15,20 @@ public enum NativeBuildOutput {
         public let cliExecutableSHA256: String
         public let command: [String]
         public let environment: [String: String]
+        public var resourceInventoryPolicy: ResourceInventoryPolicy? = nil
     }
     public struct Report: Codable, Sendable {
         public let commandResult: CommandResult
         public let nativeProduct: NativeProductCapture.Result?
         public let binding: Binding
         public let scope: String
-        public var succeeded: Bool { commandResult.succeeded && nativeProduct != nil }
+        public var formatVersion: Int? = nil
+        public var resourceInventory: ResourceInventoryProduct.Descriptor? = nil
+        public var succeeded: Bool {
+            commandResult.succeeded && nativeProduct != nil &&
+                (binding.resourceInventoryPolicy == nil ? formatVersion == nil && resourceInventory == nil :
+                    formatVersion == 2 && resourceInventory != nil)
+        }
     }
 
     final class Store {
@@ -105,7 +115,7 @@ public enum NativeBuildOutput {
                 lockSHA256: SourceDigest.sha256(lockBytes), lock: currentLock, sdkDigest: sdk,
                 compilerSourceDigest: try SourceDigest.tree(compilerSources),
                 cliExecutableSHA256: SourceDigest.sha256(try Data(contentsOf: executable)),
-                command: command, environment: environment)
+                command: command, environment: environment, resourceInventoryPolicy: .retainedAppFilesV1)
         }
         try store.check()
         let before = try bind()
@@ -114,7 +124,7 @@ public enum NativeBuildOutput {
         // ProcessRunner returns only after its terminal-custody contract; UNKNOWN throws.
         guard actual.succeeded else {
             let report = Report(commandResult: actual, nativeProduct: nil, binding: before,
-                                scope: "unsigned-simulator/local-development")
+                                scope: "unsigned-simulator/local-development", formatVersion: 2)
             try store.persist(report)
             return report
         }
@@ -125,8 +135,11 @@ public enum NativeBuildOutput {
             bindingSHA256: SourceDigest.sha256(beforeBytes))
         guard try beforeBytes == JSONFile.data(bind())
         else { throw MixerFailure("build.output-drift", "Inputs changed during native capture.") }
+        let inventory = try ResourceInventoryProduct.produce(capture: products, captureStore: store.url,
+            store: store.url, expectedBindingSHA256: SourceDigest.sha256(beforeBytes))
+        try store.check()
         let report = Report(commandResult: actual, nativeProduct: products, binding: before,
-                            scope: "unsigned-simulator/local-development")
+                            scope: "unsigned-simulator/local-development", formatVersion: 2, resourceInventory: inventory)
         try store.persist(report)
         return report
     }
@@ -192,8 +205,20 @@ public enum NativeBuildOutput {
         guard report.scope == "unsigned-simulator/local-development", report.commandResult.succeeded,
               let products = report.nativeProduct
         else { throw MixerFailure("build.output-incomplete", "Manifest does not describe retained native products.") }
-        try NativeProductCapture.revalidate(products, store: store,
-            expectedBindingSHA256: SourceDigest.sha256(try JSONFile.data(report.binding)))
+        let bindingSHA256 = SourceDigest.sha256(try JSONFile.data(report.binding))
+        switch report.binding.resourceInventoryPolicy {
+        case .retainedAppFilesV1:
+            guard report.formatVersion == 2, let inventory = report.resourceInventory else {
+                throw MixerFailure("build.output-inventory", "This binding requires a version 2 report and retained resource inventory.")
+            }
+            try ResourceInventoryProduct.revalidate(inventory, capture: products, captureStore: store,
+                store: store, expectedBindingSHA256: bindingSHA256)
+        case nil:
+            guard report.formatVersion == nil, report.resourceInventory == nil else {
+                throw MixerFailure("build.output-inventory", "Legacy report must use the explicit legacy role contract.")
+            }
+            try NativeProductCapture.revalidate(products, store: store, expectedBindingSHA256: bindingSHA256)
+        }
         return report
     }
 }

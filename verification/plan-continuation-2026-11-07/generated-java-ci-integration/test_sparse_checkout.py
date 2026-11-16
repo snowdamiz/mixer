@@ -27,7 +27,7 @@ CURRENT_BINDING = current_module.BINDING.as_posix()
 GIT_COMMANDS = []
 
 
-def proposal_patterns(text):
+def checkout_patterns(text):
     # Deliberately accept only this proposal's narrow checkout stanza. Unknown
     # settings (including filter overrides), duplicates and altered actions fail.
     lines = text.splitlines()
@@ -42,8 +42,44 @@ def proposal_patterns(text):
         '          sparse-checkout: |'], 'Unadmitted checkout settings; preserve implicit blob:none')
     B.require(all(line.startswith('            /') for line in block[5:]), 'Invalid non-cone pattern block')
     patterns = tuple(line.strip() for line in block[5:])
+    B.require(patterns and len(set(patterns)) == len(patterns), 'Missing or duplicate sparse patterns')
+    B.require(all(p.startswith('/') and all(part and part not in ('.', '..') and
+                  all(c.isalnum() or c in '-_.' for c in part)
+                  for part in p.strip('/').split('/')) for p in patterns),
+              'Only explicit rooted checkout paths are admitted')
+    return patterns
+
+
+def proposal_patterns(text):
+    patterns = checkout_patterns(text)
     B.require(patterns == PATTERNS, 'Sparse selection differs from reviewed checkout closure')
     return patterns
+
+
+def owning_patterns(text):
+    # Finite extraction of this one known job, not a general workflow parser.
+    lines = text.splitlines()
+    starts = [i for i, line in enumerate(lines) if line == '  android-generated-java:']
+    B.require(len(starts) == 1, 'Missing or ambiguous owning Android job')
+    start = starts[0]
+    stop = next((i for i in range(start + 1, len(lines))
+                 if lines[i].strip() and not lines[i].lstrip().startswith('#') and
+                 not lines[i].startswith('    ')), len(lines))
+    return checkout_patterns('\n'.join(lines[start:stop]))
+
+
+def owning_paths(patterns):
+    authority = B.canonical()
+    paths = set(B.admit_source_inputs(authority, authority.load_profile()))
+    paths.update(('cli/Package.swift', 'sdk/Package.swift', 'updates/Package.swift',
+                  'native/android/engine/Package.swift', 'scripts/ci/check-android-binding.py',
+                  HERE.relative_to(ROOT).as_posix() + '/test_bootstrap.py',
+                  PATTERNS[-1].lstrip('/'), current_module.BINDING.as_posix()))
+    # The owning job also selects immutable admission rows for current/history
+    # source guards. Exercise every declared binding, without pinning a version.
+    paths.update(p.lstrip('/') + 'binding.json' for p in patterns
+                 if p.startswith('/verification/native-output-') and p.endswith('/'))
+    return sorted(paths)
 
 
 def git_selected(paths, patterns=PATTERNS):
@@ -130,14 +166,43 @@ class SparseControls(unittest.TestCase):
         self.assertEqual(git_selected(rejected), set())
 
     def test_each_selected_directory_is_necessary_for_complete_dependency_closure(self):
-        paths = ['cli/Package.swift', 'sdk/Package.swift', 'updates/Package.swift',
-                 'native/android/engine/Package.swift', 'scripts/ci/check-android-binding.py',
-                 HERE.relative_to(ROOT).as_posix() + '/test_bootstrap.py',
-                 CURRENT_BINDING]
-        require_coverage(paths, git_selected(paths))
-        for omitted in PATTERNS:
+        patterns = owning_patterns((ROOT / '.github/workflows/verify.yml').read_text())
+        paths = owning_paths(patterns)
+        for path in paths:
+            self.assertTrue((ROOT / path).is_file(), path)
+        require_coverage(paths, git_selected(paths, patterns))
+        for omitted in patterns:
             with self.subTest(omitted=omitted), self.assertRaisesRegex(RuntimeError, 'omits'):
-                require_coverage(paths, git_selected(paths, tuple(p for p in PATTERNS if p != omitted)))
+                require_coverage(paths, git_selected(paths, tuple(p for p in patterns if p != omitted)))
+
+    def test_owning_job_extraction_refuses_missing_ambiguous_or_unsafe_checkout(self):
+        text = (ROOT / '.github/workflows/verify.yml').read_text()
+        for altered in (text.replace('  android-generated-java:', '  other-android-job:'),
+                        text + '\n  android-generated-java:\n',
+                        text.replace('      - uses: actions/checkout@v4',
+                                     '      - uses: actions/checkout@v3'),
+                        text.replace('            /cli/', '            /*'),
+                        text.replace('            /cli/', '            /cli/\n            /cli/'),
+                        text.replace('          sparse-checkout-cone-mode: false',
+                                     '          sparse-checkout-cone-mode: true')):
+            with self.subTest(altered=altered), self.assertRaises(RuntimeError):
+                owning_patterns(altered)
+
+    def test_owning_selection_tracks_future_binding_and_retained_history(self):
+        text = (ROOT / '.github/workflows/verify.yml').read_text()
+        patterns = owning_patterns(text)
+        future = Path('verification/native-output-future-admission/binding.json')
+        future_pattern = '/' + future.parent.as_posix() + '/'
+        changed = text.replace('            /cli/\n',
+                               '            /cli/\n            ' + future_pattern + '\n')
+        selected = owning_patterns(changed)
+        self.assertEqual(set(selected), set(patterns) | {future_pattern})
+        with patch.object(current_module, 'BINDING', future):
+            paths = owning_paths(selected)
+        self.assertIn(future.as_posix(), paths)
+        for pattern in patterns:
+            if pattern.startswith('/verification/native-output-') and pattern.endswith('/'):
+                self.assertIn(pattern.lstrip('/') + 'binding.json', paths)
 
     def test_proposal_omission_refused(self):
         text = (HERE / 'workflow-proposal.yml').read_text()
