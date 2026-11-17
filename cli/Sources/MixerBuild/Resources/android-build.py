@@ -136,8 +136,7 @@ def tree(path, digest_file=None):
     return h.hexdigest()
 
 
-def source_tree(path):
-    h = hashlib.sha256()
+def source_manifest(path):
     skip = {'.build', '.git', '.swiftpm', 'node_modules', '.gradle', '.mixer', 'target', '.DS_Store'}
     files = []
     for base, dirs, names in os.walk(path, followlinks=False):
@@ -148,13 +147,18 @@ def source_tree(path):
                 continue
             if item.is_symlink():
                 raise RuntimeError('Source snapshots reject symlinks: ' + str(item))
+            if not stat.S_ISREG(item.lstat().st_mode):
+                raise RuntimeError('Source snapshots reject special files: ' + str(item))
             files.append(item)
         for name in dirs:
             if (pathlib.Path(base) / name).is_symlink():
                 raise RuntimeError('Source snapshots reject symlinks')
-    for item in sorted(files):
-        h.update((item.relative_to(path).as_posix() + '\0' + digest(item) + '\n').encode())
-    return h.hexdigest()
+    return {item.relative_to(path).as_posix(): (digest(item), bool(item.stat().st_mode & 0o111)) for item in sorted(files)}
+
+
+def source_tree(path):
+    files = source_manifest(path)
+    return hashlib.sha256(''.join(name + '\0' + files[name][0] + '\n' for name in sorted(files)).encode()).hexdigest()
 
 
 def source_profile():
@@ -751,6 +755,94 @@ def check_native_symbols(symbols, public, jni_symbols=''):
             raise RuntimeError('App shared feature/model or ABI symbol missing: ' + symbol)
 
 
+def resolved_lock(root, relative, required=True):
+    parent, name = relative.rsplit('/', 1)
+    directory = exact_path(root, parent, directory=True)
+    aliases = [p.name for p in directory.iterdir() if p.name.casefold() == name.casefold()]
+    if not aliases and not required:
+        return None
+    if aliases != [name]:
+        raise RuntimeError('Android dependency lock must have its exact ordinary path: ' + relative)
+    path = directory / name
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not 0 < info.st_size <= 65_536 or info.st_mode & 0o111:
+        raise RuntimeError('Android dependency lock must be an ordinary bounded file: ' + relative)
+    data = path.read_bytes()
+    if len(data) != info.st_size:
+        raise RuntimeError('Android dependency lock changed while reading: ' + relative)
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('duplicate lock key')
+            result[key] = value
+        return result
+    try:
+        value = json.loads(data, object_pairs_hook=unique)
+        if (not isinstance(value, dict) or set(value) != {'originHash', 'pins', 'version'} or
+            type(value['version']) is not int or value['version'] != 3 or
+            not isinstance(value['originHash'], str) or re.fullmatch('[0-9a-f]{64}', value['originHash']) is None or
+            not isinstance(value['pins'], list) or not 0 < len(value['pins']) <= 256):
+            raise ValueError('unsupported resolved lock')
+        identities = set()
+        for pin in value['pins']:
+            if (not isinstance(pin, dict) or set(pin) != {'identity', 'kind', 'location', 'state'} or
+                not isinstance(pin['identity'], str) or not pin['identity'] or pin['identity'] in identities or
+                pin['kind'] != 'remoteSourceControl' or not isinstance(pin['location'], str) or
+                not isinstance(pin['state'], dict) or set(pin['state']) != {'revision', 'version'} or
+                not isinstance(pin['state']['revision'], str) or re.fullmatch('[0-9a-f]{40}', pin['state']['revision']) is None or
+                not isinstance(pin['state']['version'], str) or not pin['state']['version']):
+                raise ValueError('unsupported dependency pin')
+            identities.add(pin['identity'])
+    except (ValueError, TypeError, UnicodeError) as error:
+        raise RuntimeError('Malformed Android dependency lock: ' + relative) from error
+    return data, value
+
+
+def prepare_dependencies(root, run, swift_options):
+    relative = 'Platforms/Android/Package.resolved'
+    sdk = resolved_lock(root, 'Generated/MixerSDK/Package.resolved')
+    original = resolved_lock(root, relative, required=False)
+    pins = lambda lock: sorted(lock[1]['pins'], key=lambda pin: pin['identity'])
+    if original is not None and pins(original) != pins(sdk):
+        raise RuntimeError('Android platform dependency pins differ from the admitted SDK lock.')
+    before = source_manifest(root)
+    command = [SWIFT, 'package', *swift_options]
+    if original is not None:
+        command.append('--force-resolved-versions')
+    run(command + ['resolve'])
+    prepared = resolved_lock(root, relative)
+    if pins(prepared) != pins(sdk):
+        raise RuntimeError('Android resolver dependency pins differ from the admitted SDK lock.')
+    after = source_manifest(root)
+    if original is None:
+        expected = dict(before)
+        expected[relative] = (hashlib.sha256(prepared[0]).hexdigest(), False)
+    else:
+        expected = before
+        if prepared[0] != original[0]:
+            raise RuntimeError('Android resolver changed an existing platform dependency lock.')
+    if after != expected:
+        raise RuntimeError('Application/SDK/adapter source changed during Android dependency preparation.')
+    return {'path': relative, 'bytes': len(prepared[0]), 'sha256': hashlib.sha256(prepared[0]).hexdigest()}
+
+
+def finish_source_guard(root, adapter, android, lock, source_before, apk_path, profile, appearance):
+    try:
+        if admit_source_pair(root, profile) != appearance:
+            raise RuntimeError('Android appearance input changed during the build.')
+        source_after = source_tree(root)
+        if source_before != source_after or source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
+            raise RuntimeError('Application/SDK/adapter source changed during the Android build; result rejected. Restore stable inputs and rebuild.')
+    except (OSError, RuntimeError):
+        try:
+            apk_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise
+    return source_after
+
+
 def build(root):
     config = read_json(root / 'mixer.yml')
     if not isinstance(config, dict) or config.get('androidHost', 'legacy-v1') != 'legacy-v1':
@@ -773,14 +865,9 @@ def build(root):
     output = checked_output(root, create=True)
     receipt_path = output / 'build-receipt.json'
     receipt_path.unlink(missing_ok=True)
+    (output / 'build-input.json').unlink(missing_ok=True)
     apk_path = output / (config['name'] + '-unsigned.apk')
     apk_path.unlink(missing_ok=True)
-    source_before = source_tree(root)
-    build_input = {'run_id': uuid.uuid4().hex, 'source_tree_sha256': source_before,
-                   'scope': 'Local observed mutation detection; not an immutable build sandbox or attestation.'}
-    temporary_input = output / 'build-input.json.tmp'
-    temporary_input.write_text(json.dumps(build_input, indent=2) + '\n')
-    temporary_input.replace(output / 'build-input.json')
     identity = inspect()
     if identity != android['toolchain']:
         raise RuntimeError('Android toolchain differs from mixer.lock. Restore the exact installed tool distributions.')
@@ -795,7 +882,19 @@ def build(root):
             raise RuntimeError('Android build failed: ' + repr(args))
         return p.stdout
     package = root / 'Platforms/Android'
-    swift_args = [SWIFT, 'build', '--package-path', package, '--scratch-path', output / 'swift', '--swift-sdks-path', SWIFT_SDKS, '--swift-sdk', SDK_ID, '-c', 'release', '--product', 'AppAndroid', '-Xlinker', '-z', '-Xlinker', 'max-page-size=16384']
+    swift_options = ['--package-path', package, '--scratch-path', output / 'swift',
+                     '--cache-path', output / 'swiftpm-cache', '--config-path', output / 'swiftpm-config',
+                     '--security-path', output / 'swiftpm-security', '--manifest-cache', 'local',
+                     '--swift-sdks-path', SWIFT_SDKS, '--swift-sdk', SDK_ID]
+    dependency_lock = prepare_dependencies(root, run, swift_options)
+    source_before = source_tree(root)
+    build_input = {'run_id': uuid.uuid4().hex, 'source_tree_sha256': source_before,
+                   'platform_dependency_lock': dependency_lock,
+                   'scope': 'Local observed mutation detection; not an immutable build sandbox or attestation.'}
+    temporary_input = output / 'build-input.json.tmp'
+    temporary_input.write_text(json.dumps(build_input, indent=2) + '\n')
+    temporary_input.replace(output / 'build-input.json')
+    swift_args = [SWIFT, 'build', *swift_options, '--force-resolved-versions', '-c', 'release', '--product', 'AppAndroid', '-Xlinker', '-z', '-Xlinker', 'max-page-size=16384']
     if public:
         swift_args += ['--jobs', '2']
     run(swift_args)
@@ -897,19 +996,14 @@ def build(root):
             raise RuntimeError('Unexpected signing/example content in unsigned consumer.')
         content = {n: hashlib.sha256(archive.read(n)).hexdigest() for n in sorted(names)}
     normalized = hashlib.sha256(json.dumps(content, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
-    if admit_source_pair(root, profile) != appearance:
-        apk_path.unlink(missing_ok=True)
-        raise RuntimeError('Android appearance input changed during the build.')
-    source_after = source_tree(root)
-    if source_before != source_after or source_tree(adapter) != android['adapterDigest'] or source_tree(root / 'Generated/MixerSDK') != lock['sdkDigest']:
-        apk_path.unlink(missing_ok=True)
-        raise RuntimeError('Application/SDK/adapter source changed during the Android build; result rejected. Restore stable inputs and rebuild.')
+    source_after = finish_source_guard(root, adapter, android, lock, source_before, apk_path, profile, appearance)
     receipt = {
         'schema_version': 1, 'qualification': 'local-unsigned-cross-build-only',
         'application_min_api': min_api,
         'application': config['application'], 'android_host': config.get('androidHost', 'legacy-v1'), 'activity': activity, 'jni_library': jni_library, 'apk': str(apk_path), 'apk_sha256': digest(apk_path), 'apk_bytes': apk_path.stat().st_size,
         'apk_content_sha256': normalized, 'apk_entries': content,
         'source_tree_sha256': source_before, 'source_tree_after_sha256': source_after,
+        'platform_dependency_lock': dependency_lock,
         'source_observation_scope': 'Before/after local mutation detection only; inputs are not isolated or immutably captured.',
         'sdk_digest': lock['sdkDigest'], 'adapter_digest': android['adapterDigest'],
         'source_profile': profile_lock(profile), 'source_profile_observation': 'matched-reviewed-source-pair',

@@ -82,7 +82,8 @@ class AndroidPublicHostTests(CompatibilityFixture, unittest.TestCase):
                 with mock.patch.object(self.module, 'inspect', side_effect=RuntimeError('tool sentinel')):
                     with self.assertRaisesRegex(RuntimeError, 'tool sentinel'):
                         self.module.build(self.root)
-                self.assertTrue((self.root / '.mixer/android-build/build-input.json').is_file())
+                self.assertFalse((self.root / '.mixer/android-build/build-input.json').exists())
+                self.assertTrue((self.root / '.mixer/android-build').is_dir())
 
     def test_unknown_host_and_all_non_string_types_refuse_before_work(self):
         for value in ('public-v2', '', 'PUBLIC-V3', None, True, 3, [], {}, ['public-v3']):
@@ -134,7 +135,8 @@ class AndroidPublicHostTests(CompatibilityFixture, unittest.TestCase):
         with mock.patch.object(self.module, 'inspect', side_effect=RuntimeError('tool sentinel')):
             with self.assertRaisesRegex(RuntimeError, 'tool sentinel'):
                 self.module.build(self.root)
-        self.assertTrue((self.root / '.mixer/android-build/build-input.json').is_file())
+        self.assertFalse((self.root / '.mixer/android-build/build-input.json').exists())
+        self.assertTrue((self.root / '.mixer/android-build').is_dir())
 
     def test_private_namespace_extra_java_and_redirected_inputs_refuse(self):
         self.public_inputs()

@@ -105,7 +105,8 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         with mock.patch.object(self.module, 'inspect', side_effect=RuntimeError('TOOL-ORDER-SENTINEL')):
             with self.assertRaisesRegex(RuntimeError, 'TOOL-ORDER-SENTINEL'):
                 self.module.build(self.root)
-        self.assertTrue((self.root / '.mixer/android-build/build-input.json').is_file())
+        self.assertFalse((self.root / '.mixer/android-build/build-input.json').exists())
+        self.assertTrue((self.root / '.mixer/android-build').is_dir())
 
     def test_ascii_reserved_names_and_both_kelvin_aliases_reject_even_with_recomputed_locks(self):
         for name in ['Package@swift-6.4.swift', 'package.swift', 'PACKAGE.SWIFT', 'Package.resolved', 'Package.swift.bak', 'Pac\u212aage.swift', 'Pac\u212aage@swift-6.4.swift', 'unrelated-東京']:

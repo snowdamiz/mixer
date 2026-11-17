@@ -1,0 +1,333 @@
+{
+  "schema": 1,
+  "task": "lock-preparation-source-review-r5138",
+  "status": "REQUEST_CHANGES",
+  "candidate": "android-lock-preparation-fix-r5090",
+  "candidateResource": {
+    "bytes": 56270,
+    "sha256": "5fdfb42d03caddac16194f2b13d4b7c01292c5473e772b24bd0059bdb519aab8"
+  },
+  "findings": [
+    {
+      "id": "R5138-P2-1",
+      "priority": "P2",
+      "file": "cli/Sources/MixerBuild/Resources/android-build.py",
+      "line": 994,
+      "trigger": "Pinned SDK/adapter mutation or read/layout failure at final admission after APK creation",
+      "evidence": "verification/local/lock-preparation-source-review-r5138/value-counterproof.json",
+      "observed": {
+        "cases": 2,
+        "rejected": true,
+        "apkStillPresent": true,
+        "finalGuardReached": false
+      },
+      "minimalFix": "Cover final admit_source_pair and finish_source_guard with one exact-owned-APK cleanup exception boundary; test the caller path."
+    }
+  ],
+  "staticInspection": {
+    "afterimagePins": [
+      {
+        "p": "cli/Sources/MixerBuild/Resources/android-build.py",
+        "beforeMatch": true,
+        "afterMatch": true
+      },
+      {
+        "p": "cli/build-tests/test_android_public_host.py",
+        "beforeMatch": true,
+        "afterMatch": true
+      },
+      {
+        "p": "cli/build-tests/test_android_sdk_compatibility.py",
+        "beforeMatch": true,
+        "afterMatch": true
+      },
+      {
+        "p": "cli/build-tests/test_android_staging.py",
+        "beforeMatch": true,
+        "afterMatch": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/adopt_sdk.py",
+        "beforeMatch": true,
+        "afterMatch": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/binding.json",
+        "beforeMatch": true,
+        "afterMatch": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/current-source-inputs.json",
+        "beforeMatch": true,
+        "afterMatch": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/owning-closure.json",
+        "beforeMatch": true,
+        "afterMatch": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/seal.json",
+        "beforeMatch": true,
+        "afterMatch": true
+      }
+    ],
+    "authority": {
+      "members": 26,
+      "unchangedRoster": true,
+      "sealDigestMatches": true,
+      "sourceCount": 141,
+      "sourceChanged": [
+        "cli/Sources/MixerBuild/Resources/android-build.py"
+      ],
+      "sourceRosterSame": true,
+      "sourceDigestMatches": true,
+      "owningCount": 863,
+      "owningChanged": [
+        "cli/Sources/MixerBuild/Resources/android-build.py",
+        "cli/build-tests/test_android_public_host.py",
+        "cli/build-tests/test_android_sdk_compatibility.py",
+        "cli/build-tests/test_android_staging.py"
+      ],
+      "owningRosterSame": true,
+      "profileUnchanged": true,
+      "transitionProfileUnchanged": true,
+      "changedAfterPins": [
+        {
+          "p": "cli/Sources/MixerBuild/Resources/android-build.py",
+          "closureMatch": true,
+          "changeAfterMatch": true
+        },
+        {
+          "p": "cli/build-tests/test_android_public_host.py",
+          "closureMatch": true,
+          "changeAfterMatch": true
+        },
+        {
+          "p": "cli/build-tests/test_android_sdk_compatibility.py",
+          "closureMatch": true,
+          "changeAfterMatch": true
+        },
+        {
+          "p": "cli/build-tests/test_android_staging.py",
+          "closureMatch": true,
+          "changeAfterMatch": true
+        }
+      ],
+      "inverse": {
+        "count": 127,
+        "sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"
+      }
+    },
+    "proposedPins": [
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/adopt_sdk.py",
+        "sameAsAfterimage": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/binding.json",
+        "sameAsAfterimage": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/current-source-inputs.json",
+        "sameAsAfterimage": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/owning-closure.json",
+        "sameAsAfterimage": true
+      },
+      {
+        "p": "verification/sdk-feature-ui-source141-v1/seal.json",
+        "sameAsAfterimage": true
+      }
+    ],
+    "historicalPins": [
+      {
+        "p": "cli/build-tests/test_android_staging.py",
+        "bytes": 6024,
+        "sameAsExactPreimage": true
+      },
+      {
+        "p": "cli/build-tests/test_android_sdk_compatibility.py",
+        "bytes": 34200,
+        "sameAsExactPreimage": true
+      },
+      {
+        "p": "cli/build-tests/test_android_public_host.py",
+        "bytes": 16186,
+        "sameAsExactPreimage": true
+      }
+    ],
+    "source141": {
+      "count": 141,
+      "manifest": "current-source-inputs.json",
+      "sha256": "3a88788f7b0122ada03be3049da17a1202cae1444b691f504923eea9b318f8c7"
+    },
+    "resourceIdentity": {
+      "bytes": 56270,
+      "sha256": "5fdfb42d03caddac16194f2b13d4b7c01292c5473e772b24bd0059bdb519aab8"
+    },
+    "reviewScope": "Independent source and changed-contract inspection, not qualification"
+  },
+  "sourceContractFullyInspected": true,
+  "finalSourceQualified": false,
+  "finalCandidateRerun": false,
+  "priorWaves": {
+    "normal": {
+      "pass": 69,
+      "total": 73
+    },
+    "actualO": {
+      "pass": 69,
+      "total": 73
+    },
+    "newControlsPassed": 11,
+    "scope": "Historical R5090 pre-final-edit results only"
+  },
+  "authorityInstalled": false,
+  "fullSDKAdmissionRun": false,
+  "allHistoricalHoldsPreserved": true,
+  "newUnknown": false,
+  "wrapperSHA256": "04cf8ad02b4fdf24b1c00097d3d465595527ed30520da6022ea7dd1dc922c152",
+  "scope": {
+    "children": 0,
+    "canonicalEdits": 0,
+    "index": 0,
+    "CI": 0,
+    "GitDelivery": 0,
+    "SwiftCompilation": 0,
+    "SDKResolve": 0,
+    "devices": 0,
+    "VM": 0,
+    "HTTP": 0,
+    "PostgreSQL": 0,
+    "GA": false
+  },
+  "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/lock-preparation-source-review-r5138/REPORT.md",
+  "finalizerAndSeparateReadback": {
+    "pending": false,
+    "finalizer": [
+      {
+        "label": "r5138_finalize",
+        "argv": [
+          "/opt/homebrew/bin/python3",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/lock-preparation-source-review-r5138/finalize.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 9106,
+        "pgid": 9106,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03689974988810718,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "artifactPinsReadBack": true,
+    "separateReadbackOwnClosureReference": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/commands/r5138_readback/commands.json",
+    "ownClosureNotInferredBeforeReturn": true
+  },
+  "artifacts": {
+    "REPORT.md": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/lock-preparation-source-review-r5138/REPORT.md",
+      "bytes": 5713,
+      "sha256": "987d272991dd60494eabf95e7aba05c5a37796828868a6776cd751132230ae2d"
+    },
+    "static-inspection.json": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/lock-preparation-source-review-r5138/static-inspection.json",
+      "bytes": 3984,
+      "sha256": "8453f51b36968d662fa2d0bfdc498a15bdd87943ac07ff9e4e02433ca5e322f3"
+    },
+    "counterproof.py": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/lock-preparation-source-review-r5138/counterproof.py",
+      "bytes": 3391,
+      "sha256": "a9229870480b37d22318b11e02b9714b3fe371745ac7ab88fee54685ef88e83a"
+    },
+    "value-counterproof.json": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/lock-preparation-source-review-r5138/value-counterproof.json",
+      "bytes": 1041,
+      "sha256": "ed1dd74cb628b582a619be99817c2c4f92b0d441f80448e6f7a1b14dba4e2345"
+    }
+  },
+  "commands": {
+    "r5138_agents": [
+      {
+        "label": "r5138_agents",
+        "argv": [
+          "/bin/cat",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 97357,
+        "pgid": 97357,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.016086499905213714,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "r5138_inputs": [
+      {
+        "label": "r5138_inputs",
+        "argv": [
+          "/opt/homebrew/bin/python3",
+          "-B",
+          "-c",
+          "from pathlib import Path; import hashlib; b=Path(\"command-safe-r4984.py\").read_bytes(); print(\"WRAPPER_SHA256\",hashlib.sha256(b).hexdigest()); print(b.decode()); p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); a=(p/\"AGENTS.md\").read_text(); print(\"AGENTS_CHARS\",len(a)); print(\"RECEIPT\",(p/\"verification/receipts/android-lock-preparation-fix-r5090.json\").read_text())"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 98111,
+        "pgid": 98111,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.033697291975840926,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "r5138_wrapper": [
+      {
+        "label": "r5138_wrapper",
+        "argv": [
+          "/opt/homebrew/bin/python3",
+          "-B",
+          "-c",
+          "from pathlib import Path; import hashlib; p=Path(\"command-safe-r4984.py\"); b=p.read_bytes(); print(\"SHA256\",hashlib.sha256(b).hexdigest()); print(b.decode()); print(\"AGENTS_SIZE\",Path(\"../../../AGENTS.md\").stat().st_size)"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 98161,
+        "pgid": 98161,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03388833301141858,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "r5138_counterproof": [
+      {
+        "label": "r5138_counterproof",
+        "argv": [
+          "/opt/homebrew/bin/python3",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/lock-preparation-source-review-r5138/counterproof.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 5367,
+        "pgid": 5367,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04770899983122945,
+        "ownedGroupAbsentESRCH": true
+      }
+    ]
+  }
+}
