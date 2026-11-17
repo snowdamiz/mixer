@@ -1,6 +1,6 @@
 # mixer — Swift-First Mobile Platform Product and Engineering Plan
 
-Version: 1.5 — updated November 9, 2026 (direct development tests, bounded preparation, current model selection; full product scope retained).
+Version: 1.6 — updated November 17, 2026 (local end-to-end completion; free testing and early launch; deployment and monetization tracked separately).
 
 Prepared: October 22, 2026  
 Status: Proposed implementation plan; no implementation or release evidence is claimed by this document.  
@@ -8,20 +8,20 @@ Project name: **mixer**. The CLI is `mixer`, configuration files are `mixer.yml`
 
 **Decision in brief:** Buildable with a supported Swift application/UI model, native platform adapters, and an independently implemented interpreted update runtime. It cannot promise unchanged compatibility with every existing SwiftUI app or OTA replacement of arbitrary native code. The business is plausible but demand remains unproven. Execution is designed for AI agents, organized by dependencies, concrete deliverables, and verified completion gates. FieldLog, a real Swift app, must prove each stage on both platforms.
 
-**Navigation:** [Evidence and verdict](#3-evidence-assumptions-and-competitive-context) · [Independent ownership](#4-independent-implementation-and-provenance) · [Architecture](#5-system-architecture-and-ownership) · [Compiler](#7-swift-compilation-and-module-model) · [Owned interpreter](#10-our-interpreter-and-swift-execution-profile) · [OTA and recovery](#11-update-eligibility-packaging-and-trust) · [Hosted product](#13-hosted-release-and-control-plane) · [Real-app dogfood](#21-the-real-dogfood-application-fieldlog) · [Delivery sequence](#24-delivery-sequence-and-dependency-graph) · [AI-agent execution](#25-ai-agent-execution-model) · [Business model](#26-business-model-and-market-validation) · [GA gates](#29-general-availability-acceptance-gates) · [Sources](#33-primary-source-research-index)
+**Navigation:** [Evidence and verdict](#3-evidence-assumptions-and-competitive-context) · [Independent ownership](#4-independent-implementation-and-provenance) · [Architecture](#5-system-architecture-and-ownership) · [Compiler](#7-swift-compilation-and-module-model) · [Owned interpreter](#10-our-interpreter-and-swift-execution-profile) · [OTA and recovery](#11-update-eligibility-packaging-and-trust) · [Hosted product](#13-hosted-release-and-control-plane) · [Real-app dogfood](#21-the-real-dogfood-application-fieldlog) · [Delivery sequence](#24-delivery-sequence-and-dependency-graph) · [AI-agent execution](#25-ai-agent-execution-model) · [Business model](#26-business-model-and-market-validation) · [Completion and later gates](#29-completion-gates-and-later-qualification) · [Sources](#33-primary-source-research-index)
 
 ## 1. Binding product direction
 
 Build a finished commercial platform that lets developers author an application primarily in Swift, maintain one shared application codebase, ship native iOS and Android apps, and deliver compatible logic and UI updates over the air to both platforms. Provide the surrounding build, signing, distribution, debugging, release, monitoring, billing, and support services expected from an Expo-like product.
 
-This is the delivery plan for that complete product. Internal milestones establish working slices of the production architecture; none is a substitute for completing the general-availability requirements.
+This implementation plan is complete when the platform works locally end to end under Section 2. Deployment, store approval, physical-device qualification, external adoption, and monetization have separate readiness records. They do not delay implementation-plan completion. This November 17 user decision supersedes older wording that equates completion with commercial general availability.
 
 The user's decisions govern the plan:
 
 1. **Own the engine.** Independently implement the cross-platform application engine, Swift-facing UI layer, Android integration, compiler orchestration, bridge generation, OTA runtime, update protocol, and hosted service.
 2. **No Patch or Skip code.** Do not copy, fork, vendor, translate, link, or depend on their implementations, generated code, test fixtures, or proprietary services. Their public product behavior can inform competitive requirements.
-3. **Dogfood continuously.** Build and operate a real Swift application throughout development. Every major milestone requires evidence from that application on physical devices and, once distribution is ready, through real store builds.
-4. **Deliver both platforms.** iOS-only success does not satisfy a milestone whose scope includes Android, and Android emulator success does not establish physical-device qualification.
+3. **Dogfood continuously.** Build and exercise FieldLog through public interfaces on iOS Simulator and Android emulator throughout development. Physical-device and store evidence belong to later release qualification.
+4. **Deliver both platforms.** Local completion requires iOS and Android end-to-end behavior. Record simulator and emulator evidence accurately; hardware qualification remains separate.
 5. **Make limitations explicit.** The service must explain which changes are OTA-compatible, which require a store release, and which APIs are platform-specific.
 6. **Use the specified agent models.** The user selects the main controlling agent when launching development. The coordinator directs and integrates the work, using **Sol 6.1 Extra High** for implementation, stalled blockers and difficult independent review, and **Grok 4.7** for easier nonvisual tasks. Section 25 defines the explicit model settings; spawning a child does not change the controller.
 
@@ -41,9 +41,30 @@ Avoid promises of arbitrary native binary replacement, universal SwiftUI compati
 
 ## 2. Completion definition and scope
 
-The product is complete for general availability only when every mandatory gate in Section 29 passes for a documented support matrix. A command-line demo, a compiler that builds, or an OTA module that executes is insufficient.
+The implementation plan is complete when L01–L08 below pass for the documented local support matrix. Exercise real integrated application behavior on iOS Simulator and Android emulator, with the console, API, database, workers, and update delivery running locally. A build or isolated demo alone is insufficient. Record exact sources, commands, actual behavior, failures, and cleanup in compact receipts. One independent review at each meaningful slice is sufficient under Section 24.5.
 
-### 2.1 Mandatory GA capabilities
+`gates/local.json` is the completion checklist. `gates/ga.json` preserves the original G01–G38 launch requirements and their historical evidence. Section 29 maps every original gate to local completion and later work. Local passes do not pass a launch gate automatically. No gate is newly passed by this policy change.
+
+| Local gate | Required end-to-end behavior |
+| --- | --- |
+| L01 Setup, adoption, and export | Install from pinned public SDK/tooling inputs, create and import a Swift app, build and run on both local targets, and export a working independent build. FieldLog consumes public interfaces from its separate repository. Registry publication and outside developers are not prerequisites. |
+| L02 Shared app and native UI | FieldLog's supported screens, state, navigation, input, accessibility, shared design, persistence, and first-party capabilities work on both local targets. Record OS-specific limitations. Physical-only services use explicit test adapters for local orchestration, with actual hardware/provider behavior pending. |
+| L03 Compiler and owned runtime | Supported Swift features execute in native and guest modes through the owned engine with actionable source diagnostics. Conformance, differential, malformed-input, cancellation, and resource-limit checks pass. Measure responsiveness, memory, and update size on the stated local workload. Hardware budgets remain separately unqualified. |
+| L04 Safe OTA and recovery | A locally served, signed logic and UI update changes both already-installed apps without reinstall. Compatibility, tenant/app identity, signatures, replay, cohorts, key rotation, and unsupported native changes are enforced. Interrupted or failed updates recover offline with saved data intact. Use development keys, never production signing credentials. |
+| L05 Local platform workflow | Real console, CLI, Phoenix API, PostgreSQL, Oban workers, build workers, artifact delivery, and separate development signer complete onboarding, build, logs, cancellation, update, promotion, and rollback locally. Test store request/status/error handling against documented provider fixtures. Actual uploads, store processing, provider infrastructure, and distribution remain pending. |
+| L06 Free accounts and administration | Free organizations can use the full testing workflow without a card, subscription, Stripe credentials, or payment service. Memberships, permissions, usage visibility, quotas, support, export, and deletion work locally. Paid plans, invoices, payment collection, paid entitlements, and purchase integrations may remain unimplemented and inactive. |
+| L07 Security and local reliability | Provenance, licensing notices, VM/bridge/update verification, signer separation, tenant isolation, privacy, authorization, and local fault/restore tests pass. Resolve findings that compromise the supported local workflow. Test local service/worker loss and recovery. Production SLOs, provider failover, and staffed operations are later qualification. |
+| L08 FieldLog and documentation | Run the complete supported FieldLog workflow through public tooling on both targets, including edit/save/close/reopen, offline queue, attachments, guest parity, OTA, rollback, and export. Exercise the applicable Section 22 recovery and real-change corpus locally. Follow installation, upgrade, recovery, and exit guides from a clean local setup. Store use, customer counts, and paid pilots are not required. |
+
+Missing local behavior stays failed, blocked, or pending. A fixture may stand in for an external store, payment, push, or hardware service only at that unavailable boundary; it cannot replace the owned compiler, VM, UI, persistence, updater, or integrated local services. Document each substitution and leave real provider/device qualification pending. No generalized evidence controller, extra approval ladder, or production soak period is a completion prerequisite.
+
+Testing and early launch are free. Preserve usage accounting and bounded capacity without creating charges. Payment implementation and activation need a later monetization decision. Existing billing code and receipts remain preserved, but billing work is off the completion critical path. A documentation change does not itself implement or verify free-mode behavior.
+
+Production rollout still requires separate authorization and checks relevant to the features actually exposed, such as store policy, secrets, tenant isolation, data recovery, and physical-only capabilities. A free early launch does not require the entire commercial G01–G38 checklist. Record deferred features and limitations explicitly. Phones remain disconnected and every existing process, device, scratch, and custody hold remains in force.
+
+### 2.1 Local implementation scope
+
+Apply the local evidence rules above to this capability inventory. Provider placement describes the intended deployment architecture, not a required live deployment. Commercial-only features are deferred as stated in L06.
 
 | Area | Required finished behavior |
 | --- | --- |
@@ -53,13 +74,13 @@ The product is complete for general availability only when every mandatory gate 
 | Native UI | Product-owned Swift API and renderer using native iOS and Android controls, accessibility, text input, and platform navigation conventions. |
 | OTA | Signed, compatibility-scoped logic and supported UI updates on iOS and Android; staged release, local recovery, offline behavior, and server rollback. |
 | Builds | Managed macOS/iOS and Android builds; deterministic inputs, logs, artifact retention, caches, quotas, cancellation, and isolation. |
-| Distribution | Development builds, internal testing, TestFlight/Play testing, and production submission with accurate status reporting. |
+| Distribution | Local development builds and tested submission/status adapters. Real TestFlight/Play processing and production submission are later qualification. |
 | Credentials | Secure signing credentials, store connections, key rotation, access control, and customer-owned keys. |
 | Developer tooling | Local CLI, Swift diagnostics, native and guest debugging, profiler, patch eligibility report, emulator/device support, and reproducible bug reports. |
-| Console/API | Projects, environments, releases, builds, devices in aggregate, rollout health, audit history, billing, and documented automation API. |
-| Operations | On-call, backups, restore testing, incident response, status page, abuse controls, and measured reliability. |
+| Console/API | Projects, environments, releases, builds, devices in aggregate, rollout health, audit history, free accounts, usage, and documented automation API. Payments and paid entitlements are deferred. |
+| Operations | Local backup/restore, failure recovery, diagnostics, and abuse controls. Live on-call, status service, and provider reliability belong to deployment readiness. |
 | Trust | Open SDK/tooling strategy, provenance, security review, export/ejection, support policies, and clear licensing. |
-| Dogfood | A real Swift application used regularly, published on both stores, and maintained through our own platform. |
+| Dogfood | A real Swift application maintained through public platform interfaces and exercised locally end to end on both platforms. Store publication and production use are later qualification. |
 
 ### 2.2 Explicit boundaries of the first complete release
 
@@ -68,11 +89,11 @@ The product is complete for general availability only when every mandatory gate 
 - Support standard utility, productivity, commerce, content, and collaboration applications. A new game engine, unrestricted graphics engine, and arbitrary native-code hot replacement are outside GA.
 - Provide adapters to customer backends. A generic hosted database/auth product is not required to compete in the specified development/build/OTA category.
 - Include a useful first-party SDK catalog and documented custom extensions. An unreviewed third-party marketplace is not required for GA.
-- Corporate SSO, audit export, and dedicated build runners are GA Team/Enterprise capabilities. Formal certifications and every possible deployment region are separately tracked commitments, not implied claims.
+- Audit export and runner integration are tested locally. Corporate SSO, enterprise support commitments, and paid dedicated capacity are later commercial features. Formal certifications and every deployment region remain separate commitments.
 
-### 2.3 Operationally complete, not feature-count complete
+### 2.3 Evidence for working behavior
 
-For every required capability, delivery means: implementation, documented semantics, error behavior, security controls, compatibility tests, physical-device evidence where applicable, observability, support runbook, migration path, and dogfood usage. Unsupported combinations must fail clearly before distribution.
+For each local capability, delivery includes implementation, documented semantics, error behavior, security controls, executable compatibility checks, local diagnostics, migration guidance, and integrated FieldLog evidence. Unsupported combinations fail clearly. Record hardware, provider, operational, store, and commercial qualification in their separate backlog without making them dependencies of L01–L08.
 
 ## 3. Evidence, assumptions, and competitive context
 
@@ -162,7 +183,7 @@ For context only, source inspection found MPL-2.0 in Skip's UI/bridge libraries 
 | Release service | Compatibility, channels, policies, staged rollout, revocation, audit | Elixir/Phoenix REST API, Ecto/Postgrex, Oban, and Neon-hosted PostgreSQL; Cloudflare Containers deployment. |
 | Artifact delivery | Immutable payloads, private build outputs, cacheable signed assignments | Cloudflare R2 object storage, Workers, and Cloudflare CDN. |
 | Console | Team/project/build/release/support workflows | SolidJS + TypeScript + Vite + Solid Router; Cloudflare Workers Static Assets. |
-| Commercial billing | Subscriptions, invoices, payment collection, usage reconciliation | Stripe Billing, Checkout, and Customer Portal; Phoenix webhook processing and Oban reconciliation. |
+| Later commercial billing | Deferred subscriptions, invoices, and payment collection; free usage accounting remains local scope | Stripe remains the selected provider for later monetization. No implementation or activation is required for testing or free early launch. |
 | FieldLog | Real Swift application proving the platform works | Swift app in a separate consumer repository. |
 
 The customer application's language is Swift. It is acceptable for the engine's native adapter and cloud infrastructure to use the languages appropriate to those platforms.
@@ -339,13 +360,15 @@ One codebase produces the same app design on both platforms. A MixerUI screen re
 
 Accessibility and navigation behavior stay native. That covers VoiceOver and TalkBack roles, labels, values, actions, and focus order; the iOS back gesture; Android system and predictive back; and native text input and keyboard handling. System-owned surfaces outside the app's screens keep their platform appearance, including status bars, permission prompts, share sheets, and the keyboard.
 
-The correctness criterion is design parity on reference screens, reviewed side by side on physical iOS and Android devices. Pixel-identical output is not required where native text shaping, font rasterization, display density, or safe-area geometry legitimately differ.
+Local completion requires design parity on reference screens, reviewed side by side on iOS Simulator and Android emulator. Repeat the comparison on physical iOS and Android devices for later hardware qualification. Pixel-identical output is not required where native text shaping, font rasterization, display density, or safe-area geometry legitimately differ.
 
 ### 8.4 Performance design
 
 Keep layout, text shaping, scrolling, image decoding, animation execution, and input services native. Run feature logic and view construction in the selected implementation, with coarse state/effect messages. Use dependency tracking, stable identity, incremental diffs, cancellation, and bounded caches. Measure native baseline, engine-native mode, and OTA mode separately on the same app and devices.
 
 ## 9. Native capability and extension system
+
+For local completion, implement and exercise the nonpayment capability families on the declared local matrix. Label hardware/provider test adapters and remaining real-service qualification. Purchase and paid-entitlement implementation, sandbox integration, and activation are deferred until a later monetization decision. Unsupported purchase calls fail explicitly; do not grant paid entitlements or fabricate successful transactions.
 
 Define a typed capability interface with stable IDs, schema versions, declared permissions, thread/executor requirements, synchronous/asynchronous behavior, cancellation, failure codes, and resource ownership. Generate our Swift host adapters and Android JNI/Kotlin stubs from that schema.
 
@@ -609,6 +632,8 @@ An export is considered working only when FieldLog builds and launches through a
 
 ## 17. Console, organizations, and commercial administration
 
+Testing and early launch use free accounts. The required local workflow runs without payment credentials, subscription state, or Stripe availability. Keep usage visibility, quotas, roles, support, and export/deletion. The invoice, purchase, paid-entitlement, and Stripe requirements below describe later monetization work and do not block L01–L08. Corporate SSO and paid dedicated capacity are also later commercial features.
+
 Build the console with **SolidJS, TypeScript, Vite, and Solid Router**, served by Cloudflare Workers Static Assets. Keep privileged operations in the Phoenix API. The console uses ordinary customer API authorization, and renders precise pending/failed states when a provider or queued operation has not completed. [SolidJS setup](https://docs.solidjs.com/quick-start), [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
 
 Use the existing Mixer website's visual identity throughout the hosted builds platform: the same Flick logo, lowercase Mixer wordmark, current color palette, typography, and visual styling. Aim for the clarity and polish of Expo's hosted console, with readable build and release information, consistent navigation, accessible controls, and responsive layouts. The website is the branding source of truth; do not introduce a separate console brand.
@@ -621,7 +646,7 @@ The release screen shows changed behavior, source revision, target binaries, com
 
 Usage and billing explain build minutes by platform, active update devices, storage, included quotas, overage prices, and spending caps before work is incurred. Support seat removal, organization transfers, expired payment methods, refunds/credits, cancellation, and grace periods. Installed apps remain functional after account cancellation; new paid work can be suspended under documented terms.
 
-Use **Stripe Billing** for subscriptions/invoices, **Stripe Checkout** for hosted purchase flows, and **Stripe Customer Portal** for customer billing management. Mixer retains an authoritative, deduplicated usage ledger in Neon and reconciles metered usage to Stripe with stable idempotency keys. Verify webhook signatures against the unmodified request body in Phoenix, commit a deduplicated event and Oban job before acknowledging receipt, and handle duplicate/out-of-order events by reconciling current Stripe state. Test payments, trials, failed renewals, cancellation, credits/refunds, retries, delayed webhooks, and usage corrections in Stripe test mode. Hosted update delivery and local recovery do not depend on a synchronous Stripe call. [Stripe subscriptions](https://docs.stripe.com/billing/subscriptions/overview), [Stripe webhooks](https://docs.stripe.com/webhooks), [Stripe idempotency](https://docs.stripe.com/api/idempotent_requests)
+When monetization is separately authorized, use **Stripe Billing** for subscriptions/invoices, **Stripe Checkout** for hosted purchase flows, and **Stripe Customer Portal** for customer billing management. Mixer retains an authoritative, deduplicated usage ledger in Neon and reconciles metered usage to Stripe with stable idempotency keys. Verify webhook signatures against the unmodified request body in Phoenix, commit a deduplicated event and Oban job before acknowledging receipt, and handle duplicate/out-of-order events by reconciling current Stripe state. Test payments, trials, failed renewals, cancellation, credits/refunds, retries, delayed webhooks, and usage corrections in Stripe test mode. Hosted update delivery and local recovery do not depend on a synchronous Stripe call. [Stripe subscriptions](https://docs.stripe.com/billing/subscriptions/overview), [Stripe webhooks](https://docs.stripe.com/webhooks), [Stripe idempotency](https://docs.stripe.com/api/idempotent_requests)
 
 Console accessibility, keyboard navigation, time zones, readable logs, downloadable diagnostics, and API parity are required. Use customer-visible terminology; internal VM and queue details appear only when they explain an actionable failure.
 
@@ -756,15 +781,15 @@ Use an independently authored application, not a competitor sample. Start with a
 | Notifications | Assignment notification opens correct task | APNs/FCM, deep links, lifecycle. |
 | Report/share | Generate/export report and share attachment | Files, native sharing, resource handling. |
 | Settings/help | Theme, locale, accessibility preferences, diagnostics | Environment propagation, privacy, support. |
-| Subscription/entitlement | Sandbox purchase, restore, cancellation state | Native purchase integration and server validation. |
+| Subscription/entitlement, later | Deferred purchase, restore, and paid cancellation flows | Native purchase integration and server validation are outside local completion and free early launch. |
 
-Subscriptions are tested as a platform capability; whether FieldLog itself charges users is a separate product decision. Do not force a paid feature merely to exercise billing. Additional small fixtures may test APIs that are unnatural in FieldLog, but cannot replace the real application's acceptance evidence.
+Purchase integration and sandbox/test-mode purchase tests may remain unimplemented for local completion and free early launch. Keep FieldLog free; do not add a paid feature to exercise billing. Qualify purchase and entitlement behavior before those features are later enabled. Additional small fixtures may test APIs that are unnatural in FieldLog, but cannot replace the real application's acceptance evidence.
 
 ### 21.3 Architecture and independence
 
-Use a separate repository, separate CI pipeline, real app identities, a simple production backend, and the same published packages, CLI, console, quotas, release permissions, and support channel available to customers. Prefer the selected Elixir/Phoenix, Neon PostgreSQL, and Cloudflare R2 stack for this backend, with separately qualified Cloudflare deployment; customer app code remains Swift.
+Use a separate repository, separate CI pipeline, real app identities, a locally running backend, and the same public SDK interfaces, CLI, console, quotas, release permissions, and support workflow. Pinned public checkout inputs satisfy local completion. Production backend placement and immutable registry publication are later distribution qualification. Prefer the selected Elixir/Phoenix, Neon PostgreSQL, and Cloudflare R2 stack for this backend, with separately qualified Cloudflare deployment; customer app code remains Swift.
 
-The app must not import engine internals, bypass compatibility validation, access release-service databases, or rely on privileged distribution endpoints. Release and final dogfood qualification must use published packages. Development debugging and slice acceptance may use a pinned checkout through public interfaces under section 24.5, with published-package acceptance explicitly pending. Every discovered SDK gap becomes an engine issue or a documented supported extension. An app-only workaround that violates the advertised platform contract does not close that issue. The FieldLog backend may share the selected Phoenix/Neon/R2 technology, but uses separate application credentials/data and never the platform control-plane database or administrative identity.
+The app must not import engine internals, bypass compatibility validation, access release-service databases, or rely on privileged distribution endpoints. Later release and distribution qualification use published packages. Local plan completion and slice acceptance may use a pinned checkout through public interfaces under Section 2 and Section 24.5; published-package qualification remains separately pending. Every discovered SDK gap becomes an engine issue or a documented supported extension. An app-only workaround that violates the advertised platform contract does not close that issue. The FieldLog backend may share the selected Phoenix/Neon/R2 technology, but uses separate application credentials/data and never the platform control-plane database or administrative identity.
 
 Dogfood releases include ordinary product fixes unrelated to demonstrating the platform. Track weekly active use, task completion, saved records, successful uploads, support requests, and usability feedback. Measure whether the platform helps app work, not how many sample buttons can be rendered.
 
@@ -776,23 +801,26 @@ Keep private user content out of public artifacts. Publish a sanitized reference
 
 ## 22. Dogfood milestones and proof requirements
 
-### 22.1 Continuous adoption milestones
+### 22.1 Local adoption and later qualification
 
-| Gate | FieldLog milestone | Required proof |
+D0–D8 retain their original release definitions and historical records in `dogfood/receipts/milestones.json`. Their `localAcceptance` fields supply the local counterparts below. Original status/evidence/reviewer fields retain their release scope. Local completion requires D0–D6 counterparts and the D8 scenario corpus under L08. D7 production use is deferred.
+
+| Milestone | Required local proof | Later qualification |
 | --- | --- | --- |
-| D0: Baseline | Real iOS Swift app with login, projects, entries, offline draft, photos | Source tag, physical-device recording, baseline timings, saved user records, signed test build. |
-| D1: Engine adoption | Same iOS flows use public MixerCore/UI in native mode | Behavior comparison, migration report, no data loss, no private SDK imports. |
-| D2: Shared Android | Shared Swift flows work on physical Android and iOS | Same scenario results, device versions, source-sharing report, native platform differences documented. |
-| D3: Interpreted parity | Same feature module runs through our VM on both platforms | Native/interpreted differential tests, performance report, original Swift crash/source mapping. |
-| D4: OTA delivery | Existing installed binaries receive a real UI and logic fix | Before/after source and recordings, immutable artifact IDs, runtime fingerprints, no binary reinstall. |
-| D5: Recovery | Interrupted/corrupt/incompatible/failing patches recover correctly | Controlled test-channel fault receipts, offline relaunch, preserved drafts/records, no repeat-crash loop. |
-| D6: Cloud workflow | App builds, signs, distributes, updates, and rolls back through our hosted service | Public CLI/API logs, isolated build provenance, store processing/testing receipts, usage/billing audit. |
-| D7: Production use | Transparently reviewed iOS and Android store apps used for real work | Store links/versions, actual tester/customer activity, real product changes, support history. |
-| D8: Sustained confidence | Repeated real production use, updates, and recovery across the required scenario corpus | Incident history, performance trends, latest 20-change coverage report, practiced recovery, export build. |
-
-D0–D8 are cumulative. D4 does not pass with a label/color-only update: require at least one meaningful validation/logic fix and one supported UI/state/interaction change. D5 failure injection occurs in isolated internal/beta channels with recoverable test data, never as an intentional crash campaign on unsuspecting production users.
+| D0 Baseline | Real iOS Swift app, login/projects/entries/offline draft/photos, simulator behavior and saved data | Physical recordings and signed release build |
+| D1 Engine adoption | Same iOS flows through public SDK, behavior comparison and preserved data | Distribution-package qualification |
+| D2 Shared Android | Same shared flows on iOS Simulator and Android emulator, native input/accessibility and design comparison | Physical matrix |
+| D3 Interpreted parity | Same feature module through the owned VM on both local targets, native/guest comparison and source diagnostics | Hardware performance |
+| D4 OTA delivery | Signed local UI and logic fix reaches both installed binaries without reinstall | Production delivery |
+| D5 Recovery | Fault cases recover offline with preserved drafts and records | Hardware/storage-specific confirmation |
+| D6 Platform workflow | Real local console/API/CLI/database/workers, build, development signing, update and rollback; store adapters use identified fixtures | Provider deployment and actual store processing |
+| D7 Production use | Deferred; no store links, users or production activity required | Transparent store distribution and real usage |
+| D8 Scenario confidence | Repeated local workflows, reviewed 20-change corpus, recovery, upgrade and exported build | Production incident history and trends |
 
 ### 22.2 Required update scenarios
+
+Run these scenarios against local services and both local app targets for L08. Use the external-boundary rule in Section 2 for unavailable providers. Production/store clauses remain later qualification. Payment implementation and activation are deferred.
+
 
 1. Fix an incorrect task-completion calculation without replacing the native binary.
 2. Correct form validation while preserving an existing saved draft.
@@ -808,7 +836,7 @@ D0–D8 are cumulative. D4 does not pass with a label/color-only update: require
 12. Attempt to add a new native capability; require a store build and keep old binaries on their compatible release.
 13. Upgrade the engine/store binary and prove old and new runtime cohorts receive the correct artifacts.
 14. Keep the app useful during control-plane, CDN, telemetry, and billing outages.
-15. Export and build the app through independent CI; publish a subsequent store build using the documented escape path.
+15. Export and build the app independently through the documented escape path. Actual hosted CI and subsequent store publication are later qualification.
 
 ### 22.3 Evidence receipt format
 
@@ -818,34 +846,34 @@ Allowed statuses are `planned`, `running`, `passed`, `failed`, and `blocked`. A 
 
 ### 22.4 Independent consumer validation
 
-FieldLog is necessary but insufficient. Before GA, qualify at least two independently authored external applications in different categories, including one existing Swift app migration. Their developers use public documentation and normal support. Record unsupported APIs and time-to-first-build without the engine team quietly editing their projects behind the scenes.
+FieldLog in its separate consumer repository plus a local existing-project migration is sufficient for local completion. Qualifying two independently authored external applications in different categories is later external validation. Before claiming that qualification, include one existing Swift app migration. Their developers use public documentation and normal support. Record unsupported APIs and time-to-first-build without the engine team quietly editing their projects behind the scenes.
 
-Recruit initial FieldLog users in stages: approximately 10 weekly users during internal development, 30 during external beta, and 100 during sustained production qualification. These are recruitment targets, not fabricated evidence or statistical guarantees. Security correctness and deterministic recovery tests remain mandatory even with low real-world traffic.
+User recruitment does not gate local completion or free early launch. Later, recruit FieldLog users in stages: approximately 10 weekly users during internal development, 30 during external beta, and 100 during sustained production qualification. These are recruitment targets, not fabricated evidence or statistical guarantees. Security correctness and deterministic recovery tests remain mandatory even with low real-world traffic.
 
 ## 23. Engineering work packages
 
-Each package has a directly responsible owner, versioned design, implementation backlog, test plan, documentation, operational implications, and an acceptance receipt. Assign an owning agent lane before execution; the roles below identify responsibilities.
+Each package has a directly responsible owner, versioned design, implementation backlog, test plan, documentation, operational implications, and an acceptance receipt. This table gives local acceptance. Original launch acceptance remains in each work-graph package's `launchAcceptance` field; later deliverables do not become local dependencies. Assign an owning agent lane before execution; the roles below identify responsibilities.
 
 | ID | Owner | Deliverables | Dependencies | Acceptance evidence |
 | --- | --- | --- | --- | --- |
-| W01 Product and contracts | Technical lead + product | Supported app categories, API contract, policy envelope, architecture decisions, provenance rules | None | Approved specification; no competitor code in dependencies/templates; customer interviews recorded. |
-| W02 Toolchain and local build | Compiler lead | Signed version lock, SDK installation, doctor, native project generation, local CI | W01 | Clean machine builds FieldLog for both targets with reproducible input graph. |
-| W03 Core Swift model | Framework lead | Lifecycle, state, effects, navigation model, resources, errors | W01–02 | Same state/effect tests in native targets; restoration works. |
-| W04 iOS UI adapter | iOS lead | Public MixerUI implementation, SwiftUI/UIKit mapping, input and accessibility | W03 | D1 and UI matrix pass on physical iOS. |
-| W05 Android UI adapter | Android lead | JNI boundary, Compose/native controls, lifecycle, back behavior, native resources | W02–03 | D2 with native Android interaction and accessibility evidence. |
-| W06 Capability generator | Framework/compiler lead | Schema, generated adapters, ownership/cancellation, permission metadata | W03 | Cross-language codec and lifecycle suite; first native plugin consumed by FieldLog. |
+| W01 Product and contracts | Technical lead + product | Supported app categories, API contract, policy envelope, architecture decisions, provenance rules | None | Approved local support contracts and provenance review. Customer interviews are later market validation. |
+| W02 Toolchain and local build | Compiler lead | Signed version lock, SDK installation, doctor, native project generation, local CI | W01 | Clean local setup builds and runs FieldLog on iOS Simulator and Android emulator with reproducible input graph. |
+| W03 Core Swift model | Framework lead | Lifecycle, state, effects, navigation model, resources, errors; shared app appearance contract per section8.3 | W01–02 | Same state/effect tests on both local native targets; persistence and restoration work. |
+| W04 iOS UI adapter | iOS lead | Public MixerUI implementation, SwiftUI/UIKit mapping, input and accessibility; shared-theme component appearance per section8.3 | W03 | D1 local counterpart and iOS Simulator UI/input/accessibility matrix pass, including shared-design comparison. |
+| W05 Android UI adapter | Android lead | JNI boundary, Compose/native controls, lifecycle, back behavior, native resources; shared-theme component appearance per section8.3 | W02–03 | D2 local counterpart and Android emulator UI/input/accessibility matrix pass, including shared-design comparison. |
+| W06 Capability generator | Framework/compiler lead | Schema, generated adapters, ownership/cancellation, permission metadata | W03 | Cross-language codec/lifecycle suite and a real native plugin consumed by FieldLog on both local targets. |
 | W07 Guest compilation | Compiler lead | Guest libraries, module extraction, API diagnostics, source maps, dependency closure | W02–03, W06 | FieldLog feature graph compiles to native and Wasm with no silent behavior loss. |
-| W08 Owned interpreter | Runtime lead | Validator/interpreter, resource controls, imports, Swift runtime integration, debugger | W07 profile; early work parallel | D3, standards-profile tests, fuzzing and differential results. |
-| W09 First-party integrations | iOS/Android leads | All capability families in Section 9, plugin authoring guide | W04–06 | FieldLog flows pass on both devices; native additions correctly require binary changes. |
-| W10 Device updater | Runtime/release leads | Verifier, cache, activation, health, quarantine, recovery, key rotation | W07–08 | D4–05, data-preserving rollback, offline recovery, fault matrix. |
-| W11 Release backend | Cloud lead | Elixir/Phoenix/Bandit API, Ecto/Postgrex on Neon, Oban jobs, R2/Workers delivery, compatibility, assignment signing, rollout/rollback | W10 protocol | Dual-platform release with immutable audit/correct cohorts; Go-contract parity, transactional enqueue, zero-traffic job wake, Neon recovery, and tenant-safe delivery qualified. |
-| W12 Build/signing service | Infrastructure lead | Elixir/Oban orchestration, isolated Cloudflare Linux and external macOS workers, R2 caches/artifacts, separate signer, provenance, quotas | W02, W11 identity | Cross-tenant adversarial tests and signed FieldLog builds from clean workers; Cloudflare worker sizing/lifecycle/isolation or recorded external-runner exception qualified. |
-| W13 Store distribution | DevEx/build lead | Store connections, submissions, status reconciliation, test links | W12 | D6 with actual ready-for-testing states on both stores. |
-| W14 Console and commercial | Product/cloud leads | SolidJS/TypeScript/Vite console on Cloudflare Workers Static Assets, onboarding, permissions, SSO, usage ledger, Stripe billing, support | W11–13 | New organization completes full workflow through public UX/API; Stripe duplicate/out-of-order/test-mode and usage reconciliation cases pass. |
-| W15 Debug/import/export | DevEx lead | Native/guest debug, migration reports, profiler, export/ejection guide | W02, W07–10 | Original source diagnostics, external app import, independent CI export build. |
-| W16 Security and reliability | Security/QA/SRE | Threat review, audit remediation, monitoring, Neon backups/restore, Cloudflare/Oban lifecycle and R2/CDN isolation drills, Stripe recovery, load tests | Starts W01; final W10–14 | No unresolved launch-blocking findings; measured service objectives across selected providers and explicit hosting exceptions. |
-| W17 FieldLog delivery | Dogfood app lead | Real product, backend, users, both stores, continuous updates | Starts W01; consumes all | D0–08 with independently reviewable evidence and no private escape routes. |
-| W18 External qualification and launch | Product + DevEx | Two external apps minimum, paid pilots, docs, support, migration, release train | W09–17 | Section 29 gates; customers onboard and pay without bespoke engine forks. |
+| W08 Owned interpreter | Runtime lead | Validator/interpreter, resource controls, imports, Swift runtime integration, debugger | W07 profile; early work parallel | D3 local counterpart, owned-VM standards-profile, fuzzing, differential, diagnostics and resource-limit checks pass. |
+| W09 First-party integrations | iOS/Android leads | Nonpayment first-party capability families in Section 9, plugin authoring guide; purchases deferred. | W04–06 | Nonpayment FieldLog capability flows and permission/lifecycle tests pass on both local targets; external-only boundaries are labeled. Purchases are deferred. |
+| W10 Device updater | Runtime/release leads | Verifier, cache, activation, health, quarantine, recovery, key rotation | W07–08 | D4-D5 local counterparts, signed updates, data-preserving rollback, offline recovery and fault matrix pass. |
+| W11 Release backend | Cloud lead | Locally running Phoenix/Bandit API, PostgreSQL, Oban, artifact delivery, compatibility, assignment signing, rollout/rollback; provider deployment later. | W10 protocol | Local Phoenix/PostgreSQL/Oban and artifact delivery complete dual-platform release, cohorts, audit, atomic enqueue, retry, idle-job and reconnect tests. Provider deployment is later qualification. |
+| W12 Build/signing service | Infrastructure lead | Local isolated Android/macOS builds, separate development signer, cache/artifact isolation, provenance and quotas; production capacity later. | W02, W11 identity | Isolated local workers create traceable FieldLog artifacts with logs, symbols and separate development signing; tenant/cache adversarial tests pass. Production workers and keys are later qualification. |
+| W13 Store distribution | DevEx/build lead | Local development distribution and store request/status/error adapters; live store connections and submissions later. | W12 | Local development distribution and store request/status/error fixtures pass. Actual uploads and store states remain pending without blocking local completion. |
+| W14 Console and commercial | Product/cloud leads | Local SolidJS console, onboarding, permissions, usage quotas, audit, support, export/deletion. Payments, corporate SSO and paid dedicated capacity deferred. | W11-W12; store adapter workflow can use fixtures without live W13 approval. | Free organization completes the local public console/API workflow without card, subscription, payment credentials or service. Permissions, usage quotas, audit, support and export/deletion pass. Payments and enterprise-only integrations are deferred. |
+| W15 Debug/import/export | DevEx lead | Native/guest debug, migration reports, profiler, export/ejection guide | W02, W07–10 | Original-source diagnostics, independent local Swift project import/native embedding, and exported independent build pass. |
+| W16 Security and reliability | Security/QA/SRE | Security review, local backup/restore, tenant/cache isolation, worker/signer loss, load and recovery; managed-provider and payment drills later. | Starts W01; final W10–14 | Local security, privacy, isolation, restore, worker/signer failure and bounded-load tests pass with independent review. Live SLOs, managed-provider drills and payment recovery are deferred. |
+| W17 FieldLog delivery | Dogfood app lead | Real FieldLog app and local backend, both local targets, public SDK and local continuous updates; users and stores later. | Starts W01; local integration consumes W02-W12 and W14-W16. Live store approval and external adoption are later work. | FieldLog passes local D0-D6 counterparts and the local D8 scenario corpus using public SDK interfaces, with both targets and shared design verified. D7 production use is later qualification. |
+| W18 External qualification and launch | Product + DevEx | Local clean-setup documentation, migration, recovery and export; external apps, paid pilots and launch tracked separately. | W09–17 | Clean local onboarding, upgrade, migration, recovery and exit guides pass under L01-L08. External apps, customers, payments and launch operations are separate follow-up work. |
 
 ### 23.1 Repository and release structure
 
@@ -868,50 +896,52 @@ mixer/
 fieldlog/                     # separate consumer repository and release cycle
 ```
 
-SDK/engine changes use contract tests to protect deployed binaries. FieldLog release qualification uses packages published to the same registry path as customer packages. Release train artifacts are immutable and signed. Development debugging and slice acceptance may use a pinned checkout through public interfaces under section 24.5; this does not establish published-package or final dogfood acceptance.
+SDK/engine changes use contract tests to protect deployed binaries. FieldLog release qualification uses packages published to the same registry path as customer packages. Release train artifacts are immutable and signed. Local plan completion and slice acceptance may use a pinned checkout through public interfaces under Section 2 and Section 24.5. Registry publication remains later distribution qualification.
 
 ## 24. Delivery sequence and dependency graph
 
-### 24.1 Completion-driven execution
+### 24.1 Local completion sequence
 
-Build the full product with AI agents. Organize work by dependencies, executable contracts, and evidence-backed completion gates. No development duration, staffing model, or development-cost estimate is assigned to this plan.
+Build the owned platform with AI agents. Organize work by executable dependencies and evidence-backed local behavior. Provider placement remains the intended deployment design; running those components locally is sufficient for this implementation milestone.
 
-| Stage | Required inputs | Product work | Exit condition |
-| --- | --- | --- | --- |
-| P0: Contracts and real app baseline | Product direction and original repositories | Architecture, provenance, FieldLog native app, toolchain CI, UI/capability schemas | W01 and D0; actual app behavior and baseline measurements. |
-| P1: Native shared application engine | P0 contracts and reproducible toolchains | Core/state/effects, iOS UI, Android Swift integration, key native controls, bridge foundation | D1 and initial D2; real shared feature flows on both phones. |
-| P2: Broad framework and interpreter | Stable core/UI/capability interfaces | UI coverage, first-party plugins, guest compiler, owned VM, import/debug tools | Full D2 and D3; representative app behavior in both execution modes. |
-| P3: Safe dual-platform OTA | Qualified guest/native contract and VM | Packaging, signatures, fingerprinting, recovery, state compatibility, staged delivery | D4–05; meaningful OTA changes and preserved-data rollback on both platforms. |
-| P4: Complete hosted workflow | Build and release protocols | Build/signing service, submissions, console, teams, billing, SSO, support tooling | D6; public end-to-end workflow with actual store receipts. |
-| P5: External qualification and production use | Integrated SDK and hosted workflow | External apps, performance, migration, operations, security review, paid pilots | D7–08; real usage and critical gaps fixed in the shared engine. |
-| P6: GA qualification and launch | All required work packages integrated | Release candidate stabilization, complete gate review, docs, operational exercises | Every mandatory Section 29 gate passed with evidence. |
+| Stage | Product work | Local exit condition |
+| --- | --- | --- |
+| P0 Contracts and baseline | Provenance, supported contracts, toolchains, real FieldLog baseline | W01, local D0, reproducible local build |
+| P1 Shared native app | Core/state/effects, iOS and Android UI, native capability adapters | Local D1–D2, shared UI and real interaction on both targets |
+| P2 Compiler and owned runtime | Guest compiler, VM, supported profile, import/debug/export | Local D3, native/guest parity and resource/security checks |
+| P3 Safe OTA | Packaging, signing, compatibility, recovery, state preservation | Local D4–D5 and installed-app update/rollback on both targets |
+| P4 Full local platform | Console/API/database/workers, builds, development signer, free accounts, distribution adapters | Local D6, complete public workflow without billing service or live stores |
+| P5 Local qualification | FieldLog scenarios, performance, migration, docs, security and local fault tests | Local D8 corpus and all required integration evidence |
+| P6 Implementation plan complete | Review the integrated result and unresolved local failures | L01–L08 pass with scoped evidence and reviewers |
 
-Run independent packages concurrently once their interfaces and test contracts are stable. For example, iOS and Android adapters can implement the same UI contract independently; the console can use an executable API contract while the backend is developed. A mock or interface fixture enables parallel work but never qualifies an integrated gate.
+Run independent packages concurrently once interfaces and test contracts are stable. Fixtures enable work at unavailable external boundaries and never qualify the owned local integration itself. Neither store approval nor payments are upstream of P6.
 
-Ship the first useful FieldLog Android store version as soon as the native engine qualifies its real workflows. Introduce the interpreter transparently in a reviewed binary, then enable permitted production OTA after recovery and state compatibility pass. Replace the app's independent CI with our managed workflow when that service is ready. Keep the finished all-in-one product as the final scope.
+After local completion, track free-launch deployment, physical-device qualification, store distribution, production operations, external validation, and later monetization independently. Their exact scope follows the features being exposed and separate authorization. They can remain pending while this plan is complete.
 
 ### 24.2 Dependency graph
 
 ```mermaid
 flowchart TD
   C[Contracts and provenance] --> T[Toolchains and core Swift model]
-  T --> I[iOS native UI and capabilities]
-  T --> A[Android native UI and capabilities]
+  T --> I[iOS local UI and capabilities]
+  T --> A[Android local UI and capabilities]
   T --> G[Guest compiler and ABI]
   G --> V[Owned VM and Swift runtime integration]
   I --> P[FieldLog native and guest parity]
   A --> P
   V --> P
-  P --> U[Signed OTA, persistence compatibility, recovery]
-  T --> B[Isolated builds and signing]
-  U --> R[Hosted release workflow]
-  B --> R
-  R --> S[Store distribution and real production use]
-  S --> E[External apps, security, performance, operations]
-  E --> GA[All GA gates passed]
+  P --> U[Local signed OTA and data-preserving recovery]
+  T --> B[Local isolated builds and development signer]
+  B --> R[Local console, API, database and workers]
+  U --> R
+  R --> F[Free end-to-end FieldLog workflow]
+  F --> D[Local security, scenarios, docs and export]
+  D --> L[Plan complete: L01 through L08 pass]
+  L -. Later separate decision .-> S[Deployment, hardware and stores]
+  L -. Later separate decision .-> E[External adoption and monetization]
 ```
 
-The decisive integration chain is supported Swift semantics → native/guest contract → native UI and capabilities → owned VM correctness → real-app parity → state-preserving OTA → store acceptance → operational qualification. Work prioritization follows unresolved dependencies and observed failures.
+The completion chain ends at working integrated local behavior. Unsupported capabilities fail explicitly. Physical phones remain disconnected, and every specific historical hold still applies.
 
 ### 24.3 Gate failure handling
 
@@ -935,7 +965,7 @@ Define required review and executable acceptance before implementation. Once the
 
 On November 10 the user explicitly resumed computer use and screen capture. Computer interaction, UI automation and screen capture are permitted for fresh implementation and verification work under the existing isolation, Accessibility preflight and cleanup rules. Prior general pauses are historical; physical phones and specifically held process, scratch, device and frozen-lane resources retain their existing restrictions.
 
-Adopted November 9 after the user's instruction to remove verification bottlenecks. This section governs development execution when older campaign documents impose broader preparation requirements. It does not release an explicit process, scratch, device, security or frozen-lane hold, or change G01–G38 acceptance criteria.
+Adopted November 9 after the user's instruction to remove verification bottlenecks. This section governs development execution when older campaign documents impose broader preparation requirements. It does not release an explicit process, scratch, device, security or frozen-lane hold. Section 2 now governs local completion; G01–G38 retain their separate launch scope.
 
 1. **Use the simplest executable path.** Run source inspection, Git/CI reads and pure tests through normal tools. For builds and runtime diagnostics, prefer the existing platform tools and a small test-specific runner. A new general controller, all-input seal chain, universal result parser, or proof about unrelated host services is not a default prerequisite. Add machinery only for a reproduced failure that prevents the named test from running safely or its result from being understood.
 2. **Keep concrete isolation.** Select exact owned devices, destinations, output paths and cleanup targets. Bound execution and output. Preserve unrelated devices, preferences, processes and data. Record uncertain cleanup as Unknown and do not reuse the affected resources. A new directory name alone does not establish isolation from a held dependency. Accessibility preflight remains mandatory for frontend-dependent Simulator tests; headless execution does not establish keyboard, focus, visual or accessibility parity.
@@ -944,7 +974,7 @@ Adopted November 9 after the user's instruction to remove verification bottlenec
 5. **Review once at the slice boundary.** A meaningful implementation slice receives executable acceptance and one independent review. Read-only diagnostics and routine low-impact documentation edits do not need separate prospective reviews. Review an additional time only for a concrete unresolved finding, changed contract or source, missing necessary evidence, or a reproduced defect in the prior review. Reuse unchanged accepted artifacts and findings.
 6. **Stop preparation loops.** After two preparation-only cycles, simplify or replace the experiment and execute its next permitted discriminating test. Do not satisfy escalation by commissioning another plan, controller framework or review of a review. If every useful path is blocked, name the exact held resource or missing capability, the smallest condition that would unblock it, and advance another dependency-ready product slice.
 7. **Scope budgets and failures.** Preserve exhausted historical run allowances and failures. A coordinator may select a distinct fresh bounded diagnostic with a named hypothesis, finite attempt count and independent owned resources; no extra user confirmation is needed within existing authorization. This never authorizes retrying a specifically held chain. Experimental performance limits may be compared as hypotheses while original failures and production budgets remain intact. A larger diagnostic budget establishes only its actual scope.
-8. **Report behavior before accounting.** The next development milestone is a public-SDK FieldLog open/edit/save/close/reopen flow with preserved state on iOS Simulator and Android emulator. Track each platform's actual result separately. Keep a lane executing or fixing that flow when dependencies permit, alongside runtime and hosted work. Report the next command and concrete blocker, rather than artifact counts. These checkpoints advance implementation; D0–D8 and GA retain their complete final evidence requirements.
+8. **Report behavior before accounting.** The next development milestone is a public-SDK FieldLog open/edit/save/close/reopen flow with preserved state on iOS Simulator and Android emulator. Track each platform's actual result separately. Keep a lane executing or fixing that flow when dependencies permit, alongside runtime and hosted work. Report the next command and concrete blocker, rather than artifact counts. These checkpoints advance local implementation; Section 2 and the local D0–D8 counterparts govern completion. Original GA and release requirements remain separately pending.
 
 ## 25. AI-agent execution model
 
@@ -1068,9 +1098,11 @@ Prioritize small and medium Swift teams with an existing useful iOS app, a real 
 
 The initial sales promise is lower duplicated app work and a controlled release process. Demonstrate it with migration effort, shared-source percentage, actual supported UI, time-to-first-Android-build, update eligibility, recovery, and support responsiveness. Do not lead with an unbounded claim that store review disappears.
 
-### 26.3 Proposed packaging and pricing experiments
+### 26.3 Free testing and early launch
 
-All prices below are hypotheses to test, not commitments:
+Testing and early launch are free, including the integrated local workflow. No payment implementation, billing provider credentials, card, subscription, paid entitlement, or financial activation is required. Set explicit usage and capacity limits with no automatic charges. Preserve basic release safety, export, and recovery for free users.
+
+The table below is a deferred monetization experiment, not an active offer or a completion requirement. Prices are hypotheses for a later decision:
 
 | Tier | Proposed base | Included purpose | Metering approach |
 | --- | --- | --- | --- |
@@ -1099,11 +1131,11 @@ Calculate contribution margin per organization after infrastructure and direct s
 
 Use actual service telemetry and invoices to set quotas and pricing. Track infrastructure cost per successful build, per active update installation, and per organization, plus measured support load. Adjust the commercial offering from observed usage and customer willingness to pay.
 
-### 26.5 Demand and go-to-market gates
+### 26.5 Later demand and go-to-market validation
 
-For market validation, interview approximately 25 qualified Swift teams about current app architecture, Android plans, migration willingness, release pain, and budget. Ask them to bring a real app/module, not just react to a landing page. Record negative evidence and alternatives they prefer.
+These activities do not gate local completion or a free early launch. For later market validation, interview approximately 25 qualified Swift teams about current app architecture, Android plans, migration willingness, release pain, and budget. Ask them to bring a real app/module, not just react to a landing page. Record negative evidence and alternatives they prefer.
 
-Recruit 5–10 design partners; at least two supply independently authored apps for technical qualification. Before GA, seek at least five unrelated paying pilot organizations, with at least three repeatedly shipping real app changes through the workflow. These thresholds indicate meaningful engagement, not proof of venture-scale demand. Track paid conversion, time to integration, migration hours, support hours per account, retained use, and reasons for abandonment.
+Recruit 5–10 design partners; at least two supply independently authored apps for technical qualification. Before claiming a validated paid commercial offering, seek at least five unrelated paying pilot organizations, with at least three repeatedly shipping real app changes through the workflow. These thresholds indicate meaningful engagement, not proof of venture-scale demand. Track paid conversion, time to integration, migration hours, support hours per account, retained use, and reasons for abandonment.
 
 Launch with public source/documentation for the owned SDK, independently authored examples, transparent benchmark methodology, a real store app, reproducible release/recovery demonstrations, migration guides, and native-Swift community education. Agency partnerships can distribute the platform across several apps. Do not spend heavily on broad paid acquisition before repeatable onboarding and retention.
 
@@ -1145,7 +1177,7 @@ This is the opening execution sequence for the full roadmap. It does not define 
 - Establish repositories, ownership, CI, signed release conventions, dependency/provenance policy, and issue/gate schema.
 - Freeze the first proposed app/UI/effect boundary and the initial support matrix.
 - Create the original FieldLog Swift app and backend schema; recruit its first users and define their actual workflows.
-- Establish physical iOS and Android devices, benchmark harness, and artifact retention.
+- Establish owned iOS Simulator and Android emulator targets, local measurement tooling, and compact artifact retention. Hardware qualification is later work.
 - Confirm the official Swift SDK/toolchain combinations through reproducible native Android and Wasm compilation jobs.
 - Begin qualified customer interviews and name the first technical design partners.
 
@@ -1165,14 +1197,14 @@ Acceptance: D0 candidate, actual saved records, first native-engine feature runn
 ### Batch C: Shared app adoption and owned execution
 
 - Migrate FieldLog's project list and entry editor to the public SDK on iOS.
-- Bring the same Swift features to physical Android, including keyboard, navigation, and durable draft storage.
+- Bring the same Swift features to Android emulator, including keyboard, navigation, and durable draft storage.
 - Implement core interpreter execution and minimum SDK imports required by real app model code.
 - Generate typed HTTP/storage capability stubs and qualify cancellation/ownership behavior.
 - Implement source mapping from guest failures to original Swift source.
 - Specify signing, artifact verification, activation metadata, and recovery invariants before adding network delivery.
 - Produce the first migration report for an independently authored partner module.
 
-Acceptance: D1 progress and an initial D2 slice with physical-device receipts; real model logic executes in our VM; missing semantics remain explicit issues.
+Acceptance: local D1 progress and an initial D2 slice with simulator/emulator receipts; real model logic executes in our VM; missing semantics remain explicit issues.
 
 ### Batch D: Integrated app behavior and local recovery
 
@@ -1186,65 +1218,56 @@ Acceptance: D1 progress and an initial D2 slice with physical-device receipts; r
 
 Acceptance: durable production code and contracts, a useful real Swift app, measurable native cross-platform progress, and an executable backlog for the remaining interpreter/UI/OTA requirements. Cloud production, full UI coverage, and complete OTA are still later mandatory deliverables.
 
-## 29. General-availability acceptance gates
+## 29. Completion gates and later qualification
 
-All unchecked items below are **planned, not passed**. Each item must link to immutable evidence and an accountable reviewer before launch. Product completion requires both technical and operational gates; commercial readiness is reviewed alongside them.
+L01–L08 in Section 2 and `gates/local.json` determine implementation-plan completion. All eight currently remain planned until their complete local evidence is reviewed. This policy revision does not pass them. G01–G38 below explain the original checklist and its new disposition. Their original requirements, statuses, receipts, and reviewers remain in `gates/ga.json` for later qualification.
 
-### Ownership and product contract
+Each local mapping applies only to the technical behavior in Section 2. Real local execution is required for the owned engine, UI, persistence, updater, and service workflow. Identified fixtures can cover unavailable external provider boundaries. Later work stays pending and does not enter the local completion calculation.
 
-- [ ] G01: No Patch/Skip code, generated artifacts, tests, or engine dependencies in the product; provenance/dependency review passed.
-- [ ] G02: Owned compiler integration, UI engine, bridges, interpreter, updater, and hosted workflow are implemented and supported.
-- [ ] G03: Public support matrix, limitation list, version policy, licensing/notices, and migration contract match actual behavior.
-- [ ] G04: Product naming/trademarks, customer terms, privacy material, and third-party redistribution obligations are reviewed.
+| Original gate | What it checks | Local completion | Later qualification, outside plan completion |
+| --- | --- | --- | --- |
+| G01 | Independent ownership and provenance | L07 | Review distributed artifacts again as required. |
+| G02 | Owned engine and integrated workflow | L02, L03, L04, L05 | Hosted operation and ongoing support. |
+| G03 | Support matrix, versions, notices, migration | L01, L08 | Published production commitments. |
+| G04 | Licensing, privacy, legal material | L07 | Trademark review, commercial terms, and production redistribution review. |
+| G05 | Documented setup and app run | L01 | Physical-device onboarding. |
+| G06 | UI, input, state, accessibility, shared design | L02 | Physical reference-screen comparison. |
+| G07 | Supported native and guest profile | L03 | Additional hardware and production-platform qualification. |
+| G08 | Actionable original-source diagnostics | L03 | Production diagnostic operation. |
+| G09 | First-party capabilities and permission behavior | L02 | Real hardware/provider qualification. Purchase implementation, including sandbox purchases, is deferred. |
+| G10 | Existing-project import and native embedding | L01 | External customer adoption. |
+| G11 | Independent export and offline build | L01 | Published registry packages and independent hosted CI. |
+| G12 | Logic and UI OTA without reinstall | L04 | Production delivery. |
+| G13 | Identity, signature, compatibility, size, replay refusal | L04, L07 | Production delivery infrastructure. |
+| G14 | Interrupted download and activation recovery | L04 | Hardware/storage-specific qualification. |
+| G15 | Startup quarantine and offline fallback | L04 | Physical-device confirmation. |
+| G16 | Data-preserving rollback and effect reconciliation | L04 | Live external effects. Financial effects remain deferred. |
+| G17 | Key rotation, revocation, offline clients | L04 | Production key custody and compromise recovery. |
+| G18 | Staged promotion, halt, mixed runtime cohorts | L04 | Production fleet operation. |
+| G19 | Native changes require a new native binary | L04 | Store submission and approval. |
+| G20 | Build workers, logs, provenance, development signing | L05 | Production Cloudflare/macOS capacity, isolation, and release signing. |
+| G21 | Store request, status, error adapters | L05 | Actual uploads, processing, testing, approval, and availability. |
+| G22 | Console/API onboarding, roles, audit, keys, runners | L05, L06 | Live deployment, corporate SSO, and paid dedicated capacity. |
+| G23 | Free accounts, usage, quotas, support, export, deletion | L06 | Payments, subscriptions, invoices, credits/refunds, financial cancellation, and paid entitlements. |
+| G24 | API/CLI/console parity, atomic jobs, fenced retries | L05, L07 | Chargeable operations and production-provider parity. |
+| G25 | Independent security review and resolved findings | L07 | Review additional exposed production boundaries. |
+| G26 | Conformance, differential, fuzzing, resource limits | L03 | Further platform qualification. |
+| G27 | Local performance, memory, size, sharing, change corpus | L03, L08 | Hardware budgets, fleet performance, and commercial SLO claims. |
+| G28 | Declared OS, accessibility, localization matrix | L02 | Physical capability and performance matrix. |
+| G29 | Local load, idle jobs, restart, reconnect, recovery | L07 | Cloudflare/Neon lifecycle and sustained production service objectives. |
+| G30 | Local restore, cache isolation, worker/signer loss, publisher compromise | L07 | Managed-provider failover, region loss, and payment reconciliation. |
+| G31 | Local test alerts and incident/security runbooks | L07, L08 | Staffed escalation, live status service, customer communication. |
+| G32 | FieldLog local adoption and integrated workflow | L08 | Original store-distribution and production-use milestones. |
+| G33 | Repeated local workflows, 20-change corpus, recovery | L08 | Sustained production use. |
+| G34 | Separate consumer and existing-project migration | L01, L08 | Two independently authored external customer apps. |
+| G35 | Clean-setup documentation replay | L08 | Onboarding by developers outside the engine team. |
+| G36 | Paid demand and contribution margin | Deferred | Entirely deferred. No paid pilot, revenue, or margin threshold blocks the plan or free early launch. |
+| G37 | SDK upgrade, build, OTA, rollback, exit guides | L01, L08 | Actual store publication. |
+| G38 | Evidence-backed completion decision | L01, L02, L03, L04, L05, L06, L07, L08 | Separate authorization and applicable checks for each launch. |
 
-### Application engine and developer experience
+The plan can be complete while all applicable deployment, hardware, store, external-adoption, or monetization checks remain pending. Report local completion and deployment readiness separately. Do not infer readiness for production or authorization to publish from a local pass.
 
-- [ ] G05: A new developer can create and locally run a shared Swift app on physical iOS and Android using public documentation.
-- [ ] G06: FieldLog's required native UI, state, navigation, input, and accessibility matrix passes on both platforms. Reference screens must meet shared-theme design parity per section8.3, reviewed side by side on physical iOS/Android devices.
-- [ ] G07: The published language/runtime/capability profile passes in native and guest modes without silent feature omission.
-- [ ] G08: Compiler, guest, bridge, and native failures map to actionable original-source diagnostics.
-- [ ] G09: All first-party capability families in Section 9 pass their platform-specific behavior/permission tests.
-- [ ] G10: Existing-app migration and native-screen embedding work for an independent Swift project.
-- [ ] G11: Local/exported CI can build and maintain FieldLog independently of hosted service availability.
-
-### OTA correctness and safety
-
-- [ ] G12: Meaningful logic and UI updates reach already-installed binaries on both platforms without reinstalling them.
-- [ ] G13: Client and server reject wrong app, environment, runtime, signature, protocol, capability, size, and replayed assignment.
-- [ ] G14: Interruption at every download/activation transition preserves a launchable healthy implementation.
-- [ ] G15: Failed guest startup is quarantined; offline recovery works without an infinite crash loop.
-- [ ] G16: Rollback preserves saved drafts, records, uploads, and compatible schema behavior; external effects are reconciled correctly.
-- [ ] G17: Key rotation/revocation, old offline clients, and root-compromise limitations are exercised and documented.
-- [ ] G18: Staged promotion/halt and dual-platform cohort targeting work across mixed native binary versions.
-- [ ] G19: New native capabilities/permissions/SDKs correctly require a store build.
-
-### Hosted product
-
-- [ ] G20: Elixir/Oban orchestration and isolated macOS/iOS and Android builds produce signed, traceable artifacts with usable logs and debugging symbols; Cloudflare workers or recorded hosting exceptions pass resource/isolation/lifecycle qualification.
-- [ ] G21: Store integrations reach verified ready-for-testing and available states; provider errors are accurately represented.
-- [ ] G22: SolidJS console on Cloudflare and Phoenix API support onboarding, teams, permissions, SSO, audit export, customer keys, and dedicated-runner workflows end to end.
-- [ ] G23: Stripe billing, Neon usage reconciliation, usage caps, credits, cancellation, export/deletion, and support workflows pass realistic account and duplicate/out-of-order webhook cases.
-- [ ] G24: Phoenix API/CLI/SolidJS behavior agrees; domain writes and Oban enqueue are atomic; publishing and chargeable actions remain idempotent under redelivery and worker failures, including migration parity with existing Go contracts.
-
-### Security, reliability, and measured behavior
-
-- [ ] G25: Independent VM/bridge/update/signing/tenant-isolation review has no unresolved launch-blocking findings.
-- [ ] G26: Applicable standards-profile conformance, differential tests, fuzzing, and resource-limit tests pass.
-- [ ] G27: Performance, memory, patch size, sharing, and real-change OTA coverage meet the approved budgets with published methodology.
-- [ ] G28: Device/OS/accessibility/localization matrix passes, with physical evidence for performance and native capabilities.
-- [ ] G29: Service objectives have sufficient operating/load-test evidence, including Cloudflare container stop/wake with no user traffic and Neon/Oban reconnect behavior; low-volume uncertainty is disclosed.
-- [ ] G30: Neon backup restoration/region-loss, R2/CDN isolation/freshness, separate worker/signer loss, Stripe reconciliation, compromised publisher, and bad-release drills are complete.
-- [ ] G31: Alerting, accountable escalation, status page, incident communication, and security response are configured and rehearsed.
-
-### Real usage and launch readiness
-
-- [ ] G32: D0–D8 complete; FieldLog is available through real iOS/Android store distribution with transparent update behavior.
-- [ ] G33: FieldLog has repeated real production use, a reviewed 20-change OTA coverage corpus, and verified recovery across the required scenarios.
-- [ ] G34: Two independently authored external apps qualify, including an existing Swift app migration.
-- [ ] G35: Documentation and onboarding have been tested by developers outside the engine team.
-- [ ] G36: Paid-pilot evidence and contribution-margin model support the commercial offering; weak demand is explicitly reviewed.
-- [ ] G37: SDK upgrade, native release, OTA release, rollback, and customer-exit guides are complete and exercised.
-- [ ] G38: Every failed/blocked mandatory item is resolved; release approval references actual evidence rather than planned work.
+A free early launch needs checks appropriate to its actual exposed features and a separate launch decision. It does not require paid pilots, purchase capability, billing implementation, payment activation, enterprise features, or commercial SLO evidence. Before later monetization, implement and qualify the relevant payment paths, reconciliation, security, terms, and support obligations. Preserve the existing code and evidence until then.
 
 ## 30. Release trains and post-launch operation
 
@@ -1324,7 +1347,6 @@ capabilities:
   - location.foreground
   - notifications.push
   - sharing.files
-  - purchases.store
 ```
 
 The final schema must add explicit version constraints, permission descriptions, native dependency identities, and per-platform configuration. Configuration declares desired capabilities; it cannot make them appear in an already-installed binary.
@@ -1406,12 +1428,12 @@ Research checked on October 22, 2026. Dynamic product status, prices, SDK requir
 
 ## 34. How to execute and maintain this plan
 
-Convert W01–W18 into tracked epics, preserve G01–G38 as the release checklist, and attach D0–D8 receipts to both. Keep requirements, implementation work, and verification evidence distinct. A merged implementation is progress; a passed acceptance gate requires the specified behavior and evidence.
+Convert W01–W18 into tracked epics, use L01–L08 as the local completion checklist, and preserve G01–G38 as later launch qualification. Attach local and release D0–D8 receipts in their respective scopes. Keep requirements, implementation work, and verification evidence distinct. A merged implementation is progress; a passed acceptance gate requires the specified behavior and evidence.
 
 Commit coherent, validated implementation and evidence slices as work progresses, and periodically push meaningful checkpoints to the user-owned [snowdamiz/mixer repository](https://github.com/snowdamiz/mixer). The root integrator coordinates pushes to `main`, preserves unfinished agent work, avoids force-pushing, and inspects hosted CI after each push. This source-delivery authorization does not authorize production deployments, store submissions, or customer messages. `PLAN.md` records the delivery workflow and current execution constraints.
 
-The user's October 23 verification instruction accepts iOS simulator and Android emulator tests as sufficient for development acceptance and advancing dependent implementation. Apply this sequencing to earlier milestone and work-package references to physical-device evidence: implement and test the flows on simulators/emulators now, then run the physical-phone matrix at final acceptance and correct any differences. Disconnected phones must not block development slices. Keep each receipt labeled with its actual environment, preserve earlier physical receipts against their exact revisions, and retain final hardware checks as pending. Do not attempt phone runs or request reconnection until the user changes the disconnected-device constraint. This does not pass untested store, customer, operational, or other final launch requirements.
+The user's October 23 verification instruction accepts iOS simulator and Android emulator tests as sufficient for development acceptance and advancing dependent implementation. Apply this sequencing to earlier milestone and work-package references to physical-device evidence: implement and test the flows on simulators/emulators now, then run the physical-phone matrix at later hardware/release qualification and correct any differences. Local plan completion does not wait for that matrix. Disconnected phones must not block development slices. Keep each receipt labeled with its actual environment, preserve earlier physical receipts against their exact revisions, and retain final hardware checks as pending. Do not attempt phone runs or request reconnection until the user changes the disconnected-device constraint. This does not pass untested store, customer, operational, or other final launch requirements.
 
 Verify each integrated FieldLog release on both platforms. Update the work graph, critical dependencies, customer evidence, and gate status after each integration. Record decision changes with reasons and evidence; do not silently remove requirements when they become difficult.
 
-The immediate execution priority is working integrated FieldLog behavior through the public shared Swift SDK, with native iOS/Android work and bounded VM blocker experiments advancing in parallel where dependencies permit. Existing implementation and receipts retain their actual scope. Run the Section 24.4 escalation process when progress stalls; historical per-run freezes preserve old evidence and do not permanently prohibit a newly selected experiment. Current explicit user pauses, process/custody restrictions, automated security denials and release authority still apply. The completion target remains the full independently owned commercial product described above.
+The immediate execution priority is working integrated FieldLog behavior through the public shared Swift SDK, with native iOS/Android work and bounded VM blocker experiments advancing in parallel where dependencies permit. Existing implementation and receipts retain their actual scope. Run the Section 24.4 escalation process when progress stalls; historical per-run freezes preserve old evidence and do not permanently prohibit a newly selected experiment. Current explicit user pauses, process/custody restrictions, automated security denials and release authority still apply. The implementation completion target is the full independently owned local workflow in Section 2, including free accounts. Deployment and commercial qualification remain separate follow-up work.

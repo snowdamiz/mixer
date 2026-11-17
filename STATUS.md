@@ -1,5 +1,15 @@
 # Current development status
 
+## Completion policy, November 17, 2026
+
+Implementation-plan completion now means working local end-to-end behavior under [Section 2](mixer-product-plan.md#2-completion-definition-and-scope) and L01–L08 in [the local checklist](gates/local.json). The eight checks cover setup/import/export, shared app/UI/capabilities, compiler/VM, signed OTA/recovery, the real local console/API/database/worker/build workflow, free administration, security/local reliability, and FieldLog/documentation.
+
+Testing and early launch are free. Payment and purchase implementation, Stripe integration, paid entitlements, invoices, and financial activation are deferred. Verify the workflow without payment credentials or a billing service. This plan edit does not itself implement or verify that behavior. Keep existing billing code and evidence.
+
+[Section 29](mixer-product-plan.md#29-completion-gates-and-later-qualification) maps every G01–G38 gate to local evidence and later qualification. Live deployment, provider operations, physical phones, registry publication, store approval, external apps/customers, paid pilots, and commercial metrics do not block plan completion. Historical GA counts below describe the original launch checklist, not local completion. All eight local records start planned; no application test ran as part of this policy change and no earlier failure or hold is released.
+
+The following checkpoints retain their historical sources and scope. Local completion is still pending; evaluate existing slice receipts against L01–L08 before claiming a pass.
+
 ## Current checkpoint. Green delivered CLI; Linux SDK and native results
 
 The prepared-lock CLI slice is delivered at `39f677129e62cf5c24c45d4e511439b83cd15c7d`. All nine engine CI jobs and artifact retention passed. The earlier Android180s and cache60s timeout failures remain preserved; their cause is unresolved and they did not recur in this run. The exact CLI ordinary suite404 and unsigned Android build remain accepted development evidence. [Exact-head CI](verification/receipts/prepared-lock-green-ci-root-r5390.json).

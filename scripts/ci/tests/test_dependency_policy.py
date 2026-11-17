@@ -16,7 +16,8 @@ class DependencyPolicyTests(unittest.TestCase):
             root = Path(folder)
             (root / 'scripts').mkdir()
             shutil.copyfile(ROOT / 'scripts/check-policy.py', root / 'scripts/check-policy.py')
-            for name in ('gates/ga.json', 'work-graph.json', 'dogfood/receipts/milestones.json'):
+            for name in ('scripts/check-plan-completion.py', 'gates/local.json',
+                         'gates/ga.json', 'work-graph.json', 'dogfood/receipts/milestones.json'):
                 target = root / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / name, target)

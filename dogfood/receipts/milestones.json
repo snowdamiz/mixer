@@ -8,7 +8,16 @@
       "requiredEvidence": "Source tag, physical-device recording, baseline timings, saved user records, signed test build.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": true,
+        "requiredEvidence": "Source revision, iOS Simulator recording/results, local baseline timings, saved records and development build.",
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     },
     {
       "id": "D1",
@@ -17,7 +26,16 @@
       "requiredEvidence": "Behavior comparison, migration report, no data loss, no private SDK imports.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": true,
+        "requiredEvidence": "Local behavior comparison, migration report, preserved data and public SDK imports.",
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     },
     {
       "id": "D2",
@@ -26,7 +44,16 @@
       "requiredEvidence": "Same scenario results, device versions, source-sharing report, native platform differences documented.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": true,
+        "requiredEvidence": "Same workflows on iOS Simulator and Android emulator, actual OS versions, sharing report and platform differences.",
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     },
     {
       "id": "D3",
@@ -35,7 +62,16 @@
       "requiredEvidence": "Native/interpreted differential tests, performance report, original Swift crash/source mapping.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": true,
+        "requiredEvidence": "Native/guest differential tests on both local targets, local performance and original-source diagnostics.",
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     },
     {
       "id": "D4",
@@ -44,7 +80,16 @@
       "requiredEvidence": "Before/after source and recordings, immutable artifact IDs, runtime fingerprints, no binary reinstall.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": true,
+        "requiredEvidence": "Before/after source and behavior on both installed apps, signed local artifacts, fingerprints and no reinstall.",
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     },
     {
       "id": "D5",
@@ -53,7 +98,16 @@
       "requiredEvidence": "Controlled test-channel fault receipts, offline relaunch, preserved drafts/records, no repeat-crash loop.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": true,
+        "requiredEvidence": "Local interruption/corruption/compatibility/startup fault matrix, offline relaunch and preserved saved data.",
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     },
     {
       "id": "D6",
@@ -62,7 +116,16 @@
       "requiredEvidence": "Public CLI/API logs, isolated build provenance, store processing/testing receipts, usage/billing audit.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": true,
+        "requiredEvidence": "Real local CLI/API/console, database, workers, development signing, distribution adapters, updates and rollback. No payment credentials or live stores.",
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     },
     {
       "id": "D7",
@@ -71,7 +134,16 @@
       "requiredEvidence": "Store links/versions, actual tester/customer activity, real product changes, support history.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": false,
+        "requiredEvidence": null,
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     },
     {
       "id": "D8",
@@ -80,7 +152,33 @@
       "requiredEvidence": "Incident history, performance trends, latest 20-change coverage report, practiced recovery, export build.",
       "status": "planned",
       "evidence": [],
-      "reviewer": null
+      "reviewer": null,
+      "localAcceptance": {
+        "requiredForPlanCompletion": true,
+        "requiredEvidence": "Repeated local workflows, reviewed 20-change corpus, recovery, upgrade and independent exported build. No production soak or customer threshold.",
+        "gate": "L08",
+        "status": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      "qualificationScope": "Original scope/evidence above is retained for later release qualification; localAcceptance governs the implementation plan."
     }
-  ]
+  ],
+  "completionPolicy": {
+    "adoptedOn": "2026-11-17",
+    "reference": "mixer-product-plan.md#2-completion-definition-and-scope",
+    "completionChecklist": "gates/local.json",
+    "completionRule": "The implementation plan is complete when L01-L08 pass with scoped local end-to-end evidence and reviewers.",
+    "launchChecklist": "gates/ga.json",
+    "launchGatesBlockPlanCompletion": false,
+    "paymentsRequiredForPlanCompletion": false,
+    "paymentImplementationRequiredForEarlyLaunch": false,
+    "paymentActivationRequiredForEarlyLaunch": false,
+    "testingAndEarlyLaunch": "free",
+    "physicalDevicesRequiredForPlanCompletion": false,
+    "publishedPackagesRequiredForPlanCompletion": false,
+    "historicalHoldsReleased": false,
+    "deploymentAuthorized": false,
+    "evidenceReclassifiedAsPassed": false
+  }
 }

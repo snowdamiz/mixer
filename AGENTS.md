@@ -4,6 +4,26 @@ The binding product scope is `mixer-product-plan.md`. `PLAN.md` indexes executio
 it does not replace or narrow that scope. Keep `STATUS.md`, `work-graph.json`,
 `gates/`, and `verification/` current with observed evidence.
 
+## Plan completion policy, November 17, 2026
+
+The user defines implementation-plan completion as working local end-to-end
+behavior. Apply product-plan Section 2 and L01–L08 in `gates/local.json`.
+iOS Simulator, Android emulator, and locally running integrated services are
+sufficient for this milestone. Actual deployment, store approval, physical-phone
+qualification, registry publication, outside adoption, paid pilots, and payment
+implementation or activation do not block plan completion. Testing and early
+launch are free. Verify that the workflow needs no payment service or credentials;
+existing billing work is preserved and deferred from the completion critical path.
+
+`gates/ga.json` retains the original launch checklist and evidence. A local pass
+does not pass a launch gate. Older instructions tying final acceptance to phones,
+immutable published packages, commercial readiness, or every GA gate now apply
+only to the corresponding later release qualification. Complete local application
+behavior, security, data integrity, isolation, and cleanup still need real evidence.
+All specific historical holds and disconnected-phone restrictions remain active.
+This policy authorizes no deployment, store submission, financial activation,
+customer communication, credential change, or destructive migration.
+
 ## Ownership and execution
 
 - Independently implement all product engine code. No Patch/Skip implementation,
@@ -61,7 +81,7 @@ after pushes. Phones are disconnected until further notice: do not attempt new
 physical-device runs or ask to reconnect; keep those checks explicitly pending.
 The user's October 23 instruction accepts simulator/emulator tests as sufficient
 to accept development slices and continue dependent implementation. Do not block
-that progress on phones. Run the physical-phone matrix at final acceptance and
+that progress on phones. Run the physical-phone matrix at later hardware/release qualification and
 correct any differences then; preserve the actual environment in every receipt.
 Keep simulator/emulator use bounded: normally one active test instance per native
 lane. Reuse it, retire an obsolete owned instance before booting its replacement,
@@ -127,9 +147,9 @@ coordinates any newly reviewed disposable instance. The failed setup/adoption
 receipts remain historical failures; all earlier process holds remain active.
 
 Record command, tool version, source revision/tree digest, output, and scope.
-Mac unit tests are not physical iOS/Android receipts. FieldLog must eventually
-consume immutable published packages from a separate repository. Local checkout
-debugging is not dogfood release qualification. Never mark a GA gate verified
+Mac unit tests are not physical iOS/Android receipts. FieldLog can complete the
+local plan from pinned public SDK checkout inputs in its separate repository.
+Immutable published packages remain later distribution qualification. Never mark a GA gate verified
 without its specified evidence and accountable reviewer.
 
 The resumed root repository-observation wrapper failed while persisting its log

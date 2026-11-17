@@ -1,0 +1,450 @@
+{
+  "schema": 1,
+  "policy": {
+    "adoptedOn": "2026-11-17",
+    "reference": "mixer-product-plan.md#2-completion-definition-and-scope",
+    "completionChecklist": "gates/local.json",
+    "completionRule": "The implementation plan is complete when L01-L08 pass with scoped local end-to-end evidence and reviewers.",
+    "launchChecklist": "gates/ga.json",
+    "launchGatesBlockPlanCompletion": false,
+    "paymentsRequiredForPlanCompletion": false,
+    "paymentImplementationRequiredForEarlyLaunch": false,
+    "paymentActivationRequiredForEarlyLaunch": false,
+    "testingAndEarlyLaunch": "free",
+    "physicalDevicesRequiredForPlanCompletion": false,
+    "publishedPackagesRequiredForPlanCompletion": false,
+    "historicalHoldsReleased": false,
+    "deploymentAuthorized": false,
+    "evidenceReclassifiedAsPassed": false
+  },
+  "status": "in_progress",
+  "statusMeaning": "Policy adopted; local completion has not yet been assessed against all eight gates. Historical slice evidence keeps its original scope.",
+  "gates": [
+    {
+      "id": "L01",
+      "name": "Setup, adoption, and export",
+      "requirement": "Install from pinned public SDK/tooling inputs, create and import a Swift app, build and run on both local targets, and export a working independent build. FieldLog consumes public interfaces from its separate repository. Registry publication and outside developers are not prerequisites.",
+      "status": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    {
+      "id": "L02",
+      "name": "Shared app and native UI",
+      "requirement": "FieldLog's supported screens, state, navigation, input, accessibility, shared design, persistence, and first-party capabilities work on both local targets. Record OS-specific limitations. Physical-only services use explicit test adapters for local orchestration, with actual hardware/provider behavior pending.",
+      "status": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    {
+      "id": "L03",
+      "name": "Compiler and owned runtime",
+      "requirement": "Supported Swift features execute in native and guest modes through the owned engine with actionable source diagnostics. Conformance, differential, malformed-input, cancellation, and resource-limit checks pass. Measure responsiveness, memory, and update size on the stated local workload. Hardware budgets remain separately unqualified.",
+      "status": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    {
+      "id": "L04",
+      "name": "Safe OTA and recovery",
+      "requirement": "A locally served, signed logic and UI update changes both already-installed apps without reinstall. Compatibility, tenant/app identity, signatures, replay, cohorts, key rotation, and unsupported native changes are enforced. Interrupted or failed updates recover offline with saved data intact. Use development keys, never production signing credentials.",
+      "status": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    {
+      "id": "L05",
+      "name": "Local platform workflow",
+      "requirement": "Real console, CLI, Phoenix API, PostgreSQL, Oban workers, build workers, artifact delivery, and separate development signer complete onboarding, build, logs, cancellation, update, promotion, and rollback locally. Test store request/status/error handling against documented provider fixtures. Actual uploads, store processing, provider infrastructure, and distribution remain pending.",
+      "status": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    {
+      "id": "L06",
+      "name": "Free accounts and administration",
+      "requirement": "Free organizations can use the full testing workflow without a card, subscription, Stripe credentials, or payment service. Memberships, permissions, usage visibility, quotas, support, export, and deletion work locally. Paid plans, invoices, payment collection, paid entitlements, and purchase integrations may remain unimplemented and inactive.",
+      "status": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    {
+      "id": "L07",
+      "name": "Security and local reliability",
+      "requirement": "Provenance, licensing notices, VM/bridge/update verification, signer separation, tenant isolation, privacy, authorization, and local fault/restore tests pass. Resolve findings that compromise the supported local workflow. Test local service/worker loss and recovery. Production SLOs, provider failover, and staffed operations are later qualification.",
+      "status": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    {
+      "id": "L08",
+      "name": "FieldLog and documentation",
+      "requirement": "Run the complete supported FieldLog workflow through public tooling on both targets, including edit/save/close/reopen, offline queue, attachments, guest parity, OTA, rollback, and export. Exercise the applicable Section 22 recovery and real-change corpus locally. Follow installation, upgrade, recovery, and exit guides from a clean local setup. Store use, customer counts, and paid pilots are not required.",
+      "status": "planned",
+      "evidence": [],
+      "reviewer": null
+    }
+  ],
+  "originalGateMapping": [
+    {
+      "id": "G01",
+      "originalRequirement": "No Patch/Skip code, generated artifacts, tests, or engine dependencies in the product; provenance/dependency review passed.",
+      "localGates": [
+        "L07"
+      ],
+      "topic": "Independent ownership and provenance",
+      "laterQualification": "Review distributed artifacts again as required."
+    },
+    {
+      "id": "G02",
+      "originalRequirement": "Owned compiler integration, UI engine, bridges, interpreter, updater, and hosted workflow are implemented and supported.",
+      "localGates": [
+        "L02",
+        "L03",
+        "L04",
+        "L05"
+      ],
+      "topic": "Owned engine and integrated workflow",
+      "laterQualification": "Hosted operation and ongoing support."
+    },
+    {
+      "id": "G03",
+      "originalRequirement": "Public support matrix, limitation list, version policy, licensing/notices, and migration contract match actual behavior.",
+      "localGates": [
+        "L01",
+        "L08"
+      ],
+      "topic": "Support matrix, versions, notices, migration",
+      "laterQualification": "Published production commitments."
+    },
+    {
+      "id": "G04",
+      "originalRequirement": "Product naming/trademarks, customer terms, privacy material, and third-party redistribution obligations are reviewed.",
+      "localGates": [
+        "L07"
+      ],
+      "topic": "Licensing, privacy, legal material",
+      "laterQualification": "Trademark review, commercial terms, and production redistribution review."
+    },
+    {
+      "id": "G05",
+      "originalRequirement": "A new developer can create and locally run a shared Swift app on physical iOS and Android using public documentation.",
+      "localGates": [
+        "L01"
+      ],
+      "topic": "Documented setup and app run",
+      "laterQualification": "Physical-device onboarding."
+    },
+    {
+      "id": "G06",
+      "originalRequirement": "FieldLog's required native UI, state, navigation, input, and accessibility matrix passes on both platforms. Reference screens must meet shared-theme design parity per section8.3, reviewed side by side on physical iOS/Android devices.",
+      "localGates": [
+        "L02"
+      ],
+      "topic": "UI, input, state, accessibility, shared design",
+      "laterQualification": "Physical reference-screen comparison."
+    },
+    {
+      "id": "G07",
+      "originalRequirement": "The published language/runtime/capability profile passes in native and guest modes without silent feature omission.",
+      "localGates": [
+        "L03"
+      ],
+      "topic": "Supported native and guest profile",
+      "laterQualification": "Additional hardware and production-platform qualification."
+    },
+    {
+      "id": "G08",
+      "originalRequirement": "Compiler, guest, bridge, and native failures map to actionable original-source diagnostics.",
+      "localGates": [
+        "L03"
+      ],
+      "topic": "Actionable original-source diagnostics",
+      "laterQualification": "Production diagnostic operation."
+    },
+    {
+      "id": "G09",
+      "originalRequirement": "All first-party capability families in Section 9 pass their platform-specific behavior/permission tests.",
+      "localGates": [
+        "L02"
+      ],
+      "topic": "First-party capabilities and permission behavior",
+      "laterQualification": "Real hardware/provider qualification. Purchase implementation, including sandbox purchases, is deferred."
+    },
+    {
+      "id": "G10",
+      "originalRequirement": "Existing-app migration and native-screen embedding work for an independent Swift project.",
+      "localGates": [
+        "L01"
+      ],
+      "topic": "Existing-project import and native embedding",
+      "laterQualification": "External customer adoption."
+    },
+    {
+      "id": "G11",
+      "originalRequirement": "Local/exported CI can build and maintain FieldLog independently of hosted service availability.",
+      "localGates": [
+        "L01"
+      ],
+      "topic": "Independent export and offline build",
+      "laterQualification": "Published registry packages and independent hosted CI."
+    },
+    {
+      "id": "G12",
+      "originalRequirement": "Meaningful logic and UI updates reach already-installed binaries on both platforms without reinstalling them.",
+      "localGates": [
+        "L04"
+      ],
+      "topic": "Logic and UI OTA without reinstall",
+      "laterQualification": "Production delivery."
+    },
+    {
+      "id": "G13",
+      "originalRequirement": "Client and server reject wrong app, environment, runtime, signature, protocol, capability, size, and replayed assignment.",
+      "localGates": [
+        "L04",
+        "L07"
+      ],
+      "topic": "Identity, signature, compatibility, size, replay refusal",
+      "laterQualification": "Production delivery infrastructure."
+    },
+    {
+      "id": "G14",
+      "originalRequirement": "Interruption at every download/activation transition preserves a launchable healthy implementation.",
+      "localGates": [
+        "L04"
+      ],
+      "topic": "Interrupted download and activation recovery",
+      "laterQualification": "Hardware/storage-specific qualification."
+    },
+    {
+      "id": "G15",
+      "originalRequirement": "Failed guest startup is quarantined; offline recovery works without an infinite crash loop.",
+      "localGates": [
+        "L04"
+      ],
+      "topic": "Startup quarantine and offline fallback",
+      "laterQualification": "Physical-device confirmation."
+    },
+    {
+      "id": "G16",
+      "originalRequirement": "Rollback preserves saved drafts, records, uploads, and compatible schema behavior; external effects are reconciled correctly.",
+      "localGates": [
+        "L04"
+      ],
+      "topic": "Data-preserving rollback and effect reconciliation",
+      "laterQualification": "Live external effects. Financial effects remain deferred."
+    },
+    {
+      "id": "G17",
+      "originalRequirement": "Key rotation/revocation, old offline clients, and root-compromise limitations are exercised and documented.",
+      "localGates": [
+        "L04"
+      ],
+      "topic": "Key rotation, revocation, offline clients",
+      "laterQualification": "Production key custody and compromise recovery."
+    },
+    {
+      "id": "G18",
+      "originalRequirement": "Staged promotion/halt and dual-platform cohort targeting work across mixed native binary versions.",
+      "localGates": [
+        "L04"
+      ],
+      "topic": "Staged promotion, halt, mixed runtime cohorts",
+      "laterQualification": "Production fleet operation."
+    },
+    {
+      "id": "G19",
+      "originalRequirement": "New native capabilities/permissions/SDKs correctly require a store build.",
+      "localGates": [
+        "L04"
+      ],
+      "topic": "Native changes require a new native binary",
+      "laterQualification": "Store submission and approval."
+    },
+    {
+      "id": "G20",
+      "originalRequirement": "Elixir/Oban orchestration and isolated macOS/iOS and Android builds produce signed, traceable artifacts with usable logs and debugging symbols; Cloudflare workers or recorded hosting exceptions pass resource/isolation/lifecycle qualification.",
+      "localGates": [
+        "L05"
+      ],
+      "topic": "Build workers, logs, provenance, development signing",
+      "laterQualification": "Production Cloudflare/macOS capacity, isolation, and release signing."
+    },
+    {
+      "id": "G21",
+      "originalRequirement": "Store integrations reach verified ready-for-testing and available states; provider errors are accurately represented.",
+      "localGates": [
+        "L05"
+      ],
+      "topic": "Store request, status, error adapters",
+      "laterQualification": "Actual uploads, processing, testing, approval, and availability."
+    },
+    {
+      "id": "G22",
+      "originalRequirement": "SolidJS console on Cloudflare and Phoenix API support onboarding, teams, permissions, SSO, audit export, customer keys, and dedicated-runner workflows end to end.",
+      "localGates": [
+        "L05",
+        "L06"
+      ],
+      "topic": "Console/API onboarding, roles, audit, keys, runners",
+      "laterQualification": "Live deployment, corporate SSO, and paid dedicated capacity."
+    },
+    {
+      "id": "G23",
+      "originalRequirement": "Stripe billing, Neon usage reconciliation, usage caps, credits, cancellation, export/deletion, and support workflows pass realistic account and duplicate/out-of-order webhook cases.",
+      "localGates": [
+        "L06"
+      ],
+      "topic": "Free accounts, usage, quotas, support, export, deletion",
+      "laterQualification": "Payments, subscriptions, invoices, credits/refunds, financial cancellation, and paid entitlements."
+    },
+    {
+      "id": "G24",
+      "originalRequirement": "Phoenix API/CLI/SolidJS behavior agrees; domain writes and Oban enqueue are atomic; publishing and chargeable actions remain idempotent under redelivery and worker failures, including migration parity with existing Go contracts.",
+      "localGates": [
+        "L05",
+        "L07"
+      ],
+      "topic": "API/CLI/console parity, atomic jobs, fenced retries",
+      "laterQualification": "Chargeable operations and production-provider parity."
+    },
+    {
+      "id": "G25",
+      "originalRequirement": "Independent VM/bridge/update/signing/tenant-isolation review has no unresolved launch-blocking findings.",
+      "localGates": [
+        "L07"
+      ],
+      "topic": "Independent security review and resolved findings",
+      "laterQualification": "Review additional exposed production boundaries."
+    },
+    {
+      "id": "G26",
+      "originalRequirement": "Applicable standards-profile conformance, differential tests, fuzzing, and resource-limit tests pass.",
+      "localGates": [
+        "L03"
+      ],
+      "topic": "Conformance, differential, fuzzing, resource limits",
+      "laterQualification": "Further platform qualification."
+    },
+    {
+      "id": "G27",
+      "originalRequirement": "Performance, memory, patch size, sharing, and real-change OTA coverage meet the approved budgets with published methodology.",
+      "localGates": [
+        "L03",
+        "L08"
+      ],
+      "topic": "Local performance, memory, size, sharing, change corpus",
+      "laterQualification": "Hardware budgets, fleet performance, and commercial SLO claims."
+    },
+    {
+      "id": "G28",
+      "originalRequirement": "Device/OS/accessibility/localization matrix passes, with physical evidence for performance and native capabilities.",
+      "localGates": [
+        "L02"
+      ],
+      "topic": "Declared OS, accessibility, localization matrix",
+      "laterQualification": "Physical capability and performance matrix."
+    },
+    {
+      "id": "G29",
+      "originalRequirement": "Service objectives have sufficient operating/load-test evidence, including Cloudflare container stop/wake with no user traffic and Neon/Oban reconnect behavior; low-volume uncertainty is disclosed.",
+      "localGates": [
+        "L07"
+      ],
+      "topic": "Local load, idle jobs, restart, reconnect, recovery",
+      "laterQualification": "Cloudflare/Neon lifecycle and sustained production service objectives."
+    },
+    {
+      "id": "G30",
+      "originalRequirement": "Neon backup restoration/region-loss, R2/CDN isolation/freshness, separate worker/signer loss, Stripe reconciliation, compromised publisher, and bad-release drills are complete.",
+      "localGates": [
+        "L07"
+      ],
+      "topic": "Local restore, cache isolation, worker/signer loss, publisher compromise",
+      "laterQualification": "Managed-provider failover, region loss, and payment reconciliation."
+    },
+    {
+      "id": "G31",
+      "originalRequirement": "Alerting, accountable escalation, status page, incident communication, and security response are configured and rehearsed.",
+      "localGates": [
+        "L07",
+        "L08"
+      ],
+      "topic": "Local test alerts and incident/security runbooks",
+      "laterQualification": "Staffed escalation, live status service, customer communication."
+    },
+    {
+      "id": "G32",
+      "originalRequirement": "D0–D8 complete; FieldLog is available through real iOS/Android store distribution with transparent update behavior.",
+      "localGates": [
+        "L08"
+      ],
+      "topic": "FieldLog local adoption and integrated workflow",
+      "laterQualification": "Original store-distribution and production-use milestones."
+    },
+    {
+      "id": "G33",
+      "originalRequirement": "FieldLog has repeated real production use, a reviewed 20-change OTA coverage corpus, and verified recovery across the required scenarios.",
+      "localGates": [
+        "L08"
+      ],
+      "topic": "Repeated local workflows, 20-change corpus, recovery",
+      "laterQualification": "Sustained production use."
+    },
+    {
+      "id": "G34",
+      "originalRequirement": "Two independently authored external apps qualify, including an existing Swift app migration.",
+      "localGates": [
+        "L01",
+        "L08"
+      ],
+      "topic": "Separate consumer and existing-project migration",
+      "laterQualification": "Two independently authored external customer apps."
+    },
+    {
+      "id": "G35",
+      "originalRequirement": "Documentation and onboarding have been tested by developers outside the engine team.",
+      "localGates": [
+        "L08"
+      ],
+      "topic": "Clean-setup documentation replay",
+      "laterQualification": "Onboarding by developers outside the engine team."
+    },
+    {
+      "id": "G36",
+      "originalRequirement": "Paid-pilot evidence and contribution-margin model support the commercial offering; weak demand is explicitly reviewed.",
+      "localGates": [],
+      "topic": "Paid demand and contribution margin",
+      "laterQualification": "Entirely deferred. No paid pilot, revenue, or margin threshold blocks the plan or free early launch."
+    },
+    {
+      "id": "G37",
+      "originalRequirement": "SDK upgrade, native release, OTA release, rollback, and customer-exit guides are complete and exercised.",
+      "localGates": [
+        "L01",
+        "L08"
+      ],
+      "topic": "SDK upgrade, build, OTA, rollback, exit guides",
+      "laterQualification": "Actual store publication."
+    },
+    {
+      "id": "G38",
+      "originalRequirement": "Every failed/blocked mandatory item is resolved; release approval references actual evidence rather than planned work.",
+      "localGates": [
+        "L01",
+        "L02",
+        "L03",
+        "L04",
+        "L05",
+        "L06",
+        "L07",
+        "L08"
+      ],
+      "topic": "Evidence-backed completion decision",
+      "laterQualification": "Separate authorization and applicable checks for each launch."
+    }
+  ],
+  "externalBoundaryRule": "Fixtures may replace unavailable external store, payment, hardware, or push boundaries only. The owned engine and integrated local services require actual execution. Record substitutions and pending real qualification.",
+  "paymentPolicy": "Free testing and early launch require no card, subscription, Stripe credentials, payment service, or paid entitlement. Payment and purchase implementation and activation may remain deferred. Preserve existing billing code and evidence."
+}

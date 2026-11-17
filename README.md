@@ -143,6 +143,12 @@ See the integration README for build prerequisites. FieldLog lives separately at
 
 ## Evidence and delivery
 
+The implementation plan completes when the eight local end-to-end checks in
+[`gates/local.json`](gates/local.json) pass. Testing and early launch are free.
+Live deployment, stores, physical devices, registry publication, outside adoption,
+and payment implementation or activation are separate follow-up work. See
+[the complete gate mapping](mixer-product-plan.md#29-completion-gates-and-later-qualification).
+
 `work-graph.json` preserves W01–W18; `gates/ga.json` preserves G01–G38;
 `dogfood/receipts/milestones.json` preserves D0–D8. Current receipts are in
 `verification/`; detailed transient build logs and generated apps stay in

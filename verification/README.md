@@ -57,3 +57,16 @@ remain tracked unchanged.
 The checkout reduction does not shrink shared Git history or update existing
 active branches. Those branches benefit after integrating the retention commit.
 Existing working files and recovery archives were not cleaned by this change.
+
+## Local completion and later release evidence
+
+L01–L08 in [`gates/local.json`](../gates/local.json) govern implementation-plan
+completion. Record actual local app and service behavior, source revision, tools,
+commands, failures, substitutions, cleanup, and reviewer in compact receipts.
+Simulator/emulator and pinned public-checkout evidence can satisfy this milestone.
+No live deployment, store approval, payment implementation or activation, registry
+publication, customer uptake, or physical-phone run is required.
+
+Keep original G01–G38 and D0–D8 qualification evidence in its existing scope.
+A local pass does not establish a production, physical-device, or commercial pass.
+All exact custody holds and retention limits remain active.

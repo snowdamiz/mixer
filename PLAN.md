@@ -1,5 +1,15 @@
 # Execution index
 
+## Completion policy, November 17, 2026
+
+Implementation-plan completion now means working local end-to-end behavior under [Section 2](mixer-product-plan.md#2-completion-definition-and-scope) and L01–L08 in [the local checklist](gates/local.json). The eight checks cover setup/import/export, shared app/UI/capabilities, compiler/VM, signed OTA/recovery, the real local console/API/database/worker/build workflow, free administration, security/local reliability, and FieldLog/documentation.
+
+Testing and early launch are free. Payment and purchase implementation, Stripe integration, paid entitlements, invoices, and financial activation are deferred. Verify the workflow without payment credentials or a billing service. This plan edit does not itself implement or verify that behavior. Keep existing billing code and evidence.
+
+[Section 29](mixer-product-plan.md#29-completion-gates-and-later-qualification) maps every G01–G38 gate to local evidence and later qualification. Live deployment, provider operations, physical phones, registry publication, store approval, external apps/customers, paid pilots, and commercial metrics do not block plan completion. Historical GA counts below describe the original launch checklist, not local completion. All eight local records start planned; no application test ran as part of this policy change and no earlier failure or hold is released.
+
+The following checkpoints retain their historical sources and scope. Local completion is still pending; evaluate existing slice receipts against L01–L08 before claiming a pass.
+
 ## Current checkpoint. Green delivered CLI; Linux SDK and native results
 
 The prepared-lock CLI slice is delivered at `39f677129e62cf5c24c45d4e511439b83cd15c7d`. All nine engine CI jobs and artifact retention passed. The earlier Android180s and cache60s timeout failures remain preserved; their cause is unresolved and they did not recur in this run. The exact CLI ordinary suite404 and unsigned Android build remain accepted development evidence. [Exact-head CI](verification/receipts/prepared-lock-green-ci-root-r5390.json).
@@ -1467,8 +1477,8 @@ See [the design decision](verification/ui-design-parity-plan-update/receipt.json
 The hosted stack remains Elixir/OTP + Phoenix + Plug/Bandit, Ecto/Postgrex and
 Oban on Neon PostgreSQL; Cloudflare Containers for the API, Workers Static Assets
 for the SolidJS/TypeScript/Vite/Solid Router console, and Workers/R2/CDN for
-suitable edge/delivery workloads. Stripe supplies Billing, Checkout and Customer
-Portal. Node is build tooling. Licensed macOS workers and isolated signing retain
+suitable edge/delivery workloads. Stripe remains the selected later payment provider. Billing, Checkout and Customer
+Portal implementation and activation are deferred; testing and early launch are free. Node is build tooling. Licensed macOS workers and isolated signing retain
 necessary hosting exceptions; Android container resources/isolation and Oban
 stop/wake/recovery require qualification. Start with direct verified-TLS Neon
 connections, bounded pools and production scale-to-zero disabled. Protected Ecto
@@ -1484,9 +1494,9 @@ closed. Static inspection alone never authorizes an OTA release. Keep signing
 keys out of source/build workers and use standard cryptography.
 
 Each slice needs executable tests with exact source/tool/command/output scope.
-Skipped native, compiler, signing, store, customer or operational gates remain
-pending. FieldLog must consume immutable published packages from its separate
-repository. Local-checkout debugging is not dogfood release qualification.
+Skipped checks remain pending in their actual scope. FieldLog can complete local
+acceptance from pinned public SDK checkout inputs in its separate repository.
+Immutable registry packages are later distribution qualification.
 Never promote a GA gate without its specified evidence and accountable reviewer.
 
 ## Ongoing delivery and resource ownership
@@ -1511,8 +1521,8 @@ attempts separately; earlier pauses and receipts remain historical.
 
 Phones remain disconnected. Do not query/retry phones or request reconnection.
 The user accepts simulator/emulator tests for development slices and advancing
-dependent work. Run the physical matrix at final acceptance and correct any
-hardware differences then. Preserve actual environments and keep final hardware
+dependent work. Run the physical matrix at later hardware/release qualification and correct any
+hardware differences then. It does not block local completion. Preserve actual environments and keep final hardware
 checks pending. See [the development policy](verification/simulator-development-policy/receipt.json).
 
 ## Complete package index

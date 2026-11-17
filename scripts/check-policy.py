@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import os
 import re
+import runpy
 import sys
 
 root = Path(__file__).resolve().parents[1]
@@ -45,5 +46,6 @@ if [m['id'] for m in milestones] != [f'D{i}' for i in range(9)]:
 for milestone in milestones:
     if milestone['status'] == 'passed' and (not milestone.get('evidence') or not milestone.get('reviewer')):
         failures.append(f"{milestone['id']}: passed milestone lacks evidence/reviewer")
+failures.extend(runpy.run_path(str(root / 'scripts/check-plan-completion.py'))['check'](root))
 print(json.dumps({'status': 'failed' if failures else 'passed', 'scope': 'manifest-and-gate-guardrail-only', 'manifests': sorted(inspected), 'failures': failures}, indent=2))
 sys.exit(bool(failures))
