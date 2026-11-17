@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+"""Admit the reviewed native-report archive owner and reconstruct its predecessor."""
+
+import argparse
+import hashlib
+import importlib.util
+import json
+import stat
+import sys
+import tempfile
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+PREVIOUS = Path('verification/sdk-feature-ui-source141-v1')
+PREVIOUS_SEAL_SHA256 = '06952f22a0a4fc6b2272e7f545abb9e46ec526372abf5e2244c6599e3a6246ed'
+TYPE = 'EXACT_NATIVE_REPORT_ARCHIVE_SOURCE141_SUCCESSOR'
+SOURCE_CHANGES = frozenset((
+    'cli/Sources/MixerBuild/BuildInputSnapshot.swift',
+    'cli/Sources/MixerBuild/NativeProductCapture.swift',
+))
+JAVA = 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/'
+CHANGES = SOURCE_CHANGES | {
+    'cli/Tests/MixerBuildTests/NativeOutputAdmissionTests.swift',
+    '.github/workflows/verify.yml',
+    JAVA + 'bootstrap.py',
+    JAVA + 'test_bootstrap.py',
+    JAVA + 'test_sparse_checkout.py',
+}
+MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+    'predecessor-bytes/' + name for name in CHANGES
+}
+
+
+def require(ok, message):
+    if not ok:
+        raise RuntimeError(message)
+
+
+def read_predecessor_member(path):
+    limit = 256 * 1024
+    metadata = path.lstat()
+    require(stat.S_ISREG(metadata.st_mode) and metadata.st_size <= limit,
+            'Bounded ordinary Source141 member required: ' + str(path))
+    with path.open('rb') as stream:
+        raw = stream.read(limit + 1)
+    require(len(raw) <= limit, 'Source141 admission member exceeds read budget')
+    return raw
+
+
+def load_predecessor():
+    base = ROOT / PREVIOUS
+    for directory in (base.parent, base):
+        require(stat.S_ISDIR(directory.lstat().st_mode),
+                'Source141 authority directory required: ' + str(directory))
+    raw = read_predecessor_member(base / 'seal.json')
+    require(hashlib.sha256(raw).hexdigest() == PREVIOUS_SEAL_SHA256,
+            'Source141 predecessor seal differs')
+    seal = json.loads(raw)
+    entry = base / 'adopt_sdk.py'
+    raw = read_predecessor_member(entry)
+    require({'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()} ==
+            seal['members']['adopt_sdk.py'], 'Source141 predecessor entry differs')
+    spec = importlib.util.spec_from_file_location('historical_source141_authority', entry)
+    previous = importlib.util.module_from_spec(spec)
+    # Execute the exact verified bytes, with the original module path.
+    exec(compile(raw, str(entry), 'exec'), previous.__dict__)
+    previous.closed_members(base, {*seal['members'], 'seal.json'})
+    previous.check_rows(base, seal['members'])
+    return previous, seal
+
+
+def install_inputs():
+    previous, old_seal = load_predecessor()
+    seal = previous.load(HERE / 'seal.json')
+    require(set(seal) == {'schema', 'members', 'tree_sha256'} and
+            type(seal['schema']) is int and seal['schema'] == 1 and
+            set(seal['members']) == MEMBERS and
+            previous.digest(seal['members']) == seal['tree_sha256'],
+            'Archive authority seal differs')
+    previous.closed_members(HERE, {*MEMBERS, 'seal.json'})
+    previous.check_rows(HERE, seal['members'])
+    binding = previous.load(HERE / 'binding.json')
+    require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding', 'changes'} and
+            type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
+            binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
+            set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
+
+    original = ROOT / PREVIOUS
+    current = previous.load(HERE / 'current-source-inputs.json')
+    historical_source = previous.load(original / 'current-source-inputs.json')
+    historical_binding = previous.load(original / 'binding.json')
+    historical = previous.load(original / 'historical-inputs.json')
+    caller = previous.load(original / 'caller-inputs.json')
+    owning = previous.load(original / 'owning-closure.json')
+    effective = {**owning, **caller, **historical_source}
+    expected_source = dict(historical_source)
+    preimages = {}
+    for name, change in binding['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == effective[name], 'Predecessor owner binding differs: ' + name)
+        path = ROOT / name
+        require(previous.row(previous.read(path)) == change['after'],
+                'Installed archive owner differs: ' + name)
+        raw = previous.read(HERE / 'predecessor-bytes' / name)
+        require(previous.row(raw) == change['before'], 'Archive owner preimage differs: ' + name)
+        require(type(change['mode']) is int and change['mode'] in (0o644, 0o755) and
+                stat.S_IMODE(path.stat().st_mode) == change['mode'],
+                'Installed archive owner mode differs: ' + name)
+        preimages[name] = (raw, change['mode'])
+        effective[name] = change['after']
+        if name in SOURCE_CHANGES:
+            expected_source[name] = change['after']
+    require(current == expected_source and all(current[n] != historical_source[n] for n in SOURCE_CHANGES) and
+            len(current) == 141 and binding['source'] == {
+                'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
+            }, 'Archive source transition differs')
+    previous.check_rows(ROOT, effective)
+    owner = previous.module('native_archive_actual_collector', ROOT / previous.OWNER)
+    profile = owner.load_profile(ROOT)
+    require(profile == historical_binding['sdk_transition']['profileAfter'] and
+            previous.profile_summary(profile) == binding['profile'] == historical_binding['profile'],
+            'Archive successor must preserve the exact Pair22 profile')
+    require(owner.source_inputs(profile) == current, 'Actual archive owning source map differs')
+
+    material = {}
+    history_paths = set(historical) | effective.keys() | {
+        (PREVIOUS / name).as_posix() for name in (*old_seal['members'], 'seal.json')
+    }
+    total = 0
+    for name in sorted(history_paths):
+        if name in preimages:
+            raw, mode = preimages[name]
+        else:
+            path = ROOT / previous.relative(name)
+            raw, mode = previous.read(path), stat.S_IMODE(path.stat().st_mode)
+        total += len(raw)
+        require(total <= 64 * 1024 * 1024, 'Source141 restoration copy budget exceeded')
+        material[name] = (raw, mode)
+    return binding, current, material
+
+
+def restore(out, material):
+    out = Path(out).absolute()
+    require(not out.exists() and not out.is_symlink(), 'Fresh Source141 output required')
+    require(not any(p.is_symlink() for p in out.parents), 'Source141 output ancestry symlink')
+    out.mkdir(mode=0o700)
+    for name, (raw, mode) in material.items():
+        path = out / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+        path.chmod(mode)
+    spec = importlib.util.spec_from_file_location('restored_source141_authority',
+                                                  out / PREVIOUS / 'adopt_sdk.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module, module.admit()
+
+
+def admit():
+    binding, selected, material = install_inputs()
+    with tempfile.TemporaryDirectory(prefix='native-archive-source141-') as scratch:
+        _, (historical, _, source127) = restore(Path(scratch).resolve() / 'source141', material)
+    return {**binding, 'sdk_transition': historical['sdk_transition']}, selected, source127
+
+
+def verify(installed=False):
+    binding, selected, _ = admit()
+    return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
+            'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_source141_sha256': binding['sdk_transition']['sourceAfter'],
+            'predecessor_source127_sha256': binding['sdk_transition']['sourceBefore'],
+            'adoption': False, 'activation': False, 'aggregate': False, 'GA': False, 'holdsReleased': False}
+
+
+def prepare_source141(out):
+    _, _, material = install_inputs()
+    _, (binding, _, _) = restore(out, material)
+    return {'source141': binding['source']['sha256'], 'files': len(material),
+            'source127': binding['sdk_transition']['sourceBefore'], 'out': str(out)}
+
+
+def prepare_predecessor(out):
+    _, _, material = install_inputs()
+    with tempfile.TemporaryDirectory(prefix='native-archive-source141-') as scratch:
+        previous, _ = restore(Path(scratch).resolve() / 'source141', material)
+        return previous.prepare_predecessor(out)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest='command', required=True)
+    verify_parser = commands.add_parser('verify')
+    verify_parser.add_argument('--workflow-installed', action='store_true')
+    for name in ('prepare-source141', 'prepare-predecessor'):
+        commands.add_parser(name).add_argument('--out', type=Path, required=True)
+    args = parser.parse_args()
+    if args.command == 'verify':
+        result = verify(args.workflow_installed)
+    elif args.command == 'prepare-source141':
+        result = prepare_source141(args.out)
+    else:
+        result = prepare_predecessor(args.out)
+    print(json.dumps(result, sort_keys=True))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

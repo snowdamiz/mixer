@@ -1,9 +1,12 @@
 import { createMemo, For, Match, Show, Switch } from "solid-js";
 import { resolveWorkspaceDirectory, workspaceDisplayName, workspaceIdentifierMarker } from "../domain/workspace-directory.js";
+import type { JSX } from "solid-js";
 import type { WorkspaceDirectoryState, WorkspaceFailure, WorkspaceRole } from "../domain/workspace-directory.js";
 import "./workspace-directory.css";
 
 export interface WorkspaceDirectoryProps extends WorkspaceDirectoryState {
+  readonly organizationActions?: JSX.Element;
+  readonly projectActions?: JSX.Element;
   readonly onSelectOrganization: (organizationId: string) => void;
   readonly onSelectProject: (selection: { readonly organizationId: string; readonly projectId: string }) => void;
   readonly onNextOrganizations?: (cursor: string) => void;
@@ -124,6 +127,7 @@ export function WorkspaceDirectory(props: WorkspaceDirectoryProps) {
             disabled={!props.onFirstOrganizations || view().organizations.kind === "loading"}
             onClick={() => props.onFirstOrganizations?.()}>First organizations</button>
         </div></Show>
+        {props.organizationActions}
       </section>
       <section class="workspace-directory-panel" aria-labelledby="workspace-projects-heading">
         <header class="workspace-directory-heading"><span class="workspace-directory-symbol"><WorkspaceSymbol project /></span>
@@ -172,6 +176,7 @@ export function WorkspaceDirectory(props: WorkspaceDirectoryProps) {
               if (organization) props.onFirstProjects?.(organization.id);
             }}>First projects</button>
         </div></Show>
+        {props.projectActions}
       </section>
     </div>
     <Show when={view().selectedProject}>{project => <p class="workspace-current-selection" role="status" aria-live="polite" aria-atomic="true">

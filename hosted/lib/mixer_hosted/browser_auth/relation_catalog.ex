@@ -4,7 +4,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   the Repo, checkout, original deadline, function prerequisite and rollback.
   This function is not a storage/readiness/owner admission receipt.
   """
-  alias MixerHosted.BrowserAuth.RelationManifest
+  alias MixerHosted.BrowserAuth.{RelationManifest, WorkspaceCatalog}
   @roles [:lifecycle_login, :writer, :relation_owner, :ordinary_runtime_login]
   @marker "__mixer_relation_bound__"
   @wire_limit 2 * 1024 * 1024
@@ -22,16 +22,40 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   end
 
   @doc false
-  def check_relation_surface!(repo, expected_roles, original_monotonic_deadline_ms),
-    do: check!(repo, expected_roles, original_monotonic_deadline_ms, :browser_auth_v2)
+  def check_relation_surface!(
+        repo,
+        expected_roles,
+        original_monotonic_deadline_ms,
+        workspace \\ :legacy
+      ),
+      do:
+        check!(repo, expected_roles, original_monotonic_deadline_ms, :browser_auth_v2, workspace)
 
-  def check_build_catalog_surface!(repo, expected_roles, original_monotonic_deadline_ms),
-    do: check!(repo, expected_roles, original_monotonic_deadline_ms, :build_catalog_v3)
+  def check_build_catalog_surface!(
+        repo,
+        expected_roles,
+        original_monotonic_deadline_ms,
+        workspace \\ :legacy
+      ),
+      do:
+        check!(repo, expected_roles, original_monotonic_deadline_ms, :build_catalog_v3, workspace)
 
-  def check_create_catalog_surface!(repo, expected_roles, original_monotonic_deadline_ms),
-    do: check!(repo, expected_roles, original_monotonic_deadline_ms, :build_create_catalog_v4)
+  def check_create_catalog_surface!(
+        repo,
+        expected_roles,
+        original_monotonic_deadline_ms,
+        workspace \\ :legacy
+      ),
+      do:
+        check!(
+          repo,
+          expected_roles,
+          original_monotonic_deadline_ms,
+          :build_create_catalog_v4,
+          workspace
+        )
 
-  defp check!(repo, expected_roles, original_monotonic_deadline_ms, profile) do
+  defp check!(repo, expected_roles, original_monotonic_deadline_ms, profile, workspace) do
     try do
       check_roles!(expected_roles)
       deadline = original_monotonic_deadline_ms
@@ -54,14 +78,36 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         end
 
       {extra_acl, state} = catalog_acl!(state, profile, role_oids)
+
+      {workspace_acl, workspace_policies} =
+        case workspace do
+          :legacy ->
+            {[], []}
+
+          :workspace_v1 when context.major == 17 ->
+            WorkspaceCatalog.check!(repo, expected_roles, deadline, state.backend)
+            |> WorkspaceCatalog.protected_rows(role_oids.relation_owner)
+        end
+
       {relations, state} = relations!(state, role_oids)
       ids = Enum.map(relations, & &1["oid"])
       {columns, state} = columns!(state, ids, manifest)
       {constraints, state} = constraints!(state, ids, columns, manifest)
       {indexes, state} = indexes!(state, ids, columns, constraints, manifest, role_oids)
       {_, state} = triggers!(state, ids, constraints, indexes, manifest, role_oids)
-      {_, state} = policies!(state, ids, manifest, role_oids)
-      {_, state} = privileges!(state, ids, columns, manifest, role_oids, context.major, extra_acl)
+      {_, state} = policies!(state, ids, manifest, role_oids, workspace_policies)
+
+      {_, state} =
+        privileges!(
+          state,
+          ids,
+          columns,
+          manifest,
+          role_oids,
+          context.major,
+          extra_acl ++ workspace_acl
+        )
+
       {_, state} = forbidden!(state, ids, role_oids, context.major)
       remaining!(state.deadline)
       :relation_surface_verified
@@ -1025,7 +1071,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
     {rows, state}
   end
 
-  defp policies!(state, ids, manifest, roles) do
+  defp policies!(state, ids, manifest, roles, extra_policies) do
     schema = [
       {"relation", {:text, 127}},
       {"name", {:text, 63}},
@@ -1042,10 +1088,11 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         SELECT x.name AS relation,p.polname::pg_catalog.text AS name,p.polcmd::pg_catalog.text AS command,p.polpermissive AS permissive,
           CASE WHEN pg_catalog.cardinality(p.polroles)>4 THEN ARRAY[4294967295]::pg_catalog.oid[] ELSE p.polroles END AS roles,
           #{expr("p.polqual", "p.polrelid")} AS using,#{expr("p.polwithcheck", "p.polrelid")} AS check
-        FROM targets x JOIN pg_catalog.pg_policy p ON p.polrelid=x.oid ORDER BY p.oid LIMIT 33
+        FROM targets x JOIN pg_catalog.pg_policy p ON p.polrelid=x.oid ORDER BY p.oid LIMIT #{33 + length(extra_policies)}
         """
 
-    {rows, state} = fetch!(state, sql, [ids], schema, 32, 32)
+    count = 32 + length(extra_policies)
+    {rows, state} = fetch!(state, sql, [ids], schema, count, count)
     commands = %{"SELECT" => "r", "INSERT" => "a", "UPDATE" => "w", "DELETE" => "d", "ALL" => "*"}
 
     expected =
@@ -1069,7 +1116,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         end)
       end)
 
-    demand(Enum.frequencies(rows) === Enum.frequencies(expected))
+    demand(Enum.frequencies(rows) === Enum.frequencies(expected ++ extra_policies))
     {rows, state}
   end
 

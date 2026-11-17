@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "status": "ROOT_ADOPTED_FAILURE_FACT_VISIBILITY_ONLY",
+  "oldLauncher": {
+    "bytes": 1663,
+    "sha256": "04cf8ad02b4fdf24b1c00097d3d465595527ed30520da6022ea7dd1dc922c152"
+  },
+  "newLauncher": {
+    "bytes": 2058,
+    "sha256": "fa1109cac38818f4d1adcd23395b20e3cb5a1950cc3496c623c70654f25830ed"
+  },
+  "proof": {
+    "bytes": 4149,
+    "sha256": "020315554375a0749ae2f75504ab2f22572425adab0538bd1db8ff7ac4b6f572"
+  },
+  "primitiveCases": 4,
+  "realCases": 2,
+  "unchangedCustodianAndProcessSemantics": true,
+  "historicalHoldsReleased": false,
+  "missingRecordsNeverImplyAbsence": true,
+  "sourceEngineChanges": 0,
+  "priorCommands": {
+    "r5130-new-launcher-pin": {
+      "label": "r5130-new-launcher-pin",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import hashlib,ast; p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332\"); old=p/\"command-safe-r4984.py\"; new=p/\"command-visible-r5130.py\"; assert hashlib.sha256(old.read_bytes()).hexdigest()==\"04cf8ad02b4fdf24b1c00097d3d465595527ed30520da6022ea7dd1dc922c152\"; a=ast.parse(old.read_bytes()).body; b=ast.parse(new.read_bytes()).body; expected=lambda ns:[ast.dump(n,include_attributes=False) for n in ns if isinstance(n,(ast.Assign,ast.Expr,ast.FunctionDef)) and not (isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id==\"out\" for t in n.targets))]; astart=next(i for i,n in enumerate(a) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id==\"BASE\" for t in n.targets)); bstart=next(i for i,n in enumerate(b) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id==\"BASE\" for t in n.targets)); assert [ast.dump(n) for n in a[astart:-3]]==[ast.dump(n) for n in b[bstart:-3]]; print({\"newBytes\":new.stat().st_size,\"newSHA256\":hashlib.sha256(new.read_bytes()).hexdigest(),\"oldUnchanged\":True,\"custodianAndSetupASTUnchanged\":True})"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 99816,
+      "pgid": 99816,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05282850004732609,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r5130-visibility-controls": {
+      "label": "r5130-visibility-controls",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/test-visible-launcher-r5130.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 4656,
+      "pgid": 4656,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.20108949998393655,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r5130-visible-agents": {
+      "label": "r5130-visible-agents",
+      "argv": [
+        "/bin/cat",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 5272,
+      "pgid": 5272,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.015453082975000143,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r5128-workflow-top-metadata": {
+      "label": "r5128-workflow-top-metadata",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/commands/r5122-ground-inputs\"); print((p/\"commands.json\").read_text()); print((p/\"r5122-ground-inputs.stderr\").read_text()[-1600:])"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 92940,
+      "pgid": 92940,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.034641207894310355,
+      "ownedGroupAbsentESRCH": true
+    }
+  },
+  "finalizerOwnRecordExcluded": true
+}

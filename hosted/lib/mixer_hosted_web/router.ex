@@ -12,6 +12,29 @@ defmodule MixerHostedWeb.Router do
   scope "/v3" do
     pipe_through(:customer_identity)
     get("/orgs", MixerHostedWeb.CustomerWorkspaceController, :organizations)
+    post("/orgs", MixerHostedWeb.CustomerWorkspaceAdminController, :create_organization)
+
+    post(
+      "/orgs/:organization_id/projects",
+      MixerHostedWeb.CustomerWorkspaceAdminController,
+      :create_project
+    )
+
+    put(
+      "/orgs/:organization_id/memberships/:target_id",
+      MixerHostedWeb.CustomerWorkspaceAdminController,
+      :set_member
+    )
+
+    get("/orgs/:organization_id/usage", MixerHostedWeb.CustomerWorkspaceAdminController, :usage)
+    get("/orgs/:organization_id/export", MixerHostedWeb.CustomerWorkspaceAdminController, :export)
+
+    delete(
+      "/orgs/:organization_id/projects/:target_id",
+      MixerHostedWeb.CustomerWorkspaceAdminController,
+      :delete_project
+    )
+
     get("/projects", MixerHostedWeb.CustomerWorkspaceController, :projects)
   end
 

@@ -1,0 +1,70 @@
+{
+  "id": "R5956",
+  "status": "PASS_SCOPED_PREPARED_WORKER_SQL",
+  "observed": {
+    "authenticatedExchanges": 13,
+    "releases": 5,
+    "held": 1,
+    "replyHeldMs": 672,
+    "oldLease": {
+      "epoch": 2,
+      "released": false
+    },
+    "currentLease": {
+      "epoch": 4,
+      "outcome": "timed_out"
+    },
+    "ordinaryShutdown": "authenticated closed"
+  },
+  "scope": {
+    "nativeCompilerStarts": 0,
+    "preparedStartupOnly": true,
+    "nativeRowsFixtureBacked": true,
+    "nativeBuildLifecycle": false,
+    "releaseQualification": false
+  },
+  "timing": {
+    "startupFinishedSecondsAfterAgentsReceipt": 102.64792108535767,
+    "firstLiveSQLFinishedSecondsAfterAgentsReceipt": 297.5886845588684,
+    "lastLiveSQLFinishedSecondsAfterAgentsReceipt": 456.32789158821106,
+    "lastSQLCampaignSeconds": 4.461565957870334
+  },
+  "closure": {
+    "portClosed": true,
+    "postmasterPidFileGone": true,
+    "workerSocketAbsent": true,
+    "workerLockReleased": true,
+    "registrationRemoved": true,
+    "relaySocketAbsent": true
+  },
+  "limitations": [
+    "First SQL drive stopped at a fixture assertion: running admission is admitted.",
+    "Second SQL drive held the reply beyond the adapter's 1000 ms receive timeout.",
+    "Third SQL drive passed the assertions and closed the worker. Its Python driver mistook an appended ExUnit summary for the shutdown line, then skipped the extra psql readback. Final SQL and journals are read back by the successful SQL control itself."
+  ],
+  "result": {
+    "path": "verification/local/native-worker-composed-coordinator-r5956/result.json",
+    "bytes": 98606,
+    "sha256": "347e79396217de9312721416812b6928d2dfa8e75226f52f2a6ada9391cf6e84"
+  },
+  "report": {
+    "path": "verification/local/native-worker-composed-coordinator-r5956/REPORT.md",
+    "bytes": 4962,
+    "sha256": "572f6042eda364a33ad54e55aa4844d12bcc57b327312e90496902f830250124"
+  },
+  "independentRootReadback": [
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5968-independent-composed-sql-readback/commands.json",
+      "bytes": 2054,
+      "sha256": "0ddcacbc7f1a4826aff2b72c5d50e6702e440c81d05c046770569178d12b2910"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5968-independent-composed-sql-readback/r5968-independent-composed-sql-readback.stdout",
+      "bytes": 1089,
+      "sha256": "c29bf55de2ca83db0ff436da4c704c551148345c4bfcae6948cb88eff9ad13d8"
+    }
+  ],
+  "canonicalAdoption": false,
+  "localGatesPassed": [],
+  "GA": false
+}

@@ -1,8 +1,8 @@
 import { isWorkspaceIdentifier } from "../domain/workspace-directory.js";
 
 export type WorkspaceClientFailure = "unauthenticated" | "permission_denied" | "not_found" |
-  "unavailable" | "invalid_response" | "invalid_request" | "aborted";
-const failureCodes: readonly string[] = ["unauthenticated", "permission_denied", "not_found", "unavailable", "invalid_response", "invalid_request", "aborted"];
+  "conflict" | "quota_exceeded" | "unavailable" | "invalid_response" | "invalid_request" | "aborted";
+const failureCodes: readonly string[] = ["unauthenticated", "permission_denied", "not_found", "conflict", "quota_exceeded", "unavailable", "invalid_response", "invalid_request", "aborted"];
 
 /** Fixed public errors never include bearer tokens, response bodies, URLs or provider details. */
 export class WorkspaceClientError extends Error {
@@ -51,12 +51,13 @@ function cancelBody(response: Response): void {
   void response.body?.cancel().catch(() => undefined);
 }
 
-async function json(response: Response, signal: AbortSignal): Promise<unknown> {
+export async function readWorkspaceJSON(response: Response, signal: AbortSignal,
+  parse: (text: string) => unknown = JSON.parse, maximumBytes = maximumResponseBytes): Promise<unknown> {
   if (response.redirected || !/^application\/json(?:\s*;\s*charset=utf-8)?$/iu.test(response.headers.get("content-type") ?? "")) {
     cancelBody(response); return failure("invalid_response");
   }
   const length = response.headers.get("content-length");
-  if (length !== null && (!/^\d+$/u.test(length) || Number(length) > maximumResponseBytes)) {
+  if (length !== null && (!/^\d+$/u.test(length) || Number(length) > maximumBytes)) {
     cancelBody(response); return failure("invalid_response");
   }
   if (!response.body) return failure("invalid_response");
@@ -74,13 +75,13 @@ async function json(response: Response, signal: AbortSignal): Promise<unknown> {
       if (signal.aborted) return failure("aborted");
       if (item.done) break;
       size += item.value.byteLength;
-      if (size > maximumResponseBytes) return failure("invalid_response");
+      if (size > maximumBytes) return failure("invalid_response");
       chunks.push(item.value);
     }
     const bytes = new Uint8Array(size);
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) as unknown;
+    return parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
   } catch (error) {
     if (error instanceof WorkspaceClientError) throw error;
     return failure("invalid_response");
@@ -131,7 +132,7 @@ export function createWorkspaceTransport(
         if ([429, 500, 502, 503, 504].includes(response.status)) return failure("unavailable");
         return failure("invalid_response");
       }
-      const value = await json(response, controller.signal);
+      const value = await readWorkspaceJSON(response, controller.signal);
       try { return decode(value); } catch { return failure("invalid_response"); }
     };
     try { return await Promise.race([perform(), stopped]); }

@@ -11,12 +11,11 @@ not another controller framework or recursive review. Native public-SDK app work
 may advance with pinned checkout dependencies while immutable package, VM,
 store and final launch qualification remain separately pending.
 
-The user's November 8 model selection supersedes the historical Astra settings
-below: use Sol 6.1 at xhigh for implementation, difficult review and blocker
-work, and Grok 4.7 only for easier nonvisual tasks. No fast mode. All explicit
-holds, isolation requirements, production budgets and final gate criteria remain
-in force. The following October 28 decision and campaign are historical evidence;
-they do not require replaying an exhausted or held experiment.
+The user's November 17 model selection applies to every new subagent. Use
+`gpt-6.2-sol` with `reasoningEffort: "high"` and `serviceTier: "default"`.
+The October 28 decision and campaign below are historical records. Apply the
+current holds, isolation requirements, production budgets, and gate criteria to
+new experiments.
 
 ## Original decision, October 28, 2026
 

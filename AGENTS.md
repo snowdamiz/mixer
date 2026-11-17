@@ -29,12 +29,11 @@ customer communication, credential change, or destructive migration.
 - Independently implement all product engine code. No Patch/Skip implementation,
   generated source, tests, fixtures, or dependencies. Official specifications and
   platform tools are permitted. Record general-purpose dependencies in THIRD_PARTY.yml.
-- The user resumed work on November 8 and restricts subagents to `gpt-6.1-sol`
-  and `grok-4.7`. Use Sol 6.1 at `xhigh` for implementation, difficult review
-  and blocker campaigns. Use Grok 4.7 only for easier, nonvisual tasks and reviews.
-  This explicit selection supersedes the earlier Astra escalation model; preserve
-  the finite campaign and independent-review requirements. Do not use fast mode.
-  The main controlling model is selected by the user; a child does not change it.
+- The user's November 17 instruction requires Sol 6.2 High for every new
+  subagent. In app-owned delegation, select `gpt-6.2-sol` with
+  `reasoningEffort: "high"` and `serviceTier: "default"`. This applies to
+  implementation, review, testing, and blocker experiments. Keep finite
+  campaigns and independent reviews. The user selects the controlling model.
 - Aggressively test competing blocker hypotheses within finite resource/run bounds.
   Treat experimental numeric limits as hypotheses; preserve baseline failures,
   validation/capability safeguards and all active native/process/custody holds.
@@ -298,6 +297,39 @@ unchanged R486 inputs in a separate namespace.
 The R580 local callback matrix timed out with UNKNOWN custody for PID/PGID45848. Preserve the entire `verification/plan-continuation-2026-11-07/native-editor-opacity-source-compose-r580/native-work`, `logs/B-matrix.stdout`, `logs/B-matrix.stderr`, `observed-sites.txt`, `barrier-cases.json`, and `helper-boundaries.jsonl` without inspection, enumeration, probing, signalling, waiting, retry or cleanup. Read only the top-level HOLD.json, callback-matrix-custody-hold.json, REPORT.md and delivered static application packet. The separately captured immutable afterimages and completed binding-preflight metadata are outside that mutable held chain. Root R598 native acceptance and independent R578 source review do not release it.
 
 The R580 optimized source worker timed out with UNKNOWN custody for PID/PGID48537. Preserve `verification/plan-continuation-2026-11-07/native-editor-opacity-source-compose-r580/overlay/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/control-scratch` and `logs/optimized-test_source113.py.stdout`/`.stderr` without inspection, enumeration, process operations, waiting, retry or cleanup. Top-level HOLD-source.json and source-worker-custody-hold.json are the custody references. A later fresh optimized-source pass does not release this worker; static inputs and separately captured afterimages remain available for fresh independent work. All older holds remain in force.
+
+The R5896 native worker managed artifact request timed out before a compiler
+identity or terminal receipt was recorded. Preserve
+`verification/local/native-worker-socket-r5896/socket-functional` and
+`verification/local/native-worker-socket-r5896/commands/managed-native`
+without inspection, enumeration, probing, signalling, waiting, retry, or
+cleanup. Use only its top-level `HOLD-artifact-attempt.json` and the compact
+`verification/receipts/native-worker-socket-r5896.json`. Terminal parent
+and listener groups do not prove compiler absence. Independently retained
+no-build socket and startup controls remain available.
+
+The R5960 default build-create browser run timed out at its first Page.navigate
+before the Sign in or Create build click. The Chrome tab reported closed, but
+direct child reap and owned group absence were unobserved. Preserve PID/PGID
+87408 and the entire
+`verification/local/free-workspace-default-browser-fixture-r5960/live/owned-chrome`
+namespace, including its profile, without inspection, enumeration, probing,
+signalling, waiting, retry, or cleanup. Use the copied compact receipt
+`verification/receipts/free-workspace-default-browser-root-r5960.json` and
+the already published top-level hold. PostgreSQL and Phoenix closed separately
+and all five fixture ports were reusable. Server closure does not establish
+browser custody. Fresh isolated work does not release this hold.
+
+The separate R5976 auxiliary AGENTS read left PGID 9820 unresolved after EPERM.
+Preserve that group and
+`verification/local/continuation-root-r2332/commands/r5976-agents-part-9`.
+The first R5976 inert browser control also left its terminal receipt uncollected.
+Preserve
+`verification/local/free-workspace-default-browser-navigation-r5976/inert-controls-01`.
+Do not inspect, enumerate, probe, signal, wait for, retry, or clean either chain.
+Use the delivered top-level R5976 hold and its copied compact receipt
+`verification/receipts/free-workspace-default-browser-navigation-r5976.json`.
+These holds do not cover the independent runner sources or corrected replay.
 
 ## Verification artifact retention
 

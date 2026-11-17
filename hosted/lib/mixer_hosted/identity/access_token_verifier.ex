@@ -20,6 +20,7 @@ defmodule MixerHosted.Identity.AccessTokenVerifier do
     "mixer.artifact.upload",
     "mixer.audit.read",
     "mixer.workspace.read",
+    "mixer.workspace.manage",
     "mixer.build.read",
     "mixer.build.create"
   ]

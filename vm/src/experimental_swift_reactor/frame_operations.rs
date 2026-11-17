@@ -347,12 +347,7 @@ impl FrameOperationPhase<'_> {
         self.agreement()
     }
     fn agreement(&mut self) -> Result<(), SwiftRunFailure> {
-        let live = self
-            .phase
-            .operation
-            .control
-            .usage(Some(self.phase.operation.wasi.usage()))
-            .live;
+        let live = self.phase.operation.control.live_usage();
         if live.values.current != self.phase.parts.values.len()
             || live.controls.current != self.phase.parts.controls.len()
             || live.frames.current != self.phase.parts.frames.len()

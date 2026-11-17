@@ -1,3 +1,4 @@
+import type { CreatedWorkspace } from "../api/cookie-workspace-create-client.js";
 import { WorkspaceClientError } from "../api/workspace-client.js";
 import type { WorkspaceClient, WorkspacePageRequest } from "../api/workspace-client.js";
 import { parseWorkspaceOrganizations, parseWorkspaceProjects } from "../domain/workspace-directory.js";
@@ -20,7 +21,19 @@ export interface WorkspaceController {
   firstProjects(organizationId: string): void;
   retryOrganizations(): void;
   retryProjects(organizationId: string): void;
+  refreshCreated(target: CreatedWorkspace): Promise<boolean>;
   dispose(): void;
+}
+
+interface DirectorySearch {
+  readonly target: CreatedWorkspace;
+  readonly seen: Set<string>;
+}
+
+function nextSearchPage(search: DirectorySearch, cursor: string | null): WorkspacePageRequest | undefined {
+  if (cursor === null || search.seen.has(cursor) || search.seen.size >= 100) return undefined;
+  search.seen.add(cursor);
+  return Object.freeze({ cursor });
 }
 
 interface Request {
@@ -128,15 +141,25 @@ export function createWorkspaceController(): WorkspaceController {
       organizationPage()?.organizations.some(row => row.id === id) === true;
   }
 
-  async function loadOrganizations(value: Request): Promise<void> {
+  async function loadOrganizations(value: Request, search?: DirectorySearch): Promise<void> {
     if (!current(value, organizationRequest)) return;
     try {
       const input = await value.client.organizations(value.page, value.controller.signal);
       if (!current(value, organizationRequest)) return;
       const page = parseWorkspaceOrganizations(input);
       if (!current(value, organizationRequest)) return;
+      const target = search?.target;
+      const found = target && page.organizations.some(row => row.id === target.organizationId);
+      if (search && !found) {
+        const next = nextSearchPage(search, page.next_cursor);
+        if (next) { await beginOrganizations(next, search); return; }
+      }
       organizationRequest = undefined;
+      const loadedRevision = revision + 1;
       update({ organizations: { kind: "ready", input: page }, projects: unselected });
+      if (target && found && revision === loadedRevision) {
+        await beginProjects(target.organizationId, firstPage, { target, seen: new Set() });
+      }
     } catch (error) {
       if (!current(value, organizationRequest)) return;
       const reason = failure(error);
@@ -148,15 +171,23 @@ export function createWorkspaceController(): WorkspaceController {
     }
   }
 
-  async function loadProjects(value: ProjectRequest): Promise<void> {
+  async function loadProjects(value: ProjectRequest, search?: DirectorySearch): Promise<void> {
     if (!current(value, projectRequest) || !selectedOrganization(value.organizationId)) return;
     try {
       const input = await value.client.projects(value.organizationId, value.page, value.controller.signal);
       if (!current(value, projectRequest) || !selectedOrganization(value.organizationId)) return;
       const page = parseWorkspaceProjects(input, value.organizationId);
       if (!current(value, projectRequest) || !selectedOrganization(value.organizationId)) return;
+      const target = search?.target;
+      const selectedProjectId = target?.kind === "project" && page.projects.some(row => row.id === target.projectId)
+        ? target.projectId : undefined;
+      if (search && target?.kind === "project" && !selectedProjectId) {
+        const next = nextSearchPage(search, page.next_cursor);
+        if (next) { await beginProjects(value.organizationId, next, search); return; }
+      }
       projectRequest = undefined;
       update({ organizations: state.organizations, selectedOrganizationId: value.organizationId,
+        ...(selectedProjectId === undefined ? {} : { selectedProjectId }),
         projects: { kind: "ready", organizationId: value.organizationId, input: page } });
     } catch (error) {
       if (!current(value, projectRequest) || !selectedOrganization(value.organizationId)) return;
@@ -170,7 +201,7 @@ export function createWorkspaceController(): WorkspaceController {
     }
   }
 
-  function beginOrganizations(page: WorkspacePageRequest): void {
+  function beginOrganizations(page: WorkspacePageRequest, search?: DirectorySearch): Promise<void> {
     const cancelled = [organizationRequest, projectRequest];
     projectRequest = undefined;
     projectAttempt = undefined;
@@ -179,17 +210,17 @@ export function createWorkspaceController(): WorkspaceController {
     organizationRequest = value;
     update({ organizations: { kind: "loading" }, projects: unselected }, cancelled);
     // The async boundary catches both synchronous throws and rejected client promises.
-    void loadOrganizations(value);
+    return loadOrganizations(value, search);
   }
 
-  function beginProjects(organizationId: string, page: WorkspacePageRequest): void {
+  function beginProjects(organizationId: string, page: WorkspacePageRequest, search?: DirectorySearch): Promise<void> {
     const cancelled = projectRequest;
     projectAttempt = Object.freeze({ organizationId, page });
     const value: ProjectRequest = { ...request(page), organizationId };
     projectRequest = value;
     update({ organizations: state.organizations, selectedOrganizationId: organizationId,
       projects: { kind: "loading", organizationId } }, [cancelled]);
-    void loadProjects(value);
+    return loadProjects(value, search);
   }
 
   function setSession(session: WorkspaceSession): void {
@@ -265,6 +296,13 @@ export function createWorkspaceController(): WorkspaceController {
         state.projects.organizationId !== organizationId ||
         (state.projects.kind !== "error" && state.projects.kind !== "unavailable")) return;
       beginProjects(organizationId, projectAttempt.page);
+    },
+    async refreshCreated(target: CreatedWorkspace): Promise<boolean> {
+      if (disposed || !client) return false;
+      const generation = sessionGeneration;
+      await beginOrganizations(firstPage, { target, seen: new Set() });
+      return generation === sessionGeneration && state.selectedOrganizationId === target.organizationId &&
+        (target.kind === "organization" || state.selectedProjectId === target.projectId);
     },
     dispose(): void {
       if (disposed) return;

@@ -27,7 +27,7 @@ HOST_BYTES = 1503529808
 SDK_BYTES = 333223533
 DEVELOPER = Path('/Applications/Xcode_26.6.app/Contents/Developer')
 SDKROOT = DEVELOPER / 'Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk'
-SOURCE_AUTHORITY = ROOT / 'verification/sdk-feature-ui-source141-v1/adopt_sdk.py'
+SOURCE_AUTHORITY = ROOT / 'verification/native-report-source141-archive-v1/adopt_archive.py'
 MINIMUM_FREE_BYTES = 12 * 1024**3
 
 
@@ -62,9 +62,9 @@ def canonical():
 
 
 def admit_source_inputs(authority, profile):
-    # The typed SDK141 admitter validates the closed seal, selector, compiled
-    # profile and actual owning collector before its manifest can be trusted.
-    spec = importlib.util.spec_from_file_location('bootstrap_sdk141_authority', SOURCE_AUTHORITY)
+    # The current source authority validates the exact archive owner,
+    # historical Source141 inverse, and compiled Pair22 profile.
+    spec = importlib.util.spec_from_file_location('bootstrap_archive_authority', SOURCE_AUTHORITY)
     selected_authority = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(selected_authority)
     binding, selected, _ = selected_authority.admit()

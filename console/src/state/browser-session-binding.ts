@@ -19,9 +19,9 @@ function invalidation(value: unknown): boolean {
 }
 
 /** Own inside a Solid owner. Browser events can only invalidate or request a fresh check. */
-export function createBrowserSessionBinding(): BrowserSessionBinding {
+export function createBrowserSessionBinding(profile?: "workspace-manage"): BrowserSessionBinding {
   if (!getOwner()) throw new Error("Missing browser session owner");
-  const controller = createBrowserSessionController();
+  const controller = createBrowserSessionController({}, profile);
   const [snapshot, setSnapshot] = createSignal(controller.getSession());
   let disposed = false, pagehidden = false, queued = false;
   let channel: BroadcastChannel | undefined;

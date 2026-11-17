@@ -75,7 +75,25 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
           escape_limit: 22
       }
       |> Map.put(:create_function, @create_name)
-  for manifest <- [@v1, @v2, @v3] do
+  @workspace_name "mixer_browser_workspace_admit"
+  @workspace_function Map.fetch!(
+                        MixerHosted.BrowserAuth.ActiveWorkspaceSchema.manifest(),
+                        @workspace_name
+                      )
+  @v4 %{
+        @v2
+        | functions: Map.put(@v2.functions, @workspace_name, @workspace_function),
+          returns: Map.put(@v2.returns, @workspace_name, @workspace_function.returns),
+          argument_names:
+            Map.put(@v2.argument_names, @workspace_name, @workspace_function.argument_names),
+          function_count: 21,
+          function_limit: 22,
+          function_acl_limit: 34,
+          escape_limit: 22
+      }
+      |> Map.put(:ordinary_function, @workspace_name)
+
+  for manifest <- [@v1, @v2, @v3, @v4] do
     unless map_size(manifest.functions) == manifest.function_count and
              map_size(manifest.composites) == manifest.composite_count and
              manifest.function_limit == manifest.function_count + 1 and
@@ -83,7 +101,8 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
              manifest.function_acl_limit ==
                manifest.function_count +
                  Enum.count(manifest.functions, fn {_n, f} -> f.runtime_execute end) +
-                 if(Map.has_key?(manifest, :create_function), do: 1, else: 0) + 1 and
+                 Enum.count([:create_function, :ordinary_function], &Map.has_key?(manifest, &1)) +
+                 1 and
              manifest.composite_limit == manifest.composite_count + 1 and
              manifest.field_limit ==
                Enum.sum(Enum.map(manifest.composites, fn {_n, f} -> length(f) end)) + 1 and
@@ -97,7 +116,14 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
     do: check_function_surface!(repo, expected_roles, monotonic_deadline_ms, 1)
 
   @doc false
-  def check_function_surface!(repo, expected_roles, monotonic_deadline_ms, version) do
+  def check_function_surface!(repo, expected_roles, monotonic_deadline_ms, version),
+    do: check_surface!(repo, expected_roles, monotonic_deadline_ms, version, :lifecycle_login)
+
+  @doc false
+  def check_workspace_function_surface!(repo, expected_roles, deadline),
+    do: check_surface!(repo, expected_roles, deadline, 4, :ordinary_runtime_login)
+
+  defp check_surface!(repo, expected_roles, monotonic_deadline_ms, version, login) do
     try do
       manifest = selected_manifest!(version)
       validate_roles!(expected_roles)
@@ -106,7 +132,7 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
       require!(is_integer(monotonic_deadline_ms))
       require!(monotonic_deadline_ms > now and monotonic_deadline_ms <= now + @query_limit_ms)
       context = {repo, monotonic_deadline_ms}
-      session!(context, expected_roles)
+      session!(context, Map.fetch!(expected_roles, login))
       roles!(context, expected_roles)
       functions!(context, expected_roles, manifest)
       composites!(context, expected_roles, manifest)
@@ -125,6 +151,7 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
   defp selected_manifest!(version) when version === 1, do: @v1
   defp selected_manifest!(version) when version === 2, do: @v2
   defp selected_manifest!(version) when version === 3, do: @v3
+  defp selected_manifest!(version) when version === 4, do: @v4
   defp selected_manifest!(_), do: raise(Unavailable)
 
   defp validate_roles!(roles) do
@@ -143,7 +170,7 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
 
   defp role_name?(_), do: false
 
-  defp session!(context, roles) do
+  defp session!(context, login) do
     require!(
       query!(context, """
       SELECT current_user::pg_catalog.text,session_user::pg_catalog.text,
@@ -156,8 +183,8 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
       WHERE pg_catalog.octet_length(pg_catalog.current_setting('search_path'))<=64
       """) == [
         [
-          roles.lifecycle_login,
-          roles.lifecycle_login,
+          login,
+          login,
           "read committed",
           "5s",
           "500ms",
@@ -408,7 +435,8 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
       )
 
       require!(argument_names == Map.fetch!(manifest.argument_names, name))
-      require!(lifecycle == expected.runtime_execute and writer and not ordinary)
+      require!(lifecycle == expected.runtime_execute and writer)
+      require!(ordinary == (name == Map.get(manifest, :ordinary_function)))
     end
 
     acls =
@@ -439,6 +467,15 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
         if Map.has_key?(manifest, :create_function),
           do: [[manifest.create_function, "mixer_build_create", roles.writer, "EXECUTE", false]],
           else: []
+
+    expected_acls =
+      case Map.fetch(manifest, :ordinary_function) do
+        {:ok, name} ->
+          [[name, roles.ordinary_runtime_login, roles.writer, "EXECUTE", false] | expected_acls]
+
+        :error ->
+          expected_acls
+      end
 
     require!(Enum.sort(acls) == Enum.sort(expected_acls))
   end

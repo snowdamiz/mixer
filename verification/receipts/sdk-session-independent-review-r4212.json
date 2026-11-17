@@ -1,0 +1,222 @@
+{
+  "schema": 1,
+  "campaign": "sdk-session-independent-review-r4212",
+  "completedAt": "2026-11-16T18:41:51.674Z",
+  "verdict": "REQUEST_CHANGES",
+  "scope": "frozen final source and retained behavioral evidence; no product execution or adoption",
+  "finalSourceDigest": "544b757cd2a2d5e9d8b66770ebfc9a58fba348587c7b8d41e836a44bb508f23b",
+  "reviewManifestSHA256": "6b1532a40812d470cde6a607d84bfbd0cc720ccb947328a058141cb89b0e2e94",
+  "reviewManifest": "verification/local/sdk-session-independent-review-r4212/review-manifest.json",
+  "report": "verification/local/sdk-session-independent-review-r4212/REPORT.md",
+  "findings": [
+    {
+      "id": "R4212-F1",
+      "priority": "P2",
+      "title": "Persist session retirement before a subsequent presentation or acknowledgement",
+      "path": "verification/local/sdk-public-session-implementation-r4192/source/sdk/Sources/MixerGuest/SwiftFeatureSession.swift",
+      "line": 66,
+      "relatedLines": [
+        42,
+        44,
+        53,
+        59,
+        61
+      ],
+      "scopePath": "verification/local/sdk-public-session-implementation-r4192/source/sdk/Sources/MixerGuest/SwiftFeatureOwnership.swift",
+      "scopeLine": 189,
+      "counterexamples": [
+        "Late startup child acknowledgement passes parent cancellation check and enters effects while scope is retiring",
+        "Synchronous finish inside event/frame cancels no existing presentation; continuation creates a new uncancelled presentation"
+      ],
+      "proof": "actual source control-flow trace and hash-bound finite value-only projection; no Swift execution",
+      "neededCorrection": "Sticky synchronous session/exchange retirement fence before presentation entry and after acknowledgement; preserve genuine quiescence and exactly-once consumption"
+    }
+  ],
+  "finalClassificationCorrection": {
+    "source": "correct internal-only pre-runtime signal",
+    "meaningfulTest": "event and post-event frame external SwiftFeatureError.input produce terminal cause and one consume",
+    "testsCompiled": false
+  },
+  "verifiedSource": {
+    "manifestMembers": 96,
+    "applicationFiles": 23,
+    "changed": 7,
+    "new": 16,
+    "originalTestsByteExact": 25,
+    "SDKSwiftSources": 59,
+    "SDKSwiftTestFiles": 26,
+    "nativePackageMembers": 4,
+    "nativeSwiftSources": 1,
+    "preimagesAndAfterimagesExact": true,
+    "minimalPatchReconstructed": true
+  },
+  "priorTests": {
+    "sourceDigest": "29da8d64d38bec07851b46c138761b104963846a85c4655172cd0177e2cee14c",
+    "root": 230,
+    "sdk": 230,
+    "newPolicy": 14,
+    "rawLogHashesVerified": true,
+    "preservedFirstWaveFailures": 15,
+    "cause": "three omitted appearance fixtures",
+    "finalCorrectionOr15thTestQualified": false
+  },
+  "rootSteer": {
+    "source": "Root user message during review; not independently read runtime receipt",
+    "R4210": "stopped before product targets/tests due copied module-cache original path and root manifest rejection; source/dependency pins unchanged; reported positive OS closure; one compile, five cumulative; no SDK test/backend link; no new hold; setup failure not product defect",
+    "R4218": "selected with fresh compiler/module/manifest caches and only locked dependency sources reused; <=3 compile commands, one wave per root/sdk plus backend link, zero VM; actual receipt/results pending"
+  },
+  "runtimeGate": "PENDING_R4218_ACTUAL_RECEIPT",
+  "adoption": false,
+  "holdsReleased": false,
+  "heldResourcesTouched": false,
+  "newHold": false,
+  "operations": {
+    "compilerInvocations": 0,
+    "SwiftTestsRun": 0,
+    "VMCalls": 0,
+    "PostgreSQLStarts": 0,
+    "nativeOrGUIStarts": 0,
+    "devices": 0,
+    "childDelegations": 0,
+    "GitOrIndexWrites": 0,
+    "canonicalOrAuthorityOrCIWrites": 0,
+    "externalMessages": 0,
+    "valueOnlyWitnesses": 2
+  },
+  "managedCommandGroups": {
+    "abi-source-search": {
+      "label": "abi-source-search",
+      "argv": [
+        "rg",
+        "-n",
+        "mixer_swift_ui_(open_profile|frame|event|error|consume)_v1",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/vm/src"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212",
+      "pid": 39790,
+      "pgid": 39790,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.050236874958500266,
+      "ownedGroupAbsentESRCH": true
+    },
+    "agents-read": {
+      "label": "agents-read",
+      "argv": [
+        "python3",
+        "-B",
+        "verification/local/sdk-session-independent-review-r4212/read.py",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212",
+      "pid": 24375,
+      "pgid": 24375,
+      "state": "direct_reaped",
+      "exitCode": 2,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.07578674994874746,
+      "ownedGroupAbsentESRCH": true
+    },
+    "agents-read-absolute": {
+      "label": "agents-read-absolute",
+      "argv": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212/read.py",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212",
+      "pid": 26576,
+      "pgid": 26576,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.045930457999929786,
+      "ownedGroupAbsentESRCH": true
+    },
+    "cancellation-value-witness": {
+      "label": "cancellation-value-witness",
+      "argv": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212/cancellation-witness.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212",
+      "pid": 82109,
+      "pgid": 82109,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.07877083402127028,
+      "ownedGroupAbsentESRCH": true
+    },
+    "exact-source-bindings": {
+      "label": "exact-source-bindings",
+      "argv": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212/audit.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212",
+      "pid": 54718,
+      "pgid": 54718,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.19931533408816904,
+      "ownedGroupAbsentESRCH": true
+    },
+    "producer-and-legacy-evidence": {
+      "label": "producer-and-legacy-evidence",
+      "argv": [
+        "python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212/evidence.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/sdk-session-independent-review-r4212",
+      "pid": 75733,
+      "pgid": 75733,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.09692516701761633,
+      "ownedGroupAbsentESRCH": true
+    }
+  },
+  "all6ManagedGroupsPositivelyClosed": true,
+  "pending": [
+    "cancellation correction and focused Swift behavior proof",
+    "final-source compiler/test/backend qualification via R4218 actual receipt",
+    "Root source collector/native membership and SDK layout/Android successors",
+    "genuine public-SDK AppKit native display/title and consuming/OS closure",
+    "Linux",
+    "UIKit/iOS",
+    "immutable published packages",
+    "pixels/OTA/full app/GA"
+  ],
+  "procedureDeviations": [
+    "Initial terminal pwd preceded required AGENTS wrapper read; current AGENTS then read directly and in full through admitted prepared wrapper",
+    "First wrapper reader launch used wrong relative path and exited2 before reader payload; positive reap/EOF/FD/ESRCH; absolute-path successor passed"
+  ],
+  "artifacts": {
+    "report": {
+      "bytes": 11927,
+      "sha256": "e3b816017375d4145a32498960bb396b85f91dad4cc96df16d29faec73b8beb8"
+    },
+    "sourceBindings": {
+      "bytes": 6567,
+      "sha256": "203834b122ceaa3abbcc73854e60b6ac1af6c6ebdf246d619c8c23d709d44e99"
+    },
+    "witness": {
+      "bytes": 1852,
+      "sha256": "26b6d540f64133aae27ae1edf4ded4759ec5d43a3aa278b41d44dd919c7ee41a"
+    }
+  }
+}

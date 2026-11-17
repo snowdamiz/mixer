@@ -53,7 +53,8 @@ defmodule MixerHosted.BrowserAuth.ConfigurationDigest do
            config.scope in [
              "openid mixer.workspace.read",
              "openid mixer.workspace.read mixer.build.read",
-             "openid mixer.workspace.read mixer.build.read mixer.build.create"
+             "openid mixer.workspace.read mixer.build.read mixer.build.create",
+             "openid mixer.workspace.read mixer.workspace.manage"
            ],
          true <- Enum.sort(Map.keys(config)) == Enum.sort([:__struct__ | @fields]),
          true <- Enum.all?(@fixed, fn {key, value} -> Map.fetch!(config, key) === value end),

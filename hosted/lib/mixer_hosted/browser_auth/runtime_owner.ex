@@ -107,6 +107,16 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     end
   end
 
+  @doc "Private workspace creation through an admitted browser session."
+  def create_workspace(raw_headers, request) do
+    with {:ok, operation} <- MixerHosted.BrowserAuth.ActiveWorkspace.operation(request) do
+      case read_private(raw_headers, {:workspace_create, operation, raw_headers}) do
+        {:ok, result} -> result
+        error -> error
+      end
+    end
+  end
+
   @doc "Private closed directory read; uses exactly the existing dispatcher request grammar."
   def read_workspace(raw_headers, request) do
     case MixerHostedWeb.BrowserWorkspaceDispatcher.Request.new(request) do
@@ -742,10 +752,10 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   end
 
   defp runtime_shape?(runtime) do
-    is_struct(runtime, RuntimeConfig) and map_size(runtime) == 8 and
+    is_struct(runtime, RuntimeConfig) and map_size(runtime) == 9 and
       Enum.sort(Map.keys(runtime)) ===
         Enum.sort(
-          ~w(__struct__ mode browser_config configuration_digest lifecycle_repo expected_roles custody admission_profile)a
+          ~w(__struct__ mode browser_config configuration_digest lifecycle_repo expected_roles custody admission_profile workspace_catalog)a
         )
   end
 
@@ -753,6 +763,10 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     with true <- runtime_shape?(runtime),
          true <- runtime.mode === :configured,
          true <- runtime.admission_profile in [:browser_auth_v2, :build_catalog_v3],
+         true <- runtime.workspace_catalog in [:legacy, :workspace_v1],
+         true <-
+           runtime.workspace_catalog === :workspace_v1 or
+             runtime.browser_config.scope != "openid mixer.workspace.read mixer.workspace.manage",
          true <-
            is_map(runtime.expected_roles) and
              Enum.sort(Map.keys(runtime.expected_roles)) ===
