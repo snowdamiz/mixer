@@ -31,6 +31,7 @@ inputs = [
   "hosted/lib/mixer_hosted/browser_auth/config.ex",
   "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
   "hosted/lib/mixer_hosted/builds/processor_profile.ex",
+  "hosted/lib/mixer_hosted/billing/processor_profile.ex",
   "hosted/lib/mixer_hosted/runtime_config.ex",
   "hosted/lib/mixer_hosted/browser_auth/vault.ex",
   "hosted/lib/mixer_hosted/browser_auth/custody.ex",

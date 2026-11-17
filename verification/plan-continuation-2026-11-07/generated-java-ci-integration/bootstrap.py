@@ -27,8 +27,7 @@ HOST_BYTES = 1503529808
 SDK_BYTES = 333223533
 DEVELOPER = Path('/Applications/Xcode_26.6.app/Contents/Developer')
 SDKROOT = DEVELOPER / 'Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk'
-SOURCE_INPUT_COUNT = 141
-SOURCE_INPUT_SHA256 = '23d01f700da6b7efe47d771d682bcda8ba28c8c43c487b7d6b8cb772d47d4487'
+SOURCE_AUTHORITY = ROOT / 'verification/sdk-feature-ui-source141-v1/adopt_sdk.py'
 MINIMUM_FREE_BYTES = 12 * 1024**3
 
 
@@ -63,10 +62,18 @@ def canonical():
 
 
 def admit_source_inputs(authority, profile):
+    # The typed SDK141 admitter validates the closed seal, selector, compiled
+    # profile and actual owning collector before its manifest can be trusted.
+    spec = importlib.util.spec_from_file_location('bootstrap_sdk141_authority', SOURCE_AUTHORITY)
+    selected_authority = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(selected_authority)
+    binding, selected, _ = selected_authority.admit()
+    require(profile == binding['sdk_transition']['profileAfter'],
+            'Sparse checkout profile differs from admitted source141 profile')
     inputs = authority.source_inputs(profile)
-    require(len(inputs) == SOURCE_INPUT_COUNT and
-            authority.source_digest(inputs) == SOURCE_INPUT_SHA256,
-            'Sparse checkout owning inputs differ from reviewed pair13 closure')
+    require(inputs == selected and len(inputs) == 141 and
+            authority.source_digest(inputs) == binding['source']['sha256'],
+            'Sparse checkout owning inputs differ from admitted source141 closure')
     return inputs
 
 

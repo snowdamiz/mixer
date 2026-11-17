@@ -95,14 +95,10 @@ class BootstrapControls(unittest.TestCase):
                 self.assert_current_source(authority, future, root)
                 with patch.object(authority, 'source_inputs', return_value=future):
                     with self.assertRaisesRegex(RuntimeError, 'owning inputs'):
-                        B.admit_source_inputs(authority, {})
-                    with patch.object(B, 'SOURCE_INPUT_COUNT', len(future)), \
-                         patch.object(B, 'SOURCE_INPUT_SHA256', expected['sha256']):
-                        admitted = B.admit_source_inputs(authority, {})
-                        # Matching runtime constants cannot bless a stale binding.
-                        path.write_text(json.dumps({'source': binding['source']}))
-                        with self.assertRaises(AssertionError):
-                            self.assert_current_source(authority, admitted, root)
+                        B.admit_source_inputs(authority, authority.load_profile())
+                    # A coherent, unsigned oracle cannot replace the typed owner.
+                    with self.assertRaisesRegex(RuntimeError, 'owning inputs'):
+                        B.admit_source_inputs(authority, authority.load_profile())
                 path.write_text(json.dumps({'source': dict(expected, sha256='0' * 64)}))
                 with self.assertRaises(AssertionError):
                     self.assert_current_source(authority, future, root)
@@ -115,6 +111,110 @@ class BootstrapControls(unittest.TestCase):
         self.assertEqual(a.java_roster(p), sorted(path for path in expected['adapter_files'] if path.endswith('.java')))
         inputs = B.admit_source_inputs(a, p)
         self.assert_current_source(a, inputs)
+
+    def test_current_source141_is_selected_by_closed_sdk_authority(self):
+        a = B.canonical()
+        inputs = B.admit_source_inputs(a, a.load_profile())
+        self.assertEqual(len(inputs), 141)
+        self.assertEqual(a.source_digest(inputs),
+                         '572fe981d915c1b0b518cba5851fc77b07382fef9a54243845455301dbcd650b')
+
+    def test_stale_current_digest_and_foreign_profile_refuse(self):
+        from unittest.mock import patch
+        a = B.canonical()
+        profile = a.load_profile()
+        with patch.object(a, 'source_digest', return_value=
+                          '23d01f700da6b7efe47d771d682bcda8ba28c8c43c487b7d6b8cb772d47d4487'):
+            with self.assertRaisesRegex(RuntimeError, 'source141'):
+                B.admit_source_inputs(a, profile)
+        foreign = copy.deepcopy(profile)
+        foreign['id'] = 'mixer.android-source-pair.unknown'
+        with self.assertRaisesRegex(RuntimeError, 'source141 profile'):
+            B.admit_source_inputs(a, foreign)
+
+    def test_current_source_missing_tampered_extra_case_symlink_refuse_before_dispatch(self):
+        from contextlib import ExitStack, redirect_stdout
+        from io import StringIO
+        import shutil
+        from unittest.mock import patch
+        baseline = B.canonical()
+        profile = baseline.load_profile()
+        selected = baseline.source_inputs(profile)
+        for case in ('missing', 'tampered', 'extra', 'case', 'symlink', 'size', 'foreign-declaration'):
+            with self.subTest(case=case):
+                # Keep each complete fixture outside the source being copied.
+                # A failed case retains its tree; only a successful case is removed.
+                td = Path(tempfile.mkdtemp(prefix='bootstrap-refusal-'))
+                root = td / 'source'
+                shutil.copytree(B.ROOT, root)
+                entry = root / HERE.relative_to(B.ROOT) / 'bootstrap.py'
+                spec = importlib.util.spec_from_file_location('bootstrap_refusal_' + case, entry)
+                isolated = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(isolated)
+                # Fresh loaders bind their defaults and any cache to this root.
+                a = isolated.canonical()
+                self.assertEqual(a.source_inputs(a.load_profile()), selected)
+                path = root / 'sdk/Sources/MixerUI/Reconciliation.swift'
+                original = path.read_bytes()
+                extra = path.with_name('UnadmittedBootstrapControl.swift')
+                binding_path = root / CURRENT.BINDING
+                original_binding = binding_path.read_bytes()
+                if case == 'missing': path.unlink()
+                elif case == 'tampered': path.write_bytes(original + b'\n// tampered\n')
+                elif case == 'extra': extra.write_text('// unadmitted')
+                elif case == 'case':
+                    # Move through a distinct name: exists() cannot distinguish
+                    # differently cased names on a case-insensitive filesystem.
+                    stage = root / 'bootstrap-native-sdk-case-stage'
+                    (root / 'native-sdk').rename(stage)
+                    stage.rename(root / 'NATIVE-SDK')
+                    self.assertIn('NATIVE-SDK', [p.name for p in root.iterdir()])
+                    self.assertNotIn('native-sdk', [p.name for p in root.iterdir()])
+                elif case == 'symlink':
+                    path.unlink()
+                    path.symlink_to(extra.name)
+                elif case == 'size': path.write_bytes(b'X' * (8 * 1024 * 1024 + 1))
+                else:
+                    changed = json.loads(original_binding)
+                    changed['profile']['id'] = 'mixer.android-source-pair.unknown'
+                    binding_path.write_text(json.dumps(changed))
+                output = td / 'output'
+                with ExitStack() as stack:
+                    stack.enter_context(patch.object(isolated.sys, 'argv', ['bootstrap', '--execute', '--output', str(output)]))
+                    stack.enter_context(patch.dict(os.environ, {'RUNNER_TEMP':str(td)}))
+                    stack.enter_context(patch.object(isolated, 'canonical', return_value=a))
+                    stack.enter_context(patch.object(isolated, 'disk_admission'))
+                    process = stack.enter_context(patch('subprocess.Popen'))
+                    commands = stack.enter_context(patch.object(a, 'Commands'))
+                    installer = stack.enter_context(patch.object(isolated, 'extract_host'))
+                    download = stack.enter_context(patch.object(isolated, 'download'))
+                    stack.enter_context(redirect_stdout(StringIO()))
+                    self.assertEqual(isolated.main(), 1)
+                    for mocked in (process, commands, installer, download):
+                        mocked.assert_not_called()
+                    receipt = json.loads((output/'bootstrap-receipt.json').read_bytes())
+                    self.assertTrue(receipt['error'])
+                shutil.rmtree(td)
+        self.assertEqual(baseline.source_inputs(profile), selected)
+
+    def test_source127_historical_fixture_retains_exact_admission(self):
+        spec = importlib.util.spec_from_file_location('bootstrap_sdk141_history', B.SOURCE_AUTHORITY)
+        sdk = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sdk)
+        with tempfile.TemporaryDirectory(dir=HERE) as td:
+            root = Path(td) / 'source127'
+            result = sdk.prepare_predecessor(root)
+            self.assertEqual(result['source127'],
+                             '58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7')
+            previous = root/'verification/native-report-source127-v1/adopt_source.py'
+            # Use the historical authority's actual entrypoint, without Git or tools.
+            authority_dir = previous.parent
+            entry = next(authority_dir.glob('adopt*.py'))
+            old_spec = importlib.util.spec_from_file_location('bootstrap_historical_source127', entry)
+            old = importlib.util.module_from_spec(old_spec)
+            old_spec.loader.exec_module(old)
+            historical = old.verify(True)
+            self.assertEqual(historical['source_count'], 127)
 
     def test_current_metadata_mismatches_and_duplicates_refuse(self):
         import json

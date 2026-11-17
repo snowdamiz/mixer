@@ -1,0 +1,560 @@
+{
+  "campaign": "R4588",
+  "status": "PASS_PLATFORM_DISCRIMINATOR_WITH_RECORDED_ENTRY_PROTOCOL_DEVIATION",
+  "scope": "platform-only synthetic probe; no product DDL or startup",
+  "acceptedShippingProof": false,
+  "versions": {
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "psql": "psql (PostgreSQL) 17.11 (Homebrew)",
+    "initdb": "initdb (PostgreSQL) 17.11 (Homebrew)",
+    "pg_ctl": "pg_ctl (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "bounds": {
+    "setupSeconds": 238.75753337494098,
+    "experimentFinishedSecondsFromConservativeDiscovery": 243.15844829194248,
+    "finalizerSecondsFromConservativeDiscovery": 390.56596404197626,
+    "setupLimitSeconds": 300,
+    "totalLimitSeconds": 900,
+    "PGstarts": 1,
+    "PGfastStops": 1,
+    "SQLexperiments": 1,
+    "declaredSubcases": [
+      "serial grant",
+      "deliberate catalog transaction holder plus negative contender and observer",
+      "post-release fresh grant"
+    ],
+    "maxPsqlConcurrent": 3,
+    "preparationCorrections": 0,
+    "runtimeRetries": 0
+  },
+  "serial": {
+    "SQLSTATE": "00000",
+    "role": "r4588_synthetic_writer",
+    "effectiveSELECT": {
+      "organization_id": true,
+      "active": false,
+      "revision": true,
+      "table": false
+    },
+    "table": "public.r4588_platform_probe",
+    "platformOnly": true
+  },
+  "negative": {
+    "SQLSTATE": "55P03",
+    "expectedPsqlExit": 3,
+    "message": "psql:/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588/contender.sql:6: ERROR:  55P03: canceling statement due to lock timeout\nCONTEXT:  while updating tuple (16,30) in relation \"pg_attribute\"\nLOCATION:  ProcessInterrupts, postgres.c:3401\n",
+    "queryPhase": "actual column GRANT execution",
+    "holderServerPID": 37828,
+    "contenderServerPID": 37830,
+    "holderTransactionXID": "741",
+    "contenderTransactionXID": "742",
+    "holderTransactionOpen": true,
+    "contenderTransactionOpen": true,
+    "contenderWait": "Lock/transactionid",
+    "blockingPIDs": [
+      37828
+    ],
+    "rawActivity": [
+      "r4588-contender|37830|active|t|742|Lock|transactionid|{37828}|GRANT SELECT(organization_id,revision) ON public.r4588_platform_probe TO r4588_synthetic_writer;",
+      "r4588-holder|37828|active|t|741|Timeout|PgSleep|{}|SELECT pg_sleep(4);",
+      "r4588-observer|37832|active|t||||{}|SELECT application_name,pid,state,xact_start IS NOT NULL AS transaction_open,backend_xid,wait_event_type,wait_event,pg_blocking_pids(pid),query FROM pg_stat_activity WHERE datname=current_database() AND application_name IN ('r4588-holder','r4588-contender','r4588-observer') ORDER BY application_name;"
+    ]
+  },
+  "postrelease": {
+    "SQLSTATE": "00000",
+    "grantCompleted": true,
+    "sameEffectivePrivileges": true,
+    "holderCOMMIT": "00000"
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "verdict": "Intrinsic fresh minimal PostgreSQL serial GRANT liveness failure not reproduced; serial and post-release grants complete. Does not qualify product schema."
+    },
+    {
+      "id": "H2",
+      "verdict": "Mechanism demonstrated: an uncommitted owned ACL transaction blocks the same second-session GRANT at pg_attribute. Actual R4558 raw BEGIN/ACL/COMMIT through pool_size2 is source-consistent with this mechanism; historical owner/transaction scheduler remains unknown."
+    },
+    {
+      "id": "H3",
+      "verdict": "Historical bootstrap-only query interpretation contradicted by R4558 server capture explicitly naming GRANT and its pg_attribute tuple-update context. No Postgrex runtime exercised here."
+    }
+  ],
+  "historicalCauseProven": false,
+  "unlockedNextTest": "Fresh actual14-migration writer-mask/startup batch using Postgrex.transaction/3 connection references for every grant/reset transaction and each writer transaction (never independent pooled BEGIN/COMMIT). Preserve mask order [5,0,1,2,3,4,6,7], no assumed SELECT(active) fix. Capture backend PID/transaction state and effective three-column SELECT privileges before INSERT; classify expected 42501 atomically. Continue to trusted writer insert/update/delete and startup only after actual-fixture authority checks pass. This is a proposed next test, not run or adopted here.",
+  "custody": {
+    "innerCommands": [
+      {
+        "label": "postgres-version",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37795,
+        "pgid": 37795,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03356329200323671,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "initdb-version",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37796,
+        "pgid": 37796,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03636824991554022,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "pg_ctl-version",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37797,
+        "pgid": 37797,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.02284274995326996,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "psql-version",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37798,
+        "pgid": 37798,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.02762566599994898,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "initdb",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588/run/db",
+          "-U",
+          "r4588_owner",
+          "-A",
+          "trust",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37799,
+        "pgid": 37799,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.4577579579781741,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "serial",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "-X",
+          "-w",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "41840",
+          "-U",
+          "r4588_owner",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=verbose",
+          "-a",
+          "-f",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588/serial.sql"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37825,
+        "pgid": 37825,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04752029199153185,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "observer",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "-X",
+          "-w",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "41840",
+          "-U",
+          "r4588_owner",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=verbose",
+          "-a",
+          "-f",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588/observer.sql"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37831,
+        "pgid": 37831,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.04444324993528426,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "postrelease",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "-X",
+          "-w",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "41840",
+          "-U",
+          "r4588_owner",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-v",
+          "VERBOSITY=verbose",
+          "-a",
+          "-f",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588/postrelease.sql"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37836,
+        "pgid": 37836,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.042086750036105514,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "postgres-fast-stop",
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588/run/db",
+          "-m",
+          "fast",
+          "-w",
+          "-t",
+          "15",
+          "stop"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588",
+        "pid": 37843,
+        "pgid": 37843,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.12336404190864414,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "ownedLongLivedGroups": [
+      {
+        "label": "postgres",
+        "pid": 37817,
+        "pgid": 37817,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "holder",
+        "pid": 37827,
+        "pgid": 37827,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "contender",
+        "pid": 37829,
+        "pgid": 37829,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 3,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      }
+    ],
+    "admittedOuterCommands": [
+      {
+        "label": "r4588-agents",
+        "argv": [
+          "/bin/cat",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 24144,
+        "pgid": 24144,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.01757570798508823,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-source-discovery",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; import ast; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); print(\"RECEIPTS\", [str(p) for p in (r/\"verification/receipts\").iterdir() if \"4558\" in p.name or \"4540\" in p.name]); p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py\"); s=p.read_text(); t=ast.parse(s); print(\"\\n\".join(ast.get_source_segment(s,n) for n in t.body if isinstance(n,(ast.FunctionDef,ast.ClassDef)) and n.name in {\"run\",\"InertPopen\"})); print(\"AGENTS_LINES\",len((r/\"AGENTS.md\").read_text().splitlines()))"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 25175,
+        "pgid": 25175,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.038494582986459136,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-closed-paths",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332\"); print(\"ROOT_NAMES\",[p.name for p in r.iterdir() if p.name!=\"commands\"]); v=r/\"verification\"; print(\"MATCHES\",[str(p) for base in [v/\"receipts\",v/\"local\"] if base.is_dir() for p in base.iterdir() if \"4558\" in p.name or \"4540\" in p.name]); a=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md\").read_text().splitlines(); print(\"\\n\".join(a[:140]))"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 25240,
+        "pgid": 25240,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03303758299443871,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-closed-matches",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332\"); print(\"ROOT_NAMES\",[p.name for p in r.iterdir() if p.name!=\"commands\"]); print(\"MATCHES\",[str(p) for base in [r/\"verification/receipts\",r/\"verification/local\",r.parent] if base.is_dir() for p in base.iterdir() if \"4558\" in p.name or \"4540\" in p.name])"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 25340,
+        "pgid": 25340,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.041289000073447824,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-closed-inventory",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; import time; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local\"); print(\"ELAPSED\",time.monotonic()-1039484.114534041); [print(p.name,[(x.name,x.stat().st_size) for x in p.iterdir()]) for p in [r/\"billing-writer-privilege-premise-r4558\",r/\"billing-trusted-writer-startup-r4540\"]]"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 26035,
+        "pgid": 26035,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.06242208299227059,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-controller-read",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-writer-privilege-premise-r4558\"); print((p/\"driver.py\").read_text()[:5700])"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 28356,
+        "pgid": 28356,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.06423350004479289,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-controller-remainder",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-writer-privilege-premise-r4558\"); print((p/\"driver.py\").read_text()[5700:]); print(\"RUNTIME\\n\",(p/\"runtime.exs\").read_text()); print(\"ERROR\",(p/\"first-failure-beam.stderr\").read_text()); print(\"PGERROR\",(p/\"first-failure-postgres.stderr\").read_text())"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 28398,
+        "pgid": 28398,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.05605233402457088,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-ordering-read",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local\"); p=r/\"billing-writer-privilege-premise-r4558\"; print((p/\"body.exs\").read_text()[:4200]); print(\"DRIVER_PG\",(p/\"driver.py\").read_text()[5650:7300])"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 28427,
+        "pgid": 28427,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.06979529093950987,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-grant-and-controller-source",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; import ast,json; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local\"); p=r/\"billing-writer-privilege-premise-r4558\"; print(\"R4558\",(p/\"body.exs\").read_text()[4200:6500]); x=r/\"billing-trusted-writer-startup-r4540/body.exs\"; s=x.read_text(); print(\"R4540\",s[1400:3600]); h=r/\"console-owned-chrome-actual-r4288/helper.py\"; s=h.read_text(); main=next(n for n in ast.parse(s).body if isinstance(n,ast.FunctionDef) and n.name==\"main\"); print(\"HELPER\", \"\\n\".join(ast.get_source_segment(s,n) for n in main.body if isinstance(n,ast.FunctionDef) and n.name in {\"command\",\"launch\",\"reap\"})); print(\"TOOLS\",json.loads((r/\"billing-selected-beam-loader-r4472/manifest.json\").read_text())[\"tools\"])"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 30159,
+        "pgid": 30159,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.056786083965562284,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-baseline-and-actual",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; import json; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local\"); p=r/\"billing-writer-privilege-premise-r4558\"; print(\"BODY\",(p/\"body.exs\").read_text()[4200:5550]); p=r/\"billing-trusted-writer-startup-r4540\"; s=(p/\"body.exs\").read_text(); print(\"4540\",s[3400:4500]); print(\"4558_RESULT\",{k:v for k,v in json.loads((r/\"billing-writer-privilege-premise-r4558/result.json\").read_text()).items() if k not in [\"commands\",\"children\",\"failure\"]}); print(\"CONTRACT\",(r/\"billing-writer-privilege-premise-r4558/REPORT.md\").read_text()[:1800])"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 30258,
+        "pgid": 30258,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.037964832969009876,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-platform-experiment",
+        "argv": [
+          "python3",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588/driver.py"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 37794,
+        "pgid": 37794,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 5.067758833058178,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "r4588-evidence-read",
+        "argv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; import json; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/pg-catalog-grant-liveness-r4588/run\"); print(\"OBSERVER\",(r/\"observer.stdout\").read_text()); print(\"ERROR\",(r/\"contender.stderr\").read_text()); print(\"IDENTITIES\",(r/\"owned-children.json\").read_text()); print(\"VERSIONS\",{k:(r/(k+\"-version.stdout\")).read_text() for k in [\"postgres\",\"psql\",\"pg_ctl\",\"initdb\"]}); print(\"COMMAND_ROWS\",[(x[\"label\"],x[\"pid\"],x[\"exitCode\"],x[\"bothEOF\"],x[\"closedFDs\"],x[\"ownedGroupAbsentESRCH\"]) for x in json.loads((r/\"commands.json\").read_text())]); p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/commands/r4588-platform-experiment/commands.json\"); print(\"OUTER\",p.read_text())"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "pid": 38724,
+        "pgid": 38724,
+        "state": "direct_reaped",
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "seconds": 0.03501295892056078,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "portsReusable": [
+      41840,
+      41841,
+      41842
+    ],
+    "ownedSocketRemoved": true,
+    "activeFinalizerExcluded": "r4588-finalize; its terminal record must be checked separately after exit",
+    "entryProtocolGap": "The initial pwd and Python wrapper-source read ran directly through exec before admission. Tool exit0 was exposed, but no independent PID/PGID/ESRCH receipts were exposed for those two read-only calls. No descendant absence claim is made for them. PostgreSQL/psql and admitted outer closure above are independently recorded."
+  },
+  "frozen": {
+    "sha256": "70e2a8169b24f9eaefeb4ff6b122546b73f160a4a5734ad1ce0cf0ae91efe5f7",
+    "bytes": 10246
+  },
+  "transcript": {
+    "sha256": "55b63635a483c2a3f5c4b291a910a9584f0c22252afa8c6a229bb45ce581c6d2",
+    "bytes": 20869
+  },
+  "productChanges": 0,
+  "productCompiles": 0,
+  "BEAMstarts": 0,
+  "nativeRuns": 0,
+  "shippingWorkerAdmissionGAW14DeploymentFinancialQualification": false,
+  "historicalHoldsReleased": false
+}
