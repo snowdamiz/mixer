@@ -14,6 +14,7 @@ let package = Package(
         .library(name: "MixerGuest", targets: ["MixerGuest"]),
         .library(name: "MixerCapabilities", targets: ["MixerCapabilities"]),
     ],
+    dependencies: [.package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.3")],
     targets: [
         .target(name: "MixerAndroid", dependencies: ["MixerUI"], path: "sdk/Sources/MixerAndroid"),
         .testTarget(name: "MixerAndroidTests", dependencies: ["MixerAndroid", "MixerUI"], path: "sdk/Tests/MixerAndroidTests"),
@@ -22,7 +23,7 @@ let package = Package(
         .target(name: "MixerCapabilities", dependencies: ["MixerCore", .target(name: "MixerCapabilityIO", condition: .when(platforms: [.iOS, .macOS, .linux, .android]))], path: "sdk/Sources/MixerCapabilities", exclude: ["NativeIO"]),
         .target(name: "MixerUI", dependencies: ["MixerCore"], path: "sdk/Sources/MixerUI"),
         .target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI"], path: "sdk/Sources/MixerApple"),
-        .target(name: "MixerGuest", dependencies: ["MixerCore", "MixerUI"], path: "sdk/Sources/MixerGuest"),
+        .target(name: "MixerGuest", dependencies: ["MixerCore", "MixerUI", .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.macOS, .iOS, .linux, .android]))], path: "sdk/Sources/MixerGuest"),
         .testTarget(name: "MixerCoreTests", dependencies: ["MixerCore"], path: "sdk/Tests/MixerCoreTests"),
         .testTarget(name: "MixerUITests", dependencies: ["MixerCore", "MixerUI", "MixerGuest"], path: "sdk/Tests/MixerUITests"),
         .testTarget(name: "MixerAppleTests", dependencies: ["MixerApple", "MixerUI"], path: "sdk/Tests/MixerAppleTests"),

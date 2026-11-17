@@ -24,6 +24,33 @@ public struct RoutedUIAction: Codable, Equatable, Sendable {
     public let value: UIValue
 }
 
+/// Only the native router can issue this host-only capability. It never enters guest ABI.
+public struct IssuedUIAction: Sendable {
+    fileprivate let surface: NativeActionSurface
+    public let envelope: UIEventEnvelope
+    public let action: RoutedUIAction
+    public let serial: UInt64
+}
+fileprivate final class NativeActionSurface: Sendable {}
+
+/// Native routing boundary: owns its reconciler; never stamps an arbitrary routed value.
+@MainActor public final class UINativeActionRouter {
+    private var reconciler: UIReconciler
+    private var serial: UInt64 = 0
+    public var snapshot: UIRenderSnapshot { get throws { try reconciler.currentSnapshot() } }
+    public init(document: UIDocument, validator: UIValidator) throws {
+        reconciler = UIReconciler(validator: validator); try reconciler.apply(document)
+    }
+    @discardableResult public func update(_ document: UIDocument) throws -> UIChangeSet { try reconciler.apply(document) }
+    public func route(_ envelope: UIEventEnvelope) throws -> IssuedUIAction {
+        let snapshot = try reconciler.currentSnapshot()
+        let action = try snapshot.route(envelope)
+        guard serial < .max else { throw UIRoutingError.invalidValue }
+        serial += 1
+        return IssuedUIAction(surface: snapshot.surface, envelope: envelope, action: action, serial: serial)
+    }
+}
+
 public enum UIRoutingError: Error, Equatable, Sendable {
     case staleRevision
     case staleIdentity
@@ -67,19 +94,32 @@ struct ReconciledNode: Sendable {
 /// An immutable render receipt. Its constructor is internal so a renderer can only
 /// receive a validated, fully indexed tree.
 public struct UIRenderSnapshot: Sendable {
+    fileprivate let surface: NativeActionSurface
     public let document: UIDocument
     public var nodeCount: Int { nodes.count }
     let nodes: [String: ReconciledNode]
     let maximumStringBytes: Int
     public let textValuePolicy: UITextValuePolicy
 
-    init(document: UIDocument, nodes: [String: ReconciledNode], maximumStringBytes: Int,
+    fileprivate init(surface: NativeActionSurface, document: UIDocument, nodes: [String: ReconciledNode], maximumStringBytes: Int,
          textValuePolicy: UITextValuePolicy = .standard) {
-        self.document = document; self.nodes = nodes; self.maximumStringBytes = maximumStringBytes
+        self.surface = surface; self.document = document; self.nodes = nodes; self.maximumStringBytes = maximumStringBytes
         self.textValuePolicy = textValuePolicy
     }
 
+    init(document: UIDocument, nodes: [String: ReconciledNode], maximumStringBytes: Int,
+         textValuePolicy: UITextValuePolicy = .standard) {
+        self.init(surface: NativeActionSurface(), document: document, nodes: nodes,
+                  maximumStringBytes: maximumStringBytes, textValuePolicy: textValuePolicy)
+    }
+
     public func identity(for nodeID: String) -> UINodeIdentity? { nodes[nodeID]?.identity }
+
+    public func checkedEnvelope(for issued: IssuedUIAction) throws -> UIEventEnvelope {
+        guard issued.surface === surface else { throw UIRoutingError.staleIdentity }
+        guard try route(issued.envelope) == issued.action else { throw UIRoutingError.unboundEvent }
+        return issued.envelope
+    }
 
     /// Bindings come from the current node, never from a caller-supplied action ID.
     public func route(_ envelope: UIEventEnvelope) throws -> RoutedUIAction {
@@ -107,6 +147,7 @@ public struct UIRenderSnapshot: Sendable {
 public struct UIReconciler: Sendable {
     public let validator: UIValidator
     public private(set) var snapshot: UIRenderSnapshot?
+    private let surface = NativeActionSurface()
     private var nextGeneration: UInt64 = 0
 
     public init(validator: UIValidator = UIValidator()) { self.validator = validator }
@@ -153,7 +194,7 @@ public struct UIReconciler: Sendable {
         }
         let removed = previous.keys.filter { records[$0] == nil }.sorted()
         nextGeneration = generation
-        snapshot = UIRenderSnapshot(document: document, nodes: records,
+        snapshot = UIRenderSnapshot(surface: surface, document: document, nodes: records,
                                     maximumStringBytes: validator.limits.maximumStringBytes, textValuePolicy: validator.textValuePolicy)
         return UIChangeSet(inserted: inserted, removed: removed, replaced: replaced, updated: updated, moved: moved)
     }

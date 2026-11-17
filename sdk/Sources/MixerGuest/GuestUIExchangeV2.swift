@@ -5,11 +5,11 @@ import MixerUI
 /// actual ready claims, stop/intent and receipt machinery, without duplicating it.
 /// V1 control values here are shared data-only types, never V1 wire selection.
 @_spi(GuestUIV2) public final class GuestUIExchangeV2: Sendable {
-    private let core: GuestUIExchangeV1
+    private let core: GuestUIExchangeCore
     public let codec: GuestUIDocumentCodecV2
     public init(generation: UInt64, textValuePolicy: UITextValuePolicy) throws {
         codec = GuestUIDocumentCodecV2(textValuePolicy: textValuePolicy)
-        core = try GuestUIExchangeV1(generation: generation, editorCodec: codec)
+        core = try GuestUIExchangeCore(generation: generation, codec: .editor(codec))
     }
     public var deliveryWake: GuestUIWakeV1 { core.deliveryWake }
     public var coordinatorWake: GuestUIWakeV1 { core.coordinatorWake }

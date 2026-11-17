@@ -1245,5 +1245,110 @@ class FixtureCleanupControls(unittest.TestCase):
         self.assertTrue(value.root.exists())
 
 
+
+class OptionalNativeSDKSourceTests(unittest.TestCase):
+    shipping = ('Package.swift', 'Sources/CMixerVM/mixer_vm.h',
+                'Sources/CMixerVM/module.modulemap',
+                'Sources/MixerNativeBackend/NativeSwiftFeatureBackend.swift')
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='native-sdk-source-')
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        for relative in ('scripts/ci/check-android-generated-java.py', M.POLICY, M.DRIVER,
+                         'scripts/ci/check-android-binding.py'):
+            path = self.root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'ordinary source fixture')
+        self.stack = ExitStack()
+        self.addCleanup(self.stack.close)
+        self.stack.enter_context(mock.patch.object(M, 'ROOT', self.root))
+        self.stack.enter_context(mock.patch.object(M, '__file__', str(self.root / 'scripts/ci/check-android-generated-java.py')))
+        self.profile = {'adapter_files': {}}
+
+    def native(self):
+        for relative in self.shipping:
+            p = self.root / 'native-sdk' / relative
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(('shipping ' + relative).encode())
+
+    def collect(self):
+        return M.source_inputs(self.profile)
+
+    def test_absent_optional_package_preserves_existing_map(self):
+        before = self.collect()
+        self.native()
+        with_native = self.collect()
+        self.assertEqual({p:v for p,v in with_native.items() if not p.startswith('native-sdk/')}, before)
+        self.assertEqual(set(with_native) - set(before), {'native-sdk/' + p for p in self.shipping})
+
+    def test_every_shipping_member_changes_source_digest(self):
+        self.native()
+        before = M.source_digest(self.collect())
+        for relative in self.shipping:
+            with self.subTest(member=relative):
+                p = self.root / 'native-sdk' / relative
+                original = p.read_bytes()
+                p.write_bytes(original + b' mutation')
+                self.assertNotEqual(M.source_digest(self.collect()), before)
+                p.write_bytes(original)
+
+    def test_every_required_member_refuses_when_missing(self):
+        self.native()
+        for relative in self.shipping:
+            with self.subTest(member=relative):
+                p = self.root / 'native-sdk' / relative
+                original = p.read_bytes(); p.unlink()
+                with self.assertRaises(RuntimeError): self.collect()
+                p.write_bytes(original)
+
+    def test_extra_cache_alias_and_unicode_members_refuse(self):
+        self.native()
+        for relative in ('README.md', '.build/cache', 'Sources/CMixerVM/Mixer_vm.h',
+                         'Sources/MixerNativeBackend/extra.swift', 'Sources/CMixerVM/K.h'):
+            with self.subTest(extra=relative):
+                p = self.root / 'native-sdk' / relative
+                original = None
+                if relative == 'Sources/CMixerVM/Mixer_vm.h':
+                    canonical = self.root / 'native-sdk/Sources/CMixerVM/mixer_vm.h'
+                    original = canonical.read_bytes()
+                    canonical.unlink()
+                p.parent.mkdir(parents=True, exist_ok=True); p.write_bytes(b'extra')
+                with self.assertRaises(RuntimeError): self.collect()
+                p.unlink()
+                if original is not None: canonical.write_bytes(original)
+                if relative == '.build/cache': p.parent.rmdir()
+
+    def test_every_member_symlink_or_hardlink_refuses(self):
+        self.native()
+        outside = self.root / 'outside'; outside.write_bytes(b'source')
+        for relative in self.shipping:
+            for kind in ('symlink', 'hardlink'):
+                with self.subTest(member=relative, kind=kind):
+                    p = self.root / 'native-sdk' / relative
+                    original = p.read_bytes(); p.unlink()
+                    if kind == 'symlink': p.symlink_to(outside)
+                    else: os.link(outside, p)
+                    with self.assertRaises(RuntimeError): self.collect()
+                    p.unlink(); p.write_bytes(original)
+
+    def test_root_and_ancestor_symlinks_refuse(self):
+        self.native()
+        for relative in ('Sources/CMixerVM', 'Sources', ''):
+            with self.subTest(directory=relative):
+                p = self.root / 'native-sdk' / relative
+                saved = self.root / 'saved'
+                p.rename(saved); p.symlink_to(saved, target_is_directory=True)
+                with self.assertRaises(RuntimeError): self.collect()
+                p.unlink(); saved.rename(p)
+
+    def test_root_file_and_case_alias_refuse(self):
+        native = self.root / 'native-sdk'
+        native.write_bytes(b'file')
+        with self.assertRaises(RuntimeError): self.collect()
+        native.unlink()
+        (self.root / 'Native-SDK').mkdir()
+        with self.assertRaises(RuntimeError): self.collect()
+
 if __name__ == '__main__':
     unittest.main()

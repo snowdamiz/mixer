@@ -1,53 +1,93 @@
 #if canImport(SwiftUI)
 import SwiftUI
 import MixerUI
+import Foundation
 
 /// The adapter publishes one validated batch at a time. Failed updates preserve the
 /// displayed tree. Dispatch always consults the current snapshot, not a captured one.
 @MainActor
 public final class MixerUIHost: ObservableObject {
     @Published public private(set) var snapshot: UIRenderSnapshot
-    private var reconciler: UIReconciler
+    private let router: UINativeActionRouter
+    @Published internal private(set) var featureDisplayID: UUID?
+    private var featurePresentation: (NativePresentationRequest, CheckedContinuation<NativeDisplayAcknowledgement, any Error>)?
 
     public init(document: MixerUI.UIDocument,
                 validator: UIValidator = UIValidator(supportedTextFieldAxes: [.horizontal, .vertical])) throws {
-        var reconciler = UIReconciler(validator: validator)
-        try reconciler.apply(document)
-        snapshot = try reconciler.currentSnapshot()
-        self.reconciler = reconciler
+        let router = try UINativeActionRouter(document: document, validator: validator)
+        snapshot = try router.snapshot
+        self.router = router
     }
 
     @discardableResult
     public func update(_ document: MixerUI.UIDocument) throws -> UIChangeSet {
-        let changes = try reconciler.apply(document)
-        snapshot = try reconciler.currentSnapshot()
+        let changes = try router.update(document)
+        snapshot = try router.snapshot
         return changes
     }
+
+    public func routeIssued(_ envelope: UIEventEnvelope) throws -> IssuedUIAction { try router.route(envelope) }
 
     public func route(_ envelope: UIEventEnvelope) throws -> RoutedUIAction {
         try snapshot.route(envelope)
     }
+
+    /// Completes through the installed native view's layout/display transaction.
+    public func presentFeature(_ request: NativePresentationRequest) async throws -> NativeDisplayAcknowledgement {
+        try Task.checkCancellation()
+        guard featurePresentation == nil else { throw FeatureDisplayError.busy }
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                featurePresentation = (request, continuation)
+                do {
+                    try update(request.document.document)
+                    featureDisplayID = request.id
+                } catch {
+                    featurePresentation = nil; continuation.resume(throwing: error)
+                }
+            }
+        } onCancel: { Task { @MainActor in self.cancelFeatureDisplay(request.id) } }
+    }
+
+    internal func completeFeatureDisplay(_ id: UUID) {
+        guard let (request, continuation) = featurePresentation, request.id == id, featureDisplayID == id else { return }
+        featurePresentation = nil; featureDisplayID = nil
+        continuation.resume(returning: request.acknowledgement(snapshot: snapshot))
+    }
+    private func cancelFeatureDisplay(_ id: UUID) {
+        guard let (request, continuation) = featurePresentation, request.id == id else { return }
+        featurePresentation = nil; featureDisplayID = nil
+        continuation.resume(throwing: CancellationError())
+    }
 }
+
+private enum FeatureDisplayError: Error { case busy }
 
 /// Renders owned UI nodes as native SwiftUI controls, with native text input, lists,
 /// layout and accessibility semantics. No HTML, web views or interpreted layout.
 @MainActor
 public struct MixerNativeView: SwiftUI.View {
     @ObservedObject private var host: MixerUIHost
-    private let onAction: @MainActor (RoutedUIAction) -> Void
+    private let dispatch: @MainActor (UIEventEnvelope) throws -> Void
     private let onEventFailure: @MainActor (any Error) -> Void
 
     public init(host: MixerUIHost, onAction: @escaping @MainActor (RoutedUIAction) -> Void,
                 onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
-        self.host = host; self.onAction = onAction; self.onEventFailure = onEventFailure
+        self.host = host; self.dispatch = { onAction(try host.route($0)) }; self.onEventFailure = onEventFailure
+    }
+
+    public init(host: MixerUIHost, onIssuedAction: @escaping @MainActor (IssuedUIAction) -> Void,
+                onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
+        self.host = host; self.dispatch = { onIssuedAction(try host.routeIssued($0)) }; self.onEventFailure = onEventFailure
     }
 
     public var body: some SwiftUI.View {
         NativeNode(node: host.snapshot.document.root, snapshot: host.snapshot) { envelope in
-            do { onAction(try host.route(envelope)) }
+            do { try dispatch(envelope) }
             catch { onEventFailure(error) }
         }
         .id(host.snapshot.identity(for: host.snapshot.document.root.id))
+        .background(FeatureDisplayCompletion(id: host.featureDisplayID) { host.completeFeatureDisplay($0) })
     }
 }
 

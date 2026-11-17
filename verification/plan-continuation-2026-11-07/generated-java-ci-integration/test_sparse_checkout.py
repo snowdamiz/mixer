@@ -68,19 +68,57 @@ def owning_patterns(text):
     return checkout_patterns('\n'.join(lines[start:stop]))
 
 
+def admission_paths(root=None, binding=None):
+    """Read the complete selected admission declaration, including raw history."""
+    import hashlib
+    root = ROOT if root is None else Path(root)
+    binding = current_module.BINDING if binding is None else Path(binding)
+    def relative(name):
+        p = Path(name)
+        B.require(type(name) is str and name and not p.is_absolute() and
+                  p.as_posix() == name and all(x not in ('.', '..', '.git') for x in p.parts),
+                  'Invalid admission witness path')
+        return p
+    def read_json(path):
+        return json.loads(path.read_bytes(), object_pairs_hook=current_module.unique_object)
+    base = root / relative(binding.as_posix()).parent
+    seal = read_json(base / 'seal.json')
+    members = seal['members']
+    B.require(type(members) is dict and 0 < len(members) <= 2048,
+              'Invalid selected admission roster')
+    for name, expected in members.items():
+        raw = (base / relative(name)).read_bytes()
+        B.require(expected == {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()},
+                  'Selected admission seal differs: ' + name)
+    digest = hashlib.sha256(''.join(n + '\0' + v['sha256'] + '\n'
+                                   for n, v in sorted(members.items())).encode()).hexdigest()
+    B.require(seal['tree_sha256'] == digest and binding.name in members,
+              'Selected admission seal or binding differs')
+    declaration = read_json(root / binding)
+    manifests = (declaration['source']['manifest'], 'caller-inputs.json',
+                 'owning-closure.json', 'historical-inputs.json')
+    paths = {binding.parent.joinpath(name).as_posix() for name in (*members, 'seal.json')}
+    for name in manifests:
+        B.require(name in members, 'Unsealed admission manifest: ' + name)
+        rows = read_json(base / relative(name))
+        B.require(type(rows) is dict and len(rows) <= 2048, 'Invalid admission input map')
+        paths.update(relative(path).as_posix() for path in rows)
+    return paths
+
+
 def owning_paths(patterns):
     authority = B.canonical()
     paths = set(B.admit_source_inputs(authority, authority.load_profile()))
+    paths.update(admission_paths())
     paths.update(('cli/Package.swift', 'sdk/Package.swift', 'updates/Package.swift',
                   'native/android/engine/Package.swift', 'scripts/ci/check-android-binding.py',
                   HERE.relative_to(ROOT).as_posix() + '/test_bootstrap.py',
                   PATTERNS[-1].lstrip('/'), current_module.BINDING.as_posix(),
                   '.github/workflows/verify.yml'))
-    # The owning job also selects immutable admission rows for current/history
-    # source guards. Exercise every declared binding, without pinning a version.
     paths.update(p.lstrip('/') + 'binding.json' for p in patterns
                  if p.startswith(('/verification/native-output-', '/verification/native-report-')) and p.endswith('/'))
     return sorted(paths)
+
 
 
 def git_selected(paths, patterns=PATTERNS):
@@ -153,11 +191,48 @@ class SparseControls(unittest.TestCase):
                     self.assert_current_source(authority, future, root)
 
     def test_actual_proposal_selects_every_canonical_owning_input(self):
-        patterns = proposal_patterns((HERE / 'workflow-proposal.yml').read_text())
-        a = B.canonical()
-        inputs = B.admit_source_inputs(a, a.load_profile())
-        self.assert_current_source(a, inputs)
-        require_coverage(inputs, git_selected(list(inputs), patterns))
+        # The seven-pattern proposal predates optional native-sdk inputs. Bind
+        # its unchanged assertions to the real declared predecessor bytes.
+        import hashlib
+        selected_root = ROOT
+        spec = importlib.util.spec_from_file_location('proposal_current_adopter',
+            ROOT / current_module.BINDING.parent / 'adopt_sdk.py')
+        adopter = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(adopter)
+        binding, selected, prior = adopter.admit()
+        with tempfile.TemporaryDirectory(prefix='historical-proposal-', dir=HERE) as td:
+            predecessor = Path(td) / 'source127'
+            result = adopter.prepare_predecessor(predecessor)
+            history = json.loads((selected_root / current_module.BINDING.parent /
+                                  'historical-inputs.json').read_bytes())
+            for name, expected in history.items():
+                raw = (predecessor / name).read_bytes()
+                self.assertEqual({'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}, expected)
+            self.assertEqual(result['source127'], binding['sdk_transition']['sourceBefore'])
+            historical_binding = Path('verification/native-report-source127-v1/binding.json')
+            old_spec = importlib.util.spec_from_file_location('proposal_predecessor_adopter',
+                predecessor / historical_binding.parent / 'adopt_envelope.py')
+            old_adopter = importlib.util.module_from_spec(old_spec)
+            old_spec.loader.exec_module(old_adopter)
+            self.assertEqual(old_adopter.verify(True)['source_count'], len(prior))
+            historical_here = predecessor / HERE.relative_to(selected_root)
+            boot_spec = importlib.util.spec_from_file_location('proposal_predecessor_bootstrap',
+                historical_here / 'bootstrap.py')
+            historical = importlib.util.module_from_spec(boot_spec)
+            boot_spec.loader.exec_module(historical)
+            subprocess.run(['git', '-C', str(predecessor), 'init', '-q'],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=15, check=True)
+            with patch(__name__ + '.ROOT', predecessor), patch(__name__ + '.HERE', historical_here), \
+                 patch.object(B, 'ROOT', predecessor), \
+                 patch.object(B, 'canonical', historical.canonical), \
+                 patch.object(B, 'admit_source_inputs', historical.admit_source_inputs), \
+                 patch.object(current_module, 'BINDING', historical_binding):
+                patterns = proposal_patterns((HERE / 'workflow-proposal.yml').read_text())
+                a = B.canonical()
+                inputs = B.admit_source_inputs(a, a.load_profile())
+                self.assert_current_source(a, inputs)
+                require_coverage(inputs, git_selected(list(inputs), patterns))
+
 
     def test_actual_git_excludes_historical_receipts_root_files_and_nearby_names(self):
         rejected = ['verification/android-binding-stage4/receipt.json', 'STATUS.md',
@@ -198,8 +273,15 @@ class SparseControls(unittest.TestCase):
                                '            /cli/\n            ' + future_pattern + '\n')
         selected = owning_patterns(changed)
         self.assertEqual(set(selected), set(patterns) | {future_pattern})
-        with patch.object(current_module, 'BINDING', future):
-            paths = owning_paths(selected)
+        import shutil
+        with tempfile.TemporaryDirectory(dir=HERE) as td:
+            fixture = Path(td)
+            shutil.copytree(ROOT / current_module.BINDING.parent, fixture / future.parent)
+            declared = admission_paths(fixture, future)
+            self.assertIn(future.as_posix(), declared)
+            with patch.object(current_module, 'BINDING', future), \
+                 patch(__name__ + '.admission_paths', return_value=declared):
+                paths = owning_paths(selected)
         self.assertIn(future.as_posix(), paths)
         for pattern in patterns:
             if pattern.startswith('/verification/native-output-') and pattern.endswith('/'):
@@ -285,6 +367,53 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(receipt['status'], 'failed')
             hosted.assert_not_called()
             download.assert_not_called()
+
+
+
+    def test_materialized_checkout_runs_selected_installed_admission(self):
+        import shutil
+        patterns = owning_patterns((ROOT / '.github/workflows/verify.yml').read_text())
+        paths = owning_paths(patterns)
+        old_patterns = ('/.github/workflows/', '/cli/', '/sdk/', '/native-sdk/', '/updates/', '/native/android/', '/scripts/ci/', '/verification/plan-continuation-2026-11-07/generated-java-ci-integration/', '/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/binding.json', '/verification/native-output-source121-v1/', '/verification/native-report-source126-v1/', '/verification/native-report-source127-v1/', '/verification/sdk-feature-ui-source141-v1/')
+        with tempfile.TemporaryDirectory(prefix='materialized-admission-', dir=HERE) as td:
+            base = Path(td)
+            repo = base / 'repo'
+            repo.mkdir()
+            empty = base / 'empty'
+            empty.mkdir()
+            config = base / 'empty-config'
+            config.write_text('')
+            env = dict(os.environ, GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=str(config),
+                       GIT_TERMINAL_PROMPT='0', GIT_OPTIONAL_LOCKS='0')
+            for name in paths:
+                out = repo / name
+                out.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / name, out)
+            git = ['git', '-C', str(repo), '-c', 'init.templateDir=' + str(empty),
+                   '-c', 'core.hooksPath=' + str(empty), '-c', 'core.fsmonitor=false',
+                   '-c', 'gc.auto=0', '-c', 'maintenance.auto=false']
+            def command(args, **kw):
+                return subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                      timeout=30, env=env, **kw)
+            command(git + ['init', '-q'], check=True)
+            command(git + ['add', '-f', '--all'], check=True)
+            command(git + ['-c', 'user.name=MixerFixture', '-c', 'user.email=fixture@mixer.invalid',
+                           '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'sparse-admission-fixture'], check=True)
+            command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
+                    input=('\n'.join(old_patterns) + '\n').encode(), check=True)
+            self.assertFalse((repo / 'Package.resolved').exists())
+            adopter = repo / current_module.BINDING.parent / 'adopt_sdk.py'
+            python = [sys.executable, '-I', '-B', '-S'] + (['-O'] if sys.flags.optimize else [])
+            failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+            self.assertEqual(failed.returncode, 1)
+            self.assertIn(b'Package.resolved', failed.stderr)
+            command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
+                    input=('\n'.join(patterns) + '\n').encode(), check=True)
+            self.assertEqual([n for n in paths if not (repo / n).is_file()], [])
+            passed = command(python + [str(adopter), 'verify', '--workflow-installed'], check=True)
+            observed = json.loads(passed.stdout)
+            self.assertEqual(observed['source_count'], len(B.admit_source_inputs(B.canonical(), B.canonical().load_profile())))
+            self.assertFalse(observed['GA'])
 
 
 if __name__ == '__main__':

@@ -1,5 +1,15 @@
 # Current development status
 
+## Current checkpoint. Reviewed SDK141 source and checkout accepted for publication
+
+The FeatureUIV3 SPI SDK and optional native backend are installed as source141 and Pair22. Root accepted the final 60-path cohort after independent review. All 96 SDK inputs match the qualified source; installed admission controls pass three tests in each Python mode, and the actual Android sparse rules select all 888 required files. The final checkout matrix passes 36 controls in normal Python and 36 in optimized Python. The earlier missing-file failure and exact source127 inverse remain preserved. [Root acceptance](verification/receipts/public-sdk-final-checkout-root-r4440.json) · [Independent review](verification/receipts/sdk141-checkout-docs-review-r4436.json).
+
+Qualification includes 404 ordinary CLI invocations, 234 root and 234 SDK tests, the scoped genuine native title control, and eleven actual Wasm consumer controls. These are development results. Linux, full Guest behavior, immutable packages, released API selection, OTA, and GA remain pending. [Ordinary CLI](verification/receipts/source141-pair22-ordinary-r4384.json) · [Wasm runtime](verification/receipts/wasi-shared-spi-completion-r4422.json).
+
+The private billing worker passes its ten original integration cases. Full ordinary coverage remains incomplete: segmented runs establish 631 unique passing methods out of 913; the next failure is an obsolete twelve-migration assertion against the reviewed fourteen-migration inventory. A full inventory audit and remaining-case run are selected before source347 adoption. Billing product code remains private. [Worker cases](verification/receipts/billing-ready-worker-ten-r4424.json) · [Ordinary coverage](verification/receipts/billing-reviewed-migration-remaining-r4442.json).
+
+The previous delivered head, 01220027, passed all nine Engine CI jobs and artifact retention. The SDK source cohort is ready for its own commit and push; its new hosted checks remain pending. Console visual/HTTP/database development evidence remains accepted. All historical holds and physical-phone restrictions remain active. GA remains 0/38.
+
 ## Continuation checkpoint, November 16, 2026 — console development accepted; SDK ordinary qualification passed
 
 The owned-Chrome console slice now has Root acceptance and an independent review of all three actual screenshots, source identities, HTTP/DOM results, matching creator-role database records, and positive service/browser cleanup. One build submission returned 201 and its exact queued build ID appeared in both DOM and PostgreSQL. The backend test passed once. This uses a synthetic development provider; production-provider delivery, compiler draining, broader browser coverage and GA remain pending. Historical callback and cleanup failures remain preserved. [Acceptance](verification/receipts/console-development-acceptance-root-r4382.json) · [Independent review](verification/receipts/console-visual-db-evidence-review-r4380.json).

@@ -1,0 +1,230 @@
+{
+  "GA": false,
+  "GUI": false,
+  "SDKDefectProven": false,
+  "SDKModulesEmittedBeforeConsumerFailure": [
+    "MixerCore",
+    "MixerUI",
+    "MixerGuest"
+  ],
+  "VMOwner": false,
+  "actualImports": "UNRUN because build failed",
+  "actualWasmInstantiated": false,
+  "allExecutablesHashedBeforeVersionsAndBuild": "All selected version/build tools and observed compiler command executables were hashed before version/build. No syscall-level exec census is claimed.",
+  "allGitProcessesTrace2Paired": true,
+  "allObservedCompletedManagedCommandsClosed": true,
+  "artifacts": {
+    "CONTRACT.md": {
+      "bytes": 3650,
+      "sha256": "6531cf13e63809e5f385f67c135e854881a14d3c32b87cce1f6726f3f3dca71c"
+    },
+    "REPORT.md": {
+      "bytes": 2755,
+      "sha256": "15dae6c0e44067e6b3d4aa923d56a9bfd89fc01ed936eb26f942d91697732971"
+    },
+    "compiler-diagnostics.json": {
+      "bytes": 6686,
+      "sha256": "46126f6bd3256b191543669940c4de32e65d6751d0c476a7ca83499ff703c555"
+    },
+    "exec-sessions.json": {
+      "bytes": 1137,
+      "sha256": "8150fc229f94ada1f703be62d88bc10855b05fc6ae581b4c478255a58778e3b2"
+    },
+    "finalization-annotations.json": {
+      "bytes": 2190,
+      "sha256": "653610f4f022b2014e4eca314d61bf2391e8bfdde936c5ef2ce2236f61179587"
+    },
+    "frozen-inputs.json": {
+      "bytes": 806514,
+      "sha256": "7be59efe8e54b0556998469ff59467983e88f71c8c4bf8becb1b71ae059f1d28"
+    },
+    "postflight.json": {
+      "bytes": 47912,
+      "sha256": "b4142a7f985f8d7b17763fd011a5cd0cb7bdc73a229b4607254b1ec7988f9945"
+    },
+    "source-manifest.json": {
+      "bytes": 15338,
+      "sha256": "5e52845e36df63e7b9c0177d9e1be20101457cec82d0c98c5953e469fb29c132"
+    }
+  },
+  "authorityWrites": false,
+  "blockerClassification": "external-consumer SPI selection mismatch",
+  "campaign": "public-guest-wasi-runtime-r4414",
+  "canonicalRootAdoption": "R4398/source141 remains separate",
+  "canonicalWrites": false,
+  "children": 0,
+  "commandOutcomes": {
+    "build": "FAILED",
+    "resolve": "PASS",
+    "runtime": "UNRUN"
+  },
+  "compilerCommands": 2,
+  "compilerErrorCategory": "GuestUIV1 SPI control members inaccessible from FeatureUIV3-only consumer",
+  "compilerErrorCount": 28,
+  "compilerFailurePolicy": "First failed executable build stopped work. No corrective build or runtime batch.",
+  "correctiveBuilds": 0,
+  "customerActions": false,
+  "device": false,
+  "diagnosticCommandTerminal": [
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; b=Path.cwd(); p=b/\"commands/build-inner/build.stdout\"; lines=p.read_text().splitlines(); errors=[l for l in lines if \": error:\" in l]; d={\"errorCount\":len(errors),\"errors\":errors,\"sdkModulesCompiled\": [n for n in [\"MixerCore\",\"MixerUI\",\"MixerGuest\"] if (b/\"build/wasm32-unknown-wasip1/debug/Modules\"/(n+\".swiftmodule\")).exists()],\"runtimeAttempts\":0,\"correctiveBuilds\":0}; (b/\"compiler-diagnostics.json\").write_text(json.dumps(d,indent=2)+\"\\n\"); print(json.dumps(d,indent=2))"
+      ],
+      "bothEOF": true,
+      "closedFDs": true,
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/public-guest-wasi-runtime-r4414",
+      "exitCode": 0,
+      "label": "diagnose",
+      "ownedGroupAbsentESRCH": true,
+      "pgid": 1647,
+      "pid": 1647,
+      "seconds": 0.046941791999999996,
+      "state": "direct_reaped"
+    }
+  ],
+  "elapsedSeconds": 703.2332606315613,
+  "elapsedWithin1500Seconds": true,
+  "executableLinked": false,
+  "externalProvider": false,
+  "extraSPIImports": 0,
+  "finalizerOwnActiveExcluded": true,
+  "finalizerTerminalReadback": {
+    "ownActiveReadbackExcluded": true,
+    "rows": [
+      {
+        "argv": [
+          "/usr/bin/python3",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/public-guest-wasi-runtime-r4414/finish.py",
+          "finalize-inner"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/public-guest-wasi-runtime-r4414",
+        "exitCode": 0,
+        "label": "finalize",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 5306,
+        "pid": 5306,
+        "seconds": 1.776956958,
+        "state": "direct_reaped"
+      }
+    ]
+  },
+  "firstDiagnostics": [
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:76:32: error: 'closed' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:81:39: error: 'counters' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:81:92: error: 'counters' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:85:31: error: 'closed' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:94:38: error: 'stop' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:94:72: error: 'counters' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:98:29: error: 'closed' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:104:33: error: 'closed' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:111:32: error: 'frame' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:111:39: error: 'document' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:116:81: error: 'frameSerial' is inaccessible due to '@_spi' protection level",
+    "consumer/Sources/PublicGuestWASIProbe/Probe.swift:117:63: error: 'stale' is inaccessible due to '@_spi' protection level"
+  ],
+  "frozenHarnessAndConsumerExact": {
+    "CONTRACT.md": true,
+    "Probe.swift": true,
+    "bind.py": true,
+    "command.py": true,
+    "execute.py": true,
+    "finalize.py": true,
+    "freeze.py": true,
+    "prepare.py": true,
+    "readback.py": true,
+    "runtime.mjs": true,
+    "support.py": true
+  },
+  "gitDeliveryWrites": false,
+  "gitProcessLimit": 96,
+  "gitProcessesInclusive": 47,
+  "holdsPreserved": true,
+  "hostSDK": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+  "independentTerminalReadbackPending": false,
+  "indexWrites": false,
+  "limitations": [
+    "Narrow public SDK data controls only; full ordinary WASI functionality, full Linux, full Guest, WASI native backend, immutable published-package qualification and GA remain pending.",
+    "SDK-produced immutable snapshots used only as an explicitly labeled data-only presentation test double; no native display acknowledgement or native presentation qualification.",
+    "Internal completeUnchangedPresentation and offerIssued are not public contracts and are excluded; router origin validation is separate.",
+    "SwiftFeature lifecycle/ownership requires Crypto conditional bodies unavailable on WASI; no consuming owner, cleanup double or fourteen-ledger assertion.",
+    "First compiler failure stops; no corrective build or runtime retry permitted."
+  ],
+  "loggedCompilerExecutablesPrePinned": {
+    "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/clang": true,
+    "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-frontend": true,
+    "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc": true
+  },
+  "missingContract": [
+    "GuestUIExternalStopV1 cases",
+    "GuestUIExchangeSnapshotV1 fields and GuestUIExchangeCountersV1",
+    "GuestUITurnClaimV1.kind and GuestUITurnKindV1.event",
+    "GuestUIFrameV1.document and GuestUIPresentationClaimV1.frame/eventResult",
+    "GuestUIPresentationTicketV1.frameSerial",
+    "GuestUIEventAdmissionV1 cases",
+    "GuestUIEventResultV1.outcome and GuestUIEventOutcomeV1.delivered"
+  ],
+  "namedUnlock": "PUBLIC_GUEST_SDK_WASI_VALUE_EXCHANGE_CONTROL",
+  "narrowRuntimePass": false,
+  "nativeBackend": false,
+  "newCustodyUnknown": false,
+  "nextDecision": "Review whether both declared public SPI selections are in scope for a new bounded consumer attempt. No private API or source fix is established as necessary.",
+  "ordinaryWASIFunctionalityQualified": false,
+  "otherCompilerDiagnosticsObserved": 0,
+  "policyWrites": false,
+  "prePostChecks": {
+    "canonical96StillExact": true,
+    "consumerLayoutExactIncludingLock": true,
+    "dependencyRepos": {
+      "swift-asn1": {
+        "checkout": true,
+        "original": true,
+        "private": true
+      },
+      "swift-crypto": {
+        "checkout": true,
+        "original": true,
+        "private": true
+      }
+    },
+    "hostDescriptorsExact": true,
+    "preVersionExecutablePinsExact": true,
+    "sourceExact96": true,
+    "sourceLayoutExact": true,
+    "wasiBundleExact": true
+  },
+  "preparationFailures": [
+    {
+      "reason": "nonexistent optional Package.swiftmodule interface descriptor; no freeze file produced; corrected before sole successful final precompile freeze",
+      "stage": "freeze"
+    },
+    {
+      "reason": "executor refused because freeze file absent; no compiler launched",
+      "stage": "r4414-resolve"
+    }
+  ],
+  "productSourceEdits": false,
+  "publicAPIsGloballyUnavailable": false,
+  "requiredContract": "V3-accessible exchange control values for the explicitly selected FeatureUIV3 SPI; current declarations are exclusively GuestUIV1.",
+  "retainedFixtureImports": "@_spi(FeatureUIV3) @_spi(GuestUIV1) @testable import MixerGuest",
+  "runtime": "Node22.23.3 built-in WASI preview1",
+  "runtimeBatches": 0,
+  "runtimeControlStatus": "all11 UNRUN",
+  "runtimeControlsPassed": 0,
+  "rustBuilds": 0,
+  "selectedConsumerImport": "@_spi(FeatureUIV3) import MixerGuest",
+  "sharedControlAccess": "GuestUIV1 SPI is declared in actual SDK; it was not imported by this candidate. A future independently selected consumer would need its permitted SPI imports coordinated before compilation.",
+  "sourceDigest": "4c3bef98addfc8a58a74e47873f896e738bbe15f781194ef69d51f96b5af869f",
+  "sourceFixRequiredProven": false,
+  "sourceMembers": 96,
+  "status": "CONSUMER_SPI_IMPORT_FAILURE_NO_RUNTIME",
+  "swiftVersion": "6.3.3",
+  "target": "wasm32-unknown-wasip1",
+  "timeUTC": "2026-11-16T23:32:32.927345+00:00",
+  "workflowWrites": false
+}

@@ -51,12 +51,12 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.21")
-    #expect(p.sdk_compatibility_sha256 == "1aff4a8c3b9c8b25f6457a0b43617ec19f9a34b7b678029859c4ae220d7076d6")
+    #expect(p.id == "mixer.android-source-pair.22")
+    #expect(p.sdk_compatibility_sha256 == "4534f96c51f0777112a07cfa8dec325def7279ac6a358ec0927edbfc0ebf11c2")
     #expect(p.adapter_compatibility_sha256 == "a076078c052649b425c1d6eff4103f35561e06caf7a316f58f6bf06a52377452")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 5338)
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02")
-    #expect(p.sdk_files.count == 24); #expect(p.adapter_files.count == 27)
+    #expect(p.sdk_files.count == 26); #expect(p.adapter_files.count == 27)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))
     let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
     let bytes = try UIAppearanceDescriptorCodecV2.canonicalData(value)
@@ -563,4 +563,67 @@ func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSour
     // If source admission is skipped, generic hashing reaches this sentinel.
     try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("Generated/MixerSDK/hash-order-sentinel"), withDestinationURL: root.appendingPathComponent("missing"))
     allAdmissionEntrypoints(root)
+}
+
+
+@Test func androidCompatibilityOptionalResolvedLockBindsExactBytesWithoutChangingLegacyProjection() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("sdk-lock-" + UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try copyCompatibilitySDK(to: root)
+    // Current Pair22 binds the genuine lock; exercise the unlocked projection explicitly.
+    try AndroidSDKCompatibility.admitSDK(root)
+    var original = AndroidSDKCompatibility.profile.sdk_files
+    original.removeValue(forKey: "Package.resolved")
+    try FileManager.default.removeItem(at: root.appendingPathComponent("Package.resolved"))
+    let unlockedDigest = "635b02c2b82f8330fa9f007474296b43167e6b26dbb0f978b33383931ad5976b"
+    #expect(try AndroidSDKCompatibility.sdkProjection(root, files: original) == unlockedDigest)
+    expectCompatibilityFailure { try AndroidSDKCompatibility.admitSDK(root) }
+    let lock = Data("{\"pins\":[],\"version\":3}\n".utf8)
+    try lock.write(to: root.appendingPathComponent("Package.resolved"))
+    var bound = original
+    bound["Package.resolved"] = .init(bytes: lock.count, sha256: SourceDigest.sha256(lock))
+    let projection = try AndroidSDKCompatibility.sdkProjection(root, files: bound)
+    #expect(projection != AndroidSDKCompatibility.profile.sdk_compatibility_sha256)
+    expectCompatibilityFailure { try AndroidSDKCompatibility.admitSDK(root) }
+    expectCompatibilityFailure { _ = try AndroidSDKCompatibility.sdkProjection(root, files: original) }
+    var changed = lock; changed[0] = 91
+    try changed.write(to: root.appendingPathComponent("Package.resolved"))
+    expectCompatibilityFailure { _ = try AndroidSDKCompatibility.sdkProjection(root, files: bound) }
+    try FileManager.default.removeItem(at: root.appendingPathComponent("Package.resolved"))
+    expectCompatibilityFailure { _ = try AndroidSDKCompatibility.sdkProjection(root, files: bound) }
+    #expect(try AndroidSDKCompatibility.sdkProjection(root, files: original) == unlockedDigest)
+}
+
+@Test(arguments: ["symlink", "directory", "fifo", "oversized", "case", "unicode", "prefix", "cache", "invalid-bound"])
+func androidCompatibilityOptionalResolvedLockRejectsUnsafeMetadata(_ change: String) throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("sdk-lock-guard-" + UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try copyCompatibilitySDK(to: root)
+    let lock = Data("{\"pins\":[],\"version\":3}\n".utf8)
+    let url = root.appendingPathComponent("Package.resolved")
+    try lock.write(to: url)
+    var bound = AndroidSDKCompatibility.profile.sdk_files
+    bound["Package.resolved"] = .init(bytes: lock.count, sha256: SourceDigest.sha256(lock))
+    switch change {
+    case "symlink":
+        let other = root.appendingPathComponent("ordinary-lock")
+        try FileManager.default.moveItem(at: url, to: other)
+        try FileManager.default.createSymbolicLink(at: url, withDestinationURL: other)
+    case "directory":
+        try FileManager.default.removeItem(at: url)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false)
+    case "fifo":
+        try FileManager.default.removeItem(at: url)
+        #expect(mkfifo(url.path, 0o600) == 0)
+    case "oversized": try Data(repeating: 32, count: 1_048_577).write(to: url)
+    case "case": try FileManager.default.moveItem(at: url, to: root.appendingPathComponent("package.resolved"))
+    case "unicode": try Data().write(to: root.appendingPathComponent("PaKkage.resolved"))
+    case "prefix": try Data().write(to: root.appendingPathComponent("Package.resolved.backup"))
+    case "cache":
+        try FileManager.default.removeItem(at: url)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false)
+        try Data().write(to: url.appendingPathComponent("cache"))
+    default: bound["Package.resolved"] = .init(bytes: 1_048_577, sha256: SourceDigest.sha256(lock))
+    }
+    expectCompatibilityFailure { _ = try AndroidSDKCompatibility.sdkProjection(root, files: bound) }
 }

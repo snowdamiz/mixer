@@ -1,9 +1,10 @@
 # Mixer Swift SDK development slice
 
 This package independently implements an initial W03/W04 slice. It is not a GA
-release, a complete UI inventory, or evidence of native/guest parity. It has no
-third-party package dependencies. Implementation uses Swift's standard library,
-Foundation, SwiftUI and the platform Swift Testing library.
+release, a complete UI inventory, or evidence of native/guest parity. The package
+depends on Swift Crypto 5.0.3. Its lockfile also pins the transitive Swift ASN.1
+dependency. Implementation uses Swift's standard library, Foundation, SwiftUI,
+and the platform Swift Testing library.
 
 The product plan's section 8.3 requires the same app design on iOS and Android,
 driven by a shared theme. The current authoring schema and Apple/Android controls
@@ -12,7 +13,7 @@ implementation gap. Platform-specific app appearance must be explicit. Native
 accessibility, navigation, text input and system-owned surfaces retain platform
 behavior. Side-by-side physical reference-screen review remains pending.
 
-The package uses Swift 6 language mode and declares iOS 17 and macOS 14 minima.
+The package uses Swift 6 language mode and declares iOS 26 and macOS 14 minima.
 The checked-in receipt records the actual toolchain used; declaring an OS minimum
 does not qualify every OS release or device in that range.
 
@@ -23,7 +24,43 @@ does not qualify every OS release or device in that range.
 | `MixerCore` | Main-actor `FeatureStore<State, Action>` reducers, named async effects, cancellation/replacement ownership, lifecycle state machine, host `ResourceRegistry` generation handles, schema-1 `NavigationState` restoration, bounded `JSONInputGuard`. |
 | `MixerUI` | Explicit-ID result builder, scalar Codable UI document, bounded strict decoder/validator, transactional reconciliation, stable node generations, current-owner event routing. |
 | `MixerApple` | `MixerUIHost` and `MixerNativeView` rendering validated nodes with native SwiftUI layout, text, button, toggle, text field, list, section and navigation-root controls. |
-| `MixerGuest` | The same owned UI document codec. It does not compile or execute a Swift Wasm guest. |
+| `MixerGuest` | Owned UI document codecs and exchange protocols, plus experimental `FeatureUIV3` SPI for host ownership of an explicitly supplied guest runtime. |
+| `MixerAndroid` | Native Android rendering bindings for `MixerUI` documents. |
+| `MixerCapabilities` | Host capability APIs and platform I/O adapters. |
+
+## Experimental FeatureUIV3 host integration
+
+`MixerGuest` exposes the experimental host API through
+`@_spi(FeatureUIV3) import MixerGuest`. The optional `native-sdk` package and its
+`MixerNativeBackend` product provide `NativeSwiftFeatureBackend` through
+`@_spi(FeatureUIV3) import MixerNativeBackend`. Lower-level wire and exchange
+types can also require `@_spi(GuestUIV1) import MixerGuest`.
+
+The default protocol remains V1. V2 remains unselected, and V3 requires explicit
+SPI imports and a reviewed development grant. This integration does not qualify
+a default released API, OTA publication, or GA.
+
+The host retains `SwiftFeatureOwnershipScope` before calling `mount`. The scope
+validates the packet digest, allowed UI kinds, and development execution profile
+before it calls the runtime factory's `acquire` method. `submit` either rejects
+the action or returns an action ticket. The ticket reports acknowledgment,
+rejection, cancellation before dispatch, or retirement. A changed presentation
+requires a `NativeDisplayAcknowledgement` accepted by its
+`NativePresentationRequest` before the exchange observes that presentation.
+
+`finish` returns a retirement ticket. Retirement rejects further actions,
+settles queued tickets, and consumes the backend after active work becomes
+quiescent. A clean close requires fourteen zero ledger currents, zero tickets,
+and zero invariant failures. An unresolved close retains its cleanup authority
+and requests `closeOwnedWindowAndHold`. The host must retain that result.
+Destruction does not consume or retry the backend.
+
+`native-sdk/Package.swift` names the package `MixerNativeBackend`. Its
+`CMixerVM` system library provides the C declarations, and its Swift target
+depends on `../sdk`. The consumer supplies an explicitly matching VM archive
+and library search path. This package does not build or download the archive,
+and the main SDK does not link Rust by default. The backend currently requires
+an explicitly qualified Darwin host.
 
 ## Author and present a screen
 

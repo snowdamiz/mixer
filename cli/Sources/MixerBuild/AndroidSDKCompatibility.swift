@@ -190,13 +190,17 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.21",
+          "id": "mixer.android-source-pair.22",
           "schema": 1,
-          "sdk_compatibility_sha256": "1aff4a8c3b9c8b25f6457a0b43617ec19f9a34b7b678029859c4ae220d7076d6",
+          "sdk_compatibility_sha256": "4534f96c51f0777112a07cfa8dec325def7279ac6a358ec0927edbfc0ebf11c2",
           "sdk_files": {
+            "Package.resolved": {
+              "bytes": 656,
+              "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+            },
             "Package.swift": {
-              "bytes": 1621,
-              "sha256": "425bd9c285a06a5ba524c98cfda8bd8c6c064975202fcd3625a4414677807c92"
+              "bytes": 1831,
+              "sha256": "4e43a0cdea1b4720b4549bd8aeab8a8244533fe944f657b010d3d0313aef2945"
             },
             "Sources/MixerAndroid/AndroidUIHost.swift": {
               "bytes": 14599,
@@ -274,13 +278,17 @@ enum AndroidSDKCompatibility {
               "bytes": 5196,
               "sha256": "5cc91fca4746ffb37d26e41e26796e41727405f2b308c850adb3fa6ba8862704"
             },
+            "Sources/MixerUI/NativePresentation.swift": {
+              "bytes": 1014,
+              "sha256": "500711a94addebc18401601610e3ef8d80e489c00f589795aee1a6d6ede7fe2d"
+            },
             "Sources/MixerUI/Protocol.swift": {
               "bytes": 9390,
               "sha256": "209302b05c2e9eae1a1db9b4b462ade13294cb25fce54bd38482b76aa2f11a11"
             },
             "Sources/MixerUI/Reconciliation.swift": {
-              "bytes": 7006,
-              "sha256": "7f2cc7f845a45fcbd764dbf1fb00c48907811874a93ac2e48f05f0d005e59011"
+              "bytes": 9174,
+              "sha256": "3980a1aa9fca0a6cb9da48ee693b2ab2acae4013cafe6dfab2bb20dcfa427ae0"
             },
             "Sources/MixerUI/SharedTextProfilesV1.swift": {
               "bytes": 3644,
@@ -370,16 +378,22 @@ enum AndroidSDKCompatibility {
             else { try closed(root, item, files: files) }
         }
     }
-    private static func sdkLayout(_ root: URL) throws {
+    private static func sdkLayout(_ root: URL, files: [String: AndroidSDKSourceIdentity] = profile.sdk_files) throws {
         let names = try entries(root)
         // Reject all non-ASCII names BEFORE any case transformation/classification,
         // entry following, copying or hashing (including unrelated Unicode names).
         guard names.allSatisfy({ $0.utf8.allSatisfy { $0 < 128 } }) else { throw failure("Non-ASCII SDK-root entry name") }
         for name in names where name.lowercased().hasPrefix("package") {
-            guard name == "Package.swift" else { throw failure("Reserved SDK manifest namespace \(name)") }
+            guard name == "Package.swift" || name == "Package.resolved" else { throw failure("Reserved SDK manifest namespace \(name)") }
         }
-        _ = try path(root, "Package.swift", identity: profile.sdk_files["Package.swift"]!)
-        for target in ["Sources/MixerCore", "Sources/MixerUI", "Sources/MixerAndroid"] { try closed(root, target, files: profile.sdk_files) }
+        guard names.contains("Package.resolved") == (files["Package.resolved"] != nil) else { throw failure("SDK dependency lock presence differs from binding") }
+        if let lock = files["Package.resolved"] {
+            guard (1...1_048_576).contains(lock.bytes) else { throw failure("SDK dependency lock exceeds metadata bound") }
+            _ = try path(root, "Package.resolved", identity: lock)
+        }
+        guard let manifest = files["Package.swift"] else { throw failure("Missing SDK manifest binding") }
+        _ = try path(root, "Package.swift", identity: manifest)
+        for target in ["Sources/MixerCore", "Sources/MixerUI", "Sources/MixerAndroid"] { try closed(root, target, files: files) }
     }
     // Canonical-only optional inputs. These identities are deliberately excluded
     // from the serialized product profile, projection, export and generated tree.
@@ -433,9 +447,14 @@ enum AndroidSDKCompatibility {
         }
         return SourceDigest.sha256(records)
     }
+    // Internal projection primitive. Installed admission always supplies the
+    // compiled profile below; callers cannot select a replacement profile.
+    static func sdkProjection(_ root: URL, files: [String: AndroidSDKSourceIdentity]) throws -> String {
+        try sdkLayout(root, files: files)
+        return try map(root, files)
+    }
     static func admitSDK(_ root: URL) throws {
-        try sdkLayout(root)
-        guard try map(root, profile.sdk_files) == profile.sdk_compatibility_sha256 else { throw failure("SDK projection digest") }
+        guard try sdkProjection(root, files: profile.sdk_files) == profile.sdk_compatibility_sha256 else { throw failure("SDK projection digest") }
     }
     static func admitInput(sdk: URL, adapter: URL) throws {
         // Finish both layouts, including sizes, before required-source content reads.

@@ -101,9 +101,9 @@ def load_profile(root=ROOT):
     text = (root / POLICY).read_text()
     require(text.count('Data(#"""\n') == 1, 'Ambiguous canonical source policy')
     profile = unique_json(text.split('Data(#"""\n', 1)[1].split('\n        """#.utf8)', 1)[0])
-    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.21',
+    require(profile['schema'] == 1 and profile['id'] == 'mixer.android-source-pair.22',
             'Unsupported canonical source pair')
-    for kind, count in (('sdk', 24), ('adapter', 27)):
+    for kind, count in (('sdk', 26), ('adapter', 27)):
         files = profile[kind + '_files']
         require(len(files) == count and source_digest(files) == profile[kind + '_compatibility_sha256'],
                 'Canonical projection differs: ' + kind)
@@ -1003,6 +1003,34 @@ def source_inputs(profile):
     for package in ('cli', 'sdk', 'updates'):
         paths.update(str(p.relative_to(ROOT)) for p in (ROOT / package / 'Sources').rglob('*') if p.is_file())
         paths.update(str(p.relative_to(ROOT)) for p in (ROOT / package).glob('Package.*') if p.is_file())
+    native = ROOT / 'native-sdk'
+    aliases = [p.name for p in ROOT.iterdir() if p.name.casefold() == 'native-sdk']
+    require(not aliases or aliases == ['native-sdk'], 'Aliased optional native-sdk root')
+    if aliases:
+        shipping = {
+            'Package.swift',
+            'Sources/CMixerVM/mixer_vm.h',
+            'Sources/CMixerVM/module.modulemap',
+            'Sources/MixerNativeBackend/NativeSwiftFeatureBackend.swift',
+        }
+        directories = {'': {'Package.swift', 'Sources'},
+                       'Sources': {'CMixerVM', 'MixerNativeBackend'},
+                       'Sources/CMixerVM': {'mixer_vm.h', 'module.modulemap'},
+                       'Sources/MixerNativeBackend': {'NativeSwiftFeatureBackend.swift'}}
+        for relative, names in directories.items():
+            directory = native / relative
+            require(stat.S_ISDIR(directory.lstat().st_mode), 'Expected ordinary native-sdk directory: ' + relative)
+            require({p.name for p in directory.iterdir()} == names, 'Unexpected or missing native-sdk inventory: ' + relative)
+        seen = set()
+        for relative in sorted(shipping):
+            member = native / relative
+            metadata = member.lstat()
+            require(stat.S_ISREG(metadata.st_mode) and metadata.st_nlink == 1,
+                    'Expected unaliased ordinary native-sdk file: ' + relative)
+            key = (metadata.st_dev, metadata.st_ino)
+            require(key not in seen, 'Aliased native-sdk member: ' + relative)
+            seen.add(key)
+            paths.add('native-sdk/' + relative)
     for p in profile['adapter_files']:
         paths.add('native/android/' + ('engine/' if p.startswith('Sources/') else '') + p)
     return {p: identity(ROOT / p) for p in sorted(paths)}
