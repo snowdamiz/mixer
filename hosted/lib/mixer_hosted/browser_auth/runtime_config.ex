@@ -32,7 +32,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
   @browser_keys ~w(MIXER_BROWSER_AUTH_MODE MIXER_BROWSER_AUTH_CONFIG)
 
   @doc "Constructs disabled settings or one bounded dedicated lifecycle connection policy."
-  def new(browser_env, %HostedConfig{} = hosted, lifecycle, custody) do
+  def new(browser_env, %HostedConfig{} = hosted, lifecycle, custody) when is_map(browser_env) do
     {binding, browser_env} = Map.pop(browser_env, @workspace_binding, "legacy")
 
     with true <- exact_map?(hosted, [:__struct__ | @hosted_keys]),
@@ -129,7 +129,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
 
   defp custody(_, _), do: @error
 
-  defp browser_env?(env) when is_map(env) do
+  defp browser_env?(env) do
     Enum.all?(Map.keys(env), &(&1 in @browser_keys)) and
       case Map.get(env, "MIXER_BROWSER_AUTH_MODE", "disabled") do
         "disabled" -> not Map.has_key?(env, "MIXER_BROWSER_AUTH_CONFIG")
@@ -137,8 +137,6 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
         _ -> false
       end
   end
-
-  defp browser_env?(_), do: false
 
   defp create_connections(%HostedConfig{create_repo: nil}), do: 0
   defp create_connections(%HostedConfig{}), do: 2
