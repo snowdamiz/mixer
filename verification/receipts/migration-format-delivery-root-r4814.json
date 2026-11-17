@@ -1,0 +1,289 @@
+{
+  "schema": "mixer.development-delivery.v1",
+  "recordedAt": "2026-11-17T07:51:32.817129+00:00",
+  "status": "DELIVERED_MAIN_NEW_HEAD_CI_IN_PROGRESS",
+  "remote": "snowdamiz/mixer:main",
+  "head": "8880dc3798b5b04a678d4c8596e575978f0cf521",
+  "parent": "f334cfe0e65b729e83049df90de0e945d9889a57",
+  "source347": "0f8f425a82b60aef0c27bb558f3c874ae04d567c0bbee68dae715c4f3fd5cbd4",
+  "production141": "572fe981d915c1b0b518cba5851fc77b07382fef9a54243845455301dbcd650b",
+  "adoptionReceipt": "verification/receipts/migration-format-root-adoption-r4812.json",
+  "qualification": {
+    "normal": 312,
+    "actualOptimized": 312,
+    "normalAdmissionSteps": 14,
+    "optimizedAdmissionSteps": 14,
+    "ASTAndLiteralsUnchanged": true
+  },
+  "stage": {
+    "paths": 21,
+    "trackedVerificationFiles": 48484,
+    "trackedVerificationBytes": 934720876,
+    "retentionPassed": true,
+    "whitespacePassed": true,
+    "protectedPinsUnchanged": true,
+    "GARecordsUnchanged": true
+  },
+  "priorHeadEngineJobs": [
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133878410311,
+      "name": "swift-runner-controls",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133878410627,
+      "name": "swift-host",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133878410636,
+      "name": "vm",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133878410684,
+      "name": "services",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133878410700,
+      "name": "android-owner-host",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133878410756,
+      "name": "swift-capability-native",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133878410774,
+      "name": "swift-cache-state-fixture",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133878410784,
+      "name": "android-generated-java",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "failedSteps": [],
+      "id": 133883903494,
+      "name": "swift",
+      "status": "completed"
+    }
+  ],
+  "newHeadRuns": [
+    {
+      "conclusion": null,
+      "head_sha": "8880dc3798b5b04a678d4c8596e575978f0cf521",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/44040646195",
+      "id": 44040646195,
+      "name": "Phoenix foundation checks",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "8880dc3798b5b04a678d4c8596e575978f0cf521",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/44040646318",
+      "id": 44040646318,
+      "name": "Isolated identity network checks",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": null,
+      "head_sha": "8880dc3798b5b04a678d4c8596e575978f0cf521",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/44040646179",
+      "id": 44040646179,
+      "name": "Owned engine checks",
+      "status": "in_progress"
+    },
+    {
+      "conclusion": "success",
+      "head_sha": "8880dc3798b5b04a678d4c8596e575978f0cf521",
+      "html_url": "https://github.com/snowdamiz/mixer/actions/runs/44040646250",
+      "id": 44040646250,
+      "name": "Verification artifact retention",
+      "status": "completed"
+    }
+  ],
+  "custody": {
+    "r4814-verify-exact-staged-cohort": {
+      "label": "r4814-verify-exact-staged-cohort",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json,hashlib; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); b=r/\"verification/local/migration-format-current347-r4790\"; expected=json.loads((b/\"root-stage-pins.json\").read_bytes()); raw=(r/\"verification/local/continuation-root-r2332/commands/r4814-staged-index-raw/r4814-staged-index-raw.stdout\").read_bytes(); rows=raw.split(b\"\\0\"); assert rows.pop()==b\"\" and len(rows)%2==0; paths={};\nfor i in range(0,len(rows),2):\n h=rows[i].decode().split(); n=rows[i+1].decode(); a=(r/n).read_bytes(); assert {\"bytes\":len(a),\"sha256\":hashlib.sha256(a).hexdigest()}==expected[n]; assert h[3]==hashlib.sha1(b\"blob \"+str(len(a)).encode()+b\"\\0\"+a).hexdigest(); assert h[1]==\"100644\" and h[4] in [\"A\",\"M\"]; paths[n]={\"mode\":h[1],\"oid\":h[3],\"status\":h[4]}\nassert set(paths)==set(expected) and len(paths)==21\nfor n,sha in {\"verification/receipts/customer-create-authz-policy-order-r2468.json\":\"e3b25210045bf1d09fdb071eb04a1ffc6944986fb8327c2e555ebef7b4d29445\",\"verification/receipts/fieldlog-unix-runner-r2866.json\":\"5bc1748ee198d8edec58738dd4ee9861b4e1e866c9aded047137e3813f18b988\",\"verification/receipts/public-sdk-native-successor-root-r4306.json\":\"11e996b7a383d0b2a402dec20df4436877b1e39a7e75514bb50a2053b3edbf6a\"}.items(): assert n not in paths and hashlib.sha256((r/n).read_bytes()).hexdigest()==sha\nold=json.loads((r/\"verification/local/development-checkpoint-root-r4712/head-ga.json\").read_bytes())[\"gates\"]; assert json.loads((r/\"gates/ga.json\").read_bytes())[\"gates\"]==old\n(b/\"root-staged-proof.json\").write_text(json.dumps({\"paths\":paths,\"verificationTrackedFiles\":48484,\"verificationTrackedBytes\":934720876,\"protectedPinsUnchanged\":True,\"GARecordsUnchanged\":True},indent=2)+\"\\n\"); print(\"All21 exact staged paths/blobs verified; protected receipts and38GA records unchanged.\")"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 80623,
+      "pgid": 80623,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.0507530418690294,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4814-commit-formatting-current347": {
+      "label": "r4814-commit-formatting-current347",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "commit",
+        "-m",
+        "Format reviewed migration assertions and refresh source347 binding"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 80631,
+      "pgid": 80631,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.18212987505830824,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4814-prepush-remote": {
+      "label": "r4814-prepush-remote",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 82523,
+      "pgid": 82523,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.19073216593824327,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4814-push-formatting-current347": {
+      "label": "r4814-push-formatting-current347",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "push",
+        "origin",
+        "HEAD:refs/heads/main"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 82571,
+      "pgid": 82571,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 3.485071958042681,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4814-verify-main-delivery": {
+      "label": "r4814-verify-main-delivery",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 90119,
+      "pgid": 90119,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.19874804187566042,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4814-new-head-ci": {
+      "label": "r4814-new-head-ci",
+      "argv": [
+        "/opt/homebrew/bin/gh",
+        "api",
+        "repos/snowdamiz/mixer/actions/runs?head_sha=8880dc3798b5b04a678d4c8596e575978f0cf521&per_page=10",
+        "--jq",
+        ".workflow_runs | map({id,name,status,conclusion,head_sha,html_url})"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 90120,
+      "pgid": 90120,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.43625500006601214,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4814-retention-staged": {
+      "label": "r4814-retention-staged",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/scripts/check-verification-artifacts.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 77693,
+      "pgid": 77693,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.49386691697873175,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4814-check-staged-whitespace": {
+      "label": "r4814-check-staged-whitespace",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 77692,
+      "pgid": 77692,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.05934408400207758,
+      "ownedGroupAbsentESRCH": true
+    }
+  },
+  "mergePerformed": false,
+  "holdsReleased": false,
+  "runtimeOrGAAdmission": false,
+  "metadataFailurePreserved": {
+    "label": "r4820-record-delivery-and-export",
+    "reason": "The checkpoint writer found two historical footer matches; it stopped before editing the documents. Product/export evidence was already recorded. Exact group closure is positive."
+  }
+}

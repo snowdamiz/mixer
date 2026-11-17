@@ -1,0 +1,80 @@
+{
+  "schema": "mixer.development-export-control.v1",
+  "recordedAt": "2026-11-17T07:51:32.817768+00:00",
+  "status": "SHIPPING_EXPORT_PASSED_STANDALONE_BUILD_PENDING",
+  "CLI": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/source141-pair22-ordinary-r4384/build-cli/debug/mixer",
+    "sha256": "00da105e8b4cc20ebe7ffc4cc6938e1432f8ed1653600f0c135eee19c4e949a7"
+  },
+  "input": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/export-direct-root-r4820/input",
+  "export": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/export-direct-root-r4820/exported",
+  "files": 107,
+  "allSourceSDKLockBytesAndModesRetained": true,
+  "relativeSDKDependency": "Generated/MixerSDK",
+  "sourceDigestReported": "c78b15997ee0da69992b654196514519ac9da7ed2c9ede96bea034772ab3b5fd",
+  "rootPackageResolvedInitiallyPresent": false,
+  "exportedSDKPackageResolvedSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+  "commands": {
+    "r4820-prepare-direct-export": {
+      "label": "r4820-prepare-direct-export",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json,hashlib,shutil; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); src=r/\"verification/local/export-standalone-rebuild-r4800/original-private\"; b=r/\"verification/local/export-direct-root-r4820\"; assert not b.exists(); cli=r/\"verification/local/source141-pair22-ordinary-r4384/build-cli/debug/mixer\"; assert hashlib.sha256(cli.read_bytes()).hexdigest()==\"00da105e8b4cc20ebe7ffc4cc6938e1432f8ed1653600f0c135eee19c4e949a7\";\ndef inventory(root):\n out={}\n for p in sorted(root.rglob(\"*\")):\n  assert not p.is_symlink(),str(p)\n  if p.is_file():\n   raw=p.read_bytes(); out[str(p.relative_to(root))]={\"bytes\":len(raw),\"sha256\":hashlib.sha256(raw).hexdigest(),\"mode\":p.stat().st_mode&511}\n assert len(out)<=512\n return out\nbefore=inventory(src); assert len(before)==107; assert \"Package.swift\" in before and \"mixer.lock\" in before; assert all(\".build\" not in Path(n).parts and \".git\" not in Path(n).parts for n in before); b.mkdir(); shutil.copytree(src,b/\"input\"); assert inventory(b/\"input\")==before; assert not (b/\"exported\").exists(); (b/\"input-manifest.json\").write_text(json.dumps(before,indent=2)+\"\\n\"); (b/\"CONTRACT.json\").write_text(json.dumps({\"test\":\"PUBLIC_EXPORT_STANDALONE_REBUILD_ONCE\",\"original\":str(src),\"ownedInput\":str(b/\"input\"),\"destination\":str(b/\"exported\"),\"files\":len(before),\"CLI\":str(cli),\"sourceSnapshotCopiedExactly\":True,\"exportConsumed\":False,\"buildConsumed\":False,\"scope\":\"host development prerequisite, not FieldLog independent CI/launch or W15 acceptance\",\"retainedR4800BannerFailure\":\"Preserved; exact compiler bytes match; no repeated banner assertion.\"},indent=2)+\"\\n\"); print(\"Prepared fresh107-file exact private input; export destination absent. Shipping CLI pin verified.\")"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 90095,
+      "pgid": 90095,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.08221633289940655,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4820-actual-shipping-export": {
+      "label": "r4820-actual-shipping-export",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/source141-pair22-ordinary-r4384/build-cli/debug/mixer",
+        "export",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/export-direct-root-r4820/exported",
+        "--directory",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/export-direct-root-r4820/input"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 90103,
+      "pgid": 90103,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.5020733750425279,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4820-export-input-independence": {
+      "label": "r4820-export-input-independence",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json,hashlib; r=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); b=r/\"verification/local/export-direct-root-r4820\"; original=json.loads((b/\"input-manifest.json\").read_bytes()); a={};\nfor p in sorted((b/\"exported\").rglob(\"*\")):\n assert not p.is_symlink()\n if p.is_file():\n  raw=p.read_bytes(); a[str(p.relative_to(b/\"exported\"))]={\"bytes\":len(raw),\"sha256\":hashlib.sha256(raw).hexdigest(),\"mode\":p.stat().st_mode&511}\nassert a==original; package=(b/\"exported/Package.swift\").read_text(); assert \".package(path: \\\"Generated/MixerSDK\\\")\" in package and str(b/\"input\") not in package; lock=b/\"exported/Generated/MixerSDK/Package.resolved\"; print(\"Exported\",len(a),\"files: exact source/SDK/lock bytes and modes; generated package points to its own relative SDK.\"); print(\"Root lock present\",(b/\"exported/Package.resolved\").exists(),\"SDK lock\",lock.stat().st_size,hashlib.sha256(lock.read_bytes()).hexdigest()); (b/\"export-manifest.json\").write_text(json.dumps(a,indent=2)+\"\\n\"); print(\"Private SDK dependencies\"); print((b/\"exported/Generated/MixerSDK/Package.swift\").read_text()[:1600])"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 91132,
+      "pgid": 91132,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04330425010994077,
+      "ownedGroupAbsentESRCH": true
+    }
+  },
+  "nestedSwiftVersionPIDFacts": "UNEXPOSED: direct export did not set a ProcessRunner receipt destination. Outer CLI closure is recorded separately; no inner absence inference.",
+  "priorR4800FailurePreserved": "Overly strict compiler banner assertion; no engine defect proven. Its unintended shared .build resolution writes remain untouched.",
+  "nextTask": "R4826 actual exported package host rebuild",
+  "VMNativeGUIHTTPOrPGExecuted": false,
+  "W15FieldLogIndependentCILaunchOrGAAccepted": false,
+  "holdsReleased": false
+}
