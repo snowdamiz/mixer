@@ -154,7 +154,8 @@ class SparseControls(unittest.TestCase):
     def test_current_source_count_and_digest_are_independent_of_runtime_pins(self):
         from unittest.mock import patch
         authority = B.canonical()
-        inputs = authority.source_inputs(authority.load_profile())
+        profile = authority.load_profile()
+        inputs = authority.source_inputs(profile)
         self.assert_current_source(authority, inputs)
         binding = json.loads((B.ROOT / current_module.BINDING).read_bytes())
         with tempfile.TemporaryDirectory(dir=HERE) as td:
@@ -178,14 +179,15 @@ class SparseControls(unittest.TestCase):
                 self.assert_current_source(authority, future, root)
                 with patch.object(authority, 'source_inputs', return_value=future):
                     with self.assertRaisesRegex(RuntimeError, 'owning inputs'):
-                        B.admit_source_inputs(authority, {})
-                    with patch.object(B, 'SOURCE_INPUT_COUNT', len(future)), \
-                         patch.object(B, 'SOURCE_INPUT_SHA256', expected['sha256']):
-                        admitted = B.admit_source_inputs(authority, {})
-                        # Matching runtime constants cannot bless a stale binding.
+                        B.admit_source_inputs(authority, profile)
+                    with patch.object(B, 'SOURCE_INPUT_COUNT', len(future), create=True), \
+                         patch.object(B, 'SOURCE_INPUT_SHA256', expected['sha256'], create=True):
+                        # Matching runtime constants cannot bless a foreign map.
+                        with self.assertRaisesRegex(RuntimeError, 'owning inputs'):
+                            B.admit_source_inputs(authority, profile)
                         path.write_text(json.dumps({'source': binding['source']}))
                         with self.assertRaises(AssertionError):
-                            self.assert_current_source(authority, admitted, root)
+                            self.assert_current_source(authority, future, root)
                 path.write_text(json.dumps({'source': dict(expected, sha256='0' * 64)}))
                 with self.assertRaises(AssertionError):
                     self.assert_current_source(authority, future, root)
@@ -322,20 +324,26 @@ class SparseControls(unittest.TestCase):
 
     def test_missing_or_changed_owning_input_fails_closed(self):
         a = B.canonical()
-        inputs = a.source_inputs(a.load_profile())
+        profile = a.load_profile()
+        inputs = a.source_inputs(profile)
         for missing in ('cli/Package.swift', 'scripts/ci/check-android-binding.py'):
             altered = dict(inputs)
             del altered[missing]
             with patch.object(a, 'source_inputs', return_value=altered), self.assertRaisesRegex(RuntimeError, 'owning inputs'):
-                B.admit_source_inputs(a, {})
+                B.admit_source_inputs(a, profile)
         altered = dict(inputs)
         altered['cli/Package.swift'] = {'bytes': 1, 'sha256': '0' * 64}
         with patch.object(a, 'source_inputs', return_value=altered), self.assertRaisesRegex(RuntimeError, 'owning inputs'):
-            B.admit_source_inputs(a, {})
+            B.admit_source_inputs(a, profile)
 
     def test_missing_file_error_propagates(self):
-        with self.assertRaises(FileNotFoundError):
-            B.admit_source_inputs(Mock(source_inputs=Mock(side_effect=FileNotFoundError('missing owning file'))), {})
+        authority = B.canonical()
+        profile = authority.load_profile()
+        with patch.object(authority, 'source_inputs',
+                          side_effect=FileNotFoundError('missing owning file')) as collect:
+            with self.assertRaisesRegex(FileNotFoundError, 'missing owning file'):
+                B.admit_source_inputs(authority, profile)
+        collect.assert_called_once_with(profile)
 
     def test_disk_boundary_observation_survives_refusal(self):
         for free in (B.MINIMUM_FREE_BYTES - 1, B.MINIMUM_FREE_BYTES, B.MINIMUM_FREE_BYTES + 1):
