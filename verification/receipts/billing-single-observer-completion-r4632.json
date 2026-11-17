@@ -1,0 +1,465 @@
+{
+  "campaign": "R4632",
+  "status": "PASS_REVIEW_PENDING",
+  "namedTest": "OBSERVER_SELF_ACCOUNTING_AND_GENUINE_BILLING_SHUTDOWN",
+  "scope": "One fresh local PostgreSQL fixture and one BEAM batch; shipping billing startup and shutdown; unchanged source347/166src/267BEAM/1823 dependency+lock inputs",
+  "source347Digest": "e13e813bffa3c8832938186ed7919fa2383ac3a833ee3c00c5afd0edcb3c9abe",
+  "source347Rows": 347,
+  "sourceCount": 166,
+  "loadedBeamCount": 267,
+  "dependencyFiles": 1823,
+  "shippingMigrations": 14,
+  "changedPins": [],
+  "actualLoadedPathObjectBytesMD5CompileSourceVerified": true,
+  "offlineHarnessCompiledBeforePG": true,
+  "observerCounterexample": {
+    "pool2": {
+      "rows": [
+        [
+          56681,
+          "r4632-observer-two",
+          "2026-11-17 04:49:46.502548+00",
+          "active"
+        ],
+        [
+          56682,
+          "r4632-observer-two",
+          "2026-11-17 04:49:46.503361+00",
+          "idle"
+        ]
+      ],
+      "applicationName": "r4632-observer-two",
+      "poolSize": 2,
+      "legacySQL": "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid()",
+      "legacyRows": [
+        [
+          1
+        ]
+      ],
+      "declaredNegativeExpected": [
+        [
+          1
+        ]
+      ],
+      "historicalCauseProven": false,
+      "readinessObservations": 1,
+      "readinessElapsedMs": 33
+    },
+    "pool1": {
+      "rows": [
+        [
+          56685,
+          "r4632-observer-one",
+          "2026-11-17 04:49:46.52407+00",
+          "active"
+        ]
+      ],
+      "expected": [
+        [
+          0
+        ]
+      ],
+      "applicationName": "r4632-observer-one",
+      "poolSize": 1,
+      "legacySQL": "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid()",
+      "legacyRows": [
+        [
+          0
+        ]
+      ]
+    },
+    "readinessBudget": {
+      "observations": 8,
+      "milliseconds": 2000
+    },
+    "capturedColumns": [
+      "pid",
+      "application_name",
+      "backend_start",
+      "state"
+    ],
+    "beforeGenuineStartup": true,
+    "sameFreshDatabase": true,
+    "plannedNonzeroIsDeclaredNegative": true,
+    "historicalR4616CauseProven": false
+  },
+  "cleanupObserver": {
+    "expected": [
+      [
+        0
+      ]
+    ],
+    "poolSize": 1,
+    "legacyRows": [
+      [
+        0
+      ]
+    ],
+    "activityRows": [
+      [
+        56716,
+        "",
+        "2026-11-17 04:49:48.139434+00",
+        "active"
+      ]
+    ]
+  },
+  "counts": {
+    "maskCases": 8,
+    "maskSuccess": 1,
+    "maskDeclared42501": 7,
+    "assertionsPassed": 42,
+    "assertionsFailed": 0,
+    "assertionsSkipped": 0,
+    "bodyAssertionsUnrun": 0,
+    "unchangedOtherAssertionBodies": 41,
+    "PGstarts": 1,
+    "PGfastStops": 1,
+    "BEAMbatches": 1,
+    "productCompiles": 0,
+    "MixRebuilds": 0,
+    "TypeScript": 0,
+    "runtimeRetries": 0,
+    "jobs": 0,
+    "jobAttempts": 0,
+    "providerActions": 0,
+    "financialActions": 0
+  },
+  "masks": [
+    {
+      "mask": 5,
+      "select": [
+        "organization_id",
+        "revision"
+      ],
+      "outcome": "42501",
+      "sqlstate": "42501"
+    },
+    {
+      "mask": 0,
+      "select": [],
+      "outcome": "42501",
+      "sqlstate": "42501"
+    },
+    {
+      "mask": 1,
+      "select": [
+        "organization_id"
+      ],
+      "outcome": "42501",
+      "sqlstate": "42501"
+    },
+    {
+      "mask": 2,
+      "select": [
+        "active"
+      ],
+      "outcome": "42501",
+      "sqlstate": "42501"
+    },
+    {
+      "mask": 3,
+      "select": [
+        "organization_id",
+        "active"
+      ],
+      "outcome": "42501",
+      "sqlstate": "42501"
+    },
+    {
+      "mask": 4,
+      "select": [
+        "revision"
+      ],
+      "outcome": "42501",
+      "sqlstate": "42501"
+    },
+    {
+      "mask": 6,
+      "select": [
+        "active",
+        "revision"
+      ],
+      "outcome": "42501",
+      "sqlstate": "42501"
+    },
+    {
+      "mask": 7,
+      "select": [
+        "organization_id",
+        "active",
+        "revision"
+      ],
+      "outcome": "PASS_INSERT_UPDATE_DELETE",
+      "sqlstate": "00000"
+    }
+  ],
+  "minimalSuccessfulMask": 7,
+  "minimalSELECT": [
+    "organization_id",
+    "active",
+    "revision"
+  ],
+  "passedAssertions": [
+    "actual14_migrations",
+    "projection_security_invoker",
+    "column_SELECT_premise_proven",
+    "foreign_writer_still_refused",
+    "minimal_mask_insert_projects",
+    "minimal_mask_delete_projects",
+    "human_RLS_and_policies_unchanged",
+    "processor_no_grants_refused_real_SQL",
+    "processor_exact_matrix_admitted",
+    "processor_cannot_read_human_profiles",
+    "foreign_processor_exact_grants_refused",
+    "PUBLIC_table_excess_refused",
+    "PUBLIC_table_excess_matrix_restored",
+    "PUBLIC_column_excess_refused",
+    "PUBLIC_column_excess_matrix_restored",
+    "missing_required_column_refused",
+    "missing_required_column_matrix_restored",
+    "table_UPDATE_excess_refused",
+    "table_UPDATE_excess_matrix_restored",
+    "grant_option_refused",
+    "grant_option_matrix_restored",
+    "schema_CREATE_refused",
+    "schema_CREATE_matrix_restored",
+    "database_CREATE_refused",
+    "database_CREATE_matrix_restored",
+    "membership_refused",
+    "membership_matrix_restored",
+    "typed_profile_exact_children",
+    "default_API_billing_disabled",
+    "environment_alone_does_not_install",
+    "shipping_subtree_admitted_and_installed",
+    "exact_three_children_running",
+    "actual_Repo_after_connect_identity",
+    "normal_empty_billing_queue_started",
+    "billing_queue_paused",
+    "jobs0_attempts0",
+    "supervised_child_ownership",
+    "subtree_closed_profile_cleared",
+    "human_RLS_still_unchanged",
+    "database_sessions_closed",
+    "application_env_restored",
+    "no_full_application_or_Phoenix_started"
+  ],
+  "startup": {
+    "actualChildren": [
+      "MixerHosted.Repo",
+      "MixerHosted.Billing.ProcessorAdmission",
+      "Oban"
+    ],
+    "realAdmissionPositiveAndNegative": true,
+    "actualRepoAfterConnectIdentity": true,
+    "queueStartedThenPaused": true,
+    "zeroJobsAndAttempts": true,
+    "subtreeStoppedProfileCleared": true,
+    "applicationEnvRestored": true,
+    "fullProductApplicationAndPhoenixNotStarted": true
+  },
+  "harnessDelta": {
+    "file": "minimal-harness.delta",
+    "pin": {
+      "bytes": 5180,
+      "sha256": "1a8b8e52c61858bcc3f4685fa6f4c044797adc6c122f7d121c42feacb83b719b"
+    },
+    "proof": "harness-delta-proof.json",
+    "preservedOtherCheckBodies": 41,
+    "changedCheck": "database_sessions_closed inspector pool_size=1; exact legacy SQL and expected[[0]] retained; raw activity and count rows saved before assertion",
+    "newPlatformControl": "pool_size2 counts its other tagged connection; independent pool_size1 sees itself only and returns zero"
+  },
+  "beamCleanup": {
+    "envRestored": true,
+    "namedServicesAbsent": true,
+    "installedProfile": null
+  },
+  "custody": {
+    "status": "CLOSED",
+    "children": [
+      {
+        "label": "beam",
+        "pid": 56624,
+        "pgid": 56624,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "postgres",
+        "pid": 56667,
+        "pgid": 56667,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      }
+    ],
+    "commands": [
+      {
+        "label": "postgres-version",
+        "pid": 56656,
+        "pgid": 56656,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "initdb",
+        "pid": 56657,
+        "pgid": 56657,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "pg-identity",
+        "pid": 56675,
+        "pgid": 56675,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "createdb",
+        "pid": 56677,
+        "pgid": 56677,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      },
+      {
+        "label": "postgres-fast-stop",
+        "pid": 56718,
+        "pgid": 56718,
+        "exitCode": 0,
+        "bothEOF": true,
+        "closedFDs": true,
+        "ownedGroupAbsentESRCH": true
+      }
+    ],
+    "driverOuter": {
+      "label": "execute-r4632",
+      "pid": 56623,
+      "pgid": 56623,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    "finalizerExcludedFromItsOwnClosure": true,
+    "separateTerminalReadbackPending": false,
+    "portsReusable": [
+      41900,
+      41901,
+      41902
+    ],
+    "ownedSocketRemoved": true,
+    "finalizerTerminalReadback": {
+      "label": "finalize-r4632",
+      "pid": 63026,
+      "pgid": 63026,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    }
+  },
+  "bounds": {
+    "setupLimitSeconds": 300,
+    "totalLimitSeconds": 1200,
+    "setupSeconds": 213.63161945343018,
+    "runtimeSeconds": 3.3129758330760524,
+    "elapsedAtFinalizationSeconds": 340.77560472488403,
+    "preparationCorrections": 2,
+    "preparationNotes": [
+      "optional CONTRACT.md absent; actual Root CONTRACT.json read",
+      "static check sites30 expand to42 executed checks; preparation assertion corrected before any BEAM/PG"
+    ],
+    "elapsedAtTerminalReadbackSeconds": 347.35001158714294
+  },
+  "tools": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgresActualVersion": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "pathsPins": {
+      "elixir": {
+        "path": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "bytes": 6658,
+        "sha256": "5cb23d89a78f75589b06fade3097e217b77e63416d61c1800f674579748c4307"
+      },
+      "erl": {
+        "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/bin/erl",
+        "bytes": 1441,
+        "sha256": "ef68f389ca08a7984d2cfbf9beedc44a111cf42215f77d020c3868a9a6ef88f1"
+      },
+      "postgres": {
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "bytes": 8813760,
+        "sha256": "9d1930da02e11e446b42f9d79cf2e6bce307a6decb6a089591f8726d0f49b6f2"
+      },
+      "initdb": {
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "bytes": 197152,
+        "sha256": "0b6e460ed82fabebd4d42bdf85ebbf7ff1922ebad20ef349930a9b0fd2bfffb6"
+      },
+      "pg_ctl": {
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "bytes": 99008,
+        "sha256": "e35b9b7312ac500b2943eced2952f3836e606860c04f057380719855b9833cf3"
+      },
+      "psql": {
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "bytes": 715520,
+        "sha256": "489412cf78f2745d95a5cf5778b6d2731406e98529ff32964007140135011557"
+      },
+      "createdb": {
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/createdb",
+        "bytes": 120080,
+        "sha256": "63fca3b83c3f9c2904f4d188afd2d65f6f242003b6e3d12484ac4924b811ae03"
+      }
+    }
+  },
+  "evidence": {
+    "local": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-single-observer-completion-r4632",
+    "rawBEAMStdout": "run/beam.stdout",
+    "rawBEAMStderr": "run/beam.stderr",
+    "rawPostgreSQLStderr": "run/postgres.stderr",
+    "matrix": "matrix-results.json",
+    "actualRolesFunctionTrigger": "actual-trigger.json",
+    "supervision": "supervision.json",
+    "beforeAfterPins": "source-cache-terminal-pins.json",
+    "offlineCompile": "offline-ready.json",
+    "readiness": "observer-readiness.json"
+  },
+  "independentReview": {
+    "status": "PENDING_ROOT_COORDINATION",
+    "required": "One independent changed-observer and evidence review",
+    "childrenStarted": 0
+  },
+  "limitations": [
+    "Only a local isolated synthetic fixture with explicit trusted BYPASSRLS writer and unchanged least privilege/role guards; never a customer authorization.",
+    "Only loopback cached Elixir startup; no TLS/provider/deployment/financial/native/package/GA qualification.",
+    "The counterexample proves this fresh pool self-accounting mechanism; R4616 returned rows were not saved, so its historical cause remains unproven and original failure preserved.",
+    "No Git/index/CI/source edits or all-index invariant; Root SDK CI metadata rebind is outside this run.",
+    "No ten-worker matrix rerun; one independent evidence/observer review remains pending Root coordination."
+  ],
+  "holdsReleased": false,
+  "heldResourcesAccessed": false,
+  "deployment": false,
+  "activation": false,
+  "W14": false,
+  "GA": false
+}

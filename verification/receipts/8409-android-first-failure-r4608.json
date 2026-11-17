@@ -1,0 +1,118 @@
+{
+  "id": "R4608_ANDROID_FIRST_FAILURE",
+  "status": "STOPPED_ON_FIRST_UNEXPECTED_COORDINATION_ERROR",
+  "createdUTC": "2026-11-17T04:37:33.346197+00:00",
+  "scope": "read-only diagnosis; no tests, reruns, fixes, CI writes, PostgreSQL, builds, canonical or index operations",
+  "requestedRevision": "8409621a0d1b659c6405f2f7797fa4526f26881c",
+  "revisionComparison": "unperformed; no GitHub or Git revision inspection",
+  "requestedRun": 44017767956,
+  "requestedJob": 133819709335,
+  "firstFailedStep": {
+    "number": 3,
+    "name": "Bootstrap policy controls without native tools",
+    "evidence": "user-supplied, not independently fetched"
+  },
+  "firstActualMethod": "UNEXPOSED",
+  "firstActualPredicate": {
+    "expected": "UNEXPOSED",
+    "actual": "UNEXPOSED"
+  },
+  "owningSourceLine": "UNEXPOSED",
+  "completeJobLogRetrieved": false,
+  "downstream": {
+    "step4": "not inspected; no execution or pass inferred"
+  },
+  "hostedCustody": "UNEXPOSED; positive local outer closure does not establish hosted custody",
+  "stop": {
+    "operation": "mcp__t3_code__t3_thread_read",
+    "code": "thread_not_found",
+    "rawMessage": "Thread 01a1e7ca-133c-7092-8cfc-b1e15ebade9b is no longer available.",
+    "cause": "mistakenly used harness session identifier as app thread identifier",
+    "retry": false
+  },
+  "inspectionsBeforeFinalizer": 3,
+  "githubGETs": 0,
+  "artifactDownloads": 0,
+  "testsRun": 0,
+  "children": 0,
+  "heldResourcesRead": false,
+  "holdsReleased": false,
+  "canonicalOrIndexChanges": false,
+  "initialAction": {
+    "command": "/opt/homebrew/bin/python3 -B command.py r4608-agents-01 30 /bin/cat /Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md",
+    "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+    "fullFileReadByCommand": true,
+    "wrapperTailCharacters": 6000,
+    "completeRulesModelDisplayConfirmed": false
+  },
+  "bootstrapDeviations": [
+    "Initial wrapper output exposed only the file tail; copied complete AGENTS privately, but subsequent model-visible tool output also truncated.",
+    "An unnecessary thread lookup used the harness session ID; stopped when it failed."
+  ],
+  "agentsCopy": {
+    "bytes": 83143,
+    "sha256": "4ca84f9dcd3804e54fc1f96762be9ee0c8deaf3a3311be02dbc207731daf4ffa"
+  },
+  "pythonVersion": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "closedPriorCommands": [
+    {
+      "label": "r4608-agents-01",
+      "argv": [
+        "/bin/cat",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/AGENTS.md"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 73270,
+      "pgid": 73270,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.01951312506571412,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4608-wrapper-read-02",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import zlib,base64; p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); a=(p/\"AGENTS.md\").read_bytes(); print(\"AGENTS_BYTES\",len(a)); print(\"AGENTS_ZLIB_BASE64\",base64.b64encode(zlib.compress(a,9)).decode()); print(\"WRAPPER_SOURCE\"); print((p/\"verification/local/continuation-root-r2332/command.py\").read_text())"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 74213,
+      "pgid": 74213,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04035666608251631,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "r4608-inputs-03",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json; p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6\"); out=p/\"verification/local/8409-android-first-failure-r4608\"; out.mkdir(exist_ok=False); (out/\"AGENTS-copy.txt\").write_bytes((p/\"AGENTS.md\").read_bytes()); pin=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-84a22cd4/verification/local/browser-commit-adoption-r986/apply-and-verify.py\"); (out/\"admitted-wrapper-source.txt\").write_bytes(pin.read_bytes()); files=sorted(set([* (p/\"verification/receipts\").glob(\"*4552*\"),* (p/\"verification/receipts\").glob(\"*4556*\")])); print(json.dumps({\"copied_agents_bytes\":(out/\"AGENTS-copy.txt\").stat().st_size,\"references\":[str(f) for f in files]})); [print(str(f)+\"\\n\"+f.read_text()) for f in files]"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 75516,
+      "pgid": 75516,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.03564962500240654,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "priorCommandsExactClosure": true,
+  "finalizer": {
+    "label": "r4608-finalize-04",
+    "excludedOwnActiveRecord": true,
+    "terminalReadback": "required separately"
+  },
+  "nextDiscriminatorProposedOnly": "A separately selected read-only campaign should reuse the closed R4552/R4556 downloader to GET the complete exact job log, establish Content-Length/MD5 if exposed and SHA256, then map its first actual failing predicate to the pinned source; no source guard can yet be named honestly."
+}
