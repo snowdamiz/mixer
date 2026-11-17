@@ -193,6 +193,7 @@ defmodule MixerHosted.Builds.DevelopmentDispatchTest do
              Path.expand("../../../priv", __DIR__)
 
     migrations = Path.join(priv, "repo/migrations")
+
     assert Enum.sort(Enum.map(Path.wildcard(Path.join(migrations, "*.exs")), &Path.basename/1)) ==
              [
                "20261024000000_add_oban.exs",
@@ -210,6 +211,7 @@ defmodule MixerHosted.Builds.DevelopmentDispatchTest do
                "20261116000000_add_billing_reconciliation.exs",
                "20261116000001_add_billing_organization_state.exs"
              ]
+
     assert :ok = MixerHosted.Test.Migrations.check_files!(migrations)
   end
 end

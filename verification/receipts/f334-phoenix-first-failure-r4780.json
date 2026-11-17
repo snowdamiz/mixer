@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "task": "R4780 finite read-only exact-head first-failure diagnosis",
+  "created_at": "2026-11-17T07:11:45.505951+00:00",
+  "head": "f334cfe0e65b729e83049df90de0e945d9889a57",
+  "run_id": 44035847528,
+  "job_id": 133878410282,
+  "job_url": "https://github.com/snowdamiz/mixer/actions/runs/44035847528/job/133878410282",
+  "job_status": "completed",
+  "job_conclusion": "failure",
+  "first_failure": {
+    "step": 15,
+    "step_name": "Phoenix and disposable PostgreSQL host checks",
+    "driver": "hosted/scripts/test-local.py:188",
+    "failure_propagation": "hosted/scripts/test-local.py:171",
+    "cwd": "/home/runner/work/mixer/mixer/hosted",
+    "argv": [
+      "mix",
+      "format",
+      "--check-formatted"
+    ],
+    "expected": {
+      "exit_code": 0,
+      "predicate": "All formatter-selected hosted Elixir sources already match mix format output"
+    },
+    "actual": {
+      "exit_code": 1,
+      "message": "mix format failed due to --check-formatted",
+      "artifact_member": "_temp/phoenix-foundation/format.log"
+    },
+    "classification": "ordinary source-format preflight failure; driver correctly rejects nonzero formatter exit",
+    "source_ownership": [
+      {
+        "path": "hosted/test/mixer_hosted/builds/development_dispatch_test.exs",
+        "missing_blank_line_after_original_lines": [
+          195,
+          212
+        ]
+      },
+      {
+        "path": "hosted/test/mixer_hosted/builds/operation_admission_test.exs",
+        "missing_blank_line_after_original_lines": [
+          174,
+          190
+        ]
+      }
+    ],
+    "not_reached_in_step15": [
+      "hosted mix compile --warnings-as-errors",
+      "production release checks",
+      "disposable PostgreSQL initdb/start",
+      "hosted unit/integration tests"
+    ],
+    "first_initdb_source_references": [
+      {
+        "line": 232,
+        "text": "run(\"initdb\", [str(args.pg_bin / \"initdb\"), \"-D\", str(scratch / \"data\"), \"-U\", \"mixer_fixture\","
+      }
+    ]
+  },
+  "exact_revision_source_pins": [
+    {
+      "path": "hosted/test/mixer_hosted/builds/development_dispatch_test.exs",
+      "git_blob_sha1": "34cc7b9c093dca08e722fd78fcbf3d9e69071393",
+      "sha256": "4a2fcbb8c7607ff58567ef2d7b506ae516360f6ef11f9c39c3c2842b8454c181",
+      "bytes": 7795,
+      "local_matches_delivered": true
+    },
+    {
+      "path": "hosted/test/mixer_hosted/builds/operation_admission_test.exs",
+      "git_blob_sha1": "075592fbca4bd1d9242d99a72fdc532d509c8a59",
+      "sha256": "79060d43943720062bc13b4fc7df6b71a9ecf3eeacde9ab15bb499551397b225",
+      "bytes": 18410,
+      "local_matches_delivered": true
+    },
+    {
+      "path": "hosted/scripts/test-local.py",
+      "git_blob_sha1": "6a859939384160b8a9b95bd3f04d5a0bf22d73bf",
+      "sha256": "f0585945da899d16f36c1c15531c867445ee390fea5fa8fa81f4f16f3dc1e5e7",
+      "bytes": 25951,
+      "local_matches_delivered": true
+    }
+  ],
+  "evidence": {
+    "job_log": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/f334-phoenix-first-failure-r4780/job-log.body",
+      "http_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/f334-phoenix-first-failure-r4780/job-log.http",
+      "bytes": 73463,
+      "sha256": "034116cc5068caebdc13383acfd3687bb4ebde081857e3c5a0fb92a8c0f5feeb",
+      "content_length": 73463,
+      "content_md5_base64": "TNIwp2ApkcJsqTcsma9+FQ==",
+      "length_and_md5_verified": true
+    },
+    "artifact": {
+      "id": 14306484739,
+      "bytes": 1450350,
+      "sha256": "71189d9ba22444237dd2eef5401cb36a6bd993fc6b2a906f7d959c708fc59e4f",
+      "matches_upload_log_digest": true,
+      "only_inspected_member": "_temp/phoenix-foundation/format.log"
+    },
+    "format_member": {
+      "bytes": 1244,
+      "sha256": "efc69f434adeb6b51f68dc72c0763be52f2edb7ebde1d05ee3abb1d2b91786cb"
+    },
+    "agents": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/f334-phoenix-first-failure-r4780/AGENTS.snapshot.md",
+      "sha256": "fb39ac2ef989f3da0dd10bdbea58c446413b09970a8ab447712fd47aa36c8de3",
+      "full_first_terminal_read": true
+    }
+  },
+  "previous_steps": {
+    "7": "success",
+    "8": "success",
+    "9": "success",
+    "10": "success",
+    "11": "success",
+    "12": "success",
+    "13": "success",
+    "14": "success",
+    "15": "failure",
+    "16": "success"
+  },
+  "smallest_executable_next_test": {
+    "authorization": "Root must select fix and execute separately; this task ran no tests",
+    "cwd": "hosted",
+    "argv": [
+      "mix",
+      "format",
+      "--check-formatted",
+      "test/mixer_hosted/builds/development_dispatch_test.exs",
+      "test/mixer_hosted/builds/operation_admission_test.exs"
+    ],
+    "expected": "exit 0 after applying exactly the four formatter-requested blank lines; then full hosted mix format --check-formatted before resuming dependent checks"
+  },
+  "unknowns": [
+    "Later step15 compiler/release/database/runtime outcomes remain unobserved",
+    "Earlier local 911 pass plus 2 skip is historical, not a pass for this hosted job",
+    "No broader engine defect is established",
+    "Uploaded collector cleanup reports postgres_stopped=true and scratch_removed=true; not an independent hosted descendant-custody proof"
+  ],
+  "bounds": {
+    "managed_command_limit": 16,
+    "planned_final_managed_commands": 16,
+    "get_limit": 6,
+    "gets_used": 6,
+    "get_corrections": 1,
+    "max_output_bytes": 8388608,
+    "artifact_bytes": 1450350,
+    "no_recursive_tree_api": true,
+    "no_children": true,
+    "no_tests_or_builds": true,
+    "no_ci_writes_or_reruns": true,
+    "no_git_or_index_commands": true,
+    "no_canonical_edits": true,
+    "no_held_resource_access": true,
+    "managed_commands_invoked": 16,
+    "completed_within_600s": true
+  },
+  "command_execution": {
+    "wrapper": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/command.py",
+    "wrapper_sha256": "1da88677f65823d7c1493ad72b049d36b02563033ab13d56db9c370dd37ca582",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "gh": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0",
+    "closure_records": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/f334-phoenix-first-failure-r4780/command-closures.json",
+    "routine_failed_read": {
+      "label": "r4780-job-log",
+      "exit_code": 1,
+      "cause": "gh refused terminal escape sequences",
+      "positive_terminal_closure": true,
+      "correction": "--allow-escape-sequences"
+    },
+    "unknown_custody_observed": false,
+    "positive_closure_count_before_final_readback": 15,
+    "final_readback": {
+      "label": "r4780-final-readback",
+      "closure_record": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332/commands/r4780-final-readback/commands.json",
+      "note": "This final command completes its receipt readback before the wrapper records its own terminal closure. Consult the referenced wrapper record/output for final command closure."
+    },
+    "hosted_tools": {
+      "otp": "29",
+      "elixir": "1.20.4",
+      "source": "exact job log production-mode result records"
+    }
+  },
+  "report": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/f334-phoenix-first-failure-r4780/REPORT.md",
+  "job_log_custody_scan": {
+    "actual_UNKNOWN_mentions": [],
+    "nonfailure_source_manifest_mentions_of_custody_filename": [
+      582,
+      614
+    ]
+  },
+  "diagnosis_status": "complete",
+  "finalized_at": "2026-11-17T07:12:26.348596+00:00"
+}
