@@ -116,8 +116,7 @@ class BootstrapControls(unittest.TestCase):
         a = B.canonical()
         inputs = B.admit_source_inputs(a, a.load_profile())
         self.assertEqual(len(inputs), 141)
-        self.assertEqual(a.source_digest(inputs),
-                         '572fe981d915c1b0b518cba5851fc77b07382fef9a54243845455301dbcd650b')
+        self.assert_current_source(a, inputs)
 
     def test_stale_current_digest_and_foreign_profile_refuse(self):
         from unittest.mock import patch
