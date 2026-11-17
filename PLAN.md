@@ -1,5 +1,15 @@
 # Execution index
 
+## Current checkpoint. Green delivered CLI; Linux SDK and native results
+
+The prepared-lock CLI slice is delivered at `39f677129e62cf5c24c45d4e511439b83cd15c7d`. All nine engine CI jobs and artifact retention passed. The earlier Android180s and cache60s timeout failures remain preserved; their cause is unresolved and they did not recur in this run. The exact CLI ordinary suite404 and unsigned Android build remain accepted development evidence. [Exact-head CI](verification/receipts/prepared-lock-green-ci-root-r5390.json).
+
+A package-only SDK candidate keeps Apple products on supported manifest hosts, preserves the explicit unsupported-adapter error and all engine/test bodies, and passed234 Mac tests plus226 Linux tests. Both-platform evidence and the change passed independent review. Canonical adoption waits for the coordinated SDK26 compiled-profile and source141 rebind; the canonical SDK96 is still4c3bef98. [Linux runtime](verification/receipts/linux-sdk-package-runtime-root-r5324.json) · [Review](verification/receipts/linux-sdk-package-review-r5344.json).
+
+The first genuine signed Android JNI trial reached a consuming-closed native report but failed the Root primary/teardown success assertion. HTTP success is not established. After the exact owned shutdown request and direct emulator reap, process group18659 remained present, so cleanup stopped under a new scoped hold. Emulator-5584, its app/markers and exact scratch are preserved without further queries, signals, waits or retries. Parent closure does not release that hold. [Native result and hold](verification/receipts/signed-jni-genuine-root-r5350.json).
+
+The current-owner manual hash diagnostic passed focused review; Root completed its missing metadata observer without subprocesses and installed the three exact source files. Normal8, optimized8 and16 refusal controls remain supported; full installed admission passes in both modes. One manually selected same-class-current-image profile may run after delivery; no profile has run yet. The unchanged bulk-zero arena proposal remains rejected for general adoption, and a fixed-block alternative is being tested privately. All18 packages and all38 GA gate records are unchanged; GA remains0/38. [Diagnostic adoption](verification/receipts/manual-hash-root-adoption-r5380.json).
+
 ## Current checkpoint. Prepared Android lock and final source guard adopted
 
 Root adopted the reviewed nine-file lock-preparation and APK-cleanup slice. The actual platform lock is resolved before source freezing and bound by its own bytes; its origin hash remains distinct from the SDK lock. Final source-admission failures reject and remove the owned APK where deletion succeeds, preserving the original failure. Current Source141 is `8acdb9dc49f6b564e58ca4f1c3ac6704836ba86d59455e569436108d3374029e`; Source347 and the canonical SDK96 remain unchanged. Full installed admission passed normally and under actual `-O`. [Source adoption](verification/receipts/android-lock-source-root-adoption-r5278.json).
