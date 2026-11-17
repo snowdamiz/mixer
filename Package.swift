@@ -10,7 +10,6 @@ let package = Package(
         .library(name: "MixerCore", targets: ["MixerCore"]),
         .library(name: "MixerAndroid", targets: ["MixerAndroid"]),
         .library(name: "MixerUI", targets: ["MixerUI"]),
-        .library(name: "MixerApple", targets: ["MixerApple"]),
         .library(name: "MixerGuest", targets: ["MixerGuest"]),
         .library(name: "MixerCapabilities", targets: ["MixerCapabilities"]),
     ],
@@ -22,11 +21,21 @@ let package = Package(
         .target(name: "MixerCapabilityIO", path: "sdk/Sources/MixerCapabilities/NativeIO"),
         .target(name: "MixerCapabilities", dependencies: ["MixerCore", .target(name: "MixerCapabilityIO", condition: .when(platforms: [.iOS, .macOS, .linux, .android]))], path: "sdk/Sources/MixerCapabilities", exclude: ["NativeIO"]),
         .target(name: "MixerUI", dependencies: ["MixerCore"], path: "sdk/Sources/MixerUI"),
-        .target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI"], path: "sdk/Sources/MixerApple"),
         .target(name: "MixerGuest", dependencies: ["MixerCore", "MixerUI", .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.macOS, .iOS, .linux, .android]))], path: "sdk/Sources/MixerGuest"),
         .testTarget(name: "MixerCoreTests", dependencies: ["MixerCore"], path: "sdk/Tests/MixerCoreTests"),
         .testTarget(name: "MixerUITests", dependencies: ["MixerCore", "MixerUI", "MixerGuest"], path: "sdk/Tests/MixerUITests"),
-        .testTarget(name: "MixerAppleTests", dependencies: ["MixerApple", "MixerUI"], path: "sdk/Tests/MixerAppleTests"),
     ],
     swiftLanguageModes: [.v6]
 )
+// Package conditions follow the manifest host; cross-compilers on macOS must select a portable product.
+#if os(macOS)
+package.products.append(
+.library(name: "MixerApple", targets: ["MixerApple"])
+)
+package.targets.append(
+.target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI"], path: "sdk/Sources/MixerApple")
+)
+package.targets.append(
+.testTarget(name: "MixerAppleTests", dependencies: ["MixerApple", "MixerUI"], path: "sdk/Tests/MixerAppleTests")
+)
+#endif

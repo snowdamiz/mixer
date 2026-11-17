@@ -18,14 +18,20 @@
     "evidenceReclassifiedAsPassed": false
   },
   "status": "in_progress",
-  "statusMeaning": "Policy adopted; local completion has not yet been assessed against all eight gates. Historical slice evidence keeps its original scope.",
+  "statusMeaning": "Local end-to-end implementation is in progress. Component receipts retain their scope; no whole local gate is passed by the SDK or build-only results.",
   "gates": [
     {
       "id": "L01",
       "name": "Setup, adoption, and export",
       "requirement": "Install from pinned public SDK/tooling inputs, create and import a Swift app, build and run on both local targets, and export a working independent build. FieldLog consumes public interfaces from its separate repository. Registry publication and outside developers are not prerequisites.",
-      "status": "planned",
-      "evidence": [],
+      "status": "running",
+      "evidence": [
+        "verification/receipts/public-root-sdk-boundary-r5560.json",
+        "verification/receipts/public-root-sdk-linux-r5600.json",
+        "verification/receipts/public-root-sdk-review-r5604.json",
+        "verification/receipts/sdk-ordinary-contract-root-r5450.json",
+        "verification/receipts/sdk-new-profile-android-build-r5500.json"
+      ],
       "reviewer": null
     },
     {
@@ -48,7 +54,7 @@
       "id": "L04",
       "name": "Safe OTA and recovery",
       "requirement": "A locally served, signed logic and UI update changes both already-installed apps without reinstall. Compatibility, tenant/app identity, signatures, replay, cohorts, key rotation, and unsupported native changes are enforced. Interrupted or failed updates recover offline with saved data intact. Use development keys, never production signing credentials.",
-      "status": "planned",
+      "status": "running",
       "evidence": [],
       "reviewer": null
     },
@@ -56,16 +62,22 @@
       "id": "L05",
       "name": "Local platform workflow",
       "requirement": "Real console, CLI, Phoenix API, PostgreSQL, Oban workers, build workers, artifact delivery, and separate development signer complete onboarding, build, logs, cancellation, update, promotion, and rollback locally. Test store request/status/error handling against documented provider fixtures. Actual uploads, store processing, provider infrastructure, and distribution remain pending.",
-      "status": "planned",
-      "evidence": [],
+      "status": "running",
+      "evidence": [
+        "verification/receipts/free-local-workflow-r5590.json",
+        "verification/receipts/free-local-role-provisioning-r5620.json"
+      ],
       "reviewer": null
     },
     {
       "id": "L06",
       "name": "Free accounts and administration",
       "requirement": "Free organizations can use the full testing workflow without a card, subscription, Stripe credentials, or payment service. Memberships, permissions, usage visibility, quotas, support, export, and deletion work locally. Paid plans, invoices, payment collection, paid entitlements, and purchase integrations may remain unimplemented and inactive.",
-      "status": "planned",
-      "evidence": [],
+      "status": "running",
+      "evidence": [
+        "verification/receipts/free-local-workflow-r5590.json",
+        "verification/receipts/free-local-role-provisioning-r5620.json"
+      ],
       "reviewer": null
     },
     {
@@ -80,7 +92,7 @@
       "id": "L08",
       "name": "FieldLog and documentation",
       "requirement": "Run the complete supported FieldLog workflow through public tooling on both targets, including edit/save/close/reopen, offline queue, attachments, guest parity, OTA, rollback, and export. Exercise the applicable Section 22 recovery and real-change corpus locally. Follow installation, upgrade, recovery, and exit guides from a clean local setup. Store use, customer counts, and paid pilots are not required.",
-      "status": "planned",
+      "status": "running",
       "evidence": [],
       "reviewer": null
     }
@@ -446,5 +458,11 @@
     }
   ],
   "externalBoundaryRule": "Fixtures may replace unavailable external store, payment, hardware, or push boundaries only. The owned engine and integrated local services require actual execution. Record substitutions and pending real qualification.",
-  "paymentPolicy": "Free testing and early launch require no card, subscription, Stripe credentials, payment service, or paid entitlement. Payment and purchase implementation and activation may remain deferred. Preserve existing billing code and evidence."
+  "paymentPolicy": "Free testing and early launch require no card, subscription, Stripe credentials, payment service, or paid entitlement. Payment and purchase implementation and activation may remain deferred. Preserve existing billing code and evidence.",
+  "currentWork": {
+    "publicSdkRoot": "Reviewed Mac234/Linux226 component complete; both-target app run/export end-to-end still required.",
+    "freeWorkflow": "r5620 ten payment-free admission checks, then preserved harness failure; actual worker/artifact escalation r5640 running.",
+    "fieldlogOta": "Unsigned authentic logic/UI input integration r5610; Root signing and native runtime pending.",
+    "noLocalGatePassInferred": true
+  }
 }

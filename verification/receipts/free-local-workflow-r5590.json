@@ -1,0 +1,405 @@
+{
+  "activation": false,
+  "campaign": "R5590",
+  "canonicalChanged": false,
+  "causeAssessment": {
+    "compoundGuardOtherPredicatesNotIsolated": true,
+    "kind": "fixture-role provisioning mismatch",
+    "line": 222,
+    "owningSource": {
+      "bytes": 63975,
+      "path": "hosted/lib/mixer_hosted/browser_auth/storage_schema.ex",
+      "sha256": "676bb977bbe4c322caf63c1a5f40d86e7861847636029948b55cb01f6dedb6dd"
+    },
+    "roleCatalogNotCaptured": true,
+    "sourceOnly": "writer/lifecycle commands omit NOINHERIT while shipping preflight rejects inherited roles"
+  },
+  "childrenDelegated": 0,
+  "cleanup": {
+    "children": [
+      {
+        "closedFDs": true,
+        "directReaped": true,
+        "exit": 1,
+        "label": "beam",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 43022,
+        "pid": 43022,
+        "pipeEOF": "not applicable: regular file output, stdin closed",
+        "regularFileLogs": true,
+        "state": "TERMINAL"
+      },
+      {
+        "closedFDs": true,
+        "directReaped": true,
+        "exit": 0,
+        "label": "postgres",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 44481,
+        "pid": 44481,
+        "pipeEOF": "not applicable: regular file output, stdin closed",
+        "regularFileLogs": true,
+        "state": "TERMINAL"
+      }
+    ],
+    "commands": [
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+          "--version"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/hosted",
+        "exitCode": 0,
+        "label": "postgres-version",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 44421,
+        "pid": 44421,
+        "seconds": 0.17352375015616417,
+        "state": "direct_reaped"
+      },
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/free-local-workflow-r5590/run/db",
+          "-U",
+          "browser_admin",
+          "-A",
+          "trust",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/hosted",
+        "exitCode": 0,
+        "label": "initdb",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 44439,
+        "pid": 44439,
+        "seconds": 2.2802779169287533,
+        "state": "direct_reaped"
+      },
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "45990",
+          "-U",
+          "browser_admin",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-At",
+          "-c",
+          "SELECT 1; SHOW data_directory;"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/hosted",
+        "exitCode": 0,
+        "label": "pg-identity",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 44486,
+        "pid": 44486,
+        "seconds": 0.19131404208019376,
+        "state": "direct_reaped"
+      },
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "45990",
+          "-U",
+          "browser_admin",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-c",
+          "CREATE ROLE browser_schema_owner NOLOGIN;CREATE ROLE browser_writer NOLOGIN;CREATE ROLE browser_lifecycle LOGIN;CREATE ROLE browser_ordinary LOGIN"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/hosted",
+        "exitCode": 0,
+        "label": "roles",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 44506,
+        "pid": 44506,
+        "seconds": 0.11893875012174249,
+        "state": "direct_reaped"
+      },
+      {
+        "argv": [
+          "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/free-local-workflow-r5590/run/db",
+          "-m",
+          "fast",
+          "-w",
+          "-t",
+          "15",
+          "stop"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/hosted",
+        "exitCode": 0,
+        "label": "postgres-fast-stop",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 44733,
+        "pid": 44733,
+        "seconds": 0.24851712491363287,
+        "state": "direct_reaped"
+      }
+    ],
+    "databaseAndLogsRetained": true,
+    "databaseSessionsAndLedgerNotObserved": true,
+    "outer": [
+      {
+        "argv": [
+          "/opt/homebrew/bin/python3",
+          "-B",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/free-local-workflow-r5590/driver.py"
+        ],
+        "bothEOF": true,
+        "closedFDs": true,
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+        "exitCode": 0,
+        "label": "r5590-one-real-batch",
+        "ownedGroupAbsentESRCH": true,
+        "pgid": 43009,
+        "pid": 43009,
+        "seconds": 26.312128791119903,
+        "state": "direct_reaped"
+      }
+    ],
+    "portReleased": true,
+    "socketDirectoryRetained": "/private/tmp/mxpg5590-ttxvyi_b",
+    "status": "PASS_OWNED_OS_CUSTODY"
+  },
+  "counts": {
+    "BEAMbatches": 1,
+    "PGfastStops": 1,
+    "PGstarts": 1,
+    "behaviorChecksFailed": 0,
+    "behaviorChecksPassed": 0,
+    "currentBoundSources": 166,
+    "exunitInvalid": 1,
+    "exunitTotal": 1,
+    "httpBuildRequestsExecuted": 0,
+    "integrationBatches": 1,
+    "jobCountObserved": null,
+    "loadedBEAM": 267,
+    "outboxCountObserved": null,
+    "productCompiles": 0,
+    "retries": 0
+  },
+  "credentialAbsence": {
+    "controlledEnvironmentNames": [
+      "ERL_CRASH_DUMP",
+      "ERL_CRASH_DUMP_SECONDS",
+      "HOME",
+      "LANG",
+      "MIXER_BROWSER_CATALOG_FIXTURE_ROOT",
+      "MIXER_BROWSER_STORAGE_PORT",
+      "MIXER_TEST_DATABASE_PORT",
+      "PATH",
+      "PGCONNECT_TIMEOUT",
+      "R5590_HOSTED",
+      "R5590_OUT",
+      "TMPDIR"
+    ],
+    "paymentHTTPFixtures": 0,
+    "paymentServicesLaunched": 0,
+    "stripePaymentBillingCredentialNames": [],
+    "workflowNotReached": true
+  },
+  "deployment": false,
+  "evidence": [
+    {
+      "bytes": 20512,
+      "path": "verification/local/free-local-workflow-r5590/source-bind.json",
+      "sha256": "78241ae99e42da6d7036b982a82b6442169079a5658659d3a027fa32725f1a2e"
+    },
+    {
+      "bytes": 34444,
+      "path": "verification/local/free-local-workflow-r5590/preflight.json",
+      "sha256": "0bf4306a95003c82edc1c6015af949203bc89df11bc6180e380758ed80be5c4f"
+    },
+    {
+      "bytes": 176714,
+      "path": "verification/local/free-local-workflow-r5590/beam-identities.json",
+      "sha256": "9d56a09165b53119e45feb05503044ed9b7ba39c3cd838df42f0aebfd4b3d956"
+    },
+    {
+      "bytes": 3053,
+      "path": "verification/local/free-local-workflow-r5590/runtime.exs",
+      "sha256": "fe5bb692e7f22c406d36c98f8ab87d17e622d59cab83c337c6237479b5a55f2b"
+    },
+    {
+      "bytes": 11058,
+      "path": "verification/local/free-local-workflow-r5590/free_workflow_test.exs",
+      "sha256": "aa6156340b53f860cad7013df639da31236d0598fd3e9a933008c73f5a61137b"
+    },
+    {
+      "bytes": 7217,
+      "path": "verification/local/free-local-workflow-r5590/driver.py",
+      "sha256": "850d65be814b70f49432ba5b0d41a7f04c15c66fed4f2ac183a9a3c3efef1f11"
+    },
+    {
+      "bytes": 49,
+      "path": "verification/local/free-local-workflow-r5590/exunit-summary.json",
+      "sha256": "18dfff4b05bc0470e94c7e2418b8efa9a29d64910976853854523a3203f67ea0"
+    },
+    {
+      "bytes": 527,
+      "path": "verification/local/free-local-workflow-r5590/first-product-outcome.json",
+      "sha256": "c2bf77f41a5cf091bcbe4fddf50f5f34083106f128a6e78f59ccf8d7faf4034a"
+    },
+    {
+      "bytes": 3654,
+      "path": "verification/local/free-local-workflow-r5590/before-cleanup.json",
+      "sha256": "3b50faf959a484abb522a40f60e82098a8e28c20deff2f1b5c24be83ca2e5da1"
+    },
+    {
+      "bytes": 482,
+      "path": "verification/local/free-local-workflow-r5590/first-failure.json",
+      "sha256": "3c5edbffb002528862adf981c09a5765d257a5b43152a9c9b6609d13d2abd4aa"
+    },
+    {
+      "bytes": 4682,
+      "path": "verification/local/free-local-workflow-r5590/result.json",
+      "sha256": "c9905831e227a54617f98585837be76e12cd6eb9da964f8df5b6939f530e6cb0"
+    },
+    {
+      "bytes": 1208,
+      "path": "verification/local/free-local-workflow-r5590/run/beam.stdout",
+      "sha256": "8bffd8b5aa121b6573afa06d857a0fbded963490742e55a232bbaed856cd1fe1"
+    },
+    {
+      "bytes": 761,
+      "path": "verification/local/free-local-workflow-r5590/run/beam.stderr",
+      "sha256": "ef1403c9bc90031801cbf34580cf202b7b1254437cdf5d7d98dfd39481065bb2"
+    },
+    {
+      "bytes": 124413,
+      "path": "verification/local/free-local-workflow-r5590/run/postgres.stderr",
+      "sha256": "d69fb040b22178a635ed774083204eb585ff37553fc810272501104870fbaba3"
+    },
+    {
+      "bytes": 39,
+      "path": "verification/local/free-local-workflow-r5590/run/postgres-version.stdout",
+      "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+    },
+    {
+      "bytes": 3501,
+      "path": "verification/local/free-local-workflow-r5590/REPORT.md",
+      "sha256": "bba73cf82217ef40151f2c6546e83de4f24c9cb2097236db37d9e98f3a39316f"
+    }
+  ],
+  "firstError": {
+    "message": "browser lifecycle provisioning denied",
+    "phase": "setup_all",
+    "site": "OrdinaryBrowserStartupFixture.Database.provision!/0",
+    "sqlstate": "42501"
+  },
+  "freeWorkflowProven": false,
+  "gatePass": false,
+  "heldResourcesAccessed": false,
+  "holdsReleased": false,
+  "limitations": [
+    "No authenticated Phoenix HTTP or free org/build behavior ran",
+    "No worker execution, first-party app build, signer or delivery",
+    "Compound preflight cause only source diagnosed",
+    "No source patch; next fresh fixture correction proposed only",
+    "L05/L06 remain unpassed",
+    "No independent review claimed"
+  ],
+  "namedTest": "FREE_ORGANIZATION_LOCAL_BUILD_ADMISSION_WITHOUT_PAYMENTS",
+  "preparation": {
+    "closedInspectionFailures": 3,
+    "correctionsApplied": 1,
+    "detail": [
+      "rg executable lookup corrected after missing Homebrew path",
+      "missing optional source in rg inspection; no retry",
+      "optional test.exs read absent after harness files already written; no repair"
+    ],
+    "noPreparationCampaignRetries": true
+  },
+  "productPaymentDependencyRefuted": false,
+  "report": {
+    "bytes": 3501,
+    "path": "verification/local/free-local-workflow-r5590/REPORT.md",
+    "sha256": "bba73cf82217ef40151f2c6546e83de4f24c9cb2097236db37d9e98f3a39316f"
+  },
+  "runtime": {
+    "elixirVersionFromPinnedPriorReceipt": "1.20.4",
+    "otpVersionFromPinnedPriorReceipt": "29",
+    "postgresActualVersion": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "tools": {
+      "elixir": {
+        "bytes": 6658,
+        "path": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/elixir",
+        "sha256": "5cb23d89a78f75589b06fade3097e217b77e63416d61c1800f674579748c4307"
+      },
+      "erl": {
+        "bytes": 1441,
+        "path": "/opt/homebrew/Cellar/erlang/29.1.1_2/lib/erlang/bin/erl",
+        "sha256": "ef68f389ca08a7984d2cfbf9beedc44a111cf42215f77d020c3868a9a6ef88f1"
+      },
+      "initdb": {
+        "bytes": 197152,
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "sha256": "0b6e460ed82fabebd4d42bdf85ebbf7ff1922ebad20ef349930a9b0fd2bfffb6"
+      },
+      "pg_ctl": {
+        "bytes": 99008,
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+        "sha256": "e35b9b7312ac500b2943eced2952f3836e606860c04f057380719855b9833cf3"
+      },
+      "postgres": {
+        "bytes": 8813760,
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "sha256": "9d1930da02e11e446b42f9d79cf2e6bce307a6decb6a089591f8726d0f49b6f2"
+      },
+      "psql": {
+        "bytes": 715520,
+        "path": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "sha256": "489412cf78f2745d95a5cf5778b6d2731406e98529ff32964007140135011557"
+      }
+    },
+    "uname": [
+      "Darwin",
+      "Andreys-MBP.lan",
+      "27.0.0",
+      "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "arm64"
+    ]
+  },
+  "source": {
+    "current166Digest": "eb8bbd50730ac06683181f1d56dd9e58fd5058599ce97cfbf3bbf489173dd136",
+    "loadedIdentityProof": {
+      "bytes": 176714,
+      "path": "verification/local/free-local-workflow-r5590/beam-identities.json",
+      "sha256": "9d56a09165b53119e45feb05503044ed9b7ba39c3cd838df42f0aebfd4b3d956"
+    },
+    "prior347Digest": "e13e813bffa3c8832938186ed7919fa2383ac3a833ee3c00c5afd0edcb3c9abe",
+    "prior347DigestCurrentScope": "historical baseline only; whole347 not revalidated",
+    "source166MatchesQualifiedCache": true,
+    "suppliedRevision": "source347 baseline 0f8f user shorthand; no Git inspection"
+  },
+  "status": "CLOSED_SETUP_FAILURE"
+}
