@@ -172,7 +172,22 @@ defmodule MixerHosted.Builds.OperationAdmissionTest do
   test "private migration stays outside the closed production twelve" do
     path = Path.expand("../../../priv/repo/migrations", __DIR__)
     assert :ok == MixerHosted.Test.Migrations.check_files!(path)
-    assert length(MixerHosted.Test.Migrations.versions()) == 12
+    assert MixerHosted.Test.Migrations.versions() == [
+             20_261_024_000_000,
+             20_261_025_000_000,
+             20_261_025_000_001,
+             20_261_025_000_002,
+             20_261_025_000_003,
+             20_261_025_000_004,
+             20_261_025_000_005,
+             20_261_025_000_006,
+             20_261_025_000_007,
+             20_261_025_000_008,
+             20_261_110_000_000,
+             20_261_110_000_001,
+             20_261_116_000_000,
+             20_261_116_000_001
+           ]
     refute 20_261_110_000_498 in MixerHosted.Test.Migrations.versions()
   end
 

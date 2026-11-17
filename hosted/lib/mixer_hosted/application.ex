@@ -49,27 +49,38 @@ defmodule MixerHosted.Application do
 
     case {hosted.role, hosted.identity_startup} do
       {:processor, %StartupConfig{mode: :disabled}} when installation == :disabled ->
-        true = hosted.processor_profile == :builds_v1
+        profile =
+          if hosted.processor_profile == :billing_v1,
+            do: MixerHosted.Billing.ProcessorProfile,
+            else: MixerHosted.Builds.ProcessorProfile
+
+        admission =
+          if hosted.processor_profile == :billing_v1,
+            do: MixerHosted.Billing.ProcessorAdmission,
+            else: MixerHosted.Builds.ProcessorAdmission
+
+        queue =
+          if hosted.processor_profile == :billing_v1, do: :billing_reconciliation, else: :builds
+
+        true = hosted.processor_profile in [:builds_v1, :billing_v1]
         true = hosted.create_repo == nil
-        true = hosted.repo[:username] == MixerHosted.Builds.ProcessorProfile.role()
+        true = hosted.repo[:username] == profile.role()
 
         true =
           hosted.repo[:after_connect] ==
-            {MixerHosted.Builds.ProcessorAdmission, :after_connect, []}
+            {admission, :after_connect, []}
 
-        true = Keyword.keys(hosted.oban[:queues]) == [:builds]
+        true = Keyword.keys(hosted.oban[:queues]) == [queue]
         true = hosted.oban[:engine] == Oban.Engines.Basic
         true = hosted.oban[:name] == Oban
 
         true =
           hosted.oban ==
-            MixerHosted.Builds.ProcessorProfile.oban(
-              Keyword.fetch!(hosted.oban[:queues], :builds)
-            )
+            profile.oban(Keyword.fetch!(hosted.oban[:queues], queue))
 
         [
           MixerHosted.Repo,
-          {MixerHosted.Builds.ProcessorAdmission, :builds_v1},
+          {admission, hosted.processor_profile},
           {Oban, hosted.oban}
         ]
 

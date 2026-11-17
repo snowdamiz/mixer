@@ -715,7 +715,22 @@ defmodule MixerHosted.Builds.CoordinatorTest do
     assert [[nil]] =
              Repo.query!("SELECT to_regclass('public.mixer_build_operation_admissions')::text").rows
 
-    assert length(MixerHosted.Test.Migrations.versions()) == 12
+    assert MixerHosted.Test.Migrations.versions() == [
+             20_261_024_000_000,
+             20_261_025_000_000,
+             20_261_025_000_001,
+             20_261_025_000_002,
+             20_261_025_000_003,
+             20_261_025_000_004,
+             20_261_025_000_005,
+             20_261_025_000_006,
+             20_261_025_000_007,
+             20_261_025_000_008,
+             20_261_110_000_000,
+             20_261_110_000_001,
+             20_261_116_000_000,
+             20_261_116_000_001
+           ]
   end
 
   test "invalid private server selections fail before callbacks and admission writes" do

@@ -61,6 +61,28 @@ defmodule MixerHosted.Billing.SubscriptionReadTransport do
 
   def read(_, _, _), do: {:error, :scope_rejected}
 
+  def read_checked(%__MODULE__{config: c} = handle, subscription, customer) do
+    deadline = now() + c.deadline_ms
+
+    with :ok <- scope(subscription, customer),
+         {:ok, ip} <- DNSResolver.resolve("api.stripe.com", c.resolvers, deadline),
+         do: connect(handle, subscription, customer, ip, 443, deadline, true)
+  end
+
+  if Mix.env() == :test do
+    def read_checked_fixture(
+          %__MODULE__{config: c} = handle,
+          subscription,
+          customer,
+          {127, 0, 0, 1} = ip,
+          port
+        )
+        when is_integer(port) and port in 1..65_535 do
+      with :ok <- scope(subscription, customer),
+           do: connect(handle, subscription, customer, ip, port, now() + c.deadline_ms, true)
+    end
+  end
+
   # Compile-time fixture seam changes destination only, never URL, SNI, hostname,
   # certificate validation, request/decoder code or response policy.
   if Mix.env() == :test do
@@ -82,9 +104,9 @@ defmodule MixerHosted.Billing.SubscriptionReadTransport do
          ObservedSubscription.id?(customer, "cus_"), do: :ok, else: {:error, :scope_rejected}
   end
 
-  defp connect(handle, subscription, customer, ip, port, deadline) do
+  defp connect(handle, subscription, customer, ip, port, deadline, checked \\ false) do
     BoundedTCP.with_watchdog(nil, deadline, fn ->
-      do_connect(handle, subscription, customer, ip, port, deadline)
+      do_connect(handle, subscription, customer, ip, port, deadline, checked)
     end)
   rescue
     _ -> {:error, :transport_rejected}
@@ -98,7 +120,8 @@ defmodule MixerHosted.Billing.SubscriptionReadTransport do
          customer,
          ip,
          port,
-         deadline
+         deadline,
+         checked
        ) do
     # Resolution is trusted server code. No secret or raw network error is logged,
     # returned, attached to an exception, or retained in an observation.
@@ -151,7 +174,10 @@ defmodule MixerHosted.Billing.SubscriptionReadTransport do
                {:ok, body} <-
                  receive_loop(next, ref, HTTPWireGuard.new(), [], 0, deadline, c.read_ms),
                true <- remaining(deadline) > 0 do
-            ObservedSubscription.decode(body, subscription, customer, c.livemode)
+            case ObservedSubscription.decode(body, subscription, customer, c.livemode) do
+              {:ok, value} when checked -> {:ok, {value, :crypto.hash(:sha256, body)}}
+              result -> result
+            end
           else
             _ -> {:error, :response_rejected}
           end

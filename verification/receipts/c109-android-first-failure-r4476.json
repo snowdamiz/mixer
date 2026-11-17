@@ -1,0 +1,165 @@
+{
+  "scope": "Read-only exact-head Android first-failure research; zero implementation, tests/build reruns, CI triggers, artifacts, index/canonical writes or children",
+  "run_id": 43997676804,
+  "job_id": 133753651007,
+  "head_sha": "c1091c1fd9680ea01387f5621dbec185a87b740e",
+  "job_url": "https://github.com/snowdamiz/mixer/actions/runs/43997676804/job/133753651007",
+  "first_failed_step": {
+    "number": 4,
+    "name": "Actual generated Java six-consumer integration",
+    "start_utc": "2026-11-17T01:43:32Z",
+    "failure_utc": "2026-11-17T01:56:12.9185060Z",
+    "exit_utc": "2026-11-17T01:56:14.0616420Z",
+    "exit_code": 1,
+    "log_failure_line": 401,
+    "log_exit_line": 402,
+    "command": "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py --output \"$RUNNER_TEMP/generated-java-ci\" --execute"
+  },
+  "first_predicate": {
+    "source": "scripts/ci/check-android-generated-java.py",
+    "line": 145,
+    "last_line": 147,
+    "function": "validate_consumer",
+    "error": "Consumer SDK manifest namespace differs",
+    "expected": "all relative paths under Generated/MixerSDK have an ASCII first component, and any first component beginning with package (case-insensitive) is permitted only when the whole relative path equals Package.swift",
+    "actual": "Predicate returned false. At least one relative path violates it; offending path and generated SDK inventory were not exposed in the job log. No specific path, product root cause or resource limit is inferred.",
+    "create_call_lines": [
+      1103,
+      1106
+    ],
+    "negative_control_distinction": "Log381 Need12GiB is expected output in test_low_disk_main_persists_receipt_before_native_or_download; test382 is ok and bootstrap step3 passes. The real step4 failure is log401."
+  },
+  "event": {
+    "status": "failed",
+    "error": "Actual integration did not pass",
+    "integration_failure": {
+      "status": "failed",
+      "error": "Consumer SDK manifest namespace differs",
+      "cleanup": {
+        "command_custody_terminal": true,
+        "owned_scratch_started": true,
+        "owned_scratch_removed": false,
+        "error": null,
+        "evidence_persistence_error": null,
+        "retention_reason": "Failed integration or missing terminal custody; exact scratch retained"
+      },
+      "last_command": {
+        "label": "debug-create",
+        "pid": 13505,
+        "owned_pgid": 13505,
+        "exit_code": 0,
+        "stop": null,
+        "terminal_custody": true,
+        "direct_child_reaped": true,
+        "stdout_eof": true,
+        "stderr_eof": true,
+        "owned_group_absent": true,
+        "descriptors_closed": true,
+        "execution_error": {
+          "type": null,
+          "message": null
+        },
+        "inner_hold": {
+          "parent_label": null,
+          "operation": null,
+          "error": null,
+          "retained_cli_tmp": null
+        },
+        "hold_persistence_error": null,
+        "cleanup_errors": [],
+        "group_observation": {
+          "outcome": null,
+          "attempts": null
+        }
+      }
+    }
+  },
+  "hosted_custody": {
+    "reported_command_custody_terminal": true,
+    "last_command": {
+      "label": "debug-create",
+      "pid": 13505,
+      "owned_pgid": 13505,
+      "exit_code": 0,
+      "stop": null,
+      "terminal_custody": true,
+      "direct_child_reaped": true,
+      "stdout_eof": true,
+      "stderr_eof": true,
+      "owned_group_absent": true,
+      "descriptors_closed": true,
+      "execution_error": {
+        "type": null,
+        "message": null
+      },
+      "inner_hold": {
+        "parent_label": null,
+        "operation": null,
+        "error": null,
+        "retained_cli_tmp": null
+      },
+      "hold_persistence_error": null,
+      "cleanup_errors": [],
+      "group_observation": {
+        "outcome": null,
+        "attempts": null
+      }
+    },
+    "scope": "Reports cover last debug-create PID/PGID13505 and aggregate command_custody_terminal; no custody inference from job completion, no independent hosted process probing, retained scratch not removed; zero new UNKNOWN exposed."
+  },
+  "source_match": {
+    "path": "scripts/ci/check-android-generated-java.py",
+    "revision": "c1091c1fd9680ea01387f5621dbec185a87b740e",
+    "git_blob_sha": "d35c76f6a54d38dea6928026df7fd19accdaf9f4",
+    "pushed_sha256": "243c16095bc4b2e628277d4a8cc4f55d34068a7d4b5ba46683debd3fedbc8d5d",
+    "local_sha256": "243c16095bc4b2e628277d4a8cc4f55d34068a7d4b5ba46683debd3fedbc8d5d",
+    "byte_identical": true,
+    "bytes": 67150,
+    "local_git_object_sha256": "243c16095bc4b2e628277d4a8cc4f55d34068a7d4b5ba46683debd3fedbc8d5d",
+    "local_git_matches_pushed": true
+  },
+  "http_integrity": {
+    "http_bytes": 43683,
+    "body_bytes": 42683,
+    "http_sha256": "fc5707dc12c358dddcca448ccdc266231eaf5d9c6f5514265b23d60edd7fae7d",
+    "body_sha256": "1e5eeb80a08d74493f96f82ba44c24c9807d525a8b5c3bc0b1c2d8bd20ed7a42",
+    "advertised_content_length": 42683,
+    "content_length_matches": true,
+    "advertised_content_md5": "rWRHfeTRu02VkeU6AEOHNg==",
+    "body_md5_base64": "rWRHfeTRu02VkeU6AEOHNg==",
+    "content_md5_matches": true
+  },
+  "http_get_commands": 3,
+  "http_note": "3 gh api GET invocations; job-log endpoint automatically followed the standard redirect to its log blob. No artifact endpoint called. Complete gh-exposed response headers/body retained.",
+  "managed_commands_before_readback": 11,
+  "managed_commands_planned_total": 12,
+  "tools": {
+    "gh": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0",
+    "git": "git version 2.56.0",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "wrapper_sha256": "1da88677f65823d7c1493ad72b049d36b02563033ab13d56db9c370dd37ca582",
+    "inert_runner_sha256": "ff48bf22b68ea737978f72bf8cc6a6a0f0f3c31afc26ce12168fcbaec7f81a52"
+  },
+  "finalizer_static_readback": "Pinned runner SHA verified; InertPopen.__del__ contains only pass; run records direct reap, both EOFs, closed descriptors, and group ESRCH. All11 completed commands independently read back positive; final separate managed readback reserved.",
+  "protocol_deviations": [
+    "First terminal was pwd in repo, rather than full AGENTS through wrapper. No payload mutation.",
+    "Wrapper --help attempt failed at existing commands/--help before launch. Exact wrapper source then read directly. No existing help namespace inspected.",
+    "Wrapper tail limited AGENTS output; full absolute file captured through wrapper and supplementary full/middle reads performed.",
+    "Initial git --optional-locks=0 spelling rejected with exit129 before Git lookup; corrected with GIT_OPTIONAL_LOCKS=0. Both have positive command closure."
+  ],
+  "timing": {
+    "first_managed_utc": "2026-11-17T02:08:59.367966+00:00",
+    "receipt_utc": "2026-11-17T02:14:44.674564+00:00",
+    "elapsed_from_first_managed_seconds": 345.307,
+    "360_second_bound_met_at_receipt": true,
+    "bootstrap_time_prior_to_first_managed_not_included": true
+  },
+  "next_discriminator": "Exact rejected relative path(s) from the generated debug consumer Generated/MixerSDK inventory are needed. The log does not expose them. Top-level artifact generated-java-top-level-c1091c1fd9680ea01387f5621dbec185a87b740e-43997676804-1 (14291197275) contains integration/receipt.json and commands/commands.json; it can locate recorded source/cleanup metadata, but no claim is made that it includes generated-file inventory. No artifact download or rerun authorized/performed.",
+  "limitations": [
+    "No underlying command stderr failure: last debug-create exited0 with execution_error null; the exposed failure is a Python validation predicate.",
+    "No six-consumer compilation/D8 completion; failure is immediately after debug-create before per-form compile loop.",
+    "No implementation, root-cause fix, publication, merge, package qualification, or adoption.",
+    "R4468 historical Git fix and R4452 source347 private workflow composition remain independent and untouched.",
+    "All historical custody holds preserved; no held runtime/payload paths read or probed."
+  ]
+}

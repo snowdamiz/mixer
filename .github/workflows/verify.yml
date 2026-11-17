@@ -199,6 +199,25 @@ jobs:
           python3 -I -B -S "$GITHUB_WORKSPACE/verification/sdk-feature-ui-source141-v1/test_source141.py"
           python3 -I -B -S "$GITHUB_WORKSPACE/verification/sdk-feature-ui-source141-v1/adopt_sdk.py" prepare-predecessor \
             --out "$MIXER_SOURCE127_PREDECESSOR"
+          (
+            # Synthetic reconstruction witness only; never an original historical HEAD.
+            test "$(cd "$RUNNER_TEMP" && pwd -P)/sdk-source127-controls" = "$MIXER_SOURCE127_PREDECESSOR"
+            test -d "$MIXER_SOURCE127_PREDECESSOR"
+            test ! -e "$MIXER_SOURCE127_PREDECESSOR/.git"
+            test ! -L "$MIXER_SOURCE127_PREDECESSOR/.git"
+            MIXER_SYNTHETIC_GIT=(env -i PATH="$PATH" LC_ALL=C
+              GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_SYSTEM=/dev/null GIT_CONFIG_GLOBAL=/dev/null GIT_ATTR_NOSYSTEM=1
+              GIT_AUTHOR_NAME="Mixer synthetic reconstruction" GIT_AUTHOR_EMAIL="synthetic-source127@invalid"
+              GIT_COMMITTER_NAME="Mixer synthetic reconstruction" GIT_COMMITTER_EMAIL="synthetic-source127@invalid"
+              GIT_AUTHOR_DATE="2000-01-01T00:00:00Z" GIT_COMMITTER_DATE="2000-01-01T00:00:00Z"
+              git -C "$MIXER_SOURCE127_PREDECESSOR" -c core.hooksPath=/dev/null
+              -c core.attributesFile=/dev/null -c core.autocrlf=false -c core.safecrlf=false -c commit.gpgSign=false)
+            "${MIXER_SYNTHETIC_GIT[@]}" init --template= --initial-branch=synthetic-source127-reconstruction
+            "${MIXER_SYNTHETIC_GIT[@]}" add --force --all -- .
+            "${MIXER_SYNTHETIC_GIT[@]}" commit --quiet -m "Synthetic source127 reconstruction witness; not an original historical commit"
+            "${MIXER_SYNTHETIC_GIT[@]}" rev-parse HEAD 'HEAD^{tree}' > "$MIXER_ADOPTION_DIR/logs/source127-synthetic-git.txt"
+            printf 'hosted_head=%s\nidentity_scope=synthetic-source127-reconstruction-only\n' "$GITHUB_SHA" >> "$MIXER_ADOPTION_DIR/logs/source127-synthetic-git.txt"
+          )
           python3 -I -B -S "$MIXER_SOURCE127_PREDECESSOR/verification/native-report-source127-v1/test_source127.py"
           MIXER_NATIVE_SOURCE126_PREDECESSOR="$RUNNER_TEMP/native-report-source126-controls"
           python3 -I -B -S "$MIXER_SOURCE127_PREDECESSOR/verification/native-report-source127-v1/adopt_envelope.py" prepare-predecessor \
@@ -232,6 +251,7 @@ jobs:
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           MIXER_ENVELOPE_RUSTC_LAUNCHER="$(command -v rustc)"
           MIXER_SOURCE127_PREDECESSOR="$RUNNER_TEMP/sdk-source127-controls"
+          GITHUB_SHA="$(head -n 1 "$MIXER_ADOPTION_DIR/logs/source127-synthetic-git.txt")" \
           python3 -B "$MIXER_SOURCE127_PREDECESSOR/verification/native-report-source127-v1/adopt_envelope.py" run \
             --rustc "$MIXER_ENVELOPE_RUSTC_LAUNCHER" \
             --out "$RUNNER_TEMP/analyzer-envelope" \
@@ -721,11 +741,14 @@ jobs:
             /verification/identity-network-current-source-v26/selection.json
             /verification/identity-network-current-source-v27/selection.json
             /verification/identity-network-current-source-v28/selection.json
+            /verification/identity-network-current-source-v29/selection.json
             /verification/identity-network-current-source-v24/selected-source-manifest.json
             /verification/identity-network-current-source-v25/selected-source-manifest.json
             /verification/identity-network-current-source-v26/selected-source-manifest.json
             /verification/identity-network-current-source-v27/selected-source-manifest.json
             /verification/identity-network-current-source-v28/selected-source-manifest.json
+            /verification/identity-network-current-source-v29/selected-source-manifest.json
+            /verification/identity-network-current-source-v29/preimages/
             /console/src/api/build-submission.ts
             /console/src/brand.css
             /console/src/build-submission-test-runtime.tsx

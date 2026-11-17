@@ -1246,6 +1246,112 @@ class FixtureCleanupControls(unittest.TestCase):
 
 
 
+class SDKNamespaceControls(unittest.TestCase):
+    def current(self):
+        pinned = M.load_profile()['sdk_files']
+        actual = {p: M.identity(M.ROOT / 'sdk' / p) for p in pinned}
+        return actual, pinned
+
+    def test_actual_current_bound26_namespace_and_identity_pass(self):
+        actual, pinned = self.current()
+        self.assertEqual(len(pinned), 26)
+        self.assertEqual(actual, pinned)
+        self.assertIn('Package.resolved', pinned)
+        self.assertIsNone(M.validate_sdk_namespace(actual, pinned))
+
+    def test_absent_lock24_historical_and25_current_maps_stay_unchanged(self):
+        binding = json.loads((M.ROOT / 'verification/sdk-feature-ui-source141-v1/binding.json').read_text())
+        historical = binding['sdk_transition']['profileBefore']['sdk_files']
+        actual_current, pinned_current = self.current()
+        actual25 = {p: v for p, v in actual_current.items() if p != 'Package.resolved'}
+        pinned25 = {p: v for p, v in pinned_current.items() if p != 'Package.resolved'}
+        self.assertEqual(len(historical), 24)
+        self.assertEqual(len(pinned_current), 26)
+        self.assertNotEqual(historical, pinned25)
+        for label, actual, pinned, count in (
+                ('source127-pair21', copy.deepcopy(historical), copy.deepcopy(historical), 24),
+                ('current-pair22-without-lock', actual25, pinned25, 25)):
+            with self.subTest(source=label, count=count):
+                before = copy.deepcopy((actual, pinned))
+                self.assertEqual(len(actual), count)
+                self.assertEqual(len(pinned), count)
+                self.assertEqual(actual, pinned)
+                self.assertNotIn('Package.resolved', actual)
+                self.assertNotIn('Package.resolved', pinned)
+                self.assertIsNone(M.validate_sdk_namespace(actual, pinned))
+                self.assertEqual((actual, pinned), before)
+
+    def test_missing_bound_lock_refuses(self):
+        actual, pinned = self.current()
+        del actual['Package.resolved']
+        with self.assertRaises(RuntimeError):
+            M.validate_sdk_namespace(actual, pinned)
+
+    def test_present_unbound_lock_refuses(self):
+        actual, pinned = self.current()
+        pinned = {p: v for p, v in pinned.items() if p != 'Package.resolved'}
+        with self.assertRaises(RuntimeError):
+            M.validate_sdk_namespace(actual, pinned)
+
+    def test_changed_lock_hash_or_size_refuses(self):
+        actual, pinned = self.current()
+        for key, value in (('sha256', '0' * 64), ('bytes', pinned['Package.resolved']['bytes'] + 1)):
+            with self.subTest(field=key):
+                changed = copy.deepcopy(actual)
+                changed['Package.resolved'][key] = value
+                with self.assertRaises(RuntimeError):
+                    M.validate_sdk_namespace(changed, pinned)
+
+    def test_reserved_alias_prefix_cache_and_traversal_refuse(self):
+        actual, pinned = self.current()
+        for path in ('package.resolved', 'Package.Resolved', 'PACKAGE.SWIFT',
+                     'Package.swift.bak', 'Package.resolved/cache', 'Package.evil',
+                     'Package.swift/cache', '../Package.resolved', 'Sources/../Package.resolved',
+                     '/Package.resolved', 'Sources//file', 'Sources\\Package.resolved', 'Kache/file'):
+            with self.subTest(path=path):
+                changed = {**actual, path: data_identity(b'impostor')}
+                with self.assertRaises(RuntimeError):
+                    M.validate_sdk_namespace(changed, pinned)
+
+    def test_consumer_calls_gate_with_trusted_map(self):
+        fixture = RunnerControls('test_valid_snapshot_preserves_full_inventory')
+        fixture.setUp()
+        try:
+            consumer = fixture.consumer()
+            target = consumer[0] / 'Generated/MixerSDK/Package.resolved'
+            target.write_bytes(b'unbound lock')
+            fixture.recompute(consumer[0])
+            with self.assertRaises(RuntimeError):
+                fixture.validate(consumer)
+        finally:
+            fixture.doCleanups()
+
+    def test_actual_current26_consumer_passes(self):
+        fixture = RunnerControls('test_valid_snapshot_preserves_full_inventory')
+        fixture.setUp()
+        try:
+            root, profile, toolchain, template = fixture.consumer()
+            sdk = root / 'Generated/MixerSDK'
+            shutil.rmtree(sdk)
+            actual, pinned = self.current()
+            for path in pinned:
+                target = sdk / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((M.ROOT / 'sdk' / path).read_bytes())
+            profile['sdk_files'] = pinned
+            profile['sdk_compatibility_sha256'] = M.source_digest(pinned)
+            (root / 'Generated/MixerAndroid/android-build.py').write_text(
+                template.replace(M.MARKER, json.dumps(profile).encode().hex()))
+            lock = json.loads((root / 'mixer.lock').read_text())
+            lock['android']['profile']['sdk_compatibility_sha256'] = profile['sdk_compatibility_sha256']
+            M.save(root / 'mixer.lock', lock)
+            fixture.recompute(root)
+            result = M.validate_consumer(root, profile, toolchain, template)
+            self.assertEqual(result['Generated/MixerSDK/Package.resolved'], pinned['Package.resolved'])
+        finally:
+            fixture.doCleanups()
+
+
 class OptionalNativeSDKSourceTests(unittest.TestCase):
     shipping = ('Package.swift', 'Sources/CMixerVM/mixer_vm.h',
                 'Sources/CMixerVM/module.modulemap',

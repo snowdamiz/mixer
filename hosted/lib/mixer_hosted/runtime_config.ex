@@ -9,7 +9,15 @@ defmodule MixerHosted.RuntimeConfig do
   @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound, :identity_startup]
   defstruct @enforce_keys ++ [create_repo: nil, processor_profile: nil]
 
-  @queues [:builds, :signing, :submissions, :releases, :telemetry, :billing]
+  @queues [
+    :builds,
+    :signing,
+    :submissions,
+    :releases,
+    :telemetry,
+    :billing,
+    :billing_reconciliation
+  ]
 
   def load!(env) when is_map(env) do
     role = role!(required!(env, "MIXER_HOSTED_ROLE"))
@@ -17,15 +25,28 @@ defmodule MixerHosted.RuntimeConfig do
     processor_profile =
       case Map.get(env, "MIXER_PROCESSOR_PROFILE") do
         "builds_v1" -> :builds_v1
+        "billing_v1" when role == :processor -> :billing_v1
         nil when role == :api -> nil
         _ -> invalid!("MIXER_PROCESSOR_PROFILE")
       end
 
-    if role == :processor and required!(env, "MIXER_DATABASE_USER") != "mixer_build_processor",
+    profile =
+      if processor_profile == :billing_v1,
+        do: MixerHosted.Billing.ProcessorProfile,
+        else: MixerHosted.Builds.ProcessorProfile
+
+    queue = if processor_profile == :billing_v1, do: :billing_reconciliation, else: :builds
+
+    admission =
+      if processor_profile == :billing_v1,
+        do: MixerHosted.Billing.ProcessorAdmission,
+        else: MixerHosted.Builds.ProcessorAdmission
+
+    if role == :processor and required!(env, "MIXER_DATABASE_USER") != profile.role(),
       do: invalid!("MIXER_DATABASE_USER")
 
     if role == :processor do
-      for q <- @queues -- [:builds] do
+      for q <- @queues -- [queue] do
         key = "MIXER_QUEUE_" <> String.upcase(Atom.to_string(q)) <> "_CONCURRENCY"
         if Map.has_key?(env, key), do: invalid!(key)
       end
@@ -71,7 +92,7 @@ defmodule MixerHosted.RuntimeConfig do
           Keyword.put(
             repo,
             :after_connect,
-            {MixerHosted.Builds.ProcessorAdmission, :after_connect, []}
+            {admission, :after_connect, []}
           ),
         else: repo
 
@@ -87,7 +108,7 @@ defmodule MixerHosted.RuntimeConfig do
 
     queues =
       if role == :processor do
-        for queue <- [:builds] do
+        for queue <- [queue] do
           key = "MIXER_QUEUE_" <> String.upcase(Atom.to_string(queue)) <> "_CONCURRENCY"
           {queue, integer!(env, key, 1, 1..8)}
         end
@@ -103,7 +124,7 @@ defmodule MixerHosted.RuntimeConfig do
       repo: repo,
       oban:
         if(role == :processor,
-          do: MixerHosted.Builds.ProcessorProfile.oban(Keyword.fetch!(queues, :builds)),
+          do: profile.oban(Keyword.fetch!(queues, queue)),
           else: [
             repo: MixerHosted.Repo,
             name: Oban,
@@ -126,7 +147,8 @@ defmodule MixerHosted.RuntimeConfig do
   @doc false
   def installed_processor_profile do
     case MixerHosted.Application.startup() do
-      {:ok, {%__MODULE__{processor_profile: profile}, _}} when profile in [nil, :builds_v1] ->
+      {:ok, {%__MODULE__{processor_profile: profile}, _}}
+      when profile in [nil, :builds_v1, :billing_v1] ->
         profile
 
       _ ->

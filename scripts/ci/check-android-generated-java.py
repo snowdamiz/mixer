@@ -117,6 +117,19 @@ def java_roster(profile):
     return paths
 
 
+def validate_sdk_namespace(actual: dict[str, dict], pinned: dict[str, dict]) -> None:
+    for path in actual:
+        parts = path.split('/')
+        require(all(part not in ('', '.', '..') for part in parts) and '\\' not in path and
+                parts[0].isascii() and
+                (not parts[0].lower().startswith('package') or
+                 path in ('Package.swift', 'Package.resolved')),
+                'Consumer SDK manifest namespace differs: ' + path)
+    require(('Package.resolved' in actual) == ('Package.resolved' in pinned) and
+            actual.get('Package.resolved') == pinned.get('Package.resolved'),
+            'Consumer SDK lock presence or pinned identity differs')
+
+
 def validate_consumer(root, profile, toolchain, template):
     files = inventory(root)
     lock = unique_json((root / 'mixer.lock').read_text())
@@ -142,9 +155,7 @@ def validate_consumer(root, profile, toolchain, template):
         for prefix_path in closed:
             closed_inventory(root / 'Generated' / directory, prefix_path.rstrip('/'), profile[kind + '_files'])
         if kind == 'sdk':
-            require(all(p.split('/')[0].isascii() and
-                        (not p.split('/')[0].lower().startswith('package') or p == 'Package.swift')
-                        for p in actual), 'Consumer SDK manifest namespace differs')
+            validate_sdk_namespace(actual, profile['sdk_files'])
     adapter = root / 'Generated/MixerAndroid'
     require(identity(adapter / DESCRIPTOR) == profile['default_descriptor'], 'Consumer descriptor differs')
     require({p for p in files if p.startswith('Generated/MixerAndroid/app/assets/')} ==

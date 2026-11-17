@@ -2747,6 +2747,111 @@ def _load_pending_session_source_authority():
     return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
 
 
+
+BILLING_RECONCILIATION_SOURCE_BASE = 'verification/identity-network-current-source-v29/'
+BILLING_RECONCILIATION_SELECTION_SHA256 = '3d0140a28d2dd6dd94cb76e66acbe35f79b1184d9b8ae65295263bb94c66dd03'
+BILLING_RECONCILIATION_SOURCE_DIGEST = 'e13e813bffa3c8832938186ed7919fa2383ac3a833ee3c00c5afd0edcb3c9abe'
+BILLING_RECONCILIATION_SOURCE_COUNT = 347
+BILLING_RECONCILIATION_DELTA = {'hosted/lib/mixer_hosted/application.ex': {'before': {'bytes': 4865, 'sha256': '226e4bcedb8f42b55b919321a80cd3c4b62d957e38082a8cbf688d79782bb9d0'}, 'after': {'bytes': 5232, 'sha256': '1cfa647c13b1d3528031a28e792a8d4339001035364e1118de09935de9b1a999'}}, 'hosted/lib/mixer_hosted/billing/bindings.ex': {'before': None, 'after': {'bytes': 2693, 'sha256': '1aa7fc2b00f74dd3ac3bab384e6f6b593774c1a8acadb0c5aad8702a78d05928'}}, 'hosted/lib/mixer_hosted/billing/entitlements.ex': {'before': None, 'after': {'bytes': 308, 'sha256': '718922883aedbfb69562939c7beef47b386cbe9547e129a3397c8de224c36573'}}, 'hosted/lib/mixer_hosted/billing/processor_admission.ex': {'before': None, 'after': {'bytes': 6353, 'sha256': '57504d79bf88af082aa49b8fa2fa56e074ab7e66605776b31f964cd9f04a4324'}}, 'hosted/lib/mixer_hosted/billing/processor_profile.ex': {'before': None, 'after': {'bytes': 610, 'sha256': 'd9463c6bb3d979e8183fe7f7bc01bf7d35ab6a38de51b3e6bc27eec72e67a7d0'}}, 'hosted/lib/mixer_hosted/billing/provider_read.ex': {'before': None, 'after': {'bytes': 1777, 'sha256': 'cca53ba11da0ad11a460c7a43aa40030d694a0d74fcca61ebda2a6f057f456a1'}}, 'hosted/lib/mixer_hosted/billing/reconciliation.ex': {'before': None, 'after': {'bytes': 6642, 'sha256': 'e67e51007a8d75b5c3571e9c1671f0cef45df372ab230c709bb97be114e1f3a8'}}, 'hosted/lib/mixer_hosted/billing/reconciliation_worker.ex': {'before': None, 'after': {'bytes': 752, 'sha256': '814997682a5b0d21d2f362e5f56765a53def3788bc6a8a3ceb908af4b049580d'}}, 'hosted/lib/mixer_hosted/billing/subscription_read_transport.ex': {'before': {'bytes': 9245, 'sha256': 'd9a1440060a6166eb49eac42d89bcf2c613bd60a0609d1002eeea3cf7bcaec95'}, 'after': {'bytes': 10178, 'sha256': '440a10fdf904af6729b34fde87f5cc72665bc591d5983195fd11535db55c4f3d'}}, 'hosted/lib/mixer_hosted/runtime_config.ex': {'before': {'bytes': 6024, 'sha256': '39d277e3114f28de0ab84130de08e4732b86a07707f4d0b5bdb30bb8a5f11b1d'}, 'after': {'bytes': 6504, 'sha256': '5dc5533747ab654636c801a13a548d175800c739d3eaa07f4525f0dbe4e29aa0'}}, 'hosted/priv/repo/migrations/20261116000000_add_billing_reconciliation.exs': {'before': None, 'after': {'bytes': 7151, 'sha256': '2c230218f9c9d5865aeb0e3e5a47e2897dc04bc11ebacfddbba5b5abddddece1'}}, 'hosted/priv/repo/migrations/20261116000001_add_billing_organization_state.exs': {'before': None, 'after': {'bytes': 1770, 'sha256': '0a3a39e0bfe67699b92d52887705f2a2976879fae365295b258adfd0e7499160'}}, 'hosted/test/mixer_hosted/builds/coordinator_test.exs': {'before': {'bytes': 27768, 'sha256': 'd819b53ecdcaf2884e881d5b1b4266d1384409b48ba26009c102cd9a29a90431'}, 'after': {'bytes': 28233, 'sha256': '470a44b17c26f8957fee7055b1bdeeb20a9e4c2b8614c3c993682689842dab43'}}, 'hosted/test/mixer_hosted/builds/development_dispatch_test.exs': {'before': {'bytes': 6856, 'sha256': '2ccebab3b21216830e464753ed8e5e5a195c443392122c35a0f1414f8ff0b627'}, 'after': {'bytes': 7795, 'sha256': '4a2fcbb8c7607ff58567ef2d7b506ae516360f6ef11f9c39c3c2842b8454c181'}}, 'hosted/test/mixer_hosted/builds/operation_admission_test.exs': {'before': {'bytes': 17945, 'sha256': '71597fc651ee7e265d6da7bcaf1daf5a3343fa0e1bdc77375b74b818f5d00eaa'}, 'after': {'bytes': 18410, 'sha256': '79060d43943720062bc13b4fc7df6b71a9ecf3eeacde9ab15bb499551397b225'}}, 'hosted/test/support/reviewed_migrations.json': {'before': {'bytes': 597, 'sha256': '588f54f76747be82713188547f41a3f04cdb18250faaa375b1ee65523e36d103'}, 'after': {'bytes': 703, 'sha256': '3c3d655d6634ac6ede591c5bc43653d3a38b52fbf152348a2f655117e1c73307'}}}
+BILLING_RECONCILIATION_SCOPE = 'Frozen R4432 formatted full13 plus R4448 complete all80 migration-inventory exact three-test correction; billing reconciliation source only; worker observation-only; financial effects, provider activation, deployment and GA false; current SDK141 shared-workflow metadata composition only; runtime acceptance separate.'
+
+
+def _billing_reconciliation_inverse(inverse):
+    require(type(inverse) is dict and list(inverse) == sorted(PENDING_SESSION_MANIFEST), 'billing reconciliation ordered complete v28 inverse')
+    for path, value in inverse.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(value)
+    require(inverse == PENDING_SESSION_MANIFEST and canonical_digest(inverse) == PENDING_SESSION_SOURCE_DIGEST, 'billing reconciliation exact typed v28 inverse')
+    validate_pending_session_source_manifest(inverse)
+
+
+def validate_billing_reconciliation_source_manifest(manifest, expected_digest=BILLING_RECONCILIATION_SOURCE_DIGEST, expected_count=None):
+    require(type(expected_digest) is str and expected_digest == BILLING_RECONCILIATION_SOURCE_DIGEST, 'caller cannot replace billing reconciliation digest')
+    require(expected_count is None or type(expected_count) is int and expected_count == BILLING_RECONCILIATION_SOURCE_COUNT, 'caller cannot replace billing reconciliation count')
+    added = {p for p, change in BILLING_RECONCILIATION_DELTA.items() if change['before'] is None}
+    require(type(manifest) is dict and list(manifest) == sorted(set(PENDING_SESSION_MANIFEST) | added), 'billing reconciliation exact ordered source membership')
+    require(len(manifest) == BILLING_RECONCILIATION_SOURCE_COUNT, 'billing reconciliation source count')
+    for path, value in manifest.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(value)
+    delta = {p: {'before': PENDING_SESSION_MANIFEST.get(p), 'after': v}
+             for p, v in manifest.items() if PENDING_SESSION_MANIFEST.get(p) != v}
+    require(delta == BILLING_RECONCILIATION_DELTA, 'billing reconciliation exact frozen sixteen-path delta')
+    inverse = dict(manifest)
+    for path, change in delta.items():
+        if change['before'] is None:
+            del inverse[path]
+        else:
+            inverse[path] = change['before']
+    _billing_reconciliation_inverse(dict(sorted(inverse.items())))
+    require(canonical_digest(manifest) == BILLING_RECONCILIATION_SOURCE_DIGEST, 'billing reconciliation source digest')
+    return manifest
+
+
+def _billing_reconciliation_metadata(metadata):
+    base = BILLING_RECONCILIATION_SOURCE_BASE
+    require(type(metadata) is dict and set(metadata) == {base + n for n in ('selection.json', 'selected-source-manifest.json')}, 'billing reconciliation metadata membership')
+    body = metadata[base + 'selection.json']
+    require(type(body) is bytes and hashlib.sha256(body).hexdigest() == BILLING_RECONCILIATION_SELECTION_SHA256, 'billing reconciliation selection pin')
+    value = _restricted_processor_json(body)
+    fields = {'schema', 'identity', 'operation', 'scope', 'selected', 'predecessor', 'exact_delta', 'inverse_v28',
+              'activation', 'runtime_or_GA_accepted', 'CLI127_selected', 'worker_observation_only', 'financial_effects', 'provider_activation', 'deployment'}
+    require(type(value) is dict and set(value) == fields, 'billing reconciliation selection shape')
+    require(type(value['schema']) is int and value['schema'] == 1 and value['identity'] == 'hosted-current-billing-reconciliation-v29', 'billing reconciliation schema identity')
+    require(value['operation'] == 'admit-frozen-R4432-billing-reconciliation-after-v28' and value['scope'] == BILLING_RECONCILIATION_SCOPE, 'billing reconciliation operation scope')
+    require(value['worker_observation_only'] is True and all(value[k] is False for k in ('activation', 'runtime_or_GA_accepted', 'CLI127_selected', 'financial_effects', 'provider_activation', 'deployment')), 'billing reconciliation observation-only source admission')
+    predecessor = value['predecessor']
+    require(type(predecessor) is dict and set(predecessor) == {'source_count', 'source_digest_sha256', 'selection_sha256'}, 'billing reconciliation predecessor shape')
+    require(type(predecessor['source_count']) is int and predecessor == {'source_count': PENDING_SESSION_SOURCE_COUNT, 'source_digest_sha256': PENDING_SESSION_SOURCE_DIGEST, 'selection_sha256': PENDING_SESSION_SELECTION_SHA256}, 'billing reconciliation pinned v28 predecessor')
+    _billing_reconciliation_inverse(value['inverse_v28'])
+    selected = value['selected']
+    require(type(selected) is dict and set(selected) == {'source_count', 'source_digest_sha256', 'manifest'}, 'billing reconciliation selected shape')
+    require(type(selected['source_count']) is int and selected['source_count'] == BILLING_RECONCILIATION_SOURCE_COUNT and selected['source_digest_sha256'] == BILLING_RECONCILIATION_SOURCE_DIGEST, 'billing reconciliation selected count digest')
+    ref = selected['manifest']
+    require(type(ref) is dict and set(ref) == {'path', 'bytes', 'sha256'} and ref['path'] == 'selected-source-manifest.json', 'billing reconciliation manifest reference')
+    _restricted_processor_row({k: ref[k] for k in ('bytes', 'sha256')})
+    manifest_body = metadata[base + 'selected-source-manifest.json']
+    require(type(manifest_body) is bytes and _file_row(manifest_body) == {k: ref[k] for k in ('bytes', 'sha256')}, 'billing reconciliation manifest byte pin')
+    manifest = _restricted_processor_json(manifest_body)
+    validate_billing_reconciliation_source_manifest(manifest)
+    delta = value['exact_delta']
+    require(type(delta) is dict and list(delta) == sorted(BILLING_RECONCILIATION_DELTA), 'billing reconciliation delta membership')
+    for path, change in delta.items():
+        _restricted_processor_path(path)
+        require(type(change) is dict and set(change) == {'before', 'after'}, 'billing reconciliation typed delta shape')
+        if path in PENDING_SESSION_MANIFEST:
+            _restricted_processor_row(change['before'])
+        else:
+            require(change['before'] is None, 'billing reconciliation new source preimage')
+        _restricted_processor_row(change['after'])
+    require(delta == BILLING_RECONCILIATION_DELTA, 'billing reconciliation exact typed delta')
+    return value, manifest
+
+
+def validate_billing_reconciliation_source_metadata(metadata):
+    value, manifest = _billing_reconciliation_metadata(metadata)
+    require(manifest == BILLING_RECONCILIATION_MANIFEST, 'billing reconciliation installed manifest')
+    return value
+
+
+def check_billing_reconciliation_source(root):
+    base = BILLING_RECONCILIATION_SOURCE_BASE
+    metadata = {base + n: (root / base / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    selection = validate_billing_reconciliation_source_metadata(metadata)
+    observed = {p: _file_row((root / p).read_bytes()) for p in BILLING_RECONCILIATION_MANIFEST}
+    validate_billing_reconciliation_source_manifest(observed)
+    return {'identity': selection['identity'], 'source_count': len(observed), 'source_digest_sha256': canonical_digest(observed),
+            'selection_sha256': BILLING_RECONCILIATION_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
+def _load_billing_reconciliation_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    base = BILLING_RECONCILIATION_SOURCE_BASE
+    metadata = {base + n: (root / base / n).read_bytes() for n in ('selection.json', 'selected-source-manifest.json')}
+    value, manifest = _billing_reconciliation_metadata(metadata)
+    return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
+
+
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
@@ -2766,7 +2871,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_pending_session_source_manifest(prepared["source"])
+    validate_billing_reconciliation_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -2933,7 +3038,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_pending_session_source_manifest(manifest["source"])
+    validate_billing_reconciliation_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -2956,7 +3061,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PENDING_SESSION_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(BILLING_RECONCILIATION_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -3727,10 +3832,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_pending_session_source_manifest(PENDING_SESSION_MANIFEST)
-        product = self.git_blobs(sorted(PENDING_SESSION_MANIFEST))
+        validate_billing_reconciliation_source_manifest(BILLING_RECONCILIATION_MANIFEST)
+        product = self.git_blobs(sorted(BILLING_RECONCILIATION_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_pending_session_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_billing_reconciliation_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -3835,7 +3940,10 @@ class Collector:
         pending_metadata = self.git_blobs([PENDING_SESSION_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         validate_pending_session_source_metadata(pending_metadata)
         metadata.update(pending_metadata)
-        self.state["source"].update(current_source_selection_sha256=PENDING_SESSION_SELECTION_SHA256, current_source_digest_sha256=PENDING_SESSION_SOURCE_DIGEST)
+        billing_metadata = self.git_blobs([BILLING_RECONCILIATION_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_billing_reconciliation_source_metadata(billing_metadata)
+        metadata.update(billing_metadata)
+        self.state["source"].update(current_source_selection_sha256=BILLING_RECONCILIATION_SELECTION_SHA256, current_source_digest_sha256=BILLING_RECONCILIATION_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -3853,7 +3961,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(PENDING_SESSION_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(BILLING_RECONCILIATION_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -3876,7 +3984,7 @@ class Collector:
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
         prepared_manifest["source"] = dict(sorted(prepared_manifest["source"].items()))
-        require(prepared_manifest["source"] == PENDING_SESSION_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == BILLING_RECONCILIATION_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -3974,7 +4082,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in PENDING_SESSION_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in BILLING_RECONCILIATION_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -4425,7 +4533,7 @@ def main(argv=None):
     root = Path(__file__).resolve().parents[2]
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_pending_session_source(root), sort_keys=True))
+        print(json.dumps(check_billing_reconciliation_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -4546,6 +4654,9 @@ DEVELOPMENT_DISPATCH_MANIFEST = DEVELOPMENT_DISPATCH_AUTHORITY.manifest
 
 PENDING_SESSION_AUTHORITY = _load_pending_session_source_authority()
 PENDING_SESSION_MANIFEST = PENDING_SESSION_AUTHORITY.manifest
+
+BILLING_RECONCILIATION_AUTHORITY = _load_billing_reconciliation_source_authority()
+BILLING_RECONCILIATION_MANIFEST = BILLING_RECONCILIATION_AUTHORITY.manifest
 
 if __name__ == '__main__':
     try:

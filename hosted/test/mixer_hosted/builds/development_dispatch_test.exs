@@ -193,7 +193,23 @@ defmodule MixerHosted.Builds.DevelopmentDispatchTest do
              Path.expand("../../../priv", __DIR__)
 
     migrations = Path.join(priv, "repo/migrations")
-    assert length(Path.wildcard(Path.join(migrations, "*.exs"))) == 12
+    assert Enum.sort(Enum.map(Path.wildcard(Path.join(migrations, "*.exs")), &Path.basename/1)) ==
+             [
+               "20261024000000_add_oban.exs",
+               "20261025000000_add_build_journals.exs",
+               "20261025000001_add_build_admission.exs",
+               "20261025000002_add_build_aggregate_limits.exs",
+               "20261025000003_add_customer_authorization.exs",
+               "20261025000004_add_authorization_state_revisions.exs",
+               "20261025000005_add_customer_artifact_storage.exs",
+               "20261025000006_add_customer_workspace_discovery.exs",
+               "20261025000007_add_browser_sessions.exs",
+               "20261025000008_add_browser_activation_preparation.exs",
+               "20261110000000_add_billing_webhook_inbox.exs",
+               "20261110000001_add_billing_usage_ledger.exs",
+               "20261116000000_add_billing_reconciliation.exs",
+               "20261116000001_add_billing_organization_state.exs"
+             ]
     assert :ok = MixerHosted.Test.Migrations.check_files!(migrations)
   end
 end

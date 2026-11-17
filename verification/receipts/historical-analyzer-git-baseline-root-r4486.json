@@ -1,0 +1,196 @@
+{
+  "schema": 1,
+  "id": "historical-analyzer-git-baseline-root-r4486",
+  "status": "ACTUAL_GIT_BASELINE_OLD_REFUSAL_NEW_REVISION_AND_ADMISSION_PASS",
+  "snapshotFilesUnchanged": 845,
+  "historicalSource127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+  "before": {
+    "command": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "exit": 128,
+    "stderr": "fatal: not a git repository (or any of the parent directories): .git\n"
+  },
+  "after": {
+    "exit": 0,
+    "syntheticCommit": "0a4e3a59d678020e94f820e227a9bd92a51d51c6",
+    "syntheticTree": "2524cd688512af6cee8a35f624f27996207207d1",
+    "cleanWorktree": true
+  },
+  "identityScope": "synthetic reconstruction only; neither original historical commit nor current hosted head",
+  "hostedHead": "c1091c1fd9680ea01387f5621dbec185a87b740e",
+  "localNegativeIsolation": "Owned external parent plus explicit Git ceiling prevents parent-repository inheritance.",
+  "shellSHA256": "dde5b5d5a0ed97b9a85cf58baa121956cffcd1fa9d1fa121443e05f4fe501034",
+  "Git": {
+    "path": "/opt/homebrew/bin/git",
+    "version": "git version 2.56.0",
+    "sha256": "92229f2456a49561ac5d614bbed775224e2fc32a8eca22ac41aeb3ce47d7899c"
+  },
+  "source127AdmissionPassed": true,
+  "compilerStarted": false,
+  "analyzerRuntimeQualified": false,
+  "pinnedAnalyzerCompilerLocallyQualified": false,
+  "priorR4468HoldPreserved": "verification/receipts/historical-analyzer-git-proof-hold-root-r4482.json",
+  "heldResourcesTouched": false,
+  "newHold": false,
+  "canonicalWrites": false,
+  "GA": false,
+  "commands": {
+    "r4486-fresh-source127-reconstruction": {
+      "label": "r4486-fresh-source127-reconstruction",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/sdk-feature-ui-source141-v1/adopt_sdk.py",
+        "prepare-predecessor",
+        "--out",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/historical-analyzer-git-baseline-root-r4486/sdk-source127-controls"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 76997,
+      "pgid": 76997,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.527746417094022,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4486-select-external-git-fixture": {
+      "label": "r4486-select-external-git-fixture",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "-c",
+        "from pathlib import Path; import json,shutil,hashlib; p=Path(\"/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/historical-analyzer-git-baseline-root-r4486\"); s=p/\"sdk-source127-controls\"; out=Path(\"/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486\"); out.mkdir(mode=448); rows={}; files=sorted(q for q in s.rglob(\"*\") if q.is_file()); assert len(files)==845 and not (s/\".git\").exists(); assert not any(q.is_symlink() for q in s.rglob(\"*\")); rows={str(q.relative_to(s)):{\"bytes\":q.stat().st_size,\"sha256\":hashlib.sha256(q.read_bytes()).hexdigest()} for q in files}; shutil.copytree(s,out/\"sdk-source127-controls\"); (p/\"source127-original-manifest.json\").write_text(json.dumps(rows,indent=2)+\"\\n\"); (p/\"ownership.json\").write_text(json.dumps({\"ownedRoot\":str(out),\"snapshot\":str(out/\"sdk-source127-controls\"),\"files\":len(rows),\"whyExternal\":\"Avoid inheriting the canonical parent Git repository; negative command also sets the explicit ceiling to the owned parent.\",\"historicResourcesTouched\":False},indent=2)+\"\\n\"); print(json.dumps({\"ownedRoot\":str(out),\"snapshotFiles\":len(rows),\"sourceBytesCopiedExact\":True}))"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 77836,
+      "pgid": 77836,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.24077795899938792,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4486-revision-before-expected-refusal": {
+      "label": "r4486-revision-before-expected-refusal",
+      "argv": [
+        "/usr/bin/env",
+        "-u",
+        "GIT_DIR",
+        "-u",
+        "GIT_WORK_TREE",
+        "GIT_CEILING_DIRECTORIES=/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486",
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486/sdk-source127-controls",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 77844,
+      "pgid": 77844,
+      "state": "direct_reaped",
+      "exitCode": 128,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.026767667033709586,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4486-establish-synthetic-git-baseline": {
+      "label": "r4486-establish-synthetic-git-baseline",
+      "argv": [
+        "/usr/bin/env",
+        "RUNNER_TEMP=/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486",
+        "MIXER_SOURCE127_PREDECESSOR=/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486/sdk-source127-controls",
+        "MIXER_ADOPTION_DIR=/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/historical-analyzer-git-baseline-root-r4486/adoption",
+        "GITHUB_SHA=c1091c1fd9680ea01387f5621dbec185a87b740e",
+        "/bin/bash",
+        "-euo",
+        "pipefail",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/historical-analyzer-git-baseline-root-r4486/synthetic-baseline.sh"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 79238,
+      "pgid": 79238,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.5911932919407263,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4486-revision-before-after-baseline": {
+      "label": "r4486-revision-before-after-baseline",
+      "argv": [
+        "/usr/bin/env",
+        "-u",
+        "GIT_DIR",
+        "-u",
+        "GIT_WORK_TREE",
+        "GIT_CEILING_DIRECTORIES=/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486",
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486/sdk-source127-controls",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 79256,
+      "pgid": 79256,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.027119542006403208,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4486-source127-post-git-admission": {
+      "label": "r4486-source127-post-git-admission",
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486/sdk-source127-controls/verification/native-report-source127-v1/adopt_envelope.py",
+        "verify",
+        "--workflow-installed"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 79264,
+      "pgid": 79264,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.457083374960348,
+      "ownedGroupAbsentESRCH": true
+    },
+    "r4486-synthetic-worktree-postflight": {
+      "label": "r4486-synthetic-worktree-postflight",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "/Users/andreyyurlov/.t3/userdata/mixer-source127-git-proof-root-r4486/sdk-source127-controls",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/continuation-root-r2332",
+      "pid": 85591,
+      "pgid": 85591,
+      "state": "direct_reaped",
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "seconds": 0.04086233407724649,
+      "ownedGroupAbsentESRCH": true
+    }
+  }
+}
