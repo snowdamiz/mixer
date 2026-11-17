@@ -5,6 +5,9 @@ import json
 import os
 import pathlib
 import re
+import resource
+import signal
+import threading
 import shutil
 import stat
 import subprocess
@@ -44,6 +47,13 @@ class InspectionDigests:
     """Reuse stable file bytes within one inspect; every path still opens its target."""
     def __init__(self):
         self._files = {}
+        self._progress = None
+
+    def _step(self, operation, **counts):
+        if self._progress is not None:
+            self._progress.operation = operation
+            for name, value in counts.items():
+                self._progress.counts[name] += value
 
     @staticmethod
     def _identity(info):
@@ -51,30 +61,45 @@ class InspectionDigests:
                 info.st_size, info.st_mtime_ns, info.st_ctime_ns)
 
     def __call__(self, path):
+        self._step("stat", stat_calls=1)
         before = self._identity(path.stat())
         if not stat.S_ISREG(before[2]):
             raise RuntimeError('Unsupported installed tool file: ' + str(path))
+        self._step("open", file_open_calls=1)
         descriptor = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
         try:
             with os.fdopen(descriptor, 'rb', closefd=False) as stream:
+                self._step("fstat", fstat_calls=1)
                 if before != self._identity(os.fstat(descriptor)):
                     raise RuntimeError('Installed tool file changed during inspection: ' + str(path))
+                self._step("cache_lookup", cache_lookups=1)
                 cached = self._files.get(before[:2])
                 if cached is not None:
+                    self._step("cache_hit", cache_hits=1)
                     if cached[0] != before:
                         raise RuntimeError('Installed tool file changed during inspection: ' + str(path))
                     value = cached[1]
                 else:
                     h = hashlib.sha256()
-                    for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                    while True:
+                        self._step("read", read_calls=1)
+                        chunk = stream.read(1024 * 1024)
+                        self._step("hash", read_bytes=len(chunk))
+                        if not chunk:
+                            break
                         h.update(chunk)
                     value = h.hexdigest()
-                if (before != self._identity(os.fstat(descriptor)) or
-                        before != self._identity(path.stat())):
+                self._step("fstat", fstat_calls=1)
+                changed = before != self._identity(os.fstat(descriptor))
+                if not changed:
+                    self._step("stat", stat_calls=1)
+                    changed = before != self._identity(path.stat())
+                if changed:
                     raise RuntimeError('Installed tool file changed during inspection: ' + str(path))
         finally:
             os.close(descriptor)
         self._files[before[:2]] = (before, value)
+        self._step("file_complete", files_completed=1)
         return value
 
 
@@ -84,8 +109,12 @@ def tree(path, digest_file=None):
     if not path.is_dir():
         raise RuntimeError('Missing installed tool distribution: ' + str(path))
     digest_file = digest if digest_file is None else digest_file
+    progress = getattr(digest_file, '_progress', None)
     h = hashlib.sha256()
     for base, dirs, names in os.walk(path, followlinks=False):
+        if progress is not None:
+            progress.operation = 'walk'
+            progress.counts['directories'] += 1
         dirs.sort()
         for name in sorted(names + [d for d in dirs if (pathlib.Path(base) / d).is_symlink()]):
             item = pathlib.Path(base) / name
@@ -102,6 +131,8 @@ def tree(path, digest_file=None):
             else:
                 raise RuntimeError('Unsupported installed tool file: ' + str(item))
             h.update((relative + '\0' + value + '\n').encode())
+            if progress is not None:
+                progress.counts['entries_completed'] += 1
     return h.hexdigest()
 
 
@@ -490,10 +521,13 @@ class InspectionPhases:
     MAX_ENTRIES = 64
     MAX_BYTES = 16384
 
-    def __init__(self):
+    def __init__(self, prefix='inspection-'):
         self.fd = None
         self.entries = 0
         self.bytes = 0
+        self.progress_entries = 0
+        self.progress_bytes = 0
+        self.progress_sink = None
         selected = ENV.get('MIXER_ANDROID_INSPECTION_PHASE_DIR')
         if not selected:
             return
@@ -507,7 +541,7 @@ class InspectionPhases:
             info = os.fstat(directory_fd)
             if info.st_uid != os.getuid() or info.st_mode & 0o022:
                 return
-            self.fd = os.open('inspection-' + str(os.getpid()) + '-' + uuid.uuid4().hex + '.jsonl',
+            self.fd = os.open(prefix + str(os.getpid()) + '-' + uuid.uuid4().hex + '.jsonl',
                               os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_NONBLOCK,
                               0o600, dir_fd=directory_fd)
         except Exception:
@@ -520,6 +554,9 @@ class InspectionPhases:
                     pass
 
     def close(self):
+        if self.progress_sink is not None:
+            self.progress_sink.close()
+            self.progress_sink = None
         fd, self.fd = self.fd, None
         if fd is not None:
             try:
@@ -527,12 +564,19 @@ class InspectionPhases:
             except Exception:
                 pass
 
-    def mark(self, phase, state):
+    def mark(self, phase, state, progress=None):
         if self.fd is None:
             return
         try:
-            raw = (json.dumps({'phase': phase, 'state': state, 'monotonic_ns': time.monotonic_ns()},
-                              separators=(',', ':')) + '\n').encode()
+            row = {'phase': phase, 'state': state, 'monotonic_ns': time.monotonic_ns()}
+            if progress is not None:
+                row['hash_progress'] = progress
+            raw = (json.dumps(row, separators=(',', ':')) + '\n').encode()
+            if state == 'progress':
+                if self.progress_entries >= 16 or self.progress_bytes + len(raw) > 8192:
+                    return
+                self.progress_entries += 1
+                self.progress_bytes += len(raw)
             if self.entries >= self.MAX_ENTRIES or self.bytes + len(raw) > self.MAX_BYTES:
                 self.close()
                 return
@@ -545,13 +589,100 @@ class InspectionPhases:
 
     def run(self, phase, operation, *args):
         self.mark(phase, 'begin')
+        progress = None
+        if operation is tree and args and getattr(args[-1], '_progress', False) is None and self.fd is not None:
+            try:
+                if self.progress_sink is None:
+                    self.progress_sink = InspectionPhases('inspection-progress-')
+                if self.progress_sink.fd is not None:
+                    progress = InspectionProgress(self.progress_sink, phase)
+                    args[-1]._progress = progress
+                    if not progress.start():
+                        args[-1]._progress = None
+                        progress = None
+            except Exception:
+                args[-1]._progress = None
+                progress = None
         try:
             result = operation(*args)
         except BaseException:
+            if progress is not None:
+                progress.finish('error')
+                args[-1]._progress = None
             self.mark(phase, 'error')
             raise
+        if progress is not None:
+            progress.finish('end')
+            args[-1]._progress = None
         self.mark(phase, 'end')
         return result
+
+
+class InspectionProgress:
+    """Path-free process deltas and counters from the actual hash owner."""
+    INTERVAL_SECONDS = 10
+
+    def __init__(self, sink, phase):
+        self.sink, self.phase = sink, phase
+        self.counts = dict.fromkeys(('read_bytes', 'read_calls', 'file_open_calls',
+            'files_completed', 'directories', 'entries_completed', 'stat_calls',
+            'fstat_calls', 'cache_lookups', 'cache_hits'), 0)
+        self.operation = 'start'
+        self.wall = time.monotonic_ns()
+        self.cpu = time.process_time_ns()
+        self.usage = resource.getrusage(resource.RUSAGE_SELF)
+        self.active = False
+
+    def emit(self, state):
+        try:
+            usage = resource.getrusage(resource.RUSAGE_SELF)
+            row = dict(self.counts)
+            row.update(operation=self.operation, wall_ns=time.monotonic_ns() - self.wall,
+                       process_cpu_ns=time.process_time_ns() - self.cpu)
+            for name in ('utime', 'stime', 'minflt', 'majflt', 'inblock', 'oublock'):
+                row[name] = getattr(usage, 'ru_' + name) - getattr(self.usage, 'ru_' + name)
+            self.sink.mark(self.phase, state, row)
+        except Exception:
+            self.sink.close()
+
+    def start(self):
+        # Never borrow an existing process timer, handler or pending signal.
+        if threading.current_thread() is not threading.main_thread():
+            return False
+        mask = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGALRM})
+        try:
+            if (signal.SIGALRM in mask or signal.SIGALRM in signal.sigpending() or
+                    signal.getitimer(signal.ITIMER_REAL) != (0.0, 0.0) or
+                    signal.getsignal(signal.SIGALRM) != signal.SIG_DFL):
+                return False
+            signal.signal(signal.SIGALRM, self.report)
+            try:
+                signal.setitimer(signal.ITIMER_REAL, self.INTERVAL_SECONDS, self.INTERVAL_SECONDS)
+            except Exception:
+                signal.signal(signal.SIGALRM, signal.SIG_DFL)
+                raise
+            self.active = True
+            self.original_mask = mask
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+        self.emit('begin')
+        return True
+
+    def report(self, signum, frame):
+        if self.active:
+            self.emit('progress')
+
+    def finish(self, state):
+        self.active = False
+        mask = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGALRM})
+        try:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            if signal.SIGALRM in signal.sigpending():
+                signal.sigwait({signal.SIGALRM})
+            signal.signal(signal.SIGALRM, signal.SIG_DFL)
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, self.original_mask)
+        self.emit(state)
 
 
 def inspect():
