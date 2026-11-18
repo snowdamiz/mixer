@@ -1,0 +1,284 @@
+{
+  "status": "passed",
+  "recordedAt": "2026-11-18T19:24:30.356900+00:00",
+  "scope": "Private FieldLog iOS queue composition. Real macOS SwiftUI row rendering and its actions against localhost SQLite, plus generic Simulator build-for-testing. Root native execution pending.",
+  "source": {
+    "fieldLogBaseRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogBaseTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "patchesInOrder": [
+      {
+        "path": "verification/fieldlog-entry-sync/fieldlog-552559d2-entry-sync.patch",
+        "sha256": "3f387b06a7e11682833d798ddd5c8d325452d760d518029a6d12db9fa2323189",
+        "mixerRevision": "0fa35a8ad3a58efc529b377387147d3d3bdaee60"
+      },
+      {
+        "path": "verification/fieldlog-entry-sync/fieldlog-552559d2-local-backend.patch",
+        "sha256": "4ef0c920f5948b71caa890bab78aa574fc968fe72775cbdd538faee211146c0d",
+        "mixerRevision": "0fa35a8ad3a58efc529b377387147d3d3bdaee60",
+        "treeAfter": "9bf29ebe2c7aeef326e8e98aa2b5be1dba2b1c19"
+      },
+      {
+        "path": "verification/local/fieldlog-ios-entry-sync-delivery/fieldlog-ios-entry-sync-queue.patch",
+        "sha256": "acd87ef05c240d0016fe5721b443f399218263c7ca0ffeb3794779b65658e69a",
+        "treeAfter": "969da8fa7bbcdd8ecf7da032989a7d5007020a93"
+      },
+      {
+        "path": "verification/local/fieldlog-photo-resume-41a05264/delivery/fieldlog-photo-resume.patch",
+        "sha256": "95bade4298be7333b749a1a959f935bc3d69d7caee9d9bfbe8445b0b4e6aa69b",
+        "treeAfter": "70b4a87fc09b5f9f5d51d7e0d397047c5995aa64"
+      },
+      {
+        "path": "verification/local/fieldlog-ios-entry-sync-resume-41a05264/delivery/fieldlog-ios-queue-photo-resume.patch",
+        "sha256": "95cc8a1f3601509f4293825be61667dc06b99d7ce8749bfba2b1be0e5bc897bd",
+        "treeAfter": "7fb9fc62e798629e6db74df9086edf848d655e49"
+      }
+    ],
+    "previousHostFixture": {
+      "path": "verification/local/fieldlog-ios-entry-sync-delivery/queue_replay.py",
+      "sha256": "d35d9c51139d4c2ab9603bc74110706d79408c8fb82e166466b1fda4009bae3b"
+    },
+    "buildInputs": {
+      "mixerSDKRevision": "56ff14c925168284761c5aca4f0bd4129cf3c995",
+      "mixerSDKTree": "75989099938ed5256c4144cbc9e62979ee323183",
+      "mixerSDKArchivePaths": [
+        "Package.swift",
+        "sdk/Sources",
+        "sdk/Tests"
+      ],
+      "configuration": "FieldLogLocalSync",
+      "destination": "generic/platform=iOS Simulator",
+      "sdk": "iphonesimulator",
+      "action": "build-for-testing"
+    },
+    "deliverySourceSHA256": {
+      "QueueJourney.swift": "6352a013bbb4c42465d4ddfc12992d79527801cd02ded89df1df2a1f7fa99ab7",
+      "EntrySyncResumeUITests.swift": "376ec5d3a2547b5a207fc6c82a0affee5eb9948d6a1e74748347ca5cf4037251",
+      "journey.py": "89c0e61a5aa3938ad5042dba8d2fb9a319a953a3af851d2d7b85a3904bc9a6e1",
+      "replay.sh": "8bc190ba4a30a3d72347fe2ddb427b1760d21ce1fb126dbc2112bfba4fe784cf"
+    },
+    "manifest": "verification/local/fieldlog-ios-entry-sync-resume-41a05264/delivery/input-manifest.json",
+    "manifestSHA256": "8669dec7e0f90173b7be8f89f9fc3a0b1ea6ac2724aa22bb56514e77c78f7a41"
+  },
+  "commands": {
+    "host": [
+      "verification/local/fieldlog-ios-entry-sync-resume-41a05264/delivery/replay.sh",
+      "host",
+      ".",
+      "<local pinned FieldLog Git checkout>"
+    ],
+    "nativeBuildPreparation": [
+      "verification/local/fieldlog-ios-entry-sync-resume-41a05264/delivery/replay.sh",
+      "prepare-native",
+      ".",
+      "<local pinned FieldLog Git checkout>",
+      "<owned scratch>"
+    ],
+    "packageTests": "swift test with the disposable pinned SDK path overlay and private SwiftPM caches",
+    "genericSimulatorBuild": "xcodebuild -project ios/FieldLog.xcodeproj -scheme FieldLog -configuration FieldLogLocalSync -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath <owned>/derived -clonedSourcePackagesDirPath <owned>/packages -packageCachePath <owned>/ios-cache -disableAutomaticPackageResolution -skipPackageUpdates -disablePackageRepositoryCache CODE_SIGNING_ALLOWED=NO CLANG_MODULE_CACHE_PATH=<owned>/clang-cache SWIFT_MODULE_CACHE_PATH=<owned>/swift-module-cache COMPILER_INDEX_STORE_ENABLE=NO build-for-testing"
+  },
+  "tools": {
+    "macOS": "27.0.1",
+    "arch": "arm64",
+    "Xcode": "Xcode 27.2\nBuild version 27B52",
+    "Swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "simulatorSDK": "iphonesimulator27.2",
+    "simulatorSDKBuild": "24B8118",
+    "Python": "3.14.8",
+    "SQLite": "3.53.4",
+    "Git": "git version 2.56.0"
+  },
+  "host": [
+    {
+      "case": "committedChunk",
+      "swift": {
+        "offline": {
+          "exitCode": 0,
+          "output": "offline: ordinary app save created linked JPEG and selective outbox coverage"
+        },
+        "online": {
+          "exitCode": 0,
+          "output": "first attempt: 32768 of 341976 bytes confirmed \u2192 Send paused\nsecond pause: last confirmed count preserved while the new receipt was pending\nresume: 65536 of 341976 bytes confirmed \u2192 341976 of 341976 bytes confirmed \u2192 Sent to the local backend\nordinary and UI-test launch isolation, unrelated rows, and stale cancellation preserved"
+        }
+      },
+      "sqlite": {
+        "atResumeQuery": {
+          "stagedBytes": 65536,
+          "events": 0,
+          "photos": 0
+        },
+        "final": {
+          "events": 1,
+          "photos": 1,
+          "staged": 0,
+          "exactJPEG": true,
+          "jpegBytes": 341976,
+          "jpegSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3"
+        }
+      },
+      "cleanup": {
+        "threadStopped": true,
+        "listenerClosed": true,
+        "portRebound": true
+      },
+      "errors": [],
+      "http": {
+        "manifest": [
+          0,
+          65536,
+          65536
+        ],
+        "chunk": [
+          32768,
+          65536,
+          98304,
+          131072,
+          163840,
+          196608,
+          229376,
+          262144,
+          294912,
+          327680,
+          341976
+        ],
+        "receipt": [
+          201
+        ],
+        "statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          201
+        ]
+      },
+      "unrelatedEventsPreserved": 7,
+      "status": "passed"
+    },
+    {
+      "case": "lateChunkConflict",
+      "swift": {
+        "offline": {
+          "exitCode": 0,
+          "output": "offline: ordinary app save created linked JPEG and selective outbox coverage"
+        },
+        "online": {
+          "exitCode": 0,
+          "output": "first attempt: 32768 of 341976 bytes confirmed \u2192 Send paused\nresume: 65536 of 341976 bytes confirmed \u2192 341976 of 341976 bytes confirmed \u2192 Sent to the local backend\nordinary and UI-test launch isolation, unrelated rows, and stale cancellation preserved"
+        }
+      },
+      "sqlite": {
+        "atResumeQuery": {
+          "stagedBytes": 32768,
+          "events": 0,
+          "photos": 0
+        },
+        "final": {
+          "events": 1,
+          "photos": 1,
+          "staged": 0,
+          "exactJPEG": true,
+          "jpegBytes": 341976,
+          "jpegSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3"
+        }
+      },
+      "cleanup": {
+        "threadStopped": true,
+        "listenerClosed": true,
+        "portRebound": true
+      },
+      "errors": [],
+      "http": {
+        "manifest": [
+          0,
+          32768,
+          65536
+        ],
+        "chunk": [
+          32768,
+          65536,
+          98304,
+          131072,
+          163840,
+          196608,
+          229376,
+          262144,
+          294912,
+          327680,
+          341976
+        ],
+        "receipt": [
+          201
+        ],
+        "statuses": [
+          200,
+          200,
+          200,
+          409,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          201
+        ]
+      },
+      "unrelatedEventsPreserved": 7,
+      "status": "passed"
+    }
+  ],
+  "packageTests": "\u2714 Test run with 39 tests in 0 suites passed after 0.059 seconds.",
+  "genericSimulatorBuild": {
+    "exitCode": 0,
+    "banner": "** TEST BUILD SUCCEEDED **",
+    "appArchitectures": [
+      "x86_64",
+      "arm64"
+    ],
+    "appSHA256": "23fb32affdd9061b67e627ca422715b7a46a99850ebf1d8969331c0bf2bf7a3b",
+    "uiTestArchitectures": [
+      "x86_64",
+      "arm64"
+    ],
+    "uiTestSHA256": "d5e84cf74b5abc2481d695b5ae6d5aaa7353a4ebee2d6ee8c9d6bad027523c44",
+    "xctestrunFormatVersion": 1,
+    "case": "FieldLogUITests/EntrySyncResumeUITests/testCancelAndResumeSelectedJPEG",
+    "ats": {
+      "NSExceptionDomains": {
+        "127.0.0.1": {
+          "NSExceptionAllowsInsecureHTTPLoads": true
+        }
+      }
+    },
+    "nativeRuntimeExecuted": false
+  },
+  "review": {
+    "initialFindings": [
+      "late cancelled chunk could produce HTTP 409",
+      "queued progress could be lost during cancellation"
+    ],
+    "followUpFinding": "a second pause before fresh progress could discard the previously confirmed count",
+    "resolution": "Verified-prefix continuation, awaited main-actor progress, and preserving the previous count on a second pause. Real backend host regressions passed."
+  },
+  "cleanup": {
+    "serversStoppedAndPortsReusable": true,
+    "isolatedSourcesBuildsCachesWorkspacesAndLogsRemoved": true,
+    "retainedDelivery": "verification/local/fieldlog-ios-entry-sync-resume-41a05264/delivery"
+  },
+  "deviceOperations": false,
+  "remoteWrites": false,
+  "sharedDocumentationChanged": false,
+  "paymentServiceOrCredentialsRequired": false
+}
