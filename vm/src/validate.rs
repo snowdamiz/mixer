@@ -305,12 +305,27 @@ pub(crate) fn module_with_admission(
                 Op::BrTable(labels, default) => {
                     v.pop(Type::I32)?;
                     let t = v.label(*default)?;
+                    let mut differing_types = false;
                     for n in labels {
-                        if v.label(*n)? != t {
-                            return Err(v.error("br_table targets have different label types"));
+                        let target = v.label(*n)?;
+                        if target != t {
+                            if limits.profile != Profile::TableMemoryV3
+                                || target.is_some() != t.is_some()
+                            {
+                                return Err(v.error("br_table targets have different label types"));
+                            }
+                            differing_types = true;
                         }
                     }
-                    v.result(t)?;
+                    // Equal-arity labels with different types can only share an
+                    // unknown operand from the polymorphic stack.
+                    if differing_types {
+                        if v.pop_any()?.is_some() {
+                            return Err(v.error("br_table targets have different label types"));
+                        }
+                    } else {
+                        v.result(t)?;
+                    }
                     v.unreachable();
                 }
                 Op::Return => {

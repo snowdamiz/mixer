@@ -323,21 +323,29 @@ pub(super) fn all<const COMMAND: bool, const UI: bool>(
                 0x0e => {
                     let count = r.count(limits.instructions(), meter)?;
                     state.pop(Type::I32, meter)?;
-                    let mut expected = None;
+                    let depth = r.uint(meter)?;
+                    let expected = state.label(depth, meter)?;
+                    let v3 = matches!(limits, policy::Policy::Frozen(l)
+                        if l.profile == crate::Profile::TableMemoryV3);
+                    let mut differing_types = false;
+                    // The count excludes the default. One target was read above.
                     for _ in 0..count {
                         let depth = r.uint(meter)?;
                         let ty = state.label(depth, meter)?;
-                        if expected.is_some_and(|expected| expected != ty) {
+                        if ty != expected {
+                            if !v3 || ty.is_some() != expected.is_some() {
+                                return Err(state.error(meter, "branch_table_types"));
+                            }
+                            differing_types = true;
+                        }
+                    }
+                    if differing_types {
+                        if state.pop_any(meter)?.is_some() {
                             return Err(state.error(meter, "branch_table_types"));
                         }
-                        expected = Some(ty);
+                    } else {
+                        state.result(expected, meter)?;
                     }
-                    let depth = r.uint(meter)?;
-                    let default = state.label(depth, meter)?;
-                    if expected.is_some_and(|expected| expected != default) {
-                        return Err(state.error(meter, "branch_table_types"));
-                    }
-                    state.result(default, meter)?;
                     state.unreachable(meter)?;
                 }
                 0x0f => {

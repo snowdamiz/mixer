@@ -589,3 +589,55 @@ fn memory_limit_flags_are_bytes_and_cannot_use_leb_aliases() {
     section(&mut b, 5, vec![1, 0x80, 0, 0]);
     assert!(Module::decode(&b, &Limits::default()).is_err());
 }
+
+#[test]
+fn v3_br_table_requires_common_arity_and_a_matching_operand() {
+    use mixer_vm::Profile;
+
+    let v3 = Limits {
+        profile: Profile::TableMemoryV3,
+        ..Limits::default()
+    };
+    let build = |operand: &[u8], result: Option<mixer_vm::Type>| {
+        let mut code = vec![0x02, 0x7e, 0x00]; // block (result i64); unreachable
+        code.extend_from_slice(operand);
+        code.extend([0x41, 0, 0x0e, 1, 0, 1, 0x0b]); // br_table 0 1
+        code.extend(if result.is_some() {
+            [0xa7, 0x0b] // i32.wrap_i64; end
+        } else {
+            [0x1a, 0x0b] // drop; end
+        });
+        single(code, result)
+    };
+
+    for (operand, result, valid) in [
+        (&[][..], Some(I32), true),
+        (&[0x1b][..], Some(I32), true), // select produces an unknown type
+        (&[0x42, 1][..], Some(I32), false), // concrete i64, even after unreachable
+        (&[][..], None, false),
+    ] {
+        let bytes = build(operand, result);
+        let decoded = Module::decode(&bytes, &v3);
+        assert_eq!(decoded.is_ok(), valid, "{decoded:?}");
+        if let Ok(module) = decoded {
+            let mut instance = Instance::new(module, v3.clone()).unwrap();
+            assert_eq!(instance.invoke("run", &[]).unwrap_err().code, "unreachable");
+        }
+        #[cfg(feature = "experimental-stream-validation")]
+        assert_eq!(
+            mixer_vm::experimental::validate_spans(
+                &bytes,
+                v3.clone(),
+                mixer_vm::experimental::ValidationBudget::default(),
+                &mixer_vm::Cancellation::default(),
+            )
+            .is_ok(),
+            valid
+        );
+    }
+
+    for profile in [Profile::IntegerV1, Profile::NumericV2] {
+        let frozen = Limits { profile, ..Limits::default() };
+        assert!(Module::decode(&build(&[], Some(I32)), &frozen).is_err());
+    }
+}

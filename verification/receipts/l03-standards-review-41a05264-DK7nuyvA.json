@@ -1,0 +1,85 @@
+{
+  "gate": "L03",
+  "status": "scoped_pass_for_table_memory_v3_branch_table_candidate",
+  "reviewed_utc": "2026-11-18T15:35:11.694963+00:00",
+  "reviewed_head": "c09f99e1648fa2b1c8dbd42dcd928440ca08cee8",
+  "vm_tree": "9e5e44ef8d67591fed5e89003e4a24e9296def03",
+  "patch": "verification/local/l03-standards-41a05264-KIF3lBAm/l03-br-table-v3.patch",
+  "patch_sha256": "40ab7d4ced38ca7d170fc965f74a487c15225f608d28e0118afa553aa7d5eb6c",
+  "delivery_patch_required": false,
+  "applicability": "Passed git apply --check --whitespace=error against the current checkout. The VM tree equals the report baseline. The three before and after source hashes matched and the private applied source matched retained candidate bytes.",
+  "normative_source": "https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/document/core/valid/instructions.rst#L1409-L1436",
+  "semantics": "The i32 selector precedes consuming the common operand sequence. The default and listed targets need equal arity. Within the zero-or-one numeric value profile, different single-value types require bottom. The two validators retain concrete type, branch depth and arity checks. The acceptance change is limited to V3.",
+  "host": "macOS 27.0.1 arm64",
+  "tools": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "wabt": "1.0.36 (git~1.0.37)"
+  },
+  "fresh": {
+    "scratch": "verification/local/l03-standards-review-41a05264-DK7nuyvA",
+    "scratch_budget_mib": 600,
+    "largest_sampled_scratch_kib": 49856,
+    "command_receipts": {
+      "private-apply": 0,
+      "rustc": 0,
+      "cargo": 0,
+      "baseline": 101,
+      "candidate": 0,
+      "fresh-translate": 0,
+      "fresh-wabt": 0,
+      "fresh-adapter": 0,
+      "fresh-official": 0
+    },
+    "all_managed_groups_absent_after_reap": true,
+    "baseline": "The authored regression exited 101 at the first valid bottom-operand case with the previous label-type rejection.",
+    "passed": {
+      "interpreter": 36,
+      "experimental_stream": 14,
+      "table_memory": 17,
+      "capability_ffi_public": 4
+    },
+    "ordinary_regression": "Both validators admit implicit bottom and bottom from select, and reject a concrete mismatched operand and mismatched arity. The core validator retains frozen V1/V2 rejection.",
+    "official_case": "unreached-valid.wast:49 (module), :63 (meet-bottom). Fresh translation matched the retained Wasm. WABT, the rebuilt Rust core and the rebuilt installed Guest UI V1 ABI admitted it. Both Mixer paths returned the expected unreachable trap and released their handles.",
+    "official_wasm_sha256": "317c8b1bda6424da9474f67881bb0aef7efc01ab8482e0689ffde721877ad0a6"
+  },
+  "retained_evidence": {
+    "receipt": "verification/local/l03-standards-41a05264-KIF3lBAm/receipt.json",
+    "receipt_sha256": "3b82d684882c93b417087576633299b12c35f11de783fc6a438662c98d1cece3",
+    "artifact_hashes_verified": 18,
+    "top_level_scripts": 90,
+    "commands_joined_to_ledger": 27928,
+    "nested_simd_scripts_excluded": 57,
+    "candidate_failures": 0,
+    "modules_admitted_and_instantiated_each_path": 842,
+    "original_actions_passed": {
+      "core": 20041,
+      "installed": 19928
+    },
+    "core_negatives": {
+      "invalid": 1131,
+      "malformed": 693,
+      "instantiation_traps": 18
+    },
+    "dispatch_opcodes_each_path": 187,
+    "dispatch_basis": "Stock and trace ledgers matched. Trace source records decoded opcodes immediately before dispatch and the covered names matched the profile.",
+    "top_level_exclusions": {
+      "profile_or_quota": 689,
+      "dependent_on_unsupported_modules": 3744,
+      "text_parser": 567,
+      "linker_assertions": 83,
+      "registrations": 18,
+      "linked_side_effects": 89,
+      "exported_global_get": 3,
+      "runtime_fuel_each_path": 6,
+      "profile_memory_cap_replacements_each_path": 4
+    },
+    "additional_installed_exclusions": {
+      "potential_state_change_after_terminal_trap": 78,
+      "history_replay_limit": 34,
+      "empty_export_name_host_restriction": 1
+    },
+    "earlier_candidate_final_exit_1": "Five installed deadline observations. Two memory_fill cases passed in the retained final ledger. Three memory_grow cases remained excluded with fuel exhaustion."
+  },
+  "limitations": "The broad suite and instrumented dispatch totals were audited from retained evidence. The independent run covered the four focused suites and one upstream module through WABT, the core runtime and installed host ABI. Binary invalid and malformed totals establish rejection. The broader L03 gate and device behavior remain outside this receipt."
+}
