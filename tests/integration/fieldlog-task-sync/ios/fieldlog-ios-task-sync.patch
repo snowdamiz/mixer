@@ -1,0 +1,384 @@
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index 59a4f1e..a260298 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -18,7 +18,7 @@
+   A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044,A00000000000000000000045); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+-  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
++  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { "INFOPLIST_FILE[sdk=iphonesimulator*]" = FieldLog/LocalTaskSync-Info.plist; PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+   A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
+   A00000000000000000000020 = { isa = XCLocalSwiftPackageReference; relativePath = ".."; };
+   A00000000000000000000022 = { isa = XCSwiftPackageProductDependency; package = A00000000000000000000020; productName = FieldLogModels; };
+diff --git a/ios/FieldLog/LocalTaskSync-Info.plist b/ios/FieldLog/LocalTaskSync-Info.plist
+new file mode 100644
+index 0000000..bbcc903
+--- /dev/null
++++ b/ios/FieldLog/LocalTaskSync-Info.plist
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>NSAppTransportSecurity</key>
++	<dict>
++		<key>NSExceptionDomains</key>
++		<dict>
++			<key>127.0.0.1</key>
++			<dict>
++				<key>NSExceptionAllowsInsecureHTTPLoads</key>
++				<true/>
++			</dict>
++		</dict>
++	</dict>
++</dict>
++</plist>
+diff --git a/ios/FieldLog/ProjectDetail.swift b/ios/FieldLog/ProjectDetail.swift
+index 25d2d23..1a21333 100644
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -12,6 +12,7 @@ struct ProjectDetail: View {
+   let onEdit: (EntryDraft) -> Void
+   @State private var addingTask = false
+   @State private var editingTask: TaskEdit?
++  @State private var finishedSync: UUID?
+   @State private var sharing: ShareDocument?
+   @State private var exportError: String?
+   var body: some View {
+@@ -39,6 +40,8 @@ struct ProjectDetail: View {
+           Section {
+             ForEach(workspace.tasks(for: projectID)) { task in
+               let needsReview = workspace.taskConflict(for: task.id) != nil
++              let syncStatus = needsReview ? "Changes to review"
++                : finishedSync == task.id ? "Task sync finished" : ""
+               HStack(alignment: .top) {
+                 Button {
+                   model.toggleTask(task.id)
+@@ -52,8 +55,8 @@ struct ProjectDetail: View {
+                       if !task.responsible.isEmpty {
+                         Text(task.responsible).font(.caption).foregroundStyle(.secondary)
+                       }
+-                      if needsReview {
+-                        Text("Changes to review").font(.caption).foregroundStyle(.secondary)
++                      if !syncStatus.isEmpty {
++                        Text(syncStatus).font(.caption).foregroundStyle(.secondary)
+                       }
+                     }
+                   }.padding(.vertical, 3)
+@@ -68,6 +71,14 @@ struct ProjectDetail: View {
+                   ) {
+                     editingTask = model.editTask(task.id)
+                   }
++                  if model.canSyncSavedTask(task.id) {
++                    Button("Sync task", systemImage: "arrow.triangle.2.circlepath") {
++                      finishedSync = nil
++                      Task {
++                        if await model.syncSavedTask(task.id) { finishedSync = task.id }
++                      }
++                    }.disabled(model.pendingSaves > 0)
++                  }
+                   let tasks = workspace.tasks(for: projectID)
+                   if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+                     if index > 0 {
+@@ -84,6 +95,9 @@ struct ProjectDetail: View {
+                 } label: {
+                   Image(systemName: "ellipsis.circle").font(.title3)
+                 }
++                .buttonStyle(.borderless)
++                .accessibilityIdentifier("task-options-" + task.id.uuidString.lowercased())
++                .accessibilityValue(syncStatus)
+                 .accessibilityLabel(
+                   needsReview ? "Review changes for \(task.title)" : "Task options: \(task.title)")
+               }
+diff --git a/ios/FieldLog/SavedTaskEditor.swift b/ios/FieldLog/SavedTaskEditor.swift
+index aad2831..729e23b 100644
+--- a/ios/FieldLog/SavedTaskEditor.swift
++++ b/ios/FieldLog/SavedTaskEditor.swift
+@@ -29,7 +29,9 @@ struct SavedTaskEditor: View {
+           }
+         } else {
+           TextField("Task", text: $edit.text.title, axis: .vertical)
++            .accessibilityIdentifier("saved-task-title")
+           TextField("Responsible person", text: $edit.text.responsible)
++            .accessibilityIdentifier("saved-task-responsible")
+         }
+         if let error {
+           Section { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
+@@ -80,6 +82,7 @@ struct SavedTaskEditor: View {
+       .contentShape(Rectangle())
+     }
+     .buttonStyle(.plain)
++    .accessibilityIdentifier("conflict-\(field.rawValue)-\(selection == .local ? "local" : "incoming")")
+     .accessibilityAddTraits(selected ? .isSelected : [])
+   }
+ 
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index e7d2684..393a555 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -121,6 +121,31 @@ import SwiftUI
+   func syncTask(_ id: UUID, using client: TaskSyncClient) async -> Bool {
+     await enqueueSave { try await client.synchronize(taskID: id, in: $0) }.value
+   }
++  func canSyncSavedTask(_ id: UUID) -> Bool {
++    savedTaskSyncClient(for: id) != nil
++  }
++  func syncSavedTask(_ id: UUID) async -> Bool {
++    guard pendingSaves == 0, let client = savedTaskSyncClient(for: id) else { return false }
++    return await syncTask(id, using: client)
++  }
++  private func savedTaskSyncClient(for id: UUID) -> TaskSyncClient? {
++    #if DEBUG
++      let environment = ProcessInfo.processInfo.environment
++      guard isTestWorkspace || workspaceDirectory != nil,
++        let workspace,
++        let task = workspace.tasks.first(where: { $0.id == id }),
++        workspace.taskConflict(for: id) == nil,
++        environment["FIELDLOG_TASK_SYNC_WORKSPACE"].flatMap(UUID.init(uuidString:)) == workspace.id,
++        environment["FIELDLOG_TASK_SYNC_PROJECT"].flatMap(UUID.init(uuidString:)) == task.projectID,
++        environment["FIELDLOG_TASK_SYNC_TASK"].flatMap(UUID.init(uuidString:)) == id,
++        let port = environment["FIELDLOG_TASK_SYNC_PORT"].flatMap(UInt16.init),
++        let token = environment["FIELDLOG_TASK_SYNC_TOKEN"]
++      else { return nil }
++      return try? TaskSyncClient(port: port, workspaceID: workspace.id, projectID: task.projectID, token: token)
++    #else
++      return nil
++    #endif
++  }
+   func toggleTask(_ id: UUID) { enqueue { try $0.toggleTask(id) } }
+   func reorder(projectID: UUID, ids: [UUID]) {
+     enqueue { try $0.reorderTasks(projectID: projectID, ids: ids) }
+diff --git a/ios/FieldLogUITests/FieldLogUITests.swift b/ios/FieldLogUITests/FieldLogUITests.swift
+index b591f39..e9e82a9 100644
+--- a/ios/FieldLogUITests/FieldLogUITests.swift
++++ b/ios/FieldLogUITests/FieldLogUITests.swift
+@@ -118,3 +118,136 @@ import XCTest
+     add(attachment)
+   }
+ }
++
++extension FieldLogUITests {
++  func testSavedTaskConflictSavesOffline() throws {
++    continueAfterFailure = false
++    let fixture = try savedTaskFixture()
++    let app = openSavedTaskProject(fixture.workspace)
++    defer { app.terminate() }
++
++    openSavedTaskMenu(fixture.task, in: app)
++    XCTAssertFalse(app.buttons["Sync task"].exists)
++    tapSavedTaskAction("Edit task", in: app)
++    let title = savedTitle(in: app)
++    XCTAssertEqual(title.value as? String, "Inspect valve")
++    title.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
++    title.typeText(" today")
++    XCTAssertEqual(title.value as? String, "Inspect valve today")
++    app.navigationBars["Edit task"].buttons["Save"].tap()
++    XCTAssertTrue(app.buttons["Inspect valve today, completed"].waitForExistence(timeout: 10))
++    XCTAssertTrue(app.buttons["Check gauge offline, not completed"].exists)
++  }
++
++  func testSavedTaskConflictResolvesAndReopens() throws {
++    continueAfterFailure = false
++    let fixture = try savedTaskFixture()
++    let variables = ProcessInfo.processInfo.environment
++    var session: [String: String] = [:]
++    for field in ["WORKSPACE", "PROJECT", "TASK", "PORT", "TOKEN"] {
++      let key = "FIELDLOG_TASK_SYNC_\(field)"
++      session[key] = try XCTUnwrap(variables[key], "Missing fixture input \(key)")
++    }
++    let app = openSavedTaskProject(fixture.workspace, session: session)
++    defer { app.terminate() }
++
++    XCTAssertTrue(app.buttons["Inspect valve today, completed"].waitForExistence(timeout: 10))
++    openSavedTaskMenu(fixture.task, in: app)
++    tapSavedTaskAction("Sync task", in: app)
++    assertSavedTaskStatus("Changes to review", task: fixture.task, in: app)
++
++    openSavedTaskMenu(fixture.task, in: app)
++    tapSavedTaskAction("Review changes", in: app)
++    let review = app.navigationBars["Review task changes"]
++    XCTAssertTrue(review.waitForExistence(timeout: 10))
++    XCTAssertFalse(review.buttons["Resolve"].isEnabled)
++    review.buttons["Review later"].tap()
++
++    app.terminate()
++    app.launch()
++    XCTAssertTrue(app.navigationBars["Inspection round"].waitForExistence(timeout: 15))
++    assertSavedTaskStatus("Changes to review", task: fixture.task, in: app)
++    openSavedTaskMenu(fixture.task, in: app)
++    tapSavedTaskAction("Review changes", in: app)
++    XCTAssertTrue(review.waitForExistence(timeout: 10))
++    let local = app.buttons["conflict-title-local"]
++    let incoming = app.buttons["conflict-title-incoming"]
++    XCTAssertTrue(local.waitForExistence(timeout: 5))
++    XCTAssertTrue(incoming.exists)
++    XCTAssertTrue(local.label.contains("Inspect valve today"), local.label)
++    XCTAssertTrue(incoming.label.contains("Inspect valve after shutdown"), incoming.label)
++    XCTAssertFalse(app.buttons["conflict-responsible-local"].exists)
++    XCTAssertFalse(review.buttons["Resolve"].isEnabled)
++    local.tap()
++    XCTAssertTrue(review.buttons["Resolve"].isEnabled)
++    review.buttons["Resolve"].tap()
++    XCTAssertTrue(app.buttons["Inspect valve today, completed"].waitForExistence(timeout: 10))
++
++    openSavedTaskMenu(fixture.task, in: app)
++    tapSavedTaskAction("Sync task", in: app)
++    assertSavedTaskStatus("Task sync finished", task: fixture.task, in: app)
++    app.terminate()
++    app.launchEnvironment = [:]
++    app.launch()
++    XCTAssertTrue(app.navigationBars["Inspection round"].waitForExistence(timeout: 15))
++    XCTAssertTrue(app.buttons["Inspect valve today, completed"].waitForExistence(timeout: 10))
++    XCTAssertTrue(app.buttons["Check gauge offline, not completed"].exists)
++    openSavedTaskMenu(fixture.task, in: app)
++    XCTAssertFalse(app.buttons["Sync task"].exists)
++    tapSavedTaskAction("Edit task", in: app)
++    XCTAssertEqual(savedTitle(in: app).value as? String, "Inspect valve today")
++    XCTAssertEqual(app.textFields["saved-task-responsible"].value as? String, "Morgan")
++    app.navigationBars["Edit task"].buttons["Cancel"].tap()
++  }
++
++  private func savedTaskFixture() throws -> (workspace: String, task: String) {
++    let variables = ProcessInfo.processInfo.environment
++    try XCTSkipUnless(variables["FIELDLOG_UI_TASK_WORKSPACE"] != nil,
++                      "Run this test with the local saved-task replay fixture.")
++    let workspace = try XCTUnwrap(variables["FIELDLOG_UI_TASK_WORKSPACE"].flatMap(UUID.init(uuidString:)))
++    let task = try XCTUnwrap(variables["FIELDLOG_UI_TASK_ID"].flatMap(UUID.init(uuidString:)))
++    return (workspace.uuidString.lowercased(), task.uuidString.lowercased())
++  }
++
++  private func openSavedTaskProject(
++    _ workspace: String, session: [String: String] = [:]
++  ) -> XCUIApplication {
++    let app = XCUIApplication()
++    app.launchArguments = ["--fieldlog-ui-workspace", workspace]
++    app.launchEnvironment = session
++    app.launch()
++    XCTAssertTrue(app.navigationBars["Inspection round"].waitForExistence(timeout: 15))
++    return app
++  }
++
++  private func savedTitle(in app: XCUIApplication) -> XCUIElement {
++    let fields = app.textFields.matching(identifier: "saved-task-title")
++    let editors = app.textViews.matching(identifier: "saved-task-title")
++    let unique = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++      fields.count + editors.count == 1
++    }, object: nil)
++    XCTAssertEqual(XCTWaiter.wait(for: [unique], timeout: 5), .completed)
++    return fields.count == 1 ? fields.firstMatch : editors.firstMatch
++  }
++
++  private func openSavedTaskMenu(_ task: String, in app: XCUIApplication) {
++    let menu = app.buttons["task-options-\(task)"]
++    XCTAssertTrue(menu.waitForExistence(timeout: 10))
++    reveal(menu, in: app)
++    menu.tap()
++  }
++
++  private func tapSavedTaskAction(_ label: String, in app: XCUIApplication) {
++    let action = app.buttons[label]
++    XCTAssertTrue(action.waitForExistence(timeout: 5))
++    XCTAssertTrue(action.isEnabled)
++    action.tap()
++  }
++
++  private func assertSavedTaskStatus(_ status: String, task: String, in app: XCUIApplication) {
++    let menu = app.buttons["task-options-\(task)"]
++    XCTAssertTrue(menu.waitForExistence(timeout: 10))
++    let updated = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", status), object: menu)
++    XCTAssertEqual(XCTWaiter.wait(for: [updated], timeout: 10), .completed, app.debugDescription)
++  }
++}
+diff --git a/verification/host/SavedTaskSyncReplay.swift b/verification/host/SavedTaskSyncReplay.swift
+index 2c47c1a..dc95a9f 100644
+--- a/verification/host/SavedTaskSyncReplay.swift
++++ b/verification/host/SavedTaskSyncReplay.swift
+@@ -102,9 +102,7 @@ private struct Journey {
+     try check(await model.saveTaskEdit(editor), model.saveError ?? "Save the task editor")
+   }
+ 
+-  func offline(_ fixture: Fixture) async throws {
+-    let local = try await open("local")
+-    let peer = try await open("peer")
++  func prepareOffline(_ local: WorkspaceModel, fixture: Fixture) async throws {
+     local.toggleTask(fixture.task)
+     local.moveTask(fixture.task, offset: 1)
+     await local.flush()
+@@ -117,7 +115,12 @@ private struct Journey {
+     draft.title = "Unsubmitted offline draft"
+     draft.note = "Preserve the text and restoration state."
+     try check(await local.keepDraft(draft), "Save the offline draft")
++  }
+ 
++  func offline(_ fixture: Fixture) async throws {
++    let local = try await open("local")
++    let peer = try await open("peer")
++    try await prepareOffline(local, fixture: fixture)
+     for name in ["local", "peer"] { try saveProof(name, as: "before-text.json") }
+     try await edit(local, task: fixture.task, title: "Inspect valve today")
+     try await edit(peer, task: fixture.task, title: "Inspect valve after shutdown", responsible: "Morgan")
+@@ -269,6 +272,41 @@ struct SavedTaskSyncReplay {
+     case "subsequent-edit": try await journey.subsequentEdit(fixture)
+     case "retry": try await journey.retry(fixture)
+     case "converge": try await journey.converge(fixture)
++    case "ui-baseline":
++      let local = try await journey.open("local")
++      try await journey.prepareOffline(local, fixture: fixture)
++      local.restoreProject(fixture.project)
++      await local.flush()
++    case "ui-offline":
++      let local = try await journey.open("local")
++      try check(!local.canSyncSavedTask(fixture.task), "An offline session exposed Sync task")
++      try await journey.edit(local, task: fixture.task, title: "Inspect valve today")
++    case "ui-peer-offline":
++      let peer = try await journey.open("peer")
++      try await journey.edit(
++        peer, task: fixture.task, title: "Inspect valve after shutdown", responsible: "Morgan")
++    case "ui-peer-sync":
++      let peer = try await journey.open("peer")
++      let transport = try journey.client("PEER", fixture: fixture)
++      try check(await peer.syncTask(fixture.task, using: transport), peer.saveError ?? "Upload peer save")
++    case "ui-sync":
++      let local = try await journey.open("local")
++      let original = try journey.snapshot(local)
++      try check(!local.canSyncSavedTask(fixture.otherTask), "Session exposed an unrelated task")
++      try check(!(await local.syncSavedTask(fixture.otherTask)) && local.workspace == original,
++                "Out-of-scope action changed the workspace")
++      try check(local.canSyncSavedTask(fixture.task), "Scoped task should show Sync task")
++      try check(await local.syncSavedTask(fixture.task), local.saveError ?? "Sync saved task")
++    case "ui-resolve":
++      let local = try await journey.open("local")
++      let review = try require(local.workspace?.taskConflict(for: fixture.task), "Review survived reopen")
++      try check(!local.canSyncSavedTask(fixture.task), "Resolve pending review before another sync")
++      try check(review.conflicts.count == 1 && review.conflicts.first?.field == .title
++                && review.conflicts.first?.local == "Inspect valve today"
++                && review.conflicts.first?.incoming == "Inspect valve after shutdown", "Wrong title choices")
++      try check(await local.resolveTaskConflict(review, choosing: [.title: .local]),
++                local.saveError ?? "Choose local title")
++      try check(local.editTask(fixture.task)?.text.responsible == "Morgan", "Peer assignee changed")
+     default: throw ProofFailure(description: "Unknown replay phase: \(phase)")
+     }
+   }
+diff --git a/verification/host/replay-saved-task-sync.py b/verification/host/replay-saved-task-sync.py
+index 08f9577..42b72bf 100644
+--- a/verification/host/replay-saved-task-sync.py
++++ b/verification/host/replay-saved-task-sync.py
+@@ -187,7 +187,7 @@ def main():
+     temporary.mkdir()
+     env = dict(os.environ, TMPDIR=str(temporary) + "/")
+     run = load("task_conflict_replay", "verification/host/replay-task-conflict.py").run
+-    swiftc = ["swiftc", "-swift-version", "6", "-module-cache-path", root / "module-cache"]
++    swiftc = ["swiftc", "-swift-version", "6", "-D", "DEBUG", "-module-cache-path", root / "module-cache"]
+     run(["swiftc", "--version"], SOURCE, env)
+     for name, dependencies in [("FieldLogModels", []), ("FieldLogStorage", ["-lFieldLogModels"])]:
+         run([
+@@ -199,7 +199,7 @@ def main():
+     executable = root / "SavedTaskSyncReplay"
+     run([
+         *swiftc, "-I", root, "-L", root, "-lFieldLogModels", "-lFieldLogStorage",
+-        "-Xlinker", "-rpath", "-Xlinker", root, "-o", executable,
++        "-Xlinker", "-rpath", "-Xlinker", "@executable_path", "-o", executable,
+         "ios/FieldLog/WorkspaceModel.swift", "ios/FieldLog/SavedTaskEditor.swift",
+         "verification/host/SavedTaskSyncReplay.swift",
+     ], SOURCE, env)

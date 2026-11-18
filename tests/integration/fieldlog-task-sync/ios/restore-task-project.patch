@@ -1,0 +1,64 @@
+diff --git a/ios/FieldLogUITests/FieldLogUITests.swift b/ios/FieldLogUITests/FieldLogUITests.swift
+index e9e82a9..45fab77 100644
+--- a/ios/FieldLogUITests/FieldLogUITests.swift
++++ b/ios/FieldLogUITests/FieldLogUITests.swift
+@@ -128,13 +128,13 @@ extension FieldLogUITests {
+ 
+     openSavedTaskMenu(fixture.task, in: app)
+     XCTAssertFalse(app.buttons["Sync task"].exists)
+-    tapSavedTaskAction("Edit task", in: app)
++    let editor = openSavedTaskEditor(in: app)
+     let title = savedTitle(in: app)
+     XCTAssertEqual(title.value as? String, "Inspect valve")
+     title.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+     title.typeText(" today")
+     XCTAssertEqual(title.value as? String, "Inspect valve today")
+-    app.navigationBars["Edit task"].buttons["Save"].tap()
++    editor.buttons["Save"].tap()
+     XCTAssertTrue(app.buttons["Inspect valve today, completed"].waitForExistence(timeout: 10))
+     XCTAssertTrue(app.buttons["Check gauge offline, not completed"].exists)
+   }
+@@ -194,10 +194,10 @@ extension FieldLogUITests {
+     XCTAssertTrue(app.buttons["Check gauge offline, not completed"].exists)
+     openSavedTaskMenu(fixture.task, in: app)
+     XCTAssertFalse(app.buttons["Sync task"].exists)
+-    tapSavedTaskAction("Edit task", in: app)
++    let editor = openSavedTaskEditor(in: app)
+     XCTAssertEqual(savedTitle(in: app).value as? String, "Inspect valve today")
+     XCTAssertEqual(app.textFields["saved-task-responsible"].value as? String, "Morgan")
+-    app.navigationBars["Edit task"].buttons["Cancel"].tap()
++    editor.buttons["Cancel"].tap()
+   }
+ 
+   private func savedTaskFixture() throws -> (workspace: String, task: String) {
+@@ -233,10 +233,17 @@ extension FieldLogUITests {
+   private func openSavedTaskMenu(_ task: String, in app: XCUIApplication) {
+     let menu = app.buttons["task-options-\(task)"]
+     XCTAssertTrue(menu.waitForExistence(timeout: 10))
+-    reveal(menu, in: app)
++    XCTAssertTrue(menu.isHittable, app.debugDescription)
+     menu.tap()
+   }
+ 
++  private func openSavedTaskEditor(in app: XCUIApplication) -> XCUIElement {
++    tapSavedTaskAction("Edit task", in: app)
++    let editor = app.navigationBars["Edit task"]
++    XCTAssertTrue(editor.waitForExistence(timeout: 10), app.debugDescription)
++    return editor
++  }
++
+   private func tapSavedTaskAction(_ label: String, in app: XCUIApplication) {
+     let action = app.buttons[label]
+     XCTAssertTrue(action.waitForExistence(timeout: 5))
+diff --git a/verification/host/SavedTaskSyncReplay.swift b/verification/host/SavedTaskSyncReplay.swift
+index dc95a9f..f25cde1 100644
+--- a/verification/host/SavedTaskSyncReplay.swift
++++ b/verification/host/SavedTaskSyncReplay.swift
+@@ -275,6 +275,7 @@ struct SavedTaskSyncReplay {
+     case "ui-baseline":
+       let local = try await journey.open("local")
+       try await journey.prepareOffline(local, fixture: fixture)
++      local.closeDraft()
+       local.restoreProject(fixture.project)
+       await local.flush()
+     case "ui-offline":
