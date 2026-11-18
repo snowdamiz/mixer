@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "mixerRevision": "25e5c5afd1ba8f3b54d3960eac8b0348786fb7a6",
+  "decision": "pass_both_android_regressions_within_observed_scope",
+  "scope": "Independent read-only examination of retained API 36 arm64 emulator evidence. No build, native replay, device or service operation, host process inspection, held-resource access, or tracked changes.",
+  "evidence": {
+    "verification/receipts/fieldlog-android-offline-report-return-41a05264.json": "138f3d7aed0963bbdd63062555264a8b1d86a562209772e699eed4de40dedad8",
+    "verification/receipts/fieldlog-ordinary-android-signed-checklist-return-41a05264.json": "e4723151fb6627530af2a08d359b17992e5202c95a1638d3e500f6c3a8574020",
+    "verification/receipts/fieldlog-offline-populated-report-transfer-41a05264.json": "6ab7519355412218defc3aec0ad3752ff31e17e6c58721d900868e54f7a9f03e",
+    "verification/receipts/fieldlog-public-checklist-appearance-runtime-41a05264.json": "f057c65f6dc4897be03238799fa08546b5970452cc1100d6bcb383be8bbf4ae6",
+    "verification/receipts/l04-independent-review-9fd7e7f6eb-41a05264.json": "df501a12185fa6941313c3a1d588ecaa7b8bc2152567259890bd38b161134819",
+    "verification/receipts/l04-source-derived-inspector-review-41a05264.json": "ac01a00a1f7ca749d2f6f5d34d43451d76fadb1650c48ac3e1c455e53b33c50c",
+    "verification/receipts/l04-release-inspector-source150-41a05264.json": "65bde8bc1c6710991cb5cca0021ec7d1519d2f3091790eaad0f666bd3ab05fc8"
+  },
+  "integrity": {
+    "primaryCaptureHashesMatched": 46,
+    "signedRuntimeInputHashesMatched": 61,
+    "method": "Python SHA-256, ZIP member comparison, read-only in-memory application of both Activity patches, source inventory recomputation, JSON and XML comparisons, and Git commit/source readback. Build signature and alignment observations come from retained package verification."
+  },
+  "offlineReport": {
+    "previousFailure": "The earlier Pair23 APK transferred the same 165 bytes, then Back produced an empty FieldLog hierarchy and a current-PID incomplete frame install. The final disk comparison was never reached.",
+    "apkSHA256": "b3e5b509fb831dcce86a04fed55719e16bf67e239eaa0de9bbd3f13aaf5943db",
+    "activitySHA256": "e9d0fd90649dc73b816af704ccd24535abd7b284c306ec27faa5f3047b73c5ed",
+    "source": "FieldLog 552559d2d3278abb9b1aa7dcf0288102c09a202b with the four pinned Pair23 patches, Mixer renderer 735ecec14e10e2dfed1e58a122c3fab08e569bef. The report patch alone changes the APK payload classes.dex. It defers the chooser result to a resumed, focused Activity.",
+    "ownership": "Private ADB 49684 selected emulator-5680 transport ID 1 and admitted the exact AVD and installed base APKs. System intent evidence gives sender UID 10213, chooser real caller 10100 and recipient u0a214 (10214). The recipient source requires the SEND content URI and read-grant flag, then reads and writes the bytes under its own app sandbox.",
+    "observed": "Airplane mode and no default network at four checkpoints. Cold PID 3753 after 2408. Pump42 is still incomplete at revision 2 with the original projectCreated and taskSaved records. The 165-byte export, recipient capture and recipient-private ADB readback match. Back restores FieldLog task, queue and unconfirmed-delivery labels. Workspace bytes before sharing and after Back match.",
+    "reportSHA256": "73ee557e5000c2b512fb01de92d50eb7d48b7133adefd37b9fb73a4e4a6bf54c",
+    "workspaceSHA256": "16cacefba39bdd67623a517a3295d727626708938e4c7a1b2d476cf7d4c32e98",
+    "cleanup": "Captured private ADB and emulator exited, owned groups absent, ports 5680/5681/49684 reusable and isolated instance scratch reclaimed.",
+    "recipientAPKSHA256": "1dd63b206efddb028fad46a12fd5ae086880cf1fd782bd72ee707e3536849025"
+  },
+  "signedChecklist": {
+    "previousFailure": "The appearance descriptor repair restored startup. The earlier sequence-5 launch was consumed, but ordinary UI showed 0/1 tasks and 6 changes against the last pre-Done disk snapshot of 1/1 and 7. Post-Done disk readback was absent.",
+    "apkSHA256": "b69889e202a711212ee40ef57e1e80f916f45d5fb41e3b00792bed584d36a043",
+    "activitySHA256": "423477bbf2a16a0f6a82a972bf9f6962b64008ca68e30691f7a3096b698deedf",
+    "source": "FieldLog 552559d2d3278abb9b1aa7dcf0288102c09a202b plus the downstream signed witness and refresh composition. Android Mixer c392e762d6bb24562647fe22a2de738250ba3e7f and origin Mixer 9fd7e7f6ebd9cadfd96d71a6c71225e6b11e33b9. App, fallback and link inventory digests, rebuilt DEX/JNI, descriptor and installed release material match the pins.",
+    "ownership": "One install on emulator-5680 in a separate AVD via private ADB 54947. The installed base.apk digest matches. run-as UID 10213 and the matching live UID capture precede the registered and cold launcher paths. The numeric UID repeats across distinct emulator installations.",
+    "workspaceID": "67E06535-73D4-4708-B035-73E00BAA99C9",
+    "projectID": "6DACB677-019E-44C3-BDCC-969FF282AE00",
+    "taskID": "ECC0565F-6845-47A5-A813-9F4E831E1866",
+    "workspaceSHA256AfterDone": "72db716d6aa7d63680657ccf6170587799b18dc9c9c02a5e4542ac613f835362",
+    "observed": "18 workspace snapshots and 15 recovery snapshots matched. Sequence 1 completed and reopened the saved task. Sequences 2 and 4 required confirmation before one durable event each. Rollbacks 3 and 5 reused the original guest and preserved workspace bytes at activation. User actions produced one projectCreated and six taskSaved events, with each prior outbox prefix retained. Done removed the active attempt and staged marker for the same healthy sequence-5 candidate and launch. The healthy identity and revision-7 workspace stayed byte-identical, and the ordinary UI showed 1/1 complete, 7 pending, an enabled launcher and no checklist dialog.",
+    "outage": "Sequence 4 was truncated. The same 2112-byte partial record survived both loopback listeners stopping, with the ADB reverse mapping still configured. New PID 5302 after 2568 opened the same sequence-3 candidate under a fresh launch, recorded unknown_interruption_after_effects and kept revision 6 and six events unchanged. Restart served the same sequence-4 artifact and the app completed the fetch. The relay performs full GETs, so this does not prove byte-range resumption.",
+    "launchAfterDone": {
+      "launch": "911C2DFE-1CD8-4D47-90BB-52934AD957A7",
+      "candidate": "8585210aed315f8d279dc0924cac197ce844f9a343af1809c18df49bf8686efe",
+      "consumed": true
+    },
+    "cleanup": "Both origin and relay generations, the UID logger, emulator and private ADB have terminal exit and group-absence records. The exact reverse mapping was removed, owned ports were reusable, and instance and origin scratch were reclaimed."
+  },
+  "discrepanciesAndLimits": [
+    "Historical signed appearance-failure receipt labels PublicActivity SHA-256 as c2ecf0fbc7df89372fe9682919fa34c7f545f4ff0f504e0f248fda01965813aa. Its retained witness hashes to a309e41c4f10b96e7d42089c06d42b8295469bed9bee7d41e6783adbb714afe1. The refresh source receipt already flags the discrepancy and records a byte-identical rebuild of the failing APK DEX. The reconstructed corrected Activity matches 423477bb… and the new APK and installed evidence agree.",
+    "The two fixes were verified on separate APKs and AVDs. There is no combined installed workflow evidence. Report scope is one populated text export to one local recipient, with photo attachment readback pending in that run. The signed run uses a downstream development composition, a local file-backed Go v3 origin and the fault relay.",
+    "The new iOS evidence is from host controls. The prior iOS Simulator result remains scoped to its signed XCTest entry path. The common-origin dual-target supported app run, installed cohort negatives and integrated persistence legs from the L04 review remain outstanding. Separate PostgreSQL or host controls do not establish those legs."
+  ],
+  "gateAssessment": {
+    "L02": "Adds scoped Android ordinary-UI return, native chooser integration, cold workspace restoration and durable refresh. Complete both-target UI, accessibility, shared design and capability coverage remains required.",
+    "L04": "The supported consumer item advances through the normal Android launcher for this exact downstream build, with real signed local delivery and cold recovery. The previous CLI native-change classification item is satisfied at host control scope by source150: compatible task edit on both targets, real Android permission change yields store-build-required, and origin refusals retain compatible offers. The corrected target-specific host evidence supersedes the earlier reused Android observation. No new mobile cohort, rotation or iOS claims. Gate remains running.",
+    "L08": "Adds scoped Android offline task/queue/report export return and the signed edit/reopen/rollback/outage segment. Complete supported public-tool workflow on both targets, attachments, guest parity and the applicable corpus and guide evidence remain required."
+  }
+}
