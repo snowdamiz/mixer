@@ -142,6 +142,11 @@ workspace and queued changes. [Report transfer and return](verification/receipts
 
 To exercise the saved entry and JPEG against a local backend, use the [FieldLog offline sync replay](tests/integration/fieldlog-entry-sync/README.md). On macOS, the first replay verifies the queue after a lost acknowledgement. The second cancels a partial photo upload, restarts the client, and verifies the resumed JPEG against the saved bytes.
 
+To reproduce the Android **On device** queue, prepare FieldLog from the pinned
+public sources and run the generated Android entry point against the local
+backend. The same prepared sources build an unsigned arm64 APK.
+[Android photo queue replay](tests/integration/fieldlog-android-queue/README.md)
+
 With the migration applied, follow `Integrations/GeneratedReport/README.md`.
 Use the CLI, SDK checkout, and adapter from Mixer revision
 `735ecec14e10e2dfed1e58a122c3fab08e569bef` for that recipe. It uses
@@ -246,6 +251,11 @@ If an upgrade destination already exists, keep it and choose a fresh
 destination for the retry. For an interrupted FieldLog save that reports a
 storage error, close and reopen the workspace. Check the saved entry, draft,
 and outbox before trying the save again.
+
+To test an installed FieldLog upgrade on iOS Simulator, build both app versions
+from the pinned checkouts and import a photo through Files. The replay replaces
+the app in place and checks that the same draft, JPEG, and pending changes
+survive. [Installed upgrade replay](tests/integration/fieldlog-ios-installed-upgrade/README.md)
 
 ### Build an Android export without the Mixer CLI
 

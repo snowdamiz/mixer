@@ -1,0 +1,946 @@
+diff --git a/Integrations/GeneratedReport/Package.swift b/Integrations/GeneratedReport/Package.swift
+index 774fc2e5be1d8dd1d5149c6714f53eaf41ee9122..87c381404a94cfd72b1bee0e123d25ab5adfa53e 100644
+--- a/Integrations/GeneratedReport/Package.swift
++++ b/Integrations/GeneratedReport/Package.swift
+@@ -10,10 +10,10 @@ let package = Package(
+     name: "FieldLog",
+     platforms: [.iOS("26.0"), .macOS(.v14)],
+     products: [.library(name: "AppAndroid", type: .dynamic, targets: ["FieldLogAndroid"]), .library(name: "FieldLogModels", targets: ["FieldLogModels"]), .library(name: "FieldLogStorage", targets: ["FieldLogStorage"]), .library(name: "FieldLogFeatures", targets: ["FieldLogFeatures"])],
+-    dependencies: [mixer],
++    dependencies: [mixer, .package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.3")],
+     targets: [
+         .target(name: "FieldLogModels"),
+-        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"]),
++        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels", .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.android]))]),
+         .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "mixer"), .product(name: "MixerUI", package: "mixer"), .product(name: "MixerApple", package: "mixer", condition: .when(platforms: [.iOS, .macOS]))]),
+         .target(name: "FieldLogAndroid", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures", .product(name: "MixerCore", package: "mixer"), .product(name: "MixerUI", package: "mixer"), .product(name: "MixerAndroid", package: "mixer")]),
+         .testTarget(name: "FieldLogAndroidTests", dependencies: ["FieldLogAndroid", "FieldLogModels", "FieldLogStorage", .product(name: "MixerUI", package: "mixer"), .product(name: "MixerAndroid", package: "mixer")]),
+diff --git a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+index 1f59963bb5725a5256288fa32a593882646c9188..ffad90a4e6564e074cc181b0da78703d217f4289 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
++++ b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+@@ -1,5 +1,6 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.fieldlog.generatedr90" android:versionCode="1" android:versionName="0.1.0">
+   <uses-sdk android:minSdkVersion="36" android:targetSdkVersion="37" />
++  <uses-permission android:name="android.permission.INTERNET" />
+   <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="FieldLogGenerated" android:debuggable="true" android:allowBackup="false" android:extractNativeLibs="true" android:supportsRtl="true">
+     <provider android:name="dev.fieldlog.generatedr90.androidhost.PublicBridge$ReportProvider" android:authorities="dev.fieldlog.generatedr90.reports" android:exported="false" android:grantUriPermissions="true" />
+     <activity android:name="dev.fieldlog.generatedr90.androidhost.PublicActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+diff --git a/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift b/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
+index 97de4e913140c6c70571c5168fc54d2d28576533..65a86f5396d51c8b4f23263ac16f56427afd98fa 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
++++ b/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
+@@ -3,10 +3,10 @@ import PackageDescription
+ let package = Package(
+     name: "FieldLogGenerated", platforms: [.iOS("26.0"), .macOS(.v14)],
+     products: [.library(name: "FieldLogFeatures", targets: ["FieldLogFeatures"]), .library(name: "FieldLogModels", targets: ["FieldLogModels"]), .library(name: "FieldLogStorage", targets: ["FieldLogStorage"])],
+-    dependencies: [.package(path: "Generated/MixerSDK")],
++    dependencies: [.package(path: "Generated/MixerSDK"), .package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.3")],
+     targets: [
+         .target(name: "FieldLogModels"),
+         .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "MixerSDK"), .product(name: "MixerUI", package: "MixerSDK")], exclude: ["TaskEditorAppleFieldsHost.swift", "EntryEditorAppleHost.swift"]),
+-        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"]),
++        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels", .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.android]))]),
+     ]
+ )
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+index 8a6921d1304ce41442ea689aad78ce7332ea3109..a0dcd32e4d277218b19b03321c9595b362bb411c 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -38,7 +38,8 @@ static int execute(JNIEnv *e,Context *c,int op,const uint8_t *profile,intptr_t p
+     if(result==0) {
+         pump_env=e; int status=0;
+         for(int i=0;i<1000&&status==0;i++) status=mixer_public_android_poll(c->id);
+-        pump_env=NULL; result=status==1?0:1;
++        pump_env=NULL;
++        result=status==1?0:(op==3&&status==3?2:1);
+         if(status==0) c->failed=1; /* Unknown queued work: retain, never retry. */
+     }
+     c->busy=0; return result;
+@@ -140,6 +141,11 @@ static jint event_host(JNIEnv *e,jclass ignored,jlong id,jbyteArray owner,jbyteA
+     if(result==0) result=execute_report(e,c,NULL,0,-1);
+     return result;
+ }
++/* 0 = idle, 1 = failed, 2 = send in progress. */
++static jint refresh_queue_host(JNIEnv *e,jclass ignored,jlong id) {
++    (void)ignored;
++    return execute(e,find(id),3,NULL,0,NULL,0,NULL,0);
++}
+ static jint close_host(JNIEnv *e,jclass ignored,jlong id) {
+     (void)ignored; Context *c=find(id); if(!c||c->failed) return 1;
+     if(execute(e,c,2,NULL,0,NULL,0,NULL,0)) { c->failed=1; return 1; }
+@@ -154,7 +160,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
+     jclass type=(*e)->FindClass(e,"dev/fieldlog/generatedr90/androidhost/PublicBridge"); if(!type) return JNI_ERR;
+     JNINativeMethod methods[]={{"openNative","(Ldev/fieldlog/generatedr90/androidhost/PublicActivity;Ljava/lang/String;[B)J",(void*)open_host},
+         {"eventNative","(J[B[B)I",(void*)event_host},{"closeNative","(J)I",(void*)close_host},
+-        {"photoNative","(J[BI[B)I",(void*)photo_host},{"reportNative","(J[BI)I",(void*)report_host}};
+-    jint status=(*e)->RegisterNatives(e,type,methods,5); (*e)->DeleteLocalRef(e,type);
++        {"photoNative","(J[BI[B)I",(void*)photo_host},{"reportNative","(J[BI)I",(void*)report_host},
++        {"refreshQueueNative","(J)I",(void*)refresh_queue_host}};
++    jint status=(*e)->RegisterNatives(e,type,methods,6); (*e)->DeleteLocalRef(e,type);
+     return status==0?JNI_VERSION_1_6:JNI_ERR;
+ }
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 8203fea3371fe9608a1684d16844e1967a648e0b..4575228db8c7289605fca8bf4450b2907e2997c8 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -29,6 +29,7 @@ public final class PublicActivity extends Activity {
+     private byte[] owner;
+     private long context;
+     private boolean destroyed, failed, drainScheduled, draining;
++    private final Runnable queueRefresh = this::refreshQueue;
+     private static final int MAX_EVENTS = 32, MAX_BYTES = 1048576;
+     private byte[] pendingReport;
+     private long reportContext;
+@@ -416,6 +417,7 @@ public final class PublicActivity extends Activity {
+             if (offset != batch.length) { fail(); return; }
+             invalidateEvents();
+             if (PublicBridge.event(first.context, first.owner, batch) != 0) fail();
++            else scheduleQueueRefresh();
+             // Only the ensuing validated surface.install reopens native input.
+         } catch (RuntimeException error) {
+             fail(); throw error;
+@@ -444,7 +446,24 @@ public final class PublicActivity extends Activity {
+             return 0;
+         } catch (RuntimeException error) { android.util.Log.e("MixerAndroidHost", "Native surface operation failed: " + operation, error); fail(); return 1; }
+     }
+-    private void fail() { failed = true; reportCompletion = null; photoCompletion = null; invalidateEvents(); if (surface != null) surface.gateInput(); }
++    private void scheduleQueueRefresh() {
++        handler.removeCallbacks(queueRefresh);
++        if (!handler.postDelayed(queueRefresh, 100)) fail();
++    }
++    private void refreshQueue() {
++        if (destroyed || failed || context <= 0) return;
++        // Drain clicks captured from the displayed revision before replacing it.
++        if (!events.isEmpty()) {
++            scheduleQueueRefresh();
++            return;
++        }
++        switch (PublicBridge.refreshQueue(context)) {
++        case 0: break;
++        case 2: scheduleQueueRefresh(); break;
++        default: fail();
++        }
++    }
++    private void fail() { failed = true; handler.removeCallbacks(queueRefresh); reportCompletion = null; photoCompletion = null; invalidateEvents(); if (surface != null) surface.gateInput(); }
+     @Override public void onResume() {
+         super.onResume();
+         resumed = true;
+@@ -466,6 +485,7 @@ public final class PublicActivity extends Activity {
+     }
+     @Override public void onStop() { if (surface != null) surface.onStop(); super.onStop(); }
+     @Override public void onDestroy() {
++        handler.removeCallbacks(queueRefresh);
+         destroyed = true; reportCompletion = null; finishReport(2); revokeReport(); pendingPhoto = null; photoCompletion = null; cancelPhotoWorker();
+         Thread worker = photoThread;
+         if (worker != null) try { worker.join(100); } catch (InterruptedException error) { Thread.currentThread().interrupt(); }
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+index abd1da6adb49fe10f15249c899b4f8ce1c161520..b21d880751f1bb268aecd6a8d4805ad7c1c9684b 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+@@ -27,6 +27,8 @@ public final class PublicBridge {
+     public static int close(long context) { requireMain(); return closeNative(context); }
+     public static int photo(long context, byte[] request, int result, byte[] jpeg) { requireMain(); return photoNative(context, request, result, jpeg); }
+     public static int report(long context, byte[] request, int result) { requireMain(); android.util.Log.i("FieldLogShareR1702", "report-jni-enter"); int status=reportNative(context, request, result); android.util.Log.i("FieldLogShareR1702", "report-jni-return accepted="+(status==0)); return status; }
++    static int refreshQueue(long context) { requireMain(); return refreshQueueNative(context); }
++    private static native int refreshQueueNative(long context);
+     private static native int reportNative(long context, byte[] request, int result);
+     private static native int photoNative(long context, byte[] request, int result, byte[] jpeg);
+     private static native long openNative(PublicActivity receiver, String profile, byte[] directory);
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index 9d20e7a9c0057ad3a5983044cccf4b42c1877efe..f2960952f8154729cca7f946c957fde81b99e5d7 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -121,6 +121,9 @@ private let replies = Replies()
+                 await application.close()
+                 guard !surface.failure else { throw PublicHostError.surface }
+                 values.removeValue(forKey: id)
++            case 3:
++                guard let (application, surface) = values[id], !surface.failure else { throw PublicHostError.context }
++                return try application.refreshQueueSend() ? 3 : 1
+             default: throw PublicHostError.context
+             }
+             return 1
+@@ -134,8 +137,9 @@ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
+     _ owner: UnsafePointer<UInt8>?, _ ownerCount: Int,
+     _ event: UnsafePointer<UInt8>?, _ eventCount: Int,
+     _ callback: @convention(c) @Sendable @escaping (Int64, Int32, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int) -> Int32) -> Int32 {
+-    guard context > 0, (0...2).contains(operation), (0...64).contains(profileCount),
++    guard context > 0, (0...3).contains(operation), (0...64).contains(profileCount),
+           (0...4096).contains(directoryCount), (operation == 0 ? directoryCount > 0 : directoryCount == 0),
++          (operation != 3 || (profileCount == 0 && ownerCount == 0 && eventCount == 0)),
+           (directoryCount == 0 || directory != nil), (0...64).contains(ownerCount), (0...1_048_576).contains(eventCount),
+           (profileCount == 0 || profile != nil), (ownerCount == 0 || owner != nil), (eventCount == 0 || event != nil) else { return 1 }
+     let profile = profile.map { Data(bytes: $0, count: profileCount) } ?? Data()
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index af6616a5333505224180a02d12df3eea1c9b213d..36733e32b37b4fd68327c1ee6d87e2aeaaccead4 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -112,6 +112,40 @@ private enum WorkspaceEdit: Sendable {
+     }
+ }
+ 
++private struct QueueSyncConfiguration: Decodable {
++    let port: UInt16
++    let workspaceID: UUID
++    let projectID: UUID
++    let token: String
++
++    static func read(from directory: URL) -> Self? {
++        let url = directory.appendingPathComponent("entry-sync.local.json")
++        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
++              attributes[.type] as? FileAttributeType == .typeRegular,
++              let handle = try? FileHandle(forReadingFrom: url) else { return nil }
++        defer { try? handle.close() }
++        guard let data = try? handle.read(upToCount: 4097), data.count <= 4096 else { return nil }
++        return try? JSONDecoder().decode(Self.self, from: data)
++    }
++
++    func client(workspace: UUID, project: UUID) -> EntrySyncClient? {
++        guard workspace == workspaceID, project == projectID else { return nil }
++        return try? EntrySyncClient(port: port, workspaceID: workspace, projectID: project, token: token)
++    }
++}
++
++private struct QueueSyncView {
++    var enabled = false
++    var transfer: Transfer?
++    var message: String?
++
++    struct Transfer {
++        let event: UUID
++        var progress: EntrySyncClient.PhotoProgress?
++        var cancelling = false
++    }
++}
++
+ @MainActor public final class ProjectPresentation: AndroidUIBatchPresentation {
+     public private(set) var snapshot: UIRenderSnapshot
+     public private(set) var workspace: Workspace
+@@ -125,6 +159,10 @@ private enum WorkspaceEdit: Sendable {
+     private var renderingFailure: (any Error)?
+     private var closed = false
+     private var showingQueue = false
++    private let entrySyncClient: EntrySyncClient?
++    private var queueSync = QueueSyncView()
++    private var queueSend: Task<Void, Never>?
++    private var queueNeedsRefresh = false
+     private var showingEntries = false
+     private var entryEditor: EntryEditor?
+     private var entryObservation: UUID?
+@@ -166,11 +204,16 @@ private enum WorkspaceEdit: Sendable {
+     private var observers: [UUID: @MainActor (UIRenderSnapshot) -> Void] = [:]
+ 
+     public convenience init(directory: URL) async throws {
+-        let repository = try WorkspaceRepository(directory: directory.appendingPathComponent("FieldLog", isDirectory: true))
+-        try await self.init(repository: repository)
++        let folder = directory.appendingPathComponent("FieldLog", isDirectory: true)
++        let repository = try WorkspaceRepository(directory: folder)
++        try await self.init(repository: repository, syncConfiguration: QueueSyncConfiguration.read(from: folder))
+     }
+     // Internal composition point also permits deterministic storage scheduling tests.
+-    init(repository: WorkspaceRepository) async throws {
++    convenience init(repository: WorkspaceRepository) async throws {
++        try await self.init(repository: repository, syncConfiguration: nil)
++    }
++
++    private init(repository: WorkspaceRepository, syncConfiguration: QueueSyncConfiguration?) async throws {
+         do {
+             var workspace = await repository.snapshot()
+             if workspace.projects.isEmpty {
+@@ -183,6 +226,8 @@ private enum WorkspaceEdit: Sendable {
+             var reconciler = UIReconciler(validator: UIValidator(supportedTextFieldAxes: AndroidUIProfile.measuredMultilineLongNotesV4.capabilities.textFieldAxes, textValuePolicy: AndroidUIProfile.measuredMultilineLongNotesV4.textValuePolicy))
+             try reconciler.apply(Self.document(editor.state, workspace: workspace, project: project.id, queue: false, taskPage: 0, queuePage: 0, busy: false, feedback: nil, failure: nil, revision: 1))
+             self.repository = repository; self.workspace = workspace; self.projectID = project.id
++            entrySyncClient = syncConfiguration?.client(workspace: workspace.id, project: project.id)
++            queueSync.enabled = entrySyncClient != nil
+             self.editor = editor; self.reconciler = reconciler; self.snapshot = try reconciler.currentSnapshot()
+             _ = try Self.appPacket(snapshot)
+             if let id = workspace.restoration.openDraftID,
+@@ -233,6 +278,20 @@ private enum WorkspaceEdit: Sendable {
+             }
+         }
+         if actions.count == 1, let action = actions.first, action.event == .activate, action.value == .null {
++            if showingQueue, action.nodeID == action.actionID {
++                if action.nodeID.hasPrefix("queue.send.") {
++                    guard let event = UUID(uuidString: String(action.nodeID.dropFirst("queue.send.".count))) else {
++                        throw PublicHostError.action
++                    }
++                    try beginQueueSend(event)
++                    return
++                }
++                if action.nodeID.hasPrefix("queue.cancel.") {
++                    // The upload may finish after the displayed Cancel was captured.
++                    try cancelQueueSend()
++                    return
++                }
++            }
+             if action.nodeID == "workspace.report", action.actionID == "workspace.report" {
+                 guard !showingEntries, !showingQueue else { throw PublicHostError.action }
+                 try beginReport(); return
+@@ -583,7 +642,7 @@ private enum WorkspaceEdit: Sendable {
+             MixerUI.List("entry.form") {
+                 MixerUI.Section("entry.navigation") {
+                     MixerUI.Button("workspace.tasks", "Tasks", action: "workspace.tasks").accessibilityIdentifier("workspace-tasks").disabled(state.saving)
+-                    MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes · Not sent", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(state.saving)
++                    MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(state.saving)
+                     MixerUI.Button("entry.new", "New entry", action: "entry.new").accessibilityIdentifier("entry-new").disabled(state.saving)
+                 }
+                 MixerUI.Section("entry.fields", title: "Entry") {
+@@ -666,6 +725,74 @@ private enum WorkspaceEdit: Sendable {
+             publish()
+         } catch { try? candidate.close(); throw error }
+     }
++    private func beginQueueSend(_ event: UUID) throws {
++        guard let entrySyncClient, queueSend == nil,
++              let item = workspace.outbox.first(where: { $0.id == event }),
++              Self.syncEntry(for: item, workspace: workspace, project: projectID)?.attachmentIDs.count == 1
++        else { throw PublicHostError.action }
++
++        queueSync.transfer = .init(event: event)
++        queueSync.message = nil
++        queueNeedsRefresh = true
++        _ = try refreshQueueSend()
++        queueSend = Task { @MainActor [self] in
++            let message: String
++            do {
++                try await entrySyncClient.send(eventID: event, from: repository) { [weak self] progress in
++                    await self?.updateQueueProgress(progress)
++                }
++                message = "Entry and JPEG confirmed"
++            } catch is CancellationError {
++                message = "Send cancelled. The entry is still queued."
++            } catch {
++                message = "Send not confirmed. Resume to check the saved photo and try again."
++            }
++
++            // Read the repository's committed state for the next frame.
++            workspace = await repository.snapshot()
++            queueSync.transfer = nil
++            queueSync.message = message
++            queueNeedsRefresh = true
++            queueSend = nil
++        }
++    }
++
++    private func updateQueueProgress(_ progress: EntrySyncClient.PhotoProgress) {
++        guard queueSync.transfer?.cancelling == false else { return }
++        queueSync.transfer?.progress = progress
++        queueNeedsRefresh = true
++    }
++
++    private func cancelQueueSend() throws {
++        guard let queueSend else {
++            _ = try refreshQueueSend()
++            return
++        }
++        queueSync.transfer?.cancelling = true
++        queueSend.cancel()
++        queueNeedsRefresh = true
++        _ = try refreshQueueSend()
++    }
++
++    // JNI surfaces are only callable within the Activity's main-thread bridge.
++    // Stage async updates above and publish them when the Activity asks.
++    func refreshQueueSend() throws -> Bool {
++        guard !closed else { throw PublicHostError.closed }
++        if queueNeedsRefresh {
++            let (next, frame) = try render(state, feedback: changeFeedback, failure: changeFailure)
++            reconciler = next
++            snapshot = frame
++            queueNeedsRefresh = false
++            publish()
++        }
++        return queueSend != nil
++    }
++
++    private nonisolated static func syncEntry(for item: PendingChange, workspace: Workspace, project: UUID) -> LogEntry? {
++        guard item.kind == .entrySaved else { return nil }
++        return workspace.entries.first { $0.id == item.recordID && $0.projectID == project }
++    }
++
+     private func navigate(queue: Bool) throws {
+         let (nextReconciler, next) = try render(state, queue: queue, entries: queue ? showingEntries : false, feedback: changeFeedback, failure: changeFailure)
+         showingQueue = queue; if !queue { showingEntries = false }; reconciler = nextReconciler; snapshot = next; publish()
+@@ -721,7 +848,7 @@ private enum WorkspaceEdit: Sendable {
+         guard snapshot.document.revision < UInt64.max else { throw PublicHostError.bounds }
+         let renderedEntry = entry ?? entryState
+         var next = reconciler
+-        try next.apply(Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage))
++        try next.apply(Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage, queueSync: queueSync))
+         let result = try next.currentSnapshot()
+         _ = try Self.appPacket(result, draftID: renderedEntry?.draft.id)
+         return (next, result)
+@@ -733,9 +860,11 @@ private enum WorkspaceEdit: Sendable {
+     }
+     public func close() async {
+         closed = true; photoGeneration = UUID(); photoRequest = nil; reportGeneration = UUID(); reportRequest = nil; observers.removeAll()
++        queueSend?.cancel()
+         if let editorObservation { editor.removeObserver(editorObservation) }; editorObservation = nil
+         await editor.waitForSave(); await entryEditor?.waitForSave(); await change?.value
+         if let entryObservation { entryEditor?.removeObserver(entryObservation) }; entryObservation = nil
++        await queueSend?.value
+         await reportTask?.value
+         try? reportHandle?.close(); reportHandle = nil
+         _ = await photoCompletion?.value
+@@ -777,7 +906,20 @@ private enum WorkspaceEdit: Sendable {
+         case .entrySaved: return "Entry saved"
+         }
+     }
+-    private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil) -> UIDocument {
++    private nonisolated static func queueLabel(_ item: PendingChange, workspace: Workspace, entry: LogEntry?,
++        transfer: QueueSyncView.Transfer?) -> String {
++        let label = changeLabel(item, workspace: workspace)
++        if let progress = transfer?.progress {
++            return label + " — \(progress.acceptedBytes) of \(progress.totalBytes) bytes confirmed"
++        }
++        if transfer != nil { return label + " — Checking saved photo" }
++        if let entry {
++            return label + (entry.attachmentIDs.count == 1 ? " — Pending confirmation" : " — Sending requires one JPEG")
++        }
++        return label + " — Saved on device"
++    }
++
++    private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil, queueSync: QueueSyncView = .init()) -> UIDocument {
+         if entries && !queue, let entry { return entryDocument(entry, workspace: workspace, project: project, entryPage: entryPage, draftPage: draftPage, revision: revision, dateInput: dateInput, photoPending: photoPending, photoMessage: photoMessage, photoBusy: photoBusy) }
+         let inactive = state.saving || busy
+         let tasks = workspace.tasks(for: project)
+@@ -787,27 +929,46 @@ private enum WorkspaceEdit: Sendable {
+             MixerUI.List("task.form") {
+                 if queue {
+                     MixerUI.Section("queue.summary", title: "On device") {
+-                        MixerUI.Text("queue.explanation", "Your records are saved locally. Cloud sync isn't connected. Nothing in this queue has been sent to a server.")
+-                        MixerUI.Button("workspace.back", "Tasks", action: "workspace.back").accessibilityIdentifier("workspace-tasks")
+-                        MixerUI.Button("workspace.entries", "Entries", action: "workspace.entries").accessibilityIdentifier("workspace-entries")
++                        MixerUI.Text("queue.explanation", queueSync.enabled
++                            ? "Send a saved entry with one JPEG to the local test backend."
++                            : "Your records are saved locally. Sending is unavailable in this workspace.")
++                        if let message = queueSync.message { MixerUI.Text("queue.sync.status", message) }
++                        MixerUI.Button("workspace.back", "Tasks", action: "workspace.back")
++                            .accessibilityIdentifier("workspace-tasks").disabled(queueSync.transfer != nil)
++                        MixerUI.Button("workspace.entries", "Entries", action: "workspace.entries")
++                            .accessibilityIdentifier("workspace-entries").disabled(queueSync.transfer != nil)
+                     }
+                     MixerUI.Section("queue.changes", title: "Pending changes (\(workspace.outbox.count))") {
+                         MixerUI.Text("queue.position", "Page \(queuePage + 1) of \(page(Int.max, count: workspace.outbox.count) + 1) · Changes \(workspace.outbox.isEmpty ? 0 : queueStart + 1)–\(min(queueStart + pageSize, workspace.outbox.count)) of \(workspace.outbox.count) · Newest first")
+-                        MixerUI.Button("queue.previous", "Previous", action: "queue.previous").accessibilityIdentifier("queue.previous").disabled(inactive || queuePage == 0)
+-                        MixerUI.Button("queue.next", "Next", action: "queue.next").accessibilityIdentifier("queue.next").disabled(inactive || queueStart + pageSize >= workspace.outbox.count)
++                        MixerUI.Button("queue.previous", "Previous", action: "queue.previous").accessibilityIdentifier("queue.previous").disabled(inactive || queueSync.transfer != nil || queuePage == 0)
++                        MixerUI.Button("queue.next", "Next", action: "queue.next").accessibilityIdentifier("queue.next").disabled(inactive || queueSync.transfer != nil || queueStart + pageSize >= workspace.outbox.count)
+                         if workspace.outbox.isEmpty { MixerUI.Text("queue.empty", "Changes you make will appear here.") }
+                         for item in workspace.outbox.reversed().dropFirst(queueStart).prefix(pageSize) {
+-                            MixerUI.Text("pending." + item.id.uuidString.lowercased(), changeLabel(item, workspace: workspace) + " — Saved on device · Not sent")
++                            let id = item.id.uuidString.lowercased()
++                            let entry = queueSync.enabled ? syncEntry(for: item, workspace: workspace, project: project) : nil
++                            let transfer = queueSync.transfer?.event == item.id ? queueSync.transfer : nil
++                            MixerUI.Text("pending." + id, queueLabel(item, workspace: workspace, entry: entry, transfer: transfer))
++                            if let entry, entry.attachmentIDs.count == 1 {
++                                if let transfer {
++                                    let action = "queue.cancel." + id
++                                    MixerUI.Button(action, transfer.cancelling ? "Cancelling…" : "Cancel send", action: action)
++                                        .accessibilityIdentifier(action).disabled(transfer.cancelling)
++                                } else {
++                                    let action = "queue.send." + id
++                                    MixerUI.Button(action, "Send or resume: " + entry.title, action: action)
++                                        .accessibilityIdentifier(action).disabled(inactive || queueSync.transfer != nil)
++                                }
++                            }
+                         }
+                     }
+                 } else {
+                     MixerUI.Section("workspace.summary", title: "Local workspace") {
+                         MixerUI.Button("workspace.report", "Share project report", action: "workspace.report").accessibilityIdentifier("workspace-report").disabled(inactive || reportPending)
+-                        MixerUI.Text("workspace.report.scope", "Saved local records only. Unsaved input and photo files are not included. Nothing is uploaded by FieldLog.")
++                        MixerUI.Text("workspace.report.scope", "The report includes saved local records. Unsaved input and photo files are not included.")
+                         if let reportMessage { MixerUI.Text("workspace.report.status", reportMessage) }
+                         MixerUI.Button("workspace.entries", "Entries", action: "workspace.entries").accessibilityIdentifier("workspace-entries").disabled(inactive)
+                         MixerUI.Text("workspace.progress", "\(tasks.filter(\.completed).count) of \(tasks.count) tasks completed")
+-                        MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes · Not sent", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(inactive)
++                        MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(inactive)
+                     }
+                     MixerUI.Section("task.fields", title: "New task") {
+                         MixerUI.TextField("task.title", "What needs to happen?", value: state.title, action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(inactive || state.saved)
+@@ -892,5 +1053,12 @@ private enum WorkspaceEdit: Sendable {
+         if let failure = delivery.failure { throw failure }
+         try host.deliverLatest()
+     }
++    func refreshQueueSend() throws -> Bool {
++        if let failure = delivery.failure { throw failure }
++        let active = try presentation.refreshQueueSend()
++        try host.deliverLatest()
++        return active
++    }
++
+     public func close() async { host.close(); await presentation.close() }
+ }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/EntrySyncClient.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/EntrySyncClient.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..928c1962b79126653a20e3ab9ac76607ea55840a
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/EntrySyncClient.swift
+@@ -0,0 +1,349 @@
++#if canImport(CryptoKit)
++  import CryptoKit
++#else
++  import Crypto
++#endif
++import FieldLogModels
++import Foundation
++
++#if canImport(FoundationNetworking)
++  import FoundationNetworking
++#endif
++
++/// Development transport for a provisioned loopback FieldLog backend. The caller
++/// owns the session token and explicitly selects the workspace, project and event.
++public struct EntrySyncClient: Sendable {
++  public enum Outcome: Equatable, Sendable {
++    case uploaded
++    case reconciled
++  }
++
++  /// Bytes acknowledged by the backend for this send's selected JPEG.
++  public struct PhotoProgress: Equatable, Sendable {
++    public let acceptedBytes: Int
++    public let totalBytes: Int
++  }
++
++  public enum Failure: Error, LocalizedError, Equatable {
++    case invalidConfiguration
++    case wrongScope
++    case requiresOnePhoto
++    case rejected(Int)
++    case invalidProgress
++    case invalidReceipt
++
++    public var errorDescription: String? {
++      switch self {
++      case .invalidConfiguration: "A local backend port and session token are required."
++      case .wrongScope: "This change belongs to a different workspace or project."
++      case .requiresOnePhoto: "This sync endpoint accepts entries with exactly one JPEG."
++      case .rejected(let status): "The server rejected the change (HTTP \(status))."
++      case .invalidProgress: "The backend did not confirm the saved photo prefix."
++      case .invalidReceipt: "The backend did not confirm this entry and photo."
++      }
++    }
++  }
++
++  private let port: UInt16
++  private let workspaceID: UUID
++  private let projectID: UUID
++  private let token: String
++  private static let chunkBytes = 32_768
++
++  public init(port: UInt16, workspaceID: UUID, projectID: UUID, token: String) throws {
++    guard port > 0, (32...128).contains(token.utf8.count),
++      token.utf8.allSatisfy({
++        (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0)
++          || $0 == 45 || $0 == 95
++      })
++    else { throw Failure.invalidConfiguration }
++
++    self.port = port
++    self.workspaceID = workspaceID
++    self.projectID = projectID
++    self.token = token
++  }
++
++  @discardableResult public func send(
++    eventID: UUID, from repository: WorkspaceRepository
++  ) async throws -> Outcome {
++    try await send(eventID: eventID, from: repository, onProgress: { _ in })
++  }
++
++  /// Cancelling before local acknowledgment stops the send and leaves the event pending.
++  /// A later send of the same event verifies the server's durable prefix and resumes.
++  @discardableResult public func send(
++    eventID: UUID, from repository: WorkspaceRepository,
++    onProgress: @Sendable (PhotoProgress) async -> Void
++  ) async throws -> Outcome {
++    try Task.checkCancellation()
++    let payload = try await repository.prepareEntryUpload(
++      workspaceID: workspaceID, projectID: projectID, eventID: eventID)
++    let workspace = workspaceID.uuidString.lowercased()
++    let project = projectID.uuidString.lowercased()
++    let url = URL(
++      string: "http://127.0.0.1:\(port)/v1/workspaces/\(workspace)/projects/\(project)/entries/\(payload.event.idempotencyKey)"
++    )!
++    let configuration = URLSessionConfiguration.ephemeral
++    configuration.urlCredentialStorage = nil
++    configuration.httpCookieStorage = nil
++    configuration.httpShouldSetCookies = false
++    configuration.urlCache = nil
++    configuration.connectionProxyDictionary = [
++      "HTTPEnable": false, "HTTPSEnable": false, "ProxyAutoConfigEnable": false,
++      "ProxyAutoDiscoveryEnable": false, "SOCKSEnable": false,
++    ]
++    configuration.timeoutIntervalForRequest = 5
++    configuration.timeoutIntervalForResource = 15
++    #if os(Android)
++      // FoundationNetworking uses libcurl. An inherited proxy can override the
++      // session dictionary, so fail closed before constructing a bearer request.
++      guard !ProcessInfo.processInfo.environment.keys.contains(where: {
++        ["http_proxy", "https_proxy", "all_proxy"].contains($0.lowercased())
++      }) else { throw Failure.invalidConfiguration }
++    #endif
++
++    let expected = EntryUploadReceipt(
++      eventID: eventID, workspaceID: workspaceID, projectID: projectID, entryID: payload.entry.id,
++      photoID: payload.photo.id)
++    let jpeg = payload.photo.jpeg
++    let chunkSHA256s = stride(from: 0, to: jpeg.count, by: Self.chunkBytes).map { start in
++      Self.hex(SHA256.hash(data: jpeg[start..<min(start + Self.chunkBytes, jpeg.count)]))
++    }
++    let manifest = EntryUploadManifest(
++      event: payload.event, entry: payload.entry,
++      photo: .init(
++        id: payload.photo.id, byteCount: jpeg.count, sha256: Self.hex(SHA256.hash(data: jpeg)),
++        chunkSHA256s: chunkSHA256s))
++    let photoURL = url.appendingPathComponent("photo")
++    let initial = try await post(manifest, to: photoURL, using: configuration, accepting: [200])
++    let initialProgress = try progress(in: initial.body, for: expected, photo: manifest.photo)
++    var offset = initialProgress.offset
++    guard offset == jpeg.count || offset.isMultiple(of: Self.chunkBytes) else {
++      throw Failure.invalidProgress
++    }
++    var prefix = SHA256()
++    prefix.update(data: jpeg.prefix(offset))
++    guard Self.hex(prefix.finalize()) == initialProgress.prefixSHA256 else {
++      throw Failure.invalidProgress
++    }
++    await onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
++
++    let chunksURL = photoURL.appendingPathComponent("chunks")
++    while offset < jpeg.count {
++      try Task.checkCancellation()
++      let nextOffset = min(offset + Self.chunkBytes, jpeg.count)
++      let bytes = jpeg[offset..<nextOffset]
++      let chunk = PhotoChunk(
++        photoID: manifest.photo.id, sha256: manifest.photo.sha256, offset: offset,
++        chunk: bytes, chunkSHA256: chunkSHA256s[offset / Self.chunkBytes])
++      let response = try await post(chunk, to: chunksURL, using: configuration, accepting: [200])
++      let accepted = try progress(in: response.body, for: expected, photo: manifest.photo)
++      prefix.update(data: bytes)
++      guard accepted.offset == nextOffset, accepted.prefixSHA256 == Self.hex(prefix.finalize()) else {
++        throw Failure.invalidProgress
++      }
++      offset = nextOffset
++      await onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
++    }
++
++    let final = try await post(
++      manifest, to: url, using: configuration, accepting: [200, 201], invalidResponse: .invalidReceipt)
++    guard (try? JSONDecoder().decode(EntryUploadReceipt.self, from: final.body)) == expected else {
++      throw Failure.invalidReceipt
++    }
++    try await repository.acknowledgeEntryUpload(payload, workspaceID: workspaceID)
++    return final.status == 201 ? .uploaded : .reconciled
++  }
++
++  private func post(
++    _ payload: some Encodable, to url: URL, using configuration: URLSessionConfiguration, accepting statuses: [Int],
++    invalidResponse: Failure = .invalidProgress
++  ) async throws -> (status: Int, body: Data) {
++    try Task.checkCancellation()
++    let encoder = JSONEncoder()
++    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++    var request = URLRequest(url: url)
++    request.httpMethod = "POST"
++    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
++    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
++    request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
++    request.httpBody = try encoder.encode(payload)
++
++    let delegate = LoopbackResponse(accepting: statuses, invalidResponse: invalidResponse)
++    let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
++    defer { session.finishTasksAndInvalidate() }
++    do {
++      let response = try await withTaskCancellationHandler {
++        try await withCheckedThrowingContinuation { continuation in
++          delegate.start(request, in: session, returningTo: continuation)
++        }
++      } onCancel: {
++        delegate.cancel()
++      }
++      try Task.checkCancellation()
++      return response
++    } catch {
++      try Task.checkCancellation()
++      throw error
++    }
++  }
++
++  private func progress(
++    in body: Data, for expected: EntryUploadReceipt, photo: EntryUploadManifest.Photo
++  ) throws -> PhotoUploadReceipt {
++    guard (try? JSONDecoder().decode(EntryUploadReceipt.self, from: body)) == expected,
++      let progress = try? JSONDecoder().decode(PhotoUploadReceipt.self, from: body),
++      progress.byteCount == photo.byteCount, progress.sha256 == photo.sha256,
++      (0...photo.byteCount).contains(progress.offset)
++    else { throw Failure.invalidProgress }
++    return progress
++  }
++
++  private static func hex(_ digest: SHA256.Digest) -> String {
++    digest.map { String(format: "%02x", $0) }.joined()
++  }
++}
++
++struct EntryUpload: Sendable {
++  struct Photo: Sendable {
++    let id: UUID
++    let jpeg: Data
++  }
++
++  let event: PendingChange
++  let entry: LogEntry
++  let photo: Photo
++}
++
++private struct EntryUploadManifest: Encodable {
++  struct Photo: Encodable {
++    let id: UUID
++    let byteCount: Int
++    let sha256: String
++    let chunkSHA256s: [String]
++  }
++
++  let event: PendingChange
++  let entry: LogEntry
++  let photo: Photo
++}
++
++private struct PhotoChunk: Encodable {
++  let photoID: UUID
++  let sha256: String
++  let offset: Int
++  let chunk: Data
++  let chunkSHA256: String
++}
++
++private struct PhotoUploadReceipt: Decodable {
++  let byteCount: Int
++  let sha256: String
++  let offset: Int
++  let prefixSHA256: String
++}
++
++private struct EntryUploadReceipt: Decodable, Equatable {
++  let eventID: UUID
++  let workspaceID: UUID
++  let projectID: UUID
++  let entryID: UUID
++  let photoID: UUID
++}
++
++// URLSession.bytes(for:) is unavailable in the Android Swift SDK. Keep the
++// same bounded response read using a serial URLSession delegate on both hosts.
++private final class LoopbackResponse: NSObject, URLSessionDataDelegate, @unchecked Sendable {
++  private static let limit = 2048
++  private let accepting: [Int]
++  private let invalidResponse: EntrySyncClient.Failure
++  private let lock = NSLock()
++  private var task: URLSessionDataTask?
++  private var continuation: CheckedContinuation<(Int, Data), Error>?
++  private var cancelled = false
++
++  // Only the session's serial delegate queue touches the response.
++  private var response: HTTPURLResponse?
++  private var body = Data()
++  private var failure: EntrySyncClient.Failure?
++
++  init(accepting: [Int], invalidResponse: EntrySyncClient.Failure) {
++    self.accepting = accepting
++    self.invalidResponse = invalidResponse
++  }
++
++  func start(_ request: URLRequest, in session: URLSession,
++    returningTo continuation: CheckedContinuation<(Int, Data), Error>) {
++    let started = lock.withLock {
++      guard !cancelled else { return false }
++      let task = session.dataTask(with: request)
++      self.task = task
++      self.continuation = continuation
++      task.resume()
++      return true
++    }
++    if !started { continuation.resume(throwing: CancellationError()) }
++  }
++
++  func cancel() {
++    let task = lock.withLock {
++      cancelled = true
++      return self.task
++    }
++    task?.cancel()
++  }
++
++  func urlSession(
++    _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
++    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void
++  ) {
++    completionHandler(nil)
++  }
++
++  func urlSession(
++    _ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
++    completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void
++  ) {
++    guard let http = response as? HTTPURLResponse, http.expectedContentLength <= Self.limit else {
++      failure = invalidResponse
++      completionHandler(.cancel)
++      return
++    }
++    guard accepting.contains(http.statusCode) else {
++      failure = .rejected(http.statusCode)
++      completionHandler(.cancel)
++      return
++    }
++    self.response = http
++    completionHandler(.allow)
++  }
++
++  func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
++    guard data.count <= Self.limit - body.count else {
++      failure = invalidResponse
++      dataTask.cancel()
++      return
++    }
++    body.append(data)
++  }
++
++  func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
++    let continuation = lock.withLock {
++      self.task = nil
++      let continuation = self.continuation
++      self.continuation = nil
++      return continuation
++    }
++    if let failure {
++      continuation?.resume(throwing: failure)
++    } else if let error {
++      continuation?.resume(throwing: error)
++    } else if let response,
++      response.expectedContentLength < 0 || response.expectedContentLength == Int64(body.count) {
++      continuation?.resume(returning: (response.statusCode, body))
++    } else {
++      continuation?.resume(throwing: URLError(.networkConnectionLost))
++    }
++  }
++}
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+index c3aa7a10eae986efa52c1bdfb28d3c4c61bc8153..08191fd5bea85a3a9cae359dc15b2a48e8b2e29c 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -185,6 +185,37 @@ public actor WorkspaceRepository {
+     }
+     return file
+   }
++  func prepareEntryUpload(workspaceID: UUID, projectID: UUID, eventID: UUID) throws -> EntryUpload {
++    guard !unavailable else { throw FieldLogError.storage("Reopen the workspace before sending changes.") }
++    guard workspace.id == workspaceID else { throw EntrySyncClient.Failure.wrongScope }
++    guard let event = workspace.outbox.first(where: { $0.id == eventID && $0.kind == .entrySaved }),
++      let entry = workspace.entries.first(where: { $0.id == event.recordID })
++    else { throw FieldLogError.missingRecord }
++    guard entry.projectID == projectID else { throw EntrySyncClient.Failure.wrongScope }
++    guard entry.attachmentIDs.count == 1, let photoID = entry.attachmentIDs.first else {
++      throw EntrySyncClient.Failure.requiresOnePhoto
++    }
++    guard let attachment = workspace.attachments.first(where: { $0.id == photoID }) else {
++      throw FieldLogError.missingRecord
++    }
++    let jpeg = try Data(contentsOf: photoURL(photoID))
++    guard jpeg.count == attachment.byteCount, jpeg.starts(with: [0xff, 0xd8, 0xff]) else {
++      throw FieldLogError.storage("This photo is damaged. Its record has been preserved.")
++    }
++    return EntryUpload(event: event, entry: entry, photo: .init(id: photoID, jpeg: jpeg))
++  }
++  func acknowledgeEntryUpload(_ upload: EntryUpload, workspaceID: UUID) throws {
++    try Task.checkCancellation()
++    guard workspace.id == workspaceID else { throw EntrySyncClient.Failure.wrongScope }
++    // A concurrent retry can already have retired this exact event.
++    guard let pending = workspace.outbox.first(where: { $0.id == upload.event.id }) else { return }
++    guard pending == upload.event, workspace.entries.contains(upload.entry) else {
++      throw FieldLogError.staleRevision
++    }
++    try transact { next in
++      next.outbox.removeAll { $0.id == upload.event.id }
++    }
++  }
+   public func exportReport(projectID: UUID) throws -> URL {
+     let text = try workspace.report(projectID: projectID)
+     let folder = directory.appendingPathComponent("exports", isDirectory: true)
+diff --git a/Integrations/GeneratedReport/THIRD_PARTY.yml b/Integrations/GeneratedReport/THIRD_PARTY.yml
+index 6fcd886c72eefb0e94c269d6a914ec907c1b8dfe..bd86baf0c19d0a18d88dbe9d67acad174b5511a1 100644
+--- a/Integrations/GeneratedReport/THIRD_PARTY.yml
++++ b/Integrations/GeneratedReport/THIRD_PARTY.yml
+@@ -35,6 +35,13 @@ dependencies:
+     distribution_mode: Hosted CI actions; no action runtime redistributed with the app
+     owner: FieldLog host development CI
+ external_packages:
++  - name: Swift Crypto
++    origin: https://github.com/apple/swift-crypto.git
++    version: 5.0.3
++    revision: c2cbadd7263439d8015189668f96ff5b5be565ce
++    license: Apache-2.0 with Runtime Library Exception
++    purpose: SHA-256 prefix and JPEG verification on Android using the existing Pair23 dependency pin
++    distribution_mode: Pinned Swift package built into the Android app
+   - name: MixerCore, MixerUI, MixerApple and MixerAndroid
+     origin: https://github.com/snowdamiz/mixer.git
+     revision: 8efc1a9e5b1602117f8211c95bfd4203cc91f689
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
+index f2d0c7d998b45670c360c4096fbac2a7fc53e23f..13309815ef1d8c8026b0a9ad471e7a1feafba02f 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
+@@ -35,7 +35,7 @@ final class EntryPresentationTests: XCTestCase {
+         try send(app, "workspace.entries")
+         XCTAssertEqual(app.presentation.entryState?.draft, draft)
+         try send(app, "workspace.queue")
+-        XCTAssertTrue(try text(app).contains("Not sent"))
++        XCTAssertTrue(try text(app).contains("Saved on device"))
+         try send(app, "workspace.entries")
+         XCTAssertEqual(app.presentation.entryState?.draft, draft)
+         let oldOwner = app.host.owner!, stale = try event(app, "entry.saveDraft")
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+index 6c32516b6ae81f9385785b9f9d873680635d93a5..9568829e6d06fc4ce74eda5da4a8ceb532bddab6 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+@@ -313,10 +313,10 @@ final class FieldLogGeneratedHostTests: XCTestCase {
+         try send("workspace.queue")
+         let queue = try documentText()
+         XCTAssertTrue(queue.contains("Pending changes (5)"))
+-        XCTAssertTrue(queue.contains("Not sent"))
++        XCTAssertTrue(queue.contains("Saved on device"))
+         XCTAssertTrue(queue.contains("Checklist reordered"))
+         XCTAssertTrue(queue.contains("Task updated: Inspect roof"))
+-        XCTAssertTrue(queue.contains("Cloud sync isn't connected"))
++        XCTAssertTrue(queue.contains("Sending is unavailable in this workspace."))
+         try send("workspace.back")
+         XCTAssertEqual(app.presentation.state.title, "Unsubmitted editor text", "On-device queue does not discard the open editor")
+         // An admitted mutation must finish even when Close arrives immediately.
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+index f9a9ee879fff99f85aed25f6b47f37087ba9e56f..febddeec368f55e662a8c685c1a54df39884cd94 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+@@ -94,7 +94,7 @@ func disk(_ directory: URL) throws -> Workspace { try JSONDecoder().decode(Works
+     try send(app, "task.new"); try typeTask(app, "Draft retained", "Unsubmitted")
+     try send(app, "workspace.queue")
+     let q = try text(app)
+-    try check(q.contains("Not sent") && q.contains("Nothing in this queue has been sent to a server.") && q.contains("Pending changes (5)"), "real unsent queue")
++    try check(q.contains("Saved on device") && q.contains("Sending is unavailable in this workspace.") && q.contains("Pending changes (5)"), "real local pending queue")
+     try rejects("hidden editor stale envelope") { try app.send(owner: app.host.owner!, originalEnvelope: JSONEncoder().encode(title)) }
+     try send(app, "workspace.back")
+     try check(app.presentation.state.title == "Draft retained" && app.presentation.state.responsible == "Unsubmitted", "queue keeps editor")
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
+index 6af8970ec7bb50b0344ce19518aac34d6eda356d..aaf665f8bf38eda4b3057af898ff9ac79b3de6cb 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
+@@ -106,7 +106,7 @@ final class PaginationContractTests: XCTestCase {
+         XCTAssertEqual(Set(pending).count, afterEdits.outbox.count)
+         XCTAssertFalse(try enabled(app, "queue.next"))
+         try rejects("disabled last queue page") { try send(app, "queue.next") }
+-        XCTAssertTrue(try text(app).contains("Not sent"))
++        XCTAssertTrue(try text(app).contains("Saved on device"))
+         try send(app, "workspace.back")
+         XCTAssertEqual(app.presentation.state, draft)
+         XCTAssertEqual(try disk(dir), afterEdits)

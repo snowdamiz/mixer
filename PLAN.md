@@ -22,6 +22,8 @@ On a fresh API 36 emulator the combined app shared the exact 168-byte report, re
 
 A free project owner selected a verified iOS starter from the build console. After reload, Chrome showed the same input and source digest, and PostgreSQL held one input. The worker verified the selected source without starting a build. Dispatch and compilation from this owner session remain open. [Selection receipt](verification/receipts/free-project-starter-selection-v38-41a05264.json) · [Local replay](tests/integration/free-project-starter/README.md)
 
+Both FieldLog recipes replayed from pinned public sources. The iOS 27 Simulator passed four tests across an in-place upgrade and cold reopen. On macOS, the Android consumer resumed the queued JPEG after cancel and owner close and reconciled a lost acknowledgment without sending more chunks. The unsigned arm64 APK cross-build passed. [Installed upgrade](verification/receipts/fieldlog-ios-installed-upgrade-public-replay-41a05264.json) · [Android queue](verification/receipts/fieldlog-android-queue-public-replay-41a05264.json)
+
 At 180 dpi on API 36 the system status bar covered the signed task-reorder fixture’s baseline button. Two taps left the app at Ready. The default-density run stopped before a baseline tap, and its emulator and private ADB remain held. The Android reorder is unverified. [Native observation](verification/receipts/fieldlog-android-signed-row-insets-41a05264.json)
 
 On Android API 36, the ordinary FieldLog app cold-restored an uncommitted photo draft, saved it, and resumed the JPEG transfer at 65,536 bytes after cancellation. When the backend withheld the final receipt, retry reconciled the original event without sending another chunk. SQLite held one event and one matching 281,378-byte JPEG. The two unrelated outbox events survived cold reopen. [Runtime and readback](verification/receipts/fieldlog-android-ordinary-queue-runtime-41a05264.json)
@@ -1677,6 +1679,8 @@ Immutable registry packages are later distribution qualification.
 Never promote a GA gate without its specified evidence and accountable reviewer.
 
 ## Ongoing delivery and resource ownership
+
+**Mixer publishes directly to `origin/main`.** The November 18 user instruction confirms that this repository has no Trunk merge queue. Commit and push each coherent, verified slice promptly, including during long-running plan work. Fetch the current main, incorporate concurrent changes, and use a normal fast-forward push. Check the resulting remote SHA and inspect CI after each push. Report the published SHA, check status, and any work still local.
 
 The user authorized periodic coherent commits and non-force pushes to
 [snowdamiz/mixer](https://github.com/snowdamiz/mixer) `origin/main`. Root coordinates
