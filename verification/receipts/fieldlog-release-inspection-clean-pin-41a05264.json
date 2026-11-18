@@ -1,0 +1,260 @@
+{
+  "requirement": [
+    "L04",
+    "L08"
+  ],
+  "scope": "Fresh CLI and service build from the pinned local Git commit, supplied native apps, original FieldLog sources and pinned macOS host probes, local synthetic signing. No device operations.",
+  "commit": "59d374a48c96cc34f762256fcfd87b982b0d76e7",
+  "sourceProjection": [
+    "cli",
+    "sdk",
+    "updates",
+    "runtime-identity",
+    "native/android",
+    "services"
+  ],
+  "workspace": "verification/local/fieldlog-inspector-clean-pin.JWd2TBkr",
+  "toolVersions": [
+    "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "go version go1.26.4 darwin/arm64"
+  ],
+  "inputsManifestSHA256": "ebaf456230a13f9558b60d03e50b9ffc04bbe0d0290a67a969ea5f8137f8c117",
+  "cliSHA256": "7ce4b7b6609199011dd49e5cd0b33f31f19e050f19f556469133be560278135e",
+  "serviceSHA256": "0a1ed083f7d8e3da43b3f2f9f33ff5f276764a4706c7e7fb490017ed3533188d",
+  "generatedTemplate": {
+    "detail": "Upgraded project copy; digest 87d30c901301b477197490fa1ce1c3eb1fb820e39ff8ff5c70a50645d384fb41",
+    "status": "ok"
+  },
+  "targets": {
+    "android": "dev.fieldlog.generatedr90",
+    "ios": "dev.mixer.fieldlog"
+  },
+  "cases": [
+    {
+      "case": "normal inspection fails closed",
+      "exit": 2,
+      "targetDecisions": []
+    },
+    {
+      "case": "trusted same-project compiled edit",
+      "exit": 0,
+      "targetDecisions": [
+        [
+          "ios",
+          "ota-compatible"
+        ],
+        [
+          "android",
+          "ota-compatible"
+        ]
+      ]
+    },
+    {
+      "case": "real Android permission",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "ota-compatible"
+        ],
+        [
+          "android",
+          "store-build-required"
+        ]
+      ]
+    },
+    {
+      "case": "candidate source mismatch",
+      "exit": 1,
+      "targetDecisions": []
+    },
+    {
+      "case": "untrusted signer",
+      "exit": 1,
+      "targetDecisions": []
+    },
+    {
+      "case": "bundled trust refused",
+      "exit": 1,
+      "targetDecisions": []
+    },
+    {
+      "case": "changed signed index",
+      "exit": 1,
+      "targetDecisions": []
+    },
+    {
+      "case": "handwritten behavior",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "ota-compatible"
+        ],
+        [
+          "android",
+          "blocked"
+        ]
+      ]
+    },
+    {
+      "case": "substituted native permissions",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "ota-compatible"
+        ],
+        [
+          "android",
+          "blocked"
+        ]
+      ]
+    },
+    {
+      "case": "substituted packaged Android archive",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "ota-compatible"
+        ],
+        [
+          "android",
+          "blocked"
+        ]
+      ]
+    },
+    {
+      "case": "substituted guest bytes",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "ota-compatible"
+        ],
+        [
+          "android",
+          "blocked"
+        ]
+      ]
+    },
+    {
+      "case": "trusted test signer control",
+      "exit": 0,
+      "targetDecisions": [
+        [
+          "ios",
+          "ota-compatible"
+        ],
+        [
+          "android",
+          "ota-compatible"
+        ]
+      ]
+    },
+    {
+      "case": "trusted android receipt for ios",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "blocked"
+        ],
+        [
+          "android",
+          "ota-compatible"
+        ]
+      ]
+    },
+    {
+      "case": "trusted ios receipt for android",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "ota-compatible"
+        ],
+        [
+          "android",
+          "blocked"
+        ]
+      ]
+    },
+    {
+      "case": "trusted iOS receipt for different assignment with the same Wasm",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "blocked"
+        ],
+        [
+          "android",
+          "ota-compatible"
+        ]
+      ]
+    },
+    {
+      "case": "trusted iOS host trace for different signed offer",
+      "exit": 2,
+      "targetDecisions": [
+        [
+          "ios",
+          "blocked"
+        ],
+        [
+          "android",
+          "ota-compatible"
+        ]
+      ]
+    },
+    {
+      "case": "caller supplied digest cannot authorize inspection",
+      "exit": 1,
+      "targetDecisions": []
+    }
+  ],
+  "signedSequenceAfterRestart": {
+    "android": {
+      "artifactSHA256": "a2bff550f6338ed204185a5ef575fecdc47c12e96108fad01e100eeb1efdfa54",
+      "sequence": 2,
+      "signedOfferSHA256": "fb61d5fdd04cf5d88ddc943b3d6777a2c94a431a4df8cd75a91cc1d6664ad716"
+    },
+    "ios": {
+      "artifactSHA256": "aa964d81fffe21d801187afd15516b9d98edfe225491da03ea0eb59b430072c6",
+      "sequence": 2,
+      "signedOfferSHA256": "9602c5e7ed1eb1a37c127d32999001b58ce070f1a7b2439c0914d3778d70d8fa"
+    }
+  },
+  "httpRequests": 29,
+  "serviceExits": [
+    {
+      "exit": 0,
+      "forcedCleanup": false,
+      "groupAbsent": true,
+      "listenerClosed": true,
+      "pid": 52179
+    },
+    {
+      "exit": 0,
+      "forcedCleanup": false,
+      "groupAbsent": true,
+      "listenerClosed": true,
+      "pid": 52405
+    }
+  ],
+  "commandCount": 93,
+  "rawReportHashes": {
+    "inspections.jsonl": "e33c62443528fbe208f266d2be72a9ba01122dabedcfb7a1b76bf0cf083913f1",
+    "evidence/commands.json": "67b945252d2611d816ea79505483b1322a1417083a21ce598209113914f6b0dd",
+    "evidence/build-result.json": "55bb24a52425f192c7967a3f85ca9d00cc3400947a1dbb419514ee58a411e220",
+    "evidence/result.json": "5413a5e70245aabb54c475f8270691a2f121860a72ef50cf9208d10a6bbb5fcc",
+    "evidence/lifecycle.json": "2f639925c0d9a89a1689e91f2ef79947e2edbee064cf943e72d15e1a4881237d",
+    "operator/producer-trust.json": "88296a50fc52186a6468f46aa5fdd167495b380a160ca21896c19f45f307e74b",
+    "evidence/compatible/qualification.json": "c086aa677bcd020fd2ea85b249e9758c1d40d74d47530fb594f13950c2d1bd21",
+    "evidence/permission-change/qualification.json": "d0ab409247564549c582033298cfb4af3104390bcc1bf94910bef8539e9cd5af"
+  },
+  "inputCheck": "The historical input list selected an obsolete iOS probe digest. The first preflight stopped there. The separately reviewed recipe inventory matched the actual probe bytes. The recorded successful run used those approved inputs.",
+  "cleanup": "Removed owned build, source projections, copied dependencies, template, private signing and service scratch. Retained public reports, hashes, and signed guest evidence."
+}

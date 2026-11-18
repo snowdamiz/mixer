@@ -8,8 +8,9 @@ disallowed and policy review pending.
 
 ## Prepare the tools and inputs
 
-Start from a Mixer checkout at `c5eb07615d58fd09bb4c9da61fd23865e6bb76a5`
-with this recipe applied. Use macOS with Xcode, Python 3.12 or newer, and the
+Mixer commit `59d374a48c96cc34f762256fcfd87b982b0d76e7` contains the
+producer, inspector, and regression driver used together in this recipe.
+Use macOS with Xcode, Python 3.12 or newer, and the
 host Swift version from the FieldLog template's `mixer.lock`. Use the Swift 6.3.3
 toolchain with Embedded Wasm support for the guest, Android build tools with
 `aapt2`, `zipalign`, and `apksigner`, an Android 37 platform JAR, JDK 25, and
