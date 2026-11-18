@@ -1,0 +1,752 @@
+{
+  "id": "l05-native-development-attestation-41a05264",
+  "status": "pass-at-scoped-local-development-attestation",
+  "predecessor": "verification/receipts/l05-native-joint-review-41a05264.json",
+  "source": {
+    "base": "fb4062d0912a07193da7dc1f05100b130cc5c326",
+    "baseTree": "ab035a6c6911f6fd75984627c4543f8dccee9ff4",
+    "baseWorker": {
+      "path": "hosted/priv/development/native_artifact_worker.py",
+      "bytes": 14681,
+      "sha256": "558854581b9a25df1efc7b26c671eccdeba7b17292605f405d8577d4cc9699f5"
+    },
+    "signerFiles": [
+      {
+        "path": "services/cmd/mixer-native-attest/build.go",
+        "bytes": 9011,
+        "sha256": "d8899e3d8307e8143ba99d1ec5451b5fa5393405ed5d1d0183a3e9ed50d0ae90"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/build_test.go",
+        "bytes": 2065,
+        "sha256": "ebf932db123b3448f1feb2a0815f75dc34e933bd49fcba488ab043a50944f453"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/main.go",
+        "bytes": 7021,
+        "sha256": "e3a2845fe189e4a5ea654972f645a275f8a63a6b080034e61423339825cfd782"
+      }
+    ],
+    "signerExecutable": {
+      "path": "proof/bin/mixer-native-attest",
+      "bytes": 10223458,
+      "sha256": "8503e93a153e0f252a7c5e9ff3142b699d0cc3d167039616201199126d2e912f"
+    },
+    "buildCLI": {
+      "path": "proof/bin/mixer",
+      "bytes": 7685056,
+      "sha256": "24d210d25725e299079cd4ab71d5a7ba03d999c8f92589dd4f9bbd6caf2629a1"
+    },
+    "fixtureFiles": [
+      {
+        "path": "proof/run.py",
+        "bytes": 17272,
+        "sha256": "a1f43d4be423f51d4938fd6f840cfa5dd4d4e2087728d7d72cfd7115ff51a699"
+      },
+      {
+        "path": "proof/record.py",
+        "bytes": 7850,
+        "sha256": "5a567918f24bce791956617144b830df5b63bc26b79e9722a9d461c6fe6b5fe3"
+      },
+      {
+        "path": "hosted/test/l05_native_route_test.exs",
+        "bytes": 18463,
+        "sha256": "43968e076da88ba68d989f2ed32cd9142a203b8f598d3c1606bf02afecd5d4ed"
+      },
+      {
+        "path": "hosted/test/l05_native_processor_test.exs",
+        "bytes": 4528,
+        "sha256": "9c1d409029edb28140552a6321bec66024941e3fb3fbc11a4987318b15147236"
+      }
+    ]
+  },
+  "tools": {
+    "go": "go version go1.27.1 darwin/arm64",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "Python 3.14.8",
+    "openssl": "OpenSSL 4.1.0 23 Oct 2026 (Library: OpenSSL 4.1.0 23 Oct 2026)"
+  },
+  "commands": {
+    "compile": "MIX_ENV=test ERL_FLAGS='+S 4:4' mix compile",
+    "signerTest": "go test -race ./cmd/mixer-native-attest",
+    "signerBuild": "go build -o ../proof/bin/mixer-native-attest ./cmd/mixer-native-attest",
+    "integration": "ERL_FLAGS='+S 4:4' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<candidate>/hosted/priv/development python3 proof/run.py local-proof-02",
+    "integrationChildren": [
+      {
+        "label": "initdb",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/initdb",
+          "-D",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/pgdata",
+          "-U",
+          "mixer_fixture",
+          "--auth=trust",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "pid": 47078,
+        "pgid": 47078,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "postgres",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "-D",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/pgdata",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "60311",
+          "-k",
+          "",
+          "-c",
+          "timezone=UTC"
+        ],
+        "pid": 47130,
+        "pgid": 47130,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "roles",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "60311",
+          "-U",
+          "mixer_fixture",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-c",
+          "\n        CREATE ROLE browser_admin LOGIN SUPERUSER;\n        CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;\n        CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;\n        CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;\n        CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;\n        CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOSUPERUSER\n          NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;\n    "
+        ],
+        "pid": 47150,
+        "pgid": 47150,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "mixer_coordinator_intent_test",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/createdb",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "60311",
+          "-U",
+          "mixer_fixture",
+          "mixer_coordinator_intent_test"
+        ],
+        "pid": 47198,
+        "pgid": 47198,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "mixer_operation_admission_test",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/createdb",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "60311",
+          "-U",
+          "mixer_fixture",
+          "mixer_operation_admission_test"
+        ],
+        "pid": 47273,
+        "pgid": 47273,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "mixer_coordinator_test",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/createdb",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "60311",
+          "-U",
+          "mixer_fixture",
+          "mixer_coordinator_test"
+        ],
+        "pid": 47292,
+        "pgid": 47292,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "worker",
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "priv/development/native_artifact_worker.py",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/worker.json",
+          "08361963db4faa3a6874d9a0ac80f46fa58dc359758aca01f763b40dc67ce2ed",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/worker-state"
+        ],
+        "pid": 47302,
+        "pgid": 47302,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "ordinary",
+        "argv": [
+          "mix",
+          "test",
+          "--no-compile",
+          "test/l05_native_route_test.exs",
+          "--seed",
+          "0",
+          "--trace"
+        ],
+        "pid": 47307,
+        "pgid": 47307,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "processor",
+        "argv": [
+          "mix",
+          "test",
+          "--no-compile",
+          "test/l05_native_processor_test.exs",
+          "--seed",
+          "0",
+          "--trace"
+        ],
+        "pid": 48687,
+        "pgid": 48687,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "openssl-keygen",
+        "argv": [
+          "/opt/homebrew/bin/openssl",
+          "genpkey",
+          "-algorithm",
+          "ED25519",
+          "-out",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-one-use-key-h436rfzz/development.pem"
+        ],
+        "pid": 50383,
+        "pgid": 50383,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "openssl-export",
+        "argv": [
+          "/opt/homebrew/bin/openssl",
+          "pkey",
+          "-in",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-one-use-key-h436rfzz/development.pem",
+          "-pubout",
+          "-out",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/development-public.pem"
+        ],
+        "pid": 50384,
+        "pgid": 50384,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "foreign-tenant",
+        "argv": [
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/bin/mixer-native-attest",
+          "sign",
+          "-origin",
+          "http://127.0.0.1:60359",
+          "-selection",
+          "application_id=fieldlog&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6&organization_id=org-b&platform=ios&project_id=project-b&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+          "-state",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/attestations",
+          "-key",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-one-use-key-h436rfzz/development.pem"
+        ],
+        "pid": 50385,
+        "pgid": 50385,
+        "exit": 1,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "foreign-build",
+        "argv": [
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/bin/mixer-native-attest",
+          "sign",
+          "-origin",
+          "http://127.0.0.1:60359",
+          "-selection",
+          "application_id=fieldlog&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=missing-build&organization_id=org-a&platform=ios&project_id=project-a&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+          "-state",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/attestations",
+          "-key",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-one-use-key-h436rfzz/development.pem"
+        ],
+        "pid": 50388,
+        "pgid": 50388,
+        "exit": 1,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "sign",
+        "argv": [
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/bin/mixer-native-attest",
+          "sign",
+          "-origin",
+          "http://127.0.0.1:60359",
+          "-selection",
+          "application_id=fieldlog&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6&organization_id=org-a&platform=ios&project_id=project-a&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+          "-state",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/attestations",
+          "-key",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-one-use-key-h436rfzz/development.pem"
+        ],
+        "pid": 50409,
+        "pgid": 50409,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "replay",
+        "argv": [
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/bin/mixer-native-attest",
+          "sign",
+          "-origin",
+          "http://127.0.0.1:60359",
+          "-selection",
+          "application_id=fieldlog&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6&organization_id=org-a&platform=ios&project_id=project-a&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+          "-state",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/attestations",
+          "-key",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-one-use-key-h436rfzz/development.pem"
+        ],
+        "pid": 50434,
+        "pgid": 50434,
+        "exit": 1,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "verify",
+        "argv": [
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/bin/mixer-native-attest",
+          "verify",
+          "-origin",
+          "http://127.0.0.1:60359",
+          "-selection",
+          "application_id=fieldlog&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6&organization_id=org-a&platform=ios&project_id=project-a&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+          "-state",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/attestations",
+          "-key",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/development-public.pem"
+        ],
+        "pid": 50435,
+        "pgid": 50435,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "independent-openssl-verify",
+        "argv": [
+          "/opt/homebrew/bin/openssl",
+          "pkeyutl",
+          "-verify",
+          "-pubin",
+          "-inkey",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/development-public.pem",
+          "-rawin",
+          "-in",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/signed-message",
+          "-sigfile",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/signature.bin"
+        ],
+        "pid": 50446,
+        "pgid": 50446,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "corrupt-signature",
+        "argv": [
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/bin/mixer-native-attest",
+          "verify",
+          "-origin",
+          "http://127.0.0.1:60359",
+          "-selection",
+          "application_id=fieldlog&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6&organization_id=org-a&platform=ios&project_id=project-a&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+          "-state",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/tampered-state",
+          "-key",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/development-public.pem"
+        ],
+        "pid": 50447,
+        "pgid": 50447,
+        "exit": 1,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "corrupt-native-output",
+        "argv": [
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/bin/mixer-native-attest",
+          "verify",
+          "-origin",
+          "http://127.0.0.1:60359",
+          "-selection",
+          "application_id=fieldlog&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6&organization_id=org-a&platform=ios&project_id=project-a&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+          "-state",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/attestations",
+          "-key",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/development-public.pem"
+        ],
+        "pid": 50460,
+        "pgid": 50460,
+        "exit": 1,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "verify-restored",
+        "argv": [
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/bin/mixer-native-attest",
+          "verify",
+          "-origin",
+          "http://127.0.0.1:60359",
+          "-selection",
+          "application_id=fieldlog&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6&organization_id=org-a&platform=ios&project_id=project-a&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+          "-state",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/attestations",
+          "-key",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/development-public.pem"
+        ],
+        "pid": 50462,
+        "pgid": 50462,
+        "exit": 0,
+        "group_absent": true,
+        "custody": "TERMINAL"
+      }
+    ]
+  },
+  "http": {
+    "callback": 303,
+    "session": 200,
+    "buildCreate": 201,
+    "states": [
+      "queued",
+      "running",
+      "native_succeeded"
+    ],
+    "terminal": "coordinator:1:1:completed",
+    "artifactDownloads": [
+      {
+        "downloadPath": "/console-api/v1/build-artifacts/unsigned_native_binary?organization_id=org-a&project_id=project-a&application_id=fieldlog&platform=ios&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6",
+        "downloadStatus": 200,
+        "kind": "unsigned_native_binary",
+        "repeatedBytesEqual": true,
+        "sha256": "fca513a39830fc5e61e745a9bd1870ce11f2bc99f8a0735da606b7acdc9d5a87",
+        "sizeBytes": 3396644,
+        "unauthenticated": 401,
+        "wrongSource": 404,
+        "wrongTenant": 404
+      },
+      {
+        "downloadPath": "/console-api/v1/build-artifacts/debug_symbols?organization_id=org-a&project_id=project-a&application_id=fieldlog&platform=ios&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6",
+        "downloadStatus": 200,
+        "kind": "debug_symbols",
+        "repeatedBytesEqual": true,
+        "sha256": "28dec8301dd771c035dc1ee5a6515a19a59e1ef0487ee822ca7472417ac8208b",
+        "sizeBytes": 3538772,
+        "unauthenticated": 401,
+        "wrongSource": 404,
+        "wrongTenant": 404
+      },
+      {
+        "downloadPath": "/console-api/v1/build-artifacts/resource_inventory?organization_id=org-a&project_id=project-a&application_id=fieldlog&platform=ios&source_sha256=39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7&toolchain_lock_sha256=8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282&build_definition_sha256=ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16&build_id=build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6",
+        "downloadStatus": 200,
+        "kind": "resource_inventory",
+        "repeatedBytesEqual": true,
+        "sha256": "54770e8e3ecd3fd0d5f207b84d42f5f655b50879f855fbd81f78d1d38c37ed7f",
+        "sizeBytes": 998,
+        "unauthenticated": 401,
+        "wrongSource": 404,
+        "wrongTenant": 404
+      }
+    ],
+    "revokedMembershipRefused": 404
+  },
+  "unsignedBuild": {
+    "invocations": [
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "receipt": {
+          "path": "proof/local-proof-02/worker-state/0e97b5cebaf05ca3aaf13836407e8e9d0045d33fbe6c06e35a2e45d53d2330d9/tmp/mixer-command-receipts-F5517A61-7502-4094-B32A-21ABE9A1CC76/command-BF791220-D2C1-4888-B4BC-744A214B295D/receipt.json",
+          "bytes": 704,
+          "sha256": "64d8266086404845ce135c9cb80ee7692341ed86f0d85ff94019afd8f0f0b4ec"
+        },
+        "terminal": true
+      },
+      {
+        "command": [
+          "/usr/bin/xcodebuild",
+          "-project",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/worker-state/0e97b5cebaf05ca3aaf13836407e8e9d0045d33fbe6c06e35a2e45d53d2330d9/project/Platforms/iOS/L05Native.xcodeproj",
+          "-scheme",
+          "L05Native",
+          "-configuration",
+          "Debug",
+          "-sdk",
+          "iphonesimulator",
+          "-destination",
+          "generic/platform=iOS Simulator",
+          "-derivedDataPath",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/worker-state/0e97b5cebaf05ca3aaf13836407e8e9d0045d33fbe6c06e35a2e45d53d2330d9/project/.mixer/ios-build",
+          "-clonedSourcePackagesDirPath",
+          "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/proof/local-proof-02/worker-state/0e97b5cebaf05ca3aaf13836407e8e9d0045d33fbe6c06e35a2e45d53d2330d9/project/.mixer/ios-build/SourcePackages",
+          "-jobs",
+          "4",
+          "DEBUG_INFORMATION_FORMAT=dwarf-with-dsym",
+          "ARCHS=arm64",
+          "ONLY_ACTIVE_ARCH=YES",
+          "ENABLE_DEBUG_DYLIB=NO",
+          "COMPILER_INDEX_STORE_ENABLE=NO",
+          "CODE_SIGNING_ALLOWED=NO",
+          "build"
+        ],
+        "receipt": {
+          "path": "proof/local-proof-02/worker-state/0e97b5cebaf05ca3aaf13836407e8e9d0045d33fbe6c06e35a2e45d53d2330d9/tmp/mixer-command-receipts-F5517A61-7502-4094-B32A-21ABE9A1CC76/command-D04BEB6B-4314-40E2-A888-4B47F2CAA098/receipt.json",
+          "bytes": 2092,
+          "sha256": "fd75e6f0ca8a19d13543bf3877d9eb36e3a56afb42f089f8ec63f09740189de2"
+        },
+        "terminal": true
+      }
+    ],
+    "worker": {
+      "operation_id": "0e97b5cebaf05ca3aaf13836407e8e9d0045d33fbe6c06e35a2e45d53d2330d9",
+      "status": "native_ready",
+      "tombstone": null,
+      "starts": 1,
+      "closure": "{\"closed\":true,\"exit\":0,\"pid\":49133,\"started\":true}"
+    },
+    "manifest": {
+      "path": "proof/local-proof-02/worker-state/0e97b5cebaf05ca3aaf13836407e8e9d0045d33fbe6c06e35a2e45d53d2330d9/native/native-build.json",
+      "bytes": 415796,
+      "sha256": "69f82ddb29770fc33a9814ff57af606cbe8c6a1bfdc6b20c59ad648a00b2630b"
+    },
+    "compilerEnvironmentKeys": [
+      "CFFIXED_USER_HOME",
+      "DEVELOPER_DIR",
+      "LANG",
+      "PATH",
+      "TMPDIR"
+    ],
+    "billingConfigured": false
+  },
+  "attestation": {
+    "origin": "http://127.0.0.1:60359",
+    "worker_terminal_before_key_creation": true,
+    "processor_terminal_before_key_creation": true,
+    "worker_environment_keys": [
+      "PATH",
+      "LANG",
+      "PYTHONDONTWRITEBYTECODE"
+    ],
+    "foreign-tenant": {
+      "exit": 1,
+      "output": "GET /console-api/v1/builds: HTTP 404"
+    },
+    "foreign-build": {
+      "exit": 1,
+      "output": "GET /console-api/v1/builds: HTTP 404"
+    },
+    "sign": {
+      "exit": 0,
+      "output": "b449546a9b4f46adeeb4a8d85bc35009fbc2ac7b5fda1dc09643cdbefff7978f.json"
+    },
+    "replay": {
+      "exit": 1,
+      "output": "build already attested or state unavailable"
+    },
+    "private_key_removed_before_verify": true,
+    "verify": {
+      "exit": 0,
+      "output": "b449546a9b4f46adeeb4a8d85bc35009fbc2ac7b5fda1dc09643cdbefff7978f.json"
+    },
+    "statement": {
+      "profile": "mixer.native-build.ios-simulator.development.v1",
+      "origin": "http://127.0.0.1:60359",
+      "keyId": "9e3e86cabb1375413d88f90303e29e7427817a292cc499aad799b5e9dc7f043c",
+      "selection": {
+        "organizationId": "org-a",
+        "projectId": "project-a",
+        "applicationId": "fieldlog",
+        "buildId": "build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6",
+        "platform": "ios",
+        "sourceSha256": "39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7",
+        "toolchainLockSha256": "8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+        "buildDefinitionSha256": "ad4d499cd7922bb35093c10bfce32c3f9ff36eeb98a5c401029b20e566610e16"
+      },
+      "provenance": {
+        "journalRevision": 2,
+        "attempt": 1,
+        "nativeBindingSha256": "7ff241f257c5f3f581a67c9f6d08d3889101575817c91bb02a04b260f7bf608a"
+      },
+      "subjects": [
+        {
+          "kind": "unsigned_native_binary",
+          "sha256": "fca513a39830fc5e61e745a9bd1870ce11f2bc99f8a0735da606b7acdc9d5a87",
+          "sizeBytes": 3396644
+        },
+        {
+          "kind": "debug_symbols",
+          "sha256": "28dec8301dd771c035dc1ee5a6515a19a59e1ef0487ee822ca7472417ac8208b",
+          "sizeBytes": 3538772
+        },
+        {
+          "kind": "resource_inventory",
+          "sha256": "54770e8e3ecd3fd0d5f207b84d42f5f655b50879f855fbd81f78d1d38c37ed7f",
+          "sizeBytes": 998
+        }
+      ]
+    },
+    "attestation_sha256": "39ba45ad87fdb7c419cbee78fef7c18be32c178ece34b4b7ac57d2860115bc65",
+    "corrupt-signature": {
+      "exit": 1,
+      "output": "attestation signature or current build binding failed"
+    },
+    "corrupt-native-output": {
+      "exit": 1,
+      "output": "GET /console-api/v1/build-artifacts/unsigned_native_binary: HTTP 503"
+    },
+    "verify-restored": {
+      "exit": 0,
+      "output": "b449546a9b4f46adeeb4a8d85bc35009fbc2ac7b5fda1dc09643cdbefff7978f.json"
+    }
+  },
+  "evidence": {
+    "rawDriver": {
+      "path": "proof/local-proof-02/driver.json",
+      "bytes": 17824,
+      "sha256": "b88705d644435f4b6ef1e47ba42409f661b8a7d6e33629e7c7c995a926e758f6"
+    },
+    "ordinary": {
+      "path": "proof/local-proof-02/ordinary.log",
+      "bytes": 2318,
+      "sha256": "8fa9dcd7fb8dc3af7e01e09c0d0b4ab6e5242f4302e4c5ae6105eda265fa24d9"
+    },
+    "processor": {
+      "path": "proof/local-proof-02/processor.log",
+      "bytes": 1390,
+      "sha256": "78bdabd759958159fb76cdbcbe0e184385951c41d73ed4dda744773d7183ba10"
+    },
+    "authenticatedDownloads": [
+      {
+        "path": "proof/local-proof-02/download-unsigned_native_binary",
+        "bytes": 3396644,
+        "sha256": "fca513a39830fc5e61e745a9bd1870ce11f2bc99f8a0735da606b7acdc9d5a87"
+      },
+      {
+        "path": "proof/local-proof-02/download-debug_symbols",
+        "bytes": 3538772,
+        "sha256": "28dec8301dd771c035dc1ee5a6515a19a59e1ef0487ee822ca7472417ac8208b"
+      },
+      {
+        "path": "proof/local-proof-02/download-resource_inventory",
+        "bytes": 998,
+        "sha256": "54770e8e3ecd3fd0d5f207b84d42f5f655b50879f855fbd81f78d1d38c37ed7f"
+      }
+    ],
+    "envelope": {
+      "path": "proof/local-proof-02/attestations/b449546a9b4f46adeeb4a8d85bc35009fbc2ac7b5fda1dc09643cdbefff7978f.json",
+      "bytes": 1261,
+      "sha256": "39ba45ad87fdb7c419cbee78fef7c18be32c178ece34b4b7ac57d2860115bc65"
+    },
+    "trustedPublicKey": {
+      "path": "proof/local-proof-02/development-public.pem",
+      "bytes": 113,
+      "sha256": "ce6978da0a5648887d02e8fc926f572f23e75a256bacbb380da23171ae2b61ce"
+    },
+    "independentVerification": {
+      "path": "proof/local-proof-02/independent-openssl-verify.log",
+      "bytes": 32,
+      "sha256": "0fd23954193f64e60f5b4b5f381cd1ea9d580aece00a6bbbc98e664302ce6b79"
+    }
+  },
+  "cleanup": {
+    "worker": {
+      "port": 60312,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "postgres": {
+      "port": 60311,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "disposable_data_removed": true,
+    "worker_secret_removed": true,
+    "phoenixPortReusable": true,
+    "allRecordedCommandGroupsAbsent": true,
+    "keyNamespaceRemoved": true,
+    "temporarySessionFilesRemoved": true,
+    "processor": {
+      "process_names_absent": true,
+      "oban_absent": true
+    }
+  },
+  "baselineFailure": {
+    "description": "The initial sign succeeded, but the verifier cleared DER that aliased the parsed public key. The public key loader now retains that buffer, and the regression test verifies behavior after return.",
+    "driver": {
+      "path": "proof/local-proof-01/driver.json",
+      "bytes": 11804,
+      "sha256": "a14d812af26c74174d2c4ba96b49efce877e2bff9ea29319f96dff9248873a73"
+    },
+    "ordinary": {
+      "path": "proof/local-proof-01/ordinary.log",
+      "bytes": 2727,
+      "sha256": "0a340ac1c0a9bbab5cb752de2763e79090853208835078445d31fa938f3d4ac2"
+    },
+    "allRecordedGroupsClosed": true
+  },
+  "limits": [
+    "One arm64 generic iOS Simulator build with CODE_SIGNING_ALLOWED=NO and no device execution.",
+    "Detached Ed25519 signature for local trust. Platform signing, store, OTA authorization, and release qualification require their own evidence.",
+    "Temporal key custody in the observed run. Untrusted concurrent work under the same OS account requires a stronger OS boundary.",
+    "Current public pins and native binding are attested; the full native report and separate SLSA document are outside the authenticated download contract.",
+    "The CLI returns a local attestation. Recording it on a hosted build requires separate coordinated write integration."
+  ],
+  "localGatesPassed": [],
+  "GA": "unchanged"
+}

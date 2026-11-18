@@ -1,0 +1,113 @@
+{
+  "id": "l05-native-attestation-acl-restart-41a05264",
+  "status": "pass-at-scoped-operator-cli-fixture",
+  "predecessor": "verification/receipts/l05-native-development-attestation-41a05264.json",
+  "source": {
+    "base": "a2f9365bf0c76519851d03362b6885698ae3384f",
+    "baseTree": "cf91e7c28ac0b739eb161ea18af05f23faa8aa0a",
+    "originalPatch": {
+      "path": "/Users/andreyyurlov/.t3/userdata/mixer-l05-dev-sign.NnFRhTQn/l05-native-development-attestation.patch",
+      "bytes": 59067,
+      "sha256": "ded605f988a18d2de7cc311b9f89ec87313b7b9589fa6e1c3c51a05a8143808d"
+    },
+    "candidateFiles": [
+      {
+        "path": "services/cmd/mixer-native-attest/README.md",
+        "bytes": 3984,
+        "sha256": "6eb33ddfcef49f5b26c660d2a9708f837ec8f38a6bd25c48fcc77963aa163fcc"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/acl_darwin.go",
+        "bytes": 1319,
+        "sha256": "3977756e6a314d2731c80da4cf371bdad4694854bd54ef57b1fea09b3a1dd419"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/acl_unsupported.go",
+        "bytes": 177,
+        "sha256": "4eee4af6fa8f26eed8a9da0accccaeca0c1c1ab59b6c8fc21a41a28a22651926"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/acl_unsupported_test.go",
+        "bytes": 321,
+        "sha256": "f8fa74610f941e0f283c4a1f9bc3ab4f5457dd2bb626717ecfbe9968ffcf9359"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/build.go",
+        "bytes": 9011,
+        "sha256": "d8899e3d8307e8143ba99d1ec5451b5fa5393405ed5d1d0183a3e9ed50d0ae90"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/build_test.go",
+        "bytes": 1286,
+        "sha256": "abe3939453c5e968eb3db9d7e96a4c4a9ec77d6de6e262a479ab96d5f20b544a"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/integration_darwin_test.go",
+        "bytes": 9584,
+        "sha256": "867793743f7996f9e39c96a295ff59611c0d0f4bbcd2eb98443ff840b3123034"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/key_darwin_test.go",
+        "bytes": 841,
+        "sha256": "f2d07d83a11a67a988726f2b8957f14ca6db56f56e27921d7cc5670033e4c062"
+      },
+      {
+        "path": "services/cmd/mixer-native-attest/main.go",
+        "bytes": 8480,
+        "sha256": "4c77dd70e598b38fa927c64f55de0804870ed886dd7c77090e364312a7c5c00a"
+      }
+    ]
+  },
+  "host": {
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "architecture": "arm64",
+    "aclFilesystem": "local APFS with ownership enabled",
+    "go": "go version go1.26.4 darwin/arm64"
+  },
+  "commands": [
+    {
+      "command": "CGO_ENABLED=1 go test -race -count=3 -v ./cmd/mixer-native-attest",
+      "exit": 0,
+      "log": {
+        "path": "/Users/andreyyurlov/.t3/userdata/mixer-l05-attest-restart.fegduJVa/evidence/go-test-race.log",
+        "bytes": 974,
+        "sha256": "ad67f7417d5dc9e30b1db418f15997eb1ecac85a40bfb2d7ad992049f9665851"
+      }
+    },
+    {
+      "command": "CGO_ENABLED=0 go test -count=1 -v ./cmd/mixer-native-attest",
+      "exit": 0,
+      "log": {
+        "path": "/Users/andreyyurlov/.t3/userdata/mixer-l05-attest-restart.fegduJVa/evidence/go-test-no-cgo.log",
+        "bytes": 272,
+        "sha256": "fdd1598fb1d991e152d6fad570f66b5c6f1d22e4d1bd5ed0b7fd572131f41618"
+      }
+    },
+    {
+      "command": "CGO_ENABLED=1 go build -trimpath -o <delivery>/evidence/mixer-native-attest ./cmd/mixer-native-attest",
+      "exit": 0,
+      "binary": {
+        "path": "/Users/andreyyurlov/.t3/userdata/mixer-l05-attest-restart.fegduJVa/evidence/mixer-native-attest",
+        "bytes": 9358930,
+        "sha256": "b3c997c9613e895a0d1b823a0a788854d2112bcac1d1a68c0d979f9b33ea36ab"
+      }
+    }
+  ],
+  "observations": [
+    "Authenticated sign and verify called the normal CLI entry point in separate OS processes.",
+    "Both server instances supplied the exact completed selection, two archive downloads, and inventory. The first server closed before the second rebound the same address.",
+    "Verification succeeded on the original port with a fresh session and returned the original attestation name. The stale session returned HTTP 401.",
+    "The same authenticated build on a different port was refused before any request reached that listener.",
+    "macOS everyone ACLs on the 0700 state and 0600 private key were refused without publication. The state, 0600 public key and 0400 envelope ACLs were also refused during verification.",
+    "After ACL removal the same paths worked. Duplicate signing and same-size modified download bytes were refused.",
+    "A non-cgo Mac build refused to admit state without an ACL check."
+  ],
+  "scope": [
+    "Restart control used real loopback listeners for the authenticated HTTP contract. Phoenix and Oban were outside this replay. The predecessor records the earlier integrated build and attestation.",
+    "Verified on macOS arm64. The supported scope is macOS with cgo and local APFS with ownership enabled.",
+    "The operator retains the exact signed loopback address, the same Phoenix trust context, authoritative build state, artifacts, and pinned public key after restart.",
+    "Both servers closed, each CLI process returned, and Go removed fixture directories holding generated keys and attestation files.",
+    "No native devices, held resources, remote repository operations, or published credentials."
+  ],
+  "localGatesPassed": []
+}

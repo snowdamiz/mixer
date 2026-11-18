@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The separate macOS development signer binds the three authenticated build downloads to the exact tenant, build and journal revision. Verification succeeded after the ephemeral key was removed. A separate replay verified recovery on the signed loopback port and refusal of extended ACLs on key and state files. [Build attestation](verification/receipts/l05-native-development-attestation-41a05264.json) · [Custody and restart](verification/receipts/l05-native-attestation-acl-restart-41a05264.json).
+
 On Android API 36, the signed fixture kept the same process through two Activity recreations. A separate installed fixture fetched baseline, review and rollback from the local v3 service. After an interrupted download and force-stop, it reopened the rollback with the service forwarding rule removed, then resumed and ran the reviewed release. The guest task remains in memory. [Activity recreation](verification/receipts/fieldlog-android-recreate-runtime-41a05264.json) · [Local service delivery](verification/receipts/fieldlog-android-network-runtime-41a05264.json).
 
 The local v3 release origin suppressed a previously published offer after its assignment key was revoked. The replacement key restored delivery at sequence 2, and the independently signed artifact retained its original bytes. [Release origin](verification/receipts/l07-v3-publisher-incident-41a05264.json). The default Android starter crashed in Activity startup on API 36 before rendering its first frame. Both disposable emulators and private ADB servers closed. [Android starter](verification/receipts/l01-export-android-startup-41a05264.json).

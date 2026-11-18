@@ -1,0 +1,291 @@
+//go:build darwin && cgo
+
+package main
+
+import (
+	"bytes"
+	"context"
+	"crypto/ed25519"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/binary"
+	"encoding/json"
+	"encoding/pem"
+	"errors"
+	"net"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+)
+
+func TestMain(m *testing.M) {
+	if len(os.Args) > 1 && (os.Args[1] == "sign" || os.Args[1] == "verify") {
+		main()
+		os.Exit(0)
+	}
+	os.Exit(m.Run())
+}
+
+func TestFixedOriginAndACLs(t *testing.T) {
+	sel := selection{
+		OrganizationID: "local-org", ProjectID: "local-project", ApplicationID: "local-app",
+		BuildID: "local-build", Platform: "ios",
+		SourceSHA256: strings.Repeat("1", 64), ToolchainLockSHA256: strings.Repeat("2", 64),
+		BuildDefinitionSHA256: strings.Repeat("3", 64),
+	}
+	var firstSession, restartedSession [32]byte
+	rand.Read(firstSession[:])
+	rand.Read(restartedSession[:])
+	session := base64.RawURLEncoding.EncodeToString(firstSession[:])
+	newSession := base64.RawURLEncoding.EncodeToString(restartedSession[:])
+
+	dir := t.TempDir()
+	state := filepath.Join(dir, "state")
+	if err := os.Mkdir(state, 0700); err != nil {
+		t.Fatal(err)
+	}
+	privatePath, publicPath := writeDevelopmentKeys(t, dir)
+	first := newBuildFixture(t, sel, session, "127.0.0.1:0")
+	cmd := func(action, origin, query, key, token string) (string, error) {
+		t.Helper()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		process := exec.CommandContext(ctx, os.Args[0], action, "-origin", origin,
+			"-selection", query, "-state", state, "-key", key)
+		process.Stdin = strings.NewReader(token + "\n")
+		// Disable the race runtime's one-second delay at exit in child processes.
+		process.Env = append(os.Environ(), "GORACE=atexit_sleep_ms=0")
+		output, err := process.CombinedOutput()
+		if ctx.Err() != nil {
+			t.Fatal(ctx.Err())
+		}
+		return strings.TrimSpace(string(output)), err
+	}
+	refuse := func(want, action, origin, query, key, token string) {
+		t.Helper()
+		out, err := cmd(action, origin, query, key, token)
+		var exit *exec.ExitError
+		if !errors.As(err, &exit) || exit.ExitCode() != 1 || !strings.Contains(out, want) {
+			t.Fatalf("expected exit 1 with %q, got %v, %q", want, err, out)
+		}
+	}
+	query := sel.query().Encode()
+	setACL(t, state, 0700, "everyone allow list,search,add_file,delete_child")
+	refuse("unsafe attestation directory ACL: extended ACL present", "sign", first.origin, query, privatePath, session)
+	if first.requests.Load() != 0 {
+		t.Fatal("contacted service with an unsafe attestation directory")
+	}
+	clearACL(t, state)
+	setACL(t, privatePath, 0600, "everyone allow read")
+	refuse("unsafe local development key ACL: extended ACL present", "sign", first.origin, query, privatePath, session)
+	entries, err := os.ReadDir(state)
+	if err != nil || len(entries) != 0 {
+		t.Fatalf("expected empty state after ACL refusals, got %v, %v", entries, err)
+	}
+	clearACL(t, privatePath)
+
+	name, err := cmd("sign", first.origin, query, privatePath, session)
+	if err != nil || !strings.HasSuffix(name, ".json") || filepath.Base(name) != name {
+		t.Fatalf("sign failed: %v, %q", err, name)
+	}
+	refuse("build already attested", "sign", first.origin, query, privatePath, session)
+	first.close()
+	restarted := newBuildFixture(t, sel, newSession, strings.TrimPrefix(first.origin, "http://"))
+	refuse("HTTP 401", "verify", restarted.origin, query, publicPath, session)
+	got, err := cmd("verify", restarted.origin, query, publicPath, newSession)
+	if err != nil || got != name || restarted.requests.Load() != 5 {
+		t.Fatalf("verification after restart failed: %v, %q, %d requests", err, got, restarted.requests.Load())
+	}
+
+	other := newBuildFixture(t, sel, newSession, "127.0.0.1:0")
+	refuse("requires the signed Phoenix origin "+strconv.Quote(first.origin),
+		"verify", other.origin, query, publicPath, newSession)
+	if other.requests.Load() != 0 {
+		t.Fatal("sent a request to the origin with the wrong port")
+	}
+	setACL(t, state, 0700, "everyone allow list,search,add_file,delete_child")
+	refuse("unsafe attestation directory ACL: extended ACL present",
+		"verify", restarted.origin, query, publicPath, newSession)
+	clearACL(t, state)
+	setACL(t, publicPath, 0600, "everyone allow write")
+	refuse("unsafe local development key ACL: extended ACL present",
+		"verify", restarted.origin, query, publicPath, newSession)
+	clearACL(t, publicPath)
+	path := filepath.Join(state, name)
+	setACL(t, path, 0400, "everyone allow write")
+	refuse("unsafe attestation file ACL: extended ACL present",
+		"verify", restarted.origin, query, publicPath, newSession)
+	clearACL(t, path)
+	if restarted.requests.Load() != 5 {
+		t.Fatal("verification contacted service with unsafe local files")
+	}
+
+	restarted.corrupt.Store(true)
+	refuse("byte digest mismatch", "verify", restarted.origin, query, publicPath, newSession)
+	restarted.corrupt.Store(false)
+	got, err = cmd("verify", restarted.origin, query, publicPath, newSession)
+	if err != nil || got != name {
+		t.Fatalf("verification after removing unsafe ACLs failed: %v, %q", err, got)
+	}
+}
+
+func writeDevelopmentKeys(t *testing.T, dir string) (string, string) {
+	t.Helper()
+	public, private, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(private)
+	privateDER, err := x509.MarshalPKCS8PrivateKey(private)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(privateDER)
+	publicDER, err := x509.MarshalPKIXPublicKey(public)
+	if err != nil {
+		t.Fatal(err)
+	}
+	privatePath, publicPath := filepath.Join(dir, "private.pem"), filepath.Join(dir, "public.pem")
+	for _, key := range []struct {
+		path, kind string
+		der        []byte
+	}{
+		{privatePath, "PRIVATE KEY", privateDER},
+		{publicPath, "PUBLIC KEY", publicDER},
+	} {
+		pemBytes := pem.EncodeToMemory(&pem.Block{Type: key.kind, Bytes: key.der})
+		err := os.WriteFile(key.path, pemBytes, 0600)
+		clear(pemBytes)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	return privatePath, publicPath
+}
+
+func setACL(t *testing.T, path string, mode os.FileMode, entry string) {
+	t.Helper()
+	if out, err := exec.Command("/bin/chmod", "+a", entry, path).CombinedOutput(); err != nil {
+		t.Fatalf("add ACL: %v, %s", err, out)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != mode {
+		t.Fatalf("expected unchanged POSIX mode %04o, got %04o", mode, info.Mode().Perm())
+	}
+}
+
+func clearACL(t *testing.T, path string) {
+	t.Helper()
+	if out, err := exec.Command("/bin/chmod", "-N", path).CombinedOutput(); err != nil {
+		t.Fatalf("remove ACL: %v, %s", err, out)
+	}
+}
+
+type buildFixture struct {
+	origin   string
+	close    func()
+	requests atomic.Int32
+	corrupt  atomic.Bool
+}
+
+func newBuildFixture(t *testing.T, sel selection, token, address string) *buildFixture {
+	t.Helper()
+	fixture := new(buildFixture)
+	binding := strings.Repeat("4", 64)
+	complete := false
+	build := observedBuild{selection: sel, State: "native_succeeded",
+		CompletionPending: &complete, Revision: 2, Attempt: 1}
+	products := make(map[string][]byte)
+	add := func(kind string, contents []byte) artifact {
+		descriptor := artifact{kind, sum(contents), int64(len(contents))}
+		build.Artifacts = append(build.Artifacts, struct {
+			artifact
+			DownloadPath string `json:"downloadPath"`
+		}{descriptor, artifactPath + kind + "?" + sel.query().Encode()})
+		products[artifactPath+kind] = contents
+		return descriptor
+	}
+	archive := func(kind string) artifact {
+		var contents bytes.Buffer
+		header, err := json.Marshal(map[string]any{"version": 1, "kind": kind, "binding": binding})
+		if err != nil {
+			t.Fatal(err)
+		}
+		contents.WriteString(archiveMagic)
+		contents.Write(binary.BigEndian.AppendUint64(nil, uint64(len(header))))
+		contents.Write(header)
+		contents.WriteString("archive payload")
+		return add(kind, contents.Bytes())
+	}
+	app := archive("unsigned_native_binary")
+	symbols := archive("debug_symbols")
+	inv, err := json.Marshal(inventory{1, "resource_inventory", app, symbols, binding})
+	if err != nil {
+		t.Fatal(err)
+	}
+	add("resource_inventory", inv)
+	body, err := json.Marshal(map[string]any{"build": build})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fixture.requests.Add(1)
+		cookie, err := r.Cookie("__Host-mixer-session")
+		if err != nil || cookie.Value != token {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		if r.Method != http.MethodGet || r.URL.RawQuery != sel.query().Encode() {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		data, contentType := body, "application/json; charset=utf-8"
+		if r.URL.Path != detailPath {
+			var ok bool
+			data, ok = products[r.URL.Path]
+			if !ok {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			contentType = "application/octet-stream"
+			if fixture.corrupt.Load() && r.URL.Path == artifactPath+app.Kind {
+				data = bytes.Clone(data)
+				data[len(data)-1] ^= 1
+			}
+		}
+		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Content-Length", strconv.Itoa(len(data)))
+		w.Write(data)
+	})
+	listener, err := net.Listen("tcp4", address)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixture.origin = "http://" + listener.Addr().String()
+	server := &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second}
+	terminal := make(chan error, 1)
+	go func() { terminal <- server.Serve(listener) }()
+	fixture.close = sync.OnceFunc(func() {
+		if err := server.Close(); err != nil {
+			t.Error(err)
+		}
+		if err := <-terminal; !errors.Is(err, http.ErrServerClosed) {
+			t.Error(err)
+		}
+	})
+	t.Cleanup(fixture.close)
+	return fixture
+}
