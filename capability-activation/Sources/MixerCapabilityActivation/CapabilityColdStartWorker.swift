@@ -10,7 +10,7 @@ actor CapabilityColdStartWorker {
     private let environment: CapabilityRecoveryEnvironment
     private var admission: CapabilityRecoveryStoreAdmission?
     private let control: CapabilityColdStartControl
-    private let guestUIBinding: CapabilityGuestUIPresentationBinding?
+    private let presentation: (any CapabilityColdStartPresentation)?
     private var store: CapabilityRecoveryStore?
     private var active: CapabilityConsumedStartup?
     private var signals: CapabilityAttemptSignals?
@@ -18,16 +18,16 @@ actor CapabilityColdStartWorker {
     private var earnedHealth = false
     init(configuration: CapabilityRecoveryConfiguration, installed: InstalledMaterial,
          environment: CapabilityRecoveryEnvironment, admission: CapabilityRecoveryStoreAdmission,
-         control: CapabilityColdStartControl, guestUIBinding: CapabilityGuestUIPresentationBinding? = nil) {
+         control: CapabilityColdStartControl, presentation: (any CapabilityColdStartPresentation)? = nil) {
         self.configuration = configuration; self.installed = installed
-        self.environment = environment; self.admission = admission; self.control = control; self.guestUIBinding = guestUIBinding
+        self.environment = environment; self.admission = admission; self.control = control; self.presentation = presentation
     }
     func open(_ op: CapabilityColdStartOperation) async throws {
         try control.requireCurrent(op)
         guard let installed, let admission else { throw coldStartError("closed") }
         self.admission = nil // One-shot input belongs to this open frame now.
         let opened = try await CapabilityRecoveryStore.open(admission: admission, installed: installed,
-            configuration: configuration, environment: environment, guestUI: guestUIBinding != nil)
+            configuration: configuration, environment: environment, guestUI: presentation != nil)
         store = opened
         guard control.installStore(opened) else { throw coldStartError("closed") }
         try control.requireCurrent(op)
@@ -104,17 +104,17 @@ actor CapabilityColdStartWorker {
                                    _ op: CapabilityColdStartOperation) async throws -> StartupStep {
         let store = try currentStore(op)
         guard let installed else { throw coldStartError("closed") }
-        let exchange = try guestUIBinding.map { _ in try GuestUIExchangeV1(generation: selection.generation) }
+        let exchange = try presentation.map { _ in try GuestUIExchangeV1(generation: selection.generation) }
         let signals = CapabilityAttemptSignals(generation: selection.generation, guestUI: exchange)
         try control.installObservation(signals, worker: self, candidate: selection.candidateID,
             launch: selection.launchID, op: op)
         var consumed: CapabilityConsumedStartup?
         do {
-            if let guestUIBinding, let exchange {
-                let presentation = try await guestUIBinding.bind(exchange)
+            if let presentation, let exchange {
+                let presentation = try await presentation.bindForStartup(exchange)
                 guard control.installPresentationLifetime(presentation, signals: signals, op: op) else {
                     exchange.stop(.closed)
-                    let result = await presentation.finish() // Close raced the MainActor bind.
+                    let result = await presentation.finishObservation() // Close raced the bind.
                     if !result.isRetired { control.reservation.quarantine() }
                     throw coldStartError("closed")
                 }

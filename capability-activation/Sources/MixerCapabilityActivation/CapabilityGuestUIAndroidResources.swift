@@ -36,6 +36,8 @@ final class CapabilityGuestUIAndroidResources: @unchecked Sendable {
     private var attachment: UInt64 = 0
     private var input: UInt64 = 0
     private var probe: UInt64 = 0
+    private var observedProbe: UInt64 = 0
+    private var observedFirstScreen = false
     init(facade: UInt64) { self.facade = facade }
 
     static func installExchange(_ exchange: GuestUIExchangeV1, key: CapabilityAndroidHostLifetimeKey, slot: Int) throws {
@@ -182,7 +184,8 @@ final class CapabilityGuestUIAndroidResources: @unchecked Sendable {
             pendingPacket = nil
             guard applied == Int32(MXUIT_OK.rawValue) else { throw coldStartError("android_native_apply") }
         }
-        ticket = exchange.completePresentation(claim, snapshot: snapshot)
+        let appliedTicket = exchange.completePresentation(claim, snapshot: snapshot)
+        if claim.frame != nil { ticket = appliedTicket }
         let state = exchange.snapshot()
         let closed = record.withLock { $0.closing || $0.quarantined }
         let enabled: UInt32 = !closed && state.stop == nil && state.effectsConfirmed && !state.guestTurnInFlight &&
@@ -194,6 +197,63 @@ final class CapabilityGuestUIAndroidResources: @unchecked Sendable {
         }
         return Int32(MXUIT_DRAIN_OK.rawValue)
     }
+    // Only the restricted native bridge calls this after its own attachment and
+    // draw/click checks. Neither operation may use a stale presentation tuple.
+    static func nativeWitness(facade: UInt64, attachment: UInt64, token: UInt64, display: Bool) -> Int32 {
+        guard attachment > 0, token > 0 else { return Int32(MXUIT_INVALID.rawValue) }
+        var entry: UInt64 = 0
+        let admitted = mxuit_ui_enter(facade, 0, 0, UInt32(MXUIT_UI_INGRESS.rawValue), &entry)
+        guard admitted == Int32(MXUIT_OK.rawValue) else { return admitted }
+        let result = witnessWhileEntered(facade: facade, attachment: attachment, token: token, display: display)
+        // A failed wake on leave publishes the transport fault and closes admission.
+        let leave = mxuit_ui_leave(facade, entry)
+        return leave == Int32(MXUIT_OK.rawValue) ? result : leave
+    }
+
+    private static func witnessWhileEntered(facade: UInt64, attachment: UInt64, token: UInt64, display: Bool) -> Int32 {
+        for slot in 0..<16 {
+            guard let record = CapabilityAndroidRegistry.shared.record(slot: slot, facade: facade) else { continue }
+            let acquired = record.withLock { r -> Bool in
+                guard r.lookupEnabled, r.published, !r.closing, !r.quarantined,
+                      r.setupAliases == 0, r.uiAliases == 0 else { return false }
+                r.uiAliases = 1
+                return true
+            }
+            guard acquired else { return Int32(MXUIT_CLOSED.rawValue) }
+            let result = witnessInner(record, attachment: attachment, token: token, display: display)
+            record.withLock { precondition($0.uiAliases == 1); $0.uiAliases = 0 }
+            return result
+        }
+        return Int32(MXUIT_STALE.rawValue)
+    }
+
+    @inline(never)
+    private static func witnessInner(_ record: CapabilityAndroidFacadeRecord, attachment: UInt64,
+                                     token: UInt64, display: Bool) -> Int32 {
+        guard let resources = record.resources, resources.attachment == attachment,
+              let exchange = resources.exchange, let ticket = resources.ticket else { return Int32(MXUIT_STALE.rawValue) }
+        if display {
+            let current = exchange.snapshot()
+            guard resources.probe == token, resources.observedProbe != token, current.stop == nil,
+                  current.effectsConfirmed, current.latestRevision == ticket.revision,
+                  current.displayedRevision == ticket.revision else { return Int32(MXUIT_STALE.rawValue) }
+            if !resources.observedFirstScreen {
+                guard exchange.observePresentation(ticket) else { return Int32(MXUIT_STALE.rawValue) }
+                resources.observedFirstScreen = true
+            }
+            resources.observedProbe = token
+            return Int32(MXUIT_OK.rawValue)
+        }
+        guard resources.input == token, resources.probe == resources.observedProbe,
+              let snapshot = resources.snapshot,
+              let identity = snapshot.identity(for: "toggle") else { return Int32(MXUIT_STALE.rawValue) }
+        let event = UIEventEnvelope(revision: snapshot.document.revision, identity: identity, event: .activate)
+        if case .offered(.accepted) = exchange.offerNativeInput(event, generation: ticket.generation) {
+            return Int32(MXUIT_OK.rawValue)
+        }
+        return Int32(MXUIT_BUSY.rawValue)
+    }
+
     private func retire(key: CapabilityAndroidHostLifetimeKey, entry: UInt64,
                         record: CapabilityAndroidFacadeRecord) throws -> Int32 {
         // This exact sample decides whether late final close needs TERMINAL.
@@ -201,7 +261,7 @@ final class CapabilityGuestUIAndroidResources: @unchecked Sendable {
         let generation = exchange?.snapshot().generation
         guard mxis_retire(facade, entry, final ? 1 : 0) == Int32(MXUIT_OK.rawValue) else { throw coldStartError("android_retire") }
         exchange = nil; reconciler = UIReconciler(); snapshot = nil; ticket = nil
-        pendingPacket = nil; lastEvent = nil; attachment = 0; input = 0; probe = 0
+        pendingPacket = nil; lastEvent = nil; attachment = 0; input = 0; probe = 0; observedProbe = 0; observedFirstScreen = false
         guard revision < .max else { throw coldStartError("android_stage_exhausted") }; revision += 1
         if final {
             var native = mxis_host_snapshot()
@@ -233,4 +293,12 @@ final class CapabilityGuestUIAndroidResources: @unchecked Sendable {
         }
     }
 }
+#if MIXER_FIELDLOG_ANDROID_TRIAL
+@_cdecl("mxfield_witness")
+func fieldLogNativeWitness(_ facade: UInt64, _ attachment: UInt64, _ token: UInt64, _ display: UInt32) -> Int32 {
+    guard display <= 1 else { return Int32(MXUIT_INVALID.rawValue) }
+    return CapabilityGuestUIAndroidResources.nativeWitness(facade: facade, attachment: attachment,
+        token: token, display: display == 1)
+}
+#endif
 #endif

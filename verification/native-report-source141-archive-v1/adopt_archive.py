@@ -63,10 +63,27 @@ STARTER_SOURCE_CHANGES = {
     'cli/Sources/MixerBuild/ProjectGenerator.swift',
 }
 STARTER_CHANGES = STARTER_SOURCE_CHANGES | {'cli/build-tests/test_public_export.py'}
+CAPABILITY_PREDECESSOR_REVISION = 'b4a54df61e8ecb74f9fb9119a41726ac9d7aea0b'
+CAPABILITY_PREDECESSOR_SHA256 = 'dde3c72a99e5c2a4821a8ae51b6f77632c0da08a268f556662439c57dfadfbc0'
+CAPABILITY = 'capability-activation/Sources/MixerCapabilityActivation/'
+CAPABILITY_ADDITIONS = {CAPABILITY + name for name in (
+    'CapabilityColdStartPresentation.swift',
+    'CapabilityGuestUIAndroidRuntime.swift',
+)}
+CAPABILITY_CHANGES = CAPABILITY_ADDITIONS | {CAPABILITY + name for name in (
+    'CapabilityColdStartControl.swift',
+    'CapabilityColdStartRuntime.swift',
+    'CapabilityColdStartWorker.swift',
+    'CapabilityGuestUIAndroidLifetime.swift',
+    'CapabilityGuestUIAndroidResources.swift',
+    'CapabilityGuestUIPresentationLifetime.swift',
+)} | {'.github/workflows/verify.yml', JAVA + 'test_sparse_checkout.py'}
 MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
     'pair23-predecessor-bytes/' + name for name in STARTER_CHANGES
+} | {
+    'capability-predecessor-bytes/' + name for name in CAPABILITY_CHANGES - CAPABILITY_ADDITIONS
 }
 
 
@@ -108,6 +125,31 @@ def load_predecessor():
     return previous, seal
 
 
+def read_capability_preimages(previous, transition, effective):
+    require(set(transition) == {'baseRevision', 'changes'} and
+            transition['baseRevision'] == CAPABILITY_PREDECESSOR_REVISION and
+            set(transition['changes']) == CAPABILITY_CHANGES,
+            'Capability archive transition roster differs')
+    preimages = {}
+    predecessor_rows = {}
+    for name, change in transition['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] != change['after'] and
+                change['mode'] == 0o644 and
+                (change['before'] is None) == (name in CAPABILITY_ADDITIONS),
+                'Capability transition row differs: ' + name)
+        if name not in CAPABILITY_ADDITIONS:
+            raw = previous.read(HERE / 'capability-predecessor-bytes' / name)
+            predecessor_rows[name] = previous.row(raw)
+            require(predecessor_rows[name] == change['before'] and
+                    (name not in effective or effective[name] == change['before']),
+                    'Capability predecessor bytes differ: ' + name)
+            preimages[name] = raw
+    require(previous.digest(predecessor_rows) == CAPABILITY_PREDECESSOR_SHA256,
+            'Capability predecessor roster digest differs')
+    return preimages
+
+
 def install_inputs():
     previous, old_seal = load_predecessor()
     seal = previous.load(HERE / 'seal.json')
@@ -121,7 +163,7 @@ def install_inputs():
     binding = previous.load(HERE / 'binding.json')
     require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
                              'changes', 'renderer_transition', 'starter_lock_transition',
-                             'export_runner_transition'} and
+                             'export_runner_transition', 'capability_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -151,6 +193,12 @@ def install_inputs():
             export['before'] == binding['changes'][EXPORT_RUNNER]['after'] and
             export['before'] != export['after'], 'Export runner transition differs')
 
+    # Compare the earlier archive against its exact bytes where this transition
+    # replaces an owning input. The original predecessor is restored separately.
+    prior_effective = {**effective, **{name: change['after'] for name, change in binding['changes'].items()}}
+    capability = binding['capability_transition']
+    capability_preimages = read_capability_preimages(previous, capability, prior_effective)
+
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
@@ -160,7 +208,9 @@ def install_inputs():
         # The runner's historical row is pinned by the Pair23 digest below.
         # Restoration uses the original predecessor bytes from this archive.
         if name != EXPORT_RUNNER:
-            raw = pair23_preimages[name] if name in pair23_preimages else previous.read(path)
+            raw = pair23_preimages.get(name, capability_preimages.get(name))
+            if raw is None:
+                raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
         require(type(change['mode']) is int and change['mode'] in (0o644, 0o755) and
                 stat.S_IMODE(path.stat().st_mode) == change['mode'],
@@ -196,7 +246,14 @@ def install_inputs():
             len(current) == 141 and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
             }, 'Export runner source transition differs')
-    previous.check_rows(ROOT, effective)
+    previous.check_rows(ROOT, {
+        **effective, **{name: change['after'] for name, change in capability['changes'].items()}
+    })
+    for name, change in capability['changes'].items():
+        require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
+                'Installed capability archive owner mode differs: ' + name)
+        if name in effective and name not in preimages:
+            preimages[name] = (capability_preimages[name], change['mode'])
     owner = previous.module('native_archive_actual_collector', ROOT / previous.OWNER)
     profile = owner.load_profile(ROOT)
     pair22 = historical_binding['sdk_transition']['profileAfter']

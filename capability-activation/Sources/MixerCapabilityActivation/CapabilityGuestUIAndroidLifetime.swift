@@ -132,6 +132,10 @@ final class CapabilityAndroidLifetimeControl: @unchecked Sendable {
         if outgoing != nil { bindWaiter = nil; delivery = nil }
         lock.unlock(); outgoing?.resume(returning: outcome)
     }
+    func isBound(to expected: GuestUIExchangeV1) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        return bound && !binding && exchange === expected
+    }
     func bind(_ incoming: GuestUIExchangeV1) throws {
         let reader = try incoming.deliveryWake.takeConsumer()
         let descriptor = CapabilityAndroidDelivery(generation: incoming.snapshot().generation, reader: reader)

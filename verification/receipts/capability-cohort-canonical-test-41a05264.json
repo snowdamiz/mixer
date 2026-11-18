@@ -1,0 +1,323 @@
+{
+  "status": "PASS_REPAIRED_HOST_COMPATIBILITY_WITH_DISCLOSED_NATIVE_LIMITS",
+  "observedUTC": "2026-11-18T07:25:16.952816+00:00",
+  "baseRevision": "fb4062d0912a07193da7dc1f05100b130cc5c326",
+  "baseTree": "ab035a6c6911f6fd75984627c4543f8dccee9ff4",
+  "exactOriginalCohort": {
+    "patch": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/canonical-cohort.patch",
+      "sha256": "b7f31580de6cfdc9130af27807e333782d2bdca67dd669ba888e341028181a7b"
+    },
+    "manifest": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/cohort.json",
+      "sha256": "0edb8710e371b57518e395ee50da80a219b5ace2477c75e2fcc16bddbea76958"
+    },
+    "files": 33
+  },
+  "exactRepairedCohort": {
+    "patch": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/repaired-cohort.patch",
+      "sha256": "efe6c421723a2b9606ca2a35b5ab2eb4020d0fabd9194eef5f9250522c177e6e"
+    },
+    "manifest": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/repaired-cohort.json",
+      "sha256": "71e146bff851c997bcd6ad0a6009a6e4e631758b25544e4f5956cd62db6218b5"
+    },
+    "files": 33,
+    "incrementalRepair": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/witness-leave-repair.patch",
+      "sha256": "18b8a5f2abd8d78e4c91d24aacb2da5c1dc8edd88895a8b3aed7e4974034e702"
+    },
+    "verifiedAppliesToBase": true
+  },
+  "environment": {
+    "ciWorkflow": ".github/workflows/verify.yml#swift-capability-native",
+    "localXcode": "Xcode 26.6\nBuild version 17F113",
+    "ciXcode": "26.3 (17C529)",
+    "developerDir": "/Applications/Xcode_26.6.app/Contents/Developer",
+    "toolchains": "com.apple.dt.toolchain.XcodeDefault",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "swift": "Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx28.0",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)"
+  },
+  "vm": {
+    "archive": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/ci-vm/lib/libmixer_vm_capability_experimental.a",
+      "sha256": "6d3b2c82e15d06ecbadfaaf62cb9e6de980350cc9a53bca651e7b7b4d315c16c"
+    },
+    "buildReceipt": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/ci-vm/receipt.json",
+      "sha256": "749df44e5ce4e50fec1ab6ab4ebee4c65cd9848f490e2fa049539dbfe9941750"
+    },
+    "headers": {
+      "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"
+    }
+  },
+  "capabilityActivation": {
+    "command": [
+      "swift",
+      "test",
+      "--package-path",
+      "capability-activation",
+      "--scratch-path",
+      "<private scratch>",
+      "--cache-path",
+      "<private SwiftPM cache>",
+      "--force-resolved-versions",
+      "-Xcc",
+      "-I<VM>/include",
+      "-Xlinker",
+      "-L<VM>/lib",
+      "-Xswiftc",
+      "-warnings-as-errors"
+    ],
+    "original": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/package-r2.log",
+      "sha256": "48edf25f897da55d3c7b9771689033a2a1aef9c0e192954022c62ecd6a9ac52d",
+      "exit": 0,
+      "xctestPassed": 136,
+      "xctestSkipped": 2,
+      "swiftTestingPassed": 13,
+      "swiftTestingSkipped": 1
+    },
+    "repaired": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/package-repaired.log",
+      "sha256": "ffdd02ca32a6c797bb6385c56c51ad5f297b93bb6676e22b841ed493c372720b",
+      "exit": 0,
+      "xctestPassed": 136,
+      "xctestSkipped": 2,
+      "swiftTestingPassed": 13,
+      "swiftTestingSkipped": 1
+    },
+    "installedMaterialPythonRepaired": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/preimage-repaired.log",
+      "sha256": "3b089179bc1422c6f856a68d2e0a51491ab724e34b1fa578f0db4ddd6ecb8200",
+      "passed": 3
+    }
+  },
+  "appleOptIns": {
+    "environmentKeys": [
+      "MIXER_FIELDLOG_V3_RUN",
+      "MIXER_FIELDLOG_V3_REPOSITORY",
+      "MIXER_FIELDLOG_V3_ARCHIVE_SHA256",
+      "MIXER_FIELDLOG_V3_PORT",
+      "MIXER_GUEST_UI_VISIBLE_WINDOW"
+    ],
+    "candidate": {
+      "log": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/package-opt-ins.log",
+        "sha256": "cf394b2d65bd74c386ad5de1ae7bd780e537101f9d65aa06b9e9fdf362bf23f4"
+      },
+      "exit": 1,
+      "service": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/mac-env/custody/service.json",
+        "sha256": "e1a5a1918f1ae7faa42c0de49fb70ee0bdaef8217b6782f40217bd0b26f843d2"
+      },
+      "portClosed": true,
+      "signedLoopbackReachedBaselineFrame": true,
+      "visibleWitnessObserved": false,
+      "childCustodyTestPassed": true
+    },
+    "baseline": {
+      "log": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/package-baseline-opt-ins.log",
+        "sha256": "53e8e929c1c226c12fd7e6f19d7025e68d81b825fd4d158c84d033c0d0840f34"
+      },
+      "exit": 1,
+      "service": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/mac-env-baseline/custody/service.json",
+        "sha256": "d1b569e7eae21cafb7417e740534555e3f2216e34e0dc87a556d4e23b81a9310"
+      },
+      "portClosed": true,
+      "signedLoopbackReachedBaselineFrame": true,
+      "visibleWitnessObserved": false,
+      "childCustodyTestPassed": true
+    },
+    "scope": "Both actual loopback service tests reached a rendered baseline model and failed visible-window health. Both direct window controls had occlusion 8192 and failed to produce a display witness. The same failures reproduced on fb4062d091."
+  },
+  "androidBinding": {
+    "original": {
+      "debug": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/android-binding-debug-r2/receipt.json",
+        "sha256": "e9d84cd9bab3733f538da04365ad63375b365ecf331a68ce007c069bdb83254e",
+        "exit": 0,
+        "scenariosPassed": 39,
+        "observerGitRevision": "87e32900edc66853080c2fbe58802c43dbf33667"
+      },
+      "release": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/android-binding-release-r2/receipt.json",
+        "sha256": "c9257b611da8f495c651ac1a4cab07dfcfdba26392a3bbba92f7c383227e1876",
+        "exit": 0,
+        "scenariosPassed": 39,
+        "observerGitRevision": "87e32900edc66853080c2fbe58802c43dbf33667"
+      },
+      "tsan": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/android-binding-tsan-r2/receipt.json",
+        "sha256": "cff3a8eb90da5888553b0abb97e2c5b782a4e912c57426a201bfca0f1ffcfae8",
+        "exit": 0,
+        "scenariosPassed": 39,
+        "observerGitRevision": "87e32900edc66853080c2fbe58802c43dbf33667"
+      }
+    },
+    "repaired": {
+      "debug": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/android-binding-debug-repaired/receipt.json",
+        "sha256": "4c512b85a3dc01ad8d0df42ce9d1cf17bc5b4c46c085eebda9ddd627a8eae218",
+        "exit": 0,
+        "scenariosPassed": 39,
+        "observerGitRevision": "87e32900edc66853080c2fbe58802c43dbf33667"
+      },
+      "release": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/android-binding-release-repaired/receipt.json",
+        "sha256": "294a53b056fd8b69da4504b0d18d071043761b4ee52ad20b94986eaa1c406a97",
+        "exit": 0,
+        "scenariosPassed": 39,
+        "observerGitRevision": "87e32900edc66853080c2fbe58802c43dbf33667"
+      },
+      "tsan": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/android-binding-tsan-repaired/receipt.json",
+        "sha256": "76237c49405f82a54ce5c60ff5c570cbd284505c181fef3f5ef417a99251862d",
+        "exit": 0,
+        "scenariosPassed": 39,
+        "observerGitRevision": "87e32900edc66853080c2fbe58802c43dbf33667"
+      }
+    },
+    "scope": "Actual Swift/C host bridge; TSan instruments the SwiftPM build. The linked Rust archive is shared and uninstrumented."
+  },
+  "androidSignedHost": {
+    "original": {
+      "commands": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-host/commands.json",
+        "sha256": "fe5fc9a4b2d35b867db8a2e3482890a97d59c4e8cfc9cd5d0e1d65307329c48d"
+      },
+      "stdout": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-host/logs/host-behavior.stdout",
+        "sha256": "22858cdf2abdcb2523ea65bda059d5a1533cd5e6e6b9fd7dd4d716fd908b2b87"
+      },
+      "stderr": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-host/logs/host-behavior.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit": 0
+    },
+    "repairedCurrentTuple": {
+      "commands": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-control-repaired/commands.json",
+        "sha256": "e54871e89d9a7a7c61f810c9e1187042819eda87cc3194522e7e9e2a66eb109c"
+      },
+      "stdout": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-control-repaired/logs/host-behavior.stdout",
+        "sha256": "2195f0ca64073f919ced03f5d84f9de73d6cfbb644d1770a5d57bbaa85900e6f"
+      },
+      "stderr": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-control-repaired/logs/host-behavior.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit": 0
+    },
+    "scope": "Signed baseline, reviewed, rollback, partial staging and reopen using the 17 verified frozen APK assets with the real VM. Private Host.swift adds duplicate display, stale successor token, early successor input, and retired-facade refusal assertions. All five consuming destructions observed.",
+    "privateTestDriver": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/host-witness-control-repaired.py",
+      "sha256": "61abd45bb4d1c0ad8a876b632116ad1f26e3e71b3708de522f901d6a7ebc04c6"
+    }
+  },
+  "androidWitnessLeaveFault": {
+    "before": {
+      "commands": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-fault-before/commands.json",
+        "sha256": "946ca30a8359aa8be51f57399c0d19e7c2a8f56833dd0b165c8ca1850fdbdc05"
+      },
+      "stdout": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-fault-before/logs/host-behavior.stdout",
+        "sha256": "47c96eac99ef741de001cfa947188f6084dd996bd27a94b0285145072e7571a5"
+      },
+      "stderr": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-fault-before/logs/host-behavior.stderr",
+        "sha256": "e813ba732c95236c1e7c5588e31445812a1b328cb1560d5e4dbacf29b3a536ca"
+      },
+      "exit": -5
+    },
+    "after": {
+      "commands": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-fault-after/commands.json",
+        "sha256": "5b80b59c5becb588d1c822c307185d10d295dc28d477246880c509c6583b4428"
+      },
+      "stdout": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-fault-after/logs/host-behavior.stdout",
+        "sha256": "1bc8c436667d9a44aef90bdd0ab1b4e30c96cfe83e3a6f7ae4442ab7ed903574"
+      },
+      "stderr": {
+        "path": "verification/local/capability-cohort-canonical-test-41a05264/signed-android-witness-fault-after/logs/host-behavior.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit": 0
+    },
+    "privateTestDriver": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/host-witness-fault.py",
+      "sha256": "e6698fbea514b3d21b80c6da22806cbd4158fb6131279939dac6f5bc82aed001"
+    },
+    "scope": "Real C transport wake-write failure injected after UI admission via the host test hook. Original traps on the leave result. Repair returns MXUIT_IO, leaves fault publication to the transport, refuses later native witness calls, and reports failed clean retirement."
+  },
+  "androidAPKReadback": {
+    "readback": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/dex-proof/receipt.json",
+      "sha256": "4b3d12942417de687f36beed29a3102eacd42042a5ef6597c9b3e11e5a0034f3"
+    },
+    "replayDriver": {
+      "path": "verification/local/capability-cohort-canonical-test-41a05264/apk.py",
+      "sha256": "11ec741b75ddffc4dcd6613f2a7a83471bf5c7e20894efe55fdf4233e232897c"
+    },
+    "runtimeReceipt": "verification/receipts/fieldlog-android-signed-offline-runtime-41a05264.json",
+    "runtimeAPKs": [
+      "95a85b06c1fdea416e05d7ffff2d52d42eb1cf17d040a0d0ea1092acabe56419",
+      "8f612e0a52a37b7553876fbb3e0d1729b8b2fc022db3055ccd6bbe7e754e0586"
+    ],
+    "byteIdenticalDex": {
+      "baseline": {
+        "java": "f624bac0cc1e0ca1dc90db14eeb8b9b78abe84c392ff89d04cc8bf399203fffb",
+        "rebuilt": "01242c5388f91555ae871aa93f2399aca2f7fdfc5681f29ce3410466fcfa8d0e",
+        "apk": "01242c5388f91555ae871aa93f2399aca2f7fdfc5681f29ce3410466fcfa8d0e",
+        "equal": true
+      },
+      "canonical": {
+        "java": "79d8464825301c44ff2e735d2a2564e4e58be50226e9d793eac76d073f2489ce",
+        "rebuilt": "8940f892e636bd704ba80bd2a58f75ad9af53e6e7c72dbd830d231d2ec33ff4a",
+        "apk": "8940f892e636bd704ba80bd2a58f75ad9af53e6e7c72dbd830d231d2ec33ff4a",
+        "equal": true
+      },
+      "trace": {
+        "java": "dc2c9941dddb0b1c70cbdacb4f0f63a53cba8646dde86c2a00f4d03aa9c455bc",
+        "rebuilt": "7af869d447227e24c6b67eee9e40a3190f7c9cf3719d7f002ed4df75acb5ad51",
+        "apk": "7af869d447227e24c6b67eee9e40a3190f7c9cf3719d7f002ed4df75acb5ad51",
+        "equal": true
+      }
+    },
+    "originalManifestDifferences": [
+      "capability-activation/verification/fieldlog-android/TrialActivity.java",
+      "capability-activation/verification/fieldlog-android/build.py"
+    ],
+    "tracePrivateSourceDifferences": [
+      "bridge.c",
+      "android/Sources/Android.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidProgress.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/FieldLogTrialTrace.swift",
+      "TrialActivity.java"
+    ],
+    "traceChangedPayload": {
+      "classes.dex": "7af869d447227e24c6b67eee9e40a3190f7c9cf3719d7f002ed4df75acb5ad51",
+      "lib/arm64-v8a/libMixerFieldLogTrial.so": "a17e3abdc789234f35fbe8c559a30fe07fcdd93e3984a4c9c730883630fb3e02"
+    },
+    "scope": "Baseline and corrected APKs share the frozen engine. The corrected APK replaces only classes.dex after excluding APK signing entries. The trace APK changes classes.dex and the engine. All DEX entries reproduced byte for byte. The leave repair postdates both Android runtime replays."
+  },
+  "limitations": [
+    "Local toolchain substituted for the exact hosted Xcode pin.",
+    "The private repair has host evidence and requires a separate rebuilt APK for Android runtime qualification.",
+    "The earlier guest-surface loss remains with root and the independent trace reviewer.",
+    "No staging, commit, push, device operation, or gate promotion."
+  ]
+}

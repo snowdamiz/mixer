@@ -103,6 +103,9 @@ def admission_paths(root=None, binding=None):
                   'Invalid archive predecessor binding')
         dependencies = admission_paths(root, previous)
         dependencies.update(relative(path).as_posix() for path in declaration['changes'])
+        transition = declaration.get('capability_transition')
+        if transition is not None:
+            dependencies.update(relative(path).as_posix() for path in transition['changes'])
     else:
         manifests += ('caller-inputs.json', 'owning-closure.json', 'historical-inputs.json')
         dependencies = set()
@@ -418,8 +421,6 @@ class SparseControls(unittest.TestCase):
                                       timeout=30, env=env, **kw)
             command(git + ['init', '-q'], check=True)
             command(git + ['add', '-f', '--all'], check=True)
-            command(git + ['-c', 'user.name=MixerFixture', '-c', 'user.email=fixture@mixer.invalid',
-                           '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'sparse-admission-fixture'], check=True)
             command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
                     input=('\n'.join(old_patterns) + '\n').encode(), check=True)
             self.assertFalse((repo / 'Package.resolved').exists())
@@ -435,7 +436,8 @@ class SparseControls(unittest.TestCase):
             observed = json.loads(passed.stdout)
             self.assertEqual(observed['source_count'], len(B.admit_source_inputs(B.canonical(), B.canonical().load_profile())))
             self.assertFalse(observed['GA'])
-            changes = json.loads((repo / SOURCE_BINDING).read_bytes())['changes']
+            binding = json.loads((repo / SOURCE_BINDING).read_bytes())
+            changes = {**binding['changes'], **binding['capability_transition']['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:

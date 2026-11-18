@@ -41,8 +41,7 @@ struct CapabilityFacadeCleanupReceipt: Sendable, Equatable {
     let facade: UInt64
     let cleanupSerial: UInt64
     let finalEntrySerial: UInt64
-    // Android construction remains private until its native cleanup is implemented.
-    private init(facade: UInt64, cleanupSerial: UInt64, finalEntrySerial: UInt64) {
+    fileprivate init(facade: UInt64, cleanupSerial: UInt64, finalEntrySerial: UInt64) {
         self.facade = facade; self.cleanupSerial = cleanupSerial; self.finalEntrySerial = finalEntrySerial
     }
 }
@@ -52,6 +51,18 @@ struct CapabilityPresentationLifetimeReceipt: Sendable, Equatable {
     let endpoint: UInt64?
     let taskJoin: CapabilityPresentationTaskJoin
     let facadeCleanup: CapabilityFacadeCleanupReceipt?
+#if canImport(CMixerUITransport) && canImport(CMixerUIAndroidHostBridge)
+    fileprivate init(android receipt: CapabilityAndroidHostLifetimeReceipt) {
+        facade = receipt.key.facade
+        lifetime = receipt.key.lifetime
+        endpoint = receipt.key.endpoint
+        taskJoin = .joined
+        facadeCleanup = receipt.facadeCleanup.map {
+            CapabilityFacadeCleanupReceipt(facade: receipt.key.facade,
+                cleanupSerial: $0.cleanupSerial, finalEntrySerial: $0.finalEntrySerial)
+        }
+    }
+#endif
     /// Apple receipts cover its MainActor view retirement. Its public model may
     /// still be retained by an application; this never asserts model destruction.
     fileprivate init(apple facade: UInt64, lifetime: CapabilityPresentationLifetimeID, joined: CapabilityPresentationTaskJoin) {
@@ -207,6 +218,10 @@ final class CapabilityGuestUIPresentationLifetime: @unchecked Sendable {
         guard case .androidHost(_, let control) = backend else { throw coldStartError("android_scope") }
         try control.bind(exchange)
     }
+    fileprivate func isBoundAndroid(to exchange: GuestUIExchangeV1) -> Bool {
+        guard case .androidHost(_, let control) = backend else { return false }
+        return control.isBound(to: exchange)
+    }
     fileprivate var androidStatus: CapabilityAndroidHostJoinStatus {
         guard case .androidHost = backend else { return .invariant(.invalidState) }
         lock.lock(); defer { lock.unlock() }; return hostReturnObserved ? hostResult : .pending
@@ -327,7 +342,7 @@ enum CapabilityAndroidHostFinishResult: Sendable, Equatable {
 enum CapabilityAndroidHostJoinStatus: Sendable, Equatable {
     case pending, finished(CapabilityAndroidHostFinishResult), invariant(CapabilityPresentationInvariant)
 }
-final class CapabilityAndroidHostInstallation: @unchecked Sendable {
+final class CapabilityAndroidHostInstallation: @unchecked Sendable, CapabilityObservedPresentation {
     let key: CapabilityAndroidHostLifetimeKey
     private let lifetime: CapabilityGuestUIPresentationLifetime
     private let lock = NSLock()
@@ -357,5 +372,17 @@ final class CapabilityAndroidHostInstallation: @unchecked Sendable {
         return result
     }
     var status: CapabilityAndroidHostJoinStatus { lifetime.androidStatus }
+    func moveForObservation() -> (any CapabilityObservedPresentation)? { move() }
+    func isBound(to exchange: GuestUIExchangeV1) -> Bool { lifetime.isBoundAndroid(to: exchange) }
+    func finishObservation() async -> CapabilityPresentationJoinStatus {
+        switch await finish() {
+        case .pending: return .pending
+        case .invariant(let invariant): return .invariant(invariant)
+        case .finished(.retired(let receipt)): return .finished(.retired(.init(android: receipt)))
+        case .finished(.quarantined):
+            return .finished(.quarantined(.init(facade: key.facade, lifetime: key.lifetime,
+                endpoint: key.endpoint, code: .invalidState)))
+        }
+    }
 }
 #endif

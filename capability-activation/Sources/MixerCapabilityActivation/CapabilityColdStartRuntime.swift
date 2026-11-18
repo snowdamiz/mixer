@@ -99,20 +99,24 @@ final class CapabilityColdStartCloseCore: @unchecked Sendable {
     let control: CapabilityColdStartControl
     let worker: CapabilityColdStartWorker
     let guestUIBinding: CapabilityGuestUIPresentationBinding?
+    private let presentation: (any CapabilityColdStartPresentation)?
     private let lock = NSLock()
     private var closeStarted = false
     private var closeJob: Task<Void, Never>?
     init(configuration: CapabilityRecoveryConfiguration, installed: InstalledMaterial,
          environment: CapabilityRecoveryEnvironment, reservation: CapabilityAttemptReservation,
-         guestUIBinding: CapabilityGuestUIPresentationBinding? = nil) throws {
+         guestUIBinding: CapabilityGuestUIPresentationBinding? = nil,
+         androidPresentation: (any CapabilityColdStartPresentation)? = nil) throws {
+        precondition(guestUIBinding == nil || androidPresentation == nil)
         let admission = try reservation.issueStoreAdmission()
         let control = CapabilityColdStartControl(reservation: reservation)
         self.control = control; self.guestUIBinding = guestUIBinding
+        presentation = androidPresentation ?? guestUIBinding
         worker = CapabilityColdStartWorker(configuration: configuration, installed: installed,
-            environment: environment, admission: admission, control: control, guestUIBinding: guestUIBinding)
+            environment: environment, admission: admission, control: control, presentation: presentation)
     }
     func requestClose(_ cause: CapabilityAttemptLocalStop) {
-        guestUIBinding?.requestFinalClose(cause)
+        presentation?.requestFinalClose(cause)
         control.requestClose(cause)
         lock.lock(); defer { lock.unlock() }
         guard !closeStarted else { return }
@@ -123,10 +127,7 @@ final class CapabilityColdStartCloseCore: @unchecked Sendable {
             await control.waitForOrdinaryTail()
             // A bind/install loser still owns its local permit until the above
             // ordinary tail. Only now may core move the remaining pre-bind cell.
-            if let guestUIBinding {
-                let result = await guestUIBinding.finishFinalClose(using: guestUIBinding.takeFinalJoinPermit())
-                if !result.isRetired { control.reservation.quarantine() }
-            }
+            if let presentation, await !presentation.finishForClose() { control.reservation.quarantine() }
             let recovery = await worker.closeStore()
             control.storeDidClose(recovery)
             control.reservation.beginClosing()

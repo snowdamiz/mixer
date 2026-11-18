@@ -20,22 +20,22 @@ final class CapabilityColdStartObservation: @unchecked Sendable {
     let consumer: Task<Void, Never>
     var timer: CapabilityColdStartObservationTimer?
     private let lock = NSLock()
-    private var presentation: CapabilityPresentationInstallation?
+    private var presentation: (any CapabilityObservedPresentation)?
     private var finishing = false
     private var finished = false
     private var result: CapabilityPresentationJoinStatus?
     init(signals: CapabilityAttemptSignals, consumer: Task<Void, Never>) { self.signals = signals; self.consumer = consumer }
-    func install(_ value: CapabilityPresentationInstallation) -> Bool {
+    func install(_ value: any CapabilityObservedPresentation) -> Bool {
         lock.lock(); defer { lock.unlock() }
-        guard !finishing, !finished, presentation == nil, let moved = value.move() else { return false }
+        guard !finishing, !finished, presentation == nil, let moved = value.moveForObservation() else { return false }
         presentation = moved; return true
     }
-    private func beginFinish() -> (Bool, CapabilityPresentationInstallation?, CapabilityPresentationJoinStatus?) {
+    private func beginFinish() -> (Bool, (any CapabilityObservedPresentation)?, CapabilityPresentationJoinStatus?) {
         lock.lock(); defer { lock.unlock() }
         if finished { return (false, nil, result) }
         if finishing { return (false, nil, .pending) }
         finishing = true
-        let moved = presentation?.move()
+        let moved = presentation?.moveForObservation()
         if presentation != nil, moved == nil {
             result = .invariant(.wrongJoinOwner); finishing = false; finished = true
             return (false, nil, result)
@@ -54,7 +54,7 @@ final class CapabilityColdStartObservation: @unchecked Sendable {
         signals.finishNotifications()
         if let timer { await timer.waitForCancellation() }
         await consumer.value
-        let result = await presentation?.finish()
+        let result = await presentation?.finishObservation()
         complete(result); return result
     }
 }
@@ -170,11 +170,11 @@ final class CapabilityColdStartControl: @unchecked Sendable {
         lastSignalObject = nil; lastSignal = nil
         candidateID = candidate; launchID = launch; phase = .starting
     }
-    func installPresentationLifetime(_ installation: CapabilityPresentationInstallation, signals: CapabilityAttemptSignals,
+    func installPresentationLifetime(_ installation: any CapabilityObservedPresentation, signals: CapabilityAttemptSignals,
                                      op: CapabilityColdStartOperation) -> Bool {
         lock.lock(); defer { lock.unlock() }
         guard !closed, ordinary === op, observation?.signals === signals, let observation,
-              let exchange = signals.guestUI, installation.lifetime?.isBound(to: exchange) == true else { return false }
+              let exchange = signals.guestUI, installation.isBound(to: exchange) else { return false }
         return observation.install(installation)
     }
     func installConcrete(_ value: CapabilityConcreteAttempt, signals: CapabilityAttemptSignals) throws {
