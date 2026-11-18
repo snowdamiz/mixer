@@ -72,12 +72,14 @@ private enum HydrationGuest {
         }
         ready += store(15, 1024) + store(19, Int32(frame.count))
         ready += [0x0b, 0x0b, 0x0b]
-        let bodies = [
-            i(7) + [0x0b],
-            enqueue(9200, count: put.count, token: 144, importIndex: 2) + i(0) + [0x0b],
-            ready,
-            hookType == 2 ? enqueue(9000, count: request.count, token: 128, importIndex: 0) + i(0) + [0x0b] : [0x0b],
-        ]
+        let end: [UInt8] = [0x0b]
+        let event = enqueue(9200, count: put.count, token: 144, importIndex: 2) + i(0) + end
+        let hydrate = if hookType == 2 {
+            enqueue(9000, count: request.count, token: 128, importIndex: 0) + i(0) + end
+        } else {
+            end
+        }
+        let bodies = [i(7) + end, event, ready, hydrate]
         var code = u(4)
         for body in bodies { code += u(UInt32(body.count + 1)) + [0] + body }
         var data = u(4)

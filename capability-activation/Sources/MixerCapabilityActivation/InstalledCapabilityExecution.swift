@@ -137,7 +137,7 @@ struct InstalledGrant: Sendable {
 
 enum MaterialRules {
     static let semantic = "ca53c3c2ea1d8f08020468cc5d458d86542e0806d6494840557e591342f1154e"
-    static let native = "4fcc770e62d39b415e657ce03aa11fa7fb83ee8bfe1a99567716e9b4372d1c59"
+    static let native = "29ab6ba4a86990bc99d4f510fc005a17d84426d8c893d36f5061f17c46786adf"
     static let schemas = ["network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
                           "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"]
     static func snapshot(_ data: Data) -> Data {

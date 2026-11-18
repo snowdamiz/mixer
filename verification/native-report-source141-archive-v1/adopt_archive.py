@@ -211,12 +211,15 @@ APPLE_PREIMAGE = 'apple-section-predecessor-bytes/sdk/Sources/MixerApple/MixerNa
 APPLE_SECTION_SOURCE_SHA256 = '1d2ebd6883fff9147aeec6d558b3ce1b2ec8f7dffc22b99c12ec5a85ab19b438'
 APPLE_TEXT_PREIMAGE = 'apple-text-predecessor-bytes/' + APPLE_RENDERER
 APPLE_TEXT_SOURCE_SHA256 = '0e7595225ba6fed59d49f6623ace68fa8e22b69c96b70ef3a504ede9d9ff5f00'
+CAPABILITY_IDENTITY = 'sdk/Sources/MixerCapabilities/GeneratedIdentity.swift'
+CAPABILITY_IDENTITY_PREIMAGE = 'capability-identity-predecessor-bytes/' + CAPABILITY_IDENTITY
+CAPABILITY_IDENTITY_SOURCE_SHA256 = '039ef48877383861160dbe0a5dd639f0bba08d0076c254e7035caf812387cc49'
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
 HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_sparse_checkout.py'}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
-    APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE,
+    APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE,
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
@@ -347,7 +350,7 @@ def install_inputs():
                              'console_build_logs_workflow', 'halt_cli_transition',
                              'apple_section_accessibility_transition', 'apple_synchronous_text_transition',
                              'application_registration_workflow', 'source_starter_selection_workflow',
-                             'phoenix_ci_workflow'} and
+                             'phoenix_ci_workflow', 'capability_identity_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -700,9 +703,20 @@ def install_inputs():
             expected_source[APPLE_RENDERER] and text['before'] != text['after'],
             'Apple synchronous text predecessor differs')
     installed[APPLE_RENDERER] = expected_source[APPLE_RENDERER] = text['after']
+    require(previous.digest(expected_source) == APPLE_TEXT_SOURCE_SHA256,
+            'Apple synchronous text source transition differs')
+    identity = binding['capability_identity_transition']
+    raw_identity = read_predecessor_member(HERE / CAPABILITY_IDENTITY_PREIMAGE)
+    require(set(identity) == {'sourceBefore', 'before', 'after'} and
+            identity['sourceBefore'] == APPLE_TEXT_SOURCE_SHA256 and
+            identity['before'] == previous.row(raw_identity) == installed[CAPABILITY_IDENTITY] ==
+            expected_source[CAPABILITY_IDENTITY] and identity['before'] != identity['after'],
+            'Capability identity predecessor differs')
+    installed[CAPABILITY_IDENTITY] = expected_source[CAPABILITY_IDENTITY] = identity['after']
+    preimages.setdefault(CAPABILITY_IDENTITY, (raw_identity, 0o644))
     require(current == expected_source and len(current) == 150 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': APPLE_TEXT_SOURCE_SHA256,
-    } and previous.digest(current) == APPLE_TEXT_SOURCE_SHA256, 'Apple synchronous text source transition differs')
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': CAPABILITY_IDENTITY_SOURCE_SHA256,
+    } and previous.digest(current) == CAPABILITY_IDENTITY_SOURCE_SHA256, 'Capability identity source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
@@ -799,6 +813,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_capability_identity_sha256': binding['capability_identity_transition']['sourceBefore'],
             'predecessor_apple_synchronous_text_sha256': binding['apple_synchronous_text_transition']['sourceBefore'],
             'predecessor_apple_section_accessibility_sha256': binding['apple_section_accessibility_transition']['sourceBefore'],
             'predecessor_source150_sha256': binding['halt_cli_transition']['sourceBefore'],

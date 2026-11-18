@@ -25,7 +25,7 @@ class NativePreimageTests(unittest.TestCase):
             for _ in range(2):
                 result = subprocess.run([sys.executable, str(HELPER), "--check", "--output", str(output)], capture_output=True, check=True)
                 report = json.loads(result.stdout)
-                self.assertEqual(report["nativeImplementationSHA256"], "4fcc770e62d39b415e657ce03aa11fa7fb83ee8bfe1a99567716e9b4372d1c59")
+                self.assertEqual(report["nativeImplementationSHA256"], "29ab6ba4a86990bc99d4f510fc005a17d84426d8c893d36f5061f17c46786adf")
                 self.assertEqual(report["sources"], 17)
                 self.assertFalse(report["finalLF"])
                 expected = (ROOT / "capability-activation/Tests/MixerCapabilityActivationTests/Fixtures/native-preimage.json").read_bytes()
