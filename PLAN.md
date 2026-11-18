@@ -14,6 +14,14 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The hosted API now recovers the same browser session after a refused pool checkout before BEGIN. An ambiguous database transaction still closes access. The 15 PostgreSQL tests passed. Source admission passed for all 389 hosted inputs and the 141 native inputs in both Python modes. [Session recovery](verification/receipts/l07-recovery-v33-41a05264.json).
+
+On the combined build tree, a free authenticated client downloaded the app, symbols and inventory after worker shutdown. A separate signer verified the attestation. In a second build, cancellation returned 202 while Xcode was running and released capacity once the worker confirmed termination. The local store CLI candidate reconciled a lost acknowledgement on both platforms with one durable submission each. [Native build](verification/receipts/l05-combined-native-build-41a05264.json) · [Store fixtures](verification/receipts/l05-local-submission-reconciliation-41a05264.json).
+
+Chrome verified free workspace administration with the preliminary session recovery fix. The workspace profile refused build submission and cancellation. L06 remains open for a free owner to manage the workspace and use its build services. [Browser evidence](verification/receipts/l06-combined-console-browser-793196991d.json).
+
+L04 review requires signed delivery through the supported FieldLog entry points and a CLI check that distinguishes an eligible task edit from a change requiring a native binary. The mobile fixture runs and host checks remain scoped evidence. [Independent decision](verification/receipts/l04-independent-review-9fd7e7f6eb-41a05264.json).
+
 On API 36, FieldLog’s development fixture installed once, read the saved task before each signed guest’s first frame, and preserved its workspace through Activity recreation, rollback and process-cold offline reopen. Reconnecting resumed the 258-byte partial download. The final confirmed change persisted revision 5 and eight outbox records. The disposable AVD was removed and all owned groups closed. [Android runtime](verification/receipts/fieldlog-android-hydrated-signed-runtime-41a05264.json).
 
 Five paired macOS runs matched native and guest results across three persisted tasks. Each implementation processed 60 actions, including 45 commits. Two earlier guest runs stopped before parity, once after input and once at the hydration deadline. Mobile performance and reliability remain open. [Matched workload](verification/receipts/fieldlog-matched-persisted-host-41a05264.json).

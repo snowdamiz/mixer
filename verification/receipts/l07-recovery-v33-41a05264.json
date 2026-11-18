@@ -1,0 +1,481 @@
+{
+  "schema": 1,
+  "base": "793196991da046870e9e3eae1ba767135a2ff62d",
+  "scope": "Local hosted ordinary authenticated-session pool recovery and source authority. L07 as a whole and GA remain unqualified.",
+  "prior_failure": {
+    "receipt": {
+      "path": "verification/local/l07-recovery-delivery-41a05264.85WhFosg/current-suite/receipt.json",
+      "bytes": 100700,
+      "sha256": "1ed840171a2e224be907c1e5fbe3f59c359bb6680b928b27a750f8e23b8d865b"
+    },
+    "log": {
+      "path": "verification/local/l07-recovery-delivery-41a05264.85WhFosg/current-suite/tests.log",
+      "bytes": 17639,
+      "sha256": "7dc5d961fb66b64cc8348d075deca2a987bec5c37adda53fa9d8d0f2fe33a078"
+    },
+    "result": "9/15 passed; first failure was the COMMIT observer timeout; five later tests failed setup after proxy shutdown.",
+    "diagnosis": "The previously logged proxy release timeout proves it entered the COMMIT barrier. The original 2s observer can expire before a valid 5s callback reaches the barrier. Both original targeted sources passed under the fresh fixture. A controlled 2.1s pre-request delay isolated the test timeout, and the full final suite kept both wire-withholding and independent visibility checks."
+  },
+  "experiments": {
+    "baseline_barrier": {
+      "command": {
+        "args": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs:1393"
+        ],
+        "pid": 27055,
+        "group_absent": true,
+        "exit": 0
+      },
+      "cleanup": {
+        "postgres_port": 63344,
+        "postgres_group_absent": true,
+        "scratch_bytes_before_db_cleanup": 144613376,
+        "postgres_exit": 0,
+        "postgres_pid": 26239,
+        "database_removed": true,
+        "ports_reusable": [
+          63344
+        ]
+      },
+      "results": [
+        "Result: 1 passed, 11 excluded"
+      ],
+      "log": {
+        "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/barrier-baseline-r2/tests.log",
+        "bytes": 3841,
+        "sha256": "6289ebc08953a8a670b6aadd33f021ee2ac016d886d56c6a8cd4cb00e17b2288"
+      },
+      "postgres_version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "elixir_version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)"
+    },
+    "reviewed_recovery_patch_barrier": {
+      "command": {
+        "args": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs:1393"
+        ],
+        "pid": 45618,
+        "group_absent": true,
+        "exit": 0
+      },
+      "cleanup": {
+        "postgres_port": 50380,
+        "postgres_group_absent": true,
+        "scratch_bytes_before_db_cleanup": 275255296,
+        "postgres_exit": 0,
+        "postgres_pid": 45534,
+        "database_removed": true,
+        "ports_reusable": [
+          50380
+        ]
+      },
+      "results": [
+        "Result: 1 passed, 11 excluded"
+      ],
+      "log": {
+        "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/barrier-reviewed/tests.log",
+        "bytes": 3865,
+        "sha256": "b1f1520d7ffbc8c22472cfdbefa5c8998e8c21769792f62d5c29f7ebf95c22d7"
+      },
+      "postgres_version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "elixir_version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)"
+    },
+    "baseline_two_files": {
+      "command": {
+        "args": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs"
+        ],
+        "pid": 34366,
+        "group_absent": true,
+        "exit": 0
+      },
+      "cleanup": {
+        "postgres_port": 64176,
+        "postgres_group_absent": true,
+        "scratch_bytes_before_db_cleanup": 159784960,
+        "postgres_exit": 0,
+        "postgres_pid": 34157,
+        "database_removed": true,
+        "ports_reusable": [
+          64176
+        ]
+      },
+      "results": [
+        "Result: 14 passed"
+      ],
+      "log": {
+        "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/suite-baseline/tests.log",
+        "bytes": 8958,
+        "sha256": "db3d6c4fdd911bab996c29f10d4b9e738886f1c6da0565c77122b8520f01c4b2"
+      },
+      "postgres_version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "elixir_version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)"
+    },
+    "final_two_files": {
+      "command": {
+        "args": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs"
+        ],
+        "pid": 51493,
+        "group_absent": true,
+        "exit": 0
+      },
+      "cleanup": {
+        "postgres_port": 51646,
+        "postgres_group_absent": true,
+        "scratch_bytes_before_db_cleanup": 239861760,
+        "postgres_exit": 0,
+        "postgres_pid": 51435,
+        "database_removed": true,
+        "ports_reusable": [
+          51646
+        ]
+      },
+      "results": [
+        "Result: 15 passed"
+      ],
+      "log": {
+        "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/suite-v33/tests.log",
+        "bytes": 10337,
+        "sha256": "237593bd0d7c471aca3ad222de1be7055f9583d5ec48b67f9cf5f5688e88cddb"
+      },
+      "postgres_version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "elixir_version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)"
+    },
+    "controlled_2100ms_pre_request_delay_original_fixture": {
+      "command": {
+        "args": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs:1393"
+        ],
+        "pid": 52656,
+        "group_absent": true,
+        "exit": 2
+      },
+      "cleanup": {
+        "postgres_port": 52021,
+        "postgres_group_absent": true,
+        "scratch_bytes_before_db_cleanup": 314777600,
+        "postgres_exit": 0,
+        "postgres_pid": 52574,
+        "database_removed": true,
+        "ports_reusable": [
+          52021
+        ]
+      },
+      "results": [
+        "Result: 0/1 passed, 11 excluded",
+        "Failed: 1 test"
+      ],
+      "log": {
+        "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/observer-delay-old/tests.log",
+        "bytes": 4206,
+        "sha256": "df9d6c8a89b66c1984eaff1b265ff59e496c23fa8ae9af2b62e15a6e51ada57b"
+      },
+      "postgres_version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "elixir_version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)"
+    },
+    "controlled_2100ms_pre_request_delay_final_fixture": {
+      "command": {
+        "args": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/private_login_http_test.exs:1397"
+        ],
+        "pid": 53450,
+        "group_absent": true,
+        "exit": 0
+      },
+      "cleanup": {
+        "postgres_port": 52216,
+        "postgres_group_absent": true,
+        "scratch_bytes_before_db_cleanup": 327491584,
+        "postgres_exit": 0,
+        "postgres_pid": 53359,
+        "database_removed": true,
+        "ports_reusable": [
+          52216
+        ]
+      },
+      "results": [
+        "Result: 1 passed, 11 excluded"
+      ],
+      "log": {
+        "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/observer-delay-repaired/tests.log",
+        "bytes": 3839,
+        "sha256": "394156fe8dca92b07ad49babd29eb15a7cb30600344fd13d45755e5aedc3099f"
+      },
+      "postgres_version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "elixir_version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)"
+    },
+    "final_recovery_test_with_only_baseline_store": {
+      "command": {
+        "args": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs",
+          "--only",
+          "module:Elixir.MixerHosted.CustomerBuildSessionRecoveryHTTPTest"
+        ],
+        "pid": 66659,
+        "group_absent": true,
+        "exit": 2
+      },
+      "cleanup": {
+        "postgres_port": 53998,
+        "postgres_group_absent": true,
+        "scratch_bytes_before_db_cleanup": 257269760,
+        "postgres_exit": 0,
+        "postgres_pid": 66600,
+        "database_removed": true,
+        "ports_reusable": [
+          53998
+        ]
+      },
+      "results": [
+        "Result: 0/1 passed, 2 excluded",
+        "Failed: 1 test"
+      ],
+      "log": {
+        "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/recovery-negative-baseline-store/tests.log",
+        "bytes": 3034,
+        "sha256": "bf3d31cac7e796b61571ba77a761fa486f628e19d3ecfb373b2700f7a00927e7"
+      },
+      "postgres_version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "elixir_version": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)"
+    }
+  },
+  "barrier_evidence": {
+    "barrier-baseline-r2": {
+      "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/barrier-baseline-r2/fixture/R932_BARRIER_EVIDENCE.json",
+      "bytes": 315,
+      "sha256": "ed5005fa870995e24460a2f847e8b4054543fa45c51557984d4dd68b4a3f6c84"
+    },
+    "barrier-reviewed": {
+      "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/barrier-reviewed/fixture/R932_BARRIER_EVIDENCE.json",
+      "bytes": 315,
+      "sha256": "f91ed41fb9797a30795f6b4f957d84401ba70f7887e4cd86e114f538783207ce"
+    },
+    "suite-v33": {
+      "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/suite-v33/fixture/R932_BARRIER_EVIDENCE.json",
+      "bytes": 315,
+      "sha256": "babdd4377e5490429b3b8221e87d23f61db63204cbeee5676647fddd77e5f5fc"
+    },
+    "observer-delay-repaired": {
+      "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/observer-delay-repaired/fixture/R932_BARRIER_EVIDENCE.json",
+      "bytes": 315,
+      "sha256": "e1b44d14790cfec80c2fc70d293c7fbef36997a9e3997a8a9ce0dc1577017fd8"
+    }
+  },
+  "actual_rollback_evidence": {
+    "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/suite-v33/fixture/R932_FAILURE_EVIDENCE.json",
+    "bytes": 461,
+    "sha256": "4b2a3a08ef96eeafa90713185e075cc307a1398dc25e0a8a777bb248ff23f6ac"
+  },
+  "tool_versions": {
+    "python": "Python 3.14.8",
+    "node": "v22.23.3"
+  },
+  "source_admission_normal": {
+    "preflights": {
+      "--check-source": {
+        "result": {
+          "identity": "hosted-ordinary-session-recovery-source-v33",
+          "runtime_or_GA_accepted": false,
+          "selection_sha256": "3f3e452688761c67e1bdaad3ce5747914dd73d46ba7a80d4f5988a271b1fe87a",
+          "source_count": 389,
+          "source_digest_sha256": "55247e57f19e21506da6b4a9237552b485a5687b58782d56224f9e085b5b9152"
+        },
+        "output": {
+          "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/v33-normal.json",
+          "bytes": 294,
+          "sha256": "d71d3c2b4ed2ae46e11a2bf10f76c9d1431787973b23fbc15b764d686a937811"
+        }
+      },
+      "--check-workspace-source": {
+        "result": {
+          "identity": "hosted-ordinary-session-recovery-source-v33",
+          "runtime_or_GA_accepted": false,
+          "selection_sha256": "3f3e452688761c67e1bdaad3ce5747914dd73d46ba7a80d4f5988a271b1fe87a",
+          "source_count": 389,
+          "source_digest_sha256": "55247e57f19e21506da6b4a9237552b485a5687b58782d56224f9e085b5b9152"
+        },
+        "output": {
+          "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/v33-workspace-normal.json",
+          "bytes": 294,
+          "sha256": "d71d3c2b4ed2ae46e11a2bf10f76c9d1431787973b23fbc15b764d686a937811"
+        }
+      }
+    },
+    "unit_tests": 315,
+    "unit_log": {
+      "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/source-controls-normal-complete.log",
+      "bytes": 53610,
+      "sha256": "a4705e57956db9f1a7dbdaba27c0d1b8a1aff31ff1d44556278890c03808d690"
+    }
+  },
+  "source_admission_optimized": {
+    "preflights": {
+      "--check-source": {
+        "result": {
+          "identity": "hosted-ordinary-session-recovery-source-v33",
+          "runtime_or_GA_accepted": false,
+          "selection_sha256": "3f3e452688761c67e1bdaad3ce5747914dd73d46ba7a80d4f5988a271b1fe87a",
+          "source_count": 389,
+          "source_digest_sha256": "55247e57f19e21506da6b4a9237552b485a5687b58782d56224f9e085b5b9152"
+        },
+        "output": {
+          "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/v33-optimized.json",
+          "bytes": 294,
+          "sha256": "d71d3c2b4ed2ae46e11a2bf10f76c9d1431787973b23fbc15b764d686a937811"
+        }
+      },
+      "--check-workspace-source": {
+        "result": {
+          "identity": "hosted-ordinary-session-recovery-source-v33",
+          "runtime_or_GA_accepted": false,
+          "selection_sha256": "3f3e452688761c67e1bdaad3ce5747914dd73d46ba7a80d4f5988a271b1fe87a",
+          "source_count": 389,
+          "source_digest_sha256": "55247e57f19e21506da6b4a9237552b485a5687b58782d56224f9e085b5b9152"
+        },
+        "output": {
+          "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/v33-workspace-optimized.json",
+          "bytes": 294,
+          "sha256": "d71d3c2b4ed2ae46e11a2bf10f76c9d1431787973b23fbc15b764d686a937811"
+        }
+      }
+    },
+    "unit_tests": 315,
+    "unit_log": {
+      "path": "verification/local/l07-recovery-qualification-41a05264.q5jj8ouv/source-controls-optimized.log",
+      "bytes": 53610,
+      "sha256": "be00f2584706f4128e5ab643df1a437ca3b6ed5ae38d2bb0e13612d7e5434cb7"
+    }
+  },
+  "successor_exact_delta": {
+    "hosted/lib/mixer_hosted/browser_auth/store.ex": {
+      "after": {
+        "bytes": 26575,
+        "sha256": "c67e3b35df46ed1bf289459b099ce1a64006dbb585faffa0831171a8d23d690e"
+      },
+      "before": {
+        "bytes": 25851,
+        "sha256": "9ee7a93fe9cd84df7599c95f254513a7319568cad8bad6fc86c6170b454e4f95"
+      }
+    },
+    "hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs": {
+      "after": {
+        "bytes": 26780,
+        "sha256": "992d1f25eb888be946956ae5dfb90ac12825908920ff10da927fc30bf619b1da"
+      },
+      "before": {
+        "bytes": 21824,
+        "sha256": "2d1b01399b9e36f9614a3df05e30744b3bb597d7318be5aa6b6830a6babbc6a4"
+      }
+    },
+    "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs": {
+      "after": {
+        "bytes": 58878,
+        "sha256": "3867ecd1580e13ffc49fde4a24b3d3f35d2610432956dc393af189548d9365c6"
+      },
+      "before": {
+        "bytes": 57389,
+        "sha256": "b710bbb4c10bbf199d42dd4efb817dc892f931645441dddcf35772e026bafb9a"
+      }
+    }
+  },
+  "predecessor": {
+    "manifest_sha256": "75c4bace4002591df58d7e70a22652cef1939006ca707b7975fb50fb653fc1a1",
+    "selection_sha256": "ddaac4cdf3ebf8ed54d5ace2b159cf1f402a9ae5f418f1c62d002bc0f89b4d5e",
+    "source_count": 389,
+    "source_digest_sha256": "82960e8e2371b2ef3a53bb12f16b15ced05205cc3e8d37a12db7809e26ab13b8"
+  },
+  "patch_replay": {
+    "base": "793196991da046870e9e3eae1ba767135a2ff62d",
+    "base_with_original_dirty_bytes": "794e028569d437808061f40f9b0c8d879a9c1228",
+    "clean_patch_apply_check_at_shared_head": "9fd7e7f6ebd9cadfd96d71a6c71225e6b11e33b9",
+    "replayed_candidate_tree": "b09dc36807ad5e761682ad63c5232577d1a0bc34",
+    "patches": {
+      "l07-recovery-v33.patch": "e306705558cccc5f5c2302f7085aae6579cd44d468bb9ef4eb10e41a3781b535",
+      "l07-recovery-v33-on-original-dirty.patch": "73b7441dcb3c22ea5eec66be3fd62087cc482aa792e2501257c7b1d387408802"
+    },
+    "paths": [
+      ".github/workflows/hosted.yml",
+      ".github/workflows/identity-network.yml",
+      ".github/workflows/verify.yml",
+      "hosted/lib/mixer_hosted/browser_auth/store.ex",
+      "hosted/scripts/test-identity-network.py",
+      "hosted/scripts/test_identity_network_collector.py",
+      "hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs",
+      "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs",
+      "scripts/verification-artifact-policy.json",
+      "verification/identity-network-current-source-v33/preimages/hosted/lib/mixer_hosted/browser_auth/store.ex",
+      "verification/identity-network-current-source-v33/preimages/hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs",
+      "verification/identity-network-current-source-v33/preimages/hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs",
+      "verification/identity-network-current-source-v33/selected-source-manifest.json",
+      "verification/identity-network-current-source-v33/selection.json"
+    ],
+    "original_dirty_sha256": {
+      "hosted/lib/mixer_hosted/browser_auth/store.ex": "4964609c89ca4e8615f7935db841a589ef6c2b88b83f59afcb49446b801d2b7e",
+      "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs": "6025de9160029de43aab08c1726337bf7170f30e0148477d9e8b7afd900cba64"
+    },
+    "final_sha256_for_same_paths": {
+      "hosted/lib/mixer_hosted/browser_auth/store.ex": "c67e3b35df46ed1bf289459b099ce1a64006dbb585faffa0831171a8d23d690e",
+      "hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs": "3867ecd1580e13ffc49fde4a24b3d3f35d2610432956dc393af189548d9365c6"
+    }
+  },
+  "retention": "Verification retention passed for 48971 tracked files and 940927797 bytes.",
+  "dirty_overlap": {
+    "store": "Only the existing refusal measurement match and guard are replaced: the final receipt requires exactly total_time and queue_time, equal nonnegative integers.",
+    "private_login_http_test": "Preserves the dirty password environment lookup and the original three receipt cases. Adds missing-measurement, query-time and duplicate controls, and aligns two COMMIT observer waits with the callback deadline."
+  },
+  "preliminary_excluded_evidence": [
+    "First focused runner omitted the catalog-definer role. A later candidate-labeled replay also retained the baseline bytes because Git skipped applying from a nested directory. The cited reviewed comparison used the actual patch after all three afterimages were hash-verified.",
+    "First broad collector run used an incomplete sparse input projection. The cited rerun includes all declared collector inputs."
+  ],
+  "peak_sampled_scratch_bytes": 327491584,
+  "limitations": [
+    "PostgreSQL and all HTTP fixtures ran on loopback with synthetic identities and data. Local PostgreSQL used trust authentication, so the preserved password override was not qualified against database password auth.",
+    "Only the two selected ExUnit files ran against the final runtime source. The full hosted runtime and release suite, deployment and GA were outside this qualification.",
+    "The controlled delay occurs before opening the callback connection and tests the observer budget independently of the production callback deadline.",
+    "Tracked files, shared Git index, devices and historical holds were not changed by this lane."
+  ]
+}

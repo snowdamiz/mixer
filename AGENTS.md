@@ -899,3 +899,13 @@ The November 18 live cancellation campaigns left worker custody unresolved in th
 The November 18 release-rotation review stopped its independent Go check with UNKNOWN custody for PGID 7312. Preserve that group and the entire `/tmp/mixer-rotation-review-go-ww3mr1gq` namespace without inspection, retry, signalling or cleanup. See `verification/receipts/release-v3-rotation-halt-review-41a05264.json`.
 
 The ordinary FieldLog upgrade stopped during system photo import with UNKNOWN custody for PID/PGID 96115. Preserve Simulator UUID `3BE9FB17-6348-42C8-944B-9140BEC5541F` and `verification/local/fieldlog-installed-upgrade-root-r1/live` without inspection, process or device operations, retry, or cleanup. The copied metadata is in `verification/receipts/fieldlog-installed-upgrade-import-hold-41a05264.json`.
+
+The November 18 combined free-console fixture left Chrome PGID 2983 under
+UNKNOWN custody. Preserve the group, its profile and browser log under
+`/tmp/mixer-l06-browser-793196991d.ZBdQQQ7D`. The combined build fixture
+also retained worker PGID 4689 after it refused shutdown. Preserve the state
+directory and worker log in
+`/Users/andreyyurlov/.t3/userdata/mixer-l05-combined-7931969-lxFZMXw4/live-combined-locale`.
+Do not inspect, enumerate, probe, signal, retry or clean these chains. The
+copied top-level receipts are `verification/receipts/l06-combined-console-browser-793196991d.json`
+and `verification/receipts/l05-combined-native-build-41a05264.json`.

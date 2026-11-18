@@ -1,0 +1,291 @@
+{
+  "schema": 1,
+  "observedAt": "2026-11-18T16:08:05.738853+00:00",
+  "commit": "793196991da046870e9e3eae1ba767135a2ff62d",
+  "tree": "8d4cf900fc9f04e0e3e8a861d2771490648a4ae2",
+  "input": {
+    "delivery": "/tmp/mixer-combined-41a05264.rdOfjC1D",
+    "preparedHostedAndConsoleTrackedBytesMatch": true,
+    "finalPatchSha256": "23049853650fd3f47a1d97be3ccd5699b0e3b726e5a61c90d49f52db8b22cf31"
+  },
+  "L06": {
+    "status": "running",
+    "scopedDecision": "Private workspace administration pass",
+    "wholeGatePassed": false
+  },
+  "versions": {
+    "chrome": "Google Chrome 155.0.8059.82",
+    "postgres": "17.11 Homebrew",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "node": "22.23.3",
+    "python": "3.14.8",
+    "vite": "8.3.5"
+  },
+  "commands": {
+    "consoleBuild": "tsc --noEmit; vite build --mode local-workspace-manage --configLoader runner --outDir <scratch>/dist --emptyOutDir",
+    "fixture": "L06_RUN=<scratch> python3 -B run.py",
+    "phoenix": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/browser_auth/combined_l06_fixture_test.exs",
+    "chrome": "node browser.mjs <loopback-https-origin> <owned-postgres-port>"
+  },
+  "fixture": {
+    "browser": "Owned real Chrome via CDP pipe and disposable profile. Fresh self-signed loopback TLS bridge pin. Final replay used macOS outbound loopback sandbox and --no-sandbox to avoid incompatible nested renderer sandbox initialization.",
+    "transport": "Bridge forwarded cookie and CSRF unchanged, mapped synthetic issuer redirects and normalized the bridge Origin to the configured fixture origin.",
+    "profiles": {
+      "console": "local-workspace-manage",
+      "browserOidcScope": "openid mixer.workspace.read mixer.workspace.manage",
+      "processor": null,
+      "buildCancel": false
+    },
+    "identity": "Two pre-registered synthetic principals in separate Chrome browser contexts. Test-only fixture adapted to select the principal and start from an empty directory.",
+    "paymentCredentialsOrServicesConfigured": false,
+    "externalProductActions": false,
+    "earlierBrowserNetwork": "Earlier launches used resolver restrictions and background-network flags. A host Chrome updater wake appeared in an earlier log; its network activity was unmeasured. The completed replay used an OS-level outbound loopback restriction and a private Chrome home."
+  },
+  "exactCommit": {
+    "defaultConsole": {
+      "authenticatedDirectoryStatus": 200,
+      "workspaceCreateControls": false
+    },
+    "workspaceManage": {
+      "firstOrgPostStatus": 201,
+      "laterDirectoryAndUsageStatus": 503,
+      "poolRefusalBeforeBegin": true,
+      "queryTimePresent": false,
+      "scope": "The driver issued an overlapping directory read. The exact tree was unable to continue after the pre-BEGIN pool refusal. A separate browser login replay observed subsequent admission/not_started with the callback cookie intact.",
+      "reproductionStatuses": {
+        "GET /auth/callback - 303": 1,
+        "GET /auth/session - 200": 6,
+        "GET /authorize - 302": 1,
+        "GET /console-api/v1/orgs - 200": 2,
+        "GET /console-api/v1/orgs - 503": 1,
+        "GET /console-api/v1/projects - 503": 1,
+        "POST /auth/login - 200": 1,
+        "POST /console-api/v1/orgs - 201": 1,
+        "POST /console-api/v1/workspace-admin usage 503": 1
+      },
+      "cleanup": {
+        "databaseDropped": true,
+        "portsReusable": [
+          65271,
+          65331,
+          65324,
+          65315,
+          65345
+        ],
+        "servicesTerminal": true,
+        "services": [
+          {
+            "label": "postgres",
+            "pid": 39058,
+            "pgid": 39058,
+            "exit": 0,
+            "groupAbsent": true
+          },
+          {
+            "label": "phoenix",
+            "pid": 39077,
+            "pgid": 39077,
+            "exit": 0,
+            "groupAbsent": true
+          }
+        ],
+        "chrome": {
+          "pid": 39284,
+          "pgid": 39284,
+          "directReap": true,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "groupAbsent": true,
+          "profileRemoved": true
+        }
+      }
+    }
+  },
+  "privateFollowup": {
+    "sourceChange": "One Store file. Reused the concurrent worktree correction privately. A pinned DBConnection no-queue error in the initial BEGIN frame without query_time is classified not_started; incomplete or ambiguous transaction receipts still fail closed.",
+    "patch": {
+      "path": "/private/tmp/mixer-l06-browser-replay.EYKj7CSm/private-store.patch",
+      "bytes": 2809,
+      "sha256": "6d4c13a67e36a59b67c3822c3ac964951cc42c254a905db57f640246944f35c8"
+    },
+    "status": "passed",
+    "observed": [
+      "browser login subject-1 via PKCE, Secure HttpOnly host cookie",
+      "free owner creates organization and three projects, fourth refused in UI",
+      "browser login subject-2 via PKCE, Secure HttpOnly host cookie",
+      "two separately authenticated tenants refuse foreign export, support history and deletion",
+      "developer to viewer changes same membership; viewer sees usage and is denied administration",
+      "support persists across reopen and keeps actor-private history, idempotency and ten-request quota",
+      "archived project disappears, releases one project slot and remains in actual downloaded export",
+      "build page reached; catalog and create denied under workspace scope; cancellation feature disabled",
+      "unsettled fixture journal blocks exit; settled fixture journal allows tombstone; other tenant remains intact"
+    ],
+    "controls": {
+      "visibleRetries": 8,
+      "usageAtQuota": {
+        "active_projects": 3,
+        "build_limit": 2,
+        "builds": 0,
+        "can_administer": true,
+        "held_builds": 0,
+        "organization_id": "org-1298b8c6d1074b76b5e6074ae5bf08c5",
+        "plan": "free",
+        "project_limit": 3
+      },
+      "noCsrf": 403,
+      "invalidCsrf": 403,
+      "membership": {
+        "sameRow": true,
+        "revision": 2,
+        "role": "viewer"
+      },
+      "support": {
+        "dailyLimit": 10,
+        "exactReplay": true,
+        "changedReplayStatus": 409,
+        "crossMemberVisible": 0
+      },
+      "builds": {
+        "applications": 403,
+        "catalog": 403,
+        "create": 403,
+        "cancel": 404,
+        "createControlWroteZeroRows": true
+      }
+    },
+    "databaseReadback": {
+      "active": false,
+      "billingActive": false,
+      "capacityConfigured": false,
+      "buildRevision": 1,
+      "foreignActive": true,
+      "jobs": 0,
+      "credentials": 0,
+      "supportRows": 10
+    },
+    "httpCounts": {
+      "GET /auth/callback - 303": 2,
+      "GET /auth/session - 200": 50,
+      "GET /authorize - 302": 2,
+      "GET /console-api/v1/applications - 403": 2,
+      "GET /console-api/v1/build-catalog - 403": 1,
+      "GET /console-api/v1/orgs - 200": 14,
+      "GET /console-api/v1/projects - 200": 10,
+      "GET /console-api/v1/projects - 503": 6,
+      "POST /auth/login - 200": 2,
+      "POST /console-api/v1/builds - 403": 1,
+      "POST /console-api/v1/builds/cancel - 404": 1,
+      "POST /console-api/v1/orgs - 201": 2,
+      "POST /console-api/v1/projects - 201": 4,
+      "POST /console-api/v1/projects - 409": 1,
+      "POST /console-api/v1/support-requests list 200": 5,
+      "POST /console-api/v1/support-requests list 404": 3,
+      "POST /console-api/v1/support-requests list 503": 1,
+      "POST /console-api/v1/support-requests submit 201": 11,
+      "POST /console-api/v1/support-requests submit 409": 2,
+      "POST /console-api/v1/workspace-admin delete_organization 200": 1,
+      "POST /console-api/v1/workspace-admin delete_organization 403": 1,
+      "POST /console-api/v1/workspace-admin delete_organization 404": 2,
+      "POST /console-api/v1/workspace-admin delete_organization 409": 1,
+      "POST /console-api/v1/workspace-admin delete_project 200": 1,
+      "POST /console-api/v1/workspace-admin export 200": 2,
+      "POST /console-api/v1/workspace-admin export 403": 1,
+      "POST /console-api/v1/workspace-admin export 404": 3,
+      "POST /console-api/v1/workspace-admin set_member 200": 2,
+      "POST /console-api/v1/workspace-admin set_member 403": 1,
+      "POST /console-api/v1/workspace-admin usage 200": 17,
+      "POST /console-api/v1/workspace-admin usage 403": 2,
+      "POST /console-api/v1/workspace-admin usage 404": 1,
+      "POST /console-api/v1/workspace-admin usage 503": 3
+    },
+    "cleanup": {
+      "databaseDropped": true,
+      "portsReusable": [
+        53621,
+        53650,
+        53643,
+        53640,
+        53657
+      ],
+      "servicesTerminal": true,
+      "services": [
+        {
+          "label": "postgres",
+          "pid": 66014,
+          "pgid": 66014,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "phoenix",
+          "pid": 66024,
+          "pgid": 66024,
+          "exit": 0,
+          "groupAbsent": true
+        }
+      ],
+      "chrome": {
+        "pid": 66104,
+        "pgid": 66104,
+        "directReap": true,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "groupAbsent": true,
+        "profileRemoved": true
+      }
+    },
+    "closure": "Storage remained usable after one observed pre-BEGIN pool refusal. The driver used the console\u2019s visible Retry or Refresh controls eight times.",
+    "secureHostCookiesObserved": 2
+  },
+  "scopeLimits": [
+    "Build capacity display was exercised. Actual build admission, quota exhaustion with held workers, and cancellation execution were outside this workspace profile. No compiler or worker started.",
+    "Exit used two schema-1 journals generated and replayed by the real Journal module, inserted as private DB fixture state. Browser deletion and database tombstone were checked against that state; the settlement event was not delivered by a live worker.",
+    "The catalog behavior and feature switch are specific to the selected workspace scope. Public TLS, deployment, release and GA remain unqualified."
+  ],
+  "retention": {
+    "earlierChromeHold": {
+      "path": "/tmp/mixer-l06-browser-793196991d.ZBdQQQ7D/chrome-profile",
+      "browserLog": "/tmp/mixer-l06-browser-793196991d.ZBdQQQ7D/browser.log",
+      "pid": 2983,
+      "pgid": 2983,
+      "state": "UNKNOWN",
+      "scope": "Earlier bridge path preflight. Chrome direct reap and group absence unobserved. PostgreSQL and Phoenix closed, fixture database dropped, all five listeners reusable. Preserve this owned Chrome chain."
+    },
+    "runScratchAtTeardownKiB": 66200,
+    "release": "Disposable database, clone build outputs, test credentials, browser profile and downloads removed after verified custody. Preserved only the compact receipt, small private replay inputs and the earlier Chrome hold.",
+    "largestMeasuredCombinedScratchKiB": 155136,
+    "scratchMeasurementScope": "Conservative sum of recorded per-directory samples. Inherited prepared dependencies are excluded. Samples are not a continuously observed peak."
+  },
+  "replayInputs": [
+    {
+      "path": "/private/tmp/mixer-l06-browser-replay.EYKj7CSm/run.py",
+      "bytes": 10545,
+      "sha256": "b9929096ee2f85e352d997fec667f0384ff0c9ae1b119ea4faed6e00c05c26d7"
+    },
+    {
+      "path": "/private/tmp/mixer-l06-browser-replay.EYKj7CSm/browser.mjs",
+      "bytes": 21647,
+      "sha256": "6ca0563224b6a14ccfbe3e7fceab6078bc3d1810f64789ab5ce7b6e3c94c1c85"
+    },
+    {
+      "path": "/private/tmp/mixer-l06-browser-replay.EYKj7CSm/combined_l06_fixture_test.exs",
+      "bytes": 5725,
+      "sha256": "d36ce381c69bb8acc3242d680a9aa569e5a6b48f64b86d8ffdb6a8d25f26fb5e"
+    },
+    {
+      "path": "/private/tmp/mixer-l06-browser-replay.EYKj7CSm/provider-fixture.patch",
+      "bytes": 778,
+      "sha256": "7034bf3b20979b4e08ba44924f4156df86f09ccfac01a4ba5f3765fef895841e"
+    },
+    {
+      "path": "/private/tmp/mixer-l06-browser-replay.EYKj7CSm/ordinary-fixture.patch",
+      "bytes": 2126,
+      "sha256": "81262295f68414081b76635e572c83d2dcb2b0a459da3ca1c0d96dcdf0520614"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "gate": "L04",
+  "decision": "request_changes",
+  "recommendation": "Keep L04 running. The retained trials establish scoped mobile OTA and recovery. The supported consumer integration and source-level native-change refusal still need an executable result.",
+  "reviewedAtUTC": "2026-11-18T16:08:45Z",
+  "source": {
+    "revision": "9fd7e7f6ebd9cadfd96d71a6c71225e6b11e33b9",
+    "tree": "e564100f5996a4abf51c183ded29d46fe0eec77e",
+    "scope": "mixer-product-plan.md sections 2, 11 and 12, local portions of G12–G19, and gates/local.json L04. Section 22.2's full dual-target corpus belongs to L08."
+  },
+  "findings": [
+    {
+      "clause": "Signed logic and UI on installed iOS and Android with real local delivery",
+      "result": "scoped_pass",
+      "android": "One install of dev.mixer.fieldlog.hydrationtrial on API 36. Captured native UI shows baseline one-tap completion and the reviewed release's Review required and Confirm completion. Confirmation alone committed the change. Sequences 1, 2, 3 and 4 were selected by the same APK. The HTTP trace contains v3 artifact validation, publication, assignment and artifact GETs, server rollback, an interrupted response and a follow-up fetch.",
+      "ios": "One dev.mixer.fieldlog Simulator build used the signed-task XCTest launch path. Attached screenshots and saved-state readbacks show review confirmation and a healthy sequence 3 rollback in the same installation. The local origin validated both artifacts and the test drove signed publish and rollback. The accepted candidate and payload digests distinguish baseline and reviewed releases.",
+      "limit": "These are real Go v3 loopback delivery and real guest behavior with development keys. Each mobile trial used its own file-backed release origin configuration and private runtime and consumer overlays. They provide scoped delivery evidence for separate platform variants."
+    },
+    {
+      "clause": "Interrupted or failed updates recover offline with saved data",
+      "result": "scoped_pass",
+      "android": "Sequence 4 left a 258-byte partial while sequence 3 stayed healthy. Removing the reverse mapping and force-stopping produced a new PID that reopened sequence 3 with the same task, revision 4, seven outbox entries and identical workspace bytes. Reconnecting selected sequence 4 and confirming completion reached revision 5 and eight outbox entries.",
+      "ios": "Offline relaunch omitted the delivery URL. Its first frame read saved revision 5 and six outbox entries before any guest UI event. The final offline edit persisted revision 6 and seven outbox entries. This iOS case did not interrupt a download.",
+      "host": "The separate outage run closed both listeners before reopening the real workspace in a new macOS process, retained identical rollback state through offline reopen, and resumed from the restarted origin. The 26-test macOS recovery suite includes real startup-trap fallback, persistent quarantine, cold interruption and state-write fault checks."
+    },
+    {
+      "clause": "Compatibility, tenant/app/environment identity, signature, replay and cohort",
+      "result": "scoped_pass",
+      "observed": "The 69-test Swift log and 32 CLI vectors cover signed v3 binding, malformed and excessive inputs, tampered bytes and signatures, incompatible host/runtime/capability data, stale sequence and outside-cohort refusal. Current client compares organization, project, app, environment and platform as one signed scope, plus runtime and channel. The origin uses that scope and installation bucket; Go negatives cover tenant/role and signed host-binding refusal. Passed PostgreSQL controls independently cover tenant RLS, cross-tenant artifact lookup, sequence concurrency and separate runtime rows.",
+      "limit": "The installed mobile paths were exercised under eligible beta identities. Separate host and origin evidence covers the negative and mixed-runtime paths. There is no retained common-origin mobile run with a partial cohort and both platform variants."
+    },
+    {
+      "clause": "Development key rotation and staged halt",
+      "result": "scoped_pass",
+      "observed": "The real macOS installed verifier reopened healthy sequence 1 offline after expiry, refused expired authority for fresh admission and accepted sequence 2 with replacement roots pinned at the original install. The local origin rejected stale halt and persisted a matching halt across restart. Previously issued signed offers retained their ordinary authorization.",
+      "limit": "Scheduled expiry and planned rotation with pre-pinned keys, with host revocation controls. Mobile trials used fixed development roots. Production root custody and compromise recovery are later qualification."
+    },
+    {
+      "clause": "Supported public consumer integration on the reviewed runtime",
+      "result": "open",
+      "observed": "Android used Mixer base b142e72bfba027d2a7374f11b547672242368271 with overlay tree 0a2103683951d843474f27e76be402ee704dfbac and a private trial Activity, Android owner changes and a FieldLog storage patch. iOS used base 02002272c334dd0a3750c502ad5819b26d57fe0d with overlay tree b5e66e11f48b5752dadd036e03896759653e8d03, a patched FieldLog consumer, and corrected storage-grant serialization. Both start from FieldLog 552559d2d3278abb9b1aa7dcf0288102c09a202b.",
+      "gap": "9fd7e7f6eb changes the actual startup path beyond those tested overlays. It requires an accepted native completion before frame 1, validates the deferred hook and effective grant before activation, and forwards installed quotas and the startup cutoff. Host tests cover these corrections. The retained mobile packets cannot establish the corrected behavior with the supported FieldLog consumer and integrated local delivery."
+    },
+    {
+      "clause": "Unsupported native changes require a new binary",
+      "result": "open",
+      "observed": "Signed wrong-runtime, changed capability map and unsupported ABI cases exercise server and client refusal for already-described artifacts.",
+      "gap": "The retained evidence lacks an actual native capability, permission or dependency change submitted through the supported release inspection path. ReleaseAssessment.inspect at cli/Sources/MixerBuild/MigrationInspector.swift:224–243 returns a fixed blocked assessment after hashing inputs. It does not establish a change-specific native-build decision with a compatible OTA positive control."
+    }
+  ],
+  "smallestExecutableClosure": [
+    "Reuse the one-task baseline/review/rollback test on the supported FieldLog entry points on one owned iOS Simulator and one owned Android emulator. Build once per target from a pinned consumer using the corrected public runtime, record exact inputs, then use a single local v3 origin with both registered runtimes and the integrated local persistence and release route. Publish both variants using development keys. Verify the same installed binaries change the rendered control and commit behavior. On the existing origin query, exercise one in-range and one excluded installation per variant, with a retained old-runtime request as a compatibility control. During the follow-up download interrupt transport and stop the listener while retaining the configured URL. Cold-reopen both saved tasks and compare selected candidate, first frame, workspace digest, revision and outbox. Restart and verify completion of the pending download and signed rollback without reinstall.",
+    "Run one host release-inspection positive/negative pair against the installed FieldLog baseline. Submit the compatible task/UI edit and a real new native capability or permission on one target. Assert exact eligibility, a target-specific native-build-required diagnostic and refusal to publish the incompatible variant. Confirm the old installed runtime still receives its prior compatible artifact and the refused attempt leaves its sequence unchanged. This test needs functional release inspection beyond the current blanket block."
+  ],
+  "reviewMethod": {
+    "tools": "Python 3.14.8, jq, git show and diff, saved PNG inspection",
+    "checks": "Recomputed the pinned APK, build receipt, driver, raw JSON, HTTP trace, overlay, Wasm and host log SHA-256 values. Parsed five Android UI XML captures, verified one install and matched saved state across rollback, interruption, offline reopen and reconnect. Read iOS first-frame and workspace attachments, inspected review and offline screenshots, and matched the signed run disk result and Simulator cleanup metadata. Verified all eight rotation-changed and all five verifier-changed source paths against HEAD.",
+    "scope": "Retained sources and artifacts only. No new builds, device or process operations, remote access or held-resource access. This review does not change gate state."
+  },
+  "evidence": [
+    "verification/receipts/fieldlog-android-hydrated-signed-runtime-41a05264.json",
+    "verification/receipts/fieldlog-ios-hydrated-signed-runtime-41a05264.json",
+    "verification/receipts/fieldlog-public-first-frame-hydration-41a05264.json",
+    "verification/receipts/fieldlog-l04-release-v3-host-cli.json",
+    "verification/receipts/fieldlog-release-service-outage-41a05264.json",
+    "verification/receipts/release-v3-rotation-halt-41a05264.json",
+    "verification/receipts/release-v3-rotation-halt-review-41a05264.json"
+  ]
+}

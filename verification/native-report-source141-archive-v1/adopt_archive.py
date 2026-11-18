@@ -140,7 +140,9 @@ HYDRATION_SOURCE_CHANGES = {
     'sdk/Sources/MixerGuest/GuestUIProtocolV1.swift',
 }
 HYDRATION_CHANGES = HYDRATION_SOURCE_CHANGES | {CAPABILITY + 'CapabilityColdStartWorker.swift'}
-MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+VERIFY_WORKFLOW = '.github/workflows/verify.yml'
+HOSTED_V32_WORKFLOW = 'hosted-v32-predecessor-bytes/' + VERIFY_WORKFLOW
+MEMBERS = {HOSTED_V32_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
     'pair23-predecessor-bytes/' + name for name in STARTER_CHANGES
@@ -252,7 +254,7 @@ def install_inputs():
     require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
                              'changes', 'renderer_transition', 'starter_lock_transition',
                              'export_runner_transition', 'capability_transition', 'upgrade_transition',
-                             'pair24_transition', 'cancel_cli_transition', 'hydration_transition'} and
+                             'pair24_transition', 'cancel_cli_transition', 'hydration_transition', 'hosted_v33_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -413,6 +415,12 @@ def install_inputs():
             len(current) == 141 and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
             }, 'Hydration source transition differs')
+    workflow = binding['hosted_v33_workflow']
+    before = previous.read(HERE / HOSTED_V32_WORKFLOW)
+    require(set(workflow) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == workflow['before'] and
+            workflow['before'] != workflow['after'], 'Hosted v32 workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = workflow['after']
     previous.check_rows(ROOT, installed)
     for name, change in hydration['changes'].items():
         require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],

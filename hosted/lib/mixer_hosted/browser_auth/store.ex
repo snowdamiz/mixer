@@ -313,7 +313,7 @@ defmodule MixerHosted.BrowserAuth.Store do
   end
 
   @doc false
-  def transaction_event(@transaction_event, _, metadata, nil) do
+  def transaction_event(@transaction_event, measurements, metadata, nil) do
     case Process.get(@receipt) do
       {caller, reference, state} when caller == self() ->
         next =
@@ -325,7 +325,7 @@ defmodule MixerHosted.BrowserAuth.Store do
               query: query,
               result: result
             } ->
-              advance_receipt(state, query, result)
+              advance_receipt(state, query, result, measurements)
 
             _ ->
               :unknown
@@ -340,32 +340,51 @@ defmodule MixerHosted.BrowserAuth.Store do
     :ok
   end
 
+  # The pinned DBConnection pool emits this refusal before using a connection.
+  # Require the matching BEGIN frame and absence of connection time. A failed
+  # BEGIN on a checked-out connection or a missing receipt is still ambiguous.
   defp advance_receipt(
          :await_begin,
          "begin",
-         {:ok, %Postgrex.Result{command: :begin, connection_id: id}}
+         {:error,
+          %DBConnection.ConnectionError{
+            reason: :error,
+            message: "connection not available and queuing is disabled"
+          }},
+         %{total_time: time, queue_time: time} = measurements
+       )
+       when is_integer(time) and time >= 0 and map_size(measurements) == 2,
+       do: :not_started
+
+  defp advance_receipt(
+         :await_begin,
+         "begin",
+         {:ok, %Postgrex.Result{command: :begin, connection_id: id}},
+         _
        )
        when is_integer(id) and id > 0, do: {:begun, id}
 
   defp advance_receipt(
          {:begun, id},
          "commit",
-         {:ok, %Postgrex.Result{command: :commit, connection_id: id}}
+         {:ok, %Postgrex.Result{command: :commit, connection_id: id}},
+         _
        ),
        do: :committed
 
   defp advance_receipt(
          {:begun, id},
          query,
-         {:ok, %Postgrex.Result{command: :rollback, connection_id: id}}
+         {:ok, %Postgrex.Result{command: :rollback, connection_id: id}},
+         _
        )
        when query in ["commit", "rollback"], do: :rolled_back
 
-  defp advance_receipt(_, _, _), do: :unknown
+  defp advance_receipt(_, _, _, _), do: :unknown
 
   defp receipt_outcome do
     case Process.get(@receipt) do
-      {_, _, outcome} when outcome in [:committed, :rolled_back] -> outcome
+      {_, _, outcome} when outcome in [:not_started, :committed, :rolled_back] -> outcome
       _ -> :unknown
     end
   end

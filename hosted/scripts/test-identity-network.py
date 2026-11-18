@@ -2890,9 +2890,18 @@ def validate_workspace_v31_metadata(metadata):
     return selection, manifest
 
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v32/'
-WORKSPACE_SELECTION_SHA256 = 'ddaac4cdf3ebf8ed54d5ace2b159cf1f402a9ae5f418f1c62d002bc0f89b4d5e'
-WORKSPACE_SOURCE_DIGEST = '82960e8e2371b2ef3a53bb12f16b15ced05205cc3e8d37a12db7809e26ab13b8'
+WORKSPACE_V32_SOURCE_BASE = 'verification/identity-network-current-source-v32/'
+WORKSPACE_V32_SELECTION_SHA256 = 'ddaac4cdf3ebf8ed54d5ace2b159cf1f402a9ae5f418f1c62d002bc0f89b4d5e'
+WORKSPACE_V32_SOURCE_DIGEST = '82960e8e2371b2ef3a53bb12f16b15ced05205cc3e8d37a12db7809e26ab13b8'
+WORKSPACE_V32_SOURCE_COUNT = 389
+
+
+WORKSPACE_V32_MANIFEST_SHA256 = '75c4bace4002591df58d7e70a22652cef1939006ca707b7975fb50fb653fc1a1'
+
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v33/'
+WORKSPACE_SELECTION_SHA256 = '3f3e452688761c67e1bdaad3ce5747914dd73d46ba7a80d4f5988a271b1fe87a'
+WORKSPACE_SOURCE_DIGEST = '55247e57f19e21506da6b4a9237552b485a5687b58782d56224f9e085b5b9152'
 WORKSPACE_SOURCE_COUNT = 389
 
 
@@ -2901,34 +2910,60 @@ def workspace_source_metadata(root, base):
             for name in ('selection.json', 'selected-source-manifest.json')}
 
 
-def validate_workspace_source_metadata(metadata):
-    base = WORKSPACE_SOURCE_BASE
+def _validate_workspace_metadata(metadata, base, selection_sha, count, digest, predecessor, predecessor_pins):
     require(set(metadata) == {base + name for name in ('selection.json', 'selected-source-manifest.json')},
             'workspace source metadata membership')
     body = metadata[base + 'selection.json']
-    require(hashlib.sha256(body).hexdigest() == WORKSPACE_SELECTION_SHA256, 'workspace selection pin')
+    require(hashlib.sha256(body).hexdigest() == selection_sha, 'workspace selection pin')
     selection = _restricted_processor_json(body)
     manifest_body = metadata[base + 'selected-source-manifest.json']
     require(selection['selected']['manifest'] ==
             {'path': 'selected-source-manifest.json', **_file_row(manifest_body)}, 'workspace manifest byte pin')
     manifest = _restricted_processor_json(manifest_body)
-    require(len(manifest) == selection['selected']['source_count'] == WORKSPACE_SOURCE_COUNT and
-            canonical_digest(manifest) == selection['selected']['source_digest_sha256'] == WORKSPACE_SOURCE_DIGEST,
+    require(len(manifest) == selection['selected']['source_count'] == count and
+            canonical_digest(manifest) == selection['selected']['source_digest_sha256'] == digest,
             'workspace manifest count or digest')
-    require(selection['predecessor'] == {
-        'source_count': WORKSPACE_V31_SOURCE_COUNT,
-        'source_digest_sha256': WORKSPACE_V31_SOURCE_DIGEST,
-        'selection_sha256': WORKSPACE_V31_SELECTION_SHA256,
-        'manifest_sha256': WORKSPACE_V31_MANIFEST_SHA256,
-    }, 'workspace source predecessor')
-    delta = {path: {'before': WORKSPACE_V31_MANIFEST.get(path), 'after': pin}
-             for path, pin in manifest.items() if pin != WORKSPACE_V31_MANIFEST.get(path)}
-    require(set(WORKSPACE_V31_MANIFEST) <= set(manifest) and delta == selection['exact_delta'],
+    require(selection['predecessor'] == predecessor_pins, 'workspace source predecessor')
+    delta = {path: {'before': predecessor.get(path), 'after': pin}
+             for path, pin in manifest.items() if pin != predecessor.get(path)}
+    require(set(predecessor) <= set(manifest) and delta == selection['exact_delta'],
             'workspace source forward and inverse membership')
     versions = sorted(PurePosixPath(path).name for path in manifest
                       if path.startswith('hosted/priv/repo/migrations/') and path.endswith('.exs'))
     require(versions == selection['reviewed_migrations'] and len(versions) == 19,
             'workspace version inventory')
+    return selection, manifest
+
+
+def validate_workspace_v32_metadata(metadata):
+    return _validate_workspace_metadata(
+        metadata, WORKSPACE_V32_SOURCE_BASE, WORKSPACE_V32_SELECTION_SHA256,
+        WORKSPACE_V32_SOURCE_COUNT, WORKSPACE_V32_SOURCE_DIGEST, WORKSPACE_V31_MANIFEST, {
+            'source_count': WORKSPACE_V31_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V31_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V31_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V31_MANIFEST_SHA256,
+        })
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V32_MANIFEST, {
+            'source_count': WORKSPACE_V32_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V32_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V32_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V32_MANIFEST_SHA256,
+        })
+    require(set(manifest) == set(WORKSPACE_V32_MANIFEST) and
+            set(selection['exact_delta']) == {
+                'hosted/lib/mixer_hosted/browser_auth/store.ex',
+                'hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs',
+                'hosted/test/mixer_hosted/browser_auth/private_login_http_test.exs',
+            }, 'workspace recovery source paths')
+    require(selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'workspace recovery source scope')
     return selection, manifest
 
 
@@ -2944,6 +2979,7 @@ def validate_workspace_source_manifest(manifest):
 
 def check_workspace_source(root):
     validate_workspace_v31_metadata(workspace_source_metadata(root, WORKSPACE_V31_SOURCE_BASE))
+    validate_workspace_v32_metadata(workspace_source_metadata(root, WORKSPACE_V32_SOURCE_BASE))
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     observed = {path: _file_row((root / path).read_bytes()) for path in manifest}
     validate_workspace_source_manifest(observed)
@@ -4051,6 +4087,10 @@ class Collector:
             [WORKSPACE_V31_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         validate_workspace_v31_metadata(workspace_v31_metadata)
         metadata.update(workspace_v31_metadata)
+        workspace_v32_metadata = self.git_blobs(
+            [WORKSPACE_V32_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_workspace_v32_metadata(workspace_v32_metadata)
+        metadata.update(workspace_v32_metadata)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         _, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -4792,6 +4832,7 @@ _workspace_v31_metadata = workspace_source_metadata(_source_root, WORKSPACE_V31_
 _, WORKSPACE_V31_MANIFEST = validate_workspace_v31_metadata(_workspace_v31_metadata)
 WORKSPACE_V31_MANIFEST_SHA256 = hashlib.sha256(
     _workspace_v31_metadata[WORKSPACE_V31_SOURCE_BASE + 'selected-source-manifest.json']).hexdigest()
+_, WORKSPACE_V32_MANIFEST = validate_workspace_v32_metadata(workspace_source_metadata(_source_root, WORKSPACE_V32_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':

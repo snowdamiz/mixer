@@ -512,6 +512,149 @@ defmodule MixerHosted.CustomerBuildInputsHTTPSQLTest do
   end
 end
 
+defmodule MixerHosted.CustomerBuildSessionRecoveryHTTPTest do
+  use MixerHosted.CustomerBuildInputsFixture, create: true
+  alias MixerHosted.BrowserAuth.{LifecycleRepo, RuntimeOwner}
+
+  @recovery_event [:mixer_hosted, :browser_auth, :store, :transaction]
+
+  def observe_recovery(
+        @recovery_event,
+        measurements,
+        %{
+          type: :ecto_sql_query,
+          repo: LifecycleRepo,
+          query: "begin",
+          result:
+            {:error,
+             %DBConnection.ConnectionError{
+               reason: :error,
+               message: "connection not available and queuing is disabled"
+             }}
+        },
+        parent
+      ) do
+    send(parent, {:checkout_refusal, Enum.sort(Map.keys(measurements))})
+  end
+
+  def observe_recovery(_, _, _, _), do: :ok
+
+  test "ordinary authenticated builds recover when the lifecycle pool becomes available", c do
+    {cookie, csrf} = login(c)
+    seed_input("fieldlog", "ios", "recovery-input")
+    listed = http(c, list_path(), headers(cookie))
+    assert listed.status == 200
+    [input] = Jason.decode!(listed.body)["inputs"]
+    body = create_body(input)
+    first = post(c, cookie, csrf, "l07-existing", body)
+    assert first.status == 201
+    first_selection = Jason.decode!(first.body)["selection"]
+    assert counts() == {[[1]], [[1]]}
+
+    status = RuntimeOwner.status()
+    owner = Process.whereis(RuntimeOwner)
+    endpoint = Process.whereis(MixerHostedWeb.Endpoint)
+    %{pid: pool} = Ecto.Adapter.lookup_meta(LifecycleRepo)
+
+    assert [%{ready_conn_count: 2, checkout_queue_length: 0}] =
+             DBConnection.get_connection_metrics(pool)
+
+    parent = self()
+    observer = make_ref()
+    :ok = :telemetry.attach(observer, @recovery_event, &__MODULE__.observe_recovery/4, parent)
+    on_exit(fn -> :telemetry.detach(observer) end)
+
+    holders =
+      for _ <- 1..2 do
+        Task.async(fn ->
+          LifecycleRepo.checkout(
+            fn ->
+              send(parent, {:checkout_held, self()})
+
+              receive do
+                :release_checkout -> :released
+              after
+                10_000 -> raise "checkout fixture timed out"
+              end
+            end,
+            queue: false,
+            timeout: 12_000
+          )
+        end)
+      end
+
+    try do
+      for holder <- holders do
+        pid = holder.pid
+        assert_receive {:checkout_held, ^pid}
+      end
+
+      assert [%{ready_conn_count: 0, checkout_queue_length: 0}] =
+               DBConnection.get_connection_metrics(pool)
+
+      responses =
+        ["l07-existing", "l07-retry", "l07-existing", "l07-retry", "l07-retry"]
+        |> Task.async_stream(fn key -> post(c, cookie, csrf, key, body) end,
+          max_concurrency: 5,
+          timeout: 8_000
+        )
+        |> Enum.map(fn {:ok, response} -> response end)
+
+      for response <- responses do
+        assert response.status == 503
+        assert response_header(response, "set-cookie") == []
+        assert_receive {:checkout_refusal, [:queue_time, :total_time]}
+      end
+
+      assert RuntimeOwner.status() == status
+      assert counts() == {[[1]], [[1]]}
+    after
+      for holder <- holders, do: send(holder.pid, :release_checkout)
+      for holder <- holders, do: assert(Task.await(holder, 2000) == :released)
+    end
+
+    assert [%{ready_conn_count: 2, checkout_queue_length: 0}] =
+             DBConnection.get_connection_metrics(pool)
+
+    session = http(c, "/auth/session", headers(cookie))
+    assert session.status == 200
+    assert %{"state" => "authenticated", "csrf_token" => ^csrf} = Jason.decode!(session.body)
+    assert response_header(session, "set-cookie") == []
+
+    original_replay = post(c, cookie, csrf, "l07-existing", body)
+    assert original_replay.status == 200
+    assert Jason.decode!(original_replay.body)["selection"] == first_selection
+    assert counts() == {[[1]], [[1]]}
+
+    retry = post(c, cookie, csrf, "l07-retry", body)
+    assert retry.status == 201
+    second_selection = Jason.decode!(retry.body)["selection"]
+    refute second_selection["build_id"] == first_selection["build_id"]
+
+    replay = post(c, cookie, csrf, "l07-retry", body)
+    assert replay.status == 200
+    assert Jason.decode!(replay.body)["selection"] == second_selection
+    assert counts() == {[[2]], [[2]]}
+
+    allowed =
+      http(c, "/console-api/v1/builds?" <> URI.encode_query(second_selection), headers(cookie))
+
+    assert allowed.status == 200
+    assert Jason.decode!(allowed.body)["build"]["buildId"] == second_selection["build_id"]
+
+    denied =
+      http(c, list_path(%{organization_id: "org-b", project_id: "project-b"}), headers(cookie))
+
+    assert denied.status == 404
+    assert RuntimeOwner.status() == status
+    assert Process.whereis(RuntimeOwner) == owner
+    assert Process.whereis(MixerHostedWeb.Endpoint) == endpoint
+    assert {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
+    assert port == c.http_port
+    leases_clean()
+  end
+end
+
 defmodule MixerHosted.CustomerBuildInputsReadonlyHTTPTest do
   use MixerHosted.CustomerBuildInputsFixture, create: false
 

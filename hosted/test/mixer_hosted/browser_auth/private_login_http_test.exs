@@ -29,6 +29,10 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
   alias MixerHosted.BrowserAuth.StorageFixture.{Admin, Migration}
   alias MixerHosted.Identity.{KeyOwner, TLSFixture, TrustSnapshot}
 
+  # The callback has a five-second runtime deadline. Allow it to reach COMMIT
+  # before enforcing the proxy and HTTP publication barriers.
+  @callback_commit_wait 5_000
+
   setup_all do
     conn = F.connection!("browser_admin", "postgres")
 
@@ -244,7 +248,7 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
       port: GenServer.call(commit_proxy, :port),
       database: "browser_login_storage",
       username: "browser_lifecycle",
-      password: "synthetic",
+      password: System.get_env("MIXER_BROWSER_STORAGE_PASSWORD", "synthetic"),
       pool_size: 2,
       pool_count: 1,
       timeout: 5000,
@@ -1402,7 +1406,7 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
       end)
 
     assert_receive {:final_activation_commit, backend, :barrier},
-                   2000,
+                   @callback_commit_wait,
                    "phase-aware final activation COMMIT not observed"
 
     assert_receive {:activation_barrier, proxy_worker, ^backend}, 1000
@@ -1539,6 +1543,40 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
     reset = fn -> Process.put(key, {self(), reference, :await_begin}) end
 
     try do
+      refusal =
+        Map.put(
+          metadata.("begin", :begin, 1),
+          :result,
+          {:error,
+           %DBConnection.ConnectionError{
+             message: "connection not available and queuing is disabled"
+           }}
+        )
+
+      reset.()
+      store.transaction_event(event, %{total_time: 1, queue_time: 1}, refusal, nil)
+      assert elem(Process.get(key), 2) == :not_started
+
+      reset.()
+      store.transaction_event(event, %{total_time: 1, query_time: 1}, refusal, nil)
+      assert elem(Process.get(key), 2) == :unknown
+
+      for measurements <- [%{total_time: 1}, %{total_time: 1, queue_time: 0, query_time: 1}] do
+        reset.()
+        store.transaction_event(event, measurements, refusal, nil)
+        assert elem(Process.get(key), 2) == :unknown
+      end
+
+      reset.()
+      store.transaction_event(event, %{total_time: 1, queue_time: 1}, refusal, nil)
+      store.transaction_event(event, %{total_time: 1, queue_time: 1}, refusal, nil)
+      assert elem(Process.get(key), 2) == :unknown
+
+      reset.()
+      observe.(metadata.("begin", :begin, 1))
+      store.transaction_event(event, %{total_time: 1, queue_time: 1}, refusal, nil)
+      assert elem(Process.get(key), 2) == :unknown
+
       reset.()
       observe.(metadata.("commit", :commit, 1))
       assert elem(Process.get(key), 2) == :unknown
@@ -1675,7 +1713,7 @@ defmodule MixerHosted.BrowserLoginHTTPTest do
     before = independent_state(p.cookie)
     :ok = GenServer.call(c.commit_proxy, {:arm_activation, :barrier, self()})
     task = Task.async(fn -> http(c, "/auth/callback?" <> l.query, l.headers) end)
-    assert_receive {:final_activation_commit, backend, :barrier}, 2000
+    assert_receive {:final_activation_commit, backend, :barrier}, @callback_commit_wait
     assert_receive {:activation_barrier, worker, ^backend}, 1000
 
     assert %{rows: [[true]]} =
