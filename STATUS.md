@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+On iOS 27, the ordinary checklist test typed **Night shift** and the saved task contained **Night shif**. It fetched the signed baseline and stopped at the exact assignee check before exercising the update. The Simulator and release service closed cleanly. [Saved task and XCTest result](verification/receipts/fieldlog-ios-checklist-assignee-readback-41a05264.json)
+
 The iOS 27 conflict replay reached the saved task on the project screen. The restored Field note sheet covered the task menu. XCTest found the underlying button but could not tap it. Native conflict resolution remains open. The owned Simulator was removed. [Native conflict test](verification/receipts/fieldlog-ios-conflict-menu-41a05264.json)
 
 In the combined Android development APK, FieldLog returned from sharing a 168-byte populated report with an offline recipient. The signed phase stopped at the reverse-mapping check before opening the guest. The emulator exited with code 0, but cleanup could not confirm group 16950 had gone. Its instance and ports are held. [Combined replay and custody](verification/receipts/fieldlog-android-combined-report-and-custody-41a05264.json).
