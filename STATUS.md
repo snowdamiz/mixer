@@ -12,13 +12,19 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+**L01 passed for the documented local setup, adoption and export workflow.** The review verified independent exports and native starter runs on both platforms, the import report, and public SDK use by the separate FieldLog app. L02–L08 remain open. [L01 decision](verification/receipts/l01-independent-final-review-41a05264.json).
+
+Both VM validators now accept the valid unreachable-code branch table identified by the WebAssembly standards suite. The root replay passed 71 focused tests. [VM review](verification/receipts/l03-standards-review-41a05264-DK7nuyvA.json).
+
+With the local release service and forwarder stopped, a fresh macOS process reopened FieldLog’s signed rollback at workspace revision 4 with seven outbox records. The workspace bytes and pending 258-byte download survived. After the service restarted against its original store, a third process resumed the reviewed release and committed revision 5 with eight records. [Release outage replay](verification/receipts/fieldlog-release-service-outage-41a05264.json).
+
 The independently reviewed v3 halt stopped new offers across a service restart. The macOS installed host reopened a committed release offline after key expiry and accepted the replacement key on reconnect. The reviewer’s additional Go run stopped before producing a result and left a process group under hold. [Halt and rotation review](verification/receipts/release-v3-rotation-halt-review-41a05264.json).
 
 The relocated iOS starter built with the documented Pair24 pin and SDK dependency lock. On iOS 26.5 Simulator its title and initial progress appeared on launch and after termination and relaunch. Installed executable and debug library hashes matched the export. [Pinned iOS runtime](verification/receipts/l01-public-pin-ios-runtime-41a05264.json).
 
 On iOS 27.0 Simulator the installed FieldLog guest rendered the saved task on its first frame after a signed update, rollback, and relaunch without a delivery URL. Disk readback matched revision 6 and seven outbox records. Correcting the missing final newline in the fixture’s storage grant preserved the executable code and both Wasm payloads. [Hydrated iOS runtime](verification/receipts/fieldlog-ios-hydrated-signed-runtime-41a05264.json).
 
-During a local outage drill, the restarted Oban processor drained eight queued jobs once. A separate five-request burst exhausted the browser lifecycle pool and left authenticated requests unavailable even after the connections became idle. Restarting Phoenix restored the existing session. [Service outage drill](verification/receipts/l07-integrated-outage-41a05264.json).
+During a local outage drill, the restarted Oban processor drained eight queued jobs once. A separate five-request burst exhausted the browser lifecycle pool and left authenticated requests unavailable even after the connections became idle. Restarting Phoenix restored the existing session. A subsequent candidate recovered the same session after connection check-in on the original listener. Two isolated database runs verified idempotent retry and tenant isolation. [Candidate recovery](verification/receipts/l07-ordinary-session-recovery-41a05264.json). [Service outage drill](verification/receipts/l07-integrated-outage-41a05264.json).
 
 The public upgrade guide replay preserved FieldLog’s workspace, photo, outbox and dependency lock through recovery, upgrade, export and an independent Android build. The macOS bridge now reports the Swift source location for a trap in both optimized guest builds. A fresh root replay passed 53 tests. [Upgrade and exit](verification/receipts/l08-public-upgrade-02002272.json) · [Swift diagnostics](verification/receipts/l03-swift-diagnostics-review-41a05264.json).
 

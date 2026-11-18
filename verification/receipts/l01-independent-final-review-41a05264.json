@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "gate": "L01",
+  "verdict": "PASS_SCOPED_LOCAL",
+  "reviewer": "Independent L01 review subagent",
+  "reviewedAtUTC": "2026-11-18T15:35:29Z",
+  "reviewedHead": "afc91e8612712d5766273f32b408d4287fcf7431",
+  "basis": [
+    "gates/local.json#L01",
+    "mixer-product-plan.md#2-completion-definition-and-scope",
+    "README.md#create-export-and-build-a-local-app"
+  ],
+  "priorReview": {
+    "path": "/private/tmp/mixer-l01-review-41a05264.mWbZwHUg/review.json",
+    "sha256": "27f35aa8778620b25f0fef27dc8e4f68fd6722ae4bea92c3b1eb5c6a06e96c21",
+    "resolution": "The prior review saw Pair24 as a prospective delivery and reproduced iOS dependency drift without the workspace lock. The guide now names the delivered revision and includes the lock copy before build. The retained pinned build and XCResult cover the iOS runtime gap."
+  },
+  "clauses": {
+    "pinnedPublicInputsAndCreate": {
+      "status": "pass",
+      "revision": "c7956233d69caeffadfa5ab84227c3b2e09ff41d",
+      "tree": "ebc67749c29ca2852cb029e80b8e08ed0bbd9a36",
+      "evidence": "verification/receipts/l01-public-pin-ios-lock-41a05264.json",
+      "observed": "Local origin/main contains the guide pin and has identical CLI, SDK, updates and Android adapter subtrees. I matched the retained CLI and resource hashes and read the successful create, export and config validation outputs for both starters. The commands use public source, standard toolchains and a disposable Android signing key. They require no cloud account, payment service or payment credentials."
+    },
+    "importAndFieldLogAdoption": {
+      "status": "pass",
+      "fieldLogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+      "fieldLogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+      "importReportSHA256": "9460521a1cb2ff1c27923a3f9c19da205cd3788c767f967005a68091c6e25f17",
+      "evidence": [
+        "verification/receipts/fieldlog-advisory-import-root-r5864.json",
+        "verification/receipts/fieldlog-pair23-public-fixtures-41a05264.json",
+        "verification/receipts/fieldlog-public-pair23-export-41a05264.json",
+        "verification/receipts/fieldlog-android-photo-persistence-41a05264.json",
+        "verification/receipts/fieldlog-public-root-ios-acceptance-r5774.json"
+      ],
+      "observed": "FieldLog's separate Git checkout declares public Mixer products. Its verified advisory report inspected five files and gave six findings with source locations and remediation. The public guide documents incremental migration and the exact FieldLog Android Pair23 pin and patches, whose hashes I matched. I verified the raw Android photo workflow result and its installed APK hash against the patched build receipt. FieldLog iOS public SDK adoption is supported by the prior independently reviewed offline workflow receipt."
+    },
+    "buildRunAndIndependentExportIOS": {
+      "status": "pass",
+      "environment": "Xcode 26.6 (17F113), Swift 6.3.3, iOS 26.5 Simulator (23F77), arm64 iPhone 17 Pro",
+      "evidence": [
+        "verification/receipts/l01-public-pin-ios-lock-41a05264.json",
+        "verification/receipts/l01-public-pin-ios-runtime-41a05264.json",
+        "verification/local/l01-public-pin-ios-runtime-r1/export.xcresult"
+      ],
+      "commands": [
+        "mixer build --platform ios --directory relocated/ExportNativeStarter",
+        "xcrun xcresulttool get test-results summary, tests and activities"
+      ],
+      "lockSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "observed": "The relocated export built after the original and SDK lookup paths were detached. The pinned SDK lock, bundled export lock and Xcode workspace lock match. The retained checkouts resolve Swift ASN.1 1.7.3 and Swift Crypto 5.0.3 at their locked revisions. The app executable, debug library and Info.plist hashes match the recorded install. The actual XCResult reports one pass, zero failures and zero skips. Its activity tree records launch, termination, cold relaunch and title and progress checks on both launches. The recorded device inventories show the owned Simulator shut down and was removed. All 14 external device records matched."
+    },
+    "buildRunAndIndependentExportAndroid": {
+      "status": "pass",
+      "environment": "Swift 6.3.3 Android SDK, Android build-tools 37.0.0, API 36 arm64 emulator, default legacy-v1 host",
+      "evidence": [
+        "verification/receipts/l01-pair24-public-source-41a05264.json",
+        "verification/receipts/l01-public-pin-ios-lock-41a05264.json",
+        "verification/receipts/l01-default-starter-pair24-runtime-41a05264.json",
+        "verification/local/l01-export-pair24-root-41a05264/run.json"
+      ],
+      "commands": [
+        "mixer build --platform android on the relocated export",
+        "apksigner verify --min-sdk-version 36 --max-sdk-version 36 --verbose"
+      ],
+      "apkSHA256": "6b10a3df9bb70b761f6eadf7858173943a449939fe8ebba986ca6bcc20e345af",
+      "observed": "I compared the pinned export and the runtime build inputs directly. App source, generated SDK and adapter, rendered driver, project configuration and locks match byte for byte. Twenty-one of 22 handoff afterimages match the delivered revision. The sole difference is a host-only test selector that reads the final archive binding. The retained APK matches the install input and verifies with APK Signature Scheme v3 for API 36. The recorded install succeeded and the app cold-launched. I checked the raw UI hierarchies for 0 of 0, 0 of 1, then 1 of 1 completed and the switch state. The run records owned instance removal, terminal process groups and reusable ports."
+    }
+  },
+  "section2Decision": "L01 passes for the documented local development path. The guide covers the pinned setup, generated native builds, advisory migration and export. The independent builds and real runtime results satisfy the L01 evidence requirement on the observed local targets. Whole-plan completion still requires L02 through L08, including integrated services and the full FieldLog workflow. Physical-device, registry, store, deployment, external adoption and commercial qualification remain separate.",
+  "limits": [
+    "The Android runtime APK was built from a relocated Pair24 overlay whose production inputs match the delivered export. This review verified the retained APK and prior install command. It did not obtain a new device readback.",
+    "FieldLog Android uses the documented Pair23 migration and draft patch. FieldLog iOS adoption uses the prior independent review and acceptance receipts. Its older XCResult was unavailable for direct reinspection.",
+    "The guide's iOS lock copy is part of the verified procedure. The prior unseeded resolution selected Swift ASN.1 1.7.4."
+  ],
+  "reviewActions": {
+    "deviceOperations": 0,
+    "remoteActions": 0,
+    "sourceOrGateEdits": 0,
+    "heldResourcesAccessed": 0
+  }
+}
