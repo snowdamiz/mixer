@@ -70,7 +70,7 @@ final class FieldLogReleaseV3Child {
         }
     }
 
-    func finish(stop: Bool = false, pump: () -> Void = {},
+    func finish(stop: Bool = false, expectedExitCode: Int32 = 0, pump: () -> Void = {},
                 observeGroup: ((pid_t) throws -> Bool)? = nil) async throws {
         guard receipt.state == "LAUNCHED" else {
             throw UpdateError("test.child", "Child custody is already recorded in \(record.path)")
@@ -109,9 +109,34 @@ final class FieldLogReleaseV3Child {
         } catch {
             throw hold(error)
         }
-        guard !waitedTooLong, receipt.exitCode == 0 else {
+        guard !waitedTooLong, receipt.exitCode == expectedExitCode else {
             throw UpdateError("test.child_exit", "Child \(pid) failed (exit=\(String(describing: receipt.exitCode)), signal=\(String(describing: receipt.terminationSignal)), timedOut=\(waitedTooLong)); custody closed")
         }
+    }
+
+    // Inspect only this child. A port selected by the runner could have been
+    // claimed before the service bound it, so a successful HTTP probe alone
+    // would not identify our listener.
+    func ownsLoopbackListener(port: UInt16) -> Bool {
+        guard receipt.state == "LAUNCHED" else { return false }
+        var descriptors = Array(repeating: proc_fdinfo(), count: 256)
+        let bytes = descriptors.withUnsafeMutableBytes { buffer in
+            proc_pidinfo(pid, PROC_PIDLISTFDS, 0, buffer.baseAddress, Int32(buffer.count))
+        }
+        let stride = MemoryLayout<proc_fdinfo>.stride
+        guard bytes > 0, Int(bytes) % stride == 0 else { return false }
+        let loopback = in_addr_t(INADDR_LOOPBACK).bigEndian
+        for descriptor in descriptors.prefix(Int(bytes) / stride) where descriptor.proc_fdtype == PROX_FDTYPE_SOCKET {
+            var socket = socket_fdinfo()
+            let size = Int32(MemoryLayout<socket_fdinfo>.size)
+            guard proc_pidfdinfo(pid, descriptor.proc_fd, PROC_PIDFDSOCKETINFO, &socket, size) == size,
+                  socket.psi.soi_family == AF_INET, Int(socket.psi.soi_kind) == SOCKINFO_TCP else { continue }
+            let tcp = socket.psi.soi_proto.pri_tcp
+            if tcp.tcpsi_state == TSI_S_LISTEN,
+               tcp.tcpsi_ini.insi_lport == Int32(port.bigEndian),
+               tcp.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr == loopback { return true }
+        }
+        return false
     }
 
     private func terminateIfRunning() throws {

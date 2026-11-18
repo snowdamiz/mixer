@@ -684,6 +684,7 @@ extension CapabilityRecoveryTransitionTests {
             throw XCTSkip("Requires an isolated loopback service build")
         }
         let run = URL(fileURLWithPath: path, isDirectory: true)
+        let mixerCLI = env["MIXER_ROTATION_HALT_CLI"].map { URL(fileURLWithPath: $0) }
         let port = try XCTUnwrap(env["MIXER_ROTATION_HALT_PORT"].flatMap(UInt16.init))
         let activeID = "local-0", pendingID = "local-1", excludedID = "local-3"
         let oldArtifact = TransitionFixture.Signer(id: "old-artifact", key: .init())
@@ -773,6 +774,8 @@ extension CapabilityRecoveryTransitionTests {
             }
             let halts = entries.compactMap { $0.object?["rollout_halt"] }
             XCTAssertEqual(halts, [expected])
+            let observed = try FieldLogReleaseV3Fixture.encoder.encode(halts)
+            print("ROLLOUT audit \(String(decoding: observed, as: UTF8.self))")
         }
 
         try await withService("service-before-rotation") { service in
@@ -839,33 +842,78 @@ extension CapabilityRecoveryTransitionTests {
             await close(candidate, candidateOwner)
 
             let activatedState = try disk(active), pendingState = try disk(pending)
-            let activated = activatedState.healthy?.candidateID == input.candidateID && activatedState.acceptedSequence == 2
-            let isPending = pendingState.pending?.sequence == 2 && pendingState.healthy == nil
+            let healthy = try XCTUnwrap(activatedState.healthy)
+            let installed = try XCTUnwrap(activatedState.candidates[healthy.candidateID])
+            let pendingCandidate = try XCTUnwrap(pendingState.pending)
+            let activated = healthy.candidateID == input.candidateID && installed.artifactSHA256 == digest
+                && installed.sequence == activatedState.acceptedSequence
+            let isPending = pendingCandidate.sequence == installed.sequence && pendingCandidate.artifactSHA256 == digest
+                && pendingState.healthy == nil && pendingState.staged == nil
             let adverse = try XCTUnwrap(activatedState.failures[digest])
             XCTAssertTrue(activated)
             XCTAssertTrue(isPending)
+            XCTAssertEqual(installed.sequence, 2)
+            XCTAssertEqual(healthy.completedMilestones, ["feature_started", "first_screen"])
             XCTAssertEqual(adverse, 1)
             let signedHalt = try decode(halt.1)
-            func haltBody(observedSequence: UInt64) -> CanonicalValue {
-                .object(["signed_assignment": signedHalt, "health": .object([
+            func healthSample(observedSequence: UInt64) -> CanonicalValue {
+                .object([
                     "sequence": .uint(observedSequence), "activated": .uint(activated ? 1 : 0),
-                    "pending": .uint(isPending ? 1 : 0), "adverse_signals": .uint(UInt64(adverse)),
-                ])])
+                    "pending": .uint(isPending ? 1 : 0), "adverse_signals": .uint(adverse),
+                ])
             }
-            let route = service.project + "/channels/beta/halt"
-            _ = try await service.request(route, status: 409, method: "POST",
-                body: haltBody(observedSequence: 1), mutation: "stale-halt")
-            _ = try await service.updates(installation: pendingID)
-            let snapshot = haltBody(observedSequence: 2)
-            let first = try await service.request(route, status: 200, method: "POST", body: snapshot, mutation: "halt-3")
-            let retry = try await service.request(route, status: 200, method: "POST", body: snapshot, mutation: "halt-3")
-            XCTAssertEqual(retry, first)
-            let record = try decode(first)
-            XCTAssertEqual(record.object?["health"], snapshot.object?["health"])
+            let sample = healthSample(observedSequence: installed.sequence)
+            let stale = healthSample(observedSequence: preRotation.acceptedSequence)
+            func stateBytes(_ fixture: TransitionFixture) throws -> Data {
+                try Data(contentsOf: fixture.directory.appendingPathComponent("state.json"))
+            }
+            let activeBefore = try stateBytes(active), pendingBefore = try stateBytes(pending)
+            print("ROLLOUT before halt active=\(healthy.candidateID) sequence=\(installed.sequence) milestones=\(healthy.completedMilestones.sorted()) trap=unreachable recovery=\(activatedState.lastRecovery) pending=\(pendingCandidate.candidateID) offset=\(offset) adverse_signals=\(adverse) state_sha256=\(ReleaseVerifier.sha256(activeBefore)),\(ReleaseVerifier.sha256(pendingBefore))")
+            let record: CanonicalValue
+            if let mixerCLI {
+                func cli(_ name: String, health: CanonicalValue, exitCode: Int32) async throws -> CanonicalValue {
+                    try await service.runMixerUpdateHalt(mixerCLI, artifact: digest, assignment: halt.1,
+                        health: health, directory: run, name: name, expectedExitCode: exitCode)
+                }
+                let refused = try await cli("cli-stale", health: stale, exitCode: 1)
+                XCTAssertEqual(refused.object?["code"], .text("update.halt.rejected"))
+                XCTAssertTrue(refused.object?["message"]?.text?.contains("HTTP 409 (stale_rollout)") == true)
+                let unchanged = try decode(await service.updates(installation: pendingID))
+                XCTAssertEqual(unchanged.object?["signed_assignment"], try decode(fresh.1))
+                let first = try await cli("cli-halt", health: sample, exitCode: 0)
+                let retry = try await cli("cli-retry", health: sample, exitCode: 0)
+                XCTAssertEqual(first, retry)
+                XCTAssertEqual(first, .object([
+                    "status": .text("ok"), "action": .text("halt"), "artifact_sha256": .text(digest),
+                    "sequence": .uint(3), "rollout_basis_points": .uint(0), "delivery": .text("local_only"), "health": sample,
+                ]))
+                record = .object([
+                    "scope": try XCTUnwrap(signedHalt.object?["assignment"]?.object?["scope"]),
+                    "runtime": .text(host.runtime), "channel": .text("beta"), "artifact_sha256": .text(digest),
+                    "halt_sequence": .uint(3), "health": sample,
+                ])
+            } else {
+                let route = service.project + "/channels/beta/halt"
+                func haltBody(_ health: CanonicalValue) -> CanonicalValue {
+                    .object(["signed_assignment": signedHalt, "health": health])
+                }
+                _ = try await service.request(route, status: 409, method: "POST",
+                    body: haltBody(stale), mutation: "stale-halt")
+                _ = try await service.updates(installation: pendingID)
+                let first = try await service.request(route, status: 200, method: "POST", body: haltBody(sample), mutation: "halt-3")
+                let retry = try await service.request(route, status: 200, method: "POST", body: haltBody(sample), mutation: "halt-3")
+                XCTAssertEqual(retry, first)
+                record = try decode(first)
+            }
+            XCTAssertEqual(record.object?["health"], sample)
             XCTAssertEqual(record.object?["halt_sequence"], .uint(3))
             XCTAssertEqual(record.object?["artifact_sha256"], .text(digest))
             _ = try await service.request(service.project + "/audit", status: 401)
             try await inspectHalt(service, record)
+            let activeAfter = try stateBytes(active), pendingAfter = try stateBytes(pending)
+            XCTAssertEqual(activeAfter, activeBefore)
+            XCTAssertEqual(pendingAfter, pendingBefore)
+            print("ROLLOUT after halt active and partial installation state_sha256=\(ReleaseVerifier.sha256(activeAfter)),\(ReleaseVerifier.sha256(pendingAfter))")
             committedHalt = record
         }
         try await withService("service-reopened") { service in
@@ -878,8 +926,12 @@ extension CapabilityRecoveryTransitionTests {
         let (activated, activatedOwner) = try await open(active, clock, installation: activeID)
         let (reopened, reopenedSignals) = try await selected(activated)
         XCTAssertEqual(reopened.candidateID, activatedID)
+        XCTAssertEqual(reopened.source, .retained)
         try await earnHealth(reopened, reopenedSignals, activated, clock)
         await close(activated, activatedOwner)
+        let offlineHealth = try XCTUnwrap(disk(active).healthy)
+        XCTAssertNotEqual(offlineHealth.launchID, afterHalt.healthy?.launchID)
+        XCTAssertEqual(offlineHealth.completedMilestones, ["feature_started", "first_screen"])
         let (partial, partialOwner) = try await open(pending, clock, installation: pendingID)
         let pendingOffset = try await partial.downloadOffset()
         XCTAssertEqual(pendingOffset, 8)
@@ -887,6 +939,7 @@ extension CapabilityRecoveryTransitionTests {
         XCTAssertNil(pendingSelection)
         XCTAssertNil(try disk(pending).healthy)
         await close(partial, partialOwner)
+        print("ROLLOUT offline retained=\(offlineHealth.candidateID) launch=\(offlineHealth.launchID) milestones=\(offlineHealth.completedMilestones.sorted()) pending_offset=\(pendingOffset) pending_selectable=\(pendingSelection != nil)")
         print("ROLLOUT sequence=2 activated=1 pending=1 adverse_signals=1; halted=3; audit and 204 survive restart; offline active reopens, pending cannot select")
     }
 }

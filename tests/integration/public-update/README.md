@@ -86,3 +86,28 @@ the Go origin while PostgreSQL stays up and reads the committed assignments,
 audit chain, outbox, and idempotency rows independently. The release outbox stays
 `pending_local_only`. Console, Phoenix, Oban dispatch, build artifact handoff,
 and installed app activation still need a joined local L05 run.
+
+## Replay a halt from installation health on macOS
+
+Use the CLI, service binary and scratch directory built above. With Rust and
+Xcode installed, put the active Rust toolchain on your PATH (for Homebrew rustup, use its bin directory). Build the capability test bundle against the owned VM.
+
+```sh
+mkdir -p "$run/lib"
+CARGO_TARGET_DIR="$run/vm" \
+  cargo build --offline --locked --manifest-path vm/Cargo.toml --release \
+  --features experimental-capability-native --lib
+cp "$run/vm/release/libmixer_vm.a" "$run/lib/libmixer_vm_capability_experimental.a"
+
+TMPDIR="$run/tmp" swift build --build-tests --package-path capability-activation \
+  --scratch-path "$run/swiftpm" --cache-path "$run/swift-cache" \
+  --config-path "$run/swift-config" --security-path "$run/swift-security" \
+  --disable-dependency-cache --force-resolved-versions \
+  -Xcc -I -Xcc "$PWD/vm/include" -Xlinker -L -Xlinker "$run/lib"
+
+bundle=$(find "$run/swiftpm" -type d -name MixerCapabilityActivationTests.xctest -print -quit)
+python3 -B "tests/integration/public-update/installed-halt.py" --xctest "$bundle" --service "$run/mixer-service" \
+  --cli "$run/swift-build/debug/mixer" --scratch-parent "$run" --output "$run/installed-halt.json"
+```
+
+The fixture derives the sample from two local installation stores after a VM trap. It checks the halt, retry, service restart and offline selection. The test supplies the UI health signals on the host.

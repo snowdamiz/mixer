@@ -1,0 +1,133 @@
+{
+  "scope": "Local macOS installed recovery and CLI halt. XCTest supplies UI milestones. Listener identity sampled before and after CLI requests.",
+  "base": "72ce66b4fb138dc7cefb9b740f5a556af3aa787f",
+  "sourceSHA256": {
+    "tests/integration/public-update/installed-halt.py": "b30a65e6825febf7714ba84d451907b9ae08f9d679772a1a27a675d5318fc9bd",
+    "capability-activation/Tests/MixerCapabilityActivationTests/CapabilityRecoveryTransitionTests.swift": "8efa9c30c35a09d6408b1859e7ee5d1470cfdb0e6c4504a5f63486f0e48986e7",
+    "capability-activation/Tests/MixerCapabilityActivationTests/FieldLogReleaseV3Child.swift": "c542eec8fc1945ca2cb30c387aec17ed6eeee4e5a71b43bc8b62d2e5d9a750f3",
+    "capability-activation/Tests/MixerCapabilityActivationTests/FieldLogReleaseV3Loopback.swift": "b673bca9209a9cf208e0af772020e59384f6e0045188e4da8c5206c177682209"
+  },
+  "build": {
+    "rust": "cargo 1.99.0",
+    "swift": "Apple Swift 6.4.2",
+    "recipe": "tests/integration/public-update/README.md",
+    "firstAttempt": "cargo absent from PATH; supplied Homebrew rustup bin and rebuilt."
+  },
+  "rawReceipt": "verification/local/installed-cli-halt.24t5cXq0/result.json",
+  "rawReceiptSHA256": "14f7a1f738c4dbfd7eb90590dd216908978ba05d20d1ec2f543032bac5783ee5",
+  "observedAtUTC": "2026-11-18T19:35:52.166304+00:00",
+  "status": "PASS",
+  "xctestSummary": "Executed 26 tests, with 0 failures (0 unexpected) in 16.901 (16.907) seconds",
+  "cliSHA256": "9a21ad41a4b4d142bbae263d5d1f9705d6f6fc2f5b6353e9c1095d4159883a6b",
+  "serviceSHA256": "d4c01fea6bddb2901d6a0a4bf73a53e22df44c172f47395aecc553b4765ceb51",
+  "xctestSHA256": "eae951141b17b68152f5b3be43a5a0b5d0b08965745d1a4bdd5313f134122fd2",
+  "observations": [
+    "ROTATION offline healthy sequence=1; expired fresh authority refused",
+    "ROLLOUT before halt active=1fd7e56e29c550500ae94726c261f5479574e84a46b272544d25eb4c5659c04d sequence=2 milestones=[\"feature_started\", \"first_screen\"] trap=unreachable recovery=effects_deterministic_trap pending=1fd7e56e29c550500ae94726c261f5479574e84a46b272544d25eb4c5659c04d offset=8 adverse_signals=1 state_sha256=e256dfe1186ff25983660af3b2465925e98309878d0dd7bed722f74f231aa76d,6fdee362b494bf3107a2a7206e82c3deb5e3da8126a420ef01223570805e4cdd",
+    "ROLLOUT audit [{\"artifact_sha256\":\"d7548504ca7458064cf52efe49e161e7de97ba9caac5fbb22e1031f1b0006370\",\"channel\":\"beta\",\"halt_sequence\":3,\"health\":{\"activated\":1,\"adverse_signals\":1,\"pending\":1,\"sequence\":2},\"runtime\":\"5254624c8ebbc4f102003288d2304ac9a82bee2dc2d4590402583e19457bb302\",\"scope\":{\"app\":\"material-test\",\"environment\":\"development\",\"organization\":\"material-test\",\"platform\":\"ios\",\"project\":\"material-test\"}}]",
+    "ROLLOUT after halt active and partial installation state_sha256=e256dfe1186ff25983660af3b2465925e98309878d0dd7bed722f74f231aa76d,6fdee362b494bf3107a2a7206e82c3deb5e3da8126a420ef01223570805e4cdd",
+    "ROLLOUT audit [{\"artifact_sha256\":\"d7548504ca7458064cf52efe49e161e7de97ba9caac5fbb22e1031f1b0006370\",\"channel\":\"beta\",\"halt_sequence\":3,\"health\":{\"activated\":1,\"adverse_signals\":1,\"pending\":1,\"sequence\":2},\"runtime\":\"5254624c8ebbc4f102003288d2304ac9a82bee2dc2d4590402583e19457bb302\",\"scope\":{\"app\":\"material-test\",\"environment\":\"development\",\"organization\":\"material-test\",\"platform\":\"ios\",\"project\":\"material-test\"}}]",
+    "ROLLOUT offline retained=1fd7e56e29c550500ae94726c261f5479574e84a46b272544d25eb4c5659c04d launch=5D32C8CB-ADDD-4CC9-8C2C-0C0230FA3E0D milestones=[\"feature_started\", \"first_screen\"] pending_offset=8 pending_selectable=false",
+    "ROLLOUT sequence=2 activated=1 pending=1 adverse_signals=1; halted=3; audit and 204 survive restart; offline active reopens, pending cannot select"
+  ],
+  "cliResults": {
+    "cli-stale": {
+      "code": "update.halt.rejected",
+      "message": "Local v3 origin returned HTTP 409 (stale_rollout).",
+      "status": "error"
+    },
+    "cli-halt": {
+      "action": "halt",
+      "artifact_sha256": "d7548504ca7458064cf52efe49e161e7de97ba9caac5fbb22e1031f1b0006370",
+      "delivery": "local_only",
+      "health": {
+        "activated": 1,
+        "adverse_signals": 1,
+        "pending": 1,
+        "sequence": 2
+      },
+      "rollout_basis_points": 0,
+      "sequence": 3,
+      "status": "ok"
+    },
+    "cli-retry": {
+      "action": "halt",
+      "artifact_sha256": "d7548504ca7458064cf52efe49e161e7de97ba9caac5fbb22e1031f1b0006370",
+      "delivery": "local_only",
+      "health": {
+        "activated": 1,
+        "adverse_signals": 1,
+        "pending": 1,
+        "sequence": 2
+      },
+      "rollout_basis_points": 0,
+      "sequence": 3,
+      "status": "ok"
+    }
+  },
+  "children": {
+    "cli-halt": {
+      "pgid": 28054,
+      "pid": 28054,
+      "executable": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/public-halt-cli.j8lcYzwO/swift-build/debug/mixer",
+      "directChildReaped": true,
+      "state": "CLOSED",
+      "parentPID": 21494,
+      "ownedGroupAbsent": true,
+      "exitCode": 0
+    },
+    "service-before-rotation": {
+      "pgid": 24526,
+      "pid": 24526,
+      "executable": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/installed-cli-halt.24t5cXq0/run-kcimatw0/mixer-service",
+      "directChildReaped": true,
+      "state": "CLOSED",
+      "parentPID": 21494,
+      "ownedGroupAbsent": true,
+      "exitCode": 0
+    },
+    "cli-retry": {
+      "pgid": 28135,
+      "pid": 28135,
+      "executable": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/public-halt-cli.j8lcYzwO/swift-build/debug/mixer",
+      "directChildReaped": true,
+      "state": "CLOSED",
+      "parentPID": 21494,
+      "ownedGroupAbsent": true,
+      "exitCode": 0
+    },
+    "service-after-rotation": {
+      "pgid": 27758,
+      "pid": 27758,
+      "executable": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/installed-cli-halt.24t5cXq0/run-kcimatw0/mixer-service",
+      "directChildReaped": true,
+      "state": "CLOSED",
+      "parentPID": 21494,
+      "ownedGroupAbsent": true,
+      "exitCode": 0
+    },
+    "service-reopened": {
+      "pgid": 28241,
+      "pid": 28241,
+      "executable": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/installed-cli-halt.24t5cXq0/run-kcimatw0/mixer-service",
+      "directChildReaped": true,
+      "state": "CLOSED",
+      "parentPID": 21494,
+      "ownedGroupAbsent": true,
+      "exitCode": 0
+    },
+    "cli-stale": {
+      "pgid": 27998,
+      "pid": 27998,
+      "executable": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/public-halt-cli.j8lcYzwO/swift-build/debug/mixer",
+      "directChildReaped": true,
+      "state": "CLOSED",
+      "parentPID": 21494,
+      "ownedGroupAbsent": true,
+      "exitCode": 1
+    }
+  },
+  "scratchRemoved": true,
+  "xctestGroupAbsent": true,
+  "portRebound": true
+}
