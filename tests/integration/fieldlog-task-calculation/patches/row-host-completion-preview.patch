@@ -1,0 +1,139 @@
+--- a/RowFixture.swift
++++ b/RowFixture.swift
+@@ -20,13 +20,11 @@
+         let baseline: Release
+         let reviewed: Release
+         let assignments: [CanonicalValue]
+-        let horizontalRefusal: Release
+-        let refusalAssignment: CanonicalValue
+     }
+
+     static let scope = UpdateScope(organization: "mixer-local", project: "fieldlog", app: "fieldlog",
+                                    environment: "development", platform: "ios")
+-    static let keyID = "fieldlog-row-test"
++    static let keyID = "fieldlog-completion-test"
+     static let sourceCommit = "552559d2d3278abb9b1aa7dcf0288102c09a202b"
+     static let materials: [(String, CapabilityMaterialFile.Role)] = [
+         ("bridge.json", .bridgePolicy),
+@@ -61,7 +59,7 @@
+             privateContainer: directory, applicationStorage: .init(runtimeFingerprint: host.runtime,
+                 namespace: RowStorage.namespace, service: storage, allowsDeferredGuestUIStartup: true))
+         configuration = .init(directory: directory.appendingPathComponent("recovery"), channel: "beta",
+-                              installation: "fieldlog-row-local", observationSeconds: 1)
++                              installation: "fieldlog-completion-local", observationSeconds: 1)
+         if let key {
+             signed = try Self.releasePair(run: run, bundle: bundle, host: host, signingKey: key)
+         } else {
+@@ -77,14 +75,14 @@
+         var identity = try object(read(fixture, "identity.json"))
+         identity["application"] = [
+             "organization": scope.organization, "project": scope.project, "app": scope.app,
+-            "environment": scope.environment, "bundle_id": "com.example.fieldlog.signed-row-local",
++            "environment": scope.environment, "bundle_id": "com.example.fieldlog.signed-completion-local",
+         ]
+         var build = try XCTUnwrap(identity["build"] as? [String: Any])
+         build["trust_roots_sha256"] = ReleaseVerifier.sha256(roots)
+         identity["build"] = build
+         var engine = try XCTUnwrap(identity["engine"] as? [String: Any])
+         engine["artifact_sha256"] = archiveSHA256
+-        engine["version"] = "fieldlog-row-local-host"
++        engine["version"] = "fieldlog-completion-local-host"
+         identity["engine"] = engine
+         var execution = try XCTUnwrap(identity["execution"] as? [String: Any])
+         execution["startup_export"] = CapabilityInstalledExecutionMode.startup
+@@ -120,7 +118,7 @@
+         let created = UInt64(Date().timeIntervalSince1970)
+         func release(_ name: String) throws -> Release {
+             let payload = try read(run, "\(name).wasm")
+-            let releaseID = "fieldlog-row-" + name
++            let releaseID = "fieldlog-completion-" + name
+             let grant = CanonicalValue.object([
+                 "capability_id": .text(CapabilitySchemas.storageID), "schema_sha256": .text(CapabilitySchemas.storageSHA256),
+                 "permissions": .array([.text("storage.appPrivate")]), "namespaces": .array([.text(RowStorage.namespace)]),
+@@ -129,7 +127,7 @@
+             let length = UInt64(payload.count)
+             let manifest = CanonicalValue.object([
+                 "schema": .uint(3), "scope": scopeValue, "release_id": .text(releaseID),
+-                "source_commit": .text(sourceCommit), "provenance_id": .text("fieldlog-f02-f08-local"),
++                "source_commit": .text(sourceCommit), "provenance_id": .text("fieldlog-completion-22-2-1-local"),
+                 "runtime": .text(host.runtime), "protocol": .uint(3), "guest_abi": .uint(2), "ui_schema": .uint(1),
+                 "capability_hashes": .object(host.capabilityHashes.mapValues(CanonicalValue.text)),
+                 "state_min": .uint(0), "state_max": .uint(0), "payload_sha256": .text(ReleaseVerifier.sha256(payload)),
+@@ -147,7 +145,6 @@
+             return .init(name: releaseID, digest: digest, signedManifest: signed, payload: payload)
+         }
+         let baseline = try release("baseline"), reviewed = try release("reviewed")
+-        let horizontalRefusal = try release("hstack-refusal")
+         func assign(_ release: Release, sequence: UInt64) throws -> CanonicalValue {
+             let assignment = CanonicalValue.object([
+                 "schema": .uint(3), "scope": scopeValue, "channel": .text("beta"), "cohort": .text("sha256-v1"),
+@@ -162,8 +159,7 @@
+         let assignments = try [baseline, reviewed, baseline].enumerated().map {
+             try assign($0.element, sequence: UInt64($0.offset + 1))
+         }
+-        return try .init(baseline: baseline, reviewed: reviewed, assignments: assignments,
+-                         horizontalRefusal: horizontalRefusal, refusalAssignment: assign(horizontalRefusal, sequence: 1))
++        return .init(baseline: baseline, reviewed: reviewed, assignments: assignments)
+     }
+
+     private static func sign(_ value: CanonicalValue, field: String, domain: String,
+--- a/RowStorage.swift
++++ b/RowStorage.swift
+@@ -13,6 +13,8 @@
+     static let project = UUID(uuidString: "22F02008-0000-4000-8000-000000000001")!
+     static let otherProject = UUID(uuidString: "22F02008-0000-4000-8000-000000000002")!
+     static let draft = UUID(uuidString: "22F02008-0000-4000-8000-000000000003")!
++    static let emptyProject = UUID(uuidString: "22F02008-0000-4000-8000-000000000004")!
++    static let completionProjects = [project, otherProject, emptyProject]
+     static let title = "Valve \"北\""
+     let repository: WorkspaceRepository
+     private(set) var reads = 0
+@@ -23,7 +25,7 @@
+     }
+
+     func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
+-        guard arguments.namespace == Self.namespace, arguments.key == "rows" else {
++        guard arguments.namespace == Self.namespace, arguments.key == "rows" || arguments.key == "completion-rows" else {
+             throw CapabilityFailure.unavailable
+         }
+         let state = await repository.snapshot()
+@@ -31,9 +33,17 @@
+         guard tasks.count == 3, tasks.allSatisfy({
+             (1...96).contains($0.title.utf8.count) && !$0.title.utf8.contains { $0 < 32 || $0 == 127 }
+         }) else { throw CapabilityFailure.unavailable }
++        var completion = ""
++        if arguments.key == "completion-rows" {
++            for project in Self.completionProjects {
++                let scoped = state.tasks(for: project)
++                guard scoped.count <= 32 else { throw CapabilityFailure.unavailable }
++                completion += scoped.map { $0.completed ? "1" : "0" }.joined() + "\n"
++            }
++        }
+         reads += 1
+         let rows = tasks.map { "\($0.id.uuidString)\t\($0.title)\n" }.joined()
+-        return .init(found: true, valueBase64: Data("\(state.revision)\n\(rows)".utf8).base64EncodedString())
++        return .init(found: true, valueBase64: Data("\(state.revision)\n\(completion)\(rows)".utf8).base64EncodedString())
+     }
+
+     func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) async throws -> KVMutationResponse {
+@@ -69,6 +79,20 @@
+         throw CapabilityFailure.unavailable
+     }
+
++    static func seedCompletion(_ repository: WorkspaceRepository) async throws -> Workspace {
++        let initial = try await seed(repository)
++        let now = Date(timeIntervalSince1970: 1_700_000_100)
++        guard let first = initial.tasks(for: otherProject).first else { throw FieldLogError.missingRecord }
++        return try await repository.transact(expectedRevision: initial.revision) { workspace in
++            try workspace.saveTask(projectID: otherProject, title: "Sign off inspection", responsible: "Kai", now: now)
++            guard let second = workspace.tasks(for: otherProject).first(where: { $0.id != first.id })
++            else { throw FieldLogError.missingRecord }
++            try workspace.toggleTask(first.id, now: now)
++            try workspace.toggleTask(second.id, now: now)
++            try workspace.createProject(id: emptyProject, title: "Upcoming inspection", site: "East", now: now)
++        }
++    }
++
+     static func seed(_ repository: WorkspaceRepository) async throws -> Workspace {
+         let now = Date(timeIntervalSince1970: 1_700_000_000)
+         _ = try await repository.transact(expectedRevision: 0) { workspace in

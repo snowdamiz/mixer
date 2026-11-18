@@ -1,0 +1,97 @@
+--- a/Guest.swift
++++ b/Guest.swift
+@@ -11,8 +11,9 @@
+ private let documentCapacity = 6144
+ private nonisolated(unsafe) var ui = InlineArray<10272, UInt8>(repeating: 0)
+ private nonisolated(unsafe) var capability = InlineArray<2048, UInt8>(repeating: 0)
+-private nonisolated(unsafe) var payload = InlineArray<903, UInt8>(repeating: 0)
++private nonisolated(unsafe) var payload = InlineArray<1002, UInt8>(repeating: 0)
+ private nonisolated(unsafe) var rows = InlineArray<3, TaskRow>(repeating: TaskRow())
++private nonisolated(unsafe) var completion = InlineArray<3, UInt64>(repeating: 0)
+ private nonisolated(unsafe) var token: UInt64 = 0
+ private nonisolated(unsafe) var phase: Phase = .beforeHydration
+ private nonisolated(unsafe) var revision: UInt64 = 1
+@@ -97,7 +98,7 @@
+ }
+
+ private func submitRead() -> Bool {
+-    let arguments: StaticString = #"{"key":"rows","namespace":"fieldlog-task-v1"}"#
++    let arguments: StaticString = #"{"key":"completion-rows","namespace":"fieldlog-task-v1"}"#
+     return storageGet(arguments.utf8Start, UInt32(arguments.utf8CodeUnitCount), &token) == 0
+ }
+
+@@ -149,6 +150,10 @@
+             var reader = TaskWireReader(data)
+             guard let incomingRevision = reader.revisionLine(),
+                   phase == .hydration || incomingRevision >= workspaceRevision else { return false }
++            for index in 0..<completionScopeCount {
++                guard let flags = reader.completionLine() else { return false }
++                completion[index] = completionPercent(completed: flags.completed, total: flags.total)
++            }
+             for index in 0..<rowCount {
+                 guard let row = reader.row() else { return false }
+                 for earlier in 0..<index where data[row.id].elementsEqual(data[rows[earlier].id]) {
+@@ -161,6 +166,12 @@
+             return true
+         }
+     }
++}
++
++private func completionPercent(completed: UInt64, total: UInt64) -> UInt64 {
++    guard total > 0 else { return 0 }
++    // The wire reader bounds each project to 32 tasks.
++    return (completed / total) &* 100
+ }
+
+ private func publish() {
+@@ -173,6 +183,13 @@
+         if phase == .unavailable {
+             output.append(#"{"id":"status","kind":"text","properties":{"text":"Saved tasks unavailable"},"children":[],"actions":[]}"#)
+         } else {
++            for index in 0..<completionScopeCount {
++                output.append(#"{"id":"completion-"#)
++                output.append(UInt64(index))
++                output.append(#"","kind":"text","properties":{"text":""#)
++                output.append(completion[index])
++                output.append(#"%"},"children":[],"actions":[]},"#)
++            }
+             #if FIELDLOG_UPDATED
+             output.append(#"{"id":"heading","kind":"text","properties":{"text":"Reorder tasks"},"children":[],"actions":[]},"#)
+             #endif
+--- a/TaskWire.swift
++++ b/TaskWire.swift
+@@ -2,7 +2,10 @@
+ let uuidLength = 36
+ let titleLimit = 256
+ let rowCount = 3
+-let payloadCapacity = 21 + rowCount * (uuidLength + 1 + titleLimit + 1)
++let completionScopeCount = 3
++let completionScopeTaskLimit = 32
++let payloadCapacity = 21 + completionScopeCount * (completionScopeTaskLimit + 1)
++    + rowCount * (uuidLength + 1 + titleLimit + 1)
+
+ struct TaskRow {
+     var id = 0..<0
+@@ -84,6 +87,22 @@
+         return number
+     }
+
++    // One ASCII completion flag per saved task, including an empty line
++    // for a project with no tasks. The host supplies flags, not a calculation.
++    mutating func completionLine() -> (completed: UInt64, total: UInt64)? {
++        var completed: UInt64 = 0
++        var total: UInt64 = 0
++        while !atEnd, bytes[offset] != 10 {
++            let byte = bytes[offset]
++            guard total < UInt64(completionScopeTaskLimit), byte == 48 || byte == 49 else { return nil }
++            completed += UInt64(byte - 48)
++            total += 1
++            offset += 1
++        }
++        guard consume("\n") else { return nil }
++        return (completed, total)
++    }
++
+     mutating func row() -> TaskRow? {
+         guard bytes.count - offset >= uuidLength else { return nil }
+         let id = offset..<(offset + uuidLength)

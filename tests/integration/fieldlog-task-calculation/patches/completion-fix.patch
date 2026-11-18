@@ -1,0 +1,11 @@
+--- a/Guest.swift
++++ b/Guest.swift
+@@ -171,7 +171,7 @@
+ private func completionPercent(completed: UInt64, total: UInt64) -> UInt64 {
+     guard total > 0 else { return 0 }
+     // The wire reader bounds each project to 32 tasks.
+-    return (completed / total) &* 100
++    return completed &* 100 / total
+ }
+
+ private func publish() {

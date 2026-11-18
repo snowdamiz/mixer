@@ -16,6 +16,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+For a project with one of three tasks complete, the signed FieldLog calculation changed from **0%** to **33%** on the macOS host. Signed rollback restored the earlier result, and the offline workspace stayed byte-identical. One root replay missed the baseline first frame. The next run passed with the same deadlines. Both mobile runs remain open. [Calculation replay](tests/integration/fieldlog-task-calculation/README.md) · [Host receipt](verification/receipts/fieldlog-task-calculation-source-41a05264.json)
+
 Both iOS 27 conflict tests passed. After an offline edit and a conflicting peer save, the ordinary editor reopened the merged task with the local title and peer assignee. SQLite held exactly two task events, and all seven prior outbox rows survived. [Native evidence](verification/receipts/fieldlog-ios-ordinary-task-conflict-41a05264.json) · [Replay from source](tests/integration/fieldlog-task-sync/README.md#ordinary-ios-task-editor)
 
 On iOS 27, the ordinary checklist test typed **Night shift** and the saved task contained **Night shif**. It fetched the signed baseline and stopped at the exact assignee check before exercising the update. The Simulator and release service closed cleanly. [Saved task and XCTest result](verification/receipts/fieldlog-ios-checklist-assignee-readback-41a05264.json)
