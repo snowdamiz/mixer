@@ -14,6 +14,10 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+On API 36, FieldLog’s development fixture installed once, read the saved task before each signed guest’s first frame, and preserved its workspace through Activity recreation, rollback and process-cold offline reopen. Reconnecting resumed the 258-byte partial download. The final confirmed change persisted revision 5 and eight outbox records. The disposable AVD was removed and all owned groups closed. [Android runtime](verification/receipts/fieldlog-android-hydrated-signed-runtime-41a05264.json).
+
+Five paired macOS runs matched native and guest results across three persisted tasks. Each implementation processed 60 actions, including 45 commits. Two earlier guest runs stopped before parity, once after input and once at the hydration deadline. Mobile performance and reliability remain open. [Matched workload](verification/receipts/fieldlog-matched-persisted-host-41a05264.json).
+
 The installed guest runtime now supports reading saved state before its first frame, after durable effect authorization. The reviewed implementation passed host checks for grant denial, startup deadline, quota forwarding and prior ABI behavior. The earlier iOS runtime receipt used the original overlay. [Implementation and review](verification/receipts/fieldlog-public-first-frame-hydration-41a05264.json).
 
 The local branch integrates free administration and native build cancellation at `793196991d`. L05 and L06 remain open for the combined runtime journeys. [Integration receipt](verification/receipts/l06-combined-admin-support-cancel-41a05264.json).
