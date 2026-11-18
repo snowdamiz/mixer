@@ -53,7 +53,7 @@ test("all eight states produce frozen display reports with exact failure/null se
     const { revision, failureCode, ...rest } = value.build;
     assert.deepEqual(result, { revision, report: { ...rest, ...(failed ? { failureCode } : {}) } });
     assert.ok(Object.isFrozen(client)); assert.ok(Object.isFrozen(result)); assert.ok(Object.isFrozen(result.report));
-    assert.deepEqual(Object.keys(client), ["read"]);
+    assert.deepEqual(Object.keys(client), ["read", "readLogs"]);
     assert.throws(() => { result.report.buildId = "other"; }, TypeError);
   }
 });
@@ -255,4 +255,74 @@ test("R1134 immutable intent survives delayed body and redacts parser exceptions
  assert.equal(summarizeBuildOverview({scope:{organizationId,projectId,applicationId},expected:[target],reports:[snapshot.report]}).reportedCount,1);
  const bad=createCookieBuildClient({fetch:async()=>new Response("SECRET_COOKIE_TOKEN",{headers:{"content-type":"application/json"}})});
  await assert.rejects(bad.read(selection),e=>e.code==="invalid_response"&&!String(e.stack).includes("SECRET_COOKIE_TOKEN"));
+});
+
+const logTarget = (changes = {}) => ({
+  selection: selected(), revision: 4, attempt: 1, state: "native_succeeded", ...changes,
+});
+const commandFinished = { event: "build_command_finished", exitCode: 0 };
+const compilerFinished = {
+  event: "compiler_finished", exitCode: 0, stdoutBytes: 300, stderrBytes: 0,
+  tailTruncated: false, phases: ["compile", "package"],
+};
+const logsDto = (changes = {}) => ({
+  buildLogs: { ...selected(), revision: 4, attempt: 1, maxAttempts: 3,
+    state: "native_succeeded", failureCode: null, workerCompletionPending: false,
+    events: [compilerFinished, commandFinished], ...changes },
+});
+
+test("terminal logs use the exact cookie GET and snapshot the selection before fetch", async () => {
+  const target = logTarget();
+  const client = createCookieBuildClient({ fetch: async (path, init) => {
+    const original = selected();
+    assert.equal(path, "/console-api/v1/build-logs?" +
+      keys.map((key, index) => `${wireKeys[index]}=${original[key]}`).join("&"));
+    for (const [key, value] of Object.entries({ method: "GET", credentials: "same-origin",
+      cache: "no-store", redirect: "error", referrerPolicy: "no-referrer" })) assert.equal(init[key], value);
+    assert.deepEqual(init.headers, { accept: "application/json" });
+    assert.equal(Object.hasOwn(init, "body"), false);
+    return json(logsDto());
+  } });
+  const pending = client.readLogs(target);
+  target.selection.buildId = "mutated";
+  target.revision = 8;
+  const events = await pending;
+  assert.deepEqual(events, [compilerFinished, commandFinished]);
+  assert.ok(Object.isFrozen(events) && Object.isFrozen(events[0].phases));
+  assert.deepEqual(await apiFor(logsDto({ state: "cancelled", events: [{ ...commandFinished, exitCode: -15 }] }))
+    .readLogs(logTarget({ state: "cancelled" })), [{ ...commandFinished, exitCode: -15 }]);
+});
+
+test("logs reject invalid target before fetch and every mismatched build or attempt", async () => {
+  const client = createCookieBuildClient({ fetch: async () => assert.fail("invalid target reached fetch") });
+  for (const input of [null, logTarget({ selection: { ...selected(), buildId: "bad/id" } }),
+    logTarget({ selection: { ...selected(), platform: "android" } }), logTarget({ state: "running" }),
+    logTarget({ state: "reconciling" }), logTarget({ state: "succeeded" }), logTarget({ attempt: 0 }), logTarget({ attempt: 6 }),
+    logTarget({ revision: 0 }), logTarget({ revision: 33 }), logTarget({ token: "private" })]) {
+    await assert.rejects(client.readLogs(input), safeError("invalid_request"));
+  }
+  for (const key of keys) {
+    const value = key === "platform" ? "android" : key.endsWith("Sha256") ? "d".repeat(64) : "foreign";
+    await assert.rejects(apiFor(logsDto({ [key]: value })).readLogs(logTarget()), safeError("invalid_response"));
+  }
+  for (const changes of [{ revision: 3 }, { revision: 5 }, { attempt: 2 }, { state: "cancelled" },
+    { state: "succeeded" }, { workerCompletionPending: true }, { maxAttempts: 0 }, { failureCode: "compiler_error" }]) {
+    await assert.rejects(apiFor(logsDto(changes)).readLogs(logTarget()), safeError("invalid_response"));
+  }
+});
+
+test("logs reject other envelopes, raw output and anything outside the retained event grammar", async () => {
+  const invalid = [
+    { build: logsDto().buildLogs }, { ...logsDto(), extra: true }, logsDto({ operationId: "private" }),
+    ...[[], [compilerFinished], [commandFinished, compilerFinished], [commandFinished, commandFinished],
+      [compilerFinished, commandFinished, commandFinished], [{ ...commandFinished, extra: "private" }],
+      [{ ...commandFinished, exitCode: -256 }], [{ ...commandFinished, exitCode: 1.5 }],
+      ...[{ exitCode: 256 }, { stdoutBytes: 2 ** 32 + 1 }, { stderrBytes: -1 }, { tailTruncated: 1 },
+        { phases: ["link", "compile"] }, { phases: ["compile", "compile"] }, { phases: ["private"] },
+        { rawOutput: "private" }].map(change => [{ ...compilerFinished, ...change }, commandFinished]),
+    ].map(events => logsDto({ events })),
+  ];
+  for (const response of invalid) {
+    await assert.rejects(apiFor(response).readLogs(logTarget()), safeError("invalid_response"));
+  }
 });

@@ -1,20 +1,23 @@
 import { CancelBuildForm } from "./CancelBuildForm.js";
 import type { CancelBuild } from "../api/build-submission.js";
+import type { CookieBuildClient } from "../api/cookie-build-client.js";
 import { BuildCreation } from "./BuildCreation.js";
 import { A } from "@solidjs/router";
 import { createMemo, For, Match, Show, Switch } from "solid-js";
 import type { BuildCatalogRow } from "../domain/build-catalog.js";
 import type { BuildOverviewInput, BuildState } from "../domain/build-overview.js";
+import { buildLogTarget } from "../domain/build-read.js";
 import { resolveWorkspaceDirectory, workspaceDisplayName } from "../domain/workspace-directory.js";
 import type { WorkspaceDirectoryState } from "../domain/workspace-directory.js";
 import type { BuildSelectionBinding } from "../state/build-selection-binding.js";
 import type { BuildSelectionState } from "../state/build-selection-controller.js";
 import { BuildOverview } from "./BuildOverview.js";
+import { BuildLogs } from "./BuildLogs.js";
 import "./application-build-page.css";
 
 const labels: Record<BuildState, string> = {
   queued: "Queued", running: "Running", cancelling: "Cancelling", reconciling: "Confirming outcome",
-  failed: "Failed", cancelled: "Cancelled", timed_out: "Timed out", succeeded: "Succeeded",
+  failed: "Failed", cancelled: "Cancelled", timed_out: "Timed out", succeeded: "Succeeded", native_succeeded: "Succeeded",
 };
 type Load = BuildSelectionState["applications"] | BuildSelectionState["builds"] | BuildSelectionState["detail"];
 function LoadMessage(props: { state: Load; noun: string; onRetrySession: (() => void) | undefined }) {
@@ -46,6 +49,7 @@ export function ApplicationBuildPage(props: {
   readonly workspace: WorkspaceDirectoryState;
   readonly showBuildCreation?: boolean;
   readonly cancelBuild?: CancelBuild | undefined;
+  readonly buildReader?: CookieBuildClient | undefined;
   readonly onRetrySession?: () => void;
 }) {
   const directory = createMemo(() => resolveWorkspaceDirectory(props.workspace));
@@ -53,6 +57,10 @@ export function ApplicationBuildPage(props: {
   const applications = () => { const value = state().applications; return value.kind === "ready" || value.kind === "empty" ? value.page : undefined; };
   const builds = () => { const value = state().builds; return value.kind === "ready" || value.kind === "empty" ? value.page : undefined; };
   const detail = () => { const value = state().detail; return value.kind === "ready" ? value : undefined; };
+  const logTarget = createMemo(() => {
+    const selected = detail();
+    return selected && buildLogTarget(selected);
+  });
   const rowSnapshot = (row: BuildCatalogRow) => {
     const current = state().detail, selection = row.selection;
     const value = current.kind === "ready" ? current : "previous" in current ? current.previous : undefined;
@@ -138,6 +146,11 @@ export function ApplicationBuildPage(props: {
           }</Show>
           <Show when={detail()?.snapshot.report.workerCompletionPending}><p class="workspace-message" role="status">Waiting for the build worker to finish. The outcome is still being confirmed.</p></Show>
           <BuildOverview state={{ kind: "ready", input: input() }} />
+          <Show when={props.buildReader} keyed>{reader =>
+            <Show when={logTarget()} keyed>{target =>
+              <BuildLogs target={target} readLogs={reader.readLogs} />
+            }</Show>
+          }</Show>
         </>}</Show>
       </section>
     </Show>

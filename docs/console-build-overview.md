@@ -1,5 +1,16 @@
 # Mixer console Builds view
 
+## Read the selected attempt’s logs
+
+In the authenticated console, open the application, select its iOS build,
+and choose **View build logs** on a supported terminal attempt. The panel shows
+the recorded compiler phases, exit codes, and stdout and stderr byte counts.
+A truncation notice indicates that the worker retained only part of the output.
+Selecting a different build clears the panel. Open the logs again to read the
+new selection. [Local browser verification](../verification/receipts/l05-console-terminal-build-log-view-41a05264.json)
+
+## Build overview preview
+
 This is a read-only SolidJS display slice for product-plan sections 13, 14, and
 17. It uses the shared console shell, website assets, and website palette and
 typography. The production `/builds` route remains genuinely unavailable while

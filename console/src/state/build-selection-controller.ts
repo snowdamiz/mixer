@@ -67,7 +67,7 @@ const first: CatalogPageRequest = Object.freeze({});
 const initial = (applications: Pending = unselected): BuildSelectionState => Object.freeze({ applications, builds: unselected, detail: unselected });
 
 function checkedSnapshot(input: unknown, selection: BuildReadSelection): BuildReadSnapshot {
-  if (!catalogRecord(input, ["revision", "report"]) || !catalogRecord(input.report,
+  if (!catalogRecord(input, ["revision", "report"], ["artifacts"]) || !catalogRecord(input.report,
     ["organizationId", "projectId", "applicationId", "buildId", "platform", "sourceSha256", "toolchainLockSha256",
       "buildDefinitionSha256", "state", "attempt", "maxAttempts", "workerCompletionPending"], ["failureCode"])) throw new TypeError();
   const r = input.report;
@@ -75,7 +75,8 @@ function checkedSnapshot(input: unknown, selection: BuildReadSelection): BuildRe
     applicationId: r.applicationId, buildId: r.buildId, platform: r.platform, sourceSha256: r.sourceSha256,
     toolchainLockSha256: r.toolchainLockSha256, buildDefinitionSha256: r.buildDefinitionSha256,
     revision: input.revision, state: r.state, attempt: r.attempt, maxAttempts: r.maxAttempts,
-    failureCode: r.failureCode ?? null, workerCompletionPending: r.workerCompletionPending } }, selection);
+    failureCode: r.failureCode ?? null, workerCompletionPending: r.workerCompletionPending,
+    ...(Object.hasOwn(input, "artifacts") ? { artifacts: input.artifacts } : {}) } }, selection);
 }
 function checkedBuildPage(input: unknown, scope: Parameters<typeof parseBuildPage>[1]): BuildPage {
   if (!catalogRecord(input, ["organizationId", "projectId", "applicationId", "builds", "nextCursor"]) ||
@@ -87,7 +88,8 @@ function checkedBuildPage(input: unknown, scope: Parameters<typeof parseBuildPag
     return { organizationId: r.organizationId, projectId: r.projectId, applicationId: r.applicationId,
       buildId: r.buildId, platform: r.platform, sourceSha256: r.sourceSha256, toolchainLockSha256: r.toolchainLockSha256,
       buildDefinitionSha256: r.buildDefinitionSha256, revision: snapshot.revision, state: r.state, attempt: r.attempt,
-      maxAttempts: r.maxAttempts, failureCode: r.failureCode ?? null, workerCompletionPending: r.workerCompletionPending };
+      maxAttempts: r.maxAttempts, failureCode: r.failureCode ?? null, workerCompletionPending: r.workerCompletionPending,
+      ...(snapshot.artifacts === undefined ? {} : { artifacts: snapshot.artifacts }) };
   });
   return parseBuildPage({ organizationId: input.organizationId, projectId: input.projectId,
     applicationId: input.applicationId, builds, nextCursor: input.nextCursor }, scope);

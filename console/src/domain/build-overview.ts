@@ -1,6 +1,6 @@
 export type BuildPlatform = "ios" | "android";
 export type BuildState = "queued" | "running" | "cancelling" | "reconciling" |
-  "succeeded" | "failed" | "cancelled" | "timed_out";
+  "succeeded" | "native_succeeded" | "failed" | "cancelled" | "timed_out";
 export type BuildFailureCode = "worker_unavailable" | "worker_lost" | "dependency_transport" |
   "artifact_transport" | "worker_timeout" | "compiler_error" | "test_failure" |
   "policy_rejection" | "invalid_input" | "unknown_failure";
@@ -52,7 +52,7 @@ export interface BuildOverviewSnapshot {
 const scopeKeys = ["organizationId", "projectId", "applicationId"] as const;
 const identityKeys = ["platform", "buildId", "sourceSha256", "toolchainLockSha256", "buildDefinitionSha256"] as const;
 const observationKeys = ["state", "attempt", "maxAttempts", "workerCompletionPending"] as const;
-const states: readonly string[] = ["queued", "running", "cancelling", "reconciling", "succeeded", "failed", "cancelled", "timed_out"];
+const states: readonly string[] = ["queued", "running", "cancelling", "reconciling", "succeeded", "native_succeeded", "failed", "cancelled", "timed_out"];
 const pendingStates: readonly string[] = ["running", "cancelling", "reconciling"];
 const failureCodes: readonly string[] = ["worker_unavailable", "worker_lost", "dependency_transport",
   "artifact_transport", "worker_timeout", "compiler_error", "test_failure", "policy_rejection", "invalid_input", "unknown_failure"];
@@ -128,6 +128,7 @@ export function summarizeBuildOverview(input: unknown): BuildOverviewSnapshot {
     requireValid(target !== undefined && identityKeys.every(key => value[key] === target[key]), "Report does not match selected build");
     requireValid(!observations.has(target.platform), "Duplicate build report");
     requireValid(typeof value.state === "string" && states.includes(value.state) &&
+      (value.state !== "native_succeeded" || target.platform === "ios") &&
       typeof value.attempt === "number" && Number.isInteger(value.attempt) && value.attempt >= 1 &&
       typeof value.maxAttempts === "number" && Number.isInteger(value.maxAttempts) && value.maxAttempts <= 5 &&
       value.attempt <= value.maxAttempts &&

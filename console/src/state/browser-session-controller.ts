@@ -16,7 +16,7 @@ import { createCookieBuildClient } from "../api/cookie-build-client.js";
 import type { CookieBuildClient } from "../api/cookie-build-client.js";
 import { createCookieBuildCatalogClient } from "../api/cookie-build-catalog-client.js";
 import type { BuildCatalogClient } from "../api/cookie-build-catalog-client.js";
-import type { BuildReadSelection } from "../domain/build-read.js";
+import type { BuildLogTarget, BuildReadSelection } from "../domain/build-read.js";
 import type { ProjectSelection, ApplicationSelection, CatalogPageRequest } from "../domain/build-catalog.js";
 
 export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" }> |
@@ -171,6 +171,7 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
     });
     const read: CookieBuildClient = Object.freeze({
       read: (selection: BuildReadSelection, signal?: AbortSignal) => delegate(value, owned => rawRead.read(selection, owned), signal),
+      readLogs: (target: BuildLogTarget, signal?: AbortSignal) => delegate(value, owned => rawRead.readLogs(target, owned), signal),
     });
     const csrf = () => {
       if (!live(value)) return aborted();

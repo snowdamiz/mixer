@@ -143,6 +143,7 @@ HYDRATION_CHANGES = HYDRATION_SOURCE_CHANGES | {CAPABILITY + 'CapabilityColdStar
 VERIFY_WORKFLOW = '.github/workflows/verify.yml'
 HOSTED_V32_WORKFLOW = 'hosted-v32-predecessor-bytes/' + VERIFY_WORKFLOW
 WORKSPACE_BUILDS_WORKFLOW = 'workspace-builds-predecessor-bytes/' + VERIFY_WORKFLOW
+CONSOLE_BUILD_LOGS_WORKFLOW = 'console-build-logs-predecessor-bytes/' + VERIFY_WORKFLOW
 LOCAL_STORE_PREFIX = 'local-store-predecessor-bytes/'
 LOCAL_STORE_ADDITIONS = {
     'cli/Sources/MixerBuild/LocalStoreFixture.swift',
@@ -202,7 +203,7 @@ ICU_NOTICE_TEST = 'cli/build-tests/test_android_runtime_notices.py'
 ICU_NOTICE_CHANGES = {
     ICU_NOTICE_DRIVER, ICU_NOTICE_TEST, 'THIRD_PARTY.yml', JAVA + 'test_sparse_checkout.py',
 }
-MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
     RUNTIME_NOTICE_WITNESS_PREFIX + name for name in RUNTIME_NOTICE_WITNESS_CHANGES
@@ -326,7 +327,7 @@ def install_inputs():
                              'pair24_transition', 'cancel_cli_transition', 'hydration_transition',
                              'hosted_v33_workflow', 'local_store_transition', 'workspace_builds_workflow',
                              'public_update_transition', 'runtime_notice_witness_transition',
-                             'release_inspector_transition', 'icu_notice_transition'} and
+                             'release_inspector_transition', 'icu_notice_transition', 'console_build_logs_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -609,6 +610,13 @@ def install_inputs():
         'count': len(current), 'manifest': 'current-source-inputs.json',
         'sha256': icu['sourceAfter'],
     } and icu['sourceAfter'] == previous.digest(current), 'ICU notice source transition differs')
+
+    console_workflow = binding['console_build_logs_workflow']
+    before = read_predecessor_member(HERE / CONSOLE_BUILD_LOGS_WORKFLOW)
+    require(set(console_workflow) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == console_workflow['before'] and
+            console_workflow['before'] != console_workflow['after'], 'Console build logs workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = console_workflow['after']
 
     previous.check_rows(ROOT, installed)
     for name, change in icu['changes'].items():

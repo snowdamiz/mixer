@@ -1,11 +1,12 @@
-import { parseBuildRead, snapshotBuildReadSelection } from "../domain/build-read.js";
-import type { BuildReadSelection, BuildReadSnapshot } from "../domain/build-read.js";
+import { parseBuildLogs, parseBuildRead, snapshotBuildLogTarget, snapshotBuildReadSelection } from "../domain/build-read.js";
+import type { BuildLogEvents, BuildLogTarget, BuildReadSelection, BuildReadSnapshot } from "../domain/build-read.js";
 import { createWorkspaceTransport, workspaceFailure } from "./workspace-transport.js";
 import type { WorkspaceTransportOptions } from "./workspace-transport.js";
 
 export type CookieBuildClientOptions = WorkspaceTransportOptions;
 export interface CookieBuildClient {
   read(selection: BuildReadSelection, signal?: AbortSignal): Promise<BuildReadSnapshot>;
+  readLogs(target: BuildLogTarget, signal?: AbortSignal): Promise<BuildLogEvents>;
 }
 
 export function buildSelectionQuery(selection: BuildReadSelection): string {
@@ -31,6 +32,13 @@ export function createCookieBuildClient(options: CookieBuildClientOptions = {}):
       try { selection = snapshotBuildReadSelection(input); }
       catch { return workspaceFailure("invalid_request"); }
       return request("/console-api/v1/builds?" + buildSelectionQuery(selection), value => parseBuildRead(value, selection), signal);
+    },
+    async readLogs(input: BuildLogTarget, signal?: AbortSignal) {
+      let target: BuildLogTarget;
+      try { target = snapshotBuildLogTarget(input); }
+      catch { return workspaceFailure("invalid_request"); }
+      return request("/console-api/v1/build-logs?" + buildSelectionQuery(target.selection),
+        value => parseBuildLogs(value, target), signal);
     },
   });
 }

@@ -59,7 +59,21 @@ const dto=(change={})=>({...scope,applicationId:"app",buildId:"b-ios",platform:"
 const apps=(ids=["app","empty"],nextCursor=null,projectId="p")=>({...scope,projectId,applications:ids.map(applicationId=>({applicationId})),nextCursor});
 const catalog=(rows=[dto(),dto({buildId:"c-android",platform:"android",state:"running",workerCompletionPending:true})],applicationId="app",nextCursor=null)=>({...scope,applicationId,builds:rows,nextCursor});
 function fixture(){const calls=[],waiting=[];let index=0;const fetch=(url,options)=>new Promise((resolve,reject)=>{const call={path:String(url),...options,resolve,reject};calls.push(call);waiting.shift()?.(call);});const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch);return {...app,container,calls,async request(expected){const call=calls[index++]??await new Promise(resolve=>waiting.push(resolve));assert.equal(call.path,expected);assert.equal(call.method,"GET");assert.equal(call.credentials,"same-origin");return call;},text:()=>container.textContent,click(text,tag="BUTTON"){const node=walk(container).find(n=>n.nodeName===tag&&n.textContent.includes(text));assert(node,"missing "+tag+" "+text);node.click();return node;},close(){app.dispose();container.remove();}};}
-async function admitted(f){const call=await f.request("/auth/session");call.resolve(json({state:"authenticated",generation:"A".repeat(43),csrf_token:"A".repeat(43),expires_at:Math.floor(Date.now()/1000)+60}));(await f.request("/console-api/v1/orgs")).resolve(json({organizations:[{id:"org",display_name:"Test studio",organization_roles:["owner"]}],next_cursor:null}));await flush();f.click("Test studio");(await f.request("/console-api/v1/projects?organization_id=org")).resolve(json({projects:[{organization_id:"org",id:"p",display_name:"Test project",roles:["viewer"]},{organization_id:"org",id:"q",display_name:"Other project",roles:["viewer"]}],next_cursor:null}));await flush();f.click("Test project");f.click("View builds","A");return f.request("/console-api/v1/applications?organization_id=org&project_id=p");}
+async function admitted(f, organizations = [{id:"org",display_name:"Test studio",organization_roles:["owner"]}]){
+  const call = await f.request("/auth/session");
+  call.resolve(json({state:"authenticated",generation:"A".repeat(43),csrf_token:"A".repeat(43),expires_at:Math.floor(Date.now()/1000)+60}));
+  (await f.request("/console-api/v1/orgs")).resolve(json({organizations,next_cursor:null}));
+  await flush();
+  f.click("Test studio");
+  (await f.request("/console-api/v1/projects?organization_id=org")).resolve(json({projects:[
+    {organization_id:"org",id:"p",display_name:"Test project",roles:["viewer"]},
+    {organization_id:"org",id:"q",display_name:"Other project",roles:["viewer"]},
+  ],next_cursor:null}));
+  await flush();
+  f.click("Test project");
+  f.click("View builds","A");
+  return f.request("/console-api/v1/applications?organization_id=org&project_id=p");
+}
 async function listed(f){(await admitted(f)).resolve(json(apps()));await flush();f.click("Application IDapp");(await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=app")).resolve(json(catalog()));await flush();}
 const readPath="/console-api/v1/builds?organization_id=org&project_id=p&application_id=app&build_id=b-ios&platform=ios&source_sha256="+"a".repeat(64)+"&toolchain_lock_sha256="+"b".repeat(64)+"&build_definition_sha256="+"c".repeat(64);
 
@@ -117,3 +131,212 @@ test("changing selected build drops its observation and never blends a late refr
 });
 
 test("late failed detail after application or session generation change cannot repaint current row",async()=>{for(const reset of ["application","session"]){const f=fixture();try{await listed(f);f.click("b-ios");(await f.request(readPath)).resolve(json({build:dto({revision:4,state:"failed",failureCode:"compiler_error"})}));await flush();f.click("Refresh build");const late=await f.request(readPath);if(reset==="application"){f.click("Application IDempty");(await f.request("/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=empty")).resolve(json(catalog([],"empty")));}else{f.controller.revalidate();(await f.request("/auth/session")).resolve(json({state:"unauthenticated",csrf_token:"A".repeat(43)}));}late.resolve(json({build:dto({revision:9,state:"failed",failureCode:"compiler_error"})}));await flush();assert.equal(late.signal.aborted,true);assert.doesNotMatch(f.text(),/Compilation failed|b-ios/);}finally{f.close();}}});
+
+const logsPath = readPath.replace("/builds?", "/build-logs?");
+const catalogPath = "/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=app";
+const success = dto({ revision: 4, state: "native_succeeded" });
+const cancelled = dto({ revision: 4, state: "cancelled" });
+const nativeDetail = {
+  ...success,
+  artifacts: ["unsigned_native_binary", "debug_symbols", "resource_inventory"].map(kind => ({
+    kind, sizeBytes: 5, sha256: "a".repeat(64),
+    downloadPath: "/console-api/v1/build-artifacts/" + kind + "?" + readPath.split("?")[1],
+  })),
+};
+const command = { event: "build_command_finished", exitCode: 0 };
+const compiler = { event: "compiler_finished", exitCode: 0, stdoutBytes: 320, stderrBytes: 80,
+  tailTruncated: true, phases: ["compile", "link"] };
+const logEnvelope = (build, events = [compiler, command]) => ({ buildLogs: { ...build, events } });
+
+test("normal route opens retained logs from an already successful native catalog row", { timeout: 3000 }, async () => {
+  const f = fixture();
+  try {
+    (await admitted(f)).resolve(json(apps()));
+    await flush();
+    f.click("Application IDapp");
+    (await f.request(catalogPath)).resolve(json(catalog([nativeDetail])));
+    await flush();
+    assert.match(f.text(), /b-iosSucceeded/);
+    f.click("b-ios");
+    (await f.request(readPath)).resolve(json({ build: nativeDetail }));
+    await flush();
+    assert.match(f.text(), /This platform build completed successfully/);
+    assert.equal(f.calls.some(call => call.path.startsWith("/console-api/v1/build-logs")), false);
+    f.click("View build logs");
+    const read = await f.request(logsPath);
+    assert.match(f.text(), /Loading build logs/);
+    read.resolve(json(logEnvelope(success)));
+    await flush();
+    const events = walk(f.container).find(node => node.getAttribute("aria-label") === "Build events for attempt 1");
+    assert.ok(events);
+    assert.match(events.textContent, /Compiler finished \(exit code 0\).*320 bytes on stdout.*80 bytes on stderr.*compile, link.*truncated.*Build command finished \(exit code 0\)/);
+    assert.match(f.text(), /This platform build completed successfully/);
+  } finally { f.close(); }
+});
+
+test("cancelled build reads command-only events and recovers from unavailable or malformed logs", { timeout: 3000 }, async () => {
+  const f = fixture();
+  try {
+    await listed(f);
+    f.click("b-ios");
+    (await f.request(readPath)).resolve(json({ build: cancelled }));
+    await flush();
+    f.click("View build logs");
+    for (const response of [new Response("private sentinel", { status: 404 }),
+      new Response("private sentinel", { status: 503 }),
+      json(logEnvelope({ ...cancelled, attempt: 2 }, [{ ...command, exitCode: -22 }]))]) {
+      (await f.request(logsPath)).resolve(response);
+      await flush();
+      assert.match(f.text(), /Build logs are unavailable/);
+      assert.match(f.text(), /Cancelled/);
+      assert.doesNotMatch(f.text(), /private sentinel|Build command finished/);
+      f.click("Retry build logs");
+    }
+    (await f.request(logsPath)).resolve(json(logEnvelope(cancelled, [{ ...command, exitCode: -15 }])));
+    await flush();
+    assert.match(f.text(), /Build command finished \(exit code -15\)/);
+    assert.doesNotMatch(f.text(), /Compiler finished|Build logs are unavailable/);
+  } finally { f.close(); }
+});
+
+test("refresh clears previous logs and accepts only the new terminal attempt", { timeout: 3000 }, async () => {
+  const f = fixture();
+  try {
+    await listed(f);
+    f.click("b-ios");
+    (await f.request(readPath)).resolve(json({ build: cancelled }));
+    await flush();
+    f.click("View build logs");
+    (await f.request(logsPath)).resolve(json(logEnvelope(cancelled, [{ ...command, exitCode: -15 }])));
+    await flush();
+    assert.match(f.text(), /Build command finished \(exit code -15\)/);
+    f.click("Refresh build");
+    assert.doesNotMatch(f.text(), /Build command finished/);
+    const newer = { ...cancelled, revision: 7, attempt: 2 };
+    (await f.request(readPath)).resolve(json({ build: newer }));
+    await flush();
+    f.click("View build logs");
+    (await f.request(logsPath)).resolve(json(logEnvelope(cancelled, [{ ...command, exitCode: -15 }])));
+    await flush();
+    assert.match(f.text(), /Build logs are unavailable/);
+    f.click("Retry build logs");
+    (await f.request(logsPath)).resolve(json(logEnvelope(newer, [{ ...command, exitCode: -9 }])));
+    await flush();
+    const events = walk(f.container).find(node => node.getAttribute("aria-label") === "Build events for attempt 2");
+    assert.match(events?.textContent ?? "", /Build command finished \(exit code -9\)/);
+  } finally { f.close(); }
+});
+
+test("changing build or tenant aborts retained logs and a late response cannot repaint detail", { timeout: 3000 }, async () => {
+  const f = fixture();
+  try {
+    (await admitted(f, [
+      { id: "org", display_name: "Test studio", organization_roles: ["owner"] },
+      { id: "other", display_name: "Other studio", organization_roles: ["owner"] },
+    ])).resolve(json(apps()));
+    await flush();
+    f.click("Application IDapp");
+    (await f.request(catalogPath)).resolve(json(catalog()));
+    await flush();
+    f.click("b-ios");
+    (await f.request(readPath)).resolve(json({ build: cancelled }));
+    await flush();
+    f.click("View build logs");
+    const oldBuild = await f.request(logsPath);
+    f.click("c-android");
+    assert.ok(oldBuild.signal.aborted);
+    (await f.request(readPath.replace("build_id=b-ios&platform=ios", "build_id=c-android&platform=android")))
+      .resolve(json({ build: dto({ buildId: "c-android", platform: "android", state: "succeeded" }) }));
+    oldBuild.resolve(json(logEnvelope(cancelled)));
+    await flush();
+    assert.doesNotMatch(f.text(), /Compiler finished|View build logs/);
+
+    f.click("b-ios");
+    (await f.request(readPath)).resolve(json({ build: cancelled }));
+    await flush();
+    f.click("View build logs");
+    const oldTenant = await f.request(logsPath);
+    f.history.back();
+    await flush();
+    f.click("Other studio");
+    assert.ok(oldTenant.signal.aborted);
+    const differentTenant = { organizationId: "other" };
+    (await f.request("/console-api/v1/projects?organization_id=other")).resolve(json({ projects: [
+      { organization_id: "other", id: "p", display_name: "Other studio project", roles: ["viewer"] },
+    ], next_cursor: null }));
+    await flush();
+    f.click("Other studio project");
+    f.click("View builds", "A");
+    (await f.request("/console-api/v1/applications?organization_id=other&project_id=p"))
+      .resolve(json({ ...apps(), ...differentTenant }));
+    await flush();
+    f.click("Application IDapp");
+    const otherBuild = { ...cancelled, ...differentTenant };
+    (await f.request(catalogPath.replace("=org&", "=other&")))
+      .resolve(json({ ...catalog([otherBuild]), ...differentTenant }));
+    await flush();
+    f.click("b-ios");
+    (await f.request(readPath.replace("=org&", "=other&"))).resolve(json({ build: otherBuild }));
+    await flush();
+    f.click("View build logs");
+    const next = await f.request(logsPath.replace("=org&", "=other&"));
+    oldTenant.resolve(json(logEnvelope(cancelled)));
+    await flush();
+    assert.match(f.text(), /Loading build logs/);
+    assert.doesNotMatch(f.text(), /Compiler finished/);
+    next.resolve(json(logEnvelope(otherBuild, [{ ...command, exitCode: -9 }])));
+    await flush();
+    assert.match(f.text(), /Build command finished \(exit code -9\)/);
+  } finally { f.close(); }
+});
+
+test("logs honor existing session invalidation", { timeout: 3000 }, async () => {
+  const f = fixture();
+  try {
+    await listed(f);
+    f.click("b-ios");
+    (await f.request(readPath)).resolve(json({ build: cancelled }));
+    await flush();
+    f.click("View build logs");
+    (await f.request(logsPath)).resolve(new Response("private sentinel", { status: 401 }));
+    await flush();
+    assert.equal(f.controller.getSession().kind, "unavailable");
+    assert.doesNotMatch(f.text(), /Build logs|private sentinel|b-ios/);
+  } finally { f.close(); }
+});
+
+test("ordinary iOS success retains its detail without a retained-log action", { timeout: 3000 }, async () => {
+  const f = fixture();
+  try {
+    await listed(f);
+    f.click("b-ios");
+    (await f.request(readPath)).resolve(json({ build: dto({ revision: 4, state: "succeeded" }) }));
+    await flush();
+    assert.match(f.text(), /This platform build completed successfully/);
+    assert.doesNotMatch(f.text(), /Build logs|View build logs/);
+    assert.equal(f.calls.some(call => call.path.startsWith("/console-api/v1/build-logs")), false);
+  } finally { f.close(); }
+});
+
+for (const stage of ["catalog", "detail"]) {
+  test(`Android native success is refused in ${stage}`, { timeout: 3000 }, async () => {
+    const f = fixture();
+    const android = { ...nativeDetail, buildId: "c-android", platform: "android" };
+    try {
+      if (stage === "catalog") {
+        (await admitted(f)).resolve(json(apps()));
+        await flush();
+        f.click("Application IDapp");
+        (await f.request(catalogPath)).resolve(json(catalog([android])));
+      } else {
+        await listed(f);
+        f.click("c-android");
+        const detailPath = readPath.replace("build_id=b-ios&platform=ios", "build_id=c-android&platform=android");
+        (await f.request(detailPath)).resolve(json({ build: android }));
+      }
+      await flush();
+      assert.match(f.text(), /Could not load a (platform )?build/);
+      assert.doesNotMatch(f.text(), /Succeeded|Build logs/);
+    } finally { f.close(); }
+  });
+}

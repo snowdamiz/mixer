@@ -14,6 +14,7 @@ const stateCopy: Record<BuildState | "not_reported", { label: string; detail: st
   cancelling: { label: "Cancelling", detail: "Cancellation requested. Waiting for the build to stop.", tone: "pending" },
   reconciling: { label: "Confirming outcome", detail: "The deadline has passed. Confirming whether the build has stopped.", tone: "pending" },
   succeeded: { label: "Succeeded", detail: "This platform build completed successfully.", tone: "passed" },
+  native_succeeded: { label: "Succeeded", detail: "This platform build completed successfully.", tone: "passed" },
   failed: { label: "Failed", detail: "This platform build failed. Review the reported cause below.", tone: "failed" },
   cancelled: { label: "Cancelled", detail: "This platform build was cancelled.", tone: "neutral" },
   timed_out: { label: "Timed out", detail: "This attempt exceeded its deadline.", tone: "failed" },

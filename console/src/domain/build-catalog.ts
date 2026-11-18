@@ -106,7 +106,7 @@ export function parseBuildPage(input: unknown, expected: ApplicationSelection): 
   const builds = rows(input.builds).map(row => {
     requireValid(catalogRecord(row, ["organizationId", "projectId", "applicationId", "buildId", "platform",
       "sourceSha256", "toolchainLockSha256", "buildDefinitionSha256", "revision", "state", "attempt",
-      "maxAttempts", "failureCode", "workerCompletionPending"]));
+      "maxAttempts", "failureCode", "workerCompletionPending"], ["artifacts"]));
     const selection = snapshotBuildReadSelection({ organizationId: row.organizationId, projectId: row.projectId,
       applicationId: row.applicationId, buildId: row.buildId, platform: row.platform,
       sourceSha256: row.sourceSha256, toolchainLockSha256: row.toolchainLockSha256,
