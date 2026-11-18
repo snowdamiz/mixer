@@ -1,0 +1,59 @@
+{
+  "status": "incomplete",
+  "scope": "Install the ordinary FieldLog queue APK on a fresh, owned API 36 arm64 emulator before the transfer test.",
+  "attempts": [
+    {
+      "source": "verification/local/fieldlog-queue-api36-root-A5ABB668-DA18-40A1-A980-E7CC0ADCC365/result.json",
+      "sha256": "6882f6f5d766fe473e57c3d3db2dafad26ea500e73ef7adbcce82eff54159a41",
+      "apkSHA256": "ac434b1e0e2f48f13f11af2e39639a0456f6cf5a00ad5677577140f5f7e7dad9",
+      "image": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+      "result": {
+        "stage": "install_exact_apks_once",
+        "type": "TimeoutExpired",
+        "message": "Command '['/opt/homebrew/share/android-commandlinetools/platform-tools/adb', '-H', '127.0.0.1', '-P', '27671', '-t', '1', 'install', '--no-incremental', '/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-android-queue-api36-OAVw5d81/FieldLog-queue-development.apk']' timed out after 90 seconds"
+      },
+      "elapsedSeconds": 218.362,
+      "adbExit": -15,
+      "cleanup": {
+        "errors": [],
+        "reusablePorts": [
+          5652,
+          5653,
+          27671
+        ],
+        "removedOwnedScratch": true
+      }
+    },
+    {
+      "source": "verification/local/fieldlog-queue-api36-root-A6BA16DA-DDA7-4CFC-957D-0240C75738FC/result.json",
+      "sha256": "f7ee4d02d8ef08cf18988a74ec1e14b53dc5e20fded7a72bd6c523f30fd735d2",
+      "apkSHA256": "ac434b1e0e2f48f13f11af2e39639a0456f6cf5a00ad5677577140f5f7e7dad9",
+      "image": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+      "result": {
+        "stage": "install_exact_apks_once",
+        "type": "RuntimeError",
+        "message": "command-109 exited 224: b'/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-queue-install-control.NqNTHUHJ/FieldLog-queue-development.apk: 1 file pushed, 0 skipped. 33.9 MB/s (39880498 bytes in 1.122s)\\n'"
+      },
+      "elapsedSeconds": 299.309,
+      "adbExit": 224,
+      "cleanup": {
+        "errors": [],
+        "reusablePorts": [
+          5652,
+          5653,
+          27671
+        ],
+        "removedOwnedScratch": true
+      },
+      "installerStdout": [
+        "Performing Push Install",
+        "cmd: Failure calling service package: Broken pipe (32)"
+      ],
+      "pushedBytes": 39880498,
+      "adbReportedTransferSeconds": 1.122,
+      "variant": "adb install --no-incremental --no-streaming, with 180 seconds available"
+    }
+  ],
+  "nextControl": "On a fresh instance, install the small report reader first, verify package-manager responsiveness and capture the Android system log if the second install fails.",
+  "limitations": "Neither attempt reached the app or the queue. The HTTP backend did not start. The reported file transfer completed before the package service returned broken pipe in the second attempt."
+}
