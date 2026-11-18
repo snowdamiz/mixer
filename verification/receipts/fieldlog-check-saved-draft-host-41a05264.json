@@ -1,0 +1,363 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "scope": "Ordinary iOS saved-draft action source and macOS installed signed guest replay",
+  "gateEvidence": [
+    "L08"
+  ],
+  "localGatesPassed": [],
+  "gaGatesPassed": [],
+  "observedUTC": "2026-11-18T19:34:29+00:00",
+  "mixerRevision": "fad0d0b3e65fd3be3b49675601693e5d91999fbe",
+  "mixerTree": "95485f16c48a6a9653e317f67b1d792c8c45a680",
+  "fieldLogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "fieldLogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+  "patchedFieldLogSourceSubsetTree": "83a1bee71b3760554aa949e9ec965dcbfaf77259",
+  "replayInputs": {
+    "tests/integration/fieldlog-saved-draft/Package.swift": "084e8af536960242628b575d71d3072ef63c6e175776a7bdf99367153c705514",
+    "tests/integration/fieldlog-saved-draft/fieldlog-552559d2-check-saved-draft.patch": "bec75ed00baa93cd448d64326253653eefe592ba240f88a562d61f02a8652f94",
+    "tests/integration/fieldlog-saved-draft/guest/CapabilityImports.c": "6c8b96d5607a5f31260014b365b005120b01cef5c27d645ad7cd333afd3ea7b7",
+    "tests/integration/fieldlog-saved-draft/guest/Guest.swift": "a9313c4ab5f98448fcdc0a3d42ec833409c3fdbd47a61e19af3780cc85fba268",
+    "tests/integration/fieldlog-saved-draft/guest/TaskWire.swift": "80dd9995544b3380d59214e1a8abb215f1d19e71997e4e776c68a44a2bc42beb",
+    "tests/integration/fieldlog-saved-draft/host/Host.swift": "8a0b42316ff3aa212ab03dec73d691b11eec2f6ef24c82593bf76268e83eaaf9",
+    "tests/integration/fieldlog-saved-draft/host/Sign.swift": "ee7f91dda7e5c75284fac73338e2c3308de87a9a23b7737858534b019094aeb2",
+    "tests/integration/fieldlog-saved-draft/host/Trial.swift": "e260cc0ec9ccb2de9f93620e7e70123253d27d94f78370699df645815168d8c9",
+    "tests/integration/fieldlog-saved-draft/host/host-observation.c": "e4c414e6c35e30c93e2821f2d85e84d126de838b1e61fa5b57353661455633eb",
+    "tests/integration/fieldlog-saved-draft/run.sh": "d5e253bf04a7ff301988ffb03da6ef7291ead68627398c5b7b8747a0a4814f28"
+  },
+  "commands": [
+    [
+      "tests/integration/fieldlog-saved-draft/run.sh",
+      "FIELDLOG_CHECKOUT",
+      "SWIFT_CRYPTO_CHECKOUT",
+      "SWIFT_ASN1_CHECKOUT"
+    ],
+    [
+      "swiftc",
+      "-sdk",
+      "iPhoneOS27.2.sdk",
+      "-target",
+      "arm64-apple-ios26.0",
+      "-swift-version",
+      "5",
+      "-typecheck",
+      "-module-name",
+      "FieldLog",
+      "EntryEditor.swift",
+      "WorkspaceModel.swift",
+      "FieldStyle.swift"
+    ],
+    [
+      "python3",
+      "scripts/check-verification-artifacts.py"
+    ]
+  ],
+  "tools": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "hostSwift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "guestSwift": "Apple Swift 6.3.3 (swift-6.3.3-RELEASE)",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "swiftCryptoCommit": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+    "swiftASN1Commit": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2"
+  },
+  "installedHost": {
+    "vmArchiveSHA256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116",
+    "hostBinarySHA256": "81308de21e0b76b95d9016270c5b6eb40ef0496a996f3d344b5dcf8155654974",
+    "signedArtifactSHA256": {
+      "baseline.wasm": "f75678d5d5f5ea056c3ff292238fe5715246dfef9372c1331a6dc3b4c4b0673b",
+      "baseline.manifest.json": "8af8d5b3bac7732ec8455066f2bbaa91d7fd8121b70140a429c707d71dbf40e3",
+      "corrected.wasm": "49e67889d1abe18266dbfa33d05aa88a988bded75decf6b00f907c1ac75b94e5",
+      "corrected.manifest.json": "853902cedff88a1b62662935a12bb21d4dac52f7373bc1dfe0bd86b3603b6b7e",
+      "optional.wasm": "40878808d9d62fdb373552864e552bc6b337d17fd551472228a2d1d5feca919c",
+      "optional.manifest.json": "80e0fc04dccf76f21a6f51bdfff7131c5529de5e300f37e4b35b848e66c9eb94"
+    },
+    "route": "Release V3, Guest ABI 2, UI V1, Android host transport",
+    "wakeLimitMilliseconds": 50,
+    "ephemeralDevelopmentKeyExported": false,
+    "nativeWitnesses": "Synthetic",
+    "ownersRetired": 6,
+    "liveAllocations": 0
+  },
+  "replayStdoutAndStderrSHA256": "75e5697fa90296e3b7100c93ea36b6ff250778a70d6906978132bfcd151eddee",
+  "observations": [
+    {
+      "acceptedSequence": 1,
+      "appValidation": "Entry title is required",
+      "candidate": "f49d79de4a5a73dc0aca94786ab6b845c1a8bb6980e67486bd8c920b9102679f",
+      "category": "observation",
+      "draftID": "552559D2-D327-48AB-9B1A-A7DCF0288102",
+      "firstFrame": [
+        "Saved draft loaded",
+        "JPEG linked",
+        "Check saved draft"
+      ],
+      "followUpRequired": null,
+      "installedGetPutDelete": [
+        2,
+        0,
+        0
+      ],
+      "jpegFileUntouched": true,
+      "launch": 1,
+      "note": "Seal inspection at pump 4.",
+      "outboxIDs": [
+        "78B987C6-5CCD-4D66-A832-6B542C97C332"
+      ],
+      "payloadSHA256": "f75678d5d5f5ea056c3ff292238fe5715246dfef9372c1331a6dc3b4c4b0673b",
+      "photoBytes": 770,
+      "photoFilename": "a7a7299b-87b1-42e6-849d-2df0afc481f1.jpg",
+      "photoID": "A7A7299B-87B1-42E6-849D-2DF0AFC481F1",
+      "photoSHA256": "2d553ec4cb511a7016dedc40da352518c6f3b5308934d53c19b2fe7c9cc6dd4a",
+      "projectID": "552559D2-D327-48AB-9B1A-A7DCF0288103",
+      "release": "baseline",
+      "reopenedFromExactCheckpoint": true,
+      "successorFrame": [
+        "Ready to save entry",
+        "JPEG linked",
+        "Check saved draft"
+      ],
+      "title": " \t ",
+      "workspaceFileUntouched": true,
+      "workspaceRevision": 2,
+      "workspaceSHA256": "69a096c1c6eb08ac1e4565078fde4ea4a10ecbbfd871f5c2741d5d7450f6c04a"
+    },
+    {
+      "acceptedSequence": 2,
+      "appValidation": "Entry title is required",
+      "candidate": "b7d9e1f79dd089fe3ed42aa518a0f75d778c88f7fb652fe536a3b1a5bc362875",
+      "category": "observation",
+      "draftID": "552559D2-D327-48AB-9B1A-A7DCF0288102",
+      "firstFrame": [
+        "Saved draft loaded",
+        "JPEG linked",
+        "Check saved draft"
+      ],
+      "followUpRequired": null,
+      "installedGetPutDelete": [
+        2,
+        0,
+        0
+      ],
+      "jpegFileUntouched": true,
+      "launch": 2,
+      "note": "Seal inspection at pump 4.",
+      "outboxIDs": [
+        "78B987C6-5CCD-4D66-A832-6B542C97C332"
+      ],
+      "payloadSHA256": "49e67889d1abe18266dbfa33d05aa88a988bded75decf6b00f907c1ac75b94e5",
+      "photoBytes": 770,
+      "photoFilename": "a7a7299b-87b1-42e6-849d-2df0afc481f1.jpg",
+      "photoID": "A7A7299B-87B1-42E6-849D-2DF0AFC481F1",
+      "photoSHA256": "2d553ec4cb511a7016dedc40da352518c6f3b5308934d53c19b2fe7c9cc6dd4a",
+      "projectID": "552559D2-D327-48AB-9B1A-A7DCF0288103",
+      "release": "corrected",
+      "reopenedFromExactCheckpoint": true,
+      "successorFrame": [
+        "Entry title is required",
+        "JPEG linked",
+        "Check saved draft"
+      ],
+      "title": " \t ",
+      "workspaceFileUntouched": true,
+      "workspaceRevision": 2,
+      "workspaceSHA256": "69a096c1c6eb08ac1e4565078fde4ea4a10ecbbfd871f5c2741d5d7450f6c04a"
+    },
+    {
+      "acceptedSequence": 3,
+      "appValidation": "Entry title is required",
+      "candidate": "82b17e942ec6651240489e6a648e30749a00a76bbdf032af7132de379bf45a9f",
+      "category": "observation",
+      "draftID": "552559D2-D327-48AB-9B1A-A7DCF0288102",
+      "firstFrame": [
+        "Entry title is required",
+        "JPEG linked",
+        "Follow-up unset",
+        "Mark follow-up required"
+      ],
+      "followUpRequired": true,
+      "installedGetPutDelete": [
+        2,
+        1,
+        0
+      ],
+      "jpegFileUntouched": true,
+      "launch": 3,
+      "note": "Seal inspection at pump 4.",
+      "outboxIDs": [
+        "78B987C6-5CCD-4D66-A832-6B542C97C332"
+      ],
+      "payloadSHA256": "40878808d9d62fdb373552864e552bc6b337d17fd551472228a2d1d5feca919c",
+      "photoBytes": 770,
+      "photoFilename": "a7a7299b-87b1-42e6-849d-2df0afc481f1.jpg",
+      "photoID": "A7A7299B-87B1-42E6-849D-2DF0AFC481F1",
+      "photoSHA256": "2d553ec4cb511a7016dedc40da352518c6f3b5308934d53c19b2fe7c9cc6dd4a",
+      "projectID": "552559D2-D327-48AB-9B1A-A7DCF0288103",
+      "release": "optional",
+      "reopenedFromExactCheckpoint": true,
+      "successorFrame": [
+        "Entry title is required",
+        "JPEG linked",
+        "Follow-up required",
+        "Clear follow-up requirement"
+      ],
+      "title": " \t ",
+      "workspaceFileUntouched": false,
+      "workspaceRevision": 3,
+      "workspaceSHA256": "5c8ea0ff57914089a187b5b6699757323dc0d53d083bd15498c45587b481fd22"
+    },
+    {
+      "acceptedSequence": 4,
+      "appValidation": "Entry title is required",
+      "candidate": "fc782fa25938df6e50eb52383bcfb81f3d08eda6be2b689e29191dcf6d81226a",
+      "category": "observation",
+      "draftID": "552559D2-D327-48AB-9B1A-A7DCF0288102",
+      "firstFrame": [
+        "Saved draft loaded",
+        "JPEG linked",
+        "Check saved draft"
+      ],
+      "followUpRequired": true,
+      "installedGetPutDelete": [
+        2,
+        0,
+        0
+      ],
+      "jpegFileUntouched": true,
+      "launch": 4,
+      "note": "Seal inspection at pump 4.",
+      "outboxIDs": [
+        "78B987C6-5CCD-4D66-A832-6B542C97C332"
+      ],
+      "payloadSHA256": "49e67889d1abe18266dbfa33d05aa88a988bded75decf6b00f907c1ac75b94e5",
+      "photoBytes": 770,
+      "photoFilename": "a7a7299b-87b1-42e6-849d-2df0afc481f1.jpg",
+      "photoID": "A7A7299B-87B1-42E6-849D-2DF0AFC481F1",
+      "photoSHA256": "2d553ec4cb511a7016dedc40da352518c6f3b5308934d53c19b2fe7c9cc6dd4a",
+      "projectID": "552559D2-D327-48AB-9B1A-A7DCF0288103",
+      "release": "corrected",
+      "reopenedFromExactCheckpoint": true,
+      "successorFrame": [
+        "Entry title is required",
+        "JPEG linked",
+        "Check saved draft"
+      ],
+      "title": " \t ",
+      "workspaceFileUntouched": true,
+      "workspaceRevision": 3,
+      "workspaceSHA256": "5c8ea0ff57914089a187b5b6699757323dc0d53d083bd15498c45587b481fd22"
+    },
+    {
+      "acceptedSequence": 5,
+      "appValidation": "Entry title is required",
+      "candidate": "ecef6fcc0db86efa8eea4774fa2b5797aa3795bc4b9f6b76489b296f717cbc61",
+      "category": "observation",
+      "draftID": "552559D2-D327-48AB-9B1A-A7DCF0288102",
+      "firstFrame": [
+        "Entry title is required",
+        "JPEG linked",
+        "Follow-up required",
+        "Clear follow-up requirement"
+      ],
+      "followUpRequired": false,
+      "installedGetPutDelete": [
+        2,
+        1,
+        0
+      ],
+      "jpegFileUntouched": true,
+      "launch": 5,
+      "note": "Seal inspection at pump 4.",
+      "outboxIDs": [
+        "78B987C6-5CCD-4D66-A832-6B542C97C332"
+      ],
+      "payloadSHA256": "40878808d9d62fdb373552864e552bc6b337d17fd551472228a2d1d5feca919c",
+      "photoBytes": 770,
+      "photoFilename": "a7a7299b-87b1-42e6-849d-2df0afc481f1.jpg",
+      "photoID": "A7A7299B-87B1-42E6-849D-2DF0AFC481F1",
+      "photoSHA256": "2d553ec4cb511a7016dedc40da352518c6f3b5308934d53c19b2fe7c9cc6dd4a",
+      "projectID": "552559D2-D327-48AB-9B1A-A7DCF0288103",
+      "release": "optional",
+      "reopenedFromExactCheckpoint": true,
+      "successorFrame": [
+        "Entry title is required",
+        "JPEG linked",
+        "Follow-up not required",
+        "Mark follow-up required"
+      ],
+      "title": " \t ",
+      "workspaceFileUntouched": false,
+      "workspaceRevision": 4,
+      "workspaceSHA256": "e21ac08785b0e3133b6ed5ef3055e2ee6f248eeff9fe2eb9e2a0986ab9ce483a"
+    },
+    {
+      "acceptedSequence": 5,
+      "appValidation": "Entry title is required",
+      "candidate": "ecef6fcc0db86efa8eea4774fa2b5797aa3795bc4b9f6b76489b296f717cbc61",
+      "category": "observation",
+      "draftID": "552559D2-D327-48AB-9B1A-A7DCF0288102",
+      "firstFrame": [
+        "Entry title is required",
+        "JPEG linked",
+        "Follow-up not required",
+        "Mark follow-up required"
+      ],
+      "followUpRequired": false,
+      "installedGetPutDelete": [
+        1,
+        0,
+        0
+      ],
+      "jpegFileUntouched": true,
+      "launch": 6,
+      "note": "Seal inspection at pump 4.",
+      "outboxIDs": [
+        "78B987C6-5CCD-4D66-A832-6B542C97C332"
+      ],
+      "payloadSHA256": "40878808d9d62fdb373552864e552bc6b337d17fd551472228a2d1d5feca919c",
+      "photoBytes": 770,
+      "photoFilename": "a7a7299b-87b1-42e6-849d-2df0afc481f1.jpg",
+      "photoID": "A7A7299B-87B1-42E6-849D-2DF0AFC481F1",
+      "photoSHA256": "2d553ec4cb511a7016dedc40da352518c6f3b5308934d53c19b2fe7c9cc6dd4a",
+      "projectID": "552559D2-D327-48AB-9B1A-A7DCF0288103",
+      "release": "optional",
+      "reopenedFromExactCheckpoint": true,
+      "successorFrame": null,
+      "title": " \t ",
+      "workspaceFileUntouched": true,
+      "workspaceRevision": 4,
+      "workspaceSHA256": "e21ac08785b0e3133b6ed5ef3055e2ee6f248eeff9fe2eb9e2a0986ab9ce483a"
+    }
+  ],
+  "nativeAction": {
+    "whitespaceOnlyTitle": "rejected",
+    "validTitle": "accepted",
+    "differentProject": "missing record",
+    "workspaceBytesAndFileIdentityUnchanged": true,
+    "iphoneos27_2Typecheck": "passed",
+    "buttonAccessibilityID": "check-saved-draft"
+  },
+  "earlierAttempts": [
+    "Host fixture compilation failed before execution because NSBitmapImageRep needed an explicit isPlanar argument.",
+    "FAIL: Invalid installed capability material: canonical",
+    "A host run passed before adding the review findings to the replay assertions.",
+    "FAIL: Sequence 1 retired=true terminal=Optional(MixerGuest.GuestUIStopV1.deadline) bridge=Optional(MixerExperimentalCapabilityRuntime.ExperimentalCapabilityFailure(kind: MixerExperimentalCapabilityRuntime.ExperimentalCapabilityFailureKind.deadlineExceeded, operation: MixerExperimentalCapabilityRuntime.ExperimentalCapabilityFailureOperation.wake, code: \"capability_turn_timeout\", nativeStatus: Optional(2), location: Optional(MixerExperimentalCapabilityRuntime.ExperimentalCapabilityNativeLocation(functionIndex: Optional(17), byteOffset: 3377, source: nil)))) UI=nil error=Missing FieldLog bridge frame",
+    "FAIL: Sequence 3 retired=true terminal=Optional(MixerGuest.GuestUIStopV1.deadline) bridge=Optional(MixerExperimentalCapabilityRuntime.ExperimentalCapabilityFailure(kind: MixerExperimentalCapabilityRuntime.ExperimentalCapabilityFailureKind.deadlineExceeded, operation: MixerExperimentalCapabilityRuntime.ExperimentalCapabilityFailureOperation.wake, code: \"capability_turn_timeout\", nativeStatus: Optional(2), location: Optional(MixerExperimentalCapabilityRuntime.ExperimentalCapabilityNativeLocation(functionIndex: Optional(14), byteOffset: 2165, source: nil)))) UI=nil error=Missing FieldLog bridge frame"
+  ],
+  "review": [
+    "Independent review identified the ordinary iOS UI entry point and the app-owned selected-draft storage boundary.",
+    "Patch review found that reopened snapshots supplied their own expectations and frame IDs could race packet capture. The final run checked fixed optional-field expectations and byte checkpoints, and waited on the packet recorder’s probe."
+  ],
+  "cleanup": {
+    "disposableBuildAndWorkspaceRemoved": true,
+    "hostActivationOwnersJoined": 6,
+    "simulatorsOrEmulatorsStarted": 0,
+    "networkServicesStarted": 0
+  },
+  "limits": [
+    "The native iOS action and signed host action use the same scoped read on the same repository actor. Signed mobile owner binding, rendering and taps remain open.",
+    "Android’s ordinary mobile editor uses separate source targets and requires its own action and storage wiring.",
+    "Rollback assigns the corrected payload again at a higher signed sequence. Installed native-binary downgrade and old-native-writer compatibility were outside this run.",
+    "The enrolled host receives signed bytes directly. Release distribution and local achievement of L08 require separate evidence."
+  ],
+  "verificationRetention": "Passed in a disposable index. Verification stayed under the 1 GiB tracked budget."
+}
