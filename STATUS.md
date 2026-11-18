@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+On macOS, one press on the signed Move up button moved File report from third to second. FieldLog advanced revision 8 to 9 and appended one task-order event. Rollback and offline cold reopen preserved that order and the open draft. The tested guest uses stacked rows. Both mobile executions remain open. [Task reorder evidence](verification/receipts/fieldlog-signed-row-reorder-host-41a05264.json).
+
 A signed FieldLog update on the macOS host changed the Arabic checklist labels. The title and status aligned on the right in RTL and on the left in LTR. The title style change increased its measured height from 16 to 26 points. Changing the macOS accessibility size alone produced no measured growth in either the guest or the native controls. Mobile text scaling and clipping remain open. [Localized guest evidence](verification/receipts/fieldlog-localized-guest-host-41a05264.json).
 
 A signed C guest replayed the historical FieldLog task editor on the macOS VM. Save persisted Unicode input and one outbox event. Cancel preserved the workspace. Compiling that editor from Swift and mounting it through the installed mobile owner remain open. [Historical editor replay](verification/receipts/fieldlog-f05-signed-editor-host-41a05264.json).
