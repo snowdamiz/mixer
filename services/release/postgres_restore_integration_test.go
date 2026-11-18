@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -166,9 +165,10 @@ func TestPostgresReleaseBackupRestore(t *testing.T) {
 	requireBytes("sequence-2 offer after restore", read(restored, offerPath, ""), nextOffer)
 	requireBytes("sequence-2 delivery after restore", read(restored, nextDeliveryPath, ""), marshal(nextArtifact))
 	nextEvents := auditEvents(read(restored, auditPath, "pg reader"))
-	if len(nextEvents) != len(events)+3 || !slices.Equal(nextEvents[:len(events)], events) {
-		t.Fatal("new release must append three events and preserve the restored audit history")
+	if len(nextEvents) != len(events)+3 {
+		t.Fatal("new release must append three events")
 	}
+	requireBytes("restored audit prefix after new release", marshal(nextEvents[:len(events)]), marshal(events))
 	for i, action := range []string{
 		"PUT " + v3Base + "/artifacts/" + nextDigest,
 		"POST " + v3Base + "/releases/validate",

@@ -1,0 +1,101 @@
+{
+  "result": "passed",
+  "scope": "Local v3 release HTTP audit for publish, promotion, halt and rollback. The ordinary operator CLI and joint mobile update journey remain separate.",
+  "parentRevision": "37afec46e3",
+  "sourceSHA256": {
+    "server.go": "453c5d19044e0f0126894866b9753a0a8b59e829697f3b2d27da34df24102abc",
+    "store.go": "af4bde60a634f36c99408773018e308abe0a5b8bf7914353b49e7f07c20ce591",
+    "rollout.go": "6e8beaaff0b4cc60c558e2ca6440f5a53be785023f7fddcfe7126f3a794c1d85",
+    "rollout_test.go": "bb2109500e105f6ce0a1a73bee5600e08affb94104f04c9db4126a4ba833b9b0",
+    "postgres_restore_integration_test.go": "2a99dbb779d0a38eba9326f1cbd7499242ece95f51d9d20e5fadc4e0c1427430",
+    "README-v3.md": "2377608f0b7bf47d4a1424c2cd81840fcee7754521616d14e5d904bad67619c1"
+  },
+  "observedHeads": [
+    {
+      "sequence": 1,
+      "artifact": "baseline",
+      "rolloutBasisPoints": 10000
+    },
+    {
+      "sequence": 2,
+      "artifact": "baseline",
+      "rolloutBasisPoints": 0
+    },
+    {
+      "sequence": 3,
+      "artifact": "baseline",
+      "rolloutBasisPoints": 10000
+    },
+    {
+      "sequence": 4,
+      "artifact": "replacement",
+      "rolloutBasisPoints": 2500
+    },
+    {
+      "sequence": 5,
+      "artifact": "baseline",
+      "rolloutBasisPoints": 10000
+    }
+  ],
+  "assertions": [
+    "Each read-back event names its app scope, runtime, channel, immutable artifact and rollout percentage. Each predecessor equals the last committed head.",
+    "Replaying a committed rollback and refusing an obsolete rollback leave exactly five channel changes.",
+    "Restored audit bytes survive pg_dump/pg_restore and the next successful publication."
+  ],
+  "commands": [
+    {
+      "command": "go -C services test -race -count=1 ./...",
+      "go": "go1.26.4 darwin/arm64",
+      "exit": 0
+    },
+    {
+      "command": "go -C services vet ./...",
+      "exit": 0
+    },
+    {
+      "command": "python3 -B services/verification/postgres.py --output verification/local/channel-audit-TKaU6K/postgres",
+      "go": "go version go1.27.1 darwin/arm64",
+      "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "topLevelTests": [
+        "TestPostgresStartupRejectsUsableSchemaAndFunctionOwnership",
+        "TestPostgresStartupAndMigrationRejectUnknownVersionWithMatchingChecksum",
+        "TestPostgresStartupElevatedAttributesRequireAssumableRole",
+        "TestPostgresHTTPConcurrentSequenceRollbackAndRestart",
+        "TestPostgresTenantRBACRLSAndImmutableRows",
+        "TestPostgresCommitInterruptionAndActualCrashRecovery",
+        "TestPostgresStartupRolesTimeoutsAndConfig",
+        "TestPostgresUint64AssignmentAndLedgerCorruption",
+        "TestPostgresMaximumPayloadBound",
+        "TestPostgresLoopbackHTTPDualPlatformDelivery",
+        "TestPostgresV3PublisherIncident",
+        "TestPostgresReleaseBackupRestore",
+        "TestPostgresV1V2CoexistenceRuntimeIsolationAndRollback",
+        "TestPostgresV2InterruptedPublicationImmediateRestart",
+        "TestPostgresV3CoexistenceRLSReplayAndRuntimeIsolation",
+        "TestPostgresV3InterruptedPublicationImmediateRestart",
+        "TestPostgresV3HealthHaltAuthorizationAndAudit",
+        "TestPostgresConfigBoundsAndCredentialRedaction"
+      ],
+      "exit": 0,
+      "stdoutSHA256": "123d0497a5a5e12a4d8d1655532e25cc1e5e133d94e35d5e689f29fd1007a8f2",
+      "receiptSHA256": "eb8eb6bf83bafe549d6d38361756e9da301de5bee8ebdea4179080b02249c87c",
+      "rawReceipt": "verification/local/channel-audit-TKaU6K/postgres/receipt.json",
+      "cleanup": "postmaster group absent, socket directory empty and private cluster removed"
+    }
+  ],
+  "earlierResults": [
+    {
+      "test": "local HTTP",
+      "observation": "The strict JSON reader refused a null predecessor on the first assignment. The corrected encoding omits the absent predecessor."
+    },
+    {
+      "test": "PostgreSQL restore",
+      "observation": "Restore assertion compared pointer addresses in separately decoded historical event values. Replaced with full serialized value comparison.",
+      "rawReceipt": "verification/local/channel-audit-Av6vFu/postgres/receipt.json",
+      "sha256": "1f75c9193a69d484873f0347b1db14b4f56cec165b073b617c23bef3cb0e1360",
+      "retainedPrivateClusterDirectory": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-pg-jtdigwta",
+      "retentionReason": "cluster command failed or was interrupted before cleanup was proven safe"
+    }
+  ],
+  "compatibility": "Older audit events omit change metadata and retain their hashes. New durable event data requires a service reader that recognizes channel_change."
+}

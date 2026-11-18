@@ -3,6 +3,7 @@ package release
 import (
 	"bytes"
 	"net/http"
+	"reflect"
 	"testing"
 
 	"mixer/services/internal/testutil"
@@ -81,4 +82,42 @@ func checkV3HealthHalt(t *testing.T, s http.Handler, f testutil.Fixture, publish
 	v2Status(t, v3Publish(s, "promote", "stale-promotion", publisher, f.AssignmentV3(t, m, 2, 10000)), 409)
 	v2Status(t, v3Publish(s, "promote", "resume", publisher, f.AssignmentV3(t, m, 3, 10000)), 200)
 	v2Status(t, v2Request(s, "GET", v2OfferPath(f, 3), "", "", nil), 200)
+
+	next, nextDigest := v3Upload(t, s, f, "updated-checklist", publisher)
+	v2Status(t, v3Publish(s, "publish", "update", publisher, f.AssignmentV3(t, next.SignedManifest.Manifest, 4, 2500)), 200)
+	rollback := f.AssignmentV3(t, m, 5, 10000)
+	v2Status(t, v3Publish(s, "rollback", "restore", publisher, rollback), 200)
+	v2Status(t, v3Publish(s, "rollback", "restore", publisher, rollback), 200)
+	v2Status(t, v3Publish(s, "rollback", "stale-restore", publisher, rollback), 409)
+
+	audit = v2Request(s, "GET", v3Base+"/audit", "", reader, nil)
+	v2Status(t, audit, 200)
+	if err := protocol.DecodeJSON(audit.Body.Bytes(), &history); err != nil {
+		t.Fatal(err)
+	}
+	var changes []ChannelChange
+	for _, event := range history.Events {
+		if event.ChannelChange != nil {
+			changes = append(changes, *event.ChannelChange)
+		}
+	}
+	heads := []ChannelHead{
+		{Sequence: 1, ArtifactSHA256: digest, RolloutBasisPoints: 10000},
+		{Sequence: 2, ArtifactSHA256: digest, RolloutBasisPoints: 0},
+		{Sequence: 3, ArtifactSHA256: digest, RolloutBasisPoints: 10000},
+		{Sequence: 4, ArtifactSHA256: nextDigest, RolloutBasisPoints: 2500},
+		{Sequence: 5, ArtifactSHA256: digest, RolloutBasisPoints: 10000},
+	}
+	if len(changes) != len(heads) {
+		t.Fatalf("got %d channel events, want %d", len(changes), len(heads))
+	}
+	for i, head := range heads {
+		want := ChannelChange{Scope: m.Scope, Runtime: m.Runtime, Channel: "beta", Current: head}
+		if i > 0 {
+			want.Previous = &heads[i-1]
+		}
+		if !reflect.DeepEqual(changes[i], want) {
+			t.Fatalf("channel event %d: got %+v, want %+v", i, changes[i], want)
+		}
+	}
 }

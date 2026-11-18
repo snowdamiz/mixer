@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The v3 release audit records the previous and new assignment sequence, artifact digest and rollout percentage. The PostgreSQL replay verified five channel changes through rollback, with no duplicate event on retry. [Release audit](verification/receipts/release-v3-channel-audit-20261118.json).
+
 The FieldLog history replay covers 20 behaviors from six commits. Seventeen behaviors are candidates for OTA. Fourteen of those have passing host controls, and zero have verified signed delivery on both targets. The development apps now build with signed checklists reachable from their usual entry points. Android still needs the trial build flag for its native display callback. [Corpus](compiler/experiments/fieldlog-change-corpus/README.md) · [App builds](verification/receipts/fieldlog-supported-entrypoint-build-41a05264.json).
 
 An authorized client can retrieve terminal build events after worker shutdown. In the local store fixture, iOS and Android each recovered one accepted submission after a lost acknowledgement. The hosted manifest covers 391 source inputs and the native manifest covers 143. [L05 integration](verification/receipts/l05-build-logs-store-integration-41a05264.json).

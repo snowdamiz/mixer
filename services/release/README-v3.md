@@ -27,6 +27,16 @@ input bounds, not allocator/RSS or constant-time guarantees. Existing v1/v2 body
 handling remains24MiB;128 concurrent handlers and the existing direct-IP rate
 limit cover all route families.
 
+## Inspect channel history
+
+Tenant audit reads include a `channel_change` on new v3 publish, promote,
+halt and rollback events. It identifies the app scope, runtime and channel.
+The `previous` and `current` heads record the signed sequence, artifact digest
+and rollout basis points. The first assignment omits the previous head.
+An idempotent retry returns the original response and adds no audit event.
+Historical events retain their original encoding and hashes. A service reading
+new events needs support for the additional field in its strict audit decoder.
+
 ## Halt an unhealthy rollout
 
 Use a scoped publisher token to POST
