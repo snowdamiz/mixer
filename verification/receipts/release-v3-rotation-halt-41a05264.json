@@ -1,0 +1,254 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_host_installed_verifier",
+  "finishedAtUTC": "2026-11-18T08:13:45.974083+00:00",
+  "productPlanScenarios": [
+    "22.2 #10",
+    "22.2 #11"
+  ],
+  "localGateEvidence": [
+    "L04",
+    "L07"
+  ],
+  "localGatesPassed": [],
+  "source": {
+    "patch": {
+      "path": "verification/local/release-v3-rotation-halt-41a05264/release-v3-rotation-halt.patch",
+      "sha256": "287688f79eb670c4871bc66d0e4c4496dacbbed24edeb29dc79b8ed7db024bb7"
+    },
+    "patchCheckedAgainst": [
+      "02002272c334dd0a3750c502ad5819b26d57fe0d",
+      "afc91e8612712d5766273f32b408d4287fcf7431"
+    ],
+    "finalSwiftBuildBase": "afc91e8612712d5766273f32b408d4287fcf7431",
+    "vmBuildRevision": "02002272c334dd0a3750c502ad5819b26d57fe0d",
+    "serviceAndVMUnchangedBetweenBases": true,
+    "worktreeInputManifest": {
+      "path": "verification/local/release-v3-rotation-halt-41a05264/source-inputs.json",
+      "sha256": "35e41ffe1af31c80f8a78d19a1c9686b864ab3dcb36a86c25e5071463af563b3"
+    },
+    "changedFileSHA256": {
+      "capability-activation/Tests/MixerCapabilityActivationTests/CapabilityRecoveryTransitionTests.swift": "efb829929724c77191ff6fa0e4a5fe3facfd020e92431c2f70daa97cf61d56a0",
+      "capability-activation/Tests/MixerCapabilityActivationTests/FieldLogReleaseV3Loopback.swift": "ce32c121fc033164759ede0e7263b527179fa21056f1fdda67c998c713074ef2",
+      "services/release/README-v3.md": "eda99ee8134ac82240811eed72c9e216f115802fe181daaa47cc3f99d5df5102",
+      "services/release/postgres_v3_integration_test.go": "05f627a246459dbe2fa33f147062a6c51f7f0fa7c7fb6de503654bb70a3350b9",
+      "services/release/rollout.go": "0c9ea64291a4ad2b533d0998b47dbeb2de6980969f6e683e4ea36b98c0f3d566",
+      "services/release/rollout_test.go": "0c4a0eb9f143095a292371384b7849fb7d7da786a930271b5e4d2cf80c44c423",
+      "services/release/server.go": "3c11eb716d777c552d930ebd7c4b4070fc2568adea92f541038f190321c16994",
+      "services/release/store.go": "8f464f4ad80eb2b492db061ce10a72b00fbc71665f0484a0fb5e2ea7e6dcc106"
+    },
+    "swiftDependencyRevisions": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    }
+  },
+  "tools": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "go": "go version go1.26.4 darwin/arm64",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)"
+  },
+  "vm": {
+    "buildReceipt": {
+      "path": "verification/local/release-v3-rotation-halt-41a05264/vm-r2/receipt.json",
+      "sha256": "23ca1180f96fb747158e5787b5242dbee9918e1dba07df47c2cb368da7146750"
+    },
+    "archive": {
+      "path": "verification/local/release-v3-rotation-halt-41a05264/vm-r2/lib/libmixer_vm_capability_experimental.a",
+      "sha256": "6d3b2c82e15d06ecbadfaaf62cb9e6de980350cc9a53bca651e7b7b4d315c16c"
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "go",
+        "-C",
+        "services",
+        "build",
+        "-mod=readonly",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/release-v3-rotation-halt-41a05264/mixer-service",
+        "./cmd/mixer-service"
+      ],
+      "exit": 0,
+      "output": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/service-build-r2.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "binary": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/final/mixer-service",
+        "sha256": "e3f1206550779cf15475b49eed20aa005d6c26b7e70626f1d15f3625b5b72c0e"
+      }
+    },
+    {
+      "argv": [
+        "swift",
+        "build",
+        "--build-tests",
+        "--package-path",
+        "capability-activation",
+        "--scratch-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/release-v3-rotation-halt-41a05264/swiftpm",
+        "--disable-prefetching",
+        "--skip-update",
+        "--force-resolved-versions",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/release-v3-rotation-halt-41a05264/vm-r2/include",
+        "-Xlinker",
+        "-L",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/release-v3-rotation-halt-41a05264/vm-r2/lib"
+      ],
+      "exit": 0,
+      "output": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/swift-build-final.log",
+        "sha256": "490dbc6fefe0c70e29d9866ef0efde8ebae9ad8379c2125887da89c33626761b"
+      }
+    },
+    {
+      "argv": [
+        "xcrun",
+        "xctest",
+        "-XCTest",
+        "MixerCapabilityActivationTests.CapabilityRecoveryTransitionTests",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/release-v3-rotation-halt-41a05264/swiftpm/out/Products/Debug/MixerCapabilityActivationTests.xctest"
+      ],
+      "env": {
+        "MIXER_ROTATION_HALT_RUN": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/release-v3-rotation-halt-41a05264/final",
+        "MIXER_ROTATION_HALT_PORT": "62955"
+      },
+      "exit": 0,
+      "passedTests": 26,
+      "output": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/final/xctest.log",
+        "sha256": "aba606c575e29a15f2129df50d72f1620a45e98eba7b7f61ea90c32ad224410d"
+      },
+      "binary": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/swiftpm/out/Products/Debug/MixerCapabilityActivationTests.xctest/Contents/MacOS/MixerCapabilityActivationTests",
+        "sha256": "0b2ac98ce0a7041d7ce42f5d22115d83e9e719ed5e3d7f8ec30f5b79855554a8"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "-C",
+        "services",
+        "test",
+        "-race",
+        "./..."
+      ],
+      "exit": 0,
+      "output": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/go-race.log",
+        "sha256": "4c4eb971a29a52d1b4c9c07312fcbbbb38589d04c6e5510662d7fcb45f735297"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "-C",
+        "services",
+        "vet",
+        "./..."
+      ],
+      "exit": 0,
+      "output": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/go-vet.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "services/verification/postgres.py",
+        "--output",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/release-v3-rotation-halt-41a05264/pg"
+      ],
+      "pathPrefix": "/opt/homebrew/opt/postgresql@17/bin",
+      "exit": 0,
+      "receipt": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/pg/receipt.json",
+        "sha256": "2db5169e00311765db5b6ff39168002a68dfb8b96d87eb9b56394a87b906ed7f"
+      },
+      "output": {
+        "path": "verification/local/release-v3-rotation-halt-41a05264/pg/real-postgres-tests.stdout",
+        "sha256": "8a045f59538d2e4e3da95feaac40972b1ab000ce3d6c01a4c35f32cadc7295d5"
+      },
+      "test": "TestPostgresV3HealthHaltAuthorizationAndAudit"
+    }
+  ],
+  "observations": [
+    "ROTATION offline healthy sequence=1; expired fresh authority refused",
+    "ROLLOUT sequence=2 activated=1 pending=1 adverse_signals=1; halted=3; audit and 204 survive restart; offline active reopens, pending cannot select"
+  ],
+  "operatorAuditReadback": {
+    "scope": {
+      "organization": "material-test",
+      "project": "material-test",
+      "app": "material-test",
+      "environment": "development",
+      "platform": "ios"
+    },
+    "runtime": "e65c8c03924c3dc2b3b3fc32ea85b0cb9e476ae4424e954c53f1b30b608ed38b",
+    "channel": "beta",
+    "artifact_sha256": "b1ddd363bb7652cfeeac5176d52de1394aab47b55dcd255b83ed0ec3559f308b",
+    "halt_sequence": 3,
+    "health": {
+      "sequence": 2,
+      "activated": 1,
+      "pending": 1,
+      "adverse_signals": 1
+    }
+  },
+  "rotation": {
+    "ephemeralArtifactAndAssignmentRolesSeparated": true,
+    "replacementRootsPinnedAtOriginalInstall": true,
+    "oldKeyFreshAdmissionDeniedOnServiceAndClient": true,
+    "offlineStateSurvivedExpiry": true,
+    "replacementSequence": 2,
+    "installedIdentityReused": true
+  },
+  "cleanup": {
+    "serviceProcesses": {
+      "service-before-rotation": {
+        "pid": 14265,
+        "pgid": 14265,
+        "state": "CLOSED",
+        "directChildReaped": true,
+        "ownedGroupAbsent": true,
+        "exitCode": 0
+      },
+      "service-after-rotation": {
+        "pid": 14323,
+        "pgid": 14323,
+        "state": "CLOSED",
+        "directChildReaped": true,
+        "ownedGroupAbsent": true,
+        "exitCode": 0
+      },
+      "service-reopened": {
+        "pid": 14336,
+        "pgid": 14336,
+        "state": "CLOSED",
+        "directChildReaped": true,
+        "ownedGroupAbsent": true,
+        "exitCode": 0
+      }
+    },
+    "loopbackPortReusable": true,
+    "privatePostgresClusterRemoved": true,
+    "retainedLocalLogsAndIsolatedClientState": true
+  },
+  "limitations": [
+    "macOS installed capability owner and real VM execution with host test milestones, using a scoped test fixture rather than a mobile app UI.",
+    "The scoped publisher submitted aggregate observations from actual durable client state. The halt audit is a point-in-time sample, with no automatic telemetry collection or fleet-wide count.",
+    "Halt stops new offers. Cached signed assignments retain their ordinary authorization. The test pending installation had an incomplete payload and no selectable candidate.",
+    "Tested scheduled expiry and preinstalled replacement roots. Compromised-root recovery, fresh root distribution, mobile devices, hosted delivery and GA are outside this receipt.",
+    "A separate clean source-copy replay was stopped by local disk exhaustion. The worktree build and commands in this receipt completed."
+  ]
+}

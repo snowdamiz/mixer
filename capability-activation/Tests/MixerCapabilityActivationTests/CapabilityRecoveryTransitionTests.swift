@@ -42,17 +42,22 @@ private actor TransitionGate {
 }
 /// Original signed fixtures and original binary writer. The key is public TESTONLY.
 private struct TransitionFixture {
+    struct Signer {
+        let id: String
+        let key: Curve25519.Signing.PrivateKey
+    }
+    static let scope = UpdateScope(organization: "material-test", project: "material-test", app: "material-test",
+                                   environment: "development", platform: "ios")
     let installed: InstalledMaterial
     let key: Curve25519.Signing.PrivateKey
     let directory: URL
-    init(directory: URL, keyEnd: UInt64 = 2000) throws {
+    init(directory: URL, keyEnd: UInt64 = 2000, pinnedRoots: Data? = nil) throws {
         self.directory = directory
         key = try .init(rawRepresentation: Data(repeating: 0x67, count: 32))
         let original = Bundle.module.url(forResource: "identity.json", withExtension: nil, subdirectory: "Fixtures")!
         var object = try JSONSerialization.jsonObject(with: Data(contentsOf: original)) as! [String: Any]
         object["capabilities"] = []
-        let scope = UpdateScope(organization: "material-test", project: "material-test", app: "material-test", environment: "development", platform: "ios")
-        let roots = try JSONEncoder().encode([TrustRoot(keyID: "transition", publicKey: key.publicKey.rawRepresentation, scope: scope,
+        let roots = try pinnedRoots ?? JSONEncoder().encode([TrustRoot(keyID: "transition", publicKey: key.publicKey.rawRepresentation, scope: Self.scope,
             artifact: true, assignment: true, notBeforeUnix: 1, notAfterUnix: keyEnd)])
         var build = object["build"] as! [String: Any]; build["trust_roots_sha256"] = ReleaseVerifier.sha256(roots); object["build"] = build
         let bridge = try Data(contentsOf: Bundle.module.url(forResource: "bridge.json", withExtension: nil, subdirectory: "Fixtures")!)
@@ -60,11 +65,16 @@ private struct TransitionFixture {
         installed = try InstalledCapabilityExecution(identityJSON: identity, materials: [.init(role: .bridgePolicy, bytes: bridge)],
             trustRootsJSON: roots, privateContainer: directory).installed
     }
-    var configuration: CapabilityRecoveryConfiguration {
-        var c = CapabilityRecoveryConfiguration(directory: directory, channel: "beta", installation: "installation")
+    var configuration: CapabilityRecoveryConfiguration { configuration(installation: "installation") }
+    func configuration(installation: String) -> CapabilityRecoveryConfiguration {
+        var c = CapabilityRecoveryConfiguration(directory: directory, channel: "beta", installation: installation)
         c.observationSeconds = 1; c.requiredMilestones = ["feature_started", "first_screen"]; return c
     }
-    func documents(_ payload: Data, sequence: UInt64, fuel: UInt64 = 1000, startup: UInt64 = 60_000) throws -> (Data, Data) {
+    func documents(_ payload: Data, sequence: UInt64, fuel: UInt64 = 1000, startup: UInt64 = 60_000,
+                   rollout: UInt64 = 10_000, createdAt: UInt64 = 100,
+                   artifactSigner: Signer? = nil, assignmentSigner: Signer? = nil) throws -> (Data, Data) {
+        let artifactSigner = artifactSigner ?? Signer(id: "transition", key: key)
+        let assignmentSigner = assignmentSigner ?? Signer(id: "transition", key: key)
         let h = installed.identity.installedRuntime, s = h.scope
         let scope = CanonicalValue.object(["organization": .text(s.organization), "project": .text(s.project), "app": .text(s.app), "environment": .text(s.environment), "platform": .text(s.platform)])
         let m = CanonicalValue.object([
@@ -73,16 +83,16 @@ private struct TransitionFixture {
             "capability_hashes": .object([:]), "state_min": .uint(0), "state_max": .uint(0), "payload_sha256": .text(ReleaseVerifier.sha256(payload)),
             "compressed_bytes": .uint(UInt64(payload.count)), "expanded_bytes": .uint(UInt64(payload.count)), "compression": .text("none"), "asset_hashes": .object([:]),
             "source_map_sha256": .text(String(repeating: "d", count: 64)), "limits": .object(["memory_bytes": .uint(65_536), "fuel": .uint(fuel), "startup_milliseconds": .uint(startup)]),
-            "key_id": .text("transition"), "created_at_unix": .uint(100), "capability_grants": .object(["schema": .uint(1), "schema_sha256": .text(VerifiedCapabilityGrantsV3.descriptorSHA256), "entries": .array([])])])
-        let a = CanonicalValue.object(["schema": .uint(3), "scope": scope, "channel": .text("beta"), "cohort": .text("sha256-v1"), "rollout_basis_points": .uint(10_000),
-            "sequence": .uint(sequence), "release_id": .text("transition"), "artifact_sha256": .text(ReleaseVerifier.sha256(try m.canonicalCBOR())), "runtime": .text(h.runtime), "key_id": .text("transition"), "created_at_unix": .uint(100)])
-        func sign(_ value: CanonicalValue, assignment: Bool) throws -> Data {
+            "key_id": .text(artifactSigner.id), "created_at_unix": .uint(createdAt), "capability_grants": .object(["schema": .uint(1), "schema_sha256": .text(VerifiedCapabilityGrantsV3.descriptorSHA256), "entries": .array([])])])
+        let a = CanonicalValue.object(["schema": .uint(3), "scope": scope, "channel": .text("beta"), "cohort": .text("sha256-v1"), "rollout_basis_points": .uint(rollout),
+            "sequence": .uint(sequence), "release_id": .text("transition"), "artifact_sha256": .text(ReleaseVerifier.sha256(try m.canonicalCBOR())), "runtime": .text(h.runtime), "key_id": .text(assignmentSigner.id), "created_at_unix": .uint(createdAt)])
+        func sign(_ value: CanonicalValue, assignment: Bool, signer: Signer) throws -> Data {
             let prefix = assignment ? "mixer.assignment.v3\0" : "mixer.artifact.v3\0"
-            let signature = try key.signature(for: Data(prefix.utf8) + value.canonicalCBOR())
+            let signature = try signer.key.signature(for: Data(prefix.utf8) + value.canonicalCBOR())
             let encoded = CanonicalValue.object([assignment ? "assignment" : "manifest": value, "signature": .text(signature.base64EncodedString())])
             return try JSONEncoder().encode(encoded)
         }
-        return (try sign(m, assignment: false) + Data(" \n".utf8), try sign(a, assignment: true) + Data("\t".utf8))
+        return (try sign(m, assignment: false, signer: artifactSigner) + Data(" \n".utf8), try sign(a, assignment: true, signer: assignmentSigner) + Data("\t".utf8))
     }
     static func wasm(startup: [UInt8] = [], wake: [UInt8] = []) -> Data {
         func leb(_ value: Int) -> [UInt8] {
@@ -109,10 +119,11 @@ final class CapabilityRecoveryTransitionTests: XCTestCase, @unchecked Sendable {
         addTeardownBlock { try FileManager.default.removeItem(at: parent) }
         return try TransitionFixture(directory: parent.appendingPathComponent("private"))
     }
-    private func open(_ f: TransitionFixture, _ clock: TransitionTime, environment: CapabilityRecoveryEnvironment? = nil) async throws -> (CapabilityRecoveryStore, CapabilityAttemptReservation) {
+    private func open(_ f: TransitionFixture, _ clock: TransitionTime, environment: CapabilityRecoveryEnvironment? = nil,
+                      installation: String = "installation") async throws -> (CapabilityRecoveryStore, CapabilityAttemptReservation) {
         let owner = try CapabilityAttemptReservation.acquire()
         do { return (try await CapabilityRecoveryStore.open(admission: owner.issueStoreAdmission(), installed: f.installed,
-            configuration: f.configuration, environment: environment ?? clock.environment), owner) }
+            configuration: f.configuration(installation: installation), environment: environment ?? clock.environment), owner) }
         catch { owner.beginClosing(); throw error }
     }
     private func close(_ store: CapabilityRecoveryStore, _ owner: CapabilityAttemptReservation) async {
@@ -135,7 +146,8 @@ final class CapabilityRecoveryTransitionTests: XCTestCase, @unchecked Sendable {
             configuration: input.policy.native, policy: input.policy.policy, adapters: .init()).create()
     }
     private func earnHealth(_ input: CapabilityConsumedStartup, _ signals: CapabilityAttemptSignals,
-                            _ store: CapabilityRecoveryStore, _ clock: TransitionTime) async throws {
+                            _ store: CapabilityRecoveryStore, _ clock: TransitionTime,
+                            then: @Sendable (ExperimentalCapabilitySession) async throws -> Void = { _ in }) async throws {
         let session = try await native(input); defer { session.close() }
         _ = try await session.startup()
         try await store.recordEffectsIntent(input, signals: signals)
@@ -145,6 +157,7 @@ final class CapabilityRecoveryTransitionTests: XCTestCase, @unchecked Sendable {
         try await store.reportMilestone(input, id: "first_screen")
         clock.set(uptime: clock.mono() + 1_000_000_000)
         let committed = try await store.commitHealth(input, signals: signals); XCTAssertTrue(committed)
+        try await then(session)
     }
     private func disk(_ f: TransitionFixture) throws -> CapabilityRecoveryState {
         try StrictJSON.decode(CapabilityRecoveryState.self, from: Data(contentsOf: f.directory.appendingPathComponent("state.json")))
@@ -661,3 +674,220 @@ private final class TransitionValidationCount: @unchecked Sendable {
     func increment() { lock.lock(); n += 1; lock.unlock() }
     var value: Int { lock.lock(); defer { lock.unlock() }; return n }
 }
+
+#if os(macOS) && canImport(MixerApple)
+extension CapabilityRecoveryTransitionTests {
+    @MainActor
+    func testLoopbackReleaseKeyRotationAndHealthTriggeredHalt() async throws {
+        let env = ProcessInfo.processInfo.environment
+        guard let path = env["MIXER_ROTATION_HALT_RUN"] else {
+            throw XCTSkip("Requires an isolated loopback service build")
+        }
+        let run = URL(fileURLWithPath: path, isDirectory: true)
+        let port = try XCTUnwrap(env["MIXER_ROTATION_HALT_PORT"].flatMap(UInt16.init))
+        let activeID = "local-0", pendingID = "local-1", excludedID = "local-3"
+        let oldArtifact = TransitionFixture.Signer(id: "old-artifact", key: .init())
+        let oldAssignment = TransitionFixture.Signer(id: "old-assignment", key: .init())
+        let newArtifact = TransitionFixture.Signer(id: "new-artifact", key: .init())
+        let newAssignment = TransitionFixture.Signer(id: "new-assignment", key: .init())
+        let installedAt = UInt64(Date().timeIntervalSince1970)
+        let cutover = installedAt + 8
+        func root(_ signer: TransitionFixture.Signer, artifact: Bool, starts: UInt64, ends: UInt64 = 0) -> TrustRoot {
+            TrustRoot(keyID: signer.id, publicKey: signer.key.publicKey.rawRepresentation,
+                      scope: TransitionFixture.scope, artifact: artifact, assignment: !artifact,
+                      notBeforeUnix: starts, notAfterUnix: ends)
+        }
+        let roots = try FieldLogReleaseV3Fixture.encoder.encode([
+            root(oldArtifact, artifact: true, starts: 1, ends: cutover),
+            root(oldAssignment, artifact: false, starts: 1, ends: cutover),
+            root(newArtifact, artifact: true, starts: cutover - 2),
+            root(newAssignment, artifact: false, starts: cutover - 2),
+        ])
+        let active = try TransitionFixture(directory: run.appendingPathComponent("active"), pinnedRoots: roots)
+        let pending = try TransitionFixture(directory: run.appendingPathComponent("pending"), pinnedRoots: roots)
+        let host = active.installed.identity.installedRuntime
+        XCTAssertEqual(host.runtime, pending.installed.identity.installedRuntime.runtime)
+        let clock = TransitionTime()
+        clock.set(wall: installedAt)
+        let baseline = TransitionFixture.wasm()
+        let review = TransitionFixture.wasm(wake: [0])
+        let old = try active.documents(baseline, sequence: 1, createdAt: installedAt,
+                                       artifactSigner: oldArtifact, assignmentSigner: oldAssignment)
+        let fresh = try active.documents(review, sequence: 2, rollout: 5000, createdAt: cutover,
+                                         artifactSigner: newArtifact, assignmentSigner: newAssignment)
+        let halt = try active.documents(review, sequence: 3, rollout: 0, createdAt: cutover,
+                                        artifactSigner: newArtifact, assignmentSigner: newAssignment)
+
+        func decode(_ data: Data) throws -> CanonicalValue {
+            try StrictJSON.decode(CanonicalValue.self, from: data)
+        }
+        let artifactValue = try decode(fresh.0)
+        let manifest = try XCTUnwrap(artifactValue.object?["manifest"])
+        let digest = ReleaseVerifier.sha256(try manifest.canonicalCBOR())
+        func withService(_ name: String, _ body: (ReleaseV3Loopback) async throws -> Void) async throws {
+            let service = try ReleaseV3Loopback(executable: run.appendingPathComponent("mixer-service"),
+                port: port, directory: run, host: host, roots: roots, name: name, actor: "rollout-test")
+            do {
+                try await service.waitUntilReady()
+                try await body(service)
+            } catch {
+                try await service.stop()
+                throw error
+            }
+            try await service.stop()
+        }
+        func publish(_ service: ReleaseV3Loopback, _ docs: (Data, Data), _ payload: Data,
+                     _ name: String, uploadStatus: Int = 201) async throws {
+            let signed = try decode(docs.0)
+            let value = try XCTUnwrap(signed.object?["manifest"])
+            let digest = ReleaseVerifier.sha256(try value.canonicalCBOR())
+            _ = try await service.request(service.project + "/artifacts/" + digest, status: uploadStatus,
+                method: "PUT", body: .object(["signed_manifest": signed, "payload": .text(payload.base64EncodedString())]),
+                mutation: "upload-" + name)
+            guard uploadStatus == 201 else { return }
+            _ = try await service.request(service.project + "/releases/validate", status: 200, method: "POST",
+                body: .object(["artifact_sha256": .text(digest)]), mutation: "validate-" + name)
+            _ = try await service.request(service.project + "/channels/beta/publish", status: 200, method: "POST",
+                body: .object(["signed_assignment": try decode(docs.1)]), mutation: "publish-" + name)
+        }
+        func deliver(_ service: ReleaseV3Loopback, _ installation: String, _ store: CapabilityRecoveryStore,
+                     partial: Bool = false) async throws {
+            let offer = try decode(await service.updates(installation: installation))
+            let url = try XCTUnwrap(offer.object?["artifact_url"]?.text)
+            XCTAssertTrue(url.hasPrefix("/v3/artifacts/"))
+            let artifact = try decode(await service.request(url, status: 200))
+            let bytes = try XCTUnwrap(Data(base64Encoded: try XCTUnwrap(artifact.object?["payload"]?.text)))
+            let encoder = FieldLogReleaseV3Fixture.encoder
+            try await store.beginDownload(
+                signedManifest: encoder.encode(try XCTUnwrap(artifact.object?["signed_manifest"])),
+                signedAssignment: encoder.encode(try XCTUnwrap(offer.object?["signed_assignment"])))
+            try await store.appendDownload(partial ? bytes.prefix(8) : bytes, atOffset: 0)
+            if !partial { try await store.finishDownload() }
+        }
+        func inspectHalt(_ service: ReleaseV3Loopback, _ expected: CanonicalValue) async throws {
+            _ = try await service.updates(installation: activeID, status: 204)
+            _ = try await service.updates(installation: pendingID, status: 204)
+            let events = try decode(await service.request(service.project + "/audit", status: 200, authenticated: true))
+            guard case .array(let entries) = events.object?["events"] else {
+                throw UpdateError("test.halt", "Expected operator audit entries")
+            }
+            let halts = entries.compactMap { $0.object?["rollout_halt"] }
+            XCTAssertEqual(halts, [expected])
+        }
+
+        try await withService("service-before-rotation") { service in
+            try await publish(service, old, baseline, "baseline")
+            XCTAssertLessThan(UInt64(Date().timeIntervalSince1970), cutover)
+            let (store, owner) = try await open(active, clock, installation: activeID)
+            try await deliver(service, activeID, store)
+            let (input, signals) = try await selected(store)
+            try await earnHealth(input, signals, store, clock)
+            await close(store, owner)
+        }
+        let preRotation = try disk(active)
+        XCTAssertEqual(preRotation.acceptedSequence, 1)
+        let baselineID = try XCTUnwrap(preRotation.healthy?.candidateID)
+        let deadline = ContinuousClock.now + .seconds(10)
+        while UInt64(Date().timeIntervalSince1970) < cutover {
+            guard ContinuousClock.now < deadline else { throw UpdateError("test.rotation", "Wall clock did not reach cutover") }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        clock.set(wall: cutover)
+        let (offline, offlineOwner) = try await open(active, clock, installation: activeID)
+        do {
+            try await offline.beginDownload(signedManifest: old.0, signedAssignment: old.1)
+            XCTFail("Expired authority admitted a fresh candidate")
+        } catch let error as UpdateError {
+            XCTAssertEqual(error.code, "v3.signature.authority")
+        }
+        let (retained, retainedSignals) = try await selected(offline)
+        guard case .retained = retained.evidence else { throw UpdateError("test.rotation", "Missing retained authority") }
+        XCTAssertEqual(retained.candidateID, baselineID)
+        try await earnHealth(retained, retainedSignals, offline, clock)
+        await close(offline, offlineOwner)
+        XCTAssertEqual(try disk(active).acceptedSequence, 1)
+        print("ROTATION offline healthy sequence=1; expired fresh authority refused")
+
+        var committedHalt: CanonicalValue?
+        try await withService("service-after-rotation") { service in
+            _ = try await service.updates(installation: activeID, status: 204)
+            try await publish(service, old, baseline, "expired-key", uploadStatus: 422)
+            try await publish(service, fresh, review, "rotated")
+            _ = try await service.updates(installation: excludedID, status: 204)
+            let (downloading, pendingOwner) = try await open(pending, clock, installation: pendingID)
+            try await deliver(service, pendingID, downloading, partial: true)
+            let offset = try await downloading.downloadOffset()
+            XCTAssertEqual(offset, 8)
+            await close(downloading, pendingOwner)
+
+            let (candidate, candidateOwner) = try await open(active, clock, installation: activeID)
+            try await deliver(service, activeID, candidate)
+            let (input, signals) = try await selected(candidate)
+            try await earnHealth(input, signals, candidate, clock) { session in
+                do {
+                    _ = try await session.invoke("mixer_guest_capability_ready_v1")
+                    XCTFail("Adverse runtime signal did not occur")
+                } catch let error as ExperimentalCapabilityError {
+                    XCTAssertEqual(error.failure.kind, .guestTrap(.unreachable))
+                    XCTAssertEqual(error.failure.operation, .invocation)
+                    signals.recordTerminalFailure(error.failure)
+                }
+            }
+            guard case .recoveryRequired = try await candidate.failAndPrepareFallback(input, signals: signals) else {
+                throw UpdateError("test.halt", "Expected recovery after real runtime trap")
+            }
+            await close(candidate, candidateOwner)
+
+            let activatedState = try disk(active), pendingState = try disk(pending)
+            let activated = activatedState.healthy?.candidateID == input.candidateID && activatedState.acceptedSequence == 2
+            let isPending = pendingState.pending?.sequence == 2 && pendingState.healthy == nil
+            let adverse = try XCTUnwrap(activatedState.failures[digest])
+            XCTAssertTrue(activated)
+            XCTAssertTrue(isPending)
+            XCTAssertEqual(adverse, 1)
+            let signedHalt = try decode(halt.1)
+            func haltBody(observedSequence: UInt64) -> CanonicalValue {
+                .object(["signed_assignment": signedHalt, "health": .object([
+                    "sequence": .uint(observedSequence), "activated": .uint(activated ? 1 : 0),
+                    "pending": .uint(isPending ? 1 : 0), "adverse_signals": .uint(UInt64(adverse)),
+                ])])
+            }
+            let route = service.project + "/channels/beta/halt"
+            _ = try await service.request(route, status: 409, method: "POST",
+                body: haltBody(observedSequence: 1), mutation: "stale-halt")
+            _ = try await service.updates(installation: pendingID)
+            let snapshot = haltBody(observedSequence: 2)
+            let first = try await service.request(route, status: 200, method: "POST", body: snapshot, mutation: "halt-3")
+            let retry = try await service.request(route, status: 200, method: "POST", body: snapshot, mutation: "halt-3")
+            XCTAssertEqual(retry, first)
+            let record = try decode(first)
+            XCTAssertEqual(record.object?["health"], snapshot.object?["health"])
+            XCTAssertEqual(record.object?["halt_sequence"], .uint(3))
+            XCTAssertEqual(record.object?["artifact_sha256"], .text(digest))
+            _ = try await service.request(service.project + "/audit", status: 401)
+            try await inspectHalt(service, record)
+            committedHalt = record
+        }
+        try await withService("service-reopened") { service in
+            try await inspectHalt(service, try XCTUnwrap(committedHalt))
+        }
+        let afterHalt = try disk(active)
+        XCTAssertEqual(afterHalt.acceptedSequence, 2)
+        let activatedID = try XCTUnwrap(afterHalt.healthy?.candidateID)
+        XCTAssertEqual(afterHalt.candidates[activatedID]?.artifactSHA256, digest)
+        let (activated, activatedOwner) = try await open(active, clock, installation: activeID)
+        let (reopened, reopenedSignals) = try await selected(activated)
+        XCTAssertEqual(reopened.candidateID, activatedID)
+        try await earnHealth(reopened, reopenedSignals, activated, clock)
+        await close(activated, activatedOwner)
+        let (partial, partialOwner) = try await open(pending, clock, installation: pendingID)
+        let pendingOffset = try await partial.downloadOffset()
+        XCTAssertEqual(pendingOffset, 8)
+        let pendingSelection = try await partial.prepareStartupSelection()
+        XCTAssertNil(pendingSelection)
+        XCTAssertNil(try disk(pending).healthy)
+        await close(partial, partialOwner)
+        print("ROLLOUT sequence=2 activated=1 pending=1 adverse_signals=1; halted=3; audit and 204 survive restart; offline active reopens, pending cannot select")
+    }
+}
+#endif

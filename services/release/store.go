@@ -30,19 +30,20 @@ type Channel struct {
 	Version3         *protocol.SignedAssignmentV3 `json:"-"`
 }
 type Event struct {
-	ID            uint64 `json:"id"`
-	Organization  string `json:"organization"`
-	Project       string `json:"project"`
-	Actor         string `json:"actor"`
-	Action        string `json:"action"`
-	Reason        string `json:"reason"`
-	Previous      string `json:"previous"`
-	Current       string `json:"current"`
-	SourceIP      string `json:"source_ip"`
-	RequestID     string `json:"request_id"`
-	CreatedAtUnix uint64 `json:"created_at_unix"`
-	PreviousHash  string `json:"previous_hash"`
-	Hash          string `json:"hash"`
+	ID            uint64       `json:"id"`
+	Organization  string       `json:"organization"`
+	Project       string       `json:"project"`
+	Actor         string       `json:"actor"`
+	Action        string       `json:"action"`
+	Reason        string       `json:"reason"`
+	Previous      string       `json:"previous"`
+	Current       string       `json:"current"`
+	SourceIP      string       `json:"source_ip"`
+	RequestID     string       `json:"request_id"`
+	CreatedAtUnix uint64       `json:"created_at_unix"`
+	PreviousHash  string       `json:"previous_hash"`
+	Hash          string       `json:"hash"`
+	RolloutHalt   *RolloutHalt `json:"rollout_halt,omitempty"`
 }
 type Work struct {
 	ID        uint64 `json:"id"`

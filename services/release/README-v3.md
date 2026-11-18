@@ -27,6 +27,43 @@ input bounds, not allocator/RSS or constant-time guarantees. Existing v1/v2 body
 handling remains24MiB;128 concurrent handlers and the existing direct-IP rate
 limit cover all route families.
 
+## Halt an unhealthy rollout
+
+Use a scoped publisher token to POST
+`/v3/orgs/{org}/projects/{project}/channels/{channel}/halt`. Send the existing
+`Idempotency-Key` and a JSON body with exactly two fields.
+
+- `signed_assignment` binds the current artifact and channel at a higher sequence
+  with `rollout_basis_points` set to zero. Sign it with a currently authorized
+  assignment key.
+- `health` includes `sequence` for the observed rollout, unsigned counts for
+  `activated` and `pending` installations in the sample, and a positive
+  `adverse_signals` count. An adverse signal can come from an installation that
+  already activated. The publisher supplies these observations.
+
+The service compares the observed sequence with the current channel head before
+committing the halt. A newer publication or promotion makes the request stale.
+Successful responses and the tenant's `/v3/.../audit` events include the same
+halt scope, sequences, artifact, and observed counts. The audit record captures
+the sample at halt time.
+
+Subsequent update checks for that channel and runtime return HTTP 204. Installed
+clients keep their local state. An installation holding an earlier signed offer
+can still exercise its cached authority under the existing verifier rules. To
+resume offers, publish or promote with a higher signed sequence.
+
+## Rotate preinstalled keys
+
+Pin the replacement public roots in the installed identity before rotation. Give
+the artifact and assignment keys their respective roles and align the service's
+configured validity windows with the installed roots. During the overlap either
+authorized generation can sign. After expiry, the old generation loses fresh
+authority. An offline installation can still reopen its committed healthy
+release and accept a higher assignment signed by the preinstalled replacement
+generation when it reconnects. A root absent from the installed identity
+requires an updated binary. Suspected compromise of an installed root may also
+require an updated binary.
+
 Local snapshots use explicit `protocol:3` with `artifact_v3` and
 `signed_assignment_v3` storage variants. Mixed, absent or mismatched variants
 reject atomically. The first committed v3 write upgrades the container to schema3;

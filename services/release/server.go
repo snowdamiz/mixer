@@ -376,6 +376,9 @@ func defaulted(v, fallback string) string {
 }
 func (s *Server) mutate(r *http.Request, p []string, who access, role, key string, event Event, version uint64) (Response, error) {
 	org, project := who.Organization, who.Project
+	if version == 3 && r.Method == "POST" && len(p) == 8 && p[5] == "channels" && protocol.ValidID(p[6]) && p[7] == "halt" {
+		return s.haltRollout(r, p[6], who, key, event)
+	}
 	commit := func(raw []byte, fn func(releaseTransaction) (Response, error)) (Response, error) {
 		hash := protocol.Hash(append([]byte(r.Method+" "+r.URL.Path+"\x00"), raw...))
 		return s.db.transaction(r.Context(), who, role, key, hash, event, fn)
