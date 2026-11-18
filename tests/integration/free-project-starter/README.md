@@ -1,10 +1,6 @@
-# First source selection review
+# Select a starter for a free project
 
-Apply `product.patch` and then `admission.patch` to application-registration commit `668815561d4e54379ca096f6d55ea84877c8610d`. The review used an isolated Git projection. Both patches also applied and reversed cleanly on the observed later checkout head `e7982e3204342e4dc14a12b1c4a8290876de4546`.
-
-The starter picker appears for an organization owner in the opt-in workspace-builds profile after a terminal, empty first input page. The committed empty-application registration gate stays in force. The server checks the live organization-owner membership before reading the pinned export and rechecks the browser lease before querying or writing the starter record. The first selection records one catalog input, identical replays return the same receipt, and a fresh catalog read returns the stored input. The existing retained-build log paths and contracts retain their hosted v37 bytes.
-
-The hosted v38 source selection adds six paths and changes fourteen, for 404 pinned sources. Its predecessor is the exact hosted v37 authority, including its preimages. The 20 default hosted migrations retain their committed inventory. The source-selection migration is an explicit opt-in after the build-create catalog. Source150 changes only at the sealed workflow binding.
+In the local `workspace-builds` profile, an organization owner can select a provisioned iOS starter for a newly registered application. Open the application’s build page. When its first input page is empty, select the starter. Reload the page to check the stored input ID and source digest. Repeating the selection returns the same receipt.
 
 ## Local replay
 
