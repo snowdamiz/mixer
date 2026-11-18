@@ -25,9 +25,33 @@ WORKSPACE_API = 'repos/snowdamiz/fieldlog/contents/Sources/FieldLogModels/Worksp
 SDK_NAME = 'swift-6.3.3-RELEASE_wasm'
 
 
+def build_compact_guest(run, toolchain, out, variant, source, *, flags=(),
+                        diagnostics=False, optimization='-Osize'):
+    obj = out / f'{variant}.o'
+    wasm = out / f'{variant}.wasm'
+    linked = out / f'{variant}-linked.wasm' if diagnostics else wasm
+    diagnostic_flags = ['-gline-tables-only', '-debug-prefix-map', f'{ROOT}=.',
+                        '-debug-prefix-map', f'{Path.home()}=/toolchain'] if diagnostics else []
+    strip_flags = [] if diagnostics else ['--strip-all']
+    exports = [f'--export={name}' for name in replay_abi.SIGNATURES]
+    run(f'{variant}-swift', toolchain / 'swiftc', '-target', 'wasm32-unknown-none-wasm',
+        '-enable-experimental-feature', 'Embedded', '-whole-module-optimization', optimization,
+        '-parse-as-library', *diagnostic_flags, '-Xfrontend', '-disable-stack-protector',
+        *flags, '-emit-object', *source, '-o', obj)
+    run(f'{variant}-link', toolchain / 'wasm-ld', '--no-entry', '--gc-sections',
+        *strip_flags, '-z', 'stack-size=16384', '--max-memory=65536', *exports, obj, '-o', linked)
+    if diagnostics:
+        run(f'{variant}-line-table', toolchain / 'llvm-objcopy', '--wildcard',
+            '--remove-section=.debug_*', '--keep-section=.debug_line',
+            '--remove-section=name', '--remove-section=producers', linked, wasm)
+    return wasm
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('name', help='Unused directory name under verification/local')
+    parser.add_argument('--swift-diagnostics', action='store_true',
+                        help='Keep DWARF Swift line tables in the two compact development guests')
     parser.add_argument('--workspace', type=Path, help='Local copy of the pinned Workspace.swift')
     parser.add_argument('--cargo', type=Path, default=Path.home() / '.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo')
     parser.add_argument('--toolchain', type=Path, default=Path.home() /
@@ -93,12 +117,8 @@ def main():
         receipt['guests'] = {}
         receipt['descriptorControls'] = {}
         for variant, flags in [('baseline', []), ('reviewed', ['-D', 'REQUIRE_REVIEW'])]:
-            obj = out / f'{variant}.o'
-            wasm = out / f'{variant}.wasm'
-            run(f'{variant}-swift', swiftc, '-target', 'wasm32-unknown-none-wasm', '-enable-experimental-feature', 'Embedded',
-                *compile_flags, '-Xfrontend', '-disable-stack-protector', *flags, '-emit-object', *source, '-o', obj)
-            run(f'{variant}-link', linker, '--no-entry', '--gc-sections', '--strip-all', '-z', 'stack-size=16384',
-                '--max-memory=65536', *exports, obj, '-o', wasm)
+            wasm = build_compact_guest(run, args.toolchain, out, variant, source, flags=flags,
+                                       diagnostics=args.swift_diagnostics)
             data = wasm.read_bytes()
             info = replay_abi.check_descriptors(data)
             receipt['guests'][variant] = dict(bytes=len(data), sha256=digest(wasm),

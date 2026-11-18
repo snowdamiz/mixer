@@ -13,6 +13,27 @@ revision from the FieldLog repository. SwiftPM resolves the existing Mixer SDK
 lockfile. The runner keeps binaries, command logs, and the detailed receipt
 under the selected `verification/local/` directory.
 
+Pass `--swift-diagnostics` to keep line tables in the two optimized compact
+development guests. The runner remaps checkout and home paths and keeps only
+the linked `.debug_line` debug section. This lets the installed Swift bridge
+display the original file and line when one of these guests traps. The default
+run still builds the stripped payloads used by size comparisons.
+
+The host diagnostic replay uses the same compact producer and a fresh build of
+the owning VM. Run it from the Mixer root with macOS Swift and the Swift 6.3.3
+Embedded toolchain installed.
+
+```sh
+python3 compiler/experiments/fieldlog-installed-guest/replay_swift_diagnostics.py local-swift-diagnostics
+```
+
+The replay builds optimized Swift traps, checks the source location and native
+coordinates, and exercises fallback with the line table stripped or replaced.
+It also runs the Swift bridge test suite and checks session retirement. Its
+receipt and logs are written to `verification/local/local-swift-diagnostics/`.
+Use a fresh output name for each run. The replay uses the SDK's pinned SwiftPM
+dependencies and requires no FieldLog checkout or device.
+
 The baseline isolates the completion-bit toggle from FieldLog's
 `Workspace.toggleTask` for one seeded inspection task. The review variant
 requires a confirmation activation before completing an open task. Reopening a

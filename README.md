@@ -15,13 +15,13 @@ qualification across supported versions remains pending; see product-plan §19.1
 ## Create, export, and build a local app
 
 Run these commands on an Apple silicon Mac from a checkout of the public
-`snowdamiz/mixer` repository. This Pair23 pin supplies the matching CLI, SDK,
-and Android adapter and includes the default starter's Android lock fix.
+`snowdamiz/mixer` repository. This Pair24 pin supplies the matching CLI, SDK,
+and Android adapter used by the corrected default starter.
 Set `DEVELOPER_DIR` to your Xcode installation with the iOS Simulator SDK
 and Swift 6.2 or later.
 
 ```sh
-mixer_rev=f048e40c529aa715ec32edc6f1f13476ed67b2a2
+mixer_rev=c7956233d69caeffadfa5ab84227c3b2e09ff41d
 work="$(mktemp -d "${TMPDIR:-/tmp}/mixer-local.XXXXXX")"
 mkdir "$work/inputs" "$work/exports"
 git archive "$mixer_rev" cli sdk updates native/android | tar -xf - -C "$work/inputs"
@@ -42,10 +42,15 @@ store credentials.
 	--sdk-path "$work/inputs/sdk"
 "$mixer_cli" export "$work/exports/LocalIOS" --directory "$work/LocalIOS"
 "$mixer_cli" config validate --directory "$work/exports/LocalIOS"
+ios_export="$work/exports/LocalIOS"
+xcode_pins="$ios_export/Platforms/iOS/LocalIOS.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
+mkdir -p "$xcode_pins"
+cp "$ios_export/Generated/MixerSDK/Package.resolved" "$xcode_pins/Package.resolved"
 "$mixer_cli" build --platform ios --directory "$work/exports/LocalIOS"
 ```
 
-The build creates an unsigned `LocalIOS.app` under
+The fresh export seeds Xcode’s workspace lock from the bundled SDK so the app
+uses the same Swift package revisions. The build creates an unsigned `LocalIOS.app` under
 `.mixer/ios-build/Build/Products/Debug-iphonesimulator/` in the export.
 The relocated starter built for arm64 Simulator. [Local verification](STATUS.md#november-18-local-verification)
 
@@ -79,7 +84,7 @@ The default Android host is `legacy-v1`. Creation seeds
 preserves the lock. The build produces an unsigned arm64 APK at
 `.mixer/android-build/LocalAndroid-unsigned.apk` in the export. Add
 `--android-host public-v4` at creation to select the public V4 host.
-[Default starter build receipt](verification/receipts/android-starter-lock-pair23-735ecec.json)
+[Default starter API 36 runtime](verification/receipts/l01-default-starter-pair24-runtime-41a05264.json)
 
 Export to a new directory outside the source project. You can move the export
 and build it after the original project and SDK checkout are out of reach.
@@ -132,6 +137,124 @@ The receipt covers a relocated development APK build.
 Signed update and rollback checks cover separate development fixtures.
 The ordinary FieldLog mobile OTA workflow remains open.
 [Current status](STATUS.md#november-18-local-verification)
+
+### Upgrade a locked project
+
+Export a recovery copy with the original CLI and host Swift toolchain before
+you change the project's SDK. Close editors and builds first. Back up
+installed app data, signing material, and any files excluded from export
+separately.
+
+For the FieldLog Android example, set the Android toolchain variables above
+and use Xcode 26.6 throughout. Run these commands from the public Mixer
+checkout with both Mixer revisions available locally.
+
+```sh
+mixer_repo="$(git rev-parse --show-toplevel)"
+upgrade_rev=02002272c334dd0a3750c502ad5819b26d57fe0d
+pair20_rev=8efc1a9e5b1602117f8211c95bfd4203cc91f689
+fieldlog_rev=552559d2d3278abb9b1aa7dcf0288102c09a202b
+work="$(mktemp -d "${TMPDIR:-/tmp}/mixer-upgrade.XXXXXX")"
+target_checkout="$work/upgrade-inputs"
+mkdir "$target_checkout"
+git archive "$upgrade_rev" cli sdk updates native/android | tar -xf - -C "$target_checkout"
+
+git clone --shared --no-checkout "$mixer_repo" "$work/pair20"
+git -C "$work/pair20" sparse-checkout set cli sdk updates native/android
+git -C "$work/pair20" checkout --detach "$pair20_rev"
+
+swift build --package-path "$work/pair20/cli" --scratch-path "$work/pair20-cli" \
+	--cache-path "$work/pair20-cache" --jobs 6 --product mixer
+swift build --package-path "$target_checkout/cli" --scratch-path "$work/upgrade-cli-build" \
+	--cache-path "$work/upgrade-cli-cache" --jobs 6 --product mixer
+old_cli="$work/pair20-cli/debug/mixer"
+new_cli="$work/upgrade-cli-build/debug/mixer"
+"$old_cli" version
+"$new_cli" version
+
+git clone --depth 1 --filter=blob:none --sparse https://github.com/snowdamiz/fieldlog.git \
+	"$work/FieldLog-baseline"
+git -C "$work/FieldLog-baseline" fetch --depth 1 --filter=blob:none origin "$fieldlog_rev"
+git -C "$work/FieldLog-baseline" sparse-checkout set Integrations/GeneratedReport
+git -C "$work/FieldLog-baseline" checkout --detach "$fieldlog_rev"
+source_project="$work/FieldLog-old"
+python3 "$work/FieldLog-baseline/Integrations/GeneratedReport/scripts/build-android.py" \
+	--mixer "$old_cli" --sdk-checkout "$work/pair20" \
+	--android-adapter-path "$work/pair20/native/android" \
+	--output "$source_project" --prepare-only
+```
+
+The historical recipe leaves the Android package lock absent. To exercise
+lock preservation, seed the prepared project with the FieldLog platform lock
+from the Pair23 migration. This applies only the lock file from that patch.
+
+```sh
+platform_lock=Platforms/Android/Package.resolved
+fieldlog_path=Integrations/GeneratedReport/$platform_lock
+git -C "$work/FieldLog-baseline" apply --include="$fieldlog_path" \
+	"$mixer_repo/verification/fieldlog-pair23/public-build.patch"
+cp "$work/FieldLog-baseline/$fieldlog_path" "$source_project/$platform_lock"
+
+recovery_copy="$work/FieldLog-recovery"
+upgraded_project="$work/FieldLog-upgraded"
+build_copy="$work/FieldLog-build"
+"$old_cli" export "$recovery_copy" --directory "$source_project"
+"$new_cli" upgrade "$upgraded_project" --directory "$source_project" \
+	--sdk-path "$target_checkout/sdk" \
+	--android-adapter-path "$target_checkout/native/android"
+cmp "$source_project/$platform_lock" "$upgraded_project/$platform_lock"
+"$new_cli" export "$build_copy" --directory "$upgraded_project"
+"$new_cli" build --platform android --directory "$build_copy"
+```
+
+The upgrade writes the new SDK, Android adapter, and `mixer.lock` into a new
+copy. It preserves an existing `Platforms/Android/Package.resolved`. If
+the Android dependency pins conflict, follow your app's dependency migration
+for the target SDK. For an iOS-only project, omit `--android-adapter-path`
+and select `--platform ios` for the build. Reopen your saved data in the
+upgraded app before switching to it.
+
+### Recover from an interrupted project edit
+
+If upgrade reports `lock.sdk-drift` after an interrupted SDK edit, save the
+damaged file separately and restore the original bytes from the recovery
+copy. For damage limited to the bundled SDK manifest, run the following
+commands before retrying the upgrade.
+
+```sh
+sdk_manifest=Generated/MixerSDK/Package.swift
+cp "$source_project/$sdk_manifest" "$work/damaged-Package.swift"
+cp "$recovery_copy/$sdk_manifest" "$source_project/$sdk_manifest"
+```
+
+If an upgrade destination already exists, keep it and choose a fresh
+destination for the retry. For an interrupted FieldLog save that reports a
+storage error, close and reopen the workspace. Check the saved entry, draft,
+and outbox before trying the save again.
+
+### Build an Android export without the Mixer CLI
+
+Export a fresh copy to transfer to a build machine. Keep its bundled SDK,
+Android adapter, and dependency lock together. Use the tool versions and
+installation paths recorded in `mixer.lock`. Transfer installed app data
+separately.
+
+```sh
+exit_copy="$work/FieldLog-exit"
+mkdir "$work/NativeExit"
+"$new_cli" export "$exit_copy" --directory "$upgraded_project"
+mv "$exit_copy" "$work/NativeExit/FieldLogGenerated"
+(
+	cd "$work/NativeExit/FieldLogGenerated"
+	python3 Generated/MixerAndroid/android-build.py build "$PWD"
+)
+```
+
+The FieldLog build writes
+`.mixer/android-build/FieldLogGenerated-unsigned.apk` in the export. The
+public replay built this APK with the original project, SDK checkouts, and
+Mixer CLI builds unavailable. It also reopened a saved FieldLog workspace
+through the app's storage code on the host. [Upgrade, recovery, and exit replay](verification/receipts/l08-public-upgrade-02002272.json)
 
 ## Local development
 

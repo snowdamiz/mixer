@@ -40,10 +40,18 @@ public enum ExperimentalCapabilityFailureKind: Sendable, Equatable {
     case panicOrQuarantine(ExperimentalCapabilityInternalFailure)
     case unknown(ExperimentalCapabilityUnknownFailure)
 }
+public struct ExperimentalCapabilitySourceLocation: Sendable, Equatable {
+    public let file: String
+    public let line: UInt32
+    public let column: UInt32?
+}
+
 public struct ExperimentalCapabilityNativeLocation: Sendable, Equatable {
     public let functionIndex: UInt32?
     /// Exact native absolute offset; zero can also be an import/export boundary sentinel.
     public let byteOffset: UInt32
+    /// Optional guest-supplied diagnostic metadata. The native coordinates remain authoritative.
+    public let source: ExperimentalCapabilitySourceLocation?
 }
 public struct ExperimentalCapabilityFailure: Sendable, Equatable {
     public let kind: ExperimentalCapabilityFailureKind
@@ -79,7 +87,8 @@ enum NativeDiagnostics {
     static func turn(_ operation: Operation) -> Bool { operation == .startup || operation == .invocation || operation == .wake }
     static func session(_ operation: Operation) -> Bool { operation != .localAPI && operation != .validation && operation != .construction }
     static func check(_ status: UInt32, _ report: MixerVmReport, operation: Operation,
-                      moduleLength: Int, configuration: ExperimentalCapabilityConfiguration) throws {
+                      moduleLength: Int, configuration: ExperimentalCapabilityConfiguration,
+                      debugLines: GuestDebugLines? = nil) throws {
         func malformed(_ code: String = "invalid_native_report") -> ExperimentalCapabilityError {
             ExperimentalCapabilityError(code, operation: operation)
         }
@@ -102,9 +111,11 @@ enum NativeDiagnostics {
         }
         guard !code.isEmpty, report.value_type == 0, report.value == 0 else { throw malformed() }
         let kind = classify(status, code, operation: operation)
+        let source: ExperimentalCapabilitySourceLocation?
         if case .guestTrap = kind {
-            guard function != nil, UInt64(report.offset) < UInt64(moduleLength) else { throw malformed() }
-        }
+            guard let function, UInt64(report.offset) < UInt64(moduleLength) else { throw malformed() }
+            source = debugLines?.sourceLocation(function: function, at: report.offset)
+        } else { source = nil }
         // Direct API/registry/panic reports contain no instruction position.
         let initialSegment = kind == .instantiation(.initialDataBounds) || kind == .instantiation(.initialElementBounds)
         let initialAllocation = kind == .resource(.nativeInstantiationAllocation)
@@ -113,7 +124,7 @@ enum NativeDiagnostics {
         let direct = status == 3 || status == 4 || initialSegment || initialAllocation || internalFailure || code == "capability_terminal" || code == "capability_closed" || code == "unsupported_float_environment" || code == "unknown_export"
         if direct && (function != nil || report.offset != 0) { throw malformed() }
         throw ExperimentalCapabilityError(code, status: status, operation: operation, kind: kind,
-            location: ExperimentalCapabilityNativeLocation(functionIndex: function, byteOffset: report.offset))
+            location: ExperimentalCapabilityNativeLocation(functionIndex: function, byteOffset: report.offset, source: source))
     }
     static func value(_ report: MixerVmReport, operation: Operation) throws -> ExperimentalVMValue? {
         switch report.value_type {

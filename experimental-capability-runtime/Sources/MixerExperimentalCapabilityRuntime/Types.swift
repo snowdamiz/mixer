@@ -54,7 +54,11 @@ public struct ExperimentalCapabilityError: Error, Sendable, Equatable, CustomStr
     public let code: String
     public let nativeStatus: UInt32?
     public let failure: ExperimentalCapabilityFailure
-    public var description: String { code }
+    public var description: String {
+        guard let source = failure.location?.source else { return code }
+        let position = "\(source.file):\(source.line)"
+        return if let column = source.column { "\(position):\(column): \(code)" } else { "\(position): \(code)" }
+    }
     init(_ code: String, status: UInt32? = nil, operation: ExperimentalCapabilityFailureOperation = .localAPI,
          kind: ExperimentalCapabilityFailureKind? = nil, location: ExperimentalCapabilityNativeLocation? = nil) {
         self.code = code; nativeStatus = status

@@ -61,6 +61,20 @@ fails closed. Error equality still compares only the original code and status.
 The first status failure string/detail remain immutable, including autonomous wake
 failure; typed diagnostics do not relax exit or quarantine ownership.
 
+For a checked guest trap, `failure.location?.source` carries the original Swift
+file name, one-based line and optional column when the admitted module includes
+a usable embedded DWARF32 v4 `.debug_line` section. The error description includes
+this position when available. Callers that need the stable machine code can read
+`error.code` or `status.failure`. Paths are reduced to file names. Missing,
+malformed, ambiguous or unsupported debug data leaves the original trap code and
+Wasm coordinates available. Resolution requires the native function index and
+byte offset to select the same code body. When Swift emits both a source row
+and a line-zero row at the same address, the source row applies to a trap at
+that exact address. This metadata is supplied by the guest and has no
+authority over validation, execution or recovery. The bridge resolves it without
+filesystem or network lookups. [DWARF v4](https://dwarfstd.org/doc/DWARF4.pdf),
+[DWARF for WebAssembly](https://github.com/WebAssembly/tool-conventions/blob/main/Dwarf.md)
+
 The shared configuration accepts an exact memory ceiling of zero pages. A valid
 module must still declare its one defined memory; a declared minimum or maximum
 above zero rejects under that ceiling. Signed-byte narrowing belongs to a future

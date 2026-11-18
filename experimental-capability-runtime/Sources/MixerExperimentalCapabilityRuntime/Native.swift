@@ -40,6 +40,7 @@ final class NativeCapabilitySession: @unchecked Sendable {
     }
     let handle: UInt64
     private let moduleLength: Int
+    private var debugLines: GuestDebugLines?
     private let configuration: ExperimentalCapabilityConfiguration
     private var scratch = Data(count: 524288)
     init(module: Data, startup: String, configuration: ExperimentalCapabilityConfiguration) throws {
@@ -71,13 +72,15 @@ final class NativeCapabilitySession: @unchecked Sendable {
             throw NativeConstructionFailure(reported: reported, retainsPermit: retain)
         }
         handle = output
+        debugLines = GuestDebugLines(module: module)
     }
     static func check(_ status: UInt32, _ report: MixerVmReport, operation: NativeDiagnostics.Operation,
                       moduleLength: Int, configuration: ExperimentalCapabilityConfiguration) throws {
         try NativeDiagnostics.check(status, report, operation: operation, moduleLength: moduleLength, configuration: configuration)
     }
     private func check(_ status: UInt32, _ report: MixerVmReport, operation: NativeDiagnostics.Operation) throws {
-        try Self.check(status, report, operation: operation, moduleLength: moduleLength, configuration: configuration)
+        try NativeDiagnostics.check(status, report, operation: operation, moduleLength: moduleLength,
+            configuration: configuration, debugLines: debugLines)
     }
     static func invocation(_ report: MixerVmReport, operation: NativeDiagnostics.Operation) throws -> ExperimentalCapabilityInvocation {
         ExperimentalCapabilityInvocation(value: try NativeDiagnostics.value(report, operation: operation),
@@ -177,7 +180,12 @@ final class NativeCapabilitySession: @unchecked Sendable {
         var report = MixerVmReport(); try check(mixer_vm_capability_expire_v1(handle, &report), report, operation: .expire)
     }
     func close() throws {
-        var report = MixerVmReport(); try check(mixer_vm_capability_session_close_v1(handle, &report), report, operation: .close)
+        var report = MixerVmReport()
+        try Self.check(mixer_vm_capability_session_close_v1(handle, &report), report, operation: .close,
+                       moduleLength: moduleLength, configuration: configuration)
     }
-    func discardScratchAfterDrain() { scratch = Data() }
+    func discardScratchAfterDrain() {
+        scratch = Data()
+        debugLines = nil
+    }
 }

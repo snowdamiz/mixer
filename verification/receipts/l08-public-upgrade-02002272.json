@@ -1,0 +1,169 @@
+{
+  "schema": "mixer.local-development-evidence.v1",
+  "gate": "L08",
+  "status": "public-guide-host-replay-pass",
+  "reviewer": null,
+  "inputs": {
+    "upgradeMixer": {
+      "revision": "02002272c334dd0a3750c502ad5819b26d57fe0d",
+      "tree": "a974896610b480878a01b587abdbe56203fc7790",
+      "cliTree": "644ba80190f23f00be12a8763ae6c8f806c0fc18",
+      "sdkTree": "ea6427ab49808d893f9b601a1e6b863326ef51d8",
+      "adapterTree": "0ea497f0c15ecd3418a50514ae837583948bf9f8",
+      "cliSha256": "b373310543490b59c2db3b43682adf75c6ca56cbe103aeab8588214ce3b9efc6"
+    },
+    "pair20Mixer": {
+      "revision": "8efc1a9e5b1602117f8211c95bfd4203cc91f689",
+      "tree": "d458167a66f55b3112374842f57921092c666101",
+      "cliSha256": "676ba1eaf58c954d0be7d40720ffc963896f833931cea2dfc7359187d177c336"
+    },
+    "fieldLog": {
+      "revision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+      "tree": "1b62520f35c7e57a01b568291078686574f627c4",
+      "recipe": "Integrations/GeneratedReport/scripts/build-android.py",
+      "migration": "verification/fieldlog-pair23/public-build.patch",
+      "migrationSelection": "Integrations/GeneratedReport/Platforms/Android/Package.resolved",
+      "recipeCreateOwnedGroupAbsent": true,
+      "selectedPlatformLockSha256": "abf619c18799ea2dbb169494bcb928b47c95d2cc5e70e433328f6380ae035e80"
+    }
+  },
+  "environment": {
+    "host": "arm64 macOS 27.0.1 (26A434)",
+    "xcode": "26.6 (17F113)",
+    "hostSwift": "6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)",
+    "androidSwift": "6.3.3-RELEASE",
+    "androidSwiftSDK": "aarch64-unknown-linux-android28",
+    "ndk": "r27d",
+    "androidBuildTools": "37.0.0",
+    "javac": "25.0.4.1",
+    "python": "3.14.8",
+    "git": "2.56.0",
+    "deviceRuns": 0
+  },
+  "replay": {
+    "guide": "README.md#upgrade-a-locked-project",
+    "commands": [
+      "swift build --package-path \"$work/pair20/cli\" --scratch-path \"$work/pair20-cli\" --cache-path \"$work/pair20-cache\" --jobs 6 --product mixer",
+      "swift build --package-path \"$target_checkout/cli\" --scratch-path \"$work/upgrade-cli-build\" --cache-path \"$work/upgrade-cli-cache\" --jobs 6 --product mixer",
+      "python3 \"$work/FieldLog-baseline/Integrations/GeneratedReport/scripts/build-android.py\" --mixer \"$old_cli\" --sdk-checkout \"$work/pair20\" --android-adapter-path \"$work/pair20/native/android\" --output \"$source_project\" --prepare-only",
+      "\"$old_cli\" export \"$recovery_copy\" --directory \"$source_project\"",
+      "cp \"$source_project/$sdk_manifest\" \"$work/damaged-Package.swift\"",
+      "cp \"$recovery_copy/$sdk_manifest\" \"$source_project/$sdk_manifest\"",
+      "\"$new_cli\" upgrade \"$upgraded_project\" --directory \"$source_project\" --sdk-path \"$target_checkout/sdk\" --android-adapter-path \"$target_checkout/native/android\"",
+      "\"$new_cli\" export \"$build_copy\" --directory \"$upgraded_project\"",
+      "\"$new_cli\" build --platform android --directory \"$build_copy\"",
+      "\"$new_cli\" export \"$exit_copy\" --directory \"$upgraded_project\"",
+      "mv \"$exit_copy\" \"$work/NativeExit/FieldLogGenerated\"",
+      "python3 Generated/MixerAndroid/android-build.py build \"$PWD\""
+    ],
+    "damagedManifestRefusal": {
+      "exitCode": 1,
+      "code": "lock.sdk-drift",
+      "destinationAbsent": true,
+      "restoredManifestMatchesRecovery": true
+    },
+    "mixerLockBeforeAndRecovery": {
+      "sha256": "e3f16455e4447e2999d9a7e34a5d6ce9e74d524ca9bc6e828fc328e53562ba72",
+      "profile": "mixer.android-source-pair.20",
+      "sdkSha256": "437e58d96d0a0d33e5e2fc9bdc6d1eac165c14030959d7b8baad6e1016966f40",
+      "adapterSha256": "06fed784eb1d576fe6365c6dc7b21826aceec89bfa4efceb990842acb40ee80b"
+    },
+    "mixerLockAfterAndBothExports": {
+      "sha256": "eb4a6b5487b2be23d8e1aa49107b82e927bf20816ed7eea5a3a789fcb392965b",
+      "profile": "mixer.android-source-pair.23",
+      "sdkSha256": "5a9f314dd6f5bef71317111d1427cbca884a10dc42d579916430a3f4128f41cc",
+      "adapterSha256": "fccc0b652d1c09a5c7ff7df02bab4897614e6f66f2e49084dac4d728d6a0323c"
+    },
+    "androidPlatformLock": {
+      "path": "Platforms/Android/Package.resolved",
+      "sha256BeforeAndAfterBothBuilds": "abf619c18799ea2dbb169494bcb928b47c95d2cc5e70e433328f6380ae035e80",
+      "bytes": 656
+    },
+    "unchangedAppFilesAcrossCopies": 39,
+    "appFileDigestMapSha256": "905a613bc9d3ff480fceca8e628606e4b8e1924e4f79e463356e1572cff856b9"
+  },
+  "workspace": {
+    "draftTitle": "Follow-up draft",
+    "duplicateOpenRefusedAndReopenedAfterClose": true,
+    "entryTitle": "North wall inspection",
+    "outboxKeys": [
+      "afee6f96-da00-4569-899e-032c99ea30e3",
+      "3c1448ae-5ba1-4154-8c11-e89a1daec947",
+      "f9bc6dec-cd90-4b13-9cab-dfc83e37715b"
+    ],
+    "photoBytes": 710,
+    "photoPixels": [
+      24,
+      16
+    ],
+    "photoSHA256": "4d467681912f45d72b19231f34b7e054a8c958a2d113d22f622d4be5bb93def9",
+    "revision": 3,
+    "snapshotSHA256": "82bc8b579a9fc286e839ee3a6b222ccc09bb6c610e7a5942627dda4a80ff5c91",
+    "taskTitle": "Inspect the north wall",
+    "workspaceID": "806D2798-AA17-4653-AE3B-47300FE58659",
+    "checks": [
+      "Created and saved through FieldLog workspace model and repository code.",
+      "Interrupted another save at the pre-rename fault hook and compared the unchanged saved bytes.",
+      "Reopened in a fresh process against FieldLog model and storage sources compiled from each project copy.",
+      "Matched the saved entry and multiline note, draft restoration, task and responsible person, and the three outbox records.",
+      "Read the linked JPEG through the repository and decoded it."
+    ],
+    "readbackLogs": [
+      "logs/workspace-old.json",
+      "logs/workspace-recovery.json",
+      "logs/workspace-upgraded.json",
+      "logs/workspace-build.json",
+      "logs/workspace-exit.json"
+    ],
+    "probe": "WorkspaceProof.swift",
+    "probeSha256": "91c9e4212bf27f68866f6b17dceccaf1097a85462542f2467435c5ae29efb80f"
+  },
+  "android": {
+    "application": "dev.fieldlog.generatedr90",
+    "host": "public-v4",
+    "abi": "arm64-v8a",
+    "minApi": 36,
+    "targetApi": 37,
+    "cliBuild": {
+      "exitCode": 0,
+      "receipt": "FieldLog-build/.mixer/android-build/build-receipt.json",
+      "badging": "logs/cli-apk-badging.txt",
+      "apk": "FieldLog-build/.mixer/android-build/FieldLogGenerated-unsigned.apk",
+      "apkBytes": 28727432,
+      "apkSha256": "83bb4be82f47d314022246ad9c4ef6a62ea35190e3eef9c7494f71c4c90a49d2",
+      "sourceSha256BeforeAndAfter": "6f5c587895d304e92ba7304766f5f98de918e7e7b6da8a813b3e291f4e74c281",
+      "nativeCommands": 50,
+      "qualification": "local-unsigned-cross-build-only"
+    },
+    "independentBuild": {
+      "exitCode": 0,
+      "receipt": "NativeExit/FieldLogGenerated/.mixer/android-build/build-receipt.json",
+      "badging": "logs/exit-apk-badging.txt",
+      "apk": "NativeExit/FieldLogGenerated/.mixer/android-build/FieldLogGenerated-unsigned.apk",
+      "apkBytes": 28727510,
+      "apkSha256": "e87337160a02b56fe5216fea71cacc96a3f34e432c39ee055717c51269d10e52",
+      "sourceSha256BeforeAndAfter": "6f5c587895d304e92ba7304766f5f98de918e7e7b6da8a813b3e291f4e74c281",
+      "nativeCommands": 50,
+      "qualification": "local-unsigned-cross-build-only"
+    },
+    "exitBuildIsolation": {
+      "priorBuildCachePresent": false,
+      "originalProjectsSdkAdapterAndCliPathsAbsent": true,
+      "mixerOnPath": false,
+      "relativeInputList": "logs/exit-inputs-absent.txt"
+    }
+  },
+  "localEvidence": {
+    "pathBase": "Fresh replay scratch directory. Artifact paths in this receipt are relative to that directory.",
+    "cliExport": "logs/new-export.json",
+    "cliBuild": "logs/upgrade-build.json",
+    "upgrade": "logs/upgrade.json",
+    "refusal": "logs/upgrade-refused.json",
+    "independentBuild": "logs/independent-build.log"
+  },
+  "limitations": [
+    "The old Pair20 recovery export omits the empty Resources directory. The original retained it and the upgrade preserved it.",
+    "The workspace was a synthetic app-owned fixture, reopened on the host. Installed app data migration, mobile launches, iOS builds, and OTA were outside this replay.",
+    "Both APKs are unsigned local cross-builds. APK bytes differ across the two builds. Their input source digest and platform lock match."
+  ]
+}

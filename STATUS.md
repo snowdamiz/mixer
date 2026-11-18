@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The public upgrade guide replay preserved FieldLog’s workspace, photo, outbox and dependency lock through recovery, upgrade, export and an independent Android build. The macOS bridge now reports the Swift source location for a trap in both optimized guest builds. A fresh root replay passed 53 tests. [Upgrade and exit](verification/receipts/l08-public-upgrade-02002272.json) · [Swift diagnostics](verification/receipts/l03-swift-diagnostics-review-41a05264.json).
+
 The first iOS build with automatic task hydration failed its installed capability material check before the baseline guest started. The loopback service closed and the owned Simulator was removed with all external identities and boot states preserved. [Hydration attempt](verification/receipts/fieldlog-ios-first-frame-material-runtime-41a05264.json).
 
 The corrected Pair24 default Android starter launched from its relocated export on API 36. Adding and toggling an entry moved progress from zero to one completed. FieldLog separately persisted all 132 note characters after paced input and a cold launch. A single burst on the trace build retained 119 characters and logged 26 stale Android input events. [Starter runtime](verification/receipts/l01-default-starter-pair24-runtime-41a05264.json) · [Note input comparison](verification/receipts/fieldlog-android-note-burst-and-paced-41a05264.json).
