@@ -1,0 +1,110 @@
+{
+  "status": "host-and-generic-ios-passed",
+  "recordedAt": "2026-11-18T19:54:40.255645+00:00",
+  "scope": "Private ordinary FieldLog iOS assignment notification routing for Mixer plan §21.2.",
+  "source": {
+    "fieldLogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "patchedFieldLogArchiveTree": "c17944c31ace789b9aa34f227de23f34875addf9",
+    "archivePaths": [
+      "Package.swift",
+      "Sources",
+      "Tests",
+      "ios"
+    ],
+    "mixerSDKRevision": "56ff14c925168284761c5aca4f0bd4129cf3c995",
+    "mixerSDKRevisionTree": "75989099938ed5256c4144cbc9e62979ee323183",
+    "pinObservation": "The original app has project navigation and a new-task editor. It has no iOS assignment notification delegate or destination.",
+    "androidBehaviorReceipt": "verification/receipts/fieldlog-android-assignment-notification-runtime-41a05264.json",
+    "androidBehaviorReceiptSHA256": "c12a12c1ce137a441638054c55c50686186762464192445ff28f7888b867376b"
+  },
+  "delivery": {
+    "patch": "verification/local/fieldlog-ios-assignment-41a05264-3maXIqok/delivery/fieldlog-ios-assignment.patch",
+    "patchSHA256": "ec6f32be8cc1dcf974bc2cb801b5220d1014d14e4a6261dd13a3f027b173a1e4",
+    "replay": "verification/local/fieldlog-ios-assignment-41a05264-3maXIqok/delivery/replay.sh",
+    "replaySHA256": "757b32d6223fedc1631f5905d981a0fa0ce1c0affbbafb502655308d154daa15",
+    "command": [
+      "verification/local/fieldlog-ios-assignment-41a05264-3maXIqok/delivery/replay.sh",
+      ".",
+      "all"
+    ],
+    "hostOnlyArgument": "host"
+  },
+  "tools": {
+    "host": "arm64 macOS 27.0.1",
+    "swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "git": "2.56.0",
+    "xcode": "27.2 (27B52)",
+    "iOSSDK": "27.2 (24B8118)"
+  },
+  "host": {
+    "result": "Test run with 43 tests in 1 suite passed after 0.070 seconds.",
+    "assignmentTests": [
+      "warmTapReturnsToUnsavedTaskEditor",
+      "coldTapWaitsForPersistedWorkspace",
+      "unavailableTargetsPreserveWorkspaceAndOutboxBytes",
+      "unrelatedOrMalformedPayloadDoesNotCreateARoute"
+    ],
+    "warm": "Opened the exact persisted task and dismissed its route. The existing task editor retained its unsaved title and never invoked save.",
+    "cold": "Received a tap before a workspace snapshot was available. Reopened the repository from disk and resolved the matching workspace, project, and task among same-titled tasks.",
+    "unavailable": "Rejected a missing task, a foreign workspace, a foreign project, and an existing task paired with a different existing project.",
+    "workspaceSnapshotAndEmbeddedOutbox": {
+      "warmTapReturnsToUnsavedTaskEditor": {
+        "beforeSHA256": "4e8a937856c503ab9d3910a5038f4d9a4edb08dcabb3d40089976cde125cc878",
+        "afterSHA256": "4e8a937856c503ab9d3910a5038f4d9a4edb08dcabb3d40089976cde125cc878",
+        "revision": 1,
+        "outboxCount": 4
+      },
+      "coldTapWaitsForPersistedWorkspace": {
+        "beforeSHA256": "662579e29c150c891e8f0c34c89badcd206f970116338040f67556ad9ec32cb0",
+        "afterSHA256": "662579e29c150c891e8f0c34c89badcd206f970116338040f67556ad9ec32cb0",
+        "revision": 1,
+        "outboxCount": 4
+      },
+      "unavailableTargetsPreserveWorkspaceAndOutboxBytes": {
+        "beforeSHA256": "09674c2478b8b8b0b260c509d753daf7a60b08d5237d3c31aaed119548cd074c",
+        "afterSHA256": "09674c2478b8b8b0b260c509d753daf7a60b08d5237d3c31aaed119548cd074c",
+        "revision": 1,
+        "outboxCount": 4
+      }
+    }
+  },
+  "genericIOS": {
+    "destination": "generic/platform=iOS",
+    "codeSigned": false,
+    "binaries": {
+      "Debug": {
+        "file": "FieldLog.debug.dylib",
+        "sha256": "44cb67541fa4d1ef2503b35b450cba1ba79d65174f74f532f5a57dd7102ed893"
+      },
+      "Release": {
+        "file": "FieldLog",
+        "sha256": "29b03064e82a19d7ff3c898fc6bcdba91d105f64d600c977c45ffc09fa61bad6"
+      }
+    },
+    "dependencyResolution": "Both configurations used the exported local public SDK and FieldLog package. Only the disposable build copy used a local manifest dependency.",
+    "localPosting": "The ordinary Debug workspace shows a bell for an assigned task. Launch-argument-only UI test stores and Release omit it. The final binary check found the posting UI in Debug only."
+  },
+  "independentReview": {
+    "finding": "A notification posted from a launch-argument-only UI test workspace could not cold-open that workspace.",
+    "resolution": "The local adapter is offered only in the ordinary Debug workspace."
+  },
+  "limitations": [
+    "The macOS tests exercise payload parsing, routing, storage, and editor state.",
+    "Delivery by iOS Notification Center, the warm window and editor lifecycle, cold OS launch, and APNs remain unverified."
+  ],
+  "earlierAttempts": [
+    "Stopped the initial Xcode command after its retained project lockfile selected a cached package checkout. Exit 143 and absent owned process group were observed. The checkout was removed.",
+    "The first local Debug build succeeded. Its artifact assertion inspected the entry executable, which is an Xcode launcher stub in Debug. The final replay inspected the app code in FieldLog.debug.dylib."
+  ],
+  "cleanup": {
+    "ownedWorkingCheckoutRemoved": true,
+    "earlierReplayRemoved": true,
+    "finalReplayRemoved": true,
+    "retained": [
+      "private patch",
+      "replay script",
+      "compact receipt"
+    ]
+  }
+}
