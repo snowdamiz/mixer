@@ -1,0 +1,28 @@
+{
+  "consumer": "FieldLog",
+  "base": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "candidateTree": "ea2be47768a94647fd1f5a283a1aeb1137ccb730",
+  "platform": "macOS 27.0.1 arm64; Swift 6.4.2",
+  "privateEvidence": "verification/local/fieldlog-task-conflict-41a05264/evidence",
+  "sha256": {
+    "RECEIPT.md": "e964cf8977b153a3d19ea4c887b15094c0962c621894a6f7a500b284a43c4a93",
+    "fieldlog-task-conflict.patch": "89533e6972772c787ff0ba53d6b55eb40e42cbe6e6005f00dd0a3113a0a0a6fd",
+    "mac-host-replay.log": "7a40ead332ed6943ffa109d0994f52b289ea120e159f3af3be5c2c1b435392a0",
+    "mac-storage-regression.log": "399db9fc0084ddbdc903ce2d50435fe2a7936e1404ead540e37e5fc9a7c14764"
+  },
+  "replay": "python3 verification/host/replay-task-conflict.py /absolute/path/to/new-owned-scratch",
+  "observed": [
+    "PASS local: peer save, open-editor conflict, cold review, resolution, duplicate save/resolve, cold result",
+    "PASS incoming: peer save, open-editor conflict, cold review, resolution, duplicate save/resolve, cold result",
+    "PASS mixed: peer save, open-editor conflict, cold review, resolution, duplicate save/resolve, cold result",
+    "PASS completed resolve replay while another conflict is pending",
+    "PASS incoming-only: peer save, open-editor conflict, cold review, resolution, duplicate save/resolve, cold result",
+    "PASS conflict value display distinguishes one space, two spaces, tab and literal text"
+  ],
+  "storageTestsPassed": 13,
+  "delivery": "A second ordinary editor saved to a separate replica. The host delivered its committed title and assignee with their common ancestor while the first editor remained open.",
+  "limits": [
+    "Authenticated backend exchange and reconciliation between two already-saved competing edits remain open.",
+    "No mobile UI ran. Older clients reject schema 2 workspaces containing a pending review."
+  ]
+}
