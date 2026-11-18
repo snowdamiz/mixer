@@ -52,16 +52,24 @@ func isolatedOwner(t *testing.T) (*pgx.Conn, string) {
 	t.Log(version + "; verified private data directory and disabled TCP listener")
 	return conn, dsn
 }
+func createPostgresTestDatabase(t *testing.T, admin *pgx.Conn) string {
+	t.Helper()
+	var random [8]byte
+	rand.Read(random[:])
+	name := "test_" + fmt.Sprintf("%x", random[:])
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if _, e := admin.Exec(ctx, "CREATE DATABASE "+pgx.Identifier{name}.Sanitize()+" TEMPLATE template0"); e != nil {
+		t.Fatal(e)
+	}
+	return name
+}
+
 func pgFixture(t *testing.T) (Config, testutil.Fixture, *pgx.Conn, string) {
 	t.Helper()
 	admin, dsn := isolatedOwner(t)
 	t.Cleanup(func() { admin.Close(context.Background()) })
-	var random [8]byte
-	rand.Read(random[:])
-	name := "test_" + fmt.Sprintf("%x", random[:])
-	if _, e := admin.Exec(context.Background(), "CREATE DATABASE "+pgx.Identifier{name}.Sanitize()); e != nil {
-		t.Fatal(e)
-	}
+	name := createPostgresTestDatabase(t, admin)
 	parsed, e := pgx.ParseConfig(dsn)
 	if e != nil {
 		t.Fatal(e)
@@ -73,7 +81,7 @@ func pgFixture(t *testing.T) (Config, testutil.Fixture, *pgx.Conn, string) {
 	}
 	t.Cleanup(func() { owner.Close(context.Background()) })
 	ownerDSN := fmt.Sprintf("host=%s port=%d dbname=%s user=%s sslmode=disable", parsed.Host, parsed.Port, name, parsed.User)
-	envName := "MIXER_PG_TEST_" + strings.ToUpper(fmt.Sprintf("%x", random[:]))
+	envName := "MIXER_PG_TEST_" + strings.ToUpper(name)
 	t.Setenv(envName, ownerDSN)
 	pc := PostgresConfig{ConnectionStringEnv: envName, MaxConnections: 4, QueryTimeoutMilliseconds: 5000}
 	if e = MigratePostgres(context.Background(), pc); e != nil {
@@ -85,8 +93,7 @@ func pgFixture(t *testing.T) (Config, testutil.Fixture, *pgx.Conn, string) {
 	if _, e = admin.Exec(context.Background(), `DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='mixer_test_runtime') THEN CREATE ROLE mixer_test_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS; END IF; END $$; GRANT mixer_release_runtime TO mixer_test_runtime`); e != nil {
 		t.Fatal(e)
 	}
-	runtimeDSN := fmt.Sprintf("host=%s port=%d dbname=%s user=mixer_test_runtime sslmode=disable", parsed.Host, parsed.Port, name)
-	t.Setenv(envName, runtimeDSN)
+	t.Setenv(envName, postgresTestRuntimeDSN(parsed, name))
 	f := testutil.New(t)
 	cfg := Config{DeveloperMode: true, Listen: "127.0.0.1:0", StorageBackend: "postgres", Postgres: &pc, Hosts: []protocol.Host{f.Host}, Roots: f.Roots, Tokens: []Token{
 		{SHA256: protocol.Hash([]byte("pg publisher")), Role: "publisher", Organization: "org-a", Project: "project-a", Actor: "publisher"},
@@ -94,6 +101,10 @@ func pgFixture(t *testing.T) (Config, testutil.Fixture, *pgx.Conn, string) {
 		{SHA256: protocol.Hash([]byte("pg editor")), Role: "editor", Organization: "org-a", Project: "project-a", Actor: "editor"},
 		{SHA256: protocol.Hash([]byte("pg tenant b")), Role: "publisher", Organization: "org-b", Project: "project-b", Actor: "publisher-b"}}}
 	return cfg, f, owner, ownerDSN
+}
+
+func postgresTestRuntimeDSN(owner *pgx.ConnConfig, database string) string {
+	return fmt.Sprintf("host=%s port=%d dbname=%s user=mixer_test_runtime sslmode=disable", owner.Host, owner.Port, database)
 }
 
 const pgBase = "/v1/orgs/org-a/projects/project-a"

@@ -159,12 +159,17 @@ GOTOOLCHAIN=go1.26.4 python3 verification/postgres.py \
   --output /absolute/new/evidence-directory
 ```
 
-The runner requires installed `initdb`, `pg_ctl`, `psql` and Go. It creates a new
-0700 directory, Unix-socket-only PostgreSQL cluster, rejects TCP connections, uses
-local trust solely inside that private test cluster, and deletes the cluster on
-completion. It never opens the installed Homebrew cluster or creates credentials
+The runner requires installed `initdb`, `pg_ctl`, `postgres`, `psql`, `pg_dump`,
+`pg_restore`, and Go. It creates a private 0700 directory for a Unix-socket-only
+PostgreSQL cluster. It rejects TCP connections and uses local trust solely inside
+that cluster. It never opens the installed Homebrew cluster or creates credentials
 in another database. The tagged real tests refuse a database without the runner's
 private marker and matching `data_directory`.
+
+The runner removes the cluster after PostgreSQL shuts down, its process group
+exits, and its private socket directory is empty. If a cluster command fails,
+the worker is interrupted, or shutdown cannot be confirmed, the runner keeps the
+cluster and records its location and the reason in `receipt.json`.
 
 Real database tests cover two service instances, twenty concurrent idempotent
 uploads, competing assignment publication, cross-tenant/RBAC/RLS adversaries,
@@ -176,10 +181,24 @@ signed bytes without changing migration001, shared idempotency conflicts,
 independent runtime channel heads, concurrent sequence publication, rollback,
 cross-tenant delivery/storage rejection and immediate database restart before
 and after a v2 publication commit. Unit tests and controlled faults are recorded
-separately from real database crash evidence. Multi-zone failover, backup restore,
-operational RPO/RTO, hosted authentication and launch review remain open.
+separately from real database crash evidence.
 
 The explicit v3 service route additionally decodes signed schema3 through its
 checked v3 types. It shares the same unchanged migration001 and capacity, tenant,
 FORCE RLS, immutable-history and transaction rules; see [README-v3.md](README-v3.md).
 V3 HTTP/payload ceilings are narrower than the historical SQL byte ceilings.
+
+`TestPostgresReleaseBackupRestore` publishes a signed v3 release via HTTP,
+captures a custom `pg_dump` archive, and restores it in one transaction into a
+second fresh database in the same private cluster. The restored service starts
+with the restricted runtime login and verifies byte-exact artifact delivery,
+signed assignment, audit history, and the original publication response on
+idempotent replay. It checks authenticated and public read isolation, then
+queries PostgreSQL directly using the restricted login. Tenant A sees its
+restored artifact, assignment, and audit events. Tenant B sees zero rows.
+Publishing a new signed release at sequence 2 updates the offer and extends the
+restored audit chain.
+
+The exercise uses the cluster's existing test roles and service configuration.
+Cross-cluster recovery, role and configuration recovery, operational RPO/RTO,
+hosted authentication, and launch review remain open.

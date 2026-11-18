@@ -1,0 +1,263 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "scope": "Release PostgreSQL metadata and artifact backup/restore, local exercise",
+  "status": "passed",
+  "finishedAtUtc": "2026-11-18T05:35:44+00:00",
+  "source": {
+    "baseCommit": "d39031b0870386abc12feb11ea804c668f6ac8c1",
+    "tree": "services worktree inputs, including uncommitted test and runner changes. The concurrent base commit does not change services.",
+    "runnerInputManifestSHA256": "658399f58545704f9e9a606de0a9b79841aa4ce1c9134fae8307b769e8ca01bc",
+    "runnerInputManifestEncoding": "Sorted-key compact UTF-8 JSON of runner receipt sourceSHA256",
+    "selectedSHA256": {
+      "services/release/migrations/001_release.sql": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605",
+      "services/release/postgres.go": "7649c08117984a3e520c75ced7a91f15b90c8fc7d7315e7db4bd212979d9d068",
+      "services/release/postgres_integration_test.go": "dda0bab6213add50361382bc6715e4b353dea1cb435e28d9de971bf4d7a380e9",
+      "services/release/postgres_restore_integration_test.go": "cf9e034473b8eda58686137eddca8672dee44429ea61c53c467c27d373f0284c",
+      "services/verification/postgres.py": "45c9671ddb171d077cc79f06fb9a3d546aedfc3e54617394932cd1a6b66e6711"
+    }
+  },
+  "environment": {
+    "go": "go version go1.26.4 darwin/arm64",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "pg_dump": "pg_dump (PostgreSQL) 17.11 (Homebrew)",
+    "pg_restore": "pg_restore (PostgreSQL) 17.11 (Homebrew)",
+    "database": "Two independently created databases from template0 in a fresh private Unix-socket-only cluster",
+    "api": "Canonical Go release service and PostgreSQL adapter, called through normal HTTP handler routes with scoped test tokens",
+    "python": "Python 3.14.8"
+  },
+  "integration": {
+    "invocation": "GOTOOLCHAIN=go1.26.4 python3 services/verification/postgres.py --output verification/local/release-postgres-restore-20261118-reviewed-01",
+    "testCommand": [
+      "/Users/andreyyurlov/.local/bin/go",
+      "test",
+      "-race",
+      "-tags=postgres_integration",
+      "./release",
+      "-run",
+      "^TestPostgres",
+      "-count=1",
+      "-v"
+    ],
+    "exitCode": 0,
+    "passedTopLevelTests": 16,
+    "test": "TestPostgresReleaseBackupRestore",
+    "dump": "pg_dump --host SOCKET --port PORT --username OWNER --dbname SOURCE --no-password --format=custom --file ARCHIVE",
+    "restore": "pg_restore --host SOCKET --port PORT --username OWNER --dbname DESTINATION --no-password --single-transaction ARCHIVE",
+    "assertions": [
+      "Uploaded and validated an Ed25519-signed v3 artifact and published its signed assignment via the release API.",
+      "Started the restored service with the restricted runtime login and restored grants, without rerunning the migration.",
+      "Read byte-identical artifact envelope and payload through both public and scoped routes, plus byte-identical signed assignment and three-event audit response.",
+      "Replayed the publication with its original key and body and received the original HTTP 200 response bytes. The same assignment with a fresh key returned 409. Audit and assignment stayed byte-identical.",
+      "Tenant B received 403 on tenant A scoped reads, an empty audit and 404 for the artifact in tenant B's own scope, and no public artifact or update offer in tenant B's scope.",
+      "Direct SQL using mixer_test_runtime in separate scoped reader transactions and with no tenant predicates returned one artifact, one assignment and three audit events for tenant A, and zero for tenant B.",
+      "Uploaded and validated a fresh artifact on the restored service and published its signed v3 assignment at sequence 2. The live offer contained the exact new signed assignment and public URL, and that URL served the new artifact bytes.",
+      "The first three audit events stayed identical. Three new upload, validation and publication events extended the restored audit chain with consecutive IDs and matching previous-event hashes."
+    ],
+    "observedWallTime": {
+      "archiveBytes": 45740,
+      "pgDumpMilliseconds": 54,
+      "pgRestoreMilliseconds": 39,
+      "testSeconds": 0.38,
+      "suiteCommandSeconds": 34.975
+    },
+    "cleanup": {
+      "stopExitCode": 0,
+      "allCommandGroupsTerminal": true,
+      "finalPostmasterGroupGone": true,
+      "privateSocketDirectoryEmpty": true,
+      "privateClusterRemoved": true,
+      "ownedClusterPathAbsentOnReadback": true
+    },
+    "rawEvidence": {
+      "localDirectory": "verification/local/release-postgres-restore-20261118-reviewed-01",
+      "runnerReceiptSHA256": "c5ff6c814060b22c84080277c8a937a811008cdd0ca6a3fc2a5fdfaaa87a940a",
+      "testStdout": {
+        "path": "real-postgres-tests.stdout",
+        "bytes": 20207,
+        "sha256": "3a698608f5ec9197a27b66a820cc2480d8a4b8f4d26bfa7705f0eb02d4d20017"
+      },
+      "testStderr": {
+        "path": "real-postgres-tests.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "postgresLog": {
+        "path": "postgres.log",
+        "bytes": 14839,
+        "sha256": "c3ced45b21a271746621eaa9290d0e073b2e180280e8b475f68791684f0c0d40"
+      }
+    }
+  },
+  "cleanupControls": {
+    "scope": "Fault injection at the runner subprocess and process observation boundary. No real server or worker launched. The normal signal handler ran on SIGTERM in the interruption control.",
+    "invocation": "python3 verification/local/release-postgres-restore-20261118-cleanup-controls-01/control.py",
+    "controlSourceSHA256": "aad094ba1fa405c49885981c8116082fbe4ac3a5ac31148d6a415a1573156397",
+    "resultsSHA256": "d7679956956edb20203233af6ca0d2e57e34d3d786c48466ab737f017725181e",
+    "passedControls": 10,
+    "observations": {
+      "pass": {
+        "clusterRemoved": true,
+        "finalCommand": "stop"
+      },
+      "interrupted-worker": {
+        "clusterRemoved": false,
+        "finalCommand": "real-postgres-tests"
+      },
+      "worker-timeout": {
+        "clusterRemoved": false,
+        "finalCommand": "real-postgres-tests"
+      },
+      "signalled-worker": {
+        "clusterRemoved": false,
+        "finalCommand": "real-postgres-tests"
+      },
+      "failed-worker": {
+        "clusterRemoved": false,
+        "finalCommand": "real-postgres-tests"
+      },
+      "live-worker-group": {
+        "clusterRemoved": false,
+        "finalCommand": "real-postgres-tests"
+      },
+      "denied-worker-observation": {
+        "clusterRemoved": false,
+        "finalCommand": "real-postgres-tests"
+      },
+      "stop-timeout": {
+        "clusterRemoved": false,
+        "finalCommand": "stop"
+      },
+      "live-postmaster-group": {
+        "clusterRemoved": false,
+        "finalCommand": "stop"
+      },
+      "socket-remains": {
+        "clusterRemoved": false,
+        "finalCommand": "stop"
+      }
+    }
+  },
+  "serviceRegression": {
+    "invocation": "cd services && GOTOOLCHAIN=go1.26.4 go test -race -count=1 ./...",
+    "exitCode": 0,
+    "passedPackages": [
+      "protocol",
+      "release",
+      "updater"
+    ],
+    "stdout": {
+      "path": "services-race.stdout",
+      "bytes": 268,
+      "sha256": "730a069e24051e0916f92c337930555988b14f794168f193c7da9883888aea2d"
+    },
+    "stderr": {
+      "path": "services-race.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "previousReview": {
+    "status": "changes requested",
+    "findings": [
+      "An interrupted worker or unproven descendant custody could lead to cluster cleanup.",
+      "A timed-out command could allow cluster deletion based on a missing postmaster.pid.",
+      "The restore test lacked direct restricted-role positive and negative reads and a fresh sequence-2 publication with audit and offer checks."
+    ]
+  },
+  "previousScopedEvidence": {
+    "schema": 1,
+    "gate": "L07",
+    "scope": "Release PostgreSQL metadata and artifact backup/restore, local exercise",
+    "status": "passed",
+    "finishedAtUtc": "2026-11-18T05:27:56+00:00",
+    "source": {
+      "baseCommit": "09a3ec0343b29b59849260349a0aa6403b9bb215",
+      "tree": "services worktree inputs, including uncommitted test and runner changes",
+      "runnerInputManifestSHA256": "ff4ca1407ed63408feab46a76d4afe024ff4d5fdadca0eb16e5cee53edc1da86",
+      "selectedSHA256": {
+        "services/release/migrations/001_release.sql": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605",
+        "services/release/postgres.go": "7649c08117984a3e520c75ced7a91f15b90c8fc7d7315e7db4bd212979d9d068",
+        "services/release/postgres_integration_test.go": "dda0bab6213add50361382bc6715e4b353dea1cb435e28d9de971bf4d7a380e9",
+        "services/release/postgres_restore_integration_test.go": "5818cc8dc393206b0061dcead80d5e875300be4b44df38f5035fdacd5ee60c63",
+        "services/verification/postgres.py": "b14a1406e035463b665318f66b5a31d503b8569556c76331d30d6a8019ba10d0"
+      }
+    },
+    "environment": {
+      "go": "go version go1.26.4 darwin/arm64",
+      "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "pg_dump": "pg_dump (PostgreSQL) 17.11 (Homebrew)",
+      "pg_restore": "pg_restore (PostgreSQL) 17.11 (Homebrew)",
+      "database": "Two independently created databases from template0 in a fresh private Unix-socket-only cluster",
+      "api": "Canonical Go release service and PostgreSQL adapter, called through normal HTTP handler routes with scoped test tokens"
+    },
+    "integration": {
+      "invocation": "GOTOOLCHAIN=go1.26.4 python3 services/verification/postgres.py --output verification/local/release-postgres-restore-20261118-01",
+      "testCommand": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "test",
+        "-race",
+        "-tags=postgres_integration",
+        "./release",
+        "-run",
+        "^TestPostgres",
+        "-count=1",
+        "-v"
+      ],
+      "exitCode": 0,
+      "passedTopLevelTests": 16,
+      "test": "TestPostgresReleaseBackupRestore",
+      "dump": "pg_dump --host SOCKET --port PORT --username OWNER --dbname SOURCE --no-password --format=custom --file ARCHIVE",
+      "restore": "pg_restore --host SOCKET --port PORT --username OWNER --dbname DESTINATION --no-password --single-transaction ARCHIVE",
+      "assertions": [
+        "Uploaded and validated an Ed25519-signed v3 artifact and published its signed assignment via the release API.",
+        "Started the restored service with the restricted runtime login and restored grants, without rerunning the migration.",
+        "Read byte-identical artifact envelope and payload through both public and scoped routes, plus byte-identical signed assignment and three-event audit response.",
+        "Replayed the publication with its original key and body and received the original HTTP 200 response bytes. The same assignment with a fresh key returned 409. Audit and assignment stayed byte-identical.",
+        "Tenant B received 403 on tenant A scoped reads, an empty audit and 404 for the artifact in tenant B's own scope, and no public artifact or update offer in tenant B's scope."
+      ],
+      "observedWallTime": {
+        "archiveBytes": 45755,
+        "pgDumpMilliseconds": 429,
+        "pgRestoreMilliseconds": 162,
+        "testSeconds": 0.98,
+        "suiteCommandSeconds": 49.376
+      },
+      "cleanup": {
+        "stopExitCode": 0,
+        "privateClusterRemoved": true
+      },
+      "rawEvidence": {
+        "localDirectory": "verification/local/release-postgres-restore-20261118-01",
+        "runnerReceiptSHA256": "68f75268a96ab9260085065a4824528c2f42bfbedc8591b690f88e4b0066b5fa",
+        "testStdout": {
+          "path": "real-postgres-tests.stdout",
+          "bytes": 19900,
+          "sha256": "45280975be75df0255b0cdf373fc5b450104b7f19078cb70a5fd89d04db9579a"
+        },
+        "testStderr": {
+          "path": "real-postgres-tests.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "serviceRegression": {
+      "invocation": "cd services && GOTOOLCHAIN=go1.26.4 go test -race ./...",
+      "exitCode": 0,
+      "passedPackages": [
+        "protocol",
+        "release",
+        "updater"
+      ]
+    },
+    "limitations": [
+      "One small signed fixture and one run. Reported wall times are local observations only.",
+      "The two databases shared PostgreSQL cluster roles and test service configuration. Cross-cluster recovery, role and configuration backup, production RPO/RTO, and GA qualification are outside this exercise."
+    ]
+  },
+  "limitations": [
+    "Two fresh databases shared one disposable cluster, its existing roles and test service configuration. Cross-cluster recovery, role and configuration backup, production RPO/RTO, and GA qualification remain open.",
+    "The PostgreSQL restore and successful cleanup were live. Cleanup failure branches were fault-injected. The runner retains the cluster on an unproven exit; it does not recover or adjudicate retained resources."
+  ]
+}
