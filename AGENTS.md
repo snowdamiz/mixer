@@ -920,3 +920,5 @@ directory and worker log in
 Do not inspect, enumerate, probe, signal, retry or clean these chains. The
 copied top-level receipts are `verification/receipts/l06-combined-console-browser-793196991d.json`
 and `verification/receipts/l05-combined-native-build-41a05264.json`.
+
+The November 18 combined FieldLog API 36 replay recorded UNKNOWN custody for emulator PID/PGID 16950. Preserve the AVD fieldlog_combined_bec4cafba215, ports 5680, 5681, 49687, 18762 and 18763 and the retained verification/local/fieldlog-combined-listener-61klg3pb/replay/root-6_4c3udx namespace without inspection, probing, signals, retry or cleanup. Use the copied top-level verification/receipts/fieldlog-android-combined-report-and-custody-41a05264.json as the reference. The emulator direct child returned 0. Its process group was still observable at the cleanup check.

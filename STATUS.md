@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+In the combined Android development APK, FieldLog returned from sharing a 168-byte populated report with an offline recipient. The signed phase stopped at the reverse-mapping check before opening the guest. The emulator exited with code 0, but cleanup could not confirm group 16950 had gone. Its instance and ports are held. [Combined replay and custody](verification/receipts/fieldlog-android-combined-report-and-custody-41a05264.json).
+
 FieldLog opened the saved task from Android’s notification shade while offline, both in the existing process and from a cold start. Back restored the unsaved task title in the warm case. Missing and foreign targets were refused, and the workspace and its two outbox rows stayed byte-identical. The fixture used a local notification adapter. [API 36 assignment replay](verification/receipts/fieldlog-android-assignment-notification-runtime-41a05264.json).
 
 On macOS, FieldLog kept a saved entry queued after its local backend committed the event and JPEG but the acknowledgement was cut short. Reopening and retrying left one remote event and one byte-identical 341,976-byte JPEG. The fixture used a provisioned account token. Mobile UI and signed guest capability integration remain open. [Offline entry sync](verification/receipts/fieldlog-local-entry-sync-41a05264.json).
