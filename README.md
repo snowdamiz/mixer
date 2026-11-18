@@ -140,6 +140,8 @@ focus. On API 36, an independent app read the exported report offline. On
 return, FieldLog displayed the share-sheet closure message and retained the
 workspace and queued changes. [Report transfer and return](verification/receipts/fieldlog-android-offline-report-return-41a05264.json)
 
+To exercise the saved entry and JPEG against a local backend, use the [FieldLog offline sync replay](tests/integration/fieldlog-entry-sync/README.md). It runs on macOS with the pinned FieldLog sources and checks the queue after a lost acknowledgement.
+
 With the migration applied, follow `Integrations/GeneratedReport/README.md`.
 Use the CLI, SDK checkout, and adapter from Mixer revision
 `735ecec14e10e2dfed1e58a122c3fab08e569bef` for that recipe. It uses

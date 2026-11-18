@@ -1,0 +1,195 @@
+diff --git a/Sources/FieldLogModels/Workspace.swift b/Sources/FieldLogModels/Workspace.swift
+index 91615788bea186663fbb8a23231e304802366f8a..8fc086d57ad1332202e01405759d1fdbf60d3653 100644
+--- a/Sources/FieldLogModels/Workspace.swift
++++ b/Sources/FieldLogModels/Workspace.swift
+@@ -110,7 +110,7 @@ public struct PendingChange: Codable, Equatable, Identifiable, Sendable {
+   public var recordID: UUID
+   public var revision: UInt64
+   public var createdAt: Date
+-  /// Stable idempotency key for a future backend. Nothing is sent by this build.
++  /// Stable idempotency key for retries of this saved change.
+   public var idempotencyKey: String { id.uuidString.lowercased() }
+ }
+ public struct Restoration: Codable, Equatable, Sendable {
+diff --git a/Sources/FieldLogStorage/EntrySyncClient.swift b/Sources/FieldLogStorage/EntrySyncClient.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..398c0823614fe4008093e1c8eafb217da8fb065f
+--- /dev/null
++++ b/Sources/FieldLogStorage/EntrySyncClient.swift
+@@ -0,0 +1,134 @@
++import FieldLogModels
++import Foundation
++
++#if canImport(FoundationNetworking)
++  import FoundationNetworking
++#endif
++
++/// Development transport for a provisioned loopback FieldLog backend. The caller
++/// owns the session token and explicitly selects the workspace, project and event.
++public struct EntrySyncClient: Sendable {
++  public enum Outcome: Equatable, Sendable {
++    case uploaded
++    case reconciled
++  }
++
++  public enum Failure: Error, LocalizedError, Equatable {
++    case invalidConfiguration
++    case wrongScope
++    case requiresOnePhoto
++    case rejected(Int)
++    case invalidReceipt
++
++    public var errorDescription: String? {
++      switch self {
++      case .invalidConfiguration: "A local backend port and session token are required."
++      case .wrongScope: "This change belongs to a different workspace or project."
++      case .requiresOnePhoto: "This sync endpoint accepts entries with exactly one JPEG."
++      case .rejected(let status): "The server rejected the change (HTTP \(status))."
++      case .invalidReceipt: "The backend did not confirm this entry and photo."
++      }
++    }
++  }
++
++  private let port: UInt16
++  private let workspaceID: UUID
++  private let projectID: UUID
++  private let token: String
++
++  public init(port: UInt16, workspaceID: UUID, projectID: UUID, token: String) throws {
++    guard port > 0, (32...128).contains(token.utf8.count),
++      token.utf8.allSatisfy({
++        (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0)
++          || $0 == 45 || $0 == 95
++      })
++    else { throw Failure.invalidConfiguration }
++
++    self.port = port
++    self.workspaceID = workspaceID
++    self.projectID = projectID
++    self.token = token
++  }
++
++  @discardableResult public func send(
++    eventID: UUID, from repository: WorkspaceRepository
++  ) async throws -> Outcome {
++    try Task.checkCancellation()
++    let payload = try await repository.prepareEntryUpload(
++      workspaceID: workspaceID, projectID: projectID, eventID: eventID)
++    let workspace = workspaceID.uuidString.lowercased()
++    let project = projectID.uuidString.lowercased()
++    let url = URL(
++      string: "http://127.0.0.1:\(port)/v1/workspaces/\(workspace)/projects/\(project)/entries/\(payload.event.idempotencyKey)"
++    )!
++    let configuration = URLSessionConfiguration.ephemeral
++    configuration.urlCredentialStorage = nil
++    configuration.httpCookieStorage = nil
++    configuration.httpShouldSetCookies = false
++    configuration.urlCache = nil
++    configuration.connectionProxyDictionary = [
++      "HTTPEnable": false, "HTTPSEnable": false, "ProxyAutoConfigEnable": false,
++      "ProxyAutoDiscoveryEnable": false, "SOCKSEnable": false,
++    ]
++    configuration.timeoutIntervalForRequest = 5
++    configuration.timeoutIntervalForResource = 15
++    let session = URLSession(configuration: configuration, delegate: LoopbackSessionDelegate(), delegateQueue: nil)
++    defer { session.invalidateAndCancel() }
++
++    var request = URLRequest(url: url)
++    request.httpMethod = "POST"
++    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
++    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
++    request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
++    let encoder = JSONEncoder()
++    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++    request.httpBody = try encoder.encode(payload)
++
++    try Task.checkCancellation()
++    let (body, response) = try await session.data(for: request)
++    guard let http = response as? HTTPURLResponse else { throw Failure.invalidReceipt }
++    guard http.statusCode == 201 || http.statusCode == 200 else {
++      throw Failure.rejected(http.statusCode)
++    }
++    if http.expectedContentLength >= 0 && http.expectedContentLength != Int64(body.count) {
++      throw URLError(.networkConnectionLost)
++    }
++    let expected = EntryUploadReceipt(
++      eventID: eventID, workspaceID: workspaceID, projectID: projectID, entryID: payload.entry.id,
++      photoID: payload.photo.id)
++    guard body.count <= 2048,
++      (try? JSONDecoder().decode(EntryUploadReceipt.self, from: body)) == expected
++    else { throw Failure.invalidReceipt }
++
++    try await repository.acknowledgeEntryUpload(payload, workspaceID: workspaceID)
++    return http.statusCode == 201 ? .uploaded : .reconciled
++  }
++}
++
++struct EntryUpload: Encodable, Sendable {
++  struct Photo: Encodable, Sendable {
++    let id: UUID
++    let jpeg: Data
++  }
++
++  let event: PendingChange
++  let entry: LogEntry
++  let photo: Photo
++}
++
++private struct EntryUploadReceipt: Decodable, Equatable {
++  let eventID: UUID
++  let workspaceID: UUID
++  let projectID: UUID
++  let entryID: UUID
++  let photoID: UUID
++}
++
++private final class LoopbackSessionDelegate: NSObject, URLSessionTaskDelegate {
++  func urlSession(
++    _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
++    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void
++  ) {
++    completionHandler(nil)
++  }
++}
+diff --git a/Sources/FieldLogStorage/WorkspaceRepository.swift b/Sources/FieldLogStorage/WorkspaceRepository.swift
+index f5a99605351ad460d0cb44011db0d4889d6df7b0..d15fc475ad14b6915d604a1878e5e99bdd9ac5cd 100644
+--- a/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -131,6 +131,37 @@ public actor WorkspaceRepository {
+     }
+     return file
+   }
++  func prepareEntryUpload(workspaceID: UUID, projectID: UUID, eventID: UUID) throws -> EntryUpload {
++    guard !unavailable else { throw FieldLogError.storage("Reopen the workspace before sending changes.") }
++    guard workspace.id == workspaceID else { throw EntrySyncClient.Failure.wrongScope }
++    guard let event = workspace.outbox.first(where: { $0.id == eventID && $0.kind == .entrySaved }),
++      let entry = workspace.entries.first(where: { $0.id == event.recordID })
++    else { throw FieldLogError.missingRecord }
++    guard entry.projectID == projectID else { throw EntrySyncClient.Failure.wrongScope }
++    guard entry.attachmentIDs.count == 1, let photoID = entry.attachmentIDs.first else {
++      throw EntrySyncClient.Failure.requiresOnePhoto
++    }
++    guard let attachment = workspace.attachments.first(where: { $0.id == photoID }) else {
++      throw FieldLogError.missingRecord
++    }
++    let jpeg = try Data(contentsOf: photoURL(photoID))
++    guard jpeg.count == attachment.byteCount, jpeg.starts(with: [0xff, 0xd8, 0xff]) else {
++      throw FieldLogError.storage("This photo is damaged. Its record has been preserved.")
++    }
++    return EntryUpload(event: event, entry: entry, photo: .init(id: photoID, jpeg: jpeg))
++  }
++  func acknowledgeEntryUpload(_ upload: EntryUpload, workspaceID: UUID) throws {
++    try Task.checkCancellation()
++    guard workspace.id == workspaceID else { throw EntrySyncClient.Failure.wrongScope }
++    // A concurrent retry can already have retired this exact event.
++    guard let pending = workspace.outbox.first(where: { $0.id == upload.event.id }) else { return }
++    guard pending == upload.event, workspace.entries.contains(upload.entry) else {
++      throw FieldLogError.staleRevision
++    }
++    try transact { next in
++      next.outbox.removeAll { $0.id == upload.event.id }
++    }
++  }
+   public func exportReport(projectID: UUID) throws -> URL {
+     let text = try workspace.report(projectID: projectID)
+     let folder = directory.appendingPathComponent("exports", isDirectory: true)

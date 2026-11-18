@@ -1,0 +1,74 @@
+{
+  "output": [
+    "offline: saved both entries and JPEGs, reopened drafts, and exported the scoped report",
+    "online: rejected invalid credentials, another user, and an unprovisioned project",
+    "online: refused truncated and mismatched receipts, cancelled a replay, reconciled the same event, preserved records and export",
+    "post-commit SQLite readback, divergent replay, and legacy title validation passed"
+  ],
+  "status": "passed",
+  "loopbackHTTP": {
+    "initialAfterCommit": 201,
+    "lostResponseBytes": 12,
+    "replays": [
+      200,
+      200,
+      200
+    ],
+    "cancelledBeforeSendAndAfterServerReadback": true,
+    "invalidReceiptRejected": true,
+    "denied": [
+      401,
+      404,
+      404
+    ],
+    "divergentReplay": 409
+  },
+  "persistedBeforeResponseAndAfterRetry": {
+    "events": 1,
+    "photos": 1,
+    "photoBytes": 341976,
+    "photoSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3",
+    "stableEvent": "51e9773a-b3c8-45f5-8b7b-5cb8043e21ed"
+  },
+  "cleanup": {
+    "listenerClosed": true,
+    "portRebound": true,
+    "scratchRemoved": true
+  },
+  "recordedAt": "2026-11-18T18:48:24.245961+00:00",
+  "fieldlogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "fieldlogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+  "mixerCapabilityRuntimeExercised": false,
+  "sourceSHA256": {
+    "fieldlog-552559d2-entry-sync.patch": "3f387b06a7e11682833d798ddd5c8d325452d760d518029a6d12db9fa2323189",
+    "fieldlog-552559d2-local-backend.patch": "4ef0c920f5948b71caa890bab78aa574fc968fe72775cbdd538faee211146c0d",
+    "Journey.swift": "3757d5eeda901cb3941bf272b97a0e143cb08803ce2776cdd7d18ca6a215f5d2",
+    "run.py": "ebb25ad5ff1dca39e43d114b728f8633a3f3a7905d04f8e895294c0e8dcad006"
+  },
+  "tools": {
+    "Swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "Python": "3.14.8",
+    "SQLite": "3.53.4",
+    "macOSSDK": "27.2",
+    "Git": "git version 2.56.0",
+    "macOS": "27.0.1",
+    "arch": "arm64"
+  },
+  "commands": [
+    "swift test",
+    "swift build --product FieldLogJourney",
+    "FieldLogJourney offline <owned-directory>",
+    "FieldLogJourney online <owned-directory>"
+  ],
+  "baselineTests": "✔ Test run with 13 tests in 0 suites passed after 0.025 seconds.",
+  "scope": "Mac app-model and repository run through real loopback HTTP and dedicated SQLite. One JPEG per saved entry, provisioned owner scopes and synthetic tokens. Mobile UI, Mixer guest capability routing, TLS, sign-in and multi-photo sync require separate runs or implementation.",
+  "paymentServiceOrCredentialsRequired": false,
+  "validation": "The public runner used a fresh local depth-one FieldLog object store and temporary build directory nested inside the Mixer worktree. The initial run omitted git init in the extracted package and failed with an unavailable EntrySyncClient. The corrected run applied both patches, built the client, and reconciled the interrupted response.",
+  "rawRun": "verification/local/fieldlog-public-sync-check.HSVNo5q2",
+  "sourceFiles": [
+    "tests/integration/fieldlog-entry-sync/Journey.swift",
+    "tests/integration/fieldlog-entry-sync/run.py",
+    "verification/fieldlog-entry-sync/fieldlog-552559d2-entry-sync.patch",
+    "verification/fieldlog-entry-sync/fieldlog-552559d2-local-backend.patch"
+  ]
+}
