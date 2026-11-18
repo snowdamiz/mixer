@@ -66,6 +66,7 @@ function ApplicationBuildRoute(props: ConsoleSessionProps) {
     cancelBuild={props.session?.kind === "ready" ? props.session.buildClients.cancel : undefined}
     buildReader={props.session?.kind === "ready" ? props.session.buildClients.read : undefined}
     registerApplication={props.session?.kind === "ready" ? props.session.buildClients.registerApplication : undefined}
+    sourceStarters={props.session?.kind === "ready" ? props.session.buildClients.sourceStarters : undefined}
     binding={binding} workspace={workspace.state()} onRetrySession={() => props.onRetrySession?.()} />;
 }
 

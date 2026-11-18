@@ -20,10 +20,29 @@ defmodule MixerHosted.BrowserAuth.ActiveCreate do
     end)
   end
 
+  def run(
+        lease,
+        source,
+        identity,
+        _csrf,
+        _headers,
+        {:local_starter, scope, :list},
+        nil,
+        key_lease,
+        expires
+      ) do
+    with_binding(lease, source, identity, key_lease, expires, fn ->
+      local_starter(lease, identity, scope, :list)
+    end)
+  end
+
   def run(lease, source, identity, csrf, headers, input, key, key_lease, expires) do
     if Protocol.verify_csrf(lease.runtime.browser_config, headers, csrf) == :ok do
       with_binding(lease, source, identity, key_lease, expires, fn ->
         case input do
+          {:local_starter, scope, {:select, _} = selection} when is_nil(key) ->
+            local_starter(lease, identity, scope, selection)
+
           {:cancel, selection} when is_nil(key) ->
             case MixerHosted.CustomerBuilds.Cancel.run(identity, selection) do
               {:ok, result} ->
@@ -41,6 +60,20 @@ defmodule MixerHosted.BrowserAuth.ActiveCreate do
     else
       {:ok, render({:error, :permission_denied})}
     end
+  end
+
+  defp local_starter(lease, identity, scope, selection) do
+    result =
+      if MixerHosted.BrowserAuth.ActiveWorkspace.application_registration_enabled?(lease.runtime) do
+        case MixerHosted.CustomerBuilds.LocalStarter.run(identity, scope, selection) do
+          {:ok, value} -> response(200, value)
+          error -> render(error)
+        end
+      else
+        render({:error, :not_found})
+      end
+
+    {:ok, result}
   end
 
   defp with_binding(lease, source, identity, key_lease, expires, callback) do

@@ -9,6 +9,11 @@ if config_env() != :test do
   settings = MixerHosted.RuntimeConfig.load!(env)
   installation = MixerHosted.BrowserAuth.Installation.load!(env, settings)
   config :mixer_hosted, :startup, {settings, installation}
+
+  config :mixer_hosted,
+         MixerHosted.CustomerBuilds.LocalStarter,
+         MixerHosted.CustomerBuilds.LocalStarter.runtime_config!(env)
+
   config :mixer_hosted, :role, settings.role
   config :mixer_hosted, :identity_startup, settings.identity_startup
   config :mixer_hosted, MixerHosted.Repo, settings.repo

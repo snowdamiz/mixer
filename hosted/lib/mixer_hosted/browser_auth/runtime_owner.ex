@@ -103,6 +103,9 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   def read_build_inputs(raw_headers, input),
     do: read_private(raw_headers, {:create, {:inputs, input}, nil, raw_headers})
 
+  def local_starter(raw_headers, scope, selection),
+    do: read_private(raw_headers, {:create, {:local_starter, scope, selection}, nil, raw_headers})
+
   def read_session(raw_headers) do
     case read_private(raw_headers, :session) do
       {:ok, public} -> {:ok, public, :unchanged}

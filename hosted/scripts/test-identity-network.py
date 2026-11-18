@@ -2923,10 +2923,17 @@ WORKSPACE_V36_SOURCE_DIGEST = '373af5c3a499c15da549fb822cefed51340d5ebb8803143e1
 WORKSPACE_V36_SOURCE_COUNT = 394
 WORKSPACE_V36_MANIFEST_SHA256 = '43826b5957aba0bad2826d85c47f327e24ba47ba8ad80ead035278eac242331a'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v37/'
-WORKSPACE_SELECTION_SHA256 = 'b7fc7401b71429a0994c5d9d3e9fc53293fd599339e2e7e024ea0fe7549cd980'
-WORKSPACE_SOURCE_DIGEST = 'ef7101b70be23df5e98d484bc6c740ded01db59a9839c4ebe9e6264a7ded8b93'
-WORKSPACE_SOURCE_COUNT = 398
+WORKSPACE_V37_SOURCE_BASE = 'verification/identity-network-current-source-v37/'
+WORKSPACE_V37_SELECTION_SHA256 = 'b7fc7401b71429a0994c5d9d3e9fc53293fd599339e2e7e024ea0fe7549cd980'
+WORKSPACE_V37_SOURCE_DIGEST = 'ef7101b70be23df5e98d484bc6c740ded01db59a9839c4ebe9e6264a7ded8b93'
+WORKSPACE_V37_SOURCE_COUNT = 398
+WORKSPACE_V37_MANIFEST_SHA256 = 'a820c912be08406efd39458ab272bdb49a67c7297daa35011eeb6b39a6a2c476'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v38/'
+WORKSPACE_SELECTION_SHA256 = '0180cc56b84508bb0509bbc34a89052ea2bd1c309fff8acf0b269c88fb15e452'
+WORKSPACE_SOURCE_DIGEST = '16240253c340905fdbb3cdb66fa6353ff7ed190e84275ba5e831568798f6ba31'
+WORKSPACE_SOURCE_COUNT = 404
+WORKSPACE_LOCAL_SOURCE_MIGRATION = 'hosted/priv/local_source_selection/20261118000012_local_source_selection.exs'
 
 
 
@@ -3038,10 +3045,10 @@ def validate_workspace_v36_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v37_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V36_MANIFEST, {
+        metadata, WORKSPACE_V37_SOURCE_BASE, WORKSPACE_V37_SELECTION_SHA256,
+        WORKSPACE_V37_SOURCE_COUNT, WORKSPACE_V37_SOURCE_DIGEST, WORKSPACE_V36_MANIFEST, {
             'source_count': WORKSPACE_V36_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V36_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V36_SELECTION_SHA256,
@@ -3051,6 +3058,24 @@ def validate_workspace_source_metadata(metadata):
             selection['schema'] == 1 and selection['deployment'] is False and
             selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
             'application registration source scope')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V37_MANIFEST, {
+            'source_count': WORKSPACE_V37_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V37_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V37_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V37_MANIFEST_SHA256,
+        }, migration_count=20)
+    require(selection['identity'] == 'hosted-local-source-starter-selection-v38' and
+            selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'local source starter selection scope')
+    require(selection['opt_in_migration'] == WORKSPACE_LOCAL_SOURCE_MIGRATION and
+            WORKSPACE_LOCAL_SOURCE_MIGRATION in manifest, 'opt-in source starter migration')
     return selection, manifest
 
 
@@ -3090,6 +3115,10 @@ def check_workspace_source(root):
         workspace_source_metadata(root, WORKSPACE_V36_SOURCE_BASE))
     v36_rows = workspace_preimage_rows(v36_selection, WORKSPACE_V36_SOURCE_BASE)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v36_rows}, v36_rows)
+    v37_selection, _ = validate_workspace_v37_metadata(
+        workspace_source_metadata(root, WORKSPACE_V37_SOURCE_BASE))
+    v37_rows = workspace_preimage_rows(v37_selection, WORKSPACE_V37_SOURCE_BASE)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v37_rows}, v37_rows)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows = workspace_preimage_rows(selection)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
@@ -3099,6 +3128,9 @@ def check_workspace_source(root):
     directory = root / 'hosted/priv/repo/migrations'
     require(sorted(path.name for path in directory.iterdir()) == reviewed == selection['reviewed_migrations'],
             'installed reviewed migration inventory mismatch')
+    opt_in = PurePosixPath(WORKSPACE_LOCAL_SOURCE_MIGRATION)
+    require(sorted(path.name for path in (root / opt_in.parent).iterdir()) == [opt_in.name],
+            'installed opt-in source starter migration inventory mismatch')
     return {'identity': selection['identity'], 'source_count': len(observed),
             'source_digest_sha256': WORKSPACE_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
@@ -4231,6 +4263,14 @@ class Collector:
         validate_workspace_preimages(v36_preimages, v36_rows)
         metadata.update(v36_metadata)
         metadata.update(v36_preimages)
+        v37_metadata = self.git_blobs(
+            [WORKSPACE_V37_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v37_selection, _ = validate_workspace_v37_metadata(v37_metadata)
+        v37_rows = workspace_preimage_rows(v37_selection, WORKSPACE_V37_SOURCE_BASE)
+        v37_preimages = self.git_blobs(sorted(v37_rows))
+        validate_workspace_preimages(v37_preimages, v37_rows)
+        metadata.update(v37_metadata)
+        metadata.update(v37_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -4984,6 +5024,8 @@ _, WORKSPACE_V35_MANIFEST = validate_workspace_v35_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V35_SOURCE_BASE))
 _, WORKSPACE_V36_MANIFEST = validate_workspace_v36_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V36_SOURCE_BASE))
+_, WORKSPACE_V37_MANIFEST = validate_workspace_v37_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V37_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':

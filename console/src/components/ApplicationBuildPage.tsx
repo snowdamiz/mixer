@@ -1,6 +1,7 @@
 import { CancelBuildForm } from "./CancelBuildForm.js";
 import type { CancelBuild } from "../api/build-submission.js";
 import type { RegisterApplication } from "../api/cookie-application-registration-client.js";
+import type { SourceStarterClient } from "../api/cookie-source-starter-client.js";
 import type { CookieBuildClient } from "../api/cookie-build-client.js";
 import { BuildCreation } from "./BuildCreation.js";
 import { A } from "@solidjs/router";
@@ -53,6 +54,7 @@ export function ApplicationBuildPage(props: {
   readonly cancelBuild?: CancelBuild | undefined;
   readonly buildReader?: CookieBuildClient | undefined;
   readonly registerApplication?: RegisterApplication | undefined;
+  readonly sourceStarters?: SourceStarterClient | undefined;
   readonly onRetrySession?: () => void;
 }) {
   const directory = createMemo(() => resolveWorkspaceDirectory(props.workspace));
@@ -146,7 +148,10 @@ export function ApplicationBuildPage(props: {
           </>}</Show>
         </section>
       </div>
-      <Show when={props.showBuildCreation !== false && state().selectedApplicationId}><BuildCreation state={state().submission} actions={props.binding.controller} /></Show>
+      <Show when={props.showBuildCreation !== false && state().selectedApplicationId}>
+        <BuildCreation state={state().submission} actions={props.binding.controller}
+          sourceStarters={directory().selectedOrganization?.organization_roles.includes("owner") ? props.sourceStarters : undefined} />
+      </Show>
       <Show when={state().priorSubmissionUnknown}><p role="alert">An earlier submission may have committed. Its outcome is unknown; check its application builds before starting another build.</p></Show>
       <section class="application-build-detail" aria-label="Selected build" aria-busy={state().detail.kind === "loading"}>
         <Show when={overview()} fallback={<LoadMessage state={state().detail} noun="a build" onRetrySession={props.onRetrySession} />}>{input => <>

@@ -20,7 +20,7 @@ export type DetailLoad = Pending | ReadyDetail |
 export type SubmissionState =
   | { readonly kind: "loading" }
   | { readonly kind: "error"; readonly reason: string }
-  | { readonly kind: "ready"; readonly page: BuildInputPage; readonly input?: BuildInput }
+  | { readonly kind: "ready"; readonly page: BuildInputPage; readonly input?: BuildInput; readonly emptyFirstPage?: true }
   | { readonly kind: "submitting" | "unknown"; readonly page: BuildInputPage; readonly attempt: BuildAttempt }
   | { readonly kind: "committed"; readonly receipt: BuildReceipt };
 export interface BuildSelectionState {
@@ -136,7 +136,11 @@ export function createBuildSelectionController(): BuildSelectionController {
       state.selectedApplicationId === captured.scope.applicationId && !controller.signal.aborted;
     if (!live()) return;
     void captured.client.inputs(captured.scope, page, controller.signal).then(result => {
-      if (live()) { createWork = undefined; update({ ...state, submission: { kind: "ready", page: result } }); }
+      if (live()) {
+        createWork = undefined;
+        const emptyFirstPage = page.cursor === undefined && result.inputs.length === 0 && result.nextCursor === null;
+        update({ ...state, submission: { kind: "ready", page: result, ...(emptyFirstPage ? { emptyFirstPage: true } : {}) } });
+      }
     }).catch(error => {
       if (!live()) return; createWork = undefined;
       if (error instanceof WorkspaceClientError && error.code === "unauthenticated") { setSession({ kind: "unavailable" }); return; }
@@ -264,8 +268,8 @@ export function createBuildSelectionController(): BuildSelectionController {
         const parsed = checkedBuildPage(input, scope);
         if (!current(value)) return;
         active = undefined;
-        update({ applications: state.applications, selectedApplicationId: applicationId,
-          builds: Object.freeze({ kind: parsed.builds.length ? "ready" : "empty", page: parsed }), detail: unselected });
+        update({ ...state,
+          builds: Object.freeze({ kind: parsed.builds.length ? "ready" : "empty", page: parsed }) });
       } catch (error) { fail(value, error, "builds"); }
     })();
   }

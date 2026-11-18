@@ -1,3 +1,5 @@
+import { sessionSourceStarters } from "../api/cookie-source-starter-client.js";
+import type { SourceStarterClient } from "../api/cookie-source-starter-client.js";
 import { sessionApplicationRegistration } from "../api/cookie-application-registration-client.js";
 import type { RegisterApplication } from "../api/cookie-application-registration-client.js";
 import { sessionWorkspaceSupport } from "../api/cookie-workspace-support-client.js";
@@ -26,7 +28,8 @@ export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" 
     readonly workspaceCreate?: WorkspaceCreateClient;
     readonly workspaceAdmin?: WorkspaceAdminClient;
     readonly workspaceSupport?: WorkspaceSupportClient;
-    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient; cancel?: CancelBuild; registerApplication?: RegisterApplication }> };
+    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient;
+      cancel?: CancelBuild; registerApplication?: RegisterApplication; sourceStarters?: SourceStarterClient }> };
 
 export interface BrowserSessionController {
   getSession(): ConsoleSession;
@@ -217,7 +220,12 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
       const register = sessionApplicationRegistration(settings, csrf);
       const registerApplication: RegisterApplication = (input, signal) =>
         delegate(value, owned => register(input, owned), signal);
-      return { create, cancel, registerApplication };
+      const rawStarters = sessionSourceStarters(settings, csrf);
+      const sourceStarters: SourceStarterClient = {
+        discover: (scope, signal) => delegate(value, owned => rawStarters.discover(scope, owned), signal),
+        select: (input, signal) => delegate(value, owned => rawStarters.select(input, owned), signal),
+      };
+      return { create, cancel, registerApplication, sourceStarters: Object.freeze(sourceStarters) };
     };
     active = undefined;
     capability = value;

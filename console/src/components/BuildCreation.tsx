@@ -1,9 +1,20 @@
-import { For, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
+import type { SourceStarterClient } from "../api/cookie-source-starter-client.js";
+import { SelectSourceStarter } from "./SelectSourceStarter.js";
 import type { BuildSelectionActions } from "../state/build-selection-binding.js";
 import type { SubmissionState } from "../state/build-selection-controller.js";
 
-export function BuildCreation(props: { state: SubmissionState | undefined; actions: Readonly<BuildSelectionActions> }) {
+export function BuildCreation(props: {
+  state: SubmissionState | undefined;
+  actions: Readonly<BuildSelectionActions>;
+  sourceStarters?: SourceStarterClient | undefined;
+}) {
+  const [starterSelecting, setStarterSelecting] = createSignal(false);
   const page = () => { const s = props.state; return s?.kind === "ready" || s?.kind === "submitting" || s?.kind === "unknown" ? s.page : undefined; };
+  const emptyInputs = () => {
+    const s = props.state;
+    return s?.kind === "ready" && s.emptyFirstPage ? s.page : undefined;
+  };
   const selected = () => { const s = props.state; return s?.kind === "ready" ? s.input : s?.kind === "submitting" || s?.kind === "unknown" ? s.attempt.input : undefined; };
   const platforms = () => [...new Set(page()?.inputs.map(row => row.platform) ?? [])];
   const submitting = () => props.state?.kind === "submitting";
@@ -21,7 +32,7 @@ export function BuildCreation(props: { state: SubmissionState | undefined; actio
       : reason() === "invalid_request" ? "The server refused this submission. Refresh admitted inputs before starting a new build."
       : "Admitted inputs are unavailable. Try loading them again."}</p>}</Show>
     <Show when={page()}>{current => <>
-      <Show when={current().inputs.length > 0} fallback={<p role="status">No admitted source inputs. Build creation is unavailable for this application.</p>}>
+      <Show when={current().inputs.length > 0} fallback={<p role="status">No admitted source inputs.</p>}>
         <For each={platforms()}>{platform => <fieldset disabled={submitting()}>
           <legend>{platform === "ios" ? "iOS" : "Android"}</legend>
           <For each={current().inputs.filter(row => row.platform === platform)}>{row => <div>
@@ -37,10 +48,18 @@ export function BuildCreation(props: { state: SubmissionState | undefined; actio
           </div>}</For>
         </fieldset>}</For>
       </Show>
+      <Show when={props.sourceStarters} keyed>{client =>
+        <Show when={emptyInputs()} keyed>{emptyPage => {
+          const { organizationId, projectId, applicationId } = emptyPage;
+          return <SelectSourceStarter scope={{ organizationId, projectId, applicationId }} client={client}
+            isCurrent={() => props.sourceStarters === client && emptyInputs() === emptyPage}
+            refreshInputs={props.actions.beginCreate} onSelecting={setStarterSelecting} />;
+        }}</Show>
+      }</Show>
       <Show when={props.state?.kind === "ready"}>
         <button type="button" class="workspace-page-button" disabled={!selected()} onClick={props.actions.submitBuild}>Create build</button>
         <Show when={current().nextCursor !== null}><button type="button" class="workspace-page-button" onClick={props.actions.nextInputs}>More admitted inputs</button></Show>
-        <button type="button" class="workspace-text-button" onClick={props.actions.beginCreate}>Refresh admitted inputs</button>
+        <button type="button" class="workspace-text-button" disabled={starterSelecting()} onClick={props.actions.beginCreate}>Refresh admitted inputs</button>
       </Show>
     </>}</Show>
     <Show when={submitting()}><p role="status">Submitting build…</p><button type="button" onClick={props.actions.cancelSubmit}>Stop waiting</button></Show>

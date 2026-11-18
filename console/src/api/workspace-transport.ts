@@ -97,6 +97,7 @@ export function createWorkspaceTransport(
   options: WorkspaceTransportOptions,
   credentials: "omit" | "same-origin",
   requestHeaders: () => HeadersInit | Promise<HeadersInit>,
+  json?: Readonly<{ parse: (text: string) => unknown; maximumBytes: number }>,
 ) {
   const fetchRequest = options.fetch ?? globalThis.fetch;
   const timeoutMs = options.timeoutMs ?? 15_000;
@@ -132,7 +133,7 @@ export function createWorkspaceTransport(
         if ([429, 500, 502, 503, 504].includes(response.status)) return failure("unavailable");
         return failure("invalid_response");
       }
-      const value = await readWorkspaceJSON(response, controller.signal);
+      const value = await readWorkspaceJSON(response, controller.signal, json?.parse, json?.maximumBytes);
       try { return decode(value); } catch { return failure("invalid_response"); }
     };
     try { return await Promise.race([perform(), stopped]); }

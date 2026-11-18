@@ -66,22 +66,25 @@ const response=(value,status=200)=>new Response(JSON.stringify(value),{status,he
 const inputPath="/console-api/v1/build-inputs?organization_id=org&project_id=p&application_id=app";
 const catalogPath="/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=app";
 const csrf="B".repeat(42)+"A";
-function fixture(){
+function fixture(profile){
  const calls=[];const fetch=(path,options)=>new Promise((resolve,reject)=>calls.push({path:String(path),...options,resolve,reject,used:false}));
- const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch);
+ const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch,profile);
  return {...app,container,calls,text:()=>container.textContent,
  async request(path,method="GET") {for(let i=0;i<100;i++){const call=calls.find(c=>!c.used&&c.path===path&&c.method===method);if(call){call.used=true;assert.equal(call.credentials,"same-origin");assert.equal(call.redirect,"error");assert.equal(call.cache,"no-store");return call;}await new Promise(r=>setTimeout(r,2));}assert.fail("missing request "+method+" "+path+"; "+calls.map(c=>c.method+" "+c.path));},
  button(text){const node=walk(container).find(n=>n.nodeName==="BUTTON"&&n.textContent===text)??walk(container).find(n=>n.nodeName==="BUTTON"&&n.textContent.includes(text));assert(node,"missing button "+text+": "+container.textContent);return node;},
  click(text){this.button(text).click();},
  close(){app.dispose();container.remove();}};
 }
-async function navigate(f,rows=[]){
+async function navigate(f,rows=[],organizationRoles=["owner"],finishBuilds=true){
  (await f.request("/auth/session")).resolve(response({state:"authenticated",generation:"A".repeat(43),csrf_token:csrf,expires_at:Math.floor(Date.now()/1000)+60}));
- (await f.request("/console-api/v1/orgs")).resolve(response({organizations:[{id:"org",display_name:"Studio",organization_roles:["owner"]}],next_cursor:null}));await flush();
+ (await f.request("/console-api/v1/orgs")).resolve(response({organizations:[{id:"org",display_name:"Studio",organization_roles:organizationRoles}],next_cursor:null}));await flush();
  f.click("Studio");(await f.request("/console-api/v1/projects?organization_id=org")).resolve(response({projects:[{organization_id:"org",id:"p",display_name:"Project",roles:["administrator"]}],next_cursor:null}));await flush();f.click("Project");
  walk(f.container).find(n=>n.nodeName==="A"&&n.textContent.includes("View builds")).click();
  (await f.request("/console-api/v1/applications?organization_id=org&project_id=p")).resolve(response({...appScope,applications:[{applicationId:"app"},{applicationId:"other"}],nextCursor:null,applicationId:undefined}));await flush();
- f.click("Application IDapp");(await f.request(catalogPath)).resolve(response(catalog(rows)));await flush();
+ f.click("Application IDapp");
+ const pendingBuilds = await f.request(catalogPath);
+ if (finishBuilds) { pendingBuilds.resolve(response(catalog(rows))); await flush(); }
+ return pendingBuilds;
 }
 async function listed(f,rows=[],inputs=[input()]){await navigate(f,rows);f.click("New build");(await f.request(inputPath)).resolve(response(page(inputs)));await flush();}
 const inputButton="Input source-1 · Source "+"a".repeat(12);
@@ -157,3 +160,263 @@ test("input listing401 invalidates active session; disposal aborts pending creat
 test("caller attempt body, key and accessors fail closed before POST; snapshot survives caller mutation",async()=>{const calls=[];let resolvePost;const owner=api.createBrowserSessionController({fetch:(path,options)=>{calls.push({path,...options});if(path==="/auth/session")return Promise.resolve(response({state:"authenticated",generation:"A".repeat(43),csrf_token:csrf,expires_at:Math.floor(Date.now()/1000)+60}));return new Promise(resolve=>{resolvePost=resolve;});}});try{owner.revalidate();await flush();const session=owner.getSession();assert.equal(session.kind,"ready");const attempt=api.captureBuildAttempt(appScope,input());for(const invalid of [{...attempt,body:attempt.body.replace('"org"','"other"')},{...attempt,key:"header\r\ninjection"},{...attempt,extra:true},{...attempt,get key(){throw Error("accessor must not run");}}])await assert.rejects(session.buildClients.create.submit(invalid),{code:"invalid_request"});assert.equal(calls.length,1);const mutable={...attempt,scope:{...attempt.scope},input:{...attempt.input}};const pending=session.buildClients.create.submit(mutable);mutable.scope.organizationId="other";mutable.input.sourceSha256="f".repeat(64);mutable.body="changed";resolvePost(response(receipt(),201));const committed=await pending;assert.equal(committed.selection.organizationId,"org");assert.equal(committed.selection.sourceSha256,"a".repeat(64));assert.equal(calls[1].body,attempt.body);}finally{owner.dispose();}});
 
 test("caller CSRF factory options cannot manufacture private admission",()=>{assert.throws(()=>api.createBrowserSessionController({csrf_token:csrf}),{code:"invalid_request"});});
+
+const startersPath = "/console-api/v1/source-starters";
+const discoveryPath = startersPath + inputPath.slice(inputPath.indexOf("?"));
+const deliveryPosts = f => f.calls.filter(call => call.method === "POST" &&
+  (call.path === startersPath || call.path === "/console-api/v1/builds"));
+const starter = { id: "local-starter-v1" };
+const discovery = { ...appScope, starter };
+const starterInput = () => input({ sourceInputId: starter.id });
+
+async function emptyInputs(f) {
+  f.click("New build");
+  (await f.request(inputPath)).resolve(response(page([])));
+  await flush();
+}
+
+async function availableStarter(f) {
+  await navigate(f);
+  assert.equal(f.calls.some(call => call.path.startsWith(startersPath)), false);
+  await emptyInputs(f);
+  const get = await f.request(discoveryPath);
+  assert.equal(get.headers["x-mixer-csrf"], undefined);
+  assert.equal(get.body, undefined);
+  get.resolve(response(discovery));
+  await flush();
+}
+
+test("owner selects the discovered starter and the admitted input comes from the catalog after selection and reload", async () => {
+  let storedInputs = [];
+  const f = fixture("workspace-builds");
+  try {
+    await availableStarter(f);
+    const button = f.button("Select local starter");
+    button.click();
+    button.click();
+    const post = await f.request(startersPath, "POST");
+    assert.equal(post.headers["content-type"], "application/json");
+    assert.equal(post.headers["x-mixer-csrf"], csrf);
+    assert.deepEqual(JSON.parse(post.body), {
+      organization_id: "org", project_id: "p", application_id: "app", starter_id: starter.id,
+    });
+    assert.equal(deliveryPosts(f).length, 1);
+    assert.equal(f.button("Refresh admitted inputs").disabled, true);
+    post.resolve(response({ ...appScope, ...starterInput() }));
+    storedInputs = [starterInput()];
+    const refresh = await f.request(inputPath);
+    assert.doesNotMatch(f.text(), /Input local-starter-v1|Select local starter/);
+    refresh.resolve(response(page(storedInputs)));
+    await flush();
+    assert.match(f.text(), /Input local-starter-v1/);
+    assert.doesNotMatch(f.text(), /Select local starter/);
+    assert.equal(f.button("Create build").disabled, true);
+    assert.deepEqual(deliveryPosts(f).map(call => call.path), [startersPath]);
+  } finally { f.close(); }
+
+  const reopened = fixture("workspace-builds");
+  try {
+    await navigate(reopened);
+    reopened.click("New build");
+    (await reopened.request(inputPath)).resolve(response(page(storedInputs)));
+    await flush();
+    assert.match(reopened.text(), /Input local-starter-v1/);
+    assert.equal(reopened.calls.some(call => call.path.startsWith(startersPath)), false);
+    assert.equal(deliveryPosts(reopened).length, 0);
+  } finally { reopened.close(); }
+});
+
+test("a late platform-build list preserves the first-source picker for the same app", async () => {
+  const f = fixture("workspace-builds");
+  try {
+    const pendingBuilds = await navigate(f, [], ["owner"], false);
+    await emptyInputs(f);
+    (await f.request(discoveryPath)).resolve(response(discovery));
+    await flush();
+    f.button("Select local starter");
+
+    pendingBuilds.resolve(response(catalog()));
+    await flush();
+    f.button("Select local starter");
+    assert.match(f.text(), /No builds yet/);
+    assert.equal(deliveryPosts(f).length, 0);
+  } finally { f.close(); }
+});
+
+test("empty input continuation pages never offer the first-source picker", async () => {
+  const f = fixture("workspace-builds");
+  try {
+    await navigate(f);
+    f.click("New build");
+    (await f.request(inputPath)).resolve(response(page(
+      Array.from({ length: 25 }, (_, index) => input({ sourceInputId: "input-" + String(index).padStart(2, "0") })),
+      appScope, "bmV4dA",
+    )));
+    await flush();
+    f.click("More admitted inputs");
+    (await f.request(inputPath + "&cursor=bmV4dA")).resolve(response(page([])));
+    await flush();
+    assert.match(f.text(), /No admitted source inputs/);
+    assert.equal(f.calls.some(call => call.path.startsWith(startersPath)), false);
+  } finally { f.close(); }
+});
+
+test("starter action requires the workspace-builds profile, organization ownership and a discovered starter", async () => {
+  for (const [profile, roles, lookup] of [
+    [undefined, ["owner"], false],
+    ["workspace-builds", ["viewer"], false],
+    ["workspace-builds", ["owner"], true],
+  ]) {
+    const f = fixture(profile);
+    try {
+      await navigate(f, [], roles);
+      await emptyInputs(f);
+      if (lookup) {
+        (await f.request(discoveryPath)).resolve(response({ ...appScope, starter: null }));
+        await flush();
+      }
+      assert.doesNotMatch(f.text(), /Select local starter/);
+      assert.equal(f.calls.some(call => call.path.startsWith(startersPath)), lookup);
+      assert.equal(deliveryPosts(f).length, 0);
+    } finally { f.close(); }
+  }
+
+  const owner = api.createBrowserSessionController({
+    fetch: async () => response({ state: "authenticated", generation: "A".repeat(43), csrf_token: csrf,
+      expires_at: Math.floor(Date.now() / 1000) + 60 }),
+  }, "workspace-manage");
+  try {
+    owner.revalidate();
+    await flush();
+    assert.equal(owner.getSession().kind, "ready");
+    assert.equal(owner.getSession().buildClients.sourceStarters, undefined);
+  } finally { owner.dispose(); }
+});
+
+test("starter errors are finite, close over exact response scope, and recover through discovery or a catalog refresh", async () => {
+  const f = fixture("workspace-builds");
+  try {
+    await navigate(f);
+    await emptyInputs(f);
+    for (const invalid of [
+      response({ ...discovery, organizationId: "other" }),
+      response({ ...discovery, projectId: "other" }),
+      response({ ...discovery, applicationId: "other" }),
+      response({ ...discovery, starter: { id: 42 } }),
+      response({ ...discovery, starter: { id: starter.id, unknown: true } }),
+      new Response(JSON.stringify(discovery).replace('"projectId":"p"', '"projectId":"other","projectId":"p"'),
+        { headers: { "content-type": "application/json" } }),
+      new Response("private sentinel", { status: 503 }),
+    ]) {
+      (await f.request(discoveryPath)).resolve(invalid);
+      await flush();
+      assert.match(f.text(), /Could not check for a local starter/);
+      assert.doesNotMatch(f.text(), /Select local starter|private sentinel/);
+      f.click("Retry local starter check");
+    }
+    (await f.request(discoveryPath)).resolve(response(discovery));
+    await flush();
+    f.click("Select local starter");
+    (await f.request(startersPath, "POST")).resolve(response({ ...appScope, ...starterInput(), platform: "other" }));
+    await flush();
+    assert.match(f.text(), /Starter selection could not be confirmed/);
+    assert.doesNotMatch(f.text(), /Select local starter|Input local-starter-v1/);
+    assert.equal(f.calls.filter(call => call.path === inputPath).length, 1);
+    f.click("Refresh admitted inputs");
+    (await f.request(inputPath)).resolve(response(page([starterInput()])));
+    await flush();
+    assert.match(f.text(), /Input local-starter-v1/);
+    assert.equal(deliveryPosts(f).length, 1);
+  } finally { f.close(); }
+});
+
+test("app and session changes abort discovery and selection and discard late successes", async () => {
+  for (const changed of ["application", "session"]) {
+    for (const pending of ["discovery", "selection"]) {
+      const f = fixture("workspace-builds");
+      try {
+        await navigate(f);
+        await emptyInputs(f);
+        let late = await f.request(discoveryPath);
+        if (pending === "selection") {
+          late.resolve(response(discovery));
+          await flush();
+          f.click("Select local starter");
+          late = await f.request(startersPath, "POST");
+        }
+        if (changed === "application") {
+          f.click("Application IDother");
+          (await f.request(catalogPath.replace("application_id=app", "application_id=other")))
+            .resolve(response({ ...catalog(), applicationId: "other" }));
+        } else {
+          f.controller.revalidate();
+          (await f.request("/auth/session")).resolve(response({ state: "authenticated", generation: "A".repeat(43),
+            csrf_token: csrf, expires_at: Math.floor(Date.now() / 1000) + 60 }));
+        }
+        assert.equal(late.signal.aborted, true);
+        late.resolve(response(pending === "discovery" ? discovery : { ...appScope, ...starterInput() }));
+        await flush();
+        assert.doesNotMatch(f.text(), /Select local starter|Input local-starter-v1|Selecting local starter/);
+        assert.equal(f.calls.filter(call => call.path.startsWith("/console-api/v1/build-inputs")).length, 1);
+      } finally { f.close(); }
+    }
+  }
+});
+
+test("starter POST accepts only exact scoped 200 receipts with valid admitted input fields", async () => {
+  const receipt = { ...appScope, ...starterInput() };
+  let wire = response(receipt);
+  const owner = api.createBrowserSessionController({
+    fetch: async path => path === startersPath ? wire : response({
+      state: "authenticated", generation: "A".repeat(43), csrf_token: csrf,
+      expires_at: Math.floor(Date.now() / 1000) + 60,
+    }),
+  }, "workspace-builds");
+  try {
+    owner.revalidate();
+    await flush();
+    const client = owner.getSession().buildClients.sourceStarters;
+    const selection = { scope: appScope, starterId: starter.id };
+    assert.deepEqual(await client.select(selection), starterInput());
+    for (const invalid of [
+      response({ ...receipt, organizationId: "other" }),
+      response({ ...receipt, projectId: "other" }),
+      response({ ...receipt, applicationId: "other" }),
+      response({ ...receipt, sourceInputId: "" }),
+      response({ ...receipt, sourceInputId: "different-starter" }),
+      response({ ...receipt, sourceSha256: "x" }),
+      response({ ...receipt, toolchainLockSha256: "x" }),
+      response({ ...receipt, buildDefinitionSha256: "x" }),
+      response({ ...receipt, extra: true }),
+      response(receipt, 201),
+      new Response(JSON.stringify(receipt).replace('"projectId":"p"', '"projectId":"other","projectId":"p"'),
+        { headers: { "content-type": "application/json", "cache-control": "no-store" } }),
+    ]) {
+      wire = invalid;
+      await assert.rejects(client.select(selection), { code: "invalid_response" });
+    }
+  } finally { owner.dispose(); }
+});
+
+test("starter discovery and selection end at the workspace request deadline", async () => {
+  const calls = [];
+  const owner = api.createBrowserSessionController({
+    timeoutMs: 10,
+    fetch: (path, options) => {
+      if (path === "/auth/session") return Promise.resolve(response({
+        state: "authenticated", generation: "A".repeat(43), csrf_token: csrf,
+        expires_at: Math.floor(Date.now() / 1000) + 60,
+      }));
+      calls.push({ path, signal: options.signal });
+      return new Promise(() => {});
+    },
+  }, "workspace-builds");
+  try {
+    owner.revalidate();
+    await flush();
+    const client = owner.getSession().buildClients.sourceStarters;
+    await assert.rejects(client.discover(appScope), { code: "unavailable" });
+    await assert.rejects(client.select({ scope: appScope, starterId: starter.id }), { code: "unavailable" });
+    assert.deepEqual(calls.map(call => [call.path, call.signal.aborted]), [[discoveryPath, true], [startersPath, true]]);
+  } finally { owner.dispose(); }
+});

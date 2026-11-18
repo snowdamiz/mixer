@@ -12,6 +12,7 @@ defmodule MixerHosted.MixProject do
       test_ignore_filters: [
         "test/mixer_hosted/authorization/jit_policy_spec.exs",
         "test/mixer_hosted/browser_auth/migration_spec.exs",
+        "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs",
         "test/mixer_hosted/browser_auth/storage_fixture.exs",
         "test/mixer_hosted/browser_auth/storage_spec.exs"
       ],

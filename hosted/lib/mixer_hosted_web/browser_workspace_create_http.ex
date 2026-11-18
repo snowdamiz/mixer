@@ -20,19 +20,36 @@ defmodule MixerHostedWeb.BrowserWorkspaceCreateHTTP do
            get_req_header(conn, "content-length") in [[], [Integer.to_string(byte_size(raw))]],
          {:ok, body} <- BoundedJSON.object(raw, @limit),
          {:ok, operation} <- operation(conn.request_path, body) do
-      case RuntimeOwner.create_workspace(conn.req_headers, operation) do
-        {:ok, value} ->
-          respond(conn, status(conn.request_path, operation), value)
-
-        {:error, reason} ->
-          refusal(conn, reason)
-      end
+      execute(conn, operation)
     else
       {:more, _, conn} -> respond(conn, 413, error(:invalid_request))
       _ -> refusal(conn, :invalid_request)
     end
   rescue
     _ -> refusal(conn, :authorization_unavailable)
+  end
+
+  defp execute(conn, {:local_starter, scope, id}) do
+    case RuntimeOwner.local_starter(conn.req_headers, scope, {:select, id}) do
+      {:ok, %{status: status, headers: headers, body: body}} ->
+        conn |> merge_resp_headers(headers) |> send_resp(status, body)
+
+      {:error, reason} ->
+        refusal(conn, reason)
+    end
+  end
+
+  defp execute(conn, operation) do
+    case RuntimeOwner.create_workspace(conn.req_headers, operation) do
+      {:ok, value} -> respond(conn, status(conn.request_path, operation), value)
+      {:error, reason} -> refusal(conn, reason)
+    end
+  end
+
+  defp operation("/console-api/v1/source-starters", body) do
+    with {:ok, scope, id} <- MixerHosted.CustomerBuilds.LocalStarter.parse(body) do
+      {:ok, {:local_starter, scope, id}}
+    end
   end
 
   defp operation("/console-api/v1/orgs", %{"display_name" => name} = body)
