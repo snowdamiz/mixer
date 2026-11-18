@@ -1,0 +1,233 @@
+diff --git a/.github/workflows/generated-report-android.yml b/.github/workflows/generated-report-android.yml
+index c8853bbf35adb28470ac94bc430a60a9c60b65a2..17c5ce37698908473f450ce6f4734497c4cdac97 100644
+--- a/.github/workflows/generated-report-android.yml
++++ b/.github/workflows/generated-report-android.yml
+@@ -25,7 +25,7 @@ jobs:
+       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+       PYTHONDONTWRITEBYTECODE: '1'
+       PYTHONUNBUFFERED: '1'
+-      MIXER_REVISION: a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b
++      MIXER_REVISION: 735ecec14e10e2dfed1e58a122c3fab08e569bef
+     steps:
+       - name: Initialize the Android CI runtime path
+         run: |
+@@ -43,7 +43,7 @@ jobs:
+         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+         with:
+           repository: snowdamiz/mixer
+-          ref: a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b
++          ref: ${{ env.MIXER_REVISION }}
+           path: .ci-mixer-cli
+           fetch-depth: 1
+           persist-credentials: false
+@@ -55,18 +55,10 @@ jobs:
+             /native/android/
+             /scripts/ci/check-android-generated-java.py
+             /scripts/ci/check-android-binding.py
+-            /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/current-source-inputs.json
+-            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
+-
+-      - name: Check out the unchanged public Swift SDK pin
+-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+-        with:
+-          repository: snowdamiz/mixer
+-          ref: 8efc1a9e5b1602117f8211c95bfd4203cc91f689
+-          path: .ci-mixer-sdk
+-          sparse-checkout: sdk
+-          fetch-depth: 1
+-          persist-credentials: false
++            /native-sdk/Package.swift
++            /native-sdk/Sources/CMixerVM/
++            /native-sdk/Sources/MixerNativeBackend/
++            /verification/native-report-source141-archive-v1/current-source-inputs.json
+ 
+       - name: Admit source and installed platform prerequisites
+         timeout-minutes: 2
+@@ -82,7 +74,6 @@ jobs:
+           set -x
+           test "$RUNNER_OS/$RUNNER_ARCH" = macOS/X64
+           test "$(git -C .ci-mixer-cli rev-parse HEAD)" = "$MIXER_REVISION"
+-          test "$(git -C .ci-mixer-sdk rev-parse HEAD)" = 8efc1a9e5b1602117f8211c95bfd4203cc91f689
+           test "$(xcodebuild -version)" = $'Xcode 26.6\nBuild version 17F113'
+           test "$(xcrun --sdk macosx --show-sdk-version)" = 26.5
+           : "${JAVA_HOME_25_X64:?Image JDK 25 is required}"
+@@ -101,13 +92,13 @@ jobs:
+           import hashlib, json, os, shutil
+           from pathlib import Path
+           root = Path('.ci-mixer-cli')
+-          manifest = json.loads((root / 'verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/current-source-inputs.json').read_text())
+-          assert len(manifest) == 119
++          manifest = json.loads((root / 'verification/native-report-source141-archive-v1/current-source-inputs.json').read_text())
++          assert len(manifest) == 141
+           for name, expected in manifest.items():
+               data = (root / name).read_bytes()
+               assert len(data) == expected['bytes'] and hashlib.sha256(data).hexdigest() == expected['sha256'], name
+           digest = hashlib.sha256(''.join(p + '\0' + v['sha256'] + '\n' for p, v in sorted(manifest.items())).encode()).hexdigest()
+-          assert digest == '80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c'
++          assert digest == 'f68f02c92c93947becf9e29b7eeef43b88313f13e7f7c915fdf47f902f4f81cd'
+           android = Path(os.environ['ANDROID_HOME'])
+           for path, line in [
+               ('ndk/27.3.13750724/source.properties', 'Pkg.Revision = 27.3.13750724'),
+@@ -205,7 +196,7 @@ jobs:
+           export TMPDIR="$FIELDLOG_CI_ROOT/tmp/"
+           export CLANG_MODULE_CACHE_PATH="$FIELDLOG_CI_ROOT/clang-cache"
+           export SWIFTPM_MODULECACHE_OVERRIDE="$FIELDLOG_CI_ROOT/module-cache"
+-          if python3 -B Integrations/GeneratedReport/scripts/build-android.py --mixer "$FIELDLOG_MIXER" --sdk-checkout "$GITHUB_WORKSPACE/.ci-mixer-sdk" --android-adapter-path "$GITHUB_WORKSPACE/.ci-mixer-cli/native/android" --output "$FIELDLOG_OUTPUT" > "$FIELDLOG_CI_ROOT/evidence/public-recipe.log" 2>&1; then
++          if python3 -B Integrations/GeneratedReport/scripts/build-android.py --mixer "$FIELDLOG_MIXER" --sdk-checkout "$GITHUB_WORKSPACE/.ci-mixer-cli" --android-adapter-path "$GITHUB_WORKSPACE/.ci-mixer-cli/native/android" --output "$FIELDLOG_OUTPUT" > "$FIELDLOG_CI_ROOT/evidence/public-recipe.log" 2>&1; then
+             :
+           else
+             result=$?
+@@ -230,8 +221,9 @@ jobs:
+           from pathlib import Path
+           evidence = Path(os.environ['FIELDLOG_CI_ROOT']) / 'evidence'
+           lock = json.loads((evidence / 'mixer.lock').read_text())
+-          assert lock['android']['profile']['id'] == 'mixer.android-source-pair.21'
+-          assert lock['android']['profile']['adapter_compatibility_sha256'] == 'a076078c052649b425c1d6eff4103f35561e06caf7a316f58f6bf06a52377452'
++          assert lock['android']['profile']['id'] == 'mixer.android-source-pair.23'
++          assert lock['android']['profile']['sdk_compatibility_sha256'] == '0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8'
++          assert lock['android']['profile']['adapter_compatibility_sha256'] == 'ee12eaa723135d7354e08b8b20575f42328f6669c9c61d3287e0746b6623b48c'
+           with zipfile.ZipFile(evidence / 'FieldLogGenerated-unsigned.apk') as apk:
+               assert not any(p.upper().startswith('META-INF/') for p in apk.namelist()), 'Unexpected APK signature member'
+               assert apk.testzip() is None
+@@ -249,8 +241,8 @@ jobs:
+           assert sum(v['bytes'] for v in files.values()) <= 100 * 1024**2
+           provenance = {'qualification': 'development unsigned Android public-recipe build',
+               'fieldlog_revision': os.environ['GITHUB_SHA'], 'mixer_revision': os.environ['MIXER_REVISION'],
+-              'swift_sdk_revision': '8efc1a9e5b1602117f8211c95bfd4203cc91f689',
+-              'CLI119_source_sha256': '80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c',
++              'swift_sdk_revision': os.environ['MIXER_REVISION'],
++              'CLI141_source_sha256': 'f68f02c92c93947becf9e29b7eeef43b88313f13e7f7c915fdf47f902f4f81cd',
+               'run_id': os.environ['GITHUB_RUN_ID'], 'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+               'files': files, 'signing_store_immutable_packages_devices_GA': 'pending'}
+           (evidence / 'provenance.json').write_text(json.dumps(provenance, indent=2) + '\n')
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Package.resolved b/Integrations/GeneratedReport/Platforms/Android/Package.resolved
+new file mode 100644
+index 0000000000000000000000000000000000000000..8fa6c157f7eb331d6888a714e61f26fca731b39f
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Package.resolved
+@@ -0,0 +1,24 @@
++{
++  "originHash" : "360e677cac50e3d10d9df33bc4a7310e5e24c4b2a2930c3c3367a32d0f0a7a83",
++  "pins" : [
++    {
++      "identity" : "swift-asn1",
++      "kind" : "remoteSourceControl",
++      "location" : "https://github.com/apple/swift-asn1.git",
++      "state" : {
++        "revision" : "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
++        "version" : "1.7.3"
++      }
++    },
++    {
++      "identity" : "swift-crypto",
++      "kind" : "remoteSourceControl",
++      "location" : "https://github.com/apple/swift-crypto.git",
++      "state" : {
++        "revision" : "c2cbadd7263439d8015189668f96ff5b5be565ce",
++        "version" : "5.0.3"
++      }
++    }
++  ],
++  "version" : 3
++}
+diff --git a/Integrations/GeneratedReport/README.md b/Integrations/GeneratedReport/README.md
+index 15168404f084617bdaaaf40727faf0d3aeead030..673fbe535b07440db970985c02c1c520ac0ff441 100644
+--- a/Integrations/GeneratedReport/README.md
++++ b/Integrations/GeneratedReport/README.md
+@@ -4,7 +4,7 @@ This additive development package preserves the ordinary FieldLog app and its or
+ 
+ Sources and host tests come from the accepted R992 source ZIP (SHA-256 b9b725460ccb69e78cc4962217b089ebc323ce2fc3244f48a451a38fcdeb472b). PublicActivity and PublicBridge incorporate the independently reviewed R1702 report fix. The package-private ReportRoot class at the end of PublicBridge.java preserves trusted-root canonicalization and the two-file public Android host source inventory. ReportFiles, ReportIntent, the source descriptor checks, strict child no-follow checks, and fixed-stage diagnostics remain unchanged. NativeRendererSDK is supplied by Mixer and is never copied into this app.
+ 
+-The public Mixer development pin is 8efc1a9e5b1602117f8211c95bfd4203cc91f689. Supply its SDK directory explicitly for local development; no engine internals or substitute APIs are used:
++The generated report host-test pin is 8efc1a9e5b1602117f8211c95bfd4203cc91f689. Supply its SDK directory explicitly for local development; no engine internals or substitute APIs are used:
+ 
+ ```sh
+ export FIELDLOG_MIXER_SDK=/absolute/pinned-mixer/sdk
+@@ -25,17 +25,19 @@ java -cp /absolute/owned-scratch/classes \
+   dev.fieldlog.generatedr90.androidhost.ReportFilesChecks /absolute/owned-scratch/report-workspace
+ ```
+ 
+-To create the native development tree, use a public Mixer CLI and a clean checkout at the Swift SDK pin above, including sdk/. Supply the Android adapter separately with `--android-adapter-path`; the old Swift SDK pin does not supply the current Pair21 adapter. The selected public CLI authoritatively admits its exact 27 adapter inputs; unrelated worktree changes outside those inputs do not require a clean adapter repository. The Swift SDK checkout must still be clean and pinned. The output path must be absent, including when an existing directory is empty; existing paths are rejected before source or tool work. The recipe invokes public `mixer create` with public-v4 and installs the app-owned Swift, C, Java, manifest, and test sources. It preserves the CLI-created SDK snapshot and lock. The library product remains AppAndroid; its Swift module is FieldLogAndroid, matching the actual tests. The application package depends only on the three real FieldLog modules, without starter AppModels/AppFeatures targets.
++Use the CLI, SDK, and Android adapter from the same public Mixer Pair23 checkout at `735ecec14e10e2dfed1e58a122c3fab08e569bef`. The recipe checks the SDK revision and calls `mixer create` with `public-v4`. It keeps the generated SDK snapshot and `mixer.lock`, then installs FieldLog's own Swift, C, Java, manifest, and test sources. Use a fresh output path.
+ 
+ ```sh
+ python3 scripts/build-android.py --mixer /absolute/public/mixer \
+-  --sdk-checkout /absolute/pinned-mixer \
+-  --android-adapter-path /absolute/pair21-mixer/native/android \
++  --sdk-checkout /absolute/pair23-mixer \
++  --android-adapter-path /absolute/pair23-mixer/native/android \
+   --output /absolute/fresh/FieldLogGenerated \
+   --prepare-only
+ ```
+ 
+-Omit `--prepare-only` to request the existing unsigned Android build. That build requires the platform toolchain and is outside this host-only verification. Preparation, APK/native compilation, installation, device behavior, signing, immutable published-package consumption, and final D0-D8/GA qualification each require their own evidence. A source checkout or host pass does not qualify those gates.
++FieldLog supplies its own `Platforms/Android/Package.resolved`. The lock uses the origin hash from SwiftPM resolution of the FieldLog Android package and the exact pins from Pair23's SDK lock. The recipe checks those pins against the generated SDK snapshot before installing app files.
++
++For an independent export build, move `.fieldlog-build` out of the prepared tree to keep the preparation logs separate. Run `mixer export <fresh-export> --directory <prepared-app>`. Move the prepared tree and the source checkout out of their original paths, then run `mixer build --platform android --directory <fresh-export>` with the same installed toolchain. Omit `--prepare-only` to build the unsigned APK directly in the prepared tree.
+ 
+ Run the recipe boundary controls without native tools:
+ 
+@@ -58,7 +60,7 @@ To request a separate build of published `main`, use:
+ gh workflow run generated-report-android.yml --repo snowdamiz/fieldlog --ref main
+ ```
+ 
+-The workflow checks out public Mixer revision `a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b` for the complete CLI, SDK, and updates package closure and the Pair21 Android adapter. It verifies the 119 source inputs against digest `80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c`. The app's separate Swift SDK checkout remains pinned to `8efc1a9e5b1602117f8211c95bfd4203cc91f689`.
++The Android workflow builds the CLI and generates the app from the same Pair23 checkout. It verifies all 141 source inputs against digest `f68f02c92c93947becf9e29b7eeef43b88313f13e7f7c915fdf47f902f4f81cd`.
+ 
+ The cross toolchain is the official Swift 6.3.3 macOS package and matching Android Swift SDK. The workflow verifies the package's macOS trust report and published SDK checksum. It requires Xcode 26.6 build 17F113, macOS SDK 26.5, image JDK 25.0.4, Android platform 37.0 revision 2, build-tools 37.0.0, and NDK r27d `27.3.13750724`. These explicit checks fail if an image update removes a prerequisite. The [GitHub runner inventory](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md) lists the image inputs. The [Swift package instructions](https://www.swift.org/install/macos/package_installer/) describe its signing identity.
+ 
+diff --git a/Integrations/GeneratedReport/Tests/Recipe/test_build_android.py b/Integrations/GeneratedReport/Tests/Recipe/test_build_android.py
+index 97cac7e829e886aa61d6d59e43107d72ae92fe77..b69209b6d0a688efbb143423e2ea099446951b9a 100644
+--- a/Integrations/GeneratedReport/Tests/Recipe/test_build_android.py
++++ b/Integrations/GeneratedReport/Tests/Recipe/test_build_android.py
+@@ -18,7 +18,7 @@ class RecipeTests(unittest.TestCase):
+     def setUp(self):
+         self.temp = tempfile.TemporaryDirectory()
+         self.addCleanup(self.temp.cleanup)
+-        self.root = Path(self.temp.name)
++        self.root = Path(self.temp.name).resolve()
+ 
+     def argv(self, output, sdk=None, mixer=None, adapter=None):
+         return [str(SCRIPT), "--mixer", str(mixer or self.root / "missing-cli"),
+@@ -120,7 +120,7 @@ class RecipeTests(unittest.TestCase):
+         self.assertEqual(command[1:3], ["create", "FieldLogGenerated"])
+         self.assertEqual(command[command.index("--android-adapter-path") + 1], str(adapter))
+         self.assertEqual(command[command.index("--sdk-path") + 1], str(sdk / "sdk"))
+-        self.assertEqual(recipe.PIN, "8efc1a9e5b1602117f8211c95bfd4203cc91f689")
++        self.assertEqual(recipe.PIN, "735ecec14e10e2dfed1e58a122c3fab08e569bef")
+         self.assertTrue(all(call.args[0][3] == str(sdk) for call in git.call_args_list))
+         install.assert_called_once()
+         self.assertEqual((adapter / "unrelated-local-work").read_text(), "preserve")
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index 7bfc7ed073d18c7bd556c29eb239b9068aed1e35..9c627c639ac8e43db80aafb4689f6aef434ee9d7 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -11,7 +11,7 @@ import sys
+ import tempfile
+ import time
+ 
+-PIN = "8efc1a9e5b1602117f8211c95bfd4203cc91f689"
++PIN = "735ecec14e10e2dfed1e58a122c3fab08e569bef"
+ APP = Path(__file__).resolve().parents[1]
+ 
+ 
+@@ -20,6 +20,7 @@ def app_inputs():
+     platform = APP / "Platforms/Android"
+     files = [(platform / "ApplicationPackage.swift", Path("Package.swift")),
+              (platform / "Package.swift", Path("Platforms/Android/Package.swift")),
++             (platform / "Package.resolved", Path("Platforms/Android/Package.resolved")),
+              (platform / "AndroidManifest.xml", Path("Platforms/Android/AndroidManifest.xml")),
+              (platform / "Bridge/PublicBridge.c", Path("Platforms/Android/Bridge/PublicBridge.c"))]
+     java = Path("Java/dev/fieldlog/generatedr90/androidhost")
+@@ -42,6 +43,11 @@ def app_inputs():
+ 
+ def install_app_inputs(output, files, modules):
+     """Install app sources after public mixer create; preserve Generated/MixerSDK."""
++    app_lock = json.loads((APP / "Platforms/Android/Package.resolved").read_bytes())
++    sdk_lock = json.loads((output / "Generated/MixerSDK/Package.resolved").read_bytes())
++    if app_lock["pins"] != sdk_lock["pins"]:
++        raise ValueError("FieldLog's Android dependency pins differ from the admitted SDK lock")
++
+     # Replace the starter bridge and Swift entry together, before mixer build.
+     entry = output / "Platforms/Android/Sources/AppAndroid"
+     tests = output / "Platforms/Android/Tests/AppAndroidTests"

@@ -1,0 +1,216 @@
+{
+  "id": "l05-cancel-native-runtime-candidate",
+  "status": "SCOPED_LOCAL_PASS_ZERO_COMPILER_STARTS",
+  "baseRevision": "af8bc9dc240c24816d4be2dfdc654f1c8bd3283c",
+  "patch": {
+    "path": "/Users/andreyyurlov/.t3/userdata/mixer-l05-cancel-YotssnmM/l05-cancel-native-runtime.patch",
+    "sha256": "24c42d5c13c9926d7ff59ae0b661ab38851085805bd66dea1df7bf2a6e31f3ba",
+    "files": 17
+  },
+  "sourceTree": {
+    "kind": "SHA256 of sorted path to SHA256 JSON for patch afterimages",
+    "sha256": "a2e163404d91fb16290167e09e58f647d38803214f547163918c073915580c05",
+    "files": {
+      "hosted/README.md": "082c0a06ba80c3a292fd0e41a191e120783348c828de9088b8d09ba05ca1474d",
+      "hosted/lib/mixer_hosted/browser_auth/active_create.ex": "24bf33336b27955a9ecb35bad0f18c1fda045eece3a4035e49e17438a8d0d293",
+      "hosted/lib/mixer_hosted/browser_auth/build_catalog_admission.ex": "c97dd7e3d677a21fb6e20aaa6f4a9ac0105662d05302caeb67f37d283e51ee15",
+      "hosted/lib/mixer_hosted/browser_auth/installation.ex": "d5f1544c897dd9819825892c6b5201c6e0c23526b6706bbd6adb62a1441b962a",
+      "hosted/lib/mixer_hosted/browser_auth/runtime_config.ex": "84b2d57ffc49dd8b3dce426cefe172b92a0b4e7e3a821374ea150cd2ac112135",
+      "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex": "43cff27a68f79096aeb4a745e5fe49891378684a427f6c9d2e67abdd966ed4bf",
+      "hosted/lib/mixer_hosted/builds/coordinator.ex": "e48a963fd65a46393700ed2935b1f438ad82ea25a06e0932e3c4b6c1bec79bcc",
+      "hosted/lib/mixer_hosted/builds/native_development_dispatch.ex": "847c7ea599d967a8e133fcb0203f1cf3f495d1751e6f8f3710f79ebc44929e07",
+      "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex": "7b9c51b5761b9214e7725fd803e3babe246ad347ca1f9f8405d77bb9cf2aeefe",
+      "hosted/lib/mixer_hosted/customer_builds/cancel.ex": "9b9e25c171a89dfa037ad69e1b1ebcbcc8ef424b3c656e195d341e6315911afa",
+      "hosted/lib/mixer_hosted/customer_builds/cancel_schema.ex": "c47c0cd0782a7908286ea6bf4bc69e61ccbc767c4d7a0c6518b2ee5b88b2df61",
+      "hosted/lib/mixer_hosted/runtime_config.ex": "a50ca0610d19dcbb0995ed3a77217697c052e0473833921c9808e2d55c5630f7",
+      "hosted/lib/mixer_hosted_web/browser_http.ex": "cf84ca291300069e90479c15c9b898e8521c35484c50e32739ed574d4e56567f",
+      "hosted/priv/unselected_build_cancel/cancel_body.sql": "c63eaea99ed2e9f74c594441f0324f800c6a91452c4892945e43d35933db4a7d",
+      "hosted/priv/unselected_build_cancel/print_install_sql.exs": "4ee99da7351e360eb2a7bd2f98422d8ef9b45d42fc81b82420f195975055189b",
+      "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs": "ebf861046081dab4e603bbb857aa2abbcb2733081007d533997897a80f86d524",
+      "hosted/test/runtime_config_test.exs": "6d2af4e8dfb8a624aefe08b880114ef6a777e6b858a671512edf7f43be1ee9aa"
+    }
+  },
+  "tools": {
+    "host": "macOS 27.0.1 arm64",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgres": "17.11",
+    "python": "3.14.8"
+  },
+  "api": {
+    "create": 201,
+    "cancel": 202,
+    "duplicate": 202,
+    "terminal": "cancelled",
+    "revision": 3,
+    "wrong_tenant": 404,
+    "terminal_duplicate": 200,
+    "anonymous": 401,
+    "missing_csrf": 403,
+    "foreign_build_revision": 0,
+    "wrong_source": 404,
+    "cancel_events": 1,
+    "stopped_events": 1,
+    "capacity_held_before": true,
+    "capacity_held_after": false,
+    "lease_released": true,
+    "elapsed_ms": 1920,
+    "operation_admission": "stop_intent",
+    "sql_role_function_acl": [
+      false,
+      true,
+      false
+    ],
+    "create_role_direct_rls_update": false
+  },
+  "worker": {
+    "status": "stopped",
+    "starts": 0,
+    "tombstone": true,
+    "order": [
+      4,
+      2
+    ],
+    "diagnostic_sha256": "0e5d30d8ce4a7d87a0e6812db71beca7c3074eae2805bbcc18f5801f669271a8"
+  },
+  "checks": {
+    "commands": {
+      "integrated": [
+        "python3",
+        "../verify.py",
+        "attempt-08"
+      ],
+      "focused": [
+        "mix",
+        "test",
+        "test/runtime_config_test.exs",
+        "test/mixer_hosted/browser_auth/runtime_config_test.exs",
+        "test/mixer_hosted/builds/native_development_dispatch_test.exs",
+        "test/mixer_hosted/builds/lifecycle_test.exs",
+        "test/mixer_hosted/builds/journal_test.exs"
+      ],
+      "compile": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "format": [
+        "mix",
+        "format",
+        "--check-formatted"
+      ],
+      "workerDefault": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_native_artifact_worker.py"
+      ],
+      "workerOptimized": [
+        "python3",
+        "-B",
+        "-O",
+        "scripts/test_native_artifact_worker.py"
+      ],
+      "normalConfig": [
+        "mix",
+        "run",
+        "--no-start",
+        "-e",
+        "assert the configured processor startup snapshot and no running Repo"
+      ],
+      "patchReplay": [
+        "git",
+        "apply",
+        "--cached",
+        "--check",
+        "l05-cancel-native-runtime.patch"
+      ]
+    },
+    "integratedTestsPassed": 1,
+    "focusedTestsPassed": 77,
+    "workerTestsPassedPerMode": 10,
+    "logs": {
+      "attempt-08/ordinary.log": "fb662a8bef95040d32a9eb6ac6c9732700ccf0d8e701958c7696ac5bce83c56a",
+      "attempt-08/processor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "attempt-08/worker.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "attempt-08/commands.json": "42930cf73c0439670665d5367c7151b0d027a70f2f6d050184b8eab0955c83de",
+      "focused-final-2.log": "260bee6f6a66201f6fd448ddbc5a2f27f387519ea6c08d24681afbe65a60759e",
+      "runtime-selector-final.log": "0013dae20cef71d74adab02eb6eb783f823304351d0e43c1286107d2ed32c994",
+      "worker-unit.log": "dec02332cb628dd7b75eff0af6e7a6c0f2f5ccab482b8d20b76bf97dcdc62468",
+      "worker-optimized.log": "dec02332cb628dd7b75eff0af6e7a6c0f2f5ccab482b8d20b76bf97dcdc62468"
+    },
+    "verificationDriver": {
+      "verify.py": "224502a8a73cd252923f66484e084e05aa1be1b39f3ae12ca936f54265488a77",
+      "processor.exs": "fc21be74207bd5eead4146256c87910026e098c8cfcfc0f240d1fd0aa76694a6",
+      "hosted/test/local_cancel_integration_test.exs": "569b58b888e763e5ddaa62a5a88bd76f18b17726e40b29cb17f49951f2417f3c"
+    }
+  },
+  "cleanup": {
+    "ownedCommands": {
+      "initdb": {
+        "pid": 69925,
+        "exit": 0,
+        "group_absent": true
+      },
+      "postgres": {
+        "pid": 69980,
+        "exit": 0,
+        "group_absent": true
+      },
+      "roles": {
+        "pid": 69992,
+        "exit": 0,
+        "group_absent": true
+      },
+      "worker": {
+        "pid": 69995,
+        "exit": 0,
+        "group_absent": true
+      },
+      "ordinary": {
+        "pid": 69996,
+        "exit": 0,
+        "group_absent": true
+      },
+      "processor": {
+        "pid": 71250,
+        "exit": 0,
+        "group_absent": true
+      }
+    },
+    "listeners": {
+      "postgres_absent": true,
+      "worker_absent": true,
+      "postgres_reusable": true,
+      "worker_reusable": true
+    },
+    "preservedHolds": [
+      {
+        "pgid": 81135,
+        "kind": "prior",
+        "action": "untouched"
+      },
+      {
+        "pgid": 39505,
+        "kind": "new UNKNOWN ordinary ExUnit custody",
+        "reference": "/Users/andreyyurlov/.t3/userdata/mixer-l05-cancel-YotssnmM/HOLD-attempt-06.json"
+      }
+    ]
+  },
+  "scope": [
+    "Restricted live Phoenix, PostgreSQL 17, Oban builds processor and real authenticated Python worker socket in isolated namespaces.",
+    "Both roles use RuntimeConfig.load! and the normal supervisor graph. Integration supplies synthetic identity, fixture PostgreSQL connection parameters and loopback endpoint. Configured browser installation admission and normal runtime.exs processor selection also tested separately.",
+    "Fresh child environment removed inherited MIXER_* and STRIPE_* entries. Only synthetic fixture credentials supplied. No compiler children, devices, commits or pushes.",
+    "Live compiler cancellation was deferred pending explicit descendant-cleanup proof. L05 and GA acceptance remain open."
+  ],
+  "authorityUpdatesNeeded": [
+    "Review a successor to identity-network current-source v31, including exact source pins and collector and workflow inputs. Preserve v31 and its reviewed preimages.",
+    "Select the private cancel SQL alongside the restricted build-create and durable-intent provisioning. The migration 498\u2013500 grants and processor role remain the existing authority.",
+    "Adopt this compact receipt and update PLAN.md, STATUS.md, work-graph.json and gates/local.json with the scoped L05 observations."
+  ]
+}

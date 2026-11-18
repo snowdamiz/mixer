@@ -12,6 +12,127 @@ The iOS product target is **iOS 26.0 and later**, including iOS 27 and subsequen
 releases. Package and generated app deployment minimums are 26.0. Runtime
 qualification across supported versions remains pending; see product-plan §19.1.
 
+## Create, export, and build a local app
+
+Run these commands on an Apple silicon Mac from a checkout of the public
+`snowdamiz/mixer` repository. This Pair23 pin supplies the matching CLI, SDK,
+and Android adapter and includes the default starter's Android lock fix.
+Set `DEVELOPER_DIR` to your Xcode installation with the iOS Simulator SDK
+and Swift 6.2 or later.
+
+```sh
+mixer_rev=f048e40c529aa715ec32edc6f1f13476ed67b2a2
+work="$(mktemp -d "${TMPDIR:-/tmp}/mixer-local.XXXXXX")"
+mkdir "$work/inputs" "$work/exports"
+git archive "$mixer_rev" cli sdk updates native/android | tar -xf - -C "$work/inputs"
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+swift build --package-path "$work/inputs/cli" --scratch-path "$work/cli-build" --product mixer
+mixer_cli="$work/cli-build/debug/mixer"
+"$mixer_cli" version
+```
+
+Keep the CLI beside its SwiftPM resource bundle. Local builds may resolve
+pinned SwiftPM dependencies. They require neither a payment service nor
+store credentials.
+
+### Export and build for iOS Simulator
+
+```sh
+"$mixer_cli" create LocalIOS --platform ios --directory "$work/LocalIOS" \
+	--sdk-path "$work/inputs/sdk"
+"$mixer_cli" export "$work/exports/LocalIOS" --directory "$work/LocalIOS"
+"$mixer_cli" config validate --directory "$work/exports/LocalIOS"
+"$mixer_cli" build --platform ios --directory "$work/exports/LocalIOS"
+```
+
+The build creates an unsigned `LocalIOS.app` under
+`.mixer/ios-build/Build/Products/Debug-iphonesimulator/` in the export.
+The relocated starter built for arm64 Simulator. [Local verification](STATUS.md#november-18-local-verification)
+
+### Export and build for Android
+
+Install the official Swift 6.3.3 toolchain and its Android Swift SDK with
+NDK r27d, Android platform 37.0, build-tools 37.0.0, JDK 25, and Python 3.
+Set the following paths to your installations. Use Xcode 26.6 with its macOS
+26.5 SDK for the Android cross-build. Keep the same tool selections during
+creation, export, and build.
+
+```sh
+export DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer
+export MIXER_SWIFT="$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift"
+export MIXER_SWIFT_SDKS_PATH="$HOME/Library/org.swift.swiftpm/swift-sdks"
+export MIXER_ANDROID_ARTIFACT_PATH="$MIXER_SWIFT_SDKS_PATH/swift-6.3.3-RELEASE_android.artifactbundle/swift-android"
+export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+export MIXER_JDK=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
+
+"$mixer_cli" create LocalAndroid --platform android --directory "$work/LocalAndroid" \
+	--sdk-path "$work/inputs/sdk" --android-adapter-path "$work/inputs/native/android"
+cmp "$work/LocalAndroid/Platforms/Android/Package.resolved" \
+	"$work/LocalAndroid/Generated/MixerSDK/Package.resolved"
+"$mixer_cli" export "$work/exports/LocalAndroid" --directory "$work/LocalAndroid"
+"$mixer_cli" config validate --directory "$work/exports/LocalAndroid"
+"$mixer_cli" build --platform android --directory "$work/exports/LocalAndroid"
+```
+
+The default Android host is `legacy-v1`. Creation seeds
+`Platforms/Android/Package.resolved` with the admitted SDK pins and export
+preserves the lock. The build produces an unsigned arm64 APK at
+`.mixer/android-build/LocalAndroid-unsigned.apk` in the export. Add
+`--android-host public-v4` at creation to select the public V4 host.
+[Default starter build receipt](verification/receipts/android-starter-lock-pair23-735ecec.json)
+
+Export to a new directory outside the source project. You can move the export
+and build it after the original project and SDK checkout are out of reach.
+The export includes app source, the locked SDK, and the Android adapter when
+present. It excludes build caches, dotenv secrets, signing credentials, and
+provisioning profiles. Keep a separate copy of data stored by an installed app.
+[Independent host export receipt](verification/receipts/l01-public-cli-independent-export-41a05264.json)
+
+### Inspect an existing Swift app
+
+```sh
+"$mixer_cli" import "$work/LocalIOS/Sources" --output "$work/import.json"
+```
+
+Replace the source path with your app's Swift directory. For FieldLog, use
+`ios/FieldLog` in its separate checkout. The importer reads the source and
+writes an advisory migration report. Apply adaptations manually in your own
+project. The report leaves technical eligibility unverified.
+[FieldLog advisory import receipt](verification/receipts/fieldlog-advisory-import-root-r5864.json)
+
+### FieldLog Pair23 Android fixture
+
+FieldLog lives in a separate repository. The Android export used FieldLog
+revision `552559d2d3278abb9b1aa7dcf0288102c09a202b` with a local five-file
+migration. The migration updates the downstream workflow, recipe, recipe
+tests, README, and app-specific `Platforms/Android/Package.resolved`. The
+base checkout needs that migration to use Pair23. From the Mixer checkout,
+apply the verified patches to a fresh FieldLog checkout:
+
+```sh
+fieldlog_fixtures="$(pwd)/verification/fieldlog-pair23"
+git clone https://github.com/snowdamiz/fieldlog.git "$work/FieldLog"
+git -C "$work/FieldLog" checkout --detach 552559d2d3278abb9b1aa7dcf0288102c09a202b
+git -C "$work/FieldLog" apply "$fieldlog_fixtures/public-build.patch"
+git -C "$work/FieldLog" apply "$fieldlog_fixtures/draft-fields.patch"
+```
+
+The first patch reproduces the public export build. The second preserves
+field identities within each draft and gives new drafts fresh fields.
+Together they reproduce the app sources used for the Android photo
+persistence test. [Build receipt](verification/receipts/fieldlog-public-pair23-export-41a05264.json) · [Runtime receipt](verification/receipts/fieldlog-android-photo-persistence-41a05264.json)
+
+With the migration applied, follow `Integrations/GeneratedReport/README.md`.
+Use the CLI, SDK checkout, and adapter from Mixer revision
+`735ecec14e10e2dfed1e58a122c3fab08e569bef` for that recipe. It uses
+`public-v4` and preserves FieldLog's own dependency pins. Use
+`--prepare-only` to create the project. Pass the prepared project to
+`mixer export`, then pass the export to `mixer build --platform android`.
+The receipt covers a relocated development APK build.
+Signed update and rollback checks cover separate development fixtures.
+The ordinary FieldLog mobile OTA workflow remains open.
+[Current status](STATUS.md#november-18-local-verification)
+
 ## Local development
 
 The repository root is a Swift package exporting `MixerCore`, `MixerUI`,
@@ -50,11 +171,8 @@ Run the source CLI with `scripts/mixer`, or use
 scripts/mixer doctor
 scripts/mixer create MyApp
 scripts/mixer test --directory MyApp
-scripts/mixer build --platform ios --directory MyApp
 scripts/mixer run ios --device YOUR_BOOTED_SIMULATOR_UUID --directory MyApp
-scripts/mixer import /path/to/existing/swift/project
 scripts/mixer release inspect --directory MyApp
-scripts/mixer export /path/to/export --directory MyApp
 scripts/mixer submit status --provider app-store-connect --app-id ASC_APP_ID --build-id BUILD_ID --directory MyApp
 ```
 
@@ -76,26 +194,9 @@ parsing remains unfinished. Generated Xcode projects refuse to overwrite modifie
 project bytes. App-owned native source remains editable. Export excludes build
 caches, dotenv secrets, signing certificates/keys and provisioning profiles.
 
-Android consumer generation uses the installed official Swift6.3.3 Android SDK,
-NDKr27d, Android37.0/build-tools37.0.0 and JDK25. Their distributions and the copied
-owned Java/JNI/runtime sources are locked at creation:
-
-```sh
-scripts/mixer create MyAndroidApp --platform android
-scripts/mixer build --platform android --directory MyAndroidApp
-```
-
-To generate an app-owned Activity using the public V3 Swift host and Java native
-renderer, select the host explicitly:
-
-```sh
-scripts/mixer create NativeAndroidApp --platform android --android-host public-v3
-scripts/mixer build --platform android --directory NativeAndroidApp
-```
-
-The generated starter batches native input against one installed snapshot and
+The public Android host batches native input against one installed snapshot and
 publishes one model revision per batch. It preserves the original event bytes and
-refuses stale owners or revisions. Omitting `--android-host` keeps the legacy starter.
+refuses stale owners or revisions.
 API37 emulator tests cover native typing, Add with draft reset, and Toggle.
 OS IME service behavior, keyboard/window parity, physical devices, and immutable
 published-package qualification remain pending.
@@ -138,8 +239,7 @@ VM libraries. CI performs the static build and runs the corresponding host suite
 `tests/integration/release-workflow.py` exercises actual local HTTP delivery,
 the Swift verifier and integer VM together. `mixer update verify` uses private
 bounded snapshots of all input files; it does not publish or activate an update.
-See the integration README for build prerequisites. FieldLog lives separately at
-`../fieldlog`; its native offline baseline is not a completed dogfood milestone.
+See the integration README for build prerequisites.
 
 ## Evidence and delivery
 

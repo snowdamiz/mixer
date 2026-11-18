@@ -1,0 +1,533 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 73b481f6d58e46d71175ae805004ddd9ee39bd81..af6616a5333505224180a02d12df3eea1c9b213d 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -7,6 +7,15 @@ import MixerUI
+ import MixerAndroid
+ 
+ public enum PublicHostError: Error { case bounds, surface, closed, profile, context, storage, action }
++// Replacing a draft retires its native fields, including any active editor.
++private enum EntryField: String {
++    case title, note, date
++
++    func nodeID(_ draftID: UUID) -> String {
++        "entry." + draftID.uuidString.lowercased() + "." + rawValue
++    }
++}
++
+ // A deliberately finite RFC3339 subset: Gregorian years 0001...9999,
+ // seconds 00...59, 1...3 fractional digits, and Z or an explicit ±HH:MM.
+ // Civil-day arithmetic rejects invalid dates without calendar normalization.
+@@ -184,10 +193,11 @@ private enum WorkspaceEdit: Sendable {
+     }
+     // V4's SDK value policy covers vertical fields. The app opts only its note
+     // into that allowance, including transaction projections that have no event.
+-    private nonisolated static func appPacket(_ snapshot: UIRenderSnapshot) throws -> Data {
++    private nonisolated static func appPacket(_ snapshot: UIRenderSnapshot, draftID: UUID? = nil) throws -> Data {
++        let noteID = draftID.map(EntryField.note.nodeID)
+         var pending = [snapshot.document.root]
+         while let node = pending.popLast() {
+-            if node.kind == .textField, node.id != "entry.note", let value = node.properties["value"]?.string {
++            if node.kind == .textField, node.id != noteID, let value = node.properties["value"]?.string {
+                 guard UITextValuePolicy.standard.accepts(value, for: node) else {
+                     throw UIValidationError.limitExceeded("stringBytes")
+                 }
+@@ -215,8 +225,9 @@ private enum WorkspaceEdit: Sendable {
+         let actions = try events.map { try captured.route($0) }
+         // Public V4 grants long values to vertical fields. FieldLog selects that
+         // permission only for its note; every other field keeps the standard bound.
++        let noteID = entryState.map { EntryField.note.nodeID($0.draft.id) }
+         for action in actions {
+-            if case let .string(value) = action.value, action.nodeID != "entry.note" {
++            if case let .string(value) = action.value, action.nodeID != noteID {
+                 guard value.utf8.count <= UIValidationLimits.standard.maximumStringBytes,
+                       !value.utf8.contains(0) else { throw PublicHostError.bounds }
+             }
+@@ -435,13 +446,14 @@ private enum WorkspaceEdit: Sendable {
+     }
+     private func editEntry(_ actions: [RoutedUIAction]) throws {
+         guard let current = entryState, current.committed == nil else { throw PublicHostError.action }
++        let draftID = current.draft.id
+         // All actions are still from the one original snapshot. Validate the entire
+         // grammar before invoking a reducer or admitting its repository callback.
+         for (index, action) in actions.enumerated() {
+             switch (action.nodeID, action.actionID, action.event, action.value) {
+-            case ("entry.title", "entry.title.change", .textChange, .string),
+-                 ("entry.note", "entry.note.change", .textChange, .string),
+-                 ("entry.date.input", "entry.date.change", .textChange, .string): break
++            case (EntryField.title.nodeID(draftID), "entry.title.change", .textChange, .string),
++                 (EntryField.note.nodeID(draftID), "entry.note.change", .textChange, .string),
++                 (EntryField.date.nodeID(draftID), "entry.date.change", .textChange, .string): break
+             case (let id, let actionID, .activate, .null) where EntryCategory.allCases.contains(where: { id == "entry.category." + $0.rawValue && actionID == id }): break
+             case ("entry.photo.select", "entry.photo.select", .activate, .null):
+                 guard index == actions.count - 1, photoRequest == nil, current.draft.attachmentIDs.count < 8 else { throw PublicHostError.action }
+@@ -458,7 +470,7 @@ private enum WorkspaceEdit: Sendable {
+         var dateText: String? = actions.isEmpty && !preservingDateInput ? nil : entryDateInput.flatMap { $0.draftID == draft?.id ? $0.text : nil }
+         var parsedDates: [Int: Date] = [:]
+         for (index, action) in actions.enumerated() {
+-            if action.nodeID == "entry.date.input", case .string(let value) = action.value {
++            if action.actionID == "entry.date.change", case .string(let value) = action.value {
+                 guard value.utf8.count <= UIValidationLimits.standard.maximumStringBytes,
+                       !value.utf8.contains(0) else { throw PublicHostError.bounds }
+                 if value != (dateText ?? draft.map { EntryDateText.format($0.occurredAt) }) {
+@@ -486,11 +498,11 @@ private enum WorkspaceEdit: Sendable {
+         let priorPhoto = (photoRequest, photoDelivered, photoReserved, photoMessage)
+         do {
+             for (index, action) in actions.enumerated() {
+-                switch (action.nodeID, action.event, action.value) {
+-                case ("entry.date.input", .textChange, .string):
++                switch (action.actionID, action.event, action.value) {
++                case ("entry.date.change", .textChange, .string):
+                     if let date = parsedDates[index] { try candidate.changeOccurredAt(date) }
+-                case ("entry.title", .textChange, .string(let text)): try candidate.changeTitle(text)
+-                case ("entry.note", .textChange, .string(let text)): try candidate.changeNote(text)
++                case ("entry.title.change", .textChange, .string(let text)): try candidate.changeTitle(text)
++                case ("entry.note.change", .textChange, .string(let text)): try candidate.changeNote(text)
+                 case ("entry.photo.select", .activate, .null):
+                     try EntrySaveIntent(projectID: project, draft: candidate.state.draft, kind: .draft).validate()
+                     photoRequest = PhotoSelectionRequest(id: UUID(), draftID: candidate.state.draft.id, generation: photoGeneration)
+@@ -558,7 +570,7 @@ private enum WorkspaceEdit: Sendable {
+                 taskPage: taskPage, queuePage: queuePage, busy: false, feedback: nil, failure: nil,
+                 revision: revision + 1, entries: true, entry: phase, entryPage: entryPage, draftPage: draftPage, dateInput: dateInput,
+                 photoPending: photoPending, photoMessage: photoMessage, photoBusy: photoBusy))
+-            _ = try appPacket(projection.currentSnapshot())
++            _ = try appPacket(projection.currentSnapshot(), draftID: phase.draft.id)
+         }
+     }
+     private nonisolated static func entryDocument(_ state: EntryEditorState, workspace: Workspace, project: UUID, entryPage: Int, draftPage: Int, revision: UInt64, dateInput: String?, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil) -> UIDocument {
+@@ -575,10 +587,10 @@ private enum WorkspaceEdit: Sendable {
+                     MixerUI.Button("entry.new", "New entry", action: "entry.new").accessibilityIdentifier("entry-new").disabled(state.saving)
+                 }
+                 MixerUI.Section("entry.fields", title: "Entry") {
+-                    MixerUI.TextField("entry.title", "Title", value: state.draft.title, action: "entry.title.change", axis: .vertical).accessibilityIdentifier("entry-title").disabled(inactive)
+-                    MixerUI.TextField("entry.note", "Note", value: state.draft.note, action: "entry.note.change", axis: .vertical).accessibilityIdentifier("entry-note").disabled(inactive)
++                    MixerUI.TextField(EntryField.title.nodeID(state.draft.id), "Title", value: state.draft.title, action: "entry.title.change", axis: .vertical).accessibilityIdentifier("entry-title").disabled(inactive)
++                    MixerUI.TextField(EntryField.note.nodeID(state.draft.id), "Note", value: state.draft.note, action: "entry.note.change", axis: .vertical).accessibilityIdentifier("entry-note").disabled(inactive)
+                     MixerUI.Text("entry.occurredAt", "Occurred at: " + state.draft.occurredAt.formatted(.iso8601.year().month().day().time(includingFractionalSeconds: true).timeZone(separator: .colon)))
+-                    MixerUI.TextField("entry.date.input", "Date and time (include timezone)", value: dateInput ?? EntryDateText.format(state.draft.occurredAt), action: "entry.date.change").accessibilityIdentifier("entry-date").disabled(inactive)
++                    MixerUI.TextField(EntryField.date.nodeID(state.draft.id), "Date and time (include timezone)", value: dateInput ?? EntryDateText.format(state.draft.occurredAt), action: "entry.date.change").accessibilityIdentifier("entry-date").disabled(inactive)
+                     MixerUI.Text("entry.date.help", EntryDateText.help)
+                     if !dateValid { MixerUI.Text("entry.date.error", EntryDateText.error) }
+                     MixerUI.Button("entry.photo.select", "Select photo", action: "entry.photo.select").accessibilityIdentifier("entry-photo-select").disabled(inactive || photoPending || state.draft.attachmentIDs.count >= 8)
+@@ -707,10 +719,11 @@ private enum WorkspaceEdit: Sendable {
+     }
+     private func render(_ state: TaskEditorState, workspace: Workspace? = nil, queue: Bool? = nil, entries: Bool? = nil, entry: EntryEditorState? = nil, dateInput: String? = nil, entryPage: Int? = nil, draftPage: Int? = nil, taskPage: Int? = nil, queuePage: Int? = nil, busy: Bool? = nil, feedback: String?, failure: String?) throws -> (UIReconciler, UIRenderSnapshot) {
+         guard snapshot.document.revision < UInt64.max else { throw PublicHostError.bounds }
++        let renderedEntry = entry ?? entryState
+         var next = reconciler
+-        try next.apply(Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: entry ?? entryState, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage))
++        try next.apply(Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage))
+         let result = try next.currentSnapshot()
+-        _ = try Self.appPacket(result)
++        _ = try Self.appPacket(result, draftID: renderedEntry?.draft.id)
+         return (next, result)
+     }
+     private func publish() { for receive in Array(observers.values) { receive(snapshot) } }
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift
+index 3ea8a665c22024702d6965514d7ff9954cdd4f3f..2c64ef58924cf96b8713872e6c074c48b3fd7f44 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift
+@@ -6,18 +6,17 @@ import MixerUI
+ import MixerAndroid
+ @testable import FieldLogAndroid
+ 
+-private func dateNodes(_ n: UINode) -> [UINode] { [n] + n.children.flatMap(dateNodes) }
+ @MainActor private func dateNode(_ app: PublicAndroidApplication, _ id: String) throws -> UINode {
+-    try XCTUnwrap(dateNodes(app.presentation.snapshot.document.root).first { $0.id == id })
++    try XCTUnwrap(fieldLogNode(id, in: app.presentation.snapshot.document.root))
+ }
+ @MainActor private func dateValue(_ app: PublicAndroidApplication) throws -> String {
+-    try XCTUnwrap(dateNode(app, "entry.date.input").properties["value"]?.string)
++    try XCTUnwrap(dateNode(app, "entry-date").properties["value"]?.string)
+ }
+ private func dateDirectory(_ label: String) -> URL {
+     URL(fileURLWithPath: ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]!).appendingPathComponent("date-" + label)
+ }
+ @MainActor private func typeDate(_ app: PublicAndroidApplication, _ text: String) throws {
+-    try send(app, "entry.date.input", .textChange, .string(text))
++    try send(app, "entry-date", .textChange, .string(text))
+ }
+ 
+ final class EntryDatePresentationTests: XCTestCase {
+@@ -25,8 +24,8 @@ final class EntryDatePresentationTests: XCTestCase {
+         let dir = dateDirectory("roundtrip"), app = try await open(dir)
+         try send(app, "workspace.entries")
+         let note = "e\u{301}\n👩🏽‍🔬 exact\n"
+-        try send(app, "entry.title", .textChange, .string("Leap day"))
+-        try send(app, "entry.note", .textChange, .string(note))
++        try send(app, "entry-title", .textChange, .string("Leap day"))
++        try send(app, "entry-note", .textChange, .string(note))
+         let before = try Data(contentsOf: file(dir))
+         let raw = "2024-02-29T23:45:12.125+05:30"
+         try typeDate(app, raw)
+@@ -85,7 +84,7 @@ final class EntryDatePresentationTests: XCTestCase {
+     @MainActor func testInvalidPartialInputRetainedNavigationAndWholeBatchRefusal() async throws {
+         let dir = dateDirectory("invalid"), app = try await open(dir)
+         try send(app, "workspace.entries")
+-        try send(app, "entry.title", .textChange, .string("Valid title"))
++        try send(app, "entry-title", .textChange, .string("Valid title"))
+         try typeDate(app, "2024-02-29T00:00:00Z")
+         let valid = try XCTUnwrap(app.presentation.entryState).draft.occurredAt
+         let raw = "2024-02-"
+@@ -107,8 +106,8 @@ final class EntryDatePresentationTests: XCTestCase {
+         XCTAssertEqual(try dateValue(app), raw)
+         try typeDate(app, "2024-02-29T00:00:00Z")
+         let captured = app.presentation.snapshot, state = app.presentation.entryState
+-        let title = try event(app, "entry.title", .textChange, .string("Must not leak"))
+-        let invalid = try event(app, "entry.date.input", .textChange, .string("2023-02-29T00:00:00Z"))
++        let title = try event(app, "entry-title", .textChange, .string("Must not leak"))
++        let invalid = try event(app, "entry-date", .textChange, .string("2023-02-29T00:00:00Z"))
+         let save = try event(app, "entry.saveDraft")
+         try rejects("invalid date plus save is atomic") { try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode([title, invalid, save])) }
+         XCTAssertEqual(app.presentation.entryState, state)
+@@ -117,7 +116,7 @@ final class EntryDatePresentationTests: XCTestCase {
+         XCTAssertEqual(try Data(contentsOf: file(dir)), before)
+         XCTAssertEqual(app.presentation.workspace.outbox.filter { $0.kind == .entrySaved }.count, 0)
+         // A stale event from the previous draft must not edit the new draft.
+-        let stale = try event(app, "entry.date.input", .textChange, .string("2026-01-01T00:00:00Z"))
++        let stale = try event(app, "entry-date", .textChange, .string("2026-01-01T00:00:00Z"))
+         try send(app, "entry.new")
+         let newDate = app.presentation.entryState?.draft.occurredAt
+         try rejects("crossdraft date") { try app.send(owner: app.host.owner!, originalEnvelope: JSONEncoder().encode(stale)) }
+@@ -163,7 +162,7 @@ final class EntryDatePresentationTests: XCTestCase {
+     @MainActor func testBatchedDateCategorySaveStorageFailureRetainsExactRetry() async throws {
+         let dir = dateDirectory("storage-retry"), app = try await open(dir)
+         try send(app, "workspace.entries")
+-        try send(app, "entry.title", .textChange, .string("Retry exact"))
++        try send(app, "entry-title", .textChange, .string("Retry exact"))
+         let raw = "2000-02-29T01:00:00.125+01:00"
+         let expected = Date(timeIntervalSince1970: 951782400.125)
+         let originalFile = file(dir), backup = originalFile.appendingPathExtension("r780-backup")
+@@ -172,7 +171,7 @@ final class EntryDatePresentationTests: XCTestCase {
+         // exact original file to prove the presentation can retry the same input.
+         try FileManager.default.moveItem(at: originalFile, to: backup)
+         try FileManager.default.createDirectory(at: originalFile, withIntermediateDirectories: false)
+-        let batch = [try event(app, "entry.date.input", .textChange, .string(raw)),
++        let batch = [try event(app, "entry-date", .textChange, .string(raw)),
+                      try event(app, "entry.category.delivery"), try event(app, "entry.saveDraft")]
+         try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(batch))
+         try await app.settle()
+@@ -189,7 +188,7 @@ final class EntryDatePresentationTests: XCTestCase {
+         XCTAssertEqual(app.presentation.workspace.drafts.first?.occurredAt, expected)
+         XCTAssertEqual(try dateValue(app), raw)
+         let edited = "2000-03-01T01:00:00.125+01:00"
+-        let commit = [try event(app, "entry.date.input", .textChange, .string(edited)),
++        let commit = [try event(app, "entry-date", .textChange, .string(edited)),
+                       try event(app, "entry.category.issue"), try event(app, "entry.commit")]
+         try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(commit))
+         try await app.settle()
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
+index 4436d5dc61cecc3f0043d5e9f1b029e6baa05d88..f2d0c7d998b45670c360c4096fbac2a7fc53e23f 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
+@@ -15,8 +15,8 @@ private func entryDirectory(_ label: String) -> URL {
+     URL(fileURLWithPath: ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]!).appendingPathComponent("entry-" + label)
+ }
+ @MainActor private func typeEntry(_ app: PublicAndroidApplication, title: String, note: String) throws {
+-    try send(app, "entry.title", .textChange, .string(title))
+-    try send(app, "entry.note", .textChange, .string(note))
++    try send(app, "entry-title", .textChange, .string(title))
++    try send(app, "entry-note", .textChange, .string(note))
+ }
+ 
+ final class EntryPresentationTests: XCTestCase {
+@@ -50,11 +50,11 @@ final class EntryPresentationTests: XCTestCase {
+         XCTAssertEqual(saved.outbox.filter { $0.kind == .entrySaved }.count, 0)
+         try rejects("closed owner") { try app.send(owner: oldOwner, originalEnvelope: JSONEncoder().encode(stale)) }
+         let fresh = try await open(dir)
+-        XCTAssertNotNil(fresh.presentation.snapshot.identity(for: "entry.note"), "Restoration selects the durable draft")
++        XCTAssertNotNil(fieldLogNode("entry-note", in: fresh.presentation.snapshot.document.root), "Restoration selects the durable draft")
+         XCTAssertEqual(fresh.presentation.entryState?.draft.id, draft.id)
+         XCTAssertTrue(try XCTUnwrap(fresh.presentation.entryState).draft.note.utf8.elementsEqual(note.utf8))
+         try rejects("wrong owner") { try fresh.send(owner: oldOwner, originalEnvelope: JSONEncoder().encode(stale)) }
+-        try send(fresh, "entry.note", .textChange, .string(note + "Edited\n"))
++        try send(fresh, "entry-note", .textChange, .string(note + "Edited\n"))
+         let commit = try event(fresh, "entry.commit")
+         try send(fresh, "entry.commit"); try await fresh.settle()
+         XCTAssertEqual(fresh.presentation.workspace.entries.count, 1)
+@@ -78,12 +78,12 @@ final class EntryPresentationTests: XCTestCase {
+         let dir = entryDirectory("batch"), app = try await open(dir)
+         try send(app, "workspace.entries")
+         let diskBefore = try Data(contentsOf: file(dir))
+-        let disabled = [try event(app, "entry.title", .textChange, .string("Ready")), try event(app, "entry.commit")]
++        let disabled = [try event(app, "entry-title", .textChange, .string("Ready")), try event(app, "entry.commit")]
+         try rejects("disabled original commit cannot be rebased") { try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(disabled)) }
+         try typeEntry(app, title: "Ready", note: "Old")
+         let captured = app.presentation.snapshot, before = app.presentation.entryState
+-        let title = try event(app, "entry.title", .textChange, .string("Updated"))
+-        let note = try event(app, "entry.note", .textChange, .string("e\u{301}\n🧪"))
++        let title = try event(app, "entry-title", .textChange, .string("Updated"))
++        let note = try event(app, "entry-note", .textChange, .string("e\u{301}\n🧪"))
+         let commit = try event(app, "entry.commit"), queue = try event(app, "workspace.queue")
+         var publications = 0
+         let unsubscribe = app.presentation.observe { _ in publications += 1 }; defer { unsubscribe() }
+@@ -94,9 +94,9 @@ final class EntryPresentationTests: XCTestCase {
+         XCTAssertEqual(app.presentation.snapshot.document, captured.document)
+         XCTAssertEqual(publications, 0)
+         XCTAssertEqual(try Data(contentsOf: file(dir)), diskBefore)
+-        try rejects("wrong event kind") { try send(app, "entry.note", .activate, .null) }
+-        try rejects("wrong value") { try send(app, "entry.note", .textChange, .bool(true)) }
+-        try rejects("V4 oversized field") { try send(app, "entry.note", .textChange, .string(String(repeating: "é", count: 50_001))) }
++        try rejects("wrong event kind") { try send(app, "entry-note", .activate, .null) }
++        try rejects("wrong value") { try send(app, "entry-note", .textChange, .bool(true)) }
++        try rejects("V4 oversized field") { try send(app, "entry-note", .textChange, .string(String(repeating: "é", count: 50_001))) }
+         XCTAssertEqual(app.presentation.entryState, before)
+         XCTAssertEqual(try Data(contentsOf: file(dir)), diskBefore)
+         try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode([title, note, commit]))
+@@ -133,7 +133,7 @@ final class EntryPresentationTests: XCTestCase {
+         XCTAssertTrue(try entryNode(app, "entry.occurredAt").properties["text"]!.string!.contains("875"))
+         XCTAssertTrue(try entryNode(app, "entry.date.help").properties["text"]!.string!.contains("not available"))
+         XCTAssertEqual(try Data(contentsOf: file(dir)), before)
+-        try send(app, "entry.title", .textChange, .string("First edited"))
++        try send(app, "entry-title", .textChange, .string("First edited"))
+         try send(app, "entry.commit"); try await app.settle()
+         let committed = try XCTUnwrap(app.presentation.workspace.entries.first)
+         XCTAssertEqual(committed.attachmentIDs, selected.attachmentIDs)
+@@ -216,7 +216,7 @@ final class EntryPresentationTests: XCTestCase {
+         XCTAssertEqual(app.presentation.workspace.drafts.count, 1)
+         XCTAssertTrue(app.presentation.workspace.entries.isEmpty)
+         let before = try Data(contentsOf: file(dir))
+-        try send(app, "entry.note", .textChange, .string("unsafe\u{0}note"))
++        try send(app, "entry-note", .textChange, .string("unsafe\u{0}note"))
+         try send(app, "entry.saveDraft"); try await app.settle()
+         XCTAssertNotNil(app.presentation.entryState?.failure)
+         XCTAssertEqual(app.presentation.entryState?.draft.note, "unsafe\u{0}note")
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+index 0b382f9e01cdf4e580870cc5c17536a80ccf7c0c..6c32516b6ae81f9385785b9f9d873680635d93a5 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+@@ -16,7 +16,8 @@ private struct Packet {
+     let document: UIDocument
+     let identities: [UINodeIdentity]
+     func event(_ id: String, _ kind: UIEventKind, _ value: UIValue = .null) throws -> UIEventEnvelope {
+-        UIEventEnvelope(revision: document.revision, identity: try XCTUnwrap(identities.first { $0.id == id }), event: kind, value: value)
++        let node = try XCTUnwrap(fieldLogNode(id, in: document.root))
++        return UIEventEnvelope(revision: document.revision, identity: try XCTUnwrap(identities.first { $0.id == node.id }), event: kind, value: value)
+     }
+ }
+ @MainActor private enum Captures {
+@@ -80,6 +81,61 @@ private let callback: @convention(c) @Sendable (Int64, Int32, UnsafePointer<UInt
+ }
+ 
+ final class FieldLogGeneratedHostTests: XCTestCase {
++    @MainActor func testNewEntryReplacesEditedDraftFieldIdentitiesAndKeepsSelectors() throws {
++        let root = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]))
++        let dir = root.appendingPathComponent("centry-new-entry")
++        let context: Int64 = 403
++        XCTAssertEqual(try request(context, 0, directory: dir), 1)
++        defer { XCTAssertEqual(try request(context, 2), 1) }
++
++        func packet() throws -> Packet {
++            try Packet.decode(XCTUnwrap(Captures.frames[context]?.last).packet)
++        }
++        func send(_ events: [UIEventEnvelope], expected: Int32 = 1) throws {
++            let owner = try XCTUnwrap(Captures.frames[context]?.last).owner
++            XCTAssertEqual(try request(context, 1, owner: owner, event: JSONEncoder().encode(events)), expected)
++        }
++        func field(_ selector: String, in packet: Packet) throws -> UINode {
++            var pending = [packet.document.root]
++            var matching: [UINode] = []
++            while let node = pending.popLast() {
++                if node.properties["accessibilityIdentifier"] == .string(selector) { matching.append(node) }
++                pending.append(contentsOf: node.children)
++            }
++            XCTAssertEqual(matching.count, 1, selector)
++            let node = try XCTUnwrap(matching.first)
++            XCTAssertEqual(node.kind, .textField)
++            return node
++        }
++
++        try send([packet().event("workspace.entries", .activate)])
++        let initial = try packet()
++        let edits = [("entry-title", "Inspection"), ("entry-note", "First draft\n"), ("entry-date", "2024-02-29T23:45:12.125+05:30")]
++        try send(edits.map { selector, value in
++            try initial.event(field(selector, in: initial).id, .textChange, .string(value))
++        })
++        let edited = try packet()
++        let oldFields = try edits.map { selector, value in
++            let current = try field(selector, in: edited)
++            XCTAssertEqual(current.properties["value"], .string(value))
++            XCTAssertEqual(try edited.event(current.id, .textChange).identity,
++                           try initial.event(field(selector, in: initial).id, .textChange).identity)
++            return current
++        }
++
++        let before = try Data(contentsOf: file(dir))
++        try send([edited.event("entry.new", .activate)])
++        let replacement = try packet()
++        XCTAssertEqual(replacement.document.revision, edited.document.revision + 1)
++        for ((selector, value), old) in zip(edits, oldFields) {
++            let new = try field(selector, in: replacement)
++            XCTAssertEqual(new.actions, old.actions)
++            XCTAssertNotEqual(new.properties["value"], .string(value))
++            XCTAssertNil(replacement.identities.first { $0.id == old.id }, selector)
++        }
++        XCTAssertEqual(try Data(contentsOf: file(dir)), before)
++    }
++
+     @MainActor func testV4DirectoryABIOriginalLongNoteSaveFreshReopenCommit() throws {
+         let root = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]))
+         let dir = root.appendingPathComponent("centry-v4-long-note")
+@@ -88,11 +144,11 @@ final class FieldLogGeneratedHostTests: XCTestCase {
+         var packet = try Packet.decode(frame.packet)
+         XCTAssertEqual(try request(401, 1, owner: frame.owner, event: JSONEncoder().encode(packet.event("workspace.entries", .activate))), 1)
+         frame = try XCTUnwrap(Captures.frames[401]?.last); packet = try Packet.decode(frame.packet)
+-        XCTAssertEqual(try request(401, 1, owner: frame.owner, event: JSONEncoder().encode(packet.event("entry.title", .textChange, .string("C-entry V4")))), 1)
++        XCTAssertEqual(try request(401, 1, owner: frame.owner, event: JSONEncoder().encode(packet.event("entry-title", .textChange, .string("C-entry V4")))), 1)
+         frame = try XCTUnwrap(Captures.frames[401]?.last); packet = try Packet.decode(frame.packet)
+         let note = String(repeating: "é\n", count: 33_333) + "X"
+         XCTAssertEqual(note.utf8.count, 100_000)
+-        let batch = try JSONEncoder().encode([packet.event("entry.note", .textChange, .string(note)), packet.event("entry.saveDraft", .activate)])
++        let batch = try JSONEncoder().encode([packet.event("entry-note", .textChange, .string(note)), packet.event("entry.saveDraft", .activate)])
+         XCTAssertGreaterThan(batch.count, 131_072)
+         XCTAssertEqual(try request(401, 1, owner: frame.owner, event: batch), 1)
+         XCTAssertEqual(Array(try disk(dir).drafts[0].note.utf8), Array(note.utf8))
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+index b03adc2dc8b7ffe0ea83b89f9217b400be65de3f..f9a9ee879fff99f85aed25f6b47f37087ba9e56f 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+@@ -32,9 +32,16 @@ func rejects(_ label: String, _ action: () throws -> Void) throws {
+     }
+     func revoke(owner: UUID) { precondition(owner == self.owner); self.owner = nil }
+ }
++func fieldLogNode(_ idOrSelector: String, in root: UINode) -> UINode? {
++    if root.id == idOrSelector || root.properties["accessibilityIdentifier"] == .string(idOrSelector) { return root }
++    for child in root.children {
++        if let match = fieldLogNode(idOrSelector, in: child) { return match }
++    }
++    return nil
++}
+ @MainActor func event(_ app: PublicAndroidApplication, _ id: String, _ kind: UIEventKind = .activate, _ value: UIValue = .null) throws -> UIEventEnvelope {
+     let s = app.presentation.snapshot
+-    guard let identity = s.identity(for: id) else { throw ReviewError.failed("Missing node " + id) }
++    guard let node = fieldLogNode(id, in: s.document.root), let identity = s.identity(for: node.id) else { throw ReviewError.failed("Missing node " + id) }
+     return UIEventEnvelope(revision: s.document.revision, identity: identity, event: kind, value: value)
+ }
+ @MainActor func send(_ app: PublicAndroidApplication, _ id: String, _ kind: UIEventKind = .activate, _ value: UIValue = .null) throws {
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/LongNoteV4Tests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/LongNoteV4Tests.swift
+index e313f20b7bd3f699b5f3189c4ebbd4a490eae2e0..c4880a8a16a1e378faa5f15b196c3e148476146e 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/LongNoteV4Tests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/LongNoteV4Tests.swift
+@@ -12,15 +12,15 @@ final class LongNoteV4Tests: XCTestCase {
+         let dir = root.appendingPathComponent("long-note-v4")
+         let app = try await open(dir)
+         try send(app, "workspace.entries")
+-        try send(app, "entry.title", .textChange, .string("Long note 🧪"))
++        try send(app, "entry-title", .textChange, .string("Long note 🧪"))
+         let note = String(repeating: "é\n", count: 33_333) + "X"
+         XCTAssertEqual(note.utf8.count, 100_000)
+-        let original = try JSONEncoder().encode([event(app, "entry.note", .textChange, .string(note)), event(app, "entry.saveDraft")])
++        let original = try JSONEncoder().encode([event(app, "entry-note", .textChange, .string(note)), event(app, "entry.saveDraft")])
+         XCTAssertGreaterThan(original.count, 131_072)
+         XCTAssertLessThan(original.count, AndroidUIProfile.measuredMultilineLongNotesV4.maximumEventBytes)
+         let before = try Data(contentsOf: file(dir))
+         let state = app.presentation.entryState, snapshot = app.presentation.snapshot.document
+-        for (id, value) in [("entry.note", note + "X"), ("entry.title", String(repeating: "é", count: 8193)), ("entry.title", "unsafe\u{0}title")] {
++        for (id, value) in [("entry-note", note + "X"), ("entry-title", String(repeating: "é", count: 8193)), ("entry-title", "unsafe\u{0}title")] {
+             try rejects("V4 field refusal " + id) { try send(app, id, .textChange, .string(value)) }
+             XCTAssertEqual(app.presentation.entryState, state)
+             XCTAssertEqual(app.presentation.snapshot.document, snapshot)
+@@ -70,7 +70,7 @@ final class LongNoteV4Tests: XCTestCase {
+         try send(app, "workspace.entries")
+         var legacy = UIReconciler(validator: UIValidator(supportedTextFieldAxes: AndroidUIProfile.measuredMultilineRetirementV3.capabilities.textFieldAxes))
+         try legacy.apply(app.presentation.snapshot.document)
+-        let oldEnvelope = try event(app, "entry.note", .textChange, .string(String(repeating: "é", count: 8193)))
++        let oldEnvelope = try event(app, "entry-note", .textChange, .string(String(repeating: "é", count: 8193)))
+         XCTAssertThrowsError(try legacy.currentSnapshot().route(oldEnvelope), "Original V3 oversized-field refusal remains")
+         await app.close()
+     }
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
+index c45aad06d0ec746deacd77b2a1585b7c4eedd1dd..6ffcc9ade79a1a302972ae18c4a35281614e973d 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
+@@ -36,9 +36,9 @@ final class PhotoSelectionTests: XCTestCase {
+         let dir = photoDir("roundtrip"), app = try await open(dir)
+         try send(app, "workspace.entries")
+         let before = try Data(contentsOf: file(dir)), note = "e\u{301}\n👩🏽‍🔬 exact\n"
+-        let batch = [try event(app, "entry.title", .textChange, .string("Photo entry")),
+-                     try event(app, "entry.note", .textChange, .string(note)),
+-                     try event(app, "entry.date.input", .textChange, .string("2024-02-29T01:00:00+01:00")),
++        let batch = [try event(app, "entry-title", .textChange, .string("Photo entry")),
++                     try event(app, "entry-note", .textChange, .string(note)),
++                     try event(app, "entry-date", .textChange, .string("2024-02-29T01:00:00+01:00")),
+                      try event(app, "entry.category.issue"), try event(app, "entry.photo.select")]
+         var publications = 0
+         let cancel = app.presentation.observe { _ in publications += 1 }
+@@ -48,7 +48,7 @@ final class PhotoSelectionTests: XCTestCase {
+         let request = try XCTUnwrap(app.presentation.takePhotoRequest())
+         XCTAssertNil(app.presentation.takePhotoRequest())
+         XCTAssertEqual(request.draftID, app.presentation.entryState?.draft.id)
+-        try send(app, "entry.note", .textChange, .string(note + "later edit"))
++        try send(app, "entry-note", .textChange, .string(note + "later edit"))
+         try send(app, "entry.saveDraft")
+         let accepted = await app.presentation.completePhoto(requestID: request.id, result: .jpeg(photoJPEG))
+         XCTAssertTrue(accepted)
+@@ -73,10 +73,10 @@ final class PhotoSelectionTests: XCTestCase {
+         let dir = photoDir("refusals"), app = try await open(dir)
+         try send(app, "workspace.entries")
+         let before = try Data(contentsOf: file(dir)), state = app.presentation.entryState, snapshot = app.presentation.snapshot
+-        let select = try event(app, "entry.photo.select"), title = try event(app, "entry.title", .textChange, .string("Must not leak"))
+-        let invalid = try event(app, "entry.date.input", .textChange, .string("2024-02-"))
+-        let nul = try event(app, "entry.note", .textChange, .string("bad\0note"))
+-        let oversized = try event(app, "entry.note", .textChange, .string(String(repeating: "a", count: 100001)))
++        let select = try event(app, "entry.photo.select"), title = try event(app, "entry-title", .textChange, .string("Must not leak"))
++        let invalid = try event(app, "entry-date", .textChange, .string("2024-02-"))
++        let nul = try event(app, "entry-note", .textChange, .string("bad\0note"))
++        let oversized = try event(app, "entry-note", .textChange, .string(String(repeating: "a", count: 100001)))
+         for batch in [[select, title], [title, select, select], [title, invalid, select], [nul, select], [oversized, select]] {
+             try rejects("photo original batch refusal") { try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(batch)) }
+             XCTAssertEqual(app.presentation.entryState, state)
+@@ -90,8 +90,8 @@ final class PhotoSelectionTests: XCTestCase {
+         let results: [PhotoSelectionResult] = [.cancelled, .failed(.denied), .failed(.invalid), .failed(.tooLarge), .failed(.unavailable), .jpeg(Data()), .jpeg(Data([1, 2, 3]))]
+         for (index, result) in results.enumerated() {
+             let dir = photoDir("zero-\(index)"), app = try await open(dir)
+-            try send(app, "workspace.entries"); try send(app, "entry.title", .textChange, .string("Keep title"))
+-            try send(app, "entry.note", .textChange, .string("Keep\nexact"))
++            try send(app, "workspace.entries"); try send(app, "entry-title", .textChange, .string("Keep title"))
++            try send(app, "entry-note", .textChange, .string("Keep\nexact"))
+             let draft = app.presentation.entryState?.draft, before = try Data(contentsOf: file(dir))
+             try send(app, "entry.photo.select")
+             let request = try XCTUnwrap(app.presentation.takePhotoRequest())
+@@ -119,11 +119,11 @@ final class PhotoSelectionTests: XCTestCase {
+         XCTAssertFalse(late)
+         try send(app, "entry.photo.select")
+         let invalid = try XCTUnwrap(app.presentation.takePhotoRequest())
+-        try send(app, "entry.date.input", .textChange, .string("2024-02-"))
++        try send(app, "entry-date", .textChange, .string("2024-02-"))
+         let before = try Data(contentsOf: file(dir))
+         let rejected = await app.presentation.completePhoto(requestID: invalid.id, result: .jpeg(photoJPEG))
+         XCTAssertFalse(rejected); XCTAssertEqual(try Data(contentsOf: file(dir)), before)
+-        try send(app, "entry.date.input", .textChange, .string("2024-02-29T00:00:00Z"))
++        try send(app, "entry-date", .textChange, .string("2024-02-29T00:00:00Z"))
+         try send(app, "entry.photo.select")
+         let closed = try XCTUnwrap(app.presentation.takePhotoRequest())
+         await app.close()
+@@ -133,14 +133,15 @@ final class PhotoSelectionTests: XCTestCase {
+     @MainActor func testReservationExcludesNewSaveAcrossDrainSuspensionAndRetainsEarlierEdits() async throws {
+         let dir = photoDir("reservation-barrier"), p = try await ProjectPresentation(directory: dir)
+         func action(_ id: String, _ kind: UIEventKind = .activate, _ value: UIValue = .null) throws -> UIEventEnvelope {
+-            UIEventEnvelope(revision: p.snapshot.document.revision, identity: try XCTUnwrap(p.snapshot.identity(for: id)), event: kind, value: value)
++            let node = try XCTUnwrap(fieldLogNode(id, in: p.snapshot.document.root))
++            return UIEventEnvelope(revision: p.snapshot.document.revision, identity: try XCTUnwrap(p.snapshot.identity(for: node.id)), event: kind, value: value)
+         }
+         try p.send(action("workspace.entries"))
+-        try p.send(action("entry.title", .textChange, .string("Retain before callback")))
+-        try p.send(action("entry.note", .textChange, .string("before reservation\nexact")))
++        try p.send(action("entry-title", .textChange, .string("Retain before callback")))
++        try p.send(action("entry-note", .textChange, .string("before reservation\nexact")))
+         try p.send(action("entry.photo.select"))
+         let request = try XCTUnwrap(p.takePhotoRequest()), save = try action("entry.saveDraft")
+-        let note = try action("entry.note", .textChange, .string("must not enter"))
++        let note = try action("entry-note", .textChange, .string("must not enter"))
+         let before = try Data(contentsOf: file(dir)), gate = PhotoDrainGate()
+         p.photoDrainBarrier = { await gate.hold() }
+         let completion = Task { @MainActor in await p.completePhoto(requestID: request.id, result: .jpeg(photoJPEG)) }
+@@ -155,7 +156,7 @@ final class PhotoSelectionTests: XCTestCase {
+         XCTAssertEqual(p.workspace.drafts.first?.title, "Retain before callback")
+         XCTAssertEqual(p.workspace.attachments.count, 1)
+         // Reservation is released, so the next ordinary edit/save can proceed.
+-        try p.send(action("entry.title", .textChange, .string("After completion")))
++        try p.send(action("entry-title", .textChange, .string("After completion")))
+         try p.send(action("entry.saveDraft")); try await p.waitForSave()
+         XCTAssertEqual(p.workspace.drafts.first?.title, "After completion")
+         await p.close()

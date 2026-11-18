@@ -876,3 +876,10 @@ and inner CLI custody unresolved. Preserve the group and all exact scratch and
 log paths in `verification/receipts/android-generated-java-44247774054.json`
 without access, signal, retry or cleanup. Fresh validation must use separate
 resources.
+
+The first ordinary cancellation fixture left PGID 39505 unresolved. Preserve
+`/Users/andreyyurlov/.t3/userdata/mixer-l05-cancel-YotssnmM/attempt-06`
+and its group without inspection, probing, signalling, waiting, retry or
+cleanup. Use the separate top-level HOLD-attempt-06.json or
+`verification/receipts/l05-cancel-native-runtime-candidate.json`. The passing
+fixture used a different namespace.

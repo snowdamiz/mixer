@@ -1,0 +1,37 @@
+{
+  "scope": "Reconstructs both previously tested external FieldLog source trees from their public base without a mobile build or device run.",
+  "fieldlogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "tool": "git version 2.56.0",
+  "argv": [
+    "git read-tree <fieldlogRevision>",
+    "git apply --cached --check <patch>",
+    "git apply --cached <patch>",
+    "git write-tree"
+  ],
+  "patches": [
+    {
+      "path": "verification/fieldlog-pair23/public-build.patch",
+      "sha256": "8a09fb83471392e16c836aa3a95a8b02d841525e2cea2ea857415e0484006749",
+      "treeAfterApply": "95ae43b98649cd6c1b838518dc7af1dccf099c18"
+    },
+    {
+      "path": "verification/fieldlog-pair23/draft-fields.patch",
+      "sha256": "c118068f49e67f5d4fff24a549df515ca137167d94daaeda8ce5b6cf99818212",
+      "treeAfterApply": "c2f9f29f7000b35d456909ed5758d719f11c75e6"
+    }
+  ],
+  "buildReceipt": "verification/receipts/fieldlog-public-pair23-export-41a05264.json",
+  "runtimeReceipt": "verification/receipts/fieldlog-android-photo-persistence-41a05264.json",
+  "ordinaryCloneReplay": {
+    "source": "Local clone of the pinned public FieldLog checkout",
+    "finalTree": "c2f9f29f7000b35d456909ed5758d719f11c75e6",
+    "sequence": [
+      "git clone --local --no-checkout <source> <fresh-checkout>",
+      "git checkout --detach <public-revision>",
+      "git apply public-build.patch",
+      "git apply draft-fields.patch",
+      "git add -A",
+      "git write-tree"
+    ]
+  }
+}
