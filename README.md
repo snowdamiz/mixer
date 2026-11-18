@@ -299,10 +299,25 @@ scripts/mixer release inspect --directory MyApp
 scripts/mixer submit status --provider app-store-connect --app-id ASC_APP_ID --build-id BUILD_ID --directory MyApp
 ```
 
-Commands return JSON and nonzero status for failed operations. `doctor` returns 2
-when required inventory is incomplete. `release inspect` returns a blocked report
-until native/guest compiler closure, signed artifacts, and recovery evidence exist.
-The importer is advisory and read-only; lexical findings never authorize OTA.
+Commands return JSON. `doctor` returns 2 when required inventory is incomplete.
+The importer produces an advisory migration report.
+
+To inspect a signed FieldLog development update, supply the project that produced
+the candidate, its qualification bundle, and your independently obtained build
+producer trust file. The bundle contains the build provenance, signed offers
+and observed guest behavior for each target.
+
+```sh
+scripts/mixer release inspect --directory "$FIELDLOG_PROJECT" \
+  --qualification "$QUALIFICATION_DIR" --producer-trust "$PRODUCER_TRUST_FILE"
+```
+
+Read each entry in `targets`. In the verified confirmation-flow edit, both
+iOS and Android reported `ota-compatible` and the command exited 0. Adding
+the Android camera permission changed the Android result to
+`store-build-required` and the command exited 2. Omitting both qualification
+options also returns 2, with a blocked report. The operator still owns the
+publication decision. [Verified cases](verification/receipts/l04-release-inspector-source150-41a05264.json)
 
 `submit status` queries an existing App Store Connect build using a short-lived
 `MIXER_ASC_BEARER_TOKEN` supplied through the launch environment. It checks the
