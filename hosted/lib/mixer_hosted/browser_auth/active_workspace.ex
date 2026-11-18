@@ -5,8 +5,6 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
   alias MixerHosted.CustomerWorkspace.{SelfService, Support}
   alias MixerHosted.Identity.KeyOwner
 
-  @scope "openid mixer.workspace.read mixer.workspace.manage"
-
   defmodule Binding do
     @derive {Inspect, only: []}
     @enforce_keys [:lease, :browser, :identity, :key_lease, :expires]
@@ -15,9 +13,9 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
 
   def enabled?(%RuntimeConfig{
         workspace_catalog: :workspace_v1,
-        browser_config: %{scope: @scope}
+        browser_config: %{scope: scope}
       }),
-      do: true
+      do: RuntimeConfig.workspace_manage_scope?(scope)
 
   def enabled?(_), do: false
 
@@ -85,7 +83,8 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
       ActiveCatalog.check_workspace_function_surface!(
         repo,
         b.lease.runtime.expected_roles,
-        b.lease.deadline
+        b.lease.deadline,
+        RuntimeConfig.function_surface_version(b.lease.runtime)
       )
 
     browser = b.browser

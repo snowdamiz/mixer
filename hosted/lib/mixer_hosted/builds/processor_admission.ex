@@ -132,7 +132,7 @@ defmodule MixerHosted.Builds.ProcessorAdmission do
           pg_get_expr(p.polqual,p.polrelid,false),pg_get_expr(p.polwithcheck,p.polrelid,false)
         FROM pg_policy p JOIN pg_class c ON c.oid=p.polrelid JOIN pg_namespace n ON n.oid=c.relnamespace
         WHERE n.nspname='public' AND c.relname=ANY(ARRAY['mixer_build_fleet_capacity','mixer_build_fleet_platform_capacities','mixer_build_organization_capacities','mixer_build_capacities','mixer_builds','mixer_build_reservations','mixer_build_coordinator_leases','oban_jobs','oban_peers','mixer_customer_build_inputs']::text[]::text[])
-        ORDER BY c.relname,p.polname LIMIT 47) AS t(c00,c01,c02,c03,c04,c05,c06)),'q14',(SELECT COALESCE(jsonb_agg(jsonb_build_array(t.c00)), '[]'::jsonb) FROM (SELECT count(*)=10 AND bool_and(c.relrowsecurity AND c.relforcerowsecurity AND r.rolname='browser_schema_owner')
+        ORDER BY c.relname,p.polname LIMIT 53) AS t(c00,c01,c02,c03,c04,c05,c06)),'q14',(SELECT COALESCE(jsonb_agg(jsonb_build_array(t.c00)), '[]'::jsonb) FROM (SELECT count(*)=10 AND bool_and(c.relrowsecurity AND c.relforcerowsecurity AND r.rolname='browser_schema_owner')
         FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_roles r ON r.oid=c.relowner
         WHERE n.nspname='public' AND c.relname=ANY(ARRAY['mixer_build_fleet_capacity','mixer_build_fleet_platform_capacities','mixer_build_organization_capacities','mixer_build_capacities','mixer_builds','mixer_build_reservations','mixer_build_coordinator_leases','oban_jobs','oban_peers','mixer_customer_build_inputs']::text[]::text[])) AS t(c00)))::text
   """
@@ -380,7 +380,9 @@ defmodule MixerHosted.Builds.ProcessorAdmission do
       P.auxiliary_policies() ++
         MixerHosted.CustomerBuilds.CreateSchema.expected_policies(:builds_v1)
 
-    true = rows == Enum.sort_by(expected, fn [t, n | _] -> {t, n} end)
+    workspace = MixerHosted.CustomerWorkspace.SelfServiceSchema.processor_policies()
+    sort = fn policies -> Enum.sort_by(policies, fn [table, name | _] -> {table, name} end) end
+    true = rows == sort.(expected) or rows == sort.(expected ++ workspace)
 
     [[true]] =
       rows(snapshot, "q14")

@@ -142,6 +142,7 @@ HYDRATION_SOURCE_CHANGES = {
 HYDRATION_CHANGES = HYDRATION_SOURCE_CHANGES | {CAPABILITY + 'CapabilityColdStartWorker.swift'}
 VERIFY_WORKFLOW = '.github/workflows/verify.yml'
 HOSTED_V32_WORKFLOW = 'hosted-v32-predecessor-bytes/' + VERIFY_WORKFLOW
+WORKSPACE_BUILDS_WORKFLOW = 'workspace-builds-predecessor-bytes/' + VERIFY_WORKFLOW
 LOCAL_STORE_PREFIX = 'local-store-predecessor-bytes/'
 LOCAL_STORE_ADDITIONS = {
     'cli/Sources/MixerBuild/LocalStoreFixture.swift',
@@ -159,7 +160,7 @@ LOCAL_STORE_CHANGES = LOCAL_STORE_SOURCE_CHANGES | {
     JAVA + 'test_bootstrap.py',
     JAVA + 'test_sparse_checkout.py',
 }
-MEMBERS = {HOSTED_V32_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+MEMBERS = {HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
@@ -274,7 +275,7 @@ def install_inputs():
                              'changes', 'renderer_transition', 'starter_lock_transition',
                              'export_runner_transition', 'capability_transition', 'upgrade_transition',
                              'pair24_transition', 'cancel_cli_transition', 'hydration_transition',
-                             'hosted_v33_workflow', 'local_store_transition'} and
+                             'hosted_v33_workflow', 'local_store_transition', 'workspace_builds_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -462,6 +463,12 @@ def install_inputs():
             local_store['sourceAfter'] == binding['source']['sha256'] and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
             }, 'Local store source transition differs')
+    workflow = binding['workspace_builds_workflow']
+    before = read_predecessor_member(HERE / WORKSPACE_BUILDS_WORKFLOW)
+    require(set(workflow) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == workflow['before'] and
+            workflow['before'] != workflow['after'], 'Workspace builds workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = workflow['after']
     previous.check_rows(ROOT, installed)
     for name, change in local_store['changes'].items():
         require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],

@@ -48,13 +48,7 @@ defmodule MixerHosted.BrowserAuth.Protocol do
         values
       )
       when is_map(values) and is_binary(endpoint) and is_binary(client) and is_binary(redirect) do
-    with true <-
-           config.scope in [
-             "openid mixer.workspace.read",
-             "openid mixer.workspace.read mixer.build.read",
-             "openid mixer.workspace.read mixer.build.read mixer.build.create",
-             "openid mixer.workspace.read mixer.workspace.manage"
-           ],
+    with true <- Config.scope_profile(config.scope) != nil,
          true <- map_size(values) == 3,
          %{state: state, nonce: nonce, verifier: verifier} <- values,
          true <- token?(state) and token?(nonce),

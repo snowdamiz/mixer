@@ -148,11 +148,11 @@ export function createBuildSelectionController(): BuildSelectionController {
     // Install duplicate-click exclusion before dispatch or observer callbacks.
     update({ ...state, submission: { kind: "submitting", attempt, page } });
     if (!live()) return;
-    void captured.client.submit(attempt, controller.signal).then(receipt => {
+    void captured.client.submit(attempt, controller.signal).then(async receipt => {
       if (!live()) return;
       update({ ...state, submission: { kind: "committed", receipt } });
       if (!live()) return;
-      loadDetail({ selection: receipt.selection, revision: receipt.revision, committedState: receipt.state });
+      await loadDetail({ selection: receipt.selection, revision: receipt.revision, committedState: receipt.state });
       // Refresh only through the real catalog GET. The receipt is never a catalog row.
       if (!live()) return;
       void captured.session.buildClients.catalog.builds(captured.scope, buildAttempt, controller.signal).then(raw => {
@@ -262,7 +262,7 @@ export function createBuildSelectionController(): BuildSelectionController {
       } catch (error) { fail(value, error, "builds"); }
     })();
   }
-  function loadDetail(row: { readonly selection: BuildReadSelection; readonly revision: number; readonly committedState?: BuildReceipt["state"] }): void {
+  async function loadDetail(row: { readonly selection: BuildReadSelection; readonly revision: number; readonly committedState?: BuildReceipt["state"] }): Promise<void> {
     const value = request(); if (!value) return;
     const selection = snapshotBuildReadSelection(row.selection), floor = row.revision;
     const cancelled = active; active = value; selected = { selection, revision: floor, ...(row.committedState === undefined ? {} : { committedState: row.committedState }) };
@@ -270,18 +270,16 @@ export function createBuildSelectionController(): BuildSelectionController {
     const retained = previous && Object.keys(selection).every(key => Reflect.get(previous.selection, key) === Reflect.get(selection, key)) &&
       previous.snapshot.revision >= floor ? previous : undefined;
     update({ ...state, detail: retained ? Object.freeze({ kind: "loading", previous: retained }) : { kind: "loading" } }, cancelled);
-    void (async () => {
+    if (!current(value)) return;
+    try {
+      const input = await value.session.buildClients.read.read(selection, value.controller.signal);
       if (!current(value)) return;
-      try {
-        const input = await value.session.buildClients.read.read(selection, value.controller.signal);
-        if (!current(value)) return;
-        const snapshot = checkedSnapshot(input, selection);
-        if (!current(value)) return;
-        if (snapshot.revision < floor || (snapshot.revision === floor && row.committedState !== undefined && snapshot.report.state !== row.committedState)) throw new TypeError();
-        active = undefined; selected = { selection, revision: snapshot.revision, committedState: snapshot.report.state };
-        update({ ...state, detail: Object.freeze({ kind: "ready", selection, snapshot }) });
-      } catch (error) { fail(value, error, "detail"); }
-    })();
+      const snapshot = checkedSnapshot(input, selection);
+      if (!current(value)) return;
+      if (snapshot.revision < floor || (snapshot.revision === floor && row.committedState !== undefined && snapshot.report.state !== row.committedState)) throw new TypeError();
+      active = undefined; selected = { selection, revision: snapshot.revision, committedState: snapshot.report.state };
+      update({ ...state, detail: Object.freeze({ kind: "ready", selection, snapshot }) });
+    } catch (error) { fail(value, error, "detail"); }
   }
   function setSession(next: ConsoleSession): void {
     if (disposed || next === session) return;

@@ -89,7 +89,7 @@ async function start(f){f.click(inputButton);assert.equal(f.button("Create build
 function detailPath(s=selection()){return "/console-api/v1/builds?"+new URLSearchParams(s);}
 async function committed(f,post,wire=receipt(),detail=dto()){
  post.resolve(response(wire,wire.outcome==="applied"?201:200));const read=await f.request(detailPath(wire.selection));
- const refresh=await f.request(catalogPath);refresh.resolve(response(catalog()));read.resolve(response({build:detail}));await flush();
+ read.resolve(response({build:detail}));const refresh=await f.request(catalogPath);refresh.resolve(response(catalog()));await flush();
 }
 function selectedText(f){return walk(f.container).find(n=>n.getAttribute("aria-label")==="Selected build").textContent;}
 
@@ -97,8 +97,8 @@ function selectedText(f){return walk(f.container).find(n=>n.getAttribute("aria-l
 test("R2240-F2: reselecting created build must retain equal-revision state coherence",async()=>{
  const f=fixture();try{
   await listed(f,[dto()]);const post=await start(f);
-  post.resolve(response(receipt(),201));const read=await f.request(detailPath());const refresh=await f.request(catalogPath);
-  refresh.resolve(response(catalog([dto()])));read.resolve(response({build:dto({state:'failed',revision:4,failureCode:'compiler_error'})}));await flush();
+  post.resolve(response(receipt(),201));const read=await f.request(detailPath());
+  read.resolve(response({build:dto({state:'failed',revision:4,failureCode:'compiler_error'})}));const refresh=await f.request(catalogPath);refresh.resolve(response(catalog([dto()])));await flush();
   assert.match(selectedText(f),/Compilation failed/);
   const row=walk(f.container).find(n=>n.nodeName==='BUTTON'&&n.textContent.includes('build-'+'d'.repeat(64)));assert(row);row.click();
   (await f.request(detailPath())).resolve(response({build:dto({state:'succeeded',revision:4})}));await flush();
@@ -114,8 +114,8 @@ function clickRow(f,buildId=dto().buildId){
 const failed=dto({state:'failed',revision:4,failureCode:'compiler_error'});
 async function acceptedFailure(f,rows=[dto()]){
  await listed(f,rows);const post=await start(f);
- post.resolve(response(receipt(),201));const read=await f.request(detailPath());const refresh=await f.request(catalogPath);
- refresh.resolve(response(catalog(rows)));read.resolve(response({build:failed}));await flush();
+ post.resolve(response(receipt(),201));const read=await f.request(detailPath());
+ read.resolve(response({build:failed}));const refresh=await f.request(catalogPath);refresh.resolve(response(catalog(rows)));await flush();
  assert.match(selectedText(f),/Compilation failed/);
 }
 for(const [name,reply] of [

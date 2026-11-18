@@ -1,6 +1,6 @@
 defmodule MixerHosted.BrowserAuth.ActiveCreate do
   @moduledoc false
-  alias MixerHosted.BrowserAuth.{Protocol, RuntimeOwner, ActiveRead}
+  alias MixerHosted.BrowserAuth.{Protocol, RuntimeOwner, ActiveRead, RuntimeConfig}
   alias MixerHosted.Identity.KeyOwner
   @key {__MODULE__, :binding}
   def run(lease, source, identity, _csrf, _headers, {:inputs, input}, nil, key_lease, expires) do
@@ -60,8 +60,7 @@ defmodule MixerHosted.BrowserAuth.ActiveCreate do
     })
 
     try do
-      if lease.runtime.browser_config.scope ==
-           "openid mixer.workspace.read mixer.build.read mixer.build.create" and
+      if RuntimeConfig.build_create_scope?(lease.runtime.browser_config.scope) and
            "mixer.build.create" in identity.scopes do
         callback.()
       else

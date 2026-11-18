@@ -1,3 +1,5 @@
+import { CancelBuildForm } from "./CancelBuildForm.js";
+import type { CancelBuild } from "../api/build-submission.js";
 import { BuildCreation } from "./BuildCreation.js";
 import { A } from "@solidjs/router";
 import { createMemo, For, Match, Show, Switch } from "solid-js";
@@ -43,6 +45,7 @@ export function ApplicationBuildPage(props: {
   readonly binding: Readonly<BuildSelectionBinding>;
   readonly workspace: WorkspaceDirectoryState;
   readonly showBuildCreation?: boolean;
+  readonly cancelBuild?: CancelBuild | undefined;
   readonly onRetrySession?: () => void;
 }) {
   const directory = createMemo(() => resolveWorkspaceDirectory(props.workspace));
@@ -125,6 +128,14 @@ export function ApplicationBuildPage(props: {
       <section class="application-build-detail" aria-label="Selected build" aria-busy={state().detail.kind === "loading"}>
         <Show when={overview()} fallback={<LoadMessage state={state().detail} noun="a build" onRetrySession={props.onRetrySession} />}>{input => <>
           <div class="application-build-detail-actions"><h2>Selected platform build</h2><button type="button" class="workspace-page-button" onClick={props.binding.controller.refreshSelected}>Refresh build</button></div>
+          <Show when={props.cancelBuild} keyed>{cancel =>
+            <Show when={detail()} keyed>{selected =>
+              <Show when={["queued", "running", "reconciling"].includes(selected.snapshot.report.state) &&
+                  directory().selectedProject?.roles.some(role => role === "owner" || role === "administrator" || role === "developer")}>
+                <CancelBuildForm selection={selected.selection} cancel={cancel} refresh={props.binding.controller.refreshSelected} />
+              </Show>
+            }</Show>
+          }</Show>
           <Show when={detail()?.snapshot.report.workerCompletionPending}><p class="workspace-message" role="status">Waiting for the build worker to finish. The outcome is still being confirmed.</p></Show>
           <BuildOverview state={{ kind: "ready", input: input() }} />
         </>}</Show>

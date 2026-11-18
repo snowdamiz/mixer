@@ -785,7 +785,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
          true <- runtime.workspace_catalog in [:legacy, :workspace_v1],
          true <-
            runtime.workspace_catalog === :workspace_v1 or
-             runtime.browser_config.scope != "openid mixer.workspace.read mixer.workspace.manage",
+             not RuntimeConfig.workspace_manage_scope?(runtime.browser_config.scope),
          true <-
            is_map(runtime.expected_roles) and
              Enum.sort(Map.keys(runtime.expected_roles)) ===

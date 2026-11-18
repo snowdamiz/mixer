@@ -3,7 +3,13 @@ import { snapshotApplicationSelection, snapshotCatalogPageRequest } from "../dom
 import { parseBuildInputs, parseBuildReceipt, parseSubmissionJSON, snapshotBuildAttempt } from "../domain/build-submission.js";
 import type { BuildInputPage, BuildAttempt, BuildReceipt } from "../domain/build-submission.js";
 import { WorkspaceClientError, workspaceFailure } from "./workspace-transport.js";
+import { buildSelectionQuery } from "./cookie-build-client.js";
+import { catalogRecord } from "../domain/build-catalog.js";
+import { parseBuildRead, snapshotBuildReadSelection } from "../domain/build-read.js";
+import type { BuildReadSelection, BuildReadSnapshot } from "../domain/build-read.js";
 import type { WorkspaceTransportOptions } from "./workspace-transport.js";
+
+export type CancelBuild = (selection: BuildReadSelection, signal?: AbortSignal) => Promise<BuildReadSnapshot>;
 
 export interface BuildSubmissionClient {
   inputs(scope: ApplicationSelection, page: CatalogPageRequest, signal?: AbortSignal): Promise<BuildInputPage>;
@@ -11,9 +17,9 @@ export interface BuildSubmissionClient {
 }
 
 /** Internal fixed-route adapter. The session owner alone supplies the private header closure. */
-export function sessionBuildSubmission(options: WorkspaceTransportOptions, csrf: () => string): BuildSubmissionClient {
+export function sessionBuildSubmission(options: WorkspaceTransportOptions, csrf: () => string): BuildSubmissionClient & { cancel: CancelBuild } {
   const fetchRequest = options.fetch ?? globalThis.fetch, timeoutMs = options.timeoutMs ?? 15_000;
-  async function request<T>(path: string, write: BuildAttempt | undefined, decode: (value: unknown, status: number) => T, signal?: AbortSignal): Promise<T> {
+  async function request<T>(path: string, write: BuildAttempt | "cancel" | undefined, decode: (value: unknown, status: number) => T, signal?: AbortSignal): Promise<T> {
     if (signal?.aborted) return workspaceFailure("aborted");
     const controller = new AbortController(); let finished = false, timedOut = false;
     let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
@@ -30,17 +36,22 @@ export function sessionBuildSubmission(options: WorkspaceTransportOptions, csrf:
       if (write) {
         const token = csrf();
         if (!/^[A-Za-z0-9_-]{43}$/u.test(token)) return workspaceFailure("invalid_request");
-        headers["content-type"] = "application/json"; headers["idempotency-key"] = write.key; headers["x-mixer-csrf"] = token;
+        headers["x-mixer-csrf"] = token;
+        if (write !== "cancel") {
+          headers["content-type"] = "application/json";
+          headers["idempotency-key"] = write.key;
+        }
       }
       check();
       const response = await fetchRequest(path, { method: write ? "POST" : "GET", headers,
-        ...(write ? { body: write.body } : {}), credentials: "same-origin", redirect: "error", cache: "no-store", referrerPolicy: "no-referrer", signal: controller.signal });
+        ...(write && write !== "cancel" ? { body: write.body } : {}), credentials: "same-origin", redirect: "error", cache: "no-store", referrerPolicy: "no-referrer", signal: controller.signal });
       if (finished || controller.signal.aborted) { void response.body?.cancel().catch(() => undefined); check(); }
-      if (response.status !== 200 && !(write && response.status === 201)) {
+      if (response.status !== 200 && !(write === "cancel" ? response.status === 202 : write && response.status === 201)) {
         void response.body?.cancel().catch(() => undefined);
         if (response.status === 401) return workspaceFailure("unauthenticated");
         if (response.status === 403) return workspaceFailure("permission_denied");
         if (response.status === 404) return workspaceFailure("not_found");
+        if (response.status === 409 && write === "cancel") return workspaceFailure("conflict");
         if (response.status === 400 || response.status === 409) return workspaceFailure("invalid_request");
         return workspaceFailure("unavailable");
       }
@@ -76,6 +87,20 @@ export function sessionBuildSubmission(options: WorkspaceTransportOptions, csrf:
       const query = new URLSearchParams({ organization_id: scope.organizationId, project_id: scope.projectId, application_id: scope.applicationId,
         ...(page.cursor === undefined ? {} : { cursor: page.cursor }) });
       return request("/console-api/v1/build-inputs?" + query, undefined, value => parseBuildInputs(value, scope), signal);
+    },
+    async cancel(input: BuildReadSelection, signal?: AbortSignal) {
+      let selection: BuildReadSelection;
+      try { selection = snapshotBuildReadSelection(input); } catch { return workspaceFailure("invalid_request"); }
+      return request("/console-api/v1/builds/cancel?" + buildSelectionQuery(selection), "cancel", (wire, status) => {
+        if (!catalogRecord(wire, ["outcome", "build"]) || (wire.outcome !== "applied" && wire.outcome !== "duplicate")) {
+          return workspaceFailure("invalid_response");
+        }
+        const snapshot = parseBuildRead({ build: wire.build }, selection);
+        if (snapshot.report.state !== (status === 202 ? "cancelling" : "cancelled") || snapshot.revision === 0) {
+          return workspaceFailure("invalid_response");
+        }
+        return snapshot;
+      }, signal);
     },
     async submit(value: BuildAttempt, signal?: AbortSignal) {
       let attempt: BuildAttempt;

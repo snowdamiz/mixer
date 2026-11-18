@@ -38,6 +38,33 @@ defmodule MixerHosted.CustomerWorkspace.SelfServiceSchema do
   def capacity_update_relation, do: @capacity
   def capacity_update_columns, do: @capacity_update_columns
 
+  @doc "Tenant policies for the existing workspace writer on forced-RLS build tables."
+  def processor_policies do
+    predicate = "(organization_id = current_setting('mixer.authz.organization_id'::text, true))"
+
+    for {table, commands} <- [
+          {"mixer_build_organization_capacities", ~w(r a w)},
+          {"mixer_build_capacities", ~w(r a)},
+          {"mixer_build_reservations", ~w(r)}
+        ],
+        command <- commands do
+      using = if command != "a", do: predicate
+      check = if command != "r", do: predicate
+      [table, "workspace_capacity_" <> command, command, true, [@writer], using, check]
+    end
+  end
+
+  @doc "Install after workspace and restricted builds provisioning in the target database."
+  def processor_policy_statements do
+    Enum.map(processor_policies(), fn [table, name, command, true, [@writer], using, check] ->
+      action = %{"r" => "SELECT", "a" => "INSERT", "w" => "UPDATE"}[command]
+
+      "CREATE POLICY #{name} ON public.#{table} FOR #{action} TO #{@writer}" <>
+        if(using, do: " USING (#{using})", else: "") <>
+        if(check, do: " WITH CHECK (#{check})", else: "")
+    end)
+  end
+
   defp capacity_grant(action, preposition) do
     columns = Enum.map_join(@capacity_update_columns, ", ", &~s("#{&1}"))
     "#{action} UPDATE (#{columns}) ON #{@capacity} #{preposition} #{@writer}"

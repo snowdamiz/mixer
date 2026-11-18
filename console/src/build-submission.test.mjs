@@ -89,7 +89,7 @@ async function start(f){f.click(inputButton);assert.equal(f.button("Create build
 function detailPath(s=selection()){return "/console-api/v1/builds?"+new URLSearchParams(s);}
 async function committed(f,post,wire=receipt(),detail=dto()){
  post.resolve(response(wire,wire.outcome==="applied"?201:200));const read=await f.request(detailPath(wire.selection));
- const refresh=await f.request(catalogPath);refresh.resolve(response(catalog()));read.resolve(response({build:detail}));await flush();
+ read.resolve(response({build:detail}));const refresh=await f.request(catalogPath);refresh.resolve(response(catalog()));await flush();
 }
 function selectedText(f){return walk(f.container).find(n=>n.getAttribute("aria-label")==="Selected build").textContent;}
 

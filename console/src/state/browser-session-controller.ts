@@ -5,7 +5,7 @@ import type { WorkspaceAdminClient, WorkspaceAdminInput } from "../api/cookie-wo
 import { sessionWorkspaceCreation } from "../api/cookie-workspace-create-client.js";
 import type { WorkspaceCreateClient, WorkspaceCreateInput } from "../api/cookie-workspace-create-client.js";
 import { sessionBuildSubmission } from "../api/build-submission.js";
-import type { BuildSubmissionClient } from "../api/build-submission.js";
+import type { BuildSubmissionClient, CancelBuild } from "../api/build-submission.js";
 import { BrowserSessionClientError, createBrowserSessionClient } from "../api/browser-session-client.js";
 import type { BrowserSessionClientOptions, BrowserSessionMetadata } from "../api/browser-session-client.js";
 import { createCookieWorkspaceClient } from "../api/cookie-workspace-client.js";
@@ -24,7 +24,7 @@ export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" 
     readonly workspaceCreate?: WorkspaceCreateClient;
     readonly workspaceAdmin?: WorkspaceAdminClient;
     readonly workspaceSupport?: WorkspaceSupportClient;
-    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient }> };
+    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient; cancel?: CancelBuild }> };
 
 export interface BrowserSessionController {
   getSession(): ConsoleSession;
@@ -54,7 +54,9 @@ function clock(): { wall: number; mono: number } | undefined {
 }
 
 /** Owns a local capability epoch, never a login provider, token or writable session. */
-export function createBrowserSessionController(options: BrowserSessionClientOptions = {}, profile?: "workspace-manage"): BrowserSessionController {
+export type BrowserConsoleProfile = "workspace-manage" | "workspace-builds";
+
+export function createBrowserSessionController(options: BrowserSessionClientOptions = {}, profile?: BrowserConsoleProfile): BrowserSessionController {
   // Snapshot trusted construction settings so later caller mutation cannot retarget a client.
   let settings: BrowserSessionClientOptions;
   try {
@@ -175,8 +177,8 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
       return metadata.csrf_token;
     };
     const reads = { catalog, read };
-    const writers = () => {
-      if (profile === "workspace-manage") {
+    const workspaceWriters = () => {
+      if (profile === "workspace-manage" || profile === "workspace-builds") {
         const raw = sessionWorkspaceCreation(settings, csrf);
         const workspaceCreate: WorkspaceCreateClient = Object.freeze({
           submit: (input: WorkspaceCreateInput, signal?: AbortSignal) =>
@@ -194,8 +196,12 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
           submit: (organizationId: string, draft: SupportDraft, signal?: AbortSignal) =>
             delegate(value, owned => rawSupport.submit(organizationId, draft, owned), signal),
         });
-        return { workspaceCreate, workspaceAdmin, workspaceSupport, buildClients: Object.freeze(reads) };
+        return { workspaceCreate, workspaceAdmin, workspaceSupport };
       }
+      return {};
+    };
+    const buildWriters = () => {
+      if (profile === "workspace-manage") return {};
       const rawCreate = sessionBuildSubmission(settings, csrf);
       const create: BuildSubmissionClient = Object.freeze({
         inputs: (scope: ApplicationSelection, page: CatalogPageRequest, signal?: AbortSignal) =>
@@ -203,13 +209,14 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
         submit: (attempt: Parameters<BuildSubmissionClient["submit"]>[0], signal?: AbortSignal) =>
           delegate(value, owned => rawCreate.submit(attempt, owned), signal),
       });
-      return { buildClients: Object.freeze({ ...reads, create }) };
+      const cancel: CancelBuild = (selection, signal) => delegate(value, owned => rawCreate.cancel(selection, owned), signal);
+      return { create, ...(profile === "workspace-builds" ? { cancel } : {}) };
     };
     active = undefined;
     capability = value;
     // Each accepted check is a fresh local epoch, including equal server generation strings.
     // Server metadata and CSRF never enter the public session or workspace client.
-    session = Object.freeze({ kind: "ready", client, ...writers() });
+    session = Object.freeze({ kind: "ready", client, ...workspaceWriters(), buildClients: Object.freeze({ ...reads, ...buildWriters() }) });
     deadlineTimer = setTimeout(() => { if (capability === value && epoch === value.epoch) clear(); },
       Math.max(0, Math.floor(monoDeadline - now.mono)));
     revision++; notify();

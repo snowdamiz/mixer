@@ -8,6 +8,16 @@ export interface CookieBuildClient {
   read(selection: BuildReadSelection, signal?: AbortSignal): Promise<BuildReadSnapshot>;
 }
 
+export function buildSelectionQuery(selection: BuildReadSelection): string {
+  const fields: readonly (readonly [string, string])[] = [
+    ["organization_id", selection.organizationId], ["project_id", selection.projectId],
+    ["application_id", selection.applicationId], ["build_id", selection.buildId], ["platform", selection.platform],
+    ["source_sha256", selection.sourceSha256], ["toolchain_lock_sha256", selection.toolchainLockSha256],
+    ["build_definition_sha256", selection.buildDefinitionSha256],
+  ];
+  return fields.map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
+}
+
 /** Fixed browser-cookie read adapter. Session authentication belongs to the server. */
 export function createCookieBuildClient(options: CookieBuildClientOptions = {}): CookieBuildClient {
   if (!options || typeof options !== "object" || Array.isArray(options) ||
@@ -20,14 +30,7 @@ export function createCookieBuildClient(options: CookieBuildClientOptions = {}):
       let selection: BuildReadSelection;
       try { selection = snapshotBuildReadSelection(input); }
       catch { return workspaceFailure("invalid_request"); }
-      const fields: readonly (readonly [string, string])[] = [
-        ["organization_id", selection.organizationId], ["project_id", selection.projectId],
-        ["application_id", selection.applicationId], ["build_id", selection.buildId], ["platform", selection.platform],
-        ["source_sha256", selection.sourceSha256], ["toolchain_lock_sha256", selection.toolchainLockSha256],
-        ["build_definition_sha256", selection.buildDefinitionSha256],
-      ];
-      const query = fields.map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
-      return request("/console-api/v1/builds?" + query, value => parseBuildRead(value, selection), signal);
+      return request("/console-api/v1/builds?" + buildSelectionQuery(selection), value => parseBuildRead(value, selection), signal);
     },
   });
 }

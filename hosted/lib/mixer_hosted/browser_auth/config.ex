@@ -31,6 +31,17 @@ defmodule MixerHosted.BrowserAuth.Config do
             return_path: "/workspace",
             failure_path: "/login"
 
+  @scope_profiles %{
+    "openid mixer.workspace.read" => :workspace_read,
+    "openid mixer.workspace.read mixer.build.read" => :build_read,
+    "openid mixer.workspace.read mixer.build.read mixer.build.create" => :build_create,
+    "openid mixer.workspace.read mixer.workspace.manage" => :workspace_manage,
+    "openid mixer.workspace.read mixer.workspace.manage mixer.build.read mixer.build.create" =>
+      :workspace_builds
+  }
+
+  def scope_profile(scope), do: Map.get(@scope_profiles, scope)
+
   @fields ~w(version public_origin profile_id profile_version issuer client_id api_audience
     authorization_endpoint token_endpoint id_token_jwks_endpoint redirect_uri
     client_auth_method client_credential_ref session_vault_ref scope response_mode
@@ -76,13 +87,7 @@ defmodule MixerHosted.BrowserAuth.Config do
          "client_secret_basic" <- object["client_auth_method"],
          true <- reference?(object["client_credential_ref"], "secret://"),
          true <- reference?(object["session_vault_ref"], "vault://"),
-         true <-
-           object["scope"] in [
-             "openid mixer.workspace.read",
-             "openid mixer.workspace.read mixer.build.read",
-             "openid mixer.workspace.read mixer.build.read mixer.build.create",
-             "openid mixer.workspace.read mixer.workspace.manage"
-           ],
+         true <- scope_profile(object["scope"]) != nil,
          "query" <- object["response_mode"],
          true <- object["response_iss_required"],
          :ok <- match_identity(object, identity) do

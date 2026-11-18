@@ -29,8 +29,6 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
   @ssl_keys ~w(verify cacerts server_name_indication customize_hostname_check)a
   @lifecycle_keys ~w(username password writer_role relation_owner)a
   @workspace_binding "MIXER_BROWSER_WORKSPACE_CATALOG"
-  @manage_scope "openid mixer.workspace.read mixer.workspace.manage"
-  @build_create_scope "openid mixer.workspace.read mixer.build.read mixer.build.create"
   @browser_keys ~w(MIXER_BROWSER_AUTH_MODE MIXER_BROWSER_AUTH_CONFIG)
 
   @doc "Constructs disabled settings or one bounded dedicated lifecycle connection policy."
@@ -43,6 +41,8 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
          true <- hosted.build_operation_intent === :disabled,
          true <- browser_env?(browser_env),
          {:ok, config} <- Config.load(browser_env, hosted.role, hosted.identity_startup),
+         true <-
+           Config.scope_profile(config.scope) != :workspace_builds or is_list(hosted.create_repo),
          true <- build_cancel?(hosted, config),
          {:ok, catalog} <- workspace_catalog(config, binding),
          {:ok, runtime} <- construct(config, hosted, lifecycle, custody) do
@@ -78,14 +78,33 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
            build_cancel: true,
            create_repo: repo
          },
-         %Config{mode: :configured, scope: @build_create_scope}
+         %Config{mode: :configured, scope: scope}
        ),
-       do: is_list(repo)
+       do: is_list(repo) and build_create_scope?(scope)
 
   defp build_cancel?(_, _), do: false
 
-  defp workspace_catalog(%Config{scope: scope}, "legacy") when scope != @manage_scope,
-    do: {:ok, :legacy}
+  def build_create_scope?(scope),
+    do: Config.scope_profile(scope) in [:build_create, :workspace_builds]
+
+  def workspace_manage_scope?(scope),
+    do: Config.scope_profile(scope) in [:workspace_manage, :workspace_builds]
+
+  def function_surface_version(%__MODULE__{
+        browser_config: %{scope: scope},
+        workspace_catalog: catalog
+      }) do
+    case {Config.scope_profile(scope), catalog} do
+      {:workspace_builds, :workspace_v1} -> 5
+      {:workspace_manage, :workspace_v1} -> 4
+      {:build_create, _} -> 3
+      _ -> 2
+    end
+  end
+
+  defp workspace_catalog(%Config{scope: scope}, "legacy") do
+    if workspace_manage_scope?(scope), do: @error, else: {:ok, :legacy}
+  end
 
   defp workspace_catalog(%Config{mode: :configured}, "v1"), do: {:ok, :workspace_v1}
   defp workspace_catalog(_, _), do: @error

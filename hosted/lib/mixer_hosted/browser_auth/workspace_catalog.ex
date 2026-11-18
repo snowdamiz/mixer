@@ -1,6 +1,7 @@
 defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
   @moduledoc false
   alias MixerHosted.BrowserAuth.RelationCatalog.Unavailable
+  alias MixerHosted.RuntimeConfig
   alias MixerHosted.CustomerWorkspace.SelfServiceSchema, as: Schema
 
   @name "mixer_workspace_self_service_v1"
@@ -251,9 +252,10 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
         FROM pg_catalog.pg_policy p JOIN pg_catalog.pg_class c ON c.oid=p.polrelid
         JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
         WHERE $1::oid=ANY(p.polroles)
-        LIMIT 8
+          OR (0::oid=ANY(p.polroles) AND n.nspname='public' AND c.relname=ANY($3::text[]))
+        LIMIT 14
         """,
-        [writer, owner]
+        [writer, owner, Schema.build_create_tables() ++ Schema.build_read_tables()]
       )
 
     expected =
@@ -298,7 +300,18 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
           ]
         ]
 
-    true = Enum.frequencies(rows) === Enum.frequencies(expected)
+    processor =
+      case RuntimeConfig.installed_processor_profile() do
+        :builds_v1 ->
+          Enum.map(Schema.processor_policies(), fn [table, name, command, true, [_], using, check] ->
+            [table, name, command, true, [writer], using, check, true]
+          end)
+
+        nil ->
+          []
+      end
+
+    true = Enum.frequencies(rows) === Enum.frequencies(expected ++ processor)
   end
 
   defp tenant_policies!(context, writer) do

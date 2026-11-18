@@ -62,7 +62,8 @@ function ApplicationBuildRoute(props: ConsoleSessionProps) {
   const workspace = useWorkspace();
   const binding = createBuildSelectionBinding(() => props.session, workspace.state);
   return <ApplicationBuildPage
-    showBuildCreation={props.session?.kind !== "ready" || !props.session.workspaceCreate}
+    showBuildCreation={props.session?.kind !== "ready" || props.session.buildClients?.create !== undefined || !props.session.workspaceCreate}
+    cancelBuild={props.session?.kind === "ready" ? props.session.buildClients.cancel : undefined}
     binding={binding} workspace={workspace.state()} onRetrySession={() => props.onRetrySession?.()} />;
 }
 

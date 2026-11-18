@@ -149,8 +149,7 @@ defmodule MixerHosted.BrowserAuth.Store do
          deadline
        ) do
     create_enabled =
-      runtime.browser_config.scope ==
-        "openid mixer.workspace.read mixer.build.read mixer.build.create"
+      RuntimeConfig.build_create_scope?(runtime.browser_config.scope)
 
     :relation_surface_verified =
       if create_enabled do
@@ -174,8 +173,7 @@ defmodule MixerHosted.BrowserAuth.Store do
         LifecycleRepo,
         runtime.expected_roles,
         deadline,
-        runtime.browser_config.scope ==
-          "openid mixer.workspace.read mixer.build.read mixer.build.create",
+        create_enabled,
         MixerHosted.RuntimeConfig.installed_processor_profile()
       )
 
@@ -183,20 +181,6 @@ defmodule MixerHosted.BrowserAuth.Store do
   end
 
   defp relation_admission!(_, _), do: raise(RelationCatalog.Unavailable)
-
-  defp function_surface_version(runtime) do
-    cond do
-      MixerHosted.BrowserAuth.ActiveWorkspace.enabled?(runtime) ->
-        4
-
-      runtime.browser_config.scope ==
-          "openid mixer.workspace.read mixer.build.read mixer.build.create" ->
-        3
-
-      true ->
-        2
-    end
-  end
 
   defp transact(runtime, deadline, lease, operation) do
     with true <- not Process.get(@owned, false),
@@ -227,7 +211,7 @@ defmodule MixerHosted.BrowserAuth.Store do
                     LifecycleRepo,
                     runtime.expected_roles,
                     deadline,
-                    function_surface_version(runtime)
+                    RuntimeConfig.function_surface_version(runtime)
                   )
 
                 :relation_surface_verified = relation_admission!(runtime, deadline)

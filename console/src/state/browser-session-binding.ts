@@ -1,7 +1,7 @@
 import { createSignal, getOwner, onCleanup } from "solid-js";
 import type { Accessor } from "solid-js";
 import { createBrowserSessionController } from "./browser-session-controller.js";
-import type { ConsoleSession } from "./browser-session-controller.js";
+import type { BrowserConsoleProfile, ConsoleSession } from "./browser-session-controller.js";
 
 export interface BrowserSessionBinding {
   readonly workspaceSession: Accessor<ConsoleSession>;
@@ -19,7 +19,7 @@ function invalidation(value: unknown): boolean {
 }
 
 /** Own inside a Solid owner. Browser events can only invalidate or request a fresh check. */
-export function createBrowserSessionBinding(profile?: "workspace-manage"): BrowserSessionBinding {
+export function createBrowserSessionBinding(profile?: BrowserConsoleProfile): BrowserSessionBinding {
   if (!getOwner()) throw new Error("Missing browser session owner");
   const controller = createBrowserSessionController({}, profile);
   const [snapshot, setSnapshot] = createSignal(controller.getSession());

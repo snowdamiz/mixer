@@ -182,6 +182,31 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
       )
 
     assert MixerHosted.BrowserAuth.Installation.valid?(installation, hosted)
+
+    scope =
+      "openid mixer.workspace.read mixer.workspace.manage mixer.build.read mixer.build.create"
+
+    combined = browser_env(Map.put(config, "scope", scope))
+
+    assert RuntimeConfig.new_with_build_catalog(combined, hosted, lifecycle(), custody()) ==
+             @error
+
+    combined = Map.put(combined, "MIXER_BROWSER_WORKSPACE_CATALOG", "v1")
+
+    assert {:ok, runtime} =
+             RuntimeConfig.new_with_build_catalog(combined, hosted, lifecycle(), custody())
+
+    assert runtime.configuration_digest != installation.runtime.configuration_digest
+    assert RuntimeConfig.function_surface_version(runtime) == 5
+    assert MixerHosted.BrowserAuth.ActiveWorkspace.enabled?(runtime)
+
+    installed_combined =
+      MixerHosted.BrowserAuth.Installation.load!(
+        Map.put(combined, "MIXER_BROWSER_AUTH_SECRET_MATERIAL", secret_material),
+        hosted
+      )
+
+    assert MixerHosted.BrowserAuth.Installation.valid?(installed_combined, hosted)
     assert construct(hosted) == @error
     assert RuntimeConfig.new(%{}, hosted, nil, nil) == @error
 
