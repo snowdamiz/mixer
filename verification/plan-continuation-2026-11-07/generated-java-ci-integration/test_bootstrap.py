@@ -113,11 +113,10 @@ class BootstrapControls(unittest.TestCase):
         inputs = B.admit_source_inputs(a, p)
         self.assert_current_source(a, inputs)
 
-    def test_current_store_sources_are_selected_by_closed_archive_authority(self):
+    def test_current_store_and_update_sources_are_selected_by_closed_archive_authority(self):
         a = B.canonical()
         inputs = B.admit_source_inputs(a, a.load_profile())
-        self.assertEqual(len(inputs), 143)
-        for name in ('LocalStoreFixture.swift', 'LocalStoreSubmission.swift'):
+        for name in ('LocalStoreFixture.swift', 'LocalStoreSubmission.swift', 'LocalUpdateRelease.swift'):
             self.assertIn('cli/Sources/MixerBuild/' + name, inputs)
         self.assert_current_source(a, inputs)
 

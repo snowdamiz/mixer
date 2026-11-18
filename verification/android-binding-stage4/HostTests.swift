@@ -11,10 +11,10 @@ func require(_ value: @autoclosure () -> Bool, _ message: String, line: Int = #l
 func transport() -> mxuit_snapshot {
     var value = mxuit_snapshot(); require(mxuit_inspect(&value) == 0, "snapshot"); return value
 }
-func frameExchange(_ generation: UInt64) throws -> GuestUIExchangeV1 {
+func frameExchange(_ generation: UInt64, actionID: String = "save") throws -> GuestUIExchangeV1 {
     let exchange = try GuestUIExchangeV1(generation: generation)
     let claim = try exchange.claimStartup()
-    let bytes = Data(#"{"schemaVersion":1,"revision":1,"root":{"id":"root","kind":"vStack","properties":{},"actions":[],"children":[{"id":"text","kind":"text","properties":{"text":"Host signed UI"},"actions":[],"children":[]},{"id":"save","kind":"button","properties":{"label":"Save"},"actions":[{"id":"save","event":"activate"}],"children":[]}]}}"#.utf8)
+    let bytes = Data(#"{"schemaVersion":1,"revision":1,"root":{"id":"root","kind":"vStack","properties":{},"actions":[],"children":[{"id":"text","kind":"text","properties":{"text":"Host signed UI"},"actions":[],"children":[]},{"id":"\#(actionID)","kind":"button","properties":{"label":"Save"},"actions":[{"id":"\#(actionID)","event":"activate"}],"children":[]}]}}"#.utf8)
     try exchange.finishTurn(claim, documentBytes: bytes)
     try exchange.enterEffectsIntent(generation: generation)
     try exchange.confirmEffectsEnabled(generation: generation)
@@ -26,6 +26,7 @@ func frameExchange(_ generation: UInt64) throws -> GuestUIExchangeV1 {
         let scenario = CommandLine.arguments.dropFirst().first ?? "smoke"
         switch scenario {
         case "smoke": try await smoke()
+        case "witness": try await witness()
         case "prebind": try await prebind()
         case "task-hold": if #available(macOS 15.0, *) { try await taskHold() } else { fatalError("executor unavailable") }
         case "single-join": try await singleJoin()
@@ -69,6 +70,44 @@ func frameExchange(_ generation: UInt64) throws -> GuestUIExchangeV1 {
         }
         print("HOST_PASS \(scenario)")
     }
+    static func witness() async throws {
+        let owner = try await owner()
+        let exchange = try frameExchange(102, actionID: "toggle")
+        let installation = try await owner.binding.bindHost(exchange)
+        let facade = owner.binding.facade
+        try await waitUntil { exchange.snapshot().displayedRevision == 1 }
+        let attachment = mxish_last_id(facade, 1)
+        let probe = mxish_last_id(facade, 3)
+        require(attachment > 0 && probe > 0, "transport supplied the current tuple")
+
+        let draw = UInt32(MXIS_WITNESS_DRAWN.rawValue)
+        let ok = Int32(MXUIT_OK.rawValue)
+        let stale = Int32(MXUIT_STALE.rawValue)
+        let invalid = Int32(MXUIT_INVALID.rawValue)
+        require(mxis_guest_ui_witness(facade, attachment, probe, draw) == Int32(MXUIT_WRONG_THREAD.rawValue),
+                "draw requires the UI thread")
+        require(mxish_call_entry(facade, 12) == stale, "wrong attachment rejected")
+        require(mxish_call_entry(facade, 13) == stale, "input token rejected as draw proof")
+        require(mxish_call_entry(facade, 14) == invalid, "unknown kind rejected")
+        require(mxish_call_entry(facade, 15) == invalid, "zero token rejected")
+        require(mxish_call_entry(facade, 11) == stale, "tap before observation rejected")
+        require(exchange.snapshot().pendingPresentationReceipt == nil && !exchange.snapshot().eventOutstanding,
+                "rejected calls left the exchange untouched")
+
+        require(mxish_call_entry(facade, 10) == ok, "current draw accepted")
+        require(exchange.snapshot().pendingPresentationReceipt?.revision == 1, "draw reached the exchange")
+        require(mxish_call_entry(facade, 10) == stale, "duplicate draw rejected")
+        require(mxish_call_entry(facade, 11) == ok, "current toggle tap accepted")
+        require(exchange.snapshot().eventOutstanding, "tap reached the exchange")
+        require(mxish_call_entry(facade, 11) == Int32(MXUIT_BUSY.rawValue), "pending tap cannot be duplicated")
+
+        owner.reservation.beginClosing()
+        guard case .finished = await owner.binding.finishFinalClose(using: installation) else {
+            fatalError("witness owner did not close")
+        }
+        require(owner.reservation.isReleased && transport().occupied_facades == 0, "witness owner reclaimed")
+    }
+
     static func smoke() async throws {
         let reservation = try CapabilityAttemptReservation.acquire()
         let prepared = try await CapabilityGuestUIAndroidBinding.prepareHost(reservation: reservation)

@@ -14,7 +14,7 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 A signed C guest replayed the historical FieldLog task editor on the macOS VM. Save persisted Unicode input and one outbox event. Cancel preserved the workspace. Compiling that editor from Swift and mounting it through the installed mobile owner remain open. [Historical editor replay](verification/receipts/fieldlog-f05-signed-editor-host-41a05264.json).
 
-A candidate Android starter APK adds three missing Swift SDK and Android NDK notice files. ICU attribution remains under review. A separate FieldLog APK links draw and tap callbacks through a public guest API, with host checks for retirement and task persistence. [Starter notices](verification/receipts/android-starter-runtime-notices-41a05264.json) · [Android callbacks](verification/receipts/fieldlog-android-sdk-witness-41a05264.json).
+The Android build now packages the Swift SDK and NDK notices. The SDK exports the public guest draw and tap callback and retains its trial caller. The packaging controls checked the exact notice bytes in the retained starter APK. ICU attribution and Android runtime acceptance remain open. [Integration and controls](verification/receipts/android-sdk-public-witness-and-runtime-notices-41a05264.json).
 
 With the local v3 origin running on API 36, the digest-verified public APK opened its launcher and displayed only “Open signed checklist.” The ordinary task form never appeared. The UID log captured no messages. The run removed the reverse mapping and emulator and closed both listeners. [Public checklist startup](verification/receipts/fieldlog-android-public-checklist-startup-41a05264.json).
 

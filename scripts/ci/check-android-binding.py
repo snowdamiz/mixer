@@ -12,7 +12,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS = (
-    'smoke prebind single-join destructor helper-alias fallback late-before late-after '
+    'smoke witness prebind single-join destructor helper-alias fallback late-before late-after '
     'after-reclaim terminal-capacity failed-retire missing-native capacity '
     'facade-acquire-failure endpoint-acquire-failure bind-failure cancelled-preparation '
     'nested fault-leave fault-read fault-write cleanup-exhaustion c-facade-exhaustion '
@@ -42,7 +42,7 @@ let package = Package(
         .target(name: "CMixerUIAndroidHostBridge", dependencies: ["CMixerUITransport"],
             path: "verification/android-binding-stage4/host-bridge",
             sources: ["host_bridge.c"], publicHeadersPath: ".",
-            cSettings: [.define("MIXER_UI_TRANSPORT_TESTING")]),
+            cSettings: [.define("MIXER_UI_TRANSPORT_TESTING"), .define("MIXER_UI_WITNESS_TESTING")]),
         .target(name: "MixerCapabilityDurableIO",
             path: "capability-activation/Sources/MixerCapabilityDurableIO"),
         .target(name: "MixerCapabilityActivation", dependencies: [

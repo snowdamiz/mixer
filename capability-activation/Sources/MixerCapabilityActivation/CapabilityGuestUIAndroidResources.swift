@@ -293,12 +293,23 @@ final class CapabilityGuestUIAndroidResources: @unchecked Sendable {
         }
     }
 }
+
+@_cdecl("mxis_guest_ui_witness")
+func guestUIWitness(_ facade: UInt64, _ attachment: UInt64, _ token: UInt64, _ kind: UInt32) -> Int32 {
+    let drawn = UInt32(MXIS_WITNESS_DRAWN.rawValue)
+    guard kind == drawn || kind == UInt32(MXIS_WITNESS_TOGGLE_TAPPED.rawValue) else {
+        return Int32(MXUIT_INVALID.rawValue)
+    }
+    return CapabilityGuestUIAndroidResources.nativeWitness(facade: facade, attachment: attachment,
+        token: token, display: kind == drawn)
+}
+
 #if MIXER_FIELDLOG_ANDROID_TRIAL
 @_cdecl("mxfield_witness")
 func fieldLogNativeWitness(_ facade: UInt64, _ attachment: UInt64, _ token: UInt64, _ display: UInt32) -> Int32 {
     guard display <= 1 else { return Int32(MXUIT_INVALID.rawValue) }
-    return CapabilityGuestUIAndroidResources.nativeWitness(facade: facade, attachment: attachment,
-        token: token, display: display == 1)
+    let kind = display == 1 ? MXIS_WITNESS_DRAWN : MXIS_WITNESS_TOGGLE_TAPPED
+    return guestUIWitness(facade, attachment, token, UInt32(kind.rawValue))
 }
 #endif
 #endif

@@ -30,6 +30,7 @@ RUNTIME = ART / 'swift-resources/usr/lib/swift-aarch64/android'
 BT = SDK / 'build-tools/37.0.0'
 JAR = SDK / 'platforms/android-37.0/android.jar'
 APPEARANCE_ASSET = 'assets/MixerAppearanceV2/descriptor.json'
+RUNTIME_NOTICE_PREFIX = 'third-party-notices/'
 SOURCE_PROFILE_HEX = '__MIXER_ANDROID_SOURCE_PROFILE_HEX__'
 ENV['JAVA_HOME'] = str(JDK)
 ENV['PATH'] = str(JDK / 'bin') + os.pathsep + ENV.get('PATH', '')
@@ -479,6 +480,31 @@ def appearance_archive(archive, expected):
             'scope': 'Exact local locked-input packaging only; direct-driver layout/size admission does not establish codec semantics, copied-SDK compatibility, installed use or signed authority.'}
 
 
+def runtime_notices(runtime_sources):
+    paths = {}
+    if RUNTIME in runtime_sources:
+        paths['Swift-SDK-LICENSE.txt'] = ART / 'swift-resources/usr/share/swift/LICENSE.txt'
+    if NDK / 'sysroot/usr/lib/aarch64-linux-android' in runtime_sources:
+        ndk_dist = ART / 'android-ndk-r27d'
+        paths['Android-NDK-NOTICE.txt'] = ndk_dist / 'NOTICE'
+        paths['Android-NDK-NOTICE.toolchain.txt'] = ndk_dist / 'NOTICE.toolchain'
+    notices = {}
+    for name, path in paths.items():
+        if not stat.S_ISREG(path.lstat().st_mode):
+            raise RuntimeError('Android runtime notice must be an ordinary file: ' + str(path))
+        data = path.read_bytes()
+        if not data.strip():
+            raise RuntimeError('Android runtime notice is empty: ' + str(path))
+        notices[RUNTIME_NOTICE_PREFIX + name] = data
+    return notices
+
+
+def verify_runtime_notices(archive, expected):
+    entries = {name for name in archive.namelist() if name.startswith(RUNTIME_NOTICE_PREFIX)}
+    if entries != expected.keys() or any(archive.read(name) != data for name, data in expected.items()):
+        raise RuntimeError('APK runtime notices differ from the selected toolchain files.')
+
+
 def checked_output(root, create=False):
     """Reject redirected local staging before cleanup or writes.
 
@@ -916,6 +942,7 @@ def build(root):
     system = {'libc.so', 'libdl.so', 'libm.so', 'liblog.so', 'libandroid.so'}
     pending = list(libdir.glob('*.so'))
     dependencies = {}
+    runtime_sources = set()
     while pending:
         lib = pending.pop()
         header = run([NDK / 'bin/llvm-readelf', '-h', lib])
@@ -933,6 +960,8 @@ def build(root):
                 raise RuntimeError('Unresolved native runtime dependency: ' + name)
             shutil.copy2(found, libdir / name)
             pending.append(libdir / name)
+            runtime_sources.add(found.parent)
+    notices = runtime_notices(runtime_sources)
     classes, dex = output / 'classes', output / 'dex'
     sources = sorted((adapter / 'app/src').rglob('*.java')) + sorted((package / 'Java').rglob('*.java'))
     if public:
@@ -966,6 +995,8 @@ def build(root):
                 archive.write(item, item.relative_to(output / 'apk'))
         for item in dex.glob('*.dex'):
             archive.write(item, item.name)
+        for name, data in sorted(notices.items()):
+            archive.writestr(name, data)
     run([BT / 'zipalign', '-f', '-P', '16', '4', unsigned, apk_path])
     run([BT / 'zipalign', '-c', '-P', '16', '4', apk_path])
     badging = run([BT / 'aapt2', 'dump', 'badging', apk_path])
@@ -992,6 +1023,7 @@ def build(root):
     with zipfile.ZipFile(apk_path) as archive:
         names = archive.namelist()
         appearance_identity = appearance_archive(archive, appearance)
+        verify_runtime_notices(archive, notices)
         if any(n.startswith('META-INF/') for n in names) or any('ChecklistEngine' in n for n in names):
             raise RuntimeError('Unexpected signing/example content in unsigned consumer.')
         content = {n: hashlib.sha256(archive.read(n)).hexdigest() for n in sorted(names)}

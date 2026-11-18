@@ -153,6 +153,23 @@ int32_t mxuit_platform_register(int fd) {
     host.fd = fd; return MXUIT_OK;
 }
 extern int32_t mxish_swift_scalar_entry(uint64_t,uint32_t);
+#if defined(MIXER_UI_WITNESS_TESTING)
+static int32_t witness_entry(uint64_t facade, uint32_t kind) {
+    uint64_t attachment = mxish_last_id(facade, 1);
+    uint64_t input = mxish_last_id(facade, 2);
+    uint64_t probe = mxish_last_id(facade, 3);
+    switch (kind) {
+    case 10: return mxis_guest_ui_witness(facade, attachment, probe, MXIS_WITNESS_DRAWN);
+    case 11: return mxis_guest_ui_witness(facade, attachment, input, MXIS_WITNESS_TOGGLE_TAPPED);
+    case 12: return mxis_guest_ui_witness(facade, attachment + 1, probe, MXIS_WITNESS_DRAWN);
+    case 13: return mxis_guest_ui_witness(facade, attachment, input, MXIS_WITNESS_DRAWN);
+    case 14: return mxis_guest_ui_witness(facade, attachment, probe, 0);
+    case 15: return mxis_guest_ui_witness(facade, attachment, 0, MXIS_WITNESS_TOGGLE_TAPPED);
+    default: return MXUIT_INVALID;
+    }
+}
+#endif
+
 static void *ui_main(void *unused) {
     (void)unused;
     int32_t status = mxuit_install();
@@ -172,7 +189,13 @@ static void *ui_main(void *unused) {
             if(command_kind==4){
                 uint64_t entry=0;value=mxuit_ui_enter(command_facade,0,0,MXUIT_UI_CLEANUP,&entry);
                 if(value==MXUIT_OK){checkpoint(10,command_facade);value=mxuit_ui_leave(command_facade,entry);}
-            }else value=mxish_swift_scalar_entry(command_facade,command_kind);
+            }
+#if defined(MIXER_UI_WITNESS_TESTING)
+            else if (command_kind >= 10 && command_kind <= 15) {
+                value = witness_entry(command_facade, command_kind);
+            }
+#endif
+            else value=mxish_swift_scalar_entry(command_facade,command_kind);
             pthread_mutex_lock(&host.lock);host.command_result=value;host.command_done=1;host.command_active=0;
             pthread_cond_broadcast(&host.changed);pthread_mutex_unlock(&host.lock);
         }
