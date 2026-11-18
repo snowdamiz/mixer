@@ -1,0 +1,79 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 3af3f34..f10d0b1 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -186,7 +186,10 @@ public final class PublicActivity extends Activity {
+     private final ArrayDeque<CapturedEvent> events = new ArrayDeque<>();
+     private int eventBytes = 2; // JSON array delimiters, plus comma per subsequent event.
+     private int readiness;
++    private boolean resumed;
+     private byte[] pendingPhoto;
++    private record PhotoCompletion(int result, byte[] jpeg) {}
++    private PhotoCompletion photoCompletion;
+     private boolean photoResultClaimed;
+     private long photoContext;
+     private int photoCode, nextPhotoCode = 100;
+@@ -290,11 +293,28 @@ public final class PublicActivity extends Activity {
+         Thread worker = photoThread; if (worker != null) worker.interrupt();
+     }
+     private void finishPhoto(long capturedContext, byte[] request, int result, byte[] jpeg) {
+-        if (destroyed || failed || capturedContext != context || pendingPhoto == null || !Arrays.equals(request, pendingPhoto)) return;
+-        handler.removeCallbacks(photoDeadline); pendingPhoto = null;
++        if (destroyed || failed || capturedContext != context || pendingPhoto == null ||
++                photoCompletion != null || !Arrays.equals(request, pendingPhoto)) return;
++        handler.removeCallbacks(photoDeadline);
++        photoCompletion = new PhotoCompletion(result, jpeg);
++        deliverPhotoWhenReady();
++    }
++    private void postPhotoDelivery() {
++        // Window focus dispatch can reach the Activity before the root view.
++        if (photoCompletion != null && !handler.post(this::deliverPhotoWhenReady)) fail();
++    }
++    private void deliverPhotoWhenReady() {
++        if (destroyed || failed || photoCompletion == null || pendingPhoto == null ||
++                photoContext != context || !resumed || !root.hasWindowFocus()) return;
++        PhotoCompletion completion = photoCompletion;
++        byte[] request = pendingPhoto;
++        long capturedContext = photoContext;
++        photoCompletion = null;
++        pendingPhoto = null;
+         // Flush genuine UI events before the separate service completion.
+         if (!events.isEmpty()) drainEvents();
+-        if (!destroyed && !failed && PublicBridge.photo(capturedContext, request, result, jpeg) != 0) fail();
++        if (!destroyed && !failed && capturedContext == context &&
++                PublicBridge.photo(capturedContext, request, completion.result(), completion.jpeg()) != 0) fail();
+     }
+     @Override public void onCreate(Bundle state) {
+         super.onCreate(state); root = new FrameLayout(this); setContentView(root);
+@@ -398,12 +418,27 @@ public final class PublicActivity extends Activity {
+             return 0;
+         } catch (RuntimeException error) { android.util.Log.e("MixerAndroidHost", "Native surface operation failed: " + operation, error); fail(); return 1; }
+     }
+-    private void fail() { failed = true; invalidateEvents(); if (surface != null) surface.gateInput(); }
+-    @Override public void onResume() { super.onResume(); if (surface != null) surface.onResume(); if(reportPaused && reportLaunched) finishReport(0); }
+-    @Override public void onPause() { if(reportLaunched) reportPaused=true; if (surface != null) surface.onPause(); super.onPause(); }
++    private void fail() { failed = true; photoCompletion = null; invalidateEvents(); if (surface != null) surface.gateInput(); }
++    @Override public void onResume() {
++        super.onResume();
++        resumed = true;
++        if (surface != null) surface.onResume();
++        if (reportPaused && reportLaunched) finishReport(0);
++        postPhotoDelivery();
++    }
++    @Override public void onWindowFocusChanged(boolean hasFocus) {
++        super.onWindowFocusChanged(hasFocus);
++        if (hasFocus) postPhotoDelivery();
++    }
++    @Override public void onPause() {
++        resumed = false;
++        if (reportLaunched) reportPaused = true;
++        if (surface != null) surface.onPause();
++        super.onPause();
++    }
+     @Override public void onStop() { if (surface != null) surface.onStop(); super.onStop(); }
+     @Override public void onDestroy() {
+-        destroyed = true; finishReport(2); revokeReport(); pendingPhoto = null; cancelPhotoWorker();
++        destroyed = true; finishReport(2); revokeReport(); pendingPhoto = null; photoCompletion = null; cancelPhotoWorker();
+         Thread worker = photoThread;
+         if (worker != null) try { worker.join(100); } catch (InterruptedException error) { Thread.currentThread().interrupt(); }
+         // A provider that ignores cancellation may outlive this bounded join;

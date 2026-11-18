@@ -1,0 +1,154 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index f10d0b1..8203fea 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -32,7 +32,9 @@ public final class PublicActivity extends Activity {
+     private static final int MAX_EVENTS = 32, MAX_BYTES = 1048576;
+     private byte[] pendingReport;
+     private long reportContext;
+-    private boolean reportLaunched, reportPaused;
++    private int reportCode;
++    private record ReportCompletion(long context, byte[] token, int result) {}
++    private ReportCompletion reportCompletion;
+     private Thread reportWorker;
+     private PublicBridge.ReportFiles.WorkLease reportLease;
+     private android.os.ParcelFileDescriptor reportInput;
+@@ -46,7 +48,7 @@ public final class PublicActivity extends Activity {
+     }
+     private void abandonReportPreparation() {
+         PublicBridge.ReportFiles.cancelWork(reportLease);
+-        handler.removeCallbacks(reportDeadline); pendingReport=null; reportLaunched=false; reportPaused=false;
++        handler.removeCallbacks(reportDeadline); pendingReport=null; reportCode=0;
+         android.os.ParcelFileDescriptor input=reportInput;
+         if(input!=null) try { input.close(); } catch(IOException ignored) { }
+         if(reportWorker!=null) reportWorker.interrupt();
+@@ -62,7 +64,8 @@ public final class PublicActivity extends Activity {
+             reportWorker=null; reportInput=null;
+         }
+         if (Looper.myLooper()!=Looper.getMainLooper() || destroyed || failed || capturedContext!=context ||
+-            pendingReport!=null || reportWorker!=null || request==null || request.length!=36 ||
++            pendingReport!=null || reportCompletion!=null || reportWorker!=null || nextExternalCode>65534 ||
++            request==null || request.length!=36 ||
+             path==null || path.length==0 || path.length>4096 || size<=0 || size>PublicBridge.ReportFiles.MAX_BYTES || descriptor<0) { reportBoundary("request-admission-refused",null); return 1; }
+         PublicBridge.ReportFiles.WorkLease reserved=null;
+         String requestStage="request-token";
+@@ -81,7 +84,7 @@ public final class PublicActivity extends Activity {
+             requestStage="request-descriptor";
+             final android.os.ParcelFileDescriptor input=android.os.ParcelFileDescriptor.fromFd(descriptor);
+             reportInput=input;
+-            pendingReport=captured; reportContext=capturedContext; reportInput=input; reportLaunched=false; reportPaused=false;
++            pendingReport=captured; reportContext=capturedContext; reportInput=input;
+             reportWorker=new Thread(() -> {
+                 java.io.File copied=null;
+                 String stage="worker-source";
+@@ -158,7 +161,10 @@ public final class PublicActivity extends Activity {
+             stage="prepared-chooser";
+             Intent chooser=PublicBridge.ReportIntent.chooser(reportURI);
+             stage="prepared-start-activity";
+-            startActivity(chooser); reportLaunched=true;
++            if (nextExternalCode > 65534) throw new IllegalStateException("activity request code exhausted");
++            int code = nextExternalCode++;
++            startActivityForResult(chooser, code);
++            reportCode = code;
+             reportBoundary("prepared-started",null);
+             stage="prepared-report-jni";
+             if (PublicBridge.report(context,token,1)!=0) fail();
+@@ -171,11 +177,26 @@ public final class PublicActivity extends Activity {
+     private void finishReport(int result) {
+         PublicBridge.ReportFiles.cancelWork(reportLease);
+         handler.removeCallbacks(reportDeadline);
+-        byte[] token=pendingReport; pendingReport=null; reportLaunched=false; reportPaused=false;
++        byte[] token=pendingReport; pendingReport=null; reportCode=0;
+         android.os.ParcelFileDescriptor input=reportInput;
+         if(input!=null) try { input.close(); } catch(IOException ignored) { }
+         if(reportWorker!=null) reportWorker.interrupt();
+-        if(!destroyed && !failed && token!=null && reportContext==context && PublicBridge.report(context,token,result)!=0) fail();
++        if (!destroyed && !failed && token != null && reportContext == context) {
++            reportCompletion = new ReportCompletion(reportContext, token, result);
++            postReportDelivery();
++        }
++    }
++    private void postReportDelivery() {
++        if (reportCompletion != null && !handler.post(this::deliverReportWhenReady)) fail();
++    }
++    private void deliverReportWhenReady() {
++        if (destroyed || failed || reportCompletion == null || reportCompletion.context() != context ||
++                !resumed || !root.hasWindowFocus()) return;
++        ReportCompletion completion = reportCompletion;
++        reportCompletion = null;
++        if (!events.isEmpty()) drainEvents();
++        if (!destroyed && !failed && completion.context() == context &&
++                PublicBridge.report(context, completion.token(), completion.result()) != 0) fail();
+     }
+     private static final class CapturedEvent {
+         final long context; final AndroidUINativeSurface surface; final byte[] owner, envelope;
+@@ -192,7 +213,7 @@ public final class PublicActivity extends Activity {
+     private PhotoCompletion photoCompletion;
+     private boolean photoResultClaimed;
+     private long photoContext;
+-    private int photoCode, nextPhotoCode = 100;
++    private int photoCode, nextExternalCode = 100;
+     private volatile CancellationSignal photoCancellation;
+     private volatile InputStream photoStream;
+     private volatile Thread photoThread;
+@@ -223,11 +244,11 @@ public final class PublicActivity extends Activity {
+     @SuppressWarnings("deprecation")
+     private void launchPhoto(long capturedContext, byte[] request) {
+         if (destroyed || failed || capturedContext != context) return;
+-        if (pendingPhoto != null || (photoThread != null && photoThread.isAlive()) || nextPhotoCode > 65534) {
++        if (pendingPhoto != null || (photoThread != null && photoThread.isAlive()) || nextExternalCode > 65534) {
+             if (PublicBridge.photo(capturedContext, request, 4, new byte[0]) != 0) fail();
+             return;
+         }
+-        pendingPhoto = request; photoResultClaimed = false; photoContext = capturedContext; photoCode = nextPhotoCode++;
++        pendingPhoto = request; photoResultClaimed = false; photoContext = capturedContext; photoCode = nextExternalCode++;
+         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+                 .setType("image/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+         try { startActivityForResult(intent, photoCode); }
+@@ -237,6 +258,11 @@ public final class PublicActivity extends Activity {
+     @Override @SuppressWarnings("deprecation")
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+         super.onActivityResult(requestCode, resultCode, data);
++        if (reportCode != 0 && requestCode == reportCode) {
++            // Returning from the chooser does not confirm delivery.
++            finishReport(0);
++            return;
++        }
+         if (destroyed || failed || pendingPhoto == null || requestCode != photoCode || photoResultClaimed) return;
+         // Claim before any result handling or worker creation, on the main thread.
+         photoResultClaimed = true;
+@@ -418,27 +444,29 @@ public final class PublicActivity extends Activity {
+             return 0;
+         } catch (RuntimeException error) { android.util.Log.e("MixerAndroidHost", "Native surface operation failed: " + operation, error); fail(); return 1; }
+     }
+-    private void fail() { failed = true; photoCompletion = null; invalidateEvents(); if (surface != null) surface.gateInput(); }
++    private void fail() { failed = true; reportCompletion = null; photoCompletion = null; invalidateEvents(); if (surface != null) surface.gateInput(); }
+     @Override public void onResume() {
+         super.onResume();
+         resumed = true;
+         if (surface != null) surface.onResume();
+-        if (reportPaused && reportLaunched) finishReport(0);
++        postReportDelivery();
+         postPhotoDelivery();
+     }
+     @Override public void onWindowFocusChanged(boolean hasFocus) {
+         super.onWindowFocusChanged(hasFocus);
+-        if (hasFocus) postPhotoDelivery();
++        if (hasFocus) {
++            postReportDelivery();
++            postPhotoDelivery();
++        }
+     }
+     @Override public void onPause() {
+         resumed = false;
+-        if (reportLaunched) reportPaused = true;
+         if (surface != null) surface.onPause();
+         super.onPause();
+     }
+     @Override public void onStop() { if (surface != null) surface.onStop(); super.onStop(); }
+     @Override public void onDestroy() {
+-        destroyed = true; finishReport(2); revokeReport(); pendingPhoto = null; photoCompletion = null; cancelPhotoWorker();
++        destroyed = true; reportCompletion = null; finishReport(2); revokeReport(); pendingPhoto = null; photoCompletion = null; cancelPhotoWorker();
+         Thread worker = photoThread;
+         if (worker != null) try { worker.join(100); } catch (InterruptedException error) { Thread.currentThread().interrupt(); }
+         // A provider that ignores cancellation may outlive this bounded join;

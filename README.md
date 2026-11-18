@@ -127,6 +127,19 @@ field identities within each draft and gives new drafts fresh fields.
 Together they reproduce the app sources used for the Android photo
 persistence test. [Build receipt](verification/receipts/fieldlog-public-pair23-export-41a05264.json) · [Runtime receipt](verification/receipts/fieldlog-android-photo-persistence-41a05264.json)
 
+For the ordinary Android app that returns from the photo picker and report
+share sheet, apply the two Activity lifecycle fixes to that same checkout:
+
+```sh
+git -C "$work/FieldLog" apply "$fieldlog_fixtures/photo-return.patch"
+git -C "$work/FieldLog" apply "$fieldlog_fixtures/report-return.patch"
+```
+
+The Activity delivers each result after it resumes and its window regains
+focus. On API 36, an independent app read the exported report offline. On
+return, FieldLog displayed the share-sheet closure message and retained the
+workspace and queued changes. [Report transfer and return](verification/receipts/fieldlog-android-offline-report-return-41a05264.json)
+
 With the migration applied, follow `Integrations/GeneratedReport/README.md`.
 Use the CLI, SDK checkout, and adapter from Mixer revision
 `735ecec14e10e2dfed1e58a122c3fab08e569bef` for that recipe. It uses
