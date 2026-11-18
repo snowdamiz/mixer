@@ -6,6 +6,8 @@ import MixerUpdates
 enum CapabilityInstalledExecutionMode {
     static let startup = "mixer_guest_ui_start_v1"
     static let contractID = "mixer.guest-ui-event-v1"
+    static let deferredStartupID = "mixer.guest-ui-deferred-startup-v1"
+    static let deferredStartupSHA256 = "cdc8e301305ecfd6abe40872df55d90dce86ea816781904c45d1fa119d2da260"
     static let headerID = "mixer.guest-ui-native-header-v1"
     static let contractSHA256 = "34180d46e20e403c9cd3f3aa1584a7b6d0e67e94900267c7aa51c87116566024"
     static let headerSHA256 = "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"
@@ -15,7 +17,7 @@ enum CapabilityInstalledExecutionMode {
         guard identity.execution.startupExport != startup,
               !dependencies.contains(where: { entry in
                   let id = entry.object?["id"]?.text
-                  return id == contractID || id == headerID
+                  return id == contractID || id == headerID || id == deferredStartupID
               }) else { throw rejection() }
     }
 
@@ -30,6 +32,14 @@ enum CapabilityInstalledExecutionMode {
                 throw rejection()
             }
         }
+    }
+
+    static func allowsDeferredGuestUIStartup(_ identity: CapabilityRuntimeIdentity) throws -> Bool {
+        guard let fields = try entries(identity).first(where: { $0.object?["id"]?.text == deferredStartupID })?.object
+        else { return false }
+        guard identity.execution.startupExport == startup, fields["version"]?.text == "1",
+              fields["artifact_sha256"]?.text == deferredStartupSHA256 else { throw rejection() }
+        return true
     }
 
     private static func entriesRejectingReservedV2(_ identity: CapabilityRuntimeIdentity) throws -> [CanonicalValue] {

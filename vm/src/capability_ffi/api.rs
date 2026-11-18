@@ -154,6 +154,7 @@ pub(super) unsafe fn guest_ui_validate(
     n: usize,
     vm: *const MixerVmLimits,
     cap: *const MixerVmCapabilityLimitsV1,
+    deferred_startup: bool,
     out: *mut MixerVmReport,
 ) -> u32 {
     if p::guest_ui_validate(module, n, vm, cap, out).is_err() {
@@ -163,7 +164,7 @@ pub(super) unsafe fn guest_ui_validate(
         boundary(out, || {
             let (vm, mb, guest) = limits(vm, cap)?;
             Ok(
-                match CapabilityGuest::validate_guest_ui_only(input(module, n), &vm, &mb, guest) {
+                match CapabilityGuest::validate_guest_ui_only(input(module, n), &vm, &mb, guest, deferred_startup) {
                     Ok(()) => MixerVmReport::default(),
                     Err(e) => error::vm(e, 1),
                 },

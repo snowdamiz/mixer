@@ -42,6 +42,7 @@ final class NativeTicket: @unchecked Sendable {
         var typedOperation: CapabilityOperation?
         var admissionStarted = false
         var encodedResult: Data?
+        var containsHydrationSnapshot = false
         var envelopeWaiter: CheckedContinuation<Data, any Error>?
         var legacyBytes = 0
         var accepted: Bool?
@@ -285,7 +286,10 @@ final class NativeExitOwner: @unchecked Sendable {
     }
     func enable(cutoff: UInt64? = nil) async throws {
         try await command(enableCutoff: cutoff) { [self] in
-            if let guestUI { try GuestUITurns.requireLive(guestUI.exchange) }
+            if let guestUI {
+                try GuestUITurns.requireLive(guestUI.exchange)
+                guestUI.setStartupCutoff(cutoff)
+            }
             try native.enable()
             if !closed { effectsOpen = true }
         }
@@ -350,6 +354,7 @@ final class NativeExitOwner: @unchecked Sendable {
         }
         if !closed && started && ContinuousClock.now < cutoff {
             do {
+                if effectsOpen { try guestUI?.requireInitialDocumentDeadline() }
                 try native.expire()
                 readyHint = true // Expiry can create a terminal without a native callback.
                 // Cancellation controls have priority inside C. A full payload
@@ -374,8 +379,10 @@ final class NativeExitOwner: @unchecked Sendable {
                             return state.status.closed ? 0 : 1
                         }
                         if installed < 0 { stop("native_ticket_reuse", quarantined: true) }
-                        else if installed == 1 && effectsOpen { ticket.state.withLock { $0.arguments = arguments } }
-                        else { local(ticket, outcome: .failure(.unavailable)) }
+                        else if installed != 1 || !effectsOpen { local(ticket, outcome: .failure(.unavailable)) }
+                        else if guestUI?.acceptsHydrationOperation(isRead: operation == .storageGet) == false {
+                            local(ticket, outcome: .failure(.permissionDenied))
+                        } else { ticket.state.withLock { $0.arguments = arguments } }
                         continue
                     }
                     break
@@ -393,6 +400,9 @@ final class NativeExitOwner: @unchecked Sendable {
                 defer { if let before { turns += recordGuestUITurns(since: before) } }
                 do {
                     if let guestUI {
+                        // Drain requests emitted by the hydration turn before taking
+                        // the first user event, which opens ordinary admission.
+                        if guestUI.publishedHydration && drainHint { break }
                         guard let didInvoke = try guestUI.next(native, ready: readyHint) else { break }
                         if !didInvoke { readyHint = false; break }
                     } else if !(try native.wake()) { readyHint = false; break }
@@ -501,7 +511,11 @@ final class NativeExitOwner: @unchecked Sendable {
             let sample = ContinuousClock.now
             let remaining = try native.remaining(token: ticket.token, operation: ticket.operation, timeout: timeout)
             guard remaining > 0 else { local(ticket, outcome: nil); return }
-            let deadline = sample.advanced(by: .milliseconds(Int64(remaining)))
+            var deadline = sample.advanced(by: .milliseconds(Int64(remaining)))
+            if let budget = guestUI?.initialDocumentRemainingNanoseconds {
+                guard budget > 0 else { local(ticket, outcome: .failure(.deadlineExceeded)); return }
+                deadline = min(deadline, sample.advanced(by: .nanoseconds(Int64(clamping: budget))))
+            }
             ticket.state.withLock { $0.deadline = deadline }
             let elapsed = rateTime.duration(to: sample)
             let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
@@ -571,13 +585,21 @@ final class NativeExitOwner: @unchecked Sendable {
                 guard ContinuousClock.now < cutoff else { return }
                 do {
                     let bytes = try GuestCapabilityTransportCodecV1.encodeCompletion(outcome, operation: ticket.operation)
-                    ticket.state.withLock { $0.localOutcome = nil; $0.encodedResult = bytes }
+                    ticket.state.withLock { state in
+                        state.localOutcome = nil; state.encodedResult = bytes
+                        if guestUI?.awaitingInitialDocument == true, case .success(.get(let response)) = outcome {
+                            state.containsHydrationSnapshot = response.found
+                        }
+                    }
                 } catch { fail(error); return }
             }
             snapshot = ticket.state.withLock { $0 }
             if let bytes = snapshot.encodedResult {
                 guard ContinuousClock.now < cutoff else { return }
-                do { try native.post(token: ticket.token, operation: ticket.operation, data: bytes) }
+                do {
+                    let delivered = try native.post(token: ticket.token, operation: ticket.operation, data: bytes)
+                    if delivered && snapshot.containsHydrationSnapshot { guestUI?.didPostHydrationSnapshot() }
+                }
                 catch {
                     let e = error as? ExperimentalCapabilityError
                     if !(e?.nativeStatus == 3 && (snapshot.cancelRequested || snapshot.deadline.map { ContinuousClock.now >= $0 } == true || closed)) {

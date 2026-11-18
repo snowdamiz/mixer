@@ -1,6 +1,7 @@
 import Foundation
 import Crypto
 import MixerCapabilities
+import MixerRuntimeIdentity
 import MixerUpdates
 @testable import MixerCapabilityActivation
 
@@ -13,7 +14,8 @@ struct GuestUISignedFixture {
     var configuration: CapabilityColdStartConfiguration {
         .init(directory: root.appendingPathComponent("recovery"), channel: "beta", installation: "guest-ui-signed", observationSeconds: 1)
     }
-    init(root: URL) throws {
+    init(root: URL, deferredService: (any InstalledApplicationStorageServing)? = nil,
+         boundNamespace: String = "material_test", boundFingerprint: String? = nil) throws {
         self.root = root
         key = try .init(rawRepresentation: Data(repeating: 0x53, count: 32))
         func resource(_ name: String) throws -> Data {
@@ -30,6 +32,10 @@ struct GuestUISignedFixture {
         var dependencies = identity["dependencies"] as! [[String: Any]]
         dependencies.append(["id":"mixer.guest-ui-event-v1", "version":"1", "artifact_sha256":"34180d46e20e403c9cd3f3aa1584a7b6d0e67e94900267c7aa51c87116566024"])
         dependencies.append(["id":"mixer.guest-ui-native-header-v1", "version":"1", "artifact_sha256":"d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"])
+        if deferredService != nil {
+            dependencies.append(["id": CapabilityInstalledExecutionMode.deferredStartupID, "version": "1",
+                                 "artifact_sha256": CapabilityInstalledExecutionMode.deferredStartupSHA256])
+        }
         identity["dependencies"] = dependencies.sorted { ($0["id"] as! String) < ($1["id"] as! String) }
         let materials: [CapabilityMaterialFile] = [
             .init(role: .bridgePolicy, bytes: try resource("bridge.json")),
@@ -37,8 +43,13 @@ struct GuestUISignedFixture {
             .init(role: .configuration(capabilityID: CapabilitySchemas.storageID), bytes: try resource("storage.json")),
             .init(role: .installedGrant(capabilityID: CapabilitySchemas.httpID), bytes: try resource("http-grant.json")),
             .init(role: .installedGrant(capabilityID: CapabilitySchemas.storageID), bytes: try resource("storage-grant.json"))]
-        execution = try InstalledCapabilityExecution(identityJSON: JSONSerialization.data(withJSONObject: identity, options: [.sortedKeys, .withoutEscapingSlashes]),
-            materials: materials, trustRootsJSON: roots, privateContainer: root)
+        let identityJSON = try JSONSerialization.data(withJSONObject: identity, options: [.sortedKeys, .withoutEscapingSlashes])
+        let storage = try deferredService.map {
+            InstalledApplicationStorage(runtimeFingerprint: try boundFingerprint ?? CapabilityRuntimeIdentity(json: identityJSON).fingerprint,
+                                        namespace: boundNamespace, service: $0, allowsDeferredGuestUIStartup: true)
+        }
+        execution = try InstalledCapabilityExecution(identityJSON: identityJSON,
+            materials: materials, trustRootsJSON: roots, privateContainer: root, applicationStorage: storage)
     }
     func documents(_ bytes: Data, sequence: UInt64 = 1, startupMilliseconds: UInt64 = 60_000, storage: Bool = false) throws -> (Data, Data) {
         let host = execution.installed.identity.installedRuntime, s = host.scope

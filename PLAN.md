@@ -14,6 +14,10 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The installed guest runtime now supports reading saved state before its first frame, after durable effect authorization. The reviewed implementation passed host checks for grant denial, startup deadline, quota forwarding and prior ABI behavior. The earlier iOS runtime receipt used the original overlay. [Implementation and review](verification/receipts/fieldlog-public-first-frame-hydration-41a05264.json).
+
+The local branch integrates free administration and native build cancellation at `793196991d`. L05 and L06 remain open for the combined runtime journeys. [Integration receipt](verification/receipts/l06-combined-admin-support-cancel-41a05264.json).
+
 The ordinary iOS in-place upgrade test stopped during system photo import before its first XCTest. The disposable Simulator and import process remain under hold. Installation of the replacement build is pending. [Upgrade attempt](verification/receipts/fieldlog-installed-upgrade-import-hold-41a05264.json).
 
 **L01 passed for the documented local setup, adoption and export workflow.** The review verified independent exports and native starter runs on both platforms, the import report, and public SDK use by the separate FieldLog app. L02–L08 remain open. [L01 decision](verification/receipts/l01-independent-final-review-41a05264.json).

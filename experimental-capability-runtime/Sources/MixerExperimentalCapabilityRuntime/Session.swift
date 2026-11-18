@@ -120,7 +120,8 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
         do {
             if let exchange = input.exchange {
                 try GuestUITurns.requireLive(exchange)
-                try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration)
+                try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration,
+                    deferredStartup: exchange.allowsDeferredStartup)
                 try GuestUITurns.requireLive(exchange)
             }
             let createdHost = try CapabilityHost(policy: input.policy, maximumRequests: Int(input.configuration.maximumRequests),

@@ -11,7 +11,7 @@ installed official NDK. The builder does not install or download any tools.
 
 ```sh
 python3 experimental-capability-runtime/build-vm.py \
-  --revision 1adb25c48a8723f56ed2649712fe5e357920c53e \
+  --revision "$(git rev-parse HEAD)" \
   --target host \
   --output /absolute/fresh/output \
   --rustc /absolute/path/to/rustc
@@ -42,11 +42,11 @@ Successful staging contains exactly:
 - `include/mixer_vm_capability.h`
 - `include/mixer_vm.h`
 - `include/mixer_vm_guest_ui.h`
+- `include/mixer_vm_guest_ui_deferred.h`
 
-The archive contains the unchanged legacy and capability C APIs plus the additive
-validate-only `mixer_vm_capability_guest_ui_validate_v1` API, with exactly one
-definition of each of the 28 public symbols and one shared registry. The first two
-headers retain their previously qualified bytes. This builder selects only the
+The archive exports 29 public symbols and uses one shared registry. The
+deferred-startup header adds `mixer_vm_capability_guest_ui_validate_deferred_v1`.
+The three earlier headers retain their qualified bytes. This builder selects only the
 native-to-guest-to-mailbox feature chain; stream/cache features are not enabled.
 Compile Swift using
 `-Xcc -I<output>/include` and link only `-L<output>/lib` plus the distinct library
@@ -104,7 +104,8 @@ python3 -O experimental-capability-runtime/build-tests/test_builder.py
 
 Those temporary Git fixtures probe input and filesystem policy, not native VM
 semantics. Actual pinned host/C and cross-link evidence is recorded separately by
-`run.py`. Guest UI qualification also links the original public C UI consumer for
+`run.py` from the matching pre-hydration checkout. That historical runner
+uses its original VM revision and three-header inventory. Guest UI qualification also links the original public C UI consumer for
 all four targets and runs it on the host, including full-registry validation and
 unchanged capability validation of a guest with an invalid UI signature.
 `local/` contains retained large source exports, static archives, binaries

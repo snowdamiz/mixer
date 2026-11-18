@@ -1,5 +1,5 @@
 import Foundation
-import MixerCapabilities
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 
 /// Trusted implementation sink: O(1), nonblocking, nonreentrant latch/update only.
 /// It supplies no execution, release or health authority. Neither sink may hold
@@ -27,6 +27,13 @@ public final class OwnedCapabilityAdapterGroup: @unchecked Sendable {
                 retirement: any CapabilityBridgeRetirementObserver) {
         core = AdapterCloseCore(http: http, storage: storage, terminal: terminal, retirement: retirement)
     }
+    public init(http: URLSessionHTTPTransport?, applicationStorage: InstalledApplicationStorageAdapter,
+                terminal: any CapabilityBridgeTerminalObserver,
+                retirement: any CapabilityBridgeRetirementObserver) {
+        core = AdapterCloseCore(http: http, storage: nil, applicationStorage: applicationStorage,
+                                terminal: terminal, retirement: retirement)
+    }
+
     /// Prepare failure leaves ownership here. After transfer this is a no-op;
     /// construction/session cancellation owns cleanup instead.
     public func closeIfUntransferred() { core.closeIfUntransferred() }
@@ -38,6 +45,7 @@ final class AdapterCloseCore: @unchecked Sendable {
     private struct State {
         var http: URLSessionHTTPTransport?
         var storage: AppPrivateKeyValueStore?
+        var applicationStorage: InstalledApplicationStorageAdapter?
         var terminal: (any CapabilityBridgeTerminalObserver)?
         var retirement: (any CapabilityBridgeRetirementObserver)?
         var permit: ConstructionPermit?
@@ -54,13 +62,17 @@ final class AdapterCloseCore: @unchecked Sendable {
     }
     private let state: Locked<State>
     init(http: URLSessionHTTPTransport?, storage: AppPrivateKeyValueStore?,
+         applicationStorage: InstalledApplicationStorageAdapter? = nil,
          terminal: any CapabilityBridgeTerminalObserver, retirement: any CapabilityBridgeRetirementObserver) {
-        state = Locked(State(http: http, storage: storage, terminal: terminal, retirement: retirement))
+        state = Locked(State(http: http, storage: storage, applicationStorage: applicationStorage, terminal: terminal, retirement: retirement))
     }
     func consume(_ permit: ConstructionPermit) throws -> InstalledCapabilityAdapters {
         try state.withLock { state in
             guard !state.consumed, !state.closeStarted else { throw ExperimentalCapabilityError("adapter_group_consumed") }
             state.consumed = true; state.permit = permit
+            if let applicationStorage = state.applicationStorage {
+                return InstalledCapabilityAdapters(http: state.http, applicationStorage: applicationStorage)
+            }
             return InstalledCapabilityAdapters(http: state.http, storage: state.storage)
         }
     }
@@ -106,7 +118,10 @@ final class AdapterCloseCore: @unchecked Sendable {
             if let host { await host.close() }
             let storage = state.withLock { $0.storage }
             if let storage { await storage.close() }
-            state.withLock { $0.adaptersClosed = true; $0.http = nil; $0.storage = nil }
+            state.withLock {
+                $0.adaptersClosed = true
+                $0.http = nil; $0.storage = nil; $0.applicationStorage = nil
+            }
             if let nativeOwner { nativeOwner.concreteAdaptersClosed() }
             retireIfReady()
         }

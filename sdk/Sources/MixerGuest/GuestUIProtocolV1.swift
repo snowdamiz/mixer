@@ -5,7 +5,7 @@ public enum GuestUIProtocolPhaseV1: String, Sendable, Equatable {
     case validation, startup, event, wake, presentation
 }
 public enum GuestUIProtocolCodeV1: String, Sendable, Equatable {
-    case requiredExport, startupResult, header, memoryRange, bufferChanged, document
+    case requiredExport, startupResult, startupDeadline, header, memoryRange, bufferChanged, document
     case revisionRegressed, sameRevisionMutation, eventEncoding, eventResult
     case sequenceExhausted, presentationInvariant
 }

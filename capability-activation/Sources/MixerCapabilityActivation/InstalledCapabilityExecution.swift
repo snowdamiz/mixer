@@ -16,6 +16,23 @@ public struct CapabilityMaterialFile: Sendable {
     public init(role: Role, bytes: Data) { self.role = role; self.bytes = bytes }
 }
 
+/// Binds one app-owned store to one installed runtime and storage namespace.
+/// The trusted embedding owns the repository and its lifetime across guest launches.
+public struct InstalledApplicationStorage: Sendable {
+    public let runtimeFingerprint: String
+    public let namespace: String
+    let service: any InstalledApplicationStorageServing
+    let allowsDeferredGuestUIStartup: Bool
+
+    public init(runtimeFingerprint: String, namespace: String, service: any InstalledApplicationStorageServing,
+                allowsDeferredGuestUIStartup: Bool = false) {
+        self.runtimeFingerprint = runtimeFingerprint
+        self.namespace = namespace
+        self.service = service
+        self.allowsDeferredGuestUIStartup = allowsDeferredGuestUIStartup
+    }
+}
+
 /// Immutable installed material only. This value grants no release or execution
 /// authority and creates no session, adapter, task, directory or file.
 public struct InstalledCapabilityExecution: Sendable {
@@ -25,6 +42,12 @@ public struct InstalledCapabilityExecution: Sendable {
     let installed: InstalledMaterial
 
     public init(identityJSON: Data, materials: [CapabilityMaterialFile], trustRootsJSON: Data, privateContainer: URL) throws {
+        try self.init(identityJSON: identityJSON, materials: materials, trustRootsJSON: trustRootsJSON,
+                      privateContainer: privateContainer, applicationStorage: nil)
+    }
+
+    public init(identityJSON: Data, materials: [CapabilityMaterialFile], trustRootsJSON: Data,
+                privateContainer: URL, applicationStorage: InstalledApplicationStorage?) throws {
         guard identityJSON.count <= 131_072, trustRootsJSON.count <= 65_536, materials.count <= 5 else { throw materialError("size") }
         var total = 0
         for file in materials {
@@ -62,6 +85,18 @@ public struct InstalledCapabilityExecution: Sendable {
             let grant = try MaterialRules.document(files["grant:" + capability.id]!, digest: capability.grantsSHA256)
             grants[capability.id] = try MaterialRules.grant(grant, id: capability.id, schema: capability.schemaSHA256)
         }
+        guard try CapabilityInstalledExecutionMode.allowsDeferredGuestUIStartup(identity) ==
+            (applicationStorage?.allowsDeferredGuestUIStartup == true) else {
+            throw materialError("deferred_guest_ui_startup")
+        }
+        if let applicationStorage {
+            let storageGrant = grants[CapabilitySchemas.storageID]
+            guard applicationStorage.runtimeFingerprint == identity.fingerprint,
+                  storageGrant?.permissions == ["storage.appPrivate"],
+                  storageGrant?.namespaces == [applicationStorage.namespace] else {
+                throw materialError("application_storage")
+            }
+        }
         let rootsBytes = MaterialRules.snapshot(trustRootsJSON)
         guard let build = identity.descriptor.object?["build"]?.object, let digest = build["trust_roots_sha256"]?.text,
               ReleaseVerifier.sha256(rootsBytes) == digest else { throw materialError("roots.digest") }
@@ -70,7 +105,8 @@ public struct InstalledCapabilityExecution: Sendable {
         let verifier = try ReleaseVerifierV3(host: identity.installedRuntime, roots: roots)
         runtimeFingerprint = identity.fingerprint
         installed = InstalledMaterial(identity: identity, files: files, rootsBytes: rootsBytes, privateContainer: privateContainer,
-                                      bridge: bridge, configurations: configurations, grants: grants, verifier: verifier)
+                                      bridge: bridge, configurations: configurations, grants: grants, verifier: verifier,
+                                      applicationStorage: applicationStorage)
     }
 }
 
@@ -83,6 +119,7 @@ struct InstalledMaterial: Sendable {
     let configurations: [String: InstalledConfiguration]
     let grants: [String: InstalledGrant]
     let verifier: ReleaseVerifierV3
+    let applicationStorage: InstalledApplicationStorage?
 }
 struct InstalledBridgePolicy: Sendable { let burst: UInt32; let startsPerSecond: UInt32 }
 enum InstalledConfiguration: Sendable {

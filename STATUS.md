@@ -12,7 +12,9 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
-A private candidate combines free workspace administration, support and organization exit with native build cancellation. The console suite, authenticated loopback HTTP fixtures, restricted PostgreSQL build tests and both source authorities passed. The exit fixture retained one build and found zero payment credentials. The joined browser and live cancellation journey remains pending. [Combined candidate evidence](verification/receipts/l06-combined-admin-support-cancel-41a05264.json).
+The installed guest runtime now supports reading saved state before its first frame, after durable effect authorization. The reviewed implementation passed host checks for grant denial, startup deadline, quota forwarding and prior ABI behavior. The earlier iOS runtime receipt used the original overlay. [Implementation and review](verification/receipts/fieldlog-public-first-frame-hydration-41a05264.json).
+
+Local commit `793196991d` integrates free workspace administration, support, organization exit and native build cancellation. All 278 console tests and 88 PostgreSQL-backed build tests passed on the combined source. The authenticated exit fixture retained a settled build and found zero payment credentials. The combined browser journey and cancellation during a live compile still need runtime verification. [Integration receipt](verification/receipts/l06-combined-admin-support-cancel-41a05264.json).
 
 The ordinary iOS in-place upgrade test stopped during system photo import before its first XCTest. The disposable Simulator and import process remain under hold. Installation of the replacement build is pending. [Upgrade attempt](verification/receipts/fieldlog-installed-upgrade-import-hold-41a05264.json).
 

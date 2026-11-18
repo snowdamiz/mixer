@@ -158,6 +158,26 @@ final class GuestUIExchangeCore: @unchecked Sendable {
             s.turn = claim; return claim
         }
     }
+    func finishStartupWithoutDocument(_ claim: GuestUITurnClaimV1) throws {
+        try mutate { s, _ in
+            try requireTurn(claim, s)
+            guard case .startup = claim.kind else { throw GuestUIControlRejectionV1.staleClaim }
+            s.started = true
+            s.turn = nil
+            bump(&s.counters.successfulTurns)
+        }
+    }
+    func finishHydrationHook(_ claim: GuestUITurnClaimV1) throws {
+        try mutate { s, notices in
+            try requireTurn(claim, s)
+            guard case .ready = claim.kind, s.confirmed, s.latestRevision == nil else {
+                throw GuestUIControlRejectionV1.staleClaim
+            }
+            s.turn = nil
+            bump(&s.counters.successfulTurns)
+            notices.insert(.nativeInputReadiness)
+        }
+    }
     public func finishReadyWithoutInvocation(_ claim: GuestUITurnClaimV1) throws {
         try mutate { s, notices in
             try requireTurn(claim, s)
@@ -165,7 +185,7 @@ final class GuestUIExchangeCore: @unchecked Sendable {
             s.turn = nil; notices.insert(.nativeInputReadiness)
         }
     }
-    public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data) throws {
+    public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data, startupCutoff: UInt64? = nil) throws {
         try mutate { s, _ in try requireTurn(claim, s) }
         guard (1...codec.maximumBytes).contains(documentBytes.count) else {
             try mutate { s, notices in
@@ -190,6 +210,10 @@ final class GuestUIExchangeCore: @unchecked Sendable {
         }
         try mutate { s, notices in
             try requireTurn(claim, s)
+            if let startupCutoff, DispatchTime.now().uptimeNanoseconds >= startupCutoff {
+                let error = GuestUIProtocolFailureV1(phase: .startup, code: .startupDeadline)
+                protocolStop(error, &s, &notices); throw error
+            }
             let revision = document.document.revision
             if let previous = s.latestRevision {
                 if revision < previous {

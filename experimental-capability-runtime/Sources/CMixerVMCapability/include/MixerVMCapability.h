@@ -3,4 +3,5 @@
 /* Supply only the pinned experimental builder's include directory. */
 #include <mixer_vm_capability.h>
 #include <mixer_vm_guest_ui.h>
+#include <mixer_vm_guest_ui_deferred.h>
 #endif

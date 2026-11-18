@@ -19,10 +19,13 @@ struct NativeConstructionFailure: Error {
 /// Immutable retained handle. Only the pump uses scratch or ordinary operations;
 /// the separate close path may race, using the C registry's reviewed contract.
 final class NativeCapabilitySession: @unchecked Sendable {
-    static func validateGuestUI(module: Data, configuration: ExperimentalCapabilityConfiguration) throws {
+    static func validateGuestUI(module: Data, configuration: ExperimentalCapabilityConfiguration,
+                                deferredStartup: Bool = false) throws {
         var vm = configuration.vm, capability = configuration.capability, report = MixerVmReport()
         let status = module.withUnsafeBytes { bytes in
-            mixer_vm_capability_guest_ui_validate_v1(bytes.bindMemory(to: UInt8.self).baseAddress, bytes.count,
+            let validator = deferredStartup ? mixer_vm_capability_guest_ui_validate_deferred_v1
+                : mixer_vm_capability_guest_ui_validate_v1
+            return validator(bytes.bindMemory(to: UInt8.self).baseAddress, bytes.count,
                 &vm, &capability, &report)
         }
         do {
@@ -159,13 +162,14 @@ final class NativeCapabilitySession: @unchecked Sendable {
         guard result.remaining_milliseconds <= 30000, result.kind != 1 || result.remaining_milliseconds == 0 else { throw ExperimentalCapabilityError("invalid_native_remaining", operation: .limitDeadline) }
         return result.kind == 1 ? 0 : result.remaining_milliseconds
     }
-    func post(token: UInt64, operation: GuestCapabilityOperationV1, data: Data) throws {
+    func post(token: UInt64, operation: GuestCapabilityOperationV1, data: Data) throws -> Bool {
         var result = MixerVmCapabilityResultV1(), report = MixerVmReport()
         let status = data.withUnsafeBytes { bytes in
             mixer_vm_capability_post_v1(handle, token, operation.rawValue, bytes.bindMemory(to: UInt8.self).baseAddress, bytes.count, &result, &report)
         }
         try check(status, report, operation: .post); try Self.result(result, kinds: [0, 1], operation: .post)
         guard result.remaining_milliseconds == 0 else { throw ExperimentalCapabilityError("invalid_native_post", operation: .post) }
+        return result.kind == 0
     }
     func ack(token: UInt64, operation: GuestCapabilityOperationV1) throws {
         var result = MixerVmCapabilityResultV1(), report = MixerVmReport()

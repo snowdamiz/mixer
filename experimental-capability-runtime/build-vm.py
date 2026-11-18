@@ -35,10 +35,12 @@ HEADER_HASHES={
     'vm/include/mixer_vm.h':'18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd',
     'vm/include/mixer_vm_capability.h':'9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6',
     'vm/include/mixer_vm_guest_ui.h':'d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5',
+    'vm/include/mixer_vm_guest_ui_deferred.h':'7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f',
 }
 PUBLIC_C_SYMBOLS=frozenset('''
 mixer_vm_capability_ack_exit_v1 mixer_vm_capability_expire_v1
 mixer_vm_capability_guest_ui_validate_v1 mixer_vm_capability_limit_deadline_v1
+mixer_vm_capability_guest_ui_validate_deferred_v1
 mixer_vm_capability_post_v1 mixer_vm_capability_session_cancel_v1
 mixer_vm_capability_session_close_v1 mixer_vm_capability_session_create_v1
 mixer_vm_capability_session_enable_v1 mixer_vm_capability_session_invoke_v1

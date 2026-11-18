@@ -626,7 +626,10 @@ private actor CapabilityRecoveryWorker {
         return .nativeFallback
     }
     private func prepareValidation(_ module: Data, configuration: ExperimentalCapabilityConfiguration) throws -> ExperimentalCapabilityValidation {
-        if guestUI { return try ExperimentalCapabilityValidator.prepareGuestUIV1(module: module, configuration: configuration) }
+        if guestUI {
+            return try ExperimentalCapabilityValidator.prepareGuestUIV1(module: module, configuration: configuration,
+                deferredStartup: installed.applicationStorage?.allowsDeferredGuestUIStartup == true)
+        }
         return try ExperimentalCapabilityValidator.prepare(module: module,
             startupExport: installed.identity.execution.startupExport, configuration: configuration)
     }

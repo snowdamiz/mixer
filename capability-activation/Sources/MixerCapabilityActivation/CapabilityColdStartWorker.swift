@@ -104,7 +104,10 @@ actor CapabilityColdStartWorker {
                                    _ op: CapabilityColdStartOperation) async throws -> StartupStep {
         let store = try currentStore(op)
         guard let installed else { throw coldStartError("closed") }
-        let exchange = try presentation.map { _ in try GuestUIExchangeV1(generation: selection.generation) }
+        let exchange = try presentation.map { _ in
+            try GuestUIExchangeV1(generation: selection.generation,
+                allowsDeferredStartup: installed.applicationStorage?.allowsDeferredGuestUIStartup == true)
+        }
         let signals = CapabilityAttemptSignals(generation: selection.generation, guestUI: exchange)
         try control.installObservation(signals, worker: self, candidate: selection.candidateID,
             launch: selection.launchID, op: op)

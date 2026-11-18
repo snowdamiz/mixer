@@ -99,7 +99,8 @@ class DependencyProvenanceTests(unittest.TestCase):
         (native / 'lib/libmixer_vm_capability_experimental.a').write_bytes(b'invalid archive')
         complete = {'target_selector': 'host', 'feature': 'experimental-capability-native',
                     'source_revision': 'a' * 40, 'library': {'sha256': '0' * 64},
-                    'headers': {name: {} for name in ['mixer_vm.h', 'mixer_vm_capability.h', 'mixer_vm_guest_ui.h']}}
+                    'headers': {name: {} for name in ['mixer_vm.h', 'mixer_vm_capability.h',
+                                                     'mixer_vm_guest_ui.h', 'mixer_vm_guest_ui_deferred.h']}}
         for index, (kind, message) in enumerate([
                 ('revision', 'Native VM source revision differs'),
                 ('headers', 'complete capability VM header set'),
@@ -110,7 +111,7 @@ class DependencyProvenanceTests(unittest.TestCase):
                 if kind == 'revision':
                     extra = ['--expected-native-revision', 'b' * 40]
                 if kind == 'headers':
-                    receipt['headers'].pop('mixer_vm_guest_ui.h')
+                    receipt['headers'].pop('mixer_vm_guest_ui_deferred.h')
                 (native / 'receipt.json').write_text(json.dumps(receipt))
                 result = subprocess.run([sys.executable, '-O', str(RUNNER),
                                          '--native-root', str(native), '--output', str(self.root / str(index)),

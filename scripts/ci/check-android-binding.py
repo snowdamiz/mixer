@@ -120,7 +120,9 @@ def main():
     require(native_receipt['feature'] == 'experimental-capability-native', 'Capability VM feature required')
     if args.expected_native_revision:
         require(native_receipt['source_revision'] == args.expected_native_revision, 'Native VM source revision differs')
-    require(set(native_receipt['headers']) == {'mixer_vm.h', 'mixer_vm_capability.h', 'mixer_vm_guest_ui.h'},
+    require(set(native_receipt['headers']) == {
+        'mixer_vm.h', 'mixer_vm_capability.h', 'mixer_vm_guest_ui.h', 'mixer_vm_guest_ui_deferred.h'
+    },
             'The complete capability VM header set is required')
     native_inputs = {}
     archive = native / 'lib' / 'libmixer_vm_capability_experimental.a'

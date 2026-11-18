@@ -1,6 +1,6 @@
 import Foundation
 import Dispatch
-import MixerCapabilities
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 @_spi(CapabilityLifecycle) import MixerExperimentalCapabilityRuntime
 @_spi(GuestUIV1) import MixerExperimentalCapabilityRuntime
 @_spi(GuestUIV1) import MixerGuest
@@ -224,15 +224,29 @@ private actor CapabilityConcreteSetup {
         var group: OwnedCapabilityAdapterGroup?
         do {
             try control.requireOpen(deadline: true)
-            if let policy = input.consumed.policy.storage {
+            let storagePolicy = input.consumed.policy.storage
+            let binding = input.installed.applicationStorage
+            if let binding, binding.allowsDeferredGuestUIStartup,
+               storagePolicy?.namespaces != [binding.namespace] {
+                throw concreteAttemptError("hydration_storage_grant")
+            }
+            if let policy = storagePolicy, binding == nil {
                 storage = try AppPrivateKeyValueStore(directory: input.installed.privateContainer.appendingPathComponent(policy.directoryComponent, isDirectory: true),
                     namespaces: policy.namespaces, maximumTotalBytes: policy.maximumTotalBytes, maximumEntries: policy.maximumEntries)
             }
             try control.requireOpen(deadline: true)
             let http = try input.consumed.policy.http.map { try URLSessionHTTPTransport(maximumConcurrentRequests: Int($0.maximumConcurrentRequests)) }
             control.retirement.expectGroup()
-            let createdGroup = OwnedCapabilityAdapterGroup(http: http, storage: storage,
-                terminal: control.signals, retirement: control.retirement)
+            let createdGroup: OwnedCapabilityAdapterGroup
+            if let policy = storagePolicy, let binding, policy.namespaces == [binding.namespace] {
+                let adapter = InstalledApplicationStorageAdapter(service: binding.service,
+                    maximumTotalBytes: policy.maximumTotalBytes, maximumEntries: policy.maximumEntries)
+                createdGroup = OwnedCapabilityAdapterGroup(http: http, applicationStorage: adapter,
+                    terminal: control.signals, retirement: control.retirement)
+            } else {
+                createdGroup = OwnedCapabilityAdapterGroup(http: http, storage: storage,
+                    terminal: control.signals, retirement: control.retirement)
+            }
             group = createdGroup
             guard control.installGroup(createdGroup) else { createdGroup.closeIfUntransferred(); throw concreteAttemptError("stopped") }
             try control.requireOpen(deadline: true)

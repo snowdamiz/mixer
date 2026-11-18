@@ -6,7 +6,22 @@ import MixerUI
 /// V1 control values here are shared data-only types, never V1 wire selection.
 @_spi(GuestUIV1) public final class GuestUIExchangeV1: Sendable {
     private let core: GuestUIExchangeCore
-    public init(generation: UInt64) throws { core = try GuestUIExchangeCore(generation: generation, codec: .legacy) }
+    public let allowsDeferredStartup: Bool
+    public convenience init(generation: UInt64) throws {
+        try self.init(generation: generation, allowsDeferredStartup: false)
+    }
+    public init(generation: UInt64, allowsDeferredStartup: Bool) throws {
+        self.allowsDeferredStartup = allowsDeferredStartup
+        core = try GuestUIExchangeCore(generation: generation, codec: .legacy)
+    }
+    public func finishStartupWithoutDocument(_ claim: GuestUITurnClaimV1) throws {
+        guard allowsDeferredStartup else { throw GuestUIControlRejectionV1.staleClaim }
+        try core.finishStartupWithoutDocument(claim)
+    }
+    public func finishHydrationHook(_ claim: GuestUITurnClaimV1) throws {
+        guard allowsDeferredStartup else { throw GuestUIControlRejectionV1.staleClaim }
+        try core.finishHydrationHook(claim)
+    }
     public var deliveryWake: GuestUIWakeV1 { core.deliveryWake }
     public var coordinatorWake: GuestUIWakeV1 { core.coordinatorWake }
     public func takeNativeInputReadinessConsumer() throws -> GuestUINativeInputReadinessConsumerV1 {
@@ -15,7 +30,12 @@ import MixerUI
     public func claimStartup() throws -> GuestUITurnClaimV1 { try core.claimStartup() }
     public func claimNextTurn(ready: Bool) throws -> GuestUITurnClaimV1? { try core.claimNextTurn(ready: ready) }
     public func finishReadyWithoutInvocation(_ claim: GuestUITurnClaimV1) throws { try core.finishReadyWithoutInvocation(claim) }
-    public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data) throws { try core.finishTurn(claim, documentBytes: documentBytes) }
+    public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data) throws {
+        try core.finishTurn(claim, documentBytes: documentBytes)
+    }
+    public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data, startupCutoff: UInt64?) throws {
+        try core.finishTurn(claim, documentBytes: documentBytes, startupCutoff: startupCutoff)
+    }
     public func offer(_ event: UIEventEnvelope, generation: UInt64) -> GuestUIEventAdmissionV1 { core.offer(event, generation: generation) }
     public func offerNativeInput(_ event: UIEventEnvelope, generation: UInt64) -> GuestUINativeInputAdmissionV1 { core.offerNativeInput(event, generation: generation) }
     public func claimPresentation(generation: UInt64) -> GuestUIPresentationClaimV1? { core.claimPresentation(generation: generation) }

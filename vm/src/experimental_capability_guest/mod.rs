@@ -273,28 +273,34 @@ impl CapabilityGuest {
         vm: &Limits,
         mailbox: &mb::Limits,
         guest: GuestLimits,
+        deferred_startup: bool,
     ) -> Result<(), Error> {
         Self::validate_guest_ui_exports(wasm, vm, mailbox, guest,
-            "mixer_guest_ui_start_v1", "mixer_guest_ui_event_v1")
+            "mixer_guest_ui_start_v1", "mixer_guest_ui_event_v1", deferred_startup)
     }
     #[cfg(feature = "experimental-guest-ui-v2-native")]
     pub(crate) fn validate_guest_ui_v2_only(
         wasm: &[u8], vm: &Limits, mailbox: &mb::Limits, guest: GuestLimits,
     ) -> Result<(), Error> {
         Self::validate_guest_ui_exports(wasm, vm, mailbox, guest,
-            "mixer_guest_ui_start_v2", "mixer_guest_ui_event_v2")
+            "mixer_guest_ui_start_v2", "mixer_guest_ui_event_v2", false)
     }
     #[cfg(feature = "experimental-capability-native")]
     fn validate_guest_ui_exports(
         wasm: &[u8], vm: &Limits, mailbox: &mb::Limits, guest: GuestLimits,
-        start: &str, event: &str,
+        start: &str, event: &str, deferred_startup: bool,
     ) -> Result<(), Error> {
         let (module, _, _) = Self::validated(wasm, vm, mailbox, guest, start)?;
-        for (name, params, result) in [
+        let mut exports = vec![
             (start, &[][..], Some(Type::I32)),
             (event, &[Type::I32][..], Some(Type::I32)),
             (WAKE_EXPORT, &[][..], None),
-        ] {
+        ];
+        const HYDRATE_V1: &str = "mixer_guest_ui_hydrate_v1";
+        if deferred_startup {
+            exports.push((HYDRATE_V1, &[], Some(Type::I32)));
+        }
+        for (name, params, result) in exports {
             let valid = module.exports.get(name).is_some_and(|&(kind, index)| {
                 kind == 0
                     && index as usize >= module.imports.len()

@@ -28,7 +28,10 @@ class BuilderTests(unittest.TestCase):
     def setUpClass(cls):
         cls.original_root=b.ROOT
         # Header/contract bytes are pinned production inputs, never invented ABI fixtures.
-        cls.pinned={p:subprocess.check_output(['git','show',PIN+':'+p],cwd=REPO) for p in b.REQUIRED if p not in ('vm/Cargo.toml','vm/Cargo.lock','vm/src/lib.rs')}
+        additive_header = 'vm/include/mixer_vm_guest_ui_deferred.h'
+        cls.pinned = {p: subprocess.check_output(['git', 'show', PIN+':'+p], cwd=REPO)
+                      for p in b.REQUIRED if p not in ('vm/Cargo.toml', 'vm/Cargo.lock', 'vm/src/lib.rs', additive_header)}
+        cls.pinned[additive_header] = (REPO / additive_header).read_bytes()
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory(prefix='mixer-builder-test-')
         # macOS /var is a platform symlink; choose its canonical private parent.
@@ -130,8 +133,8 @@ class BuilderTests(unittest.TestCase):
             for optimized in (False,True):self.rejected(revision,'input is missing' if changed is None else 'header mismatch',optimized)
     def test_public_symbols_require_exactly_one_of_each_old_and_new_api(self):
         names=sorted(b.PUBLIC_C_SYMBOLS)
-        self.assertEqual(len(names),28)
-        self.assertEqual(sum(n.startswith('mixer_vm_capability_') for n in names),16)
+        self.assertEqual(len(names),29)
+        self.assertEqual(sum(n.startswith('mixer_vm_capability_') for n in names),17)
         for prefix in ('','_'):
             rows=['00000000 T '+prefix+name for name in names]
             self.assertEqual(b.public_symbols('\n'.join(rows)),names)

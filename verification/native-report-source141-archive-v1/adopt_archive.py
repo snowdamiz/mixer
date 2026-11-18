@@ -132,6 +132,14 @@ CANCEL_CLI_CHANGES = CANCEL_CLI_SOURCE_CHANGES | {
     'cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift',
     'cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift',
 }
+HYDRATION_SOURCE_CHANGES = {
+    'scripts/ci/check-android-binding.py',
+    'sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift',
+    'sdk/Sources/MixerGuest/GuestUIExchangeCore.swift',
+    'sdk/Sources/MixerGuest/GuestUIExchangeV1.swift',
+    'sdk/Sources/MixerGuest/GuestUIProtocolV1.swift',
+}
+HYDRATION_CHANGES = HYDRATION_SOURCE_CHANGES | {CAPABILITY + 'CapabilityColdStartWorker.swift'}
 MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
@@ -144,6 +152,8 @@ MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'pair24-predecessor-bytes/' + name for name in PAIR24_CHANGES - PAIR24_ADDITIONS
 } | {
     'cancel-cli-predecessor-bytes/' + name for name in CANCEL_CLI_CHANGES
+} | {
+    'hydration-predecessor-bytes/' + name for name in HYDRATION_CHANGES
 }
 
 
@@ -242,7 +252,7 @@ def install_inputs():
     require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
                              'changes', 'renderer_transition', 'starter_lock_transition',
                              'export_runner_transition', 'capability_transition', 'upgrade_transition',
-                             'pair24_transition', 'cancel_cli_transition'} and
+                             'pair24_transition', 'cancel_cli_transition', 'hydration_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -383,12 +393,30 @@ def install_inputs():
         installed[name] = change['after']
         if name in CANCEL_CLI_SOURCE_CHANGES:
             expected_source[name] = change['after']
+    hydration = binding['hydration_transition']
+    require(set(hydration) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            previous.digest(expected_source) == cancel['sourceAfter'] == hydration['sourceBefore'] and
+            set(hydration['changes']) == HYDRATION_CHANGES, 'Hydration predecessor source differs')
+    for name, change in hydration['changes'].items():
+        raw = previous.read(HERE / 'hydration-predecessor-bytes' / name)
+        require(set(change) == {'before', 'after', 'mode'} and
+                installed[name] == change['before'] == previous.row(raw) and
+                change['before'] != change['after'] and change['mode'] == 0o644,
+                'Hydration transition differs: ' + name)
+        installed[name] = change['after']
+        if name in HYDRATION_SOURCE_CHANGES:
+            expected_source[name] = change['after']
+        # The existing inverse predates this transition where both own a path.
+        preimages.setdefault(name, (raw, change['mode']))
     require(current == expected_source and
-            cancel['sourceAfter'] == binding['source']['sha256'] and
+            hydration['sourceAfter'] == binding['source']['sha256'] and
             len(current) == 141 and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
-            }, 'Native cancel CLI source transition differs')
+            }, 'Hydration source transition differs')
     previous.check_rows(ROOT, installed)
+    for name, change in hydration['changes'].items():
+        require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
+                'Installed hydration owner mode differs: ' + name)
     for name, change in capability['changes'].items():
         require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
                 'Installed capability archive owner mode differs: ' + name)
@@ -466,6 +494,7 @@ def verify(installed=False):
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
             'predecessor_pair24_source141_sha256': binding['cancel_cli_transition']['sourceBefore'],
+            'predecessor_cancel_cli_source141_sha256': binding['hydration_transition']['sourceBefore'],
             'predecessor_upgraded_pair23_sha256': binding['pair24_transition']['sourceBefore'],
             'predecessor_export_runner_source141_sha256': binding['upgrade_transition']['sourceBefore'],
             'predecessor_starter_lock_source141_sha256': binding['export_runner_transition']['sourceBefore'],
