@@ -1,0 +1,263 @@
+{
+  "status": "passed",
+  "offline": "offline: saved both entries and JPEGs, reopened drafts, and exported the scoped report",
+  "photoBytes": 341976,
+  "photoSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3",
+  "eventID": "C6AF0898-D0EF-4CD8-B918-870A07B5C598",
+  "durableOffsets": {
+    "afterDroppedChunkReceipt": 32768,
+    "afterInFlightCancellation": 65536
+  },
+  "resumedChunkOffsets": [
+    65536,
+    98304,
+    131072,
+    163840,
+    196608,
+    229376,
+    262144,
+    294912,
+    327680
+  ],
+  "invalidProgressRejected": true,
+  "oversizedProgressRejected": true,
+  "httpRefusalsWithoutMutation": {
+    "bad chunk digest": 400,
+    "negative offset": 400,
+    "boolean offset": 400,
+    "offset ahead of prefix": 409,
+    "other JPEG bytes with a valid digest at the current offset": 409,
+    "wrong photo ID on chunk": 409,
+    "conflicting bytes at offset zero": 409,
+    "divergent entry manifest": 409,
+    "divergent photo digest": 409,
+    "divergent chunk commitment": 409,
+    "divergent photo identity": 409,
+    "manifest photo disagrees with attachment": 400,
+    "premature finalization": 409,
+    "wrong account": 404,
+    "wrong project": 404,
+    "oversized chunk request before body read": 413
+  },
+  "ordinaryFinalStatuses": [
+    201,
+    200
+  ],
+  "legacyInlineJPEGStatuses": [
+    201,
+    200
+  ],
+  "committed": {
+    "eventRows": 1,
+    "photoRows": 1,
+    "stageRows": 0
+  },
+  "localAcknowledgment": {
+    "revisionDelta": 1,
+    "retiredEventCount": 1,
+    "coldReopenVerified": true
+  },
+  "cleanup": {
+    "listenersClosed": 7,
+    "ephemeralPorts": [
+      50465,
+      50468,
+      50488,
+      50490,
+      50494,
+      50510,
+      50516
+    ],
+    "excludedPorts": [
+      5432,
+      5632,
+      5633,
+      5670,
+      5671,
+      5674,
+      5675,
+      5676,
+      5677,
+      5680,
+      5681,
+      18762,
+      18763,
+      40240,
+      40241,
+      40320,
+      40340,
+      49265,
+      49687,
+      50182,
+      51264,
+      58295,
+      62465,
+      64376
+    ],
+    "scratchRemoved": true,
+    "privateWorkingCopiesRemoved": true,
+    "ownedCrashReportsRemoved": 2
+  },
+  "recordedAt": "2026-11-18T18:59:07.845257+00:00",
+  "fieldlogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "fieldlogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+  "pinnedRepositoryTestsPassed": 13,
+  "sourceSHA256": {
+    "fieldlog-552559d2-entry-sync.patch": "3f387b06a7e11682833d798ddd5c8d325452d760d518029a6d12db9fa2323189",
+    "fieldlog-552559d2-local-backend.patch": "4ef0c920f5948b71caa890bab78aa574fc968fe72775cbdd538faee211146c0d",
+    "fieldlog-photo-resume.patch": "95bade4298be7333b749a1a959f935bc3d69d7caee9d9bfbe8445b0b4e6aa69b",
+    "Journey.swift": "3757d5eeda901cb3941bf272b97a0e143cb08803ce2776cdd7d18ca6a215f5d2",
+    "ResumeJourney.swift": "5e00cf9504da584413fd33574ae31bbd83fde97884864a6d6952491b99a81bcd",
+    "run.py": "b548ae40530c03fa79d14032033e34a3049c6276ec9ffaf740a7a0648a75807d"
+  },
+  "predecessorRunnerSHA256": "a28a685a01844c8b513c768f4a7e4f685fc0b801fdad8b2558a75a29346973c7",
+  "tools": {
+    "Git": "git version 2.56.0",
+    "Swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "Python": "3.14.8",
+    "SQLite": "3.53.4",
+    "macOS": "27.0.1",
+    "macOSSDK": "27.2",
+    "arch": "arm64"
+  },
+  "commands": [
+    "git archive <pinned FieldLog>",
+    "git apply <predecessors>",
+    "git apply <resumable patch>",
+    "swift test",
+    "swift build --product FieldLogJourney",
+    "swift build --product FieldLogResumeJourney",
+    "FieldLogJourney offline <owned-scratch>",
+    "FieldLogResumeJourney drop-chunk <owned-scratch>",
+    "FieldLogResumeJourney invalid-progress <owned-scratch>",
+    "FieldLogResumeJourney oversized-progress <owned-scratch>",
+    "FieldLogResumeJourney cancel <owned-scratch>",
+    "FieldLogResumeJourney drop-final <owned-scratch>",
+    "FieldLogResumeJourney replay <owned-scratch>",
+    "FieldLogResumeJourney verify <owned-scratch>"
+  ],
+  "scope": "Mac host processes, FieldLog repository, IPv4 loopback HTTP, and a disposable SQLite file. Synthetic owner scopes and one saved JPEG per entry. No mobile or Mixer capability runtime exercised.",
+  "paymentServiceOrCredentialsRequired": false,
+  "mixerCheckoutRevision": "c5bfe39cdfca7c8f4c4ddeec6ae757e32c785086",
+  "replayCommand": [
+    "python3",
+    "-B",
+    "verification/local/fieldlog-photo-resume-41a05264/delivery/run.py",
+    "/Users/andreyyurlov/.t3/userdata/fieldlog-pair23-41a05264.vOxpjIIC/fieldlog",
+    "--exclude-port",
+    "5432",
+    "--exclude-port",
+    "5632",
+    "--exclude-port",
+    "5633",
+    "--exclude-port",
+    "5670",
+    "--exclude-port",
+    "5671",
+    "--exclude-port",
+    "5674",
+    "--exclude-port",
+    "5675",
+    "--exclude-port",
+    "5676",
+    "--exclude-port",
+    "5677",
+    "--exclude-port",
+    "5680",
+    "--exclude-port",
+    "5681",
+    "--exclude-port",
+    "18762",
+    "--exclude-port",
+    "18763",
+    "--exclude-port",
+    "40240",
+    "--exclude-port",
+    "40241",
+    "--exclude-port",
+    "40320",
+    "--exclude-port",
+    "40340",
+    "--exclude-port",
+    "49265",
+    "--exclude-port",
+    "49687",
+    "--exclude-port",
+    "50182",
+    "--exclude-port",
+    "51264",
+    "--exclude-port",
+    "58295",
+    "--exclude-port",
+    "62465",
+    "--exclude-port",
+    "64376"
+  ],
+  "patchReplay": {
+    "fullPinnedTreeApplyChecks": "passed",
+    "predecessorCombinedTree": "9bf29ebe2c7aeef326e8e98aa2b5be1dba2b1c19",
+    "resumeCombinedTree": "791c9b74e536e4fcec6b15028ba9f6c3aec8e4b7",
+    "combinedDiffCheck": "passed"
+  },
+  "independentSourceReview": {
+    "status": "scoped pass",
+    "followup": "Verified per-chunk manifest binding, early request caps, bounded Swift receipt streaming, and worker join."
+  },
+  "legacyCompatibilityControl": {
+    "baselineTests": "\u2714 Test run with 13 tests in 0 suites passed after 0.039 seconds.",
+    "predecessorSwiftWithNewBackend": {
+      "output": [
+        "offline: saved both entries and JPEGs, reopened drafts, and exported the scoped report",
+        "online: rejected invalid credentials, another user, and an unprovisioned project",
+        "online: refused truncated and mismatched receipts, cancelled a replay, reconciled the same event, preserved records and export",
+        "post-commit SQLite readback, divergent replay, and legacy title validation passed"
+      ],
+      "status": "passed",
+      "loopbackHTTP": {
+        "initialAfterCommit": 201,
+        "lostResponseBytes": 12,
+        "replays": [
+          200,
+          200,
+          200
+        ],
+        "cancelledBeforeSendAndAfterServerReadback": true,
+        "invalidReceiptRejected": true,
+        "denied": [
+          401,
+          404,
+          404
+        ],
+        "divergentReplay": 409
+      },
+      "persistedBeforeResponseAndAfterRetry": {
+        "events": 1,
+        "photos": 1,
+        "photoBytes": 341976,
+        "photoSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3",
+        "stableEvent": "6be25296-e193-402c-a390-81f89f778d7d"
+      },
+      "cleanup": {
+        "listenerClosed": true,
+        "portRebound": true
+      }
+    },
+    "predecessorPair": {
+      "status": "failed",
+      "firstLine": "<owned-scratch>/build/out/Products/Debug/FieldLogJourney exited -5",
+      "connectionLost": true,
+      "responseHookObserved": [
+        {
+          "status": 401,
+          "error": "invalid_bearer_token"
+        },
+        {
+          "status": 404,
+          "error": "scope_not_found"
+        }
+      ]
+    },
+    "scratchRemoved": true,
+    "initialExploratoryRun": "A pre-refinement predecessor-client run lost its HTTP connection. The unchanged predecessor pair reproduced a connection-loss failure in the scope-denial control; the predecessor client completed the later compatibility replay against the delivered backend."
+  }
+}
