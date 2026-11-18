@@ -1686,12 +1686,7 @@ Never promote a GA gate without its specified evidence and accountable reviewer.
 
 **Mixer publishes directly to `origin/main`.** The November 18 user instruction confirms that this repository has no Trunk merge queue. Commit and push each coherent, verified slice promptly, including during long-running plan work. Fetch the current main, incorporate concurrent changes, and use a normal fast-forward push. Check the resulting remote SHA and inspect CI after each push. Report the published SHA, check status, and any work still local.
 
-The user authorized periodic coherent commits and non-force pushes to
-[snowdamiz/mixer](https://github.com/snowdamiz/mixer) `origin/main`. Root coordinates
-delivery, uses explicit path allowlists, preserves other staged/unfinished work,
-checks resulting commit paths and inspects CI after each push. This authorization
-does not include production deployment, store submission, customer messages,
-destructive migrations or credential changes.
+Root selects the verified paths explicitly and checks the committed file list to preserve other contributors’ staged and unfinished work. Production deployment, store submission, customer messages, destructive migrations and credential changes require separate authorization. [Product plan §34](mixer-product-plan.md#34-how-to-execute-and-maintain-this-plan)
 
 Run independent tasks in parallel with Sol 6.2 High, fresh context, and bounded
 file ownership. Coordinate contracts before dependent changes. Keep active lanes
