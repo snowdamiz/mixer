@@ -227,6 +227,14 @@ func VerifyAssignmentHeaderV3(s SignedAssignmentV3, artifact SignedManifestV3, r
 	if a.Sequence <= last {
 		return fmt.Errorf("assignment replay")
 	}
+	return VerifyAssignmentSignatureV3(s, roots, now)
+}
+
+// VerifyAssignmentSignatureV3 checks current assignment signing authority.
+// Callers that admit new assignments also verify the artifact binding, host,
+// channel and replay state through VerifyAssignmentHeaderV3.
+func VerifyAssignmentSignatureV3(s SignedAssignmentV3, roots []Root, now uint64) error {
+	a := s.Assignment
 	pub, e := authorize(roots, a.KeyID, a.Scope, false, now)
 	if e != nil {
 		return e

@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "relatedRequirements": [
+    "Section 2",
+    "Section 18.1",
+    "Section 18.3",
+    "Section 22.2 #10, #11 and #14 (related outage/rotation scenarios)",
+    "Section 29 G29–G31",
+    "W16"
+  ],
+  "status": "failed",
+  "candidateStatus": "passed_scoped_reviewed",
+  "reviewer": "Independent Sol review and root integration",
+  "observedUTC": "2026-11-18T07:18:35.031475+00:00",
+  "scope": "Local v3 release-origin publisher incident. Real loopback HTTP and Go handlers, PostgreSQL 17.11 with migration 001 and restricted runtime role. Synthetic development publisher bearer and ephemeral Ed25519 fixture keys.",
+  "source": {
+    "revision": "87e32900edc66853080c2fbe58802c43dbf33667",
+    "tree": "ccca5d68364a19959f40b8d6c95ff6d67e9e9744",
+    "patch": {
+      "path": "verification/local/l07-publisher-iSwKwy/publisher-incident.patch",
+      "sha256": "52de9feee0914ea5ae203fd6fe6b113e33be0fcad257a91456637ae9478a24a9"
+    },
+    "focusedRunner": {
+      "path": "verification/local/l07-publisher-iSwKwy/focused-postgres.py.snapshot",
+      "sha256": "8cc8133f2033d34a68974880264f258db8302034a42fb423f889715d2c469ff2"
+    },
+    "candidateFiles": [
+      {
+        "path": "verification/local/l07-publisher-iSwKwy/services/protocol/v3.go",
+        "sha256": "af1f2db95fc39c4008d2cc7304d02479b6d8813d04f4e123e23e2322bddbcec2"
+      },
+      {
+        "path": "verification/local/l07-publisher-iSwKwy/services/release/server.go",
+        "sha256": "e4bb2a6714a6cf0e387491d0d392eb4b559c8f91b9898e181984c4fb24d077a4"
+      },
+      {
+        "path": "verification/local/l07-publisher-iSwKwy/services/release/postgres_publisher_incident_test.go",
+        "sha256": "895f92fd51732f64c5b6076d5e83275184f57aaf9f6c204e8250bab6561ca9da"
+      }
+    ],
+    "crossLanguageFixture": {
+      "path": "verification/local/l07-publisher-iSwKwy/contracts/release-v2.json",
+      "sha256": "ab4f5d881b1fd0cb91d01bd1da25a0b864690d29936063e0144304bfd275ba4b"
+    }
+  },
+  "tools": {
+    "go": "go1.27.1 darwin/arm64 (PostgreSQL runs and root verification)",
+    "postgres": "17.11 (Homebrew)",
+    "execution": "Go race-enabled tests on macOS over IPv4 loopback, database reachable only through a private Unix socket"
+  },
+  "observations": {
+    "beforeRestart": "The initial publication returned 200 and the GET contained the expected signed assignment at sequence 1.",
+    "afterRestartSetup": "A fresh HTTP listener on the same database used a config with the old publisher bearer removed, the old assignment root revoked, and new values installed.",
+    "baseline": "The stale sequence-1 offer returned HTTP 200 while the revoked bearer returned 401 and the replacement bearer with a freshly signed old-key sequence-2 write got 409. The failed writes kept the audit body unchanged. Clean sequence-2 publication succeeded and the artifact bytes were unchanged.",
+    "candidate": "Existing assignment key authorization and Ed25519 verification run on v3 offer reads. The stale offer returned empty HTTP 204. Both write denials, exact audit readback, sequence-2 recovery and original artifact bytes passed again. All wire responses had Cache-Control: no-store.",
+    "fixtureLimitation": "Synthetic fieldlog-scope v3 metadata with a small signed payload; no installed binary or app-side verifier was invoked."
+  },
+  "runs": {
+    "baseline": {
+      "receipt": {
+        "path": "verification/local/l07-publisher-iSwKwy/baseline/receipt.json",
+        "sha256": "0d03a5256cee53dbcdca2d651062f66d6004ed0e43d339004cbb320feab31c2f"
+      },
+      "stdout": {
+        "path": "verification/local/l07-publisher-iSwKwy/baseline/real-postgres-tests.stdout",
+        "sha256": "2557ec5a38ebc6ad226746f7d41f0499e3864b4ea5db898c7a0857e86bec9873"
+      },
+      "testCommand": [
+        "/opt/homebrew/bin/go",
+        "test",
+        "-race",
+        "-tags=postgres_integration",
+        "./release",
+        "-run",
+        "^TestPostgresV3PublisherIncident$",
+        "-count=1",
+        "-v"
+      ],
+      "exitCode": 1,
+      "terminalTestCommandGroups": true,
+      "privatePostmasterGroupAbsent": true,
+      "privateSocketRemoved": true,
+      "privateClusterRemoved": true
+    },
+    "focusedCandidate": {
+      "receipt": {
+        "path": "verification/local/l07-publisher-iSwKwy/repaired/receipt.json",
+        "sha256": "91b743ba10fd8c9ab947d38f629312ec0da316ae476bb87e3b39b577441c332d"
+      },
+      "stdout": {
+        "path": "verification/local/l07-publisher-iSwKwy/repaired/real-postgres-tests.stdout",
+        "sha256": "5ad6488e9619ca9f59bfa0767cf6a945a83375dc89b8dbb25764ebeb4b3ea01c"
+      },
+      "testCommand": [
+        "/opt/homebrew/bin/go",
+        "test",
+        "-race",
+        "-tags=postgres_integration",
+        "./release",
+        "-run",
+        "^TestPostgresV3PublisherIncident$",
+        "-count=1",
+        "-v"
+      ],
+      "exitCode": 0,
+      "terminalTestCommandGroups": true,
+      "privatePostmasterGroupAbsent": true,
+      "privateSocketRemoved": true,
+      "privateClusterRemoved": true
+    },
+    "fullPostgresCandidate": {
+      "receipt": {
+        "path": "verification/local/l07-publisher-iSwKwy/full/receipt.json",
+        "sha256": "e90c1ccb7f62d234425c5c2bda66a63ed7a44e611d3ead719a9a939310fcd992"
+      },
+      "stdout": {
+        "path": "verification/local/l07-publisher-iSwKwy/full/real-postgres-tests.stdout",
+        "sha256": "ddb4589e35e21127f04bbbb21bced8ea2b0a1a4c67ecbcd23bc7ba7def177378"
+      },
+      "testCommand": [
+        "/opt/homebrew/bin/go",
+        "test",
+        "-race",
+        "-tags=postgres_integration",
+        "./release",
+        "-run",
+        "^TestPostgres",
+        "-count=1",
+        "-v"
+      ],
+      "exitCode": 0,
+      "terminalTestCommandGroups": true,
+      "privatePostmasterGroupAbsent": true,
+      "privateSocketRemoved": true,
+      "privateClusterRemoved": true
+    },
+    "fullPostgresTestsPassed": 17,
+    "initialGoSuite": {
+      "exitCode": 1,
+      "reason": "The isolated services-only snapshot omitted the cross-language release-v2 contract fixture.",
+      "stdout": {
+        "path": "verification/local/l07-publisher-iSwKwy/unit.stdout",
+        "sha256": "a5a2e518cab03bb039fd8ddd20a6f40dc31ad9f76a2606858b47a94d474edd41"
+      }
+    },
+    "goSuiteReplay": {
+      "command": "go -C services test -race ./...",
+      "exitCode": 0,
+      "stdout": {
+        "path": "verification/local/l07-publisher-iSwKwy/unit-replay.stdout",
+        "sha256": "68273711d3c6265397eccd87b700e88985087d5cc765ff1208faa9d22467d726"
+      }
+    },
+    "goVet": {
+      "command": "go -C services vet ./...",
+      "exitCode": 0,
+      "stderr": {
+        "path": "verification/local/l07-publisher-iSwKwy/vet.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "patchApplyCheck": "passed against parent workspace without application"
+  },
+  "evidenceByArea": {
+    "provenanceAndLicensing": [
+      "docs/provenance/sources.md",
+      "THIRD_PARTY.yml",
+      "console/public/third-party-notices.txt",
+      "verification/receipts/same-public-build-provenance-review-r3894.json"
+    ],
+    "privacyAndAuthorization": [
+      "verification/hosted-identity-metrics-output-check/linux-final/receipt.json",
+      "verification/receipts/l06-free-admin-41a05264.json"
+    ],
+    "tenantIsolationAndRestore": [
+      "verification/receipts/release-postgres-backup-restore-20261118.json",
+      "verification/receipts/l05-native-joint-review-41a05264.json"
+    ],
+    "vmBridgeAndUpdates": [
+      "verification/receipts/fieldlog-compact-abi2-review-replay-41a05264.json",
+      "verification/receipts/fieldlog-ios-signed-runtime-41a05264.json",
+      "verification/receipts/fieldlog-android-signed-offline-runtime-41a05264.json"
+    ],
+    "signerBoundary": [
+      "mixer-product-plan.md#113-separate-artifact-authorization-from-delivery-authorization",
+      "verification/receipts/l05-native-delivery-41a05264.json"
+    ],
+    "serviceWorkerFaults": [
+      "verification/receipts/l05-fenced-operation-intent-41a05264.json",
+      "verification/hosted-worker-controller-linux-restart/host-run/receipt.json",
+      "verification/receipts/release-postgres-backup-restore-20261118.json"
+    ]
+  },
+  "remaining": [
+    "Independent review and adoption of the v3 assignment-delivery correction. The pinned baseline still served the revoked offer in the control.",
+    "Publisher-compromise coverage here is assignment-key and bearer containment at the origin. Standalone artifact-signing-key compromise, legacy offers, offline trust refresh and already activated clients receive no new evidence.",
+    "The release-origin Cache-Control evidence and existing DB/RLS coverage leave any active shared delivery cache and cache freshness unqualified. Inventory the local topology before requiring provider cache tests.",
+    "Existing Go tests establish bounded release-route concurrency and payload limits. No integrated local workload receipt was identified with concurrent Phoenix/Oban build work and release delivery, including queue drain and data integrity.",
+    "No executed local incident diagnostic/alert and incident/security runbook receipt was identified for G31.",
+    "Section 22.2 outage evidence is partial. The iOS replay reopened without a delivery URL, and the Android replay used bundled releases. No receipt was identified for the app remaining useful during failures of the active control-plane/delivery and telemetry paths. Billing remains disabled for free use.",
+    "Separate owner lanes retain new signer integration and live compiler cancellation."
+  ],
+  "gateRecommendation": "Keep L07 open. Review the private candidate as a bounded G30 v3 origin-containment slice and attach the verified existing receipts at their actual scope.",
+  "independentReview": {
+    "postgresTests": 18,
+    "receipt": "/private/tmp/mixer-l07-review.Qh5Zh8Uu/candidate-run/receipt.json",
+    "receiptSHA256": "1b2ff1e84cff2c3cc2efabe1e8292341328b80fb698d71b649152f3bb0d44ee0",
+    "controls": "Old key suppressed for v3 reads, sequence-1 replay refused, sequence 2 recovered. Existing v1 and v2 bytes preserved. Independently signed artifact remained available.",
+    "rootChecks": [
+      "go test -race ./...",
+      "go vet ./..."
+    ]
+  }
+}

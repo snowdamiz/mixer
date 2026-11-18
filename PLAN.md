@@ -14,6 +14,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The local v3 release origin suppressed a previously published offer after its assignment key was revoked. The replacement key restored delivery at sequence 2, and the independently signed artifact retained its original bytes. [Release origin](verification/receipts/l07-v3-publisher-incident-41a05264.json). The default Android starter crashed in Activity startup on API 36 before rendering its first frame. Both disposable emulators and private ADB servers closed. [Android starter](verification/receipts/l01-export-android-startup-41a05264.json).
+
 Free organization creation passed against the full 16-migration PostgreSQL schema. The local Phoenix replay exercised 38 HTTP responses, and SQL counted zero payment credentials. The integrated checkout passed hosted and native source admission in both Python modes. [Free onboarding](verification/receipts/l06-hosted-free-onboarding-integrated-41a05264.json).
 
 The relocated iOS starter rendered its title and zero-entry progress on first launch and relaunch on iOS 26.5. A separate Android input trace stopped at the Title field before reaching Note. Emulator group custody is unresolved. [iOS starter](verification/receipts/l01-export-ios-runtime-41a05264.json) · [Android input hold](verification/receipts/fieldlog-android-input-title-hold-41a05264.json).

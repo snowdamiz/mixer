@@ -532,6 +532,9 @@ func (s *Server) update(r *http.Request, version uint64) (Response, error) {
 	if !ok || rec.version() != version || !protocol.Eligible(rec.assignment(), q.Get("installation")) {
 		return Response{Status: 204}, nil
 	}
+	if version == 3 && protocol.VerifyAssignmentSignatureV3(*rec.Version3, s.cfg.Roots, uint64(s.now().Unix())) != nil {
+		return Response{Status: 204}, nil
+	}
 	return response(200, map[string]any{"signed_assignment": rec.wire(), "artifact_url": "/v" + strconv.FormatUint(version, 10) + "/artifacts/" + rec.assignment().ArtifactSHA256 + "?organization=" + scope.Organization + "&project=" + scope.Project}), nil
 }
 func (s *Server) publicArtifact(r *http.Request, digest string, version uint64) (Response, error) {
