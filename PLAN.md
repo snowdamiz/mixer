@@ -16,6 +16,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+On macOS, FieldLog kept a saved entry queued after its local backend committed the event and JPEG but the acknowledgement was cut short. Reopening and retrying left one remote event and one byte-identical 341,976-byte JPEG. The fixture used a provisioned account token. Mobile UI and signed guest capability integration remain open. [Offline entry sync](verification/receipts/fieldlog-local-entry-sync-41a05264.json).
+
 On macOS, one press on the signed Move up button moved File report from third to second. FieldLog advanced revision 8 to 9 and appended one task-order event. Rollback and offline cold reopen preserved that order and the open draft. The tested guest uses stacked rows. Both mobile executions remain open. [Task reorder evidence](verification/receipts/fieldlog-signed-row-reorder-host-41a05264.json).
 
 A signed FieldLog update on the macOS host changed the Arabic checklist labels. The title and status aligned on the right in RTL and on the left in LTR. The title style change increased its measured height from 16 to 26 points. Changing the macOS accessibility size alone produced no measured growth in either the guest or the native controls. Mobile text scaling and clipping remain open. [Localized guest evidence](verification/receipts/fieldlog-localized-guest-host-41a05264.json).

@@ -1,0 +1,108 @@
+{
+  "output": [
+    "offline: saved both entries and JPEGs, reopened drafts, and exported the scoped report",
+    "online: rejected invalid credentials, another user, and an unprovisioned project",
+    "online: refused truncated and mismatched receipts, cancelled a replay, reconciled the same event, preserved records and export",
+    "post-commit SQLite readback, divergent replay, and legacy title validation passed"
+  ],
+  "status": "passed",
+  "loopbackHTTP": {
+    "initialAfterCommit": 201,
+    "lostResponseBytes": 12,
+    "cancelledBeforeSendAndAfterServerReadback": true,
+    "invalidReceiptRejected": true,
+    "denied": [
+      401,
+      404,
+      404
+    ],
+    "divergentReplay": 409,
+    "replayDecisions200": [
+      200,
+      200,
+      200
+    ],
+    "replayReceiptsSent": [
+      "mismatched",
+      "matching"
+    ],
+    "cancelledReplaySentReceipt": false
+  },
+  "persistedBeforeResponseAndAfterRetry": {
+    "events": 1,
+    "photos": 1,
+    "photoBytes": 341976,
+    "photoSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3",
+    "stableEvent": "fa15897d-12f1-42d4-8c4f-b7ad2d7e8640"
+  },
+  "cleanup": {
+    "listenerClosed": true,
+    "portRebound": true,
+    "scratchRemoved": true,
+    "privateSourcePreparationRemoved": true,
+    "ownedCrashReportRemoved": true
+  },
+  "recordedAt": "2026-11-18T18:13:31.074641+00:00",
+  "fieldlogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "fieldlogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+  "mixerAPISourceReviewed": "5dea19db36610e312b51918b384364ba590b6ef8",
+  "mixerCapabilityRuntimeExercised": false,
+  "sourceSHA256": {
+    "fieldlog-552559d2-entry-sync.patch": "3f387b06a7e11682833d798ddd5c8d325452d760d518029a6d12db9fa2323189",
+    "fieldlog-552559d2-local-backend.patch": "4ef0c920f5948b71caa890bab78aa574fc968fe72775cbdd538faee211146c0d",
+    "Journey.swift": "3757d5eeda901cb3941bf272b97a0e143cb08803ce2776cdd7d18ca6a215f5d2",
+    "run.py": "a28a685a01844c8b513c768f4a7e4f685fc0b801fdad8b2558a75a29346973c7"
+  },
+  "tools": {
+    "Swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "Python": "3.14.8",
+    "SQLite": "3.53.4",
+    "macOSSDK": "27.2",
+    "Git": "git version 2.56.0",
+    "macOS": "27.0.1",
+    "arch": "arm64"
+  },
+  "commands": [
+    "swift test",
+    "swift build --product FieldLogJourney",
+    "FieldLogJourney offline <owned-directory>",
+    "FieldLogJourney online <owned-directory>"
+  ],
+  "baselineTests": "\u2714 Test run with 13 tests in 0 suites passed after 0.034 seconds.",
+  "scope": "Mac app-model and repository run through real loopback HTTP and dedicated SQLite. One JPEG per saved entry, provisioned owner scopes and synthetic tokens. Mobile UI, Mixer guest capability routing, TLS, sign-in and multi-photo sync require separate runs or implementation.",
+  "paymentServiceOrCredentialsRequired": false,
+  "replayCommand": [
+    "python3",
+    "-B",
+    "verification/local/fieldlog-entry-sync-41a05264/delivery/run.py",
+    "/Users/andreyyurlov/.t3/userdata/fieldlog-pair23-41a05264.vOxpjIIC/fieldlog"
+  ],
+  "patchReplay": {
+    "independentApplyChecksAgainstFullPinnedTree": true,
+    "combinedTree": "9bf29ebe2c7aeef326e8e98aa2b5be1dba2b1c19",
+    "combinedDiffCheck": "passed"
+  },
+  "iosCompilerCheck": {
+    "status": "passed",
+    "sdk": "iphonesimulator 27.2",
+    "target": "arm64-apple-ios26.0-simulator",
+    "languageVersion": "6",
+    "commands": [
+      "xcrun --sdk iphonesimulator swiftc -swift-version 6 -target arm64-apple-ios26.0-simulator -sdk <simulator SDK path> -module-cache-path <owned cache> -emit-module -module-name FieldLogModels -emit-module-path <owned scratch>/FieldLogModels.swiftmodule Sources/FieldLogModels/Workspace.swift",
+      "xcrun --sdk iphonesimulator swiftc -swift-version 6 -target arm64-apple-ios26.0-simulator -sdk <simulator SDK path> -module-cache-path <owned cache> -I <owned scratch> -typecheck -module-name FieldLogStorage Sources/FieldLogStorage/WorkspaceRepository.swift Sources/FieldLogStorage/EntrySyncClient.swift"
+    ],
+    "deviceAccessed": false
+  },
+  "independentReview": {
+    "legacyTitleMismatch": "Confirmed U+001C was rejected by Python despite being valid in FieldLog. Aligned server title whitespace with Foundation and passed the HTTP control.",
+    "cancellation": "Added pre-dispatch checks and verified no request for an already cancelled call. The in-flight cancellation kept the event queued.",
+    "metadata": "Compared every persisted event and entry field with the original offline snapshot."
+  },
+  "executionHistory": [
+    "Initial test build stopped on a missing isPlanar argument in the synthetic JPEG fixture. Fixed the fixture and compiled successfully.",
+    "First HTTP attempt surfaced the partial body as invalidReceipt. The event remained queued. Added a declared response-length check and reran successfully."
+  ],
+  "localGateStatusChanged": false,
+  "externalServiceUsed": false,
+  "remoteAccessed": false
+}
