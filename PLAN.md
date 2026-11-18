@@ -10,6 +10,8 @@ Testing and early launch are free. Payment and purchase implementation, Stripe i
 
 Use Sol 6.2 High for all new subagents, including blocker experiments and independent reviews. Select `gpt-6.2-sol` with `reasoningEffort: "high"` and `serviceTier: "default"`. See [the model settings in Section 25](mixer-product-plan.md#controlling-model-and-subagent-configuration).
 
+When a child stops before producing a result, follow the [delegated task recovery procedure](mixer-product-plan.md#when-a-delegated-task-stops).
+
 The following checkpoints retain their historical sources and scope. Local completion is still pending; evaluate existing slice receipts against L01–L08 before claiming a pass.
 
 ## November 18 local verification
