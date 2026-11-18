@@ -210,7 +210,8 @@ def inner_contract(argv, contract):
     if contract == 'export':
         require(len(argv) == 5 and argv[1] == 'export' and argv[3] == '--directory',
                 'Foreign export contract')
-        return ('version',)
+        # Export checks the original project and the staged copy separately.
+        return ('version', 'version')
     require(contract == 'prelaunch-refusal' and len(argv) == 6 and
             argv[1:5] == ['build', '--platform', 'android', '--directory'],
             'Foreign zero-child contract')

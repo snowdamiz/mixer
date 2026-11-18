@@ -1,0 +1,152 @@
+{
+  "candidate": {
+    "base": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+    "base_tree": "a0e67ee25300ff94979496b4e66bd54ce6cca7ee",
+    "change": "Require two ordered swift --version receipts for export and admit up to two constrained version-writer temporary directories. Refresh exact installed checker identity and manifest/seal hashes.",
+    "controls": {
+      "python3 -I -B -S -O scripts/ci/tests/test_android_generated_java_runner.py -v": {
+        "exit_code": 0,
+        "log": "/private/tmp/mixer-android-ci-44247774054.ITfsPdmF/runner-final-opt.log",
+        "tests": 65
+      },
+      "python3 -I -B -S scripts/ci/tests/test_android_generated_java_runner.py -v": {
+        "exit_code": 0,
+        "log": "/private/tmp/mixer-android-ci-44247774054.ITfsPdmF/runner-final-normal.log",
+        "tests": 65
+      },
+      "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v": {
+        "exit_code": 0,
+        "log": "/private/tmp/mixer-android-ci-44247774054.ITfsPdmF/bootstrap-serial.log",
+        "tests": 45
+      },
+      "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v": {
+        "exit_code": 0,
+        "log": "/private/tmp/mixer-android-ci-44247774054.ITfsPdmF/sparse-clean.log",
+        "tests": 16
+      }
+    },
+    "installed_archive_admission": "pass",
+    "local_environment": "Darwin arm64, Python 3.14.8",
+    "patch": "verification/local/android-generated-java-export-44247774054/candidate.patch",
+    "patch_sha256": "73a29631e703757cf8c014f5a370ce1b73909a9dfc292b61aba38e7a99ecb6a5",
+    "profile": "mixer.android-source-pair.23",
+    "qualification": "Host controls only. Patched six-consumer integration and hosted validation remain unverified.",
+    "regression": {
+      "baseline_exit_code": 1,
+      "candidate_exit_codes_normal_optimized": [
+        0,
+        0
+      ],
+      "command": "python3 -I -B -S scripts/ci/tests/test_android_export_contract.py -v",
+      "third_tool_directory_refused": true
+    },
+    "retention_and_diff_check": "pass",
+    "source_digest_sha256": "fd33b8ead2544e81b189513067803d703e190fba508b388c210e2d4040799621",
+    "source_directory": "/private/tmp/mixer-android-ci-44247774054.ITfsPdmF/candidate",
+    "staged_tree_without_receipt": "45700a706a7dfb8a0fb378eb6b46fd409de2eeaa"
+  },
+  "failed_job": {
+    "actual_step_exit_code": 74,
+    "argv": [
+      "verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py",
+      "--output",
+      "/Users/runner/work/_temp/generated-java-ci",
+      "--execute"
+    ],
+    "cause": "The export handler verifies the source project, then the staged export. Each verification invokes swift --version. The CI contract allows one probe and one tool temporary directory. The excess-object guard stopped observation before the export exit or nested receipt facts were available.",
+    "completed_consumers": 0,
+    "debug_create": {
+      "exit_code": 0,
+      "terminal_custody": true,
+      "tool_temporary_directory_count": 2
+    },
+    "first_actionable_failure": "RuntimeError('Unexpected tool temporary directory')",
+    "image": {
+      "ImageOS": "macos26",
+      "ImageVersion": "20260824.0517.1",
+      "RUNNER_ARCH": "X64",
+      "RUNNER_OS": "macOS"
+    },
+    "job": 134610789630,
+    "low_disk_message": "Expected negative sparse-checkout test. The actual job admitted 146456125440 free bytes.",
+    "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "revision": "79233ba123a394459b792beac648138808cd0930",
+    "run": 44247774054,
+    "source_digest_sha256": "7e04cab7419cf65db0a8ad70a97f6ea94b1cb6db882f6c7ec724e24d170a2b28",
+    "top_level_artifact_id": 14403202412,
+    "top_level_zip_sha256": "91b9e51c44b0eed80482670b5317cdd99a26889a5f21f2ba17b56a19f36c54c7",
+    "tree": "931a21e26bfb6d1163007adca3b3d3c7ff97dc62",
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/44247774054/job/134610789630"
+  },
+  "hold": {
+    "argv": [
+      "/Users/runner/work/_temp/generated-java-ci/integration/generated-java-owned-iopsfslb/producer-debug/x86_64-apple-macosx/debug/mixer",
+      "export",
+      "/Users/runner/work/_temp/generated-java-ci/integration/generated-java-owned-iopsfslb/debug/exported",
+      "--directory",
+      "/Users/runner/work/_temp/generated-java-ci/integration/generated-java-owned-iopsfslb/debug/original"
+    ],
+    "cwd": "/Users/runner/work/mixer/mixer",
+    "exit_code": null,
+    "inner_hold": {
+      "error": "RuntimeError('Unexpected tool temporary directory')",
+      "operation": "cli-execution-or-receipt",
+      "parent_label": "debug-export",
+      "retained_cli_tmp": "/Users/runner/work/_temp/generated-java-ci/integration/inner-cli/012-debug-export-2wo1jjh5/tmp"
+    },
+    "inner_identity_observed": false,
+    "label": "debug-export",
+    "pgid": 31028,
+    "pid": 31028,
+    "preserve_exact_resources": [
+      "/Users/runner/work/_temp/generated-java-ci/owned-lhmnkm5t",
+      "/Users/runner/work/_temp/generated-java-ci/integration/generated-java-owned-iopsfslb",
+      "/Users/runner/work/_temp/generated-java-ci/integration/inner-cli/012-debug-export-2wo1jjh5",
+      "/Users/runner/work/_temp/generated-java-ci/integration/commands/012-debug-export.stderr",
+      "/Users/runner/work/_temp/generated-java-ci/integration/commands/012-debug-export.stdout"
+    ],
+    "restriction": "Keep the exact hosted process chain and retained resources untouched. Use only published top-level metadata. No inspection, enumeration, process probes, signals, waits, retries, or cleanup. GitHub job completion supplies no process absence evidence.",
+    "state": "UNKNOWN",
+    "terminal_facts_observed": {
+      "descriptors_closed": false,
+      "direct_child_reaped": false,
+      "owned_group_absent": false,
+      "stderr_eof": false,
+      "stdout_eof": false
+    }
+  },
+  "observed_utc": "2026-11-18T06:31:28+00:00",
+  "schema": 1,
+  "scope": "Independent hosted CI diagnosis and isolated source/host controls",
+  "subsequent_main_ci": {
+    "checks": {
+      "android-generated-java": "in_progress",
+      "android-owner-host": "success",
+      "services": "success",
+      "swift-cache-state-fixture": "success",
+      "swift-capability-native": "success",
+      "swift-host": "in_progress",
+      "swift-runner-controls": "success",
+      "verification-retention": "success",
+      "vm": "success"
+    },
+    "conclusion": null,
+    "job": 134616374896,
+    "revision": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+    "run": 44249485922,
+    "status": "in_progress",
+    "steps": {
+      "Actual generated Java six-consumer integration": "in_progress",
+      "Bootstrap policy controls without native tools": "success",
+      "Post Run actions/checkout@v4": "pending",
+      "Preserve bounded six-consumer receipt, DEX and reference evidence": "pending",
+      "Preserve generated Java top-level metadata first": "pending",
+      "Preserve terminal Android inspection phases": "pending",
+      "Run actions/checkout@v4": "success",
+      "Select terminal Android inspection diagnostics": "pending",
+      "Set up job": "success",
+      "Sparse checkout controls without native tools": "success"
+    },
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/44249485922/job/134616374896"
+  }
+}

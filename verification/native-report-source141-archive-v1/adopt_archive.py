@@ -18,6 +18,8 @@ PREVIOUS_SEAL_SHA256 = '06952f22a0a4fc6b2272e7f545abb9e46ec526372abf5e2244c6599e
 TYPE = 'EXACT_NATIVE_REPORT_ARCHIVE_SOURCE141_SUCCESSOR'
 CLOSEOUT_SOURCE_SHA256 = '7e04cab7419cf65db0a8ad70a97f6ea94b1cb6db882f6c7ec724e24d170a2b28'
 PAIR23_SOURCE_SHA256 = 'f68f02c92c93947becf9e29b7eeef43b88313f13e7f7c915fdf47f902f4f81cd'
+STARTER_LOCK_SOURCE_SHA256 = '2da47ad99b33e45367cffce65d20b76d06e33a25eaab2bb4c421fef95d0849cf'
+EXPORT_RUNNER = 'scripts/ci/check-android-generated-java.py'
 RENDERER = 'app/src/dev/mixer/android/NativeAppearanceViewsV2.java'
 CLOSEOUT_SOURCE_CHANGES = frozenset((
     'cli/Sources/MixerBuild/BuildInputSnapshot.swift',
@@ -31,7 +33,7 @@ RENDERER_SOURCE_CHANGES = {
     'native/android/' + RENDERER,
     'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift',
     'cli/Sources/MixerBuild/Resources/android-build.py',
-    'scripts/ci/check-android-generated-java.py',
+    EXPORT_RUNNER,
 }
 SOURCE_CHANGES = CLOSEOUT_SOURCE_CHANGES | RENDERER_SOURCE_CHANGES
 ADDITIONS = {
@@ -118,7 +120,8 @@ def install_inputs():
     previous.check_rows(HERE, seal['members'])
     binding = previous.load(HERE / 'binding.json')
     require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
-                             'changes', 'renderer_transition', 'starter_lock_transition'} and
+                             'changes', 'renderer_transition', 'starter_lock_transition',
+                             'export_runner_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -143,14 +146,22 @@ def install_inputs():
         require(previous.row(raw) == change['before'], 'Pair23 owner preimage differs: ' + name)
         pair23_preimages[name] = raw
 
+    export = binding['export_runner_transition']
+    require(set(export) == {'sourceBefore', 'sourceAfter', 'before', 'after'} and
+            export['before'] == binding['changes'][EXPORT_RUNNER]['after'] and
+            export['before'] != export['after'], 'Export runner transition differs')
+
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
                 (name not in effective if name in ADDITIONS else name in effective) and
                 change['before'] == effective.get(name), 'Predecessor owner binding differs: ' + name)
         path = ROOT / name
-        raw = pair23_preimages[name] if name in pair23_preimages else previous.read(path)
-        require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
+        # The runner's historical row is pinned by the Pair23 digest below.
+        # Restoration uses the original predecessor bytes from this archive.
+        if name != EXPORT_RUNNER:
+            raw = pair23_preimages[name] if name in pair23_preimages else previous.read(path)
+            require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
         require(type(change['mode']) is int and change['mode'] in (0o644, 0o755) and
                 stat.S_IMODE(path.stat().st_mode) == change['mode'],
                 'Installed archive owner mode differs: ' + name)
@@ -177,11 +188,14 @@ def install_inputs():
             require(stat.S_IMODE((ROOT / name).stat().st_mode) == 0o644,
                     'Installed starter lock source mode differs: ' + name)
             preimages[name] = (pair23_preimages[name], 0o644)
+    require(previous.digest(expected_source) == starter['sourceAfter'] ==
+            export['sourceBefore'] == STARTER_LOCK_SOURCE_SHA256, 'Starter lock source inverse differs')
+    effective[EXPORT_RUNNER] = expected_source[EXPORT_RUNNER] = export['after']
     require(current == expected_source and
-            starter['sourceAfter'] == binding['source']['sha256'] and
+            export['sourceAfter'] == binding['source']['sha256'] and
             len(current) == 141 and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
-            }, 'Starter lock source transition differs')
+            }, 'Export runner source transition differs')
     previous.check_rows(ROOT, effective)
     owner = previous.module('native_archive_actual_collector', ROOT / previous.OWNER)
     profile = owner.load_profile(ROOT)
@@ -245,6 +259,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_starter_lock_source141_sha256': binding['export_runner_transition']['sourceBefore'],
             'predecessor_pair23_source141_sha256': binding['starter_lock_transition']['sourceBefore'],
             'predecessor_closeout_source141_sha256': binding['renderer_transition']['sourceBefore'],
             'predecessor_source141_sha256': binding['sdk_transition']['sourceAfter'],

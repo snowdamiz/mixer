@@ -863,3 +863,16 @@ with unknown terminal custody. Preserve the exact directories
 probe, signal, wait on, retry or clean these resources. Use the compact
 `verification/receipts/l05-native-success-41a05264.json` for details. The
 separate successful build and its cleanup do not release either hold.
+
+The L05 joint native-delivery review left the first ordinary ExUnit command
+PGID 81135 unresolved. Preserve its exact
+`verification/local/l05-native-joint-review-41a05264/integrated` namespace
+and group without inspection, probing, signalling, waiting, retry or cleanup.
+The independent worker and database closed. See
+`verification/receipts/l05-native-joint-review-41a05264.json`.
+
+Hosted run 44247774054, job 134610789630, left debug-export PGID 31028
+and inner CLI custody unresolved. Preserve the group and all exact scratch and
+log paths in `verification/receipts/android-generated-java-44247774054.json`
+without access, signal, retry or cleanup. Fresh validation must use separate
+resources.
