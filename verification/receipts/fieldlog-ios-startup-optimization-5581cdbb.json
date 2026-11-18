@@ -1,0 +1,467 @@
+{
+  "schema": 1,
+  "finding": "The linked Simulator interpreter is already optimized. Wasm decoding and validation during construction dominate macOS VM startup CPU. A real-clock pause reproduced the Simulator deadline location after three guest ops. The source of the actual Simulator delay remains unmeasured.",
+  "environment": {
+    "host": "arm64 macOS 27.0.1 (26A434), 15 logical CPUs",
+    "xcode": "27.2 (27B52)",
+    "clang": "Apple Clang 21.0.0 (2100.4.1.1)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "load1mDuringInvestigation": [
+      54.31,
+      54.17,
+      38.01,
+      52.31
+    ]
+  },
+  "compile": {
+    "revision": "584cd1947edd590fd9fc732197f7d737287ab36f",
+    "vmGitTree": "527dbfd4f7f8a5a0f9556ba870b38d15187636a2",
+    "sourceManifestSha256": "2d6fb9128e74ec80d3c3c180ffb0d41ec54a376fc6d79f52951093b6a84bd4a3",
+    "linkLine": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-root-diag-packet.i7iGnfz7/evidence/build-for-testing.log:3651",
+    "swiftDebugLine": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-root-diag-packet.i7iGnfz7/evidence/build-for-testing.log:3333",
+    "simulatorExecutableSha256": "3a76c883f5772a127431daae89dfa6bd0dc6dd9f13e37383c2216a7fbc526c44",
+    "linkedSymbol": "_mixer_vm_capability_session_startup_v1",
+    "command": "cargo build --locked --offline --release --lib --no-default-features --features experimental-capability-native --manifest-path vm/Cargo.toml -v",
+    "simulator": "--target aarch64-apple-ios-sim; IPHONEOS_DEPLOYMENT_TARGET=26.0; iPhoneSimulator27.2 SDK",
+    "macOS": "MACOSX_DEPLOYMENT_TARGET=14.0; MacOSX27.2 SDK",
+    "rustcFlags": [
+      "-C opt-level=3",
+      "-C overflow-checks=on",
+      "-C strip=debuginfo"
+    ],
+    "profile": "release, panic=unwind; debug control omitted --release and reported dev [unoptimized + debuginfo]",
+    "archives": {
+      "simulator": {
+        "target": "aarch64-apple-ios-sim",
+        "sha256": "f3afa1e76f3d27be572dc7d2f269763c43b6c4331231ecd308eb96ed40d5fae1",
+        "identical": true,
+        "archive": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-checklist-41a05264.hoNJ7s1x/lib/iphonesimulator/libmixer_vm_capability_experimental.a",
+        "originalBuildReceipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-checklist-41a05264.hoNJ7s1x/evidence/vm-iphonesimulator.json"
+      },
+      "macOS": {
+        "target": "aarch64-apple-darwin",
+        "sha256": "bc6b286fdd17507acf073846283dc7e9f32c3a7de8d98ac2c3d6ce35a23e4f74",
+        "identical": true,
+        "archive": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-checklist-41a05264.hoNJ7s1x/lib/macos/libmixer_vm_capability_experimental.a",
+        "originalBuildReceipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-checklist-41a05264.hoNJ7s1x/evidence/vm-macos.json"
+      }
+    }
+  },
+  "inputs": {
+    "directory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-root-diag-packet.i7iGnfz7/delivery-ios",
+    "candidate": "01661e84851617871ba04fec1be87202243fdde583e68d48794d3a266b369eb8",
+    "assignmentSequence": 3,
+    "wasmSha256": "d2e24083c7958101387455da4e30608aaa3b9519bda0f9c18d3ab58108c77dac",
+    "artifactSha256": "cfa512b9f0a3ed5570729752267a4de0cfc8dcd02808cf634448fb7ae02ab383",
+    "bytes": 5489,
+    "preflight": "Verified domain-separated Ed25519 artifact and beta assignment 3 via CryptoKit, predecessor's CanonicalValue and StrictJSON, pinned public root, scope, runtime fingerprint, and exact payload hash and size.",
+    "limits": {
+      "outerStartupMs": 5000,
+      "turnMs": 50,
+      "capabilityRequestMs": 30000,
+      "fuel": 1000000,
+      "pages": 1,
+      "operandStack": 4096,
+      "callDepth": 64,
+      "hostCalls": 1024,
+      "maximumRequests": 8,
+      "reservationBytes": 8388608
+    }
+  },
+  "rootSimulator": {
+    "receipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-root-diag-run.LO9LtYk6/app-readback/signed-checklist/startup-failure.json",
+    "recovery": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-ios-root-diag-run.LO9LtYk6/app-readback/signed-checklist/recovery/state.json",
+    "coordinatorStartupToExchangeStopNs": 416025000,
+    "step": "guestStartup",
+    "status": 2,
+    "code": "capability_turn_timeout",
+    "function": 4,
+    "offset": 481,
+    "opcode": "global.get 1 (0x1e1)",
+    "previousOps": [
+      "0x1cb local.get 0",
+      "0x1cd local.get 0",
+      "0x1cf call 4"
+    ],
+    "producedFrames": 0,
+    "effectsIntent": false
+  },
+  "macOSProbe": {
+    "method": "15 new processes per variant in rotated order; CLOCK_UPTIME_RAW plus CLOCK_THREAD_CPUTIME_ID around native validate, constructor, first startup, checked header/event reads, close.",
+    "scope": "C ABI timing excludes process launch, file I/O, Swift coordinator, delivery, storage, deferred hydration, and first UI render.",
+    "outcomes": "45/45 status 0, i32 2168, 27 fuel, 0 host calls, valid MIU1 deferred header, empty document, event buffer at 2200 with capacity 4096, and successful close.",
+    "distribution": "min, median, max in nanoseconds",
+    "summary": {
+      "supplied": {
+        "validate": {
+          "wall": [
+            122042,
+            135750,
+            3332625
+          ],
+          "threadCpu": [
+            121917,
+            135583,
+            762291
+          ]
+        },
+        "create": {
+          "wall": [
+            162542,
+            204250,
+            1054458
+          ],
+          "threadCpu": [
+            162625,
+            203584,
+            527458
+          ]
+        },
+        "startup": {
+          "wall": [
+            7084,
+            7666,
+            19042
+          ],
+          "threadCpu": [
+            7084,
+            7708,
+            19042
+          ]
+        },
+        "read": {
+          "wall": [
+            583,
+            666,
+            791
+          ],
+          "threadCpu": [
+            583,
+            666,
+            791
+          ]
+        },
+        "close": {
+          "wall": [
+            6417,
+            7375,
+            151125
+          ],
+          "threadCpu": [
+            6417,
+            7375,
+            60959
+          ]
+        },
+        "total": {
+          "wall": [
+            301334,
+            369124,
+            4558000
+          ],
+          "threadCpu": [
+            301208,
+            364167,
+            1370500
+          ]
+        }
+      },
+      "release": {
+        "validate": {
+          "wall": [
+            114541,
+            125291,
+            2822667
+          ],
+          "threadCpu": [
+            114209,
+            125041,
+            758083
+          ]
+        },
+        "create": {
+          "wall": [
+            155750,
+            170083,
+            1928500
+          ],
+          "threadCpu": [
+            155792,
+            170166,
+            565708
+          ]
+        },
+        "startup": {
+          "wall": [
+            6875,
+            7666,
+            28541
+          ],
+          "threadCpu": [
+            6917,
+            7750,
+            28417
+          ]
+        },
+        "read": {
+          "wall": [
+            583,
+            667,
+            833
+          ],
+          "threadCpu": [
+            583,
+            708,
+            833
+          ]
+        },
+        "close": {
+          "wall": [
+            6417,
+            6959,
+            309583
+          ],
+          "threadCpu": [
+            6417,
+            7000,
+            127000
+          ]
+        },
+        "total": {
+          "wall": [
+            290957,
+            315583,
+            5090083
+          ],
+          "threadCpu": [
+            290710,
+            315418,
+            1480000
+          ]
+        }
+      },
+      "debug": {
+        "validate": {
+          "wall": [
+            504416,
+            527292,
+            7052500
+          ],
+          "threadCpu": [
+            504250,
+            527125,
+            2356209
+          ]
+        },
+        "create": {
+          "wall": [
+            1089250,
+            1145542,
+            1812792
+          ],
+          "threadCpu": [
+            1089625,
+            1145708,
+            1472166
+          ]
+        },
+        "startup": {
+          "wall": [
+            14708,
+            16292,
+            19708
+          ],
+          "threadCpu": [
+            14750,
+            16375,
+            19750
+          ]
+        },
+        "read": {
+          "wall": [
+            2209,
+            2500,
+            3000
+          ],
+          "threadCpu": [
+            2250,
+            2500,
+            3000
+          ]
+        },
+        "close": {
+          "wall": [
+            14875,
+            18042,
+            349625
+          ],
+          "threadCpu": [
+            14875,
+            18084,
+            120250
+          ]
+        },
+        "total": {
+          "wall": [
+            1628292,
+            1760458,
+            9237042
+          ],
+          "threadCpu": [
+            1628417,
+            1742459,
+            3831542
+          ]
+        }
+      }
+    },
+    "rawColumns": "Each pair is [wall ns, thread CPU ns]; pairs in stage order: validate, create, startup, read, close"
+  },
+  "profile": {
+    "command": "/usr/bin/sample <owned release probe PID> 1 1 -file <scratch>/sample.txt",
+    "outcome": "10000/10000 startup successes in a separate profiling process using the same payload and guards.",
+    "totalStacks": 774,
+    "createStacks": 732,
+    "startupStacks": 7,
+    "validationDescendantOfCreateStacks": 398,
+    "hotPath": "CapabilityGuest::validated -> decode::parse -> decode::decode_code -> Vec<Instruction> growth/realloc. Instance-side validation also sampled."
+  },
+  "pauseControl": {
+    "method": "Separate linked executable using the byte-identical macOS release archive. Delay once before the fifth startup CLOCK_UPTIME_RAW read, then return the real clock. No deadline, VM code or input changed.",
+    "outcomes": [
+      {
+        "pauseMs": 0,
+        "wallNs": 27250,
+        "cpuNs": 27250,
+        "status": 0,
+        "fuel": 27,
+        "hostCalls": 0,
+        "function": 4294967295,
+        "offset": 0,
+        "code": "-",
+        "clockReads": 30
+      },
+      {
+        "pauseMs": 60,
+        "wallNs": 70867375,
+        "cpuNs": 46125,
+        "status": 2,
+        "fuel": 3,
+        "hostCalls": 0,
+        "function": 4,
+        "offset": 481,
+        "code": "capability_turn_timeout",
+        "clockReads": 5
+      },
+      {
+        "pauseMs": 0,
+        "wallNs": 12417,
+        "cpuNs": 12458,
+        "status": 0,
+        "fuel": 27,
+        "hostCalls": 0,
+        "function": 4294967295,
+        "offset": 0,
+        "code": "-",
+        "clockReads": 30
+      },
+      {
+        "pauseMs": 60,
+        "wallNs": 63706958,
+        "cpuNs": 53667,
+        "status": 2,
+        "fuel": 3,
+        "hostCalls": 0,
+        "function": 4,
+        "offset": 481,
+        "code": "capability_turn_timeout",
+        "clockReads": 5
+      },
+      {
+        "pauseMs": 0,
+        "wallNs": 12334,
+        "cpuNs": 12375,
+        "status": 0,
+        "fuel": 27,
+        "hostCalls": 0,
+        "function": 4294967295,
+        "offset": 0,
+        "code": "-",
+        "clockReads": 30
+      },
+      {
+        "pauseMs": 60,
+        "wallNs": 62571666,
+        "cpuNs": 56208,
+        "status": 2,
+        "fuel": 3,
+        "hostCalls": 0,
+        "function": 4,
+        "offset": 481,
+        "code": "capability_turn_timeout",
+        "clockReads": 5
+      }
+    ]
+  },
+  "cleanup": {
+    "probeAndSamplerGroupsObservedAbsent": true,
+    "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5581cdbb/verification/local/fieldlog-startup-profile.8wSD8F6W",
+    "devicesUsed": false,
+    "ownedScratchAndCrashReportRemoved": true
+  }
+,
+  "timingRuns": {
+    "supplied": [
+      [3332625, 762291, 1054458, 527458, 19042, 19042, 750, 750, 151125, 60959],
+      [262709, 157125, 316375, 210875, 16542, 15875, 750, 791, 11416, 11458],
+      [135708, 135250, 175042, 175084, 7084, 7084, 625, 666, 6500, 6542],
+      [139333, 139125, 208541, 203584, 10375, 10459, 750, 791, 10125, 10208],
+      [156750, 156417, 194750, 194791, 8791, 8791, 666, 666, 28750, 17791],
+      [149125, 148791, 376542, 243791, 10541, 10583, 625, 625, 11041, 11083],
+      [135750, 135583, 403500, 284833, 7542, 7542, 666, 625, 6917, 6916],
+      [140625, 140458, 241333, 228291, 7250, 7292, 667, 666, 6916, 6959],
+      [387709, 190542, 237625, 210708, 7125, 7167, 667, 666, 7375, 7375],
+      [132584, 132250, 165417, 165417, 7708, 7750, 791, 791, 6792, 6792],
+      [124542, 124208, 183417, 183458, 7666, 7708, 625, 625, 7583, 7625],
+      [122042, 121917, 204250, 204292, 7125, 7167, 625, 666, 6917, 7000],
+      [124500, 124250, 162542, 162625, 7250, 7291, 625, 625, 6417, 6417],
+      [135000, 134959, 165292, 165292, 7334, 7375, 583, 583, 10375, 10416],
+      [124792, 124583, 175916, 175958, 7750, 7750, 750, 750, 6625, 6625]
+    ],
+    "release": [
+      [2822667, 758083, 1928500, 565708, 28541, 28417, 792, 792, 309583, 127000],
+      [126000, 125833, 242458, 242500, 7666, 7750, 625, 625, 6500, 6542],
+      [126750, 126458, 170083, 170166, 8250, 8250, 709, 709, 7083, 7083],
+      [125083, 124583, 170542, 170625, 7916, 7959, 833, 833, 6625, 6625],
+      [118875, 118333, 167084, 167125, 9583, 9667, 791, 791, 8333, 8333],
+      [154667, 154416, 225042, 214125, 7333, 7334, 750, 750, 11500, 11542],
+      [133208, 133042, 190416, 190459, 7791, 7834, 666, 625, 6959, 7000],
+      [118959, 118542, 274500, 218666, 19708, 19791, 667, 625, 7250, 7292],
+      [137250, 137000, 166292, 166333, 7250, 7291, 667, 709, 6959, 7000],
+      [123459, 123208, 165500, 165500, 7208, 7208, 625, 583, 6750, 6750],
+      [123833, 123583, 155750, 155792, 7083, 7125, 667, 708, 6916, 6959],
+      [114541, 114209, 162541, 162584, 6875, 6917, 583, 583, 6417, 6417],
+      [125291, 125041, 168125, 168167, 7458, 7458, 709, 750, 7375, 7375],
+      [140500, 140167, 160625, 160708, 7291, 7334, 625, 667, 6542, 6542],
+      [121917, 121708, 196625, 196708, 8000, 8000, 666, 667, 6459, 6458]
+    ],
+    "debug": [
+      [7052500, 2356209, 1812792, 1332917, 19708, 19750, 2417, 2416, 349625, 120250],
+      [505667, 505459, 1089250, 1089625, 15750, 15750, 2750, 2708, 14875, 14875],
+      [1286917, 691250, 1149709, 1149916, 18083, 18208, 2709, 2750, 18584, 18666],
+      [629417, 629333, 1470625, 1470792, 14708, 14750, 2875, 2875, 17875, 17875],
+      [560167, 560125, 1547417, 1472166, 16167, 16125, 3000, 3000, 20541, 20500],
+      [736500, 582542, 1145542, 1145708, 16292, 16375, 2625, 2625, 18084, 18084],
+      [527083, 526708, 1094000, 1094250, 16375, 16458, 2375, 2375, 18042, 18167],
+      [514958, 514875, 1207833, 1189875, 17250, 17250, 2500, 2500, 17917, 17959],
+      [515125, 515000, 1091542, 1091792, 14958, 15083, 2209, 2250, 15500, 15625],
+      [512833, 512750, 1109291, 1109542, 17250, 17250, 2583, 2542, 18625, 18750],
+      [1086125, 692500, 1306125, 1195750, 18292, 18333, 2417, 2458, 18083, 18209],
+      [504416, 504250, 1103709, 1103917, 15209, 15292, 2542, 2583, 15666, 15750],
+      [527292, 527125, 1101209, 1101459, 16042, 16167, 2375, 2416, 15625, 15625],
+      [505833, 505500, 1103000, 1103166, 15625, 15709, 2333, 2375, 16500, 16584],
+      [782167, 582209, 1214875, 1158833, 19250, 19292, 2500, 2500, 22459, 22500]
+    ]
+  }
+}

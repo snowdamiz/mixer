@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The iOS Simulator links the optimized Rust VM. A fresh release build reproduced the linked archive byte for byte. On macOS the same signed guest’s first turn took 7.7 µs median across 15 fresh processes. A controlled 60 ms pause reproduced the rollback fault at the same instruction. Measuring wall and thread CPU time on the Simulator remains necessary to attribute its delay. [Build and timing receipt](verification/receipts/fieldlog-ios-startup-optimization-5581cdbb.json)
+
 The ordinary iOS app completed the signed baseline and reviewed confirmation flow on one saved task. On rollback, the 50 ms VM startup turn expired before a frame or effects intent, with 4.58 seconds left on the signed startup deadline. The committed revision-5 workspace matched the confirmed edit byte for byte. Cold reopen and reconnect remain pending for this journey. [Simulator receipt](verification/receipts/fieldlog-ios-rollback-startup-runtime-41a05264.json)
 
 Concurrent browser requests to register the first application now acquire PostgreSQL identity locks in the same order. The full Phoenix suite passed 931 tests in 389.3 seconds on macOS. Two Linux network-namespace tests were skipped. [Qualification receipt](verification/receipts/phoenix-foundation-qualified-41a05264.json)
