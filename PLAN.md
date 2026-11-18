@@ -1556,6 +1556,8 @@ Never promote a GA gate without its specified evidence and accountable reviewer.
 
 ## Ongoing delivery and resource ownership
 
+**Mixer publishes directly to `origin/main`.** The November 18 user instruction confirms that this repository has no Trunk merge queue. Commit and push each coherent, verified slice promptly, including during long-running plan work. Fetch the current main, incorporate concurrent changes, and use a normal fast-forward push. Check the resulting remote SHA and inspect CI after each push. Report the published SHA, check status, and any work still local.
+
 The user authorized periodic coherent commits and non-force pushes to
 [snowdamiz/mixer](https://github.com/snowdamiz/mixer) `origin/main`. Root coordinates
 delivery, uses explicit path allowlists, preserves other staged/unfinished work,
