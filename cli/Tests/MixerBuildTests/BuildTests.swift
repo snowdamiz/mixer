@@ -81,6 +81,64 @@ private func temporary(_ body: (URL) throws -> Void) throws {
     }
 }
 
+@Test func exportRefusesDestinationsInsideSourceThroughAliases() throws {
+    try temporary { root in
+        let files = FileManager.default
+        let sdk = root.appendingPathComponent("sdk")
+        try files.createDirectory(at: sdk, withIntermediateDirectories: true)
+        try Data("// test SDK fixture".utf8).write(to: sdk.appendingPathComponent("Package.swift"))
+        let project = root.appendingPathComponent("Source")
+        _ = try SuiteOwnedRunner.create(name: "App", application: "com.example.app", destination: project, sdk: sdk)
+        let resources = project.appendingPathComponent("Resources")
+        let alias = root.appendingPathComponent("source-alias")
+        try files.createSymbolicLink(at: alias, withDestinationURL: resources)
+        let caseAlias = root.appendingPathComponent("source")
+        var destinations = [alias.appendingPathComponent("missing-parent/Export")]
+        if files.fileExists(atPath: caseAlias.path) {
+            destinations.append(caseAlias.appendingPathComponent("case-export"))
+        }
+
+        for destination in destinations {
+            do {
+                _ = try SuiteOwnedRunner.export(root: project, destination: destination)
+                Issue.record("Export succeeded at \(destination.path)")
+            } catch let rejection as MixerFailure {
+                #expect(rejection.code == "export.destination")
+            }
+            #expect(!files.fileExists(atPath: destination.path))
+        }
+        #expect(!files.fileExists(atPath: resources.appendingPathComponent("missing-parent").path))
+    }
+}
+
+@Test(arguments: [("Assets", "assets"), ("Caf\u{00E9}", "Cafe\u{0301}")])
+func exportStagesDirectoriesWithDistinctSourceNames(names: (String, String)) throws {
+    try temporary { root in
+        let files = FileManager.default
+        let staging = root.appendingPathComponent("staging")
+        try files.createDirectory(at: staging, withIntermediateDirectories: false)
+        let first = staging.appendingPathComponent(names.0)
+        let second = staging.appendingPathComponent(names.1)
+        try files.createDirectory(at: first, withIntermediateDirectories: false)
+        let namesAliasOnDestination = files.fileExists(atPath: second.path)
+        try files.removeItem(at: first)
+
+        // Two source entries model a copy from a volume where both names can coexist.
+        let entries = [(relative: names.0, directory: true), (relative: names.1, directory: true)]
+        if namesAliasOnDestination {
+            do {
+                try ProjectBuild.copyExportEntries(entries, from: root, to: staging)
+                Issue.record("Export merged two source directories")
+            } catch let rejection as MixerFailure {
+                #expect(rejection.code == "export.directory-collision")
+            }
+        } else {
+            try ProjectBuild.copyExportEntries(entries, from: root, to: staging)
+            #expect(try files.contentsOfDirectory(atPath: staging.path).count == 2)
+        }
+    }
+}
+
 @Test func importerIsReadOnlyAndNeverAuthorizesRelease() throws {
     try temporary { root in
         try "import SwiftUI\nlet p: UnsafeMutablePointer<Int>? = nil\n".write(to: root.appendingPathComponent("Screen.swift"), atomically: true, encoding: .utf8)

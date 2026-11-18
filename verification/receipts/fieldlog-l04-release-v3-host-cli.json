@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "id": "fieldlog-l04-release-v3-host-cli",
+  "status": "PASS_HOST_PROTOCOL_PREFLIGHT",
+  "dateUTC": "2026-11-18T05:20:59.557467+00:00",
+  "gate": "L04",
+  "inputReceipt": "verification/receipts/fieldlog-signed-local-update-admission-r6060.json",
+  "baseCommit": "09a3ec0343b29b59849260349a0aa6403b9bb215",
+  "source": {
+    "digestAlgorithm": "SHA256 of compact sorted JSON mapping input paths to SHA256 values",
+    "digest": "fd2e905893be415dac9c7556c6f1e48901dfda009d5a7562467b75886993aa37",
+    "inputCount": 30,
+    "changedFiles": {
+      "scripts/verify.sh": "ee2915f07a1545fe46ce837d85a101876c56de555bbdb7d728158a2508b0e0f0",
+      "updates/README.md": "e70a8713ca97cb40a9cbab591c7484a1b53359c59866ab3e9a8a455979963a32",
+      "updates/Sources/MixerUpdateTool/main.swift": "a9d7750eddf043929fffbc476dacf860fd232dad141fcb206c07f4d0d79f1e84",
+      "updates/Sources/MixerUpdates/VerifierV3.swift": "ea06c1844f79782808662219d40879df029e6950fc300de4e606950461bf9dfc",
+      "updates/verification/verify-cli.py": "ebb8ed3503fe45d3873e672f42b9089339b98935322722a33909d7c7d53cae60"
+    },
+    "scope": "Tracked updates package manifest, lockfile, Sources and Tests, plus updates/README.md, updates/verification/verify-cli.py and scripts/verify.sh"
+  },
+  "environment": {
+    "platform": "27.0.0 arm64",
+    "macOS": "27.0.1",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "python": "Python 3.14.8"
+  },
+  "commands": [
+    {
+      "argv": [
+        "/bin/sh",
+        "-ex",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-fieldlog-update-v3-followup.4aHbI0pc/updates-step.sh"
+      ],
+      "scriptSource": [
+        "sed",
+        "-n",
+        "/^swift test --package-path updates$/,/^)/p",
+        "scripts/verify.sh"
+      ],
+      "scriptSHA256": "75609677d586a321d1eddf0f215a5b0d86d6507aca41bd645407e6ae833726e4",
+      "environment": {
+        "SWIFTPM_BUILD_DIR": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-fieldlog-update-v3-followup.4aHbI0pc/build-final",
+        "TMPDIR": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-fieldlog-update-v3-followup.4aHbI0pc/tmp"
+      },
+      "swiftTestArgv": [
+        "swift",
+        "test",
+        "--package-path",
+        "updates"
+      ],
+      "binPathArgv": [
+        "swift",
+        "build",
+        "--package-path",
+        "updates",
+        "--show-bin-path"
+      ],
+      "cliArgv": [
+        "python3",
+        "updates/verification/verify-cli.py",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-fieldlog-update-v3-followup.4aHbI0pc/build-final/out/Products/Debug/mixer-update",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-fieldlog-update-v3-followup.4aHbI0pc/tmp/mixer-update-vectors.csZ03CX7"
+      ],
+      "exit": 0,
+      "output": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-fieldlog-update-v3-followup.4aHbI0pc/updates-step-final.log",
+      "outputSHA256": "500c25f6028d7b9c82e52b2414d9354d3e540b39a90459a52c57b33b39b6c30e",
+      "executableSHA256": "c705c0812bfe1f060fab02bb29c5bebb6cbba0d905b81fd8875456b01d6f69d9",
+      "swiftTestsPassed": 69,
+      "cliCasesPassed": 32,
+      "accepted": {
+        "v1 shared signed release": "35bb6afad8192dca714bb056a4eedab8153c35ef50fe5b77bb72d96ca3be3193",
+        "v2 shared signed release": "a26a4657320c4388f2f9867b5c70fd8f214904cbe2f4b42eb88935e43e90c37f",
+        "v3 shared signed release": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64"
+      },
+      "refusals": {
+        "v1 legacy replay": "Assignment sequence must increase",
+        "v1 installed host on explicit v3 route": "v3.host.invalid",
+        "v2 legacy replay": "Assignment sequence must increase",
+        "v2 installed host on explicit v3 route": "v3.host.invalid",
+        "v3 options without a command": "Usage: mixer-update <verify|verify-v3> --manifest FILE --payload FILE --host FILE --roots FILE --assignment FILE --channel NAME --installation ID --last-sequence N --now UNIX_SECONDS",
+        "v3 missing --channel": "arguments",
+        "v3 missing --installation": "arguments",
+        "v3 missing --last-sequence": "arguments",
+        "v3 missing --now": "arguments",
+        "v3 missing --manifest": "arguments",
+        "v3 missing --assignment": "arguments",
+        "v3 missing --host": "arguments",
+        "v3 missing --roots": "arguments",
+        "v3 missing --payload": "arguments",
+        "v3 installed host on legacy route": "Unsupported or invalid installed runtime contract",
+        "v3 replay": "v3.assignment.replay",
+        "v3 wrong channel": "v3.assignment.binding",
+        "v3 changed payload": "v3.payload.integrity",
+        "v3 payload over 4 MiB": "file.size",
+        "v3 payload over a smaller installed limit": "file.size",
+        "v3 host with legacy payload limit": "v3.host.invalid",
+        "v3 host with guest ABI 3": "v3.host.invalid",
+        "v3 manifest for a different app": "v3.manifest.compatibility",
+        "v3 missing manifest signature": "v3.document.fields",
+        "v3 changed manifest signature": "v3.signature.invalid",
+        "v3 missing assignment signature": "v3.document.fields",
+        "v3 changed assignment signature": "v3.signature.invalid",
+        "v3 manifest over 64 KiB": "file.size",
+        "v3 assignment over 64 KiB": "file.size"
+      },
+      "codeFieldOmitted": [
+        "v1 legacy replay",
+        "v2 legacy replay",
+        "v3 options without a command",
+        "v3 installed host on legacy route"
+      ]
+    }
+  ],
+  "scratch": {
+    "directory": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-fieldlog-update-v3-followup.4aHbI0pc",
+    "cliFixtureDirectoriesRemoved": true,
+    "buildAndLogsRetained": true
+  },
+  "scope": {
+    "protocol": 3,
+    "guestABI": 2,
+    "uiSchema": 1,
+    "sharedSignedVectorsOnly": true,
+    "fieldLogWasmReadOrExecuted": false,
+    "durableSequenceWritten": false,
+    "signedUpdateActivated": false,
+    "devicesUsed": false,
+    "productionKeysUsed": false,
+    "localGatesPassed": [],
+    "GA": false
+  }
+}

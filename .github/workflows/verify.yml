@@ -318,9 +318,10 @@ jobs:
             swift build --package-path cli --product mixer -j 2
             MIXER_STORE_CLI_BIN_DIR="$(swift build --package-path cli --product mixer -j 2 --show-bin-path)"
             test -x "$MIXER_STORE_CLI_BIN_DIR/mixer"
-            MIXER_STORE_TEST_CLI="$MIXER_STORE_CLI_BIN_DIR/mixer" swift test --package-path cli -j 2
+            export MIXER_STORE_TEST_CLI="$MIXER_STORE_CLI_BIN_DIR/mixer"
+            swift test --package-path cli -j 2
+            python3 -B -m unittest discover -s cli/build-tests -v
           )
-          python3 -B -m unittest discover -s cli/build-tests -v
           swift test --package-path native/android/engine
           python3 runtime-identity/tools/vectors.py --check
           python3 runtime-identity/tools/vectors_v2.py --check

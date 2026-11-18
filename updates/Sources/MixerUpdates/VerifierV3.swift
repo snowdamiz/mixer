@@ -125,6 +125,8 @@ public struct VerifiedAssignmentV3: Sendable {
 /// Explicit protocol3 / guestABI2 entrypoint. Legacy ReleaseVerifier is unchanged.
 /// Methods do bounded synchronous verification and schedule no background work.
 public struct ReleaseVerifierV3: Sendable {
+    package static let maximumSignedDocumentBytes = 65_536
+
     public let host: InstalledRuntime
     private let context: V3VerificationContext
 
@@ -272,7 +274,7 @@ public struct ReleaseVerifierV3: Sendable {
                                   installation: String, payload: Data? = nil) throws {
         // Check every variable-size argument before any owned snapshot. These
         // entrypoints do not bound caller concurrency or claim allocation recovery.
-        guard manifest.count <= 65_536, assignment.count <= 65_536 else {
+        guard manifest.count <= Self.maximumSignedDocumentBytes, assignment.count <= Self.maximumSignedDocumentBytes else {
             throw V3Rules.error("document.size", "Signed document exceeds 64 KiB")
         }
         if let payload, UInt64(payload.count) > host.maxPayloadBytes {
@@ -352,11 +354,11 @@ public struct ReleaseVerifierV3: Sendable {
         }
     }
     private func document(_ bytes: Data) throws -> Data {
-        guard bytes.count <= 65_536 else { throw V3Rules.error("document.size", "Signed document exceeds 64 KiB") }
+        guard bytes.count <= Self.maximumSignedDocumentBytes else { throw V3Rules.error("document.size", "Signed document exceeds 64 KiB") }
         return V3Rules.snapshot(bytes)
     }
     private func envelope(_ bytes: Data, field: String) throws -> (CanonicalValue, Data) {
-        let value = try StrictJSON.decode(CanonicalValue.self, from: bytes, maximumBytes: 65_536)
+        let value = try StrictJSON.decode(CanonicalValue.self, from: bytes, maximumBytes: Self.maximumSignedDocumentBytes)
         let fields = try V3Rules.object(value, keys: [field, "signature"])
         let text = try fields.text("signature")
         guard let signature = Data(base64Encoded: text), signature.count == 64, signature.base64EncodedString() == text else {

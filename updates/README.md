@@ -31,7 +31,7 @@ swift test --package-path updates
 swift run --package-path updates mixer-update verify \
   --manifest manifest.json --payload module.wasm --host installed-host.json \
   --roots pinned-roots.json --assignment assignment.json --channel beta \
-  --installation APP_PRIVATE_RANDOM_ID --last-sequence 6 --now 1792627300
+  --installation APP_PRIVATE_RANDOM_ID --last-sequence 6 --now "$(date +%s)"
 ```
 
 A successful verifier result is **protocol verification only**. It does not validate
@@ -153,12 +153,35 @@ executable/library/resource hashes and device identity evidence.
 
 ## Explicit release-v3 verification
 
-`ReleaseVerifierV3(host:roots:)` is a separate synchronous verifier for the frozen
-protocol3/guestABI2/UI1 contract. It requires known exact capability schema maps
-with zero to two entries, signed documents at most64KiB, payload and linear-memory
-ceilings at most4MiB, fuel at most1M and startup at most60000ms, all narrowed by the
-installed host. The original `ReleaseVerifier` remains strict protocol1/2 + ABI1.
-No existing updater, activation, CLI, service or recovery route selects v3.
+`ReleaseVerifierV3(host:roots:)` verifies protocol 3 with guest ABI 2 and UI schema 1.
+It requires an exact match with the installed capability schema map, which permits
+up to two entries. The installed host caps the payload and linear memory at 4 MiB
+each, fuel at 1,000,000, and startup at 60,000 ms. The host can set lower limits.
+The `mixer-update verify` command uses protocol 1 or 2 with guest ABI 1. Run
+`verify-v3` to check a release-v3 payload and assignment on the host.
+
+```sh
+swift run --package-path updates mixer-update verify-v3 \
+  --manifest manifest.json --payload module.wasm --host installed-host.json \
+  --roots pinned-roots.json --assignment assignment.json --channel beta \
+  --installation APP_PRIVATE_RANDOM_ID --last-sequence 8 --now "$(date +%s)"
+```
+
+Use the installed app's `InstalledRuntime` JSON and pinned public roots. Take the
+installation ID and last accepted sequence from the same installation. The command
+checks signed release compatibility and assignment eligibility against those inputs.
+It reads at most the installed payload limit and caps each signed document at 64 KiB.
+The JSON result reports `protocol-verified` with executable verification, policy
+approval, and activation flags set to false. A refusal exits with status 1 and
+reports a `code` for `verify-v3` update errors. Legacy `verify` errors omit the
+`code` field.
+
+For live verification, pass the current Unix time in seconds as `--now`, as shown
+above. The shared signed fixtures use their recorded time for reproducible tests.
+
+To exercise both commands with the shared signed release vectors, run
+`python3 updates/verification/verify-cli.py MIXER_UPDATE OWNED_SCRATCH` with the
+built executable and an existing private scratch directory.
 
 Successful verification returns distinct `VerifiedArtifactV3`,
 `VerifiedAssignmentV3` and readable v3 grant values. They have no public constructor

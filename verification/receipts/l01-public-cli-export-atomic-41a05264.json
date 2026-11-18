@@ -1,0 +1,106 @@
+{
+  "schema": "mixer.local-development-evidence.v1",
+  "recordedAt": "2026-11-18T05:40:06.515226+00:00",
+  "scope": "L01 export staging, atomicity, and built CLI discovery through the macOS Swift host CI command block",
+  "result": "scoped-pass",
+  "environment": {
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "arch": "arm64",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "swiftSHA256": "448457da9a8a56741f2c8c4b8931e85b7377fc009c16918cd8ac1a8a3210ea1f",
+    "python": "3.14.8"
+  },
+  "source": {
+    "commit": "d39031b0870386abc12feb11ea804c668f6ac8c1",
+    "tree": "9e430ed25e16f1d62336a6967d06f45e4063e9d2",
+    "archivePaths": [
+      "cli",
+      "sdk",
+      "updates",
+      "native/android",
+      "scripts/ci/prepare-cli-host-tests.py",
+      "scripts/ci/verify-apple-toolchain.py",
+      "verification/sdk-feature-ui-source141-v1/binding.json",
+      "verification/android-default-appearance-packaging/run-2/created-descriptor.json"
+    ],
+    "sourceArchiveSHA256": "d420450b5207ca9cfa865aaa5df7764be50ae546cb9f3ccc28fe61e44dde8fe6",
+    "additionalDiscoveryFixture": {
+      "path": "scripts/ci/tests/android_inspection_digests/preimage-android-build.py",
+      "archiveSHA256": "211431dd9dbc9399817f03549706374306ed8963729e8960a1c20d04f5d7e7e2"
+    },
+    "overlaidInputsSHA256": {
+      "cli/Sources/MixerBuild/Configuration.swift": "9fd767e8ed9626ed4ee11d64d65e2e838cd51b5a7537f257ce767b2e404ab77c",
+      "cli/Sources/MixerBuild/ProjectGenerator.swift": "22eb0902a7618c403c0f7842059f947a631c26ce1db145b960402250fb6e0143",
+      "cli/Tests/MixerBuildTests/BuildTests.swift": "b7cfabbf62a649e11606e38cf099a3ffe4de939c6564f2cb3b12a4752ef7e631",
+      "cli/build-tests/test_public_export.py": "eac8fee64a7f00a5e89778b18f00e3bbb3bb9d16042db6bc7bb82ff670543abb",
+      ".github/workflows/verify.yml": "83cbd6370b746bfcf71bd73be332e678c7680b94401c821706590bb551757f76"
+    },
+    "cliSHA256": "9deecdb75c57197e192af4be9dd55a8e25db3871dceabbfeeca5931b794b678b"
+  },
+  "commands": [
+    {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "cli",
+        "-j",
+        "2",
+        "--filter",
+        "exportStagesDirectoriesWithDistinctSourceNames"
+      ],
+      "cwd": "$scratch/source",
+      "exit": 1,
+      "combinedOutputSHA256": "9bc2bd51756b0d58f3dd7cc13c280289366c200a479d8db40b739bebcd51c6aa",
+      "output": "With the old idempotent createDirectory behavior restored inside the staging helper, both collision cases merged directories and failed the regression."
+    },
+    {
+      "argv": [
+        "/bin/bash",
+        "$scratch/workflow-cli.sh"
+      ],
+      "cwd": "$scratch/source",
+      "scriptSHA256": "381b7e21250c8693d1a7876ec84b8e98984d9e569a961c076232a167d5f2fd16",
+      "exit": 0,
+      "combinedOutputSHA256": "7bb706b7ae0fed506646b35ebd8671a52be22b046d04083eabfac42c4d532af3",
+      "environment": "Sourced environment.sh produced by scripts/ci/prepare-cli-host-tests.py for the locally installed Xcode. Only the Swift test invocation was restricted to the five named regressions below. The build, executable resolution, export and Python discovery commands were taken from the swift-host workflow.",
+      "swiftTestFilter": "createIsAtomicLocksSnapshotAndNeverOverwrites|exportRefusesDestinationsInsideSourceThroughAliases|exportStagesDirectoriesWithDistinctSourceNames|sourceDigestIsStableAndContentSensitive|androidCompatibilityOrdinaryRelocationCommonLockAndCopiedExportPass",
+      "output": "All five Swift tests passed, including both parameterized collision cases. Python unittest discovery passed 100 tests, including all five public export tests with the built mixer and zero skips.",
+      "publicTestsExecuted": [
+        "test_android_export_reaches_tool_inspection_from_exported_root",
+        "test_changed_sdk_after_source_verification_fails_before_publication",
+        "test_competing_exports_publish_once_and_clean_private_stages",
+        "test_concurrent_empty_destination_keeps_its_inode",
+        "test_unreadable_source_fails_with_path_and_no_destination"
+      ]
+    }
+  ],
+  "publicCLI": {
+    "android": "Public-v4 starter with real pinned SDK/adapter source pair and inert create-time inventory. Export kept Resources/.empty/nested, .env.example, .gitignore and exact mixer.lock. Excluded .env, local.p12 and .build containing a symlink. Original moved away. Real exported Android driver reached its Swift version probe and stopped on the intentional mismatch; no APK.",
+    "traversal": "chmod(0) directory with a file gave exit 1, files.read with directory path and reason, and no destination or stage.",
+    "copiedLock": "The Swift version probe mutated the source SDK after its initial digest. Staged verification returned lock.sdk-drift. No destination or stage.",
+    "twoWriters": "Both exports reached staged verification while the destination was absent. One completed; one returned export.exists. Checked the winner's file bytes and zero remaining stage names.",
+    "concurrentEmptyDirectory": "An empty destination created during staged verification retained its inode and remained empty. Export returned export.exists and removed its stage."
+  },
+  "controls": {
+    "firstCorrection": "URL enumeration returned /private-prefixed paths from normalized /var and /tmp roots. Replaced prefix slicing and enumeration with explicit relative directory listing.",
+    "publicHarnessPathAliases": "Two tests initially compared textual paths. Final assertions compare resolved identities.",
+    "discovery": "The workflow exports the existing MIXER_STORE_TEST_CLI variable before Swift tests and Python discovery, within the selected toolchain environment. The first local snapshot omitted the unrelated Android inspection preimage, causing 12 discovery errors while all five public tests passed. The full discovery rerun passed with the exact tracked fixture restored.",
+    "directoryNames": "The staging regression supplied two distinct source entry names to the actual staging helper on the local destination filesystem. Both the case-only and composed/decomposed Unicode pairs aliased on disk. Both failed closed with export.directory-collision after the fix. No additional filesystem was mounted.",
+    "discoveryFirstAttemptCombinedOutputSHA256": "be5006df9f3fe7301552016ffcf95cdf355624916151b2de5aacf4f4ed998591"
+  },
+  "cleanup": {
+    "publicExportFixtureDirectoriesAbsent": true,
+    "swiftProjectFixturesAbsent": true,
+    "swiftToolReceiptsTerminalAcrossBothFocusedRuns": 24,
+    "deviceOperations": 0,
+    "scope": "All five public tests check applicable staging cleanup. The owned host replay scratch and raw logs are retained separately. No independent outer descendant accounting was collected."
+  },
+  "pending": [
+    "Root refresh of Source141 guard bindings for the workflow and changed CLI afterimages",
+    "Hosted validation of the macOS workflow using its pinned toolchain",
+    "Actual Android build, native/runtime and FieldLog qualification",
+    "Full L01 gate"
+  ]
+}

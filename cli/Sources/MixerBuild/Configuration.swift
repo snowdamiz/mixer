@@ -105,22 +105,60 @@ public enum JSONFile {
 }
 
 public enum SourceDigest {
+    private static let skipped = Set([".build", ".git", ".swiftpm", "node_modules", ".gradle", ".mixer", "target", ".DS_Store"])
+
+    private static func excludesItem(_ url: URL) -> Bool {
+        let name = url.lastPathComponent.lowercased()
+        return name == ".env" || (name.hasPrefix(".env.") && name != ".env.example")
+            || ["pem", "key", "p12", "pfx", "mobileprovision", "keystore", "jks"].contains(url.pathExtension.lowercased())
+    }
+
     public static func files(in root: URL) throws -> [URL] {
         let root = root.resolvingSymlinksInPath().standardizedFileURL
-        let skipped: Set<String> = [".build", ".git", ".swiftpm", "node_modules", ".gradle", ".mixer", "target", ".DS_Store"]
         guard let enumerator = FileManager.default.enumerator(atPath: root.path) else { throw MixerFailure("files.read", "Cannot enumerate \(root.path)") }
         var result: [URL] = []
         for case let relative as String in enumerator {
             let url = root.appendingPathComponent(relative)
             if skipped.contains(url.lastPathComponent) { enumerator.skipDescendants(); continue }
-            let name = url.lastPathComponent.lowercased()
-            if (name == ".env" || (name.hasPrefix(".env.") && name != ".env.example")) || ["pem", "key", "p12", "pfx", "mobileprovision", "keystore", "jks"].contains(url.pathExtension.lowercased()) { continue }
+            if excludesItem(url) { continue }
             let info = try url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
             if info.isSymbolicLink == true { throw MixerFailure("files.symlink", "Source snapshots reject symlinks: \(url.path)") }
             if info.isRegularFile == true { result.append(url) }
         }
         return result.sorted { $0.path < $1.path }
     }
+
+    // List each directory explicitly so a traversal error cannot yield a partial export.
+    static func exportEntries(in root: URL) throws -> [(relative: String, directory: Bool)] {
+        let keys: Set<URLResourceKey> = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey]
+        var pending = [""]
+        var result: [(String, Bool)] = []
+        while let parent = pending.popLast() {
+            let directory = root.appendingPathComponent(parent, isDirectory: true)
+            let names: [String]
+            do {
+                names = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+            } catch {
+                throw MixerFailure("files.read", "Cannot enumerate \(directory.path): \(error.localizedDescription)")
+            }
+            for name in names where !skipped.contains(name) {
+                let relative = parent.isEmpty ? name : parent + "/" + name
+                let url = root.appendingPathComponent(relative)
+                let info = try url.resourceValues(forKeys: keys)
+                let excluded = excludesItem(url)
+                if info.isSymbolicLink == true {
+                    if excluded { continue }
+                    throw MixerFailure("files.symlink", "Source snapshots reject symlinks: \(url.path)")
+                }
+                if info.isDirectory == true { pending.append(relative) }
+                if !excluded && (info.isDirectory == true || info.isRegularFile == true) {
+                    result.append((relative, info.isDirectory == true))
+                }
+            }
+        }
+        return result
+    }
+
     public static func sha256(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
     public static func tree(_ root: URL) throws -> String {
         let root = root.resolvingSymlinksInPath().standardizedFileURL

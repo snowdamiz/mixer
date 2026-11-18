@@ -1,0 +1,614 @@
+{
+  "schema": "mixer.local-development-evidence.v1",
+  "recordedAt": "2026-11-18T05:18:28.741121+00:00",
+  "scope": "L01 public CLI host export with generated starter; FieldLog and iOS/Android app build and launch are outside this run.",
+  "result": "host-export-passed-with-cli-fix",
+  "environment": {
+    "os": "macOS 27.0.1 (26A434)",
+    "architecture": "arm64",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "swiftDriver": "swift-driver version: 1.168.6",
+    "python": "3.14.8"
+  },
+  "source": {
+    "commit": "09a3ec0343b29b59849260349a0aa6403b9bb215",
+    "tree": "2d7421d67ce1154acf459fdf7adf65e8161b21ee",
+    "packageTrees": {
+      "cli": "69db88802a8aa7a1ebe24e6fd8c18e27aa85ae7c",
+      "sdk": "ea6427ab49808d893f9b601a1e6b863326ef51d8",
+      "updates": "0514500d4aa0e461ea6b77bde420e12ee7eae4d4"
+    },
+    "testedArchive": "git archive of exact commit with the two CLI afterimages overlaid",
+    "afterimagesSHA256": {
+      "cli/Sources/MixerBuild/ProjectGenerator.swift": "df8adc4ac9a80b2ca535a50275d761ca0fbff1ce3da41f4ad0a1a6dff2361a98",
+      "cli/Tests/MixerBuildTests/BuildTests.swift": "7f3b7cf0e942cc0a1d746a235a97d7d0bc7a22c5f1507d7e36f3d8717accb628"
+    }
+  },
+  "observations": {
+    "version": "0.1.0-dev",
+    "SDKDigest": "5a9f314dd6f5bef71317111d1427cbca884a10dc42d579916430a3f4128f41cc",
+    "exportDigest": "b0662c9e2d5a0acb463610d5e8ce3297ef3d87a79c845440c97dedd68d618b44",
+    "equalFileBytesAndModes": 107,
+    "rootPackageResolvedInitiallyPresent": false,
+    "retainedLockSHA256": "17135b279eebc30f90bba9707360ea3b49f3305a932bf6bb862880ae4bf2fccf",
+    "retainedSDKPackageResolvedSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+    "excluded": [
+      ".env",
+      "local.p12",
+      ".mixer",
+      ".build"
+    ],
+    "cliSHA256": "745a5fb11396b377e6eb39a9821745cbf0ae3dc8b880334017b2ceb2f96bf9cc",
+    "baselineFixtureSeparate": true,
+    "originalAndSeedSDKRemovedBeforeReopen": true,
+    "reopenedApplication": "com.example.exportcontinuity",
+    "mixerHostTestsPassed": 4,
+    "standaloneSwiftHostTestsPassed": 4,
+    "standaloneNetworkOutboundDenied": true,
+    "standaloneDependencySource": "existing SwiftPM public repository cache",
+    "nestedSDKPins": {
+      "swift-asn1": {
+        "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version": "1.7.3"
+      },
+      "swift-crypto": {
+        "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+        "version": "5.0.3"
+      }
+    },
+    "reopenedRootPins": {
+      "swift-asn1": {
+        "revision": "917b472dbe53ba699cbb0495f9a95a084bc6364d",
+        "version": "1.7.4"
+      },
+      "swift-crypto": {
+        "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+        "version": "5.0.3"
+      }
+    }
+  },
+  "controls": {
+    "originalCLI": "Both aliased destinations exited 0 and wrote Package.swift under the source.",
+    "regressionRed": "The new Swift regression failed on both aliases with five issues.",
+    "preparationFailure": "Swift rejected --manifest-caching; the same filter ran with the existing alias for the flag.",
+    "firstCorrectionFailure": "The ancestry walk overran URL root in system temporary directories; the existing export test failed until the walk stopped at /.",
+    "fixed": "Both focused tests passed. Both CLI aliases returned export.destination without creating directories. Export via an external alias succeeded and repeated export returned export.exists."
+  },
+  "integration": {
+    "sourcePinManifest": "verification/native-report-source141-archive-v1/current-source-inputs.json",
+    "previousSHA256": "d1880198f2233ab258b4f14c9a547bae762fb4bf70bbc81757abfd16860287f4",
+    "action": "Refresh the installed Source141 successor and its seals before integration. The owning manifest is outside this lane.",
+    "dependencyFinding": "The initial export preserves the nested SDK lock and carries no root Package.resolved. The first SwiftPM invocation generated a root lock selecting swift-asn1 1.7.4 while the nested SDK lock pins 1.7.3. The offline replay used the generated root lock and cached dependencies."
+  },
+  "worktree": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264",
+  "scratch": "/private/tmp/mixer-l01-cli-export-41a05264.W3NSmMvv",
+  "commands": {
+    "cli-baseline": {
+      "argv": [
+        "/usr/bin/swift",
+        "build",
+        "--package-path",
+        "$worktree/cli",
+        "--scratch-path",
+        "$scratch/build",
+        "--disable-package-manifest-caching",
+        "--product",
+        "mixer"
+      ],
+      "cwd": "$worktree",
+      "exit": 0,
+      "pgid": 3641,
+      "seconds": 21.29,
+      "stdoutSHA256": "00f26cc56511a22162ce08d36332ed93f23d8dd2ed57f1be178b328330e557d0",
+      "stderrSHA256": "a9869d68c822647a608eb2d6c771d437a30af226ae1373413e1ab0e869c7f4fe"
+    },
+    "pinned-sdk": {
+      "argv": [
+        "/usr/bin/git",
+        "archive",
+        "--format=tar",
+        "--output=$scratch/sdk.tar",
+        "HEAD",
+        "sdk"
+      ],
+      "cwd": "$worktree",
+      "exit": 0,
+      "pgid": 8174,
+      "seconds": 0.51
+    },
+    "sdk-unpack": {
+      "argv": [
+        "/usr/bin/tar",
+        "-xf",
+        "$scratch/sdk.tar"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 8372,
+      "seconds": 0.05
+    },
+    "swift-version": {
+      "argv": [
+        "/usr/bin/swift",
+        "--version"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 8440,
+      "seconds": 0.24,
+      "stdoutSHA256": "4b59da256292ae42e3f04ef6d06ea3e139678613a3cd3d0dc37a6757c0bd290a",
+      "stderrSHA256": "bbc8b176d3c74d4c5a7fd00b40280f98168e116d5272273bfe8e71407625540e"
+    },
+    "create": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "create",
+        "ExportContinuity",
+        "--directory",
+        "$scratch/OriginalProject",
+        "--application",
+        "com.example.exportcontinuity",
+        "--sdk-path",
+        "$scratch/sdk"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 8519,
+      "seconds": 0.41,
+      "stdoutSHA256": "7639756fedaf188d9a56e05aff20eaa025023bf4c4d45ad187957a5757455580"
+    },
+    "baseline-alias": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "export",
+        "$scratch/alias-to-original/nested/export",
+        "--directory",
+        "$scratch/OriginalProject"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 9325,
+      "seconds": 0.35,
+      "stdoutSHA256": "0815e69f6d9afcbf48feb95c043a6a13878c896894936a9bdd626ce567c75514"
+    },
+    "baseline-case": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "export",
+        "$scratch/originalproject/case-export",
+        "--directory",
+        "$scratch/OriginalProject"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 9347,
+      "seconds": 0.43,
+      "stdoutSHA256": "a2479b7b4987a1c35bdb49271c3f73f81616513c105b342866c88b3fe1d7dd2d"
+    },
+    "regression-before": {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$worktree/cli",
+        "--scratch-path",
+        "$scratch/build",
+        "--manifest-caching",
+        "none",
+        "--filter",
+        "exportRefusesDestinationsInsideSourceThroughAliases"
+      ],
+      "cwd": "$worktree",
+      "exit": 64,
+      "pgid": 18779,
+      "seconds": 0.13,
+      "stderrSHA256": "987c1a1ea877c3418a82a50071b34147bb0d49621966b488d99a1eea4acc016d"
+    },
+    "regression-red": {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$worktree/cli",
+        "--scratch-path",
+        "$scratch/build",
+        "--disable-package-manifest-caching",
+        "--filter",
+        "exportRefusesDestinationsInsideSourceThroughAliases"
+      ],
+      "cwd": "$worktree",
+      "exit": 1,
+      "pgid": 19832,
+      "seconds": 18.04,
+      "stdoutSHA256": "d5417e28fe7db2620e8630dfc3c4b7aa8e1f249000f2dd5e2e74501fb77358c0",
+      "stderrSHA256": "e7463493db4f190ef031e6bd490591fefddefd3ad64e9b69589b01d686e49185"
+    },
+    "regression-green": {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$worktree/cli",
+        "--scratch-path",
+        "$scratch/build",
+        "--manifest-cache",
+        "none",
+        "--filter",
+        "exportRefusesDestinationsInsideSourceThroughAliases|createIsAtomicLocksSnapshotAndNeverOverwrites"
+      ],
+      "cwd": "$worktree",
+      "exit": 1,
+      "pgid": 22939,
+      "seconds": 10.64,
+      "stdoutSHA256": "ad620102eedcae05c3540a9fbcf222fd070bdfeb9a0ebfdb19a0976f76d7221d",
+      "stderrSHA256": "a78985b4774fb1d9eefaabca8c63df22b55f4becbc34fe62999049fba74f72d6"
+    },
+    "path-parent": {
+      "argv": [
+        "/usr/bin/swift",
+        "-e",
+        "import Foundation; var url = URL(fileURLWithPath: \"/private/var/folders\", isDirectory: true); for _ in 0..<6 { print(url.absoluteString, String(reflecting:url.path)); url = url.deletingLastPathComponent() }"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 26403,
+      "seconds": 0.58,
+      "stdoutSHA256": "917ffcb973f38b4c36e5c3b810691fd74d75aed232f7aa85ecad4a8b93181342"
+    },
+    "candidate-simple": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "export",
+        "$scratch/regular-export",
+        "--directory",
+        "$scratch/OriginalProject"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 27819,
+      "seconds": 0.61,
+      "stdoutSHA256": "d2201d00c004c4b6f1a175f412af7ec6907e61ea8df6e5b4c374f0857c3754e1"
+    },
+    "no-slash-parent": {
+      "argv": [
+        "/usr/bin/swift",
+        "-e",
+        "import Foundation; var url = URL(fileURLWithPath: CommandLine.arguments[1]).standardizedFileURL; while !FileManager.default.fileExists(atPath: url.path) { print(\"missing\", url.absoluteString, String(reflecting:url.path)); url = url.deletingLastPathComponent() }; url = url.resolvingSymlinksInPath().standardizedFileURL; for _ in 0..<6 { print(url.absoluteString, String(reflecting:url.path), FileManager.default.fileExists(atPath:url.path)); url = url.deletingLastPathComponent() }",
+        "$scratch/fresh-missing/path"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 27865,
+      "seconds": 0.29,
+      "stdoutSHA256": "c7167e327965a9d08ed28082584672bfc34e30eb1948d5c36685836edb4e368f"
+    },
+    "var-ancestry": {
+      "argv": [
+        "/usr/bin/swift",
+        "-e",
+        "import Darwin; import Foundation; var url = FileManager.default.temporaryDirectory.resolvingSymlinksInPath().standardizedFileURL; for _ in 0..<10 { var info = stat(); let rc = stat(url.path, &info); print(url.absoluteString, String(reflecting:url.path), rc, rc == 0 ? String(info.st_ino) : String(cString: strerror(errno))); url = url.deletingLastPathComponent() }"
+      ],
+      "cwd": "$scratch",
+      "exit": 0,
+      "pgid": 28742,
+      "seconds": 0.34,
+      "stdoutSHA256": "7b52702c4b664f417b558469b678530a09fb9b9b87833b99b1eb6de7e2d09fe9"
+    },
+    "regression-green-v2": {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$worktree/cli",
+        "--scratch-path",
+        "$scratch/build",
+        "--manifest-cache",
+        "none",
+        "--filter",
+        "exportRefusesDestinationsInsideSourceThroughAliases|createIsAtomicLocksSnapshotAndNeverOverwrites"
+      ],
+      "cwd": "$worktree",
+      "exit": 0,
+      "pgid": 29828,
+      "seconds": 7.67,
+      "stdoutSHA256": "658a6c194dcc833f1dc7bfddf2a41a0034499e944b998751ca9009c018da1e54",
+      "stderrSHA256": "32bd59e215189d6c0a52d7aa9718e8f21edcdabd6745e497be5bf4bf6bc94437"
+    },
+    "mixer-version": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "version"
+      ],
+      "cwd": "$scratch/independent",
+      "exit": 0,
+      "pgid": 35579,
+      "seconds": 0.2,
+      "stdoutSHA256": "a20b4c3429c462fa57d53a7eeda9b23bc5af97b9d89be33cac3928074d556495"
+    },
+    "candidate-create": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "create",
+        "ExportContinuity",
+        "--directory",
+        "$scratch/independent/LiveSource",
+        "--application",
+        "com.example.exportcontinuity",
+        "--sdk-path",
+        "$scratch/sdk"
+      ],
+      "cwd": "$scratch/independent",
+      "exit": 0,
+      "pgid": 35616,
+      "seconds": 0.51,
+      "stdoutSHA256": "d461bc70c94c71811fd7c8cccafa50887b51448f9c52867dde6fab498fca838a"
+    },
+    "candidate-symlink": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "export",
+        "$scratch/independent/source-alias/missing/Export",
+        "--directory",
+        "$scratch/independent/LiveSource"
+      ],
+      "cwd": "$scratch/independent",
+      "exit": 1,
+      "pgid": 35651,
+      "seconds": 0.31,
+      "stdoutSHA256": "4e73edcbec533062958473070fe6142f324c071fbf0904b7b6024f08c703e88c"
+    },
+    "candidate-case": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "export",
+        "$scratch/independent/livesource/case-export",
+        "--directory",
+        "$scratch/independent/LiveSource"
+      ],
+      "cwd": "$scratch/independent",
+      "exit": 1,
+      "pgid": 35688,
+      "seconds": 0.25,
+      "stdoutSHA256": "4e73edcbec533062958473070fe6142f324c071fbf0904b7b6024f08c703e88c"
+    },
+    "candidate-export": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "export",
+        "$scratch/independent/delivery-alias/new-parent/Export",
+        "--directory",
+        "$scratch/independent/LiveSource"
+      ],
+      "cwd": "$scratch/independent",
+      "exit": 0,
+      "pgid": 35707,
+      "seconds": 0.5,
+      "stdoutSHA256": "0815e69f6d9afcbf48feb95c043a6a13878c896894936a9bdd626ce567c75514"
+    },
+    "candidate-export-exists": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "export",
+        "$scratch/independent/delivery/new-parent/Export",
+        "--directory",
+        "$scratch/independent/LiveSource"
+      ],
+      "cwd": "$scratch/independent",
+      "exit": 1,
+      "pgid": 35794,
+      "seconds": 0.23,
+      "stdoutSHA256": "79b934c7e738f56ac26aaa8e8f40333def7f2c1d16b3308b0f02f410ebfac580"
+    },
+    "candidate-reopen-config": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "config",
+        "validate"
+      ],
+      "cwd": "$scratch/independent/consumer/reopened",
+      "exit": 0,
+      "pgid": 35827,
+      "seconds": 0.01,
+      "stdoutSHA256": "b19c5161743a97a655d392faf628d30c895f65b13ece25d0572509f8ae62df81"
+    },
+    "candidate-reopen-mixer-test": {
+      "argv": [
+        "$scratch/build/debug/mixer",
+        "test"
+      ],
+      "cwd": "$scratch/independent/consumer/reopened",
+      "exit": 0,
+      "pgid": 35832,
+      "seconds": 42.17,
+      "stdoutSHA256": "f85ed739b34e8043807cd9a0cabb167c20801a77e287a513e62ccce11acaa68c"
+    },
+    "pinned/pinned-host-sources": {
+      "argv": [
+        "/usr/bin/git",
+        "archive",
+        "--format=tar",
+        "--output=$scratch/final/source.tar",
+        "09a3ec0343b29b59849260349a0aa6403b9bb215",
+        "cli",
+        "sdk",
+        "updates"
+      ],
+      "cwd": "$worktree",
+      "exit": 0,
+      "pgid": 41493,
+      "seconds": 1.06
+    },
+    "pinned/unpack-host-sources": {
+      "argv": [
+        "/usr/bin/tar",
+        "-xf",
+        "$scratch/final/source.tar"
+      ],
+      "cwd": "$scratch/final/source",
+      "exit": 0,
+      "pgid": 41882,
+      "seconds": 0.25
+    },
+    "pinned/focused-tests": {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$scratch/final/source/cli",
+        "--scratch-path",
+        "$scratch/final/build",
+        "--manifest-cache",
+        "none",
+        "--filter",
+        "exportRefusesDestinationsInsideSourceThroughAliases|createIsAtomicLocksSnapshotAndNeverOverwrites"
+      ],
+      "cwd": "$scratch/final/source",
+      "exit": 0,
+      "pgid": 41996,
+      "seconds": 61.33,
+      "stdoutSHA256": "fbd538918e2e8bf88cad63113a3228b8e06416156f05945d5f3a364928518035",
+      "stderrSHA256": "5fd2ca0de120893b061fed4c6b032ac78856a89cb07928dd2e82d92d0dce9887"
+    },
+    "pinned/mixer-version": {
+      "argv": [
+        "$scratch/final/build/debug/mixer",
+        "version"
+      ],
+      "cwd": "$scratch/final/independent",
+      "exit": 0,
+      "pgid": 50645,
+      "seconds": 0.19,
+      "stdoutSHA256": "a20b4c3429c462fa57d53a7eeda9b23bc5af97b9d89be33cac3928074d556495"
+    },
+    "pinned/candidate-create": {
+      "argv": [
+        "$scratch/final/build/debug/mixer",
+        "create",
+        "ExportContinuity",
+        "--directory",
+        "$scratch/final/independent/LiveSource",
+        "--application",
+        "com.example.exportcontinuity",
+        "--sdk-path",
+        "$scratch/final/sdk"
+      ],
+      "cwd": "$scratch/final/independent",
+      "exit": 0,
+      "pgid": 50647,
+      "seconds": 0.29,
+      "stdoutSHA256": "a872d817e34713fac56506afd678d91a41a59b7e7f2db17fe67d8bda049c08e3"
+    },
+    "pinned/candidate-symlink": {
+      "argv": [
+        "$scratch/final/build/debug/mixer",
+        "export",
+        "$scratch/final/independent/source-alias/missing/Export",
+        "--directory",
+        "$scratch/final/independent/LiveSource"
+      ],
+      "cwd": "$scratch/final/independent",
+      "exit": 1,
+      "pgid": 50664,
+      "seconds": 0.24,
+      "stdoutSHA256": "4e73edcbec533062958473070fe6142f324c071fbf0904b7b6024f08c703e88c"
+    },
+    "pinned/candidate-case": {
+      "argv": [
+        "$scratch/final/build/debug/mixer",
+        "export",
+        "$scratch/final/independent/livesource/case-export",
+        "--directory",
+        "$scratch/final/independent/LiveSource"
+      ],
+      "cwd": "$scratch/final/independent",
+      "exit": 1,
+      "pgid": 50679,
+      "seconds": 0.24,
+      "stdoutSHA256": "4e73edcbec533062958473070fe6142f324c071fbf0904b7b6024f08c703e88c"
+    },
+    "pinned/candidate-export": {
+      "argv": [
+        "$scratch/final/build/debug/mixer",
+        "export",
+        "$scratch/final/independent/delivery-alias/new-parent/Export",
+        "--directory",
+        "$scratch/final/independent/LiveSource"
+      ],
+      "cwd": "$scratch/final/independent",
+      "exit": 0,
+      "pgid": 50697,
+      "seconds": 0.29,
+      "stdoutSHA256": "0815e69f6d9afcbf48feb95c043a6a13878c896894936a9bdd626ce567c75514"
+    },
+    "pinned/candidate-export-exists": {
+      "argv": [
+        "$scratch/final/build/debug/mixer",
+        "export",
+        "$scratch/final/independent/delivery/new-parent/Export",
+        "--directory",
+        "$scratch/final/independent/LiveSource"
+      ],
+      "cwd": "$scratch/final/independent",
+      "exit": 1,
+      "pgid": 50703,
+      "seconds": 0.24,
+      "stdoutSHA256": "79b934c7e738f56ac26aaa8e8f40333def7f2c1d16b3308b0f02f410ebfac580"
+    },
+    "pinned/candidate-reopen-config": {
+      "argv": [
+        "$scratch/final/build/debug/mixer",
+        "config",
+        "validate"
+      ],
+      "cwd": "$scratch/final/independent/consumer/reopened",
+      "exit": 0,
+      "pgid": 50709,
+      "seconds": 0.01,
+      "stdoutSHA256": "b19c5161743a97a655d392faf628d30c895f65b13ece25d0572509f8ae62df81"
+    },
+    "pinned/candidate-reopen-mixer-test": {
+      "argv": [
+        "$scratch/final/build/debug/mixer",
+        "test"
+      ],
+      "cwd": "$scratch/final/independent/consumer/reopened",
+      "exit": 0,
+      "pgid": 50711,
+      "seconds": 22.51,
+      "stdoutSHA256": "6bf38f39e6c3a7b66d4435ee9bfec36497719f3becc3a15e42bddeb43d75e77f"
+    },
+    "pinned/standalone-swift-test": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network-outbound)",
+        "/usr/bin/swift",
+        "test",
+        "--disable-sandbox",
+        "--manifest-cache",
+        "none",
+        "--scratch-path",
+        "$scratch/final/standalone-build"
+      ],
+      "cwd": "$scratch/final/independent/consumer/reopened",
+      "exit": 0,
+      "pgid": 53630,
+      "seconds": 22.18,
+      "stdoutSHA256": "0b57d7dd22989331e849e2cf6db922c13f065830a6837ffa469d07e9777c9f0c",
+      "stderrSHA256": "a0d33ef24e3db8b365aac1cfed6f249292ccd7d9c428e768ca5d48cebb7b5c57"
+    }
+  },
+  "cleanup": {
+    "wrapperCommandsWithDirectReapAndGroupAbsence": 35,
+    "productRunnerCommandsWithReapEOFClosedDescriptorsAndGroupAbsence": 39,
+    "recordedSystemTemporaryTestDirectoryAbsent": true,
+    "originalProjectAndSeedSDKRemovedBeforeReopen": true,
+    "noDeviceOperations": true,
+    "scratchRemovalCommand": [
+      "python3",
+      "-B",
+      "$scratch/collect.py"
+    ],
+    "scratchRemoved": true
+  }
+}

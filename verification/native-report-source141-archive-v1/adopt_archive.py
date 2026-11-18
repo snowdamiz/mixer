@@ -18,18 +18,28 @@ PREVIOUS_SEAL_SHA256 = '06952f22a0a4fc6b2272e7f545abb9e46ec526372abf5e2244c6599e
 TYPE = 'EXACT_NATIVE_REPORT_ARCHIVE_SOURCE141_SUCCESSOR'
 SOURCE_CHANGES = frozenset((
     'cli/Sources/MixerBuild/BuildInputSnapshot.swift',
+    'cli/Sources/MixerBuild/Configuration.swift',
     'cli/Sources/MixerBuild/NativeProductCapture.swift',
+    'cli/Sources/MixerBuild/ProjectGenerator.swift',
+    'updates/Sources/MixerUpdates/VerifierV3.swift',
+    'updates/Sources/MixerUpdateTool/main.swift',
 ))
+ADDITIONS = {
+    'cli/build-tests/test_public_export.py',
+    'updates/verification/verify-cli.py',
+}
 JAVA = 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/'
-CHANGES = SOURCE_CHANGES | {
+CHANGES = SOURCE_CHANGES | ADDITIONS | {
+    'cli/Tests/MixerBuildTests/BuildTests.swift',
     'cli/Tests/MixerBuildTests/NativeOutputAdmissionTests.swift',
     '.github/workflows/verify.yml',
+    'updates/README.md',
     JAVA + 'bootstrap.py',
     JAVA + 'test_bootstrap.py',
     JAVA + 'test_sparse_checkout.py',
 }
 MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
-    'predecessor-bytes/' + name for name in CHANGES
+    'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 }
 
 
@@ -99,16 +109,18 @@ def install_inputs():
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
-                change['before'] == effective[name], 'Predecessor owner binding differs: ' + name)
+                (name not in effective if name in ADDITIONS else name in effective) and
+                change['before'] == effective.get(name), 'Predecessor owner binding differs: ' + name)
         path = ROOT / name
         require(previous.row(previous.read(path)) == change['after'],
                 'Installed archive owner differs: ' + name)
-        raw = previous.read(HERE / 'predecessor-bytes' / name)
-        require(previous.row(raw) == change['before'], 'Archive owner preimage differs: ' + name)
         require(type(change['mode']) is int and change['mode'] in (0o644, 0o755) and
                 stat.S_IMODE(path.stat().st_mode) == change['mode'],
                 'Installed archive owner mode differs: ' + name)
-        preimages[name] = (raw, change['mode'])
+        if name not in ADDITIONS:
+            raw = previous.read(HERE / 'predecessor-bytes' / name)
+            require(previous.row(raw) == change['before'], 'Archive owner preimage differs: ' + name)
+            preimages[name] = (raw, change['mode'])
         effective[name] = change['after']
         if name in SOURCE_CHANGES:
             expected_source[name] = change['after']
@@ -125,7 +137,7 @@ def install_inputs():
     require(owner.source_inputs(profile) == current, 'Actual archive owning source map differs')
 
     material = {}
-    history_paths = set(historical) | effective.keys() | {
+    history_paths = set(historical) | (effective.keys() - ADDITIONS) | {
         (PREVIOUS / name).as_posix() for name in (*old_seal['members'], 'seal.json')
     }
     total = 0

@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 public struct GeneratedProject: Codable, Sendable {
@@ -249,13 +250,18 @@ public enum ProjectGenerator {
 
 public enum ProjectBuild {
     public static func verifyLock(root: URL, androidRequired: Bool = false) throws -> ToolchainLock {
+        try verifiedLock(root: root, androidRequired: androidRequired).lock
+    }
+
+    private static func verifiedLock(root: URL, androidRequired: Bool = false) throws -> (lock: ToolchainLock, bytes: Data) {
         let config = try ApplicationConfiguration.load(root)
         try AndroidSDKCompatibility.requireHost(config.androidHost)
         let lockURL = root.appendingPathComponent("mixer.lock")
         if (androidRequired || config.targets.contains("android")), !FileManager.default.fileExists(atPath: lockURL.path) {
             try AndroidSDKCompatibility.require(nil)
         }
-        let lock = try JSONDecoder().decode(ToolchainLock.self, from: Data(contentsOf: lockURL))
+        let bytes = try Data(contentsOf: lockURL)
+        let lock = try JSONDecoder().decode(ToolchainLock.self, from: bytes)
         guard lock.schema == 1 else { throw MixerFailure("lock.schema", "Unsupported lock schema") }
         if androidRequired || config.targets.contains("android") || lock.android != nil {
             try AndroidSDKCompatibility.require(lock.android?.profile)
@@ -281,7 +287,7 @@ public enum ProjectBuild {
             }
         }
         guard version.succeeded, version.output.trimmingCharacters(in: .whitespacesAndNewlines) == lock.swiftVersion else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
-        return lock
+        return (lock, bytes)
     }
     public static func run(root: URL, test: Bool, platform: String) throws -> CommandResult {
         _ = try verifyLock(root: root, androidRequired: platform == "android")
@@ -299,21 +305,101 @@ public enum ProjectBuild {
         return try AppleProject.build(root: root, retainingIn: store, lock: lock)
     }
     public static func export(root: URL, destination: URL) throws -> String {
-        let lock = try verifyLock(root: root)
-        let root = root.resolvingSymlinksInPath().standardizedFileURL; let destination = destination.resolvingSymlinksInPath().standardizedFileURL
-        guard !destination.path.hasPrefix(root.path + "/"), destination != root else { throw MixerFailure("export.destination", "Export must be outside the source project.") }
-        guard !FileManager.default.fileExists(atPath: destination.path) else { throw MixerFailure("export.exists", "Refusing to overwrite export destination.") }
-        let files = try SourceDigest.files(in: root)
-        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
-        do {
-            for source in files {
-                let relative = String(source.path.dropFirst(root.path.count + 1))
-                let target = destination.appendingPathComponent(relative)
-                try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
-                try FileManager.default.copyItem(at: source, to: target)
+        let original = try verifiedLock(root: root)
+        let root = root.resolvingSymlinksInPath().standardizedFileURL
+        let requested = destination.standardizedFileURL
+        let parent = requested.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL
+        let destination = parent.appendingPathComponent(requested.lastPathComponent)
+        try requireExportOutsideSource(destination, root: root)
+        let exists = MixerFailure("export.exists", "Refusing to overwrite export destination.")
+        var existing = stat()
+        guard lstat(destination.path, &existing) != 0 else { throw exists }
+
+        let entries = try SourceDigest.exportEntries(in: root)
+        let files = FileManager.default
+        try files.createDirectory(at: parent, withIntermediateDirectories: true)
+        try requireExportOutsideSource(destination, root: root)
+        let staging = parent.appendingPathComponent(".mixer-export-" + UUID().uuidString, isDirectory: true)
+        guard mkdir(staging.path, 0o700) == 0 else {
+            let reason = String(cString: strerror(errno))
+            throw MixerFailure("export.stage", "Cannot create export staging directory: \(reason)")
+        }
+        var published = false
+        defer { if !published { try? files.removeItem(at: staging) } }
+
+        try copyExportEntries(entries, from: root, to: staging)
+        let copied = try verifiedLock(root: staging)
+        guard copied.bytes == original.bytes else {
+            throw MixerFailure("export.lock-changed", "mixer.lock changed while copying the project. Retry the export.")
+        }
+        let digest = try SourceDigest.tree(staging)
+        try requireExportOutsideSource(destination, root: root)
+        guard renameatx_np(AT_FDCWD, staging.path, AT_FDCWD, destination.path, UInt32(RENAME_EXCL)) == 0 else {
+            let error = errno
+            if error == EEXIST { throw exists }
+            throw MixerFailure("export.publish", "Cannot publish export: \(String(cString: strerror(error)))")
+        }
+        published = true
+        return digest
+    }
+
+    static func copyExportEntries(_ entries: [(relative: String, directory: Bool)], from root: URL, to staging: URL) throws {
+        var created = Set<Data>()
+        for entry in entries {
+            let components = entry.relative.split(separator: "/")
+            let parents = entry.directory ? components[...] : components.dropLast()
+            var directory = staging
+            var relative = ""
+            for name in parents {
+                relative = relative.isEmpty ? String(name) : relative + "/" + name
+                directory = directory.appendingPathComponent(String(name), isDirectory: true)
+                // Use the source spelling so canonically equivalent names still attempt separate mkdirs.
+                if created.insert(Data(relative.utf8)).inserted, mkdir(directory.path, 0o777) != 0 {
+                    let error = errno
+                    if error == EEXIST {
+                        throw MixerFailure("export.directory-collision", "Export directory collides with an existing entry: \(relative)")
+                    }
+                    throw MixerFailure("export.stage", "Cannot stage directory \(relative): \(String(cString: strerror(error)))")
+                }
             }
-            if lock.android != nil { try AndroidSDKCompatibility.admitProject(destination) }
-            return try SourceDigest.tree(destination)
-        } catch { try? FileManager.default.removeItem(at: destination); throw error }
+            if !entry.directory {
+                let target = staging.appendingPathComponent(entry.relative)
+                try FileManager.default.copyItem(at: root.appendingPathComponent(entry.relative), to: target)
+                let info = try target.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+                guard info.isRegularFile == true, info.isSymbolicLink != true else {
+                    throw MixerFailure("export.source-changed", "Source changed type while copying: \(entry.relative)")
+                }
+            }
+        }
+    }
+
+    private static func requireExportOutsideSource(_ destination: URL, root: URL) throws {
+        var source = stat()
+        guard stat(root.path, &source) == 0 else {
+            throw MixerFailure("export.destination", "Cannot inspect the export source directory.")
+        }
+
+        // An absent destination can hide a symlink in one of its existing parents.
+        var ancestor = destination
+        while !FileManager.default.fileExists(atPath: ancestor.path) {
+            let parent = ancestor.deletingLastPathComponent()
+            guard parent.path != ancestor.path else {
+                throw MixerFailure("export.destination", "Cannot inspect the export destination ancestry.")
+            }
+            ancestor = parent
+        }
+        ancestor = ancestor.resolvingSymlinksInPath().standardizedFileURL
+        while true {
+            var directory = stat()
+            guard stat(ancestor.path, &directory) == 0 else {
+                throw MixerFailure("export.destination", "Cannot inspect the export destination ancestry.")
+            }
+            // Directory identity also handles case and Unicode aliases on volumes that allow them.
+            guard directory.st_dev != source.st_dev || directory.st_ino != source.st_ino else {
+                throw MixerFailure("export.destination", "Export must be outside the source project.")
+            }
+            if ancestor.path == "/" { return }
+            ancestor = ancestor.deletingLastPathComponent()
+        }
     }
 }

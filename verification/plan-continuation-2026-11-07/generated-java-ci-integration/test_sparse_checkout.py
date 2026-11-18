@@ -101,6 +101,7 @@ def admission_paths(root=None, binding=None):
         B.require(previous == current_module.BINDING and previous != binding,
                   'Invalid archive predecessor binding')
         dependencies = admission_paths(root, previous)
+        dependencies.update(relative(path).as_posix() for path in declaration['changes'])
     else:
         manifests += ('caller-inputs.json', 'owning-closure.json', 'historical-inputs.json')
         dependencies = set()
@@ -404,7 +405,7 @@ class SparseControls(unittest.TestCase):
             for name in paths:
                 out = repo / name
                 out.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(ROOT / name, out)
+                shutil.copy(ROOT / name, out)
             git = ['git', '-C', str(repo), '-c', 'init.templateDir=' + str(empty),
                    '-c', 'core.hooksPath=' + str(empty), '-c', 'core.fsmonitor=false',
                    '-c', 'gc.auto=0', '-c', 'maintenance.auto=false']
@@ -430,6 +431,23 @@ class SparseControls(unittest.TestCase):
             observed = json.loads(passed.stdout)
             self.assertEqual(observed['source_count'], len(B.admit_source_inputs(B.canonical(), B.canonical().load_profile())))
             self.assertFalse(observed['GA'])
+            changes = json.loads((repo / SOURCE_BINDING).read_bytes())['changes']
+            additions = sorted(name for name, change in changes.items() if change['before'] is None)
+            self.assertTrue(additions)
+            for name in additions:
+                with self.subTest(missing=name):
+                    command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
+                            input=('\n'.join((*patterns, '!/' + name)) + '\n').encode(), check=True)
+                    self.assertFalse((repo / name).exists())
+                    failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                    self.assertEqual(failed.returncode, 1)
+                    self.assertIn(name.encode(), failed.stderr)
+            command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
+                    input=('\n'.join(patterns) + '\n').encode(), check=True)
+            restored = base / 'source141'
+            command(python + [str(adopter), 'prepare-source141', '--out', str(restored)], check=True)
+            for name in additions:
+                self.assertFalse((restored / name).exists(), name)
 
 
 if __name__ == '__main__':
