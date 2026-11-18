@@ -855,3 +855,11 @@ private ADB group 3399 closed independently. Only the previously captured
 command metadata, app-logcat, UI snapshots, drivers and compact receipt outside
 the instance are available for diagnosis. See
 verification/receipts/fieldlog-android-public-runtime-41a05264.json.
+The November 18 native build integration left worker PGIDs 63770 and 70810
+with unknown terminal custody. Preserve the exact directories
+`verification/local/l05-native-success-41a05264/attempt-3`,
+`verification/local/l05-native-success-41a05264/attempt-4` and
+`verification/local/l05-native-success-41a05264/project-local`. Do not inspect,
+probe, signal, wait on, retry or clean these resources. Use the compact
+`verification/receipts/l05-native-success-41a05264.json` for details. The
+separate successful build and its cleanup do not release either hold.
