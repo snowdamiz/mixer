@@ -1,0 +1,99 @@
+{
+  "id": "fieldlog-android-public-runtime-41a05264",
+  "status": "partial_with_cleanup_hold",
+  "buildReceipt": "verification/receipts/fieldlog-public-android-41a05264.json",
+  "baseRevision": "09a3ec0343b29b59849260349a0aa6403b9bb215",
+  "apkSHA256": "42b37a673fd25f8d27d57f48968437229de8ac37e8d1490102d2a9eafdc60a80",
+  "installedApkMatches": true,
+  "environment": {
+    "ro.build.fingerprint": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+    "ro.build.version.sdk": "36",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.boot.qemu.avd_name": "fieldlog_public_41a05264"
+  },
+  "command": "JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home python3 -B verification/local/fieldlog-android-runtime-41a05264b/run.py",
+  "tools": {
+    "adb": "37.0.1-15733141",
+    "avd": "pixel_7",
+    "emulator": "INFO         | Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)"
+  },
+  "startup": "First setup exited before acquisition because JAVA_HOME was unset. The second attempt cold booted a single owned AVD.",
+  "firstInputAttempt": "The keyboard overlapped tapped coordinates. Responsible text went to Title and Save was not established. Cold relaunch showed zero tasks.",
+  "observations": {
+    "save": "With the keyboard dismissed between fields the app showed title MixerVerified, responsible Casey and enabled Save. After the tap it showed Saved, 0 of 1 tasks completed, and two pending changes.",
+    "persisted": "After force-stop and cold launch the checklist showed 1. MixerVerified · Not completed and Casey.",
+    "checklistFailure": "Tapping Complete on the reopened task removed the app controls. The app log recorded external synchronous installation incomplete, phase RETIRED, epoch 3, dirty true. Cold reopen still showed 0 of 1 tasks completed.",
+    "queue": "Two local rows including Task updated: MixerVerified — Saved on device · Not sent.",
+    "share": "Android resolver showed Sharing 1 file and FieldLog-report.txt. No destination selected."
+  },
+  "cleanup": {
+    "wrapperExit": 1,
+    "reason": "Bounded interaction window elapsed before finish marker. Emulator direct exit 0 with group still present. ADB direct exit -15 with group absent. Scratch preserved.",
+    "ownedGroups": {
+      "private-adb": {
+        "pid": 3399,
+        "pgid": 3399,
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "--one-device",
+          "mixer-no-usb-41a05264",
+          "-L",
+          "acceptfd:3",
+          "nodaemon",
+          "server"
+        ],
+        "exit": -15,
+        "groupAbsent": true
+      },
+      "emulator": {
+        "pid": 3401,
+        "pgid": 3401,
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "fieldlog_public_41a05264",
+          "-port",
+          "5632",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-no-boot-anim",
+          "-gpu",
+          "swiftshader",
+          "-cores",
+          "2",
+          "-memory",
+          "3072"
+        ],
+        "exit": 0,
+        "groupAbsent": false
+      }
+    },
+    "hold": {
+      "pgid": 3401,
+      "serial": "emulator-5632",
+      "ports": [
+        5632,
+        5633
+      ],
+      "namespace": "verification/local/fieldlog-android-runtime-41a05264b/instance"
+    }
+  },
+  "rawEvidenceDirectory": "verification/local/fieldlog-android-runtime-41a05264b",
+  "evidenceSHA256": {
+    "run.py": "63d3e460fe1a5f7e6dfacdb75a492477a6ca1d92c0137050bb0b6bcc1d68c592",
+    "act.py": "ee1dc5a3f417306e6891fa6633d3ae41d8371581ffec558b5c316c5f1e2938e1",
+    "steps.json": "9b92d2e92e3230fdfa8e86f40d51b655f3a32615dc6cd6493af573ebd078e612",
+    "run.json": "9ad47b32148eea66d3e11de4624af4fc97c1abedcd01b4599d2063f29975b75f",
+    "app-logcat.txt": "00e6a158f32888caf45802ebc968f943df425fe6cd8d1df5f1f079221e197d70",
+    "ui-029.xml": "1abcd1325c8d240d20ec7ac8393f06de4176c54177a6e84cccee7bb44ca10745",
+    "ui-068.xml": "10a76ac701d60ce038a89006b3d54ff298f62a04daf74db422d3f5cf9ffa2965",
+    "ui-072.xml": "9d6c19a87dd3857ec84e8c21e6b80246e5067766abba25056f1102c3d47aa496",
+    "ui-085.xml": "dcb43af1ba0a42018531f602611337e2abd4d9d5dfacf09be92b1b6be98496a2",
+    "ui-092.xml": "a2056c065b050d054db40daca024c29c098e053584f2fb79d1fa19e096a32df6",
+    "ui-098.xml": "99a7a29e4b0bdbe7103228284ac09597e9c6c362f8569b7663cace719fe2be76",
+    "ui-111.xml": "e7b8668b0c4d245b0820c9dc9155d353a44425c46e8b0149183bf15575f19838",
+    "os-122.xml": "1314e08a42ca06ab878bf86b109d414d8fdfda5c773a3dd98d831e7fea944ca4"
+  },
+  "scope": "Public GeneratedReport pinned Pair21 build on Android API 36. The receipt establishes selected observations only; full workflow, cleanup, current main adapter, signed OTA and gate acceptance remain open."
+}

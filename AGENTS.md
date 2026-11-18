@@ -846,3 +846,12 @@ The R4976 FieldLog Android source lookup failed while the Root wrapper persisted
 
 
 The Root R5350 signed Android JNI trial has UNKNOWN emulator custody for PID/PGID18659 after the standard exact-owned emulator shutdown request and direct reap, because the owned group remained present. Preserve emulator-5584, /Users/andreyyurlov/.t3/userdata/mixer-signed-jni-r5350-dtuszrth, and the entire verification/local/signed-jni-genuine-root-r5350 native chain without inspection, enumeration, probing, signals, waits, retry or cleanup. Only its already delivered top HOLD.json/failure.json metadata and the separate compact verification/receipts/signed-jni-genuine-root-r5350.json are references. Native consuming-closed facts were observed, but the Root success assertion failed and HTTP acceptance is not established. Parent PID/PGID18656 exit74 and positive parent group absence do not release the emulator hold. No further physical or same-chain native attempt is authorized; independent source, host and other isolated development remain allowed.
+
+The local public FieldLog Android run on November 18 left emulator PGID 3401
+unresolved after its direct child exited 0. Preserve emulator-5632, its ports
+5632/5633, and the exact verification/local/fieldlog-android-runtime-41a05264b/instance
+tree without inspection, probing, signalling, waiting, reuse or cleanup. Its
+private ADB group 3399 closed independently. Only the previously captured
+command metadata, app-logcat, UI snapshots, drivers and compact receipt outside
+the instance are available for diagnosis. See
+verification/receipts/fieldlog-android-public-runtime-41a05264.json.
