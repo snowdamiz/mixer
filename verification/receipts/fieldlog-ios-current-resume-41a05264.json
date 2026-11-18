@@ -1,0 +1,121 @@
+{
+  "scope": "Private FieldLog app and host/XCTest fixture composed from committed entry-sync and photo-resume inputs. macOS SwiftUI action rendering and invocation, real loopback HTTP and SQLite, and unsigned generic iOS Simulator XCTest compilation. Simulator execution remains pending.",
+  "tools": {
+    "Git": "git version 2.56.0",
+    "Swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "Python": "3.14.8",
+    "SQLite": "3.53.4",
+    "macOS": "27.0.1",
+    "macOSSDK": "27.2",
+    "arch": "arm64",
+    "Xcode": "Xcode 27.2\nBuild version 27B52",
+    "iOSSimulatorSDK": "27.2",
+    "iOSSimulatorSDKBuild": "24B8118"
+  },
+  "inputs": "tests/integration/fieldlog-ios-queue/input-manifest.json",
+  "inputManifestSHA256": "76d13897b08553a2af390efb6b0912bc6412fb50fc6600b86bb9e1a6b3b9f64b",
+  "verifiedBackend": {
+    "path": "Backend/local_entry_sync.py",
+    "gitBlob": "22d9fe05e1aa9e098050a82d6fed9cc53a4a2360",
+    "sha256": "d86b206020361d6f2709ec718d02b6d38fa6b65b54130ae0f83993fb90d827d9"
+  },
+  "command": "python3 -B tests/integration/fieldlog-ios-queue/journey.py <fresh scratch with hash-verified prepared app, public-mixer and host-build inputs>",
+  "rootReplaySHA256": "99d51b96305df3d9e46ca780076ace04ce61fe2147af35dcd5fe152116e8a0e4",
+  "rootReplay": [
+    {
+      "case": "committed-chunk",
+      "recordedAt": "2026-11-18T19:38:31.927649+00:00",
+      "swift": {
+        "offline": "offline: ordinary app save created linked JPEG and selective outbox coverage",
+        "online": "first attempt: 32768 of 341976 bytes confirmed \u2192 Send paused\nsecond pause: last confirmed count preserved while the new receipt was pending\nresume: 65536 of 341976 bytes confirmed \u2192 341976 of 341976 bytes confirmed \u2192 Sent to the local backend\nordinary and UI-test launch isolation, unrelated rows, and stale cancellation preserved"
+      },
+      "sqlite": {
+        "atResumeQuery": {
+          "stagedBytes": 65536,
+          "events": 0,
+          "photos": 0
+        },
+        "final": {
+          "events": 1,
+          "photos": 1,
+          "staged": 0,
+          "exactJPEG": true,
+          "jpegBytes": 341976,
+          "jpegSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3"
+        }
+      },
+      "cleanup": {
+        "listenerAndRequestThreadsClosed": true,
+        "portRebound": true,
+        "port": 54602
+      },
+      "errors": [],
+      "readinessHTTP": [
+        401,
+        425,
+        204
+      ],
+      "unrelatedEventsPreserved": 7,
+      "status": "passed"
+    },
+    {
+      "case": "late-duplicate",
+      "recordedAt": "2026-11-18T19:38:32.953359+00:00",
+      "swift": {
+        "offline": "offline: ordinary app save created linked JPEG and selective outbox coverage",
+        "online": "first attempt: 32768 of 341976 bytes confirmed \u2192 Send paused\nresume: 65536 of 341976 bytes confirmed \u2192 341976 of 341976 bytes confirmed \u2192 Sent to the local backend\nordinary and UI-test launch isolation, unrelated rows, and stale cancellation preserved"
+      },
+      "sqlite": {
+        "atResumeQuery": {
+          "stagedBytes": 32768,
+          "events": 0,
+          "photos": 0
+        },
+        "final": {
+          "events": 1,
+          "photos": 1,
+          "staged": 0,
+          "exactJPEG": true,
+          "jpegBytes": 341976,
+          "jpegSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3"
+        }
+      },
+      "cleanup": {
+        "listenerAndRequestThreadsClosed": true,
+        "portRebound": true,
+        "port": 54625
+      },
+      "errors": [],
+      "lateDuplicate": {
+        "requestOffset": 32768,
+        "status": 200,
+        "receiptOffset": 65536,
+        "prefixSHA256": "bae33495ecb9e1eff67bfbdb88bec34d4a2cd38f90cfe6ec4f76bd9ea8622cc2",
+        "sameRequest": true,
+        "sqliteUnchanged": true
+      },
+      "readinessHTTP": [
+        401,
+        425,
+        204
+      ],
+      "unrelatedEventsPreserved": 7,
+      "status": "passed"
+    }
+  ],
+  "producerReceiptSHA256": "d0615c4ed6a27498b6f91653f10536511b8b1e36b59bd223477bd568bd47455f",
+  "genericBuild": {
+    "action": "build-for-testing",
+    "codeSigningAllowed": false,
+    "architectures": [
+      "arm64",
+      "x86_64"
+    ],
+    "packageTestsPassed": 39,
+    "newXCTestCompiled": true,
+    "xctestrunActualFormat": 1,
+    "inertFormat2ParserControl": "passed",
+    "nativeRuntime": "pending root"
+  },
+  "devicesRun": false
+}

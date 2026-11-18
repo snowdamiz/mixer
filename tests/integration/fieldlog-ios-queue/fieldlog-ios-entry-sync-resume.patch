@@ -1,0 +1,642 @@
+diff --git a/Sources/FieldLogStorage/EntrySyncClient.swift b/Sources/FieldLogStorage/EntrySyncClient.swift
+index 5500ac10ee16bb4a7d48d15b5486910cb1fa3a09..8ccaef13baf188e77542fc1e22ccc9ee8832f01d 100644
+--- a/Sources/FieldLogStorage/EntrySyncClient.swift
++++ b/Sources/FieldLogStorage/EntrySyncClient.swift
+@@ -70,7 +70,7 @@ public struct EntrySyncClient: Sendable {
+   /// A later send of the same event verifies the server's durable prefix and resumes.
+   @discardableResult public func send(
+     eventID: UUID, from repository: WorkspaceRepository,
+-    onProgress: @Sendable (PhotoProgress) -> Void
++    onProgress: @Sendable (PhotoProgress) async -> Void
+   ) async throws -> Outcome {
+     try Task.checkCancellation()
+     let payload = try await repository.prepareEntryUpload(
+@@ -118,7 +118,7 @@ public struct EntrySyncClient: Sendable {
+     guard Self.hex(prefix.finalize()) == initialProgress.prefixSHA256 else {
+       throw Failure.invalidProgress
+     }
+-    onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
++    await onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
+ 
+     let chunksURL = photoURL.appendingPathComponent("chunks")
+     while offset < jpeg.count {
+@@ -135,7 +135,7 @@ public struct EntrySyncClient: Sendable {
+         throw Failure.invalidProgress
+       }
+       offset = nextOffset
+-      onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
++      await onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
+     }
+ 
+     let final = try await post(
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index 72e6363744c0553ef4ec7c4ea3978112b4bdf326..e04f25784be0dd372f17e887083a03ce9c726492 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -6,19 +6,21 @@
+  objectVersion = 60;
+  objects = {
+   A00000000000000000000001 = { isa = PBXProject; attributes = { LastUpgradeCheck = 2700; }; buildConfigurationList = A00000000000000000000002; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A00000000000000000000003; productRefGroup = A00000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000005, B00000000000000000000001); packageReferences = (A00000000000000000000020); };
+-  A00000000000000000000002 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000006, A00000000000000000000007); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
++  A00000000000000000000002 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000006, A00000000000000000000007, A00000000000000000000016); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+   A00000000000000000000003 = { isa = PBXGroup; children = (A00000000000000000000008, B00000000000000000000002, A00000000000000000000004); sourceTree = "<group>"; };
+   A00000000000000000000004 = { isa = PBXGroup; name = Products; children = (A00000000000000000000009, B00000000000000000000003); sourceTree = "<group>"; };
+   A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = FieldLog; productName = FieldLog; productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023, A00000000000000000000026); };
+   A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; }; name = Debug; };
++  A00000000000000000000016 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; }; name = FieldLogLocalSync; };
+   A00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
+-  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034); sourceTree = "<group>"; };
++  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034,A00000000000000000000035,A00000000000000000000036); sourceTree = "<group>"; };
+   A00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FieldLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+-  A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014, A00000000000000000000015); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014, A00000000000000000000015, A00000000000000000000017); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044,A00000000000000000000045); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
++  A00000000000000000000017 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_FILE = FieldLog/LocalEntrySync-Info.plist; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG FIELDLOG_LOCAL_ENTRY_SYNC $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = FieldLogLocalSync; };
+   A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
+   A00000000000000000000020 = { isa = XCLocalSwiftPackageReference; relativePath = ".."; };
+   A00000000000000000000022 = { isa = XCSwiftPackageProductDependency; package = A00000000000000000000020; productName = FieldLogModels; };
+@@ -32,22 +34,26 @@
+   A00000000000000000000032 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
+   A00000000000000000000033 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDetail.swift; sourceTree = "<group>"; };
+   A00000000000000000000034 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryEditor.swift; sourceTree = "<group>"; };
++  A00000000000000000000035 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceQueue.swift; sourceTree = "<group>"; };
++  A00000000000000000000036 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LocalEntrySync-Info.plist"; sourceTree = "<group>"; };
+   A00000000000000000000040 = { isa = PBXBuildFile; fileRef = A00000000000000000000030; };
+   A00000000000000000000041 = { isa = PBXBuildFile; fileRef = A00000000000000000000031; };
+   A00000000000000000000042 = { isa = PBXBuildFile; fileRef = A00000000000000000000032; };
+   A00000000000000000000043 = { isa = PBXBuildFile; fileRef = A00000000000000000000033; };
+   A00000000000000000000044 = { isa = PBXBuildFile; fileRef = A00000000000000000000034; };
++  A00000000000000000000045 = { isa = PBXBuildFile; fileRef = A00000000000000000000035; };
+ 
+   B00000000000000000000001 = { isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000004; buildPhases = (B00000000000000000000005,B00000000000000000000006,B00000000000000000000007); buildRules = (); dependencies = (B00000000000000000000008); name = FieldLogUITests; productName = FieldLogUITests; productReference = B00000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
+   B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009); sourceTree = "<group>"; };
+   B00000000000000000000003 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FieldLogUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+-  B00000000000000000000004 = { isa = XCConfigurationList; buildConfigurations = (B00000000000000000000010,B00000000000000000000011); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
++  B00000000000000000000004 = { isa = XCConfigurationList; buildConfigurations = (B00000000000000000000010,B00000000000000000000011, B00000000000000000000014); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+   B00000000000000000000005 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000012); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000006 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000007 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000008 = { isa = PBXTargetDependency; target = A00000000000000000000005; targetProxy = B00000000000000000000013; };
+   B00000000000000000000009 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldLogUITests.swift; sourceTree = "<group>"; };
+   B00000000000000000000010 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Debug; };
++  B00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = FieldLogLocalSync; };
+   B00000000000000000000011 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Release; };
+   B00000000000000000000012 = { isa = PBXBuildFile; fileRef = B00000000000000000000009; };
+   B00000000000000000000013 = { isa = PBXContainerItemProxy; containerPortal = A00000000000000000000001; proxyType = 1; remoteGlobalIDString = A00000000000000000000005; remoteInfo = FieldLog; };
+diff --git a/ios/FieldLog/DeviceQueue.swift b/ios/FieldLog/DeviceQueue.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..80f1c4c723752d0bffdb46fd4032a3ea388daa3b
+--- /dev/null
++++ b/ios/FieldLog/DeviceQueue.swift
+@@ -0,0 +1,170 @@
++import FieldLogModels
++import FieldLogStorage
++import SwiftUI
++
++struct DeviceQueue<EntryDestination: View>: View {
++  let workspace: Workspace
++  @ObservedObject var model: WorkspaceModel
++  let accent: Color
++  let onEdit: (EntryDraft) -> Void
++  @ViewBuilder let entryDetail: (LogEntry) -> EntryDestination
++  var body: some View {
++    List {
++      Section {
++        Label("Your records are saved locally", systemImage: "internaldrive.fill").font(.headline)
++          .foregroundStyle(accent)
++        Text(model.isLocalEntrySyncWorkspace
++          ? model.localEntrySyncMessage
++          : "Cloud sync isn't connected. Nothing in this queue has been sent to a server.")
++          .foregroundStyle(.secondary)
++      }
++      if let confirmation = model.lastEntrySync {
++        Section {
++          Label(confirmation.message, systemImage: "checkmark.circle")
++            .accessibilityIdentifier("entry-sync-confirmation")
++          entryLink(confirmation.entry)
++        }
++      }
++      if !workspace.drafts.isEmpty {
++        Section("DRAFTS") {
++          ForEach(workspace.drafts.sorted { $0.updatedAt > $1.updatedAt }) { draft in
++            Button {
++              onEdit(draft)
++            } label: {
++              VStack(alignment: .leading, spacing: 4) {
++                Text(draft.title.isEmpty ? "Untitled entry" : draft.title).foregroundStyle(.primary)
++                Text(workspace.projects.first { $0.id == draft.projectID }?.title ?? "Project")
++                  .font(.caption).foregroundStyle(.secondary)
++              }
++            }
++          }
++        }
++      }
++      Section("\(workspace.outbox.count) PENDING CHANGE\(workspace.outbox.count==1 ? "":"S")") {
++        if workspace.outbox.isEmpty {
++          Text("Changes you make will appear here.").foregroundStyle(.secondary)
++        }
++        ForEach(workspace.outbox.reversed()) { item in
++          VStack(alignment: .leading, spacing: 4) {
++            Text(label(item.kind))
++            if let entry = inspectableEntry(for: item) {
++              entryLink(entry)
++            } else {
++              Text(item.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
++            }
++            if let action = entrySyncAction(for: item.id) {
++              action
++            } else {
++              Label(pendingMessage(for: item.kind), systemImage: "clock").font(.caption)
++                .foregroundStyle(.secondary)
++                .accessibilityIdentifier("entry-sync-pending-" + item.id.uuidString.lowercased())
++            }
++          }
++        }
++      }
++    }.navigationTitle("On device")
++  }
++  func inspectableEntry(for change: PendingChange) -> LogEntry? {
++    guard model.isLocalEntrySyncWorkspace, change.kind == .entrySaved else { return nil }
++    return workspace.entries.first { $0.id == change.recordID }
++  }
++
++  func pendingMessage(for kind: PendingChange.Kind) -> String {
++    if model.isLocalEntrySyncWorkspace && kind == .entrySaved { return "Send not confirmed" }
++    return "Saved on device · not sent"
++  }
++
++  private func entryLink(_ entry: LogEntry) -> some View {
++    NavigationLink {
++      entryDetail(entry)
++    } label: {
++      VStack(alignment: .leading, spacing: 4) {
++        Label(entry.title, systemImage: "doc.text").font(.subheadline)
++        Text(entry.savedAt, format: .dateTime.month(.abbreviated).day().hour().minute().second())
++          .font(.caption).foregroundStyle(.secondary)
++      }
++    }.buttonStyle(.borderless)
++  }
++
++  func entrySyncAction(for id: UUID) -> EntrySyncAction? {
++    guard let state = model.entrySyncState(for: id) else { return nil }
++    return EntrySyncAction(
++      id: id, state: state, enabled: model.sendingEntryID == nil,
++      cancel: model.entrySyncCancellation(for: id)
++    ) {
++      await model.sendEntry(eventID: id)
++    }
++  }
++
++  private func label(_ kind: PendingChange.Kind) -> String {
++    switch kind {
++    case .projectCreated: "Project created"
++    case .taskSaved: "Task updated"
++    case .taskOrderChanged: "Checklist reordered"
++    case .entrySaved: "Entry saved"
++    }
++  }
++}
++
++struct EntrySyncAction: View {
++  let id: UUID
++  let state: EntrySyncRowState
++  let enabled: Bool
++  let cancel: (@MainActor () -> Void)?
++  let send: @MainActor () async -> Void
++
++  var confirmedBytesText: String? {
++    let progress: EntrySyncClient.PhotoProgress?
++    switch state {
++    case .sending(let value, _), .paused(let value): progress = value
++    case .ready, .failed: progress = nil
++    }
++    return progress.map { "\($0.acceptedBytes) of \($0.totalBytes) bytes confirmed" }
++  }
++
++  var body: some View {
++    switch state {
++    case .ready:
++      sendButton("Send to local backend")
++    case .sending(let progress, let cancelling):
++      if let progress {
++        ProgressView(value: Double(progress.acceptedBytes), total: Double(progress.totalBytes))
++          .accessibilityHidden(true)
++      } else {
++        ProgressView("Checking saved photo bytes…").font(.caption)
++      }
++      confirmedBytesLabel
++      if cancelling {
++        Text("Pausing send…").font(.caption)
++      }
++      if let cancel {
++        Button("Cancel send", action: cancel)
++          .buttonStyle(.borderless)
++          .accessibilityIdentifier("entry-sync-cancel-" + id.uuidString.lowercased())
++      }
++    case .paused:
++      Label("Send paused", systemImage: "pause.circle").font(.caption)
++        .accessibilityIdentifier("entry-sync-paused-" + id.uuidString.lowercased())
++      confirmedBytesLabel
++      sendButton("Resume send")
++    case .failed(let message):
++      Label(message, systemImage: "exclamationmark.triangle").font(.caption)
++        .accessibilityIdentifier("entry-sync-failure")
++      sendButton("Retry send")
++    }
++  }
++
++  @ViewBuilder private var confirmedBytesLabel: some View {
++    if let confirmedBytesText {
++      Text(verbatim: confirmedBytesText).font(.caption)
++        .accessibilityIdentifier("entry-sync-progress-" + id.uuidString.lowercased())
++    }
++  }
++
++  private func sendButton(_ title: String) -> some View {
++    Button(title) { Task { await send() } }
++      .buttonStyle(.borderless)
++      .disabled(!enabled)
++      .accessibilityIdentifier("entry-sync-" + id.uuidString.lowercased())
++  }
++}
+diff --git a/ios/FieldLog/LocalEntrySync-Info.plist b/ios/FieldLog/LocalEntrySync-Info.plist
+new file mode 100644
+index 0000000000000000000000000000000000000000..e6a025a8ad8bf16fb80934cfbb1e52dd1fe4c666
+--- /dev/null
++++ b/ios/FieldLog/LocalEntrySync-Info.plist
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++  <key>NSAppTransportSecurity</key>
++  <dict>
++    <key>NSExceptionDomains</key>
++    <dict>
++      <key>127.0.0.1</key>
++      <dict>
++        <key>NSExceptionAllowsInsecureHTTPLoads</key>
++        <true/>
++      </dict>
++    </dict>
++  </dict>
++</dict>
++</plist>
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index 8f8cd66fbffbc057290ed17c4592fd4c55bdcf7e..dfb4b0617a6eece02ddad7e496cc63e7bbe7cded 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -2,6 +2,25 @@ import FieldLogModels
+ import FieldLogStorage
+ import SwiftUI
+ 
++enum EntrySyncRowState: Equatable {
++  case ready
++  case sending(EntrySyncClient.PhotoProgress?, cancelling: Bool)
++  case paused(EntrySyncClient.PhotoProgress?)
++  case failed(String)
++}
++
++struct EntrySyncConfirmation: Equatable {
++  let entry: LogEntry
++  let outcome: EntrySyncClient.Outcome
++
++  var message: String {
++    switch outcome {
++    case .uploaded: "Sent to the local backend"
++    case .reconciled: "Reconciled with the local backend"
++    }
++  }
++}
++
+ @MainActor final class WorkspaceModel: ObservableObject {
+   @Published private(set) var workspace: Workspace?
+   @Published private(set) var loading = true
+@@ -10,20 +29,57 @@ import SwiftUI
+   @Published private(set) var pendingSaves = 0
+   @Published private(set) var unsavedDrafts: [UUID: EntryDraft] = [:]
+   @Published private(set) var isTestWorkspace = false
++  @Published private(set) var isLocalEntrySyncWorkspace = false
++  @Published private(set) var lastEntrySync: EntrySyncConfirmation?
++  @Published private var entrySyncAttempt: EntrySyncAttempt?
++  @Published private var entrySyncResults: [UUID: EntrySyncRowState] = [:]
++  private var entrySyncTask: Task<Void, Never>?
++  private var entrySync: (workspaceID: UUID, projectID: UUID, client: EntrySyncClient)?
+   private var repository: WorkspaceRepository?
+   private var saveChain: Task<Bool, Never>?
+   private var opened = false
+ 
+-  func open() async {
++  private struct EntrySyncAttempt {
++    let id = UUID()
++    let eventID: UUID
++    var progress: EntrySyncClient.PhotoProgress?
++    var cancelling = false
++  }
++
++  var sendingEntryID: UUID? { entrySyncAttempt?.eventID }
++
++  func open(
++    supportDirectory: URL? = nil, arguments: [String] = ProcessInfo.processInfo.arguments,
++    environment: [String: String] = ProcessInfo.processInfo.environment
++  ) async {
+     guard !opened else { return }
+     opened = true
+     loading = true
+     do {
+-      let support = try FileManager.default.url(
++      let support = try supportDirectory ?? FileManager.default.url(
+         for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+       var workspaceFolder = "FieldLog"
+-      let arguments = ProcessInfo.processInfo.arguments
+-      if let index = arguments.firstIndex(of: "--fieldlog-ui-workspace") {
++      let uiTestIndex = arguments.firstIndex(of: "--fieldlog-ui-workspace")
++      if arguments.contains("--fieldlog-local-entry-sync") {
++        #if DEBUG && FIELDLOG_LOCAL_ENTRY_SYNC
++          guard uiTestIndex == nil else {
++            throw FieldLogError.validation("Choose either local entry sync or a UI-test workspace.")
++          }
++          workspaceFolder = "FieldLogLocalEntrySync"
++          isLocalEntrySyncWorkspace = true
++          if let port = environment["FIELDLOG_ENTRY_SYNC_PORT"].flatMap(UInt16.init),
++            let workspaceID = environment["FIELDLOG_ENTRY_SYNC_WORKSPACE_ID"].flatMap(UUID.init(uuidString:)),
++            let projectID = environment["FIELDLOG_ENTRY_SYNC_PROJECT_ID"].flatMap(UUID.init(uuidString:)),
++            let token = environment["FIELDLOG_ENTRY_SYNC_TOKEN"],
++            let client = try? EntrySyncClient(
++              port: port, workspaceID: workspaceID, projectID: projectID, token: token)
++          {
++            entrySync = (workspaceID, projectID, client)
++          }
++        #else
++          throw FieldLogError.validation("Local entry sync requires the FieldLogLocalSync build configuration.")
++        #endif
++      } else if let index = uiTestIndex {
+         #if DEBUG
+           guard arguments.indices.contains(index + 1),
+             let identity = UUID(uuidString: arguments[index + 1])
+@@ -62,7 +118,7 @@ import SwiftUI
+       defer { pendingSaves -= 1 }
+       guard let repository else { return false }
+       do {
+-        workspace = try await repository.transact(operation)
++        publish(try await repository.transact(operation))
+         completion?()
+         if unsavedDrafts.isEmpty { saveError = nil }
+         return true
+@@ -150,8 +206,9 @@ import SwiftUI
+   func addPhoto(_ jpeg: Data, draftID: UUID) async throws -> [UUID] {
+     await flush()
+     guard let repository else { throw FieldLogError.missingRecord }
+-    workspace = try await repository.addPhoto(jpeg: jpeg, to: draftID)
+-    return workspace?.drafts.first(where: { $0.id == draftID })?.attachmentIDs ?? []
++    let saved = try await repository.addPhoto(jpeg: jpeg, to: draftID)
++    publish(saved)
++    return saved.drafts.first(where: { $0.id == draftID })?.attachmentIDs ?? []
+   }
+   func photoURL(_ id: UUID) async -> URL? { try? await repository?.photoURL(id) }
+   func exportReport(projectID: UUID) async throws -> URL {
+@@ -159,5 +216,99 @@ import SwiftUI
+     guard let repository else { throw FieldLogError.missingRecord }
+     return try await repository.exportReport(projectID: projectID)
+   }
++  private func publish(_ snapshot: Workspace) {
++    // A save and a send can return snapshots in a different order from their commits.
++    guard workspace.map({ $0.revision < snapshot.revision }) ?? true else { return }
++    workspace = snapshot
++  }
++
++  var localEntrySyncMessage: String {
++    guard let entrySync else { return "Launch with a provisioned local backend to send an entry." }
++    guard workspace?.id == entrySync.workspaceID,
++      let project = workspace?.projects.first(where: { $0.id == entrySync.projectID })
++    else { return "The local backend is configured for a different workspace or project." }
++    return "Entries with one JPEG in \(project.title) can be sent to the local backend."
++  }
++
++  private func eligibleEntry(for eventID: UUID) -> LogEntry? {
++    guard let entrySync, let workspace, workspace.id == entrySync.workspaceID,
++      let event = workspace.outbox.first(where: { $0.id == eventID && $0.kind == .entrySaved }),
++      let entry = workspace.entries.first(where: { $0.id == event.recordID }),
++      entry.projectID == entrySync.projectID, entry.attachmentIDs.count == 1
++    else { return nil }
++    return entry
++  }
++
++  func entrySyncState(for eventID: UUID) -> EntrySyncRowState? {
++    guard eligibleEntry(for: eventID) != nil else { return nil }
++    if let attempt = entrySyncAttempt, attempt.eventID == eventID {
++      return .sending(attempt.progress, cancelling: attempt.cancelling)
++    }
++    return entrySyncResults[eventID] ?? .ready
++  }
++
++  func entrySyncCancellation(for eventID: UUID) -> (@MainActor () -> Void)? {
++    guard let attempt = entrySyncAttempt, attempt.eventID == eventID, !attempt.cancelling else {
++      return nil
++    }
++    let attemptID = attempt.id
++    return { [weak self] in
++      guard let self, entrySyncAttempt?.id == attemptID, eligibleEntry(for: eventID) != nil else {
++        return
++      }
++      entrySyncAttempt?.cancelling = true
++      entrySyncTask?.cancel()
++    }
++  }
++
++  func sendEntry(eventID: UUID) async {
++    guard sendingEntryID == nil, let entry = eligibleEntry(for: eventID),
++      let repository, let entrySync
++    else { return }
++    let attempt = EntrySyncAttempt(eventID: eventID)
++    let attemptID = attempt.id
++    let previousProgress: EntrySyncClient.PhotoProgress?
++    if case .paused(let progress)? = entrySyncResults.removeValue(forKey: eventID) {
++      previousProgress = progress
++    } else {
++      previousProgress = nil
++    }
++    entrySyncAttempt = attempt
++    lastEntrySync = nil
++    let task = Task { @MainActor in
++      defer {
++        entrySyncTask = nil
++        entrySyncAttempt = nil
++      }
++      await flush()
++      do {
++        let outcome = try await entrySync.client.send(eventID: eventID, from: repository) { @MainActor [weak self] progress in
++          self?.publishEntrySyncProgress(progress, attemptID: attemptID, eventID: eventID)
++        }
++        publish(await repository.snapshot())
++        lastEntrySync = EntrySyncConfirmation(entry: entry, outcome: outcome)
++      } catch is CancellationError {
++        entrySyncResults[eventID] = .paused(entrySyncAttempt?.progress ?? previousProgress)
++      } catch let failure as EntrySyncClient.Failure {
++        entrySyncResults[eventID] = .failed(failure.localizedDescription)
++      } catch let failure as FieldLogError {
++        entrySyncResults[eventID] = .failed(failure.localizedDescription)
++      } catch {
++        entrySyncResults[eventID] = .failed("The local backend did not confirm this send.")
++      }
++    }
++    entrySyncTask = task
++    await task.value
++  }
++
++  private func publishEntrySyncProgress(
++    _ progress: EntrySyncClient.PhotoProgress, attemptID: UUID, eventID: UUID
++  ) {
++    guard let attempt = entrySyncAttempt, attempt.id == attemptID, eligibleEntry(for: eventID) != nil,
++      attempt.progress.map({ $0.acceptedBytes < progress.acceptedBytes }) ?? true
++    else { return }
++    entrySyncAttempt?.progress = progress
++  }
++
+   var unsavedCount: Int { unsavedDrafts.count }
+ }
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index a5e2950efc88bdbe378e613550162e4c8ff930e9..fd541ffa3914c6a4a0ef033042f2c652acfb111d 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -23,7 +23,8 @@ struct WorkspaceView: View {
+         TabView {
+           NavigationStack(path: $projectPath) {
+             ProjectList(
+-              workspace: workspace, testing: model.isTestWorkspace, onAdd: { addingProject = true }
++              workspace: workspace, testing: model.isTestWorkspace,
++              localEntrySync: model.isLocalEntrySyncWorkspace, onAdd: { addingProject = true }
+             )
+             .navigationDestination(for: UUID.self) { id in
+               ProjectDetail(projectID: id, onEdit: { editingDraft = $0 })
+@@ -31,13 +32,15 @@ struct WorkspaceView: View {
+           }.tabItem { Label("Projects", systemImage: "square.stack.3d.up") }
+           NavigationStack {
+             DeviceQueue(
+-              workspace: workspace,
++              workspace: workspace, model: model, accent: FieldStyle.green,
+               onEdit: { draft in
+                 model.openDraft(draft.id)
+                 editingDraft = draft
+-              })
++              },
++              entryDetail: { EntryDetail(entry: $0) }
++            )
+           }.tabItem { Label("On device", systemImage: "internaldrive") }
+-          NavigationStack { SettingsView() }.tabItem { Label("Settings", systemImage: "gearshape") }
++          NavigationStack { SettingsView(localEntrySync: model.isLocalEntrySyncWorkspace) }.tabItem { Label("Settings", systemImage: "gearshape") }
+         }
+         .onAppear {
+           guard !restored else { return }
+@@ -74,13 +77,14 @@ struct WorkspaceView: View {
+ private struct ProjectList: View {
+   let workspace: Workspace
+   let testing: Bool
++  let localEntrySync: Bool
+   let onAdd: () -> Void
+   @State private var search = ""
+   var body: some View {
+     List {
+       Section {
+         VStack(alignment: .leading, spacing: 12) {
+-          Label("OFFLINE WORKSPACE", systemImage: "circle.inset.filled").font(
++          Label(localEntrySync ? "LOCAL DEVELOPMENT WORKSPACE" : "OFFLINE WORKSPACE", systemImage: "circle.inset.filled").font(
+             .caption.weight(.semibold)
+           ).foregroundStyle(FieldStyle.green)
+           if testing {
+@@ -163,7 +167,9 @@ struct NewProjectView: View {
+         Section {
+           Label("Stored on this device", systemImage: "internaldrive")
+           Text(
+-            "No account is needed for an offline workspace. Cloud sync is not connected in this build."
++            model.isLocalEntrySyncWorkspace
++              ? "You can send eligible saved entries from On device."
++              : "No account is needed for an offline workspace. Cloud sync is not connected in this build."
+           ).font(.footnote).foregroundStyle(.secondary)
+         }
+       }
+@@ -187,64 +193,16 @@ struct NewProjectView: View {
+   }
+ }
+ 
+-private struct DeviceQueue: View {
+-  let workspace: Workspace
+-  let onEdit: (EntryDraft) -> Void
+-  var body: some View {
+-    List {
+-      Section {
+-        Label("Your records are saved locally", systemImage: "internaldrive.fill").font(.headline)
+-          .foregroundStyle(FieldStyle.green)
+-        Text("Cloud sync isn't connected. Nothing in this queue has been sent to a server.")
+-          .foregroundStyle(.secondary)
+-      }
+-      if !workspace.drafts.isEmpty {
+-        Section("DRAFTS") {
+-          ForEach(workspace.drafts.sorted { $0.updatedAt > $1.updatedAt }) { draft in
+-            Button {
+-              onEdit(draft)
+-            } label: {
+-              VStack(alignment: .leading, spacing: 4) {
+-                Text(draft.title.isEmpty ? "Untitled entry" : draft.title).foregroundStyle(.primary)
+-                Text(workspace.projects.first { $0.id == draft.projectID }?.title ?? "Project")
+-                  .font(.caption).foregroundStyle(.secondary)
+-              }
+-            }
+-          }
+-        }
+-      }
+-      Section("\(workspace.outbox.count) PENDING CHANGE\(workspace.outbox.count==1 ? "":"S")") {
+-        if workspace.outbox.isEmpty {
+-          Text("Changes you make will appear here.").foregroundStyle(.secondary)
+-        }
+-        ForEach(workspace.outbox.reversed()) { item in
+-          VStack(alignment: .leading, spacing: 4) {
+-            Text(label(item.kind))
+-            Text(item.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
+-            Label("Saved on device · not sent", systemImage: "clock").font(.caption)
+-              .foregroundStyle(.secondary)
+-          }
+-        }
+-      }
+-    }.navigationTitle("On device")
+-  }
+-  private func label(_ kind: PendingChange.Kind) -> String {
+-    switch kind {
+-    case .projectCreated: "Project created"
+-    case .taskSaved: "Task updated"
+-    case .taskOrderChanged: "Checklist reordered"
+-    case .entrySaved: "Entry saved"
+-    }
+-  }
+-}
+-
+ private struct SettingsView: View {
++  let localEntrySync: Bool
+   var body: some View {
+     Form {
+       Section("WORKSPACE") {
+-        Label("Offline mode", systemImage: "internaldrive")
++        Label(localEntrySync ? "Local entry sync" : "Offline mode", systemImage: "internaldrive")
+         Text(
+-          "No account is signed in. Projects, notes and selected photos stay in this app's private storage. Deleting the app deletes local records; export reports before removing it."
++          localEntrySync
++            ? "Records are saved on this device. Eligible entries are sent only when you choose Send in On device."
++            : "No account is signed in. Projects, notes and selected photos stay in this app's private storage. Deleting the app deletes local records; export reports before removing it."
+         ).font(.footnote).foregroundStyle(.secondary)
+       }
+       Section("THIS BUILD") {
+@@ -255,7 +213,9 @@ private struct SettingsView: View {
+       }
+       Section("PRIVACY") {
+         Text(
+-          "This baseline sends no analytics or user content. Photo library selection is handled by the system picker. Reports are shared only when you choose a destination in the system share sheet."
++          localEntrySync
++            ? "Local entry sync sends the selected entry and JPEG to the provisioned loopback backend. Reports are shared only when you choose a destination."
++            : "This baseline sends no analytics or user content. Photo library selection is handled by the system picker. Reports are shared only when you choose a destination in the system share sheet."
+         ).font(.footnote)
+       }
+     }.navigationTitle("Settings")

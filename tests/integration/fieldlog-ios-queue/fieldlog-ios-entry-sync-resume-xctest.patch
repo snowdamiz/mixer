@@ -1,0 +1,148 @@
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index e04f25784be0dd372f17e887083a03ce9c726492..bf9c8cf76c6e585a7b37ec43ee1f5ea8365010fc 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -44,17 +44,19 @@
+   A00000000000000000000045 = { isa = PBXBuildFile; fileRef = A00000000000000000000035; };
+ 
+   B00000000000000000000001 = { isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000004; buildPhases = (B00000000000000000000005,B00000000000000000000006,B00000000000000000000007); buildRules = (); dependencies = (B00000000000000000000008); name = FieldLogUITests; productName = FieldLogUITests; productReference = B00000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
+-  B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009); sourceTree = "<group>"; };
++  B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009, B00000000000000000000015); sourceTree = "<group>"; };
+   B00000000000000000000003 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FieldLogUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+   B00000000000000000000004 = { isa = XCConfigurationList; buildConfigurations = (B00000000000000000000010,B00000000000000000000011, B00000000000000000000014); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  B00000000000000000000005 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000012); runOnlyForDeploymentPostprocessing = 0; };
++  B00000000000000000000005 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000012, B00000000000000000000016); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000006 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000007 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000008 = { isa = PBXTargetDependency; target = A00000000000000000000005; targetProxy = B00000000000000000000013; };
+   B00000000000000000000009 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldLogUITests.swift; sourceTree = "<group>"; };
+   B00000000000000000000010 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Debug; };
+-  B00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = FieldLogLocalSync; };
++  B00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG FIELDLOG_LOCAL_ENTRY_SYNC $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = FieldLogLocalSync; };
+   B00000000000000000000011 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Release; };
++  B00000000000000000000015 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntrySyncResumeUITests.swift; sourceTree = "<group>"; };
++  B00000000000000000000016 = { isa = PBXBuildFile; fileRef = B00000000000000000000015; };
+   B00000000000000000000012 = { isa = PBXBuildFile; fileRef = B00000000000000000000009; };
+   B00000000000000000000013 = { isa = PBXContainerItemProxy; containerPortal = A00000000000000000000001; proxyType = 1; remoteGlobalIDString = A00000000000000000000005; remoteInfo = FieldLog; };
+  };
+diff --git a/ios/FieldLogUITests/EntrySyncResumeUITests.swift b/ios/FieldLogUITests/EntrySyncResumeUITests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..f2200671e86b16c827d564c61706988b5c8fa831
+--- /dev/null
++++ b/ios/FieldLogUITests/EntrySyncResumeUITests.swift
+@@ -0,0 +1,115 @@
++#if FIELDLOG_LOCAL_ENTRY_SYNC
++import Foundation
++import XCTest
++
++@MainActor final class EntrySyncResumeUITests: XCTestCase {
++  func testCancelAndResumeSelectedJPEG() async throws {
++    continueAfterFailure = false
++    let environment = ProcessInfo.processInfo.environment
++    let eventID = try XCTUnwrap(
++      environment["FIELDLOG_ENTRY_SYNC_TEST_EVENT_ID"].flatMap(UUID.init(uuidString:)),
++      "The runner must provide the selected event UUID"
++    ).uuidString.lowercased()
++    let otherEventID = try XCTUnwrap(
++      environment["FIELDLOG_ENTRY_SYNC_TEST_OTHER_EVENT_ID"].flatMap(UUID.init(uuidString:)),
++      "The runner must provide the unrelated event UUID"
++    ).uuidString.lowercased()
++    let photoBytes = try XCTUnwrap(
++      environment["FIELDLOG_ENTRY_SYNC_TEST_PHOTO_BYTES"].flatMap(Int.init),
++      "The runner must provide the JPEG byte count"
++    )
++    XCTAssertNotEqual(eventID, otherEventID)
++    XCTAssertGreaterThan(photoBytes, 32_768)
++
++    let app = XCUIApplication()
++    app.launchArguments = ["--fieldlog-local-entry-sync"]
++    let launchKeys = [
++      "FIELDLOG_ENTRY_SYNC_PORT",
++      "FIELDLOG_ENTRY_SYNC_TOKEN",
++      "FIELDLOG_ENTRY_SYNC_WORKSPACE_ID",
++      "FIELDLOG_ENTRY_SYNC_PROJECT_ID",
++    ]
++    var launchEnvironment: [String: String] = [:]
++    for key in launchKeys {
++      let value = try XCTUnwrap(environment[key], "Missing runner environment variable \(key)")
++      XCTAssertFalse(value.isEmpty, "Empty runner environment variable \(key)")
++      launchEnvironment[key] = value
++    }
++    app.launchEnvironment = launchEnvironment
++    app.launch()
++    defer { app.terminate() }
++
++    XCTAssertTrue(app.navigationBars["Workshop"].waitForExistence(timeout: 15))
++    app.tabBars.buttons["On device"].tap()
++    XCTAssertTrue(app.navigationBars["On device"].waitForExistence(timeout: 5))
++
++    let elements = app.descendants(matching: .any)
++    let send = app.buttons["entry-sync-" + eventID]
++    let progress = elements.matching(identifier: "entry-sync-progress-" + eventID)
++      .matching(NSPredicate(format: "label == %@", "32768 of \(photoBytes) bytes confirmed"))
++      .firstMatch
++    let cancel = app.buttons["entry-sync-cancel-" + eventID]
++
++    reveal(send, in: app)
++    send.tap()
++    XCTAssertTrue(progress.waitForExistence(timeout: 10), "The first JPEG chunk was not shown as confirmed")
++    try await waitForSecondChunk(port: launchEnvironment["FIELDLOG_ENTRY_SYNC_PORT"],
++                                 token: launchEnvironment["FIELDLOG_ENTRY_SYNC_TOKEN"])
++    reveal(cancel, in: app)
++    cancel.tap()
++
++    let paused = elements.matching(identifier: "entry-sync-paused-" + eventID).firstMatch
++    XCTAssertTrue(paused.waitForExistence(timeout: 5))
++    XCTAssertEqual(paused.label, "Send paused")
++    XCTAssertTrue(progress.exists, "Pausing must keep the confirmed byte count visible")
++    XCTAssertTrue(send.waitForExistence(timeout: 5))
++    XCTAssertEqual(send.label, "Resume send")
++    send.tap()
++
++    let confirmation = elements.matching(identifier: "entry-sync-confirmation").firstMatch
++    let queueHeader = elements.matching(NSPredicate(format: "label == %@", "Your records are saved locally"))
++      .firstMatch
++    reveal(queueHeader, in: app, towardTop: true)
++    XCTAssertTrue(confirmation.waitForExistence(timeout: 20))
++    XCTAssertEqual(confirmation.label, "Sent to the local backend")
++
++    let otherPending = elements.matching(identifier: "entry-sync-pending-" + otherEventID).firstMatch
++    reveal(otherPending, in: app)
++    XCTAssertFalse(app.buttons["entry-sync-" + otherEventID].exists)
++    XCTAssertFalse(app.buttons["entry-sync-" + eventID].exists)
++  }
++
++  private func waitForSecondChunk(port: String?, token: String?) async throws {
++    let port = try XCTUnwrap(port.flatMap(UInt16.init))
++    let token = try XCTUnwrap(token)
++    var request = URLRequest(
++      url: try XCTUnwrap(URL(string: "http://127.0.0.1:\(port)/_fixture/second-chunk")),
++      timeoutInterval: 2
++    )
++    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
++    let session = URLSession(configuration: .ephemeral)
++    defer { session.invalidateAndCancel() }
++    let deadline = ContinuousClock.now + .seconds(8)
++    while ContinuousClock.now < deadline {
++      let (_, response) = try await session.data(for: request)
++      let status = try XCTUnwrap(response as? HTTPURLResponse).statusCode
++      if status == 204 { return }
++      XCTAssertEqual(status, 425)
++      try await Task.sleep(for: .milliseconds(100))
++    }
++    XCTFail("The fixture did not reach the second JPEG chunk before Cancel")
++  }
++
++  private func reveal(_ element: XCUIElement, in app: XCUIApplication, towardTop: Bool = false) {
++    for _ in 0..<5 {
++      if element.isHittable { return }
++      if towardTop {
++        app.swipeDown()
++      } else {
++        app.swipeUp()
++      }
++    }
++    XCTAssertTrue(element.isHittable, "Could not reveal \(element)")
++  }
++}
++#endif
