@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+A signed C guest replayed the historical FieldLog task editor on the macOS VM. Save persisted Unicode input and one outbox event. Cancel preserved the workspace. Compiling that editor from Swift and mounting it through the installed mobile owner remain open. [Historical editor replay](verification/receipts/fieldlog-f05-signed-editor-host-41a05264.json).
+
 A candidate Android starter APK adds three missing Swift SDK and Android NDK notice files. ICU attribution remains under review. A separate FieldLog APK links draw and tap callbacks through a public guest API, with host checks for retirement and task persistence. [Starter notices](verification/receipts/android-starter-runtime-notices-41a05264.json) · [Android callbacks](verification/receipts/fieldlog-android-sdk-witness-41a05264.json).
 
 The v3 release audit records the previous and new assignment sequence, artifact digest and rollout percentage. The PostgreSQL replay verified five channel changes through rollback, with no duplicate event on retry. Independent review found that strict v1/v2 audit readers reject pages containing the new field. Compatibility repair is open. [Release audit](verification/receipts/release-v3-channel-audit-20261118.json).

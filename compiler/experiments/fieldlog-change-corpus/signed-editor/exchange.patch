@@ -1,0 +1,30 @@
+diff --git a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
+--- a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
++++ b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
+@@ -14,4 +14,26 @@ public final class GuestUIExchangeV1: Sendable {
+         self.allowsDeferredStartup = allowsDeferredStartup
+         core = try GuestUIExchangeCore(generation: generation, codec: .legacy)
+     }
++    // Private host experiment. The signed runtime fingerprint names this wire
++    // selection. The ABI2 control header, limits and exports remain unchanged.
++    @_spi(FieldLogSignedEditorHost)
++    public init(fieldLogEditorGeneration generation: UInt64) throws {
++        allowsDeferredStartup = false
++        let documentCodec = FeatureDocumentV3(textValuePolicy: .standard)
++        let feature = GuestUIExchangeCodec.feature(documentCodec)
++        core = try GuestUIExchangeCore(generation: generation, codec: GuestUIExchangeCodec(
++            maximumBytes: 65_536, decode: feature.decode, accepts: { action, envelope, document in
++                guard feature.accepts(action, envelope, document) else { return false }
++                guard case .string(let text) = action.value else {
++                    return (action.nodeID == "task.save" || action.nodeID == "task.cancel")
++                        && action.actionID == action.nodeID
++                }
++                guard ["task.title", "task.responsible"].contains(action.nodeID),
++                      action.actionID == action.nodeID + ".change" else { return false }
++                let vertical = documentCodec.node(id: action.nodeID, in: document)?
++                    .properties["axis"]?.string == "vertical"
++                return text.utf8.count <= (action.nodeID == "task.title" ? 240 : 160)
++                    && (vertical || !text.contains(where: \.isNewline))
++            }, encodeEvent: feature.encodeEvent))
++    }
+     public func finishStartupWithoutDocument(_ claim: GuestUITurnClaimV1) throws {

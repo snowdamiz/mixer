@@ -29,6 +29,23 @@ The 0/17 and 0/20 figures report achieved evidence. The pass/fail capability of 
 
 Existing signed FieldLog proof uses separately prepared compact task variants. It cannot be mapped to a historical before/after pair in this corpus. R6060 recorded artifact size and owner mismatches for a different full guest pair. This replay does not reuse either pair or touch the L04 inspector or L08 draft-schema lane.
 
+## Private signed F05 host
+
+The [signed editor replay](signed-editor/replay.py) starts from the exact historical F05 capture. It verifies an ephemeral Ed25519 release manifest and assignment with Mixer’s v3 verifier, then opens the authenticated guest in the owned ABI2 VM. The editor profile uses the existing FeatureDocumentV3 and text event codecs within the ABI2 control header and bounds. Its opt-in exchange is patched into a private SDK projection. The profile fingerprint binds that projection and host code to the local trust root.
+
+The editor fixture is written in C and embeds the historical Swift UI frame. Compiling the editor behavior from FieldLog Swift source remains open. The guest handles text changes, cancel, and Save. Save sends one scoped capability request to the historical FieldLog WorkspaceRepository. The host selects the project and validates the submitted fields. The guest leaves the editor after the repository acknowledges the commit. The multiline control adds the later vertical axis property to the historical title field and exercises a Unicode newline round trip through that same repository.
+
+The host opens the verified payload directly. Selecting this profile from the installed signed recovery store and mounting it through the FieldLog UI remain unverified. The host receipts do not change the two-target OTA counts or qualify F06’s Apple field renderer.
+
+```sh
+python3 compiler/experiments/fieldlog-change-corpus/signed-editor/replay.py \
+  --output /path/to/fresh-private-output \
+  --fieldlog /path/to/local/fieldlog \
+  --frame /path/to/corpus-output/f05-frame.json
+```
+
+Use the existing Swift 6.3.3 guest toolchain, macOS Swift, Rust, and local SwiftPM repositories for the SDK's pinned Swift Crypto and Swift ASN.1 revisions. The replay reads the frame and Git objects locally, uses file-scoped source projections, and writes the command and source digests to its private receipt.
+
 ## Executed scope
 
 The replay runs the original FieldLog tests for the initial shared task reducer (`d51adf5`), shared presentation (`70f3aa1`), ordinary pinned app, and pinned GeneratedReport integration. It uses the exact public SDK revision declared by each package. The private ordinary snapshots change the SwiftPM dependency locator and append the probe target after the normal tests. All production sources and original test sources come from Git archives. GeneratedReport uses the documented `FIELDLOG_MIXER_SDK` input. Its Android tests execute actual Swift presentation and local disk behavior on macOS, sometimes through an app-owned C entry with a test surface. Java tests use FieldLog's exact nested Java helper extraction and the real JVM. They do not invoke Android's provider, Activity, launcher, picker or chooser.
