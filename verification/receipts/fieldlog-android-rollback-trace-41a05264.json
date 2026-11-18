@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "status": "SIGNED_ANDROID_TRACE_REPLAY_READY",
+  "scope": "Development fixture trace only. No device or ADB run. Rollback tap root cause remains unconfirmed.",
+  "mixerRevision": "60b66ba240b297a385f030956798ea5129bb4421",
+  "mixerTree": "26d28909d109381a0a73ed4dbf96ca50c86ece5f",
+  "failedAndroidRun": {
+    "path": "verification/local/fieldlog-android-signed-root-41a05264b/run.json",
+    "sha256": "5bb7cf76e9d46ed3c7dd5acf33e5a6345593cf977f7d9cb92ad3ef911d8e010c"
+  },
+  "failedRunAPK_SHA256": "8f612e0a52a37b7553876fbb3e0d1729b8b2fc022db3055ccd6bbe7e754e0586",
+  "observedFailure": "API 36 showed the enabled Complete task button on healthy rollback seq3. The coordinate tap returned zero. The next eight captures retained HEALTHY and host controls while the entire guest frame was absent. Prior logging captured no input, apply, or retire cause.",
+  "traceAPK": {
+    "path": "verification/local/fieldlog-android-rollback-trace2-41a05264/fieldlog-signed-trial.apk",
+    "sha256": "95a85b06c1fdea416e05d7ffff2d52d42eb1cf17d040a0d0ea1092acabe56419",
+    "bytes": 136727582,
+    "certificateSHA256": "32822065ecd503a627295d8e4d157df21124c2f60533f542684b0ba5dfeace50",
+    "changedPayloadSHA256": {
+      "classes.dex": "7af869d447227e24c6b67eee9e40a3190f7c9cf3719d7f002ed4df75acb5ad51",
+      "lib/arm64-v8a/libMixerFieldLogTrial.so": "a17e3abdc789234f35fbe8c559a30fe07fcdd93e3984a4c9c730883630fb3e02"
+    },
+    "freshInstallRequired": true
+  },
+  "apkControls": {
+    "unchangedEntries": 37,
+    "identicalOTAAssets": 17,
+    "v3Verified": true,
+    "alignment16KiB": true,
+    "unchangedBadgingAndPermissions": true,
+    "newSystemLibraryForLogging": "liblog.so"
+  },
+  "evidence": {
+    "traceBuild": {
+      "path": "verification/local/fieldlog-android-rollback-trace2-41a05264/receipt.json",
+      "sha256": "2cbb6bb5177c0c6c3da16f45c5040bd93569774bad036c8bfd318337bfc4072f"
+    },
+    "hostPresentation": {
+      "path": "verification/local/fieldlog-android-rollback-trace2-41a05264/logs/presentation-control.stdout",
+      "sha256": "f2423cbec4ce2d0ba9c9cb030c24933ae3a0228bddcd23655bba22dbbf389e1b"
+    },
+    "processColdControl": {
+      "path": "verification/local/fieldlog-android-rollback-offline-41a05264/receipt.json",
+      "sha256": "2497d2cf8fc15782d4d682da522610c095f961c8b2217b6503c6767f9907e42c"
+    },
+    "firstPackagingAttempt": {
+      "path": "verification/local/fieldlog-android-rollback-trace-41a05264/receipt.json",
+      "sha256": "692908f89dcc6681757b3a7a3765041d0eca79974029d24145d2484e144ca5aa"
+    }
+  },
+  "firstPackagingAttemptFailure": "The JVM Log leaf lacked Log.i. A private leaf copy implements it and asserts the exact click diagnostic. The retained fixture and original leaf were preserved.",
+  "drivers": [
+    {
+      "path": "capability-activation/verification/fieldlog-android/build-rollback-trace.py",
+      "sha256": "1d382db3a634373f867c328c08e01229692acdc30feb0b787bcfe003f9808f12"
+    },
+    {
+      "path": "capability-activation/verification/fieldlog-android/trace-overlay.py",
+      "sha256": "39c1516e0fb481f45fe503345cca57e784d0705894a925700d063fd9e2c254e5"
+    },
+    {
+      "path": "capability-activation/verification/fieldlog-android/check-rollback-offline.py",
+      "sha256": "93c7fddadc08dc45342cabb481fe99b167163506b31afd98f7c16722b21fb84a"
+    }
+  ],
+  "processColdControl": {
+    "system": "macOS Swift native test binding, separate OS processes",
+    "preparePID": 70211,
+    "coldPID": 70804,
+    "rollbackCandidate": "b524605fd40c296faefa694b7c3e4a9ead05541de5f97459a9228db38515d2c0",
+    "acceptedSequence": 4,
+    "partialOffset": 257,
+    "startFrame": [
+      "Open",
+      "Complete task"
+    ],
+    "afterTap": [
+      "Completed",
+      "Reopen task"
+    ],
+    "observations": "Both processes closed their owners and observed zero live transport allocations. The cold process had no assignment envelopes, release manifests, or Wasm delivery files. The cached rollback ran from the durable store."
+  },
+  "replay": [
+    "Use a fresh root-owned install with the retained API36 sequence and original Reopen task assertions. Record complete UID-filtered FieldLogSignedTrial, AndroidRuntime and libc lines on failure and before/after force-stop on success. Preserve timestamps, PID and thread IDs. Avoid the old 6000-character tail truncation.",
+    "Correlate cycle opened, click, input admission, presentation event, apply and retire by facade. A successful input admission plus terminal event counters isolates a stop after ingress. A failed apply or JNI exception isolates the native presentation path. A transport hint/request/completion failure or sticky fault identifies the queue boundary. An explicit cycle begin or Activity destroy preceding retire identifies a lifecycle trigger.",
+    "After rollback completes, action 4 must retire the old owner, persist the seq4 prefix at offset 257 and close the interrupted owner. Force-stop only after INTERRUPTED; assert old PID disappears and a new PID launches. Process-close proves cold recovery and resets process-local Looper/weak JNI state. It does not replace consuming retirement.",
+    "Action 5 must report the exact cycle-3 candidate at sequence high-water 4, show Open / Complete task, then render Reopen task after the new tap. The compact task model is transient. Final Close guest must report CLOSED owner retired."
+  ],
+  "localGatesPassed": [],
+  "gaGatesPassed": [],
+  "deviceUsed": false,
+  "adbUsed": false
+}
