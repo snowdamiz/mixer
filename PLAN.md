@@ -14,6 +14,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The FieldLog history replay covers 20 behaviors from six commits. Seventeen behaviors are candidates for OTA. Fourteen of those have passing host controls, and zero have verified signed delivery on both targets. The development apps now build with signed checklists reachable from their usual entry points. Android still needs the trial build flag for its native display callback. [Corpus](compiler/experiments/fieldlog-change-corpus/README.md) · [App builds](verification/receipts/fieldlog-supported-entrypoint-build-41a05264.json).
+
 An authorized client can retrieve terminal build events after worker shutdown. In the local store fixture, iOS and Android each recovered one accepted submission after a lost acknowledgement. The hosted manifest covers 391 source inputs and the native manifest covers 143. [L05 integration](verification/receipts/l05-build-logs-store-integration-41a05264.json).
 
 On API 36 the ordinary FieldLog app saved all 132 characters from one IME commit after composition, followed immediately by blur and Save. A cold relaunch preserved the note, its linked JPEG and one matching outbox event. At 180 dpi a separate run lost the form after photo selection. [Android input and persistence](verification/receipts/fieldlog-android-ime-compose-paste-cold-41a05264.json).

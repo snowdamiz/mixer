@@ -1,0 +1,139 @@
+{
+  "gate": "L04",
+  "status": "built_both_development_apps_host_controls_pass_public_android_witness_gap",
+  "recordedAtUTC": "2026-11-18T16:32:27.280700+00:00",
+  "fieldLogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "fieldLogPatchedTree": "47d78367c24bb720cd4a4299b2a9326c46d11340",
+  "mixerRevision": "9fd7e7f6ebd9cadfd96d71a6c71225e6b11e33b9",
+  "mixerTree": "e564100f5996a4abf51c183ded29d46fe0eec77e",
+  "patch": {
+    "path": "fieldlog-l04.patch",
+    "bytes": 82664,
+    "sha256": "cc983bda3f80734286b4c32040148e16753ac01321ecf5391f3b1371a5a8c186"
+  },
+  "diskAllocatedKiB": 1631380,
+  "diskLimitGiB": 2.5,
+  "ios": {
+    "bundle": "ios-build/Build/Products/Debug-iphonesimulator/FieldLog.app",
+    "treeSHA256": "dc2d5c274c36b4b408f61fb9aba49b3e3dd7097aa66fe6900fb3dd494d3c5cc7",
+    "executable": {
+      "path": "ios-build/Build/Products/Debug-iphonesimulator/FieldLog.app/FieldLog",
+      "bytes": 10888592,
+      "sha256": "9450f0198198bdc2a8bc30c689e9d060e823b8e0859eccfdc7a567c9ac33ada7"
+    },
+    "bundleID": "dev.mixer.fieldlog",
+    "signature": "ad hoc verified",
+    "simulatorArchitecture": "arm64"
+  },
+  "android": {
+    "apk": {
+      "path": "apk/FieldLog-public-development.apk",
+      "bytes": 133356005,
+      "sha256": "453e952b07a4db2fb148a126e6f29a189a545aeccbc88430a9a8e619f4b37faf"
+    },
+    "applicationID": "dev.fieldlog.generatedr90",
+    "launchActivity": "dev.fieldlog.generatedr90.androidhost.PublicActivity",
+    "signature": "APK v3 verified",
+    "publicWitnessLinkBlocker": "undefined mxfield_witness without MIXER_FIELDLOG_ANDROID_TRIAL"
+  },
+  "runtimeFingerprints": {
+    "ios": "470cca974e15860658fe5fdae862bd217cedcd096726f59bbb5863112f29967e",
+    "android": "d255b23858ca05c9f083991a0c6f16cee03fffb11a543f0597f5481dc8047935"
+  },
+  "payloads": {
+    "baseline": {
+      "path": "delivery-ios/baseline.wasm",
+      "bytes": 5489,
+      "sha256": "d2e24083c7958101387455da4e30608aaa3b9519bda0f9c18d3ab58108c77dac"
+    },
+    "reviewed": {
+      "path": "delivery-ios/reviewed.wasm",
+      "bytes": 5521,
+      "sha256": "83b9d741a7f3dd059aa66ec7572c3bef1ff58bbeeda86c8a6ea5d2d7743b736a"
+    }
+  },
+  "hostEvidence": [
+    {
+      "path": "host-logs/rust-ios.log",
+      "bytes": 315,
+      "sha256": "f72cb9e6fd92b054e85cf62206189d445d37e670a28735bbf09fe4a20d707012"
+    },
+    {
+      "path": "host-logs/rust-android.log",
+      "bytes": 263,
+      "sha256": "9dd212e6a488ca972e39798c9b6898f2ff5f0bc561c34fec8837491fd7f6a588"
+    },
+    {
+      "path": "host-logs/xcode-signed.log",
+      "bytes": 98888,
+      "sha256": "158cc8c9695b22a59b496df1fb82297168feec681086ad95b2986ec89a7ee083"
+    },
+    {
+      "path": "host-logs/android/build-final.log",
+      "bytes": 31030,
+      "sha256": "a1b03e74f2348d4733224e96de02bdb5dfdec7bf7ad91b9adbd96878e3d02286"
+    },
+    {
+      "path": "host-logs/android/java-build-3.log",
+      "bytes": 34689,
+      "sha256": "2ed7cc28b519764640d272430b5804d9a1ac0865fdf6acdafeeb492f25921e76"
+    },
+    {
+      "path": "host-logs/android/package-final.log",
+      "bytes": 2786,
+      "sha256": "ce0e19c737e3e21318ef0432e0a6f4290d4fcfc8b57a8f5a8c2eca046ce69f38"
+    },
+    {
+      "path": "host-logs/android/public-witness-link-blocker.log",
+      "bytes": 31375,
+      "sha256": "336313782fa93ac2856e874d880e5e57a5fc7043522ae69c639bc6006316b014"
+    },
+    {
+      "path": "host-logs/go-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "host-logs/origin-final.log",
+      "bytes": 2770,
+      "sha256": "b2d41a9c33144425c107390a850dc95c07bea8900f82242a692b24d5ac103237"
+    },
+    {
+      "path": "host-logs/transport-check.log",
+      "bytes": 2156,
+      "sha256": "dc4e57b9e59c2cdc4bfb52c168db6c8e338bb2cedf0b768f7bb9270055ce36c2"
+    },
+    {
+      "path": "host-logs/root-relay-replay.log",
+      "bytes": 767,
+      "sha256": "bc57283bfe7d8bc05c9c7e36308c612d6f528389bf46c690ce65de28d24d9497"
+    }
+  ],
+  "commands": [
+    "/bin/zsh build-ios-host.sh",
+    "/bin/zsh -x build-android-host.sh",
+    "/bin/zsh -x compile-android-java.sh",
+    "python3 package-android.py",
+    "python3 origin.py check origin-check-final",
+    "python3 transport-check.py"
+  ],
+  "tools": {
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "androidSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "go": "go version go1.27.1 darwin/arm64",
+    "python": "Python 3.14.8"
+  },
+  "scope": {
+    "nativeRuns": 0,
+    "sharedTrackedChanges": 0,
+    "externalOperations": 0,
+    "transportResume": "app-owned HTTP envelope prefix, replay checked before appending",
+    "deviceChecklist": "pending root native run",
+    "androidSdkStagingInterruption": "pending public owner API",
+    "nativeChangeAssessment": "outside this downstream task",
+    "sdkPublication": "local pin",
+    "originBackend": "local file-backed Go release service under one scope",
+    "localGatePass": false
+  }
+}
