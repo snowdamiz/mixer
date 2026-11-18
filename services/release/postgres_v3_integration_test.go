@@ -181,3 +181,11 @@ func TestPostgresV3InterruptedPublicationImmediateRestart(t *testing.T) {
 		})
 	}
 }
+
+func TestPostgresV3HealthHaltAuthorizationAndAudit(t *testing.T) {
+	cfg, f, _, _ := pgFixture(t)
+	f3 := f.Protocol3()
+	cfg.Hosts = append(cfg.Hosts, f3.Host)
+	s := pgServer(t, cfg, nil)
+	checkV3HealthHalt(t, s, f3, "pg publisher", "pg editor", "pg reader")
+}
