@@ -69,6 +69,17 @@ customer communication, credential change, or destructive migration.
 - No production publication, messages to customers, destructive migrations, or
   credential changes are implied by implementation work.
 
+## Clean up after your task
+
+Keep track of what you create outside the Git checkout. Before you finish,
+delete everything you created there for the task, including temporary files,
+test data, build outputs, logs, caches, and disposable checkouts. Clean up
+after failed or canceled runs too.
+
+Preserve pre-existing files, resources owned by others, user-requested
+deliverables, and anything under an explicit hold. Report the path and reason
+for anything you could not safely remove.
+
 ## Verification
 
 Direct user instruction on November 10 — “you are allowed to use computer use and screen capture again” — resumes computer interaction, UI automation and screen capture for implementation and verification. Earlier general computer-use or capture pauses are historical. Apply the existing owned-device, Accessibility preflight and cleanup rules below; physical-phone restrictions and all specifically held processes, scratch and frozen lanes remain in force.
