@@ -1,0 +1,344 @@
+{
+  "cleanup": {
+    "disposableFiles": "Removed after receipt and patch checks",
+    "newHolds": 0,
+    "retained": "Apply-ready patch and this compact receipt"
+  },
+  "commandCustody": {
+    "allDirectChildrenReaped": true,
+    "allProducerPipeEOFsAndGroupsAbsent": true,
+    "producerCommands": 91,
+    "scope": "Command process groups on this macOS run.",
+    "timeoutControl": {
+      "exit": 0,
+      "groupAbsent": true,
+      "pipeEOF": true,
+      "timedOut": true
+    }
+  },
+  "commands": [
+    "git archive c5eb07615d -- AGENTS.md README.md cli sdk updates runtime-identity native/android services",
+    "swift build --package-path \"$repo/cli\" --scratch-path \"$work/cli-build\" --disable-dependency-cache --skip-update --disable-automatic-resolution --product mixer",
+    "go build -trimpath -o \"$work/mixer-service\" ./cmd/mixer-service (services directory, GOPROXY=off, GOSUMDB=off)",
+    "\"$mixer\" upgrade \"$work/upgraded-template\" --sdk-path \"$repo/sdk\" --android-adapter-path \"$repo/native/android\" --directory \"$input/project-template\"",
+    "python3 -B cli/release-tools/fieldlog_provenance.py pin --inputs \"$input\" --settings \"$work/inputs.json\" --java-home \"$JAVA_HOME\" --tool NAME PATH (each tool listed in toolSHA256)",
+    "python3 -B cli/release-tools/fieldlog_provenance.py produce --settings \"$work/inputs.json\" --output \"$run\" --producer-trust \"$trust\"",
+    "\"$mixer\" release inspect --directory \"$run/review-source\" --qualification \"$run/compatible\" --producer-trust \"$trust\"",
+    "\"$mixer\" release inspect --directory \"$run/permission-source\" --qualification \"$run/permission-change\" --producer-trust \"$trust\"",
+    "python3 -B cli/build-tests/test_release_inspection.py \"$mixer\" \"$run\" --producer-trust \"$trust\" --openssl \"$OPENSSL\"",
+    "python3 -B cli/release-tools/verify_fieldlog_admission.py \"$run\" \"$service\" \"$work/origin-final\"",
+    "git apply --check fieldlog-release-inspection-recipe.patch"
+  ],
+  "confirmation": {
+    "assessment": {
+      "application": "dev.fieldlog.generatedr90",
+      "blockers": [],
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "policyAssessment": "pending-project-review",
+      "publicationAllowed": false,
+      "qualificationSHA256": "aedab4a19c03ecc8dab5be658fbf13506d59ad303fe8d20af272ce36f9b300f1",
+      "schema": 1,
+      "sdkDigest": "2b993bd3aa66ba1a8e2e0bd50708e5c1148fafd502f83f8dc1b0ed339c65af35",
+      "sourceDigest": "c29489aa5cd6ecd344f82351d8d0f2e48bcbcf1965ba5a25014c89a1f088d290",
+      "targets": [
+        {
+          "baselineArtifactSHA256": "ea6f4bea8ae490ce6726242d35eb39a82717498284058e7958a252a6ca701236",
+          "behaviorReceiptSHA256": "7177df62f640be2c5d90b442af84bc2689e02a16af23ba18079fdf23eb1f5093",
+          "candidateArtifactSHA256": "86135b08d54c09712169352affb4f8171d32d2b7d6f002ea8deb4a0475103c36",
+          "candidateRuntime": "f1994420d3a4296554749c72c8072fbc67a4426170d3a6c3f8ce2501f277c71b",
+          "installedRuntime": "f1994420d3a4296554749c72c8072fbc67a4426170d3a6c3f8ce2501f277c71b",
+          "platform": "ios",
+          "status": "ota-compatible"
+        },
+        {
+          "baselineArtifactSHA256": "b2a6bc7209a43dbc9fbbeea16610fd0b76a70d19253e54325e14f43256978b88",
+          "behaviorReceiptSHA256": "c30b6eb1ec7f0dbab66a37d9bd7cdf9420fe64ac1731a13d5cd2ec37f31a4af7",
+          "candidateArtifactSHA256": "a755514c135d12796302e7e26627d3d83a9bb183ffb74e4b21c2f91e618fbd97",
+          "candidateRuntime": "ef8c581096bc1d8390601557e854bdd479f8e6026698f0108e4ee0bd26e7ff96",
+          "installedRuntime": "ef8c581096bc1d8390601557e854bdd479f8e6026698f0108e4ee0bd26e7ff96",
+          "platform": "android",
+          "status": "ota-compatible"
+        }
+      ],
+      "technicalEligibility": "ota-compatible"
+    },
+    "exit": 0,
+    "hostEvidence": {
+      "android": {
+        "baselineAttempt": 1,
+        "baselineWasmSHA256": "4e136c2e86fa79b3a6db1b29729f66380861520288db69951a3cc47279236dbc",
+        "behaviorSHA256": "c30b6eb1ec7f0dbab66a37d9bd7cdf9420fe64ac1731a13d5cd2ec37f31a4af7",
+        "candidateAttempt": 1,
+        "candidateSequence": 2,
+        "candidateWasmSHA256": "9a47c4a51eca9c349ba1ca02c0e06e95d3358fddbab15ec8dc33425f50719a0c",
+        "workspaceCompleted": [
+          false,
+          false,
+          true
+        ]
+      },
+      "ios": {
+        "baselineAttempt": 1,
+        "baselineWasmSHA256": "feee2fa5b0c992c977f05a947e45cca3c876701d97c5abae99182eff2e388244",
+        "behaviorSHA256": "7177df62f640be2c5d90b442af84bc2689e02a16af23ba18079fdf23eb1f5093",
+        "candidateAttempt": 1,
+        "candidateSequence": 2,
+        "candidateWasmSHA256": "ca04e22f37f936abc1032686fbc144d3d20f140d6a77120d535c6323192fb098",
+        "ownerRetired": true,
+        "workspaceCompleted": [
+          false,
+          false,
+          true
+        ]
+      }
+    }
+  },
+  "environment": {
+    "go": "go version go1.26.4 darwin/arm64",
+    "host": "27.0.1 arm64",
+    "openssl": "OpenSSL 3.6.5 29 Sep 2026 (Library: OpenSSL 3.6.5 29 Sep 2026)",
+    "python": "3.14.8",
+    "versions": {
+      "aapt2": "Android Asset Packaging Tool (aapt) 2.20-13193326",
+      "clang": "Apple clang version 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+      "hostSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+      "swiftc": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)",
+      "wasm-ld": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)"
+    }
+  },
+  "fieldLogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "limitations": [
+    "The macOS host probes were reused and executed. They were not rebuilt.",
+    "The Apple observer injects a display acknowledgment at the host boundary.",
+    "No simulator, emulator, mobile installation, production signing, publication, or remote changes were exercised.",
+    "An earlier run exhausted all three Apple successor-frame attempts after observed owner retirement. It emitted no trust file. The final relocated run passed. The same frame issue remains intermittent."
+  ],
+  "mixerRevision": "c5eb07615d58fd09bb4c9da61fd23865e6bb76a5",
+  "mixerTree": "d1fdd5af0713d5312477485d7d14c8c685b1220c",
+  "observedAtUTC": "2026-11-18T18:12:24+00:00",
+  "patch": {
+    "fileCount": 6,
+    "gitApplyCheck": true,
+    "name": "fieldlog-release-inspection-recipe.patch",
+    "sha256": "98d3860ee26d24b211f2464bba3b11246faf19f2769927baaebcfe87a92294a0",
+    "verificationRetention": "passed in a temporary index containing the base and this receipt"
+  },
+  "permission": {
+    "assessment": {
+      "application": "dev.fieldlog.generatedr90",
+      "blockers": [
+        "android Effective native permissions changed in the packaged build."
+      ],
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "policyAssessment": "pending-project-review",
+      "publicationAllowed": false,
+      "qualificationSHA256": "aebac93f80668a033a85d9cbf06e6fe476637723d23d83b441ed2fc71e706518",
+      "schema": 1,
+      "sdkDigest": "2b993bd3aa66ba1a8e2e0bd50708e5c1148fafd502f83f8dc1b0ed339c65af35",
+      "sourceDigest": "30cb018ecb01c80b0fc679895558a6751cf89537ebad5a40412bd905b239b059",
+      "targets": [
+        {
+          "baselineArtifactSHA256": "ea6f4bea8ae490ce6726242d35eb39a82717498284058e7958a252a6ca701236",
+          "behaviorReceiptSHA256": "fb5e9104d7f1e260f9eb644b2472713cd45a2ea3f87f7699c625905ed2f7a3ac",
+          "candidateArtifactSHA256": "2e5fa5b6eca73f2834e400049681d7d3595be188c5d121203e677a090b0f457e",
+          "candidateRuntime": "f1994420d3a4296554749c72c8072fbc67a4426170d3a6c3f8ce2501f277c71b",
+          "installedRuntime": "f1994420d3a4296554749c72c8072fbc67a4426170d3a6c3f8ce2501f277c71b",
+          "platform": "ios",
+          "status": "ota-compatible"
+        },
+        {
+          "baselineArtifactSHA256": "b2a6bc7209a43dbc9fbbeea16610fd0b76a70d19253e54325e14f43256978b88",
+          "candidateArtifactSHA256": "377b9c57397a3dd1b0fb114b69b8a0b5aff63b02f4720de440e0d850928f110c",
+          "candidateRuntime": "1a9d7057a6952c489d35590beff6079e7e43b8d46c183d1cd90e14396d5c2021",
+          "installedRuntime": "ef8c581096bc1d8390601557e854bdd479f8e6026698f0108e4ee0bd26e7ff96",
+          "platform": "android",
+          "reason": "Effective native permissions changed in the packaged build.",
+          "status": "store-build-required"
+        }
+      ],
+      "technicalEligibility": "ota-compatible-one-platform"
+    },
+    "exit": 2,
+    "hostEvidence": {
+      "android": {
+        "baselineAttempt": 1,
+        "baselineWasmSHA256": "4e136c2e86fa79b3a6db1b29729f66380861520288db69951a3cc47279236dbc",
+        "behaviorSHA256": "2f094b507b59730e42aefc07bb1d1dab3af0b05b7cc83c01da148514ecf563de",
+        "candidateAttempt": 2,
+        "candidateSequence": 3,
+        "candidateWasmSHA256": "9a47c4a51eca9c349ba1ca02c0e06e95d3358fddbab15ec8dc33425f50719a0c",
+        "workspaceCompleted": [
+          false,
+          false,
+          true
+        ]
+      },
+      "ios": {
+        "baselineAttempt": 1,
+        "baselineWasmSHA256": "feee2fa5b0c992c977f05a947e45cca3c876701d97c5abae99182eff2e388244",
+        "behaviorSHA256": "fb5e9104d7f1e260f9eb644b2472713cd45a2ea3f87f7699c625905ed2f7a3ac",
+        "candidateAttempt": 1,
+        "candidateSequence": 3,
+        "candidateWasmSHA256": "ca04e22f37f936abc1032686fbc144d3d20f140d6a77120d535c6323192fb098",
+        "ownerRetired": true,
+        "workspaceCompleted": [
+          false,
+          false,
+          true
+        ]
+      }
+    }
+  },
+  "privateInputs": [
+    "FieldLog downstream patch and hydrated guest inputs",
+    "Development iOS app and Android APK, manifest, and overlay",
+    "V3 release template and generated FieldLog project template",
+    "Two pinned macOS host probes and matched Android probe storage sources"
+  ],
+  "refusal": {
+    "addedAndroidPermission": "android.permission.CAMERA",
+    "installedHostError": "v3.manifest.compatibility",
+    "origin": {
+      "closures": [
+        {
+          "exit": 0,
+          "forcedCleanup": false,
+          "groupAbsent": true,
+          "listenerClosed": true
+        },
+        {
+          "exit": 0,
+          "forcedCleanup": false,
+          "groupAbsent": true,
+          "listenerClosed": true
+        }
+      ],
+      "offersRetained": {
+        "android": {
+          "artifactSHA256": "a755514c135d12796302e7e26627d3d83a9bb183ffb74e4b21c2f91e618fbd97",
+          "sequence": 2,
+          "signedOfferSHA256": "468876ff5fce3aa2139c660acf3b8d3a2630c5dfd7c6a7e3f7b1aeff6b1423ff"
+        },
+        "ios": {
+          "artifactSHA256": "86135b08d54c09712169352affb4f8171d32d2b7d6f002ea8deb4a0475103c36",
+          "sequence": 2,
+          "signedOfferSHA256": "49889af011a73589b390e47251976445b028a678c59167534165dd761c63730e"
+        }
+      },
+      "refusalCodes": [
+        "unknown_runtime",
+        "not_validated",
+        "artifact_invalid"
+      ],
+      "requests": 29,
+      "serviceSHA256": "0409e4438521e6f27f1196f5c7c5e081a8f26b764a01a454371bf2ce6d118d8c"
+    },
+    "recoveryBeforeAndAfterSHA256": "305b330eb86b5a74985ac458f33b92276f2d605f9d32443c4cd3326b928593d2",
+    "retainedCompletedTask": true,
+    "retainedSequence": 2
+  },
+  "regressionCases": [
+    {
+      "case": "normal inspection fails closed",
+      "exit": 2
+    },
+    {
+      "case": "trusted same-project compiled edit",
+      "exit": 0
+    },
+    {
+      "case": "real Android permission",
+      "exit": 2
+    },
+    {
+      "case": "candidate source mismatch",
+      "exit": 1
+    },
+    {
+      "case": "untrusted signer",
+      "exit": 1
+    },
+    {
+      "case": "bundled trust refused",
+      "exit": 1
+    },
+    {
+      "case": "changed signed index",
+      "exit": 1
+    },
+    {
+      "case": "handwritten behavior",
+      "exit": 2
+    },
+    {
+      "case": "substituted native permissions",
+      "exit": 2
+    },
+    {
+      "case": "substituted guest bytes",
+      "exit": 2
+    },
+    {
+      "case": "trusted test signer control",
+      "exit": 0
+    },
+    {
+      "case": "trusted android receipt for ios",
+      "exit": 2
+    },
+    {
+      "case": "trusted ios receipt for android",
+      "exit": 2
+    },
+    {
+      "case": "trusted iOS receipt for different assignment with the same Wasm",
+      "exit": 2
+    },
+    {
+      "case": "trusted iOS host trace for different signed offer",
+      "exit": 2
+    },
+    {
+      "case": "caller supplied digest cannot authorize inspection",
+      "exit": 1
+    }
+  ],
+  "relocation": {
+    "inputs": "App and probe inputs were copied and checked against the prior owner inventory. A clean c5 CLI upgraded the existing template. The input directory, CLI, probes, and inventory were moved together after pinning into a path containing a space.",
+    "inventorySHA256": "cf3a1ac34e70a5321aa20f36ca1eb663af50ece745d4184b2abede42ef510a7a",
+    "nativeInputSHA256": {
+      "FieldLog-public-development.apk": "453e952b07a4db2fb148a126e6f29a189a545aeccbc88430a9a8e619f4b37faf",
+      "FieldLog.app/FieldLog": "9450f0198198bdc2a8bc30c689e9d060e823b8e0859eccfdc7a567c9ac33ada7",
+      "fieldlog-l04.patch": "cc983bda3f80734286b4c32040148e16753ac01321ecf5391f3b1371a5a8c186",
+      "fieldlog.tar": "5f39c40f8f1d56fc7e9fbfd8e4987568b2d3a79fbc7bc0a35c56d8fa71004c02"
+    },
+    "pinnedInputFiles": 150,
+    "producerSHA256": "b3bfe0c3cd29ac7ed4117ae8dae0d45d3e84e8617f0b373d6e374082ba8805e0",
+    "projectTemplateUpgrade": "The earlier template failed the c5 driver admission. The normal upgrade succeeded with the full local Android toolchain.",
+    "source": "Isolated archive of the Mixer base; patch validated against the original checkout.",
+    "toolPins": "Mismatch controls refused changed guest and apksigner companion pins before creating output. Real Swift 6.3.3 selected as host failed the project lock check.",
+    "toolSHA256": {
+      "aapt2": "a8844d4089b442b034aed8953deee1893253053c900e03141ae7173e3edd8157",
+      "android.jar": "bf1b4387cc7ca94fc6ef684f040d9d16fbf16248e181819f020736ea2053f177",
+      "apksigner": "b47549e373b895ce6ca620d0c7887e674d9615ffa837a86ac601dcfd04adb0f0",
+      "clang": "0c9e1a3944fda9538e5eb45a0a95783d9d702cb7d0f8d608ebd160a75a7d7a3c",
+      "hostSwift": "448457da9a8a56741f2c8c4b8931e85b7377fc009c16918cd8ac1a8a3210ea1f",
+      "iosProbe": "d1dfcb26bed0b28231d2220e681916bdedb3861009fa498a896c18e6a501123b",
+      "keytool": "96f266f60caf23bfc9a5ab9b653d844258723d76443f149c2842277c46aed1ca",
+      "mixer": "15324ae14fc2ac6a29775bea4d4b4eff015ace26d1c9858ff774920cb917135c",
+      "openssl": "b97303270fd2480cabccb2c78bbc96846c383b52eed8f3af169293fd7262aea6",
+      "probe": "2a76f48f083865f9a08637c7699ab91457893c8ba38afcd4dc8f7e4b522ea6a8",
+      "swiftc": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f",
+      "wasm-ld": "9015cfad802c83aef7e24c1415ae4485f4ff5926837148f91ffa8a4b0dabbd97",
+      "zipalign": "0427144f4a3fd242c5a159e7088637082539ae556bc1d2bbc2032bb775d47cea"
+    }
+  },
+  "schema": 1,
+  "status": "passed-local-host"
+}

@@ -317,8 +317,9 @@ The importer produces an advisory migration report.
 
 To inspect a signed FieldLog development update, supply the project that produced
 the candidate, its qualification bundle, and your independently obtained build
-producer trust file. The bundle contains the build provenance, signed offers
+producer trust file. The bundle contains the build provenance, signed offers,
 and observed guest behavior for each target.
+[Produce both FieldLog variants locally](cli/release-tools/README.md).
 
 ```sh
 scripts/mixer release inspect --directory "$FIELDLOG_PROJECT" \

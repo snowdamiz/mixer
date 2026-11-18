@@ -1,0 +1,91 @@
+{
+  "producerReceipt": "verification/receipts/fieldlog-release-inspection-recipe-c5eb07615d.json",
+  "independentReview": "Reviewed patch checks the input APK signature and compiled baseline contract, uses a private regression copy, and retains unresolved scratch. Reviewer observed 17 controls and a same-Wasm permission change. One intermediate inspector run returned unexplained exit 1 before the passing review run.",
+  "files": {
+    "README.md": "1c54e8b105eff233413de6fc1853e01ebea84f5975c63c3a9c9a388d84b97184",
+    "cli/build-tests/test_release_inspection.py": "bdba3b50ffdfa3eaab15574f4033f39c29eb4a0115e07634e6b86b139bb877a3",
+    "cli/release-tools/README.md": "3883436b80661a50f9a2b9537a179fc2982cb56ff6af7540cd80371f756e96c7",
+    "cli/release-tools/canonical.py": "1de096d87d58329684e2d77b9c62958aa51c61627f154a415af7e0e541e3c8f5",
+    "cli/release-tools/fieldlog_provenance.py": "136d1061e240118a751873a76f974677fd1d8b45c6ac65c23c682fa9c4f33de4",
+    "cli/release-tools/verify_fieldlog_admission.py": "1f8ef315e9e186b1ab67b9445d9dcd6f89cdd507512ca841c54cfd6a26d3e4d2"
+  },
+  "reviewPatchSHA256": "6a0cd774fed274058d866f358c67147d347237ae24a6b84adb015bf6704a6df8",
+  "rootRun": {
+    "path": "verification/local/root-release-recipe-check.TsOoIz0A",
+    "priorOutcome": "First 11 checks passed before the historical tool inventory selected a different OpenSSL digest field. The regression driver now reads either recorded layout and still checks the executable digest.",
+    "verifiedControls": [
+      {
+        "case": "normal inspection fails closed",
+        "exit": 2
+      },
+      {
+        "case": "trusted same-project compiled edit",
+        "exit": 0
+      },
+      {
+        "case": "real Android permission",
+        "exit": 2
+      },
+      {
+        "case": "candidate source mismatch",
+        "exit": 1
+      },
+      {
+        "case": "untrusted signer",
+        "exit": 1
+      },
+      {
+        "case": "bundled trust refused",
+        "exit": 1
+      },
+      {
+        "case": "changed signed index",
+        "exit": 1
+      },
+      {
+        "case": "handwritten behavior",
+        "exit": 2
+      },
+      {
+        "case": "substituted native permissions",
+        "exit": 2
+      },
+      {
+        "case": "substituted packaged Android archive",
+        "exit": 2
+      },
+      {
+        "case": "substituted guest bytes",
+        "exit": 2
+      },
+      {
+        "case": "trusted test signer control",
+        "exit": 0
+      },
+      {
+        "case": "trusted android receipt for ios",
+        "exit": 2
+      },
+      {
+        "case": "trusted ios receipt for android",
+        "exit": 2
+      },
+      {
+        "case": "trusted iOS receipt for different assignment with the same Wasm",
+        "exit": 2
+      },
+      {
+        "case": "trusted iOS host trace for different signed offer",
+        "exit": 2
+      },
+      {
+        "case": "caller supplied digest cannot authorize inspection",
+        "exit": 1
+      }
+    ],
+    "logSHA256": "0941a30b593778588541baf29cf2ab9e97c6eb7d5374439ba12524fabe968e12",
+    "mixerSHA256": "a19439c866fb2a647a722d65ccee619e35c398737cfa9e947146dad6ac252a6b",
+    "input": "verification/local/l04-release-inspector-Ir6TLM/integrated-run"
+  },
+  "scope": "Development signing and macOS host proof. The recipe requires separately supplied FieldLog overlays, native apps, templates, prebuilt host probes and operator trust. No mobile test or publication occurred in this replay."
+}
