@@ -6,6 +6,7 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
 
   @name "mixer_workspace_self_service_v1"
   @principal "public.mixer_authz_principals"
+  @application_table "mixer_authz_applications"
   @member "((id = current_setting('mixer.workspace.member_id'::text, true)) AND (identity_class = 'human'::text))"
   @settings [
     "search_path=pg_catalog",
@@ -17,9 +18,9 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
   # PostgreSQL 17 policy deparse from the reviewed authorization and discovery migrations.
   @tenant_policy_digest "072102acd3d6c69fea13fc5ce8f77b6828ccd223cc1d415725113d4838836cb9"
 
-  def protected_rows(writer, owner) do
+  def protected_rows({writer, _registration?}, owner) do
     grants =
-      grants()
+      grants(false)
       |> Enum.filter(fn {relation, _, _} -> relation in identity_relations() end)
       |> Enum.map(fn {relation, column, privilege} ->
         %{
@@ -80,21 +81,21 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
         [writer]
       )
 
-    function!(context, oid, roles)
+    registration? = function!(context, oid, roles)
     build_count!(context, oid, roles)
-    grants!(context, oid, roles.relation_owner)
-    policies!(context, oid, roles.relation_owner)
+    grants!(context, oid, roles.relation_owner, registration?)
+    policies!(context, oid, roles.relation_owner, registration?)
     tenant_policies!(context, oid)
-    oid
+    {oid, registration?}
   end
 
   defp function!(context, writer, roles) do
-    [[true]] =
+    [[true, registration?]] =
       query!(
         context,
         """
         SELECT count(*)=1 AND bool_and(n.nspname='public' AND p.proname=$1
-          AND p.proowner=$2::oid AND l.lanname='plpgsql' AND CASE WHEN pg_catalog.octet_length(p.prosrc)<=65536 THEN p.prosrc=$3 ELSE false END AND p.proconfig=$4::text[]
+          AND p.proowner=$2::oid AND l.lanname='plpgsql' AND CASE WHEN pg_catalog.octet_length(p.prosrc)<=65536 THEN p.prosrc=ANY($3::text[]) ELSE false END AND p.proconfig=$4::text[]
           AND p.proargtypes='25 25 25 3802 20 20'::oidvector AND p.pronargs=6
           AND p.proargnames=ARRAY['op','org','target','body','issued','expires']::text[]
           AND p.prorettype='pg_catalog.jsonb'::regtype AND p.prokind='f' AND p.prosecdef
@@ -108,7 +109,8 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
           AND (SELECT count(*) FROM pg_catalog.aclexplode(p.proacl) a
                WHERE a.grantee IN (p.proowner,(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$5))
                  AND a.grantor=p.proowner AND a.privilege_type='EXECUTE' AND NOT a.is_grantable)=2
-          AND (SELECT count(*) FROM pg_catalog.aclexplode(p.proacl))=2)
+          AND (SELECT count(*) FROM pg_catalog.aclexplode(p.proacl))=2),
+          bool_and(p.prosrc=($3::text[])[2])
         FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
         JOIN pg_catalog.pg_language l ON l.oid=p.prolang
         WHERE p.proowner=$2::oid OR (n.nspname='public' AND p.proname=$1)
@@ -116,7 +118,7 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
         [
           @name,
           writer,
-          Schema.body(),
+          [Schema.body(), Schema.body(:application_registration)],
           @settings,
           roles.ordinary_runtime_login,
           roles.lifecycle_login,
@@ -141,6 +143,8 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
         """,
         [writer]
       )
+
+    registration?
   end
 
   defp build_count!(context, writer, roles) do
@@ -179,8 +183,8 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
       )
   end
 
-  defp grants!(context, writer, owner) do
-    grants = grants()
+  defp grants!(context, writer, owner, registration?) do
+    grants = grants(registration?)
 
     [[true]] =
       query!(
@@ -239,7 +243,7 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
       )
   end
 
-  defp policies!(context, writer, owner) do
+  defp policies!(context, writer, owner, registration?) do
     rows =
       query!(
         context,
@@ -253,7 +257,7 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
         JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
         WHERE $1::oid=ANY(p.polroles)
           OR (0::oid=ANY(p.polroles) AND n.nspname='public' AND c.relname=ANY($3::text[]))
-        LIMIT 14
+        LIMIT 16
         """,
         [writer, owner, Schema.build_create_tables() ++ Schema.build_read_tables()]
       )
@@ -311,7 +315,15 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
           []
       end
 
-    true = Enum.frequencies(rows) === Enum.frequencies(expected ++ processor)
+    application =
+      if registration? do
+        for [name, command, using, check] <- Schema.application_policies(),
+            do: [@application_table, name, command, true, [writer], using, check, true]
+      else
+        []
+      end
+
+    true = Enum.frequencies(rows) === Enum.frequencies(expected ++ processor ++ application)
   end
 
   defp tenant_policies!(context, writer) do
@@ -345,8 +357,9 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
   defp identity_relations, do: authz_relations(Schema.identity_tables())
   defp authz_relations(tables), do: Enum.map(tables, &("public.mixer_authz_" <> &1))
 
-  defp grants do
-    tenant = authz_relations(Schema.tenant_tables())
+  defp grants(registration?) do
+    applications = if registration?, do: [Schema.application_relation()], else: []
+    tenant = authz_relations(Schema.tenant_tables()) ++ applications
     build_create = Enum.map(Schema.build_create_tables(), &("public." <> &1))
     build_read = Enum.map(Schema.build_read_tables(), &("public." <> &1))
 

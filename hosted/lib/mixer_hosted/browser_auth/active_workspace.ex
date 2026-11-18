@@ -1,7 +1,8 @@
 defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
   @moduledoc false
   alias MixerHosted.Authorization.Scope
-  alias MixerHosted.BrowserAuth.{ActiveCatalog, Protocol, RuntimeConfig, RuntimeOwner}
+  alias MixerHosted.BrowserAuth.{ActiveCatalog, Config, Protocol, RuntimeConfig, RuntimeOwner}
+  alias MixerHosted.CustomerBuilds.Selection
   alias MixerHosted.CustomerWorkspace.{SelfService, Support}
   alias MixerHosted.Identity.KeyOwner
 
@@ -18,6 +19,13 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
       do: RuntimeConfig.workspace_manage_scope?(scope)
 
   def enabled?(_), do: false
+
+  def application_registration_enabled?(
+        %RuntimeConfig{workspace_catalog: :workspace_v1} = runtime
+      ),
+      do: Config.scope_profile(runtime.browser_config.scope) == :workspace_builds
+
+  def application_registration_enabled?(_), do: false
 
   def operation({:create_organization, display_name}),
     do: operation("create_organization", nil, display_name)
@@ -42,6 +50,12 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
   end
 
   def operation({:support, body}), do: Support.parse(body)
+
+  def operation({:register_application, organization, project, app}) do
+    if Enum.all?([organization, project, app], &Selection.id?/1),
+      do: {:ok, {"register_application", organization, project, %{"application_id" => app}}},
+      else: {:error, :invalid_request}
+  end
 
   def operation(_), do: {:error, :invalid_request}
 

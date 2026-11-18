@@ -2,6 +2,7 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
   @moduledoc false
   alias MixerHosted.CustomerBuildCatalog.Schema
   alias MixerHosted.BrowserAuth.RelationCatalog.Unavailable
+  alias MixerHosted.CustomerWorkspace.SelfServiceSchema, as: WorkspaceSchema
 
   # Fixed metadata only. Never executes the capabilities as the lifecycle login.
   def check!(repo, roles, deadline, create_enabled \\ false, processor_profile \\ nil) do
@@ -207,8 +208,17 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
       deadline,
       backend,
       """
-      SELECT (SELECT count(*) FROM pg_catalog.pg_policy
-          WHERE polrelid='public.mixer_authz_applications'::regclass)=4
+      SELECT (SELECT count(*) FROM pg_catalog.pg_policy p
+          WHERE p.polrelid='public.mixer_authz_applications'::regclass
+            AND NOT (p.polpermissive
+              AND p.polroles IS NOT DISTINCT FROM ARRAY[(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$4)]
+              AND EXISTS (
+                SELECT 1 FROM pg_catalog.jsonb_to_recordset($5::jsonb)
+                  AS expected(name text, command text, using_expr text, check_expr text)
+                WHERE p.polname=expected.name AND p.polcmd::text=expected.command
+                  AND pg_catalog.pg_get_expr(p.polqual,p.polrelid) IS NOT DISTINCT FROM expected.using_expr
+                  AND pg_catalog.pg_get_expr(p.polwithcheck,p.polrelid) IS NOT DISTINCT FROM expected.check_expr
+              )))=4
         AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_policy p WHERE
         (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1)=ANY(p.polroles)
         AND NOT((p.polrelid='public.mixer_authz_applications'::regclass AND p.polname=ANY($2::text[]))
@@ -216,7 +226,15 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
             AND p.polroles=ARRAY[(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=$1)]
             AND p.polname=ANY(ARRAY['build_catalog_owner','build_catalog_lock']::text[]))))
       """,
-      [role, Enum.map(contract.policies, & &1.name), create_enabled]
+      [
+        role,
+        Enum.map(contract.policies, & &1.name),
+        create_enabled,
+        WorkspaceSchema.writer(),
+        for [name, command, using, check] <- WorkspaceSchema.application_policies() do
+          %{name: name, command: command, using_expr: using, check_expr: check}
+        end
+      ]
     )
 
     :ok

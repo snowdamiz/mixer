@@ -23,7 +23,7 @@ function refusal(status: number, value: unknown): WorkspaceClientFailure {
 export function createWorkspacePost(options: WorkspaceTransportOptions, csrf: () => string) {
   const fetchRequest = options.fetch ?? globalThis.fetch;
   const timeoutMs = options.timeoutMs ?? 15_000;
-  return async (path: "/console-api/v1/orgs" | "/console-api/v1/projects" | "/console-api/v1/workspace-admin" | "/console-api/v1/support-requests",
+  return async (path: "/console-api/v1/orgs" | "/console-api/v1/projects" | "/console-api/v1/workspace-admin" | "/console-api/v1/support-requests" | "/console-api/v1/applications",
     payload: object, status: 200 | 201, maximumBytes: number, signal?: AbortSignal): Promise<unknown> => {
     if (signal?.aborted) return workspaceFailure("aborted");
     const body = JSON.stringify(payload);

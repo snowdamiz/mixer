@@ -4,9 +4,8 @@ defmodule MixerHosted.BrowserAuth.WorkspaceSupportHTTPTest do
   use ExUnit.Case, async: false
 
   import MixerHosted.Test.OrdinaryBrowserStartupFixture
-  alias MixerHosted.BrowserAuth.{ActiveWorkspaceSchema, RuntimeOwner}
-  alias MixerHosted.BrowserAuth.StorageFixture.{Admin, Migration}
-  alias MixerHosted.CustomerWorkspace.{SelfServiceSchema, SupportSchema}
+  alias MixerHosted.BrowserAuth.RuntimeOwner
+  alias MixerHosted.BrowserAuth.StorageFixture.Admin
   alias MixerHosted.Test.OrdinaryBrowserStartupFixture.Database, as: DB
 
   @endpoint "/console-api/v1/support-requests"
@@ -14,40 +13,7 @@ defmodule MixerHosted.BrowserAuth.WorkspaceSupportHTTPTest do
 
   setup_all do
     c = prepare!(:workspace_manage)
-    path = Path.expand("../../../priv/repo/migrations", __DIR__)
-
-    for version <- [
-          20_261_025_000_001,
-          20_261_025_000_002,
-          20_261_116_000_001,
-          20_261_117_000_000,
-          20_261_118_000_000,
-          20_261_118_000_002,
-          20_261_118_000_010
-        ] do
-      [file] = Path.wildcard(Path.join(path, "#{version}_*.exs"))
-      [{module, _}] = Code.require_file(file)
-      assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
-    end
-
-    conn = DB.connection!("browser_admin")
-
-    try do
-      for sql <-
-            SelfServiceSchema.provisioning_statements("browser_ordinary") ++
-              ActiveWorkspaceSchema.provisioning_statements("browser_ordinary") do
-        Postgrex.query!(conn, sql, [])
-      end
-    after
-      GenServer.stop(conn)
-    end
-
-    DB.q!(
-      Migration,
-      "REVOKE EXECUTE ON FUNCTION public.mixer_billing_organization_sync() FROM PUBLIC"
-    )
-
-    DB.q!(Migration, SupportSchema.grant_statement("browser_ordinary"))
+    provision_workspace!()
     start!(c)
   end
 
@@ -66,6 +32,12 @@ defmodule MixerHosted.BrowserAuth.WorkspaceSupportHTTPTest do
     org_response = post(c, identity, "/console-api/v1/orgs", %{display_name: "Support test"})
     assert org_response.status == 201
     assert %{"id" => org, "plan" => "free"} = Jason.decode!(org_response.body)
+
+    assert post(c, identity, "/console-api/v1/applications", %{
+             organization_id: org,
+             project_id: "project-a",
+             application_id: "example.refused"
+           }).status == 404
 
     assert DB.q!(
              Admin,

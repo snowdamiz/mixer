@@ -6,7 +6,7 @@ import type { BuildSelectionController, BuildSelectionState } from "./build-sele
 import type { WorkspaceDirectoryState } from "../domain/workspace-directory.js";
 
 export type BuildSelectionActions = Pick<BuildSelectionController, "selectApplication" | "selectBuild" |
-  "firstApplications" | "nextApplications" | "firstBuilds" | "nextBuilds" | "refreshSelected" |
+  "firstApplications" | "refreshEmptyApplications" | "nextApplications" | "firstBuilds" | "nextBuilds" | "refreshSelected" |
   "beginCreate" | "nextInputs" | "selectInput" | "submitBuild" | "retrySubmit" | "cancelSubmit">;
 export interface BuildSelectionBinding {
   readonly state: Accessor<BuildSelectionState>;
@@ -38,6 +38,7 @@ export function createBuildSelectionBinding(
     selectApplication(id: string) { if (current()) controller.selectApplication(id); },
     selectBuild(key: Parameters<BuildSelectionController["selectBuild"]>[0]) { if (current()) controller.selectBuild(key); },
     firstApplications() { if (current()) controller.firstApplications(); },
+    refreshEmptyApplications() { if (current()) controller.refreshEmptyApplications(); },
     nextApplications() { if (current()) controller.nextApplications(); },
     firstBuilds() { if (current()) controller.firstBuilds(); },
     nextBuilds() { if (current()) controller.nextBuilds(); },

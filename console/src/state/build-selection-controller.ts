@@ -27,6 +27,7 @@ export interface BuildSelectionState {
   readonly submission?: SubmissionState;
   readonly priorSubmissionUnknown?: boolean;
   readonly applications: CatalogLoad<ApplicationPage>;
+  readonly applicationCatalogEmpty?: true;
   readonly builds: CatalogLoad<BuildPage>;
   readonly detail: DetailLoad;
   readonly selectedApplicationId?: string;
@@ -39,6 +40,7 @@ export interface BuildSelectionController {
   selectApplication(applicationId: string): void;
   selectBuild(key: Readonly<Pick<BuildReadSelection, "buildId" | "platform">>): void;
   firstApplications(): void;
+  refreshEmptyApplications(): void;
   nextApplications(): void;
   firstBuilds(): void;
   nextBuilds(): void;
@@ -241,7 +243,10 @@ export function createBuildSelectionController(): BuildSelectionController {
         const parsed = parseApplicationPage(input, value.project);
         if (!current(value)) return;
         active = undefined;
-        update({ applications: Object.freeze({ kind: parsed.applications.length ? "ready" : "empty", page: parsed }), builds: unselected, detail: unselected });
+        const empty = parsed.applications.length === 0;
+        update({ applications: Object.freeze({ kind: empty ? "empty" : "ready", page: parsed }),
+          ...(empty && page.cursor === undefined && parsed.nextCursor === null ? { applicationCatalogEmpty: true } : {}),
+          builds: unselected, detail: unselected });
       } catch (error) { fail(value, error, "applications"); }
     })();
   }
@@ -345,6 +350,9 @@ export function createBuildSelectionController(): BuildSelectionController {
         ? previous : { selection: row.selection, revision: row.snapshot.revision });
     },
     firstApplications(): void { if (!disposed && applicationAttempt.cursor !== undefined) loadApplications(first); },
+    refreshEmptyApplications(): void {
+      if (!disposed && state.applicationCatalogEmpty) loadApplications(first);
+    },
     nextApplications(): void {
       const value = state.applications;
       if (!disposed && (value.kind === "ready" || value.kind === "empty") && value.page.nextCursor !== null)

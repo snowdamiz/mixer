@@ -1,3 +1,5 @@
+import { sessionApplicationRegistration } from "../api/cookie-application-registration-client.js";
+import type { RegisterApplication } from "../api/cookie-application-registration-client.js";
 import { sessionWorkspaceSupport } from "../api/cookie-workspace-support-client.js";
 import type { SupportDraft, WorkspaceSupportClient } from "../api/cookie-workspace-support-client.js";
 import { sessionWorkspaceAdmin } from "../api/cookie-workspace-admin-client.js";
@@ -24,7 +26,7 @@ export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" 
     readonly workspaceCreate?: WorkspaceCreateClient;
     readonly workspaceAdmin?: WorkspaceAdminClient;
     readonly workspaceSupport?: WorkspaceSupportClient;
-    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient; cancel?: CancelBuild }> };
+    readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient; cancel?: CancelBuild; registerApplication?: RegisterApplication }> };
 
 export interface BrowserSessionController {
   getSession(): ConsoleSession;
@@ -211,7 +213,11 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
           delegate(value, owned => rawCreate.submit(attempt, owned), signal),
       });
       const cancel: CancelBuild = (selection, signal) => delegate(value, owned => rawCreate.cancel(selection, owned), signal);
-      return { create, ...(profile === "workspace-builds" ? { cancel } : {}) };
+      if (profile !== "workspace-builds") return { create };
+      const register = sessionApplicationRegistration(settings, csrf);
+      const registerApplication: RegisterApplication = (input, signal) =>
+        delegate(value, owned => register(input, owned), signal);
+      return { create, cancel, registerApplication };
     };
     active = undefined;
     capability = value;

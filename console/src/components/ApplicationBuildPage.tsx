@@ -1,5 +1,6 @@
 import { CancelBuildForm } from "./CancelBuildForm.js";
 import type { CancelBuild } from "../api/build-submission.js";
+import type { RegisterApplication } from "../api/cookie-application-registration-client.js";
 import type { CookieBuildClient } from "../api/cookie-build-client.js";
 import { BuildCreation } from "./BuildCreation.js";
 import { A } from "@solidjs/router";
@@ -13,6 +14,7 @@ import type { BuildSelectionBinding } from "../state/build-selection-binding.js"
 import type { BuildSelectionState } from "../state/build-selection-controller.js";
 import { BuildOverview } from "./BuildOverview.js";
 import { BuildLogs } from "./BuildLogs.js";
+import { RegisterApplicationForm } from "./RegisterApplicationForm.js";
 import "./application-build-page.css";
 
 const labels: Record<BuildState, string> = {
@@ -50,10 +52,17 @@ export function ApplicationBuildPage(props: {
   readonly showBuildCreation?: boolean;
   readonly cancelBuild?: CancelBuild | undefined;
   readonly buildReader?: CookieBuildClient | undefined;
+  readonly registerApplication?: RegisterApplication | undefined;
   readonly onRetrySession?: () => void;
 }) {
   const directory = createMemo(() => resolveWorkspaceDirectory(props.workspace));
   const state = () => props.binding.state();
+  const registrationProject = createMemo(() => {
+    const { selectedOrganization, selectedProject } = directory();
+    if (state().applicationCatalogEmpty && selectedOrganization?.organization_roles.includes("owner")) {
+      return selectedProject;
+    }
+  });
   const applications = () => { const value = state().applications; return value.kind === "ready" || value.kind === "empty" ? value.page : undefined; };
   const builds = () => { const value = state().builds; return value.kind === "ready" || value.kind === "empty" ? value.page : undefined; };
   const detail = () => { const value = state().detail; return value.kind === "ready" ? value : undefined; };
@@ -112,6 +121,12 @@ export function ApplicationBuildPage(props: {
             <div class="workspace-pagination"><button type="button" class="workspace-page-button" onClick={props.binding.controller.firstApplications}>First applications</button>
               <Show when={page().nextCursor !== null}><button type="button" class="workspace-page-button" onClick={props.binding.controller.nextApplications}>More applications</button></Show></div>
           </>}</Show>
+          <Show when={props.registerApplication} keyed>{register =>
+            <Show when={registrationProject()} keyed>{project =>
+              <RegisterApplicationForm project={{ organizationId: project.organization_id, projectId: project.id }}
+                register={register} refresh={props.binding.controller.refreshEmptyApplications} />
+            }</Show>
+          }</Show>
         </section>
         <section class="workspace-directory-panel" aria-labelledby="platform-build-list-heading" aria-busy={state().builds.kind === "loading"}>
           <header class="workspace-directory-heading"><div><h2 id="platform-build-list-heading">Platform builds</h2><p><Show when={state().selectedApplicationId} fallback="Choose an application to see its builds.">{id => <>Application ID <code><bdi>{id()}</bdi></code></>}</Show></p></div></header>

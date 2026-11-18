@@ -37,7 +37,8 @@ class TestNode {
   removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
   cloneNode(deep){const node=new TestNode(this.nodeType,this.nodeName,this.data);node.attributes=new Map(this.attributes);if(deep)for(const child of this.childNodes)node.appendChild(child.cloneNode(true));return node;}
   set innerHTML(html){const target=this.nodeName==="TEMPLATE"?(this.content=new TestNode(11,"#fragment")):this;target.textContent="";const stack=[target];for(const token of html.match(/<!--[\s\S]*?-->|<[^>]+>|[^<]+/g)??[]){if(token.startsWith("<!")){stack.at(-1).appendChild(new TestNode(8,"#comment",token.slice(4,-3)));}else if(token.startsWith("</")){stack.pop();}else if(token.startsWith("<")){const name=token.match(/^<([\w-]+)/)[1];const node=new TestNode(1,name.toUpperCase());for(const match of token.slice(name.length+1,-1).matchAll(/([\w:-]+)(?:="([^"]*)"|='([^']*)'|=([^\s>]+))?/g))node.setAttribute(match[1],decode(match[2]??match[3]??match[4]??""));stack.at(-1).appendChild(node);if(!/^(img|br|hr|input|meta|link|area|source|wbr)$/i.test(name)&&!token.endsWith("/>"))stack.push(node);}else stack.at(-1).appendChild(new TestNode(3,"#text",decode(token)));}}
-  click(){if(this.disabled)return;const nodes=[];for(let n=this;n;n=n.parentNode)nodes.push(n);if(!nodes.includes(document))nodes.push(document);nodes.push(window);const event={type:"click",button:0,target:this,currentTarget:document,defaultPrevented:false,cancelBubble:false,preventDefault(){this.defaultPrevented=true;},stopPropagation(){this.cancelBubble=true;},composedPath:()=>nodes};for(const node of nodes)for(const fn of [...(node.listeners?.get("click")??[])])fn(event);}
+  click(){if(this.disabled)return;this.dispatch("click");}
+  dispatch(type){const nodes=[];for(let n=this;n;n=n.parentNode)nodes.push(n);if(!nodes.includes(document))nodes.push(document);nodes.push(window);const event={type,button:0,target:this,currentTarget:document,defaultPrevented:false,cancelBubble:false,preventDefault(){this.defaultPrevented=true;},stopPropagation(){this.cancelBubble=true;},composedPath:()=>nodes};for(const node of nodes)for(const fn of [...(node.listeners?.get(type)??[])])fn(event);}
 }
 const decode=s=>s.replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'");
 const root=fileURLToPath(new URL("../",import.meta.url));
@@ -58,7 +59,12 @@ const scope={organizationId:"org",projectId:"p"};
 const dto=(change={})=>({...scope,applicationId:"app",buildId:"b-ios",platform:"ios",sourceSha256:"a".repeat(64),toolchainLockSha256:"b".repeat(64),buildDefinitionSha256:"c".repeat(64),revision:2,state:"queued",attempt:1,maxAttempts:3,failureCode:null,workerCompletionPending:false,...change});
 const apps=(ids=["app","empty"],nextCursor=null,projectId="p")=>({...scope,projectId,applications:ids.map(applicationId=>({applicationId})),nextCursor});
 const catalog=(rows=[dto(),dto({buildId:"c-android",platform:"android",state:"running",workerCompletionPending:true})],applicationId="app",nextCursor=null)=>({...scope,applicationId,builds:rows,nextCursor});
-function fixture(){const calls=[],waiting=[];let index=0;const fetch=(url,options)=>new Promise((resolve,reject)=>{const call={path:String(url),...options,resolve,reject};calls.push(call);waiting.shift()?.(call);});const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch);return {...app,container,calls,async request(expected){const call=calls[index++]??await new Promise(resolve=>waiting.push(resolve));assert.equal(call.path,expected);assert.equal(call.method,"GET");assert.equal(call.credentials,"same-origin");return call;},text:()=>container.textContent,click(text,tag="BUTTON"){const node=walk(container).find(n=>n.nodeName===tag&&n.textContent.includes(text));assert(node,"missing "+tag+" "+text);node.click();return node;},close(){app.dispose();container.remove();}};}
+function fixture(profile){const calls=[],waiting=[];let index=0;const fetch=(url,options)=>{
+  if (url === "/console-api/v1/workspace-admin" && JSON.parse(options.body).operation === "usage") {
+    return Promise.resolve(json({ organization_id: "org", plan: "free", active_projects: 2, project_limit: 3,
+      held_builds: 0, build_limit: 2, builds: 0, can_administer: false }));
+  }
+  return new Promise((resolve,reject)=>{const call={path:String(url),...options,resolve,reject};calls.push(call);waiting.shift()?.(call);});};const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch,profile);return {...app,container,calls,async request(expected, method = "GET"){const call=calls[index++]??await new Promise(resolve=>waiting.push(resolve));assert.equal(call.path,expected);assert.equal(call.method,method);assert.equal(call.credentials,"same-origin");return call;},text:()=>container.textContent,click(text,tag="BUTTON"){const node=walk(container).find(n=>n.nodeName===tag&&n.textContent.includes(text));assert(node,"missing "+tag+" "+text);node.click();return node;},close(){app.dispose();container.remove();}};}
 async function admitted(f, organizations = [{id:"org",display_name:"Test studio",organization_roles:["owner"]}]){
   const call = await f.request("/auth/session");
   call.resolve(json({state:"authenticated",generation:"A".repeat(43),csrf_token:"A".repeat(43),expires_at:Math.floor(Date.now()/1000)+60}));
@@ -340,3 +346,61 @@ for (const stage of ["catalog", "detail"]) {
     } finally { f.close(); }
   });
 }
+
+const registrationForm = f => walk(f.container).find(node => node.nodeName === "FORM" &&
+  node.getAttribute("aria-label") === "Register application");
+const applicationListPath = "/console-api/v1/applications?organization_id=org&project_id=p";
+
+test("workspace-builds owner registers and refreshes an empty project through the actual form", { timeout: 3000 }, async () => {
+  const f = fixture("workspace-builds");
+  try {
+    (await admitted(f)).resolve(json(apps([])));
+    await flush();
+    const form = registrationForm(f);
+    assert.ok(form);
+    const input = walk(form).find(node => node.nodeName === "INPUT");
+    input.value = "example.fixture.app";
+    input.dispatch("input");
+    form.dispatch("submit");
+    const post = await f.request("/console-api/v1/applications", "POST");
+    const payload = { organization_id: "org", project_id: "p", application_id: "example.fixture.app" };
+    assert.deepEqual(JSON.parse(post.body), payload);
+    assert.equal(post.headers["x-mixer-csrf"], "A".repeat(43));
+    form.dispatch("submit");
+    assert.equal(f.calls.filter(call => call.method === "POST").length, 1);
+    post.resolve(new Response(JSON.stringify(payload), {
+      status: 201, headers: { "content-type": "application/json", "cache-control": "no-store" },
+    }));
+    (await f.request(applicationListPath)).resolve(json(apps([payload.application_id])));
+    await flush();
+    assert.match(f.text(), /example.fixture.app/);
+    assert.equal(registrationForm(f), undefined);
+  } finally { f.close(); }
+});
+
+test("registration is hidden for a viewer, outside the opt-in profile, and on empty continuation pages", { timeout: 3000 }, async () => {
+  for (const [profile, role] of [[undefined, "owner"], ["workspace-manage", "owner"], ["workspace-builds", "viewer"]]) {
+    const f = fixture(profile);
+    try {
+      (await admitted(f, [{ id: "org", display_name: "Test studio", organization_roles: [role] }]))
+        .resolve(json(apps([])));
+      await flush();
+      assert.equal(registrationForm(f), undefined, `${profile ?? "default"} / ${role}`);
+      assert.ok(f.calls.every(call => call.method === "GET"));
+    } finally { f.close(); }
+  }
+  const f = fixture("workspace-builds");
+  try {
+    (await admitted(f)).resolve(json(apps(["existing"], "TkVYVA")));
+    await flush();
+    assert.equal(registrationForm(f), undefined);
+    f.click("More applications");
+    (await f.request(applicationListPath + "&cursor=TkVYVA")).resolve(json(apps([])));
+    await flush();
+    assert.equal(registrationForm(f), undefined);
+    f.click("First applications");
+    (await f.request(applicationListPath)).resolve(json(apps(["existing"])));
+    await flush();
+    assert.match(f.text(), /existing/);
+  } finally { f.close(); }
+});

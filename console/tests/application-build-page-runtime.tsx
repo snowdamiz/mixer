@@ -8,10 +8,10 @@ import type { BrowserSessionClientOptions } from "../src/api/browser-session-cli
 export function mount(
   container: HTMLElement,
   fetch: NonNullable<BrowserSessionClientOptions["fetch"]>,
-  profile?: "workspace-manage",
+  profile?: "workspace-manage" | "workspace-builds",
 ) {
   // Earlier mounts clear document-level handlers when their fixture closes.
-  if (profile === "workspace-manage") delegateEvents(["input", "submit"]);
+  if (profile) delegateEvents(["input", "submit"]);
   const controller = createBrowserSessionController({ fetch }, profile);
   const history = createMemoryHistory();
   history.set({ value: "/workspace", replace: true, scroll: false });

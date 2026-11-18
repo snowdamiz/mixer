@@ -39,12 +39,15 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
     end
   end
 
-  defp prepare_evidence! do
+  defp prepare_evidence!(profile) do
     prior =
       for key <- ~w(MIXER_BROWSER_CATALOG_FIXTURE_ROOT MIXER_BROWSER_CATALOG_EVIDENCE),
           do: {key, System.fetch_env(key)}
 
-    root = Path.join(System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT"), "ordinary-r1422")
+    name =
+      if profile == :workspace_builds, do: "ordinary-workspace-builds", else: "ordinary-r1422"
+
+    root = Path.join(System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT"), name)
     :ok = File.mkdir(root)
     File.mkdir!(Path.join(root, "proof"))
 
@@ -114,9 +117,56 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
     Map.merge(c, %{http_port: port, root: root})
   end
 
+  def provision_workspace! do
+    alias MixerHosted.BrowserAuth.ActiveWorkspaceSchema
+    alias MixerHosted.CustomerWorkspace.{SelfServiceSchema, SupportSchema}
+    alias MixerHosted.Repo.Migrations
+
+    for {version, module} <- [
+          {20_261_025_000_001, Migrations.AddBuildAdmission},
+          {20_261_025_000_002, Migrations.AddBuildAggregateLimits},
+          {20_261_116_000_001, Migrations.AddBillingOrganizationState},
+          {20_261_117_000_000, Migrations.AddCustomerWorkspaceSelfService},
+          {20_261_118_000_000, Migrations.AllowFreeWorkspaceBillingStateSync},
+          {20_261_118_000_002, Migrations.AddCustomerSupportRequests},
+          {20_261_118_000_010, Migrations.AddWorkspaceOrganizationDeletion}
+        ] do
+      migrate_workspace!(Migration, version, module)
+    end
+
+    conn = F.connection!("browser_admin")
+
+    try do
+      for sql <-
+            SelfServiceSchema.provisioning_statements("browser_ordinary") ++
+              ActiveWorkspaceSchema.provisioning_statements("browser_ordinary") do
+        Postgrex.query!(conn, sql, [])
+      end
+    after
+      GenServer.stop(conn)
+    end
+
+    F.q!(
+      Migration,
+      "REVOKE EXECUTE ON FUNCTION public.mixer_billing_organization_sync() FROM PUBLIC"
+    )
+
+    F.q!(Migration, SupportSchema.grant_statement("browser_ordinary"))
+    migrate_workspace!(Admin, 20_261_118_000_011, Migrations.AddWorkspaceApplicationRegistration)
+  end
+
+  defp migrate_workspace!(repo, version, module) do
+    unless Code.ensure_loaded?(module) do
+      [path] = Path.wildcard("priv/repo/migrations/#{version}_*.exs")
+      Code.require_file(path)
+    end
+
+    assert :ok = Ecto.Migrator.up(repo, version, module, log: false)
+  end
+
   def prepare!(create \\ false) do
     refuse_names!(@all_names)
-    prepare_evidence!()
+    prepare_evidence!(create)
     conn = F.connection!("browser_admin", "postgres")
 
     try do
@@ -264,9 +314,17 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
       "session_vault_ref" => "vault://fixture/browser",
       "scope" =>
         case create do
-          :workspace_manage -> "openid mixer.workspace.read mixer.workspace.manage"
-          true -> "openid mixer.workspace.read mixer.build.read mixer.build.create"
-          false -> "openid mixer.workspace.read mixer.build.read"
+          :workspace_builds ->
+            "openid mixer.workspace.read mixer.workspace.manage mixer.build.read mixer.build.create"
+
+          :workspace_manage ->
+            "openid mixer.workspace.read mixer.workspace.manage"
+
+          true ->
+            "openid mixer.workspace.read mixer.build.read mixer.build.create"
+
+          false ->
+            "openid mixer.workspace.read mixer.build.read"
         end,
       "response_mode" => "query",
       "response_iss_required" => true
@@ -306,7 +364,7 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
     ordinary =
       settings
       |> Keyword.put(:username, "browser_ordinary")
-      |> Keyword.put(:pool_size, 1)
+      |> Keyword.put(:pool_size, if(create == :workspace_builds, do: 4, else: 1))
       |> Keyword.put(:ssl, false)
 
     life = [
@@ -326,7 +384,8 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
 
     runtime = %RuntimeConfig{
       admission_profile: :build_catalog_v3,
-      workspace_catalog: if(create == :workspace_manage, do: :workspace_v1, else: :legacy),
+      workspace_catalog:
+        if(create in [:workspace_manage, :workspace_builds], do: :workspace_v1, else: :legacy),
       mode: :configured,
       browser_config: config,
       configuration_digest: digest,

@@ -3,11 +3,25 @@ defmodule MixerHosted.CustomerWorkspace.SelfServiceSchema do
   @writer "mixer_workspace_writer"
   @usage_signature "public.mixer_workspace_build_count_v1(text)"
   @capacity "public.mixer_build_organization_capacities"
+  @applications "public.mixer_authz_applications"
+  @application_read_policy "workspace_application_read"
+  @application_insert_policy "workspace_application_insert"
+  @application_project "(organization_id = current_setting('mixer.authz.organization_id'::text, true)) AND (project_id = current_setting('mixer.authz.project_id'::text, true))"
+  @application_scope @application_project <>
+                       " AND (id = current_setting('mixer.authz.application_id'::text, true))"
   @capacity_update_columns ~w(configured limit revision)
   # '*' is reserved and cannot name a customer project.
   @unsettled_builds_target "*"
   @signature "text,text,text,jsonb,bigint,bigint"
   def writer, do: @writer
+  def application_relation, do: @applications
+
+  def application_policies do
+    [
+      [@application_read_policy, "r", "(" <> @application_project <> ")", nil],
+      [@application_insert_policy, "a", nil, "(" <> @application_scope <> ")"]
+    ]
+  end
 
   def role_statements do
     [
@@ -175,6 +189,9 @@ defmodule MixerHosted.CustomerWorkspace.SelfServiceSchema do
       [capacity_grant("GRANT", "TO")] ++
       policies ++
       [
+        application_grant_if(
+          "p.prosrc = $registration$#{body(:application_registration)}$registration$"
+        ),
         "GRANT EXECUTE ON FUNCTION #{@usage_signature} TO #{@writer}",
         "ALTER FUNCTION public.mixer_workspace_self_service_v1(#{@signature}) OWNER TO #{@writer}",
         "REVOKE CREATE ON SCHEMA public FROM #{@writer}",
@@ -263,6 +280,46 @@ defmodule MixerHosted.CustomerWorkspace.SelfServiceSchema do
     ]
   end
 
+  def application_registration_statements(:up) do
+    [
+      function("CREATE OR REPLACE", body(:application_registration)),
+      application_grant_if("r.rolname = '#{@writer}'")
+    ]
+  end
+
+  def application_registration_statements(:down) do
+    [
+      function("CREATE OR REPLACE", body()),
+      "DROP POLICY IF EXISTS #{@application_read_policy} ON #{@applications}",
+      "DROP POLICY IF EXISTS #{@application_insert_policy} ON #{@applications}",
+      """
+      DO $application$ BEGIN
+        IF EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname='#{@writer}') THEN
+          REVOKE SELECT, INSERT ON #{@applications} FROM #{@writer};
+        END IF;
+      END $application$
+      """
+    ]
+  end
+
+  defp application_grant_if(condition) do
+    """
+    DO $application$ BEGIN
+      IF EXISTS (
+        SELECT 1 FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_roles r ON r.oid=p.proowner
+        WHERE p.oid='public.mixer_workspace_self_service_v1(#{@signature})'::pg_catalog.regprocedure
+          AND #{condition}
+      ) THEN
+        GRANT SELECT, INSERT ON #{@applications} TO #{@writer};
+        CREATE POLICY #{@application_read_policy} ON #{@applications} FOR SELECT TO #{@writer}
+          USING (#{@application_project});
+        CREATE POLICY #{@application_insert_policy} ON #{@applications} FOR INSERT TO #{@writer}
+          WITH CHECK (#{@application_scope});
+      END IF;
+    END $application$
+    """
+  end
+
   defp function(command, definition) do
     """
     #{command} FUNCTION public.mixer_workspace_self_service_v1(op text, org text, target text, body jsonb, issued bigint, expires bigint)
@@ -274,12 +331,24 @@ defmodule MixerHosted.CustomerWorkspace.SelfServiceSchema do
 
   def body, do: body(:organization_deletion)
 
-  defp body(version) do
-    operation = if version == :organization_deletion, do: ",'delete_organization'", else: ""
+  def body(version) do
+    operations =
+      case version do
+        :legacy -> ""
+        :organization_deletion -> ",'delete_organization'"
+        :application_registration -> ",'delete_organization','register_application'"
+      end
 
     deletion =
-      if version == :organization_deletion,
+      if version != :legacy,
         do: "\n" <> String.trim_trailing(organization_deletion(), "\n"),
+        else: ""
+
+    registration? = version == :application_registration
+
+    registration =
+      if registration?,
+        do: "\n" <> String.trim_trailing(application_registration(), "\n"),
         else: ""
 
     """
@@ -288,7 +357,7 @@ defmodule MixerHosted.CustomerWorkspace.SelfServiceSchema do
       role_name text; result jsonb; project_count bigint; head bigint; member_exp bigint;
     BEGIN
       entered:=floor(extract(epoch FROM clock_timestamp()))::bigint;
-      IF op NOT IN ('create_organization','create_project','set_member','usage','export','delete_project'#{operation})
+      IF op NOT IN ('create_organization','create_project','set_member','usage','export','delete_project'#{operations})
         OR body IS NULL OR jsonb_typeof(body)<>'object' THEN RETURN '{"error":"invalid_request"}'; END IF;
       IF op IN ('create_organization','create_project') THEN
         IF (SELECT array_agg(k ORDER BY k) FROM jsonb_object_keys(body) k) IS DISTINCT FROM ARRAY['display_name']::text[]
@@ -298,7 +367,7 @@ defmodule MixerHosted.CustomerWorkspace.SelfServiceSchema do
       ELSIF op='set_member' THEN
         IF (SELECT array_agg(k ORDER BY k) FROM jsonb_object_keys(body) k) IS DISTINCT FROM ARRAY['role']::text[]
           OR body->>'role' IS NULL OR body->>'role' NOT IN ('administrator','developer','viewer')
-          THEN RETURN '{"error":"invalid_request"}'; END IF;
+          THEN RETURN '{"error":"invalid_request"}'; END IF;#{if registration?, do: application_input(), else: ""}
       ELSIF body<>'{}'::jsonb THEN RETURN '{"error":"invalid_request"}'; END IF;
 
       actor:=current_setting('mixer.authz.principal_id',true);
@@ -405,13 +474,54 @@ defmodule MixerHosted.CustomerWorkspace.SelfServiceSchema do
           IF NOT FOUND THEN RETURN '{"error":"not_found"}'; END IF;
           UPDATE public.mixer_authz_project_heads SET revision=revision+1 WHERE organization_id=oid AND project_id=target;
           UPDATE public.mixer_authz_organization_heads SET revision=revision+1 WHERE organization_id=oid;
-          result:=jsonb_build_object('organization_id',oid,'id',target,'deleted',true,'retention','tombstone');#{deletion}
+          result:=jsonb_build_object('organization_id',oid,'id',target,'deleted',true,'retention','tombstone');#{deletion}#{registration}
         END IF;
       END IF;
       n:=floor(extract(epoch FROM clock_timestamp()))::bigint;
       IF n<entered OR n>=until_time THEN RAISE EXCEPTION 'authority expired before commit'; END IF;
       RETURN result;
     END
+    """
+  end
+
+  defp application_input do
+    "\n" <>
+      String.trim_trailing(
+        """
+          ELSIF op='register_application' THEN
+            IF org IS NULL OR octet_length(org) NOT BETWEEN 1 AND 128 OR org COLLATE "C" ~ '[^A-Za-z0-9._-]'
+              OR target IS NULL OR octet_length(target) NOT BETWEEN 1 AND 128 OR target COLLATE "C" ~ '[^A-Za-z0-9._-]'
+              OR (SELECT array_agg(k ORDER BY k) FROM jsonb_object_keys(body) k) IS DISTINCT FROM ARRAY['application_id']::text[]
+              OR jsonb_typeof(body->'application_id') IS DISTINCT FROM 'string'
+              OR octet_length(body->>'application_id') NOT BETWEEN 1 AND 128
+              OR (body->>'application_id') COLLATE "C" ~ '[^A-Za-z0-9._-]'
+              THEN RETURN '{"error":"invalid_request"}'; END IF;
+        """,
+        "\n"
+      )
+  end
+
+  defp application_registration do
+    """
+        ELSIF op='register_application' THEN
+          PERFORM 1 FROM public.mixer_authz_project_heads WHERE organization_id=oid AND project_id=target FOR UPDATE;
+          IF NOT FOUND OR NOT EXISTS (
+            SELECT 1 FROM public.mixer_authz_projects WHERE organization_id=oid AND id=target AND active
+          ) THEN RETURN '{"error":"not_found"}'; END IF;
+          PERFORM set_config('mixer.authz.project_id',target,true);
+          PERFORM set_config('mixer.authz.application_id',body->>'application_id',true);
+          IF NOT EXISTS (
+            SELECT 1 FROM #{@applications} WHERE organization_id=oid AND project_id=target
+              AND id=body->>'application_id' AND active
+          ) THEN
+            IF EXISTS (SELECT 1 FROM #{@applications} WHERE organization_id=oid AND project_id=target AND active)
+              THEN RETURN '{"error":"conflict"}'; END IF;
+            INSERT INTO #{@applications}(organization_id,project_id,id,active)
+              VALUES(oid,target,body->>'application_id',true) ON CONFLICT (organization_id,project_id,id) DO NOTHING;
+            IF NOT FOUND THEN RETURN '{"error":"conflict"}'; END IF;
+            UPDATE public.mixer_authz_project_heads SET revision=revision+1 WHERE organization_id=oid AND project_id=target;
+          END IF;
+          result:=jsonb_build_object('organization_id',oid,'project_id',target,'application_id',body->>'application_id');
     """
   end
 

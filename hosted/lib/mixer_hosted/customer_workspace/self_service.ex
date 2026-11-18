@@ -5,9 +5,10 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
   alias MixerHosted.Authorization.Transaction.Context
   alias MixerHosted.BrowserAuth.{ActiveWorkspace, Installation, RuntimeConfig, WorkspaceCatalog}
   alias MixerHosted.BrowserAuth.ActiveWorkspace.Binding
+  alias MixerHosted.CustomerBuilds.Selection
   alias MixerHosted.CustomerWorkspace.Input
 
-  @operations ~w(create_organization create_project set_member usage export delete_project delete_organization)
+  @operations ~w(create_organization create_project set_member usage export delete_project delete_organization register_application)
   @errors %{
     "unauthenticated" => :unauthenticated,
     "permission_denied" => :permission_denied,
@@ -44,7 +45,7 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
          true <- repo === MixerHosted.Repo and repo.get_dynamic_repo() === repo,
          {_, %Installation{runtime: %RuntimeConfig{workspace_catalog: :workspace_v1} = runtime}} <-
            Application.fetch_env!(:mixer_hosted, :startup),
-         true <- permitted_browser?(browser, runtime) do
+         true <- permitted_browser?(browser, runtime, operation) do
       deadline =
         if browser, do: browser.lease.deadline, else: System.monotonic_time(:millisecond) + 5000
 
@@ -55,7 +56,12 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
           %{connection_id: backend} =
             Session.query!(repo, "SELECT pg_catalog.set_config('search_path','pg_catalog',true)")
 
-          _writer = WorkspaceCatalog.check!(repo, runtime.expected_roles, deadline, backend)
+          {_writer, application_registration?} =
+            WorkspaceCatalog.check!(repo, runtime.expected_roles, deadline, backend)
+
+          if operation == "register_application" and not application_registration?,
+            do: repo.rollback(:authorization_unavailable)
+
           expires = admission_expiry!(repo, browser, identity, linkage)
 
           [[value]] =
@@ -105,12 +111,16 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
     _, _ -> {:error, :authorization_unavailable}
   end
 
-  defp permitted_browser?(nil, _runtime), do: true
+  defp permitted_browser?(%Binding{lease: %{runtime: runtime}}, runtime, "register_application"),
+    do: ActiveWorkspace.application_registration_enabled?(runtime)
 
-  defp permitted_browser?(%Binding{lease: %{runtime: runtime}}, runtime),
+  defp permitted_browser?(_, _, "register_application"), do: false
+  defp permitted_browser?(nil, _runtime, _operation), do: true
+
+  defp permitted_browser?(%Binding{lease: %{runtime: runtime}}, runtime, _operation),
     do: ActiveWorkspace.enabled?(runtime)
 
-  defp permitted_browser?(_, _), do: false
+  defp permitted_browser?(_, _, _), do: false
 
   defp admission_expiry!(_repo, nil, identity, _linkage), do: identity.expires_at
 
@@ -156,6 +166,9 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
 
   def valid_body?("set_member", %{"role" => role} = body),
     do: map_size(body) == 1 and role in ~w(administrator developer viewer)
+
+  def valid_body?("register_application", %{"application_id" => app} = body),
+    do: map_size(body) == 1 and Selection.id?(app)
 
   def valid_body?(op, body) when op in ~w(usage export delete_project delete_organization),
     do: body == %{}

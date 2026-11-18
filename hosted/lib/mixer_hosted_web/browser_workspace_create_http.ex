@@ -47,6 +47,14 @@ defmodule MixerHostedWeb.BrowserWorkspaceCreateHTTP do
        do: {:ok, {:create_project, organization, name}}
 
   defp operation(
+         "/console-api/v1/applications",
+         %{"organization_id" => organization, "project_id" => project, "application_id" => app} =
+           body
+       )
+       when map_size(body) == 3,
+       do: {:ok, {:register_application, organization, project, app}}
+
+  defp operation(
          "/console-api/v1/workspace-admin",
          %{"operation" => op, "organization_id" => org} = body
        )

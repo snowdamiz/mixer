@@ -33,8 +33,8 @@ export function catalogRecord(value: unknown, required: readonly string[], optio
   });
 }
 
-function identifier(value: unknown): value is string {
-  return typeof value === "string" && value.length >= 1 && value.length <= 128 && /^[A-Za-z0-9._-]+$/u.test(value);
+export function isBuildCatalogId(value: unknown): value is string {
+  return typeof value === "string" && value.length >= 1 && value.length <= 128 && !/[^A-Za-z0-9._-]/u.test(value);
 }
 
 /** Opaque continuation syntax is checked here; only the server interprets its contents. */
@@ -49,14 +49,14 @@ function cursor(value: unknown): value is string {
 export function snapshotProjectSelection(input: unknown): ProjectSelection {
   requireValid(catalogRecord(input, ["organizationId", "projectId"]));
   const { organizationId, projectId } = input;
-  requireValid(identifier(organizationId) && identifier(projectId));
+  requireValid(isBuildCatalogId(organizationId) && isBuildCatalogId(projectId));
   return Object.freeze({ organizationId, projectId });
 }
 
 export function snapshotApplicationSelection(input: unknown): ApplicationSelection {
   requireValid(catalogRecord(input, ["organizationId", "projectId", "applicationId"]));
   const { organizationId, projectId, applicationId } = input;
-  requireValid(identifier(organizationId) && identifier(projectId) && identifier(applicationId));
+  requireValid(isBuildCatalogId(organizationId) && isBuildCatalogId(projectId) && isBuildCatalogId(applicationId));
   return Object.freeze({ organizationId, projectId, applicationId });
 }
 
@@ -91,7 +91,7 @@ export function parseApplicationPage(input: unknown, expected: ProjectSelection)
   const applications = rows(input.applications).map(row => {
     requireValid(catalogRecord(row, ["applicationId"]));
     const applicationId = row.applicationId;
-    requireValid(identifier(applicationId) && (previous === undefined || previous < applicationId));
+    requireValid(isBuildCatalogId(applicationId) && (previous === undefined || previous < applicationId));
     previous = applicationId;
     return Object.freeze({ applicationId });
   });

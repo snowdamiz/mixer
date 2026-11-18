@@ -203,11 +203,12 @@ ICU_NOTICE_TEST = 'cli/build-tests/test_android_runtime_notices.py'
 ICU_NOTICE_CHANGES = {
     ICU_NOTICE_DRIVER, ICU_NOTICE_TEST, 'THIRD_PARTY.yml', JAVA + 'test_sparse_checkout.py',
 }
+REGISTRATION_WORKFLOW = 'application-registration-predecessor-bytes/' + VERIFY_WORKFLOW
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
 HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_sparse_checkout.py'}
-MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
@@ -334,7 +335,8 @@ def install_inputs():
                              'hosted_v33_workflow', 'local_store_transition', 'workspace_builds_workflow',
                              'public_update_transition', 'runtime_notice_witness_transition',
                              'release_inspector_transition', 'icu_notice_transition',
-                             'console_build_logs_workflow', 'halt_cli_transition'} and
+                             'console_build_logs_workflow', 'halt_cli_transition',
+                             'application_registration_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -643,6 +645,14 @@ def install_inputs():
         'count': len(current), 'manifest': 'current-source-inputs.json',
         'sha256': halt['sourceAfter'],
     } and halt['sourceAfter'] == previous.digest(current), 'Halt CLI source transition differs')
+
+    registration_workflow = binding['application_registration_workflow']
+    before = read_predecessor_member(HERE / REGISTRATION_WORKFLOW)
+    require(set(registration_workflow) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == registration_workflow['before'] and
+            registration_workflow['before'] != registration_workflow['after'],
+            'Application registration workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = registration_workflow['after']
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
