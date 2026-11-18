@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+FieldLog opened the saved task from Android’s notification shade while offline, both in the existing process and from a cold start. Back restored the unsaved task title in the warm case. Missing and foreign targets were refused, and the workspace and its two outbox rows stayed byte-identical. The fixture used a local notification adapter. [API 36 assignment replay](verification/receipts/fieldlog-android-assignment-notification-runtime-41a05264.json).
+
 On macOS, FieldLog kept a saved entry queued after its local backend committed the event and JPEG but the acknowledgement was cut short. Reopening and retrying left one remote event and one byte-identical 341,976-byte JPEG. The fixture used a provisioned account token. Mobile UI and signed guest capability integration remain open. [Offline entry sync](verification/receipts/fieldlog-local-entry-sync-41a05264.json).
 
 On macOS, one press on the signed Move up button moved File report from third to second. FieldLog advanced revision 8 to 9 and appended one task-order event. Rollback and offline cold reopen preserved that order and the open draft. The tested guest uses stacked rows. Both mobile executions remain open. [Task reorder evidence](verification/receipts/fieldlog-signed-row-reorder-host-41a05264.json).
