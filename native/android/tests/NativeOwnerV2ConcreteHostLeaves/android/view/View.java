@@ -8,6 +8,10 @@ import android.content.Context;import android.content.res.ColorStateList;import 
  public final List<OnLayoutChangeListener> layoutListeners=new ArrayList<>();public final List<OnAttachStateChangeListener> attachListeners=new ArrayList<>();public OnApplyWindowInsetsListener insetsListener;public OnClickListener clickListener;public OnFocusChangeListener focusListener;
  protected int visibility=VISIBLE,layoutDirection=LAYOUT_DIRECTION_LTR,id,minWidth,minHeight,padLeft,padTop,padRight,padBottom;protected Object tag;protected CharSequence description,tooltip,stateDescription;protected Drawable background;protected ViewGroup.LayoutParams layoutParams;public int invalidations,layoutRequests;public ColorStateList backgroundTintList;public Object backgroundTintMode,stateListAnimator;public float elevation;public boolean defaultFocusHighlightEnabled,willNotDraw;public int textAlignment,textDirection;
  private static int nextId=1;
+ private int hostWidthSpec,hostHeightSpec;
+ private boolean hostMeasured,hostForceLayout,hostLayoutRequired;
+ public void forceLayout(){hostForceLayout=true;}
+
  public View(Context context){this.context=context;ConcreteHostProbe.hit("View.<init>","entry",this);
   // Deliberately exercise superclass-to-subclass virtual entry before Record assignment.
   setEnabled(true);setFrame(0,0,0,0);drawableStateChanged();onAttachedToWindow();onDetachedFromWindow();onFocusChanged(false,0,null);onWindowFocusChanged(true);onVisibilityChanged(this,VISIBLE);onWindowVisibilityChanged(VISIBLE);onRtlPropertiesChanged(LAYOUT_DIRECTION_LTR);
@@ -39,9 +43,12 @@ import android.content.Context;import android.content.res.ColorStateList;import 
  protected void drawableStateChanged(){hit("View.drawableStateChanged");if(background!=null)background.setState(getDrawableState());done("View.drawableStateChanged");}
  public void invalidate(){hit("View.invalidate");invalidations++;done("View.invalidate");}public void requestLayout(){hit("View.requestLayout");layoutRequests++;done("View.requestLayout");}
  public void setLayoutParams(ViewGroup.LayoutParams value){hit("View.setLayoutParams");layoutParams=value;done("View.setLayoutParams");}public ViewGroup.LayoutParams getLayoutParams(){return layoutParams;}
- public void measure(int width,int height){hit("View.measure");onMeasure(width,height);done("View.measure");}protected void onMeasure(int width,int height){setMeasuredDimension(resolveSize(minWidth,width),resolveSize(minHeight,height));}protected final void setMeasuredDimension(int width,int height){measuredWidth=width;measuredHeight=height;}
+ public void measure(int width,int height){hit("View.measure");if(!Boolean.getBoolean("mixer.host.cachedLayout")||hostForceLayout||!hostMeasured||
+    width!=hostWidthSpec||height!=hostHeightSpec){onMeasure(width,height);hostLayoutRequired=true;}
+  hostWidthSpec=width;hostHeightSpec=height;hostMeasured=true;done("View.measure");}protected void onMeasure(int width,int height){setMeasuredDimension(resolveSize(minWidth,width),resolveSize(minHeight,height));}protected final void setMeasuredDimension(int width,int height){measuredWidth=width;measuredHeight=height;}
  protected static int resolveSize(int wanted,int spec){int mode=MeasureSpec.getMode(spec),size=MeasureSpec.getSize(spec);return mode==MeasureSpec.EXACTLY?size:mode==MeasureSpec.AT_MOST?Math.min(wanted,size):wanted;}
- public void layout(int l,int t,int r,int b){hit("View.layout");int ol=left,ot=top,or=right,ob=bottom;boolean changed=setFrame(l,t,r,b);onLayout(changed,l,t,r,b);if(changed)for(OnLayoutChangeListener listener:List.copyOf(layoutListeners))listener.onLayoutChange(this,l,t,r,b,ol,ot,or,ob);done("View.layout");}
+ public void layout(int l,int t,int r,int b){hit("View.layout");int ol=left,ot=top,or=right,ob=bottom;boolean changed=setFrame(l,t,r,b);if(!Boolean.getBoolean("mixer.host.cachedLayout")||changed||hostLayoutRequired)onLayout(changed,l,t,r,b);
+  hostLayoutRequired=false;hostForceLayout=false;if(changed)for(OnLayoutChangeListener listener:List.copyOf(layoutListeners))listener.onLayoutChange(this,l,t,r,b,ol,ot,or,ob);done("View.layout");}
  protected boolean setFrame(int l,int t,int r,int b){hit("View.setFrame");boolean changed=l!=left||t!=top||r!=right||b!=bottom;left=l;top=t;right=r;bottom=b;if(background!=null)background.setBounds(0,0,r-l,b-t);done("View.setFrame");return changed;}
  protected void onLayout(boolean changed,int l,int t,int r,int b){}
  public void draw(Canvas canvas){hit("View.draw");if(visibility==VISIBLE){if(background!=null)background.draw(canvas);onDraw(canvas);dispatchDraw(canvas);}done("View.draw");}protected void onDraw(Canvas canvas){hit("View.onDraw");done("View.onDraw");}protected void dispatchDraw(Canvas canvas){}

@@ -8,7 +8,7 @@ import hashlib
 import json
 from pathlib import Path
 
-BINDING = Path('verification/sdk-feature-ui-source141-v1/binding.json')
+BINDING = Path('verification/native-report-source141-archive-v1/binding.json')
 
 
 def unique_object(pairs):

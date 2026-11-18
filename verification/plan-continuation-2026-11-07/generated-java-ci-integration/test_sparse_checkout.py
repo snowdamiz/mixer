@@ -24,6 +24,7 @@ current_spec = importlib.util.spec_from_file_location('sparse_current_profile', 
 current_module = importlib.util.module_from_spec(current_spec)
 current_spec.loader.exec_module(current_module)
 SOURCE_BINDING = B.SOURCE_AUTHORITY.relative_to(B.ROOT).with_name("binding.json")
+HISTORICAL_SOURCE_BINDING = Path('verification/sdk-feature-ui-source141-v1/binding.json')
 GIT_COMMANDS = []
 
 
@@ -98,7 +99,7 @@ def admission_paths(root=None, binding=None):
     manifests = (declaration['source']['manifest'],)
     if 'predecessor_binding' in declaration:
         previous = relative(declaration['predecessor_binding'])
-        B.require(previous == current_module.BINDING and previous != binding,
+        B.require(previous == HISTORICAL_SOURCE_BINDING and previous != binding,
                   'Invalid archive predecessor binding')
         dependencies = admission_paths(root, previous)
         dependencies.update(relative(path).as_posix() for path in declaration['changes'])
@@ -288,8 +289,11 @@ class SparseControls(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=HERE) as td:
             fixture = Path(td)
             shutil.copytree(ROOT / current_module.BINDING.parent, fixture / future.parent)
+            shutil.copytree(ROOT / HISTORICAL_SOURCE_BINDING.parent,
+                            fixture / HISTORICAL_SOURCE_BINDING.parent)
             declared = admission_paths(fixture, future)
             self.assertIn(future.as_posix(), declared)
+            self.assertIn(HISTORICAL_SOURCE_BINDING.as_posix(), declared)
             with patch.object(current_module, 'BINDING', future), \
                  patch(__name__ + '.admission_paths', return_value=declared):
                 paths = owning_paths(selected)

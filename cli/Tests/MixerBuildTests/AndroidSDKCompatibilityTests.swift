@@ -51,9 +51,9 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.22")
+    #expect(p.id == "mixer.android-source-pair.23")
     #expect(p.sdk_compatibility_sha256 == "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8")
-    #expect(p.adapter_compatibility_sha256 == "a076078c052649b425c1d6eff4103f35561e06caf7a316f58f6bf06a52377452")
+    #expect(p.adapter_compatibility_sha256 == "ee12eaa723135d7354e08b8b20575f42328f6669c9c61d3287e0746b6623b48c")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 5338)
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02")
     #expect(p.sdk_files.count == 26); #expect(p.adapter_files.count == 27)
@@ -147,7 +147,7 @@ func androidCompatibilityExactInventoryTypeLengthAndHashRefuseBeforeGenericSourc
     }
 }
 
-@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "profile-6-current", "profile-7-current", "profile-8-current", "pair8-old-tuple", "pair9-old-tuple", "pair9-r1-tuple", "proposal-6-suffixed", "mixed-axis-only", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
+@Test(arguments: ["missing-file", "missing-lock", "legacy", "profile-1", "profile-2", "profile-3", "profile-4", "profile-5-current", "profile-5-prior", "broader-6-axis", "profile-6-current", "profile-7-current", "profile-8-current", "pair8-old-tuple", "pair9-old-tuple", "pair9-r1-tuple", "profile-22", "proposal-6-suffixed", "mixed-axis-only", "mixed-sdk", "mixed-adapter", "unknown", "digest", "default"])
 func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(_ change: String) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-profile-lock-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: root) }
@@ -189,6 +189,9 @@ func androidCompatibilityRequiredContextRejectsMissingLegacyOrMismatchedProfile(
         lock.android?.profile?.adapter_compatibility_sha256 = "a2e1508c6dc0ad714ae3af6d39c334311876456cf577932a530a543480e7c015"
     case "pair9-r1-tuple":
         lock.android?.profile?.adapter_compatibility_sha256 = "b8aad7b23e2917176d4ab1da2912e2acc098265609ffd40741283607496225b3"
+    case "profile-22":
+        lock.android?.profile?.id = "mixer.android-source-pair.22"
+        lock.android?.profile?.adapter_compatibility_sha256 = "a076078c052649b425c1d6eff4103f35561e06caf7a316f58f6bf06a52377452"
     case "proposal-6-suffixed":
         lock.android?.profile?.id = "mixer.android-source-pair.6-editor-view-api29-30-bc03288599ec-8cd611a5b07f"
         lock.android?.profile?.adapter_compatibility_sha256 = "8cd611a5b07fbf96adb270fa30042577789d4b87b252108697003809f00599b4"
@@ -570,7 +573,7 @@ func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSour
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("sdk-lock-" + UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
     try copyCompatibilitySDK(to: root)
-    // Current Pair22 binds the genuine lock; exercise the unlocked projection explicitly.
+    // The current profile binds the genuine lock; exercise the unlocked projection explicitly.
     try AndroidSDKCompatibility.admitSDK(root)
     var original = AndroidSDKCompatibility.profile.sdk_files
     original.removeValue(forKey: "Package.resolved")

@@ -16,7 +16,9 @@ ROOT = HERE.parents[1]
 PREVIOUS = Path('verification/sdk-feature-ui-source141-v1')
 PREVIOUS_SEAL_SHA256 = '06952f22a0a4fc6b2272e7f545abb9e46ec526372abf5e2244c6599e3a6246ed'
 TYPE = 'EXACT_NATIVE_REPORT_ARCHIVE_SOURCE141_SUCCESSOR'
-SOURCE_CHANGES = frozenset((
+CLOSEOUT_SOURCE_SHA256 = '7e04cab7419cf65db0a8ad70a97f6ea94b1cb6db882f6c7ec724e24d170a2b28'
+RENDERER = 'app/src/dev/mixer/android/NativeAppearanceViewsV2.java'
+CLOSEOUT_SOURCE_CHANGES = frozenset((
     'cli/Sources/MixerBuild/BuildInputSnapshot.swift',
     'cli/Sources/MixerBuild/Configuration.swift',
     'cli/Sources/MixerBuild/NativeProductCapture.swift',
@@ -24,14 +26,29 @@ SOURCE_CHANGES = frozenset((
     'updates/Sources/MixerUpdates/VerifierV3.swift',
     'updates/Sources/MixerUpdateTool/main.swift',
 ))
+RENDERER_SOURCE_CHANGES = {
+    'native/android/' + RENDERER,
+    'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift',
+    'cli/Sources/MixerBuild/Resources/android-build.py',
+    'scripts/ci/check-android-generated-java.py',
+}
+SOURCE_CHANGES = CLOSEOUT_SOURCE_CHANGES | RENDERER_SOURCE_CHANGES
 ADDITIONS = {
     'cli/build-tests/test_public_export.py',
+    'native/android/tests/CollapsedEditorFrameHostTests.java',
     'updates/verification/verify-cli.py',
 }
 JAVA = 'verification/plan-continuation-2026-11-07/generated-java-ci-integration/'
 CHANGES = SOURCE_CHANGES | ADDITIONS | {
     'cli/Tests/MixerBuildTests/BuildTests.swift',
     'cli/Tests/MixerBuildTests/NativeOutputAdmissionTests.swift',
+    'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
+    'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
+    'cli/build-tests/current_android_profile.py',
+    'native/android/tests/NativeOwnerV2ConcreteHostLeaves/android/view/View.java',
+    'native/android/tests/private-owner-barrier-bindings.json',
+    'native/android/tests/private-owner-barrier-map.json',
+    'native/android/tests/run-public-surface-host.py',
     '.github/workflows/verify.yml',
     'updates/README.md',
     JAVA + 'bootstrap.py',
@@ -92,7 +109,8 @@ def install_inputs():
     previous.closed_members(HERE, {*MEMBERS, 'seal.json'})
     previous.check_rows(HERE, seal['members'])
     binding = previous.load(HERE / 'binding.json')
-    require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding', 'changes'} and
+    require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
+                             'changes', 'renderer_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -128,12 +146,24 @@ def install_inputs():
             len(current) == 141 and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
             }, 'Archive source transition differs')
+    closeout = {**current, **{name: historical_source[name] for name in RENDERER_SOURCE_CHANGES}}
+    require(previous.digest(closeout) == CLOSEOUT_SOURCE_SHA256, 'CLI closeout source differs')
     previous.check_rows(ROOT, effective)
     owner = previous.module('native_archive_actual_collector', ROOT / previous.OWNER)
     profile = owner.load_profile(ROOT)
-    require(profile == historical_binding['sdk_transition']['profileAfter'] and
-            previous.profile_summary(profile) == binding['profile'] == historical_binding['profile'],
-            'Archive successor must preserve the exact Pair22 profile')
+    pair22 = historical_binding['sdk_transition']['profileAfter']
+    adapter_files = {**pair22['adapter_files'], RENDERER: current['native/android/' + RENDERER]}
+    expected_profile = {**pair22, 'id': 'mixer.android-source-pair.23', 'adapter_files': adapter_files,
+                        'adapter_compatibility_sha256': previous.digest(adapter_files)}
+    require(binding['renderer_transition'] == {
+                'sourceBefore': CLOSEOUT_SOURCE_SHA256,
+                'sourceAfter': binding['source']['sha256'],
+                'profileAfter': expected_profile,
+            } and profile == expected_profile and previous.profile_summary(profile) == binding['profile'],
+            'Archive renderer successor profile differs')
+    selector_path = ROOT / 'cli/build-tests/current_android_profile.py'
+    selector = previous.module('native_archive_current_selector', selector_path)
+    require(selector.load_current_profile(ROOT) == profile, 'Current renderer selector differs')
     require(owner.source_inputs(profile) == current, 'Actual archive owning source map differs')
 
     material = {}
@@ -181,6 +211,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_closeout_source141_sha256': binding['renderer_transition']['sourceBefore'],
             'predecessor_source141_sha256': binding['sdk_transition']['sourceAfter'],
             'predecessor_source127_sha256': binding['sdk_transition']['sourceBefore'],
             'adoption': False, 'activation': False, 'aggregate': False, 'GA': False, 'holdsReleased': False}

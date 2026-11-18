@@ -741,7 +741,13 @@ text.setPadding(px(b.rtl()?in.trailing():in.leading(),b),px(in.top(),b),px(b.rtl
         try {
         Binding b=r.binding;Box frame=r.geometry.box;
         r.geometry.preparedFrame=new PreparedFrame(frame,absoluteX,absoluteY,parentX,parentY,r.view.getParent(),r.geometry.contentHeight);
-        if(r.group!=null){r.group.absoluteX=absoluteX;r.group.absoluteY=absoluteY;}
+        if(r.group!=null){
+            r.group.absoluteX=absoluteX;r.group.absoluteY=absoluteY;
+            // Descendant edges depend on the logical origin and prepared geometry,
+            // even when Android can reuse this container's pixel bounds and specs.
+            r.group.forceLayout();mutation.require();
+            if(r.group!=r.view){r.view.forceLayout();mutation.require();}
+        }
         int left=px(absoluteX,b)-px(parentX,b),top=px(absoluteY,b)-px(parentY,b);
         int width=px(sum(absoluteX,frame.width),b)-px(absoluteX,b),height=px(sum(absoluteY,frame.height),b)-px(absoluteY,b);
         r.view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));mutation.require();
