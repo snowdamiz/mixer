@@ -12,7 +12,7 @@ struct Arguments {
             if value == "--help" { positional.append("help") }
             else if value == "--json" { json = true }
             else if value.hasPrefix("--") {
-                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track", "--request", "--artifact"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track", "--request", "--artifact", "--qualification", "--producer-trust"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
                 index += 1; options[value] = values[index]
             } else { positional.append(value) }
             index += 1
@@ -53,7 +53,7 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
   mixer test [--platform host] [--directory PATH]
   mixer run ios --device SIMULATOR_UUID [--directory PATH]
   mixer import PATH [--output REPORT.json]
-  mixer release inspect [--directory PATH]
+  mixer release inspect [--directory PATH] [--qualification DIR --producer-trust LOCAL_TRUST.json]
   mixer export PATH [--directory SOURCE]
   mixer upgrade PATH --sdk-path PATH [--android-adapter-path PATH] [--directory SOURCE]
   mixer vm validate|inventory|invoke FILE [EXPORT [i32:N|i64:N ...]]
@@ -102,7 +102,7 @@ do {
         "create": ["--directory", "--application", "--sdk-path", "--platform", "--android-adapter-path", "--android-host"], "config": ["--directory"],
         "build": ["--directory", "--platform", "--output"], "test": ["--directory", "--platform"],
         "run": ["--directory", "--device"], "import": ["--output"],
-        "release": ["--directory"], "export": ["--directory"],
+        "release": ["--directory", "--qualification", "--producer-trust"], "export": ["--directory"],
         "upgrade": ["--directory", "--sdk-path", "--android-adapter-path"],
         "report": ["--request", "--output"],
         "submit": ["--provider", "--build-id", "--app-id", "--version-code", "--track", "--directory", "--artifact"]
@@ -172,8 +172,15 @@ do {
         }
         try output(report)
     case "release":
-        guard words == ["release", "inspect"] else { throw MixerFailure("arguments.release", "Only release inspect is available until signed dual-target qualification is integrated.") }
-        try output(ReleaseAssessment.inspect(root)); exit(2)
+        guard words == ["release", "inspect"] else { throw MixerFailure("arguments.release", "Use mixer release inspect.") }
+        let evidence = arguments.options["--qualification"].map(path)
+        let trust = arguments.options["--producer-trust"].map(path)
+        guard (evidence == nil) == (trust == nil) else {
+            throw MixerFailure("arguments.release-qualification", "Supply both the qualification directory and the operator's local producer trust configuration.")
+        }
+        let report = try ReleaseAssessment.inspect(root, qualification: evidence, producerTrust: trust)
+        try output(report)
+        exit(report.technicalEligibility == "ota-compatible" ? 0 : 2)
     case "upgrade":
         guard words.count == 2, let sdk = arguments.options["--sdk-path"] else {
             throw MixerFailure("arguments.upgrade", "Usage: mixer upgrade DESTINATION --sdk-path PATH [--android-adapter-path PATH] [--directory SOURCE]")

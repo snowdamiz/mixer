@@ -35,17 +35,29 @@ enum VerificationFile {
     static func tool(_ path: String) throws -> VerificationToolIdentity {
         let url = URL(fileURLWithPath: path).resolvingSymlinksInPath().standardizedFileURL
         guard FileManager.default.isExecutableFile(atPath: url.path) else { throw MixerFailure("update.tools", "Trusted local verification tool is not executable.") }
+        let digest = try sha256(url, maximumBytes: 512 * 1_048_576) { grew in
+            MixerFailure("update.tool-size", grew ? "Verification executable grew beyond the limit." : "Verification executable exceeds 512 MiB.")
+        }
+        return VerificationToolIdentity(path: url.path, sha256: digest)
+    }
+
+    static func sha256(_ url: URL, maximumBytes: Int) throws -> String {
+        try sha256(url, maximumBytes: maximumBytes) { grew in
+            MixerFailure("update.input-size", grew ? "Verification input grew beyond its byte limit." : "Verification input exceeds its byte limit.")
+        }
+    }
+
+    private static func sha256(_ url: URL, maximumBytes: Int, limitFailure: (Bool) -> MixerFailure) throws -> String {
         let (handle, size) = try openRegular(url)
         defer { try? handle.close() }
-        let maximum = 512 * 1_048_576
-        guard size <= maximum else { throw MixerFailure("update.tool-size", "Verification executable exceeds 512 MiB.") }
+        guard size <= maximumBytes else { throw limitFailure(false) }
         var hash = SHA256(), total = 0
         while let data = try handle.read(upToCount: 65_536), !data.isEmpty {
             total += data.count
-            guard total <= maximum else { throw MixerFailure("update.tool-size", "Verification executable grew beyond the limit.") }
+            guard total <= maximumBytes else { throw limitFailure(true) }
             hash.update(data: data)
         }
-        return VerificationToolIdentity(path: url.path, sha256: hash.finalize().map { String(format: "%02x", $0) }.joined())
+        return hash.finalize().map { String(format: "%02x", $0) }.joined()
     }
 }
 

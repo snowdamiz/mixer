@@ -5,10 +5,10 @@ let package = Package(
     name: "MixerCLI",
     platforms: [.macOS(.v14)],
     products: [.executable(name: "mixer", targets: ["MixerCLI"]), .library(name: "MixerBuild", targets: ["MixerBuild"])],
-    dependencies: [.package(path: "../sdk"), .package(path: "../updates")],
+    dependencies: [.package(path: "../sdk"), .package(path: "../updates"), .package(path: "../runtime-identity")],
     targets: [
         .target(name: "MixerProcessIO"),
-        .target(name: "MixerBuild", dependencies: ["MixerProcessIO", .product(name: "MixerCore", package: "sdk"), .product(name: "MixerUI", package: "sdk"), .product(name: "MixerUpdates", package: "updates")], resources: [.copy("Resources")]),
+        .target(name: "MixerBuild", dependencies: ["MixerProcessIO", .product(name: "MixerCore", package: "sdk"), .product(name: "MixerUI", package: "sdk"), .product(name: "MixerUpdates", package: "updates"), .product(name: "MixerRuntimeIdentity", package: "runtime-identity"), .product(name: "MixerCapabilities", package: "sdk"), .product(name: "MixerGuest", package: "sdk")], resources: [.copy("Resources")]),
         .executableTarget(name: "MixerCLI", dependencies: ["MixerBuild"]),
         .testTarget(name: "MixerBuildTests", dependencies: ["MixerBuild"], resources: [.copy("Fixtures")])
     ]

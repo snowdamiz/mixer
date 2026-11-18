@@ -220,25 +220,3 @@ private struct SwiftInventory {
         return matches.sorted { $0.line == $1.line ? $0.rule < $1.rule : $0.line < $1.line }
     }
 }
-
-public struct ReleaseAssessment: Codable, Sendable {
-    public var schema = 1
-    public var application: String
-    public var platforms: [String]
-    public var sourceDigest: String
-    public var sdkDigest: String
-    public var technicalEligibility = "blocked"
-    public var policyAssessment = "pending-project-review"
-    public var publicationAllowed = false
-    public var blockers = [
-        "Native and full Swift guest outputs have not been compiled and qualified for both targets.",
-        "Transitive compiler/capability/UI/state compatibility inventory is not complete.",
-        "Signed per-platform artifacts and installed-runtime receipts are required.",
-        "Fallback and previous-healthy state compatibility tests are required."
-    ]
-    public static func inspect(_ root: URL) throws -> Self {
-        let config = try ApplicationConfiguration.load(root)
-        let lock = try ProjectBuild.verifyLock(root: root)
-        return Self(application: config.application, platforms: config.targets, sourceDigest: try SourceDigest.tree(root), sdkDigest: lock.sdkDigest)
-    }
-}

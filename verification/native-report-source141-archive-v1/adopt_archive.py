@@ -174,10 +174,34 @@ RUNTIME_NOTICE_WITNESS_CHANGES = RUNTIME_NOTICE_WITNESS_SOURCE_CHANGES | {
     'native/android/signed-guest-ui/binding/include/mixer_ui_binding.h',
     JAVA + 'test_bootstrap.py',
 }
+RELEASE_INSPECTOR_PREFIX = 'release-inspector-predecessor-bytes/'
+RELEASE_INSPECTOR_ADDITIONS = {
+    'cli/Sources/MixerBuild/ReleaseInspection.swift',
+    'runtime-identity/Package.resolved',
+    'runtime-identity/Package.swift',
+    'runtime-identity/Sources/MixerIdentityTool/main.swift',
+    'runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift',
+    'runtime-identity/Sources/MixerRuntimeIdentity/RuntimeIdentity.swift',
+}
+RELEASE_INSPECTOR_SOURCE_CHANGES = RELEASE_INSPECTOR_ADDITIONS | {
+    'cli/Package.swift',
+    'cli/Sources/MixerBuild/Configuration.swift',
+    'cli/Sources/MixerBuild/MigrationInspector.swift',
+    'cli/Sources/MixerBuild/VerificationFile.swift',
+    PUBLIC_UPDATE_MAIN,
+    EXPORT_RUNNER,
+}
+RELEASE_INSPECTOR_CHANGES = RELEASE_INSPECTOR_SOURCE_CHANGES | {
+    VERIFY_WORKFLOW,
+    JAVA + 'test_sparse_checkout.py',
+}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
     RUNTIME_NOTICE_WITNESS_PREFIX + name for name in RUNTIME_NOTICE_WITNESS_CHANGES
+} | {
+    RELEASE_INSPECTOR_PREFIX + name
+    for name in RELEASE_INSPECTOR_CHANGES - RELEASE_INSPECTOR_ADDITIONS
 } | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
@@ -292,7 +316,8 @@ def install_inputs():
                              'export_runner_transition', 'capability_transition', 'upgrade_transition',
                              'pair24_transition', 'cancel_cli_transition', 'hydration_transition',
                              'hosted_v33_workflow', 'local_store_transition', 'workspace_builds_workflow',
-                             'public_update_transition', 'runtime_notice_witness_transition'} and
+                             'public_update_transition', 'runtime_notice_witness_transition',
+                             'release_inspector_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -342,6 +367,10 @@ def install_inputs():
     pair24 = binding['pair24_transition']
     pair24_preimages = read_pair24_preimages(previous, pair24)
 
+    inspector_preimages = {
+        name: read_predecessor_member(HERE / RELEASE_INSPECTOR_PREFIX / name)
+        for name in RELEASE_INSPECTOR_CHANGES - RELEASE_INSPECTOR_ADDITIONS
+    }
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
@@ -358,6 +387,8 @@ def install_inputs():
                 raw = upgrade_preimages.get(name)
             if raw is None:
                 raw = pair24_preimages.get(name)
+            if raw is None:
+                raw = inspector_preimages.get(name)
             if raw is None:
                 raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
@@ -513,17 +544,44 @@ def install_inputs():
         if name in RUNTIME_NOTICE_WITNESS_SOURCE_CHANGES:
             require(expected_source[name] == change['before'], 'Runtime packaging source preimage differs: ' + name)
             expected_source[name] = change['after']
-    require(current == expected_source and len(current) == 144 and
-            runtime['sourceAfter'] == binding['source']['sha256'] and binding['source'] == {
-                'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
-            }, 'Runtime notice and witness source transition differs')
+    require(len(expected_source) == 144 and runtime['sourceAfter'] == previous.digest(expected_source),
+            'Runtime notice and witness source transition differs')
     workflow = binding['workspace_builds_workflow']
     before = read_predecessor_member(HERE / WORKSPACE_BUILDS_WORKFLOW)
     require(set(workflow) == {'before', 'after'} and
             installed[VERIFY_WORKFLOW] == previous.row(before) == workflow['before'] and
             workflow['before'] != workflow['after'], 'Workspace builds workflow preimage differs')
     installed[VERIFY_WORKFLOW] = workflow['after']
+
+    inspector = binding['release_inspector_transition']
+    require(set(inspector) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            inspector['sourceBefore'] == runtime['sourceAfter'] and
+            set(inspector['changes']) == RELEASE_INSPECTOR_CHANGES,
+            'Release inspector predecessor or change roster differs')
+    for name, change in inspector['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed.get(name) and change['before'] != change['after'] and
+                type(change['mode']) is int and change['mode'] == 0o644,
+                'Release inspector owner row differs: ' + name)
+        if name in RELEASE_INSPECTOR_ADDITIONS:
+            require(name not in installed, 'Release inspector addition already owned: ' + name)
+        else:
+            raw = inspector_preimages[name]
+            require(previous.row(raw) == change['before'], 'Release inspector predecessor bytes differ: ' + name)
+            preimages.setdefault(name, (raw, change['mode']))
+        if name in RELEASE_INSPECTOR_SOURCE_CHANGES:
+            require(expected_source.get(name) == change['before'], 'Release inspector source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+    require(current == expected_source and len(current) == 150 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json',
+        'sha256': inspector['sourceAfter'],
+    } and inspector['sourceAfter'] == previous.digest(current), 'Release inspector source transition differs')
+
     previous.check_rows(ROOT, installed)
+    for name, change in inspector['changes'].items():
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
+                'Installed release inspector owner mode differs: ' + name)
     for name, change in runtime['changes'].items():
         require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
                 'Installed runtime notice or witness owner mode differs: ' + name)
@@ -609,6 +667,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_release_inspector_sha256': binding['release_inspector_transition']['sourceBefore'],
             'predecessor_runtime_notice_witness_sha256': binding['runtime_notice_witness_transition']['sourceBefore'],
             'predecessor_local_store_source141_sha256': binding['local_store_transition']['sourceBefore'],
             'predecessor_pair24_source141_sha256': binding['cancel_cli_transition']['sourceBefore'],

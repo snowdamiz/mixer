@@ -20,6 +20,7 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
     public var application: String
     public var name: String
     public var language: String = "swift"
+    public var applicationIdentifiers: [String: String]?
     public var targets: [String] = ["ios", "android"]
     public var toolchainLock: String = "mixer.lock"
     public var capabilities: [String] = ["storage.files"]
@@ -31,8 +32,12 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
         guard name.range(of: "^[A-Za-z][A-Za-z0-9_]{0,63}$", options: .regularExpression) != nil else {
             throw MixerFailure("config.name", "Name must be a Swift identifier starting with a letter (maximum 64 characters).")
         }
-        guard application.range(of: "^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$", options: .regularExpression) != nil else {
-            throw MixerFailure("config.application", "Application must be a reverse-DNS identifier, for example com.example.fieldlog.")
+        let identifiers = applicationIdentifiers ?? [:]
+        guard Set(identifiers.keys).isSubset(of: targets),
+              ([application] + identifiers.values).allSatisfy({
+                  $0.range(of: #"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$"#, options: .regularExpression) != nil
+              }) else {
+            throw MixerFailure("config.application", "Application identifiers must be reverse-DNS identifiers for configured targets.")
         }
         guard Set(targets).count == targets.count, !targets.isEmpty, Set(targets).isSubset(of: ["ios", "android"]) else { throw MixerFailure("config.targets", "Targets must be unique ios/android entries.") }
         if let androidHost {
@@ -62,7 +67,7 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
         do { raw = try JSONSerialization.jsonObject(with: data) }
         catch { throw MixerFailure("config.encoding", "This preview reads the JSON subset of YAML 1.2 in mixer.yml. Use the generated configuration; block-style YAML support is not yet implemented.") }
         guard let fields = raw as? [String: Any] else { throw MixerFailure("config.shape", "mixer.yml must be an object.") }
-        let known: Set<String> = ["schema", "application", "name", "language", "targets", "toolchainLock", "capabilities", "updates", "androidHost"]
+        let known: Set<String> = ["schema", "application", "name", "language", "targets", "toolchainLock", "capabilities", "updates", "androidHost", "applicationIdentifiers"]
         let unknown = Set(fields.keys).subtracting(known)
         guard unknown.isEmpty else { throw MixerFailure("config.unknown", "Unknown configuration keys: \(unknown.sorted().joined(separator: ", ")).") }
         if let updateFields = fields["updates"] as? [String: Any] {

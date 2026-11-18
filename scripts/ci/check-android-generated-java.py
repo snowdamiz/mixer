@@ -1012,7 +1012,7 @@ def apple_producer_provenance(env):
 def source_inputs(profile):
     paths = {Path(__file__).relative_to(ROOT).as_posix(), POLICY, DRIVER,
              'scripts/ci/check-android-binding.py'}
-    for package in ('cli', 'sdk', 'updates'):
+    for package in ('cli', 'sdk', 'updates', 'runtime-identity'):
         paths.update(str(p.relative_to(ROOT)) for p in (ROOT / package / 'Sources').rglob('*') if p.is_file())
         paths.update(str(p.relative_to(ROOT)) for p in (ROOT / package).glob('Package.*') if p.is_file())
     native = ROOT / 'native-sdk'

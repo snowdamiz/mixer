@@ -104,7 +104,8 @@ def admission_paths(root=None, binding=None):
         dependencies = admission_paths(root, previous)
         dependencies.update(relative(path).as_posix() for path in declaration['changes'])
         for key in ('capability_transition', 'upgrade_transition', 'pair24_transition',
-                    'cancel_cli_transition', 'local_store_transition'):
+                    'cancel_cli_transition', 'local_store_transition',
+                    'release_inspector_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -445,8 +446,12 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(pair24['sourceAfter'], observed['predecessor_pair24_source141_sha256'])
             self.assertEqual(binding['hydration_transition']['sourceAfter'],
                              observed['predecessor_local_store_source141_sha256'])
+            inspector = binding['release_inspector_transition']
+            self.assertEqual(inspector['sourceBefore'], binding['runtime_notice_witness_transition']['sourceAfter'])
+            self.assertEqual(observed['predecessor_release_inspector_sha256'], inspector['sourceBefore'])
             changes = {**binding['changes'], **binding['capability_transition']['changes'],
-                       **pair24['changes'], **binding['local_store_transition']['changes']}
+                       **pair24['changes'], **binding['local_store_transition']['changes'],
+                       **inspector['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:
