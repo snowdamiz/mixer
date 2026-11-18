@@ -455,7 +455,9 @@ class SparseControls(unittest.TestCase):
             halt = binding['halt_cli_transition']
             self.assertEqual(observed['predecessor_source150_sha256'], icu['sourceAfter'])
             self.assertEqual(halt['sourceBefore'], icu['sourceAfter'])
-            self.assertEqual(observed['source_sha256'], halt['sourceAfter'])
+            self.assertEqual(observed['predecessor_apple_section_accessibility_sha256'],
+                             halt['sourceAfter'])
+            self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
                              if name.startswith('icu-notice-predecessor-bytes/')]
