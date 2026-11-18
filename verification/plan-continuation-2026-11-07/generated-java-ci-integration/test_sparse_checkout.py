@@ -105,7 +105,7 @@ def admission_paths(root=None, binding=None):
         dependencies.update(relative(path).as_posix() for path in declaration['changes'])
         for key in ('capability_transition', 'upgrade_transition', 'pair24_transition',
                     'cancel_cli_transition', 'local_store_transition',
-                    'release_inspector_transition'):
+                    'release_inspector_transition', 'icu_notice_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -449,6 +449,24 @@ class SparseControls(unittest.TestCase):
             inspector = binding['release_inspector_transition']
             self.assertEqual(inspector['sourceBefore'], binding['runtime_notice_witness_transition']['sourceAfter'])
             self.assertEqual(observed['predecessor_release_inspector_sha256'], inspector['sourceBefore'])
+            icu = binding['icu_notice_transition']
+            self.assertEqual(icu['sourceBefore'], inspector['sourceAfter'])
+            self.assertEqual(observed['predecessor_icu_notice_sha256'], icu['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], icu['sourceAfter'])
+            seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
+            icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
+                             if name.startswith('icu-notice-predecessor-bytes/')]
+            self.assertEqual(len(icu_preimages), len(icu['changes']))
+            for name in (*icu_preimages, *map(Path, icu['changes'])):
+                with self.subTest(missing_icu_input=name.as_posix()):
+                    missing = name.as_posix()
+                    command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
+                            input=('\n'.join((*patterns, '!/' + missing)) + '\n').encode(), check=True)
+                    self.assertFalse((repo / name).exists())
+                    failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                    self.assertEqual(failed.returncode, 1)
+                    diagnostic = 'Incomplete authority membership' if name in icu_preimages else missing
+                    self.assertIn(diagnostic.encode(), failed.stderr)
             changes = {**binding['changes'], **binding['capability_transition']['changes'],
                        **pair24['changes'], **binding['local_store_transition']['changes'],
                        **inspector['changes']}

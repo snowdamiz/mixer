@@ -20,7 +20,7 @@ A signed FieldLog update on the macOS host changed the Arabic checklist labels. 
 
 A signed C guest replayed the historical FieldLog task editor on the macOS VM. Save persisted Unicode input and one outbox event. Cancel preserved the workspace. Compiling that editor from Swift and mounting it through the installed mobile owner remain open. [Historical editor replay](verification/receipts/fieldlog-f05-signed-editor-host-41a05264.json).
 
-The Android build now packages the Swift SDK and NDK notices. The SDK exports the public guest draw and tap callback and retains its trial caller. The packaging controls checked the exact notice bytes in the retained starter APK. ICU attribution and Android runtime acceptance remain open. [Integration and controls](verification/receipts/android-sdk-public-witness-and-runtime-notices-41a05264.json).
+The exported Android starter packages the Swift SDK, two NDK notices and the Apple ICU 76.1 license for the bundled Foundation ICU library. Full-APK checks verified all four files and rejected a missing, altered or extra notice. Independent publisher attestation for the ICU binary remains open. The SDK also exports the public guest draw and tap callback. [APK and source checks](verification/receipts/android-starter-icu-source150-41a05264.json) · [SDK integration](verification/receipts/android-sdk-public-witness-and-runtime-notices-41a05264.json).
 
 The local v3 origin served distinct signed FieldLog releases to the old and new iOS runtime fingerprints for one installation ID. After restart, each still received its original offer. The host verifier used retained descriptors and a fresh cursor to model the upgrade. [Runtime cohort offers](verification/receipts/fieldlog-runtime-cohort-offers-41a05264.json).
 

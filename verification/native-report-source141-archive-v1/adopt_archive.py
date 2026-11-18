@@ -195,6 +195,13 @@ RELEASE_INSPECTOR_CHANGES = RELEASE_INSPECTOR_SOURCE_CHANGES | {
     VERIFY_WORKFLOW,
     JAVA + 'test_sparse_checkout.py',
 }
+ICU_NOTICE_PREFIX = 'icu-notice-predecessor-bytes/'
+ICU_NOTICE_PREDECESSOR_SHA256 = '31af762a2f092df7da8fffa5f367e250f2646c9ac18d4a4e75f1b22a01caa579'
+ICU_NOTICE_DRIVER = 'cli/Sources/MixerBuild/Resources/android-build.py'
+ICU_NOTICE_TEST = 'cli/build-tests/test_android_runtime_notices.py'
+ICU_NOTICE_CHANGES = {
+    ICU_NOTICE_DRIVER, ICU_NOTICE_TEST, 'THIRD_PARTY.yml', JAVA + 'test_sparse_checkout.py',
+}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -202,6 +209,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     RELEASE_INSPECTOR_PREFIX + name
     for name in RELEASE_INSPECTOR_CHANGES - RELEASE_INSPECTOR_ADDITIONS
+} | {
+    ICU_NOTICE_PREFIX + name for name in ICU_NOTICE_CHANGES
 } | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
@@ -317,7 +326,7 @@ def install_inputs():
                              'pair24_transition', 'cancel_cli_transition', 'hydration_transition',
                              'hosted_v33_workflow', 'local_store_transition', 'workspace_builds_workflow',
                              'public_update_transition', 'runtime_notice_witness_transition',
-                             'release_inspector_transition'} and
+                             'release_inspector_transition', 'icu_notice_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -573,12 +582,38 @@ def install_inputs():
             require(expected_source.get(name) == change['before'], 'Release inspector source preimage differs: ' + name)
             expected_source[name] = change['after']
         installed[name] = change['after']
+    require(len(expected_source) == 150 and
+            inspector['sourceAfter'] == previous.digest(expected_source) == ICU_NOTICE_PREDECESSOR_SHA256,
+            'Release inspector source transition differs')
+
+    icu = binding['icu_notice_transition']
+    require(set(icu) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            icu['sourceBefore'] == inspector['sourceAfter'] and
+            set(icu['changes']) == ICU_NOTICE_CHANGES, 'ICU notice predecessor or change roster differs')
+    for name, change in icu['changes'].items():
+        raw = read_predecessor_member(HERE / ICU_NOTICE_PREFIX / name)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == previous.row(raw) and change['before'] != change['after'] and
+                type(change['mode']) is int and change['mode'] == 0o644,
+                'ICU notice owner row differs: ' + name)
+        # The packing test existed at the predecessor revision outside the owner map.
+        if name == ICU_NOTICE_TEST:
+            require(name not in installed, 'ICU packing test already owned: ' + name)
+        else:
+            require(change['before'] == installed[name], 'ICU notice owner preimage differs: ' + name)
+        if name == ICU_NOTICE_DRIVER:
+            require(expected_source[name] == change['before'], 'ICU notice source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
     require(current == expected_source and len(current) == 150 and binding['source'] == {
         'count': len(current), 'manifest': 'current-source-inputs.json',
-        'sha256': inspector['sourceAfter'],
-    } and inspector['sourceAfter'] == previous.digest(current), 'Release inspector source transition differs')
+        'sha256': icu['sourceAfter'],
+    } and icu['sourceAfter'] == previous.digest(current), 'ICU notice source transition differs')
 
     previous.check_rows(ROOT, installed)
+    for name, change in icu['changes'].items():
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
+                'Installed ICU notice owner mode differs: ' + name)
     for name, change in inspector['changes'].items():
         require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
                 'Installed release inspector owner mode differs: ' + name)
@@ -667,6 +702,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_icu_notice_sha256': binding['icu_notice_transition']['sourceBefore'],
             'predecessor_release_inspector_sha256': binding['release_inspector_transition']['sourceBefore'],
             'predecessor_runtime_notice_witness_sha256': binding['runtime_notice_witness_transition']['sourceBefore'],
             'predecessor_local_store_source141_sha256': binding['local_store_transition']['sourceBefore'],
