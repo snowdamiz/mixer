@@ -1,0 +1,52 @@
+{
+  "id": "L05-NATIVE-WORKER-REVIEW-FIXES-41A05264",
+  "status": "SCOPED_PASS",
+  "baseAtStart": "79233ba123a394459b792beac648138808cd0930",
+  "headAtVerification": "6e1e6b659fe9b0746ebf61093431901dc6d8a589",
+  "environment": "macOS 27.0.1 arm64, Python 3.14.8",
+  "historicalNativeSuccess": "verification/receipts/l05-native-success-41a05264.json",
+  "sourceSha256": {
+    "hosted/priv/development/native_artifact_worker.py": "558854581b9a25df1efc7b26c671eccdeba7b17292605f405d8577d4cc9699f5",
+    "hosted/scripts/test_native_artifact_worker.py": "aebf4d2080e7dfe398037edb40c7c13b7c0173fdd907526266714354affab748"
+  },
+  "baseline": {
+    "workerSha256": "239d00b999113b0a44081c9587d8fbdd6bae2dc020e2fc9dc4b6371d6d5f8af5",
+    "failures": [
+      "After registration changed across restart, query, stop and ensure_started still returned the old stopped result.",
+      "Replayed query envelopes were accepted before and after restart. An accepted shutdown envelope shut down a second listener after restart.",
+      "With preparation paused at stderr open, the stop reply returned before resumption and the fixture spawn was then called once."
+    ],
+    "logs": [
+      "/tmp/mixer-l05-worker-review-baseline.B1RENXvi/baseline.log",
+      "/tmp/mixer-l05-worker-review-race-baseline.RcxYj1EZ/baseline.log"
+    ]
+  },
+  "runs": [
+    {
+      "command": "python3 -B hosted/scripts/test_native_artifact_worker.py -v",
+      "log": "/tmp/mixer-l05-worker-reviewed-normal.CTNuretb/normal.log",
+      "logSha256": "2c41e3bd34db3af958019ba8dd6fda650693281d3920581664021ea31f5f34e5",
+      "exit": 0,
+      "tests": 10
+    },
+    {
+      "command": "python3 -B -O hosted/scripts/test_native_artifact_worker.py -v",
+      "log": "/tmp/mixer-l05-worker-reviewed-optimized.xzT1Rucl/optimized.log",
+      "logSha256": "0106440ea2f868d0350ec45eb71e4f00153f39354981149684660f5225646adf",
+      "exit": 0,
+      "tests": 10
+    }
+  ],
+  "observed": [
+    "Normal TCP serving and signed envelopes rejected repeated authenticated nonces across worker restart, including successful shutdown and a shutdown previously refused for uncertain custody.",
+    "The current registration controlled access to retained tombstones and artifacts. Restoring the original registration recovered access, and an unregistered request could not advance the operation's stored guard.",
+    "The preparation barrier allowed stop to commit before spawn. The stopped proof recorded closed=true and started=false. The child-wait barrier exercised spawn winning and required known closure before stop or shutdown could succeed.",
+    "The artifact path validated three fixture products, served them after an authorized restart, and refused access after a durable stop. The original guarded cleanup and failed proof-write controls also passed."
+  ],
+  "cleanup": "Fresh per-test state and ephemeral loopback listeners. Final protocol tests required authenticated shutdown, serving-thread termination and listener descriptor closure. Compiler spawn and nested receipts were fixtures with no child process to collect.",
+  "limits": [
+    "The unchanged envelope supports at-most-once use of accepted nonces within retained worker state. Shutdown has no signed age bound for a first-delivered envelope. Operation requests continue to require an unexpired guard.",
+    "This slice exercised the current worker over loopback with fixture compiler outputs. It ran no new native build, device, Elixir or integrated delivery check.",
+    "No held attempt, staging, push, or release qualification was used."
+  ]
+}

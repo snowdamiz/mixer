@@ -1,0 +1,364 @@
+{
+  "schema": 1,
+  "id": "fieldlog-guest-benchmark-41a05264",
+  "status": "PASS_LOCAL_COMPACT_FIELDLOG_BENCHMARK",
+  "gate": "L03",
+  "boundaries": {
+    "launch": "In-process monotonic time from immediately before installed validation of in-memory module bytes to first reconciled document accepted by the exchange. Includes construction, startup and effects admission.",
+    "input": "In-process monotonic time from just before the first offer of a reconciled button activation through accepted reconciliation of the next document. Includes busy admission retries and bridge delivery wake; no polling interval.",
+    "memory": "Whole fresh host process RSS in bytes via mach_task_basic_info at four boundaries; Darwin getrusage self maximum RSS in bytes through after-drain checkpoint. Includes Swift and VM; no RSS attribution to the guest.",
+    "payload": "Raw Wasm and deterministic gzip level 9, zero mtime, measured from the first accepted files. No envelope, signing, manifest, assets, transport or delta packaging.",
+    "timerDiagnostic": "Timer ticks come from the bridge's native worker status sampled just outside each timed input interval. The existing Guest UI V1 worker arms a repeating 10 ms pump; the benchmark leaves that setting stock.",
+    "excludedFromTiming": "Executable startup, reading Wasm from disk, native window/pixels, differential checks, RSS sampling and retirement.",
+    "workload": "One guest/session in each fresh macOS host process, one fixed inspection task and 12 serial button activations. Baseline runs six complete/reopen cycles. Reviewed runs four review/confirm/reopen cycles. Five alternating paired rounds, no discarded warm-up samples."
+  },
+  "observedUTC": "2026-11-18T06:13:05.007255+00:00",
+  "acceptedReceipt": "verification/receipts/fieldlog-compact-abi2-41a05264.json",
+  "localGatesPassed": [],
+  "gaGatesPassed": [],
+  "payloads": {
+    "baseline": {
+      "bytes": 2757,
+      "sha256": "7429ae900e0624570b8a0e4f024098fda79e8cb25bfa27132933e2a7939f0dfb",
+      "originalPath": "verification/local/fieldlog-installed-guest-proof-41a05264/baseline.wasm",
+      "gzipBytes": 1396
+    },
+    "reviewed": {
+      "bytes": 2790,
+      "sha256": "eff19ec5956886c919f5ec00b1a3bd123a491ed4c7623ceed7bec7991595389d",
+      "originalPath": "verification/local/fieldlog-installed-guest-proof-41a05264/reviewed.wasm",
+      "gzipBytes": 1410
+    },
+    "fullSDK": {
+      "bytes": 5511014,
+      "sha256": "70d86edafc8a9538fd01b05cc2b63300df75db0499cb6c6a96fc918cb9aaaf6f",
+      "originalPath": "verification/local/fieldlog-installed-guest-proof-41a05264/full-sdk-baseline.wasm",
+      "gzipBytes": 1590250
+    }
+  },
+  "inputs": {
+    "mixerRevision": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+    "acceptedRevision": "d39031b0870386abc12feb11ea804c668f6ac8c1",
+    "bridgeInputSHA256": "a656471a8e19b87cdf44e2ae2e1b481b92c8b531cef082d95fdb374b674de886",
+    "benchmarkSources": {
+      "compiler/experiments/fieldlog-guest-benchmark/run.py": "293f3b6dedd8909d20e73fded400fd6a75a66a424fe48a6e6c3483a281e5ea23",
+      "compiler/experiments/fieldlog-guest-benchmark/Benchmark.swift": "4493a02adbc8f379aad5a59d7e1aaced73ac5a0bc3526617d24da9d4505f8098",
+      "compiler/qualification_support.py": "e4d862f7671e94da0a0181313022d195b62cb592eed69f1c491ca0c11dd537c4",
+      "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift": "617b60024af1accef044dd148360fcf889648594783057c7234b335b468071d7",
+      "compiler/experiments/fieldlog-installed-guest/ProbePackage.swift.in": "0663c31df2fba47c515d4667bd8b1edbf8b30d336122ba1d090bef27dbc5471f"
+    },
+    "vmArchiveSHA256": "1e1bc0b9856adc9fca5ce3a208dfe771873cc7e4a263cfe49764aa39a19feb39",
+    "fieldlogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "workspaceSHA256": "6f11d54b41081b20429be486f074f886ec6f53083753bf7a19c67a3c5d19e014"
+  },
+  "tools": {
+    "hostSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "rustArchiveCompiler": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "guestCompiler": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "architecture": "arm64",
+    "logicalCPUs": 15,
+    "hardwareModel": "Mac17,9",
+    "physicalRAMBytes": 51539607552
+  },
+  "hostBinary": {
+    "bytes": 4256584,
+    "sha256": "889d19f0600bd2f81e27d2bd218e1ce3336ab53c6532adb2957846f2d89bd754"
+  },
+  "differential": {
+    "baseline": {
+      "acceptedEvents": 12,
+      "deliveredEvents": 12,
+      "fixture": "baseline",
+      "inputNS": [],
+      "inputTimerTicks": [],
+      "maxDocumentBytes": 439,
+      "maxEventBytes": 122,
+      "maximumBatchNS": 798834,
+      "nativeMalformed": 72,
+      "producedFrames": 13,
+      "retired": true,
+      "rssBytes": {},
+      "staleRefusals": 12,
+      "statuses": [
+        "Open",
+        "Completed",
+        "Open",
+        "Completed",
+        "Open",
+        "Completed",
+        "Open",
+        "Completed",
+        "Open",
+        "Completed",
+        "Open",
+        "Completed",
+        "Open"
+      ],
+      "vmTurns": 13,
+      "workspaceOutbox": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    "reviewed": {
+      "acceptedEvents": 12,
+      "deliveredEvents": 12,
+      "fixture": "reviewed",
+      "inputNS": [],
+      "inputTimerTicks": [],
+      "maxDocumentBytes": 452,
+      "maxEventBytes": 122,
+      "maximumBatchNS": 2769916,
+      "nativeMalformed": 72,
+      "producedFrames": 13,
+      "retired": true,
+      "rssBytes": {},
+      "staleRefusals": 12,
+      "statuses": [
+        "Open",
+        "Review required",
+        "Completed",
+        "Open",
+        "Review required",
+        "Completed",
+        "Open",
+        "Review required",
+        "Completed",
+        "Open",
+        "Review required",
+        "Completed",
+        "Open"
+      ],
+      "vmTurns": 13,
+      "workspaceOutbox": [
+        2,
+        2,
+        3,
+        4,
+        4,
+        5,
+        6,
+        6,
+        7,
+        8,
+        8,
+        9,
+        10
+      ]
+    }
+  },
+  "guards": {
+    "baseline": {
+      "acceptedEventCancellation": "one terminal result, turnBegan=false, no frame published after stop, later input closed, drained and retired",
+      "oversize": "invalid_module_or_startup before native validation",
+      "startupFuel": "fuel_exhausted, zero frames, drained and retired",
+      "truncatedWasm": "malformed in native validation"
+    },
+    "reviewed": {
+      "acceptedEventCancellation": "one terminal result, turnBegan=false, no frame published after stop, later input closed, drained and retired",
+      "oversize": "invalid_module_or_startup before native validation",
+      "startupFuel": "fuel_exhausted, zero frames, drained and retired",
+      "truncatedWasm": "malformed in native validation"
+    }
+  },
+  "loadBefore": [
+    58.2197265625,
+    51.44287109375,
+    45.7822265625
+  ],
+  "loadAfter": [
+    58.2197265625,
+    51.44287109375,
+    45.7822265625
+  ],
+  "metrics": {
+    "baseline": {
+      "launchNS": {
+        "count": 5,
+        "min": 1112792,
+        "median": 1946084,
+        "p95": 4507042,
+        "max": 4507042
+      },
+      "inputNS": {
+        "count": 60,
+        "min": 482417,
+        "median": 10228083.5,
+        "p95": 12740792,
+        "max": 17626500
+      },
+      "perProcessInputMedianNS": {
+        "count": 5,
+        "min": 9704875.0,
+        "median": 10054083.5,
+        "p95": 10551291.5,
+        "max": 10551291.5
+      },
+      "peakRSSBytes": {
+        "count": 5,
+        "min": 9256960,
+        "median": 9322496,
+        "p95": 9338880,
+        "max": 9338880
+      },
+      "rssBytes": {
+        "afterDrain": {
+          "count": 5,
+          "min": 9256960,
+          "median": 9322496,
+          "p95": 9338880,
+          "max": 9338880
+        },
+        "beforeValidation": {
+          "count": 5,
+          "min": 6733824,
+          "median": 6750208,
+          "p95": 6799360,
+          "max": 6799360
+        },
+        "firstDocument": {
+          "count": 5,
+          "min": 8716288,
+          "median": 8716288,
+          "p95": 8749056,
+          "max": 8749056
+        },
+        "lastDocument": {
+          "count": 5,
+          "min": 9191424,
+          "median": 9240576,
+          "p95": 9256960,
+          "max": 9256960
+        }
+      },
+      "processCPUMicroseconds": {
+        "count": 5,
+        "min": 13686,
+        "median": 14531,
+        "p95": 15436,
+        "max": 15436
+      },
+      "intervalsWithBridgeTimerTick": 59,
+      "maxVMBatchNS": 7975750,
+      "maxDocumentBytes": 439,
+      "maxEventBytes": 122,
+      "acceptedEvents": 60,
+      "deliveredEvents": 60,
+      "producedFrames": 65,
+      "retiredSessions": 5
+    },
+    "reviewed": {
+      "launchNS": {
+        "count": 5,
+        "min": 1348750,
+        "median": 1570292,
+        "p95": 2123958,
+        "max": 2123958
+      },
+      "inputNS": {
+        "count": 60,
+        "min": 542542,
+        "median": 9920917.0,
+        "p95": 12761125,
+        "max": 30113666
+      },
+      "perProcessInputMedianNS": {
+        "count": 5,
+        "min": 9173146.0,
+        "median": 9926499.5,
+        "p95": 10198875.0,
+        "max": 10198875.0
+      },
+      "peakRSSBytes": {
+        "count": 5,
+        "min": 9273344,
+        "median": 9338880,
+        "p95": 9371648,
+        "max": 9371648
+      },
+      "rssBytes": {
+        "afterDrain": {
+          "count": 5,
+          "min": 9273344,
+          "median": 9338880,
+          "p95": 9371648,
+          "max": 9371648
+        },
+        "beforeValidation": {
+          "count": 5,
+          "min": 6733824,
+          "median": 6733824,
+          "p95": 6799360,
+          "max": 6799360
+        },
+        "firstDocument": {
+          "count": 5,
+          "min": 8683520,
+          "median": 8716288,
+          "p95": 8749056,
+          "max": 8749056
+        },
+        "lastDocument": {
+          "count": 5,
+          "min": 9207808,
+          "median": 9240576,
+          "p95": 9289728,
+          "max": 9289728
+        }
+      },
+      "processCPUMicroseconds": {
+        "count": 5,
+        "min": 13715,
+        "median": 14184,
+        "p95": 15786,
+        "max": 15786
+      },
+      "intervalsWithBridgeTimerTick": 57,
+      "maxVMBatchNS": 3988917,
+      "maxDocumentBytes": 452,
+      "maxEventBytes": 122,
+      "acceptedEvents": 60,
+      "deliveredEvents": 60,
+      "producedFrames": 65,
+      "retiredSessions": 5
+    }
+  },
+  "processGroupsClosed": 22,
+  "sampleOrder": [
+    "baseline",
+    "reviewed",
+    "baseline",
+    "reviewed",
+    "baseline",
+    "reviewed",
+    "baseline",
+    "reviewed",
+    "baseline",
+    "reviewed"
+  ],
+  "samples": {
+    "bytes": 7313,
+    "sha256": "d944169e48a32f5ca1d3762cb3f8716791f9730fe81213e5045a98104f84b2c6"
+  },
+  "errors": 0,
+  "details": {
+    "path": "verification/local/fieldlog-guest-benchmark-41a05264/result.json",
+    "bytes": 28913,
+    "sha256": "3eb60eae1cb081e9787616379c4339e6047c96f6ee2e32088dd0a79e4e8eadb0"
+  },
+  "replay": "python3 -B compiler/experiments/fieldlog-guest-benchmark/run.py fieldlog-guest-benchmark-FRESH"
+}

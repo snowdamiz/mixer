@@ -1,0 +1,326 @@
+{
+  "id": "L05-RESTRICTED-DURABLE-INTENT-SCHEDULER-41A05264",
+  "status": "PASS_FIRST_DEPENDENCY_BLOCKER_REPRODUCED",
+  "revision": "09a3ec0343b29b59849260349a0aa6403b9bb215",
+  "hostedTreeWith499": "4576d4ae0b2c69d20b32b9bbbdad664d23e3aad0",
+  "servicesTree": "d1961ec02051246601126d5256ac92cf527ba8b0",
+  "tools": {
+    "platform": "Darwin arm64",
+    "elixir": "1.20.4",
+    "otp": "29 / ERTS 17.1",
+    "postgresql": "17.11",
+    "oban": "2.24.2",
+    "python": "3.14.8"
+  },
+  "references": [
+    "verification/receipts/native-build-normal-schema-admission-r6058.json",
+    "verification/receipts/l05-hosted-operation-acl-integration.json",
+    "verification/receipts/first-registered-local-native-build-r6042.json"
+  ],
+  "schema": {
+    "preboot": [
+      20261110000498,
+      20261110000499
+    ],
+    "function_owner": "browser_schema_owner",
+    "security_definer": false,
+    "processor_execute": false,
+    "processor_operation_table_select": false
+  },
+  "api": {
+    "session": 200,
+    "json": {
+      "outcome": "applied",
+      "revision": 0,
+      "selection": {
+        "application_id": "fieldlog",
+        "build_definition_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "build_id": "build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6",
+        "organization_id": "org-a",
+        "platform": "ios",
+        "project_id": "project-a",
+        "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolchain_lock_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "state": "queued"
+    },
+    "callback": 303,
+    "post": 201
+  },
+  "processor": {
+    "profile": "builds_v1",
+    "queue": "builds",
+    "role": "mixer_build_processor",
+    "repo": "MixerHosted.Repo",
+    "durable_intent": "durable_intent_v1",
+    "oban_testing": "disabled",
+    "billing_configured": false
+  },
+  "scheduler": {
+    "revision": 1,
+    "create_job_id": 1,
+    "first_failure": {
+      "code": "insufficient_privilege",
+      "message": "permission denied for function mixer_build_operation_admit",
+      "pg_code": "42501"
+    },
+    "start_job_id": 2,
+    "jobs": [
+      [
+        1,
+        "created",
+        "completed",
+        1,
+        0,
+        0
+      ],
+      [
+        2,
+        "start",
+        "scheduled",
+        0,
+        0,
+        1
+      ]
+    ],
+    "build_record_id": "bc921ea3-5bc2-45c8-a3a3-cb3fd67f8993",
+    "journal_last_event": "start",
+    "capacity_held": true,
+    "terminal_event_id": null,
+    "operation_intent_rows": 0
+  },
+  "jobObservationColumns": [
+    "id",
+    "kind",
+    "state",
+    "attemptAfterSnooze",
+    "errorCount",
+    "snoozedCount"
+  ],
+  "test": {
+    "passed": 1,
+    "failed": 0,
+    "exit": 0,
+    "fixtureDeadlineMs": 120000,
+    "compileCommand": "MIX_ENV=test ERL_CRASH_DUMP_SECONDS=0 mix compile --warnings-as-errors",
+    "compileExit": 0
+  },
+  "worker": {
+    "implementation": "hosted/priv/development/compiler_worker.py",
+    "fixture": "Canonical loopback worker with scope and digest binding for the seeded source input. Compiler recipe execution was outside this blocker probe.",
+    "operations": 0,
+    "compiler_starts": 0,
+    "acceptedNativeResult": false,
+    "artifacts": 0
+  },
+  "cleanup": {
+    "application": {
+      "pid_names_absent": true,
+      "oban_absent": true
+    },
+    "worker": {
+      "port": 49768,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "postgres": {
+      "port": 49767,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "disposable_data_removed": true,
+    "worker_secret_removed": true,
+    "allCommandGroupsAbsent": true
+  },
+  "commands": [
+    {
+      "label": "initdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/pgdata",
+        "-U",
+        "mixer_fixture",
+        "--auth=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "pid": 91737,
+      "pgid": 91737,
+      "exit": 0,
+      "group_absent": true,
+      "custody": "TERMINAL"
+    },
+    {
+      "label": "postgres",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "-D",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "49767",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC"
+      ],
+      "pid": 92085,
+      "pgid": 92085,
+      "exit": 0,
+      "group_absent": true,
+      "custody": "TERMINAL"
+    },
+    {
+      "label": "roles",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "49767",
+        "-U",
+        "mixer_fixture",
+        "-d",
+        "postgres",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "\n        CREATE ROLE browser_admin LOGIN SUPERUSER;\n        CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;\n        CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;\n        CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;\n        CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;\n        CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOSUPERUSER\n          NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;\n    "
+      ],
+      "pid": 92092,
+      "pgid": 92092,
+      "exit": 0,
+      "group_absent": true,
+      "custody": "TERMINAL"
+    },
+    {
+      "label": "worker",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "priv/development/compiler_worker.py",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/worker.json",
+        "<disposable worker-config SHA-256>",
+        "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/worker-state"
+      ],
+      "pid": 92097,
+      "pgid": 92097,
+      "exit": 0,
+      "group_absent": true,
+      "custody": "TERMINAL"
+    },
+    {
+      "label": "scheduler",
+      "argv": [
+        "mix",
+        "test",
+        "test/l05_durable_scheduler_probe_test.exs",
+        "--seed",
+        "0",
+        "--trace"
+      ],
+      "pid": 92099,
+      "pgid": 92099,
+      "exit": 0,
+      "group_absent": true,
+      "custody": "TERMINAL"
+    }
+  ],
+  "preliminaryAttempts": [
+    {
+      "attempt": 1,
+      "schedulerExit": 2,
+      "allCommandGroupsAbsent": true,
+      "observation": "Harness expected unnormalized Oban queue options."
+    },
+    {
+      "attempt": 2,
+      "schedulerExit": 2,
+      "allCommandGroupsAbsent": true,
+      "observation": "Live function refusal observed. Harness incorrectly expected a snooze to increase max attempts."
+    },
+    {
+      "attempt": 3,
+      "schedulerExit": 2,
+      "allCommandGroupsAbsent": true,
+      "observation": "Live function refusal captured. Harness incorrectly expected a snoozed job to retain the incremented attempt."
+    }
+  ],
+  "nextIntegration": [
+    "Define and review an operation-intent authority usable by the restricted builds_v1 Repo which validates the live lease, scope, deadline and fence, and keeps operation-table updates behind the authority. Update the explicit processor profile, processor admission and browser catalog expectations together. Preserve PUBLIC revocation and the existing owner-only primitives.",
+    "With that boundary in place, join a reviewed authenticated native-success worker and adapter to the same ordinary scheduler route. The checked-in DevelopmentDispatch and compiler_worker.py carry compiler-failure diagnostics and stopped state and have no accepted three-artifact success result."
+  ],
+  "scope": [
+    "Fresh loopback PostgreSQL and a synthetic signed issuer via the existing API fixture. The hosted API, restricted processor, Oban queue, and canonical development listener ran unmodified. The API and processor each booted through MixerHosted.Application in separate phases against the same database.",
+    "Local test overrides supplied PostgreSQL loopback transport and disposable ports. The production TLS configuration was not exercised.",
+    "Reopened SQL showed capacity held and no terminal event at the bounded stop point. Deadline, cancellation, terminal release, native success and delivery were outside this test.",
+    "Payment services and credentials were unnecessary for this exercised slice."
+  ],
+  "localGatesPassed": [],
+  "GA": false,
+  "evidence": [
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/run_probe.py",
+      "bytes": 7272,
+      "sha256": "913f865edd419ad274f7e308b35fe07a6574d1fe825f81d748ec54c788ce998c"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/hosted/test/l05_durable_scheduler_probe_test.exs",
+      "bytes": 12866,
+      "sha256": "50948be141b2cc03ed299fff202957acd6425e18640d4f18320ea10d993b559e"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/compile.log",
+      "bytes": 2034,
+      "sha256": "4a7db90508b0e9abb6018b4b9ad57358d01d2fd2082840a95cf0eb0c70c58666"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/scheduler.log",
+      "bytes": 2342,
+      "sha256": "af9e5ffa15fd9d1d93f7ecfbfbca88aec087d39cef7a599c1ff88aa411c8af77"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/postgres.log",
+      "bytes": 1911,
+      "sha256": "9401a6539c2624cd787ee758394346fe2c380f0622dcd07f1eebd591d3f2c908"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/driver.json",
+      "bytes": 3228,
+      "sha256": "40e07c1891bff7e3ecb07e93d1ea0ebde8816cdaa3a5e7825512d94b69d44d59"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/scheduler.json",
+      "bytes": 586,
+      "sha256": "159b7c5d7a49b0fde663b0843ec7f3092b2870c1919e069a9191d65bc35abc0f"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/sql_refusal.json",
+      "bytes": 135,
+      "sha256": "a5ad6925aa80942f9deb1e9823c3ac2779412ca4be77918f3564e2e9097b76eb"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/http.json",
+      "bytes": 674,
+      "sha256": "7dd316d4d101e15c0636247ee39ec8c794095549e2cb590174750eb29ab1fbed"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/processor.json",
+      "bytes": 216,
+      "sha256": "940610d4ad3b48a53b7329292b77a4ad7c19117ad441d9af618f2ee0bb051308"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/migration.json",
+      "bytes": 209,
+      "sha256": "a3ce013cb8dfdd14bcce661846718c343f07e8350621e4035472edfdae28fe11"
+    },
+    {
+      "path": "/private/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-l05-durable-_iginkwa/attempt-4/application_cleanup.json",
+      "bytes": 53,
+      "sha256": "d4c5f68af0b444c27817e99066527383166be88a19e16b3eafe80adb6830716a"
+    }
+  ]
+}

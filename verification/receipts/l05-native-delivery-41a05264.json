@@ -1,0 +1,359 @@
+{
+  "id": "L05-NATIVE-DELIVERY-41A05264",
+  "status": "SCOPED_LOCAL_PASS_AUTHENTICATED_UNSIGNED_NATIVE_DELIVERY",
+  "references": [
+    "verification/receipts/l05-native-success-41a05264.json"
+  ],
+  "worktreeHeadAtStart": "79233ba123a394459b792beac648138808cd0930",
+  "worktreeHeadAtReceipt": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+  "testedHostedTreeSha256": "597431a0d471b6395af48c7fd9e3b94252f56078558278171c839569c4e136e6",
+  "testedSliceSha256": {
+    "hosted/lib/mixer_hosted/browser_auth/active_read.ex": "8a6eacda843d384bc914221397a82b23797bd76b4056e1e3ff5880bd46a1ec5a",
+    "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex": "748c8acac8a8e7227b85a792b9e8b9ac4e1caf36eb07e99cbd9e8222fdd322b9",
+    "hosted/lib/mixer_hosted/builds/admission.ex": "08b8b555db56bcb47db6efcc28a7dfa3a2babe9f59bcca091b8982942c5c470a",
+    "hosted/lib/mixer_hosted/builds/coordinator.ex": "cf843e461dfd4b0825b022d065bac35b98289dcad3db90f2714a20121e6af90e",
+    "hosted/lib/mixer_hosted/builds/dispatch.ex": "056a42e9047c453ce5f610d294accdb46254036e8d27b05e52722a9f80b05f46",
+    "hosted/lib/mixer_hosted/builds/journal.ex": "b5e29d51a452e597cef69430fa83865b3570a621b082ea822b808b8dbc90c743",
+    "hosted/lib/mixer_hosted/builds/lifecycle.ex": "eacbb32204210b8c6af0d2cb1864cd7e45d40ecf6bf67aa729b41a74bcd6af65",
+    "hosted/lib/mixer_hosted/builds/native_development_dispatch.ex": "d19f465329e765afe5259f64cf23b7210562c0f889bd04b15495e71f1aa7600a",
+    "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex": "4b41cdc1686a95dc703ef428cbd858e8b41eaa7adf9233e4a51cd52078c30775",
+    "hosted/lib/mixer_hosted/customer_builds.ex": "6eb716973da3c9a2a50b11cffbebae7a6b23a2c42910b7b0ce3df78e45a7b15e",
+    "hosted/lib/mixer_hosted/customer_builds/context.ex": "b29203ed20da4e2e631e40c7b4f1090d0af5a45c5889ffa0b7e1231f270b3280",
+    "hosted/lib/mixer_hosted/customer_builds/snapshot.ex": "4af416a2929d040c975fb0cecbda4c9aa3a40cc71783cfe23e6d8730bb962dcd",
+    "hosted/lib/mixer_hosted_web/browser_build_dispatcher.ex": "c8a684b7e6d8261765a02e4c3979d246f8fa79333cca1f0e12d44ac2260f282f",
+    "hosted/lib/mixer_hosted_web/browser_http.ex": "a80622c5cf30633538a995428efcee697ce538d7afc18475f45f502587056d23",
+    "hosted/test/mixer_hosted/builds/journal_test.exs": "91f1075f1796844603eed1114b08c056ff3cb8e931bc9b59a61e0c0e4efd35f4",
+    "hosted/test/mixer_hosted/builds/native_development_dispatch_test.exs": "8ff837ad322fdd6ea011b4224398fba524ce2c2c20fb8ee8d99345c989bab132"
+  },
+  "testedWorkerSha256": "239d00b999113b0a44081c9587d8fbdd6bae2dc020e2fc9dc4b6371d6d5f8af5",
+  "parallelWorkerCandidateSha256AtReceipt": "558854581b9a25df1efc7b26c671eccdeba7b17292605f405d8577d4cc9699f5",
+  "compilerCliSha256": "24d210d25725e299079cd4ab71d5a7ba03d999c8f92589dd4f9bbd6caf2629a1",
+  "tools": {
+    "host": "macOS 27.0.1 arm64",
+    "elixir": "1.20.4 / OTP 29",
+    "postgres": "17.11",
+    "python": "3.14.8",
+    "xcode": "27.2 / 27B52",
+    "swift": "6.4.2"
+  },
+  "verification": {
+    "cwd": "verification/local/l05-native-delivery-41a05264/hosted",
+    "compile": "MIX_ENV=test mix compile --warnings-as-errors",
+    "focused": "MIX_ENV=test mix test test/mixer_hosted/builds/{journal,lifecycle,native_development_dispatch,development_dispatch}_test.exs",
+    "integrated": "PYTHONPATH=\"$PWD/priv/development\" PYTHONDONTWRITEBYTECODE=1 python3 ../run.py run-4",
+    "passed": {
+      "focusedExUnit": 49,
+      "ordinaryHttpIntegration": 1,
+      "restrictedProcessorIntegration": 1
+    },
+    "review": "Independent source review closed both findings after fixes. The HTTP run covered committed membership revocation, and the mid-read check was traced in source. The oversize policy failure used an authenticated loopback peer test.",
+    "earlierFixtureAttempt": "Run 1 used the predecessor's old admission selector and stopped before starting the processor. The ordinary command exited and later group absence was observed. Run 4 loaded the current explicit startup selection."
+  },
+  "preboot": {
+    "preboot": [
+      20261110000498,
+      20261110000499,
+      20261110000500
+    ],
+    "function_owner": "browser_schema_owner",
+    "security_definer": false,
+    "processor_execute": false,
+    "processor_operation_table_select": false,
+    "default_499_admitted": true,
+    "explicit_durable_499_refused": true,
+    "entry_processor_execute": true,
+    "entry_public_execute": false
+  },
+  "processor": {
+    "profile": "builds_v1",
+    "queue": "builds",
+    "role": "mixer_build_processor",
+    "repo": "MixerHosted.Repo",
+    "durable_intent": "durable_intent_v1",
+    "oban_testing": "disabled",
+    "billing_configured": false
+  },
+  "ordinary": {
+    "callback": 303,
+    "session": 200,
+    "post": 201,
+    "duplicatePost": 200,
+    "build": {
+      "applicationId": "fieldlog",
+      "attempt": 1,
+      "buildDefinitionSha256": "cfc96991b53b715a3444390e1992b300f36ff6e3de33d1fec4cb79f3def7212c",
+      "buildId": "build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6",
+      "failureCode": null,
+      "maxAttempts": 1,
+      "organizationId": "org-a",
+      "platform": "ios",
+      "projectId": "project-a",
+      "revision": 2,
+      "sourceSha256": "39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7",
+      "state": "native_succeeded",
+      "toolchainLockSha256": "8d42d0479ecdffa65f0a3006c76c7b12734c162d926f6ad1f04cc5e996433282",
+      "workerCompletionPending": false
+    },
+    "polledStates": [
+      "queued",
+      "running",
+      "native_succeeded"
+    ],
+    "getDownloadPath": "/console-api/v1/build-artifacts/{kind}?{exact-build-selection}",
+    "downloads": [
+      {
+        "downloadStatus": 200,
+        "kind": "unsigned_native_binary",
+        "repeatedBytesEqual": true,
+        "sha256": "5f9ccbfc67dd44d4a7484f8f390b83b946abc0454328e99fd4d397e99c67acf7",
+        "sizeBytes": 3398308,
+        "unauthenticated": 401,
+        "wrongSource": 404,
+        "wrongTenant": 404
+      },
+      {
+        "downloadStatus": 200,
+        "kind": "debug_symbols",
+        "repeatedBytesEqual": true,
+        "sha256": "0b76f84d7b7a1c2ee94efb887903443a1c38b91f0379e6a954a570afaadad577",
+        "sizeBytes": 3543088,
+        "unauthenticated": 401,
+        "wrongSource": 404,
+        "wrongTenant": 404
+      },
+      {
+        "downloadStatus": 200,
+        "kind": "resource_inventory",
+        "repeatedBytesEqual": true,
+        "sha256": "6ec49e6611942bb42f7a0109a74524ff9bd09352f05c2098c5b8578f4e7a280d",
+        "sizeBytes": 998,
+        "unauthenticated": 401,
+        "wrongSource": 404,
+        "wrongTenant": 404
+      }
+    ],
+    "preCompletionDownload": 404,
+    "revokedMembership": 404,
+    "symlink": 503,
+    "sameSizeCorruption": 503,
+    "workerClosedBeforeDownloads": true
+  },
+  "terminal": {
+    "operationId": "98eec397423c0f6716b6a5e00cb8b61defa4d126cece4bc279cd237d23a48f42",
+    "admittedJournalRevision": 1,
+    "workerFence": 1,
+    "terminalRevision": 2,
+    "terminalEventId": "coordinator:1:1:completed",
+    "capacityHeld": false,
+    "completionJobs": 1,
+    "replay": {
+      "terminal": "coordinator:1:1:completed",
+      "start_job_id": 2,
+      "completed_job_id": 3,
+      "stable": true,
+      "jobs": [
+        [
+          1,
+          "created",
+          "completed",
+          1,
+          0
+        ],
+        [
+          2,
+          "start",
+          "completed",
+          1,
+          0
+        ],
+        [
+          3,
+          "completed",
+          "completed",
+          1,
+          0
+        ]
+      ]
+    }
+  },
+  "compiler": {
+    "starts": 1,
+    "scope": "generic iOS Simulator build, CODE_SIGNING_ALLOWED=NO",
+    "closure": {
+      "closed": true,
+      "exit": 0,
+      "pid": 50391,
+      "started": true
+    },
+    "cliLaunch": {
+      "path": "verification/local/l05-native-delivery-41a05264/run-4/worker-state/98eec397423c0f6716b6a5e00cb8b61defa4d126cece4bc279cd237d23a48f42/launch.json",
+      "sha256": "996b7d8b79dba50d5eb50495de16d2a5815db71f00d8ce4224ca2b0abefa4eaf",
+      "bytes": 573
+    },
+    "manifest": {
+      "path": "verification/local/l05-native-delivery-41a05264/run-4/worker-state/98eec397423c0f6716b6a5e00cb8b61defa4d126cece4bc279cd237d23a48f42/native/native-build.json",
+      "sha256": "5eaf2cb6e7afc0d443eb539c679335361b8f0310f9adbe731bffece89ad6a2e3",
+      "bytes": 446226
+    },
+    "nestedCommandReceipts": [
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "receipt": {
+          "path": "verification/local/l05-native-delivery-41a05264/run-4/worker-state/98eec397423c0f6716b6a5e00cb8b61defa4d126cece4bc279cd237d23a48f42/tmp/mixer-command-receipts-5128E507-630B-4BEC-9984-0D0579BEDC89/command-9661B0C2-62D2-41E2-8562-E87141105494/receipt.json",
+          "sha256": "126daacb228718c6675da827b2097402ee0d2c683979dcbaf448948865c17be9",
+          "bytes": 704
+        }
+      },
+      {
+        "command": [
+          "/usr/bin/xcodebuild",
+          "-project",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-native-delivery-41a05264/run-4/worker-state/98eec397423c0f6716b6a5e00cb8b61defa4d126cece4bc279cd237d23a48f42/project/Platforms/iOS/L05Native.xcodeproj",
+          "-scheme",
+          "L05Native",
+          "-configuration",
+          "Debug",
+          "-sdk",
+          "iphonesimulator",
+          "-destination",
+          "generic/platform=iOS Simulator",
+          "-derivedDataPath",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-native-delivery-41a05264/run-4/worker-state/98eec397423c0f6716b6a5e00cb8b61defa4d126cece4bc279cd237d23a48f42/project/.mixer/ios-build",
+          "-clonedSourcePackagesDirPath",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-native-delivery-41a05264/run-4/worker-state/98eec397423c0f6716b6a5e00cb8b61defa4d126cece4bc279cd237d23a48f42/project/.mixer/ios-build/SourcePackages",
+          "-jobs",
+          "4",
+          "DEBUG_INFORMATION_FORMAT=dwarf-with-dsym",
+          "ARCHS=arm64",
+          "ONLY_ACTIVE_ARCH=YES",
+          "ENABLE_DEBUG_DYLIB=NO",
+          "COMPILER_INDEX_STORE_ENABLE=NO",
+          "CODE_SIGNING_ALLOWED=NO",
+          "build"
+        ],
+        "receipt": {
+          "path": "verification/local/l05-native-delivery-41a05264/run-4/worker-state/98eec397423c0f6716b6a5e00cb8b61defa4d126cece4bc279cd237d23a48f42/tmp/mixer-command-receipts-5128E507-630B-4BEC-9984-0D0579BEDC89/command-FD0C34BA-CEDC-44BB-B7F4-A1E5A974EEBA/receipt.json",
+          "sha256": "b7b47ab5eb2dbf73bb9a1ed4dda1cf5bc4ed58964af46f144fb547e00359e9df",
+          "bytes": 2227
+        }
+      }
+    ]
+  },
+  "cleanup": {
+    "worker": {
+      "port": 56045,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "postgres": {
+      "port": 56044,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "disposable_data_removed": true,
+    "worker_secret_removed": true,
+    "allRecordedCommandGroupsAbsent": true,
+    "processorApplication": {
+      "process_names_absent": true,
+      "oban_absent": true
+    },
+    "ordinaryApplication": "Application teardown and issuer fixture peer closure completed in the passing test.",
+    "preservedHistoricalWorkerPGIDs": [
+      63770,
+      70810
+    ]
+  },
+  "sourceAuthorityHandoff": {
+    "owner": "parent",
+    "frozenManifest": "verification/identity-network-current-source-v31/selected-source-manifest.json",
+    "existingEntriesToRebind": [
+      "hosted/lib/mixer_hosted/browser_auth/active_read.ex",
+      "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+      "hosted/lib/mixer_hosted/builds/admission.ex",
+      "hosted/lib/mixer_hosted/builds/coordinator.ex",
+      "hosted/lib/mixer_hosted/builds/dispatch.ex",
+      "hosted/lib/mixer_hosted/builds/journal.ex",
+      "hosted/lib/mixer_hosted/builds/lifecycle.ex",
+      "hosted/lib/mixer_hosted/customer_builds.ex",
+      "hosted/lib/mixer_hosted/customer_builds/context.ex",
+      "hosted/lib/mixer_hosted/customer_builds/snapshot.ex",
+      "hosted/lib/mixer_hosted_web/browser_build_dispatcher.ex",
+      "hosted/lib/mixer_hosted_web/browser_http.ex",
+      "hosted/test/mixer_hosted/builds/journal_test.exs"
+    ],
+    "candidateNewEntries": [
+      "hosted/lib/mixer_hosted/builds/native_development_dispatch.ex",
+      "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex",
+      "hosted/test/mixer_hosted/builds/native_development_dispatch_test.exs"
+    ],
+    "notes": "Verify the selected worker revision, update affected source-authority bindings and L05 evidence indexes from this receipt. The tested worker is pinned to the predecessor receipt."
+  },
+  "limits": [
+    "Opt-in durable-intent profile and private same-owner retained root. Hosted delivery is bounded to 16 MiB per artifact and a verified oversize result records a policy rejection.",
+    "The journal and existing build-read SQL authority are reused. Retained files define availability and remain subject to owner-managed retention.",
+    "Scope covers unsigned iOS Simulator build and API delivery using a local issuer fixture and no billing configuration. Device install, full seven-artifact output, signing, promotion, rollback, production isolation and distribution remain outside this receipt.",
+    "The parallel worker candidate was outside the tested snapshot."
+  ],
+  "localGatesPassed": [],
+  "GA": false,
+  "evidence": [
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/run.py",
+      "sha256": "5d199d5539283016c41e32d41d0fd73feab99409ba37d811cd2a0dd8913b8d44",
+      "bytes": 10740
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/prepare_integration.py",
+      "sha256": "d66bac714068e97b4f92b293a36d719d51e88b677e24c218a16f667434fbf974",
+      "bytes": 11389
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/hosted/test/l05_native_route_test.exs",
+      "sha256": "d3be42056afb2a70962158aa4f1927a420ae73f5769a12d7755cbb1318989de1",
+      "bytes": 17643
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/hosted/test/l05_native_processor_test.exs",
+      "sha256": "f0488a2ce8fc32aac4ee11ade5e6e25785a6f26f8659672cec1d747b63de97be",
+      "bytes": 4148
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/compile-review-fixes.log",
+      "sha256": "daae30267f20974a2a7905a09e1f49853b13f478bebb9a7b247a29201066917e",
+      "bytes": 24
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/focused-final.log",
+      "sha256": "0fbf93784b45f0c3616798937852bb3129f502ab6f2a2e7dffa54c48ccfaa0a7",
+      "bytes": 167
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/run-4/driver.json",
+      "sha256": "a5c5fecf87e27bd61385a4fdc93c3a315574cbaf1e2092021202a585432a4d1d",
+      "bytes": 4990
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/run-4/delivery.json",
+      "sha256": "fa1fc6e1573b0447dd8643269ba6b26e1457e47a92dbe874bac25035dfd6a074",
+      "bytes": 5506
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/run-4/ordinary.log",
+      "sha256": "162c3acd1f727bcb97c3c703c0b5dccc05d623bf7c461e80256a7da59eeea8e7",
+      "bytes": 2318
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/run-4/processor.log",
+      "sha256": "01ffae62b0c9b4a160206eab56126cb8968a270096a75596c23bfa9108d5f982",
+      "bytes": 362
+    },
+    {
+      "path": "verification/local/l05-native-delivery-41a05264/run-4/recipe.json",
+      "sha256": "cfc96991b53b715a3444390e1992b300f36ff6e3de33d1fec4cb79f3def7212c",
+      "bytes": 1692
+    }
+  ]
+}

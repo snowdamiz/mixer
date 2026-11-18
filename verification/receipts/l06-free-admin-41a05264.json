@@ -1,0 +1,181 @@
+{
+  "id": "l06-free-admin-41a05264",
+  "gate": "L06",
+  "status": "PRIVATE_AUTHENTICATED_HTTP_AND_SQL_PASS",
+  "wholeGatePassed": false,
+  "adopted": false,
+  "sourceBase": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+  "sourceBaseTree": "a0e67ee25300ff94979496b4e66bd54ce6cca7ee",
+  "sourceScope": "Isolated copy of the hosted working tree, including concurrent source as copied, plus the candidate migration and fixture. Full source manifest identifies the tested bytes.",
+  "sourceManifest": {
+    "path": "verification/local/l06-free-admin-41a05264/source-manifest.json",
+    "bytes": 41978,
+    "sha256": "5620ce352d64046eba042ec1fd18381feea03025518934d94085d4d1964bc41a"
+  },
+  "evidencePredecessors": [
+    "verification/receipts/workspace-create-navigation-20261118.json",
+    "verification/receipts/free-self-service-http-private-evidence-r5868.json",
+    "verification/receipts/free-workspace-browser-onboarding-root-r5946.json",
+    "verification/receipts/free-workspace-source359-root-r5962.json"
+  ],
+  "tools": {
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "elixirAndErlang": [
+      "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]",
+      "",
+      "Elixir 1.20.4 (compiled with Erlang/OTP 29)"
+    ]
+  },
+  "scope": "Real Bandit/Phoenix product router on loopback, default bearer verifier with signed synthetic tokens and TLS JWKS, full ordinary Ecto migration inventory, production catalog and authorization checks, restricted PostgreSQL roles. The test injected the workspace catalog startup selection and started only the fixture endpoint and its auth/database dependencies.",
+  "baselineAttempts": [
+    {
+      "number": 1,
+      "outcome": "Postmaster exit 1 before HTTP because the clean environment lacked LC_ALL. Group absent after direct reap.",
+      "commands": {
+        "path": "verification/local/l06-free-admin-41a05264/attempt-1/commands.json",
+        "bytes": 3885,
+        "sha256": "abc802075bc6703ebffcdb36bdacf2ee04c6476b4b9629efe90fe78129177fd0"
+      }
+    },
+    {
+      "number": 2,
+      "outcome": "Full existing migrations rolled back authenticated organization creation. SQL logged permission denied for table mixer_billing_organization_state in the invoker trigger. The HTTP helper stopped on the response header assertion. Attempt 6 captured the exact baseline HTTP 503 during rollback.",
+      "commands": {
+        "path": "verification/local/l06-free-admin-41a05264/attempt-2/commands.json",
+        "bytes": 7952,
+        "sha256": "4239f883c392948265c3612807b40e7b0a0ad573fe7f34f163a9cdb83fa5bd46"
+      }
+    },
+    {
+      "number": 3,
+      "outcome": "Initial migration candidate passed the route scenario."
+    },
+    {
+      "number": 4,
+      "outcome": "Initial migration candidate passed route, rollback/reapply, privileges, and independent SQL controls. Superseded by the relation-bound trigger."
+    },
+    {
+      "number": 5,
+      "outcome": "The relation-bound trigger passed the route and SQL controls before the direct wrong-relation negative case was added."
+    }
+  ],
+  "rootCause": "Billing mirror trigger executes with invoker rights. The restricted free workspace writer cannot write billing state after organization insertion.",
+  "candidate": {
+    "fix": "A forward/reversible migration installs a new non-public, relation-bound trigger function. It synchronizes the billing mirror under the existing non-login relation owner's authority with pg_catalog search path. Rollback reinstalls the original trigger. Both workspace roles remain unable to write the billing table or execute the new function directly.",
+    "patch": {
+      "path": "verification/local/l06-free-admin-41a05264/candidate.patch",
+      "bytes": 3594,
+      "sha256": "d7d917fd95a3f6300a7726f43f9a1385d90c153257dc4d92e0c115a2be44b200"
+    },
+    "applyCheck": {
+      "command": "git apply --check /Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l06-free-admin-41a05264/candidate.patch",
+      "exit": 0
+    }
+  },
+  "verification": {
+    "command": "python3 /Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l06-free-admin-41a05264/run.py attempt-6",
+    "commandsAndEnvironment": {
+      "path": "verification/local/l06-free-admin-41a05264/attempt-6/commands.json",
+      "bytes": 9257,
+      "sha256": "0f8c9fa0f3f6b78ef4ab8efe8eb13297721212f5fa5bed87b2aeb9670c94c611"
+    },
+    "fixtureRunner": {
+      "path": "verification/local/l06-free-admin-41a05264/run.py",
+      "bytes": 7603,
+      "sha256": "03faeb57532369e9ede5b5cbb0dc55f8923f24ba6d69461ee73f58b3047ef0dd"
+    },
+    "fixturePreparation": {
+      "path": "verification/local/l06-free-admin-41a05264/prepare.py",
+      "bytes": 1411,
+      "sha256": "eb21d0ce0894edb23c728f9cf80d66d4ba90ec18ab1ed5988c2715d793018b96"
+    },
+    "scenario": {
+      "path": "verification/local/l06-free-admin-41a05264/scenario.exs",
+      "bytes": 12022,
+      "sha256": "e34f3afdf847227989d54d591cb4b6ff776600b95947bc2474d241d530be2abf"
+    },
+    "compiledTestInput": {
+      "path": "verification/local/l06-free-admin-41a05264/hosted/test/l06_free_admin_evidence_test.exs",
+      "bytes": 27863,
+      "sha256": "1806e4ae613f0d32b078663948611d2c927f17d245cff408da3d71732e432f3d"
+    },
+    "dependencyResolution": {
+      "path": "verification/local/l06-free-admin-41a05264/deps.log",
+      "bytes": 1834,
+      "sha256": "64528a2f0ff373fe009855e720ddb65678784f573fd8cad254205ffe37d1a69d"
+    },
+    "compilation": {
+      "path": "verification/local/l06-free-admin-41a05264/compile.log",
+      "bytes": 2666,
+      "sha256": "49c3b4dc27b74830edf6c6144633ed0b3f1c0bf286b5267db839c3343fa24cfd"
+    },
+    "tests": {
+      "passed": 2,
+      "failed": 0,
+      "excluded": 7,
+      "log": {
+        "path": "verification/local/l06-free-admin-41a05264/attempt-6/free-admin-http.log",
+        "bytes": 2115,
+        "sha256": "9f25a9049f69525c92a54e189da1df0bf530f475aa53fc4e1c456c3b13942145"
+      }
+    },
+    "httpResponses": 30,
+    "httpTranscript": {
+      "path": "verification/local/l06-free-admin-41a05264/attempt-6/requests.jsonl",
+      "bytes": 23201,
+      "sha256": "bebe07577d815c7404bab60b4673bca2ab4e88df82d95af618a9096d418914a5"
+    },
+    "independentSQL": {
+      "path": "verification/local/l06-free-admin-41a05264/attempt-6/independent-sql-readback.log",
+      "bytes": 109,
+      "sha256": "5a3432d8c790444df84ac7e8f11a82f130c652e1141ac359bc61342b046fcaa8"
+    },
+    "postgresLog": {
+      "path": "verification/local/l06-free-admin-41a05264/attempt-6/postgres.log",
+      "bytes": 2776,
+      "sha256": "0415e789c6619b74873ee2ac80a6a7b19f9284a36b4a8c8df01fe7411fbeaa97"
+    }
+  },
+  "observed": {
+    "tenantOnboarding": "Two separately authenticated owners created free organizations and projects.",
+    "membership": "Owner added a developer and updated the same row to viewer at revision 2. The viewer reread the project with the new role.",
+    "isolation": "Out-of-tenant export, membership writes and foreign project-ID deletion returned 404. Viewer membership mutation, export and deletion returned 403. The foreign project remained active at revision 1 and was readable by its owner.",
+    "usageAndQuota": "Member saw one active project, a three-project quota and capacity limit two. Fourth active project was rejected with 429. Deletion released one slot.",
+    "exportAndDeletion": "Owner export contained the scoped organization, memberships and projects with allowlisted fields. Reopening the directory hid the tombstoned project while the export retained the inactive row.",
+    "migration": "Wrong-relation trigger returned insufficient_privilege. Down reproduced HTTP 503 for onboarding, up restored authenticated usage, and both original billing mirror rows and organization count were preserved.",
+    "sqlReadback": {
+      "organizations": 2,
+      "activeProjects": 3,
+      "tombstones": 1,
+      "builds": 0,
+      "obanJobs": 0,
+      "billingMirrors": 2
+    },
+    "payment": {
+      "environmentKeys": [],
+      "servicesStarted": [],
+      "credentialRows": 0,
+      "customerBindingRows": 0,
+      "subscriptionClaimRows": 0,
+      "webhookInboxRows": 0,
+      "usageLedgerRows": 0
+    }
+  },
+  "cleanup": {
+    "fixtureDatabaseDroppedAndVerifiedAbsent": true,
+    "beampostgresAndAllRecordedCommandGroupsAbsent": true,
+    "httpAndPostgresPortsReusable": [
+      61114,
+      61113,
+      61091
+    ],
+    "endpointRepoKeyOwnerAndTLSFixtureStopped": true,
+    "ephemeralTLSDirectoryRemoved": true,
+    "newUnknownCustody": false
+  },
+  "remaining": [
+    "Independent review and integration of the private migration and matching inventory update.",
+    "Cookie-console administration UI, support workflow and full organization deletion remain open. The deletion verified here is project archival by tombstone.",
+    "A production provider, external deployment, build dispatch, and device behavior were outside this campaign."
+  ]
+}

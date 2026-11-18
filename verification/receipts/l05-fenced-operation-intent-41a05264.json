@@ -1,0 +1,382 @@
+{
+  "id": "L05-FENCED-OPERATION-INTENT-41A05264",
+  "status": "SCOPED_LOCAL_PASS_REVIEW_FINDINGS_ADDRESSED",
+  "baselineRevision": "c078a3c77c88b67c833c804ad0fefe4b5424c8dc",
+  "sourceSha256": {
+    "hosted/config/runtime.exs": "7789b94770d12f73a94ffb811122b85ea9287a9ca6c76f1a324334bc9ec1c395",
+    "hosted/lib/mixer_hosted/application.ex": "659f5e0dcc60c80983bb4fb655b931884ee6824a89ad38abb28f96f353aa2c52",
+    "hosted/lib/mixer_hosted/browser_auth/build_catalog_admission.ex": "1882bfb2b2edbb5dc7138d634982dc467ee1f9c11c384a5722b11c5b3b012714",
+    "hosted/lib/mixer_hosted/builds/coordinator.ex": "a48e456d46e914cdf3fe693f6b4abd30a96b6bcbfd4c487ab41b613e90002afa",
+    "hosted/lib/mixer_hosted/builds/operation_admission.ex": "0929c1ee42c795eb27bdebcce8f2aed210c18870200c2dbc4acd06b68bc12e35",
+    "hosted/lib/mixer_hosted/builds/operation_intent.ex": "7934213cd4b2a6adff693617800beb7544d35ea20485e5bf467fa03e5a9d20f4",
+    "hosted/lib/mixer_hosted/builds/operation_intent_schema.ex": "9d5bb47b57a2a6769477b1106c003a1551299b8ca742809f317042bc30d20265",
+    "hosted/lib/mixer_hosted/builds/processor_admission.ex": "3fff9ecd9d1620cb267c4d45a24ec55cc296c8bf16834d94d62e3e94498235b0",
+    "hosted/lib/mixer_hosted/builds/processor_notifier.ex": "17e5de9bd1cb1405923bb66d7ab7d0a6efbea769c61c7f5e8bd9ea055c3bc53e",
+    "hosted/lib/mixer_hosted/builds/processor_profile.ex": "a350f9b2578b2e9bd9eca899a9982d7d3c35abcc4405053c737cecf6e4216278",
+    "hosted/lib/mixer_hosted/runtime_config.ex": "e32c60a92d9b229324a55051846779668815865676c7bc15b9892cb6cbd15e0c",
+    "hosted/priv/development/compiler_worker.py": "7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24",
+    "hosted/priv/restricted_processor/print_install_sql.exs": "c220a5a85f8a3da8e9a441281867f09afa780a84b945bccb813f2414a91caf6e",
+    "hosted/priv/unselected_operation_admission/05_processor_intent_body.sql": "3b28b236037a3fd728b3e1d559620f086b0551ed5355c266f5f05f2670bb8905",
+    "hosted/priv/unselected_operation_admission/20261110000499_revoke_public_build_operation_execute.exs": "369acee7f49355b4c7e11159c224cd92848e4c2475e8288485dc66272523f25d",
+    "hosted/priv/unselected_operation_admission/20261110000500_add_fenced_build_operation_intent.exs": "db92128bc9a42915aaf257bbdafdaf2ddeb34e7fa84855c1c23dfaa791c9e3cf",
+    "hosted/test/mixer_hosted/builds/operation_admission_test.exs": "074bc91a7b5ded1dc80dfb2ad73a66e31cc41b4e6fbde6f47c9c527cb9580e22",
+    "hosted/test/runtime_config_test.exs": "28738a480b2af7bf853448a0cb50747ca1ae5146cd43472567cbe31cc3a495b1"
+  },
+  "references": [
+    "verification/receipts/l05-restricted-durable-intent-scheduler-41a05264.json",
+    "verification/receipts/l05-hosted-operation-acl-integration.json"
+  ],
+  "tools": {
+    "platform": "Darwin arm64",
+    "elixir": "1.20.4",
+    "otp": "29 / ERTS 17.1",
+    "postgresql": "17.11",
+    "oban": "2.24.2",
+    "python": "3.14.8"
+  },
+  "schema": {
+    "preboot": [
+      20261110000498,
+      20261110000499,
+      20261110000500
+    ],
+    "function_owner": "browser_schema_owner",
+    "security_definer": false,
+    "processor_execute": false,
+    "processor_operation_table_select": false,
+    "default_499_admitted": true,
+    "explicit_durable_499_refused": true,
+    "entry_processor_execute": true,
+    "entry_public_execute": false,
+    "entry": "public.mixer_build_operation_intent_v1",
+    "entryOwner": "browser_schema_owner",
+    "entrySecurityDefiner": true,
+    "entryOtherExecuteDenied": [
+      "browser_ordinary",
+      "browser_lifecycle",
+      "mixer_build_create",
+      "mixer_customer_build_catalog_definer_v1"
+    ],
+    "profileGrant": "explicit print_install_sql.exs durable_intent_v1 operator option",
+    "defaultMigrationInventoryChanged": false,
+    "default_processor_boot": {
+      "mode": "disabled",
+      "migration_499": true,
+      "notifier_ready": true
+    },
+    "controls": {
+      "rls_enabled": {
+        "processor_admission_refused": true,
+        "browser_catalog_refused": true
+      },
+      "rls_forced": {
+        "processor_admission_refused": true,
+        "browser_catalog_refused": true
+      },
+      "policy_with_rls_disabled": {
+        "processor_admission_refused": true,
+        "browser_catalog_refused": true
+      }
+    }
+  },
+  "api": {
+    "callback": 303,
+    "session": 200,
+    "post": 201,
+    "buildId": "build-34d88bea3e181909b9e3cab1f9b2fbc545f9a04e38aef8c71600762d578bc2c6",
+    "state": "queued",
+    "revision": 0
+  },
+  "processor": {
+    "profile": "builds_v1",
+    "queue": "builds",
+    "role": "mixer_build_processor",
+    "repo": "MixerHosted.Repo",
+    "durable_intent": "durable_intent_v1",
+    "oban_testing": "disabled",
+    "billing_configured": false,
+    "runtimeSelector": "MIXER_BUILD_OPERATION_INTENT=durable_intent_v1",
+    "configurationDrift": {
+      "restart_required": true,
+      "standalone_key_injection_refused": true,
+      "standalone_key_disable_refused": true,
+      "startup_selection_removal_refused": true,
+      "lease_journal_and_operation_unchanged": true
+    }
+  },
+  "scheduler": {
+    "revision": 1,
+    "build_record_id": "97cad7f7-2cad-4f75-85f7-82e69ff2d436",
+    "create_job_id": 1,
+    "start_job_id": 2,
+    "jobs": [
+      [
+        1,
+        "created",
+        "completed",
+        1,
+        0,
+        0
+      ],
+      [
+        2,
+        "start",
+        "scheduled",
+        0,
+        0,
+        1
+      ]
+    ],
+    "operation_id": "969670dc381e8bcebbfcb518f03e07a79203c9b49bb7d57ac7db5c8691681d41",
+    "journal_last_event": "start",
+    "capacity_held": true,
+    "terminal_event_id": null,
+    "operation_state": "admitted",
+    "lease_epoch": 2,
+    "replay": true,
+    "refused": [
+      "wrong_owner",
+      "wrong_epoch",
+      "wrong_revision",
+      "wrong_expiry",
+      "wrong_deadline",
+      "wrong_fence",
+      "wrong_id",
+      "wrong_phase",
+      "wrong_scope",
+      "wrong_spec",
+      "wrong_record"
+    ]
+  },
+  "terminal": {
+    "revision": 3,
+    "event": "stopped",
+    "capacity_held": false,
+    "terminal_event_id": "coordinator:1:2:stopped",
+    "operation_state": "stop_intent",
+    "operation_revision": 2,
+    "fleet_active_count": 0
+  },
+  "worker": {
+    "operations": 1,
+    "compiler_starts": 0,
+    "operationReadback": {
+      "operation_id": "969670dc381e8bcebbfcb518f03e07a79203c9b49bb7d57ac7db5c8691681d41",
+      "status": "stopped",
+      "tombstone": 1
+    },
+    "registration": "Scope and digests only. No materialized compiler recipe was supplied.",
+    "nextDependency": "Provision a registered native-success worker and adapter for the ordinary scheduler. The selected canonical development pair supports compiler failure and stop diagnostics."
+  },
+  "tests": {
+    "integrationPassed": 1,
+    "focusedRegressionPassed": 71,
+    "compileWarningsAsErrorsExit": 0,
+    "nonUtcLeaseReplay": "America/New_York",
+    "regressionNotes": "Existing fixture emitted migration redefinition and an owner-path Oban notifier connection diagnostic. The live builds_v1 route used its restricted notifier and completed.",
+    "preliminary": [
+      "Replay 1 failed an isolated browser catalog control because the fixture omitted the catalog search path. All recorded groups were terminal.",
+      "Replay 2 passed the RLS controls and found that the notifier also needed the startup selection for its exact function-grant check. All recorded groups were terminal.",
+      "Replay 3 passed the opted-in integration and regression suite. Replay 4 added default migration 499 processor boot and notifier coverage."
+    ],
+    "runtimeConfigCommand": "MIX_ENV=test ERL_CRASH_DUMP_SECONDS=0 mix run --no-start --no-compile ../check_runtime_selector.exs",
+    "checkedInRuntimeSelector": "Default, exact builds_v1 opt-in, and three malformed values via Config.Reader on config/runtime.exs"
+  },
+  "cleanup": {
+    "worker": {
+      "port": 50031,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "postgres": {
+      "port": 50030,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "disposable_data_removed": true,
+    "worker_secret_removed": true,
+    "pid_names_absent": true,
+    "oban_absent": true,
+    "allRecordedCommandGroupsAbsent": true
+  },
+  "commands": [
+    {
+      "label": "compile",
+      "pid": 73157,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "initdb",
+      "pid": 73198,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "postgres",
+      "pid": 73212,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "roles",
+      "pid": 73220,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "mixer_coordinator_intent_test",
+      "pid": 73222,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "mixer_operation_admission_test",
+      "pid": 73224,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "mixer_coordinator_test",
+      "pid": 73226,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "worker",
+      "pid": 73228,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "scheduler",
+      "pid": 73229,
+      "exit": 0,
+      "groupAbsent": true
+    },
+    {
+      "label": "regression",
+      "pid": 74730,
+      "exit": 0,
+      "groupAbsent": true
+    }
+  ],
+  "evidence": [
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/run_probe.py",
+      "sha256": "53cdc8a4238e9f268d2c6c679c50bea9f09fbf6ea1074fcadda0bc2876c21909"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/hosted/test/l05_durable_scheduler_probe_test.exs",
+      "sha256": "26214cf76a51d48ce42065be69c0487c7484be5d6ad23b970d6f884f40056a05"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/compile-final.log",
+      "sha256": "b43114f449bca2f5e1948a7d5c554edeb4a54aad83d07c98cd270bb631d4d165"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/attempt-4/driver.json",
+      "sha256": "6f4c9950361d4871e5c52ab48e99e6ebc5ad97a8af8c6749c7e62626d0b45380"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/attempt-4/scheduler.log",
+      "sha256": "36a5eb88461d67890fa74d100dd77c7e8107374b168099c838558acc349c4f18"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/attempt-4/regression.log",
+      "sha256": "247bc8877beb13bb0dcf9538e711e9071b6024d65d2f31d6ca97d8c98f2c59ed"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/attempt-4/http.json",
+      "sha256": "7dd316d4d101e15c0636247ee39ec8c794095549e2cb590174750eb29ab1fbed"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/attempt-4/scheduler.json",
+      "sha256": "773dcfdf81eb27577351e9027b25a00d3b56fe68eca4c38d11978627379438f9"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-fenced-ZYj7lSUQ/attempt-4/terminal.json",
+      "sha256": "d9828f1adc29f147643c060ccc936b35f3b9bc8470f591a73937eedf3164ba84"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/run_probe.py",
+      "sha256": "57104e5fffa7f87fab49a3ae8176186cd41d5747c05ed5cff962b04ab8b4aacb"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/hosted/test/l05_durable_scheduler_probe_test.exs",
+      "sha256": "b4d07db39ac7781ec0b909ba923f69a9e5deb95635b49e0cb60f91ae104844ba"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/check_runtime_selector.exs",
+      "sha256": "d4e34597e1d5df774321a4b0863622389034c20f5892efa96f0d47160bb77494"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/runtime-selector.log",
+      "sha256": "a19547275d8abf9158fdd401acb68bfde65e7e17cf919587f61bbdec7869cf72"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/driver.json",
+      "sha256": "7a175691d21dab91a4dbe900ab78ec8da6bb7a9a09b76a34c91167150371ee26"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/compile.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/scheduler.log",
+      "sha256": "be367ee9a169c980396ff2d78dd822c7c194d8c8daec07f44508e34b4144363a"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/regression.log",
+      "sha256": "b7054dd1a43c06d736e292c4268aa18c626fdeb2aa189786beb6f8feee8d588a"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/http.json",
+      "sha256": "7dd316d4d101e15c0636247ee39ec8c794095549e2cb590174750eb29ab1fbed"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/default_startup.json",
+      "sha256": "592721346fa0d271161d3665a585fec7f325a611f41161bb664e8f92327fd094"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/processor.json",
+      "sha256": "940610d4ad3b48a53b7329292b77a4ad7c19117ad441d9af618f2ee0bb051308"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/configuration_drift.json",
+      "sha256": "6134ae000fca4ff396e9f30418b37851e37c1858aa43c27a6f1f52f819436c18"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/migration.json",
+      "sha256": "86bf5bef0a6b5d47d99f1a869be1c1c56aadbdae4b18e080dffaffc3a424f94f"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/rls_enabled.json",
+      "sha256": "27ec58eb5ed12c4f9eb5c16eff1e23d6291c46c7655434541e4adcc592de8a3c"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/rls_forced.json",
+      "sha256": "27ec58eb5ed12c4f9eb5c16eff1e23d6291c46c7655434541e4adcc592de8a3c"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/policy_with_rls_disabled.json",
+      "sha256": "27ec58eb5ed12c4f9eb5c16eff1e23d6291c46c7655434541e4adcc592de8a3c"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/scheduler.json",
+      "sha256": "27db27dd2358dd79df0fda7ee0d141f32859f1cf552b8b6879043f86c745c393"
+    },
+    {
+      "path": "/private/tmp/mixer-l05-admission-review-vXi2xmhZ/replay-4/terminal.json",
+      "sha256": "d9828f1adc29f147643c060ccc936b35f3b9bc8470f591a73937eedf3164ba84"
+    }
+  ],
+  "scope": [
+    "Disposable loopback PostgreSQL with a fixture signed issuer. Real Phoenix action, restricted builds_v1 repo and Oban queue. Production TLS was not exercised.",
+    "The database validates the journal projections and derived operation ID. Existing deterministic term payloads remain storage data for identity replay.",
+    "No payment credentials, real compiler start, artifacts, devices, or GA qualification."
+  ],
+  "localGatesPassed": [],
+  "GA": false,
+  "hostedBaselineTree": "0451da3d99d9d51b99accb6caa693e8934612cea"
+}

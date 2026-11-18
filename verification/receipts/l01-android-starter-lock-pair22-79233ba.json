@@ -1,0 +1,540 @@
+{
+  "schema": "mixer.local-development-evidence.v1",
+  "recordedAtUTC": "2026-11-18T06:17:12.648186+00:00",
+  "scope": "L01 default Android starter CLI creation, export, relocation and unsigned native build on public Pair22 plus the listed CLI overlay",
+  "result": "pass",
+  "historicalBaseline": "verification/receipts/l01-android-pair22-79233ba.json",
+  "source": {
+    "revision": "79233ba123a394459b792beac648138808cd0930",
+    "tree": "931a21e26bfb6d1163007adca3b3d3c7ff97dc62",
+    "verifiedTrackedInputFiles": 586,
+    "overlay": {
+      "cli/Sources/MixerBuild/AndroidProject.swift": {
+        "bytes": 22604,
+        "sha256": "777c77c44b1e2b75c2af604cd2781e43406a2d69f4863c58fb8dbb4144939b4a"
+      },
+      "cli/Sources/MixerBuild/ProjectGenerator.swift": {
+        "bytes": 24548,
+        "sha256": "c5a0f42213b96481d18fbd1cfee34d4fd1eb3f6bd88bb0851fbb764e8f8b96a7"
+      },
+      "cli/build-tests/test_public_export.py": {
+        "bytes": 10077,
+        "sha256": "be437409bb29af6d959eb0de21f409e5331e6488a93d1eec4b596e80bd15f0b0"
+      }
+    },
+    "cliExecutable": {
+      "path": "cli-build/debug/mixer",
+      "bytes": 7507120,
+      "sha256": "43e9e8d6abf416eff7c50ba51d429de53fa2f56096f829de09a93c68c14fa9bd"
+    }
+  },
+  "environment": {
+    "host": "arm64 macOS",
+    "swiftHost": "swift-driver version: 1.148.6 Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)\nTarget: arm64-apple-macosx28.0",
+    "developerDir": "/Applications/Xcode_26.6.app/Contents/Developer",
+    "xcode": "Xcode 26.6\nBuild version 17F113",
+    "toolchains": "swift-6.3.3-RELEASE",
+    "androidSdkID": "aarch64-unknown-linux-android28",
+    "androidSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "java": "openjdk 25.0.4.1 2026-08-18\nOpenJDK Runtime Environment Homebrew (build 25.0.4.1)\nOpenJDK 64-Bit Server VM Homebrew (build 25.0.4.1, mixed mode, sharing)",
+    "javac": "javac 25.0.4.1",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "distributions": {
+      "android_build_tools": {
+        "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0",
+        "sha256": "aa9272b16e099a091cbced96ebb162debfd4ce0520bfb4756bc9ea2a011338f1"
+      },
+      "android_platform": {
+        "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0",
+        "sha256": "6a89d699d8cbf8eec88d55bf6fcc79c57bba757695dd955d3f869c5e6ad5597a"
+      },
+      "jdk": {
+        "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home",
+        "sha256": "6c95d1cd868f04ffb6647890cc558d8fe00a6f5ade4d4562d659ada7687dde10"
+      },
+      "swift_android_sdk": {
+        "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle",
+        "sha256": "cef2cc34f476b2d209de6fc66acacfa5b34ec737acf3fa4f00de16f26c3eabeb"
+      },
+      "swift_toolchain": {
+        "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain",
+        "sha256": "0d79dcd75ec7e2e8467f6572f049f25adde933d6d1a35b64a222079f61752051"
+      }
+    }
+  },
+  "baselineRegression": {
+    "exitCode": 1,
+    "observed": "Public create produced no Platforms/Android/Package.resolved",
+    "log": {
+      "path": "baseline-regression.log",
+      "bytes": 1720,
+      "sha256": "1522af0c898b312425920395abe7ba0dbbeee1686b78b10af74f6d7c3c6e22a8"
+    }
+  },
+  "compile": {
+    "argv": [
+      "/usr/bin/swift",
+      "build",
+      "--package-path",
+      "$scratch/src/cli",
+      "--scratch-path",
+      "$scratch/cli-build",
+      "--cache-path",
+      "$scratch/cli-cache",
+      "--config-path",
+      "$scratch/cli-config",
+      "--security-path",
+      "$scratch/cli-security",
+      "--manifest-cache",
+      "none",
+      "--product",
+      "mixer"
+    ],
+    "exitCode": 0,
+    "log": {
+      "path": "build-final.log",
+      "bytes": 420,
+      "sha256": "1c376f6a6b43a856dfee609860d878b7b180eadff75b7e3247185f90dc13f994"
+    }
+  },
+  "tests": {
+    "publicExport": {
+      "passed": 5,
+      "legacyExportSeededOnBuild": true,
+      "log": {
+        "path": "public-export-tests.log",
+        "bytes": 878,
+        "sha256": "1396a043e018e2b2852d9adf68638e2f7593e9f3c299c53cac4c9fe7923f4320"
+      }
+    },
+    "dependencyPreparation": {
+      "passed": 11,
+      "log": {
+        "path": "android-dependency-tests.log",
+        "bytes": 2053,
+        "sha256": "ff98cb17c3d01a8fc5a5051ff802c9e0bbdc8a56c23e630525300164ec4a751e"
+      }
+    },
+    "focusedSwiftGeneration": {
+      "passed": 3,
+      "log": {
+        "path": "swift-selected-tests.log",
+        "bytes": 3665,
+        "sha256": "10daa2e1a1e071d0bbda83160901b577f70454b4f79793a98134e2e48cfa987b"
+      }
+    }
+  },
+  "starter": {
+    "apk": "$scratch/consumer/RelocatedStarter/.mixer/android-build/DefaultStarter-unsigned.apk",
+    "apkSHA256": "15f8a6707d37df2d216ab53087359b758129e4c1fe72e1cd5785afe1bb39ff43",
+    "apkBytes": 28190243,
+    "platformLockSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+    "deliberateLockSHA256": "5de7e0d65c60a135a4d79cca94bc67b973e9a0901e0bf36ac21e35b7c878ed5b",
+    "pins": [
+      {
+        "identity": "swift-asn1",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-asn1.git",
+        "state": {
+          "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+          "version": "1.7.3"
+        }
+      },
+      {
+        "identity": "swift-crypto",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-crypto.git",
+        "state": {
+          "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+          "version": "5.0.3"
+        }
+      }
+    ],
+    "driverReceiptSHA256": "7c166f2e329dec1fc57bcbf39973ce10e3e242cbb56139b14f13f673510893eb",
+    "exportRelocated": true,
+    "originalAndSeedsDetached": true,
+    "coldProjectBuildCache": true,
+    "host": "legacy-v1",
+    "dependencyLockBytesEqualToAdmittedSDK": true,
+    "dependencyLockUnchangedByBuild": true,
+    "export": "Exported source and pinned SDK; digest cea2b3e637d0820c4bc1559703db6131bf12082274eb43941a319d0c2be2d993",
+    "application": "dev.mixer.defaultstarter",
+    "abi": "arm64-v8a",
+    "zipalign16KiB": "pass",
+    "unsignedVerified": true,
+    "buildInput": {
+      "path": "consumer/RelocatedStarter/.mixer/android-build/build-input.json",
+      "bytes": 425,
+      "sha256": "092a044977db6b70c35ad6b10da8fffa6bc72298323cf6e487e5f7b7c309989e"
+    },
+    "buildReceipt": {
+      "path": "consumer/RelocatedStarter/.mixer/android-build/build-receipt.json",
+      "bytes": 2540158,
+      "sha256": "7c166f2e329dec1fc57bcbf39973ce10e3e242cbb56139b14f13f673510893eb"
+    },
+    "driverRequiredResolvedVersionArgument": true
+  },
+  "deliberatePinConflict": {
+    "version": "1.7.4",
+    "exitCode": 1,
+    "diagnostic": "Android platform dependency pins differ from the admitted SDK lock.",
+    "platformLockUnchanged": true,
+    "compilerScratchCreated": false,
+    "apkCreated": false
+  },
+  "commands": {
+    "cli-version": {
+      "argv": [
+        "$scratch/cli-build/debug/mixer",
+        "version"
+      ],
+      "cwd": "$scratch",
+      "timeoutSeconds": 300,
+      "pid": 75637,
+      "pgid": 75637,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 0.176,
+      "log": "$scratch/run-logs/cli-version.log",
+      "logSHA256": "a20b4c3429c462fa57d53a7eeda9b23bc5af97b9d89be33cac3928074d556495"
+    },
+    "xcode-version": {
+      "argv": [
+        "/usr/bin/xcodebuild",
+        "-version"
+      ],
+      "cwd": "$scratch",
+      "timeoutSeconds": 300,
+      "pid": 75430,
+      "pgid": 75430,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 0.433,
+      "log": "$scratch/run-logs/xcode-version.log",
+      "logSHA256": "18730ed2ae28a2c9cf0c2d5db549033a4f07089331391a7133b7b32187454fa9"
+    },
+    "create": {
+      "argv": [
+        "$scratch/cli-build/debug/mixer",
+        "create",
+        "DefaultStarter",
+        "--platform",
+        "android",
+        "--application",
+        "dev.mixer.defaultstarter",
+        "--directory",
+        "$scratch/original/DefaultStarter",
+        "--sdk-path",
+        "$scratch/sdk-input",
+        "--android-adapter-path",
+        "$scratch/adapter-input"
+      ],
+      "cwd": "$scratch",
+      "timeoutSeconds": 300,
+      "pid": 75732,
+      "pgid": 75732,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 24.721,
+      "log": "$scratch/run-logs/create.log",
+      "logSHA256": "3df2fbd43603e7ca65b632459a024290d0977330d3a10355f714a44d6e21aae9"
+    },
+    "import": {
+      "argv": [
+        "$scratch/cli-build/debug/mixer",
+        "import",
+        "$scratch/original/DefaultStarter"
+      ],
+      "cwd": "$scratch",
+      "timeoutSeconds": 300,
+      "pid": 82004,
+      "pgid": 82004,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 0.813,
+      "log": "$scratch/run-logs/import.log",
+      "logSHA256": "f52d5ad814ba85667bb58f77098b6c783087c59cc25e7f5c37456f8da79ac412"
+    },
+    "export": {
+      "argv": [
+        "$scratch/cli-build/debug/mixer",
+        "export",
+        "$scratch/export/DefaultStarter",
+        "--directory",
+        "$scratch/original/DefaultStarter"
+      ],
+      "cwd": "$scratch",
+      "timeoutSeconds": 300,
+      "pid": 82041,
+      "pgid": 82041,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 2.086,
+      "log": "$scratch/run-logs/export.log",
+      "logSHA256": "e34fc3eb2c072d3e0f72babfe23d2c25253b77c1345c83b9bfa03c521983edb3"
+    },
+    "build": {
+      "argv": [
+        "$scratch/cli-build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "$scratch/consumer/RelocatedStarter"
+      ],
+      "cwd": "$scratch/consumer/RelocatedStarter",
+      "timeoutSeconds": 600,
+      "pid": 82437,
+      "pgid": 82437,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 66.126,
+      "log": "$scratch/run-logs/build.log",
+      "logSHA256": "b10f3432ffd2181571f0f6e5661eb195f263182069fc4459ccec0df989c78149"
+    },
+    "conflict": {
+      "argv": [
+        "$scratch/cli-build/debug/mixer",
+        "build",
+        "--platform",
+        "android",
+        "--directory",
+        "$scratch/consumer/ConflictingStarter"
+      ],
+      "cwd": "$scratch/consumer/ConflictingStarter",
+      "timeoutSeconds": 300,
+      "pid": 82438,
+      "pgid": 82438,
+      "exitCode": 1,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 19.165,
+      "log": "$scratch/run-logs/conflict.log",
+      "logSHA256": "57f960e4bd2210432ae745b96588c1dff1cb9e9c7eef37c223ce3a2870df1e27"
+    },
+    "apk-badging": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/aapt2",
+        "dump",
+        "badging",
+        "$scratch/consumer/RelocatedStarter/.mixer/android-build/DefaultStarter-unsigned.apk"
+      ],
+      "cwd": "$scratch",
+      "timeoutSeconds": 300,
+      "pid": 90700,
+      "pgid": 90700,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 0.028,
+      "log": "$scratch/run-logs/apk-badging.log",
+      "logSHA256": "c572eb7f53dabc7b2af67f6f89443a30219754284f7f55da471b7c7dc9ff8ac4"
+    },
+    "apk-align": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/zipalign",
+        "-c",
+        "-P",
+        "16",
+        "4",
+        "$scratch/consumer/RelocatedStarter/.mixer/android-build/DefaultStarter-unsigned.apk"
+      ],
+      "cwd": "$scratch",
+      "timeoutSeconds": 300,
+      "pid": 90712,
+      "pgid": 90712,
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 0.027,
+      "log": "$scratch/run-logs/apk-align.log",
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "apk-unsigned": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/apksigner",
+        "verify",
+        "--print-certs",
+        "$scratch/consumer/RelocatedStarter/.mixer/android-build/DefaultStarter-unsigned.apk"
+      ],
+      "cwd": "$scratch",
+      "timeoutSeconds": 300,
+      "pid": 90714,
+      "pgid": 90714,
+      "exitCode": 1,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 0.242,
+      "log": "$scratch/run-logs/apk-unsigned.log",
+      "logSHA256": "3b46a86cbc2516f459673640045e9f0f2e25ef3f7ca21c3454fd9b13dd659f37"
+    }
+  },
+  "innerCLICommandCustody": {
+    "create": [
+      {
+        "command": [
+          "python3",
+          "$scratch/cli-build/arm64-apple-macosx/debug/MixerCLI_MixerBuild.bundle/Resources/android-build.py",
+          "inspect"
+        ],
+        "pid": 77471,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/create-tmp/mixer-command-receipts-36913580-F46C-4225-806F-BF22E6A25B1A/command-6CE5073D-A1C1-43D8-B518-E96FFD93B0A7/receipt.json",
+          "bytes": 937,
+          "sha256": "8565b65469942e0a442e6b9be3b14b67ab1a737ada7961ece15e9a730bcdaed0"
+        }
+      },
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "pid": 76627,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/create-tmp/mixer-command-receipts-36913580-F46C-4225-806F-BF22E6A25B1A/command-F1444F2F-E90B-4BD3-8491-E357CAB78EB6/receipt.json",
+          "bytes": 704,
+          "sha256": "a5f3a2f90cb898f2e2cebaaf956f324e57977a45ad0ee05f1e96240856a17c52"
+        }
+      }
+    ],
+    "export": [
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "pid": 82275,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/export-tmp/mixer-command-receipts-3DD0670F-AD66-48F7-8411-6DD83F960502/command-A2424674-2636-4BC9-9FFB-1BDBCECCE1CC/receipt.json",
+          "bytes": 704,
+          "sha256": "08e669fcedbd96cd82192e6b72beab74c4419ea9893f0cfb83109a8345413100"
+        }
+      },
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "pid": 82415,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/export-tmp/mixer-command-receipts-3DD0670F-AD66-48F7-8411-6DD83F960502/command-BA45BFB8-2B60-484B-A162-31B9850C7B79/receipt.json",
+          "bytes": 706,
+          "sha256": "839b2492db74d2d0b89ff659af8ca9965db9ec641798cde466aee1c1a95469a5"
+        }
+      }
+    ],
+    "build": [
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "pid": 82463,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/build-tmp/mixer-command-receipts-2C404911-0E8A-4896-B1D5-DC3C16DB63B2/command-8EFA88AF-4A71-43C7-AC80-A354AAF0892A/receipt.json",
+          "bytes": 706,
+          "sha256": "27e3c7193bb51b4d23d1884dd0aad701b8de5e5bb4b0fa0edef51d56af8633fa"
+        }
+      },
+      {
+        "command": [
+          "python3",
+          "$scratch/consumer/RelocatedStarter/Generated/MixerAndroid/android-build.py",
+          "build",
+          "$scratch/consumer/RelocatedStarter"
+        ],
+        "pid": 82496,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/build-tmp/mixer-command-receipts-2C404911-0E8A-4896-B1D5-DC3C16DB63B2/command-C531B633-BD83-4F0E-B135-15DF07091783/receipt.json",
+          "bytes": 1344,
+          "sha256": "b0ea4daeced918659f6dd9f660bf82ec12ec090166ac9cca4d18108b030562a9"
+        }
+      },
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "pid": 82442,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/build-tmp/mixer-command-receipts-2C404911-0E8A-4896-B1D5-DC3C16DB63B2/command-CD68907B-0FEA-40AE-8FC8-873BEAA94726/receipt.json",
+          "bytes": 704,
+          "sha256": "0516af550008bb74f5d070e8e0fba39aa99e1fc58df41169050c236e0383dcdc"
+        }
+      }
+    ],
+    "conflict": [
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "pid": 82462,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/conflict-tmp/mixer-command-receipts-8A2C30FD-2701-4E1B-8E37-F85254E7BFFE/command-35FC40C6-57AC-45C5-B22D-D4ADFCDFC709/receipt.json",
+          "bytes": 706,
+          "sha256": "abdf684b5b6faf358dca29565ff7a18daae5024577081dd3355e07b339b17231"
+        }
+      },
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "pid": 82441,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/conflict-tmp/mixer-command-receipts-8A2C30FD-2701-4E1B-8E37-F85254E7BFFE/command-37863A16-051F-4C76-A4BE-F18F051E3C4D/receipt.json",
+          "bytes": 704,
+          "sha256": "6381472f5e6e5b467e29e898cfcf9f8a76ce56f8d7f95de8d2d4fd2fbe6db7ec"
+        }
+      },
+      {
+        "command": [
+          "python3",
+          "$scratch/consumer/ConflictingStarter/Generated/MixerAndroid/android-build.py",
+          "build",
+          "$scratch/consumer/ConflictingStarter"
+        ],
+        "pid": 82483,
+        "state": "TERMINAL",
+        "ownedGroupAbsent": true,
+        "receipt": {
+          "path": "run-logs/conflict-tmp/mixer-command-receipts-8A2C30FD-2701-4E1B-8E37-F85254E7BFFE/command-4232E992-0C1C-486B-97CE-D21B7AAD03FA/receipt.json",
+          "bytes": 1342,
+          "sha256": "8dfbd2fb05abdfd653e017dfad19356eec61b4f42afd36984568913f0e51e184"
+        }
+      }
+    ]
+  },
+  "retention": {
+    "rawScratch": "verification/local/l01-starter-lock-pair22.StZxi1WO",
+    "reproDriver": {
+      "path": "run-starter.py",
+      "bytes": 5809,
+      "sha256": "f2c148625916647efc3a458153b2c1b33465a943bb990b40ad284fcc3d2b741f"
+    },
+    "historicalHoldsReleased": false,
+    "deviceOperations": false,
+    "commitOrPush": false,
+    "paymentServicesOrCredentialsUsed": false
+  },
+  "limitations": [
+    "This build used the Pair22 baseline and the exact CLI overlay. Combined Pair23 binding requires its own verification.",
+    "Runtime, iOS revalidation for this overlay, and full L01 acceptance remain pending.",
+    "The exploratory direct resolver probe selected the admitted pins, then encountered a manifest compiler crash with the host default Xcode 27.2 SDK. The same resolver control and the real APK build completed under the historical Xcode 26.6 selection."
+  ]
+}

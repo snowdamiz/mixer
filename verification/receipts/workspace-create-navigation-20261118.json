@@ -1,0 +1,57 @@
+{
+  "id": "workspace-create-navigation-20261118",
+  "gate": "L06",
+  "status": "passed_component",
+  "sourceBase": "09a3ec0343b29b59849260349a0aa6403b9bb215",
+  "files": {
+    "console/src/state/workspace-binding.ts": "9d5014914827394d390d79356d151ae1b7d7d9e29dc035f029df9b6fb0a9d633",
+    "console/src/state/workspace-creation.ts": "5a47b6d8a74845a95d6e4e580163ecc3bfc4563e0b95e35538faaf4c18a63ccd",
+    "console/tests/workspace-binding-runner.mjs": "ea33a07838b001419885b86df77d16671091c374bc07469e79c39aba525a7d5b",
+    "console/tests/workspace-binding.test.mjs": "712b89f25e2b84fe29856a55280fa3a7ea00001719f70daede2708bcb1c5fecb"
+  },
+  "node": "v22.23.3",
+  "typescript": "5.9.3",
+  "scope": "Solid client runtime, controlled directory and create responses. Browser, Phoenix and PostgreSQL integration are outside this run.",
+  "commands": [
+    {
+      "cwd": "isolated copy of console with original two production files from sourceBase and updated tests",
+      "command": "node --test tests/workspace-binding.test.mjs",
+      "exit": 1,
+      "observation": "Late committed response replaced studio-b with studio-a. Passive-load control passed.",
+      "logSHA256": "6529f2dab5ae91086f45ac07b6679d3e1e3719ab5c42b4adcc607245a15e6622"
+    },
+    {
+      "cwd": "console",
+      "command": "node --test tests/workspace-binding.test.mjs",
+      "exit": 0,
+      "observed": "6 nested cases passed",
+      "logSHA256": "14fceb1c2b873f90da9adbb87bd9fdc03a86e1f48c79774ea877f0741fae77ec"
+    },
+    {
+      "cwd": "console",
+      "command": "npm test",
+      "exit": 0,
+      "tests": 277,
+      "failed": 0,
+      "skipped": 0,
+      "logSHA256": "2cd7aec0ab753dd7f723a30f20daa4c22f6c2be6ca7ee45fd8b3d59bb04bf369"
+    },
+    {
+      "cwd": "console",
+      "command": "npm run build -- --outDir ../verification/local/workspace-navigation-41a05264/dist",
+      "exit": 0,
+      "logSHA256": "c0503b2e57c6b22ba4bdd3901f7fd0e2a6257fd49a788acf88a7427c021cedb2"
+    }
+  ],
+  "independentReview": {
+    "model": "gpt-6.2-sol",
+    "reasoningEffort": "high",
+    "decision": "pass",
+    "additionalCases": [
+      "organization create during passive load",
+      "ignored navigation action",
+      "newer project selection",
+      "navigate away and back"
+    ]
+  }
+}
