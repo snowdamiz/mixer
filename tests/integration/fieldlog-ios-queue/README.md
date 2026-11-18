@@ -27,4 +27,4 @@ xcrun simctl install "$OWNED_SIMULATOR_UDID" "$run/prepared/derived/Build/Produc
 python3 -B "$fixture/journey.py" "$run/prepared" --simulator "$OWNED_SIMULATOR_UDID"
 ```
 
-The native test seeds its workspace, runs the Cancel and Resume actions on the selected queue row, then compares the outbox, entry and JPEG bytes. The recorded host run covers both cancellation timings. Simulator execution is pending. [Host receipt](../../../verification/receipts/fieldlog-ios-current-resume-41a05264.json)
+The native test seeds its workspace, runs the Cancel and Resume actions on the selected queue row, then compares the outbox, entry and JPEG bytes. The recorded host run covers both cancellation timings. On iOS 27.0 Simulator the test passed with one matching JPEG on the server and seven unrelated events preserved on disk. XCTest can move the app data container during installation. The driver resolves its new path and verifies the run marker before reading the saved workspace. [Host receipt](../../../verification/receipts/fieldlog-ios-current-resume-41a05264.json) · [Simulator receipt](../../../verification/receipts/fieldlog-ios-queue-native-41a05264.json)

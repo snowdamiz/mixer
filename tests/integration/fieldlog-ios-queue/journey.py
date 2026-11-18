@@ -61,15 +61,20 @@ def native_test_spec(products):
     return runs[0], document, target, paths
 
 
-def run_native(public, scratch, simulator, env, workspace, result):
-    products = scratch / "derived/Build/Products"
-    _, document, target, _ = native_test_spec(products)
+def app_container(public, simulator):
     container = Path(public.run(
         "xcrun", "simctl", "get_app_container", simulator, APP_BUNDLE, "data", timeout=15,
     ).decode().strip()).resolve(strict=True)
     public.require(container.parts[-5:-1] == ("data", "Containers", "Data", "Application") and
                    container.parents[4].name.upper() == simulator,
                    "FieldLog app data is outside the selected Simulator.")
+    return container
+
+
+def run_native(public, scratch, simulator, env, workspace, result):
+    products = scratch / "derived/Build/Products"
+    _, document, target, _ = native_test_spec(products)
+    container = app_container(public, simulator)
     support = container / "Library/Application Support"
     support.mkdir(parents=True, exist_ok=True)
     seeded = support / workspace.name
@@ -79,8 +84,10 @@ def run_native(public, scratch, simulator, env, workspace, result):
     with private_run.open("xb") as stream:
         plistlib.dump(document, stream)
     retain = False
+    marker = ".queue-replay-" + secrets.token_hex(16)
     try:
         shutil.copytree(workspace, seeded)
+        (seeded / marker).touch(exist_ok=False)
         try:
             output = public.run(
                 "xcodebuild", "test-without-building", "-xctestrun", private_run,
@@ -98,12 +105,16 @@ def run_native(public, scratch, simulator, env, workspace, result):
             raise RuntimeError("Native XCTest command failed. See native.log.") from None
         (scratch / "native.log").write_text(output.replace(env["FIELDLOG_ENTRY_SYNC_TOKEN"], "[redacted]"))
         public.require("** TEST EXECUTE SUCCEEDED **" in output, "Missing native XCTest success. See native.log.")
-        result["native"] = {"exitCode": 0, "case": TEST_CASE, "simulator": simulator}
+        current = app_container(public, simulator)
+        result["native"] = {"exitCode": 0, "case": TEST_CASE, "simulator": simulator,
+                            "containerBefore": container.name, "containerAfter": current.name}
+        seeded = current / "Library/Application Support" / workspace.name
+        public.require((seeded / marker).is_file(), "The current app container does not contain this run's seed.")
         return snapshot(seeded)
     finally:
         if not retain:
             private_run.unlink()
-            if seeded.exists():
+            if (seeded / marker).is_file():
                 shutil.rmtree(seeded)
 
 
