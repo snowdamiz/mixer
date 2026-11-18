@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import MixerUI
 
@@ -95,6 +96,55 @@ public enum AndroidProject {
             try source.write(to: target, atomically: true, encoding: .utf8)
         }
     }
+
+    static func seedDependencyLock(root: URL) throws {
+        let name = "Package.resolved"
+        let relative = "Platforms/Android/" + name
+        let flags = O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC
+        let project = open(root.resolvingSymlinksInPath().path, flags)
+        guard project >= 0 else { throw MixerFailure("android.dependency-lock", "Cannot open Android project directory.") }
+        defer { close(project) }
+        let platforms = openat(project, "Platforms", flags)
+        guard platforms >= 0 else { throw MixerFailure("android.dependency-lock", "Cannot open project Platforms directory.") }
+        defer { close(platforms) }
+        let android = openat(platforms, "Android", flags)
+        guard android >= 0 else { throw MixerFailure("android.dependency-lock", "Cannot open Platforms/Android directory.") }
+        defer { close(android) }
+
+        var existing = stat()
+        // The build driver validates existing pins and reports conflicts.
+        if fstatat(android, name, &existing, AT_SYMLINK_NOFOLLOW) == 0 { return }
+        guard errno == ENOENT, let identity = AndroidSDKCompatibility.profile.sdk_files[name] else {
+            throw MixerFailure("android.dependency-lock", "Cannot initialize \(relative) from the admitted SDK.")
+        }
+        let generated = openat(project, "Generated", flags)
+        guard generated >= 0 else { throw MixerFailure("android.dependency-lock", "Cannot open generated sources.") }
+        defer { close(generated) }
+        let sdk = openat(generated, "MixerSDK", flags)
+        guard sdk >= 0 else { throw MixerFailure("android.dependency-lock", "Cannot open the admitted SDK directory.") }
+        defer { close(sdk) }
+        let source = openat(sdk, name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+        guard source >= 0 else { throw MixerFailure("android.dependency-lock", "Cannot open the admitted SDK lock.") }
+        let input = FileHandle(fileDescriptor: source, closeOnDealloc: true)
+        guard fstat(source, &existing) == 0, existing.st_mode & S_IFMT == S_IFREG,
+              existing.st_size == identity.bytes,
+              let bytes = try input.read(upToCount: identity.bytes + 1),
+              bytes.count == identity.bytes, SourceDigest.sha256(bytes) == identity.sha256 else {
+            throw MixerFailure("android.dependency-lock", "SDK dependency lock differs from the admitted bytes.")
+        }
+        try input.close()
+        let stage = ".mixer-dependencies-" + UUID().uuidString
+        let fd = openat(android, stage, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0o644)
+        guard fd >= 0 else { throw MixerFailure("android.dependency-lock", "Cannot stage \(relative).") }
+        defer { unlinkat(android, stage, 0) }
+        let file = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+        try file.write(contentsOf: bytes)
+        try file.close()
+        if renameatx_np(android, stage, android, name, UInt32(RENAME_EXCL)) != 0 && errno != EEXIST {
+            throw MixerFailure("android.dependency-lock", "Cannot publish \(relative).")
+        }
+    }
+
     public static func build(root: URL) throws -> CommandResult {
         let lock = try ProjectBuild.verifyLock(root: root, androidRequired: true)
         guard lock.android != nil else { throw MixerFailure("android.not-generated", "This project has no locked Android host. Create a new project with --platform android; existing sources are never overwritten.") }
@@ -113,6 +163,8 @@ public enum AndroidProject {
         }
         guard config.targets.contains("android"), config.capabilities.isEmpty else { throw MixerFailure("android.unsupported-capability", "Android local consumer requires an android target and no declared native capabilities; capability hosts are not integrated in this slice.") }
         guard try SourceDigest.files(in: root.appendingPathComponent("Resources")).isEmpty else { throw MixerFailure("android.unsupported-resources", "Android resource packaging is not integrated. App resources cannot be silently omitted.") }
+        // Starters created before the seed was added may still have no platform lock.
+        try seedDependencyLock(root: root)
         return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root, policy: .developmentBuild)
     }
 

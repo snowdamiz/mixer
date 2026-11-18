@@ -75,6 +75,9 @@ class PublicExportTests(unittest.TestCase):
                     + shlex.quote(json.dumps(toolchain)) + "\n")
         self.create("--platform", "android", "--android-host", "public-v4",
                     "--android-adapter-path", REPO / "native/android", env=self.tool_env)
+        platform_lock = Path("Platforms/Android/Package.resolved")
+        sdk_lock = self.project / "Generated/MixerSDK/Package.resolved"
+        self.assertEqual((self.project / platform_lock).read_bytes(), sdk_lock.read_bytes())
         (self.project / "Resources/.empty/nested").mkdir(parents=True)
         (self.project / ".env").write_text("excluded")
         (self.project / ".env.example").write_text("exported")
@@ -91,6 +94,8 @@ class PublicExportTests(unittest.TestCase):
             self.assertFalse((self.destination / name).exists(), name)
         self.assertEqual((self.project / "mixer.lock").read_bytes(),
                          (self.destination / "mixer.lock").read_bytes())
+        self.assertEqual((self.project / platform_lock).read_bytes(),
+                         (self.destination / platform_lock).read_bytes())
         self.project.rename(self.root / "OriginalAway")
         stop = self.script("stop-before-compilation", 'printf "%s\\n" EXPORT_TEST_TOOL_VERSION\n')
         status, report = self.cli("build", "--platform", "android", "--directory", self.destination,
@@ -99,6 +104,17 @@ class PublicExportTests(unittest.TestCase):
         self.assertIn("Supported Android compiler is official Swift", report["output"])
         self.assertEqual(Path(report["command"][-1]).resolve(), self.destination)
         self.assertEqual(list(self.destination.glob("**/*.apk")), [])
+
+        # Older exports have the same admitted SDK and driver but no platform lock.
+        exported_lock = self.destination / platform_lock
+        original_lock = exported_lock.read_bytes()
+        exported_lock.unlink()
+        status, report = self.cli("build", "--platform", "android", "--directory", self.destination,
+                                  env=dict(self.env, MIXER_SWIFT=str(stop)))
+        self.assertEqual(status, 1, report)
+        self.assertIn("Supported Android compiler is official Swift", report["output"])
+        self.assertEqual(exported_lock.read_bytes(), original_lock)
+        self.assertEqual(list(exported_lock.parent.glob(".mixer-dependencies-*")), [])
         self.assert_clean_staging()
 
     def test_unreadable_source_fails_with_path_and_no_destination(self):

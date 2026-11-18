@@ -71,8 +71,10 @@ public enum ProjectGenerator {
         ]
         for (path, contents) in files { try contents.write(to: staging.appendingPathComponent(path), atomically: true, encoding: .utf8) }
         _ = try AppleProject.generate(root: staging)
-        if platform == "android" { try AndroidProject.generate(root: staging) }
-        else { try "No Android host was requested. Create a new project with --platform android for the unsigned local development host.\n".write(to: staging.appendingPathComponent("Platforms/Android/README.md"), atomically: true, encoding: .utf8) }
+        if platform == "android" {
+            try AndroidProject.generate(root: staging)
+            try AndroidProject.seedDependencyLock(root: staging)
+        } else { try "No Android host was requested. Create a new project with --platform android for the unsigned local development host.\n".write(to: staging.appendingPathComponent("Platforms/Android/README.md"), atomically: true, encoding: .utf8) }
         // An entire project becomes visible only when construction succeeds.
         try fm.moveItem(at: staging, to: destination)
         return GeneratedProject(path: destination.path, application: application, sdkDigest: digest, nextSteps: ["cd \(destination.path)", "mixer test", "mixer doctor"])
