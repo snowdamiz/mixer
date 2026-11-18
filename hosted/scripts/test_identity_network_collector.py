@@ -3058,8 +3058,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = '6f1ca135782aac375eb739df8a52f71e400dddc4cc462cb33fbce9a418e03d50'
-    DIGEST = '9eaf0d84b0eb11b1c3ea75d2a248917e6c166a34dcf30b4054cfbf77812d47f2'
+    PIN = 'e7bf945578d08e8ba153fd51d38aa960d39011f89ab1a0ea1f003c5a8dcb39c5'
+    DIGEST = '1554dd2ac29c9a0199acdb80a0611ece0d86c839995f8c971da7dd282b10c234'
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -4885,7 +4885,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     for name in ("selection.json", "selected-source-manifest.json")}
         selection, manifest = collector.validate_workspace_source_metadata(metadata)
         self.assertEqual(359, len(manifest))
-        self.assertEqual(44, len(selection["exact_delta"]))
+        self.assertEqual(45, len(selection["exact_delta"]))
         for path, change in selection["exact_delta"].items():
             if change["before"] is not None:
                 workspace_predecessor_bytes(root, path)

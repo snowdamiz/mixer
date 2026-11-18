@@ -16,7 +16,9 @@ defmodule MixerHostedWeb.BrowserHTTP do
 
   def call(%{method: "POST", request_path: path} = conn, [])
       when path in ["/console-api/v1/orgs", "/console-api/v1/projects"] do
-    MixerHostedWeb.BrowserWorkspaceCreateHTTP.call(conn)
+    if RuntimeOwner.workspace_create_enabled?(),
+      do: MixerHostedWeb.BrowserWorkspaceCreateHTTP.call(conn),
+      else: error(conn, 404)
   end
 
   def call(conn, []) do

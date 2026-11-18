@@ -2853,8 +2853,8 @@ def _load_billing_reconciliation_source_authority():
 
 
 WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v31/'
-WORKSPACE_SELECTION_SHA256 = '6f1ca135782aac375eb739df8a52f71e400dddc4cc462cb33fbce9a418e03d50'
-WORKSPACE_SOURCE_DIGEST = '9eaf0d84b0eb11b1c3ea75d2a248917e6c166a34dcf30b4054cfbf77812d47f2'
+WORKSPACE_SELECTION_SHA256 = 'e7bf945578d08e8ba153fd51d38aa960d39011f89ab1a0ea1f003c5a8dcb39c5'
+WORKSPACE_SOURCE_DIGEST = '1554dd2ac29c9a0199acdb80a0611ece0d86c839995f8c971da7dd282b10c234'
 WORKSPACE_SOURCE_COUNT = 359
 
 
@@ -2881,7 +2881,7 @@ def validate_workspace_source_metadata(metadata):
     }, 'workspace source predecessor')
     delta = {path: {'before': predecessor.get(path), 'after': row}
              for path, row in manifest.items() if path not in predecessor or row != predecessor[path]}
-    require(set(predecessor) <= set(manifest) and len(delta) == 44 and delta == selection['exact_delta'],
+    require(set(predecessor) <= set(manifest) and len(delta) == 45 and delta == selection['exact_delta'],
             'workspace source forward and inverse membership')
     versions = sorted(PurePosixPath(path).name for path in manifest
                       if path.startswith('hosted/priv/repo/migrations/') and path.endswith('.exs'))

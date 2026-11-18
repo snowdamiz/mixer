@@ -117,6 +117,13 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     end
   end
 
+  @doc false
+  def workspace_create_enabled? do
+    GenServer.call(__MODULE__, :workspace_create_enabled?, 1000) == true
+  catch
+    :exit, _ -> false
+  end
+
   @doc "Private closed directory read; uses exactly the existing dispatcher request grammar."
   def read_workspace(raw_headers, request) do
     case MixerHostedWeb.BrowserWorkspaceDispatcher.Request.new(request) do
@@ -565,6 +572,11 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   def handle_call(:status, _from, state) do
     state = current(state)
     {:reply, Map.take(state, [:phase, :generation]), state}
+  end
+
+  def handle_call(:workspace_create_enabled?, _from, state) do
+    enabled = MixerHosted.BrowserAuth.ActiveWorkspace.enabled?(Map.get(state, :runtime))
+    {:reply, enabled, state}
   end
 
   def handle_call({:reserve, deadline, wall}, {caller, _}, state) do
