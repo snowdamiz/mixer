@@ -1,0 +1,239 @@
+{
+  "status": "passed",
+  "offline": "offline: saved both entries and JPEGs, reopened drafts, and exported the scoped report",
+  "photoBytes": 341976,
+  "photoSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3",
+  "eventID": "17C323D0-BFF9-4325-BD0F-814C29329346",
+  "scopeIDs": {
+    "eventID": "17c323d0-bff9-4325-bd0f-814c29329346",
+    "workspaceID": "27b91da1-7025-4f65-85fa-94e6257e2a1c",
+    "projectID": "47d5b060-8603-4db0-9d25-e77252bc4502",
+    "entryID": "a2c315a9-ec93-4083-b201-d5eaaa095474",
+    "photoID": "6d0e9068-236e-4110-aced-7333e7f24f7f"
+  },
+  "durableOffsets": {
+    "afterDroppedChunkReceipt": 32768,
+    "afterInFlightCancellation": 65536
+  },
+  "resumedChunkOffsets": [
+    65536,
+    98304,
+    131072,
+    163840,
+    196608,
+    229376,
+    262144,
+    294912,
+    327680
+  ],
+  "invalidProgressRejected": true,
+  "oversizedProgressRejected": true,
+  "httpRefusalsWithoutMutation": {
+    "bad chunk digest": 400,
+    "negative offset": 400,
+    "boolean offset": 400,
+    "offset ahead of prefix": 409,
+    "other JPEG bytes with a valid digest at the current offset": 409,
+    "wrong photo ID on chunk": 409,
+    "conflicting bytes at offset zero": 409,
+    "divergent entry manifest": 409,
+    "divergent photo digest": 409,
+    "divergent chunk commitment": 409,
+    "divergent photo identity": 409,
+    "manifest photo disagrees with attachment": 400,
+    "premature finalization": 409,
+    "invalid token": 401,
+    "wrong account": 404,
+    "wrong project": 404,
+    "wrong workspace": 404,
+    "unstaged event in the same scope": 409,
+    "oversized chunk request before body read": 413,
+    "interrupted chunk request body": 400,
+    "divergent chunk after finalization": 409
+  },
+  "concurrentExactChunkRetries": {
+    "staged": [
+      200,
+      200
+    ],
+    "committed": [
+      200,
+      200
+    ],
+    "firstAppend": [
+      200,
+      200
+    ]
+  },
+  "ordinaryFinalStatuses": [
+    201,
+    200
+  ],
+  "legacyInlineJPEGStatusesAfterPartialUpload": [
+    201,
+    200
+  ],
+  "committed": {
+    "eventRows": 1,
+    "photoRows": 1,
+    "stageRows": 0
+  },
+  "localAcknowledgment": {
+    "revisionDelta": 1,
+    "retiredEventCount": 1,
+    "coldReopenVerified": true,
+    "unchangedUnrelatedOutbox": true,
+    "unchangedJPEGs": true
+  },
+  "cleanup": {
+    "listenersClosed": 7,
+    "ephemeralPorts": [
+      55470,
+      55476,
+      55500,
+      55504,
+      55508,
+      55548,
+      55566
+    ],
+    "portsRebound": true,
+    "excludedPorts": [
+      5632,
+      5633,
+      5676,
+      5677,
+      5680,
+      5681,
+      18762,
+      18763,
+      49265,
+      49687
+    ],
+    "scratchRemoved": true,
+    "commandTimeoutControl": {
+      "command": "/bin/sleep 10",
+      "timeoutSeconds": 0.1,
+      "directChildReaped": true,
+      "ownedProcessGroupAbsent": true
+    }
+  },
+  "recordedAt": "2026-11-18T19:05:25.967226+00:00",
+  "fieldlogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "fieldlogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+  "pinnedRepositoryTestsPassed": 13,
+  "sourceSHA256": {
+    "fieldlog-552559d2-entry-sync.patch": "3f387b06a7e11682833d798ddd5c8d325452d760d518029a6d12db9fa2323189",
+    "fieldlog-552559d2-local-backend.patch": "4ef0c920f5948b71caa890bab78aa574fc968fe72775cbdd538faee211146c0d",
+    "fieldlog-552559d2-photo-resume.patch": "96fc38e2ac5cdb9ef664d8c47f3c82c1f3c6ee035ea2477eb322800a8927efd2",
+    "Journey.swift": "3757d5eeda901cb3941bf272b97a0e143cb08803ce2776cdd7d18ca6a215f5d2",
+    "ResumeJourney.swift": "5e00cf9504da584413fd33574ae31bbd83fde97884864a6d6952491b99a81bcd",
+    "resume.py": "d042927111d1ba67a176428b884c330af588142d3c863a075302144a0ffe8e2c"
+  },
+  "predecessorRunnerSHA256": "ebb25ad5ff1dca39e43d114b728f8633a3f3a7905d04f8e895294c0e8dcad006",
+  "tools": {
+    "Git": "git version 2.56.0",
+    "Swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "Python": "3.14.8",
+    "SQLite": "3.53.4",
+    "macOS": "27.0.1",
+    "macOSSDK": "27.2",
+    "arch": "arm64"
+  },
+  "commands": [
+    "git archive <pinned FieldLog>",
+    "git apply <predecessors>",
+    "git apply <resumable patch>",
+    "swift test",
+    "swift build --product FieldLogJourney",
+    "swift build --product FieldLogResumeJourney",
+    "FieldLogJourney offline <owned-scratch>",
+    "FieldLogResumeJourney drop-chunk <owned-scratch>",
+    "FieldLogResumeJourney invalid-progress <owned-scratch>",
+    "FieldLogResumeJourney oversized-progress <owned-scratch>",
+    "FieldLogResumeJourney cancel <owned-scratch>",
+    "FieldLogResumeJourney drop-final <owned-scratch>",
+    "FieldLogResumeJourney replay <owned-scratch>",
+    "FieldLogResumeJourney verify <owned-scratch>"
+  ],
+  "scope": "Mac host processes, FieldLog repository, IPv4 loopback HTTP, and a disposable SQLite file. Synthetic owner scopes and one saved JPEG per entry. No mobile or Mixer capability runtime exercised.",
+  "paymentServiceOrCredentialsRequired": false,
+  "mixerBaseRevision": "0fa35a8ad3a58efc529b377387147d3d3bdaee60",
+  "publicReplayCommand": "python3 -B tests/integration/fieldlog-entry-sync/resume.py \"$FIELDLOG_CHECKOUT\"",
+  "independentReview": {
+    "deliveredPatchSHA256": "95bade4298be7333b749a1a959f935bc3d69d7caee9d9bfbe8445b0b4e6aa69b",
+    "originalDuplicateControl": "Exact concurrent chunk retries returned [409, 409] with offsets [None, None].",
+    "correction": "Byte-identical chunk retries return the same verified chunk-end offset, including after finalization.",
+    "originalFullEntryReplay": {
+      "status": "passed",
+      "baselineTests": "✔ Test run with 13 tests in 0 suites passed after 0.058 seconds.",
+      "loopbackHTTP": {
+        "initialAfterCommit": 201,
+        "lostResponseBytes": 12,
+        "replays": [
+          200,
+          200,
+          200
+        ],
+        "cancelledBeforeSendAndAfterServerReadback": true,
+        "invalidReceiptRejected": true,
+        "denied": [
+          401,
+          404,
+          404
+        ],
+        "divergentReplay": 409
+      },
+      "cleanup": {
+        "listenerClosed": true,
+        "portRebound": true,
+        "scratchRemoved": true
+      }
+    }
+  },
+  "fullFieldLogPatchApplication": {
+    "predecessorTree": "9bf29ebe2c7aeef326e8e98aa2b5be1dba2b1c19",
+    "resumableTree": "d054936acbb3ed9af7afe3a9129a026d4614f957",
+    "photoResumePatchBlob": "58a9116bf9d50857c43fa2d8713ed553aba213e8",
+    "changedPaths": [
+      "Backend/local_entry_sync.py",
+      "Sources/FieldLogStorage/EntrySyncClient.swift"
+    ]
+  },
+  "rootReplay": {
+    "recordedAt": "2026-11-18T19:11:08.466921+00:00",
+    "eventID": "3852205E-8F35-45BD-9BA9-256386462D30",
+    "durableOffsets": {
+      "afterDroppedChunkReceipt": 32768,
+      "afterInFlightCancellation": 65536
+    },
+    "committed": {
+      "eventRows": 1,
+      "photoRows": 1,
+      "stageRows": 0
+    },
+    "cleanup": {
+      "listenersClosed": 7,
+      "ephemeralPorts": [
+        59346,
+        59349,
+        59375,
+        59378,
+        59382,
+        59396,
+        59403
+      ],
+      "portsRebound": true,
+      "excludedPorts": [
+        18762,
+        18763,
+        49265,
+        49687
+      ],
+      "scratchRemoved": true
+    },
+    "photoSHA256": "16966f12a1540516c0bf4d7d0993660d464e52d1d93e3f345ae7f4423f8fdad3",
+    "pinnedRepositoryTestsPassed": 13,
+    "evidence": "verification/local/fieldlog-resume-root.uzYgT2ca/receipt.json",
+    "receiptSHA256": "083c290297e02a52ddfb0667ce7dd00288680f12620ea7ab16acd44968b90d19"
+  }
+}

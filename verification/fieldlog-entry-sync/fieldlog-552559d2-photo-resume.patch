@@ -1,0 +1,674 @@
+diff --git a/Backend/local_entry_sync.py b/Backend/local_entry_sync.py
+index 3bc2829cf1f553f459b92b33ae91c7e0591c7ca7..22d9fe05e1aa9e098050a82d6fed9cc53a4a2360 100644
+--- a/Backend/local_entry_sync.py
++++ b/Backend/local_entry_sync.py
+@@ -8,6 +8,9 @@ SQLite readback joins these tables on (account_id, workspace_id, project_id, eve
+     entry_events(account_id, workspace_id, project_id, event_id, entry_id,
+                  event_json, entry_json)
+     entry_photos(account_id, workspace_id, project_id, event_id, photo_id, jpeg)
++    entry_photo_uploads(account_id, workspace_id, project_id, event_id, entry_id,
++                        event_json, entry_json, photo_id, byte_count, sha256,
++                        chunk_sha256s, jpeg)
+ All dedicated ID columns use lowercase UUIDs, except account_id (as provisioned).
+ The JSON columns contain the Swift objects with uppercase UUIDs and numeric Dates.
+ The jpeg column contains the decoded BLOB. There is one photo per accepted event.
+@@ -20,21 +23,28 @@ from collections.abc import Mapping
+ from contextlib import closing
+ import hashlib
+ from http import HTTPStatus
+-from http.server import BaseHTTPRequestHandler, HTTPServer
++from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
+ import json
+ import math
+ from pathlib import Path
+ import re
+ import sqlite3
++from typing import NamedTuple
+ 
+ 
+ MAX_REQUEST_BYTES = 9 * 1024 * 1024
++MAX_MANIFEST_REQUEST_BYTES = 640 * 1024
++MAX_CHUNK_REQUEST_BYTES = 48 * 1024
+ MAX_JPEG_BYTES = 6 * 1024 * 1024
++MAX_CHUNK_BYTES = 32768
++JPEG_PREFIX = b"\xff\xd8\xff"
+ UUID_PATTERN = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+ ROUTE = re.compile(
+     rf"/v1/workspaces/({UUID_PATTERN})/projects/({UUID_PATTERN})/entries/({UUID_PATTERN})"
++    r"(/photo(?:/chunks)?)?"
+ )
+ UUID_TEXT = re.compile(UUID_PATTERN)
++SHA256_TEXT = re.compile(r"[0-9a-f]{64}")
+ TOKEN_PATTERN = r"[A-Za-z0-9._~+/-]+=*"
+ BEARER = re.compile(rf"Bearer +({TOKEN_PATTERN})", re.IGNORECASE | re.ASCII)
+ TOKEN = re.compile(TOKEN_PATTERN)
+@@ -70,7 +80,30 @@ CREATE TABLE IF NOT EXISTS entry_photos (
+     FOREIGN KEY (account_id, workspace_id, project_id, event_id)
+         REFERENCES entry_events (account_id, workspace_id, project_id, event_id)
+ ) WITHOUT ROWID;
++CREATE TABLE IF NOT EXISTS entry_photo_uploads (
++    account_id TEXT NOT NULL,
++    workspace_id TEXT NOT NULL,
++    project_id TEXT NOT NULL,
++    event_id TEXT NOT NULL,
++    entry_id TEXT NOT NULL,
++    event_json TEXT NOT NULL,
++    entry_json TEXT NOT NULL,
++    photo_id TEXT NOT NULL,
++    byte_count INTEGER NOT NULL,
++    sha256 TEXT NOT NULL,
++    chunk_sha256s TEXT NOT NULL,
++    jpeg BLOB NOT NULL,
++    PRIMARY KEY (account_id, workspace_id, project_id, event_id)
++) WITHOUT ROWID;
+ """
++EVENT_SCOPE = "WHERE account_id = ? AND workspace_id = ? AND project_id = ? AND event_id = ?"
++
++
++class PhotoManifest(NamedTuple):
++    photo_id: str
++    byte_count: int
++    sha256: str
++    chunk_sha256s: tuple[str, ...]
+ 
+ 
+ class RequestError(Exception):
+@@ -103,6 +136,24 @@ def _body_uuid(value) -> str:
+     return lowercase
+ 
+ 
++def _body_sha256(value) -> str:
++    if not isinstance(value, str) or not SHA256_TEXT.fullmatch(value):
++        raise ValueError("invalid SHA-256 digest")
++    return value
++
++
++def _sha256(data: bytes) -> str:
++    return hashlib.sha256(data).hexdigest()
++
++
++def _jpeg_manifest(photo_id: str, jpeg: bytes) -> PhotoManifest:
++    chunk_sha256s = tuple(
++        _sha256(jpeg[start:start + MAX_CHUNK_BYTES])
++        for start in range(0, len(jpeg), MAX_CHUNK_BYTES)
++    )
++    return PhotoManifest(photo_id, len(jpeg), _sha256(jpeg), chunk_sha256s)
++
++
+ def _date(value) -> float:
+     if type(value) not in (int, float) or not math.isfinite(value):
+         raise ValueError("invalid Swift Date")
+@@ -116,7 +167,9 @@ def _validate_text(value, maximum: int, *, required: bool = False):
+         raise ValueError("missing entry title")
+ 
+ 
+-def _validate_payload(raw: bytes, workspace_id: str, project_id: str, event_id: str):
++def _validate_payload(
++    raw: bytes, workspace_id: str, project_id: str, event_id: str, *, reference_required: bool,
++):
+     payload = json.loads(raw.decode("utf-8"), object_pairs_hook=_object_pairs)
+     _object(payload, "event", "entry", "photo")
+     event = _object(payload["event"], "id", "kind", "recordID", "revision", "createdAt")
+@@ -124,7 +177,12 @@ def _validate_payload(raw: bytes, workspace_id: str, project_id: str, event_id:
+         payload["entry"], "id", "projectID", "title", "note", "category", "occurredAt",
+         "attachmentIDs", "savedAt",
+     )
+-    photo = _object(payload["photo"], "id", "jpeg")
++    photo = payload["photo"]
++    legacy = not reference_required and isinstance(photo, dict) and "jpeg" in photo
++    if legacy:
++        _object(photo, "id", "jpeg")
++    else:
++        _object(photo, "id", "byteCount", "sha256", "chunkSHA256s")
+     entry_id = _body_uuid(entry["id"])
+     photo_id = _body_uuid(photo["id"])
+     attachments = entry["attachmentIDs"]
+@@ -150,7 +208,35 @@ def _validate_payload(raw: bytes, workspace_id: str, project_id: str, event_id:
+     entry["occurredAt"] = _date(entry["occurredAt"])
+     entry["savedAt"] = _date(entry["savedAt"])
+ 
+-    encoded = photo["jpeg"]
++    jpeg = None
++    if legacy:
++        jpeg = _decode_legacy_jpeg(photo["jpeg"])
++        manifest = _jpeg_manifest(photo_id, jpeg)
++    else:
++        byte_count = photo["byteCount"]
++        if type(byte_count) is not int or not len(JPEG_PREFIX) <= byte_count <= MAX_JPEG_BYTES:
++            raise ValueError("invalid photo byte count")
++        chunk_sha256s = photo["chunkSHA256s"]
++        expected_chunks = (byte_count + MAX_CHUNK_BYTES - 1) // MAX_CHUNK_BYTES
++        if not isinstance(chunk_sha256s, list) or len(chunk_sha256s) != expected_chunks:
++            raise ValueError("invalid photo chunk digest count")
++        manifest = PhotoManifest(
++            photo_id, byte_count, _body_sha256(photo["sha256"]),
++            tuple(_body_sha256(value) for value in chunk_sha256s),
++        )
++
++    receipt = {
++        "eventID": event_id,
++        "workspaceID": workspace_id,
++        "projectID": project_id,
++        "entryID": entry_id,
++        "photoID": photo_id,
++    }
++    event_row = (entry_id, _json_bytes(event).decode(), _json_bytes(entry).decode())
++    return receipt, event_row, manifest, jpeg
++
++
++def _decode_legacy_jpeg(encoded) -> bytes:
+     if not isinstance(encoded, str):
+         raise ValueError("invalid photo data")
+     if len(encoded) > 4 * ((MAX_JPEG_BYTES + 2) // 3):
+@@ -158,17 +244,29 @@ def _validate_payload(raw: bytes, workspace_id: str, project_id: str, event_id:
+     jpeg = base64.b64decode(encoded, validate=True)
+     if len(jpeg) > MAX_JPEG_BYTES:
+         raise RequestError(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "photo_too_large")
+-    if not jpeg.startswith(b"\xff\xd8\xff"):
++    if not jpeg.startswith(JPEG_PREFIX):
+         raise ValueError("invalid JPEG prefix")
++    return jpeg
+ 
+-    receipt = {
+-        "eventID": event_id,
+-        "workspaceID": workspace_id,
+-        "projectID": project_id,
+-        "entryID": entry_id,
+-        "photoID": photo_id,
+-    }
+-    return receipt, event, entry, jpeg
++
++def _validate_chunk(raw: bytes):
++    payload = json.loads(raw.decode("utf-8"), object_pairs_hook=_object_pairs)
++    _object(payload, "photoID", "sha256", "offset", "chunk", "chunkSHA256")
++    photo_id = _body_uuid(payload["photoID"])
++    sha256 = _body_sha256(payload["sha256"])
++    offset = payload["offset"]
++    if type(offset) is not int or offset < 0:
++        raise ValueError("invalid photo offset")
++    encoded = payload["chunk"]
++    if not isinstance(encoded, str) or len(encoded) > 4 * ((MAX_CHUNK_BYTES + 2) // 3):
++        raise ValueError("invalid photo chunk")
++    chunk = base64.b64decode(encoded, validate=True)
++    if not 1 <= len(chunk) <= MAX_CHUNK_BYTES:
++        raise ValueError("invalid photo chunk size")
++    chunk_sha256 = _body_sha256(payload["chunkSHA256"])
++    if chunk_sha256 != _sha256(chunk):
++        raise ValueError("invalid photo chunk digest")
++    return photo_id, sha256, offset, chunk, chunk_sha256
+ 
+ 
+ def _json_bytes(value) -> bytes:
+@@ -187,24 +285,144 @@ def _connect(database: Path) -> sqlite3.Connection:
+     return connection
+ 
+ 
+-def _commit_event(database: Path, account_id: str, receipt, event, entry, jpeg) -> HTTPStatus:
+-    key = (account_id, receipt["workspaceID"], receipt["projectID"], receipt["eventID"])
+-    event_row = (receipt["entryID"], _json_bytes(event).decode(), _json_bytes(entry).decode())
+-    photo_row = (receipt["photoID"], jpeg)
++def _read_committed(connection: sqlite3.Connection, key):
++    row = connection.execute(
++        f"""SELECT entry_id, event_json, entry_json, photo_id, jpeg
++            FROM entry_events JOIN entry_photos
++            USING (account_id, workspace_id, project_id, event_id)
++            {EVENT_SCOPE}""",
++        key,
++    ).fetchone()
++    if row is None:
++        return None
++    entry_id, event_json, entry_json, photo_id, jpeg = row
++    return (entry_id, event_json, entry_json), _jpeg_manifest(photo_id, jpeg), jpeg
++
++
++def _read_upload(connection: sqlite3.Connection, key):
++    row = connection.execute(
++        f"""SELECT entry_id, event_json, entry_json, photo_id, byte_count, sha256, chunk_sha256s, jpeg
++            FROM entry_photo_uploads {EVENT_SCOPE}""",
++        key,
++    ).fetchone()
++    if row is None:
++        return None
++    entry_id, event_json, entry_json, photo_id, byte_count, sha256, chunk_sha256s, jpeg = row
++    manifest = PhotoManifest(photo_id, byte_count, sha256, tuple(chunk_sha256s.split(",")))
++    return (entry_id, event_json, entry_json), manifest, jpeg
++
++
++def _require_match(stored, event_row, manifest: PhotoManifest):
++    stored_event, stored_manifest, _ = stored
++    if stored_event != event_row or stored_manifest != manifest:
++        raise RequestError(HTTPStatus.CONFLICT, "event_payload_conflict")
++
++
++def _require_complete_jpeg(manifest: PhotoManifest, jpeg: bytes, digest: str):
++    if len(jpeg) != manifest.byte_count or digest != manifest.sha256:
++        raise RequestError(HTTPStatus.CONFLICT, "photo_manifest_conflict")
++    if not jpeg.startswith(JPEG_PREFIX):
++        raise ValueError("invalid JPEG prefix")
++
++
++def _progress_receipt(key, entry_id: str, manifest: PhotoManifest, offset: int, prefix_sha256: str):
++    _, workspace_id, project_id, event_id = key
++    return {
++        "eventID": event_id,
++        "workspaceID": workspace_id,
++        "projectID": project_id,
++        "entryID": entry_id,
++        "photoID": manifest.photo_id,
++        "byteCount": manifest.byte_count,
++        "sha256": manifest.sha256,
++        "offset": offset,
++        "prefixSHA256": prefix_sha256,
++    }
++
++
++def _begin_upload(database: Path, key, event_row, manifest: PhotoManifest):
++    with closing(_connect(database)) as connection, connection:
++        connection.execute("BEGIN IMMEDIATE")
++        committed = _read_committed(connection, key)
++        if committed is not None:
++            _require_match(committed, event_row, manifest)
++            return _progress_receipt(key, event_row[0], manifest, manifest.byte_count, manifest.sha256)
++
++        upload = _read_upload(connection, key)
++        if upload is None:
++            jpeg = b""
++            connection.execute(
++                """INSERT INTO entry_photo_uploads
++                   (account_id, workspace_id, project_id, event_id, entry_id, event_json, entry_json,
++                    photo_id, byte_count, sha256, chunk_sha256s, jpeg)
++                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
++                key + event_row + (
++                    manifest.photo_id, manifest.byte_count, manifest.sha256,
++                    ",".join(manifest.chunk_sha256s), jpeg,
++                ),
++            )
++        else:
++            _require_match(upload, event_row, manifest)
++            _, _, jpeg = upload
++        return _progress_receipt(key, event_row[0], manifest, len(jpeg), _sha256(jpeg))
++
++
++def _append_photo(database: Path, key, photo_id: str, sha256: str, offset: int, chunk: bytes, chunk_sha256: str):
++    with closing(_connect(database)) as connection, connection:
++        connection.execute("BEGIN IMMEDIATE")
++        upload = _read_upload(connection, key)
++        if upload is None:
++            upload = _read_committed(connection, key)
++        if upload is None:
++            raise RequestError(HTTPStatus.CONFLICT, "photo_upload_required")
++
++        event_row, manifest, jpeg = upload
++        if photo_id != manifest.photo_id or sha256 != manifest.sha256:
++            raise RequestError(HTTPStatus.CONFLICT, "photo_manifest_conflict")
++        remaining = manifest.byte_count - offset
++        if offset > len(jpeg) or offset % MAX_CHUNK_BYTES or len(chunk) != min(MAX_CHUNK_BYTES, remaining):
++            raise RequestError(HTTPStatus.CONFLICT, "photo_offset_conflict")
++        if chunk_sha256 != manifest.chunk_sha256s[offset // MAX_CHUNK_BYTES]:
++            raise RequestError(HTTPStatus.CONFLICT, "photo_chunk_conflict")
++        if offset == 0 and not chunk.startswith(JPEG_PREFIX):
++            raise ValueError("invalid JPEG prefix")
++
++        end = offset + len(chunk)
++        if offset < len(jpeg):
++            if jpeg[offset:end] != chunk:
++                raise RequestError(HTTPStatus.CONFLICT, "photo_chunk_conflict")
++            return _progress_receipt(key, event_row[0], manifest, end, _sha256(jpeg[:end]))
++
++        jpeg += chunk
++        digest = _sha256(jpeg)
++        if end == manifest.byte_count:
++            _require_complete_jpeg(manifest, jpeg, digest)
++        connection.execute(f"UPDATE entry_photo_uploads SET jpeg = ? {EVENT_SCOPE}", (jpeg,) + key)
++        return _progress_receipt(key, event_row[0], manifest, end, digest)
++
++
++def _commit_event(database: Path, key, event_row, manifest: PhotoManifest, jpeg: bytes | None) -> HTTPStatus:
+     with closing(_connect(database)) as connection, connection:
+         connection.execute("BEGIN IMMEDIATE")
+-        existing = connection.execute(
+-            """SELECT entry_id, event_json, entry_json, photo_id, jpeg
+-               FROM entry_events JOIN entry_photos
+-               USING (account_id, workspace_id, project_id, event_id)
+-               WHERE account_id = ? AND workspace_id = ? AND project_id = ? AND event_id = ?""",
+-            key,
+-        ).fetchone()
++        existing = _read_committed(connection, key)
+         if existing is not None:
+-            if existing != event_row + photo_row:
++            _require_match(existing, event_row, manifest)
++            if jpeg is not None and jpeg != existing[2]:
+                 raise RequestError(HTTPStatus.CONFLICT, "event_payload_conflict")
+             return HTTPStatus.OK
+ 
++        upload = _read_upload(connection, key)
++        if upload is not None:
++            _require_match(upload, event_row, manifest)
++            _, _, prefix = upload
++            if jpeg is None:
++                jpeg = prefix
++            elif not jpeg.startswith(prefix):
++                raise RequestError(HTTPStatus.CONFLICT, "photo_prefix_conflict")
++            _require_complete_jpeg(manifest, jpeg, _sha256(jpeg))
++        elif jpeg is None:
++            raise RequestError(HTTPStatus.CONFLICT, "photo_upload_required")
++
+         connection.execute(
+             """INSERT INTO entry_events
+                (account_id, workspace_id, project_id, event_id, entry_id, event_json, entry_json)
+@@ -214,8 +432,10 @@ def _commit_event(database: Path, account_id: str, receipt, event, entry, jpeg)
+         connection.execute(
+             """INSERT INTO entry_photos (account_id, workspace_id, project_id, event_id, photo_id, jpeg)
+                VALUES (?, ?, ?, ?, ?, ?)""",
+-            key + photo_row,
++            key + (manifest.photo_id, jpeg),
+         )
++        if upload is not None:
++            connection.execute(f"DELETE FROM entry_photo_uploads {EVENT_SCOPE}", key)
+     return HTTPStatus.CREATED
+ 
+ 
+@@ -240,7 +460,7 @@ class EntrySyncHandler(BaseHTTPRequestHandler):
+             raise RequestError(HTTPStatus.NOT_FOUND, "scope_not_found")
+         return account_id
+ 
+-    def _read_body(self) -> bytes:
++    def _read_body(self, maximum: int) -> bytes:
+         if self.headers.get_all("Transfer-Encoding"):
+             raise RequestError(HTTPStatus.BAD_REQUEST, "unsupported_transfer_encoding")
+         content_types = self.headers.get_all("Content-Type", [])
+@@ -252,7 +472,7 @@ class EntrySyncHandler(BaseHTTPRequestHandler):
+         if len(lengths) != 1 or not re.fullmatch(r"[0-9]+", lengths[0]):
+             raise RequestError(HTTPStatus.BAD_REQUEST, "invalid_content_length")
+         digits = lengths[0].lstrip("0") or "0"
+-        if len(digits) > len(str(MAX_REQUEST_BYTES)) or int(digits) > MAX_REQUEST_BYTES:
++        if len(digits) > len(str(maximum)) or int(digits) > maximum:
+             raise RequestError(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "request_too_large")
+         size = int(digits)
+         try:
+@@ -278,6 +498,10 @@ class EntrySyncHandler(BaseHTTPRequestHandler):
+         """Send the success receipt after the SQLite transaction has committed."""
+         self._send_json(status, receipt)
+ 
++    def send_photo_progress(self, status: int, receipt):
++        """Send the committed upload state after the SQLite transaction has closed."""
++        self._send_json(status, receipt)
++
+     def do_POST(self):
+         try:
+             self._handle_entry()
+@@ -289,11 +513,23 @@ class EntrySyncHandler(BaseHTTPRequestHandler):
+             route = ROUTE.fullmatch(self.path)
+             if route is None:
+                 raise RequestError(HTTPStatus.NOT_FOUND, "route_not_found")
+-            workspace_id, project_id, event_id = route.groups()
++            workspace_id, project_id, event_id, photo_route = route.groups()
+             account_id = self._authorize((workspace_id, project_id))
+-            raw = self._read_body()
+-            receipt, event, entry, jpeg = _validate_payload(raw, workspace_id, project_id, event_id)
+-            status = _commit_event(self.server.database, account_id, receipt, event, entry, jpeg)
++            key = (account_id, workspace_id, project_id, event_id)
++            database = self.server.database
++            if photo_route == "/photo/chunks":
++                raw = self._read_body(MAX_CHUNK_REQUEST_BYTES)
++                progress = _append_photo(database, key, *_validate_chunk(raw))
++            else:
++                maximum = MAX_MANIFEST_REQUEST_BYTES if photo_route == "/photo" else MAX_REQUEST_BYTES
++                raw = self._read_body(maximum)
++                receipt, event_row, manifest, jpeg = _validate_payload(
++                    raw, workspace_id, project_id, event_id, reference_required=photo_route == "/photo",
++                )
++                if photo_route == "/photo":
++                    progress = _begin_upload(database, key, event_row, manifest)
++                else:
++                    status = _commit_event(database, key, event_row, manifest, jpeg)
+         except RequestError as error:
+             self._send_json(error.status, {"error": str(error)})
+             return
+@@ -303,10 +539,15 @@ class EntrySyncHandler(BaseHTTPRequestHandler):
+         except sqlite3.Error:
+             self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "storage_unavailable"})
+             return
+-        self.send_receipt(status, receipt)
++        if photo_route is None:
++            self.send_receipt(status, receipt)
++        else:
++            self.send_photo_progress(HTTPStatus.OK, progress)
++
+ 
++class _EntrySyncServer(ThreadingHTTPServer):
++    daemon_threads = False
+ 
+-class _EntrySyncServer(HTTPServer):
+     def __init__(self, database, accounts, port, handler_class):
+         self.database = database
+         self.accounts = accounts
+diff --git a/Sources/FieldLogStorage/EntrySyncClient.swift b/Sources/FieldLogStorage/EntrySyncClient.swift
+index 398c0823614fe4008093e1c8eafb217da8fb065f..5500ac10ee16bb4a7d48d15b5486910cb1fa3a09 100644
+--- a/Sources/FieldLogStorage/EntrySyncClient.swift
++++ b/Sources/FieldLogStorage/EntrySyncClient.swift
+@@ -1,3 +1,4 @@
++import CryptoKit
+ import FieldLogModels
+ import Foundation
+ 
+@@ -13,11 +14,18 @@ public struct EntrySyncClient: Sendable {
+     case reconciled
+   }
+ 
++  /// Bytes acknowledged by the backend for this send's selected JPEG.
++  public struct PhotoProgress: Equatable, Sendable {
++    public let acceptedBytes: Int
++    public let totalBytes: Int
++  }
++
+   public enum Failure: Error, LocalizedError, Equatable {
+     case invalidConfiguration
+     case wrongScope
+     case requiresOnePhoto
+     case rejected(Int)
++    case invalidProgress
+     case invalidReceipt
+ 
+     public var errorDescription: String? {
+@@ -26,6 +34,7 @@ public struct EntrySyncClient: Sendable {
+       case .wrongScope: "This change belongs to a different workspace or project."
+       case .requiresOnePhoto: "This sync endpoint accepts entries with exactly one JPEG."
+       case .rejected(let status): "The server rejected the change (HTTP \(status))."
++      case .invalidProgress: "The backend did not confirm the saved photo prefix."
+       case .invalidReceipt: "The backend did not confirm this entry and photo."
+       }
+     }
+@@ -35,6 +44,7 @@ public struct EntrySyncClient: Sendable {
+   private let workspaceID: UUID
+   private let projectID: UUID
+   private let token: String
++  private static let chunkBytes = 32_768
+ 
+   public init(port: UInt16, workspaceID: UUID, projectID: UUID, token: String) throws {
+     guard port > 0, (32...128).contains(token.utf8.count),
+@@ -52,6 +62,15 @@ public struct EntrySyncClient: Sendable {
+ 
+   @discardableResult public func send(
+     eventID: UUID, from repository: WorkspaceRepository
++  ) async throws -> Outcome {
++    try await send(eventID: eventID, from: repository, onProgress: { _ in })
++  }
++
++  /// Cancelling before local acknowledgment stops the send and leaves the event pending.
++  /// A later send of the same event verifies the server's durable prefix and resumes.
++  @discardableResult public func send(
++    eventID: UUID, from repository: WorkspaceRepository,
++    onProgress: @Sendable (PhotoProgress) -> Void
+   ) async throws -> Outcome {
+     try Task.checkCancellation()
+     let payload = try await repository.prepareEntryUpload(
+@@ -75,38 +94,113 @@ public struct EntrySyncClient: Sendable {
+     let session = URLSession(configuration: configuration, delegate: LoopbackSessionDelegate(), delegateQueue: nil)
+     defer { session.invalidateAndCancel() }
+ 
++    let expected = EntryUploadReceipt(
++      eventID: eventID, workspaceID: workspaceID, projectID: projectID, entryID: payload.entry.id,
++      photoID: payload.photo.id)
++    let jpeg = payload.photo.jpeg
++    let chunkSHA256s = stride(from: 0, to: jpeg.count, by: Self.chunkBytes).map { start in
++      Self.hex(SHA256.hash(data: jpeg[start..<min(start + Self.chunkBytes, jpeg.count)]))
++    }
++    let manifest = EntryUploadManifest(
++      event: payload.event, entry: payload.entry,
++      photo: .init(
++        id: payload.photo.id, byteCount: jpeg.count, sha256: Self.hex(SHA256.hash(data: jpeg)),
++        chunkSHA256s: chunkSHA256s))
++    let photoURL = url.appendingPathComponent("photo")
++    let initial = try await post(manifest, to: photoURL, using: session, accepting: [200])
++    let initialProgress = try progress(in: initial.body, for: expected, photo: manifest.photo)
++    var offset = initialProgress.offset
++    guard offset == jpeg.count || offset.isMultiple(of: Self.chunkBytes) else {
++      throw Failure.invalidProgress
++    }
++    var prefix = SHA256()
++    prefix.update(data: jpeg.prefix(offset))
++    guard Self.hex(prefix.finalize()) == initialProgress.prefixSHA256 else {
++      throw Failure.invalidProgress
++    }
++    onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
++
++    let chunksURL = photoURL.appendingPathComponent("chunks")
++    while offset < jpeg.count {
++      try Task.checkCancellation()
++      let nextOffset = min(offset + Self.chunkBytes, jpeg.count)
++      let bytes = jpeg[offset..<nextOffset]
++      let chunk = PhotoChunk(
++        photoID: manifest.photo.id, sha256: manifest.photo.sha256, offset: offset,
++        chunk: bytes, chunkSHA256: chunkSHA256s[offset / Self.chunkBytes])
++      let response = try await post(chunk, to: chunksURL, using: session, accepting: [200])
++      let accepted = try progress(in: response.body, for: expected, photo: manifest.photo)
++      prefix.update(data: bytes)
++      guard accepted.offset == nextOffset, accepted.prefixSHA256 == Self.hex(prefix.finalize()) else {
++        throw Failure.invalidProgress
++      }
++      offset = nextOffset
++      onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
++    }
++
++    let final = try await post(
++      manifest, to: url, using: session, accepting: [200, 201], invalidResponse: .invalidReceipt)
++    guard (try? JSONDecoder().decode(EntryUploadReceipt.self, from: final.body)) == expected else {
++      throw Failure.invalidReceipt
++    }
++    try await repository.acknowledgeEntryUpload(payload, workspaceID: workspaceID)
++    return final.status == 201 ? .uploaded : .reconciled
++  }
++
++  private func post(
++    _ payload: some Encodable, to url: URL, using session: URLSession, accepting statuses: [Int],
++    invalidResponse: Failure = .invalidProgress
++  ) async throws -> (status: Int, body: Data) {
++    try Task.checkCancellation()
++    let encoder = JSONEncoder()
++    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+     var request = URLRequest(url: url)
+     request.httpMethod = "POST"
+     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+     request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
+-    let encoder = JSONEncoder()
+-    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+     request.httpBody = try encoder.encode(payload)
+ 
+-    try Task.checkCancellation()
+-    let (body, response) = try await session.data(for: request)
+-    guard let http = response as? HTTPURLResponse else { throw Failure.invalidReceipt }
+-    guard http.statusCode == 201 || http.statusCode == 200 else {
+-      throw Failure.rejected(http.statusCode)
+-    }
+-    if http.expectedContentLength >= 0 && http.expectedContentLength != Int64(body.count) {
+-      throw URLError(.networkConnectionLost)
++    do {
++      let (bytes, response) = try await session.bytes(for: request)
++      guard let http = response as? HTTPURLResponse else { throw invalidResponse }
++      guard statuses.contains(http.statusCode) else { throw Failure.rejected(http.statusCode) }
++      let limit = 2048
++      guard http.expectedContentLength <= limit else { throw invalidResponse }
++      var body = Data()
++      for try await byte in bytes {
++        guard body.count < limit else { throw invalidResponse }
++        body.append(byte)
++      }
++      try Task.checkCancellation()
++      if http.expectedContentLength >= 0 && http.expectedContentLength != Int64(body.count) {
++        throw URLError(.networkConnectionLost)
++      }
++      return (http.statusCode, body)
++    } catch {
++      try Task.checkCancellation()
++      throw error
+     }
+-    let expected = EntryUploadReceipt(
+-      eventID: eventID, workspaceID: workspaceID, projectID: projectID, entryID: payload.entry.id,
+-      photoID: payload.photo.id)
+-    guard body.count <= 2048,
+-      (try? JSONDecoder().decode(EntryUploadReceipt.self, from: body)) == expected
+-    else { throw Failure.invalidReceipt }
++  }
+ 
+-    try await repository.acknowledgeEntryUpload(payload, workspaceID: workspaceID)
+-    return http.statusCode == 201 ? .uploaded : .reconciled
++  private func progress(
++    in body: Data, for expected: EntryUploadReceipt, photo: EntryUploadManifest.Photo
++  ) throws -> PhotoUploadReceipt {
++    guard (try? JSONDecoder().decode(EntryUploadReceipt.self, from: body)) == expected,
++      let progress = try? JSONDecoder().decode(PhotoUploadReceipt.self, from: body),
++      progress.byteCount == photo.byteCount, progress.sha256 == photo.sha256,
++      (0...photo.byteCount).contains(progress.offset)
++    else { throw Failure.invalidProgress }
++    return progress
++  }
++
++  private static func hex(_ digest: SHA256.Digest) -> String {
++    digest.map { String(format: "%02x", $0) }.joined()
+   }
+ }
+ 
+-struct EntryUpload: Encodable, Sendable {
+-  struct Photo: Encodable, Sendable {
++struct EntryUpload: Sendable {
++  struct Photo: Sendable {
+     let id: UUID
+     let jpeg: Data
+   }
+@@ -116,6 +210,34 @@ struct EntryUpload: Encodable, Sendable {
+   let photo: Photo
+ }
+ 
++private struct EntryUploadManifest: Encodable {
++  struct Photo: Encodable {
++    let id: UUID
++    let byteCount: Int
++    let sha256: String
++    let chunkSHA256s: [String]
++  }
++
++  let event: PendingChange
++  let entry: LogEntry
++  let photo: Photo
++}
++
++private struct PhotoChunk: Encodable {
++  let photoID: UUID
++  let sha256: String
++  let offset: Int
++  let chunk: Data
++  let chunkSHA256: String
++}
++
++private struct PhotoUploadReceipt: Decodable {
++  let byteCount: Int
++  let sha256: String
++  let offset: Int
++  let prefixSHA256: String
++}
++
+ private struct EntryUploadReceipt: Decodable, Equatable {
+   let eventID: UUID
+   let workspaceID: UUID
