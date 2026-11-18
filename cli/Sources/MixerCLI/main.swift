@@ -59,6 +59,14 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
   mixer vm validate|inventory|invoke FILE [EXPORT [i32:N|i64:N ...]]
   mixer update verify --manifest FILE --payload FILE --host FILE --roots FILE
     --assignment FILE --channel NAME --installation ID --last-sequence N --now UNIX
+  mixer update publish CANDIDATE --channel NAME --rollout PERCENT
+    --organization ORG --project PROJECT --assignment FILE
+  mixer update promote ARTIFACT_SHA256 --rollout PERCENT [--channel NAME]
+    --organization ORG --project PROJECT --assignment FILE
+  mixer update rollback ARTIFACT_SHA256 --reason REASON [--channel NAME]
+    --organization ORG --project PROJECT --assignment FILE
+    CANDIDATE contains signed-manifest.json and payload.wasm. FILE is a signed v3 assignment.
+    Use MIXER_RELEASE_ORIGIN=http://127.0.0.1:PORT and MIXER_RELEASE_TOKEN.
   mixer submit status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID
     [--directory PROJECT]
   mixer submit testing-status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID
@@ -83,6 +91,10 @@ do {
         let report = try LocalUpdateValidation.verify(arguments: Array(raw.dropFirst(2)), verifier: verifier, vm: vm)
         try output(report)
         exit(report.status == "local-candidate-verified" ? 0 : report.status == "executable-rejected" ? 2 : 1)
+    }
+    if raw.count >= 2, raw[0] == "update", let action = LocalUpdateRelease.Action(rawValue: raw[1]) {
+        try await output(LocalUpdateRelease.run(action, arguments: Array(raw.dropFirst(2))))
+        exit(0)
     }
     let arguments = try Arguments(Array(CommandLine.arguments.dropFirst()))
     let words = arguments.positional

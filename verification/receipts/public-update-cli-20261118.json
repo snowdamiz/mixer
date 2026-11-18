@@ -1,0 +1,164 @@
+{
+  "baseRevision": "781a17ae9be3021b625cc64535a82ec01b83e835",
+  "baseTree": "a6b1e751fb85c36dd2ec1d169f23527a9c8e2f3d",
+  "binarySHA256": {
+    "fixtureSigner": "b40fec7be1f090d2dc61d74e2abc393ee6b66c269ffb949d6029f897b4dcc330",
+    "mixer": "96f5801ecd8c041d0359ca1d73c8ff513ccf01f0f27ee6d5ad91ae7bd94c0736",
+    "service": "303ddfa4469a14c7a223cdddf9d6851903140f4b321acff06f38dfd0ca868863"
+  },
+  "focusedRegressions": {
+    "go": "go -C services test ./release ./protocol -run 'TestHTTPV3|TestV3Shared' -count=1 passed",
+    "swift": "7 update-verification tests passed"
+  },
+  "limitations": [
+    "Relay faults exercise observable HTTP behavior against a real store and service. They do not simulate an internal database crash.",
+    "The v1/v2 audit projection is a separate service lane.",
+    "Mobile activation, hosted integration and release qualification remain outside this receipt.",
+    "The native manifest binds this main.swift afterimage. Recompute the affected rows and seal after composing the inspector hunk."
+  ],
+  "mainSwiftPreimage": {
+    "blob": "e286a8913a565556ab20141dc314d069508603f9",
+    "sha256": "209f75eb6782cddcb4fe77c43094f9890aae29ae61fb8819b6821912d6ce027e"
+  },
+  "nativeSourceAdmission": {
+    "after": "f0f6d666b2cd99a6a6f8f9cd450a0394a4dec84591cc66631e4239da3d0906eb",
+    "before": "ee3b392012d58e9dda7a949177dd658ef6a530d7942b528e997b0c72f4dd17c9",
+    "count": 144,
+    "historicalReconstruction": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+    "normal": "passed",
+    "optimized": "passed",
+    "sealTreeSHA256": "8d9fe621dc3f4e8091c29b7cd6c3bd63a439079ef113f1aabc2cdc9d8c98d5c5"
+  },
+  "observedUTC": "2026-11-18T17:04:09+00:00",
+  "replay": {
+    "ambientProxyUsed": false,
+    "auditOutboxRowsEach": 8,
+    "beforeCommitFaults": {
+      "publish": {
+        "committed_stages": [
+          "PUT /v3/orgs/org-a/projects/project-a/artifacts/1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+          "POST /v3/orgs/org-a/projects/project-a/releases/validate"
+        ],
+        "offer_http": 204,
+        "public_artifact_http": 404,
+        "publisher_artifact_http": 200
+      },
+      "upload": {
+        "committed_stages": [],
+        "offer_http": 204,
+        "public_artifact_http": 404,
+        "publisher_artifact_http": 404
+      },
+      "validate": {
+        "committed_stages": [
+          "PUT /v3/orgs/org-a/projects/project-a/artifacts/1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a"
+        ],
+        "offer_http": 204,
+        "public_artifact_http": 404,
+        "publisher_artifact_http": 200
+      }
+    },
+    "byteIdenticalReceipts": [
+      "publish",
+      "promote",
+      "rollback"
+    ],
+    "cleanup": {
+      "disposableFixtureRemoved": true,
+      "serviceExits": [
+        {
+          "listener_closed": true,
+          "returncode": 0
+        },
+        {
+          "listener_closed": true,
+          "returncode": 0
+        }
+      ]
+    },
+    "command": "python3 -I -B -S [-O] tests/integration/public-update/replay.py MIXER MIXER_SERVICE FIXTURE_SIGNER EVIDENCE",
+    "heads": [
+      [
+        1,
+        500
+      ],
+      [
+        2,
+        2500
+      ],
+      [
+        3,
+        10000
+      ],
+      [
+        4,
+        10000
+      ]
+    ],
+    "normalEvidenceSHA256": "3fbb726adac9e40e3d407ded6c1bc6b507a870d056950173b50adec4f282b792",
+    "normalObservations": 53,
+    "optimizedEvidenceSHA256": "72bebd3a47ba5b977064303ddedaa3e6ff1be7cfd9b8d17ef0584698048c452e",
+    "optimizedObservations": 53,
+    "originalCandidateObservations": 36,
+    "postCommitFault": "relay substituted HTTP 503 for accepted publish response, same-intent retry preserved history",
+    "redirectFollowed": false,
+    "refusals": {
+      "forged_assignment": "update.promote.rejected",
+      "invalid_rollback_reason": "update.reason",
+      "redirect_refused": "update.promote.rejected",
+      "remote_origin_refused": "update.origin",
+      "tampered_payload": "update.upload.rejected",
+      "unexpected_success_status": "update.promote.rejected",
+      "wrong_candidate": "update.intent",
+      "wrong_promote_channel": "update.intent",
+      "wrong_response_artifact": "update.promote.response",
+      "wrong_rollback_channel": "update.intent",
+      "wrong_rollback_target": "update.intent",
+      "wrong_signed_channel": "update.intent",
+      "wrong_signed_scope": "update.scope",
+      "wrong_token_scope": "update.upload.rejected"
+    },
+    "rollbackAuditReason": "--validation regression",
+    "stableRequestKeys": {
+      "promote": "3fc806c866011cafd34aa9f027ab4dd4d02b892f8fef8e9222b5a02a98ee0f60",
+      "publish": [
+        "b78b79bb0af43c7189385cbb6ebec6422d26232f0898cb86e620127ce0475c1b",
+        "8e892a38a8c1f9a96e24520f245ea983ca95489e7f77f29f7e48d8719a4a3b99",
+        "d138ed7dcf8dd669d16b399e940dd71d36f06b5b485f7244aad91293546b6d95"
+      ],
+      "rollback": "2d3dbc415931a5ed98ea97cbbad61ff16eef5c820113002622f1679ea588b1a9"
+    }
+  },
+  "result": "passed",
+  "schema": "mixer.local-development-evidence.v1",
+  "scope": "public update CLI with separately signed test v3 inputs, Go development service on localhost, disposable file store and synthetic registered host",
+  "serviceBuildRevision": "33c9b32f6ba9bfd946c63ce378560a0fb7d327e5",
+  "serviceTree": "5ddb9b27f5f03ea9e37569257600a2a5ad8bf4b5",
+  "sourceSHA256": {
+    "cli/Sources/MixerBuild/LocalUpdateRelease.swift": "250b9e057b5de400a862930de055ed50cbf69a5920416afe43ff46a925804970",
+    "cli/Sources/MixerCLI/main.swift": "3c27547990d384b2095ebb8ab21735819aedba9b61da60a0b33b9e649db3576f",
+    "tests/integration/public-update/fixture_test.go": "b64c0e0640158e5a5bed9b00e442eb9e61c84bb896e394ffa28fb65906ffc607",
+    "tests/integration/public-update/replay.py": "86dee31d7db5c7ac3a4257b974d5b4397ac94f4cdc2caed70acfe8c563d09a26"
+  },
+  "tools": {
+    "arch": "arm64",
+    "git": "2.56.0",
+    "go": "1.27.1",
+    "macOS": "27.0.1 (26A434)",
+    "python": "3.14.8",
+    "swift": "6.4.2"
+  },
+  "integratedLocalReplay": {
+    "releaseServiceRevision": "da01f6babe",
+    "releaseServiceSHA256": "d4c01fea6bddb2901d6a0a4bf73a53e22df44c172f47395aecc553b4765ceb51",
+    "command": "python3 -I -B -S tests/integration/public-update/replay.py <reviewed CLI> <rebuilt service> <reviewed fixture signer> <result>",
+    "result": "verification/local/root-update-cli-joint-WVnT61WP/replay.json",
+    "sha256": "c19e975b5d7ae21aa374f18b35449ebcff089a417daf8620107a2a9366b714e6",
+    "observations": 53,
+    "exit": 0,
+    "installedSourceAdmission": [
+      "normal",
+      "optimized"
+    ]
+  }
+}

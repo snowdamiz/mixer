@@ -72,3 +72,34 @@ cd services
 PATH=/opt/homebrew/opt/postgresql@17/bin:$PATH GOTOOLCHAIN=go1.26.4 \
 python3 verification/postgres.py --output /absolute/new/postgres-evidence
 ```
+
+## Public update operator workflow
+
+Run the commands in a private scratch checkout. Use Swift 6.2+, Go 1.26+
+with the versions from `services/go.mod`, and Python 3. Build the CLI
+and the current release service, then compile the standalone fixture signer
+inside the Go module so it can import the existing internal signing fixtures.
+
+```sh
+umask 077
+swift build --package-path cli --product mixer
+go -C services build -o "$PWD/mixer-service" ./cmd/mixer-service
+mkdir services/internal/publicupdatefixture
+cp tests/integration/public-update/fixture_test.go services/internal/publicupdatefixture/
+go -C services test -c -o "$PWD/fixture-signer" ./internal/publicupdatefixture
+python3 -I -B -S tests/integration/public-update/replay.py \
+  cli/.build/debug/mixer mixer-service fixture-signer public-update-evidence.json
+```
+
+The signer exits before the CLI runs. The replay starts a fresh localhost service
+with a disposable file store. A loopback relay interrupts each publish stage,
+replaces one successful publish reply with HTTP 503, and records the actual
+request keys and body hashes. The replay checks offers, artifact bytes, audit
+and outbox state, then compares JSON stdout byte for byte after a service
+restart. It also checks wrong signed coordinates, an unexpected success status,
+a redirect, and an ambient proxy with a loopback listener.
+
+The replay stores synthetic data and removes the disposable store on success.
+The evidence covers the local v3 HTTP workflow with the file store and a
+synthetic host. See [the operator guide](../../docs/local-update-release.md)
+for the command inputs and retry rules.

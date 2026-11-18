@@ -160,7 +160,10 @@ LOCAL_STORE_CHANGES = LOCAL_STORE_SOURCE_CHANGES | {
     JAVA + 'test_bootstrap.py',
     JAVA + 'test_sparse_checkout.py',
 }
-MEMBERS = {HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+PUBLIC_UPDATE_MAIN = 'cli/Sources/MixerCLI/main.swift'
+PUBLIC_UPDATE_SOURCE = 'cli/Sources/MixerBuild/LocalUpdateRelease.swift'
+PUBLIC_UPDATE_PREIMAGE = 'public-update-predecessor-bytes/' + PUBLIC_UPDATE_MAIN
+MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
@@ -275,7 +278,8 @@ def install_inputs():
                              'changes', 'renderer_transition', 'starter_lock_transition',
                              'export_runner_transition', 'capability_transition', 'upgrade_transition',
                              'pair24_transition', 'cancel_cli_transition', 'hydration_transition',
-                             'hosted_v33_workflow', 'local_store_transition', 'workspace_builds_workflow'} and
+                             'hosted_v33_workflow', 'local_store_transition', 'workspace_builds_workflow',
+                             'public_update_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -459,10 +463,28 @@ def install_inputs():
         if name in LOCAL_STORE_SOURCE_CHANGES:
             require(expected_source.get(name) == change['before'], 'Local store source inverse differs: ' + name)
             expected_source[name] = change['after']
-    require(current == expected_source and len(current) == 143 and
-            local_store['sourceAfter'] == binding['source']['sha256'] and binding['source'] == {
+    require(len(expected_source) == 143 and local_store['sourceAfter'] == previous.digest(expected_source),
+            'Local store source transition differs')
+    update = binding['public_update_transition']
+    require(set(update) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            update['sourceBefore'] == local_store['sourceAfter'] and
+            set(update['changes']) == {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE},
+            'Public update predecessor source differs')
+    before = read_predecessor_member(HERE / PUBLIC_UPDATE_PREIMAGE)
+    require(expected_source[PUBLIC_UPDATE_MAIN] == previous.row(before) and
+            PUBLIC_UPDATE_SOURCE not in expected_source, 'Public update preimage differs')
+    for name, change in update['changes'].items():
+        require(set(change) == {'before', 'after'} and
+                change['before'] == installed.get(name) == expected_source.get(name) and
+                change['before'] != change['after'] and
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644 and
+                stat.S_ISREG((ROOT / name).lstat().st_mode),
+                'Public update owner row differs: ' + name)
+        installed[name] = expected_source[name] = change['after']
+    require(current == expected_source and len(current) == 144 and
+            update['sourceAfter'] == binding['source']['sha256'] and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
-            }, 'Local store source transition differs')
+            }, 'Public update source transition differs')
     workflow = binding['workspace_builds_workflow']
     before = read_predecessor_member(HERE / WORKSPACE_BUILDS_WORKFLOW)
     require(set(workflow) == {'before', 'after'} and
