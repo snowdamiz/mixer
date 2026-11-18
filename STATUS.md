@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The iOS 27 conflict replay reached the saved task on the project screen. The restored Field note sheet covered the task menu. XCTest found the underlying button but could not tap it. Native conflict resolution remains open. The owned Simulator was removed. [Native conflict test](verification/receipts/fieldlog-ios-conflict-menu-41a05264.json)
+
 In the combined Android development APK, FieldLog returned from sharing a 168-byte populated report with an offline recipient. The signed phase stopped at the reverse-mapping check before opening the guest. The emulator exited with code 0, but cleanup could not confirm group 16950 had gone. Its instance and ports are held. [Combined replay and custody](verification/receipts/fieldlog-android-combined-report-and-custody-41a05264.json).
 
 On a fresh API 36 emulator the combined app shared the exact 168-byte report, returned to the saved workspace, and opened signed sequence 1. The checklist displayed **Open** and an enabled **Complete task**, but omitted the saved task title. The replay stopped before a guest tap or photo import. The disposable AVD was removed and all five ports were reusable. [Combined runtime receipt](verification/receipts/fieldlog-combined-checklist-title-api36-41a05264.json)
