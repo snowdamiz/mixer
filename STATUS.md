@@ -12,6 +12,10 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+A free project owner submitted the selected iOS starter. Real Phoenix and restricted Oban dispatched the same source, recipe and lock recorded in PostgreSQL to the worker. SwiftPM identified a remote Swift Crypto dependency in the local-only recipe. A test guard refused launch, and the worker recorded zero compiler starts. Owner cancellation released capacity, SQLite reopened the stopped record, and billing rows stayed unchanged. Local package admission and compilation remain open. [Worker dispatch receipt](verification/receipts/free-starter-dispatch-to-worker-41a05264.json)
+
+A fresh localhost run served both signed FieldLog packets in one journey. Both downloads stopped at 2,048 bytes, matched the 2,112-byte saved partials from the earlier native runs, and replayed the same bytes after the service restarted. Both service generations closed and all three ports were reusable. The combined native replay needs a rebuilt Android app APK and report-reader APK. [Shared-origin host receipt](verification/receipts/fieldlog-clock-shared-origin-host-41a05264.json)
+
 The Swift CI repair updates the capability fingerprint for the installed hydration source and splits a fixture expression that Swift CI could not compile. The capability host suite passed 52 tests. The bridge passed 58 tests each in debug, release, and Thread Sanitizer after one debug wake deadline. Both sparse-checkout modes passed 16 checks on the combined Android and Swift changes. Hosted Swift CI is pending. [Swift CI repair](verification/receipts/swift-capability-ci-repair-41a05264.json)
 
 A hosted Android job exceeded its two-minute bootstrap limit after both test suites printed OK. The same checks now have four minutes. All 90 bootstrap checks and 32 sparse-checkout checks passed on the local CI projection. Normal and optimized Python admitted the same 150 inputs after the workflow change. Hosted qualification is pending. [CI repair evidence](verification/receipts/android-bootstrap-ci-budget-41a05264.json)
