@@ -16,6 +16,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The ordinary iOS app completed the signed baseline and reviewed confirmation flow on one saved task. On rollback, the 50 ms VM startup turn expired before a frame or effects intent, with 4.58 seconds left on the signed startup deadline. The committed revision-5 workspace matched the confirmed edit byte for byte. Cold reopen and reconnect remain pending for this journey. [Simulator receipt](verification/receipts/fieldlog-ios-rollback-startup-runtime-41a05264.json)
+
 Concurrent browser requests to register the first application now acquire PostgreSQL identity locks in the same order. The full Phoenix suite passed 931 tests in 389.3 seconds on macOS. Two Linux network-namespace tests were skipped. [Qualification receipt](verification/receipts/phoenix-foundation-qualified-41a05264.json)
 
 The Apple SDK now lets an editor accept consecutive callbacks from the same text binding after it installs each exact value. Public FieldLog saved and reopened **Night shift** in the macOS replay, and both native field identifiers remained accessible. The SDK suite passed 228 tests and the FieldLog host suite passed 44. [Regression and consumer patch](tests/integration/fieldlog-apple-section-accessibility/README.md#consecutive-edits-in-the-same-text-field) · [Verification](verification/receipts/fieldlog-current-sdk-typing-41a05264.json)

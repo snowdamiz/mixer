@@ -1,0 +1,67 @@
+{
+  "scope": "Private local source diagnosis, macOS host controls, and generic arm64 iOS Simulator compilation. No device execution, remote access, or changes to the retained inputs.",
+  "source": {
+    "workspaceRevision": "9423d20d2b6fd84a3cb86cbe10ddd8e8e7026e20",
+    "workspaceTree": "68f614b75b34e237ed7b1334f5393cecbc083233",
+    "candidateMixerRevision": "584cd1947edd590fd9fc732197f7d737287ab36f",
+    "candidateMixerTree": "c753b2cb000adc673cb9b9385f1794eff22fc700",
+    "candidateFieldLogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "candidatePacket": "verification/local/fieldlog-ios-task-editor-save.tGxxJImG",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "xcode": "27.2 (27B52)",
+    "hostVMLibrarySHA256": "bc6b286fdd17507acf073846283dc7e9f32c3a7de8d98ac2c3d6ce35a23e4f74",
+    "simulatorVMLibrarySHA256": "f3afa1e76f3d27be572dc7d2f269763c43b6c4331231ecd308eb96ed40d5fae1"
+  },
+  "retainedRun": {
+    "path": "verification/local/fieldlog-ios-assignee-root.XfQlxJft",
+    "assignee": "Night shift",
+    "workspaceRevision": 2,
+    "workspaceSHA256": "b4414451d2e144f72102326f8f0a4de995c7879051ac90b6c3162139977bfaf2",
+    "failedCheckpoint": "01-baseline-open",
+    "visibleStatus": "The signed checklist could not be displayed.",
+    "acceptedSequence": 1,
+    "healthy": null,
+    "attempt": null,
+    "lastRecovery": "deadline",
+    "recoverySHA256": "b4d7e9ed7861279731d388f9c4b416b727f247b4796069d4d4a43194bc6c3e7d",
+    "payloadBytes": 5489,
+    "payloadSHA256": "d2e24083c7958101387455da4e30608aaa3b9519bda0f9c18d3ab58108c77dac",
+    "signedStartupMilliseconds": 5000,
+    "installedTurnMilliseconds": 50,
+    "conclusion": "The selected attempt was consumed and reached a deadline before effects intent. The retained evidence does not locate the producing checkpoint or distinguish the signed absolute cutoff from a VM turn expiry."
+  },
+  "verification": {
+    "hostCommand": "swift test --package-path capability-activation --scratch-path <owned>/build --cache-path <owned>/cache --config-path <owned>/config --security-path <owned>/security --disable-dependency-cache --disable-automatic-resolution --disable-index-store -j 8 -Xcc -I<checkout>/vm/include -Xlinker -L<retained-host-library> --filter 'FieldLogStartupDiagnosticTests|GuestUISignedRuntimeTests|GuestUIPresentationModelTests'",
+    "hostInputs": "FIELDLOG_STARTUP_RUN points to the retained run. FIELDLOG_STARTUP_INSTALLED points to candidatePacket/delivery-ios/Installed. Dependency Git URLs were redirected to existing on-disk mirrors with GIT_ALLOW_PROTOCOL=file.",
+    "serialHostRun": {
+      "exit": 0,
+      "xctestPassed": 13,
+      "swiftTestingPassed": 12,
+      "slowDisplay": "After the signed cutoff, the exact baseline had installed revision 1, remained provisional, and had only feature_started. Submitting the trusted display observation directly committed both milestones and health for the same launch.",
+      "expiryAndPhase": "With a test clock offset that expires the concrete owner's real deadline, the exact candidate recorded deadline before effects and produced no frame. Diagnostic phase starting and step construct survived published nativeFallback and closed."
+    },
+    "concurrentHostRun": {
+      "exit": 1,
+      "xctestPassed": 12,
+      "xctestFailed": 1,
+      "swiftTestingPassed": 12,
+      "failure": "GuestUISignedRuntimeTests.testSignedEventCommitsStorageBeforeGuestShowsSaved failed the inputEnabled assertion at line 233 during the concurrent generic build. Both new startup controls passed. The serial rerun passed all selected tests."
+    },
+    "genericBuild": {
+      "command": "xcodebuild -project <staged>/fieldlog/ios/FieldLog.xcodeproj -scheme FieldLog -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath <owned>/derived -clonedSourcePackagesDirPath <owned>/dependencies -disablePackageRepositoryCache -skipPackageUpdates -disableAutomaticPackageResolution -scmProvider system -jobs 6 build CODE_SIGNING_ALLOWED=NO ENABLE_DEBUG_DYLIB=NO ARCHS=arm64",
+      "result": "BUILD SUCCEEDED; lipo returned arm64; bundled ChecklistRelease exactly matched the installed input directory",
+      "unsignedBinarySHA256": "8f2c7698e932abb4fcb546bb5f65c13cc7fb83822d02d7558543a37d9947be83"
+    },
+    "readbackPatch": "Applied to a private copy of the original runner and parsed with Python 3.14.8. No app container readback was executed."
+  },
+  "diagnosticPacket": {
+    "path": "verification/local/fieldlog-ios-startup-diagnostic-41a05264",
+    "fieldlog.patch": "5e25b77038ec6ad5ed5ea718744695efe2cb97d514b46042e8b98285a044ef51",
+    "mixer-diagnostics.patch": "ca68124e851887f7a7dd5e79485b45c2d8abc0d37f40467b4c467d8f218c2753",
+    "readback.patch": "fed53f10bf201dda012ef01d8d51043a7a6f84d65c2f5cb7973cefd00e573d29"
+  },
+  "cleanup": {
+    "ownedScratch": "verification/local/fieldlog-startup-host.o19PgYse",
+    "removed": true
+  }
+}
