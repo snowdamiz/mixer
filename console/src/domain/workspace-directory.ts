@@ -87,6 +87,10 @@ export function isWorkspaceIdentifier(value: unknown): value is string {
   return printable(value, 128) && value !== "*";
 }
 
+export function isWorkspaceCreateName(value: unknown): value is string {
+  return printable(value, 128) && value.trim().length > 0;
+}
+
 function displayName(value: unknown): value is string | null {
   return value === null || printable(value, 256);
 }

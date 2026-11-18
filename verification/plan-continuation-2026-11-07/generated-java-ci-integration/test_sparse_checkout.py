@@ -23,7 +23,7 @@ CURRENT_BINDING = B.ROOT.joinpath('cli/build-tests/current_android_profile.py')
 current_spec = importlib.util.spec_from_file_location('sparse_current_profile', CURRENT_BINDING)
 current_module = importlib.util.module_from_spec(current_spec)
 current_spec.loader.exec_module(current_module)
-CURRENT_BINDING = current_module.BINDING.as_posix()
+SOURCE_BINDING = B.SOURCE_AUTHORITY.relative_to(B.ROOT).with_name("binding.json")
 GIT_COMMANDS = []
 
 
@@ -72,7 +72,7 @@ def admission_paths(root=None, binding=None):
     """Read the complete selected admission declaration, including raw history."""
     import hashlib
     root = ROOT if root is None else Path(root)
-    binding = current_module.BINDING if binding is None else Path(binding)
+    binding = SOURCE_BINDING if binding is None else Path(binding)
     def relative(name):
         p = Path(name)
         B.require(type(name) is str and name and not p.is_absolute() and
@@ -95,15 +95,22 @@ def admission_paths(root=None, binding=None):
     B.require(seal['tree_sha256'] == digest and binding.name in members,
               'Selected admission seal or binding differs')
     declaration = read_json(root / binding)
-    manifests = (declaration['source']['manifest'], 'caller-inputs.json',
-                 'owning-closure.json', 'historical-inputs.json')
+    manifests = (declaration['source']['manifest'],)
+    if 'predecessor_binding' in declaration:
+        previous = relative(declaration['predecessor_binding'])
+        B.require(previous == current_module.BINDING and previous != binding,
+                  'Invalid archive predecessor binding')
+        dependencies = admission_paths(root, previous)
+    else:
+        manifests += ('caller-inputs.json', 'owning-closure.json', 'historical-inputs.json')
+        dependencies = set()
     paths = {binding.parent.joinpath(name).as_posix() for name in (*members, 'seal.json')}
     for name in manifests:
         B.require(name in members, 'Unsealed admission manifest: ' + name)
         rows = read_json(base / relative(name))
         B.require(type(rows) is dict and len(rows) <= 2048, 'Invalid admission input map')
         paths.update(relative(path).as_posix() for path in rows)
-    return paths
+    return paths | dependencies
 
 
 def owning_paths(patterns):
@@ -143,9 +150,9 @@ def require_coverage(paths, selected):
 
 
 class SparseControls(unittest.TestCase):
-    def assert_current_source(self, authority, inputs, root=None):
+    def assert_current_source(self, authority, inputs, root=None, binding=SOURCE_BINDING):
         root = B.ROOT if root is None else root
-        source = json.loads((root / current_module.BINDING).read_bytes(),
+        source = json.loads((root / binding).read_bytes(),
                             object_pairs_hook=current_module.unique_object)['source']
         self.assertEqual(source['manifest'], 'current-source-inputs.json')
         self.assertEqual((len(inputs), authority.source_digest(inputs)),
@@ -157,10 +164,10 @@ class SparseControls(unittest.TestCase):
         profile = authority.load_profile()
         inputs = authority.source_inputs(profile)
         self.assert_current_source(authority, inputs)
-        binding = json.loads((B.ROOT / current_module.BINDING).read_bytes())
+        binding = json.loads((B.ROOT / SOURCE_BINDING).read_bytes())
         with tempfile.TemporaryDirectory(dir=HERE) as td:
             root = Path(td)
-            path = root / current_module.BINDING
+            path = root / SOURCE_BINDING
             path.parent.mkdir(parents=True)
             # The historical stale count is a negative case, never CURRENT.
             stale = dict(binding['source'], count=116)
@@ -198,15 +205,16 @@ class SparseControls(unittest.TestCase):
         import hashlib
         selected_root = ROOT
         spec = importlib.util.spec_from_file_location('proposal_current_adopter',
-            ROOT / current_module.BINDING.parent / 'adopt_sdk.py')
+            B.SOURCE_AUTHORITY)
         adopter = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(adopter)
-        binding, selected, prior = adopter.admit()
+        binding, _, prior = adopter.admit()
+        predecessor_authority, _ = adopter.load_predecessor()
+        history = predecessor_authority.load(
+            predecessor_authority.HERE / 'historical-inputs.json')
         with tempfile.TemporaryDirectory(prefix='historical-proposal-', dir=HERE) as td:
             predecessor = Path(td) / 'source127'
             result = adopter.prepare_predecessor(predecessor)
-            history = json.loads((selected_root / current_module.BINDING.parent /
-                                  'historical-inputs.json').read_bytes())
             for name, expected in history.items():
                 raw = (predecessor / name).read_bytes()
                 self.assertEqual({'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}, expected)
@@ -232,7 +240,7 @@ class SparseControls(unittest.TestCase):
                 patterns = proposal_patterns((HERE / 'workflow-proposal.yml').read_text())
                 a = B.canonical()
                 inputs = B.admit_source_inputs(a, a.load_profile())
-                self.assert_current_source(a, inputs)
+                self.assert_current_source(a, inputs, predecessor, historical_binding)
                 require_coverage(inputs, git_selected(list(inputs), patterns))
 
 
@@ -382,7 +390,7 @@ class SparseControls(unittest.TestCase):
         import shutil
         patterns = owning_patterns((ROOT / '.github/workflows/verify.yml').read_text())
         paths = owning_paths(patterns)
-        old_patterns = ('/.github/workflows/', '/cli/', '/sdk/', '/native-sdk/', '/updates/', '/native/android/', '/scripts/ci/', '/verification/plan-continuation-2026-11-07/generated-java-ci-integration/', '/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/binding.json', '/verification/native-output-source121-v1/', '/verification/native-report-source126-v1/', '/verification/native-report-source127-v1/', '/verification/sdk-feature-ui-source141-v1/')
+        old_patterns = ('/.github/workflows/', '/cli/', '/sdk/', '/native-sdk/', '/updates/', '/native/android/', '/scripts/ci/', '/verification/plan-continuation-2026-11-07/generated-java-ci-integration/', '/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/binding.json', '/verification/native-output-source121-v1/', '/verification/native-report-source126-v1/', '/verification/native-report-source127-v1/', '/verification/sdk-feature-ui-source141-v1/', '/verification/native-report-source141-archive-v1/')
         with tempfile.TemporaryDirectory(prefix='materialized-admission-', dir=HERE) as td:
             base = Path(td)
             repo = base / 'repo'
@@ -410,7 +418,7 @@ class SparseControls(unittest.TestCase):
             command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
                     input=('\n'.join(old_patterns) + '\n').encode(), check=True)
             self.assertFalse((repo / 'Package.resolved').exists())
-            adopter = repo / current_module.BINDING.parent / 'adopt_sdk.py'
+            adopter = repo / B.SOURCE_AUTHORITY.relative_to(ROOT)
             python = [sys.executable, '-I', '-B', '-S'] + (['-O'] if sys.flags.optimize else [])
             failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
             self.assertEqual(failed.returncode, 1)

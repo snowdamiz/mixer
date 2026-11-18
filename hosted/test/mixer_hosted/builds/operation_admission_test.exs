@@ -169,30 +169,6 @@ defmodule MixerHosted.Builds.OperationAdmissionTest do
     :ok
   end
 
-  test "private migration stays outside the closed production twelve" do
-    path = Path.expand("../../../priv/repo/migrations", __DIR__)
-    assert :ok == MixerHosted.Test.Migrations.check_files!(path)
-
-    assert MixerHosted.Test.Migrations.versions() == [
-             20_261_024_000_000,
-             20_261_025_000_000,
-             20_261_025_000_001,
-             20_261_025_000_002,
-             20_261_025_000_003,
-             20_261_025_000_004,
-             20_261_025_000_005,
-             20_261_025_000_006,
-             20_261_025_000_007,
-             20_261_025_000_008,
-             20_261_110_000_000,
-             20_261_110_000_001,
-             20_261_116_000_000,
-             20_261_116_000_001
-           ]
-
-    refute 20_261_110_000_498 in MixerHosted.Test.Migrations.versions()
-  end
-
   test "closed WorkerRef rejects extra and malformed values before all SQL actions" do
     r = request("permanent-boundaries")
 
@@ -509,5 +485,34 @@ defmodule MixerHosted.Builds.OperationAdmissionTest do
         ] do
       assert {:error, :invalid_request} = Store.ensure_admitted(Repo, q)
     end
+  end
+end
+
+defmodule MixerHosted.Builds.OperationAdmissionReviewedMigrationsTest do
+  use ExUnit.Case, async: true
+
+  test "private migration stays outside the reviewed ordinary migration inventory" do
+    path = Path.expand("../../../priv/repo/migrations", __DIR__)
+    assert :ok == MixerHosted.Test.Migrations.check_files!(path)
+
+    assert MixerHosted.Test.Migrations.versions() == [
+             20_261_024_000_000,
+             20_261_025_000_000,
+             20_261_025_000_001,
+             20_261_025_000_002,
+             20_261_025_000_003,
+             20_261_025_000_004,
+             20_261_025_000_005,
+             20_261_025_000_006,
+             20_261_025_000_007,
+             20_261_025_000_008,
+             20_261_110_000_000,
+             20_261_110_000_001,
+             20_261_116_000_000,
+             20_261_116_000_001,
+             20_261_117_000_000
+           ]
+
+    refute 20_261_110_000_498 in MixerHosted.Test.Migrations.versions()
   end
 end

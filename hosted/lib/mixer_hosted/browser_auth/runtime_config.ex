@@ -18,7 +18,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
     :custody
   ]
   @type admission_profile :: :browser_auth_v2 | :build_catalog_v3
-  defstruct @enforce_keys ++ [admission_profile: :browser_auth_v2]
+  defstruct @enforce_keys ++ [admission_profile: :browser_auth_v2, workspace_catalog: :legacy]
   @type t :: %__MODULE__{}
 
   @error {:error, :session_unavailable}
@@ -27,16 +27,22 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
     connect_timeout queue_target queue_interval show_sensitive_data_on_connection_error ssl)a
   @ssl_keys ~w(verify cacerts server_name_indication customize_hostname_check)a
   @lifecycle_keys ~w(username password writer_role relation_owner)a
+  @workspace_binding "MIXER_BROWSER_WORKSPACE_CATALOG"
+  @manage_scope "openid mixer.workspace.read mixer.workspace.manage"
   @browser_keys ~w(MIXER_BROWSER_AUTH_MODE MIXER_BROWSER_AUTH_CONFIG)
 
   @doc "Constructs disabled settings or one bounded dedicated lifecycle connection policy."
-  def new(browser_env, %HostedConfig{} = hosted, lifecycle, custody) do
+  def new(browser_env, %HostedConfig{} = hosted, lifecycle, custody) when is_map(browser_env) do
+    {binding, browser_env} = Map.pop(browser_env, @workspace_binding, "legacy")
+
     with true <- exact_map?(hosted, [:__struct__ | @hosted_keys]),
          true <- create_repo?(hosted),
          true <- hosted.processor_profile in [nil, :builds_v1],
          true <- browser_env?(browser_env),
-         {:ok, config} <- Config.load(browser_env, hosted.role, hosted.identity_startup) do
-      construct(config, hosted, lifecycle, custody)
+         {:ok, config} <- Config.load(browser_env, hosted.role, hosted.identity_startup),
+         {:ok, catalog} <- workspace_catalog(config, binding),
+         {:ok, runtime} <- construct(config, hosted, lifecycle, custody) do
+      {:ok, %{runtime | workspace_catalog: catalog}}
     else
       _ -> @error
     end
@@ -58,6 +64,12 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
         @error
     end
   end
+
+  defp workspace_catalog(%Config{scope: scope}, "legacy") when scope != @manage_scope,
+    do: {:ok, :legacy}
+
+  defp workspace_catalog(%Config{mode: :configured}, "v1"), do: {:ok, :workspace_v1}
+  defp workspace_catalog(_, _), do: @error
 
   defp construct(%Config{mode: :disabled}, _hosted, nil, nil) do
     {:ok,
@@ -117,7 +129,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
 
   defp custody(_, _), do: @error
 
-  defp browser_env?(env) when is_map(env) do
+  defp browser_env?(env) do
     Enum.all?(Map.keys(env), &(&1 in @browser_keys)) and
       case Map.get(env, "MIXER_BROWSER_AUTH_MODE", "disabled") do
         "disabled" -> not Map.has_key?(env, "MIXER_BROWSER_AUTH_CONFIG")
@@ -125,8 +137,6 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
         _ -> false
       end
   end
-
-  defp browser_env?(_), do: false
 
   defp create_connections(%HostedConfig{create_repo: nil}), do: 0
   defp create_connections(%HostedConfig{}), do: 2

@@ -138,6 +138,7 @@ jobs:
             /verification/native-report-source126-v1/
             /verification/native-report-source127-v1/
             /verification/sdk-feature-ui-source141-v1/
+            /verification/native-report-source141-archive-v1/
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py
             /verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py
@@ -185,7 +186,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$GITHUB_WORKSPACE/verification/sdk-feature-ui-source141-v1/adopt_sdk.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/native-report-source141-archive-v1/adopt_archive.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
       - name: Guarded envelope and prospective compiler adoption controls
@@ -196,8 +197,11 @@ jobs:
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           MIXER_NATIVE_PREDECESSOR="$RUNNER_TEMP/native-output-source119-controls"
           MIXER_SOURCE127_PREDECESSOR="$RUNNER_TEMP/sdk-source127-controls"
-          python3 -I -B -S "$GITHUB_WORKSPACE/verification/sdk-feature-ui-source141-v1/test_source141.py"
-          python3 -I -B -S "$GITHUB_WORKSPACE/verification/sdk-feature-ui-source141-v1/adopt_sdk.py" prepare-predecessor \
+          MIXER_SOURCE141_PREDECESSOR="$RUNNER_TEMP/native-archive-source141-controls"
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/native-report-source141-archive-v1/adopt_archive.py" prepare-source141 \
+            --out "$MIXER_SOURCE141_PREDECESSOR"
+          python3 -I -B -S "$MIXER_SOURCE141_PREDECESSOR/verification/sdk-feature-ui-source141-v1/test_source141.py"
+          python3 -I -B -S "$MIXER_SOURCE141_PREDECESSOR/verification/sdk-feature-ui-source141-v1/adopt_sdk.py" prepare-predecessor \
             --out "$MIXER_SOURCE127_PREDECESSOR"
           (
             # Synthetic reconstruction witness only; never an original historical HEAD.
@@ -265,7 +269,7 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$GITHUB_WORKSPACE/verification/sdk-feature-ui-source141-v1/adopt_sdk.py" verify --workflow-installed \
+          python3 -B "$GITHUB_WORKSPACE/verification/native-report-source141-archive-v1/adopt_archive.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/postflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/postflight.stderr"
       - name: Preserve standalone analyzer envelope receipts
@@ -681,6 +685,10 @@ jobs:
             /console/package.json
             /console/src/state/browser-session-controller.ts
             /console/src/state/workspace-controller.ts
+            /console/src/api/cookie-workspace-create-client.ts
+            /console/src/components/WorkspaceCreateForm.tsx
+            /console/src/state/workspace-creation.ts
+            /console/tests/browser-session-binding-runner.mjs
             /console/src/api/cookie-build-catalog-client.ts
             /console/src/domain/build-catalog.ts
             /console/src/App.tsx
@@ -742,13 +750,16 @@ jobs:
             /verification/identity-network-current-source-v27/selection.json
             /verification/identity-network-current-source-v28/selection.json
             /verification/identity-network-current-source-v29/selection.json
+            /verification/identity-network-current-source-v31/selection.json
             /verification/identity-network-current-source-v24/selected-source-manifest.json
             /verification/identity-network-current-source-v25/selected-source-manifest.json
             /verification/identity-network-current-source-v26/selected-source-manifest.json
             /verification/identity-network-current-source-v27/selected-source-manifest.json
             /verification/identity-network-current-source-v28/selected-source-manifest.json
             /verification/identity-network-current-source-v29/selected-source-manifest.json
+            /verification/identity-network-current-source-v31/selected-source-manifest.json
             /verification/identity-network-current-source-v29/preimages/
+            /verification/identity-network-current-source-v31/preimages/
             /console/src/api/build-submission.ts
             /console/src/brand.css
             /console/src/build-submission-test-runtime.tsx
@@ -966,6 +977,7 @@ jobs:
             /verification/native-report-source126-v1/
             /verification/native-report-source127-v1/
             /verification/sdk-feature-ui-source141-v1/
+            /verification/native-report-source141-archive-v1/
             /Package.resolved
             /Package.swift
             /THIRD_PARTY.yml
@@ -981,9 +993,10 @@ jobs:
             /verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/
       - name: Bootstrap policy controls without native tools
         timeout-minutes: 2
-        run: |
-          python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v
-          python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v
+        run: python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v
+      - name: Sparse checkout controls without native tools
+        timeout-minutes: 2
+        run: python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v
       - name: Actual generated Java six-consumer integration
         timeout-minutes: 62
         shell: bash

@@ -16,7 +16,9 @@ import uuid
 ROOT = Path(__file__).resolve().parents[4]
 BROWSER = "hosted/lib/mixer_hosted/browser_auth/"
 MODULES = ["hosted/lib/mixer_hosted/customer_artifacts/schema.ex",
-           BROWSER + "storage_schema.ex", BROWSER + "activation_preparation_schema.ex"]
+           "hosted/lib/mixer_hosted/customer_workspace/self_service_schema.ex",
+           BROWSER + "storage_schema.ex", BROWSER + "activation_preparation_schema.ex",
+           BROWSER + "active_read_schema.ex", BROWSER + "active_workspace_schema.ex"]
 MIGRATION_LIST = "hosted/test/support/reviewed_migrations.json"
 MIGRATIONS = json.loads((ROOT / MIGRATION_LIST).read_text())
 DEPS = ["telemetry", "decimal", "db_connection", "ecto", "ecto_sql", "postgrex", "jason", "oban"]

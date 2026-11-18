@@ -377,6 +377,78 @@ extension NativeOutputAdmissionTests {
         }
     }
 
+
+    func testArchiveRetentionRefusesAReplacedStageEvenIfBytesMatch() throws {
+        try temporary { root in
+            let f = try unitFixture(root)
+            let archive = try XCTUnwrap(f.report.nativeProduct?.nativeBinary)
+            let store = try NativeBuildOutput.prepare(output: root.appendingPathComponent("copy"), root: f.inputs.projectRoot)
+            let final = store.url.appendingPathComponent(archive.sha256)
+            let bytes = try Data(contentsOf: URL(fileURLWithPath: archive.ownedPath))
+            let replacement = root.appendingPathComponent("replacement")
+            try bytes.write(to: replacement)
+            XCTAssertEqual(chmod(replacement.path, 0o444), 0)
+            var replaced = false
+            XCTAssertThrowsError(try BuildInputSnapshot.retainParentArchive(archive, from: f.parent, in: store,
+                renameExclusive: { fd, stage, name in
+                    let stagePath = store.url.appendingPathComponent(stage).path
+                    guard rename(replacement.path, stagePath) == 0 else { return -1 }
+                    replaced = true
+                    return renameatx_np(fd, stage, fd, name, UInt32(RENAME_EXCL))
+                })) {
+                XCTAssertEqual($0 as? BuildInputSnapshot.Failure, .mutation)
+            }
+            XCTAssertTrue(replaced)
+            XCTAssertEqual(try Data(contentsOf: final), bytes)
+            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: store.url.path), [archive.sha256])
+            XCTAssertTrue(try NativeBuildOutput.reopen(store: f.parent).succeeded)
+        }
+    }
+
+    func testArchiveRetentionRollsBackOnlyItsPublishedEntryOnFlushFailure() throws {
+        try temporary { root in
+            let f = try unitFixture(root)
+            let archive = try XCTUnwrap(f.report.nativeProduct?.nativeBinary)
+            for replacePublishedEntry in [false, true] {
+                let store = try NativeBuildOutput.prepare(output: root.appendingPathComponent("copy-\(replacePublishedEntry)"),
+                    root: f.inputs.projectRoot)
+                let final = store.url.appendingPathComponent(archive.sha256)
+                let replacement = root.appendingPathComponent("replacement")
+                let replacementBytes = Data("independent replacement".utf8)
+                if replacePublishedEntry { try replacementBytes.write(to: replacement) }
+                var flushes = 0
+                XCTAssertThrowsError(try BuildInputSnapshot.retainParentArchive(archive, from: f.parent, in: store,
+                    flushDirectory: { _ in
+                        flushes += 1
+                        if flushes == 1 {
+                            XCTAssertTrue(FileManager.default.fileExists(atPath: final.path))
+                            if replacePublishedEntry { XCTAssertEqual(rename(replacement.path, final.path), 0) }
+                        }
+                        errno = flushes == 1 ? EIO : ENOSPC
+                        return -1
+                    })) {
+                    XCTAssertEqual($0 as? BuildInputSnapshot.Failure, .io(EIO))
+                }
+                XCTAssertEqual(flushes, replacePublishedEntry ? 1 : 2)
+                XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: store.url.path),
+                    replacePublishedEntry ? [archive.sha256] : [])
+                if replacePublishedEntry {
+                    XCTAssertEqual(try Data(contentsOf: final), replacementBytes)
+                } else {
+                    try BuildInputSnapshot.retainParentArchive(archive, from: f.parent, in: store)
+                    let retained = try Data(contentsOf: final)
+                    XCTAssertEqual(retained, try Data(contentsOf: URL(fileURLWithPath: archive.ownedPath)))
+                    XCTAssertThrowsError(try BuildInputSnapshot.retainParentArchive(archive, from: f.parent, in: store)) {
+                        XCTAssertEqual($0 as? BuildInputSnapshot.Failure, .io(EEXIST))
+                    }
+                    XCTAssertEqual(try Data(contentsOf: final), retained)
+                    XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: store.url.path), [archive.sha256])
+                }
+            }
+            XCTAssertTrue(try NativeBuildOutput.reopen(store: f.parent).succeeded)
+        }
+    }
+
     func testUnitSnapshotRevalidatesRetainedParent() throws {
         try temporary { root in
             let f = try unitFixture(root), output = root.appendingPathComponent("snapshot")

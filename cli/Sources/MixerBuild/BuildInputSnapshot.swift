@@ -191,12 +191,92 @@ public enum BuildInputSnapshot {
     private static func copyParents(_ p: NativeBuildOutput.Report, from source: URL, to target: URL, root: URL) throws -> NativeBuildOutput.Report {
         let store = try NativeBuildOutput.prepare(output: target, root: root)
         guard let c = p.nativeProduct, let i = p.resourceInventory else { throw Failure.binding }
-        for name in [c.nativeBinary.sha256, c.debugSymbols.sha256, i.sha256] {
-            try write(read(source.appendingPathComponent(name), immutable: true), to: target.appendingPathComponent(name))
-        }
+        try retainParentArchive(c.nativeBinary, from: source, in: store)
+        try retainParentArchive(c.debugSymbols, from: source, in: store)
+        let inventory = try read(source.appendingPathComponent(i.sha256), immutable: true)
+        guard inventory.count == i.sizeBytes, SourceDigest.sha256(inventory) == i.sha256 else { throw Failure.corrupt }
+        try write(inventory, to: target.appendingPathComponent(i.sha256))
         let relocated = try relocate(p, to: target); try store.persist(relocated)
         return try NativeBuildOutput.reopen(store: target)
     }
+    static func retainParentArchive(_ descriptor: NativeProductCapture.Descriptor,
+                                    from source: URL, in store: NativeBuildOutput.Store,
+                                    renameExclusive: (Int32, String, String) -> Int32 = {
+                                        renameatx_np($0, $1, $0, $2, UInt32(RENAME_EXCL))
+                                    },
+                                    flushDirectory: (Int32) -> Int32 = Darwin.fsync) throws {
+        let name = descriptor.sha256
+        guard digest(name, count: 64), descriptor.ownedPath == source.path + "/" + name else { throw Failure.path }
+        guard descriptor.sizeBytes > 0, descriptor.sizeBytes <= NativeProductCapture.archiveByteLimit else { throw Failure.limit }
+        let size = Int(descriptor.sizeBytes)
+        let parent = try directory(source, privateStore: true)
+        defer { close(parent) }
+        let input = openat(parent, name, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
+        guard input >= 0 else { throw Failure.path }
+        defer { close(input) }
+        try store.check()
+
+        let stage = ".archive-" + UUID().uuidString
+        let output = openat(store.fd, stage, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
+        guard output >= 0 else { throw Failure.io(errno) }
+        var ownedName = stage
+        var committed = false
+        defer {
+            // The operation owns this private store. Recheck identity before FD-relative
+            // cleanup so an observed replacement or pre-existing digest is left alone.
+            if !committed {
+                var held = stat(), named = stat()
+                if fstat(output, &held) == 0,
+                   fstatat(store.fd, ownedName, &named, AT_SYMLINK_NOFOLLOW) == 0,
+                   held.st_dev == named.st_dev, held.st_ino == named.st_ino,
+                   unlinkat(store.fd, ownedName, 0) == 0 {
+                    _ = flushDirectory(store.fd)
+                }
+            }
+            close(output)
+        }
+
+        var hash = SHA256()
+        try readChunks(input, parent: parent, name: name, maximum: size, immutable: true, expectedSize: size) { chunk in
+            hash.update(bufferPointer: chunk)
+            try writeAll(chunk, to: output)
+        }
+        guard hex(hash.finalize()) == name else { throw Failure.corrupt }
+        guard fchmod(output, 0o444) == 0, fsync(output) == 0, lseek(output, 0, SEEK_SET) == 0 else { throw Failure.io(errno) }
+
+        var readback = SHA256()
+        let verified = try readChunks(output, parent: store.fd, name: stage, maximum: size,
+                                      immutable: true, expectedSize: size) {
+            readback.update(bufferPointer: $0)
+        }
+        guard hex(readback.finalize()) == name else { throw Failure.corrupt }
+
+        func namedArchive(_ name: String) throws -> stat {
+            var held = stat(), named = stat()
+            guard fstat(output, &held) == 0,
+                  fstatat(store.fd, name, &named, AT_SYMLINK_NOFOLLOW) == 0,
+                  stable(held, named) else { throw Failure.mutation }
+            return held
+        }
+
+        try store.check()
+        guard try stable(verified, namedArchive(stage)) else { throw Failure.mutation }
+        guard renameExclusive(store.fd, stage, name) == 0 else { throw Failure.io(errno) }
+        ownedName = name
+
+        let published = try namedArchive(name)
+        // Rename may advance ctime. The inode and the rest of its verified stamp must match.
+        guard stable(verified, published, includingChangeTime: false) else { throw Failure.mutation }
+        guard flushDirectory(store.fd) == 0 else { throw Failure.io(errno) }
+        try store.check()
+        guard try stable(published, namedArchive(name)) else { throw Failure.mutation }
+        committed = true
+    }
+
+    private static func hex(_ digest: SHA256.Digest) -> String {
+        digest.map { String(format: "%02x", $0) }.joined()
+    }
+
     private static func relative(_ s: String) -> Bool {
         !s.isEmpty && !s.hasPrefix("/") && !s.hasSuffix("/") && !s.utf8.contains(0) &&
         s.split(separator: "/", omittingEmptySubsequences: false).count <= 32 &&
@@ -224,44 +304,66 @@ public enum BuildInputSnapshot {
             return fd
         } catch { close(fd); throw error }
     }
-    private static func stable(_ a: stat, _ b: stat) -> Bool {
+    private static func stable(_ a: stat, _ b: stat, includingChangeTime: Bool = true) -> Bool {
         a.st_dev == b.st_dev && a.st_ino == b.st_ino && a.st_mode == b.st_mode && a.st_uid == b.st_uid &&
         a.st_nlink == b.st_nlink && a.st_size == b.st_size && a.st_mtimespec.tv_sec == b.st_mtimespec.tv_sec &&
-        a.st_mtimespec.tv_nsec == b.st_mtimespec.tv_nsec && a.st_ctimespec.tv_sec == b.st_ctimespec.tv_sec && a.st_ctimespec.tv_nsec == b.st_ctimespec.tv_nsec
+        a.st_mtimespec.tv_nsec == b.st_mtimespec.tv_nsec &&
+        (!includingChangeTime || (a.st_ctimespec.tv_sec == b.st_ctimespec.tv_sec &&
+                                   a.st_ctimespec.tv_nsec == b.st_ctimespec.tv_nsec))
     }
     private static func read(_ url: URL, immutable: Bool = false) throws -> Data {
         let parent = try directory(url.deletingLastPathComponent()); defer { close(parent) }
         guard relative(url.lastPathComponent) else { throw Failure.path }
         let fd = openat(parent, url.lastPathComponent, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
         guard fd >= 0 else { throw Failure.path }; defer { close(fd) }
-        var before = stat()
-        guard fstat(fd, &before) == 0, before.st_mode & S_IFMT == S_IFREG, before.st_nlink == 1,
-              before.st_uid == geteuid(), before.st_size >= 0, before.st_size <= fileLimit,
-              !immutable || before.st_mode & 0o7777 == 0o444 else { throw Failure.unsafeFile }
-        var data = Data(); var buffer = [UInt8](repeating: 0, count: 65536)
-        while true {
-            let n = Darwin.read(fd, &buffer, min(buffer.count, fileLimit - data.count + 1))
-            if n < 0 && errno == EINTR { continue }
-            guard n >= 0, n <= fileLimit - data.count else { throw Failure.limit }
-            if n == 0 { break }; data.append(contentsOf: buffer.prefix(n))
+        var data = Data()
+        try readChunks(fd, parent: parent, name: url.lastPathComponent, maximum: fileLimit, immutable: immutable) {
+            data.append(contentsOf: $0)
         }
-        var after = stat(), named = stat()
-        guard fstat(fd, &after) == 0, fstatat(parent, url.lastPathComponent, &named, AT_SYMLINK_NOFOLLOW) == 0,
-              stable(before, after), stable(after, named), data.count == before.st_size else { throw Failure.mutation }
         return data
     }
+
+    @discardableResult
+    private static func readChunks(_ fd: Int32, parent: Int32, name: String, maximum: Int,
+                                   immutable: Bool, expectedSize: Int? = nil,
+                                   consume: (UnsafeRawBufferPointer) throws -> Void) throws -> stat {
+        var before = stat()
+        guard fstat(fd, &before) == 0, before.st_mode & S_IFMT == S_IFREG, before.st_nlink == 1,
+              before.st_uid == geteuid(), before.st_size >= 0, before.st_size <= maximum,
+              !immutable || before.st_mode & 0o7777 == 0o444 else { throw Failure.unsafeFile }
+        if let expectedSize, before.st_size != expectedSize { throw Failure.corrupt }
+
+        var count = 0
+        var buffer = [UInt8](repeating: 0, count: 65536)
+        while true {
+            let n = Darwin.read(fd, &buffer, min(buffer.count, maximum - count + 1))
+            if n < 0 && errno == EINTR { continue }
+            guard n >= 0, n <= maximum - count else { throw Failure.limit }
+            if n == 0 { break }
+            try buffer.withUnsafeBytes { try consume(UnsafeRawBufferPointer(rebasing: $0.prefix(n))) }
+            count += n
+        }
+        var after = stat(), named = stat()
+        guard fstat(fd, &after) == 0, fstatat(parent, name, &named, AT_SYMLINK_NOFOLLOW) == 0,
+              stable(before, after), stable(after, named), count == before.st_size else { throw Failure.mutation }
+        return after
+    }
+
+    private static func writeAll(_ raw: UnsafeRawBufferPointer, to fd: Int32) throws {
+        var offset = 0
+        while offset < raw.count {
+            let n = Darwin.write(fd, raw.baseAddress!.advanced(by: offset), raw.count - offset)
+            if n < 0 && errno == EINTR { continue }
+            guard n > 0 else { throw Failure.io(errno) }
+            offset += n
+        }
+    }
+
     private static func write(_ data: Data, to url: URL) throws {
         let parent = try directory(url.deletingLastPathComponent(), privateStore: true); defer { close(parent) }
         let fd = openat(parent, url.lastPathComponent, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
         guard fd >= 0 else { throw Failure.io(errno) }; defer { close(fd) }
-        try data.withUnsafeBytes { raw in
-            var offset = 0
-            while offset < raw.count {
-                let n = Darwin.write(fd, raw.baseAddress!.advanced(by: offset), raw.count - offset)
-                if n < 0 && errno == EINTR { continue }
-                guard n > 0 else { throw Failure.io(errno) }; offset += n
-            }
-        }
+        try data.withUnsafeBytes { try writeAll($0, to: fd) }
         guard fchmod(fd, 0o444) == 0, fsync(fd) == 0, fsync(parent) == 0 else { throw Failure.io(errno) }
     }
     private static func mkdirOwned(_ url: URL) throws {

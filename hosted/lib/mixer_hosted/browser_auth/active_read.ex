@@ -277,6 +277,28 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
         expires
       )
 
+  defp value(
+         {:workspace_create, operation, headers},
+         _token,
+         csrf,
+         source,
+         expires,
+         lease,
+         identity,
+         key_lease
+       ),
+       do:
+         MixerHosted.BrowserAuth.ActiveWorkspace.run(
+           lease,
+           source,
+           identity,
+           csrf,
+           headers,
+           operation,
+           key_lease,
+           expires
+         )
+
   defp value(operation, token, csrf, source, expires, _lease, _identity, _kl),
     do: value(operation, token, csrf, source, expires)
 

@@ -143,6 +143,21 @@ defmodule MixerBrowserMigrationFixture.Test do
                       WHERE t.oid='public.mixer_browser_access_evidence'::regtype AND a.grantee=0)
              """)
 
+    assert %{rows: [[nil]]} =
+             Repo.query!("SELECT to_regprocedure($1)::text", [
+               "public.mixer_browser_workspace_admit(bytea,bytea,bigint,text,text,text,text,integer,text,text,text,text,bigint,bigint,text[])"
+             ])
+
+    for signature <- [
+          "public.mixer_workspace_self_service_v1(text,text,text,jsonb,bigint,bigint)",
+          "public.mixer_workspace_build_count_v1(text)"
+        ] do
+      assert %{rows: [[false]]} =
+               Repo.query!("SELECT has_function_privilege('migration_runtime',$1,'EXECUTE')", [
+                 signature
+               ])
+    end
+
     # Discovery remains empty before separate operator provisioning and any
     # browser lifecycle owner are installed.
     assert %{rows: [[nil]]} =
@@ -184,7 +199,10 @@ defmodule MixerBrowserMigrationFixture.Test do
           MixerHosted.Repo.Migrations.AddBrowserSessions,
           MixerHosted.Repo.Migrations.AddBrowserActivationPreparation,
           MixerHosted.Repo.Migrations.AddBillingWebhookInbox,
-          MixerHosted.Repo.Migrations.AddBillingUsageLedger
+          MixerHosted.Repo.Migrations.AddBillingUsageLedger,
+          MixerHosted.Repo.Migrations.AddBillingReconciliation,
+          MixerHosted.Repo.Migrations.AddBillingOrganizationState,
+          MixerHosted.Repo.Migrations.AddCustomerWorkspaceSelfService
         ] do
       :code.purge(module)
       :code.delete(module)

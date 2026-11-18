@@ -61,7 +61,9 @@ type ConsoleSessionProps = { readonly session?: ConsoleSession | undefined; read
 function ApplicationBuildRoute(props: ConsoleSessionProps) {
   const workspace = useWorkspace();
   const binding = createBuildSelectionBinding(() => props.session, workspace.state);
-  return <ApplicationBuildPage binding={binding} workspace={workspace.state()} onRetrySession={() => props.onRetrySession?.()} />;
+  return <ApplicationBuildPage
+    showBuildCreation={props.session?.kind !== "ready" || !props.session.workspaceCreate}
+    binding={binding} workspace={workspace.state()} onRetrySession={() => props.onRetrySession?.()} />;
 }
 
 export function ConsoleRoutes(props: ConsoleSessionProps = {}) {

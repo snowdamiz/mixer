@@ -211,7 +211,8 @@ test("cleanup cancels queued checks, session and workspace requests, owned liste
 
 test("production main constructs one owner and passes a reactive App prop; no fake readiness or login UI", () => {
   const main = readFileSync(new URL("../src/main.tsx", import.meta.url), "utf8");
-  assert.match(main, /function ConsoleRoot\(\)/); assert.match(main, /const binding = createBrowserSessionBinding\(\)/);
+  assert.match(main, /function ConsoleRoot\(\)/);
+  assert.match(main, /const binding = import\.meta\.env\.MODE === "local-workspace-manage"\s*\? createBrowserSessionBinding\("workspace-manage"\)\s*:\s*createBrowserSessionBinding\(\)/);
   assert.match(main, /<App workspaceSession=\{binding\.workspaceSession\(\)\} onRetrySession=\{binding\.revalidate\} \/>/); assert.match(main, /render\(\(\) => <ConsoleRoot \/>, container\)/);
   assert.doesNotMatch(main, /kind:|csrf|generation|accessToken|login|localStorage|sessionStorage/);
 });

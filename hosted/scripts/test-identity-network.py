@@ -2852,6 +2852,78 @@ def _load_billing_reconciliation_source_authority():
     return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
 
 
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v31/'
+WORKSPACE_SELECTION_SHA256 = 'e7bf945578d08e8ba153fd51d38aa960d39011f89ab1a0ea1f003c5a8dcb39c5'
+WORKSPACE_SOURCE_DIGEST = '1554dd2ac29c9a0199acdb80a0611ece0d86c839995f8c971da7dd282b10c234'
+WORKSPACE_SOURCE_COUNT = 359
+
+
+def validate_workspace_source_metadata(metadata):
+    base = WORKSPACE_SOURCE_BASE
+    require(set(metadata) == {base + name for name in ('selection.json', 'selected-source-manifest.json')},
+            'workspace source metadata membership')
+    body = metadata[base + 'selection.json']
+    require(hashlib.sha256(body).hexdigest() == WORKSPACE_SELECTION_SHA256, 'workspace selection pin')
+    selection = _restricted_processor_json(body)
+    manifest_body = metadata[base + 'selected-source-manifest.json']
+    require(selection['selected']['manifest'] ==
+            {'path': 'selected-source-manifest.json', **_file_row(manifest_body)}, 'workspace manifest byte pin')
+    manifest = _restricted_processor_json(manifest_body)
+    require(len(manifest) == selection['selected']['source_count'] == WORKSPACE_SOURCE_COUNT and
+            canonical_digest(manifest) == selection['selected']['source_digest_sha256'] == WORKSPACE_SOURCE_DIGEST,
+            'workspace manifest count or digest')
+    predecessor = BILLING_RECONCILIATION_MANIFEST
+    require(selection['predecessor'] == {
+        'source_count': BILLING_RECONCILIATION_SOURCE_COUNT,
+        'source_digest_sha256': BILLING_RECONCILIATION_SOURCE_DIGEST,
+        'selection_sha256': BILLING_RECONCILIATION_SELECTION_SHA256,
+        'manifest_sha256': 'fab29dc0c4513b624c970bdbe2257c77f98c2fb2a561ae5efdd44ff2b07a3ce8',
+    }, 'workspace source predecessor')
+    delta = {path: {'before': predecessor.get(path), 'after': row}
+             for path, row in manifest.items() if path not in predecessor or row != predecessor[path]}
+    require(set(predecessor) <= set(manifest) and len(delta) == 45 and delta == selection['exact_delta'],
+            'workspace source forward and inverse membership')
+    versions = sorted(PurePosixPath(path).name for path in manifest
+                      if path.startswith('hosted/priv/repo/migrations/') and path.endswith('.exs'))
+    require(versions == selection['reviewed_migrations'] and len(versions) == 15,
+            'workspace version inventory')
+    return selection, manifest
+
+
+def validate_workspace_source_manifest(manifest):
+    require(type(manifest) is dict and len(manifest) == WORKSPACE_SOURCE_COUNT, 'workspace source path count')
+    for path, row in manifest.items():
+        _restricted_processor_path(path)
+        _restricted_processor_row(row)
+    require(canonical_digest(manifest) == WORKSPACE_SOURCE_DIGEST, 'workspace source digest')
+    require(manifest == WORKSPACE_MANIFEST, 'workspace source membership or bytes mismatch')
+    return manifest
+
+
+def _load_workspace_source_authority():
+    root = Path(__file__).resolve().parents[2]
+    metadata = {WORKSPACE_SOURCE_BASE + name: (root / WORKSPACE_SOURCE_BASE / name).read_bytes()
+                for name in ('selection.json', 'selected-source-manifest.json')}
+    _, manifest = validate_workspace_source_metadata(metadata)
+    return manifest
+
+
+def check_workspace_source(root):
+    base = WORKSPACE_SOURCE_BASE
+    metadata = {base + name: (root / base / name).read_bytes()
+                for name in ('selection.json', 'selected-source-manifest.json')}
+    selection, manifest = validate_workspace_source_metadata(metadata)
+    observed = {path: _file_row((root / path).read_bytes()) for path in manifest}
+    validate_workspace_source_manifest(observed)
+    reviewed = json.loads((root / 'hosted/test/support/reviewed_migrations.json').read_bytes())
+    directory = root / 'hosted/priv/repo/migrations'
+    require(sorted(path.name for path in directory.iterdir()) == reviewed == selection['reviewed_migrations'],
+            'installed reviewed migration inventory mismatch')
+    return {'identity': selection['identity'], 'source_count': len(observed),
+            'source_digest_sha256': WORKSPACE_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+
+
 def validate_source_unchanged(before, after):
     require(isinstance(before, dict) and isinstance(after, dict) and canonical_digest(before) == canonical_digest(after), "source/dependency/tool mutation")
     return after
@@ -2871,7 +2943,7 @@ def validate_compiled_source_unchanged(prepared, compiled):
     """Admit one fresh opaque compiler output; keep every prepared input exact."""
     require(isinstance(prepared, dict) and isinstance(compiled, dict) and set(prepared) == set(compiled) == {"source", "deps", "tools", "helpers"}, "compiled manifest sections")
     require(all(isinstance(value, dict) for value in [*prepared.values(), *compiled.values()]), "compiled manifest section shape")
-    validate_billing_reconciliation_source_manifest(prepared["source"])
+    validate_workspace_source_manifest(prepared["source"])
     require(GENERATED_DAG_PATH not in prepared["deps"], "generated DAG present before compilation")
     require(all(prepared["deps"].get(path) == row for path, row in TELEMETRY_INPUTS.items()), "locked telemetry compiler inputs missing or changed")
     validate_generated_dag_row(compiled["deps"].get(GENERATED_DAG_PATH))
@@ -3038,7 +3110,7 @@ def validate_transfer_archive(data):
 
 def validate_prepared_archive(data, manifest):
     require(len(data) <= MAX_ARCHIVE_BYTES and set(manifest) == {"source", "deps", "tools", "helpers"}, "prepared archive/manifest shape")
-    validate_billing_reconciliation_source_manifest(manifest["source"])
+    validate_workspace_source_manifest(manifest["source"])
     expected = {}
     for section, rows in manifest.items():
         require(isinstance(rows, dict) and rows, "empty prepared section")
@@ -3061,7 +3133,7 @@ def validate_prepared_archive(data, manifest):
             require(expected[member.name] == {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()}, "prepared archive hash mismatch")
             if member.name == "tooling/rebar3":
                 require(hashlib.sha512(body).hexdigest() == BOOTSTRAP["rebar"]["sha512"], "installed Rebar artifact pin mismatch")
-    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(BILLING_RECONCILIATION_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+    helper_bytes = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(WORKSPACE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
     require(manifest["helpers"] == {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helper_bytes.items()}, "collector helper mutation")
     return expected
 
@@ -3832,10 +3904,10 @@ class Collector:
         require(re.fullmatch("[0-9a-f]{40}", self.sha), "delivery SHA must be exact")
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
-        validate_billing_reconciliation_source_manifest(BILLING_RECONCILIATION_MANIFEST)
-        product = self.git_blobs(sorted(BILLING_RECONCILIATION_MANIFEST))
+        validate_workspace_source_manifest(WORKSPACE_MANIFEST)
+        product = self.git_blobs(sorted(WORKSPACE_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
-        validate_billing_reconciliation_source_manifest(observed)  # All static product/lock checks precede create/pull.
+        validate_workspace_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
@@ -3943,7 +4015,11 @@ class Collector:
         billing_metadata = self.git_blobs([BILLING_RECONCILIATION_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         validate_billing_reconciliation_source_metadata(billing_metadata)
         metadata.update(billing_metadata)
-        self.state["source"].update(current_source_selection_sha256=BILLING_RECONCILIATION_SELECTION_SHA256, current_source_digest_sha256=BILLING_RECONCILIATION_SOURCE_DIGEST)
+        workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        _, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
+        validate_workspace_source_manifest(workspace_manifest)
+        metadata.update(workspace_metadata)
+        self.state["source"].update(current_source_selection_sha256=WORKSPACE_SELECTION_SHA256, current_source_digest_sha256=WORKSPACE_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -3961,7 +4037,7 @@ class Collector:
             require(len(rows) == 1, "image inspect count")
             validate_image_inspect(role, rows[0])
             write_json(self.output / (role + "-image.json"), rows[0])
-        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(BILLING_RECONCILIATION_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
+        helpers = {"collector-prerequisites.exs": PREREQUISITES_EXS.encode(), "collector-bootstrap.exs": BOOTSTRAP_EXS.encode(), "collector-manifest.exs": MANIFEST_EXS.encode(), "collector-netns.exs": NETNS_EXS.encode(), "collector-observer.exs": OBSERVER_EXS.encode(), "collector-mounts.exs": MOUNTS_EXS.encode(), "frozen-manifest.json": json.dumps(WORKSPACE_MANIFEST, sort_keys=True, separators=(",", ":")).encode()}
         write_json(self.output / "literal-helper-bindings.json", {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in helpers.items()})
         (self.output / "literal-helpers.tar").write_bytes(source_tar(helpers))
         prepare = self.create("prepare")
@@ -3984,7 +4060,7 @@ class Collector:
         manifest_output, _, _ = self.execute(prepare, ["/usr/local/bin/elixir", "/workspace/collector-manifest.exs", "archive-list"])
         prepared_manifest = json_marker(manifest_output)
         prepared_manifest["source"] = dict(sorted(prepared_manifest["source"].items()))
-        require(prepared_manifest["source"] == BILLING_RECONCILIATION_MANIFEST, "prepare source changed")
+        require(prepared_manifest["source"] == WORKSPACE_MANIFEST, "prepare source changed")
         write_json(self.output / "prepared-manifest.json", prepared_manifest)
         self.execute(prepare, ["/usr/bin/tar", "--format=ustar", "--sort=name", f"--mtime=@{PREPARED_MTIME}", "--owner=0", "--group=0", "--numeric-owner", "--no-recursion", "-cf", "/workspace/prepared.tar", "-C", "/workspace", "-T", "/workspace/archive-files.txt"], 30)
         prepared = self.copy_file_out(prepare, "/workspace/prepared.tar", MAX_ARCHIVE_BYTES)
@@ -4082,7 +4158,7 @@ class Collector:
         require(key_evidence == {"remaining_key_directories": []}, "synthetic key directories remain")
         write_json(self.output / "key-directory-cleanup.json", key_evidence)
         applied = self.pg_query(pg, "SELECT json_agg(version ORDER BY version) FROM schema_migrations;")
-        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in BILLING_RECONCILIATION_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
+        expected_migrations = sorted(int(PurePosixPath(path).name.split("_")[0]) for path in WORKSPACE_MANIFEST if path.startswith("hosted/priv/repo/migrations/") and path.endswith(".exs"))
         require(applied == expected_migrations, "actual selected migrations differ")
         write_json(self.output / "applied-migrations.json", {"database": "mixer_startup_test", "versions": applied})
         self.state["test_result"] = result
@@ -4528,12 +4604,18 @@ def main(argv=None):
     parser.add_argument('--sha')
     parser.add_argument('--output')
     parser.add_argument('--finalize')
-    parser.add_argument('--check-source', action='store_true')
+    checks = parser.add_mutually_exclusive_group()
+    checks.add_argument('--check-source', action='store_true')
+    checks.add_argument('--check-workspace-source', action='store_true')
     options = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[2]
+    if options.check_workspace_source:
+        require(not options.sha and not options.output and not options.finalize, 'workspace source preflight takes only --check-workspace-source')
+        print(json.dumps(check_workspace_source(root), sort_keys=True))
+        return 0
     if options.check_source:
         require(not options.sha and not options.output and not options.finalize, 'source preflight takes only --check-source')
-        print(json.dumps(check_billing_reconciliation_source(root), sort_keys=True))
+        print(json.dumps(check_workspace_source(root), sort_keys=True))
         return 0
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'execution is selected only on the fresh GitHub runner; import controls are host-only')
     selected_output = Path(options.finalize or options.output or '').resolve()
@@ -4657,6 +4739,7 @@ PENDING_SESSION_MANIFEST = PENDING_SESSION_AUTHORITY.manifest
 
 BILLING_RECONCILIATION_AUTHORITY = _load_billing_reconciliation_source_authority()
 BILLING_RECONCILIATION_MANIFEST = BILLING_RECONCILIATION_AUTHORITY.manifest
+WORKSPACE_MANIFEST = _load_workspace_source_authority()
 
 if __name__ == '__main__':
     try:

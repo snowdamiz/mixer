@@ -29,7 +29,7 @@ public enum NativeProductCapture {
         case invalidPath, unsafeFile, mutation, limit, malformedProduct, target, symbols, dependency(String), corruptObject, io(Int32)
     }
 
-    private static let limit = 256 * 1024 * 1024
+    static let archiveByteLimit = 256 * 1024 * 1024
     private static let magic = Data("MXNATIVE1\n".utf8)
     private struct Entry: Codable, Equatable {
         let path: String
@@ -129,7 +129,7 @@ public enum NativeProductCapture {
     private static func stamp(_ info: stat) -> String {
         "\(info.st_dev):\(info.st_ino):\(info.st_mode):\(info.st_nlink):\(info.st_size):\(info.st_mtimespec.tv_sec):\(info.st_mtimespec.tv_nsec):\(info.st_ctimespec.tv_sec):\(info.st_ctimespec.tv_nsec)"
     }
-    private static func regular(_ fd: Int32, maximum: Int = limit) throws -> Data {
+    private static func regular(_ fd: Int32, maximum: Int = archiveByteLimit) throws -> Data {
         var before = stat(); try check(fstat(fd, &before))
         guard before.st_mode & S_IFMT == S_IFREG, before.st_nlink == 1, before.st_uid == geteuid(),
               before.st_size >= 0, before.st_size <= maximum else { throw Failure.unsafeFile }
@@ -186,7 +186,7 @@ public enum NativeProductCapture {
                 do {
                     var opened = stat(); try check(fstat(child, &opened))
                     guard stable(info, opened), opened.st_mode & 0o7000 == 0 else { throw Failure.mutation }
-                    let bytes = isDirectory ? Data() : try regular(child, maximum: limit - total)
+                    let bytes = isDirectory ? Data() : try regular(child, maximum: archiveByteLimit - total)
                     total += bytes.count
                     result.entries.append(Entry(path: path, mode: UInt32(info.st_mode & 0o777), directory: isDirectory,
                         size: bytes.count, sha256: hash(bytes)))
@@ -339,7 +339,7 @@ public enum NativeProductCapture {
         withUnsafeBytes(of: &length) { result.append(contentsOf: $0) }
         result.append(header)
         for entry in snapshot.entries where !entry.directory { result.append(snapshot.bytes[entry.path]!) }
-        guard result.count <= limit else { throw Failure.limit }
+        guard result.count <= archiveByteLimit else { throw Failure.limit }
         return result
     }
     private static func decode(_ data: Data, kind: Kind, binding: String) throws -> Snapshot {
@@ -372,7 +372,7 @@ public enum NativeProductCapture {
         return result
     }
     private static func readObject(_ descriptor: Descriptor, store: URL) throws -> Data {
-        guard digestString(descriptor.sha256), descriptor.sizeBytes > 0, descriptor.sizeBytes <= limit,
+        guard digestString(descriptor.sha256), descriptor.sizeBytes > 0, descriptor.sizeBytes <= archiveByteLimit,
               descriptor.ownedPath == store.path + "/" + descriptor.sha256 else { throw Failure.corruptObject }
         let root = try directory(store, privateStore: true); defer { close(root) }
         let fd = openat(root, descriptor.sha256, O_RDONLY | O_NOFOLLOW | O_CLOEXEC); try check(fd); defer { close(fd) }

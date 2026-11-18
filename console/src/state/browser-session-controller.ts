@@ -1,3 +1,5 @@
+import { sessionWorkspaceCreation } from "../api/cookie-workspace-create-client.js";
+import type { WorkspaceCreateClient, WorkspaceCreateInput } from "../api/cookie-workspace-create-client.js";
 import { sessionBuildSubmission } from "../api/build-submission.js";
 import type { BuildSubmissionClient } from "../api/build-submission.js";
 import { BrowserSessionClientError, createBrowserSessionClient } from "../api/browser-session-client.js";
@@ -15,6 +17,7 @@ import type { ProjectSelection, ApplicationSelection, CatalogPageRequest } from 
 
 export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" }> |
   { readonly kind: "ready"; readonly client: WorkspaceClient;
+    readonly workspaceCreate?: WorkspaceCreateClient;
     readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient }> };
 
 export interface BrowserSessionController {
@@ -45,7 +48,7 @@ function clock(): { wall: number; mono: number } | undefined {
 }
 
 /** Owns a local capability epoch, never a login provider, token or writable session. */
-export function createBrowserSessionController(options: BrowserSessionClientOptions = {}): BrowserSessionController {
+export function createBrowserSessionController(options: BrowserSessionClientOptions = {}, profile?: "workspace-manage"): BrowserSessionController {
   // Snapshot trusted construction settings so later caller mutation cannot retarget a client.
   let settings: BrowserSessionClientOptions;
   try {
@@ -161,20 +164,34 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
     const read: CookieBuildClient = Object.freeze({
       read: (selection: BuildReadSelection, signal?: AbortSignal) => delegate(value, owned => rawRead.read(selection, owned), signal),
     });
-    const rawCreate = sessionBuildSubmission(settings, () => {
+    const csrf = () => {
       if (!live(value)) return aborted();
       return metadata.csrf_token;
-    });
-    const create: BuildSubmissionClient = Object.freeze({
-      inputs: (scope: ApplicationSelection, page: CatalogPageRequest, signal?: AbortSignal) => delegate(value, owned => rawCreate.inputs(scope, page, owned), signal),
-      submit: (attempt: Parameters<BuildSubmissionClient["submit"]>[0], signal?: AbortSignal) => delegate(value, owned => rawCreate.submit(attempt, owned), signal),
-    });
-    const buildClients = Object.freeze({ catalog, read, create });
+    };
+    const reads = { catalog, read };
+    const writers = () => {
+      if (profile === "workspace-manage") {
+        const raw = sessionWorkspaceCreation(settings, csrf);
+        const workspaceCreate: WorkspaceCreateClient = Object.freeze({
+          submit: (input: WorkspaceCreateInput, signal?: AbortSignal) =>
+            delegate(value, owned => raw.submit(input, owned), signal),
+        });
+        return { workspaceCreate, buildClients: Object.freeze(reads) };
+      }
+      const rawCreate = sessionBuildSubmission(settings, csrf);
+      const create: BuildSubmissionClient = Object.freeze({
+        inputs: (scope: ApplicationSelection, page: CatalogPageRequest, signal?: AbortSignal) =>
+          delegate(value, owned => rawCreate.inputs(scope, page, owned), signal),
+        submit: (attempt: Parameters<BuildSubmissionClient["submit"]>[0], signal?: AbortSignal) =>
+          delegate(value, owned => rawCreate.submit(attempt, owned), signal),
+      });
+      return { buildClients: Object.freeze({ ...reads, create }) };
+    };
     active = undefined;
     capability = value;
     // Each accepted check is a fresh local epoch, including equal server generation strings.
     // Server metadata and CSRF never enter the public session or workspace client.
-    session = Object.freeze({ kind: "ready", client, buildClients });
+    session = Object.freeze({ kind: "ready", client, ...writers() });
     deadlineTimer = setTimeout(() => { if (capability === value && epoch === value.epoch) clear(); },
       Math.max(0, Math.floor(monoDeadline - now.mono)));
     revision++; notify();

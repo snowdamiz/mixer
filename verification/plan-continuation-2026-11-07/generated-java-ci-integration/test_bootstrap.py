@@ -17,6 +17,7 @@ spec.loader.exec_module(B)
 current_spec = importlib.util.spec_from_file_location('current_profile_oracle', B.ROOT / 'cli/build-tests/current_android_profile.py')
 CURRENT = importlib.util.module_from_spec(current_spec)
 current_spec.loader.exec_module(CURRENT)
+SOURCE_BINDING = B.SOURCE_AUTHORITY.relative_to(B.ROOT).with_name("binding.json")
 
 # Exact stdout from run 42427563693/job 128569025677, artifact 13595593211.
 # Kept inline so the existing sparse CI checkout can run these controls.
@@ -62,7 +63,7 @@ def good_result():
 class BootstrapControls(unittest.TestCase):
     def assert_current_source(self, authority, inputs, root=None):
         root = B.ROOT if root is None else root
-        source = json.loads((root / CURRENT.BINDING).read_bytes(),
+        source = json.loads((root / SOURCE_BINDING).read_bytes(),
                             object_pairs_hook=CURRENT.unique_object)['source']
         self.assertEqual(source['manifest'], 'current-source-inputs.json')
         self.assertEqual((len(inputs), authority.source_digest(inputs)),
@@ -73,10 +74,10 @@ class BootstrapControls(unittest.TestCase):
         authority = B.canonical()
         inputs = authority.source_inputs(authority.load_profile())
         self.assert_current_source(authority, inputs)
-        binding = json.loads((B.ROOT / CURRENT.BINDING).read_bytes())
+        binding = json.loads((B.ROOT / SOURCE_BINDING).read_bytes())
         with tempfile.TemporaryDirectory(dir=HERE) as td:
             root = Path(td)
-            path = root / CURRENT.BINDING
+            path = root / SOURCE_BINDING
             path.parent.mkdir(parents=True)
             # The historical stale count is a negative case, never CURRENT.
             stale = dict(binding['source'], count=116)
@@ -112,7 +113,7 @@ class BootstrapControls(unittest.TestCase):
         inputs = B.admit_source_inputs(a, p)
         self.assert_current_source(a, inputs)
 
-    def test_current_source141_is_selected_by_closed_sdk_authority(self):
+    def test_current_source141_is_selected_by_closed_archive_authority(self):
         a = B.canonical()
         inputs = B.admit_source_inputs(a, a.load_profile())
         self.assertEqual(len(inputs), 141)
@@ -156,7 +157,7 @@ class BootstrapControls(unittest.TestCase):
                 path = root / 'sdk/Sources/MixerUI/Reconciliation.swift'
                 original = path.read_bytes()
                 extra = path.with_name('UnadmittedBootstrapControl.swift')
-                binding_path = root / CURRENT.BINDING
+                binding_path = root / SOURCE_BINDING
                 original_binding = binding_path.read_bytes()
                 if case == 'missing': path.unlink()
                 elif case == 'tampered': path.write_bytes(original + b'\n// tampered\n')

@@ -1,0 +1,396 @@
+{
+  "schema": "R4412_BILLING_HARNESS_PREFLIGHT_WORKER_V1",
+  "campaign": "billing-harness-preflight-worker-r4412",
+  "status": "CLOSED_RUNTIME_FAILURE",
+  "namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/billing-harness-preflight-worker-r4412",
+  "canonicalAdoption": false,
+  "sourceAdoptionUntilRoot": false,
+  "offlineUnlock": {
+    "name": "EXACT_HARNESS_COMPILATION_WITHOUT_POSTGRESQL",
+    "status": "PASS",
+    "attempts": 2,
+    "oldExactKnownFailureLine": 58,
+    "correctedExactCompilePass": true,
+    "PGRepoHTTPWorkerStartup": 0,
+    "sideEffectExpressionsInvoked": false,
+    "candidateDeferredRoleFixtureWarning": true
+  },
+  "focused": {
+    "status": "PASS",
+    "namedControl": "PINNED_CONNECTION_LOCK_TIMEOUT_ADMISSION",
+    "migrations": 14,
+    "serverSQLSTATE": "55P03",
+    "sameEctoTransactionPhysicalConnection": {
+      "backend_pid": 57401,
+      "lock_timeout": "100ms"
+    },
+    "holderBackend": 57403,
+    "pooledSessionDiscriminator": {
+      "set_backend_pid": 57401,
+      "later_backend_pid": 57402,
+      "later_setting": "0",
+      "same_connection_guaranteed": false
+    },
+    "failedRevocationRowRevisionUnchanged": true,
+    "holderReleasedAndAwaited": true,
+    "postReleaseActualRevocationCommittedAndRefused": true,
+    "restoredTargetChanged": true,
+    "missingProjectionRecreate": true,
+    "unauthorizedRoleDenied": true,
+    "deleteSynchronization": true,
+    "terminalAdmission": true,
+    "historicalR4394CauseProven": false,
+    "old16PrivilegeNegativesRerun": false
+  },
+  "executed": {
+    "offlineHarnessCompileAttempts": 2,
+    "productCompiles": 0,
+    "PGlaunches": 1,
+    "PGfastStops": 1,
+    "runtimeBatches": 2,
+    "focusedBEAMs": 1,
+    "ingressBEAMs": 1,
+    "workerBEAMs": 1,
+    "migrations": 14,
+    "workerCasesRun": 1,
+    "workerCasesPassed": 0,
+    "workerCasesFailed": 1,
+    "workerCasesUnrun": 9,
+    "signedHTTP": 11,
+    "normalBasicWorkerAttempts": 1,
+    "maxConcurrentWorkers": 1,
+    "localTLSConnections": 0,
+    "localTLSProviderReads": 0
+  },
+  "firstFailure": {
+    "test": "test \"01 preserved eleven ingress cases and actual first-party Basic worker\", c do",
+    "file": "runtime.exs",
+    "line": 125,
+    "expected": {
+      "success": 1,
+      "failure": 0
+    },
+    "actual": {
+      "discard": 0,
+      "cancelled": 0,
+      "success": 0,
+      "failure": 1,
+      "snoozed": 0
+    },
+    "workerResult": "{:error, :provider_unavailable}",
+    "durableJobID": 2,
+    "durableState": "retryable",
+    "providerConnections": 0,
+    "providerReads": 0,
+    "raw": "first-failure-evidence/ingress.stdout",
+    "rawPersistedDuringRun": true,
+    "rawCopiedBeforePGFastStop": true,
+    "underlyingExceptionObserved": false,
+    "sourceOnlyLead": "source-only-first-failure-lead.json"
+  },
+  "unrunWorkerCases": [
+    "test \"02 duplicate/replay does not read or add observation\", c do",
+    "test \"03 reversed timestamps remain observations without grants\", c do",
+    "test \"04 missing and revoked relationships block before I/O\", c do",
+    "test \"05 provider failure has durable retry then actual retry succeeds\", c do",
+    "test \"06 live contender snoozes and expired response cannot beat successor\", c do",
+    "test \"07 pre-commit abort leaves no partial observation and expiry recovers\" do",
+    "test \"08 committed result survives lost acknowledgment and repeated delivery\", c do",
+    "test \"09 credential revocation during I/O refuses T2\", c do",
+    "test \"10 malformed extra-key and missing inbox jobs fail closed\", c do"
+  ],
+  "workerBodies": {
+    "bytes": 6104,
+    "sha256": "45f0053faf35074a14e85b23f1c847d61781ebf179a04d1cbbd37db864b62cef"
+  },
+  "workerBodiesUnchanged": true,
+  "runtimeRetry": false,
+  "PGAllowanceExhausted": true,
+  "source": {
+    "status": "PASS",
+    "frozenOwnedInputs": 2306,
+    "R4394InputsRechecked": 2303,
+    "full12": 12,
+    "productBEAMs": 267,
+    "pinnedDependencySources": 914,
+    "toolsRechecked": 9,
+    "allInputBytesUnchanged": true,
+    "selectedLoadedModuleObservations": 27,
+    "uniqueLoadedModules": 13,
+    "workerBodiesByteExact": true,
+    "productCompiles": 0,
+    "sourceCorrections": 0,
+    "cacheRebuilds": 0,
+    "globalIndexStabilityRequired": false
+  },
+  "sourceRevision": "exact per-member pinned R4394 full12+dependency+BEAM manifests; canonical SDK141 independent",
+  "sourceTreeManifestSHA256": "b906c1fc494d8a5a7cb0f76b09f244491d7abc3ccce9e0beca0ca035fe6b048a",
+  "changedSourceReview": "R4406 PASS_CHANGED_SOURCE, noP1P2",
+  "custody": {
+    "status": "PASS",
+    "freshUNKNOWN": false,
+    "historicalHoldsAccessedOrReleased": false,
+    "nestedPipeCommands": 7,
+    "ownedGroups": [
+      {
+        "label": "postgres",
+        "pid": 57342,
+        "pgid": 57342,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "ingress",
+        "pid": 57413,
+        "pgid": 57413,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 1,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      },
+      {
+        "label": "worker",
+        "pid": 57465,
+        "pgid": 57465,
+        "regularFileLogs": true,
+        "state": "TERMINAL",
+        "directReaped": true,
+        "exit": 0,
+        "ownedGroupAbsentESRCH": true,
+        "closedFDs": true,
+        "pipeEOF": "not applicable: regular file output, stdin closed"
+      }
+    ],
+    "outerRuntime": {
+      "pid": 56462,
+      "pgid": 56462,
+      "execSessionID": 28892,
+      "exitCode": 1,
+      "directReaped": true,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    "regularFileOutputEOF": "not applicable for PostgreSQL/ingress/worker; stdin and parent log FDs closed",
+    "endpointAndProvider": "internal Erlang processes stopped per fixture-cleanup.json; owning ingress BEAM positively reaped/ESRCH",
+    "tlsFixtureCleanup": {
+      "provider_reads": 0,
+      "tls_stopped": true,
+      "owned_handlers_stopped": true,
+      "key_dir_removed": true,
+      "ingress_stopped": true
+    },
+    "workerActiveAtFinish": 0,
+    "portsReusable": [
+      41600,
+      41601,
+      41602
+    ],
+    "short0700SocketBytes": 45,
+    "socketDirectoryRemoved": true,
+    "closedOuterRowsBeforeFinalizer": 49,
+    "finalizerOwnActiveExcluded": "finalize",
+    "independentTerminalReadback": "PASS",
+    "finalizer": {
+      "pid": 72123,
+      "pgid": 72123,
+      "exitCode": 0,
+      "state": "direct_reaped",
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    }
+  },
+  "scope": {
+    "delegatedChildren": 0,
+    "productSourceEdits": 0,
+    "canonicalIndexAuthorityPolicyWorkflowGitDeliveryWrites": false,
+    "nativeGUIBrowserVM": false,
+    "externalProvider": false,
+    "financialActivation": false,
+    "usageEntriesObserved": 0,
+    "financialEntitlementTablesObserved": {},
+    "globalIndexStabilityRequired": false
+  },
+  "gates": {
+    "deploymentWriterGrants": false,
+    "RuntimeConfigStartup": false,
+    "W14": false,
+    "GA": false,
+    "financialActivation": false
+  },
+  "pending": [
+    "worker provider-unavailable root cause",
+    "remaining9 worker cases and success/replay/retry/fences/commit-abort/revocation-during-I/O qualification",
+    "trusted deployment writer privileges",
+    "RuntimeConfig/production startup",
+    "W14/operational/GA",
+    "Root source adoption"
+  ],
+  "bounds": {
+    "maxSeconds": 1800,
+    "elapsedAtFinalization": 532.368451833725,
+    "runtimeSeconds": 2.3613374590000014,
+    "maxOfflineHarnessCompileAttempts": 3,
+    "maxPGStarts": 1,
+    "maxRuntimeBatches": 2,
+    "maxSignedHTTP": 16,
+    "maxWorkerAttempts": 20,
+    "maxLocalTLSReads": 24,
+    "elapsedAtReadback": 537.5170588493347
+  },
+  "environment": {
+    "system": [
+      "Darwin",
+      "Andreys-MacBook-Pro.local",
+      "27.0.0",
+      "Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050",
+      "arm64",
+      "arm"
+    ],
+    "python": "3.9.6",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)"
+  },
+  "execSessions": {
+    "actualRuntime": 28892,
+    "initial": "exec-runtime-initial.json",
+    "terminalCollection": "exec-runtime-collection-1.json"
+  },
+  "proceduralNotes": [
+    "initial --help FileExistsError before child launch; wrapper interface inspected statically before first useful fullAGENTS command",
+    "fullAGENTS read then all remaining useful commands managed via admitted absolute wrapper/owned print-only copy",
+    "terminal output truncation caused repeat reads of exact own AGENTS copy, not global enumeration",
+    "candidate offline compile warned deferred R4370RoleFixture unavailable; runtime required exact fixture and focused passed"
+  ],
+  "wrapper": {
+    "admittedSHA256": "1da88677f65823d7c1493ad72b049d36b02563033ab13d56db9c370dd37ca582",
+    "own": {
+      "bytes": 928,
+      "sha256": "e6736f222ae5b21591957121bd2d85386684aca02be805174d73f8bd2a56dd15"
+    },
+    "change": "print full captured output only; custody unchanged"
+  },
+  "pins": {
+    "REPORT.md": {
+      "bytes": 5607,
+      "sha256": "d26e8eb68265cac058756a6d5fdfa247fd08e2d441f3ebbb0be2c2b5ae99933d"
+    },
+    "input-manifest.json": {
+      "bytes": 401199,
+      "sha256": "9db441dc9ebf2ece84abc21e408009ae84c40e1b273db5650e1b3b49dfcf0917"
+    },
+    "protocol.json": {
+      "bytes": 15610,
+      "sha256": "b7e23c403740e9061db22ec45e741bec534fe0aebd82afe5738f2a12126038d7"
+    },
+    "case-map.json": {
+      "bytes": 1035,
+      "sha256": "7460e0b83b243ba3110bbd6373438205cf05e90c6cec890d57f285c9dc522498"
+    },
+    "postflight.json": {
+      "bytes": 431,
+      "sha256": "e608a59ef25042b1a8fc0e2da27198421d5b304c4cb4739bcd55929f0ba86bec"
+    },
+    "offline-unlock.json": {
+      "bytes": 2217,
+      "sha256": "c9d26400fd19b2b92de15fc5aae7684e00b095716283dd900fe14c489f21ed1d"
+    },
+    "offline-old-result.json": {
+      "bytes": 855,
+      "sha256": "024cca535c658196e8fdda7a064120f78e81676ce9f8a8fedfdf678b27394974"
+    },
+    "offline-candidate-result.json": {
+      "bytes": 556,
+      "sha256": "97f56ddd633ac72e26aa0fe0d4b11298dbde2cf33a04c8c264eb7265631de8e9"
+    },
+    "focused.exs": {
+      "bytes": 8948,
+      "sha256": "0fa70575fe1a597624c3b4c334d02c481b599c0383c70942726a29101fceaacc"
+    },
+    "focused.exs.forward.patch": {
+      "bytes": 961,
+      "sha256": "138739cbf396c64ac64c1845eb34909dfd77585cc862bb7b6f527aab3e6d9747"
+    },
+    "focused.exs.inverse.patch": {
+      "bytes": 961,
+      "sha256": "3dd6008c4b4d20164e2e8c3bd40cd5c64a573351c0550968905c1b46eab67d1b"
+    },
+    "runtime.exs": {
+      "bytes": 13515,
+      "sha256": "867b2280187054a9d00551398f9eabe06395f8e3c176e564f16116d84a6e9131"
+    },
+    "worker.exs": {
+      "bytes": 4955,
+      "sha256": "8a9e8933428803ce7a3c941fa2ae6d43986026d0ebbd37fcb272a4c0975691f1"
+    },
+    "focused-result.json": {
+      "bytes": 305,
+      "sha256": "9d9d1fd83f8cdf5cecd4deb82a33cd8c88f740591b615bab6a10019c47751df4"
+    },
+    "pinned-control.json": {
+      "bytes": 585,
+      "sha256": "cb3149ac22bd531040f2bfcb66530092ad4006720a678cf711a23f0f8a536e2b"
+    },
+    "post-contention.json": {
+      "bytes": 150,
+      "sha256": "48318804e0cea9c0fb432913babfede67a1e7def98d9206046c72157b40d7bce"
+    },
+    "runtime-result.json": {
+      "bytes": 49,
+      "sha256": "18dfff4b05bc0470e94c7e2418b8efa9a29d64910976853854523a3203f67ea0"
+    },
+    "worker-counts.json": {
+      "bytes": 33,
+      "sha256": "5357c8cd165cdeefede0c392253b82d10b4189d7eb810f8e16c89fae84719bac"
+    },
+    "fixture-cleanup.json": {
+      "bytes": 115,
+      "sha256": "1595eac2bee405ed3c9817093092664170ad8890d956f1a7d5f021a5fb76ecf7"
+    },
+    "loaded-module-identity-proof.json": {
+      "bytes": 10695,
+      "sha256": "30ab6905ad2bed09513d851d9dc3e0fce6fb12a9e02d65ce70ab728a608554ff"
+    },
+    "source-only-first-failure-lead.json": {
+      "bytes": 3017,
+      "sha256": "010e1229fe8522edbe5e7abd0348e9b916a3468cb911720a65c9a5527c6af7c0"
+    },
+    "first-failure-evidence/ingress.stdout": {
+      "bytes": 890,
+      "sha256": "17177daaeb4316762b5196df6e14b60bf31e8aece4e07cdef9a11e1df797be7f"
+    },
+    "first-failure-evidence/ingress.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "precleanup-first-failure.json": {
+      "bytes": 402,
+      "sha256": "f88d1f7a673ae2ee783cab0bfc8bb36b27b4682ee83a2a82aa64aa75faa26146"
+    },
+    "run/result.json": {
+      "bytes": 9946,
+      "sha256": "082ac20df4addced90a1033b35f602bc3f5f0b8412828090b0d4e34bf8d3a9ed"
+    },
+    "exec-runtime-initial.json": {
+      "bytes": 131,
+      "sha256": "4ff1bc2c9d6c84ce0086a3476738ee7cfac339248955d0b5f8f9e05af4559be8"
+    },
+    "exec-runtime-collection-1.json": {
+      "bytes": 619,
+      "sha256": "4eaf2cf60901c497ec70e638ee866c64da22060263131c507fc2b5a079f14510"
+    },
+    "finalizer-terminal-readback.json": {
+      "bytes": 707,
+      "sha256": "ed323ab8f261e1caf6181669beedc7eeea021e93107ab6c9127ac032b3e267a7"
+    }
+  }
+}

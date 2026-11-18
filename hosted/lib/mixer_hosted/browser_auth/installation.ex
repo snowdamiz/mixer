@@ -10,10 +10,15 @@ defmodule MixerHosted.BrowserAuth.Installation do
 
   @spec load!(map(), %HostedConfig{}) :: t()
   def load!(env, %HostedConfig{} = hosted) when is_map(env) do
-    browser = Map.take(env, ~w(MIXER_BROWSER_AUTH_MODE MIXER_BROWSER_AUTH_CONFIG))
+    browser =
+      Map.take(
+        env,
+        ~w(MIXER_BROWSER_AUTH_MODE MIXER_BROWSER_AUTH_CONFIG MIXER_BROWSER_WORKSPACE_CATALOG)
+      )
 
     case Config.load(browser, hosted.role, hosted.identity_startup) do
-      {:ok, %Config{mode: :disabled}} ->
+      {:ok, %Config{mode: :disabled}}
+      when not is_map_key(browser, "MIXER_BROWSER_WORKSPACE_CATALOG") ->
         :disabled
 
       {:ok, %Config{mode: :configured} = config} ->

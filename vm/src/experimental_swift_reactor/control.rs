@@ -888,6 +888,10 @@ impl RuntimeControl {
         Ok(self.deadline)
     }
 
+    pub(super) fn live_usage(&self) -> &SwiftLiveUsage {
+        &self.live
+    }
+
     pub(crate) fn usage(&self, wasi: Option<WasiUsage>) -> SwiftRunUsage {
         let now = Instant::now();
         SwiftRunUsage {

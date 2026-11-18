@@ -137,7 +137,12 @@ defmodule MixerHosted.BrowserAuth.Store do
          deadline
        ),
        do:
-         RelationCatalog.check_relation_surface!(LifecycleRepo, runtime.expected_roles, deadline)
+         RelationCatalog.check_relation_surface!(
+           LifecycleRepo,
+           runtime.expected_roles,
+           deadline,
+           runtime.workspace_catalog
+         )
 
   defp relation_admission!(
          %RuntimeConfig{admission_profile: :build_catalog_v3} = runtime,
@@ -152,13 +157,15 @@ defmodule MixerHosted.BrowserAuth.Store do
         RelationCatalog.check_create_catalog_surface!(
           LifecycleRepo,
           runtime.expected_roles,
-          deadline
+          deadline,
+          runtime.workspace_catalog
         )
       else
         RelationCatalog.check_build_catalog_surface!(
           LifecycleRepo,
           runtime.expected_roles,
-          deadline
+          deadline,
+          runtime.workspace_catalog
         )
       end
 
@@ -176,6 +183,20 @@ defmodule MixerHosted.BrowserAuth.Store do
   end
 
   defp relation_admission!(_, _), do: raise(RelationCatalog.Unavailable)
+
+  defp function_surface_version(runtime) do
+    cond do
+      MixerHosted.BrowserAuth.ActiveWorkspace.enabled?(runtime) ->
+        4
+
+      runtime.browser_config.scope ==
+          "openid mixer.workspace.read mixer.build.read mixer.build.create" ->
+        3
+
+      true ->
+        2
+    end
+  end
 
   defp transact(runtime, deadline, lease, operation) do
     with true <- not Process.get(@owned, false),
@@ -206,12 +227,7 @@ defmodule MixerHosted.BrowserAuth.Store do
                     LifecycleRepo,
                     runtime.expected_roles,
                     deadline,
-                    if(
-                      runtime.browser_config.scope ==
-                        "openid mixer.workspace.read mixer.build.read mixer.build.create",
-                      do: 3,
-                      else: 2
-                    )
+                    function_surface_version(runtime)
                   )
 
                 :relation_surface_verified = relation_admission!(runtime, deadline)

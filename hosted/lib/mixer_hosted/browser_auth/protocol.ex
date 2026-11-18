@@ -52,7 +52,8 @@ defmodule MixerHosted.BrowserAuth.Protocol do
            config.scope in [
              "openid mixer.workspace.read",
              "openid mixer.workspace.read mixer.build.read",
-             "openid mixer.workspace.read mixer.build.read mixer.build.create"
+             "openid mixer.workspace.read mixer.build.read mixer.build.create",
+             "openid mixer.workspace.read mixer.workspace.manage"
            ],
          true <- map_size(values) == 3,
          %{state: state, nonce: nonce, verifier: verifier} <- values,

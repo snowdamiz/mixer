@@ -14,6 +14,13 @@ defmodule MixerHostedWeb.BrowserHTTP do
     MixerHostedWeb.BrowserCreateHTTP.call(conn)
   end
 
+  def call(%{method: "POST", request_path: path} = conn, [])
+      when path in ["/console-api/v1/orgs", "/console-api/v1/projects"] do
+    if RuntimeOwner.workspace_create_enabled?(),
+      do: MixerHostedWeb.BrowserWorkspaceCreateHTTP.call(conn),
+      else: error(conn, 404)
+  end
+
   def call(conn, []) do
     with true <- conn.method == "GET",
          true <-

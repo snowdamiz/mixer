@@ -150,10 +150,11 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
     assert result.configuration_digest == digest
     assert byte_size(digest) == 32
     assert result.custody == custody()
+    assert result.workspace_catalog == :legacy
 
     assert Enum.sort(Map.keys(result)) ==
              Enum.sort(
-               ~w(__struct__ mode browser_config configuration_digest lifecycle_repo expected_roles custody admission_profile)a
+               ~w(__struct__ mode browser_config configuration_digest lifecycle_repo expected_roles custody admission_profile workspace_catalog)a
              )
 
     assert result.expected_roles == %{
@@ -214,9 +215,10 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
       for browser <- [%{}, %{"MIXER_BROWSER_AUTH_MODE" => "disabled"}] do
         assert {:ok, result} = RuntimeConfig.new(browser, hosted, nil, nil)
         assert result.mode == :disabled
+        assert result.workspace_catalog == :legacy
 
         assert Enum.all?(Map.from_struct(result), fn {key, value} ->
-                 key in [:mode, :admission_profile] or is_nil(value)
+                 key in [:mode, :admission_profile, :workspace_catalog] or is_nil(value)
                end)
       end
     end

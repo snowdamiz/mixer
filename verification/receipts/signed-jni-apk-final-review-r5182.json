@@ -1,0 +1,300 @@
+{
+  "schema": 1,
+  "campaign": "R5182",
+  "status": "REQUEST_CHANGES",
+  "readyForRootOneGenuineTrial": false,
+  "reviewType": "One independent difficult final changed-source/ownership/binary/fake/APK review",
+  "reviewer": "gpt-6.1-sol xhigh, no fast mode, no children",
+  "findings": [
+    {
+      "id": "R5182-P2-1",
+      "priority": "P2",
+      "title": "Bound polling history before serializing the fixed-size report",
+      "file": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/jni-fake-runner-completion-r5114/source/capability-activation/Sources/MixerCapabilityActivation/R5050Fence.swift",
+      "line": 190,
+      "related": [
+        {
+          "file": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/jni-fake-runner-completion-r5114/source/capability-activation/Sources/MixerCapabilityActivation/R5050Entry.swift",
+          "line": 65
+        }
+      ],
+      "trigger": "200 unfinished polls followed by otherwise successful HTTP and cleanup",
+      "proof": "Two required trace arrays alone serialize to 16827 bytes, exceeding fixed 16384-byte capacity; capacity first exceeded at 195 polls even omitting other report fields.",
+      "consequence": "publishClosed holds report_bound and retains root instead of publishing an authoritative Closed result for a valid request.",
+      "minimumFix": "Bound/aggregate repeated observations while preserving explicit consuming milestones, then prove a long-poll success with the real fence and rebind changed products."
+    }
+  ],
+  "apk": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-unsigned-root-r5176/package/signed-http-unsigned.apk",
+    "bytes": 136066392,
+    "sha256": "cff7cf83d7640c927355d76f221b1cbf8679a99790ed97f69f8bf1eb081f8507"
+  },
+  "rootReceipt": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-unsigned-root-r5176/receipt.json",
+    "bytes": 11723,
+    "sha256": "3cc81a93205fc986ca426a8b0eb3d7bd7051f44049ac3b2890cda1e43e9081f3"
+  },
+  "staticEvidence": {
+    "status": "PASS",
+    "frozenSourceAndPacketHashes": 249,
+    "producerSourceHashes": 227,
+    "transferRows": 249,
+    "actualCompileAndLinkLists": true,
+    "entries": 33,
+    "fixtureAssets": 10,
+    "ELFLibraries": 20,
+    "ELFClass": "ELF64 AArch64",
+    "native16KiBAlignment": true,
+    "APKFourByteAnd16KiBAlignment": true,
+    "capabilityExports": 16,
+    "DTNeededNameClosure": true,
+    "strongImportNameClosureAgainstFiveAPI28Stubs": true,
+    "readOnlyObserverExactR4860": true,
+    "actualDEXNativeEntryAndOutcomeReportDescriptors": true,
+    "JavaMajor": 52,
+    "reportLayout": {
+      "bytes": 16400,
+      "alignment": 4,
+      "jsonOffset": 16,
+      "capacity": 16384
+    },
+    "retainedFakeProofRows": 10,
+    "retainedActualXCTestTests": 1,
+    "retainedFakeFailures": 0,
+    "freshTestsRun": 0,
+    "signers": 0
+  },
+  "counterproof": {
+    "kind": "inert_size_counterproof_not_capsule_execution",
+    "unfinishedPolls": 200,
+    "configuredSleepMilliseconds": 2000,
+    "twoArraysBytes": 16827,
+    "reportCapacity": 16384,
+    "firstOversizeArraysOnlyPollCount": 195,
+    "actualCapsuleOrHTTPExecution": false
+  },
+  "toolContext": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "aapt2": {
+      "bytes": 10682288,
+      "path": "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/aapt2",
+      "sha256": "a8844d4089b442b034aed8953deee1893253053c900e03141ae7173e3edd8157"
+    },
+    "officialInstalledVersions": {
+      "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/source.properties": {
+        "pin": {
+          "bytes": 108,
+          "path": "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/source.properties",
+          "sha256": "fb5eec1ca5dac09442109cf79e9ce49faecd8b312dbc997e88903a394e14994a"
+        },
+        "text": "Pkg.Desc = Android NDK\nPkg.Revision = 27.3.13750724\nPkg.BaseRevision = 27.3.13750724\nPkg.ReleaseName = r27d\n"
+      },
+      "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/release": {
+        "pin": {
+          "bytes": 1223,
+          "path": "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/release",
+          "sha256": "243ad32301f0103033f6e398d229018dedd145b5a6534ebca3efefb9e77c743c"
+        },
+        "text": "IMPLEMENTOR=\"Homebrew\"\nIMPLEMENTOR_VERSION=\"Homebrew\"\nJAVA_RUNTIME_VERSION=\"25.0.4.1\"\nJAVA_VERSION=\"25.0.4.1\"\nJAVA_VERSION_DATE=\"2026-08-18\"\nLIBC=\"default\"\nMODULES=\"java.base java.compiler java.datatransfer java.xml java.prefs java.desktop java.instrument java.logging java.management java.security.sasl java.naming java.rmi java.management.rmi java.net.http java.scripting java.security.jgss java.transaction.xa java.sql java.sql.rowset java.xml.crypto java.se java.smartcardio jdk.accessibility jdk.internal.jvmstat jdk.attach jdk.charsets jdk.internal.opt jdk.zipfs jdk.compiler jdk.crypto.cryptoki jdk.crypto.ec jdk.dynalink jdk.internal.ed jdk.editpad jdk.internal.vm.ci jdk.graal.compiler jdk.graal.compiler.management jdk.hotspot.agent jdk.httpserver jdk.incubator.vector jdk.internal.le jdk.internal.md jdk.jartool jdk.javadoc jdk.jcmd jdk.management jdk.management.agent jdk.jconsole jdk.jdeps jdk.jdwp.agent jdk.jdi jdk.jfr jdk.jlink jdk.jpackage jdk.jshell jdk.jsobject jdk.jstatd jdk.localedata jdk.management.jfr jdk.naming.dns jdk.naming.rmi jdk.net jdk.nio.mapmode jdk.sctp jdk.security.auth jdk.security.jgss jdk.unsupported jdk.unsupported.desktop jdk.xml.dom\"\nOS_ARCH=\"aarch64\"\nOS_NAME=\"Darwin\"\nSOURCE=\"\"\n"
+      },
+      "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/source.properties": {
+        "pin": {
+          "bytes": 62,
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/source.properties",
+          "sha256": "7dee6632e9ad6cb111da2bb99d747211e27927061b1276d040bb1d71fded5ebb"
+        },
+        "text": "Pkg.UserSrc=false\nPkg.Revision=36.0.0\n#Pkg.Revision=36.0.0 rc5"
+      }
+    },
+    "wrapperSHA256": "fa1109cac38818f4d1adcd23395b20e3cb5a1950cc3496c623c70654f25830ed"
+  },
+  "artifacts": {
+    "REPORT.md": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/REPORT.md",
+      "bytes": 6914,
+      "sha256": "cf6be6f1988a4c54cfd21f782c3e42dd32299a12d3d66b2d6e4b8e5e21a31fc2"
+    },
+    "finding.json": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/finding.json",
+      "bytes": 1181,
+      "sha256": "b920892a48e947e0b292a52beb48548f2f82674959aaa19c42c271eb50aa6056"
+    },
+    "counterproof.py": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/counterproof.py",
+      "bytes": 2349,
+      "sha256": "baf5712baaa3fbe6d8c15f8e4b65da10cf2dbf0bd1799417c1ced0a030bd7968"
+    },
+    "counterproof.json": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/counterproof.json",
+      "bytes": 1542,
+      "sha256": "00243529434c2a7361b4ee3f34c49952ffba4dad1c5de8e653f7d20548dd8c8a"
+    },
+    "inspect-static.py": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/inspect-static.py",
+      "bytes": 8876,
+      "sha256": "9bb4dadd80a2a31e842bfb06dbe69d8c14bc095485c2fd81a931369c6d8fa362"
+    },
+    "static-bindings.json": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/static-bindings.json",
+      "bytes": 90447,
+      "sha256": "9a894e41950a3757fbdc69caaad71cbd6bc5dafd8544377957e3414635501e80"
+    },
+    "inspect-binary-supplement.py": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/inspect-binary-supplement.py",
+      "bytes": 4584,
+      "sha256": "89cc626ce64ccfb372cfbe9a069724282f906499bc126e7ac36d4a84e0d0d010"
+    },
+    "inspect-binary-supplement-v2.py": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/inspect-binary-supplement-v2.py",
+      "bytes": 4596,
+      "sha256": "212d74c7b8b0e5df09dfe7134b193dad01f3adae6720fcd045ea1b696ca2b773"
+    },
+    "binary-supplement.json": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/binary-supplement.json",
+      "bytes": 3165,
+      "sha256": "729c5734d1b76ef1757e6ea307f2eb812fff1455eacf13f43362095fe88c308e"
+    },
+    "review-start.json": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/review-start.json",
+      "bytes": 434,
+      "sha256": "8b432e19f07089c12e3b0025b865eeee11550446b696887352e5e4d6078a4e98"
+    },
+    "finalize.py": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/signed-jni-apk-final-review-r5182/finalize.py",
+      "bytes": 5053,
+      "sha256": "9e8aecdf12127d834c965459638953c759f2a3069cef701adf9f468d183ce951"
+    }
+  },
+  "commands": [
+    {
+      "label": "ReadAgents",
+      "pid": 50668,
+      "pgid": 50668,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "ReviewBootstrap",
+      "pid": 51369,
+      "pgid": 51369,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "R5182Manifest",
+      "pid": 51735,
+      "pgid": 51735,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "R5182StaticBindings",
+      "pid": 58943,
+      "pgid": 58943,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "R5182ApkManifest",
+      "pid": 63332,
+      "pgid": 63332,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "R5182ObserverOrigins",
+      "pid": 63734,
+      "pgid": 63734,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "R5182InertCounterproof",
+      "pid": 74439,
+      "pgid": 74439,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "R5182ManifestTree",
+      "pid": 75218,
+      "pgid": 75218,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "R5182BinarySupplement",
+      "pid": 75533,
+      "pgid": 75533,
+      "exitCode": 1,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    },
+    {
+      "label": "R5182BinarySupplementV2",
+      "pid": 76281,
+      "pgid": 76281,
+      "exitCode": 0,
+      "bothEOF": true,
+      "closedFDs": true,
+      "ownedGroupAbsentESRCH": true
+    }
+  ],
+  "managedInspectionsBeforeFinalizer": 10,
+  "managedCommandsIncludingFinalizerAndReadback": 12,
+  "elapsedSecondsAtFinalizer": 650.5338864326477,
+  "managedInspectionLimit": 24,
+  "elapsedLimitSeconds": 1200,
+  "inspectionCorrection": {
+    "label": "R5182BinarySupplement",
+    "innerError": "KeyError(file), compact metadata shape mismatch",
+    "terminalCustody": "PROVEN",
+    "applicationFailure": false,
+    "preservedOriginalScript": true,
+    "correctedSeparateLabel": "R5182BinarySupplementV2"
+  },
+  "pending": [
+    "Resolve P2 and rebind resulting source/binary/APK",
+    "Root trusted signing",
+    "Root runtime admission",
+    "one genuine Android app-UID JNI/default-TLS HTTP trial",
+    "runtime NDK/linker compatibility",
+    "physical phones",
+    "immutable published packages",
+    "W06/W09",
+    "GA"
+  ],
+  "scope": {
+    "children": 0,
+    "canonicalIndexCIGitDeliveryWrites": 0,
+    "SwiftCompile": 0,
+    "testReruns": 0,
+    "AndroidCodeExecution": 0,
+    "adbDeviceEmulatorVMHTTPPG": 0,
+    "signingOrKeyOperations": 0,
+    "historicalHoldsReleased": false,
+    "newUNKNOWN": false,
+    "RootAdmission": false,
+    "GA": false
+  },
+  "finalizerOwnRecordExcluded": true,
+  "separateTerminalReadbackRequired": true
+}

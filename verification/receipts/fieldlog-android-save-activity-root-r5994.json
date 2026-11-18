@@ -1,0 +1,270 @@
+{
+  "id": "R5994",
+  "status": "CLOSED_FAILURE_SAVE_REACHED_RENDERER_REJECTION",
+  "scope": "One owned API36 Android emulator attempt with R5986 diagnostic APK.",
+  "tap": {
+    "hostInputCommandsAfterArm": 1,
+    "pointPx": [
+      182,
+      1043
+    ],
+    "eventTimeMs": 60527,
+    "originalQueueEnqueue": true,
+    "currentAndOpenGate": true
+  },
+  "trace": {
+    "pid": 1955,
+    "rows": 87,
+    "bytes": 15447,
+    "events": [
+      "27558 activity.ready.trace=true window=false editor=false ime=false root=0x0 children=0 failed=false destroyed=false",
+      "28389 activity.destroy window=true editor=false ime=false root=1080x2400 children=1 failed=false destroyed=false",
+      "28407 activity.ready.trace=false window=false editor=false ime=false root=0x0 children=0 failed=false destroyed=false",
+      "60528 activity.touch.0.event=60527 enter x=182 y=1043 writer=false armed=false window=true editor=false ime=false root=1080x2400 children=1 failed=false destroyed=false",
+      "60528 gate.touch.0.event=60527 open=true current=true",
+      "60529 activity.touch.1.event=60527 enter x=182 y=1043 writer=false armed=false window=true editor=false ime=false root=1080x2400 children=1 failed=false destroyed=false",
+      "60530 gate.touch.1.event=60527 open=true current=true",
+      "60547 activity.enqueue window=true editor=false ime=false root=1080x2400 children=1 failed=false destroyed=false",
+      "60583 activity.surface.reject.1 window=true editor=false ime=false root=1080x2400 children=1 failed=false destroyed=false",
+      "60584 activity.fail window=true editor=false ime=false root=1080x2400 children=1 failed=false destroyed=false"
+    ],
+    "javaReadinessOnly": true,
+    "swiftReadinessOnly": true,
+    "rendererDetailObserved": false,
+    "interpretation": "In this run the initial Activity wrote readiness then destroyed before Save. Its replacement had no file writer but captured the tap through the sideband. Save then reached a renderer rejection. The missing writer explains the missing detailed trace for this run; the rejecting renderer predicate and the prior R5966 lifetime remain unverified."
+  },
+  "workspace": {
+    "beforeAfterByteIdentical": true,
+    "bytes": 534,
+    "sha256": "5cf52648a53aa5c5df98f77bda80a089ec62243886b190fcecb6d7041fdde7c6",
+    "revision": 1,
+    "drafts": 0,
+    "entries": 0
+  },
+  "postTapFrames": [
+    "empty",
+    "empty",
+    "empty",
+    "empty",
+    "empty"
+  ],
+  "cleanup": {
+    "owners": [
+      {
+        "name": "private-adb-server",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "-L",
+          "acceptfd:3",
+          "nodaemon",
+          "server"
+        ],
+        "namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994",
+        "state": "closed",
+        "pid": 35961,
+        "pgid": 35961,
+        "shutdownStarted": true,
+        "shutdownRequested": true,
+        "exitCode": 0,
+        "directReaped": true,
+        "ownedGroupAbsentESRCH": true,
+        "drainObservations": 1,
+        "regularOutputFilesClosed": true
+      },
+      {
+        "name": "private-emulator",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "fieldlog_r5860_r5994",
+          "-datadir",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/avd/fieldlog_r5860_r5994.avd",
+          "-port",
+          "5590",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-no-snapstorage",
+          "-no-boot-anim",
+          "-gpu",
+          "swiftshader",
+          "-cores",
+          "2",
+          "-memory",
+          "3072"
+        ],
+        "namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994",
+        "state": "closed",
+        "pid": 35970,
+        "pgid": 35970,
+        "shutdownStarted": true,
+        "shutdownRequested": true,
+        "exitCode": 0,
+        "directReaped": true,
+        "ownedGroupAbsentESRCH": true,
+        "drainObservations": 3,
+        "regularOutputFilesClosed": true
+      }
+    ],
+    "innerCommandsClosed": 203,
+    "privateAVDAndHomesRemoved": true,
+    "privateCrashpad": true,
+    "portsRebound": [
+      5590,
+      5591,
+      5599
+    ],
+    "disposableSigningInputsRetired": true,
+    "newUnknown": false
+  },
+  "signing": {
+    "unsignedAPK": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-android-save-input-apk-r5986/FieldLogGenerated-unsigned.apk",
+    "unsignedSHA256": "7a7abe716d572d09291bc5c15f068c52df1103b890eed605cf533b1a99a5013f",
+    "signedAPK": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-31f454d6/verification/local/fieldlog-android-save-input-root-r5994/FieldLogGenerated-signed.apk",
+    "signedSHA256": "eea587d7c1231621eb8655d1848a3fcf2682cb79965be89316c6fd8740e251f6",
+    "certificateSHA256": "64f4edf5f524fdf3501d6ae4f57e63b7634aedabb6953e8d18e4984f838e5054",
+    "entryCount": 22,
+    "sameZIPRosterAndContent": true,
+    "verifiedByRoot": true,
+    "localTestOnly": true,
+    "v2": true,
+    "zipAligned": true
+  },
+  "commands": [
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-prepare-private-avd-and-apk/commands.json",
+      "bytes": 4679,
+      "sha256": "fcb30148dbb15b92f23c5cdbee0e7672afcef18133975256a707d71ae861f912"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-disposable-key/commands.json",
+      "bytes": 1249,
+      "sha256": "0921e8d37e5f28b8fbb3b77f0b8143cac8831c2fd7628d967feb2c2ee5dd1659"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-local-v2-apk-sign/commands.json",
+      "bytes": 1527,
+      "sha256": "5d41efc6c2e9059305c2e6d91b8551213973826cd3db238d70e1fba28fe6429e"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-verify-private-certificate/commands.json",
+      "bytes": 1009,
+      "sha256": "053ca9b736b67cd6b8f691e6e503a56ceaeb2260e9bbb25baf19fea8b0e0b448"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-verify-16k-alignment/commands.json",
+      "bytes": 661,
+      "sha256": "d1def50e7c0ac059841aae693338d20f4f546ae998862a4d4a954bfe6f660f8b"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-root-admit-once-and-retire-key/commands.json",
+      "bytes": 3491,
+      "sha256": "71ce5205cbb1baea940eea9707f98efe2f958d80b95851ffe066715f63562182"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-fieldlog-one-save-input-run/commands.json",
+      "bytes": 660,
+      "sha256": "5cd3c8726bba0277dd3f141eb9bceacf024dc7dcbed1a996d2f8d6886366cab9"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-independent-cleanup-and-ports-readback/commands.json",
+      "bytes": 1647,
+      "sha256": "6e0bd79a995c1d59f9ff3b45ae7a90f97241a8a3a32899021d76de90eaa41e8a"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/root-config.json",
+      "bytes": 1091,
+      "sha256": "e13dfeb9edbeb001fcd97edab5633279fc91cae3bcaa43fe02cb3b6e201a5895"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/controller.py",
+      "bytes": 31286,
+      "sha256": "d4f5753b2653b6b363f7adaf5d518bdcf8acdd328a8889a7ce6e7e6f0ced87c4"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/root-signing-admission.json",
+      "bytes": 727,
+      "sha256": "632c465e723eb1859c45f352f6bfbdb13273ccfe9bd7c7e5a824699706fb20b9"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/FieldLogGenerated-signed.apk",
+      "bytes": 28751580,
+      "sha256": "eea587d7c1231621eb8655d1848a3fcf2682cb79965be89316c6fd8740e251f6"
+    },
+    {
+      "path": "verification/local/continuation-root-r2332/commands/r5994-independent-cleanup-and-ports-readback/r5994-independent-cleanup-and-ports-readback.stdout",
+      "bytes": 180,
+      "sha256": "4ba07da557c8d8467377985f8e8f0924f07567387874dd2dfe6612d83f61ac10"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/130-draft-durable-before.stdout",
+      "bytes": 534,
+      "sha256": "5cf52648a53aa5c5df98f77bda80a089ec62243886b190fcecb6d7041fdde7c6"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/188-draft-durable-after.stdout",
+      "bytes": 534,
+      "sha256": "5cf52648a53aa5c5df98f77bda80a089ec62243886b190fcecb6d7041fdde7c6"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/result.json",
+      "bytes": 473,
+      "sha256": "8f4aa32bb27a316b916be3ca97ddf7ffd7b9eca5f035d21f095a5dfa235b97b8"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/lifetimes.json",
+      "bytes": 1623,
+      "sha256": "cb321ea8557687f8ee256b146d19ada95fdda1b4b2c2bf3a0fdab34d0ba043fc"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/commands.json",
+      "bytes": 119063,
+      "sha256": "f7e29d8696fab017511f9521ffea5751120e4ee60e0f4acee0927a9cdef34f11"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/draft-durable.json",
+      "bytes": 225,
+      "sha256": "77e33dd7111c365bc65a75524af00f2e05c5431ffcf2e4fec33a1b922ebd9111"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/save-input-readback.json",
+      "bytes": 14629,
+      "sha256": "18d263b57bd6f1eda332b03fa46a7ec8947d106026776865fed9d1b72431afe0"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/198-save-input-logcat.stdout",
+      "bytes": 15447,
+      "sha256": "a89395ff5418af70bfc8102e6ff9914de46fa332c906181fa9e1833674096fef"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/160-save-trace-java-before.stdout",
+      "bytes": 11,
+      "sha256": "e856b5f8a9b426f6891c384e035cbf55e5d104e194a4355a59d3d7ebc8b62cb2"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/190-save-trace-java-after.stdout",
+      "bytes": 11,
+      "sha256": "e856b5f8a9b426f6891c384e035cbf55e5d104e194a4355a59d3d7ebc8b62cb2"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/162-save-trace-swift-before.stdout",
+      "bytes": 12,
+      "sha256": "c29d0b0f6615758223764dcf40207a00c25c50fa0e650e5beeb994377e1b0066"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/192-save-trace-swift-after.stdout",
+      "bytes": 12,
+      "sha256": "c29d0b0f6615758223764dcf40207a00c25c50fa0e650e5beeb994377e1b0066"
+    },
+    {
+      "path": "verification/local/fieldlog-android-save-input-root-r5994/native-root-r5994/run/save-trace-read-errors.json",
+      "bytes": 77,
+      "sha256": "d3af015598cc37a90a813bbdd145ee3c2f81c01c176ce9c37495b3b1d12d750b"
+    }
+  ],
+  "next": "R5996 bounded rejection diagnostics that survive Activity recreation",
+  "localGatesPassed": [],
+  "GA": false
+}

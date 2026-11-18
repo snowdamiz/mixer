@@ -42,6 +42,7 @@ function LoadMessage(props: { state: Load; noun: string; onRetrySession: (() => 
 export function ApplicationBuildPage(props: {
   readonly binding: Readonly<BuildSelectionBinding>;
   readonly workspace: WorkspaceDirectoryState;
+  readonly showBuildCreation?: boolean;
   readonly onRetrySession?: () => void;
 }) {
   const directory = createMemo(() => resolveWorkspaceDirectory(props.workspace));
@@ -119,7 +120,7 @@ export function ApplicationBuildPage(props: {
           </>}</Show>
         </section>
       </div>
-      <Show when={state().selectedApplicationId}><BuildCreation state={state().submission} actions={props.binding.controller} /></Show>
+      <Show when={props.showBuildCreation !== false && state().selectedApplicationId}><BuildCreation state={state().submission} actions={props.binding.controller} /></Show>
       <Show when={state().priorSubmissionUnknown}><p role="alert">An earlier submission may have committed. Its outcome is unknown; check its application builds before starting another build.</p></Show>
       <section class="application-build-detail" aria-label="Selected build" aria-busy={state().detail.kind === "loading"}>
         <Show when={overview()} fallback={<LoadMessage state={state().detail} noun="a build" onRetrySession={props.onRetrySession} />}>{input => <>

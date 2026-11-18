@@ -1,3 +1,4 @@
+import type { CreatedWorkspace } from "../api/cookie-workspace-create-client.js";
 import { createEffect, createSignal, on, onCleanup } from "solid-js";
 import type { Accessor } from "solid-js";
 import { createWorkspaceController } from "./workspace-controller.js";
@@ -9,6 +10,7 @@ export type WorkspaceActions = Pick<WorkspaceController, "selectOrganization" | 
 export interface WorkspaceBinding {
   readonly state: Accessor<WorkspaceDirectoryState>;
   readonly controller: Readonly<WorkspaceActions>;
+  refreshCreated(target: CreatedWorkspace): Promise<boolean>;
 }
 
 const pending = (kind: "loading" | "unauthenticated" | "unavailable"): WorkspaceDirectoryState =>
@@ -34,7 +36,10 @@ export function createWorkspaceBinding(
     controller.setSession(value ?? { kind: "unavailable" });
     setAdmitted({ session: value });
   }));
-  const current = () => !disposed && admitted() !== undefined && admitted()!.session === session();
+  const current = () => {
+    const value = admitted();
+    return !disposed && value !== undefined && value.session === session();
+  };
   const state = (): WorkspaceDirectoryState => {
     const value = session();
     const data = snapshot();
@@ -63,5 +68,7 @@ export function createWorkspaceBinding(
     setAdmitted(undefined);
     setSnapshot(controller.getState());
   });
-  return Object.freeze({ state, controller: actions });
+  return Object.freeze({ state, controller: actions,
+    refreshCreated: (target: CreatedWorkspace) => current() ? controller.refreshCreated(target) : Promise.resolve(false),
+  });
 }
