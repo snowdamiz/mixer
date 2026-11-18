@@ -86,8 +86,8 @@ defmodule MixerHosted.Test.BuildDispatchFixture do
     call = %{callback: callback, request: request, visibility: visibility}
     state = %{state | calls: state.calls ++ [call], modes: modes}
 
-    if mode == :unavailable do
-      {:reply, {{:error, :unavailable}, :normal}, state}
+    if mode in [:unavailable, :uncertain] do
+      {:reply, {{:error, mode}, :normal}, state}
     else
       {reply, state} = operate(callback, request, state)
       {:reply, {reply, mode}, state}

@@ -121,6 +121,17 @@ PAIR24_CHANGES = PAIR24_SOURCE_CHANGES | PAIR24_ADDITIONS | {
     JAVA + 'test_bootstrap.py',
     JAVA + 'test_sparse_checkout.py',
 }
+CANCEL_CLI_SOURCE_CHANGES = {
+    'cli/Sources/MixerBuild/OwnedCommand.swift',
+    'cli/Sources/MixerBuild/POSIXCommandControl.swift',
+    'cli/Sources/MixerCLI/main.swift',
+    'cli/Sources/MixerProcessIO/include/MixerProcessIO.h',
+    'cli/Sources/MixerProcessIO/process.c',
+}
+CANCEL_CLI_CHANGES = CANCEL_CLI_SOURCE_CHANGES | {
+    'cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift',
+    'cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift',
+}
 MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
@@ -131,6 +142,8 @@ MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'upgrade-predecessor-bytes/' + name for name in UPGRADE_CHANGES
 } | {
     'pair24-predecessor-bytes/' + name for name in PAIR24_CHANGES - PAIR24_ADDITIONS
+} | {
+    'cancel-cli-predecessor-bytes/' + name for name in CANCEL_CLI_CHANGES
 }
 
 
@@ -229,7 +242,7 @@ def install_inputs():
     require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
                              'changes', 'renderer_transition', 'starter_lock_transition',
                              'export_runner_transition', 'capability_transition', 'upgrade_transition',
-                             'pair24_transition'} and
+                             'pair24_transition', 'cancel_cli_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -353,11 +366,28 @@ def install_inputs():
             preimages[name] = (pair24_preimages[name], change['mode'])
         require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
                 'Installed Pair24 owner mode differs: ' + name)
+    cancel = binding['cancel_cli_transition']
+    require(set(cancel) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            set(cancel['changes']) == CANCEL_CLI_CHANGES and
+            cancel['sourceBefore'] == pair24['sourceAfter'] == previous.digest(expected_source),
+            'Native cancel predecessor source differs')
+    for name, change in cancel['changes'].items():
+        raw = previous.read(HERE / 'cancel-cli-predecessor-bytes' / name)
+        require(set(change) == {'before', 'after'} and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['before'] != change['after'] and
+                stat.S_IMODE((ROOT / name).stat().st_mode) == 0o644,
+                'Native cancel CLI row differs: ' + name)
+        if name not in preimages:
+            preimages[name] = (raw, 0o644)
+        installed[name] = change['after']
+        if name in CANCEL_CLI_SOURCE_CHANGES:
+            expected_source[name] = change['after']
     require(current == expected_source and
-            pair24['sourceAfter'] == binding['source']['sha256'] and
+            cancel['sourceAfter'] == binding['source']['sha256'] and
             len(current) == 141 and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
-            }, 'Pair24 source transition differs')
+            }, 'Native cancel CLI source transition differs')
     previous.check_rows(ROOT, installed)
     for name, change in capability['changes'].items():
         require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
@@ -435,6 +465,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_pair24_source141_sha256': binding['cancel_cli_transition']['sourceBefore'],
             'predecessor_upgraded_pair23_sha256': binding['pair24_transition']['sourceBefore'],
             'predecessor_export_runner_source141_sha256': binding['upgrade_transition']['sourceBefore'],
             'predecessor_starter_lock_source141_sha256': binding['export_runner_transition']['sourceBefore'],

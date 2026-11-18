@@ -263,10 +263,11 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
       "client_credential_ref" => "secret://fixture/client",
       "session_vault_ref" => "vault://fixture/browser",
       "scope" =>
-        if(create,
-          do: "openid mixer.workspace.read mixer.build.read mixer.build.create",
-          else: "openid mixer.workspace.read mixer.build.read"
-        ),
+        case create do
+          :workspace_manage -> "openid mixer.workspace.read mixer.workspace.manage"
+          true -> "openid mixer.workspace.read mixer.build.read mixer.build.create"
+          false -> "openid mixer.workspace.read mixer.build.read"
+        end,
       "response_mode" => "query",
       "response_iss_required" => true
     }
@@ -325,6 +326,7 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
 
     runtime = %RuntimeConfig{
       admission_profile: :build_catalog_v3,
+      workspace_catalog: if(create == :workspace_manage, do: :workspace_v1, else: :legacy),
       mode: :configured,
       browser_config: config,
       configuration_digest: digest,

@@ -28,6 +28,7 @@ protocol OwnedCommandControl: AnyObject {
     func release() throws
     func read(_ stream: CommandStream) throws -> StreamObservation
     func exitedWithoutReaping() throws -> Bool
+    func terminateOwnedGroup() throws
     func killOwnedGroup() throws
     func reap() throws -> Int32?
     func groupAbsent() throws -> Bool
@@ -51,6 +52,7 @@ struct CommandCustodyReceipt: Codable {
     var cleanupStartedNS: UInt64?
     var terminalNS: UInt64?
     var released = false
+    var groupTerminateSent: Bool?
     var groupKillSent = false
     var directChildReaped = false
     var stdoutEOF = false
@@ -99,14 +101,18 @@ final class OwnedCommandExecution {
     private(set) var receipt: CommandCustodyReceipt
     private let control: any OwnedCommandControl
     private let save: (CommandCustodyReceipt) throws -> Void
+    private let cancellationRequested: () throws -> Bool
     private var tail = CommandTail()
     private var previousTime: UInt64 = 0
     init(command: [String], directory: URL?, policy: ProcessPolicy, aggregateLimit: UInt64,
-         aggregateUsed: UInt64, retainedInputs: [URL] = [], control: any OwnedCommandControl, save: @escaping (CommandCustodyReceipt) throws -> Void) {
+         aggregateUsed: UInt64, retainedInputs: [URL] = [], control: any OwnedCommandControl,
+         cancellationRequested: @escaping () throws -> Bool = { false },
+         save: @escaping (CommandCustodyReceipt) throws -> Void) {
         receipt = CommandCustodyReceipt(command: command, directory: directory?.path, policy: policy,
             aggregateLimit: aggregateLimit, aggregatePreviouslyGenerated: aggregateUsed)
         receipt.retainedInputDirectories = retainedInputs.map { $0.path }
         self.control = control; self.save = save
+        self.cancellationRequested = cancellationRequested
     }
     private func now() throws -> UInt64 {
         let value = try control.monotonicNow()
@@ -166,7 +172,8 @@ final class OwnedCommandExecution {
                 try drain(.stdout); try drain(.stderr)
                 if cleanupEnd == nil {
                     let total = try add(receipt.aggregatePreviouslyGenerated, receipt.generatedBytes)
-                    if receipt.generatedBytes > receipt.policy.generatedOutputBytes { receipt.stopReason = "generated-output-limit" }
+                    if try cancellationRequested() { receipt.stopReason = "cancelled" }
+                    else if receipt.generatedBytes > receipt.policy.generatedOutputBytes { receipt.stopReason = "generated-output-limit" }
                     else if total > receipt.aggregateLimit { receipt.stopReason = "aggregate-output-limit" }
                     else if instant >= runtimeEnd { receipt.stopReason = "runtime-deadline" }
                     let childExited = try control.exitedWithoutReaping()
@@ -177,8 +184,13 @@ final class OwnedCommandExecution {
                         // A naturally exited leader needs no signal. Reap it before absence-only observations.
                         // A live leader can exit during a deadline signal; any uncertainty freezes this context.
                         if !childExited {
-                            try control.killOwnedGroup()
-                            receipt.groupKillSent = true
+                            if receipt.stopReason == "cancelled" {
+                                try control.terminateOwnedGroup()
+                                receipt.groupTerminateSent = true
+                            } else {
+                                try control.killOwnedGroup()
+                                receipt.groupKillSent = true
+                            }
                         }
                         receipt.state = "CLEANING"; try save(receipt)
                     }

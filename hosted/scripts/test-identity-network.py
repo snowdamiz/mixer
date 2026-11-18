@@ -2891,9 +2891,9 @@ def validate_workspace_v31_metadata(metadata):
 
 
 WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v32/'
-WORKSPACE_SELECTION_SHA256 = '4d8e7c941f2b0e23c016e4b35ed024f4b3247eae80eda9c45d58a8690fc99a5f'
-WORKSPACE_SOURCE_DIGEST = 'd39a8a096e506015999a980f8a99bda07a272ca74f8a47d9d215755926af8517'
-WORKSPACE_SOURCE_COUNT = 373
+WORKSPACE_SELECTION_SHA256 = 'ddaac4cdf3ebf8ed54d5ace2b159cf1f402a9ae5f418f1c62d002bc0f89b4d5e'
+WORKSPACE_SOURCE_DIGEST = '82960e8e2371b2ef3a53bb12f16b15ced05205cc3e8d37a12db7809e26ab13b8'
+WORKSPACE_SOURCE_COUNT = 389
 
 
 def workspace_source_metadata(root, base):
@@ -2927,7 +2927,7 @@ def validate_workspace_source_metadata(metadata):
             'workspace source forward and inverse membership')
     versions = sorted(PurePosixPath(path).name for path in manifest
                       if path.startswith('hosted/priv/repo/migrations/') and path.endswith('.exs'))
-    require(versions == selection['reviewed_migrations'] and len(versions) == 16,
+    require(versions == selection['reviewed_migrations'] and len(versions) == 19,
             'workspace version inventory')
     return selection, manifest
 

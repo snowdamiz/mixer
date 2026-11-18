@@ -5,26 +5,38 @@ defmodule MixerHostedWeb.BrowserHTTP do
   alias MixerHostedWeb.BrowserWorkspaceDispatcher.Request
   import Plug.Conn
 
-  @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog /console-api/v1/build-inputs)
+  @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/workspace-admin /console-api/v1/support-requests /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog /console-api/v1/build-inputs)
+  @cancel_path "/console-api/v1/builds/cancel"
   @artifact_paths for kind <- MixerHosted.Builds.RetainedNativeArtifacts.kinds(),
                       do: "/console-api/v1/build-artifacts/" <> kind
-  def owns_path?(path), do: path in @paths or path in @artifact_paths
+  def owns_path?(path), do: path == @cancel_path or path in @paths or path in @artifact_paths
 
   def init([]), do: []
+
+  def call(%{method: "POST", request_path: @cancel_path} = conn, []) do
+    if MixerHosted.RuntimeConfig.build_cancel_enabled?(), do: cancel(conn), else: error(conn, 404)
+  end
 
   def call(%{method: "POST", request_path: "/console-api/v1/builds"} = conn, []) do
     MixerHostedWeb.BrowserCreateHTTP.call(conn)
   end
 
   def call(%{method: "POST", request_path: path} = conn, [])
-      when path in ["/console-api/v1/orgs", "/console-api/v1/projects"] do
+      when path in [
+             "/console-api/v1/orgs",
+             "/console-api/v1/projects",
+             "/console-api/v1/workspace-admin",
+             "/console-api/v1/support-requests"
+           ] do
     if RuntimeOwner.workspace_create_enabled?(),
       do: MixerHostedWeb.BrowserWorkspaceCreateHTTP.call(conn),
       else: error(conn, 404)
   end
 
+  def call(%{request_path: "/console-api/v1/support-requests"} = conn, []), do: error(conn, 404)
+
   def call(conn, []) do
-    with true <- conn.method == "GET",
+    with true <- conn.method == "GET" and conn.request_path != @cancel_path,
          true <-
            owns_path?(conn.request_path),
          {:ok, _} <- Protocol.parse_session_cookie(conn.req_headers),
@@ -39,7 +51,7 @@ defmodule MixerHostedWeb.BrowserHTTP do
         error(
           conn,
           if(
-            conn.method == "GET" and
+            conn.method == "GET" and conn.request_path != @cancel_path and
               owns_path?(conn.request_path),
             do: 400,
             else: 404
@@ -50,6 +62,35 @@ defmodule MixerHostedWeb.BrowserHTTP do
     _ -> error(conn, 503)
   catch
     _, _ -> error(conn, 503)
+  end
+
+  defp cancel(conn) do
+    with true <- get_req_header(conn, "content-length") in [[], ["0"]],
+         true <-
+           Enum.all?(
+             ~w(content-encoding transfer-encoding x-http-method-override x-method-override),
+             &(get_req_header(conn, &1) == [])
+           ),
+         {:ok, selection} <- MixerHostedWeb.BrowserBuildRequest.parse(conn.query_string),
+         {:ok, "", conn} <- read_body(conn, length: 0, read_length: 1, read_timeout: 1_000) do
+      case RuntimeOwner.cancel_build(conn.req_headers, selection) do
+        {:ok, %{status: status, headers: headers, body: body}} ->
+          conn |> merge_resp_headers(headers) |> send_resp(status, body)
+
+        {:error, :unauthenticated} ->
+          error(conn, 401)
+
+        {:error, :invalid_request} ->
+          error(conn, 400)
+
+        _ ->
+          error(conn, 503)
+      end
+    else
+      _ -> error(conn, 400)
+    end
+  rescue
+    _ -> error(conn, 503)
   end
 
   defp dispatch(%{request_path: "/console-api/v1/build-inputs"} = conn) do

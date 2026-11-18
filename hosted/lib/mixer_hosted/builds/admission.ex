@@ -213,6 +213,8 @@ defmodule MixerHosted.Builds.Admission do
     |> Multi.run({name, :admission}, fn repo, _ ->
       with true <- is_integer(revision) and revision in 0..32,
            {:ok, context} <- locked(repo, scope),
+           true <-
+             not match?(%OrganizationCapacity{configured: false}, context.capacities.organization),
            :ok <- valid_reservation(context),
            true <- context.record.revision == revision,
            %Reservation{held: false} = reservation <- context.reservation,

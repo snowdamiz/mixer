@@ -80,10 +80,10 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
   end
 
   defp exchange(action, request) do
-    with {:ok, %{port: port, worker_id: worker_id, token: token}}
+    with %{port: port, worker_id: worker_id, token: token}
          when is_integer(port) and port in 1..65_535 and is_binary(worker_id) and
                 byte_size(worker_id) > 0 and is_binary(token) and byte_size(token) >= 32 <-
-           Application.fetch_env(:mixer_hosted, :native_development_dispatch),
+           MixerHosted.RuntimeConfig.native_settings(),
          {:ok, socket} <-
            :gen_tcp.connect(
              {127, 0, 0, 1},

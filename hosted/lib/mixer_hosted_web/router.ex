@@ -35,6 +35,12 @@ defmodule MixerHostedWeb.Router do
       :delete_project
     )
 
+    delete(
+      "/orgs/:organization_id",
+      MixerHostedWeb.CustomerWorkspaceAdminController,
+      :delete_organization
+    )
+
     get("/projects", MixerHostedWeb.CustomerWorkspaceController, :projects)
   end
 

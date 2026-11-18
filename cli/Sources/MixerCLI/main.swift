@@ -123,10 +123,17 @@ do {
             guard words[0] == "build", arguments.options["--platform"] == "ios" else {
                 throw MixerFailure("arguments.output-platform", "--output requires an explicit --platform ios build.")
             }
-            let report = try ProjectBuild.runRetainingNative(root: root, test: false, platform: "ios", output: path(destination))
-            try output(report)
-            if !report.succeeded { exit(report.commandResult.exitCode == 0 ? 1 : report.commandResult.exitCode) }
-            exit(0)
+            let code: Int32
+            do {
+                let report = try ProjectBuild.runRetainingNative(root: root, test: false, platform: "ios", output: path(destination))
+                try output(report)
+                code = report.succeeded ? 0 : (report.commandResult.exitCode == 0 ? 1 : report.commandResult.exitCode)
+            } catch {
+                try ProcessExecutionContext.localDevelopment.acknowledgeWorkerClosure()
+                throw error
+            }
+            try ProcessExecutionContext.localDevelopment.acknowledgeWorkerClosure()
+            exit(code)
         }
         let result = try ProjectBuild.run(root: root, test: words[0] == "test", platform: arguments.options["--platform"] ?? "host")
         try output(result)

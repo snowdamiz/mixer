@@ -97,6 +97,9 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   def create_build(raw_headers, input, key),
     do: read_private(raw_headers, {:create, input, key, raw_headers})
 
+  def cancel_build(raw_headers, input),
+    do: read_private(raw_headers, {:create, {:cancel, input}, nil, raw_headers})
+
   def read_build_inputs(raw_headers, input),
     do: read_private(raw_headers, {:create, {:inputs, input}, nil, raw_headers})
 
@@ -540,22 +543,23 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
          ordinary when is_pid(ordinary) <- Process.whereis(MixerHosted.Repo) do
       monitors = Map.new([repo, identity, ordinary], &{Process.monitor(&1), &1})
 
-      phase =
-        if Store.admit(runtime, deadline) === {:ok, :admitted},
-          do: :storage_ready,
-          else: :unavailable
+      admitted? = Store.admit(runtime, deadline) === {:ok, :admitted}
 
-      {:ok,
-       %{
-         phase: phase,
-         generation: 1,
-         runtime: runtime,
-         repo: repo,
-         identity: identity,
-         ordinary: ordinary,
-         operations: %{},
-         monitors: monitors
-       }}
+      if not admitted? and MixerHosted.RuntimeConfig.build_cancel_enabled?() do
+        {:stop, :build_cancel_admission_refused}
+      else
+        {:ok,
+         %{
+           phase: if(admitted?, do: :storage_ready, else: :unavailable),
+           generation: 1,
+           runtime: runtime,
+           repo: repo,
+           identity: identity,
+           ordinary: ordinary,
+           operations: %{},
+           monitors: monitors
+         }}
+      end
     else
       _ -> {:stop, :session_unavailable}
     end

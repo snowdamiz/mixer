@@ -30,7 +30,7 @@ test("Solid client owner joins actual workspace client, scoped selection and ses
   });
   if (result.error) throw result.error;
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stdout, /# tests 6\b/);
+  assert.match(result.stdout, /# tests 8\b/);
   assert.match(result.stdout, /# fail 0\b/);
   process.stdout.write(result.stdout);
 });

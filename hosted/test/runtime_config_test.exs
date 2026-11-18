@@ -93,6 +93,69 @@ defmodule MixerHosted.RuntimeConfigTest do
     })
   end
 
+  test "native loopback dispatch requires explicit durable builds selection" do
+    native = %{
+      "MIXER_BUILD_DISPATCH" => "native_development_v1",
+      "MIXER_BUILD_OPERATION_INTENT" => "durable_intent_v1",
+      "MIXER_NATIVE_WORKER_PORT" => "12345",
+      "MIXER_NATIVE_WORKER_ID" => "local-worker",
+      "MIXER_NATIVE_WORKER_TOKEN" => String.duplicate("token", 8),
+      "MIXER_NATIVE_RETAINED_ROOT" => "/owned/native-state"
+    }
+
+    assert RuntimeConfig.load!(processor_env()).native == nil
+    configured = Map.merge(processor_env(), native)
+    settings = RuntimeConfig.load!(configured)
+
+    assert %{port: 12345, worker_id: "local-worker", retained_root: "/owned/native-state"} =
+             settings.native
+
+    refute inspect(settings) =~ native["MIXER_NATIVE_WORKER_TOKEN"]
+
+    for key <- Map.keys(native) do
+      assert_raise ArgumentError, fn -> RuntimeConfig.load!(Map.delete(configured, key)) end
+    end
+
+    for {key, invalid} <- [
+          {"MIXER_BUILD_DISPATCH", "Elixir.ArbitraryAdapter"},
+          {"MIXER_NATIVE_WORKER_PORT", "0"},
+          {"MIXER_NATIVE_WORKER_ID", "spaces refused"},
+          {"MIXER_NATIVE_WORKER_TOKEN", "short"},
+          {"MIXER_NATIVE_RETAINED_ROOT", "/owned/../other"}
+        ] do
+      assert_raise ArgumentError, fn -> RuntimeConfig.load!(Map.put(configured, key, invalid)) end
+    end
+
+    assert_raise ArgumentError, fn ->
+      RuntimeConfig.load!(Map.merge(env(), Map.delete(native, "MIXER_BUILD_OPERATION_INTENT")))
+    end
+  end
+
+  test "API independently opts in to retained artifact reads and restricted cancellation" do
+    assert %{native: nil, build_cancel: false} = RuntimeConfig.load!(env())
+
+    api =
+      Map.merge(env(), %{
+        "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+        "MIXER_BUILD_CREATE_ENABLED" => "true",
+        "MIXER_BUILD_CREATE_PASSWORD" => "synthetic",
+        "MIXER_BUILD_CANCEL_ENABLED" => "true",
+        "MIXER_NATIVE_RETAINED_ROOT" => "/owned/native-state"
+      })
+
+    assert %{native: %{retained_root: "/owned/native-state"}, build_cancel: true} =
+             RuntimeConfig.load!(api)
+
+    for {key, invalid} <- [
+          {"MIXER_BUILD_CANCEL_ENABLED", "yes"},
+          {"MIXER_BUILD_CREATE_ENABLED", "false"},
+          {"MIXER_NATIVE_WORKER_TOKEN", String.duplicate("token", 8)},
+          {"MIXER_HTTP_BIND", "0.0.0.0"}
+        ] do
+      assert_raise ArgumentError, fn -> RuntimeConfig.load!(Map.put(api, key, invalid)) end
+    end
+  end
+
   test "processor requires explicit profile and direct login and refuses other queues" do
     for bad <- [
           Map.delete(processor_env(), "MIXER_PROCESSOR_PROFILE"),

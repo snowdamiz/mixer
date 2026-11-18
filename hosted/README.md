@@ -72,3 +72,33 @@ tenant tables/RLS and role validation will be implemented with the identity seam
 
 Dependencies are pinned in `mix.exs`/`mix.lock` and inventoried in the repository's
 `THIRD_PARTY.yml`. This scaffold is not a production deployment or a GA gate pass.
+
+### Local native dispatch and build cancellation
+
+For the restricted `builds_v1` processor, provision migrations 498–500 and the
+durable-intent grant before startup. Set
+`MIXER_BUILD_OPERATION_INTENT=durable_intent_v1` and
+`MIXER_BUILD_DISPATCH=native_development_v1`. Configure
+`MIXER_NATIVE_WORKER_PORT`, `MIXER_NATIVE_WORKER_ID`,
+`MIXER_NATIVE_WORKER_TOKEN`, and `MIXER_NATIVE_RETAINED_ROOT` to match the
+operator-owned worker. The adapter connects only to IPv4 loopback. The retained
+root must be a canonical absolute path. A loopback `builds_v1` API can set
+`MIXER_NATIVE_RETAINED_ROOT` for downloads without the worker settings. Omit
+these settings to leave native dispatch and retained native downloads disabled.
+
+To enable cancellation, install the SQL emitted by
+`mix run --no-start priv/unselected_build_cancel/print_install_sql.exs` as
+`browser_schema_owner` after provisioning the existing restricted build-create
+and processor schemas. Then set `MIXER_BUILD_CANCEL_ENABLED=true` on the
+`builds_v1` API with build creation enabled. Startup never installs SQL.
+
+Send `POST /console-api/v1/builds/cancel` with the same selection query as
+`GET /console-api/v1/builds`, an empty body, a live browser session, and its
+matching `Origin` and `X-Mixer-CSRF` headers. The build-create scope and active
+owner, administrator, or developer membership authorize the operation. The
+response contains `outcome` and the current `build` snapshot. HTTP 202 means
+the processor is still reconciling the stop. HTTP 200 means the build is
+cancelled. Repeating an accepted request returns `duplicate` without adding a
+second event or job. A build that already finished independently returns HTTP
+409. The processor retains capacity for a started attempt until it records
+definitive terminal evidence. The flow uses no payment service.

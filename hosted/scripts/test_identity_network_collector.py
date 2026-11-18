@@ -3063,8 +3063,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = '4d8e7c941f2b0e23c016e4b35ed024f4b3247eae80eda9c45d58a8690fc99a5f'
-    DIGEST = 'd39a8a096e506015999a980f8a99bda07a272ca74f8a47d9d215755926af8517'
+    PIN = 'ddaac4cdf3ebf8ed54d5ace2b159cf1f402a9ae5f418f1c62d002bc0f89b4d5e'
+    DIGEST = '82960e8e2371b2ef3a53bb12f16b15ced05205cc3e8d37a12db7809e26ab13b8'
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3133,7 +3133,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(373, observed["source_count"])
+            self.assertEqual(389, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3406,7 +3406,7 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
             with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
-        self.assertEqual(373,observed['source_count'])
+        self.assertEqual(389,observed['source_count'])
         self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST,observed['source_digest_sha256'])
         self.assertEqual(collector.WORKSPACE_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
@@ -3928,7 +3928,7 @@ class PublicConsoleSigninSourceControls(unittest.TestCase):
                         runpy.run_path(str(path), run_name='__main__')
                 self.assertEqual(0, exited.exception.code)
                 observed = json.loads(output.getvalue())
-                self.assertEqual(373, observed['source_count'])
+                self.assertEqual(389, observed['source_count'])
                 self.assertEqual(collector.WORKSPACE_SELECTION_SHA256, observed['selection_sha256'])
 
     def test_v19_actual_collect_refuses_changed_new_source_before_docker(self):
@@ -4741,7 +4741,7 @@ class PendingSessionV28Controls(unittest.TestCase):
             with mock.patch.dict('os.environ', {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'Linux', 'RUNNER_ARCH': 'X64'}, clear=True), mock.patch.object(collector.os, 'uname', return_value=collector.os.uname_result(('Linux', 'control', '0', '0', 'x86_64'))):
                 with self.assertRaisesRegex(collector.CollectorError, 'pending session selection pin'):
                     subject.collect()
-            self.assertEqual(373, subject.state['source']['product_files'])
+            self.assertEqual(389, subject.state['source']['product_files'])
             self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST, subject.state['source']['product_tree_digest_sha256'])
             self.assertFalse(any(argv[0] == 'docker' for argv in calls))
 
@@ -4874,7 +4874,7 @@ class BillingReconciliationV29Controls(unittest.TestCase):
             subject.git_blobs=blobs
             with mock.patch.dict('os.environ',{'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64'},clear=True),mock.patch.object(collector.os,'uname',return_value=collector.os.uname_result(('Linux','control','0','0','x86_64'))):
                 with self.assertRaisesRegex(collector.CollectorError,'billing reconciliation selection pin'):subject.collect()
-            self.assertEqual(373,subject.state['source']['product_files'])
+            self.assertEqual(389,subject.state['source']['product_files'])
             self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST,subject.state['source']['product_tree_digest_sha256'])
             self.assertFalse(any(argv[0]=='docker' for argv in calls))
 
@@ -4889,9 +4889,9 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
         metadata = {base + name: (root / base / name).read_bytes()
                     for name in ("selection.json", "selected-source-manifest.json")}
         selection, manifest = collector.validate_workspace_source_metadata(metadata)
-        self.assertEqual(373, len(manifest))
-        self.assertEqual(16, len(selection["exact_delta"]))
-        self.assertEqual(16, len(selection["reviewed_migrations"]))
+        self.assertEqual(389, len(manifest))
+        self.assertEqual(70, len(selection["exact_delta"]))
+        self.assertEqual(19, len(selection["reviewed_migrations"]))
         inverse = dict(manifest)
         for path, change in selection["exact_delta"].items():
             if change["before"] is None:
@@ -4910,6 +4910,9 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
             for relative in (
                 "console/src/state/workspace-binding.ts",
                 "hosted/priv/development/native_artifact_worker.py",
+                "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex",
+                "hosted/lib/mixer_hosted/customer_builds/cancel_schema.ex",
+                "hosted/priv/unselected_build_cancel/cancel_body.sql",
                 "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex",
                 "hosted/priv/unselected_operation_admission/05_processor_intent_body.sql",
                 "hosted/priv/repo/migrations/20261118000000_allow_free_workspace_billing_state_sync.exs",
@@ -4977,7 +4980,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
                 with self.assertRaisesRegex(collector.CollectorError, "workspace selection pin"):
                     subject.collect()
-            self.assertEqual(373, subject.state["source"]["product_files"])
+            self.assertEqual(389, subject.state["source"]["product_files"])
             self.assertEqual(WorkflowSparseSourceControls.DIGEST, subject.state["source"]["product_tree_digest_sha256"])
             self.assertFalse(any(argv[0] == "docker" for argv in calls))
 

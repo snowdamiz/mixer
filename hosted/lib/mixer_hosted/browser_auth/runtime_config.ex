@@ -23,13 +23,14 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
 
   @error {:error, :session_unavailable}
   @hosted_keys ~w(role repo oban endpoint database_connection_bound identity_startup create_repo
-    processor_profile build_operation_intent)a
+    processor_profile build_operation_intent build_cancel native)a
   @repo_keys ~w(hostname port database username password pool_size pool_count timeout
     connect_timeout queue_target queue_interval show_sensitive_data_on_connection_error ssl)a
   @ssl_keys ~w(verify cacerts server_name_indication customize_hostname_check)a
   @lifecycle_keys ~w(username password writer_role relation_owner)a
   @workspace_binding "MIXER_BROWSER_WORKSPACE_CATALOG"
   @manage_scope "openid mixer.workspace.read mixer.workspace.manage"
+  @build_create_scope "openid mixer.workspace.read mixer.build.read mixer.build.create"
   @browser_keys ~w(MIXER_BROWSER_AUTH_MODE MIXER_BROWSER_AUTH_CONFIG)
 
   @doc "Constructs disabled settings or one bounded dedicated lifecycle connection policy."
@@ -42,6 +43,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
          true <- hosted.build_operation_intent === :disabled,
          true <- browser_env?(browser_env),
          {:ok, config} <- Config.load(browser_env, hosted.role, hosted.identity_startup),
+         true <- build_cancel?(hosted, config),
          {:ok, catalog} <- workspace_catalog(config, binding),
          {:ok, runtime} <- construct(config, hosted, lifecycle, custody) do
       {:ok, %{runtime | workspace_catalog: catalog}}
@@ -66,6 +68,21 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
         @error
     end
   end
+
+  defp build_cancel?(%HostedConfig{build_cancel: false}, _), do: true
+
+  defp build_cancel?(
+         %HostedConfig{
+           role: :api,
+           processor_profile: :builds_v1,
+           build_cancel: true,
+           create_repo: repo
+         },
+         %Config{mode: :configured, scope: @build_create_scope}
+       ),
+       do: is_list(repo)
+
+  defp build_cancel?(_, _), do: false
 
   defp workspace_catalog(%Config{scope: scope}, "legacy") when scope != @manage_scope,
     do: {:ok, :legacy}

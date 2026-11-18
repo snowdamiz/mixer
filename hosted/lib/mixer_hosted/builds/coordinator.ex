@@ -114,6 +114,13 @@ defmodule MixerHosted.Builds.Coordinator do
        ),
        do: :query_completion
 
+  defp query_callback(
+         %{build: %{state: state}},
+         %{adapter: MixerHosted.Builds.NativeDevelopmentDispatch}
+       )
+       when state in [:cancelling, :reconciling],
+       do: :stop
+
   defp query_callback(_, _), do: :query
 
   defp act(context, args, config) do
@@ -289,6 +296,27 @@ defmodule MixerHosted.Builds.Coordinator do
         String.printable?(value)
 
   defp configuration do
+    case MixerHosted.Application.startup() do
+      {:ok,
+       {%{role: :processor, native: %{port: _}, build_operation_intent: :durable_intent_v1}, _}} ->
+        {:ok,
+         %{
+           adapter: MixerHosted.Builds.NativeDevelopmentDispatch,
+           operation_intent: :durable_intent_v1,
+           call_timeout_ms: 2_500,
+           lease_ttl_ms: 9_000,
+           poll_ms: 500
+         }}
+
+      {:ok, _} ->
+        {:error, :dispatch_unavailable}
+
+      :error ->
+        standalone_configuration()
+    end
+  end
+
+  defp standalone_configuration do
     case Application.get_env(:mixer_hosted, :build_dispatch) do
       config when is_list(config) ->
         if Keyword.keyword?(config) and length(config) == 4 and

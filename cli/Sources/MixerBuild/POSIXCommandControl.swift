@@ -71,6 +71,9 @@ final class POSIXCommandControl: OwnedCommandControl {
     func exitedWithoutReaping() throws -> Bool {
         var done: Int32 = 0; try checked(mx_peek_exit(child.pid, &done), "waitid-WNOWAIT"); return done != 0
     }
+    func terminateOwnedGroup() throws {
+        try checked(mx_terminate_group(child.pid), "terminate-owned-group-before-reap")
+    }
     func killOwnedGroup() throws { try checked(mx_kill_group(child.pid), "kill-owned-group-before-reap") }
     func reap() throws -> Int32? {
         var code: Int32 = 0, done: Int32 = 0
@@ -144,6 +147,29 @@ public final class ProcessExecutionContext: @unchecked Sendable {
         self.receiptDirectory = receiptDirectory; self.aggregateGeneratedOutputBytes = aggregateGeneratedOutputBytes
     }
     private var defaultParentFailure: Int32?
+    private var workerControlDirectory: URL?
+
+    private func cancellationRequested() throws -> Bool {
+        guard let directory = workerControlDirectory else { return false }
+        var info = stat()
+        if lstat(directory.appendingPathComponent("cancel-requested").path, &info) == 0 {
+            guard info.st_mode == S_IFREG | 0o600, info.st_uid == geteuid(),
+                  info.st_nlink == 1, info.st_size == 0 else {
+                throw MixerFailure("process.cancel-request", "Invalid worker cancellation request")
+            }
+            return true
+        }
+        if errno == ENOENT { return false }
+        throw ProcessIOFailure(operation: "read-worker-cancellation", code: errno)
+    }
+
+    // Called as the retained native CLI command unwinds, after all synchronous custody calls.
+    public func acknowledgeWorkerClosure() throws {
+        lock.lock(); defer { lock.unlock() }
+        guard let directory = workerControlDirectory, hold == nil, defaultParentFailure == nil else { return }
+        let receipt = directory.appendingPathComponent("cli-closed")
+        try Data(receiptDirectory.lastPathComponent.utf8).write(to: receipt, options: .withoutOverwriting)
+    }
     public static let localDevelopment: ProcessExecutionContext = {
         // TMPDIR is the trusted launch configuration; explicit receipt paths never take this route.
         let configured = ProcessInfo.processInfo.environment["TMPDIR"]
@@ -158,11 +184,17 @@ public final class ProcessExecutionContext: @unchecked Sendable {
         let context = ProcessExecutionContext(receiptDirectory: URL(fileURLWithPath:
             (canonical ?? parent) + "/mixer-command-receipts-\(UUID().uuidString)", isDirectory: true))
         context.defaultParentFailure = failure
+        if ProcessInfo.processInfo.environment["MIXER_WORKER_COMMAND_CONTROL"] == "1", let canonical {
+            context.workerControlDirectory = URL(fileURLWithPath: canonical, isDirectory: true)
+        }
         return context
     }()
     private func requireAdmission() throws {
         guard hold == nil else { throw MixerFailure("process.custody-held", "UNKNOWN at \(hold!.receiptDirectory): \(hold!.reason)") }
         if let code = defaultParentFailure { throw ProcessIOFailure(operation: "resolve-default-snapshot-parent", code: code) }
+        if try cancellationRequested() {
+            throw MixerFailure("process.cancelled", "Worker cancelled before command launch")
+        }
         guard generated < aggregateGeneratedOutputBytes else { throw MixerFailure("process.aggregate-output-limit", "Execution context generated-output budget exhausted") }
     }
     func makeInputSnapshot() throws -> ProcessInputSnapshot {
@@ -227,7 +259,7 @@ public final class ProcessExecutionContext: @unchecked Sendable {
         }
         let execution = OwnedCommandExecution(command: command, directory: directory, policy: policy,
             aggregateLimit: aggregateGeneratedOutputBytes, aggregateUsed: generated, retainedInputs: retainedInputs,
-            control: controlFactory(), save: store.1)
+            control: controlFactory(), cancellationRequested: cancellationRequested, save: store.1)
         defer {
             let (total, overflow) = generated.addingReportingOverflow(execution.receipt.generatedBytes)
             generated = overflow ? UInt64.max : total

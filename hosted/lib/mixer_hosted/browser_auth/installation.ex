@@ -18,7 +18,8 @@ defmodule MixerHosted.BrowserAuth.Installation do
 
     case Config.load(browser, hosted.role, hosted.identity_startup) do
       {:ok, %Config{mode: :disabled}}
-      when not is_map_key(browser, "MIXER_BROWSER_WORKSPACE_CATALOG") ->
+      when not is_map_key(browser, "MIXER_BROWSER_WORKSPACE_CATALOG") and
+             hosted.build_cancel == false ->
         :disabled
 
       {:ok, %Config{mode: :configured} = config} ->
@@ -71,7 +72,7 @@ defmodule MixerHosted.BrowserAuth.Installation do
     end
   end
 
-  def valid?(:disabled, %HostedConfig{}), do: true
+  def valid?(:disabled, %HostedConfig{build_cancel: false}), do: true
 
   if Mix.env() == :test do
     def valid?(

@@ -23,6 +23,7 @@ private final class InspectionSchedule: OwnedCommandControl {
         return .eof
     }
     func exitedWithoutReaping() throws -> Bool { calls.append("peek"); return second >= exitsAt }
+    func terminateOwnedGroup() throws { Issue.record("Unexpected cancellation") }
     func killOwnedGroup() throws { calls.append("kill"); killed = true }
     func reap() throws -> Int32? { calls.append("reap"); return killed || second >= exitsAt ? code : nil }
     func groupAbsent() throws -> Bool { calls.append("probe"); if failProbe { throw InspectionFailure(message: "probe") }; return true }

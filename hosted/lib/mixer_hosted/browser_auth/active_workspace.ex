@@ -2,7 +2,7 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
   @moduledoc false
   alias MixerHosted.Authorization.Scope
   alias MixerHosted.BrowserAuth.{ActiveCatalog, Protocol, RuntimeConfig, RuntimeOwner}
-  alias MixerHosted.CustomerWorkspace.SelfService
+  alias MixerHosted.CustomerWorkspace.{SelfService, Support}
   alias MixerHosted.Identity.KeyOwner
 
   @scope "openid mixer.workspace.read mixer.workspace.manage"
@@ -30,13 +30,28 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
       else: {:error, :invalid_request}
   end
 
+  def operation({:admin, operation, organization, target, body})
+      when operation in ~w(usage export set_member delete_project delete_organization) do
+    valid_target =
+      if operation in ~w(usage export delete_organization),
+        do: is_nil(target),
+        else: Scope.identifier?(target)
+
+    if Scope.identifier?(organization) and valid_target and
+         SelfService.valid_body?(operation, body),
+       do: {:ok, {operation, organization, target, body}},
+       else: {:error, :invalid_request}
+  end
+
+  def operation({:support, body}), do: Support.parse(body)
+
   def operation(_), do: {:error, :invalid_request}
 
   defp operation(name, organization, display_name) do
     body = %{"display_name" => display_name}
 
     if SelfService.valid_body?(name, body),
-      do: {:ok, {name, organization, body}},
+      do: {:ok, {name, organization, nil, body}},
       else: {:error, :invalid_request}
   end
 
@@ -52,7 +67,10 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
           expires: expires
         }
 
-        SelfService.create_from_browser(binding, operation)
+        case operation do
+          {:support, _, _} -> Support.execute(binding, operation)
+          _ -> SelfService.execute_from_browser(binding, operation)
+        end
       else
         {:error, :permission_denied}
       end

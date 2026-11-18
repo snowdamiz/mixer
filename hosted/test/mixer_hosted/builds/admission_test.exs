@@ -142,6 +142,44 @@ defmodule MixerHosted.Builds.AdmissionTest do
     now
   end
 
+  test "an unconfigured organization cannot retry a definitively released build" do
+    assert {:ok, _} = configure()
+    assert {:ok, _} = create()
+    assert {:ok, %{claim: claimed}} = claim()
+    {_started, ref} = start_claim(claimed)
+
+    assert {:ok, %{build: terminal}} =
+             transition(claimed.token, 1, "terminal", failed(ref))
+
+    assert {:ok, _} = release(claimed.token, "terminal")
+    assert {:ok, %{retryable: true}} = Lifecycle.customer_status(terminal.build)
+
+    retry = fn ->
+      Admission.retry_multi(Multi.new(), :retry, scope(), 2, "retry", &job/1)
+      |> Repo.transaction()
+    end
+
+    Repo.query!("""
+    UPDATE mixer_build_organization_capacities
+    SET configured=false, "limit"=0, revision=0 WHERE organization_id='org-a'
+    """)
+
+    assert {:error, {:retry, :admission}, :released_current_attempt_required, _} = retry.()
+    assert {:ok, %{record: %{revision: 2}, build: %{state: :failed}}} = Storage.read(scope())
+
+    assert {:ok, _} =
+             Admission.configure_organization_multi(
+               Multi.new(),
+               :org,
+               %{organization_id: "org-a"},
+               :new,
+               1
+             )
+             |> Repo.transaction()
+
+    assert {:ok, %{retry: %{build: %{state: :queued}}}} = retry.()
+  end
+
   test "capacity requires explicit exact configuration with bounded limit and revision CAS" do
     assert {:ok, _} = create()
     assert {:error, :claim, :scope_not_found_or_unconfigured, _} = claim()

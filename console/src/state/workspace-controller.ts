@@ -1,3 +1,4 @@
+import type { WorkspaceAdminClient } from "../api/cookie-workspace-admin-client.js";
 import type { CreatedWorkspace } from "../api/cookie-workspace-create-client.js";
 import { WorkspaceClientError } from "../api/workspace-client.js";
 import type { WorkspaceClient, WorkspacePageRequest } from "../api/workspace-client.js";
@@ -7,7 +8,7 @@ import type { WorkspaceDirectoryState, WorkspaceFailure, WorkspaceOrganizationPa
 export type WorkspaceSession =
   | { readonly kind: "unauthenticated" }
   | { readonly kind: "unavailable" }
-  | { readonly kind: "ready"; readonly client: WorkspaceClient };
+  | { readonly kind: "ready"; readonly client: WorkspaceClient; readonly workspaceAdmin?: WorkspaceAdminClient };
 
 export interface WorkspaceController {
   getState(): WorkspaceDirectoryState;
@@ -21,6 +22,8 @@ export interface WorkspaceController {
   firstProjects(organizationId: string): void;
   retryOrganizations(): void;
   retryProjects(organizationId: string): void;
+  reconcileArchive(organizationId: string, projectId: string, confirmed: boolean): Promise<void>;
+  refreshOrganizations(): void;
   refreshCreated(target: CreatedWorkspace): Promise<boolean>;
   dispose(): void;
 }
@@ -43,7 +46,10 @@ interface Request {
   readonly page: WorkspacePageRequest;
   readonly controller: AbortController;
 }
-interface ProjectRequest extends Request { readonly organizationId: string }
+interface ProjectRequest extends Request {
+  readonly organizationId: string;
+  settled?: Promise<void>;
+}
 interface Subscription {
   readonly listener: (state: WorkspaceDirectoryState) => void;
   revision: number;
@@ -171,7 +177,7 @@ export function createWorkspaceController(): WorkspaceController {
     }
   }
 
-  async function loadProjects(value: ProjectRequest, search?: DirectorySearch): Promise<void> {
+  async function loadProjects(value: ProjectRequest, search?: DirectorySearch, preserveSelection = false): Promise<void> {
     if (!current(value, projectRequest) || !selectedOrganization(value.organizationId)) return;
     try {
       const input = await value.client.projects(value.organizationId, value.page, value.controller.signal);
@@ -179,8 +185,9 @@ export function createWorkspaceController(): WorkspaceController {
       const page = parseWorkspaceProjects(input, value.organizationId);
       if (!current(value, projectRequest) || !selectedOrganization(value.organizationId)) return;
       const target = search?.target;
-      const selectedProjectId = target?.kind === "project" && page.projects.some(row => row.id === target.projectId)
-        ? target.projectId : undefined;
+      const candidateId = target?.kind === "project" ? target.projectId :
+        preserveSelection ? state.selectedProjectId : undefined;
+      const selectedProjectId = page.projects.some(row => row.id === candidateId) ? candidateId : undefined;
       if (search && target?.kind === "project" && !selectedProjectId) {
         const next = nextSearchPage(search, page.next_cursor);
         if (next) { await beginProjects(value.organizationId, next, search); return; }
@@ -195,6 +202,8 @@ export function createWorkspaceController(): WorkspaceController {
       if (!current(value, projectRequest) || !selectedOrganization(value.organizationId)) return;
       if (reason === "unauthenticated") { setSession({ kind: "unauthenticated" }); return; }
       projectRequest = undefined;
+      if (preserveSelection && state.projects.kind === "ready" &&
+        (reason === "unavailable" || reason === "request_failed")) return;
       update({ organizations: state.organizations, selectedOrganizationId: value.organizationId,
         projects: reason === "unavailable" ? { kind: "unavailable", organizationId: value.organizationId } :
           { kind: "error", organizationId: value.organizationId, reason } });
@@ -220,7 +229,31 @@ export function createWorkspaceController(): WorkspaceController {
     projectRequest = value;
     update({ organizations: state.organizations, selectedOrganizationId: organizationId,
       projects: { kind: "loading", organizationId } }, [cancelled]);
-    return loadProjects(value, search);
+    return value.settled = loadProjects(value, search);
+  }
+
+  async function reconcileArchive(organizationId: string, projectId: string, confirmed: boolean): Promise<void> {
+    if (disposed || !client || !selectedOrganization(organizationId) || projectAttempt?.organizationId !== organizationId) return;
+    if (confirmed && state.projects.kind === "ready") {
+      const page = state.projects.input as WorkspaceProjectPage;
+      const projects = page.projects.filter(row => row.id !== projectId);
+      if (projects.length !== page.projects.length) {
+        const next = parseWorkspaceProjects({ projects, next_cursor: projects.length ? page.next_cursor : null }, organizationId);
+        const { selectedProjectId, ...directory } = state;
+        update({ ...directory, ...(selectedProjectId && selectedProjectId !== projectId ? { selectedProjectId } : {}),
+          projects: { kind: "ready", organizationId, input: next } });
+      }
+    }
+    if (disposed || !client || !selectedOrganization(organizationId) || projectAttempt?.organizationId !== organizationId) return;
+    if (projectRequest?.settled) {
+      const generation = sessionGeneration;
+      await projectRequest.settled;
+      if (generation === sessionGeneration) return reconcileArchive(organizationId, projectId, confirmed);
+      return;
+    }
+    const value: ProjectRequest = { ...request(projectAttempt.page), organizationId };
+    projectRequest = value;
+    return value.settled = loadProjects(value, undefined, true);
   }
 
   function setSession(session: WorkspaceSession): void {
@@ -296,6 +329,11 @@ export function createWorkspaceController(): WorkspaceController {
         state.projects.organizationId !== organizationId ||
         (state.projects.kind !== "error" && state.projects.kind !== "unavailable")) return;
       beginProjects(organizationId, projectAttempt.page);
+    },
+    reconcileArchive,
+    refreshOrganizations(): void {
+      if (disposed || !client) return;
+      void beginOrganizations(firstPage);
     },
     async refreshCreated(target: CreatedWorkspace): Promise<boolean> {
       if (disposed || !client) return false;

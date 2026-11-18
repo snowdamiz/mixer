@@ -22,7 +22,7 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
       when is_integer(size) and size in 1..@max_bytes do
     with true <- hex?(operation_id) and hex?(digest),
          %{retained_root: root} when is_binary(root) <-
-           Application.get_env(:mixer_hosted, :native_development_dispatch),
+           MixerHosted.RuntimeConfig.native_settings(),
          true <- root == Path.expand(root) and root != "/",
          {:ok, %File.Stat{type: :directory, uid: uid, mode: root_mode}} <- File.lstat(root),
          true <- Bitwise.band(root_mode, 0o077) == 0,

@@ -453,14 +453,34 @@ defmodule MixerHosted.Builds.CoordinatorTest do
     assert {:snooze, 1} = Coordinator.perform(started)
     cancelled = cancel()
     expire_lease()
-    Fixture.mode(:stop, :unavailable)
-    assert {:snooze, 1} = Coordinator.perform(cancelled)
-    assert held?() and current().build.state == :cancelling
-    expire_lease()
-    assert held?()
+
+    for refusal <- [:unavailable, :uncertain] do
+      Fixture.mode(:stop, refusal)
+      assert {:snooze, 1} = Coordinator.perform(cancelled)
+      assert %{held: true, terminal_event_id: nil} = Repo.one!(Reservation)
+      assert current().build.state == :cancelling
+      expire_lease()
+    end
+
     assert :ok = Coordinator.perform(cancelled)
     assert current().build.state == :cancelled and not held?()
     assert Fixture.snapshot().creations == 1
+  end
+
+  test "completion observed after cancellation cannot use the superseded start job" do
+    {_, started} = running()
+    assert {:snooze, 1} = Coordinator.perform(started)
+    cancelled = cancel()
+    expire_lease()
+    Fixture.complete(operation(), failure(:compiler))
+    assert :ok = Coordinator.perform(started)
+    assert current().build.state == :cancelling and held?()
+    assert :ok = Coordinator.perform(cancelled)
+    assert current().build.state == :cancelled
+    released = Repo.one!(Reservation)
+    refute released.held
+    assert :ok = Coordinator.perform(cancelled)
+    assert Repo.one!(Reservation) == released
   end
 
   test "deadline is persisted as expiry before stop, while original worker fence is preserved" do
@@ -524,6 +544,34 @@ defmodule MixerHosted.Builds.CoordinatorTest do
     assert :ok = Coordinator.perform(latest_job())
     assert Repo.one!(Reservation) == released
     assert current().build.attempt == 1 and Fixture.snapshot().creations == 1
+  end
+
+  test "committed completion refuses later cancellation and preserves its release" do
+    {_, started} = running()
+    assert {:snooze, 1} = Coordinator.perform(started)
+    Fixture.complete(operation(), failure(:compiler))
+    expire_lease()
+    assert :ok = Coordinator.perform(started)
+    current = current()
+    released = Repo.one!(Reservation)
+    assert current.build.state == :failed
+    refute released.held
+
+    assert {:error, :cancel, :invalid_transition, _} =
+             Storage.cancel_multi(
+               Multi.new(),
+               :cancel,
+               scope(),
+               current.record.revision,
+               "late-cancel",
+               "operator requested",
+               now_ms(),
+               &Coordinator.new/1
+             )
+             |> Repo.transaction()
+
+    assert current() == current
+    assert Repo.one!(Reservation) == released
   end
 
   test "bounded infrastructure retry follows release, rejects stale jobs and uses a new operation" do
@@ -797,7 +845,10 @@ defmodule MixerHosted.Builds.CoordinatorReviewedMigrationsTest do
              20_261_116_000_000,
              20_261_116_000_001,
              20_261_117_000_000,
-             20_261_118_000_000
+             20_261_118_000_000,
+             20_261_118_000_001,
+             20_261_118_000_002,
+             20_261_118_000_010
            ]
   end
 end

@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+A private candidate combines free workspace administration, support and organization exit with native build cancellation. The console suite, authenticated loopback HTTP fixtures, restricted PostgreSQL build tests and both source authorities passed. The exit fixture retained one build and found zero payment credentials. The joined browser and live cancellation journey remains pending. [Combined candidate evidence](verification/receipts/l06-combined-admin-support-cancel-41a05264.json).
+
 The ordinary iOS in-place upgrade test stopped during system photo import before its first XCTest. The disposable Simulator and import process remain under hold. Installation of the replacement build is pending. [Upgrade attempt](verification/receipts/fieldlog-installed-upgrade-import-hold-41a05264.json).
 
 **L01 passed for the documented local setup, adoption and export workflow.** The review verified independent exports and native starter runs on both platforms, the import report, and public SDK use by the separate FieldLog app. L02–L08 remain open. [L01 decision](verification/receipts/l01-independent-final-review-41a05264.json).

@@ -54,7 +54,8 @@ defmodule MixerHostedWeb.CustomerWorkspaceAdminController do
     _ -> respond(conn, 503, %{error: "authorization_unavailable"})
   end
 
-  defp body(conn, operation) when operation in [:usage, :export, :delete_project] do
+  defp body(conn, operation)
+       when operation in [:usage, :export, :delete_project, :delete_organization] do
     case read_body(conn, length: 0, read_length: 1, read_timeout: 1_000) do
       {:ok, "", conn} -> {:ok, %{}, conn}
       _ -> :error

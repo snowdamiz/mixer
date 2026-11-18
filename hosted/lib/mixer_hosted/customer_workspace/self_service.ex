@@ -7,7 +7,7 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
   alias MixerHosted.BrowserAuth.ActiveWorkspace.Binding
   alias MixerHosted.CustomerWorkspace.Input
 
-  @operations ~w(create_organization create_project set_member usage export delete_project)
+  @operations ~w(create_organization create_project set_member usage export delete_project delete_organization)
   @errors %{
     "unauthenticated" => :unauthenticated,
     "permission_denied" => :permission_denied,
@@ -20,13 +20,13 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
     execute_operation(identity, operation, organization, target, body, repo, nil)
   end
 
-  def create_from_browser(%Binding{} = binding, {operation, organization, body})
-      when operation in ~w(create_organization create_project) do
+  def execute_from_browser(%Binding{} = binding, {operation, organization, target, body})
+      when operation in @operations do
     execute_operation(
       binding.identity,
       operation,
       organization,
-      nil,
+      target,
       body,
       MixerHosted.Repo,
       binding
@@ -64,6 +64,19 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
               "SELECT public.mixer_workspace_self_service_v1($1,$2,$3,$4::jsonb,$5,$6)",
               [operation, organization, target, body, identity.issued_at, expires]
             ).rows
+
+          value =
+            case value do
+              %{"plan" => "free"} = usage when operation == "usage" and not is_nil(browser) ->
+                Map.put(
+                  usage,
+                  "can_administer",
+                  browser_owner?(repo, organization, identity, expires)
+                )
+
+              value ->
+                value
+            end
 
           :ok = Input.identity(identity)
           if browser, do: ActiveWorkspace.current!(browser)
@@ -106,6 +119,34 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
     ActiveWorkspace.check_current!(repo, browser, linkage)
   end
 
+  # Usage already holds the organization head lock. Read the caller's current
+  # membership under the existing directory RLS policy, with no new grant.
+  defp browser_owner?(repo, organization, identity, expires) do
+    Session.context!(repo,
+      directory_mode: "projects",
+      action: "workspace.read",
+      required_scope: "mixer.workspace.read",
+      phase: "directory",
+      token_issued_at: Integer.to_string(identity.issued_at),
+      token_expires_at: Integer.to_string(expires)
+    )
+
+    [[owner]] =
+      Session.query!(
+        repo,
+        """
+        SELECT EXISTS (
+          SELECT 1 FROM public.mixer_authz_memberships
+          WHERE organization_id=$1 AND project_id IS NULL
+            AND project_binding='all_projects' AND role='owner'
+        )
+        """,
+        [organization]
+      ).rows
+
+    owner
+  end
+
   def valid_body?(op, %{"display_name" => name} = body)
       when op in ~w(create_organization create_project) do
     map_size(body) == 1 and is_binary(name) and byte_size(name) in 1..128 and
@@ -116,6 +157,8 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
   def valid_body?("set_member", %{"role" => role} = body),
     do: map_size(body) == 1 and role in ~w(administrator developer viewer)
 
-  def valid_body?(op, body) when op in ~w(usage export delete_project), do: body == %{}
+  def valid_body?(op, body) when op in ~w(usage export delete_project delete_organization),
+    do: body == %{}
+
   def valid_body?(_, _), do: false
 end

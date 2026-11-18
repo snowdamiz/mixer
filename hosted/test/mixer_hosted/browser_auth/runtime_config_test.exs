@@ -141,6 +141,57 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
     assert construct(Map.put(hosted(), :unrecognized_processor_field, :builds_v1)) == @error
   end
 
+  test "build cancellation composes only with a configured build-create browser profile" do
+    hosted =
+      ordinary_env()
+      |> Map.merge(%{
+        "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+        "MIXER_BUILD_CREATE_ENABLED" => "true",
+        "MIXER_BUILD_CREATE_PASSWORD" => "synthetic-separate-create-password",
+        "MIXER_BUILD_CANCEL_ENABLED" => "true",
+        "MIXER_NATIVE_RETAINED_ROOT" => "/owned/native-state"
+      })
+      |> HostedConfig.load!()
+
+    config =
+      Map.put(
+        object(),
+        "scope",
+        "openid mixer.workspace.read mixer.build.read mixer.build.create"
+      )
+
+    env = browser_env(config)
+    assert {:ok, _} = RuntimeConfig.new_with_build_catalog(env, hosted, lifecycle(), custody())
+
+    secret_material =
+      Jason.encode!(%{
+        version: 1,
+        client: %{reference: config["client_credential_ref"], value: "local-fixture-secret"},
+        session_vault: %{
+          reference: config["session_vault_ref"],
+          key_id: "local-fixture-key",
+          key_base64: Base.encode64(:binary.copy(<<71>>, 32))
+        },
+        lifecycle: lifecycle()
+      })
+
+    installation =
+      MixerHosted.BrowserAuth.Installation.load!(
+        Map.put(env, "MIXER_BROWSER_AUTH_SECRET_MATERIAL", secret_material),
+        hosted
+      )
+
+    assert MixerHosted.BrowserAuth.Installation.valid?(installation, hosted)
+    assert construct(hosted) == @error
+    assert RuntimeConfig.new(%{}, hosted, nil, nil) == @error
+
+    refute MixerHosted.BrowserAuth.Installation.valid?(:disabled, hosted)
+
+    assert_raise ArgumentError, "browser installation unavailable: configuration", fn ->
+      MixerHosted.BrowserAuth.Installation.load!(%{}, hosted)
+    end
+  end
+
   test "actual ordinary loader Config Manifest Digest and custody compose without startup wiring" do
     hosted = hosted()
     assert {:ok, _} = Manifest.validate(hosted.identity_startup.owner_options[:manifest])

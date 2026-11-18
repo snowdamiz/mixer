@@ -1,3 +1,7 @@
+import { sessionWorkspaceSupport } from "../api/cookie-workspace-support-client.js";
+import type { SupportDraft, WorkspaceSupportClient } from "../api/cookie-workspace-support-client.js";
+import { sessionWorkspaceAdmin } from "../api/cookie-workspace-admin-client.js";
+import type { WorkspaceAdminClient, WorkspaceAdminInput } from "../api/cookie-workspace-admin-client.js";
 import { sessionWorkspaceCreation } from "../api/cookie-workspace-create-client.js";
 import type { WorkspaceCreateClient, WorkspaceCreateInput } from "../api/cookie-workspace-create-client.js";
 import { sessionBuildSubmission } from "../api/build-submission.js";
@@ -18,6 +22,8 @@ import type { ProjectSelection, ApplicationSelection, CatalogPageRequest } from 
 export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" }> |
   { readonly kind: "ready"; readonly client: WorkspaceClient;
     readonly workspaceCreate?: WorkspaceCreateClient;
+    readonly workspaceAdmin?: WorkspaceAdminClient;
+    readonly workspaceSupport?: WorkspaceSupportClient;
     readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient }> };
 
 export interface BrowserSessionController {
@@ -176,7 +182,19 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
           submit: (input: WorkspaceCreateInput, signal?: AbortSignal) =>
             delegate(value, owned => raw.submit(input, owned), signal),
         });
-        return { workspaceCreate, buildClients: Object.freeze(reads) };
+        const rawAdmin = sessionWorkspaceAdmin(settings, csrf);
+        const workspaceAdmin: WorkspaceAdminClient = Object.freeze({
+          request: (input: WorkspaceAdminInput, signal?: AbortSignal) =>
+            delegate(value, owned => rawAdmin.request(input, owned), signal),
+        });
+        const rawSupport = sessionWorkspaceSupport(settings, csrf);
+        const workspaceSupport: WorkspaceSupportClient = Object.freeze({
+          list: (organizationId: string, signal?: AbortSignal) =>
+            delegate(value, owned => rawSupport.list(organizationId, owned), signal),
+          submit: (organizationId: string, draft: SupportDraft, signal?: AbortSignal) =>
+            delegate(value, owned => rawSupport.submit(organizationId, draft, owned), signal),
+        });
+        return { workspaceCreate, workspaceAdmin, workspaceSupport, buildClients: Object.freeze(reads) };
       }
       const rawCreate = sessionBuildSubmission(settings, csrf);
       const create: BuildSubmissionClient = Object.freeze({

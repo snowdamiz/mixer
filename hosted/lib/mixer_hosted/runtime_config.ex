@@ -8,7 +8,13 @@ defmodule MixerHosted.RuntimeConfig do
   @derive {Inspect, only: [:role, :database_connection_bound]}
   @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound, :identity_startup]
   defstruct @enforce_keys ++
-              [create_repo: nil, processor_profile: nil, build_operation_intent: :disabled]
+              [
+                create_repo: nil,
+                processor_profile: nil,
+                build_operation_intent: :disabled,
+                build_cancel: false,
+                native: nil
+              ]
 
   @queues [
     :builds,
@@ -114,6 +120,26 @@ defmodule MixerHosted.RuntimeConfig do
         nil
       end
 
+    endpoint = endpoint!(env, role)
+
+    build_cancel =
+      case Map.fetch(env, "MIXER_BUILD_CANCEL_ENABLED") do
+        :error ->
+          false
+
+        {:ok, "false"} ->
+          false
+
+        {:ok, "true"}
+        when role == :api and processor_profile == :builds_v1 and is_list(create_repo) ->
+          true
+
+        _ ->
+          invalid!("MIXER_BUILD_CANCEL_ENABLED")
+      end
+
+    native = native!(env, role, processor_profile, build_operation_intent, endpoint)
+
     queues =
       if role == :processor do
         for queue <- [queue] do
@@ -147,7 +173,9 @@ defmodule MixerHosted.RuntimeConfig do
             shutdown_grace_period: 15_000
           ]
         ),
-      endpoint: endpoint!(env, role),
+      endpoint: endpoint,
+      build_cancel: build_cancel,
+      native: native,
       # Oban's Postgres notifier holds one additional direct connection.
       database_connection_bound: pool_size + 1 + if(is_nil(create_repo), do: 0, else: 2)
     }
@@ -174,6 +202,72 @@ defmodule MixerHosted.RuntimeConfig do
         nil
     end
   end
+
+  @doc false
+  def build_cancel_enabled? do
+    match?(
+      {:ok, {%__MODULE__{role: :api, build_cancel: true}, _}},
+      MixerHosted.Application.startup()
+    )
+  end
+
+  @doc false
+  def native_settings do
+    case MixerHosted.Application.startup() do
+      {:ok, {%__MODULE__{native: native}, _}} ->
+        native
+
+      :error ->
+        if Process.whereis(MixerHosted.Supervisor) == nil and
+             Application.fetch_env(:mixer_hosted, :startup) == :error,
+           do: Application.get_env(:mixer_hosted, :native_development_dispatch)
+    end
+  end
+
+  defp native!(env, role, profile, intent, endpoint) do
+    root = Map.get(env, "MIXER_NATIVE_RETAINED_ROOT")
+    worker_keys = ~w(MIXER_NATIVE_WORKER_PORT MIXER_NATIVE_WORKER_ID MIXER_NATIVE_WORKER_TOKEN)
+    worker_configured? = Enum.any?(worker_keys, &Map.has_key?(env, &1))
+
+    case Map.fetch(env, "MIXER_BUILD_DISPATCH") do
+      :error when is_nil(root) and not worker_configured? ->
+        nil
+
+      :error when role == :api and profile == :builds_v1 and not worker_configured? ->
+        if endpoint[:http][:ip] != {127, 0, 0, 1}, do: invalid!("MIXER_HTTP_BIND")
+        %{retained_root: native_root!(root)}
+
+      {:ok, "native_development_v1"}
+      when role == :processor and profile == :builds_v1 and intent == :durable_intent_v1 ->
+        required!(env, "MIXER_NATIVE_WORKER_PORT")
+        id = required!(env, "MIXER_NATIVE_WORKER_ID")
+        token = required!(env, "MIXER_NATIVE_WORKER_TOKEN")
+
+        if not Regex.match?(~r/\A[a-zA-Z0-9_.-]{1,128}\z/, id),
+          do: invalid!("MIXER_NATIVE_WORKER_ID")
+
+        if byte_size(token) not in 32..256 or not String.printable?(token),
+          do: invalid!("MIXER_NATIVE_WORKER_TOKEN")
+
+        %{
+          port: integer!(env, "MIXER_NATIVE_WORKER_PORT", 0, 1..65_535),
+          worker_id: id,
+          token: token,
+          retained_root: native_root!(root)
+        }
+
+      _ ->
+        invalid!("MIXER_BUILD_DISPATCH")
+    end
+  end
+
+  defp native_root!(root) when is_binary(root) and byte_size(root) in 2..4096 do
+    if String.starts_with?(root, "/") and root == Path.expand(root) and String.printable?(root),
+      do: root,
+      else: invalid!("MIXER_NATIVE_RETAINED_ROOT")
+  end
+
+  defp native_root!(_), do: invalid!("MIXER_NATIVE_RETAINED_ROOT")
 
   defp role!("api"), do: :api
   defp role!("processor"), do: :processor

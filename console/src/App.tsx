@@ -69,7 +69,7 @@ function ApplicationBuildRoute(props: ConsoleSessionProps) {
 export function ConsoleRoutes(props: ConsoleSessionProps = {}) {
   return <>
     <Route path="/" component={() => <Navigate href="/releases" />} />
-    <Route path="/workspace" component={WorkspacePage} />
+    <Route path="/workspace" component={() => <WorkspacePage session={props.session} />} />
     <Route path="/builds" component={() => <ApplicationBuildRoute session={props.session} onRetrySession={() => props.onRetrySession?.()} />} />
     <Route path="/releases" component={() => <ReleaseChecks state={{ kind: "unavailable" }} />} />
     <Show when={BuildsPreview}>{Component => <Route path="/preview/builds" component={Component()} />}</Show>

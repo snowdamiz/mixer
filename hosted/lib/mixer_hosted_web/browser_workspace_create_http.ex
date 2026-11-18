@@ -21,8 +21,11 @@ defmodule MixerHostedWeb.BrowserWorkspaceCreateHTTP do
          {:ok, body} <- BoundedJSON.object(raw, @limit),
          {:ok, operation} <- operation(conn.request_path, body) do
       case RuntimeOwner.create_workspace(conn.req_headers, operation) do
-        {:ok, value} -> respond(conn, 201, value)
-        {:error, reason} -> refusal(conn, reason)
+        {:ok, value} ->
+          respond(conn, status(conn.request_path, operation), value)
+
+        {:error, reason} ->
+          refusal(conn, reason)
       end
     else
       {:more, _, conn} -> respond(conn, 413, error(:invalid_request))
@@ -43,7 +46,48 @@ defmodule MixerHostedWeb.BrowserWorkspaceCreateHTTP do
        when map_size(body) == 2,
        do: {:ok, {:create_project, organization, name}}
 
+  defp operation(
+         "/console-api/v1/workspace-admin",
+         %{"operation" => op, "organization_id" => org} = body
+       )
+       when op in ~w(usage export) and map_size(body) == 2,
+       do: {:ok, {:admin, op, org, nil, %{}}}
+
+  defp operation(
+         "/console-api/v1/workspace-admin",
+         %{
+           "operation" => "set_member",
+           "organization_id" => org,
+           "principal_id" => principal,
+           "role" => role
+         } = body
+       )
+       when map_size(body) == 4,
+       do: {:ok, {:admin, "set_member", org, principal, %{"role" => role}}}
+
+  defp operation(
+         "/console-api/v1/workspace-admin",
+         %{"operation" => "delete_project", "organization_id" => org, "project_id" => project} =
+           body
+       )
+       when map_size(body) == 3,
+       do: {:ok, {:admin, "delete_project", org, project, %{}}}
+
+  defp operation("/console-api/v1/support-requests", body), do: {:ok, {:support, body}}
+
+  defp operation(
+         "/console-api/v1/workspace-admin",
+         %{"operation" => "delete_organization", "organization_id" => org, "confirm" => org} =
+           body
+       )
+       when map_size(body) == 3,
+       do: {:ok, {:admin, "delete_organization", org, nil, %{}}}
+
   defp operation(_, _), do: :error
+
+  defp status("/console-api/v1/workspace-admin", _), do: 200
+  defp status("/console-api/v1/support-requests", {:support, %{"operation" => "list"}}), do: 200
+  defp status(_, _), do: 201
 
   defp refusal(conn, reason) do
     case reason do

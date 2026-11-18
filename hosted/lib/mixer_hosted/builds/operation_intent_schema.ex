@@ -62,7 +62,11 @@ defmodule MixerHosted.Builds.OperationIntentSchema do
                 OR a.grantee<>coalesce((SELECT oid FROM pg_roles WHERE rolname=$8),0) OR a.grantee=0))
           )
           AND has_function_privilege(p.proowner,p.oid,'EXECUTE')
-          AND ($4<>'required' OR has_function_privilege($8::text,p.oid,'EXECUTE'))
+          AND ($4<>'required' OR EXISTS (
+            SELECT 1 FROM aclexplode(p.proacl) a JOIN pg_roles r ON r.oid=a.grantee
+            WHERE r.rolname=$8 AND a.grantor=p.proowner AND a.privilege_type='EXECUTE'
+              AND NOT a.is_grantable
+          ))
         ) FROM entry p)
         AND (SELECT count(*)=2 AND bool_and(p.proowner=(SELECT oid FROM owner)
            AND p.prosrc=e.body AND NOT p.prosecdef AND p.proconfig IS NULL

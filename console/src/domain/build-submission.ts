@@ -71,7 +71,7 @@ export function parseBuildReceipt(value: unknown, attempt: BuildAttempt, status:
 }
 
 /** Bounded wire grammar rejects duplicate object keys before schema decoding. */
-export function parseSubmissionJSON(text: string): unknown {
+export function parseSubmissionJSON(text: string, maximumArrayItems = 25): unknown {
   let at = 0;
   const ws = () => { while (/[\x20\t\r\n]/u.test(text[at] ?? "x")) at++; };
   const string = (): string => {
@@ -96,7 +96,7 @@ export function parseSubmissionJSON(text: string): unknown {
     }
     if (text[at] === "[") {
       at++; const result: unknown[] = []; ws(); if (text[at] === "]") { at++; return result; }
-      while (true) { valid(result.length < 25); result.push(value(depth + 1)); ws(); const c = text[at++]; if (c === "]") return result; valid(c === ","); }
+      while (true) { valid(result.length < maximumArrayItems); result.push(value(depth + 1)); ws(); const c = text[at++]; if (c === "]") return result; valid(c === ","); }
     }
     const token = /^(?:null|true|false|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/u.exec(text.slice(at))?.[0];
     valid(token !== undefined); at += token.length; return JSON.parse(token) as unknown;

@@ -57,6 +57,12 @@ private final class FakeCommand: OwnedCommandControl {
         return next
     }
     func exitedWithoutReaping() throws -> Bool { try operation("peek"); return tick >= exitAt }
+    func terminateOwnedGroup() throws {
+        try operation("terminate")
+        try require(!reaped, "never signal after reap")
+        try require(killedAt == nil, "at most one group signal")
+        killedAt = tick
+    }
     func killOwnedGroup() throws {
         try operation("kill"); try require(!reaped, "never signal after reap")
         try require(killedAt == nil, "at most one group kill"); killedAt = tick
@@ -83,9 +89,10 @@ enum OwnedCommandProof {
         let policy = ProcessPolicy(name: "proof", runtimeSeconds: 1, cleanupSeconds: 1, generatedOutputBytes: 100)
         let argv = ["printf", "%s", "$(echo secret); \u{60}pwd\u{60}"]
         let cwd = URL(fileURLWithPath: "/proof/cwd")
-        func execute(_ fake: FakeCommand, _ selected: ProcessPolicy = policy, used: UInt64 = 0, limit: UInt64 = 1000) throws -> CommandResult {
+        func execute(_ fake: FakeCommand, _ selected: ProcessPolicy = policy, used: UInt64 = 0, limit: UInt64 = 1000, cancelAt: Int? = nil) throws -> CommandResult {
             let execution = OwnedCommandExecution(command: argv, directory: cwd, policy: selected,
-                aggregateLimit: limit, aggregateUsed: used, control: fake, save: fake.persist)
+                aggregateLimit: limit, aggregateUsed: used, control: fake,
+                cancellationRequested: { cancelAt.map { fake.tick >= $0 } ?? false }, save: fake.persist)
             return try execution.execute(directory: cwd, environment: ["EXACT": "selected"])
         }
         func unknown(_ fake: FakeCommand, _ selected: ProcessPolicy = policy) throws {
@@ -114,6 +121,21 @@ enum OwnedCommandProof {
             let r = try execute(f, .developmentBuild, limit: 1 << 30)
             try require(r.succeeded && r.output.utf8.count == 8 * 1_048_576 && r.outputTruncated && r.output.hasSuffix("tail"), "9MiB+tail succeeds with exact 8MiB tail")
             try require(f.receipts.last?.generatedBytes == 9 * 1_048_576 + 4, "generated count independent from retention")
+            groups += 1
+        }
+        for absent in [4, 100] {
+            let f = FakeCommand(); f.exitAt = 100; f.absentAt = absent
+            do {
+                _ = try execute(f, cancelAt: 2)
+                throw ProofFailure(description: "expected cancellation")
+            } catch let error as MixerFailure {
+                try require(absent == 4 && error.code == "process.cancelled", "cancel only with terminal custody")
+                try require(f.receipts.last?.terminalCustody == true && f.tick >= absent, "all terminal facts are required")
+            } catch is UnknownCommandCustody {
+                try require(absent == 100 && f.receipts.last?.state == "UNKNOWN", "retain uncertain cancellation")
+            }
+            try require(f.calls.filter { $0 == "terminate" }.count == 1 && !f.calls.contains("kill"),
+                "cancellation sends one graceful signal to the exact owned group")
             groups += 1
         }
         // Delay each terminal fact independently, then vary both streams, reap and group lifetime together.

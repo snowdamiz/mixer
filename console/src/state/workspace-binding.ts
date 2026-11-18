@@ -1,3 +1,5 @@
+import { WorkspaceClientError } from "../api/workspace-transport.js";
+import type { WorkspaceAdminResult } from "../api/cookie-workspace-admin-client.js";
 import type { CreatedWorkspace } from "../api/cookie-workspace-create-client.js";
 import { createEffect, createSignal, on, onCleanup } from "solid-js";
 import type { Accessor } from "solid-js";
@@ -6,10 +8,12 @@ import type { WorkspaceController, WorkspaceSession } from "./workspace-controll
 import type { WorkspaceDirectoryState } from "../domain/workspace-directory.js";
 
 export type WorkspaceActions = Pick<WorkspaceController, "selectOrganization" | "selectProject" |
-  "nextOrganizations" | "nextProjects" | "firstOrganizations" | "firstProjects" | "retryOrganizations" | "retryProjects">;
+  "nextOrganizations" | "nextProjects" | "firstOrganizations" | "firstProjects" | "retryOrganizations" | "retryProjects" | "refreshOrganizations">;
 export interface WorkspaceBinding {
   readonly state: Accessor<WorkspaceDirectoryState>;
   readonly controller: Readonly<WorkspaceActions>;
+  readonly usageRevision: Accessor<number>;
+  archiveProject(organizationId: string, projectId: string): Promise<WorkspaceAdminResult>;
   prepareCreatedRefresh(): (target: CreatedWorkspace) => Promise<boolean>;
 }
 
@@ -25,6 +29,7 @@ export function createWorkspaceBinding(
   options: { readonly onRetrySession?: () => void } = {},
 ): WorkspaceBinding {
   const controller = createWorkspaceController();
+  const [usageRevision, setUsageRevision] = createSignal(0);
   const [snapshot, setSnapshot] = createSignal(controller.getState());
   const [admitted, setAdmitted] = createSignal<{ readonly session: WorkspaceSession | undefined }>();
   let disposed = false;
@@ -66,6 +71,7 @@ export function createWorkspaceBinding(
       if (session()?.kind === "unavailable") options.onRetrySession?.();
       else navigate(() => controller.retryOrganizations());
     },
+    refreshOrganizations() { if (current()) controller.refreshOrganizations(); },
     retryProjects(organizationId: string) { navigate(() => controller.retryProjects(organizationId)); },
   });
   onCleanup(() => {
@@ -75,12 +81,40 @@ export function createWorkspaceBinding(
     setAdmitted(undefined);
     setSnapshot(controller.getState());
   });
-  return Object.freeze({ state, controller: actions,
+  return Object.freeze({ state, controller: actions, usageRevision,
+    async archiveProject(organizationId: string, projectId: string) {
+      const owner = admitted();
+      const value = owner?.session;
+      if (!current() || value?.kind !== "ready" || !value.workspaceAdmin) throw new WorkspaceClientError("aborted");
+      const reconcile = (confirmed: boolean) => {
+        if (current() && admitted() === owner) {
+          void controller.reconcileArchive(organizationId, projectId, confirmed).then(() => {
+            if (current() && admitted() === owner) setUsageRevision(revision => revision + 1);
+          });
+        }
+      };
+      let result: WorkspaceAdminResult;
+      try {
+        result = await value.workspaceAdmin.request({ kind: "delete_project", organizationId, projectId });
+        if (result.kind !== "delete_project") throw new WorkspaceClientError("invalid_response");
+      } catch (error) {
+        if (!(error instanceof WorkspaceClientError) || error.code === "unavailable" || error.code === "invalid_response") {
+          reconcile(false);
+        }
+        throw error;
+      }
+      reconcile(true);
+      return result;
+    },
     prepareCreatedRefresh() {
       const owner = admitted();
       const version = navigationVersion;
-      return (target: CreatedWorkspace) => current() && admitted() === owner && navigationVersion === version
-        ? controller.refreshCreated(target) : Promise.resolve(false);
+      return async (target: CreatedWorkspace) => {
+        if (!current() || admitted() !== owner) return false;
+        const selected = navigationVersion === version && await controller.refreshCreated(target);
+        if (current() && admitted() === owner) setUsageRevision(revision => revision + 1);
+        return selected;
+      };
     },
   });
 }

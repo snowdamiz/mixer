@@ -23,7 +23,20 @@ defmodule MixerHosted.BrowserAuth.ActiveCreate do
   def run(lease, source, identity, csrf, headers, input, key, key_lease, expires) do
     if Protocol.verify_csrf(lease.runtime.browser_config, headers, csrf) == :ok do
       with_binding(lease, source, identity, key_lease, expires, fn ->
-        {:ok, render(MixerHosted.CustomerBuilds.create(identity, input, key))}
+        case input do
+          {:cancel, selection} when is_nil(key) ->
+            case MixerHosted.CustomerBuilds.Cancel.run(identity, selection) do
+              {:ok, result} ->
+                status = if result.build.state == "cancelling", do: 202, else: 200
+                {:ok, response(status, result)}
+
+              error ->
+                {:ok, render(error)}
+            end
+
+          _ ->
+            {:ok, render(MixerHosted.CustomerBuilds.create(identity, input, key))}
+        end
       end)
     else
       {:ok, render({:error, :permission_denied})}
@@ -113,13 +126,15 @@ defmodule MixerHosted.BrowserAuth.ActiveCreate do
     end
   end
 
-  def render({:ok, r}) do
+  defp response(status, value) do
     %{
-      status: if(r.outcome == :applied, do: 201, else: 200),
+      status: status,
       headers: [{"cache-control", "no-store"}, {"content-type", "application/json"}],
-      body: Jason.encode!(r)
+      body: Jason.encode!(value)
     }
   end
+
+  def render({:ok, r}), do: response(if(r.outcome == :applied, do: 201, else: 200), r)
 
   def render({:error, reason}) do
     status =

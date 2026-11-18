@@ -147,7 +147,7 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
       query!(
         context,
         """
-        SELECT count(*)=1 AND bool_and(o.rolname=$2
+        SELECT count(*)=2 AND bool_and(o.rolname=$2
           AND p.prosrc=$3 AND p.proconfig=ARRAY['search_path=pg_catalog']::text[]
           AND p.proargtypes='25'::oidvector AND p.pronargs=1 AND p.proargnames=ARRAY['target']::text[]
           AND p.prorettype='pg_catalog.int8'::regtype AND p.prokind='f' AND p.prosecdef
@@ -170,7 +170,8 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
         FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
         JOIN pg_catalog.pg_language l ON l.oid=p.prolang
         JOIN pg_catalog.pg_roles o ON o.oid=p.proowner
-        JOIN pg_catalog.pg_class c ON c.oid='public.mixer_builds'::pg_catalog.regclass
+        JOIN pg_catalog.pg_class c ON c.oid IN ('public.mixer_builds'::pg_catalog.regclass,
+          'public.mixer_build_reservations'::pg_catalog.regclass)
         WHERE n.nspname='public' AND p.proname='mixer_workspace_build_count_v1'
         """,
         [writer, roles.relation_owner, Schema.build_count_body()]
@@ -346,7 +347,11 @@ defmodule MixerHosted.BrowserAuth.WorkspaceCatalog do
           column <- columns,
           do: {"public.mixer_authz_" <> table, column, "UPDATE"}
 
-    reads ++ inserts ++ updates ++ [{@principal, "revision", "UPDATE"}]
+    capacity_updates =
+      for column <- Schema.capacity_update_columns(),
+          do: {Schema.capacity_update_relation(), column, "UPDATE"}
+
+    reads ++ inserts ++ updates ++ capacity_updates ++ [{@principal, "revision", "UPDATE"}]
   end
 
   defp query!({repo, deadline, backend}, sql, params) do

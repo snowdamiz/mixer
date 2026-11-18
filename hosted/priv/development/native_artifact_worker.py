@@ -11,6 +11,7 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 
 from compiler_worker import Refusal, Worker, digest, literal
 
@@ -29,6 +30,18 @@ class LaunchGate:
     def __init__(self):
         self.lock = threading.Lock()
         self.cancelled = False
+        self.control_directory = None
+
+    def request_cli_stop(self):
+        if self.control_directory is not None:
+            # The durable tombstone already exists. Only this operation's
+            # CLI can interpret the marker and signal its admitted child.
+            marker = self.control_directory / "cancel-requested"
+            try:
+                fd = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+            except FileExistsError:
+                return
+            os.close(fd)
 
 
 def now_ms():
@@ -96,34 +109,58 @@ def build(recipe, files, output, request, launch):
             remaining = min(recipe["timeout_seconds"], (request["deadline_ms"] - now) / 1000)
             if launch.cancelled or remaining <= 0 or request["guard"]["expires_at"] <= now:
                 return {"closed": True, "started": False}
-            proc = OwnedBuildProcess(argv, cwd=project, env=environment, stdin=subprocess.DEVNULL,
+            proc = OwnedBuildProcess(argv, cwd=project, env=dict(environment, MIXER_WORKER_COMMAND_CONTROL="1"),
+                                     stdin=subprocess.DEVNULL,
                                      stdout=stdout, stderr=stderr, start_new_session=True)
+            launch.control_directory = tmp
         (output / "launch.json").write_text(literal({"pid": proc.pid, "argv": argv}))
         try:
             code = proc.wait(timeout=remaining)
         except subprocess.TimeoutExpired:
             return {"closed": False}
-    if not group_absent(proc.pid):
-        return {"closed": False}
-
-    commands = []
-    for directory in tmp.glob("mixer-command-receipts-*"):
-        for command in directory.glob("command-*"):
-            if (command / "HOLD.json").exists() or not (command / "receipt.json").is_file():
+    # The pinned CLI acknowledges only after its synchronous command scope
+    # unwinds without a hold. Never inspect command scratch without that proof.
+    try:
+        basename = (tmp / "cli-closed").read_text()
+        prefix = "mixer-command-receipts-"
+        if not basename.startswith(prefix) or str(uuid.UUID(basename[len(prefix):])).upper() != basename[len(prefix):]:
+            return {"closed": False}
+        if not group_absent(proc.pid):
+            return {"closed": False}
+        try:
+            directories = sorted((tmp / basename).iterdir())
+        except FileNotFoundError:
+            directories = []
+        commands, proof = [], []
+        for command in directories:
+            if not command.name.startswith("command-"):
+                continue
+            if (command / "HOLD.json").exists():
                 return {"closed": False}
-            item = json.loads((command / "receipt.json").read_bytes())
-            if not all(item.get(key) is True for key in ("terminalCustody", "directChildReaped",
-                       "stdoutEOF", "stderrEOF", "descriptorsClosed", "ownedGroupAbsent")):
+            data = (command / "receipt.json").read_bytes()
+            item = json.loads(data)
+            if (item["state"] != "TERMINAL" or item["pid"] != item["ownedPGID"]
+                    or item["pid"] != item["ownedSession"] or item["pid"] <= 1
+                    or not all(item.get(key) is True for key in ("terminalCustody", "directChildReaped",
+                               "stdoutEOF", "stderrEOF", "descriptorsClosed", "ownedGroupAbsent"))):
                 return {"closed": False}
             commands.append(item)
-    compiler = [c for c in commands if c["command"][0] == "/usr/bin/xcodebuild"]
-    if len(compiler) != 1:
+            proof.append({"command": item["command"][0], "pid": item["pid"],
+                          "receipt_sha256": digest(data), "stop_reason": item.get("stopReason"),
+                          "group_terminate_sent": item.get("groupTerminateSent", False)})
+    except (OSError, ValueError, KeyError, TypeError):
         return {"closed": False}
-    result = {"closed": True, "started": True, "pid": proc.pid, "exit": code}
+    compiler = [c for c in commands if c["command"][0] == "/usr/bin/xcodebuild"]
+    if len(compiler) != 1 and not (not compiler and launch.cancelled):
+        return {"closed": False}
+    result = {"closed": True, "started": True, "pid": proc.pid, "exit": code,
+              "cli_reaped": True, "cli_group_absent": True, "commands": proof}
     try:
         (output / "closure.json").write_text(literal(result))
     except OSError:
         pass
+    if not compiler:
+        return result
     try:
         manifest = read_owned(store / "native-build.json", 8 * 1024 * 1024)
         report = json.loads(manifest)
@@ -216,6 +253,7 @@ class NativeWorker(Worker):
                 with self.launch.lock:
                     self.launch.cancelled = True
                     self.save(operation, value)
+                    self.launch.request_cli_stop()
             else:
                 self.save(operation, value)
             return {"error": "uncertain"}

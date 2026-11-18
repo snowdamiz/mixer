@@ -91,7 +91,7 @@ export function isWorkspaceCreateName(value: unknown): value is string {
   return printable(value, 128) && value.trim().length > 0;
 }
 
-function displayName(value: unknown): value is string | null {
+export function isWorkspaceDisplayName(value: unknown): value is string | null {
   return value === null || printable(value, 256);
 }
 
@@ -117,7 +117,7 @@ export function parseWorkspaceOrganizations(input: unknown): WorkspaceOrganizati
   const ids = new Set<string>();
   const organizations = Array.from(input.organizations, value => {
     requireValid(object(value, ["id", "display_name", "organization_roles"]) && isWorkspaceIdentifier(value.id) &&
-      displayName(value.display_name) && !ids.has(value.id), "Invalid organization row");
+      isWorkspaceDisplayName(value.display_name) && !ids.has(value.id), "Invalid organization row");
     ids.add(value.id);
     return Object.freeze({ id: value.id, display_name: value.display_name,
       organization_roles: copyRoles(value.organization_roles, true) });
@@ -134,7 +134,7 @@ export function parseWorkspaceProjects(input: unknown, organizationId: string): 
   const ids = new Set<string>();
   const projects = Array.from(input.projects, value => {
     requireValid(object(value, ["organization_id", "id", "display_name", "roles"]) &&
-      value.organization_id === organizationId && isWorkspaceIdentifier(value.id) && displayName(value.display_name) &&
+      value.organization_id === organizationId && isWorkspaceIdentifier(value.id) && isWorkspaceDisplayName(value.display_name) &&
       !ids.has(value.id), "Invalid project row");
     ids.add(value.id);
     return Object.freeze({ organization_id: organizationId, id: value.id, display_name: value.display_name,

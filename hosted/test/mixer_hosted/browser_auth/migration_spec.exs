@@ -127,6 +127,14 @@ defmodule MixerBrowserMigrationFixture.Test do
                )
     end
 
+    assert %{rows: [[true, true, false, false]]} =
+             Repo.query!("""
+             SELECT c.relrowsecurity,c.relforcerowsecurity,
+                    has_table_privilege('migration_runtime',c.oid,'SELECT'),
+                    has_any_column_privilege('migration_runtime',c.oid,'INSERT')
+             FROM pg_class c WHERE c.oid='public.mixer_support_requests'::regclass
+             """)
+
     for {name, signature} <-
           Map.merge(StorageSchema.signatures(), ActivationPreparationSchema.signatures()) do
       qualified = "public.#{name}(#{signature})"
@@ -204,7 +212,8 @@ defmodule MixerBrowserMigrationFixture.Test do
           MixerHosted.Repo.Migrations.AddBillingReconciliation,
           MixerHosted.Repo.Migrations.AddBillingOrganizationState,
           MixerHosted.Repo.Migrations.AddCustomerWorkspaceSelfService,
-          MixerHosted.Repo.Migrations.AllowFreeWorkspaceBillingStateSync
+          MixerHosted.Repo.Migrations.AllowFreeWorkspaceBillingStateSync,
+          MixerHosted.Repo.Migrations.RestrictLegacyBillingTriggerExecute
         ] do
       :code.purge(module)
       :code.delete(module)

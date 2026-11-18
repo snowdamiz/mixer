@@ -198,8 +198,80 @@ for (const navigateAway of [true, false]) {
       assert.equal(await posting, true);
       assert.equal(app.binding.state().selectedOrganizationId, navigateAway ? other : original);
       assert.equal(app.binding.state().selectedProjectId, navigateAway ? undefined : projectId);
+      assert.equal(app.binding.usageRevision(), 1);
       assert.deepEqual(app.creation.state(), { kind: "committed", input, selected: !navigateAway });
       assert.deepEqual(calls, [input]);
     } finally { app.dispose(); }
   });
 }
+
+test("archive completion preserves an in-flight create selection and a failed background refresh", async () => {
+  const app = owner();
+  const archive = deferred();
+  const createdProjects = deferred();
+  const refresh = deferred();
+  const created = { ...projects.projects[0], id: "project/two", display_name: "New project" };
+  let projectCalls = 0;
+  try {
+    app.setSession({
+      kind: "ready",
+      client: {
+        async organizations() { return orgs; },
+        projects() {
+          projectCalls++;
+          if (projectCalls === 2) return createdProjects.promise;
+          if (projectCalls === 3) return refresh.promise;
+          return Promise.resolve(projects);
+        },
+      },
+      workspaceAdmin: { request() { return archive.promise; } },
+    });
+    await until(() => app.binding.state().organizations.kind === "ready");
+    app.binding.controller.selectOrganization(organizationId);
+    await until(() => app.binding.state().projects.kind === "ready");
+    const archiving = app.binding.archiveProject(organizationId, "project/one");
+    const completeCreation = app.binding.prepareCreatedRefresh();
+    const selecting = completeCreation({ kind: "project", organizationId, projectId: created.id });
+    await until(() => projectCalls === 2);
+    archive.resolve({ kind: "delete_project" });
+    await archiving;
+    assert.equal(app.binding.usageRevision(), 0);
+    createdProjects.resolve({ projects: [projects.projects[0], created], next_cursor: null });
+    assert.equal(await selecting, true);
+    await until(() => projectCalls === 3);
+    assert.equal(app.binding.state().selectedProjectId, created.id);
+    assert.deepEqual(app.binding.state().projects.input.projects.map(row => row.id), [created.id]);
+    refresh.reject(new Error("transient network failure"));
+    await until(() => app.binding.usageRevision() === 2);
+    assert.equal(app.binding.state().selectedProjectId, created.id);
+    assert.deepEqual(app.binding.state().projects.input.projects.map(row => row.id), [created.id]);
+  } finally { app.dispose(); }
+});
+
+test("the only project on a paginated page is removed while the same page reloads", async () => {
+  const app = owner();
+  const refresh = deferred();
+  let projectCalls = 0;
+  try {
+    app.setSession({
+      kind: "ready",
+      client: {
+        async organizations() { return orgs; },
+        projects() {
+          projectCalls++;
+          return projectCalls === 1 ? Promise.resolve({ ...projects, next_cursor: "NEXT" }) : refresh.promise;
+        },
+      },
+      workspaceAdmin: { async request() { return { kind: "delete_project" }; } },
+    });
+    await until(() => app.binding.state().organizations.kind === "ready");
+    app.binding.controller.selectOrganization(organizationId);
+    await until(() => app.binding.state().projects.kind === "ready");
+    app.binding.controller.selectProject({ organizationId, projectId: "project/one" });
+    await app.binding.archiveProject(organizationId, "project/one");
+    assert.equal(projectCalls, 2);
+    assert.equal(app.binding.state().selectedProjectId, undefined);
+    assert.deepEqual(app.binding.state().projects.input, { projects: [], next_cursor: null });
+    refresh.resolve({ projects: [], next_cursor: null });
+  } finally { app.dispose(); }
+});

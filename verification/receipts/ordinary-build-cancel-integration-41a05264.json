@@ -1,0 +1,233 @@
+{
+  "base": "c3321927d5aa2cdc9465c5d98919d8d445b2e3b8",
+  "checks": {
+    "cli": {
+      "command": "swift test --package-path cli --scratch-path ../swift --filter 'ownedCommandControlSchedules|AndroidInspectionPolicy'",
+      "log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/swift-test.log",
+      "log_sha256": "e70d218de729806b77090371fe73770be422c01a6dcde7160bd767b2abb789b6",
+      "tests_passed": 5
+    },
+    "hosted": {
+      "command": "mix test --seed 0 --trace test/mixer_hosted/builds/coordinator_test.exs test/runtime_config_test.exs test/mixer_hosted/browser_auth/runtime_config_test.exs",
+      "log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/focused/focused-hosted.log",
+      "log_sha256": "14bd36f6b4abf64e5d8fac5d4adec98e107c7ab83e0c948c3233d563108a492d",
+      "tests_passed": 63
+    },
+    "hosted_authority": {
+      "admission": {
+        "identity": "hosted-free-workspace-organization-and-build-cancel-source-v32",
+        "runtime_or_GA_accepted": false,
+        "selection_sha256": "6e29172b2ba564f5ae5942fd3b1a5520cc4f4c0fa8dc3c21f8d739a0d2e1074d",
+        "source_count": 378,
+        "source_digest_sha256": "9c9099669bc3086a7e70c7fbeaefa5aca2dde5bca4c80e6015f7a99945f06743"
+      },
+      "admission_command": "python3 -B hosted/scripts/test-identity-network.py --check-source",
+      "command": "python3 -B hosted/scripts/test_identity_network_collector.py",
+      "log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/hosted-source-controls-r2.log",
+      "log_sha256": "8ce312b5e91593fef5de6775c2fb2d38db3b0f140ca24e4a165f7b7013b7f4ba",
+      "tests_passed": 315
+    },
+    "live_authenticated": {
+      "api": {
+        "cancel_jobs": 1,
+        "completion_first_http": 409,
+        "duplicate_http": 200,
+        "initial_http": 202,
+        "ordered_events": [
+          "start",
+          "cancel",
+          "stopped"
+        ],
+        "release_count": 1,
+        "reservation": [
+          false,
+          "coordinator:1:2:stopped"
+        ]
+      },
+      "boot_refusals": {
+        "endpoint_started": false,
+        "missing_cancel_function": true,
+        "missing_operation_intent_migration": true,
+        "missing_processor_grant": true,
+        "revoked_cancel_grant": true,
+        "revoked_processor_grant": true
+      },
+      "cleanup": {
+        "holds": [],
+        "passed": true,
+        "ports": [
+          60845,
+          60846
+        ],
+        "ports_reusable": [
+          60845,
+          60846
+        ],
+        "terminal": {
+          "exunit": {
+            "direct_reap": true,
+            "exit": 0,
+            "group_absent": true,
+            "pid": 78816
+          },
+          "initdb": {
+            "direct_reap": true,
+            "exit": 0,
+            "group_absent": true,
+            "pid": 78776
+          },
+          "postgres": {
+            "direct_reap": true,
+            "exit": 0,
+            "group_absent": true,
+            "pid": 78805
+          },
+          "processor": {
+            "direct_reap": true,
+            "exit": 0,
+            "group_absent": true,
+            "pid": 78953
+          },
+          "roles": {
+            "direct_reap": true,
+            "exit": 0,
+            "group_absent": true,
+            "pid": 78813
+          },
+          "worker": {
+            "direct_reap": true,
+            "exit": 0,
+            "group_absent": true,
+            "pid": 78815
+          }
+        }
+      },
+      "cli": {
+        "direct_reap": true,
+        "exit": 1,
+        "group_absent": true,
+        "pid_pgid": 79119
+      },
+      "command": "python3 -B run-clean.py live-clean [mix test --warnings-as-errors --seed 0 --trace diagnostics/ordinary_build_cancel_pg_test.exs]",
+      "command_receipts": [
+        {
+          "command": "swift",
+          "group_terminate_sent": false,
+          "pid": 79120,
+          "receipt_sha256": "cd78fa81d4d756955389f77187fa03e374b3efc97dc44173b1b66261175aca3a",
+          "stop_reason": null
+        },
+        {
+          "command": "/usr/bin/xcodebuild",
+          "group_terminate_sent": true,
+          "pid": 79121,
+          "receipt_sha256": "5f2765a4a6ca583db4c629ce2fa3f20fd450a1937384f7e1fe450351ee214213",
+          "stop_reason": "cancelled"
+        }
+      ],
+      "compiled_cli_sha256": "2599be05a808d0ff1c00d638b37a27a8f3cf70e37612e10778661c7e996331d5",
+      "log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/live-clean/exunit.log",
+      "log_sha256": "db83b0bfc9c28fb76632b39ab34df348cf5b7789283c6d3b385504cbfc7eaccf",
+      "processor_entry": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/processor.exs",
+      "replay_runner": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/run-clean.py",
+      "tests_passed": 1,
+      "worker": {
+        "operation_id": "97d9ff3d341672b6e23daa509f4af78689ac36978d9acfaebd50fb897d59a607",
+        "shutdown": {
+          "status": "closed"
+        },
+        "starts": 1,
+        "status": "stopped",
+        "stop_blob_sha256": "bf286101e9eef9de53566a2696c9ff542a0a604f9883e7fd9804f2f5fdf38c08"
+      },
+      "xcode": {
+        "descriptorsClosed": true,
+        "directChildReaped": true,
+        "exitCode": 15,
+        "groupKillSent": false,
+        "groupTerminateSent": true,
+        "observed_executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
+        "observed_utc_ns": 1794989014060999000,
+        "ownedGroupAbsent": true,
+        "ownedPGID": 79121,
+        "ownedSession": 79121,
+        "pid": 79121,
+        "stderrEOF": true,
+        "stdoutEOF": true,
+        "stopReason": "cancelled",
+        "terminalCustody": true
+      }
+    },
+    "source141_authority": {
+      "admission_command": "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "command": "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py",
+      "log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/native-sparse-controls.log",
+      "log_sha256": "d8bea9dda7cef45dfde5aaf639b03d11101295d16568c84fb411c5425e6d2de4",
+      "profile": "mixer.android-source-pair.23",
+      "source_count": 141,
+      "source_sha256": "432e6aeb9811fcf381f7048426d991743943ebd244b59c808a0363cd35ced32b",
+      "tests_passed": 16
+    },
+    "worker": {
+      "command": "python3 -B hosted/scripts/test_native_artifact_worker.py -q",
+      "log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/worker-test.log",
+      "log_sha256": "10cf5c5dcffc6cd6eb6c777a17c2fc78746d965e2bad5de7754f07d55f7638f5",
+      "tests_passed": 11
+    },
+    "worker_optimized": {
+      "command": "python3 -B -O hosted/scripts/test_native_artifact_worker.py -q",
+      "log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/worker-test-opt.log",
+      "log_sha256": "4e070d22d4756513bf0e89b1245a04f78754de171c9d9faa58f72958f9b39092",
+      "tests_passed": 11
+    }
+  },
+  "completed_utc": "2026-11-18T08:06:00.063652+00:00",
+  "corrections": [
+    "Require successful browser storage admission before starting the HTTP endpoint when build cancellation is enabled.",
+    "Generate the pinned CLI from a separate clean compiler-source checkout to prevent hosted dependency symlinks entering its source digest.",
+    "Rebind the hosted v32 selected source and the seven changed CLI files in Source141, preserving historical inverse bytes."
+  ],
+  "earlier_local_controls": {
+    "failed_live_fixture_diagnosis": "Reduced direct CLI build isolated the mixed source checkout's hosted/_build symlink rejection before Xcode launch. Held work was not inspected and no exact inner identity is inferred.",
+    "first_live_fixture": "Missing catalog definer role. Zero processor or compiler launches. Worker, ExUnit, and PostgreSQL groups absent."
+  },
+  "inputs": {
+    "capability_narrow_delivery_patch_sha256": "03b46a00887af2f4c6c33c4cd16ea62c2d4d7e37f3f93e156ad20526e7b80657",
+    "ordinary_cancel_patch_sha256": "fc1c07fa567d19c25e45b1b278b6a256e73b7b2fc1d3d226ff5d74fca0916230",
+    "ordinary_cancel_receipt_sha256": "771cbc2a695793c585656dfcf28a8de6147477f74e408de37b600346d0aa421f"
+  },
+  "new_custody_holds": [
+    {
+      "compiler_identity": "unobserved",
+      "namespace": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/live-02/state",
+      "pointer": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/live-02/HOLD.json",
+      "reason": "worker refused shutdown",
+      "worker_log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/live-02/worker.log",
+      "worker_pid_pgid": 98038
+    },
+    {
+      "compiler_identity": "unobserved",
+      "namespace": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/live-03/state",
+      "pointer": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/live-03/HOLD.json",
+      "reason": "worker refused shutdown",
+      "worker_log": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/live-03/worker.log",
+      "worker_pid_pgid": 6467
+    }
+  ],
+  "private_candidate": "/Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ/source",
+  "schema": 1,
+  "scope": "Isolated authenticated loopback API, restricted PostgreSQL 17 processor, and actual unsigned generic Xcode build cancellation. Test-compiled browser provider fixture. No device operations, payment dependency, deployment, hosted CI, commit, push, or GA promotion.",
+  "status": "focused-local-pass",
+  "tools": {
+    "elixir": "Elixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "git": "git version 2.56.0",
+    "macOS": "27.0.1",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "Python 3.14.8",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "xcode": [
+      "Xcode 27.2",
+      "Build version 27B52"
+    ]
+  }
+}

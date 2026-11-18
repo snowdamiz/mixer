@@ -66,9 +66,9 @@ const response=(value,status=200)=>new Response(JSON.stringify(value),{status,he
 const inputPath="/console-api/v1/build-inputs?organization_id=org&project_id=p&application_id=app";
 const catalogPath="/console-api/v1/build-catalog?organization_id=org&project_id=p&application_id=app";
 const csrf="B".repeat(42)+"A";
-function fixture(){
+function fixture(profile){
  const calls=[];const fetch=(path,options)=>new Promise((resolve,reject)=>calls.push({path:String(path),...options,resolve,reject,used:false}));
- const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch);
+ const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch,profile);
  return {...app,container,calls,text:()=>container.textContent,
  async request(path,method="GET") {for(let i=0;i<100;i++){const call=calls.find(c=>!c.used&&c.path===path&&c.method===method);if(call){call.used=true;assert.equal(call.credentials,"same-origin");assert.equal(call.redirect,"error");assert.equal(call.cache,"no-store");return call;}await new Promise(r=>setTimeout(r,2));}assert.fail("missing request "+method+" "+path+"; "+calls.map(c=>c.method+" "+c.path));},
  button(text){const node=walk(container).find(n=>n.nodeName==="BUTTON"&&n.textContent===text)??walk(container).find(n=>n.nodeName==="BUTTON"&&n.textContent.includes(text));assert(node,"missing button "+text+": "+container.textContent);return node;},
@@ -182,4 +182,85 @@ for(const generation of ['A','B'])test('R2252: session replacement '+generation+
   clickRow(f);(await f.request(detailPath())).resolve(response({build:dto({state:'succeeded',revision:1})}));await flush();
   assert.match(selectedText(f),/This platform build completed successfully/);
  }finally{f.close();}
+});
+
+test("workspace support submits and rereads a request in the selected organization", async () => {
+  const f = fixture("workspace-manage");
+  const supportPath = "/console-api/v1/support-requests";
+  const session = { state: "authenticated", generation: "A".repeat(43), csrf_token: csrf,
+    expires_at: Math.floor(Date.now() / 1000) + 60 };
+  const form = () => walk(f.container).find(node => node.nodeName === "FORM" &&
+    walk(node).some(child => child.getAttribute("id") === "support-subject"));
+  const emit = (target, type) => {
+    const path = [];
+    for (let node = target; node; node = node.parentNode) path.push(node);
+    path.push(window);
+    const event = {
+      type, target, currentTarget: target, defaultPrevented: false,
+      preventDefault() { this.defaultPrevented = true; },
+      composedPath: () => path,
+    };
+    for (const node of path) {
+      for (const listener of node.listeners.get(type) ?? []) listener(event);
+    }
+  };
+  const enter = (id, value) => {
+    const field = document.getElementById(id);
+    assert(field);
+    field.value = value;
+    emit(field, "input");
+  };
+
+  try {
+    (await f.request("/auth/session")).resolve(response(session));
+    (await f.request("/console-api/v1/orgs")).resolve(response({ organizations: [
+      { id: "a", display_name: "First Studio", organization_roles: ["viewer"] },
+      { id: "b", display_name: "Second Studio", organization_roles: ["viewer"] },
+    ], next_cursor: null }));
+    await flush();
+    assert.equal(form(), undefined);
+    f.click("First Studio");
+    assert.equal(form(), undefined);
+    f.click("Open support");
+    const first = await f.request(supportPath, "POST");
+    assert.deepEqual(JSON.parse(first.body), { operation: "list", organization_id: "a" });
+    first.resolve(response({ organization_id: "a", requests: [] }));
+    await flush();
+    enter("support-subject", "Can't open a project");
+    enter("support-message", "Open the import screen.");
+    emit(form(), "submit");
+    const submit = await f.request(supportPath, "POST");
+    assert.equal(submit.headers["x-mixer-csrf"], csrf);
+    const sent = JSON.parse(submit.body);
+    assert.deepEqual(sent, {
+      operation: "submit", organization_id: "a", request_id: sent.request_id,
+      subject: "Can't open a project", message: "Open the import screen.",
+    });
+    submit.resolve(response({ error: { code: "authorization_unavailable",
+      message: "Workspace request refused." } }, 503));
+    await flush();
+    assert.match(f.text(), /Couldn’t confirm your request/);
+    emit(form(), "submit");
+    const retry = await f.request(supportPath, "POST");
+    assert.deepEqual(JSON.parse(retry.body), sent);
+    const request = { id: sent.request_id, subject: sent.subject, message: sent.message,
+      submitted_at: Math.floor(Date.now() / 1000) };
+    retry.resolve(response({ organization_id: "a", request }, 201));
+    const refresh = await f.request(supportPath, "POST");
+    refresh.resolve(response({ organization_id: "a", requests: [request] }));
+    await flush();
+    assert.match(f.text(), /Request submitted\. Reference/);
+    assert.match(f.text(), /Open the import screen\./);
+    f.click("Second Studio");
+    assert.equal(form(), undefined);
+    f.click("Open support");
+    const second = await f.request(supportPath, "POST");
+    assert.deepEqual(JSON.parse(second.body), { operation: "list", organization_id: "b" });
+    assert.doesNotMatch(f.text(), /Open the import screen\./);
+    second.resolve(response({ organization_id: "a", requests: [request] }));
+    await flush();
+    assert.match(f.text(), /Couldn’t load your support requests/);
+  } finally {
+    f.close();
+  }
 });

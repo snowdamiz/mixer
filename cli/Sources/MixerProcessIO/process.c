@@ -143,6 +143,11 @@ int mx_kill_group(int32_t pid) {
     if (kill(-pid, SIGKILL) == 0 || errno == ESRCH) return 0;
     return errno;
 }
+int mx_terminate_group(int32_t pid) {
+    if (pid <= 1) return EINVAL;
+    if (kill(-pid, SIGTERM) == 0 || errno == ESRCH) return 0;
+    return errno;
+}
 int mx_reap(int32_t pid, int32_t *exit_code, int *reaped) {
     int status = 0; pid_t result = waitpid(pid, &status, WNOHANG);
     if (result < 0) return errno;

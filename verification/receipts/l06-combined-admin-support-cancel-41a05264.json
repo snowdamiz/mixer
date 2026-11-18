@@ -1,0 +1,190 @@
+{
+  "base": "69c98e4ffe664857dbcec38b4f0721c6f66b8164",
+  "checks": {
+    "adminAndExitHttp": {
+      "cleanup": [
+        {
+          "path": "bearer-final/http-cleanup.json",
+          "sha256": "86aceabf762a3a32c3e5bb35b8bd555ac9f1bfbe9854cbae2707e538e1c9d799"
+        },
+        {
+          "path": "bearer-final/http-ports-reusable.json",
+          "sha256": "16036be3d7b7f6c91935e790b3021538f42364f6871e77ea3ef420b801cdc182"
+        },
+        {
+          "path": "bearer-final/pg-port-reusable.json",
+          "sha256": "bb1a3aab0c8d1d1f13198c4ef1de26f0c6f1497aa20742a5f77c33f88ae00a45"
+        }
+      ],
+      "command": "python3 -B run-bearer-forward.py bearer-final",
+      "excluded": 7,
+      "log": {
+        "path": "bearer-final/free-admin-http.log",
+        "sha256": "3d043efa7927874a5b7c0ed8cdd1b00086919cbd3d3b05e02cc7a5132407ecf2"
+      },
+      "passed": 2,
+      "readback": {
+        "active_projects": 3,
+        "billing_mirrors": 2,
+        "builds": 1,
+        "deleted_organizations": 1,
+        "organizations": 2,
+        "payment_credentials": 0,
+        "queue_jobs": 0,
+        "tombstones": 1
+      }
+    },
+    "console": {
+      "build": {
+        "path": "console-build.log",
+        "sha256": "cb376defe80a905af0f9b8a282d6cac70c4b26fccc9242993486f3f266a52679"
+      },
+      "command": "npm run build && npm test",
+      "passed": 278,
+      "tests": {
+        "path": "console-test-complete.log",
+        "sha256": "719e27bd11324aeaabd1789c6f303bb63f4542b441cbdf9d9c543475a5536fde"
+      }
+    },
+    "hostedBuilds": {
+      "cleanup": {
+        "path": "build-db-final.log",
+        "sha256": "395127ab8ed1214a9b87fd3bae1f685cc55dc52751959f9f29fee51807fcd618"
+      },
+      "command": "python3 -B run-build-tests.py (admission, aggregate admission, coordinator, storage, development dispatch)",
+      "log": {
+        "path": "build-db-wmt0o8c9/tests.log",
+        "sha256": "90e8bdcc5f2c850b5b0fa3c8e08010b1a89163d3ab7895fb280d3730647ddaee"
+      },
+      "passed": 88
+    },
+    "hostedCollector": {
+      "command": "python3 -B [-O] hosted/scripts/test_identity_network_collector.py",
+      "logs": [
+        {
+          "path": "collector-normal-final.log",
+          "sha256": "f50a73d47ce846835b2678fb1bbeb89c09d9b6b04d19f715b32f121c9b8f561c"
+        },
+        {
+          "path": "collector-optimized-final.log",
+          "sha256": "96a1591005f844498b673c042e6a45e51148fd761e9b7a739174ae6014d1d8bd"
+        }
+      ],
+      "passedEachMode": 315
+    },
+    "hostedConfig": {
+      "command": "mix test --warnings-as-errors --seed 0 test/mixer_hosted/browser_auth/runtime_config_test.exs test/runtime_config_test.exs",
+      "log": {
+        "path": "hosted-focus.log",
+        "sha256": "9b8d832e1942bf50706a136b634f7390dbd6d3606ba58772ebe91369a79daf17"
+      },
+      "passed": 36
+    },
+    "hostedFormatting": {
+      "command": "mix format --check-formatted (changed Elixir sources)",
+      "log": {
+        "path": "hosted-format-final.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "migrationInventory": {
+      "command": "mix test --warnings-as-errors --seed 0 test/mixer_hosted/builds/zz_combined_migration_inventory_test.exs",
+      "log": {
+        "path": "operation-inventory-final.log",
+        "sha256": "6ce6b8bf1f59ec800e4ce9abcd59faddd841213d87834fc33f3975b18ea4fbd8"
+      },
+      "passed": 1,
+      "scope": "Exact reviewed-inventory module extracted from operation_admission_test.exs. Full private operation-admission database suite pending."
+    },
+    "source141Sparse": {
+      "command": "python3 -I -B -S [-O] test_sparse_checkout.py -v",
+      "logs": [
+        {
+          "path": "source141-sparse.log",
+          "sha256": "68eefce501ccfff92c15a30d4fabf92cdde2b265e19c99824ad633984b3f6e96"
+        },
+        {
+          "path": "source141-sparse-optimized.log",
+          "sha256": "b1e5bde21a00a4d3e98c589c2de2d27614dcd74845d1efd8db797a16dfa57cb5"
+        }
+      ],
+      "passedEachMode": 16
+    },
+    "sourceAndWorker": {
+      "command": "python3 -B [-O] hosted/scripts/test-identity-network.py --check-source / --check-workspace-source, python3 -I -B -S [-O] adopt_archive.py verify --workflow-installed, python3 -B [-O] test_native_artifact_worker.py",
+      "log": {
+        "path": "source-authority-and-worker-final.log",
+        "sha256": "24d4be7dbc8b988e2974ae17f93b25c25423f11ddc7a96cd322566742444b6d1"
+      },
+      "workerPassedEachMode": 11
+    },
+    "supportHttp": {
+      "cleanup": {
+        "path": "support-http-final.log",
+        "sha256": "ed7d86c04afd26b69f9a109e6658e3ed9a65fa3aca83b357954c08c41903bd1b"
+      },
+      "command": "python3 -B run-http.py (workspace_support_http_test.exs)",
+      "log": {
+        "path": "http-rwqceayl/tests.log",
+        "sha256": "83d4c9a5c3168b62e5d12920b0d59f912fb71a868b805645c41bc1ef00c65f38"
+      },
+      "passed": 1
+    },
+    "swift": {
+      "command": "swift test --package-path cli --force-resolved-versions --disable-index-store --filter 'ownedCommandControlSchedules|AndroidInspectionPolicy'",
+      "dependencies": "Two offline cached revisions from cli/Package.resolved; private paths and file-only Git transport.",
+      "log": {
+        "path": "swift-focus.log",
+        "sha256": "beca47210c355c6a364b10f9e0022fee914674d1ae60b34f40539540b18e969c"
+      },
+      "passed": 5
+    }
+  },
+  "inputs": {
+    "adminPatchSHA256": "a359d3551b002a68658fea35c6fa7ffec6ca1086069d0fd74e3f34555644822e",
+    "cancellationAllowlistPaths": 80,
+    "cancellationOriginalTree": "c524bc8f244762c59facaa216c5e668c59b41da8",
+    "cancellationPatchSHA256": "94a44bed140c0831d74fed8d8645dd734d66a2f1f15463e0631e56d0ae30e2ab",
+    "supportExitPatchSHA256": "bc1140960592fd1a8146cd99f3b0e016e18af40d80accf28df070dee5a678b2f"
+  },
+  "mergeDecisions": [
+    "Keep archive reconciliation, project eligibility and the new organization refresh. Keep all three browser POST routes.",
+    "Keep ACL migration 20261118000001 and move support to 20261118000002. Keep exit at 20261118000010.",
+    "Apply cancellation after the installed Android Pair24 Source141 transition. Use exact Pair24 CLI preimages and keep older inverse bytes."
+  ],
+  "observedAt": "2026-11-18T15:44:17.337034+00:00",
+  "rebasedProductTree": "b7893d7fa7e407eaf4970ad3cf0fdbf52dd07492",
+  "retainedPrivateKiB": 691108,
+  "schema": 1,
+  "sourceAuthorities": {
+    "hostedV32": {
+      "deltaRows": 70,
+      "files": 389,
+      "migrations": 19,
+      "selectionSHA256": "ddaac4cdf3ebf8ed54d5ace2b159cf1f402a9ae5f418f1c62d002bc0f89b4d5e",
+      "sha256": "82960e8e2371b2ef3a53bb12f16b15ced05205cc3e8d37a12db7809e26ab13b8"
+    },
+    "source141": {
+      "files": 141,
+      "pair24PredecessorSHA256": "6885ebe37677d9bc093c5d0f503bede1a5eac861a2ff9dd6ed0007e3d2d98f87",
+      "sha256": "eab895fab3e8735bbc8e9fff2ed60ddda76360dbe9bf7b7fd66e807ac1224ac6"
+    }
+  },
+  "status": "private-composition-focused-local-pass",
+  "testStartBase": "c09f99e1648fa2b1c8dbd42dcd928440ca08cee8",
+  "tools": {
+    "Elixir": "1.20.4 / OTP 29",
+    "Git": "2.56.0",
+    "Node": "22.23.3",
+    "PostgreSQL": "17.11",
+    "Python": "3.14.8",
+    "Swift": "6.4.2 (arm64 macOS)",
+    "npm": "10.9.9"
+  },
+  "unresolvedAcceptance": [
+    "Combined real-browser journey through provisioning, cancellation, support and exit.",
+    "Live compiler/worker cancellation on the combined tree. The original private cancellation receipt covers a different tree.",
+    "Full hosted runtime and process-recovery suites, native capability runtime, and provisioned upgrade or rollback qualification.",
+    "L05, L06 and GA evidence status remains open. Local tests used only disposable loopback services and synthetic accounts."
+  ]
+}

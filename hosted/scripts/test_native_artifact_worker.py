@@ -188,8 +188,13 @@ class NativeWorkerTest(unittest.TestCase):
             self.assertEqual({"error": "stale"}, self.call(address, "shutdown", nonce=shutdown_nonce))
             self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", self.request))
             proof = self.root / "protocol-state" / "blobs" / stopped["diagnostic_sha256"]
-            self.assertEqual({"closed": True, "started": True, "exit": 0, "pid": 123},
-                             json.loads(proof.read_bytes())["closure"])
+            closure = json.loads(proof.read_bytes())["closure"]
+            self.assertTrue(closure["cli_reaped"] and closure["cli_group_absent"])
+            self.assertEqual(123, closure["pid"])
+            self.assertEqual(124, closure["commands"][0]["pid"])
+            marker = self.root / "protocol-state" / self.request["operation_id"] / "tmp" / "cancel-requested"
+            self.assertEqual(0o600, marker.stat().st_mode & 0o777)
+            self.assertEqual(stopped, self.call(address, "stop", self.request))
             spawn.assert_called_once()
 
     def test_protocol_native_artifacts_survive_authorized_restart_until_stop(self):
@@ -222,11 +227,15 @@ class NativeWorkerTest(unittest.TestCase):
         store = Path(argv[-1])
         store.mkdir()
         command = ["/usr/bin/xcodebuild", "CODE_SIGNING_ALLOWED=NO", "generic/platform=iOS Simulator"]
-        nested = Path(env["TMPDIR"]) / "mixer-command-receipts-fixture" / "command-fixture"
+        tmp = Path(env["TMPDIR"])
+        root = "mixer-command-receipts-10000000-1000-1000-1000-100000000000"
+        (tmp / "cli-closed").write_text(root)
+        nested = tmp / root / "command-fixture"
         nested.mkdir(parents=True)
         (nested / "receipt.json").write_text(literal(dict.fromkeys(
             ("terminalCustody", "directChildReaped", "stdoutEOF", "stderrEOF", "descriptorsClosed",
-             "ownedGroupAbsent"), True) | {"command": command}))
+             "ownedGroupAbsent"), True) | {"command": command, "state": "TERMINAL",
+                                           "pid": 124, "ownedPGID": 124, "ownedSession": 124}))
 
         def store_owned(name, data):
             path = store / name
@@ -245,7 +254,8 @@ class NativeWorkerTest(unittest.TestCase):
             "commandResult": {"exitCode": 0},
             "binding": {"command": command, "authoritativeSourceDigest": self.spec["source"]["sha256"],
                         "lockSHA256": self.spec["toolchain_lock_sha256"], "cliExecutableSHA256": "f" * 64,
-                        "environment": env, "resourceInventoryPolicy": "retained-app-files-v1"},
+                        "environment": {key: value for key, value in env.items()
+                                        if key != "MIXER_WORKER_COMMAND_CONTROL"}, "resourceInventoryPolicy": "retained-app-files-v1"},
             "nativeProduct": {"nativeBinary": artifacts[0], "debugSymbols": artifacts[1]},
             "resourceInventory": artifacts[2],
         }).encode())
@@ -264,6 +274,27 @@ class NativeWorkerTest(unittest.TestCase):
         with patch.object(process, "_internal_poll") as poll:
             process.__del__()
             poll.assert_not_called()
+
+    def test_worker_refuses_acknowledgement_without_cli_custody_proof(self):
+        def fixture(*args, **kwargs):
+            process = self.fixture_process(*args, **kwargs)
+            (Path(kwargs["env"]["TMPDIR"]) / "cli-closed").unlink()
+            return process
+
+        with (patch.object(self.worker, "verify", return_value=self.recipe()),
+              patch("native_artifact_worker.OwnedBuildProcess", side_effect=fixture),
+              patch("native_artifact_worker.group_absent") as probe):
+            self.assertEqual({"status": "running"}, self.worker.request("ensure_started", self.request))
+            self.worker.future.result(timeout=5)
+            self.assertEqual({"error": "uncertain"}, self.worker.request("stop", self.request))
+            self.assertEqual({"error": "uncertain"}, self.worker.request("stop", self.request))
+            probe.assert_not_called()
+            self.assertNotIn("diagnostic_sha256", self.worker.load(self.request["operation_id"]))
+            # This fixture owns no OS child. Dispose only its in-process test resources.
+            with self.assertRaisesRegex(Refusal, "uncertain"):
+                self.worker.close()
+            self.worker.db.execute("DELETE FROM operations")
+            self.worker.db.commit()
 
     def test_authentication_precedes_worker_access(self):
         body = literal({"worker_id": "native", "action": "query", "request": self.request})

@@ -9,6 +9,7 @@ ssize_t mx_read(int fd, void *bytes, size_t capacity, int *error);
 int mx_release(int fd);
 int mx_peek_exit(int32_t pid, int *exited);
 int mx_kill_group(int32_t pid);
+int mx_terminate_group(int32_t pid);
 int mx_reap(int32_t pid, int32_t *exit_code, int *reaped);
 int mx_group_absent(int32_t pid, int *absent);
 int mx_close(int fd);
