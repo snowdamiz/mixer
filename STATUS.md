@@ -12,6 +12,10 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The candidate combined browser profile let one free owner create a project, submit a build and cancel it while queued. This run seeded the application and source input. The full owner registration, worker, support and exit journey remains open. [Free build workflow](verification/receipts/l06-free-owner-queued-build-41a05264.json).
+
+On macOS the installed signed FieldLog guest rejected a whitespace-only draft title after update, then preserved the draft, optional follow-up flag, JPEG and outbox across rollback. Mobile form delivery remains open. [Draft validation and schema rollback](verification/receipts/fieldlog-draft-validation-optional-rollback-41a05264.json).
+
 On API 36 a first signed FieldLog release survived force-stop after staging and before its first guest launch. After shutdown of both service listeners, the new process rendered the saved completed task on its first frame. Workspace and outbox bytes matched throughout. This run used the development Activity on the corrected core. [Cold first release](verification/receipts/fieldlog-android-first-release-staged-offline-41a05264.json).
 
 The hosted API now recovers the same browser session after a refused pool checkout before BEGIN. An ambiguous database transaction still closes access. The 15 PostgreSQL tests passed. Source admission passed for all 389 hosted inputs and the 141 native inputs in both Python modes. [Session recovery](verification/receipts/l07-recovery-v33-41a05264.json).
