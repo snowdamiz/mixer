@@ -1,0 +1,1024 @@
+diff --git a/Sources/FieldLogModels/TaskEdit.swift b/Sources/FieldLogModels/TaskEdit.swift
+new file mode 100644
+index 0000000..4132a0a
+--- /dev/null
++++ b/Sources/FieldLogModels/TaskEdit.swift
+@@ -0,0 +1,104 @@
++import Foundation
++
++public enum TaskTextField: String, CaseIterable, Sendable {
++  case title
++  case responsible
++
++  public var label: String {
++    switch self {
++    case .title: "Title"
++    case .responsible: "Responsible person"
++    }
++  }
++
++  fileprivate var keyPath: WritableKeyPath<TaskText, String> {
++    switch self {
++    case .title: \.title
++    case .responsible: \.responsible
++    }
++  }
++}
++
++public struct TaskText: Codable, Equatable, Sendable {
++  public var title: String
++  public var responsible: String
++
++  init(_ task: WorkTask) {
++    title = task.title
++    responsible = task.responsible
++  }
++
++  func validate() throws {
++    try Workspace.text(title, label: "Task", maximum: 240, required: true)
++    try Workspace.text(responsible, label: "Responsible person", maximum: 160)
++  }
++}
++
++public struct TaskEdit: Codable, Equatable, Identifiable, Sendable {
++  public let id: UUID
++  public let workspaceID: UUID
++  public let taskID: UUID
++  public let projectID: UUID
++  let openedAtRevision: UInt64
++  public let base: TaskText
++  public var text: TaskText
++
++  public init(workspaceID: UUID, revision: UInt64, task: WorkTask) {
++    id = UUID()
++    self.workspaceID = workspaceID
++    taskID = task.id
++    projectID = task.projectID
++    openedAtRevision = revision
++    base = TaskText(task)
++    text = base
++  }
++
++  func conflicts(against task: WorkTask) -> [TaskFieldConflict] {
++    let current = TaskText(task)
++    return TaskTextField.allCases.compactMap { field in
++      let key = field.keyPath
++      let original = base[keyPath: key]
++      let local = text[keyPath: key]
++      let incoming = current[keyPath: key]
++      guard local != original, incoming != original, local != incoming else { return nil }
++      return TaskFieldConflict(field: field, local: local, incoming: incoming)
++    }
++  }
++
++  func merged(against task: WorkTask, choosing choices: [TaskTextField: TaskConflictChoice])
++    -> TaskText
++  {
++    var result = TaskText(task)
++    for field in TaskTextField.allCases {
++      let key = field.keyPath
++      if text[keyPath: key] != base[keyPath: key], choices[field] != .incoming {
++        result[keyPath: key] = text[keyPath: key]
++      }
++    }
++    return result
++  }
++}
++
++struct TaskConflictReceipt: Codable, Equatable, Sendable {
++  let editID: UUID
++  let revision: UInt64
++}
++
++public enum TaskConflictChoice: Sendable {
++  case local
++  case incoming
++}
++
++public struct TaskFieldConflict: Equatable, Identifiable, Sendable {
++  public var id: TaskTextField { field }
++  public let field: TaskTextField
++  public let local: String
++  public let incoming: String
++}
++
++public struct TaskConflictReview: Equatable, Sendable {
++  public let editID: UUID
++  public let taskID: UUID
++  public let revision: UInt64
++  public let conflicts: [TaskFieldConflict]
++}
+diff --git a/Sources/FieldLogModels/Workspace.swift b/Sources/FieldLogModels/Workspace.swift
+index 9161578..54acba9 100644
+--- a/Sources/FieldLogModels/Workspace.swift
++++ b/Sources/FieldLogModels/Workspace.swift
+@@ -39,6 +39,7 @@ public struct WorkTask: Codable, Equatable, Identifiable, Sendable {
+   public var completed: Bool
+   public var position: Int
+   public var updatedAt: Date
++  var lastConflictResolution: TaskConflictReceipt?
+   public init(
+     id: UUID = UUID(), projectID: UUID, title: String, responsible: String = "",
+     completed: Bool = false, position: Int = 0, updatedAt: Date = Date()
+@@ -133,13 +134,14 @@ public struct Workspace: Codable, Equatable, Sendable {
+   public var attachments: [Attachment] = []
+   public var outbox: [PendingChange] = []
+   public var restoration = Restoration()
++  private var pendingTaskEdits: [TaskEdit]?
+   public init(id: UUID = UUID(), createdAt: Date = Date()) {
+     self.id = id
+     self.createdAt = createdAt
+   }
+ 
+   public func validate() throws {
+-    guard schema == 1 else { throw FieldLogError.unsupportedSchema(schema) }
++    guard schema == 1 || schema == 2 else { throw FieldLogError.unsupportedSchema(schema) }
+     guard projects.count <= 1000, tasks.count <= 10000, entries.count <= 10000,
+       drafts.count <= 1000, attachments.count <= 10000, outbox.count <= 50000
+     else {
+@@ -158,6 +160,23 @@ public struct Workspace: Codable, Equatable, Sendable {
+     try unique(drafts, \.id)
+     try unique(attachments, \.id)
+     try unique(outbox, \.id)
++    if let pendingTaskEdits {
++      guard schema == 2, pendingTaskEdits.count <= tasks.count else {
++        throw FieldLogError.validation("Invalid saved task conflict records.")
++      }
++      try unique(pendingTaskEdits, \.id)
++      try unique(pendingTaskEdits, \.taskID)
++      let taskProjects = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0.projectID) })
++      for edit in pendingTaskEdits {
++        guard edit.workspaceID == id, taskProjects[edit.taskID] == edit.projectID,
++          edit.openedAtRevision < revision
++        else {
++          throw FieldLogError.missingRecord
++        }
++        try edit.base.validate()
++        try edit.text.validate()
++      }
++    }
+     let projectIDs = Set(projects.map(\.id))
+     let attachmentIDs = Set(attachments.map(\.id))
+     for project in projects {
+@@ -168,8 +187,12 @@ public struct Workspace: Codable, Equatable, Sendable {
+       guard projectIDs.contains(task.projectID), task.position >= 0 else {
+         throw FieldLogError.missingRecord
+       }
+-      try Self.text(task.title, label: "Task", maximum: 240, required: true)
+-      try Self.text(task.responsible, label: "Responsible person", maximum: 160)
++      if let receipt = task.lastConflictResolution {
++        guard schema == 2, receipt.revision > 0, receipt.revision <= revision else {
++          throw FieldLogError.validation("Invalid task conflict resolution revision.")
++        }
++      }
++      try TaskText(task).validate()
+     }
+     for entry in entries {
+       guard projectIDs.contains(entry.projectID),
+@@ -279,6 +302,97 @@ public struct Workspace: Codable, Equatable, Sendable {
+     tasks[i].updatedAt = now
+     try enqueue(.taskSaved, id, now: now)
+   }
++  public func taskConflict(for taskID: UUID) -> TaskConflictReview? {
++    guard let edit = pendingTaskEdits?.first(where: { $0.taskID == taskID }),
++      let task = tasks.first(where: { $0.id == taskID })
++    else { return nil }
++    return TaskConflictReview(
++      editID: edit.id, taskID: taskID, revision: revision, conflicts: edit.conflicts(against: task))
++  }
++
++  public mutating func saveTaskEdit(_ input: TaskEdit, now: Date = Date()) throws {
++    var edit = input
++    try edit.base.validate()
++    try edit.text.validate()
++    if edit.text.title != edit.base.title {
++      edit.text.title = edit.text.title.trimmingCharacters(in: .whitespacesAndNewlines)
++    }
++    let index = try taskIndex(for: edit)
++    guard edit.openedAtRevision <= revision else { throw FieldLogError.staleRevision }
++    // Keep one receipt per task so an old editor cannot recreate a consumed review.
++    if let resolved = tasks[index].lastConflictResolution {
++      if resolved.editID == edit.id { return }
++      guard edit.openedAtRevision >= resolved.revision else { throw FieldLogError.staleRevision }
++    }
++    if let pending = pendingTaskEdits?.first(where: { $0.taskID == edit.taskID }) {
++      guard pending == edit else {
++        throw FieldLogError.validation("Review the saved conflict before editing this task again.")
++      }
++      return
++    }
++    if edit.conflicts(against: tasks[index]).isEmpty {
++      let text = edit.merged(against: tasks[index], choosing: [:])
++      try storeTaskText(text, at: index, recordLocalChange: true, now: now)
++    } else {
++      schema = 2
++      pendingTaskEdits = (pendingTaskEdits ?? []) + [edit]
++    }
++  }
++
++  /// Accepts a task text edit from a trusted caller with its common ancestor.
++  /// The transport must order deliveries and handle overlapping saved edits.
++  public mutating func receiveTaskEdit(_ edit: TaskEdit, now: Date = Date()) throws {
++    try edit.base.validate()
++    try edit.text.validate()
++    let index = try taskIndex(for: edit)
++    let task = tasks[index]
++    guard edit.conflicts(against: task).isEmpty else {
++      throw FieldLogError.validation("Incoming changes overlap a saved edit to this task.")
++    }
++    let text = edit.merged(against: task, choosing: [:])
++    try storeTaskText(text, at: index, recordLocalChange: false, now: now)
++  }
++
++  public mutating func resolveTaskConflict(
++    _ review: TaskConflictReview, choosing choices: [TaskTextField: TaskConflictChoice],
++    now: Date = Date()
++  ) throws {
++    guard let index = tasks.firstIndex(where: { $0.id == review.taskID }) else { return }
++    if tasks[index].lastConflictResolution?.editID == review.editID { return }
++    guard let edit = pendingTaskEdits?.first(where: { $0.taskID == review.taskID }) else { return }
++    guard review == taskConflict(for: review.taskID) else {
++      throw FieldLogError.staleRevision
++    }
++    guard Set(choices.keys) == Set(review.conflicts.map(\.field)) else {
++      throw FieldLogError.validation("Choose a value for every conflicting field.")
++    }
++    guard revision < UInt64.max else {
++      throw FieldLogError.validation("Workspace revision limit reached.")
++    }
++    let text = edit.merged(against: tasks[index], choosing: choices)
++    try storeTaskText(text, at: index, recordLocalChange: true, now: now)
++    tasks[index].lastConflictResolution = TaskConflictReceipt(
++      editID: edit.id, revision: revision + 1)
++    pendingTaskEdits?.removeAll { $0.id == edit.id }
++    if pendingTaskEdits?.isEmpty == true { pendingTaskEdits = nil }
++  }
++
++  private func taskIndex(for edit: TaskEdit) throws -> Int {
++    guard edit.workspaceID == id,
++      let index = tasks.firstIndex(where: { $0.id == edit.taskID && $0.projectID == edit.projectID })
++    else { throw FieldLogError.missingRecord }
++    return index
++  }
++
++  private mutating func storeTaskText(
++    _ text: TaskText, at index: Int, recordLocalChange: Bool, now: Date
++  ) throws {
++    guard text != TaskText(tasks[index]) else { return }
++    if recordLocalChange { try enqueue(.taskSaved, tasks[index].id, now: now) }
++    tasks[index].title = text.title
++    tasks[index].responsible = text.responsible
++    tasks[index].updatedAt = now
++  }
+   public mutating func reorderTasks(projectID: UUID, ids: [UUID], now: Date = Date()) throws {
+     let current = tasks(for: projectID)
+     guard ids.count == current.count, Set(ids) == Set(current.map(\.id)) else {
+diff --git a/Sources/FieldLogStorage/WorkspaceRepository.swift b/Sources/FieldLogStorage/WorkspaceRepository.swift
+index f5a9960..58fda2f 100644
+--- a/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -70,6 +70,27 @@ public actor WorkspaceRepository {
+ 
+   @discardableResult public func transact(
+     expectedRevision: UInt64? = nil, _ mutation: @Sendable (inout Workspace) throws -> Void
++  ) throws -> Workspace {
++    try commit(expectedRevision: expectedRevision, mutation)
++  }
++
++  public func saveTaskEdit(_ edit: TaskEdit) throws -> Workspace {
++    try commit(skipUnchanged: true) { try $0.saveTaskEdit(edit) }
++  }
++
++  public func receiveTaskEdit(_ edit: TaskEdit) throws -> Workspace {
++    try commit(skipUnchanged: true) { try $0.receiveTaskEdit(edit) }
++  }
++
++  public func resolveTaskConflict(
++    _ review: TaskConflictReview, choosing choices: [TaskTextField: TaskConflictChoice]
++  ) throws -> Workspace {
++    try commit(skipUnchanged: true) { try $0.resolveTaskConflict(review, choosing: choices) }
++  }
++
++  private func commit(
++    expectedRevision: UInt64? = nil, skipUnchanged: Bool = false,
++    _ mutation: @Sendable (inout Workspace) throws -> Void
+   ) throws -> Workspace {
+     guard !unavailable else {
+       throw FieldLogError.storage(
+@@ -89,6 +110,7 @@ public actor WorkspaceRepository {
+     guard current == workspace else { throw FieldLogError.staleRevision }
+     var next = workspace
+     try mutation(&next)
++    if skipUnchanged, next == workspace { return workspace }
+     next.revision = workspace.revision + 1
+     try next.validate()
+     do { try Self.write(next, to: file, fault: fault) } catch {
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index 72e6363..59a4f1e 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -12,10 +12,10 @@
+   A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = FieldLog; productName = FieldLog; productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023, A00000000000000000000026); };
+   A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; }; name = Debug; };
+   A00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
+-  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034); sourceTree = "<group>"; };
++  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034,A00000000000000000000035); sourceTree = "<group>"; };
+   A00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FieldLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+   A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014, A00000000000000000000015); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044,A00000000000000000000045); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+@@ -32,11 +32,13 @@
+   A00000000000000000000032 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
+   A00000000000000000000033 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDetail.swift; sourceTree = "<group>"; };
+   A00000000000000000000034 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryEditor.swift; sourceTree = "<group>"; };
++  A00000000000000000000035 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedTaskEditor.swift; sourceTree = "<group>"; };
+   A00000000000000000000040 = { isa = PBXBuildFile; fileRef = A00000000000000000000030; };
+   A00000000000000000000041 = { isa = PBXBuildFile; fileRef = A00000000000000000000031; };
+   A00000000000000000000042 = { isa = PBXBuildFile; fileRef = A00000000000000000000032; };
+   A00000000000000000000043 = { isa = PBXBuildFile; fileRef = A00000000000000000000033; };
+   A00000000000000000000044 = { isa = PBXBuildFile; fileRef = A00000000000000000000034; };
++  A00000000000000000000045 = { isa = PBXBuildFile; fileRef = A00000000000000000000035; };
+ 
+   B00000000000000000000001 = { isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000004; buildPhases = (B00000000000000000000005,B00000000000000000000006,B00000000000000000000007); buildRules = (); dependencies = (B00000000000000000000008); name = FieldLogUITests; productName = FieldLogUITests; productReference = B00000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
+   B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009); sourceTree = "<group>"; };
+diff --git a/ios/FieldLog/ProjectDetail.swift b/ios/FieldLog/ProjectDetail.swift
+index 181fa99..25d2d23 100644
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -11,6 +11,7 @@ struct ProjectDetail: View {
+   let projectID: UUID
+   let onEdit: (EntryDraft) -> Void
+   @State private var addingTask = false
++  @State private var editingTask: TaskEdit?
+   @State private var sharing: ShareDocument?
+   @State private var exportError: String?
+   var body: some View {
+@@ -37,6 +38,7 @@ struct ProjectDetail: View {
+           }
+           Section {
+             ForEach(workspace.tasks(for: projectID)) { task in
++              let needsReview = workspace.taskConflict(for: task.id) != nil
+               HStack(alignment: .top) {
+                 Button {
+                   model.toggleTask(task.id)
+@@ -50,33 +52,40 @@ struct ProjectDetail: View {
+                       if !task.responsible.isEmpty {
+                         Text(task.responsible).font(.caption).foregroundStyle(.secondary)
+                       }
++                      if needsReview {
++                        Text("Changes to review").font(.caption).foregroundStyle(.secondary)
++                      }
+                     }
+                   }.padding(.vertical, 3)
+                 }.buttonStyle(.plain).accessibilityLabel(
+                   "\(task.title), \(task.completed ? "completed":"not completed")"
+                 ).accessibilityHint("Double tap to \(task.completed ? "reopen":"complete") task")
+                   .frame(maxWidth: .infinity, alignment: .leading)
+-                if workspace.tasks(for: projectID).count > 1 {
+-                  Menu {
+-                    if let index = workspace.tasks(for: projectID).firstIndex(where: {
+-                      $0.id == task.id
+-                    }) {
+-                      if index > 0 {
+-                        Button("Move up", systemImage: "arrow.up") {
+-                          model.moveTask(task.id, offset: -1)
+-                        }
++                Menu {
++                  Button(
++                    needsReview ? "Review changes" : "Edit task",
++                    systemImage: needsReview ? "exclamationmark.bubble" : "pencil"
++                  ) {
++                    editingTask = model.editTask(task.id)
++                  }
++                  let tasks = workspace.tasks(for: projectID)
++                  if let index = tasks.firstIndex(where: { $0.id == task.id }) {
++                    if index > 0 {
++                      Button("Move up", systemImage: "arrow.up") {
++                        model.moveTask(task.id, offset: -1)
+                       }
+-                      if index < workspace.tasks(for: projectID).count - 1 {
+-                        Button("Move down", systemImage: "arrow.down") {
+-                          model.moveTask(task.id, offset: 1)
+-                        }
++                    }
++                    if index < tasks.count - 1 {
++                      Button("Move down", systemImage: "arrow.down") {
++                        model.moveTask(task.id, offset: 1)
+                       }
+                     }
+-                  } label: {
+-                    Image(systemName: "ellipsis.circle").font(.title3)
+                   }
+-                  .accessibilityLabel("Task options: \(task.title)")
++                } label: {
++                  Image(systemName: "ellipsis.circle").font(.title3)
+                 }
++                .accessibilityLabel(
++                  needsReview ? "Review changes for \(task.title)" : "Task options: \(task.title)")
+               }
+             }
+             .onMove { source, destination in
+@@ -166,6 +175,7 @@ struct ProjectDetail: View {
+           description: Text("The workspace has not been changed."))
+       }
+     }.sheet(isPresented: $addingTask) { NewTaskView(projectID: projectID) }
++      .sheet(item: $editingTask) { SavedTaskEditor(edit: $0) }
+       .sheet(item: $sharing) { ShareSheet(url: $0.url) }
+       .alert(
+         "Report couldn't be created",
+diff --git a/ios/FieldLog/SavedTaskEditor.swift b/ios/FieldLog/SavedTaskEditor.swift
+new file mode 100644
+index 0000000..5ddfc70
+--- /dev/null
++++ b/ios/FieldLog/SavedTaskEditor.swift
+@@ -0,0 +1,119 @@
++import FieldLogModels
++import SwiftUI
++
++struct SavedTaskEditor: View {
++  @EnvironmentObject private var model: WorkspaceModel
++  @Environment(\.dismiss) private var dismiss
++  @State private var edit: TaskEdit
++  @State private var choices: [TaskTextField: TaskConflictChoice] = [:]
++  @State private var saving = false
++  @State private var error: String?
++
++  init(edit: TaskEdit) {
++    _edit = State(initialValue: edit)
++  }
++
++  var body: some View {
++    let review = model.workspace?.taskConflict(for: edit.taskID)
++    NavigationStack {
++      Form {
++        if let review {
++          Section {
++            Text("This task changed while you were editing. Choose which value to keep for each conflicting field. Other changes will be kept.")
++          }
++          ForEach(review.conflicts) { conflict in
++            Section(conflict.field.label) {
++              choice(.local, label: "Your edit", value: conflict.local, field: conflict.field)
++              choice(.incoming, label: "Incoming edit", value: conflict.incoming, field: conflict.field)
++            }
++          }
++        } else {
++          TextField("Task", text: $edit.text.title, axis: .vertical)
++          TextField("Responsible person", text: $edit.text.responsible)
++        }
++        if let error {
++          Section { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
++        }
++      }
++      .disabled(saving)
++      .navigationTitle(review == nil ? "Edit task" : "Review task changes")
++      .toolbar {
++        ToolbarItem(placement: .cancellationAction) {
++          Button(review == nil ? "Cancel" : "Review later") { dismiss() }.disabled(saving)
++        }
++        ToolbarItem(placement: .confirmationAction) {
++          Button(review == nil ? "Save" : "Resolve") { submit(review) }
++            .disabled(saving || (review?.conflicts.contains { choices[$0.field] == nil } ?? false))
++        }
++      }
++    }
++    .interactiveDismissDisabled(saving)
++    .onChange(of: review) { _, _ in choices = [:] }
++  }
++
++  private func choice(
++    _ selection: TaskConflictChoice, label: String, value: String, field: TaskTextField
++  ) -> some View {
++    let selected = choices[field] == selection
++    return Button {
++      choices[field] = selection
++    } label: {
++      HStack {
++        VStack(alignment: .leading, spacing: 4) {
++          Text(label).font(.subheadline).foregroundStyle(.secondary)
++          if value.isEmpty {
++            Label("No assignee", systemImage: "person.slash")
++              .font(.body.italic())
++              .foregroundStyle(.primary)
++              .accessibilityLabel("Empty value, clear the assignment")
++          } else if let description = Self.whitespaceDescription(value) {
++            Text(description).font(.body.monospaced()).foregroundStyle(.primary)
++              .accessibilityLabel("Whitespace only: \(description)")
++          } else {
++            Text(verbatim: value).foregroundStyle(.primary)
++          }
++        }
++        Spacer()
++        Image(systemName: selected ? "largecircle.fill.circle" : "circle")
++          .accessibilityHidden(true)
++      }
++      .contentShape(Rectangle())
++    }
++    .buttonStyle(.plain)
++    .accessibilityAddTraits(selected ? .isSelected : [])
++  }
++
++  static func whitespaceDescription(_ value: String) -> String? {
++    guard !value.isEmpty, value.allSatisfy(\.isWhitespace) else { return nil }
++    return value.unicodeScalars.map { scalar in
++      switch scalar {
++      case " ": "Space"
++      case "\t": "Tab"
++      case "\n": "Line feed"
++      case "\r": "Carriage return"
++      default: scalar.properties.name ?? "U+\(String(scalar.value, radix: 16, uppercase: true))"
++      }
++    }.joined(separator: ", ")
++  }
++
++  private func submit(_ review: TaskConflictReview?) {
++    let input = edit
++    let decisions = choices
++    saving = true
++    error = nil
++    Task {
++      defer { saving = false }
++      let succeeded: Bool
++      if let review {
++        succeeded = await model.resolveTaskConflict(review, choosing: decisions)
++      } else {
++        succeeded = await model.saveTaskEdit(input)
++      }
++      if succeeded {
++        if model.workspace?.taskConflict(for: edit.taskID) == nil { dismiss() }
++      } else {
++        error = model.saveError ?? "Task could not be saved. Your changes have been kept."
++      }
++    }
++  }
++}
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index 8f8cd66..e9ec611 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -13,39 +13,48 @@ import SwiftUI
+   private var repository: WorkspaceRepository?
+   private var saveChain: Task<Bool, Never>?
+   private var opened = false
++  private let workspaceDirectory: URL?
++
++  init(workspaceDirectory: URL? = nil) {
++    self.workspaceDirectory = workspaceDirectory
++  }
+ 
+   func open() async {
+     guard !opened else { return }
+     opened = true
+     loading = true
+     do {
+-      let support = try FileManager.default.url(
+-        for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+-      var workspaceFolder = "FieldLog"
+-      let arguments = ProcessInfo.processInfo.arguments
+-      if let index = arguments.firstIndex(of: "--fieldlog-ui-workspace") {
+-        #if DEBUG
+-          guard arguments.indices.contains(index + 1),
+-            let identity = UUID(uuidString: arguments[index + 1])
+-          else {
+-            throw FieldLogError.validation(
+-              "A valid dedicated UI-test workspace identifier is required.")
+-          }
+-          workspaceFolder = "FieldLogUITest-" + identity.uuidString.lowercased()
+-          isTestWorkspace = true
+-        #else
+-          throw FieldLogError.validation(
+-            "UI-test workspaces require a Debug build. No workspace was opened.")
+-        #endif
+-      }
+-      let repository = try WorkspaceRepository(
+-        directory: support.appendingPathComponent(workspaceFolder, isDirectory: true))
++      let directory = try workspaceDirectory ?? defaultWorkspaceDirectory()
++      let repository = try WorkspaceRepository(directory: directory)
+       self.repository = repository
+       workspace = await repository.snapshot()
+       openError = nil
+     } catch { openError = error.localizedDescription }
+     loading = false
+   }
++
++  private func defaultWorkspaceDirectory() throws -> URL {
++    let support = try FileManager.default.url(
++      for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
++    let arguments = ProcessInfo.processInfo.arguments
++    if let index = arguments.firstIndex(of: "--fieldlog-ui-workspace") {
++      #if DEBUG
++        guard arguments.indices.contains(index + 1),
++          let identity = UUID(uuidString: arguments[index + 1])
++        else {
++          throw FieldLogError.validation(
++            "A valid dedicated UI-test workspace identifier is required.")
++        }
++        isTestWorkspace = true
++        return support.appendingPathComponent(
++          "FieldLogUITest-" + identity.uuidString.lowercased(), isDirectory: true)
++      #else
++        throw FieldLogError.validation(
++          "UI-test workspaces require a Debug build. No workspace was opened.")
++      #endif
++    }
++    return support.appendingPathComponent("FieldLog", isDirectory: true)
++  }
+   func retryOpen() async {
+     opened = false
+     await open()
+@@ -54,6 +63,13 @@ import SwiftUI
+   @discardableResult private func enqueue(
+     _ operation: @escaping @Sendable (inout Workspace) throws -> Void,
+     completion: (@MainActor () -> Void)? = nil
++  ) -> Task<Bool, Never> {
++    enqueueSave({ try await $0.transact(operation) }, completion: completion)
++  }
++
++  private func enqueueSave(
++    _ operation: @escaping @Sendable (WorkspaceRepository) async throws -> Workspace,
++    completion: (@MainActor () -> Void)? = nil
+   ) -> Task<Bool, Never> {
+     let previous = saveChain
+     pendingSaves += 1
+@@ -62,7 +78,7 @@ import SwiftUI
+       defer { pendingSaves -= 1 }
+       guard let repository else { return false }
+       do {
+-        workspace = try await repository.transact(operation)
++        workspace = try await operation(repository)
+         completion?()
+         if unsavedDrafts.isEmpty { saveError = nil }
+         return true
+@@ -87,6 +103,21 @@ import SwiftUI
+     await enqueue { try $0.saveTask(projectID: projectID, title: title, responsible: responsible) }
+       .value
+   }
++  func editTask(_ id: UUID) -> TaskEdit? {
++    guard let workspace, let task = workspace.tasks.first(where: { $0.id == id }) else { return nil }
++    return TaskEdit(workspaceID: workspace.id, revision: workspace.revision, task: task)
++  }
++  func saveTaskEdit(_ edit: TaskEdit) async -> Bool {
++    await enqueueSave { try await $0.saveTaskEdit(edit) }.value
++  }
++  func receiveTaskEdit(_ edit: TaskEdit) async -> Bool {
++    await enqueueSave { try await $0.receiveTaskEdit(edit) }.value
++  }
++  func resolveTaskConflict(
++    _ review: TaskConflictReview, choosing choices: [TaskTextField: TaskConflictChoice]
++  ) async -> Bool {
++    await enqueueSave { try await $0.resolveTaskConflict(review, choosing: choices) }.value
++  }
+   func toggleTask(_ id: UUID) { enqueue { try $0.toggleTask(id) } }
+   func reorder(projectID: UUID, ids: [UUID]) {
+     enqueue { try $0.reorderTasks(projectID: projectID, ids: ids) }
+diff --git a/verification/host/TaskConflictReplay.swift b/verification/host/TaskConflictReplay.swift
+new file mode 100644
+index 0000000..01e94f0
+--- /dev/null
++++ b/verification/host/TaskConflictReplay.swift
+@@ -0,0 +1,255 @@
++import Darwin
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++
++private struct ReplayFailure: Error, CustomStringConvertible {
++  let description: String
++}
++
++private func check(_ condition: Bool, _ message: String) throws {
++  if !condition { throw ReplayFailure(description: message) }
++}
++
++private func required<T>(_ value: T?, _ message: String) throws -> T {
++  guard let value else { throw ReplayFailure(description: message) }
++  return value
++}
++
++@MainActor
++private func open(_ directory: URL) async throws -> WorkspaceModel {
++  let model = WorkspaceModel(workspaceDirectory: directory)
++  await model.open()
++  try check(model.workspace != nil, model.openError ?? "Workspace failed to open")
++  return model
++}
++
++private struct Fixture {
++  let localDirectory: URL
++  let peerDirectory: URL
++  let taskID: UUID
++  let otherTaskID: UUID
++  let projectID: UUID
++}
++
++@MainActor
++private func seed(_ root: URL) async throws -> Fixture {
++  let localDirectory = root.appendingPathComponent("local")
++  let peerDirectory = root.appendingPathComponent("peer")
++  let model = try await open(localDirectory)
++  let projectID = try required(
++    await model.createProject(title: "Site inspection", site: "North yard"), "Project creation")
++  try check(await model.addTask(projectID: projectID, title: "Check valve", responsible: "Crew"), "Task creation")
++  try check(await model.addTask(projectID: projectID, title: "Check gauge", responsible: "Other"), "Second task creation")
++  var draft = try required(await model.newDraft(projectID: projectID), "Draft creation")
++  draft.title = "Unrelated draft"
++  draft.note = "First line\n  second line "
++  try check(await model.keepDraft(draft), "Draft save")
++  let workspace = try required(model.workspace, "Seeded workspace")
++  try check(workspace.schema == 1, "Ordinary saves should retain the original schema")
++  let tasks = workspace.tasks(for: projectID)
++  try check(tasks.count == 2, "Expected both seed tasks")
++  try FileManager.default.createDirectory(at: peerDirectory, withIntermediateDirectories: true)
++  try FileManager.default.copyItem(
++    at: localDirectory.appendingPathComponent("workspace.json"),
++    to: peerDirectory.appendingPathComponent("workspace.json"))
++  return Fixture(
++    localDirectory: localDirectory, peerDirectory: peerDirectory,
++    taskID: tasks[0].id, otherTaskID: tasks[1].id, projectID: projectID)
++}
++
++private struct PendingReplay {
++  let edit: TaskEdit
++  let review: TaskConflictReview
++  let workspace: Workspace
++}
++
++@MainActor
++private func makeConflict(
++  _ fixture: Fixture, localResponsible: String?, peerResponsible: String?
++) async throws -> PendingReplay {
++  let local = try await open(fixture.localDirectory)
++  let peer = try await open(fixture.peerDirectory)
++  var localEdit = try required(local.editTask(fixture.taskID), "Open ordinary local editor")
++  var peerEdit = try required(peer.editTask(fixture.taskID), "Open ordinary peer editor")
++  try check(localEdit.base == peerEdit.base, "Editors should start from the same saved task text")
++  localEdit.text.title = "  Inspect valve today  "
++  if let localResponsible { localEdit.text.responsible = localResponsible }
++  peerEdit.text.title = "Inspect valve after shutdown"
++  if let peerResponsible { peerEdit.text.responsible = peerResponsible }
++  try check(await peer.saveTaskEdit(peerEdit), peer.saveError ?? "Peer editor save")
++  // Transfer only text observed after the peer's ordinary durable Save.
++  peerEdit.text = try required(peer.editTask(fixture.taskID), "Read the committed peer version").base
++
++  local.toggleTask(fixture.taskID)
++  local.moveTask(fixture.taskID, offset: 1)
++  await local.flush()
++  let beforeIncoming = try required(local.workspace, "Snapshot before incoming edit")
++  try check(await local.receiveTaskEdit(peerEdit), local.saveError ?? "Deliver peer text")
++  let afterIncoming = try required(local.workspace, "Snapshot after incoming edit")
++  try check(afterIncoming.outbox == beforeIncoming.outbox, "Incoming edit changed local outbox")
++  try check(afterIncoming.tasks.filter { $0.id != fixture.taskID }
++              == beforeIncoming.tasks.filter { $0.id != fixture.taskID }
++              && afterIncoming.projects == beforeIncoming.projects,
++            "Incoming edit changed another task or project")
++  try check(await local.receiveTaskEdit(peerEdit), "Repeated incoming delivery")
++  try check(local.workspace == afterIncoming, "Repeated delivery rewrote workspace")
++  let task = try required(afterIncoming.tasks.first { $0.id == fixture.taskID }, "Imported task")
++  try check(task.title == peerEdit.text.title && task.completed && task.position == 1,
++            "Incoming edit changed completion or position, or imported the wrong text")
++  try check(await local.saveTaskEdit(localEdit), local.saveError ?? "Save competing local edit")
++  let pending = try required(local.workspace, "Snapshot with pending conflict")
++  let review = try required(pending.taskConflict(for: fixture.taskID), "Find durable conflict")
++  try check(pending.schema == 2, "Conflict must upgrade the workspace schema")
++  try check(pending.tasks == afterIncoming.tasks && pending.outbox == afterIncoming.outbox,
++            "Queueing a conflict changed a task or the outbox")
++  try check(pending.drafts == beforeIncoming.drafts && pending.restoration == beforeIncoming.restoration,
++            "Peer delivery or conflict storage changed the entry draft")
++  let title = try required(review.conflicts.first { $0.field == .title }, "Missing title conflict")
++  try check(title.local == "Inspect valve today" && title.incoming == "Inspect valve after shutdown",
++            "Incorrect conflict values or title normalization")
++  return PendingReplay(edit: localEdit, review: review, workspace: pending)
++}
++
++@MainActor
++private func resolve(
++  _ fixture: Fixture, pending: PendingReplay, decisions: [TaskTextField: TaskConflictChoice],
++  expectedTitle: String, expectedResponsible: String, shouldEnqueue: Bool,
++  exerciseStaleReview: Bool = false
++) async throws -> Workspace {
++  let model = try await open(fixture.localDirectory)
++  try check(model.workspace == pending.workspace, "Cold reopen changed pending conflict state")
++  let review = try required(model.workspace?.taskConflict(for: fixture.taskID), "Cold reopen review")
++  try check(review == pending.review && model.editTask(fixture.taskID) != nil,
++            "Cold editor could not rediscover the persisted review")
++  try check(!(await model.resolveTaskConflict(review, choosing: [:])), "Incomplete choices resolved")
++  try check(model.workspace == pending.workspace, "Incomplete choices changed the workspace")
++  if exerciseStaleReview {
++    let peer = try await open(fixture.peerDirectory)
++    var newerEdit = try required(peer.editTask(fixture.taskID), "Reopen the peer's ordinary editor")
++    newerEdit.text.title = "Inspect valve next week"
++    try check(await peer.saveTaskEdit(newerEdit), "Second peer save")
++    newerEdit.text = try required(peer.editTask(fixture.taskID), "Second committed peer version").base
++    try check(await model.receiveTaskEdit(newerEdit), "Second peer delivery during review")
++    let afterDelivery = model.workspace
++    try check(afterDelivery?.outbox == pending.workspace.outbox, "New peer delivery changed the outbox")
++    try check(!(await model.resolveTaskConflict(review, choosing: decisions)), "Stale review resolved")
++    try check(model.workspace == afterDelivery, "Stale review changed the workspace")
++    let refreshed = model.workspace?.taskConflict(for: fixture.taskID)
++    try check(refreshed?.conflicts.first?.incoming == "Inspect valve next week",
++              "Review did not refresh to the latest incoming value")
++  }
++
++  let before = try required(model.workspace, "Snapshot before resolution")
++  let current = try required(before.taskConflict(for: fixture.taskID), "Refresh review")
++  try check(await model.resolveTaskConflict(current, choosing: decisions), model.saveError ?? "Resolve")
++  let resolved = try required(model.workspace, "Snapshot after resolution")
++  let task = try required(resolved.tasks.first { $0.id == fixture.taskID }, "Resolved task")
++  try check(task.title == expectedTitle && task.responsible == expectedResponsible,
++            "Resolution kept the wrong title or assignee")
++  try check(task.completed && task.position == 1 && task.projectID == fixture.projectID,
++            "Resolution changed completion, ordering or project ownership")
++  try check(resolved.taskConflict(for: fixture.taskID) == nil && resolved.revision == before.revision + 1,
++            "Resolution did not atomically consume the review")
++  try check(resolved.tasks.filter { $0.id != fixture.taskID } == before.tasks.filter { $0.id != fixture.taskID }
++              && resolved.tasks.contains { $0.id == fixture.otherTaskID },
++            "Resolution changed an unrelated task")
++  try check(resolved.drafts == before.drafts && resolved.restoration == before.restoration,
++            "Resolution changed the draft or workspace restoration")
++  if shouldEnqueue {
++    try check(resolved.outbox.count == before.outbox.count + 1
++                && Array(resolved.outbox.dropLast()) == before.outbox
++                && resolved.outbox.last?.recordID == fixture.taskID
++                && resolved.outbox.last?.kind == .taskSaved
++                && resolved.outbox.last?.revision == resolved.revision,
++              "Local text change did not append exactly one task save")
++  } else {
++    try check(resolved.outbox == before.outbox, "Accepting current text added an outbox item")
++  }
++  try check(await model.resolveTaskConflict(current, choosing: decisions), "Repeated resolution")
++  try check(model.workspace == resolved, "Repeated resolution rewrote workspace or outbox")
++  try check(await model.saveTaskEdit(pending.edit), "Repeated original save")
++  try check(model.workspace == resolved, "Repeated original save reopened a resolved conflict")
++  return resolved
++}
++
++@MainActor
++private func replayWhileNewConflictIsPending(
++  _ completed: TaskConflictReview, fixture: Fixture, model: WorkspaceModel
++) async throws {
++  let peer = try await open(fixture.peerDirectory)
++  var localEdit = try required(model.editTask(fixture.taskID), "Open a new local edit")
++  var peerEdit = try required(peer.editTask(fixture.taskID), "Open a new peer edit")
++  try check(localEdit.base == peerEdit.base, "Both replicas should hold the accepted peer version")
++  localEdit.text.title = "Inspect from the walkway"
++  peerEdit.text.title = "Inspect from the platform"
++  try check(await peer.saveTaskEdit(peerEdit), "Save another peer edit")
++  peerEdit.text = try required(peer.editTask(fixture.taskID), "Read the new committed peer text").base
++  try check(await model.receiveTaskEdit(peerEdit), "Deliver another peer edit")
++  try check(await model.saveTaskEdit(localEdit), "Save new local conflict")
++  let snapshot = try required(model.workspace, "Snapshot with a different pending conflict")
++  let pending = try required(snapshot.taskConflict(for: fixture.taskID), "Different pending review")
++  try check(pending.editID != completed.editID, "Expected a different conflict identity")
++  try check(await model.resolveTaskConflict(completed, choosing: [.title: .incoming]),
++            "Retry of completed review failed while another conflict was pending")
++  try check(model.workspace == snapshot, "Retry of completed review changed the new pending conflict")
++}
++
++@main
++struct TaskConflictReplay {
++  @MainActor static func main() async {
++    do {
++      let root = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
++      for example in ["local", "incoming", "mixed", "incoming-only"] {
++        let fixture = try await seed(root.appendingPathComponent(example))
++        let localResponsible = switch example {
++        case "incoming", "mixed": ""
++        default: nil as String?
++        }
++        let peerResponsible = switch example {
++        case "local": "Peer crew"
++        case "mixed": "Unassigned"
++        default: nil as String?
++        }
++        let pending = try await makeConflict(fixture, localResponsible: localResponsible, peerResponsible: peerResponsible)
++        let decisions: [TaskTextField: TaskConflictChoice] = switch example {
++        case "local": [.title: .local]
++        case "mixed": [.title: .local, .responsible: .incoming]
++        default: [.title: .incoming]
++        }
++        try check(pending.review.conflicts.map(\.field) == (example == "mixed" ? [.title, .responsible] : [.title]),
++                  "Independent changes were classified as conflicts")
++        if example == "mixed" {
++          let assignee = pending.review.conflicts[1]
++          try check(assignee.local.isEmpty && assignee.incoming == "Unassigned",
++                    "Wrong responsible-person values in review")
++        }
++        let resolved = try await resolve(
++          fixture, pending: pending, decisions: decisions,
++          expectedTitle: ["local", "mixed"].contains(example) ? "Inspect valve today" : "Inspect valve after shutdown",
++          expectedResponsible: peerResponsible ?? localResponsible ?? "Crew",
++          shouldEnqueue: example != "incoming-only", exerciseStaleReview: example == "mixed")
++        let reopened = try await open(fixture.localDirectory)
++        try check(reopened.workspace == resolved, "Cold reopen changed resolved task or outbox")
++        try check(await reopened.resolveTaskConflict(pending.review, choosing: decisions), "Resolve replay after reopen")
++        try check(reopened.workspace == resolved, "Resolve replay after reopen rewrote data")
++        try check(await reopened.saveTaskEdit(pending.edit), "Save replay after reopen")
++        try check(reopened.workspace == resolved, "Save replay after reopen reopened a resolved conflict")
++        if example == "incoming-only" {
++          try await replayWhileNewConflictIsPending(pending.review, fixture: fixture, model: reopened)
++          print("PASS completed resolve replay while another conflict is pending")
++        }
++        print("PASS \(example): peer save, open-editor conflict, cold review, resolution, duplicate save/resolve, cold result")
++      }
++      try check(SavedTaskEditor.whitespaceDescription(" ") == "Space"
++                  && SavedTaskEditor.whitespaceDescription("  ") == "Space, Space"
++                  && SavedTaskEditor.whitespaceDescription("\t") == "Tab"
++                  && SavedTaskEditor.whitespaceDescription("Unassigned") == nil,
++                "Conflict value display did not distinguish invisible assignees")
++      print("PASS conflict value display distinguishes one space, two spaces, tab and literal text")
++    } catch {
++      FileHandle.standardError.write(Data("FAIL \(error)\n".utf8))
++      exit(1)
++    }
++  }
++}
+diff --git a/verification/host/replay-task-conflict.py b/verification/host/replay-task-conflict.py
+new file mode 100644
+index 0000000..8732e02
+--- /dev/null
++++ b/verification/host/replay-task-conflict.py
+@@ -0,0 +1,82 @@
++"""Build and replay the ordinary saved-task editor on macOS, without SDK resolution."""
++
++import errno
++import os
++from pathlib import Path
++import shlex
++import signal
++import subprocess
++import sys
++
++
++def run(command, source, env):
++    print(f"\n$ {shlex.join(map(str, command))}", flush=True)
++    child = subprocess.Popen(
++        command, cwd=source, env=env, start_new_session=True,
++        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
++    )
++    print(f"started pid/pgid={child.pid}", flush=True)
++    timed_out = False
++    try:
++        output, _ = child.communicate(timeout=40)
++    except subprocess.TimeoutExpired:
++        timed_out = True
++        try:
++            os.killpg(child.pid, signal.SIGKILL)
++        except ProcessLookupError:
++            pass
++        output, _ = child.communicate(timeout=5)
++    finally:
++        child.stdout.close()
++    print(output, end="", flush=True)
++    try:
++        os.killpg(child.pid, 0)
++    except OSError as error:
++        if error.errno != errno.ESRCH:
++            raise
++    else:
++        raise RuntimeError(f"Process group still present, pid/pgid={child.pid}")
++    print(f"exit={child.returncode} reaped=true group_absent=true output_eof=true", flush=True)
++    if timed_out:
++        raise SystemExit("Command exceeded its deadline.")
++    if child.returncode:
++        raise SystemExit(child.returncode)
++
++
++def main():
++    if sys.platform != "darwin" or len(sys.argv) != 2:
++        raise SystemExit("Usage on macOS: python3 verification/host/replay-task-conflict.py NEW_SCRATCH_PATH")
++    source = Path(__file__).resolve().parents[2]
++    scratch = Path(sys.argv[1]).resolve()
++    scratch.mkdir()
++    temporary = scratch / "tmp"
++    temporary.mkdir()
++    env = {**os.environ, "TMPDIR": str(temporary) + "/"}
++    swiftc = ["swiftc", "-swift-version", "6", "-module-cache-path", scratch / "module-cache"]
++
++    def library(name, *dependencies):
++        run([
++            *swiftc, "-emit-library", "-emit-module", "-module-name", name,
++            "-emit-module-path", scratch / f"{name}.swiftmodule",
++            "-I", scratch, "-L", scratch, *dependencies,
++            "-Xlinker", "-install_name", "-Xlinker", f"@rpath/lib{name}.dylib",
++            "-o", scratch / f"lib{name}.dylib", *sorted((source / "Sources" / name).glob("*.swift")),
++        ], source, env)
++
++    run(["swiftc", "--version"], source, env)
++    run(["plutil", "-lint", "ios/FieldLog.xcodeproj/project.pbxproj"], source, env)
++    run(["swiftc", "-frontend", "-parse", "ios/FieldLog/ProjectDetail.swift"], source, env)
++    library("FieldLogModels")
++    library("FieldLogStorage", "-lFieldLogModels")
++    executable = scratch / "TaskConflictReplay"
++    run([
++        *swiftc, "-I", scratch, "-L", scratch, "-lFieldLogModels", "-lFieldLogStorage",
++        "-Xlinker", "-rpath", "-Xlinker", scratch, "-o", executable,
++        "ios/FieldLog/WorkspaceModel.swift", "ios/FieldLog/SavedTaskEditor.swift",
++        "verification/host/TaskConflictReplay.swift",
++    ], source, env)
++    run([executable, scratch / "workspaces"], source, env)
++
++
++if __name__ == "__main__":
++    main()

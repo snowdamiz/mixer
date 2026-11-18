@@ -1,0 +1,85 @@
+{
+  "platform": "macOS 27.0.1 arm64",
+  "fieldlog": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "sourceTree": "8f3797522b9cbb4e359f63cc1a70cb7e7e074ced",
+  "tools": "Swift 6.4.2, Python 3.14.8 and SQLite 3.53.4",
+  "patches": {
+    "fieldlog-task-conflict.patch": "89533e6972772c787ff0ba53d6b55eb40e42cbe6e6005f00dd0a3113a0a0a6fd",
+    "fieldlog-saved-task-sync.patch": "4978dd9f2c524d7870fdb1039b18d34f9eb8edfcaee31671ac8cbec146cf3ef8"
+  },
+  "replay": "tests/integration/fieldlog-task-sync/README.md",
+  "rootLog": "verification/local/fieldlog-task-sync-check.ekW399uH/proof.log",
+  "rootLogSHA256": "78d819e72a48141e35785a964df658488b511de3d270a78970cd129b01314abb",
+  "result": {
+    "http": [
+      [
+        "GET",
+        401
+      ],
+      [
+        "GET",
+        404
+      ],
+      [
+        "GET",
+        200
+      ],
+      [
+        "GET",
+        200
+      ],
+      [
+        "POST",
+        201
+      ],
+      [
+        "POST",
+        409
+      ],
+      [
+        "GET",
+        200
+      ],
+      [
+        "POST",
+        201
+      ],
+      [
+        "POST",
+        200
+      ],
+      [
+        "POST",
+        201
+      ],
+      [
+        "GET",
+        200
+      ],
+      [
+        "GET",
+        200
+      ],
+      [
+        "POST",
+        200
+      ],
+      [
+        "POST",
+        409
+      ]
+    ],
+    "taskVersion": 4,
+    "taskEvents": 3,
+    "finalText": {
+      "responsible": "Later offline assignee",
+      "title": "Inspect valve today"
+    },
+    "unrelatedOutbox": 7
+  },
+  "observed": "Both editors saved conflicting changes offline. The resolution retained the local title and peer assignee. Replaying the lost receipt preserved a subsequent edit and seven unrelated outbox rows. The replicas converged.",
+  "producerReport": "/Users/andreyyurlov/.t3/userdata/fieldlog-saved-replica.ib5QlV7d/delivery/RECEIPT.md",
+  "producerReportSHA256": "bfde0dbdf38e8566b4937b42c078792caea77322f5a473cd1febad533cf99af2",
+  "regressions": 13,
+  "limits": "Explicit sync using the ordinary editor model and local bearer-token sessions. Mobile conflict UI and background synchronization are unverified."
+}
