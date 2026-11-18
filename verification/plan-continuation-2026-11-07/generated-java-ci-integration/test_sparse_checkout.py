@@ -150,9 +150,9 @@ def require_coverage(paths, selected):
 
 
 class SparseControls(unittest.TestCase):
-    def assert_current_source(self, authority, inputs, root=None):
+    def assert_current_source(self, authority, inputs, root=None, binding=SOURCE_BINDING):
         root = B.ROOT if root is None else root
-        source = json.loads((root / SOURCE_BINDING).read_bytes(),
+        source = json.loads((root / binding).read_bytes(),
                             object_pairs_hook=current_module.unique_object)['source']
         self.assertEqual(source['manifest'], 'current-source-inputs.json')
         self.assertEqual((len(inputs), authority.source_digest(inputs)),
@@ -208,12 +208,13 @@ class SparseControls(unittest.TestCase):
             B.SOURCE_AUTHORITY)
         adopter = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(adopter)
-        binding, selected, prior = adopter.admit()
+        binding, _, prior = adopter.admit()
+        predecessor_authority, _ = adopter.load_predecessor()
+        history = predecessor_authority.load(
+            predecessor_authority.HERE / 'historical-inputs.json')
         with tempfile.TemporaryDirectory(prefix='historical-proposal-', dir=HERE) as td:
             predecessor = Path(td) / 'source127'
             result = adopter.prepare_predecessor(predecessor)
-            history = json.loads((selected_root / SOURCE_BINDING.parent /
-                                  'historical-inputs.json').read_bytes())
             for name, expected in history.items():
                 raw = (predecessor / name).read_bytes()
                 self.assertEqual({'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}, expected)
@@ -239,7 +240,7 @@ class SparseControls(unittest.TestCase):
                 patterns = proposal_patterns((HERE / 'workflow-proposal.yml').read_text())
                 a = B.canonical()
                 inputs = B.admit_source_inputs(a, a.load_profile())
-                self.assert_current_source(a, inputs)
+                self.assert_current_source(a, inputs, predecessor, historical_binding)
                 require_coverage(inputs, git_selected(list(inputs), patterns))
 
 

@@ -78,7 +78,10 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
             _ ->
               repo.rollback(:authorization_unavailable)
           end
-        end, timeout: max(1, deadline - System.monotonic_time(:millisecond)), queue: false)
+        end,
+        timeout: max(1, deadline - System.monotonic_time(:millisecond)),
+        queue: false
+      )
     else
       {:error, reason} -> {:error, reason}
       _ -> {:error, :permission_denied}
