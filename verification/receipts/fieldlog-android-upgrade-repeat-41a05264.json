@@ -1,0 +1,72 @@
+{
+  "platform": "Android API 36 arm64",
+  "sourceRevision": "9a00bf2187",
+  "status": "incomplete",
+  "apkSHA256": {
+    "prior": "7c37fe4615835e5bb24d0ba5f47189fc2e0d860e1cafd4e4640139dd8e2ef0de",
+    "later": "9fdabb9db42d7482686f1f16fd88869a01792acefd3f442abba8363469644063"
+  },
+  "priorSuccessfulReceipt": "verification/receipts/fieldlog-android-installed-upgrade-runtime-41a05264.json",
+  "attempts": [
+    {
+      "raw": "verification/local/fieldlog-native-upgrade-root.mgBnQgBg/run.json",
+      "sha256": "2b41511314b2f8553f147bbc855746c09771ea92b3843c0c8e5d339ae1d5e7a4",
+      "driverSHA256": "113b0e169f4420ffcf55a1d6ec7a2e24157df261e2b6599e6583a031956b18b5",
+      "firstFailure": {
+        "stage": "admission",
+        "error": "AssertionError()"
+      },
+      "cleanup": {
+        "errors": [],
+        "reusablePorts": [],
+        "removedOwnedScratch": true
+      },
+      "owners": {}
+    },
+    {
+      "raw": "verification/local/fieldlog-native-upgrade-r2.P0ZpItmB/run.json",
+      "sha256": "fe074268758b82c7cc0fd91b23bf661256deaae73121b7031d930b624d2babda",
+      "driverSHA256": "c837088422e1fda9e75431f47f1fdede06f55b6484310324e8b95e7d82736e2c",
+      "firstFailure": {
+        "stage": "create_task_and_photo_draft",
+        "error": "TimeoutExpired(['/opt/homebrew/share/android-commandlinetools/platform-tools/adb', '-H', '127.0.0.1', '-P', '27423', '-t', '1', 'shell', '-T', 'uiautomator dump /data/local/tmp/fieldlog-upgrade-3d64e6c276d3.xml'], 15)"
+      },
+      "cleanup": {
+        "errors": [],
+        "reusablePorts": [
+          5650,
+          5651,
+          27423
+        ],
+        "removedOwnedScratch": true
+      },
+      "owners": {
+        "private-adb": "terminal",
+        "emulator": "terminal"
+      }
+    },
+    {
+      "raw": "verification/local/fieldlog-native-upgrade-r3.Wa9v4RTQ/run.json",
+      "sha256": "dd3b76a15366e6a9707cedd280dcb6cc4635a5cc7c914f8a66b376774cb77e44",
+      "driverSHA256": "e887fc03db174b58be1a390be1bad954a161514d6a4d77130de0d325967d55e0",
+      "firstFailure": {
+        "stage": "install_prior",
+        "error": "TimeoutExpired(['/opt/homebrew/share/android-commandlinetools/platform-tools/adb', '-H', '127.0.0.1', '-P', '27423', '-t', '1', 'install', '--no-incremental', '/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-android-in-place-41a05264/prior.apk'], 90)"
+      },
+      "cleanup": {
+        "errors": [],
+        "reusablePorts": [
+          5650,
+          5651,
+          27423
+        ],
+        "removedOwnedScratch": true
+      },
+      "owners": {
+        "private-adb": "terminal",
+        "emulator": "terminal"
+      }
+    }
+  ],
+  "limits": "The first attempt stopped at host signer output parsing. The next attempts stopped at a hierarchy dump and APK install. Neither new emulator reached replacement. The earlier same-pair receipt covers replacement with a draft created from the empty Entries form."
+}

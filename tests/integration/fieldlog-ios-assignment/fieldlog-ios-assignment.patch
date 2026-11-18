@@ -1,0 +1,518 @@
+diff --git a/Sources/FieldLogFeatures/AssignmentNotification.swift b/Sources/FieldLogFeatures/AssignmentNotification.swift
+new file mode 100644
+index 0000000..9c96999
+--- /dev/null
++++ b/Sources/FieldLogFeatures/AssignmentNotification.swift
+@@ -0,0 +1,60 @@
++import FieldLogModels
++import Foundation
++
++public struct AssignmentNotification: Sendable, Equatable {
++  public let workspaceID: UUID
++  public let projectID: UUID
++  public let taskID: UUID
++
++  public init(workspaceID: UUID, projectID: UUID, taskID: UUID) {
++    self.workspaceID = workspaceID
++    self.projectID = projectID
++    self.taskID = taskID
++  }
++
++  public init?(userInfo: [AnyHashable: Any]) {
++    guard userInfo["kind"] as? String == "fieldlog.task-assignment",
++      let workspace = userInfo["workspaceID"] as? String, let workspaceID = UUID(uuidString: workspace),
++      let project = userInfo["projectID"] as? String, let projectID = UUID(uuidString: project),
++      let task = userInfo["taskID"] as? String, let taskID = UUID(uuidString: task)
++    else { return nil }
++    self.init(workspaceID: workspaceID, projectID: projectID, taskID: taskID)
++  }
++
++  public var userInfo: [String: String] {
++    [
++      "kind": "fieldlog.task-assignment", "workspaceID": workspaceID.uuidString,
++      "projectID": projectID.uuidString, "taskID": taskID.uuidString,
++    ]
++  }
++}
++
++public enum AssignmentDestination: Equatable, Sendable {
++  case task(Project, WorkTask)
++  case unavailable
++}
++
++#if canImport(Combine)
++import Combine
++
++@MainActor public final class AssignmentNotificationRouter: ObservableObject {
++  @Published private var pending: AssignmentNotification?
++
++  public init() {}
++
++  public func receive(_ notification: AssignmentNotification) {
++    pending = notification
++  }
++
++  public func destination(in workspace: Workspace?, loading: Bool) -> AssignmentDestination? {
++    guard let pending, !loading else { return nil }
++    guard let workspace, workspace.id == pending.workspaceID,
++      let project = workspace.projects.first(where: { $0.id == pending.projectID }),
++      let task = workspace.tasks.first(where: { $0.id == pending.taskID && $0.projectID == project.id })
++    else { return .unavailable }
++    return .task(project, task)
++  }
++
++  public func close() { pending = nil }
++}
++#endif
+diff --git a/Tests/FieldLogTests/AssignmentNotificationTests.swift b/Tests/FieldLogTests/AssignmentNotificationTests.swift
+new file mode 100644
+index 0000000..6c77952
+--- /dev/null
++++ b/Tests/FieldLogTests/AssignmentNotificationTests.swift
+@@ -0,0 +1,132 @@
++#if canImport(SwiftUI)
++import CryptoKit
++import FieldLogFeatures
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerUI
++import Testing
++
++@Suite @MainActor struct AssignmentNotificationTests {
++  @Test func warmTapReturnsToUnsavedTaskEditor() async throws {
++    try await withWorkspace { _, repository, committed, route in
++      let editor = try TaskEditorAppleFieldsHost { _, _ in
++        Issue.record("Opening or closing an assignment must never save the editor.")
++        return .failed("Unexpected save")
++      }
++      defer { try? editor.close() }
++      let render = editor.snapshot.render
++      let title = "Unsaved title in the existing task editor"
++      editor.send(UIEventEnvelope(
++        revision: render.document.revision,
++        identity: try #require(render.identity(for: "task.title")),
++        event: .textChange, value: .string(title)))
++      #expect(editor.snapshot.state.title == title)
++      #expect(editor.eventFailure == nil)
++
++      let router = AssignmentNotificationRouter()
++      router.receive(try #require(AssignmentNotification(userInfo: route.userInfo)))
++      let workspace = await repository.snapshot()
++      #expect(router.destination(in: workspace, loading: false) ==
++        .task(try project(route, in: committed), try task(route, in: committed)))
++      router.close()
++      #expect(router.destination(in: workspace, loading: false) == nil)
++      #expect(editor.snapshot.state.title == title)
++      #expect(editor.snapshot.outcome == .editing)
++    }
++  }
++
++  @Test func coldTapWaitsForPersistedWorkspace() async throws {
++    try await withWorkspace { directory, repository, committed, route in
++      await repository.close()
++      let router = AssignmentNotificationRouter()
++      router.receive(try #require(AssignmentNotification(userInfo: route.userInfo)))
++      #expect(router.destination(in: nil, loading: true) == nil)
++
++      let reopened = try WorkspaceRepository(directory: directory)
++      let loaded = await reopened.snapshot()
++      #expect(loaded == committed)
++      #expect(router.destination(in: loaded, loading: false) ==
++        .task(try project(route, in: committed), try task(route, in: committed)))
++      router.close()
++      #expect(router.destination(in: loaded, loading: false) == nil)
++      await reopened.close()
++    }
++  }
++
++  @Test func unavailableTargetsPreserveWorkspaceAndOutboxBytes() async throws {
++    try await withWorkspace { _, repository, committed, route in
++      let otherProject = try #require(committed.projects.first { $0.id != route.projectID })
++      let invalidRoutes = [
++        AssignmentNotification(workspaceID: route.workspaceID, projectID: route.projectID, taskID: UUID()),
++        AssignmentNotification(workspaceID: UUID(), projectID: route.projectID, taskID: route.taskID),
++        AssignmentNotification(workspaceID: route.workspaceID, projectID: otherProject.id, taskID: route.taskID),
++        AssignmentNotification(workspaceID: route.workspaceID, projectID: UUID(), taskID: route.taskID),
++      ]
++      let router = AssignmentNotificationRouter()
++      for invalid in invalidRoutes {
++        router.receive(try #require(AssignmentNotification(userInfo: invalid.userInfo)))
++        let workspace = await repository.snapshot()
++        #expect(router.destination(in: workspace, loading: false) == .unavailable)
++        router.close()
++        #expect(router.destination(in: workspace, loading: false) == nil)
++      }
++      router.receive(route)
++      #expect(router.destination(in: nil, loading: false) == .unavailable)
++    }
++  }
++
++  @Test func unrelatedOrMalformedPayloadDoesNotCreateARoute() {
++    let payload = AssignmentNotification(workspaceID: UUID(), projectID: UUID(), taskID: UUID()).userInfo
++    #expect(AssignmentNotification(userInfo: payload) != nil)
++    for key in payload.keys {
++      var missing = payload
++      missing.removeValue(forKey: key)
++      #expect(AssignmentNotification(userInfo: missing) == nil)
++      var malformed = payload
++      malformed[key] = "unrelated"
++      #expect(AssignmentNotification(userInfo: malformed) == nil)
++    }
++  }
++
++  private func project(_ route: AssignmentNotification, in workspace: Workspace) throws -> Project {
++    try #require(workspace.projects.first { $0.id == route.projectID })
++  }
++
++  private func task(_ route: AssignmentNotification, in workspace: Workspace) throws -> WorkTask {
++    try #require(workspace.tasks.first { $0.id == route.taskID })
++  }
++
++  private func withWorkspace(
++    _ test: String = #function,
++    check: (URL, WorkspaceRepository, Workspace, AssignmentNotification) async throws -> Void
++  ) async throws {
++    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let repository = try WorkspaceRepository(directory: directory)
++    let firstProject = UUID()
++    let assignedProject = UUID()
++    let committed = try await repository.transact {
++      try $0.createProject(id: firstProject, title: "First site", site: "")
++      try $0.createProject(id: assignedProject, title: "Assigned site", site: "")
++      try $0.saveTask(projectID: firstProject, title: "Inspect gate", responsible: "Other person")
++      try $0.saveTask(projectID: assignedProject, title: "Inspect gate", responsible: "Avery")
++      $0.restoration.selectedProjectID = firstProject
++    }
++    let assigned = try #require(committed.tasks.first { $0.projectID == assignedProject })
++    let route = AssignmentNotification(
++      workspaceID: committed.id, projectID: assignedProject, taskID: assigned.id)
++    let snapshot = directory.appendingPathComponent("workspace.json")
++    let before = try Data(contentsOf: snapshot)
++    #expect(committed.outbox.count == 4)
++
++    try await check(directory, repository, committed, route)
++
++    let after = try Data(contentsOf: snapshot)
++    #expect(after == before)
++    #expect(await repository.snapshot().outbox == committed.outbox)
++    print("\(test): workspace snapshot before \(SHA256.hash(data: before)), after \(SHA256.hash(data: after)), revision \(committed.revision), outbox \(committed.outbox.count)")
++    await repository.close()
++  }
++}
++#endif
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index 72e6363..8b5de8b 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -12,10 +12,10 @@
+   A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = FieldLog; productName = FieldLog; productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023, A00000000000000000000026); };
+   A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; }; name = Debug; };
+   A00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
+-  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034); sourceTree = "<group>"; };
++  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034,A00000000000000000000035); sourceTree = "<group>"; };
+   A00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FieldLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+   A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014, A00000000000000000000015); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044,A00000000000000000000045); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+@@ -32,11 +32,13 @@
+   A00000000000000000000032 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
+   A00000000000000000000033 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDetail.swift; sourceTree = "<group>"; };
+   A00000000000000000000034 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryEditor.swift; sourceTree = "<group>"; };
++  A00000000000000000000035 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssignmentNotificationPresentation.swift; sourceTree = "<group>"; };
+   A00000000000000000000040 = { isa = PBXBuildFile; fileRef = A00000000000000000000030; };
+   A00000000000000000000041 = { isa = PBXBuildFile; fileRef = A00000000000000000000031; };
+   A00000000000000000000042 = { isa = PBXBuildFile; fileRef = A00000000000000000000032; };
+   A00000000000000000000043 = { isa = PBXBuildFile; fileRef = A00000000000000000000033; };
+   A00000000000000000000044 = { isa = PBXBuildFile; fileRef = A00000000000000000000034; };
++  A00000000000000000000045 = { isa = PBXBuildFile; fileRef = A00000000000000000000035; };
+ 
+   B00000000000000000000001 = { isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000004; buildPhases = (B00000000000000000000005,B00000000000000000000006,B00000000000000000000007); buildRules = (); dependencies = (B00000000000000000000008); name = FieldLogUITests; productName = FieldLogUITests; productReference = B00000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
+   B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009); sourceTree = "<group>"; };
+diff --git a/ios/FieldLog/AssignmentNotificationPresentation.swift b/ios/FieldLog/AssignmentNotificationPresentation.swift
+new file mode 100644
+index 0000000..5ca5b33
+--- /dev/null
++++ b/ios/FieldLog/AssignmentNotificationPresentation.swift
+@@ -0,0 +1,125 @@
++import FieldLogFeatures
++import SwiftUI
++
++struct AssignmentNotificationPresentation: View {
++  @ObservedObject var router: AssignmentNotificationRouter
++  @EnvironmentObject private var model: WorkspaceModel
++  @Environment(\.scenePhase) private var scenePhase
++
++  var body: some View {
++    AssignmentWindowPresenter(
++      destination: router.destination(in: model.workspace, loading: model.loading),
++      active: scenePhase == .active,
++      close: router.close
++    )
++  }
++}
++
++private struct AssignmentWindowPresenter: UIViewRepresentable {
++  let destination: AssignmentDestination?
++  let active: Bool
++  let close: () -> Void
++
++  func makeUIView(context: Context) -> Anchor {
++    let anchor = Anchor()
++    anchor.isUserInteractionEnabled = false
++    return anchor
++  }
++
++  func updateUIView(_ anchor: Anchor, context: Context) {
++    anchor.update(destination: destination, active: active, close: close)
++  }
++
++  static func dismantleUIView(_ anchor: Anchor, coordinator: ()) {
++    anchor.dismiss()
++  }
++
++  // The workspace window keeps its navigation stack, sheets and unsaved editor
++  // alive while the assignment is open.
++  final class Anchor: UIView {
++    private var assignmentWindow: UIWindow?
++    private var destination: AssignmentDestination?
++    private var shownDestination: AssignmentDestination?
++    private var active = false
++    private var close: (() -> Void)?
++
++    func update(destination: AssignmentDestination?, active: Bool, close: @escaping () -> Void) {
++      self.destination = destination
++      self.active = active
++      self.close = close
++      presentIfReady()
++    }
++
++    override func didMoveToWindow() {
++      super.didMoveToWindow()
++      if window == nil {
++        dismiss()
++      } else {
++        presentIfReady()
++      }
++    }
++
++    private func presentIfReady() {
++      guard let destination else {
++        dismiss()
++        return
++      }
++      guard active, let scene = window?.windowScene, let close else { return }
++      guard destination != shownDestination else { return }
++      let controller = UIHostingController(
++        rootView: AssignedTaskView(destination: destination, close: close).tint(FieldStyle.green))
++      controller.view.accessibilityViewIsModal = true
++      let overlay = assignmentWindow ?? UIWindow(windowScene: scene)
++      overlay.windowLevel = .normal + 1
++      overlay.rootViewController = controller
++      assignmentWindow = overlay
++      shownDestination = destination
++      overlay.makeKeyAndVisible()
++    }
++
++    func dismiss() {
++      guard let overlay = assignmentWindow else { return }
++      let wasKey = overlay.isKeyWindow
++      overlay.isHidden = true
++      overlay.rootViewController = nil
++      assignmentWindow = nil
++      shownDestination = nil
++      if wasKey { window?.makeKey() }
++    }
++  }
++}
++
++private struct AssignedTaskView: View {
++  let destination: AssignmentDestination
++  let close: () -> Void
++
++  var body: some View {
++    NavigationStack {
++      Group {
++        switch destination {
++        case .task(let project, let task):
++          List {
++            Section(project.title) {
++              Text(task.title).font(.headline)
++              if !task.responsible.isEmpty {
++                LabeledContent("Responsible", value: task.responsible)
++              }
++              LabeledContent("Status", value: task.completed ? "Complete" : "Open")
++            }
++          }
++        case .unavailable:
++          ContentUnavailableView(
++            "Assignment unavailable", systemImage: "checklist",
++            description: Text("This task could not be found in the current workspace."))
++        }
++      }
++      .navigationTitle("Assigned task")
++      .navigationBarTitleDisplayMode(.inline)
++      .toolbar {
++        ToolbarItem(placement: .topBarLeading) {
++          Button("Back", systemImage: "chevron.backward", action: close)
++        }
++      }
++    }
++  }
++}
+diff --git a/ios/FieldLog/FieldLogApp.swift b/ios/FieldLog/FieldLogApp.swift
+index 0770644..ab41210 100644
+--- a/ios/FieldLog/FieldLogApp.swift
++++ b/ios/FieldLog/FieldLogApp.swift
+@@ -1,11 +1,18 @@
++import FieldLogFeatures
+ import SwiftUI
++import UserNotifications
+ 
+ @main struct FieldLogApp: App {
++  @UIApplicationDelegateAdaptor(FieldLogAppDelegate.self) private var delegate
+   @StateObject private var model = WorkspaceModel()
+   @Environment(\.scenePhase) private var scenePhase
+   var body: some Scene {
+     WindowGroup {
+-      WorkspaceView().environmentObject(model).tint(FieldStyle.green).task { await model.open() }
++      WorkspaceView()
++        .background {
++          AssignmentNotificationPresentation(router: delegate.assignments)
++        }
++        .environmentObject(model).tint(FieldStyle.green).task { await model.open() }
+         .onChange(of: scenePhase) { _, phase in
+           if phase == .background {
+             let token = UIApplication.shared.beginBackgroundTask(withName: "Save FieldLog drafts")
+@@ -19,6 +26,60 @@ import SwiftUI
+   }
+ }
+ 
++@MainActor final class FieldLogAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
++  let assignments = AssignmentNotificationRouter()
++
++  func application(
++    _ application: UIApplication,
++    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
++  ) -> Bool {
++    UNUserNotificationCenter.current().delegate = self
++    return true
++  }
++
++  nonisolated func userNotificationCenter(
++    _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse
++  ) async {
++    guard response.actionIdentifier == UNNotificationDefaultActionIdentifier,
++      let notification = AssignmentNotification(userInfo: response.notification.request.content.userInfo)
++    else { return }
++    await openAssignment(notification)
++  }
++
++  private func openAssignment(_ notification: AssignmentNotification) {
++    assignments.receive(notification)
++  }
++
++  nonisolated func userNotificationCenter(
++    _ center: UNUserNotificationCenter, willPresent notification: UNNotification
++  ) async -> UNNotificationPresentationOptions {
++    [.banner, .list]
++  }
++}
++
++#if DEBUG
++@MainActor enum LocalAssignmentNotification {
++  static func post(_ notification: AssignmentNotification) async throws {
++    let center = UNUserNotificationCenter.current()
++    guard try await center.requestAuthorization(options: [.alert]) else {
++      throw LocalAssignmentNotificationError.permissionDenied
++    }
++    let content = UNMutableNotificationContent()
++    content.title = "FieldLog assignment"
++    content.body = "Open the assigned task."
++    content.userInfo = notification.userInfo
++    try await center.add(UNNotificationRequest(
++      identifier: UUID().uuidString, content: content, trigger: nil))
++  }
++}
++
++private enum LocalAssignmentNotificationError: LocalizedError {
++  case permissionDenied
++
++  var errorDescription: String? { "Allow FieldLog notifications in Settings to post a test assignment." }
++}
++#endif
++
+ enum FieldStyle {
+   // Text and system control tints need a lighter accent on dark surfaces.
+   static let green = Color(uiColor: UIColor { traits in
+diff --git a/ios/FieldLog/ProjectDetail.swift b/ios/FieldLog/ProjectDetail.swift
+index 181fa99..52339a1 100644
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -11,6 +11,9 @@ struct ProjectDetail: View {
+   let projectID: UUID
+   let onEdit: (EntryDraft) -> Void
+   @State private var addingTask = false
++  #if DEBUG
++  @State private var assignmentNotificationError: String?
++  #endif
+   @State private var sharing: ShareDocument?
+   @State private var exportError: String?
+   var body: some View {
+@@ -77,6 +80,22 @@ struct ProjectDetail: View {
+                   }
+                   .accessibilityLabel("Task options: \(task.title)")
+                 }
++                #if DEBUG
++                if !model.isTestWorkspace, !task.responsible.isEmpty {
++                  Button {
++                    let notification = AssignmentNotification(
++                      workspaceID: workspace.id, projectID: projectID, taskID: task.id)
++                    Task {
++                      do { try await LocalAssignmentNotification.post(notification) }
++                      catch { assignmentNotificationError = error.localizedDescription }
++                    }
++                  } label: {
++                    Image(systemName: "bell")
++                  }
++                  .buttonStyle(.borderless)
++                  .accessibilityLabel("Post test assignment notification for \(task.title)")
++                }
++                #endif
+               }
+             }
+             .onMove { source, destination in
+@@ -167,6 +186,16 @@ struct ProjectDetail: View {
+       }
+     }.sheet(isPresented: $addingTask) { NewTaskView(projectID: projectID) }
+       .sheet(item: $sharing) { ShareSheet(url: $0.url) }
++      #if DEBUG
++      .alert("Test notification couldn't be posted", isPresented: Binding(
++        get: { assignmentNotificationError != nil },
++        set: { if !$0 { assignmentNotificationError = nil } }
++      )) {
++        Button("OK", role: .cancel) {}
++      } message: {
++        Text(assignmentNotificationError ?? "")
++      }
++      #endif
+       .alert(
+         "Report couldn't be created",
+         isPresented: Binding(get: { exportError != nil }, set: { if !$0 { exportError = nil } })
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index a5e2950..e241606 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -250,7 +250,7 @@ private struct SettingsView: View {
+       Section("THIS BUILD") {
+         LabeledContent("Version", value: "0.1.0 · Native baseline")
+         Text(
+-          "Sign-in, team sync, camera capture, notifications, maps and purchases are not connected yet. No remote success is simulated."
++          "Sign-in, team sync, camera capture, remote notifications, maps and purchases are not connected yet. No remote success is simulated."
+         ).font(.footnote).foregroundStyle(.secondary)
+       }
+       Section("PRIVACY") {
