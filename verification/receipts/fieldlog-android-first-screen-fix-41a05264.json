@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "status": "PASS_HOST_REGRESSION_AND_SIGNED_REPLAY_PACKAGE",
+  "observedUTC": "2026-11-18T06:42:59.035467+00:00",
+  "mixerRevision": "af8bc9dc240c24816d4be2dfdc654f1c8bd3283c",
+  "mixerTree": "db616edac943c160ab1e2e67a93b491ee046bbe7",
+  "predecessor": {
+    "path": "verification/receipts/fieldlog-android-signed-first-runtime-41a05264.json",
+    "sha256": "4a3d333143ea757d9667121bab03696e74915ae9504fa2aa5e3c32560615a386"
+  },
+  "predecessorAPK_SHA256": "dfcb439d303cfed47bf50e76ddad132a3bf95d6906cb0fea3c4df7dff500ea8b",
+  "failureEvidence": {
+    "path": "verification/local/fieldlog-android-signed-root-41a05264/run.json",
+    "sha256": "3686ee83e4723f0608247531d2ac4eb0169fb951313c06f8d53e4bc5d4eb417e"
+  },
+  "diagnosis": "Android 16 dispatches child drawing directly for a backgroundless ViewGroup using PFLAG_SKIP_DRAW. The frozen TrialActivity observed only draw(), so the guest child widgets could appear without the Java witness reaching Swift.",
+  "change": "Observe child rendering after super.dispatchDraw(). Keep current-frame, visibility, two animation callbacks and native tuple validation. Log a native display refusal with its status.",
+  "androidFrameworkSource": "https://github.com/aosp-mirror/platform_frameworks_base/blob/android-16.0.0_r1/core/java/android/view/View.java#L23926-L23938",
+  "candidateJava": {
+    "path": "capability-activation/verification/fieldlog-android/TrialActivity.java",
+    "sha256": "79d8464825301c44ff2e735d2a2564e4e58be50226e9d793eac76d073f2489ce"
+  },
+  "packagingDriver": {
+    "path": "capability-activation/verification/fieldlog-android/replay-first-screen-package.py",
+    "sha256": "9ee6846f28a730b9faa91a077b12c213e02f625922e58f79b82a8c3f192b052e"
+  },
+  "command": "python3 -B capability-activation/verification/fieldlog-android/replay-first-screen-package.py fieldlog-android-first-screen-package2-41a05264 verification/local/fieldlog-android-first-screen-fix-41a05264/baseline/TrialActivity.java",
+  "regression": {
+    "model": "JVM with Android child-only draw dispatch leaf, exact TrialActivity classes compiled against API 36, and a JNI witness recorder.",
+    "before": {
+      "path": "verification/local/fieldlog-android-first-screen-package2-41a05264/logs/regression-before.stderr",
+      "sha256": "48c4d46f85737dc8bf1af72d4b6d6708d6c369336da18c83b615335e9c2768e7"
+    },
+    "after": {
+      "path": "verification/local/fieldlog-android-first-screen-package2-41a05264/logs/regression-after.stdout",
+      "sha256": "b0654378e76af912459ddaec631ad19c7eeab4439412ef34875019459dce38cd"
+    },
+    "cases": [
+      "child-only draw",
+      "two distinct callbacks",
+      "lost focus",
+      "deduplication",
+      "current input",
+      "replaced frame",
+      "native refusal"
+    ]
+  },
+  "apk": {
+    "path": "verification/local/fieldlog-android-first-screen-package2-41a05264/fieldlog-signed-trial.apk",
+    "sha256": "8f612e0a52a37b7553876fbb3e0d1729b8b2fc022db3055ccd6bbe7e754e0586",
+    "bytes": 136694814,
+    "certificateSHA256": "c12eae97e54d83c64909978fe0a8ce93cf0c729be1effdfc2ee363ebfa406d4a",
+    "testedPackage": "dev.mixer.fieldlog.signedtrial",
+    "activity": "dev.mixer.fieldlog.signedtrial.TrialActivity",
+    "freshInstallRequired": true,
+    "changedPayloadEntries": [
+      "classes.dex"
+    ],
+    "unchangedPayloadEntries": 38,
+    "removedOldSigningEntries": [
+      "META-INF/FIELDLOG.RSA",
+      "META-INF/FIELDLOG.SF",
+      "META-INF/MANIFEST.MF"
+    ],
+    "nativeEngineSHA256": "7cb9c5573fa47d31aec6f951b3a6773373dfa5f5cae7c8ef418826853f4aef76",
+    "verifiedV3": true,
+    "zipalign16KiB": true,
+    "badgingAndPermissionsMatchPredecessor": true
+  },
+  "details": {
+    "path": "verification/local/fieldlog-android-first-screen-package2-41a05264/receipt.json",
+    "sha256": "02f8537f301d2d31c3b3a68a754d3e5f443ff02285bf59f3e031dfd22a011b3b"
+  },
+  "validationScope": "DEX-only replay preserves the frozen Android runtime binary and byte-identical OTA guests, signed assignments, synthetic runtime identity and trust material. The runtime identity remains the frozen fixture identity. The ephemeral APK signer is separate. Host coverage models platform drawing dispatch and JNI calls. Root owns API 36 presentation and lifecycle replay.",
+  "deviceUsed": false,
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}

@@ -1,0 +1,66 @@
+{
+  "status": "baseline_and_review_passed_rollback_action_failed",
+  "build": "verification/receipts/fieldlog-android-first-screen-fix-41a05264.json",
+  "apkSHA256": "8f612e0a52a37b7553876fbb3e0d1729b8b2fc022db3055ccd6bbe7e754e0586",
+  "runtime": {
+    "ro.build.fingerprint": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+    "ro.build.version.sdk": "36",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.boot.qemu.avd_name": "fieldlog_signed_41a05264b"
+  },
+  "command": "JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home python3 -B verification/local/fieldlog-android-signed-root-41a05264b/run.py",
+  "evidence": {
+    "verification/local/fieldlog-android-signed-root-41a05264b/run.py": "93dfbd808a74730557b0ef630d6c001fce06c335828f3cde1fc8334973140159",
+    "verification/local/fieldlog-android-signed-root-41a05264b/run.json": "5bb7cf76e9d46ed3c7dd5acf33e5a6345593cf977f7d9cb92ad3ef911d8e010c"
+  },
+  "nativeUI": {
+    "completed-1-0": [
+      "HEALTHY cycle=1 candidate=c5b5c09867242505f17cfc4fd26fe8c91783619ec21a979947a7093805e6af3e sequence=1",
+      "Inspect pump",
+      "Completed",
+      "Reopen task"
+    ],
+    "review-0": [
+      "HEALTHY cycle=2 candidate=7f4c50df947d56bde380c75d00887015c6ff36fead0f4e4874a57a4bf35ee744 sequence=2",
+      "Inspect pump",
+      "Review required",
+      "Confirm completion"
+    ],
+    "completed-2-0": [
+      "HEALTHY cycle=2 candidate=7f4c50df947d56bde380c75d00887015c6ff36fead0f4e4874a57a4bf35ee744 sequence=2",
+      "Inspect pump",
+      "Completed",
+      "Reopen task"
+    ],
+    "rollbackBeforeTap": [
+      "HEALTHY cycle=3 candidate=b524605fd40c296faefa694b7c3e4a9ead05541de5f97459a9228db38515d2c0 sequence=3",
+      "Inspect pump",
+      "Open",
+      "Complete task"
+    ],
+    "rollbackAfterTap": [
+      "HEALTHY cycle=3 candidate=b524605fd40c296faefa694b7c3e4a9ead05541de5f97459a9228db38515d2c0 sequence=3",
+      "Install baseline",
+      "Install reviewed release",
+      "Rollback to baseline",
+      "Interrupt reviewed download",
+      "Reopen offline",
+      "Close guest"
+    ]
+  },
+  "appLog": "--------- beginning of main\n11-18 01:48:35.905  2306  2306 I FieldLogSignedTrial: HEALTHY cycle=1 candidate=c5b5c09867242505f17cfc4fd26fe8c91783619ec21a979947a7093805e6af3e sequence=1\n11-18 01:48:47.921  2306  2306 I FieldLogSignedTrial: HEALTHY cycle=2 candidate=7f4c50df947d56bde380c75d00887015c6ff36fead0f4e4874a57a4bf35ee744 sequence=2\n11-18 01:49:05.006  2306  2306 I FieldLogSignedTrial: HEALTHY cycle=3 candidate=b524605fd40c296faefa694b7c3e4a9ead05541de5f97459a9228db38515d2c0 sequence=3",
+  "failure": "RuntimeError(\"Missing Reopen task; visible ['', '', '', '', '', 'HEALTHY cycle=3 candidate=b524605fd40c296faefa694b7c3e4a9ead05541de5f97459a9228db38515d2c0 sequence=3', 'Install baseline', 'Install reviewed release', 'Rollback to baseline', 'Interrupt reviewed download', 'Reopen offline', 'Close guest']\")",
+  "cleanup": {
+    "privateInstanceRemoved": true,
+    "reboundPorts": [
+      5676,
+      5677,
+      60821
+    ],
+    "groupAbsence": {
+      "private-adb": true,
+      "emulator": true
+    }
+  },
+  "scope": "The installed fixture used bundled signed Android-scoped envelopes in a single app process. The newer rollback reached native first-screen health. Its task action did not finish visibly and the test stopped before interrupted download or offline process reopen."
+}
