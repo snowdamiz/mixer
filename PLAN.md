@@ -16,6 +16,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+A hosted Android job exceeded its two-minute bootstrap limit after both test suites printed OK. The same checks now have four minutes. All 90 bootstrap checks and 32 sparse-checkout checks passed on the local CI projection. Normal and optimized Python admitted the same 150 inputs after the workflow change. Hosted qualification is pending. [CI repair evidence](verification/receipts/android-bootstrap-ci-budget-41a05264.json)
+
 On iOS 27, ordinary FieldLog completed all 16 signed-checklist checkpoints through sequence 5. One wake timed out after the task edit had committed (50.130 ms elapsed, 0.488 ms thread CPU). FieldLog showed the saved Completed status and reopened it once without duplicating the edit. During the service outage, a cold launch preserved the saved task and the same 2,112-byte partial download. Reconnect replayed 2,048 bytes of the prefix, completed the download, and preserved the task. Final rollback passed. Both mobile apps still need their joint native run against one origin. [Simulator evidence](verification/receipts/fieldlog-ios-signed-checklist-complete-41a05264.json)
 
 The optimized macOS VM passed all 44 capability guest, mailbox and public FFI tests. The replay closed a timed-out guest turn, discarded work from a trapping turn, and released pending native delivery only after its lease conditions were met. Simulator and emulator timing remain outside this host test. [VM test receipt](verification/receipts/vm-capability-turn-controls-41a05264.json)
