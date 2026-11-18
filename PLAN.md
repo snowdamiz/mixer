@@ -14,6 +14,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+On API 36 a first signed FieldLog release survived force-stop after staging and before its first guest launch. After shutdown of both service listeners, the new process rendered the saved completed task on its first frame. Workspace and outbox bytes matched throughout. This run used the development Activity on the corrected core. [Cold first release](verification/receipts/fieldlog-android-first-release-staged-offline-41a05264.json).
+
 The hosted API now recovers the same browser session after a refused pool checkout before BEGIN. An ambiguous database transaction still closes access. The 15 PostgreSQL tests passed. Source admission passed for all 389 hosted inputs and the 141 native inputs in both Python modes. [Session recovery](verification/receipts/l07-recovery-v33-41a05264.json).
 
 On the combined build tree, a free authenticated client downloaded the app, symbols and inventory after worker shutdown. A separate signer verified the attestation. In a second build, cancellation returned 202 while Xcode was running and released capacity once the worker confirmed termination. The local store CLI candidate reconciled a lost acknowledgement on both platforms with one durable submission each. [Native build](verification/receipts/l05-combined-native-build-41a05264.json) · [Store fixtures](verification/receipts/l05-local-submission-reconciliation-41a05264.json).
