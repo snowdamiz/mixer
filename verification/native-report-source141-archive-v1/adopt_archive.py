@@ -203,7 +203,13 @@ ICU_NOTICE_TEST = 'cli/build-tests/test_android_runtime_notices.py'
 ICU_NOTICE_CHANGES = {
     ICU_NOTICE_DRIVER, ICU_NOTICE_TEST, 'THIRD_PARTY.yml', JAVA + 'test_sparse_checkout.py',
 }
+HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
+SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
+HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
+HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_sparse_checkout.py'}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+    HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
+} | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
     RUNTIME_NOTICE_WITNESS_PREFIX + name for name in RUNTIME_NOTICE_WITNESS_CHANGES
@@ -327,7 +333,8 @@ def install_inputs():
                              'pair24_transition', 'cancel_cli_transition', 'hydration_transition',
                              'hosted_v33_workflow', 'local_store_transition', 'workspace_builds_workflow',
                              'public_update_transition', 'runtime_notice_witness_transition',
-                             'release_inspector_transition', 'icu_notice_transition', 'console_build_logs_workflow'} and
+                             'release_inspector_transition', 'icu_notice_transition',
+                             'console_build_logs_workflow', 'halt_cli_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -606,10 +613,9 @@ def install_inputs():
             require(expected_source[name] == change['before'], 'ICU notice source preimage differs: ' + name)
             expected_source[name] = change['after']
         installed[name] = change['after']
-    require(current == expected_source and len(current) == 150 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json',
-        'sha256': icu['sourceAfter'],
-    } and icu['sourceAfter'] == previous.digest(current), 'ICU notice source transition differs')
+    require(len(expected_source) == 150 and
+            previous.digest(expected_source) == icu['sourceAfter'] == SOURCE150_SHA256,
+            'ICU notice source transition differs')
 
     console_workflow = binding['console_build_logs_workflow']
     before = read_predecessor_member(HERE / CONSOLE_BUILD_LOGS_WORKFLOW)
@@ -618,7 +624,30 @@ def install_inputs():
             console_workflow['before'] != console_workflow['after'], 'Console build logs workflow preimage differs')
     installed[VERIFY_WORKFLOW] = console_workflow['after']
 
+    halt = binding['halt_cli_transition']
+    require(set(halt) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            halt['sourceBefore'] == SOURCE150_SHA256 and
+            set(halt['changes']) == HALT_CLI_CHANGES, 'Halt CLI predecessor or change roster differs')
+    for name, change in halt['changes'].items():
+        raw = read_predecessor_member(HERE / HALT_CLI_PREFIX / name)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['before'] != change['after'] and
+                type(change['mode']) is int and change['mode'] == 0o644,
+                'Halt CLI owner row differs: ' + name)
+        if name in HALT_CLI_SOURCE_CHANGES:
+            require(expected_source[name] == change['before'], 'Halt CLI source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+    require(current == expected_source and len(current) == 150 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json',
+        'sha256': halt['sourceAfter'],
+    } and halt['sourceAfter'] == previous.digest(current), 'Halt CLI source transition differs')
+
     previous.check_rows(ROOT, installed)
+    for name, change in halt['changes'].items():
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
+                'Installed halt CLI owner mode differs: ' + name)
     for name, change in icu['changes'].items():
         require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
                 'Installed ICU notice owner mode differs: ' + name)
@@ -710,6 +739,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_source150_sha256': binding['halt_cli_transition']['sourceBefore'],
             'predecessor_icu_notice_sha256': binding['icu_notice_transition']['sourceBefore'],
             'predecessor_release_inspector_sha256': binding['release_inspector_transition']['sourceBefore'],
             'predecessor_runtime_notice_witness_sha256': binding['runtime_notice_witness_transition']['sourceBefore'],

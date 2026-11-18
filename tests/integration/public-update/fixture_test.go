@@ -58,6 +58,8 @@ func TestSignInputs(t *testing.T) {
 	sign(first.Manifest, "shrink", 3, 500)
 	replaced := sign(second.Manifest, "publish-second", 3, 10000)
 	sign(first.Manifest, "rollback", 4, 10000)
+	sign(first.Manifest, "halt", 5, 0)
+	sign(first.Manifest, "resume", 6, 2500)
 	installation := map[string]string{}
 	for i := 0; i < 1000 && len(installation) < 3; i++ {
 		id := fmt.Sprintf("install-%d", i)

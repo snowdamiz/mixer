@@ -1,0 +1,585 @@
+{
+  "observedUTC": "2026-11-18T19:30:14.361158+00:00",
+  "base": "fad0d0b3e65fd3be3b49675601693e5d91999fbe",
+  "scope": "Public Swift CLI, signed v3 assignment, synthetic operator health, and local file/PostgreSQL stores. The restore uses a new database in the same disposable cluster with the same provisioned roles.",
+  "sources": [
+    {
+      "path": "cli/Sources/MixerBuild/LocalUpdateRelease.swift",
+      "sha256": "e651ed18ffc368e6b72795847199a5f7deef1c7f5237d498cd323bd7853d1b3b"
+    },
+    {
+      "path": "cli/Sources/MixerCLI/main.swift",
+      "sha256": "7cd8842eb45d6abf8b0a3d1d0f0aa9ea9cf18efeb04dd357c91cc7b4dced174e"
+    },
+    {
+      "path": "services/release/rollout.go",
+      "sha256": "e3fa1c9174e7ee39f341735c9706a7d4ee88da48249e1e2c0467907df6ccc88c"
+    },
+    {
+      "path": "tests/integration/public-update/fixture_test.go",
+      "sha256": "b8336592413fee3a492ab0f626a181de42443a9f1485df11dcf036c56e5c48e0"
+    },
+    {
+      "path": "tests/integration/public-update/replay.py",
+      "sha256": "afd8b67df3bde7eac1aa773d2425cc560d05c414d841bea4aa1580d2b6c09d13"
+    }
+  ],
+  "cliSHA256": "9a21ad41a4b4d142bbae263d5d1f9705d6f6fc2f5b6353e9c1095d4159883a6b",
+  "rootOriginSHA256": "d4c01fea6bddb2901d6a0a4bf73a53e22df44c172f47395aecc553b4765ceb51",
+  "rootSignerSHA256": "06b192db88e7248f684a011367cd171aa6a38de83ba57862e1aa81dde419b0c0",
+  "tools": {
+    "Swift": "Apple Swift 6.4.2",
+    "Go": "1.26.4",
+    "Python": "3.14.8",
+    "PostgreSQL": "17.11"
+  },
+  "runs": [
+    {
+      "name": "predecessor-postgres",
+      "observations": 59,
+      "raw": {
+        "path": "verification/local/public-halt-cli.j8lcYzwO/previous-actions.json",
+        "sha256": "0e530a0079b22dc841b14a41955ae7a7fcb26d3235778af09fcb9e203aa71513"
+      },
+      "originCleanup": [
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 62867,
+          "pid": 46879,
+          "returncode": 0
+        },
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 62867,
+          "pid": 47523,
+          "returncode": 0
+        }
+      ],
+      "postgresCleanup": [
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "pid": 46637,
+          "pidfile_gone": true,
+          "returncode": 0,
+          "socket_closed": true,
+          "socket_directory": "/tmp/mixer-l05-4mklsabk",
+          "socket_directory_removed": true
+        }
+      ]
+    },
+    {
+      "name": "file",
+      "observations": 67,
+      "raw": {
+        "path": "verification/local/public-update-halt-fixture.yEWksSuE/file-store-replay.json",
+        "sha256": "e6cc5266da8c180350a11379f1e1e3f54a792f3f1ab0c829895f3e91d359b31d"
+      },
+      "originCleanup": [
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 63673,
+          "pid": 54207,
+          "returncode": 0
+        },
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 63673,
+          "pid": 54393,
+          "returncode": 0
+        },
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 63673,
+          "pid": 54469,
+          "returncode": 0
+        }
+      ],
+      "postgresCleanup": null,
+      "halt": {
+        "action": "halt",
+        "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+        "delivery": "local_only",
+        "health": {
+          "activated": 3,
+          "adverse_signals": 1,
+          "pending": 2,
+          "sequence": 4
+        },
+        "rollout_basis_points": 0,
+        "sequence": 5,
+        "status": "ok"
+      },
+      "audit": {
+        "channel_change": {
+          "channel": "production",
+          "current": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 0,
+            "sequence": 5
+          },
+          "previous": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 10000,
+            "sequence": 4
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        },
+        "hash": "193a6399b66204562c34f8f01df047fe03a46fee0de5d829068a047c8fd4164c",
+        "id": 9,
+        "rollout_halt": {
+          "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+          "channel": "production",
+          "halt_sequence": 5,
+          "health": {
+            "activated": 3,
+            "adverse_signals": 1,
+            "pending": 2,
+            "sequence": 4
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        }
+      },
+      "afterResume": {
+        "early": 200,
+        "expansion": 200,
+        "outside": 204
+      },
+      "resumeAudit": {
+        "channel_change": {
+          "channel": "production",
+          "current": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 2500,
+            "sequence": 6
+          },
+          "previous": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 0,
+            "sequence": 5
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        },
+        "hash": "43d42c855403a13cd8296222e4e78a8523182e40832e51b4a65809398fe820e3",
+        "id": 10
+      },
+      "stale": {
+        "code": "update.halt.rejected",
+        "message": "Local v3 origin returned HTTP 409 (stale_rollout).",
+        "status": "error"
+      },
+      "alteredRetry": {
+        "code": "update.halt.rejected",
+        "message": "Local v3 origin returned HTTP 409 (stale_rollout).",
+        "status": "error"
+      }
+    },
+    {
+      "name": "postgres",
+      "observations": 73,
+      "raw": {
+        "path": "verification/local/public-update-halt-fixture.yEWksSuE/postgres-replay.json",
+        "sha256": "3f333d4ceecbe20b70c894bb4898cfa79e3897c56021db0c3791b7d821e1eb2b"
+      },
+      "originCleanup": [
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 63672,
+          "pid": 54564,
+          "returncode": 0
+        },
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 63672,
+          "pid": 54813,
+          "returncode": 0
+        },
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 63672,
+          "pid": 54912,
+          "returncode": 0
+        }
+      ],
+      "postgresCleanup": [
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "pid": 54519,
+          "pidfile_gone": true,
+          "returncode": 0,
+          "socket_closed": true,
+          "socket_directory": "/tmp/mixer-l05-roanfqyc",
+          "socket_directory_removed": true
+        }
+      ],
+      "halt": {
+        "action": "halt",
+        "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+        "delivery": "local_only",
+        "health": {
+          "activated": 3,
+          "adverse_signals": 1,
+          "pending": 2,
+          "sequence": 4
+        },
+        "rollout_basis_points": 0,
+        "sequence": 5,
+        "status": "ok"
+      },
+      "audit": {
+        "channel_change": {
+          "channel": "production",
+          "current": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 0,
+            "sequence": 5
+          },
+          "previous": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 10000,
+            "sequence": 4
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        },
+        "hash": "e9fd0052589f84d1bc49f706c529b724744559c350f84fec79dd805033405ed3",
+        "id": 9,
+        "rollout_halt": {
+          "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+          "channel": "production",
+          "halt_sequence": 5,
+          "health": {
+            "activated": 3,
+            "adverse_signals": 1,
+            "pending": 2,
+            "sequence": 4
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        }
+      },
+      "afterResume": {
+        "early": 200,
+        "expansion": 200,
+        "outside": 204
+      },
+      "resumeAudit": {
+        "channel_change": {
+          "channel": "production",
+          "current": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 2500,
+            "sequence": 6
+          },
+          "previous": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 0,
+            "sequence": 5
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        },
+        "hash": "dc8a936eb2b690730d1b84457c4b352a04365a3be980084f94f5919b66d0ee84",
+        "id": 10
+      },
+      "stale": {
+        "code": "update.halt.rejected",
+        "message": "Local v3 origin returned HTTP 409 (stale_rollout).",
+        "status": "error"
+      },
+      "alteredRetry": {
+        "code": "update.halt.rejected",
+        "message": "Local v3 origin returned HTTP 409 (stale_rollout).",
+        "status": "error"
+      }
+    },
+    {
+      "name": "postgres-restore",
+      "observations": 76,
+      "raw": {
+        "path": "verification/local/public-halt-cli.j8lcYzwO/restore-promote.json",
+        "sha256": "483354f514db82fd9a49c4b49ebe7e06fb612c8e2bdc64028f8264d6bee2e3af"
+      },
+      "originCleanup": [
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 49817,
+          "pid": 26429,
+          "returncode": 0
+        },
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 49817,
+          "pid": 27526,
+          "returncode": 0
+        },
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 49817,
+          "pid": 27828,
+          "returncode": 0
+        },
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "listener_closed": true,
+          "listener_port": 49817,
+          "pid": 28591,
+          "returncode": 0
+        }
+      ],
+      "postgresCleanup": [
+        {
+          "direct_child_reaped": true,
+          "forced_shutdown": false,
+          "group_gone": true,
+          "pid": 25984,
+          "pidfile_gone": true,
+          "returncode": 0,
+          "socket_closed": true,
+          "socket_directory": "/tmp/mixer-l05-in2shn_p",
+          "socket_directory_removed": true
+        }
+      ],
+      "halt": {
+        "action": "halt",
+        "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+        "delivery": "local_only",
+        "health": {
+          "activated": 3,
+          "adverse_signals": 1,
+          "pending": 2,
+          "sequence": 4
+        },
+        "rollout_basis_points": 0,
+        "sequence": 5,
+        "status": "ok"
+      },
+      "audit": {
+        "channel_change": {
+          "channel": "production",
+          "current": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 0,
+            "sequence": 5
+          },
+          "previous": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 10000,
+            "sequence": 4
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        },
+        "hash": "62bb856406eb18300b726f8f63f8d6bfaf8bdf0bff9b5de1b7abe957bc93e20d",
+        "id": 9,
+        "rollout_halt": {
+          "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+          "channel": "production",
+          "halt_sequence": 5,
+          "health": {
+            "activated": 3,
+            "adverse_signals": 1,
+            "pending": 2,
+            "sequence": 4
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        }
+      },
+      "afterResume": {
+        "early": 200,
+        "expansion": 200,
+        "outside": 204
+      },
+      "resumeAudit": {
+        "channel_change": {
+          "channel": "production",
+          "current": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 2500,
+            "sequence": 6
+          },
+          "previous": {
+            "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+            "rollout_basis_points": 0,
+            "sequence": 5
+          },
+          "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+          "scope": {
+            "app": "fieldlog",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a"
+          }
+        },
+        "hash": "3fc5ef1029ec7d65b057099074d4b608cbc9f0c82700a8e1ec992a76cf21280d",
+        "id": 10
+      },
+      "stale": {
+        "code": "update.halt.rejected",
+        "message": "Local v3 origin returned HTTP 409 (stale_rollout).",
+        "status": "error"
+      },
+      "alteredRetry": {
+        "code": "update.halt.rejected",
+        "message": "Local v3 origin returned HTTP 409 (stale_rollout).",
+        "status": "error"
+      },
+      "restored": {
+        "archive_sha256": "6f16f1fce45f452034d99e0b007e6e23bb5f3926ec00bcc6ad55f9213cd46e2d",
+        "identical_retry": true,
+        "offers": {
+          "early": {
+            "http": 204
+          },
+          "expansion": {
+            "http": 204
+          },
+          "outside": {
+            "http": 204
+          }
+        },
+        "restored_promotion_offer": {
+          "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+          "artifact_url": "/v3/artifacts/1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a?organization=org-a&project=project-a",
+          "http": 200,
+          "offer_sha256": "53a0ffe7ad4684b94affc26ee7d5b74ac457376bcf06ea013185222bd355007a",
+          "payload_sha256": "e447657110d8157df3e8350553ffd6cd7386a52bd4c0f813ac10f2e71d51a4e9",
+          "rollout_basis_points": 2500,
+          "sequence": 6,
+          "signed_assignment_sha256": "e9720a492563a153b617db011cb2ea91c010b1402fb22a82c02f5af5182b5c08",
+          "signed_manifest_sha256": "ebd71b85848d9404b218e2e8a6a724d9607ed4818aa5aea7d967037422185139"
+        },
+        "restored_sequence": 5,
+        "source_sequence": 6
+      },
+      "restoredReceipt": {
+        "action": "halt",
+        "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+        "delivery": "local_only",
+        "health": {
+          "activated": 3,
+          "adverse_signals": 1,
+          "pending": 2,
+          "sequence": 4
+        },
+        "rollout_basis_points": 0,
+        "sequence": 5,
+        "status": "ok"
+      }
+    }
+  ],
+  "review": {
+    "outcome": "Scoped pass for CLI",
+    "invalidInputRefusals": 20,
+    "invalidResponsesRefused": 12,
+    "stableTransportRetry": true,
+    "fullUInt64RangeObserved": true
+  },
+  "paymentServicesOrCredentials": false,
+  "deviceOperations": 0,
+  "sourceAdmission": {
+    "raw": "verification/local/public-halt-source150.426BWc8O/receipt.json",
+    "sha256": "4250005e264943dd8930b08af6622f88bab87f8ed7007d6ef0ee2576968db9c0",
+    "nativeSources": 150,
+    "hostedSources": 394,
+    "sparseTestsPerMode": 16,
+    "bootstrapTestsPerMode": 45,
+    "modes": [
+      "default",
+      "optimized"
+    ],
+    "historicalHostedTrees": 35,
+    "rootSourceDigest": "f976a477e9a59363355650ecd79a2daf2847df627701de587781ede562577d21"
+  }
+}

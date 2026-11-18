@@ -192,9 +192,12 @@ jobs:
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
           mkdir -p "$MIXER_ADOPTION_DIR/logs"
-          python3 -B "$GITHUB_WORKSPACE/verification/native-report-source141-archive-v1/adopt_archive.py" verify --workflow-installed \
+          python3 -I -B -S "$GITHUB_WORKSPACE/verification/native-report-source141-archive-v1/adopt_archive.py" verify --workflow-installed \
             > "$MIXER_ADOPTION_DIR/logs/preflight.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/preflight.stderr"
+          python3 -I -B -S -O "$GITHUB_WORKSPACE/verification/native-report-source141-archive-v1/adopt_archive.py" verify --workflow-installed \
+            > "$MIXER_ADOPTION_DIR/logs/preflight-optimized.stdout" \
+            2> "$MIXER_ADOPTION_DIR/logs/preflight-optimized.stderr"
       - name: Guarded envelope and prospective compiler adoption controls
         timeout-minutes: 3
         shell: bash

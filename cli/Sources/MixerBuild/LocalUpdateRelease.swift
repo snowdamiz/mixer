@@ -3,7 +3,7 @@ import MixerUpdates
 
 package enum LocalUpdateRelease {
     package enum Action: String, Encodable {
-        case publish, promote, rollback
+        case publish, promote, rollback, halt
     }
 
     package struct Receipt: Encodable {
@@ -13,9 +13,10 @@ package enum LocalUpdateRelease {
         let sequence: UInt64
         let rolloutBasisPoints: UInt64
         let delivery: String
+        var health: [String: UInt64]?
 
         enum CodingKeys: String, CodingKey {
-            case status, action, sequence, delivery
+            case status, action, sequence, delivery, health
             case artifactSHA256 = "artifact_sha256"
             case rolloutBasisPoints = "rollout_basis_points"
         }
@@ -86,6 +87,31 @@ package enum LocalUpdateRelease {
             guard validation.artifactSHA256 == artifact, validation.protocolValid == true else { throw invalidResponse("validate") }
         }
 
+        if let file = options.health {
+            guard rollout == 0 else {
+                throw MixerFailure("update.intent", "Halt requires a signed zero-percent assignment.")
+            }
+            let bytes = try read(file, maximum: 4096)
+            guard let sample = try? StrictJSON.decode([String: UInt64].self, from: bytes, maximumBytes: 4096),
+                  Set(sample.keys) == ["sequence", "activated", "pending", "adverse_signals"],
+                  let observed = sample["sequence"], observed > 0, observed < sequence,
+                  let adverse = sample["adverse_signals"], adverse > 0 else {
+                throw MixerFailure("update.health", "Supply a health sample for an earlier positive sequence with activated, pending and positive adverse_signals counts.")
+            }
+            let body = Data("{\"health\":".utf8) + (try JSONFile.data(sample))
+                + Data(",\"signed_assignment\":".utf8) + signedAssignment + Data("}".utf8)
+            let response: CanonicalValue = try await client.send(
+                "POST", base + "/channels/" + channel + "/halt", stage: "halt", body: body)
+            let expected: CanonicalValue = .object([
+                "scope": .object(scope), "runtime": .text(runtime), "channel": .text(channel),
+                "artifact_sha256": .text(artifact), "halt_sequence": .uint(sequence),
+                "health": .object(sample.mapValues(CanonicalValue.uint)),
+            ])
+            guard response == expected else { throw invalidResponse("halt") }
+            return Receipt(action: action, artifactSHA256: artifact, sequence: sequence,
+                           rolloutBasisPoints: rollout, delivery: "local_only", health: sample)
+        }
+
         let result: ChannelResponse = try await client.send(
             "POST", base + "/channels/" + channel + "/" + action.rawValue,
             stage: action.rawValue, body: assignmentBody, reason: options.reason)
@@ -102,6 +128,7 @@ package enum LocalUpdateRelease {
         let organization: String
         let project: String
         let assignment: URL
+        let health: URL?
         let channel: String?
         let rollout: UInt64?
         let reason: String?
@@ -112,6 +139,7 @@ package enum LocalUpdateRelease {
             case .publish: ["--channel", "--rollout"]
             case .promote: ["--rollout"]
             case .rollback: ["--reason"]
+            case .halt: ["--health", "--channel"]
             }
             let required = common.union(specific)
             let allowed = required.union(["--channel"])
@@ -135,6 +163,7 @@ package enum LocalUpdateRelease {
             organization = org
             self.project = project
             self.assignment = fileURL(assignment)
+            health = values["--health"].map(fileURL)
             channel = values["--channel"]
             if let channel, !validID(channel) { throw usage }
             if let percent = values["--rollout"] {
@@ -244,6 +273,7 @@ package enum LocalUpdateRelease {
         enum Code: String, Decodable {
             case unauthenticated, scope_denied, role_denied, protocol_mismatch, unknown_runtime
             case invalid_json, artifact_invalid, digest_mismatch, immutable_conflict, not_validated
+            case invalid_health, invalid_halt, stale_rollout
             case assignment_rejected, invalid_promotion, invalid_rollback, idempotency_conflict
             case storage_unavailable, local_capacity, rate_limit, concurrency_limit, not_found
         }

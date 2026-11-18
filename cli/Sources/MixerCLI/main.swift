@@ -65,6 +65,8 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
     --organization ORG --project PROJECT --assignment FILE
   mixer update rollback ARTIFACT_SHA256 --reason REASON [--channel NAME]
     --organization ORG --project PROJECT --assignment FILE
+  mixer update halt ARTIFACT_SHA256 --channel NAME --health SAMPLE
+    --organization ORG --project PROJECT --assignment FILE
     CANDIDATE contains signed-manifest.json and payload.wasm. FILE is a signed v3 assignment.
     Use MIXER_RELEASE_ORIGIN=http://127.0.0.1:PORT and MIXER_RELEASE_TOKEN.
   mixer submit status --provider app-store-connect --build-id BUILD_ID --app-id ASC_APP_ID

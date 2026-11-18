@@ -1,4 +1,4 @@
-# Publish, promote, and roll back a local update
+# Manage a local signed update
 
 Use a trusted release service on this machine. Set `MIXER_RELEASE_ORIGIN`
 to `http://127.0.0.1:PORT` and load a scoped publisher bearer into
@@ -37,8 +37,36 @@ stages can remain in storage. The channel changes only when the service commits
 the assignment. Use the v3 public offer endpoint to check the current channel
 for an eligible installation.
 
+## Halt an unhealthy rollout
+
+Record the release sequence you observed and the installation counts at the
+time of the failure. For example, this sample describes one installation that
+activated sequence 2, one still pending, and one adverse signal.
+
+```json
+{"sequence": 2, "activated": 1, "pending": 1, "adverse_signals": 1}
+```
+
+Save the sample as `health.json`. Ask the assignment signer for a newer
+zero-percent assignment for the **same artifact, runtime and channel**.
+Use the active artifact’s SHA-256 for `$artifact_sha256` and the same organization
+and project as the publish command.
+
+```sh
+mixer update halt "$artifact_sha256" --channel production --health ./health.json \
+  --organization org-a --project project-a --assignment ./halt.json
+```
+
+The receipt echoes the sample and the signed halt sequence. A stale sample
+leaves the current rollout in place. After a successful halt, new update
+checks for that rollout return HTTP 204. Installed clients can reopen their
+healthy release offline, and previously issued offers retain their signed
+authorization. To resume delivery, promote with a newer signed assignment.
+
+## Resolve an interrupted command
+
 If the outcome is uncertain, repeat the command against the same origin with
-the same signed file bytes, payload, options, rollback reason, and publisher
+the same signed file bytes, payload, options, health counts, rollback reason, and publisher
 identity. Keep the signed files byte-for-byte intact. Each stage derives its
 idempotency key from its method, route, request bytes, and reason. If the service
 already committed a stage, it returns the recorded response. A successful

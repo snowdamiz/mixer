@@ -27,7 +27,11 @@ parser.add_argument("service", type=lambda value: Path(value).resolve())
 parser.add_argument("signer", type=lambda value: Path(value).resolve())
 parser.add_argument("evidence", type=Path)
 parser.add_argument("--postgres", action="store_true", help="use a fresh private PostgreSQL cluster")
+parser.add_argument("--restore-after-halt", action="store_true",
+                    help="restore the halted PostgreSQL backup into a second disposable database")
 args = parser.parse_args()
+if args.restore_after_halt and not args.postgres:
+    parser.error("--restore-after-halt requires --postgres")
 args.evidence = args.evidence.absolute()
 base = "/v3/orgs/org-a/projects/project-a"
 steps = {"storage_backend": "postgres" if args.postgres else "local"}
@@ -210,14 +214,19 @@ class Postgres:
     def __init__(self, sockets):
         self.sockets = sockets
         self.data = directory / "postgres-data"
+        self.database = "postgres"
         self.tools = {name: shutil.which(name) for name in ("initdb", "postgres", "psql")}
         require(all(self.tools.values()), "--postgres requires initdb, postgres and psql in PATH")
+        if args.restore_after_halt:
+            for name in ("pg_dump", "pg_restore"):
+                self.tools[name] = shutil.which(name)
+                require(self.tools[name], f"--restore-after-halt requires {name} in PATH")
         self.env = {**environment, "LC_ALL": "C", "PGCONNECT_TIMEOUT": "2",
                     "PGOPTIONS": "-c statement_timeout=5000 -c lock_timeout=5000"}
 
     def sql(self, query):
         return subprocess.run([self.tools["psql"], "-XAtq", "-w", "-v", "ON_ERROR_STOP=1",
-                               "-h", self.sockets, "-p", "5432", "-U", self.owner, "-d", "postgres",
+                               "-h", self.sockets, "-p", "5432", "-U", self.owner, "-d", self.database,
                                "-c", query], env=self.env, capture_output=True, timeout=7)
 
     def query(self, query):
@@ -226,7 +235,7 @@ class Postgres:
         return result.stdout
 
     def dsn(self, role):
-        return f"host={self.sockets} port=5432 dbname=postgres user={role} sslmode=disable"
+        return f"host={self.sockets} port=5432 dbname={self.database} user={role} sslmode=disable"
 
     def configure(self, process):
         deadline = time.monotonic() + 8
@@ -260,6 +269,19 @@ class Postgres:
             CREATE ROLE mixer_test_runtime LOGIN NOSUPERUSER NOCREATEROLE NOCREATEDB NOBYPASSRLS;
             GRANT mixer_release_runtime TO mixer_test_runtime;
         """)
+        database_environment["MIXER_FIXTURE_RUNTIME"] = self.dsn(self.runtime)
+
+    def backup_halt(self):
+        archive = directory / "halted.dump"
+        subprocess.run([self.tools["pg_dump"], "-w", "--format=custom", "--file", archive,
+                        "--dbname", self.dsn(self.owner)], env=self.env, check=True, timeout=15)
+        return archive
+
+    def restore_halt(self, archive):
+        self.query("CREATE DATABASE mixer_halt_restore TEMPLATE template0")
+        self.database = "mixer_halt_restore"
+        subprocess.run([self.tools["pg_restore"], "-w", "--single-transaction", "--exit-on-error",
+                        "--dbname", self.dsn(self.owner), archive], env=self.env, check=True, timeout=15)
         database_environment["MIXER_FIXTURE_RUNTIME"] = self.dsn(self.runtime)
 
     def snapshot(self):
@@ -326,15 +348,27 @@ def channel_transition(event, current, previous):
     require(event["channel_change"] == expected, event)
 
 
-def check_committed(db, label, sequence, artifact, rollout, count, previous, reason_text):
+def check_release_event(event, work):
+    require(event["actor"] == "local-publisher" and event["organization"] == "org-a" and
+            event["project"] == "project-a" and event["previous"] != event["current"], event)
+    require((work["event_id"], work["request_id"], work["kind"], work["status"]) ==
+            (event["id"], event["request_id"], event["action"], "pending_local_only"), work)
+
+
+def check_committed(db, label, sequence, artifact, rollout, count, previous, reason_text, *, action=None):
     audit, outbox = history()
     current = {"sequence": sequence, "artifact_sha256": artifact, "rollout_basis_points": rollout}
     event = audit[-1]
     channel_transition(event, current, previous)
-    action = "publish" if label == "publish_replacement" else label
+    action = action or label
     require((event["id"], event["actor"], event["action"], event["reason"]) ==
             (count, "local-publisher", f"POST {base}/channels/production/{action}", reason_text), event)
     require(event["source_ip"] == "127.0.0.1" and event["request_id"], event)
+    require(len(audit) == len(outbox) == count, "wrong audit or outbox count")
+    require([row["id"] for row in audit] == list(range(1, count + 1)), "audit IDs are not contiguous")
+    check_release_event(event, outbox[-1])
+    if not db:
+        return current, None
     snapshot = db.snapshot()
     require(snapshot["heads"] == [sequence], snapshot["heads"])
     expected_assignments = [(directory / f"{assignment_inputs[index]}.json").read_bytes().removesuffix(b"\n").hex()
@@ -344,8 +378,7 @@ def check_committed(db, label, sequence, artifact, rollout, count, previous, rea
     require(list(map(json.loads, snapshot["outbox"])) == outbox, "SQL outbox differs from operator readback")
     require(snapshot["tenant"] == [["org-a", "project-a", count, event["hash"], event["current"]]],
             "tenant high-water differs from the latest audit event")
-    require(len(audit) == len(outbox) == len(snapshot["idempotency"]) == count, "wrong committed row counts")
-    require([row["id"] for row in audit] == list(range(1, count + 1)), "audit IDs are not contiguous")
+    require(len(snapshot["idempotency"]) == count, "wrong committed idempotency count")
     previous_hash = ""
     for row, body in zip(audit, snapshot["audit"], strict=True):
         digest = row["hash"]
@@ -361,10 +394,16 @@ def check_committed(db, label, sequence, artifact, rollout, count, previous, rea
     return current, snapshot
 
 
-def check_receipt(label, action, digest, sequence, rollout):
-    require(steps[label] == {"status": "ok", "action": action, "artifact_sha256": digest,
-                             "sequence": sequence, "rollout_basis_points": rollout,
-                             "delivery": "local_only"}, (label, steps[label]))
+def check_receipt(label, action, digest, sequence, rollout, *, health=None):
+    expected = {"status": "ok", "action": action, "artifact_sha256": digest,
+                "sequence": sequence, "rollout_basis_points": rollout, "delivery": "local_only"}
+    if health is not None:
+        expected["health"] = health
+    require(steps[label] == expected, (label, steps[label]))
+
+
+def halted_offers():
+    return {bucket: offer(bucket) for bucket in ("early", "expansion", "outside")}
 
 
 @contextlib.contextmanager
@@ -545,7 +584,8 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
                    cwd=directory, capture_output=True, check=True, timeout=12)
     coordinates = json.loads((directory / "coordinates.json").read_text())
     first, second = coordinates["first"], coordinates["second"]
-    assignment_inputs = {1: "publish-first", 2: "promote", 3: "publish-second", 4: "rollback"}
+    assignment_inputs = {1: "publish-first", 2: "promote", 3: "publish-second", 4: "rollback",
+                         5: "halt", 6: "resume"}
     publish = command("publish", "first", "publish-first", "--channel", "production", "--rollout", "5")
     promote = command("promote", first, "promote", "--rollout", "25")
     rollback = command("rollback", first, "rollback", "--reason", reason)
@@ -582,8 +622,7 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
         steps["after_publish"] = {"early": offer("early", 1, first), "expansion": offer("expansion"),
                                   "outside": offer("outside")}
         steps["delivered_payload_sha256"] = steps["after_publish"]["early"]["payload_sha256"]
-        if db:
-            published_head, _ = check_committed(db, "publish", 1, first, 500, 3, None, development_reason)
+        published_head, _ = check_committed(db, "publish", 1, first, 500, 3, None, development_reason)
         request("/v3/artifacts/" + first + "?organization=org-a&project=foreign-project", 404)
         before_promotion = history()
         denied = call("reader_token", promote, "update.promote.rejected", role="READER")
@@ -605,8 +644,7 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
         check_receipt("promote", "promote", first, 2, 2500)
         steps["after_promote"] = {"early": offer("early", 2, first), "expansion": offer("expansion", 2, first),
                                   "outside": offer("outside")}
-        if db:
-            promoted_head, _ = check_committed(db, "promote", 2, first, 2500, 4, published_head, development_reason)
+        promoted_head, _ = check_committed(db, "promote", 2, first, 2500, 4, published_head, development_reason)
         promoted_history = history()
         denied = call("failed_promotion", command("promote", first, "shrink", "--rollout", "5"),
                       "update.promote.rejected")
@@ -618,10 +656,10 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
                                              "--rollout", "100"))
         check_receipt("publish_replacement", "publish", second, 3, 10000)
         steps["after_replacement"] = offer("outside", 3, second)
-        if db:
-            replacement_head, _ = check_committed(
-                db, "publish_replacement", 3, second, 10000, 7, promoted_head, development_reason,
-            )
+        replacement_head, _ = check_committed(
+            db, "publish_replacement", 3, second, 10000, 7, promoted_head, development_reason,
+            action="publish",
+        )
         before_rollback = history()
         call("missing_rollback_reason", rollback[:-2], "update.arguments")
         call("invalid_rollback_reason", rollback[:-1] + ["bad\nreason"], "update.reason")
@@ -637,8 +675,8 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
             steps["rollback_stage_key"] = requests[0][2]
         check_receipt("rollback", "rollback", first, 4, 10000)
         steps["after_rollback"] = offer("outside", 4, first)
-        if db:
-            _, committed = check_committed(db, "rollback", 4, first, 10000, 8, replacement_head, reason)
+        rollback_head, committed = check_committed(db, "rollback", 4, first, 10000, 8,
+                                                   replacement_head, reason)
         audit, outbox = history()
         require(len(audit) == len(outbox) == 8, (audit, outbox))
         expected_routes = [f"PUT {base}/artifacts/{first}", f"POST {base}/releases/validate",
@@ -648,10 +686,7 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
         require([event["action"] for event in audit] == expected_routes, audit)
         require([event["reason"] for event in audit] == [development_reason] * 7 + [reason], audit)
         for event, work in zip(audit, outbox, strict=True):
-            require(event["actor"] == "local-publisher" and event["organization"] == "org-a" and
-                    event["project"] == "project-a" and event["previous"] != event["current"], event)
-            require((work["event_id"], work["request_id"], work["kind"], work["status"]) ==
-                    (event["id"], event["request_id"], event["action"], "pending_local_only"), work)
+            check_release_event(event, work)
         heads = [(1, first, 500), (2, first, 2500), (3, second, 10000), (4, first, 10000)]
         previous = None
         for event, (sequence, artifact, rollout) in zip((audit[i] for i in (2, 3, 6, 7)), heads, strict=True):
@@ -683,6 +718,90 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
         if db:
             require(db.snapshot() == committed, "replay changed persisted rows, including idempotency responses")
             steps["postgres_rows_unchanged_on_restart_and_replay"] = True
+
+        health = {"sequence": 4, "activated": 3, "pending": 2, "adverse_signals": 1}
+        health_file = directory / "halt-health.json"
+        health_file.write_text(json.dumps({**health, "sequence": 3}))
+        halt = command("halt", first, "halt", "--channel", "production", "--health", health_file.name)
+        denied = call("halt_stale_health", halt, "update.halt.rejected")
+        require("HTTP 409 (stale_rollout)" in denied["message"], denied)
+
+        health_file.write_text(json.dumps(health))
+        call("halt_missing_channel", command("halt", first, "halt", "--health", health_file.name),
+             "update.arguments")
+        call("halt_nonzero_assignment", command("halt", first, "resume", "--channel", "production",
+                                                "--health", health_file.name), "update.intent")
+        require(history() == (audit, outbox), "rejected halt wrote audit or outbox")
+        require(offer("outside", 4, first) == steps["after_rollback"], "rejected halt changed the offer")
+        if db:
+            require(db.snapshot() == committed, "rejected halt changed persisted rows")
+
+        call("halt", halt)
+        check_receipt("halt", "halt", first, 5, 0, health=health)
+        halt_head, halted_snapshot = check_committed(
+            db, "halt", 5, first, 0, 9, rollback_head, development_reason,
+        )
+        halted_audit, halted_outbox = history()
+        require(halted_audit[:-1] == audit and halted_outbox[:-1] == outbox, "halt changed the history prefix")
+        expected_halt = {"scope": coordinates["scope"], "runtime": coordinates["runtime"],
+                         "channel": coordinates["channel"], "artifact_sha256": first,
+                         "halt_sequence": 5, "health": health}
+        halt_event = halted_audit[-1]
+        require(halt_event["rollout_halt"] == expected_halt, halt_event)
+        steps["halt_audit"] = {key: halt_event[key] for key in ("id", "hash", "channel_change", "rollout_halt")}
+        steps["after_halt"] = halted_offers()
+
+        call("halt_identical_retry", halt)
+        require(last_output["halt_identical_retry"] == last_output["halt"], "halt retry changed stdout")
+        health_file.write_text(json.dumps({**health, "activated": 4}))
+        denied = call("halt_altered_retry", halt, "update.halt.rejected")
+        require("HTTP 409 (stale_rollout)" in denied["message"], denied)
+        health_file.write_text(json.dumps(health))
+        require(history() == (halted_audit, halted_outbox), "halt retries changed audit or outbox")
+        if db:
+            require(db.snapshot() == halted_snapshot, "halt retries changed persisted rows")
+
+    with service():
+        steps["after_halt_restart"] = halted_offers()
+        require(steps["after_halt_restart"] == steps["after_halt"], "restart changed halted offers")
+        call("halt_retry_after_restart", halt)
+        require(last_output["halt_retry_after_restart"] == last_output["halt"], "halt replay changed stdout")
+        require(history() == (halted_audit, halted_outbox), "restart or replay changed halt history")
+        if db:
+            require(db.snapshot() == halted_snapshot, "restart or replay changed committed halt rows")
+            steps["postgres_halt_rows_unchanged_on_restart_and_replay"] = True
+            if args.restore_after_halt:
+                halted_backup = db.backup_halt()
+
+        call("promote_resume", command("promote", first, "resume", "--channel", "production", "--rollout", "25"))
+        check_receipt("promote_resume", "promote", first, 6, 2500)
+        check_committed(db, "promote_resume", 6, first, 2500, 10, halt_head, development_reason, action="promote")
+        resumed_audit, resumed_outbox = history()
+        require(resumed_audit[:-1] == halted_audit and resumed_outbox[:-1] == halted_outbox,
+                "resuming changed the halt history")
+        steps["resume_audit"] = {key: resumed_audit[-1][key] for key in ("id", "hash", "channel_change")}
+        steps["after_resume"] = {"early": offer("early", 6, first), "expansion": offer("expansion", 6, first),
+                                 "outside": offer("outside")}
+    if args.restore_after_halt:
+        require(db.snapshot()["heads"] == [6], "source database did not advance past its backup")
+        db.restore_halt(halted_backup)
+        with service():
+            require(db.snapshot() == halted_snapshot, "restored SQL rows differ from the halted backup")
+            require(halted_offers() == steps["after_halt"], "restored rollout served an offer")
+            call("restored_halt_retry", halt)
+            require(last_output["restored_halt_retry"] == last_output["halt"], "restored halt receipt changed")
+            require(db.snapshot() == halted_snapshot and history() == (halted_audit, halted_outbox),
+                    "replaying halt changed the restored database")
+            call("restored_promotion", command("promote", first, "resume", "--channel", "production", "--rollout", "25"))
+            check_receipt("restored_promotion", "promote", first, 6, 2500)
+            restored_offer = offer("early", 6, first)
+            require(restored_offer == steps["after_resume"]["early"], "restored promotion changed signed bytes")
+            check_committed(db, "restored_promotion", 6, first, 2500, 10, halt_head, development_reason, action="promote")
+            steps["restored_halt"] = {"archive_sha256": hashlib.sha256(halted_backup.read_bytes()).hexdigest(),
+                                      "source_sequence": 6, "restored_sequence": 5,
+                                      "offers": steps["after_halt"], "identical_retry": True,
+                                      "restored_promotion_offer": restored_offer}
+
     version = subprocess.run([args.mixer, "version"], cwd=directory, env=environment,
                              capture_output=True, check=True, timeout=5)
     require(json.loads(version.stdout)["detail"] == "0.1.0-dev", "existing version changed")

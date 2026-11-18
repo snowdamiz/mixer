@@ -105,7 +105,7 @@ def admission_paths(root=None, binding=None):
         dependencies.update(relative(path).as_posix() for path in declaration['changes'])
         for key in ('capability_transition', 'upgrade_transition', 'pair24_transition',
                     'cancel_cli_transition', 'local_store_transition',
-                    'release_inspector_transition', 'icu_notice_transition'):
+                    'release_inspector_transition', 'icu_notice_transition', 'halt_cli_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -452,7 +452,10 @@ class SparseControls(unittest.TestCase):
             icu = binding['icu_notice_transition']
             self.assertEqual(icu['sourceBefore'], inspector['sourceAfter'])
             self.assertEqual(observed['predecessor_icu_notice_sha256'], icu['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], icu['sourceAfter'])
+            halt = binding['halt_cli_transition']
+            self.assertEqual(observed['predecessor_source150_sha256'], icu['sourceAfter'])
+            self.assertEqual(halt['sourceBefore'], icu['sourceAfter'])
+            self.assertEqual(observed['source_sha256'], halt['sourceAfter'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
                              if name.startswith('icu-notice-predecessor-bytes/')]

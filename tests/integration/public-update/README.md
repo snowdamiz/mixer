@@ -50,6 +50,14 @@ Use `storage_backend: postgres` in `replay.json` to identify the PostgreSQL
 result. Omit `--postgres` to exercise the default local file store. Use a fresh
 output path on each run.
 
+To exercise backup recovery, add `--restore-after-halt` alongside `--postgres`
+and put the matching `pg_dump` and `pg_restore` tools on `PATH`. The replay
+backs up the halted channel at sequence 5 and promotes the source database to
+sequence 6. It restores the backup into a new database in the same disposable
+cluster, using the existing local roles. It checks the restored audit, outbox,
+assignments, idempotency receipts, and HTTP 204 offers. A fresh promotion must
+deliver the same signed assignment, manifest, and payload from that database.
+
 The PostgreSQL run uses one private Unix-socket cluster. The origin uses a
 restricted runtime login, while the fixture applies the real migration and
 reads committed rows over a separate connection. The signer exits before any
@@ -57,12 +65,24 @@ CLI operation. The CLI takes an explicit channel and percentage for publish.
 Promote takes a percentage. Promote and rollback derive an omitted channel
 from the signed assignment. Rollback requires a reason.
 
-On success the runner reaps both origin instances and PostgreSQL and removes
+Halt takes an explicit channel, the current artifact digest, a signed
+higher-sequence assignment at zero percent, and a health JSON file. The health
+file supplies the observed rollout's `sequence` and the `activated`,
+`pending`, and `adverse_signals` counts. The replay checks that stale health
+and a nonzero assignment leave the offer and history intact. A successful halt
+returns the health sample in the CLI receipt and writes one audit event and
+outbox row. An identical retry returns byte-identical stdout. Changing the
+sample after the halt is rejected without adding history. All three tested
+cohorts receive an empty HTTP 204 before and after restarting the origin.
+A later signed promotion resumes offers for the two eligible cohorts.
+
+On success the runner reaps all three origin instances and PostgreSQL and removes
 their fixture and socket directory. Build outputs and the receipt remain in
 `$run`. If a run fails, the driver prints the retained fixture location.
 `HOLD.json` identifies any process groups whose exit could not be verified.
 
 The fixture uses one synthetic iOS runtime and two test payloads. It restarts
-the Go origin while PostgreSQL stays up. The release outbox stays
+the Go origin while PostgreSQL stays up and reads the committed assignments,
+audit chain, outbox, and idempotency rows independently. The release outbox stays
 `pending_local_only`. Console, Phoenix, Oban dispatch, build artifact handoff,
 and installed app activation still need a joined local L05 run.
