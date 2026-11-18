@@ -1,0 +1,103 @@
+{
+  "observedAt": "2026-11-18T19:47:36.387646+00:00",
+  "source": {
+    "baseCommit": "b0cef0af82be3adc1a081aece41863f5c6ffd6da",
+    "compatibleHeadAtCheck": "fadb40c54351f59cbfac78f28ff362fd6981b79b",
+    "privateAppliedTree": "7c50f8822d2bdec0e8ee383ca5574aee87c21a24"
+  },
+  "tools": {
+    "Elixir": "1.20.4",
+    "OTP": "29",
+    "PostgreSQL": "17.11",
+    "Node": "22.23.3",
+    "Vite": "8.3.5",
+    "Chrome": "155.0.8059.82",
+    "Python": "3.14.8"
+  },
+  "checks": [
+    {
+      "command": "python3 -B run-proof.py source",
+      "exit": 0,
+      "observed": "Result: 1 passed",
+      "stdoutSha256": "0d7b5afc95cdbddf4042f88d3abc59b5cfa4fb9b3d4cb41646f08942c5d2e2f7",
+      "cleanup": [
+        "Owned group 10009 absent. Direct exit 0.",
+        "Owned group 9884 absent. Direct exit 0."
+      ]
+    },
+    {
+      "command": "python3 -B delivery/run-proof.py source --browser",
+      "exit": 0,
+      "observed": "Result: 1 passed",
+      "stdoutSha256": "2831adcb8fe7464f1c0364980cc49ea3303630ca73c7a84904d3a70d53764c23",
+      "cleanup": [
+        "Owned group 12886 absent. Direct exit 0.",
+        "Owned group 18451 absent. Direct exit 0.",
+        "Owned group 18438 absent. Direct exit 0.",
+        "Owned group 12937 absent. Direct exit 0.",
+        "Owned group 12870 absent. Direct exit 0."
+      ]
+    },
+    {
+      "command": "python3 -B run-proof.py source --migration",
+      "exit": 0,
+      "observed": "PASS. Closed-list migration integration.",
+      "stdoutSha256": "0952254f1eac811a8dd885f996b5f484201f01daad4eaab2f59da59f58ef2ffe",
+      "cleanup": [
+        "Owned group 72784 absent. Direct exit 0.",
+        "Owned group 72752 absent. Direct exit 0."
+      ]
+    },
+    {
+      "command": "python3 -B run-proof.py source --legacy-workspace",
+      "exit": 0,
+      "observed": "Result: 1 passed",
+      "stdoutSha256": "f5ddabcc1d7f1d134ee21bc56a957091661de733192671ee48dd2295b32e77e5",
+      "cleanup": [
+        "Owned group 6513 absent. Direct exit 0.",
+        "Owned group 6501 absent. Direct exit 0."
+      ]
+    },
+    {
+      "command": "npm --prefix source/console test -- --test-concurrency=1",
+      "exit": 0,
+      "observed": "# pass 289",
+      "stdoutSha256": "a8e8a229762febe0bf1f1d18845e86bd92d30e81c764f9180e48898670dd8c7a",
+      "cleanup": []
+    }
+  ],
+  "productObservations": [
+    "An owner with a provider-authenticated browser session can register the first application from the workspace-builds form.",
+    "A browser reload and project reselection show exactly one application.",
+    "An identical authenticated POST returns the same 201 receipt and leaves the project revision at 2.",
+    "The viewer has no registration form, and the authenticated viewer POST is forbidden.",
+    "A mismatched or hidden organization/project is refused, an incorrect CSRF token is forbidden, and the ordinary database login has no direct application INSERT privilege.",
+    "A different application ID conflicts on the populated project. The persisted application row is scoped to the expected organization and project.",
+    "Build journal, source-input and queue tables stay empty with processor profile off and Oban queues disabled.",
+    "Legacy workspace support HTTP and 289 console tests passed, including the existing retained build-log view and transport tests."
+  ],
+  "review": [
+    "The initial independent review found that the first-app constraint needed enforcement in the transaction. The private candidate now checks under the project lock.",
+    "The follow-up review passed that correction and identified the missing closed-list migration entry. The separate private inventory proposal passed the existing migration specification."
+  ],
+  "browserScope": "A localhost bridge hands off an existing synthetic provider-authenticated cookie, then the unmodified console session, CSRF and catalog transports use the Phoenix HTTP endpoint. The HTTP fixture itself exercises synthetic login.",
+  "preservation": {
+    "sharedRegistrationDraft": "All 18 shared files matched the initial SHA-256 snapshot. No shared work was staged by this task.",
+    "browserHold": "browser-custody-hold.json",
+    "sourceSelection": "Private replay only. Root retains migration inventory and source admission decisions."
+  },
+  "reviewState": "Private application-registration candidate; integration with hosted source admission pending.",
+  "custodyHold": {
+    "attempt": "headless Chrome r2",
+    "browserPidAndPgid": 77939,
+    "custody": "UNKNOWN",
+    "reason": "The driver selected an organization row with the same display name as the intended project. The browser direct child was reaped, but the process-group observer did not establish absence.",
+    "preserve": "verification/local/register-application-41a05264.1C4gXm4N/registration-run-ue684761",
+    "scope": "Preserve this exact group and scratch without inspection, probing, signalling, waiting, retry or cleanup. Phoenix, PostgreSQL, the runner and the driver belong to separate observed terminal groups. A fresh browser run does not release this hold."
+  },
+  "deliveryHashes": {
+    "register-application.patch": "861fd19e89e7f102a6ac7832842f5379a67a67333b71d4d10c8c40d2ab350d4f",
+    "proof-fixture.patch": "c4d4771c074fa0f1f1c6f8698573d523f787d6e46eda5bc37ef61ca3138dbe2b",
+    "migration-inventory-proposal.patch": "13ab3ecd9dea91bbf239a5fc94884b53dfe148df526cbb1a13d8bcb2de464067"
+  }
+}
