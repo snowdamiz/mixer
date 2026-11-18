@@ -54,11 +54,6 @@ defmodule MixerHosted.Application do
             do: MixerHosted.Billing.ProcessorProfile,
             else: MixerHosted.Builds.ProcessorProfile
 
-        admission =
-          if hosted.processor_profile == :billing_v1,
-            do: MixerHosted.Billing.ProcessorAdmission,
-            else: MixerHosted.Builds.ProcessorAdmission
-
         queue =
           if hosted.processor_profile == :billing_v1, do: :billing_reconciliation, else: :builds
 
@@ -66,9 +61,13 @@ defmodule MixerHosted.Application do
         true = hosted.create_repo == nil
         true = hosted.repo[:username] == profile.role()
 
-        true =
-          hosted.repo[:after_connect] ==
-            {admission, :after_connect, []}
+        {admission, :after_connect, admission_args} =
+          RuntimeConfig.processor_admission(
+            hosted.processor_profile,
+            hosted.build_operation_intent
+          )
+
+        true = hosted.repo[:after_connect] == {admission, :after_connect, admission_args}
 
         true = Keyword.keys(hosted.oban[:queues]) == [queue]
         true = hosted.oban[:engine] == Oban.Engines.Basic
@@ -80,11 +79,13 @@ defmodule MixerHosted.Application do
 
         [
           MixerHosted.Repo,
-          {admission, hosted.processor_profile},
+          {admission, List.first(admission_args, hosted.processor_profile)},
           {Oban, hosted.oban}
         ]
 
       {:api, %StartupConfig{} = identity} ->
+        true = hosted.build_operation_intent == :disabled
+
         identity_children =
           case identity do
             %StartupConfig{mode: :disabled} ->
@@ -127,6 +128,7 @@ defmodule MixerHosted.Application do
   defp projections_match?({%RuntimeConfig{} = hosted, _}) do
     Application.fetch_env(:mixer_hosted, :role) === {:ok, hosted.role} and
       Application.fetch_env(:mixer_hosted, :identity_startup) === {:ok, hosted.identity_startup} and
+      Application.fetch_env(:mixer_hosted, :build_operation_intent) == :error and
       Application.fetch_env(:mixer_hosted, MixerHosted.Repo) === {:ok, hosted.repo} and
       Application.fetch_env(:mixer_hosted, Oban) === {:ok, hosted.oban} and
       Enum.all?(hosted.endpoint, fn {key, value} ->
@@ -142,6 +144,7 @@ defmodule MixerHosted.Application do
       :startup,
       :role,
       :identity_startup,
+      :build_operation_intent,
       MixerHosted.Repo,
       Oban,
       MixerHostedWeb.Endpoint

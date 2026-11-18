@@ -27,7 +27,7 @@ defmodule MixerHosted.Builds.Admission do
 
   @scope [:organization_id, :project_id, :application_id, :build_id, :platform]
   @max_int 9_223_372_036_854_775_807
-  @terminal [:succeeded, :failed, :cancelled, :timed_out]
+  @terminal [:native_succeeded, :succeeded, :failed, :cancelled, :timed_out]
 
   defmodule FleetCapacity do
     @moduledoc false

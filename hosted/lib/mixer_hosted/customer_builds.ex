@@ -7,9 +7,9 @@ defmodule MixerHosted.CustomerBuilds do
   def create(identity, input, key),
     do: MixerHosted.CustomerBuilds.Create.run(identity, input, key)
 
-  def read(identity, selection) do
+  def read(identity, selection, kind \\ nil) do
     with :ok <- Policy.request(identity),
          {:ok, s} <- Selection.new(selection),
-         do: Context.read(identity, s)
+         do: Context.read(identity, s, kind)
   end
 end

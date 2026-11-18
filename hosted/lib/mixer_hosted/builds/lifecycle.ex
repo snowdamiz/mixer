@@ -21,17 +21,20 @@ defmodule MixerHosted.Builds.Lifecycle do
     :sbom,
     :provenance
   ]
+  @native_kinds [:unsigned_native_binary, :debug_symbols, :resource_inventory]
+  @native_max_bytes 16 * 1024 * 1024
   @states [
     :queued,
     :running,
     :cancelling,
     :reconciling,
     :succeeded,
+    :native_succeeded,
     :failed,
     :cancelled,
     :timed_out
   ]
-  @terminal [:succeeded, :failed, :cancelled, :timed_out]
+  @terminal [:native_succeeded, :succeeded, :failed, :cancelled, :timed_out]
   @active [:running, :cancelling, :reconciling]
   @infra [
     :worker_unavailable,
@@ -254,6 +257,21 @@ defmodule MixerHosted.Builds.Lifecycle do
     end
   end
 
+  defp apply_event(
+         build,
+         %{type: :completed, ref: ref, result: %{outcome: :native_succeeded} = result},
+         now
+       ) do
+    with :ok <- expect_state(build, [:running]),
+         :ok <- expect_ref(ref, build.active_ref),
+         true <- build.spec.platform == :ios and now < build.deadline do
+      finish(build, :native_succeeded, nil, result.artifacts, now)
+    else
+      false -> {:error, :invalid_native_completion}
+      error -> error
+    end
+  end
+
   defp apply_event(build, %{type: :completed, ref: ref, result: result}, now) do
     with :ok <- expect_state(build, @active),
          :ok <- expect_ref(ref, build.active_ref) do
@@ -425,6 +443,9 @@ defmodule MixerHosted.Builds.Lifecycle do
   defp result?(%{outcome: :succeeded} = result),
     do: exact?(result, [:outcome, :artifacts]) and artifacts?(result.artifacts)
 
+  defp result?(%{outcome: :native_succeeded} = result),
+    do: exact?(result, [:outcome, :artifacts]) and native_artifacts?(result.artifacts)
+
   defp result?(%{outcome: :failed} = result) do
     exact?(result, [:outcome, :class, :code, :diagnostic_sha256]) and
       result.code in Map.get(@failure_codes, result.class, []) and sha?(result.diagnostic_sha256)
@@ -435,11 +456,29 @@ defmodule MixerHosted.Builds.Lifecycle do
   defp artifacts?(refs) do
     bounded_list?(refs, 7, 7) and Enum.all?(refs, &artifact?/1) and
       Enum.sort(Enum.map(refs, & &1.kind)) == Enum.sort(@artifact_kinds) and
-      refs
-      |> Enum.group_by(& &1.sha256)
-      |> Enum.all?(fn {_digest, same_content} ->
-        length(Enum.uniq(Enum.map(same_content, & &1.size_bytes))) == 1
-      end)
+      consistent_artifact_sizes?(refs)
+  end
+
+  defp consistent_artifact_sizes?(refs) do
+    refs
+    |> Enum.group_by(& &1.sha256)
+    |> Enum.all?(fn {_digest, same_content} ->
+      length(Enum.uniq(Enum.map(same_content, & &1.size_bytes))) == 1
+    end)
+  end
+
+  @doc false
+  def native_artifact_kinds, do: @native_kinds
+
+  @doc false
+  def native_artifact_max_bytes, do: @native_max_bytes
+
+  @doc false
+  def native_artifacts?(refs) do
+    bounded_list?(refs, 3, 3) and Enum.all?(refs, &artifact?/1) and
+      Enum.map(refs, & &1.kind) == @native_kinds and
+      Enum.all?(refs, &(&1.size_bytes <= @native_max_bytes)) and
+      consistent_artifact_sizes?(refs)
   end
 
   defp artifact?(%ArtifactRef{} = ref),
@@ -530,6 +569,10 @@ defmodule MixerHosted.Builds.Lifecycle do
     is_nil(build.active_ref) and is_nil(build.desired_terminal) and time?(build.finished_at) and
       build.finished_at >= build.queued_at and
       case build.state do
+        :native_succeeded ->
+          build.spec.platform == :ios and native_artifacts?(build.artifacts) and
+            is_nil(build.failure) and is_nil(build.retry_after)
+
         :succeeded ->
           artifacts?(build.artifacts) and is_nil(build.failure) and is_nil(build.retry_after)
 

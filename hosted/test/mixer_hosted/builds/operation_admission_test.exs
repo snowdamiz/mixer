@@ -107,10 +107,32 @@ end
 
 defmodule MixerHosted.Builds.OperationAdmissionTest do
   use ExUnit.Case, async: false
-  alias MixerHosted.Builds.{Dispatch, OperationAdmission}
+  alias MixerHosted.Builds.{Dispatch, OperationAdmission, OperationIntentSchema}
   alias OperationAdmission, as: Store
   alias MixerHosted.Test.OperationRepo, as: Repo
   import MixerHosted.Test.OperationInput
+
+  test "catalog admission refuses either RLS flag and policies even with RLS disabled" do
+    repo = MixerHosted.Repo
+    query = fn sql, params -> repo.query!(sql, params).rows end
+    assert OperationIntentSchema.compatible?(query, :disabled)
+
+    for sql <- [
+          "ALTER TABLE public.mixer_build_operation_admissions ENABLE ROW LEVEL SECURITY",
+          "ALTER TABLE public.mixer_build_operation_admissions FORCE ROW LEVEL SECURITY",
+          "CREATE POLICY unexpected ON public.mixer_build_operation_admissions USING (false)"
+        ] do
+      assert {:error, :restored} =
+               repo.transaction(fn ->
+                 repo.query!(sql)
+                 refute OperationIntentSchema.compatible?(query, :disabled)
+                 refute OperationIntentSchema.compatible?(query, :optional)
+                 repo.rollback(:restored)
+               end)
+    end
+
+    assert OperationIntentSchema.compatible?(query, :disabled)
+  end
 
   setup_all do
     config = [

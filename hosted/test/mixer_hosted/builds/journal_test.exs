@@ -131,6 +131,56 @@ defmodule MixerHosted.Builds.JournalTest do
     end
   end
 
+  test "native completion replays the retained descriptors under the original live fence" do
+    {document, build} = pair = new!() |> start!()
+    ref = build.active_ref
+
+    outputs =
+      [:unsigned_native_binary, :debug_symbols, :resource_inventory]
+      |> Enum.map(fn kind -> Enum.find(artifacts(), &(&1.kind == kind)) end)
+
+    event = %{
+      type: :completed,
+      ref: ref,
+      result: %{outcome: :native_succeeded, artifacts: outputs}
+    }
+
+    {done_document, done} = append!(pair, "native-complete", event, 2)
+    assert done.state == :native_succeeded
+    assert done.fence == ref.fence + 1
+    assert [%{worker_ref: ^ref, artifacts: ^outputs}] = done.history
+
+    assert {:ok, ^done_document, ^done, :duplicate} =
+             Journal.append(done_document, "native-complete", event, 2)
+
+    assert {:error, _} = Journal.append(document, "expired", event, build.deadline)
+    assert {:error, _} = Journal.append(document, "wrong-fence", put_in(event.ref.fence, 2), 2)
+
+    {cancelled, _} = append!(pair, "cancel", cancel(), 2)
+    assert {:error, _} = Journal.append(cancelled, "late-completion", event, 3)
+
+    {android, android_build} = new!(%{spec() | platform: :android}) |> start!()
+
+    assert {:error, _} =
+             Journal.append(
+               android,
+               "wrong-platform",
+               %{event | ref: android_build.active_ref},
+               2
+             )
+
+    assert {:error, _} =
+             Journal.append(
+               document,
+               "incomplete",
+               put_in(event.result.artifacts, tl(outputs)),
+               2
+             )
+
+    assert {:error, _} =
+             Journal.append(document, "full-success", put_in(event.result.outcome, :succeeded), 2)
+  end
+
   test "success round trips every artifact kind, exact refs and the lifecycle history" do
     {document, build} = new!() |> start!()
     ref = build.active_ref

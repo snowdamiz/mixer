@@ -56,6 +56,7 @@ defmodule MixerHosted.Builds.OperationAdmission do
     "deadline_expired" => :deadline_expired
   }
   @sql "SELECT outcome, admission_state, lease_epoch, journal_revision FROM mixer_build_operation_admit($1, $2, $3, $4, $5, $6::text::uuid, $7, $8, $9, $10)"
+  @fenced_sql "SELECT outcome, admission_state, lease_epoch, journal_revision FROM public.mixer_build_operation_intent_v1($1, $2, $3, $4, $5, $6::text::uuid, $7, $8, $9, $10, $11, $12)"
 
   @spec query(module(), Request.t()) :: result()
   def query(repo, request), do: apply_request(repo, "query", request)
@@ -64,9 +65,14 @@ defmodule MixerHosted.Builds.OperationAdmission do
   @spec stop_intent(module(), Request.t()) :: result()
   def stop_intent(repo, request), do: apply_request(repo, "stop", request)
 
+  @doc false
+  def fenced_intent(repo, action, request) when action in ["ensure", "stop"] do
+    apply_request(repo, action, request, :fenced)
+  end
+
   # Parameters are lossless deterministic Erlang terms, not JSON normalization
   # or only a digest: the database compares the complete original bytes.
-  defp apply_request(repo, action, request) do
+  defp apply_request(repo, action, request, entry \\ :owner) do
     with :ok <- request_shape(request),
          params = [
            action,
@@ -80,12 +86,21 @@ defmodule MixerHosted.Builds.OperationAdmission do
            request.guard.owner_id,
            request.guard.expires_at
          ],
-         {:ok, %{rows: [row]}} <- repo.query(@sql, params) do
+         {:ok, %{rows: [row]}} <- invoke(repo, entry, params, request) do
       decode(request.operation_id, row)
     else
       {:error, :invalid_request} = error -> error
       _ -> {:error, :unavailable}
     end
+  end
+
+  defp invoke(repo, :owner, params, _), do: repo.query(@sql, params)
+
+  defp invoke(repo, :fenced, params, request) do
+    repo.query(
+      @fenced_sql,
+      params ++ [Map.from_struct(request.ref), Map.from_struct(request.spec)]
+    )
   end
 
   defp decode(id, [decision, state, epoch, revision])

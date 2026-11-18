@@ -122,4 +122,49 @@ defmodule MixerHosted.RuntimeConfigTest do
       assert_raise ArgumentError, fn -> RuntimeConfig.load!(bad) end
     end
   end
+
+  test "durable intent binds both admission hooks to the validated builds processor startup" do
+    selector = "MIXER_BUILD_OPERATION_INTENT"
+    selection = "durable_intent_v1"
+    admission = MixerHosted.Builds.ProcessorAdmission
+
+    default = RuntimeConfig.load!(processor_env())
+    assert default.build_operation_intent == :disabled
+
+    selected = RuntimeConfig.load!(Map.put(processor_env(), selector, selection))
+    assert selected.build_operation_intent == :durable_intent_v1
+    assert selected.repo[:after_connect] == {admission, :after_connect, [:durable_intent_v1]}
+
+    assert [MixerHosted.Repo, {^admission, :durable_intent_v1}, {Oban, _}] =
+             MixerHosted.Application.children({selected, :disabled})
+
+    assert_raise MatchError, fn ->
+      MixerHosted.Application.children({%{selected | repo: default.repo}, :disabled})
+    end
+
+    assert {:error, :restart_required} =
+             MixerHosted.Application.config_change([], [], [:build_operation_intent])
+  end
+
+  test "durable intent selector rejects malformed values and other roles" do
+    selector = "MIXER_BUILD_OPERATION_INTENT"
+    api = Map.put(env(), "MIXER_PROCESSOR_PROFILE", "builds_v1")
+
+    billing =
+      processor_env()
+      |> Map.put("MIXER_PROCESSOR_PROFILE", "billing_v1")
+      |> Map.put("MIXER_DATABASE_USER", "mixer_billing_processor")
+
+    for bad <- [
+          Map.put(api, selector, "durable_intent_v1"),
+          Map.put(billing, selector, "durable_intent_v1")
+          | Enum.map(["", "disabled", "false", "durable_intent_v1 ", nil], fn value ->
+              Map.put(processor_env(), selector, value)
+            end)
+        ] do
+      assert_raise ArgumentError, "invalid or missing hosted setting: " <> selector, fn ->
+        RuntimeConfig.load!(bad)
+      end
+    end
+  end
 end

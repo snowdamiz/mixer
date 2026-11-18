@@ -3058,8 +3058,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = 'e7bf945578d08e8ba153fd51d38aa960d39011f89ab1a0ea1f003c5a8dcb39c5'
-    DIGEST = '1554dd2ac29c9a0199acdb80a0611ece0d86c839995f8c971da7dd282b10c234'
+    PIN = '1876a6e959e719c357cb368e1ed1c4fc433017231d4a950c3285c026890dfea3'
+    DIGEST = '45325da113073a4787872a08aeef0eba1c2612053cc82430eba243d0d6e8e188'
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3128,7 +3128,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(359, observed["source_count"])
+            self.assertEqual(370, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3401,7 +3401,7 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
             with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
-        self.assertEqual(359,observed['source_count'])
+        self.assertEqual(370,observed['source_count'])
         self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST,observed['source_digest_sha256'])
         self.assertEqual(collector.WORKSPACE_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
@@ -3923,7 +3923,7 @@ class PublicConsoleSigninSourceControls(unittest.TestCase):
                         runpy.run_path(str(path), run_name='__main__')
                 self.assertEqual(0, exited.exception.code)
                 observed = json.loads(output.getvalue())
-                self.assertEqual(359, observed['source_count'])
+                self.assertEqual(370, observed['source_count'])
                 self.assertEqual(collector.WORKSPACE_SELECTION_SHA256, observed['selection_sha256'])
 
     def test_v19_actual_collect_refuses_changed_new_source_before_docker(self):
@@ -4736,7 +4736,7 @@ class PendingSessionV28Controls(unittest.TestCase):
             with mock.patch.dict('os.environ', {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'Linux', 'RUNNER_ARCH': 'X64'}, clear=True), mock.patch.object(collector.os, 'uname', return_value=collector.os.uname_result(('Linux', 'control', '0', '0', 'x86_64'))):
                 with self.assertRaisesRegex(collector.CollectorError, 'pending session selection pin'):
                     subject.collect()
-            self.assertEqual(359, subject.state['source']['product_files'])
+            self.assertEqual(370, subject.state['source']['product_files'])
             self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST, subject.state['source']['product_tree_digest_sha256'])
             self.assertFalse(any(argv[0] == 'docker' for argv in calls))
 
@@ -4869,7 +4869,7 @@ class BillingReconciliationV29Controls(unittest.TestCase):
             subject.git_blobs=blobs
             with mock.patch.dict('os.environ',{'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64'},clear=True),mock.patch.object(collector.os,'uname',return_value=collector.os.uname_result(('Linux','control','0','0','x86_64'))):
                 with self.assertRaisesRegex(collector.CollectorError,'billing reconciliation selection pin'):subject.collect()
-            self.assertEqual(359,subject.state['source']['product_files'])
+            self.assertEqual(370,subject.state['source']['product_files'])
             self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST,subject.state['source']['product_tree_digest_sha256'])
             self.assertFalse(any(argv[0]=='docker' for argv in calls))
 
@@ -4884,8 +4884,8 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
         metadata = {base + name: (root / base / name).read_bytes()
                     for name in ("selection.json", "selected-source-manifest.json")}
         selection, manifest = collector.validate_workspace_source_metadata(metadata)
-        self.assertEqual(359, len(manifest))
-        self.assertEqual(45, len(selection["exact_delta"]))
+        self.assertEqual(370, len(manifest))
+        self.assertEqual(77, len(selection["exact_delta"]))
         for path, change in selection["exact_delta"].items():
             if change["before"] is not None:
                 workspace_predecessor_bytes(root, path)
@@ -4894,11 +4894,22 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
             helper.materialize(root, stage, helper.patterns(
                 (root / ".github/workflows/identity-network.yml").read_text(), "identity-network"))
             helper.check_real_main(stage)
-            target = stage / "console/src/api/cookie-workspace-create-client.ts"
-            target.write_bytes(target.read_bytes() + b"\n")
-            with self.assertRaisesRegex(collector.CollectorError, "workspace source digest"):
-                collector.check_workspace_source(stage)
-            target.write_bytes((root / target.relative_to(stage)).read_bytes())
+            for relative in (
+                "console/src/state/workspace-binding.ts",
+                "hosted/priv/development/native_artifact_worker.py",
+                "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex",
+                "hosted/priv/unselected_operation_admission/05_processor_intent_body.sql",
+            ):
+                with self.subTest(path=relative):
+                    target = stage / relative
+                    original = target.read_bytes()
+                    target.write_bytes(original + b"\n")
+                    with self.assertRaisesRegex(collector.CollectorError, "workspace source digest"):
+                        collector.check_workspace_source(stage)
+                    target.unlink()
+                    with self.assertRaises(FileNotFoundError):
+                        collector.check_workspace_source(stage)
+                    target.write_bytes(original)
             extra = stage / "hosted/priv/repo/migrations/20261117999999_unreviewed.exs"
             extra.touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed reviewed migration inventory mismatch"):
@@ -4952,7 +4963,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
                 with self.assertRaisesRegex(collector.CollectorError, "workspace selection pin"):
                     subject.collect()
-            self.assertEqual(359, subject.state["source"]["product_files"])
+            self.assertEqual(370, subject.state["source"]["product_files"])
             self.assertEqual(WorkflowSparseSourceControls.DIGEST, subject.state["source"]["product_tree_digest_sha256"])
             self.assertFalse(any(argv[0] == "docker" for argv in calls))
 

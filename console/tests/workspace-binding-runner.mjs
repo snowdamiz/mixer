@@ -6,19 +6,21 @@ import { createServer } from "node:http";
 import { setTimeout as delay } from "node:timers/promises";
 
 const { createWorkspaceBinding } = await import(process.env.MIXER_WORKSPACE_BINDING_MODULE);
+const { createWorkspaceCreation } = await import(process.env.MIXER_WORKSPACE_CREATION_MODULE);
 const { createWorkspaceClient } = await import(process.env.MIXER_WORKSPACE_CLIENT_MODULE);
 const organizationId = " /../+%2F北?&#=";
 const orgs = { organizations: [{ id: organizationId, display_name: "Studio", organization_roles: ["owner"] }], next_cursor: null };
 const projects = { projects: [{ organization_id: organizationId, id: "project/one", display_name: "FieldLog", roles: ["viewer"] }], next_cursor: null };
 function owner() {
-  let binding, setSession, dispose;
+  let binding, creation, setSession, dispose;
   createRoot(stop => {
     dispose = stop;
     const [session, update] = createSignal(undefined, { equals: false });
     setSession = update;
     binding = createWorkspaceBinding(session);
+    creation = createWorkspaceCreation(session, binding);
   });
-  return { binding, setSession, dispose };
+  return { binding, creation, setSession, dispose };
 }
 async function until(check) {
   const deadline = Date.now() + 2000;
@@ -163,3 +165,41 @@ test("pure consumers registered before binding cannot read old rows or act with 
     }
   } finally { dispose(); }
 });
+
+for (const navigateAway of [true, false]) {
+  const scenario = navigateAway ? "keeps a newer organization selection" : "selects the new project after a passive directory load";
+  test(`project creation ${scenario}`, async () => {
+    const app = owner();
+    const original = "studio-a", other = "studio-b", projectId = "project-created";
+    const organizations = [original, other].map(id => ({ id, display_name: id, organization_roles: ["owner"] }));
+    const firstProjects = deferred();
+    const post = deferred();
+    const input = { kind: "project", organizationId: original, displayName: "FieldLog" };
+    let projectExists = false;
+    const calls = [];
+    try {
+      app.setSession({ kind: "ready", client: {
+        async organizations() { return { organizations, next_cursor: null }; },
+        async projects(id) {
+          if (id === original && !projectExists) return firstProjects.promise;
+          return { next_cursor: null, projects: id === original ? [{
+            organization_id: id, id: projectId, display_name: input.displayName, roles: ["developer"],
+          }] : [] };
+        },
+      }, workspaceCreate: { submit(request) { calls.push(request); return post.promise; } } });
+      await until(() => app.binding.state().organizations.kind === "ready");
+      app.binding.controller.selectOrganization(original);
+      const posting = app.creation.submit(input);
+      if (navigateAway) app.binding.controller.selectOrganization(other);
+      firstProjects.resolve({ projects: [], next_cursor: null });
+      await until(() => app.binding.state().projects.kind === "ready");
+      projectExists = true;
+      post.resolve({ kind: "project", organizationId: original, projectId });
+      assert.equal(await posting, true);
+      assert.equal(app.binding.state().selectedOrganizationId, navigateAway ? other : original);
+      assert.equal(app.binding.state().selectedProjectId, navigateAway ? undefined : projectId);
+      assert.deepEqual(app.creation.state(), { kind: "committed", input, selected: !navigateAway });
+      assert.deepEqual(calls, [input]);
+    } finally { app.dispose(); }
+  });
+}

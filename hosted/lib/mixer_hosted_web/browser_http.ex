@@ -6,7 +6,9 @@ defmodule MixerHostedWeb.BrowserHTTP do
   import Plug.Conn
 
   @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog /console-api/v1/build-inputs)
-  def owns_path?(path), do: path in @paths
+  @artifact_paths for kind <- MixerHosted.Builds.RetainedNativeArtifacts.kinds(),
+                      do: "/console-api/v1/build-artifacts/" <> kind
+  def owns_path?(path), do: path in @paths or path in @artifact_paths
 
   def init([]), do: []
 
@@ -125,9 +127,16 @@ defmodule MixerHostedWeb.BrowserHTTP do
     end
   end
 
-  defp dispatch(%{request_path: "/console-api/v1/builds"} = conn) do
+  defp dispatch(%{request_path: path} = conn)
+       when path == "/console-api/v1/builds" or path in @artifact_paths do
+    kind =
+      case path do
+        "/console-api/v1/build-artifacts/" <> kind -> kind
+        _ -> nil
+      end
+
     with {:ok, selection} <- MixerHostedWeb.BrowserBuildRequest.parse(conn.query_string) do
-      case RuntimeOwner.read_build(conn.req_headers, selection) do
+      case RuntimeOwner.read_build(conn.req_headers, selection, kind) do
         {:ok, %{status: status, headers: headers, body: body}} ->
           conn |> merge_resp_headers(headers) |> send_resp(status, body)
 

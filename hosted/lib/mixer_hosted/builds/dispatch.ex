@@ -39,22 +39,8 @@ defmodule MixerHosted.Builds.Dispatch do
   def request(context) do
     ref = context.build.active_ref
 
-    identity = [
-      "mixer-build-operation-v1",
-      context.record.id,
-      ref.organization_id,
-      ref.project_id,
-      ref.application_id,
-      ref.build_id,
-      Atom.to_string(ref.platform),
-      ref.attempt,
-      ref.fence
-    ]
-
-    operation_id = :crypto.hash(:sha256, Jason.encode!(identity)) |> Base.encode16(case: :lower)
-
     %Request{
-      operation_id: operation_id,
+      operation_id: operation_id(context.record.id, ref),
       ref: ref,
       spec: context.build.spec,
       deadline_ms: context.build.deadline,
@@ -66,6 +52,23 @@ defmodule MixerHosted.Builds.Dispatch do
         expires_at: context.lease.expires_at
       }
     }
+  end
+
+  @doc false
+  def operation_id(record_id, ref) do
+    identity = [
+      "mixer-build-operation-v1",
+      record_id,
+      ref.organization_id,
+      ref.project_id,
+      ref.application_id,
+      ref.build_id,
+      Atom.to_string(ref.platform),
+      ref.attempt,
+      ref.fence
+    ]
+
+    :crypto.hash(:sha256, Jason.encode!(identity)) |> Base.encode16(case: :lower)
   end
 
   @doc false

@@ -9,7 +9,7 @@ defmodule MixerHosted.CustomerBuilds.Context do
   @handler {__MODULE__, :receipt_handler}
   @settings ~w(profile_id profile_version issuer subject client_id identity_class credential_ref organization_id project_id application_id environment_id principal_id family_id action transaction_marker token_issued_at token_expires_at required_scope phase directory_mode)
 
-  def read(identity, selection) do
+  def read(identity, selection, kind) do
     with :ok <- Policy.request(identity),
          true <- Process.get(@active) == nil,
          false <- MixerHosted.Authorization.Transaction.Context.active?(),
@@ -21,6 +21,7 @@ defmodule MixerHosted.CustomerBuilds.Context do
         runtime: pid,
         identity: identity,
         selection: selection,
+        kind: kind,
         admitted_at: System.system_time(:second),
         deadline: System.monotonic_time(:millisecond) + 5_000,
         marker: Base.encode16(:crypto.strong_rand_bytes(32), case: :lower),
@@ -106,13 +107,14 @@ defmodule MixerHosted.CustomerBuilds.Context do
 
     row =
       Map.new(
-        ~w(organization_id project_id application_id build_id platform request_key revision journal)a,
+        ~w(id organization_id project_id application_id build_id platform request_key revision journal)a,
         fn k -> {k, Map.fetch!(e["record"], Atom.to_string(k))} end
       )
 
     dto =
-      case Snapshot.project(row, s.selection) do
+      case Snapshot.project(row, s.selection, s.kind) do
         {:ok, dto} -> dto
+        {:error, :not_found} -> Repo.rollback(:not_found)
         _ -> Repo.rollback(:storage_unavailable)
       end
 

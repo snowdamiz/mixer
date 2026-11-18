@@ -24,6 +24,17 @@ defmodule MixerHosted.BrowserAuth.BuildCatalogAdmission do
     owner = roles.relation_owner
     true = role not in Map.values(roles)
 
+    mode = if processor_profile == :builds_v1, do: :optional, else: :disabled
+
+    true =
+      MixerHosted.Builds.OperationIntentSchema.compatible?(
+        fn sql, params ->
+          safe!(repo, deadline, backend, sql, params)
+          [[true]]
+        end,
+        mode
+      )
+
     safe!(
       repo,
       deadline,

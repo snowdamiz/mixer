@@ -7,7 +7,8 @@ defmodule MixerHosted.RuntimeConfig do
   """
   @derive {Inspect, only: [:role, :database_connection_bound]}
   @enforce_keys [:role, :repo, :oban, :endpoint, :database_connection_bound, :identity_startup]
-  defstruct @enforce_keys ++ [create_repo: nil, processor_profile: nil]
+  defstruct @enforce_keys ++
+              [create_repo: nil, processor_profile: nil, build_operation_intent: :disabled]
 
   @queues [
     :builds,
@@ -30,17 +31,24 @@ defmodule MixerHosted.RuntimeConfig do
         _ -> invalid!("MIXER_PROCESSOR_PROFILE")
       end
 
+    build_operation_intent =
+      case Map.fetch(env, "MIXER_BUILD_OPERATION_INTENT") do
+        :error ->
+          :disabled
+
+        {:ok, "durable_intent_v1"} when role == :processor and processor_profile == :builds_v1 ->
+          :durable_intent_v1
+
+        _ ->
+          invalid!("MIXER_BUILD_OPERATION_INTENT")
+      end
+
     profile =
       if processor_profile == :billing_v1,
         do: MixerHosted.Billing.ProcessorProfile,
         else: MixerHosted.Builds.ProcessorProfile
 
     queue = if processor_profile == :billing_v1, do: :billing_reconciliation, else: :builds
-
-    admission =
-      if processor_profile == :billing_v1,
-        do: MixerHosted.Billing.ProcessorAdmission,
-        else: MixerHosted.Builds.ProcessorAdmission
 
     if role == :processor and required!(env, "MIXER_DATABASE_USER") != profile.role(),
       do: invalid!("MIXER_DATABASE_USER")
@@ -92,7 +100,7 @@ defmodule MixerHosted.RuntimeConfig do
           Keyword.put(
             repo,
             :after_connect,
-            {admission, :after_connect, []}
+            processor_admission(processor_profile, build_operation_intent)
           ),
         else: repo
 
@@ -119,6 +127,7 @@ defmodule MixerHosted.RuntimeConfig do
     %__MODULE__{
       role: role,
       processor_profile: processor_profile,
+      build_operation_intent: build_operation_intent,
       create_repo: create_repo,
       identity_startup: identity_startup,
       repo: repo,
@@ -143,6 +152,16 @@ defmodule MixerHosted.RuntimeConfig do
       database_connection_bound: pool_size + 1 + if(is_nil(create_repo), do: 0, else: 2)
     }
   end
+
+  @doc false
+  def processor_admission(:builds_v1, :disabled),
+    do: {MixerHosted.Builds.ProcessorAdmission, :after_connect, []}
+
+  def processor_admission(:builds_v1, :durable_intent_v1),
+    do: {MixerHosted.Builds.ProcessorAdmission, :after_connect, [:durable_intent_v1]}
+
+  def processor_admission(:billing_v1, :disabled),
+    do: {MixerHosted.Billing.ProcessorAdmission, :after_connect, []}
 
   @doc false
   def installed_processor_profile do

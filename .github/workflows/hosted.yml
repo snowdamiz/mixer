@@ -88,6 +88,8 @@ on:
       - 'console/src/state/workspace-context.tsx'
       - 'console/src/state/workspace-creation.ts'
       - 'console/tests/browser-session-binding-runner.mjs'
+      - 'console/tests/workspace-binding-runner.mjs'
+      - 'console/tests/workspace-binding.test.mjs'
   pull_request:
     paths:
       - 'hosted/**'
@@ -176,6 +178,8 @@ on:
       - 'console/src/state/workspace-context.tsx'
       - 'console/src/state/workspace-creation.ts'
       - 'console/tests/browser-session-binding-runner.mjs'
+      - 'console/tests/workspace-binding-runner.mjs'
+      - 'console/tests/workspace-binding.test.mjs'
 permissions:
   contents: read
 jobs:
@@ -212,6 +216,8 @@ jobs:
             /console/src/components/WorkspaceCreateForm.tsx
             /console/src/state/workspace-creation.ts
             /console/tests/browser-session-binding-runner.mjs
+            /console/tests/workspace-binding-runner.mjs
+            /console/tests/workspace-binding.test.mjs
             /console/src/api/cookie-build-catalog-client.ts
             /console/src/domain/build-catalog.ts
             /console/src/App.tsx
@@ -328,6 +334,10 @@ jobs:
             printf '%s\n' "$version"
             [[ "$version" == "$tool (PostgreSQL) 17."* ]]
           done
+      - name: Check native artifact worker protocol with fixture processes
+        run: |
+          python3 -B hosted/scripts/test_native_artifact_worker.py
+          python3 -B -O hosted/scripts/test_native_artifact_worker.py
       - name: Resolve locked dependencies
         working-directory: hosted
         run: mix deps.get --check-locked
@@ -392,6 +402,7 @@ jobs:
           npm --version
           npm ci --ignore-scripts --no-audit --no-fund
           node node_modules/typescript/bin/tsc --version
+          node --test tests/workspace-binding.test.mjs
           node node_modules/typescript/bin/tsc src/api/workspace-client.ts src/api/browser-session-client.ts src/state/browser-session-controller.ts src/api/cookie-build-client.ts \
             --target ES2022 --module ES2022 --moduleResolution bundler \
             --strict --skipLibCheck --lib ES2022,DOM \

@@ -11,7 +11,13 @@ defmodule MixerHosted.Builds.OperationIntent do
 
   @spec record_multi(Multi.t(), term(), map()) :: Multi.t()
   def record_multi(%Multi{} = multi, name, context) do
-    Multi.run(multi, name, fn repo, _ -> record(repo, context) end)
+    Multi.run(multi, name, fn repo, _ -> record(repo, context, :owner) end)
+  end
+
+  @doc false
+  @spec record_fenced_multi(Multi.t(), term(), map()) :: Multi.t()
+  def record_fenced_multi(%Multi{} = multi, name, context) do
+    Multi.run(multi, name, fn repo, _ -> record(repo, context, :fenced) end)
   end
 
   defp record(
@@ -22,18 +28,30 @@ defmodule MixerHosted.Builds.OperationIntent do
            record: %Record{},
            token: %Admission.Token{},
            lease: %Admission.Lease{}
-         } = context
+         } = context,
+         entry
        )
        when state in [:running, :cancelling, :reconciling] do
     with {:ok, _ref} <- Lifecycle.worker_ref(build) do
       request = Dispatch.request(context)
 
-      case state do
-        :running -> OperationAdmission.ensure_admitted(repo, request)
-        _ -> OperationAdmission.stop_intent(repo, request)
-      end
+      record_intent(repo, state, request, entry)
     end
   end
 
-  defp record(_, _), do: {:error, :invalid_operation_context}
+  defp record(_, _, _), do: {:error, :invalid_operation_context}
+
+  defp record_intent(repo, state, request, :fenced) do
+    action = if state == :running, do: "ensure", else: "stop"
+
+    case OperationAdmission.fenced_intent(repo, action, request) do
+      {:ok, %{decision: :fenced}} -> {:error, :stale}
+      result -> result
+    end
+  end
+
+  defp record_intent(repo, :running, request, :owner),
+    do: OperationAdmission.ensure_admitted(repo, request)
+
+  defp record_intent(repo, _, request, :owner), do: OperationAdmission.stop_intent(repo, request)
 end

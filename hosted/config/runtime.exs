@@ -4,6 +4,8 @@ import Config
 # startup and releases have no fallback credentials, database, or combined role.
 if config_env() != :test do
   env = System.get_env()
+  # RuntimeConfig validates MIXER_BUILD_OPERATION_INTENT for the builds_v1
+  # processor. The selection is part of the startup snapshot.
   settings = MixerHosted.RuntimeConfig.load!(env)
   installation = MixerHosted.BrowserAuth.Installation.load!(env, settings)
   config :mixer_hosted, :startup, {settings, installation}

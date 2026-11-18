@@ -45,6 +45,13 @@ defmodule MixerHosted.Builds.ProcessorProfile do
   def role, do: @role
   def locker, do: @locker
   def function, do: @function
+
+  def operation_intent_statements(:durable_intent_v1) do
+    [
+      "GRANT EXECUTE ON FUNCTION #{MixerHosted.Builds.OperationIntentSchema.entry()} TO #{@role}"
+    ]
+  end
+
   def body, do: @body
   def capacities, do: @capacity
   def profile!(:builds_v1), do: :builds_v1

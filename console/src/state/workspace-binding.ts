@@ -10,7 +10,7 @@ export type WorkspaceActions = Pick<WorkspaceController, "selectOrganization" | 
 export interface WorkspaceBinding {
   readonly state: Accessor<WorkspaceDirectoryState>;
   readonly controller: Readonly<WorkspaceActions>;
-  refreshCreated(target: CreatedWorkspace): Promise<boolean>;
+  prepareCreatedRefresh(): (target: CreatedWorkspace) => Promise<boolean>;
 }
 
 const pending = (kind: "loading" | "unauthenticated" | "unavailable"): WorkspaceDirectoryState =>
@@ -47,19 +47,26 @@ export function createWorkspaceBinding(
     if (current()) return data;
     return value?.kind === "unauthenticated" ? unauthenticated : value?.kind === "ready" ? loading : unavailable;
   };
+  let navigationVersion = 0;
+  function navigate(action: () => void) {
+    if (!current()) return;
+    const before = controller.getState();
+    action();
+    if (before !== controller.getState()) navigationVersion++;
+  }
   const actions: WorkspaceActions = Object.freeze({
-    selectOrganization(id: string) { if (current()) controller.selectOrganization(id); },
-    selectProject(selection: { organizationId: string; projectId: string }) { if (current()) controller.selectProject(selection); },
-    nextOrganizations(cursor: string) { if (current()) controller.nextOrganizations(cursor); },
-    nextProjects(page: { organizationId: string; cursor: string }) { if (current()) controller.nextProjects(page); },
-    firstOrganizations() { if (current()) controller.firstOrganizations(); },
-    firstProjects(organizationId: string) { if (current()) controller.firstProjects(organizationId); },
+    selectOrganization(id: string) { navigate(() => controller.selectOrganization(id)); },
+    selectProject(selection: { organizationId: string; projectId: string }) { navigate(() => controller.selectProject(selection)); },
+    nextOrganizations(cursor: string) { navigate(() => controller.nextOrganizations(cursor)); },
+    nextProjects(page: { organizationId: string; cursor: string }) { navigate(() => controller.nextProjects(page)); },
+    firstOrganizations() { navigate(() => controller.firstOrganizations()); },
+    firstProjects(organizationId: string) { navigate(() => controller.firstProjects(organizationId)); },
     retryOrganizations() {
       if (!current()) return;
       if (session()?.kind === "unavailable") options.onRetrySession?.();
-      else controller.retryOrganizations();
+      else navigate(() => controller.retryOrganizations());
     },
-    retryProjects(organizationId: string) { if (current()) controller.retryProjects(organizationId); },
+    retryProjects(organizationId: string) { navigate(() => controller.retryProjects(organizationId)); },
   });
   onCleanup(() => {
     disposed = true;
@@ -69,6 +76,11 @@ export function createWorkspaceBinding(
     setSnapshot(controller.getState());
   });
   return Object.freeze({ state, controller: actions,
-    refreshCreated: (target: CreatedWorkspace) => current() ? controller.refreshCreated(target) : Promise.resolve(false),
+    prepareCreatedRefresh() {
+      const owner = admitted();
+      const version = navigationVersion;
+      return (target: CreatedWorkspace) => current() && admitted() === owner && navigationVersion === version
+        ? controller.refreshCreated(target) : Promise.resolve(false);
+    },
   });
 }

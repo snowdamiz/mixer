@@ -362,6 +362,15 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
+  defp encode_result(%{outcome: :native_succeeded, artifacts: artifacts} = value) do
+    with true <- exact?(value, [:outcome, :artifacts]) and Lifecycle.native_artifacts?(artifacts),
+         {:ok, encoded} <- map_valid(artifacts, &encode_artifact/1) do
+      {:ok, %{"outcome" => "native_succeeded", "artifacts" => encoded}}
+    else
+      _ -> :error
+    end
+  end
+
   defp encode_result(%{outcome: :failed} = value) do
     if exact?(value, [:outcome, :class, :code, :diagnostic_sha256]) and
          sha?(value.diagnostic_sha256) do
@@ -387,6 +396,16 @@ defmodule MixerHosted.Builds.Journal do
     with true <- exact?(value, ~w(outcome artifacts)) and bounded_list?(artifacts, 7, 7),
          {:ok, decoded} <- map_valid(artifacts, &decode_artifact/1) do
       {:ok, %{outcome: :succeeded, artifacts: decoded}}
+    else
+      _ -> :error
+    end
+  end
+
+  defp decode_result(%{"outcome" => "native_succeeded", "artifacts" => artifacts} = value) do
+    with true <- exact?(value, ~w(outcome artifacts)) and bounded_list?(artifacts, 3, 3),
+         {:ok, decoded} <- map_valid(artifacts, &decode_artifact/1),
+         true <- Lifecycle.native_artifacts?(decoded) do
+      {:ok, %{outcome: :native_succeeded, artifacts: decoded}}
     else
       _ -> :error
     end

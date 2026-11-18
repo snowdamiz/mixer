@@ -1,26 +1,29 @@
 defmodule MixerHosted.Builds.ProcessorAdmission do
   @moduledoc "Synchronous, read-only admission on the actual processor backend."
   use GenServer
+  alias MixerHosted.Builds.OperationIntentSchema
   alias MixerHosted.Builds.ProcessorProfile, as: P
 
-  def start_link(:builds_v1), do: GenServer.start_link(__MODULE__, :builds_v1)
+  def start_link(selection) when selection in [:builds_v1, :durable_intent_v1],
+    do: GenServer.start_link(__MODULE__, admission_mode(selection))
 
   @impl true
-  def init(:builds_v1) do
+  def init(mode) do
     case MixerHosted.Repo.transaction(fn ->
-           check!(fn sql, params -> MixerHosted.Repo.query!(sql, params).rows end)
+           check!(fn sql, params -> MixerHosted.Repo.query!(sql, params).rows end, mode)
          end) do
       {:ok, :ok} -> {:ok, :admitted}
       _ -> {:stop, :processor_admission_refused}
     end
   end
 
-  def after_connect(connection) do
+  def after_connect(connection, selection \\ :builds_v1) do
+    mode = admission_mode(selection)
     q = fn sql, params -> Postgrex.query!(connection, sql, params).rows end
     q.("BEGIN", [])
 
     try do
-      :ok = check!(q)
+      :ok = check!(q, mode)
       q.("COMMIT", [])
       :ok
     rescue
@@ -122,7 +125,7 @@ defmodule MixerHosted.Builds.ProcessorAdmission do
           JOIN pg_roles r ON r.oid=a.grantee JOIN pg_roles g ON g.oid=a.grantor
         WHERE p.oid=to_regprocedure('public.mixer_build_capacity_lock_v1(text,text)') ORDER BY r.rolname) AS t(c00,c01,c02,c03)),'q11',(SELECT COALESCE(jsonb_agg(jsonb_build_array(t.c00)), '[]'::jsonb) FROM (SELECT NOT EXISTS(SELECT 1 FROM pg_proc p CROSS JOIN LATERAL aclexplode(p.proacl) a WHERE p.oid=to_regprocedure('public.mixer_build_capacity_lock_v1(text,text)') AND a.grantee=0)) AS t(c00)),'q12/mixer_build_processor',(SELECT COALESCE(jsonb_agg(jsonb_build_array(t.c00)), '[]'::jsonb) FROM (SELECT p.oid::regprocedure::text FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
           WHERE n.nspname !~ '^pg_' AND n.nspname<>'information_schema' AND has_function_privilege('mixer_build_processor',p.oid,'EXECUTE')
-          ORDER BY p.oid LIMIT 2) AS t(c00)),'q12/mixer_build_capacity_locker_v1',(SELECT COALESCE(jsonb_agg(jsonb_build_array(t.c00)), '[]'::jsonb) FROM (SELECT p.oid::regprocedure::text FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+          ORDER BY p.oid LIMIT 3) AS t(c00)),'q12/mixer_build_capacity_locker_v1',(SELECT COALESCE(jsonb_agg(jsonb_build_array(t.c00)), '[]'::jsonb) FROM (SELECT p.oid::regprocedure::text FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
           WHERE n.nspname !~ '^pg_' AND n.nspname<>'information_schema' AND has_function_privilege('mixer_build_capacity_locker_v1',p.oid,'EXECUTE')
           ORDER BY p.oid LIMIT 2) AS t(c00)),'q13',(SELECT COALESCE(jsonb_agg(jsonb_build_array(t.c00,t.c01,t.c02,t.c03,t.c04,t.c05,t.c06)), '[]'::jsonb) FROM (SELECT c.relname::text,p.polname::text,p.polcmd::text,p.polpermissive,
           ARRAY(SELECT r.rolname::text FROM pg_roles r WHERE r.oid=ANY(p.polroles) ORDER BY r.rolname),
@@ -142,7 +145,7 @@ defmodule MixerHosted.Builds.ProcessorAdmission do
     snapshot
   end
 
-  def validate!(snapshot) do
+  def validate!(snapshot, mode \\ :disabled) do
     true = is_integer(snapshot["backend_pid"]) and snapshot["backend_pid"] > 0
     true = is_binary(snapshot["database"]) and byte_size(snapshot["database"]) > 0
 
@@ -178,18 +181,20 @@ defmodule MixerHosted.Builds.ProcessorAdmission do
 
     identity!(snapshot)
     privileges!(snapshot)
-    functions!(snapshot)
+    functions!(snapshot, mode)
     policies!(snapshot)
     :ok
   end
 
-  def check!(q) do
+  def check!(q, mode \\ :disabled) do
     [[original_path]] = q.("SELECT current_setting('search_path')", [])
     q.("SELECT set_config('search_path','pg_catalog',true)", [])
     [[raw]] = q.(@snapshot_sql, [])
+    intent_compatible = OperationIntentSchema.compatible?(q, mode)
     # Restore before validation so a contract refusal cannot be masked by an aborted query.
     q.("SELECT set_config('search_path',$1,true)", [original_path])
-    raw |> decode!() |> validate!()
+    true = intent_compatible
+    raw |> decode!() |> validate!(mode)
   end
 
   defp rows(snapshot, key), do: Map.fetch!(snapshot, key)
@@ -315,7 +320,7 @@ defmodule MixerHosted.Builds.ProcessorAdmission do
   defp nil_list(nil), do: []
   defp nil_list(list), do: list
 
-  defp functions!(snapshot) do
+  defp functions!(snapshot, mode) do
     [
       [
         source,
@@ -352,9 +357,17 @@ defmodule MixerHosted.Builds.ProcessorAdmission do
       rows =
         rows(snapshot, "q12", role)
 
-      true = rows == [[P.function()]]
+      expected =
+        if role == P.role() and mode == :required,
+          do: [[P.function()], [OperationIntentSchema.entry()]],
+          else: [[P.function()]]
+
+      true = Enum.sort(rows) == Enum.sort(expected)
     end
   end
+
+  defp admission_mode(:builds_v1), do: :disabled
+  defp admission_mode(:durable_intent_v1), do: :required
 
   defp policies!(snapshot) do
     tables = Map.keys(P.table_rights(P.role())) ++ ["mixer_customer_build_inputs"]

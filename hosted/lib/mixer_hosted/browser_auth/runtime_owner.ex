@@ -135,9 +135,11 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   end
 
   @doc "Private exact build read; selection is data, never authority."
-  def read_build(raw_headers, input) do
-    case MixerHosted.CustomerBuilds.Selection.new(input) do
-      {:ok, selection} -> read_private(raw_headers, {:build, selection})
+  def read_build(raw_headers, input, kind \\ nil) do
+    with true <- is_nil(kind) or kind in MixerHosted.Builds.RetainedNativeArtifacts.kinds(),
+         {:ok, selection} <- MixerHosted.CustomerBuilds.Selection.new(input) do
+      read_private(raw_headers, {:build, selection, kind})
+    else
       _ -> {:error, :invalid_request}
     end
   rescue

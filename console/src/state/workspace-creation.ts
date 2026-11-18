@@ -60,6 +60,7 @@ export function createWorkspaceCreation(session: Accessor<WorkspaceCreationSessi
     if (!current || !client || state()?.kind === "pending" || !canCreateOrganization() ||
       !isWorkspaceCreateName(input.displayName) ||
       (input.kind === "project" && ownedOrganization()?.id !== input.organizationId)) return false;
+    const refreshCreated = directory.prepareCreatedRefresh();
     const captured = Object.freeze({ ...input });
     const attempt = { owner: current, controller: new AbortController() };
     active = attempt;
@@ -73,7 +74,7 @@ export function createWorkspaceCreation(session: Accessor<WorkspaceCreationSessi
         return false;
       }
       if (owner() !== current) return false;
-      const selected = await directory.refreshCreated(created);
+      const selected = await refreshCreated(created);
       if (owner() !== current) return false;
       setLast({ owner: current, submission: { kind: "committed", input: captured, selected } });
       return true;

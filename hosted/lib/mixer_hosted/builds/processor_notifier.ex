@@ -9,6 +9,15 @@ defmodule MixerHosted.Builds.ProcessorNotifier do
     conf = Keyword.fetch!(opts, :conf)
     true = conf.name == Oban and conf.prefix == "public" and conf.repo == MixerHosted.Repo
 
+    {:ok, {%{role: :processor, processor_profile: :builds_v1} = hosted, :disabled}} =
+      MixerHosted.Application.startup()
+
+    mode =
+      case hosted.build_operation_intent do
+        :disabled -> :disabled
+        :durable_intent_v1 -> :required
+      end
+
     connection =
       conf
       |> Oban.Repo.config()
@@ -19,7 +28,7 @@ defmodule MixerHosted.Builds.ProcessorNotifier do
 
     Simple.start_link(
       __MODULE__.Connection,
-      %{conf: conf, phase: :disconnected, generation: 0, backend_pid: nil},
+      %{conf: conf, mode: mode, phase: :disconnected, generation: 0, backend_pid: nil},
       connection
     )
   end
@@ -98,7 +107,7 @@ defmodule MixerHosted.Builds.ProcessorNotifier.Connection do
     state = %{state | backend_pid: snapshot["backend_pid"]}
 
     try do
-      :ok = ProcessorAdmission.validate!(snapshot)
+      :ok = ProcessorAdmission.validate!(snapshot, state.mode)
       event(:admitted, state)
       send(self(), {:listen_admitted, state.generation})
       {:noreply, %{state | phase: :admitted}}

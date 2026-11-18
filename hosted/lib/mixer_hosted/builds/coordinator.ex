@@ -17,7 +17,7 @@ defmodule MixerHosted.Builds.Coordinator do
   @keys Enum.map(@scope, &Atom.to_string/1) ++
           ["build_record_id", "revision", "attempt", "fence", "kind"]
   @kinds ["created", "start", "cancel", "expire", "completed", "stopped", "retry"]
-  @terminal [:succeeded, :failed, :cancelled, :timed_out]
+  @terminal [:native_succeeded, :succeeded, :failed, :cancelled, :timed_out]
 
   @impl true
   def perform(%Oban.Job{args: args} = job) do
@@ -93,7 +93,7 @@ defmodule MixerHosted.Builds.Coordinator do
   defp external(context, args, config) do
     with {:ok, context} <- refresh(context.token, args, config),
          request = Dispatch.request(context),
-         {:ok, status} <- invoke(:query, request, config) do
+         {:ok, status} <- invoke(query_callback(context, config), request, config) do
       case status do
         terminal when is_tuple(terminal) -> finish(context, args, terminal, config)
         :running when context.build.state == :running -> wait(context, config)
@@ -104,6 +104,17 @@ defmodule MixerHosted.Builds.Coordinator do
       {:error, _} -> wait(context, config)
     end
   end
+
+  defp query_callback(
+         %{build: %{state: :running}},
+         %{
+           adapter: MixerHosted.Builds.NativeDevelopmentDispatch,
+           operation_intent: :durable_intent_v1
+         }
+       ),
+       do: :query_completion
+
+  defp query_callback(_, _), do: :query
 
   defp act(context, args, config) do
     # Recheck SQL ownership, current intent and deadline between callbacks.
@@ -136,6 +147,14 @@ defmodule MixerHosted.Builds.Coordinator do
                 Multi.new() |> Multi.put(:current, renewed)
 
               :durable_intent_v1 ->
+                Multi.new()
+                |> MixerHosted.Builds.OperationIntent.record_fenced_multi(
+                  :operation_intent,
+                  renewed
+                )
+                |> Multi.put(:current, renewed)
+
+              :owner ->
                 Multi.new()
                 |> MixerHosted.Builds.OperationIntent.record_multi(:operation_intent, renewed)
                 |> Multi.put(:current, renewed)
@@ -297,11 +316,26 @@ defmodule MixerHosted.Builds.Coordinator do
     end
   end
 
-  # Trusted server configuration only; job arguments remain a closed contract.
   defp operation_intent_configuration(config) do
+    case MixerHosted.Application.startup() do
+      {:ok, {hosted, _}} ->
+        {:ok, Map.put(config, :operation_intent, hosted.build_operation_intent)}
+
+      :error ->
+        if Process.whereis(MixerHosted.Supervisor) == nil and
+             Application.fetch_env(:mixer_hosted, :startup) == :error do
+          standalone_operation_intent_configuration(config)
+        else
+          {:error, :invalid_operation_intent_configuration}
+        end
+    end
+  end
+
+  # The standalone owner path uses only the owner-only primitives.
+  defp standalone_operation_intent_configuration(config) do
     case Application.fetch_env(:mixer_hosted, :build_operation_intent) do
       :error -> {:ok, Map.put(config, :operation_intent, :disabled)}
-      {:ok, :durable_intent_v1} -> {:ok, Map.put(config, :operation_intent, :durable_intent_v1)}
+      {:ok, :durable_intent_v1} -> {:ok, Map.put(config, :operation_intent, :owner)}
       _ -> {:error, :invalid_operation_intent_configuration}
     end
   end

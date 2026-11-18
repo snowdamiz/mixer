@@ -311,10 +311,15 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
     })
   end
 
-  defp value({:build, selection}, token, _csrf, _source, _expires) do
-    MixerHostedWeb.BrowserBuildDispatcher.dispatch(token, selection, %{
-      request_id: Base.encode16(:crypto.strong_rand_bytes(16), case: :lower)
-    })
+  defp value({:build, selection, kind}, token, _csrf, _source, _expires) do
+    MixerHostedWeb.BrowserBuildDispatcher.dispatch(
+      token,
+      selection,
+      %{
+        request_id: Base.encode16(:crypto.strong_rand_bytes(16), case: :lower)
+      },
+      kind
+    )
   end
 
   defp value({:build_catalog, request}, token, _csrf, _source, _expires) do
