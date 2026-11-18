@@ -993,7 +993,7 @@ If the requested model or reasoning setting is unavailable, report the specific 
 
 #### When a delegated task stops
 
-Check the child’s terminal result and any saved changes before assigning more work. A provider refusal supplies no evidence that a product feature failed. Record the affected operation, review the actual inputs and expected behavior, and continue permitted implementation or testing from the last verified state. Report any part that remains unavailable. Use provider failover for operational failures within the approved model configuration. A safety refusal is outside that failover path.
+Check the child’s terminal result and any saved changes before assigning more work. A provider refusal supplies no evidence that a product feature failed. Record the affected operation, review the actual inputs and expected behavior, and continue permitted implementation or testing from the last verified state. Report any part that remains unavailable. If a provider times out, is unavailable, or exhausts its quota, confirm the original run has stopped. Automatically retry unfinished work with another available provider that supports the approved model and settings. For a safety flag, review the flagged operation and continue the permitted parts of the product task.
 
 **Parallel execution is the default.** The coordinator identifies work whose dependencies are ready and assigns it to Sol 6.2 High within available capacity. Keep available capacity occupied when useful independent work exists. Practical limits are shared-file ownership, interface readiness, build/device contention, and verification dependencies. Do not force independent work into a serial sequence; do not create conflicting edits merely to increase agent count.
 
