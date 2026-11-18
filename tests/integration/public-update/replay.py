@@ -10,6 +10,8 @@ import json
 import os
 from pathlib import Path
 import secrets
+import shutil
+import signal
 import socket
 import subprocess
 import tempfile
@@ -24,15 +26,23 @@ parser.add_argument("mixer", type=lambda value: Path(value).resolve())
 parser.add_argument("service", type=lambda value: Path(value).resolve())
 parser.add_argument("signer", type=lambda value: Path(value).resolve())
 parser.add_argument("evidence", type=Path)
+parser.add_argument("--postgres", action="store_true", help="use a fresh private PostgreSQL cluster")
 args = parser.parse_args()
-args.evidence = args.evidence.resolve()
+args.evidence = args.evidence.absolute()
 base = "/v3/orgs/org-a/projects/project-a"
-steps = {}
+steps = {"storage_backend": "postgres" if args.postgres else "local"}
 tokens = {role: secrets.token_urlsafe(32) for role in ("PUBLISHER", "FOREIGN", "READER")}
 environment = {key: os.environ[key] for key in ("PATH", "HOME", "TMPDIR") if key in os.environ}
-local_http = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *_):
+        return None
+
+
+local_http = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 reason = "--validation regression"
 last_output = {}
+database_environment = {}
+unproven_groups = set()
 
 
 def require(check, detail):
@@ -40,15 +50,18 @@ def require(check, detail):
         raise RuntimeError(detail)
 
 
-def request(path, status, role=None):
+def request(path, status, role=None, *, raw=False):
     headers = {"Authorization": "Bearer " + tokens[role]} if role else {}
     try:
         response = local_http.open(urllib.request.Request(origin + path, headers=headers), timeout=2)
     except urllib.error.HTTPError as error:
         response = error
     with response:
-        body = response.read()
+        body = response.read(1024 * 1024 + 1)
+        require(len(body) <= 1024 * 1024, f"{path}: response exceeded fixture bound")
         require(response.code == status, f"{path}: expected {status}, got {response.code}")
+        if raw:
+            return body
         return json.loads(body) if body else None
 
 
@@ -80,13 +93,32 @@ def offer(bucket, sequence=None, digest=None):
     query = urllib.parse.urlencode({**coordinates["scope"], "channel": coordinates["channel"],
                                     "runtime": coordinates["runtime"],
                                     "installation": coordinates["installations"][bucket]})
-    data = request("/v3/updates?" + query, 204 if sequence is None else 200)
+    raw = request("/v3/updates?" + query, 204 if sequence is None else 200, raw=True)
     if sequence is None:
+        require(raw == b"", "an ineligible offer contained a response body")
         return {"http": 204}
+    data = json.loads(raw)
     assignment = data["signed_assignment"]["assignment"]
     require((assignment["sequence"], assignment["artifact_sha256"]) == (sequence, digest), assignment)
+    name = assignment_inputs[sequence]
+    artifact_url = f"/v3/artifacts/{digest}?organization=org-a&project=project-a"
+    signed = (directory / f"{name}.json").read_bytes().removesuffix(b"\n")
+    require(data == {"artifact_url": artifact_url, "signed_assignment": json.loads(signed)} and raw.count(signed) == 1,
+            f"{bucket}: signed offer bytes differ for sequence {sequence}")
+
+    candidate = directory / ("first" if digest == first else "second")
+    manifest = (candidate / "signed-manifest.json").read_bytes().removesuffix(b"\n")
+    payload = (candidate / "payload.wasm").read_bytes()
+    delivered = request(artifact_url, 200, raw=True)
+    expected_artifact = {"signed_manifest": json.loads(manifest), "payload": base64.b64encode(payload).decode()}
+    require(json.loads(delivered) == expected_artifact and delivered.count(manifest) == 1,
+            f"{bucket}: signed artifact bytes differ for sequence {sequence}")
     return {"http": 200, "sequence": sequence, "artifact_sha256": digest,
-            "rollout_basis_points": assignment["rollout_basis_points"], "artifact_url": data["artifact_url"]}
+            "rollout_basis_points": assignment["rollout_basis_points"], "artifact_url": artifact_url,
+            "offer_sha256": hashlib.sha256(raw).hexdigest(),
+            "signed_assignment_sha256": hashlib.sha256(signed).hexdigest(),
+            "signed_manifest_sha256": hashlib.sha256(manifest).hexdigest(),
+            "payload_sha256": hashlib.sha256(payload).hexdigest()}
 
 
 def history():
@@ -94,12 +126,64 @@ def history():
             request(base + "/outbox", 200, "READER")["work"])
 
 
+def establish_group_exit(label, pid):
+    deadline = time.monotonic() + 2
+    while True:
+        try:
+            os.killpg(pid, 0)
+        except ProcessLookupError:
+            unproven_groups.remove(pid)
+            return
+        require(time.monotonic() < deadline, f"{label} group {pid} is still present")
+        time.sleep(0.05)
+
+
+def wait_for_owned_exit(label, process, timeout):
+    forced = False
+    try:
+        process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        forced = True
+        if process.poll() is None:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        process.wait(timeout=3)
+    establish_group_exit(label, process.pid)
+    steps.setdefault(f"{label}_cleanup", []).append({
+        "pid": process.pid, "returncode": process.returncode, "direct_child_reaped": True,
+        "group_gone": True, "forced_shutdown": forced,
+    })
+    require(not forced and process.returncode == 0, (label, process.returncode, forced))
+
+
+@contextlib.contextmanager
+def owned_server(label, command, env, stop_signal):
+    with (directory / f"{label}.log").open("ab") as log:
+        process = subprocess.Popen(command, cwd=directory, stdout=log, stderr=log,
+                                   env=env, start_new_session=True)
+    unproven_groups.add(process.pid)
+    try:
+        yield process
+    finally:
+        try:
+            if process.poll() is None:
+                process.send_signal(stop_signal)
+        finally:
+            wait_for_owned_exit(label, process, 15)
+
+
+def service_environment():
+    return {**environment, "MIXER_SERVICE_CONFIG": str(directory / "service.json")}
+
+
 @contextlib.contextmanager
 def service():
-    with (directory / "service.log").open("ab") as log:
-        process = subprocess.Popen([args.service], cwd=directory, stdout=log, stderr=log,
-                                   env={**environment, "MIXER_SERVICE_CONFIG": str(directory / "service.json")})
-        try:
+    prior_exits = len(steps.get("origin_cleanup", []))
+    try:
+        with owned_server("origin", [args.service], {**service_environment(), **database_environment},
+                          signal.SIGTERM) as process:
             deadline = time.monotonic() + 5
             while True:
                 require(process.poll() is None and time.monotonic() < deadline, "origin startup failed")
@@ -112,19 +196,169 @@ def service():
                 except (urllib.error.URLError, ConnectionError, TimeoutError):
                     time.sleep(0.05)
             yield
-        finally:
-            if process.poll() is None:
-                process.terminate()
-            try:
-                process.wait(timeout=12)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=2)
-                raise RuntimeError("origin required forced shutdown")
-            require(process.returncode == 0, ("origin exit", process.returncode))
+    finally:
+        if len(steps.get("origin_cleanup", [])) > prior_exits:
             with socket.socket() as probe:
                 require(probe.connect_ex(("127.0.0.1", port)) != 0, "origin still listening after reap")
-            steps.setdefault("origin_cleanup", []).append({"returncode": process.returncode, "listener_closed": True})
+            steps["origin_cleanup"][-1].update(listener_closed=True, listener_port=port)
+
+
+class Postgres:
+    owner = "mixer_migration_owner"
+    runtime = "mixer_test_runtime"
+
+    def __init__(self, sockets):
+        self.sockets = sockets
+        self.data = directory / "postgres-data"
+        self.tools = {name: shutil.which(name) for name in ("initdb", "postgres", "psql")}
+        require(all(self.tools.values()), "--postgres requires initdb, postgres and psql in PATH")
+        self.env = {**environment, "LC_ALL": "C", "PGCONNECT_TIMEOUT": "2",
+                    "PGOPTIONS": "-c statement_timeout=5000 -c lock_timeout=5000"}
+
+    def sql(self, query):
+        return subprocess.run([self.tools["psql"], "-XAtq", "-w", "-v", "ON_ERROR_STOP=1",
+                               "-h", self.sockets, "-p", "5432", "-U", self.owner, "-d", "postgres",
+                               "-c", query], env=self.env, capture_output=True, timeout=7)
+
+    def query(self, query):
+        result = self.sql(query)
+        require(result.returncode == 0, result.stderr.decode(errors="replace"))
+        return result.stdout
+
+    def dsn(self, role):
+        return f"host={self.sockets} port=5432 dbname=postgres user={role} sslmode=disable"
+
+    def configure(self, process):
+        deadline = time.monotonic() + 8
+        while True:
+            require(process.poll() is None and time.monotonic() < deadline, "PostgreSQL startup failed")
+            result = self.sql("""
+                SELECT json_build_object('version', version(), 'data', current_setting('data_directory'),
+                    'listen', current_setting('listen_addresses'), 'fsync', current_setting('fsync'),
+                    'full_page_writes', current_setting('full_page_writes'),
+                    'synchronous_commit', current_setting('synchronous_commit'))
+            """)
+            if result.returncode == 0:
+                break
+            time.sleep(0.05)
+        settings = json.loads(result.stdout)
+        require(Path(settings.pop("data")).resolve() == self.data.resolve(), "unexpected database directory")
+        require(settings["listen"] == "" and all(settings[key] == "on" for key in
+                ("fsync", "full_page_writes", "synchronous_commit")), settings)
+        steps["postgres"] = settings
+
+        path = directory / "service.json"
+        config = json.loads(path.read_bytes())
+        del config["data_directory"]
+        config.update(storage_backend="postgres", postgres={"connection_string_env": "MIXER_FIXTURE_RUNTIME"})
+        path.write_text(json.dumps(config))
+        migration = subprocess.run([args.service, "migrate-postgres", "--connection-env", "MIXER_FIXTURE_OWNER"],
+                                   env={**service_environment(), "MIXER_FIXTURE_OWNER": self.dsn(self.owner)},
+                                   capture_output=True, timeout=12)
+        require(migration.returncode == 0, migration.stderr.decode(errors="replace"))
+        self.query("""
+            CREATE ROLE mixer_test_runtime LOGIN NOSUPERUSER NOCREATEROLE NOCREATEDB NOBYPASSRLS;
+            GRANT mixer_release_runtime TO mixer_test_runtime;
+        """)
+        database_environment["MIXER_FIXTURE_RUNTIME"] = self.dsn(self.runtime)
+
+    def snapshot(self):
+        # One independent, read-only SQL snapshot after the HTTP commit.
+        return json.loads(self.query("""
+            BEGIN READ ONLY;
+            SELECT json_build_object(
+              'heads', ARRAY(SELECT sequence FROM mixer_release.channel_heads ORDER BY channel_key),
+              'assignments', ARRAY(SELECT encode(signed_assignment, 'hex') FROM mixer_release.assignments
+                                   ORDER BY sequence),
+              'audit', ARRAY(SELECT convert_from(event_body, 'UTF8') FROM mixer_release.audit_events ORDER BY id),
+              'outbox', ARRAY(SELECT convert_from(work_body, 'UTF8') FROM mixer_release.outbox ORDER BY id),
+              'idempotency', ARRAY(SELECT json_build_array(key, request_hash, status, encode(response_body, 'hex'))
+                                     FROM mixer_release.idempotency ORDER BY key),
+              'tenant', ARRAY(SELECT json_build_array(organization, project, last_event, audit_hash, state_hash)
+                               FROM mixer_release.tenant_heads ORDER BY organization, project));
+            COMMIT;
+        """))
+
+
+@contextlib.contextmanager
+def postgres():
+    # The Unix socket path must fit sockaddr_un even with a long checkout path.
+    sockets = Path(tempfile.mkdtemp(prefix="mixer-l05-", dir="/tmp"))
+    db = None
+    try:
+        db = Postgres(sockets)
+        with (directory / "initdb.log").open("wb") as log:
+            initialize = subprocess.Popen(
+                [db.tools["initdb"], "-D", db.data, "-U", db.owner, "--auth-local=trust",
+                 "--auth-host=reject", "--no-locale", "--encoding=UTF8"],
+                env=db.env, stdout=log, stderr=log, start_new_session=True,
+            )
+            unproven_groups.add(initialize.pid)
+        wait_for_owned_exit("initdb", initialize, 30)
+        settings = ["-c", "listen_addresses=", "-c", f"unix_socket_directories={sockets}",
+                    "-c", "unix_socket_permissions=0700", "-c", "fsync=on", "-c", "full_page_writes=on",
+                    "-c", "synchronous_commit=on"]
+        with owned_server("postgres", [db.tools["postgres"], "-D", db.data, "-p", "5432", *settings],
+                          db.env, signal.SIGINT) as process:
+            db.configure(process)
+            yield db
+    finally:
+        if unproven_groups:
+            steps["retained_socket_directory"] = str(sockets)
+            print(f"Unproven process groups {sorted(unproven_groups)}; retained private socket at {sockets}")
+        else:
+            socket_empty = not any(sockets.iterdir())
+            pidfile_gone = not db or not (db.data / "postmaster.pid").exists()
+            shutil.rmtree(sockets)
+            if steps.get("postgres_cleanup"):
+                steps["postgres_cleanup"][-1].update(
+                    socket_directory=str(sockets), socket_directory_removed=True,
+                    socket_closed=socket_empty, pidfile_gone=pidfile_gone,
+                )
+            require(socket_empty and pidfile_gone, "PostgreSQL left a socket or PID file after shutdown")
+
+
+def channel_transition(event, current, previous):
+    expected = {"scope": coordinates["scope"], "runtime": coordinates["runtime"],
+                "channel": coordinates["channel"], "current": current}
+    if previous is not None:
+        expected["previous"] = previous
+    require(event["channel_change"] == expected, event)
+
+
+def check_committed(db, label, sequence, artifact, rollout, count, previous, reason_text):
+    audit, outbox = history()
+    current = {"sequence": sequence, "artifact_sha256": artifact, "rollout_basis_points": rollout}
+    event = audit[-1]
+    channel_transition(event, current, previous)
+    action = "publish" if label == "publish_replacement" else label
+    require((event["id"], event["actor"], event["action"], event["reason"]) ==
+            (count, "local-publisher", f"POST {base}/channels/production/{action}", reason_text), event)
+    require(event["source_ip"] == "127.0.0.1" and event["request_id"], event)
+    snapshot = db.snapshot()
+    require(snapshot["heads"] == [sequence], snapshot["heads"])
+    expected_assignments = [(directory / f"{assignment_inputs[index]}.json").read_bytes().removesuffix(b"\n").hex()
+                            for index in range(1, sequence + 1)]
+    require(snapshot["assignments"] == expected_assignments, "persisted signed assignment history differs")
+    require(list(map(json.loads, snapshot["audit"])) == audit, "SQL audit differs from operator readback")
+    require(list(map(json.loads, snapshot["outbox"])) == outbox, "SQL outbox differs from operator readback")
+    require(snapshot["tenant"] == [["org-a", "project-a", count, event["hash"], event["current"]]],
+            "tenant high-water differs from the latest audit event")
+    require(len(audit) == len(outbox) == len(snapshot["idempotency"]) == count, "wrong committed row counts")
+    require([row["id"] for row in audit] == list(range(1, count + 1)), "audit IDs are not contiguous")
+    previous_hash = ""
+    for row, body in zip(audit, snapshot["audit"], strict=True):
+        digest = row["hash"]
+        unsigned = body.replace(f'"hash":"{digest}"', '"hash":""', 1)
+        require(row["previous_hash"] == previous_hash and hashlib.sha256(unsigned.encode()).hexdigest() == digest,
+                "invalid committed audit hash chain")
+        previous_hash = digest
+    steps.setdefault("committed_transitions", {})[label] = {
+        "event_id": count, "request_id": event["request_id"], "event_hash": event["hash"],
+        "actor": event["actor"], "reason": event["reason"], "source_ip": event["source_ip"],
+        "channel_change": event["channel_change"], "audit_outbox_idempotency_rows_each": count,
+    }
+    return current, snapshot
 
 
 def check_receipt(label, action, digest, sequence, rollout):
@@ -278,14 +512,27 @@ def disposable_directory():
     try:
         yield directory
     except BaseException:
+        if unproven_groups:
+            (directory / "HOLD.json").write_text(json.dumps({
+                "unproven_process_groups": sorted(unproven_groups), "fixture": str(directory),
+                "socket_directory": steps.get("retained_socket_directory"),
+            }, indent=2) + "\n")
         print(f"Preserved failed fixture at {directory}")
         raise
     else:
-        import shutil
         shutil.rmtree(directory)
 
 
-with disposable_directory() as directory:
+def interrupted(signum, _frame):
+    raise SystemExit(128 + signum)
+
+
+if args.postgres:
+    signal.signal(signal.SIGTERM, interrupted)
+
+require(not os.path.lexists(args.evidence), f"evidence path already exists: {args.evidence}")
+
+with disposable_directory() as directory, contextlib.ExitStack() as stack:
     temporary = str(directory)
     with socket.socket() as free:
         free.bind(("127.0.0.1", 0))
@@ -298,12 +545,17 @@ with disposable_directory() as directory:
                    cwd=directory, capture_output=True, check=True, timeout=12)
     coordinates = json.loads((directory / "coordinates.json").read_text())
     first, second = coordinates["first"], coordinates["second"]
+    assignment_inputs = {1: "publish-first", 2: "promote", 3: "publish-second", 4: "rollback"}
     publish = command("publish", "first", "publish-first", "--channel", "production", "--rollout", "5")
     promote = command("promote", first, "promote", "--rollout", "25")
     rollback = command("rollback", first, "rollback", "--reason", reason)
+    db = stack.enter_context(postgres()) if args.postgres else None
+    development_reason = "local development operation"
     with service():
         steps["before_publish"] = offer("early")
         require(history() == ([], []), "new origin history is nonempty")
+        if db:
+            require(all(not rows for rows in db.snapshot().values()), "new PostgreSQL release tables are nonempty")
         call("wrong_signed_scope", command("publish", "first", "publish-first", "--channel", "production",
                                            "--rollout", "5", project="foreign-project"), "update.scope")
         denied = call("wrong_token_scope", publish, "update.upload.rejected", role="FOREIGN")
@@ -329,12 +581,9 @@ with disposable_directory() as directory:
         check_receipt("publish", "publish", first, 1, 500)
         steps["after_publish"] = {"early": offer("early", 1, first), "expansion": offer("expansion"),
                                   "outside": offer("outside")}
-        delivered = request(steps["after_publish"]["early"]["artifact_url"], 200)
-        require(delivered["signed_manifest"] == json.loads((directory / "first/signed-manifest.json").read_text()),
-                "delivered manifest differs")
-        payload = base64.b64decode(delivered["payload"], validate=True)
-        require(payload == (directory / "first/payload.wasm").read_bytes(), "delivered bytes differ")
-        steps["delivered_payload_sha256"] = hashlib.sha256(payload).hexdigest()
+        steps["delivered_payload_sha256"] = steps["after_publish"]["early"]["payload_sha256"]
+        if db:
+            published_head, _ = check_committed(db, "publish", 1, first, 500, 3, None, development_reason)
         request("/v3/artifacts/" + first + "?organization=org-a&project=foreign-project", 404)
         before_promotion = history()
         denied = call("reader_token", promote, "update.promote.rejected", role="READER")
@@ -356,6 +605,8 @@ with disposable_directory() as directory:
         check_receipt("promote", "promote", first, 2, 2500)
         steps["after_promote"] = {"early": offer("early", 2, first), "expansion": offer("expansion", 2, first),
                                   "outside": offer("outside")}
+        if db:
+            promoted_head, _ = check_committed(db, "promote", 2, first, 2500, 4, published_head, development_reason)
         promoted_history = history()
         denied = call("failed_promotion", command("promote", first, "shrink", "--rollout", "5"),
                       "update.promote.rejected")
@@ -367,6 +618,10 @@ with disposable_directory() as directory:
                                              "--rollout", "100"))
         check_receipt("publish_replacement", "publish", second, 3, 10000)
         steps["after_replacement"] = offer("outside", 3, second)
+        if db:
+            replacement_head, _ = check_committed(
+                db, "publish_replacement", 3, second, 10000, 7, promoted_head, development_reason,
+            )
         before_rollback = history()
         call("missing_rollback_reason", rollback[:-2], "update.arguments")
         call("invalid_rollback_reason", rollback[:-1] + ["bad\nreason"], "update.reason")
@@ -382,6 +637,8 @@ with disposable_directory() as directory:
             steps["rollback_stage_key"] = requests[0][2]
         check_receipt("rollback", "rollback", first, 4, 10000)
         steps["after_rollback"] = offer("outside", 4, first)
+        if db:
+            _, committed = check_committed(db, "rollback", 4, first, 10000, 8, replacement_head, reason)
         audit, outbox = history()
         require(len(audit) == len(outbox) == 8, (audit, outbox))
         expected_routes = [f"PUT {base}/artifacts/{first}", f"POST {base}/releases/validate",
@@ -389,7 +646,7 @@ with disposable_directory() as directory:
                            f"PUT {base}/artifacts/{second}", f"POST {base}/releases/validate",
                            f"POST {base}/channels/production/publish", f"POST {base}/channels/production/rollback"]
         require([event["action"] for event in audit] == expected_routes, audit)
-        require([event["reason"] for event in audit] == ["local development operation"] * 7 + [reason], audit)
+        require([event["reason"] for event in audit] == [development_reason] * 7 + [reason], audit)
         for event, work in zip(audit, outbox, strict=True):
             require(event["actor"] == "local-publisher" and event["organization"] == "org-a" and
                     event["project"] == "project-a" and event["previous"] != event["current"], event)
@@ -399,16 +656,15 @@ with disposable_directory() as directory:
         previous = None
         for event, (sequence, artifact, rollout) in zip((audit[i] for i in (2, 3, 6, 7)), heads, strict=True):
             head = {"sequence": sequence, "artifact_sha256": artifact, "rollout_basis_points": rollout}
-            expected = {"scope": coordinates["scope"], "runtime": coordinates["runtime"],
-                        "channel": coordinates["channel"], "current": head}
-            if previous is not None:
-                expected["previous"] = previous
-            require(event["channel_change"] == expected, event)
+            channel_transition(event, head, previous)
             previous = head
         steps["audit_channel_sequences"] = [head[0] for head in heads]
         steps["audit"] = [{key: event[key] for key in ("id", "actor", "action", "reason", "hash")} for event in audit]
         steps["outbox_count"] = len(outbox)
     with service():
+        if db:
+            require(db.snapshot() == committed and history() == (audit, outbox), "restart changed committed history")
+            require(offer("outside", 4, first) == steps["after_rollback"], "restart changed committed offer")
         with relay() as (point, requests, _):
             for label, original in (("publish", publish), ("promote", promote), ("rollback", rollback)):
                 retry = label + "_retry_after_restart"
@@ -423,6 +679,10 @@ with disposable_directory() as directory:
         require("HTTP 409 (assignment_rejected)" in denied["message"], denied)
         require(history() == (audit, outbox), "changed reason wrote audit or outbox")
         steps["after_restart_retries"] = offer("outside", 4, first)
+        require(steps["after_restart_retries"] == steps["after_rollback"], "replay changed the signed rollback offer")
+        if db:
+            require(db.snapshot() == committed, "replay changed persisted rows, including idempotency responses")
+            steps["postgres_rows_unchanged_on_restart_and_replay"] = True
     version = subprocess.run([args.mixer, "version"], cwd=directory, env=environment,
                              capture_output=True, check=True, timeout=5)
     require(json.loads(version.stdout)["detail"] == "0.1.0-dev", "existing version changed")
@@ -438,5 +698,6 @@ with disposable_directory() as directory:
     steps["existing_entry_points"] = ["version", "update prepare", "update verify"]
 require(not directory.exists(), "disposable store remains")
 steps["fixture_removed"] = True
-args.evidence.write_text(json.dumps(steps, indent=2, sort_keys=True) + "\n")
-print(f"PASS: {len(steps)} recorded observations")
+with args.evidence.open("x") as evidence:
+    evidence.write(json.dumps(steps, indent=2, sort_keys=True) + "\n")
+print(f"PASS ({steps['storage_backend']}): {len(steps)} recorded observations")

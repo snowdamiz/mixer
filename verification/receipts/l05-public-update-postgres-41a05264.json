@@ -1,0 +1,263 @@
+{
+  "schema": "mixer.local-development-evidence.v1",
+  "result": "passed",
+  "gate": "L05 public update operator slice",
+  "observedUTC": "2026-11-18T17:43:42+00:00",
+  "source": {
+    "branch": "t3/continue-plan-execution",
+    "verifiedRevision": "6bf5ca7f044f948d1ec58d99f6352a161159d9a7",
+    "verifiedTree": "be343f89e0f482bd4a7a53f9f146c1d43c2a86f1",
+    "checkedHead": "5524fc14fa87f0510a68821f73c7f406845cab0a",
+    "verifiedInputsMatchCheckedHead": true,
+    "originAndSignerBuildRevision": "adcec648723141727199d4f14474464e8c57dc92",
+    "originAndSignerBuildInputsUnchanged": true,
+    "inputTreeObjects": {
+      "cli": "693f9bbc285c7118cb432220bf147fbacc05a15b",
+      "sdk": "464d802f6bcff49adff77ae4c4365ca9741fe6f7",
+      "updates": "ec6b73179f8e0d4882761e157977502a12e32421",
+      "services": "7b61ba7507e2fe2013ab7d048eb27ace958a4fa9",
+      "tests/integration/public-update": "6a3b49cea6e3dc54f43c826b910bc150955b2bda"
+    },
+    "fixtureSignerSourceSHA256": "b64c0e0640158e5a5bed9b00e442eb9e61c84bb896e394ffa28fb65906ffc607",
+    "patchedDriverSHA256": "6e7685c3c9b8c90d13e37c9d49bfc04e962240ed1772433616c97ed3fb27e507"
+  },
+  "tools": {
+    "macOS": "27.0.1",
+    "go": "go version go1.26.4 darwin/arm64",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "python": "Python 3.14.8",
+    "psql": "psql (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "binarySHA256": {
+    "mixer": "d5af42083b8a83363f80ec1e725046d1e305c35d56a3b4b31ce75c162f596cba",
+    "origin": "be98638f42d0aa06240812ded5f8bb046bc373a458352fbd1af8e9479cb93194",
+    "fixtureSigner": "845616f1a43243dd077db4eed87b9df6bb32d10feb18c18aef16f7a30480003b"
+  },
+  "postgres": {
+    "fsync": "on",
+    "full_page_writes": "on",
+    "listen": "",
+    "synchronous_commit": "on",
+    "version": "PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit"
+  },
+  "scope": {
+    "runtime": "Single synthetic iOS runtime, local development channel fixture, two test payloads.",
+    "authorization": "One-shot process with separate artifact and assignment keys, random scoped local bearers, and distinct migration and restricted runtime SQL logins.",
+    "restart": "Go origin stopped and reopened against the same running private PostgreSQL cluster.",
+    "payment": "No account, card, payment service, or external credential in the operator journey.",
+    "defaults": "File storage is the runner default. PostgreSQL requires --postgres. Publish requires explicit channel and rollout, promote requires rollout, and rollback requires a reason. Promote and rollback replay use the channel from the signed assignment.",
+    "channel": "production",
+    "runtimeFingerprint": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e",
+    "coordinates": {
+      "app": "fieldlog",
+      "environment": "development",
+      "organization": "org-a",
+      "platform": "ios",
+      "project": "project-a"
+    },
+    "auditActor": "local-publisher",
+    "auditSourceIP": "127.0.0.1",
+    "nonRollbackAuditReason": "local development operation"
+  },
+  "runs": {
+    "postgres": {
+      "command": "python3 -I -B -S tests/integration/public-update/replay.py --postgres MIXER MIXER_SERVICE FIXTURE_SIGNER NEW_EVIDENCE",
+      "exit": 0,
+      "stepsRecorded": 59,
+      "stdout": "PASS (postgres): 59 recorded observations",
+      "rawEvidenceSHA256": "825f6af4951a4ca86f235cccd8186889e0a15ff6ef744a02a4b089e1ccae79c6"
+    },
+    "localDefault": {
+      "command": "python3 -I -B -S tests/integration/public-update/replay.py MIXER MIXER_SERVICE FIXTURE_SIGNER NEW_EVIDENCE",
+      "exit": 0,
+      "stepsRecorded": 54,
+      "stdout": "PASS (local): 54 recorded observations",
+      "rawEvidenceSHA256": "d6a6b9e9ebcb72572b8689197a23ea3dc593f5a1f50641d278a4ea63258c5956"
+    }
+  },
+  "committedTransitions": [
+    {
+      "operation": "publish",
+      "auditEventID": 3,
+      "requestID": "54fe83859089b2109da2165714d4cb09",
+      "eventHash": "13d0504a348ea271f56eec1617701ade4f9942b23785694118f2b54e1a64750f",
+      "previousSequence": null,
+      "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+      "rollout_basis_points": 500,
+      "sequence": 1,
+      "auditOutboxIdempotencyRowsEach": 3
+    },
+    {
+      "operation": "promote",
+      "auditEventID": 4,
+      "requestID": "1c31732b4602f2159c8b27a195560e98",
+      "eventHash": "3c7668362354982dde7ec2d7f11334dff8bd6bcf18025357a8c7366b5295219f",
+      "previousSequence": 1,
+      "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+      "rollout_basis_points": 2500,
+      "sequence": 2,
+      "auditOutboxIdempotencyRowsEach": 4
+    },
+    {
+      "operation": "publish_replacement",
+      "auditEventID": 7,
+      "requestID": "0b6c89bc1c99191b6fda2cde78328d6c",
+      "eventHash": "abc7609839c181bc05fdd020f65decfe1345a1c7101f9437e4b3fd144c67cbe6",
+      "previousSequence": 2,
+      "artifact_sha256": "5a30a221c097fd572900550b875f361fe8c9b85d6721919d6671dbfb345670cc",
+      "rollout_basis_points": 10000,
+      "sequence": 3,
+      "auditOutboxIdempotencyRowsEach": 7
+    },
+    {
+      "operation": "rollback",
+      "auditEventID": 8,
+      "requestID": "9ec78b89973ff3bc3e9bfa6d6c7c1c3e",
+      "eventHash": "6047de1073c96bfcea2cad0e35102aa799ea29cfa6a54fa71f4c6f5f152065b7",
+      "previousSequence": 3,
+      "artifact_sha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+      "rollout_basis_points": 10000,
+      "sequence": 4,
+      "auditOutboxIdempotencyRowsEach": 8,
+      "reason": "--validation regression"
+    }
+  ],
+  "publicOffers": [
+    {
+      "sequence": 1,
+      "http": 200,
+      "offer_sha256": "07436cc878047d3209641450b314ec4c6a41be23eee50c6c424e013af61a07bd",
+      "signed_assignment_sha256": "5eb4edf2743361f75f58428d15a402e295ae383928c6bb75aeb7d2d99cf9d77a",
+      "signed_manifest_sha256": "5b317d668a82357e3c3fa97daf45072faade89f55c2f218799b16b3986f510b4",
+      "payload_sha256": "e447657110d8157df3e8350553ffd6cd7386a52bd4c0f813ac10f2e71d51a4e9"
+    },
+    {
+      "sequence": 2,
+      "http": 200,
+      "offer_sha256": "93f3ec1e3c38f337a48ea31eca2a3eabc0e6a0c0e834e0811b450fcb4a476932",
+      "signed_assignment_sha256": "0bea8d1ac18bef4a5f15aef02f9d5668c1c2ad1a97a354ac90a4f356408a05a1",
+      "signed_manifest_sha256": "5b317d668a82357e3c3fa97daf45072faade89f55c2f218799b16b3986f510b4",
+      "payload_sha256": "e447657110d8157df3e8350553ffd6cd7386a52bd4c0f813ac10f2e71d51a4e9"
+    },
+    {
+      "sequence": 3,
+      "http": 200,
+      "offer_sha256": "eab32ed290b94153165c29c0fcf2c14bc0befe0ac2fb78a38de07a03dafe84ba",
+      "signed_assignment_sha256": "c5cf5e41d50f837ad99b58b87d50cc72fee9abc4b653eff39cb19f7220e0aa8d",
+      "signed_manifest_sha256": "cd03d2385bb35932ea783e13c7fa1f0fdedd6c419f5b7f20b4e72e1758a5f040",
+      "payload_sha256": "576710db253d08383c72e71522c2894d6bd3e569717b9e108591b5c313a7977d"
+    },
+    {
+      "sequence": 4,
+      "http": 200,
+      "offer_sha256": "e505d91b4571ceb4b533e989bc6d528fba3cfeedc65b500ebc1d496a84e43ccc",
+      "signed_assignment_sha256": "ccc56931864b81f2dfd39fcceb28eb774182db2a3d1e36e8f20f15c8a8ecbfe8",
+      "signed_manifest_sha256": "5b317d668a82357e3c3fa97daf45072faade89f55c2f218799b16b3986f510b4",
+      "payload_sha256": "e447657110d8157df3e8350553ffd6cd7386a52bd4c0f813ac10f2e71d51a4e9"
+    }
+  ],
+  "cohortHTTP": {
+    "after_publish": {
+      "early": 200,
+      "expansion": 204,
+      "outside": 204
+    },
+    "after_promote": {
+      "early": 200,
+      "expansion": 200,
+      "outside": 204
+    }
+  },
+  "recovery": {
+    "interruptedPublish": "Relay returned HTTP 503 after a commit. Same intent returned the committed receipt.",
+    "restartStdoutByteIdentical": [
+      "publish",
+      "promote",
+      "rollback"
+    ],
+    "rollbackOfferByteIdentical": true,
+    "committedSQLRowsUnchanged": true,
+    "changedRollbackReason": "update.rollback.rejected"
+  },
+  "cleanup": {
+    "initdb": [
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "pid": 65056,
+        "returncode": 0
+      }
+    ],
+    "postgres": [
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "pid": 65092,
+        "pidfile_gone": true,
+        "returncode": 0,
+        "socket_closed": true,
+        "socket_directory": "/tmp/mixer-l05-g4hp46qx",
+        "socket_directory_removed": true
+      }
+    ],
+    "originRestartPair": [
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "listener_closed": true,
+        "listener_port": 63285,
+        "pid": 65126,
+        "returncode": 0
+      },
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "listener_closed": true,
+        "listener_port": 63285,
+        "pid": 65364,
+        "returncode": 0
+      }
+    ],
+    "fileOriginRestartPair": [
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "listener_closed": true,
+        "listener_port": 63435,
+        "pid": 65506,
+        "returncode": 0
+      },
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "listener_closed": true,
+        "listener_port": 63435,
+        "pid": 65623,
+        "returncode": 0
+      }
+    ],
+    "disposableFixturesRemoved": true,
+    "holdsCreated": 0
+  },
+  "harnessControls": {
+    "staleEvidence": "Existing path rejected before signer launch. Existing bytes matched the sentinel.",
+    "ownedTimeout": "Inert child timed out. Runner sent SIGKILL to the owned group, reaped the child, observed group absence, and refused a pass.",
+    "earlierAttempts": [
+      "Postmaster exited before readiness on macOS with a locale warning. Setting LC_ALL=C reached the fixture service.",
+      "An initial wire assertion included the unrelated URL ampersand escape. Comparing the signed subobject bytes and decoded envelope passed."
+    ],
+    "independentReview": "Review requested explicit backend identity, stale evidence refusal, and bounded timeout cleanup. Both backends and the two negative controls passed after correction."
+  },
+  "openL05Connections": [
+    "Console operator and Phoenix identity/project authorization to the origin and release outbox.",
+    "Oban dispatch and real build artifact handoff to the signer and release service.",
+    "Installed FieldLog activation and rollback in the same workflow. Physical devices and production qualification are separate.",
+    "This replay does not reconcile the separate store fixture evidence into a single L05 workflow."
+  ]
+}
