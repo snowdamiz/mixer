@@ -42,6 +42,7 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
   mixer import PATH [--output REPORT.json]
   mixer release inspect [--directory PATH]
   mixer export PATH [--directory SOURCE]
+  mixer upgrade PATH --sdk-path PATH [--android-adapter-path PATH] [--directory SOURCE]
   mixer vm validate|inventory|invoke FILE [EXPORT [i32:N|i64:N ...]]
   mixer update verify --manifest FILE --payload FILE --host FILE --roots FILE
     --assignment FILE --channel NAME --installation ID --last-sequence N --now UNIX
@@ -77,6 +78,7 @@ do {
         "build": ["--directory", "--platform", "--output"], "test": ["--directory", "--platform"],
         "run": ["--directory", "--device"], "import": ["--output"],
         "release": ["--directory"], "export": ["--directory"],
+        "upgrade": ["--directory", "--sdk-path", "--android-adapter-path"],
         "report": ["--request", "--output"],
         "submit": ["--provider", "--build-id", "--app-id", "--version-code", "--track", "--directory"]
     ]
@@ -140,6 +142,13 @@ do {
     case "release":
         guard words == ["release", "inspect"] else { throw MixerFailure("arguments.release", "Only release inspect is available until signed dual-target qualification is integrated.") }
         try output(ReleaseAssessment.inspect(root)); exit(2)
+    case "upgrade":
+        guard words.count == 2, let sdk = arguments.options["--sdk-path"] else {
+            throw MixerFailure("arguments.upgrade", "Usage: mixer upgrade DESTINATION --sdk-path PATH [--android-adapter-path PATH] [--directory SOURCE]")
+        }
+        let digest = try ProjectBuild.upgrade(root: root, destination: path(words[1]), sdk: path(sdk),
+                                             androidAdapter: arguments.options["--android-adapter-path"].map(path))
+        try output(SuccessOutput(detail: "Upgraded project copy; digest \(digest)"))
     case "export":
         guard words.count == 2 else { throw MixerFailure("arguments.export", "Usage: mixer export DESTINATION [--directory SOURCE]") }
         try output(SuccessOutput(detail: "Exported source and pinned SDK; digest \(try ProjectBuild.export(root: root, destination: path(words[1])))"))

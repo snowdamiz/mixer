@@ -59,14 +59,7 @@ class PublicExportTests(unittest.TestCase):
         )
         self.assertEqual(status, 0, report)
 
-    def export(self, env=None):
-        return self.cli("export", self.destination, "--directory", self.project, env=env)
-
-    def assert_clean_staging(self):
-        self.assertEqual(list(self.root.glob(".mixer-export-*")), [])
-
-    def test_android_export_reaches_tool_inspection_from_exported_root(self):
-        # Seed only the create-time inventory. Build uses the real exported driver.
+    def create_android(self):
         toolchain = dict(schema=1, sdk_id="export-test", abi="arm64-v8a", min_api=28,
                          target_api=37, swift_version="fixture", javac_version="fixture",
                          java_version="fixture", python_version="fixture", tools={},
@@ -75,6 +68,181 @@ class PublicExportTests(unittest.TestCase):
                     + shlex.quote(json.dumps(toolchain)) + "\n")
         self.create("--platform", "android", "--android-host", "public-v4",
                     "--android-adapter-path", REPO / "native/android", env=self.tool_env)
+
+    def upgrade(self, sdk=None, *extra, env=None):
+        return self.cli("upgrade", self.destination, "--directory", self.project,
+                        "--sdk-path", sdk or REPO / "sdk", *extra, env=env)
+
+    def assert_upgrade_refused(self, outcome, code):
+        status, report = outcome
+        self.assertEqual(status, 1, report)
+        self.assertEqual(report["code"], code, report)
+        self.assertFalse(self.destination.exists())
+        self.assert_clean_staging()
+        return report
+
+    def export(self, env=None):
+        return self.cli("export", self.destination, "--directory", self.project, env=env)
+
+    def assert_clean_staging(self):
+        self.assertEqual(list(self.root.glob(".mixer-export-*")), [])
+
+    def test_upgrade_copies_project_files_and_verifies_the_new_lock(self):
+        self.create()
+        data = self.project / "OfflineWorkspace" / "draft.json"
+        data.parent.mkdir()
+        data.write_bytes(b'{"title":"Pressure test"}\n')
+        original_lock = (self.project / "mixer.lock").read_bytes()
+        incoming = self.root / "IncomingSDK"
+        shutil.copytree(REPO / "sdk", incoming)
+        (incoming / "upgrade-marker.txt").write_text("target SDK revision\n")
+
+        command = ("upgrade", self.destination, "--directory", self.project, "--sdk-path", incoming)
+        status, report = self.cli(*command)
+        self.assertEqual(status, 0, report)
+        self.assertEqual((self.project / "mixer.lock").read_bytes(), original_lock)
+        self.assertEqual((self.destination / data.relative_to(self.project)).read_bytes(), data.read_bytes())
+        marker = self.destination / "Generated/MixerSDK/upgrade-marker.txt"
+        self.assertEqual(marker.read_bytes(), (incoming / marker.name).read_bytes())
+        self.assertNotEqual(json.loads((self.destination / "mixer.lock").read_bytes())["sdkDigest"],
+                            json.loads(original_lock)["sdkDigest"])
+
+        status, report = self.cli(*command)
+        self.assertNotEqual(status, 0)
+        self.assertEqual(report["code"], "export.exists")
+        after_upgrade = self.root / "AfterUpgrade"
+        status, report = self.cli("export", after_upgrade, "--directory", self.destination)
+        self.assertEqual(status, 0, report)
+        self.assertEqual((after_upgrade / data.relative_to(self.project)).read_bytes(), data.read_bytes())
+        self.assert_clean_staging()
+
+    def test_upgrade_rejects_missing_ios_sources(self):
+        self.create()
+        incoming = self.root / "SDK"
+        incoming.mkdir()
+        shutil.copyfile(REPO / "sdk/Package.swift", incoming / "Package.swift")
+        self.assert_upgrade_refused(self.upgrade(incoming), "snapshot.sdk")
+        shutil.copytree(REPO / "sdk", incoming, dirs_exist_ok=True)
+        shutil.rmtree(incoming / "Sources/MixerApple")
+        self.assert_upgrade_refused(self.upgrade(incoming), "snapshot.sdk")
+
+    def test_upgrade_requires_a_regular_copied_sdk_manifest(self):
+        self.create()
+        incoming = self.root / "SDK"
+        manifest = incoming / "Package.swift"
+        manifest.mkdir(parents=True)
+        self.assert_upgrade_refused(self.upgrade(incoming), "snapshot.sdk")
+        manifest.rmdir()
+        manifest.symlink_to(REPO / "sdk/Package.swift")
+        self.assert_upgrade_refused(self.upgrade(incoming), "files.symlink")
+
+    def test_upgrade_refuses_unreadable_target_sdk_directory(self):
+        self.create()
+        incoming = self.root / "SDK"
+        shutil.copytree(REPO / "sdk", incoming)
+        unreadable = incoming / "Unreadable"
+        unreadable.mkdir()
+        (unreadable / "entry").touch()
+        unreadable.chmod(0)
+        try:
+            report = self.assert_upgrade_refused(self.upgrade(incoming), "files.read")
+        finally:
+            unreadable.chmod(0o700)
+        path, _, reason = report["message"].removeprefix("Cannot enumerate ").partition(": ")
+        self.assertEqual(Path(path).resolve(), unreadable)
+        self.assertTrue(reason)
+
+    def test_upgrade_refuses_unreadable_project_directory(self):
+        self.create()
+        unreadable = self.project / "Unreadable"
+        unreadable.mkdir()
+        unreadable.chmod(0)
+        try:
+            report = self.assert_upgrade_refused(self.upgrade(), "files.read")
+        finally:
+            unreadable.chmod(0o700)
+        path, _, reason = report["message"].removeprefix("Cannot enumerate ").partition(": ")
+        self.assertEqual(Path(path).resolve(), unreadable)
+        self.assertTrue(reason)
+
+    def test_android_upgrade_rolls_back_after_failed_toolchain_inspection(self):
+        self.create_android()
+        original = {p.relative_to(self.project): p.read_bytes()
+                    for p in self.project.rglob("*") if p.is_file()}
+        self.script("python3", "exit 1\n")
+        status, report = self.upgrade(None, "--android-adapter-path", REPO / "native/android", env=self.tool_env)
+        self.assertEqual(status, 1, report)
+        self.assertEqual(report["code"], "android.toolchain", report)
+        self.assertFalse(self.destination.exists())
+        self.assertEqual(original, {p.relative_to(self.project): p.read_bytes()
+                                    for p in self.project.rglob("*") if p.is_file()})
+        self.assert_clean_staging()
+
+    def test_android_upgrade_keeps_modified_platform_lock(self):
+        self.create_android()
+        lock = self.project / "mixer.lock"
+        old = json.loads(lock.read_bytes())
+        old["android"]["profile"]["id"] = "mixer.android-source-pair.20"
+        lock.write_text(json.dumps(old))
+        platform_lock = Path("Platforms/Android/Package.resolved")
+        edited_platform_lock = (self.project / platform_lock).read_bytes() + b"\n"
+        (self.project / platform_lock).write_bytes(edited_platform_lock)
+        status, report = self.upgrade(None, "--android-adapter-path", REPO / "native/android", env=self.tool_env)
+        self.assertEqual(status, 0, report)
+        self.assertEqual(json.loads(lock.read_bytes()), old)
+        self.assertEqual((self.project / platform_lock).read_bytes(), edited_platform_lock)
+        self.assertEqual((self.destination / platform_lock).read_bytes(), edited_platform_lock)
+        new = json.loads((self.destination / "mixer.lock").read_bytes())
+        self.assertNotEqual(new["android"]["profile"]["id"], old["android"]["profile"]["id"])
+        self.assert_clean_staging()
+
+    def on_final_upgrade_validation(self, action):
+        self.script("swift", '''
+test "$1" = --version
+if test -e "$UPGRADE_PROBE.staged"; then
+    ''' + action + '''
+elif test -e "$UPGRADE_PROBE.source"; then
+    : > "$UPGRADE_PROBE.staged"
+else
+    : > "$UPGRADE_PROBE.source"
+fi
+exec "$EXPORT_TEST_SWIFT" "$@"
+''')
+        return dict(self.tool_env, UPGRADE_PROBE=str(self.root / "probe"))
+
+    def test_upgrade_checks_source_after_final_validation(self):
+        self.create()
+        draft = self.project / "Resources/draft"
+        draft.write_text("original")
+        for action in (f"printf changed > {shlex.quote(str(draft))}",
+                       f"/bin/mkdir {shlex.quote(str(self.project / 'Resources/Empty'))}"):
+            with self.subTest(action=action):
+                env = self.on_final_upgrade_validation(action)
+                self.assert_upgrade_refused(self.upgrade(env=env), "upgrade.source-changed")
+                (self.root / "probe.source").unlink()
+                (self.root / "probe.staged").unlink()
+
+    def test_upgrade_checks_staged_bytes_after_final_validation(self):
+        self.create()
+        env = self.on_final_upgrade_validation(
+            'for stage in .mixer-export-*; do printf changed > "$stage/Generated/MixerSDK/Package.swift"; done')
+        self.assert_upgrade_refused(self.upgrade(env=env), "upgrade.stage-changed")
+
+    def test_upgrade_cannot_replace_destination_that_appears_during_validation(self):
+        self.create()
+        ready = self.root / "created"
+        destination = shlex.quote(str(self.destination))
+        env = self.on_final_upgrade_validation(
+            f"/bin/mkdir {destination}; /usr/bin/stat -f %i {destination} > {shlex.quote(str(ready))}")
+        status, report = self.upgrade(env=env)
+        self.assertEqual(status, 1, report)
+        self.assertEqual(report["code"], "export.exists", report)
+        self.assertEqual(self.destination.stat().st_ino, int(ready.read_text()))
+        self.assertEqual(list(self.destination.iterdir()), [])
+        self.assert_clean_staging()
+
+    def test_android_export_reaches_tool_inspection_from_exported_root(self):
+        self.create_android()
         platform_lock = Path("Platforms/Android/Package.resolved")
         sdk_lock = self.project / "Generated/MixerSDK/Package.resolved"
         self.assertEqual((self.project / platform_lock).read_bytes(), sdk_lock.read_bytes())

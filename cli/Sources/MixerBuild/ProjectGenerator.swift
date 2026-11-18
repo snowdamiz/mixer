@@ -37,15 +37,8 @@ public enum ProjectGenerator {
         for path in ["Sources/AppModels", "Sources/AppFeatures", "Sources/NativeServices", "Tests/AppModelsTests", "Platforms/iOS", "Platforms/Android", "Resources", "Generated/MixerSDK"] {
             try fm.createDirectory(at: staging.appendingPathComponent(path), withIntermediateDirectories: true)
         }
-        let sdkTarget = staging.appendingPathComponent("Generated/MixerSDK")
-        for file in try SourceDigest.files(in: sdk) {
-            let relative = String(file.path.dropFirst(sdk.path.count + 1))
-            let target = sdkTarget.appendingPathComponent(relative)
-            try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try fm.copyItem(at: file, to: target)
-        }
-        if platform == "android" { try AndroidSDKCompatibility.admitSDK(sdkTarget) }
-        let digest = try SourceDigest.tree(sdkTarget)
+        let digest = try snapshotSDK(from: sdk, into: staging)
+        if platform == "android" { try AndroidSDKCompatibility.admitSDK(staging.appendingPathComponent("Generated/MixerSDK")) }
         var adapterDigest: String?
         if platform == "android", let androidAdapter {
             adapterDigest = try AndroidProject.snapshot(adapter: androidAdapter, destination: staging.appendingPathComponent("Generated/MixerAndroid"))
@@ -78,6 +71,27 @@ public enum ProjectGenerator {
         // An entire project becomes visible only when construction succeeds.
         try fm.moveItem(at: staging, to: destination)
         return GeneratedProject(path: destination.path, application: application, sdkDigest: digest, nextSteps: ["cd \(destination.path)", "mixer test", "mixer doctor"])
+    }
+
+    static func snapshotSDK(from source: URL, into root: URL, requireIOS: Bool = false) throws -> String {
+        let source = source.resolvingSymlinksInPath().standardizedFileURL
+        let target = root.appendingPathComponent("Generated/MixerSDK")
+        let fm = FileManager.default
+        let entries = try SourceDigest.exportEntries(in: source)
+        guard entries.contains(where: { $0.relative == "Package.swift" && !$0.directory }) else {
+            throw MixerFailure("snapshot.sdk", "Supply an SDK directory with a regular Package.swift from your pinned Mixer checkout.")
+        }
+        try fm.createDirectory(at: target, withIntermediateDirectories: true)
+        try ProjectBuild.copyExportEntries(entries, from: source, to: target)
+        if requireIOS {
+            let files = try SourceDigest.exportEntries(in: target).filter { !$0.directory }
+            for module in ["MixerCore", "MixerUI", "MixerApple", "MixerGuest", "MixerCapabilities", "MixerAndroid"] {
+                guard files.contains(where: { $0.relative.hasPrefix("Sources/\(module)/") && $0.relative.hasSuffix(".swift") }) else {
+                    throw MixerFailure("snapshot.sdk", "The copied SDK is missing Swift sources for \(module). Supply the complete SDK from your pinned Mixer checkout.")
+                }
+            }
+        }
+        return try SourceDigest.tree(target)
     }
 
     private static func package(_ name: String) -> String {
@@ -255,7 +269,9 @@ public enum ProjectBuild {
         try verifiedLock(root: root, androidRequired: androidRequired).lock
     }
 
-    private static func verifiedLock(root: URL, androidRequired: Bool = false) throws -> (lock: ToolchainLock, bytes: Data) {
+    private static func verifiedLock(
+        root: URL, androidRequired: Bool = false, requireCurrentAndroidProfile: Bool = true
+    ) throws -> (lock: ToolchainLock, bytes: Data) {
         let config = try ApplicationConfiguration.load(root)
         try AndroidSDKCompatibility.requireHost(config.androidHost)
         let lockURL = root.appendingPathComponent("mixer.lock")
@@ -266,8 +282,12 @@ public enum ProjectBuild {
         let lock = try JSONDecoder().decode(ToolchainLock.self, from: bytes)
         guard lock.schema == 1 else { throw MixerFailure("lock.schema", "Unsupported lock schema") }
         if androidRequired || config.targets.contains("android") || lock.android != nil {
-            try AndroidSDKCompatibility.require(lock.android?.profile)
-            try AndroidSDKCompatibility.admitProject(root)
+            if requireCurrentAndroidProfile {
+                try AndroidSDKCompatibility.require(lock.android?.profile)
+                try AndroidSDKCompatibility.admitProject(root)
+            } else if lock.android == nil {
+                throw MixerFailure("upgrade.android-lock", "The source project needs a locked Android adapter.")
+            }
         }
         let actual = try SourceDigest.tree(root.appendingPathComponent("Generated/MixerSDK"))
         guard actual == lock.sdkDigest else { throw MixerFailure("lock.sdk-drift", "Bundled SDK source differs from mixer.lock. Restore the original SDK snapshot or explicitly install a new qualified SDK.") }
@@ -308,6 +328,55 @@ public enum ProjectBuild {
     }
     public static func export(root: URL, destination: URL) throws -> String {
         let original = try verifiedLock(root: root)
+        return try publishSnapshot(root: root, destination: destination) { staging in
+            let copied = try verifiedLock(root: staging)
+            guard copied.bytes == original.bytes else {
+                throw MixerFailure("export.lock-changed", "mixer.lock changed while copying the project. Retry the export.")
+            }
+        }
+    }
+
+    public static func upgrade(root: URL, destination: URL, sdk: URL, androidAdapter: URL?) throws -> String {
+        let root = root.resolvingSymlinksInPath().standardizedFileURL
+        // Check the old snapshot against its own lock without executing its SDK or adapter.
+        let original = try verifiedLock(root: root, requireCurrentAndroidProfile: false)
+        guard (original.lock.android != nil) == (androidAdapter != nil) else {
+            throw MixerFailure("upgrade.android-adapter", "For an Android project, supply the SDK and Android adapter from the same target revision.")
+        }
+        let originalSource = try SourceDigest.exportFingerprint(root)
+        let sourceChanged = MixerFailure("upgrade.source-changed", "Project files changed during the copy. Close editors and builds, then retry.")
+        return try publishSnapshot(root: root, destination: destination, prepare: { staging in
+            let copied = try verifiedLock(root: staging, requireCurrentAndroidProfile: false)
+            guard copied.bytes == original.bytes else {
+                throw MixerFailure("upgrade.lock-changed", "mixer.lock changed while copying the project. Retry the upgrade.")
+            }
+            guard try SourceDigest.exportFingerprint(staging) == originalSource else { throw sourceChanged }
+            let config = try ApplicationConfiguration.load(staging)
+            let fm = FileManager.default
+            var lock = copied.lock
+            try fm.removeItem(at: staging.appendingPathComponent("Generated/MixerSDK"))
+            lock.sdkDigest = try ProjectGenerator.snapshotSDK(from: sdk, into: staging, requireIOS: config.targets.contains("ios"))
+            if let androidAdapter {
+                let target = staging.appendingPathComponent("Generated/MixerAndroid")
+                try fm.removeItem(at: target)
+                let digest = try AndroidProject.snapshot(adapter: androidAdapter, destination: target)
+                lock.android = AndroidToolchainLock(adapterDigest: digest, toolchain: try AndroidProject.inspectToolchain(),
+                                                   profile: AndroidSDKCompatibility.profile.lock)
+            }
+            try JSONFile.write(lock, to: staging.appendingPathComponent("mixer.lock"))
+            let prepared = try SourceDigest.exportFingerprint(staging)
+            _ = try verifyLock(root: staging)
+            guard try SourceDigest.exportFingerprint(staging) == prepared else {
+                throw MixerFailure("upgrade.stage-changed", "The staged project changed during validation. Retry the upgrade.")
+            }
+        }, beforePublish: {
+            guard try SourceDigest.exportFingerprint(root) == originalSource else { throw sourceChanged }
+        })
+    }
+
+    private static func publishSnapshot(
+        root: URL, destination: URL, prepare: (URL) throws -> Void, beforePublish: () throws -> Void = {}
+    ) throws -> String {
         let root = root.resolvingSymlinksInPath().standardizedFileURL
         let requested = destination.standardizedFileURL
         let parent = requested.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL
@@ -330,12 +399,10 @@ public enum ProjectBuild {
         defer { if !published { try? files.removeItem(at: staging) } }
 
         try copyExportEntries(entries, from: root, to: staging)
-        let copied = try verifiedLock(root: staging)
-        guard copied.bytes == original.bytes else {
-            throw MixerFailure("export.lock-changed", "mixer.lock changed while copying the project. Retry the export.")
-        }
+        try prepare(staging)
         let digest = try SourceDigest.tree(staging)
         try requireExportOutsideSource(destination, root: root)
+        try beforePublish()
         guard renameatx_np(AT_FDCWD, staging.path, AT_FDCWD, destination.path, UInt32(RENAME_EXCL)) == 0 else {
             let error = errno
             if error == EEXIST { throw exists }

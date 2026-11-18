@@ -159,6 +159,22 @@ public enum SourceDigest {
         return result
     }
 
+    static func exportFingerprint(_ root: URL) throws -> String {
+        var hash = SHA256()
+        let entries = try exportEntries(in: root).sorted {
+            $0.relative.utf8.lexicographicallyPrecedes($1.relative.utf8)
+        }
+        for entry in entries {
+            hash.update(data: Data(entry.relative.utf8))
+            hash.update(data: Data([0, entry.directory ? 1 : 0]))
+            if !entry.directory {
+                let bytes = try Data(contentsOf: root.appendingPathComponent(entry.relative))
+                hash.update(data: Data(SHA256.hash(data: bytes)))
+            }
+        }
+        return hash.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+
     public static func sha256(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
     public static func tree(_ root: URL) throws -> String {
         let root = root.resolvingSymlinksInPath().standardizedFileURL

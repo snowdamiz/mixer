@@ -78,12 +78,21 @@ CAPABILITY_CHANGES = CAPABILITY_ADDITIONS | {CAPABILITY + name for name in (
     'CapabilityGuestUIAndroidResources.swift',
     'CapabilityGuestUIPresentationLifetime.swift',
 )} | {'.github/workflows/verify.yml', JAVA + 'test_sparse_checkout.py'}
+UPGRADE_PREDECESSOR_SHA256 = "e007c191d056317ec26a66da61c7d302d1de094f0efd9d2a374fa0faed890327"
+UPGRADE_SOURCE_CHANGES = {
+    'cli/Sources/MixerBuild/Configuration.swift',
+    'cli/Sources/MixerBuild/ProjectGenerator.swift',
+    'cli/Sources/MixerCLI/main.swift',
+}
+UPGRADE_CHANGES = UPGRADE_SOURCE_CHANGES | {'cli/build-tests/test_public_export.py'}
 MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
     'pair23-predecessor-bytes/' + name for name in STARTER_CHANGES
 } | {
     'capability-predecessor-bytes/' + name for name in CAPABILITY_CHANGES - CAPABILITY_ADDITIONS
+} | {
+    'upgrade-predecessor-bytes/' + name for name in UPGRADE_CHANGES
 }
 
 
@@ -163,7 +172,7 @@ def install_inputs():
     binding = previous.load(HERE / 'binding.json')
     require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
                              'changes', 'renderer_transition', 'starter_lock_transition',
-                             'export_runner_transition', 'capability_transition'} and
+                             'export_runner_transition', 'capability_transition', 'upgrade_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -199,6 +208,17 @@ def install_inputs():
     capability = binding['capability_transition']
     capability_preimages = read_capability_preimages(previous, capability, prior_effective)
 
+    upgrade = binding['upgrade_transition']
+    require(set(upgrade) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            set(upgrade['changes']) == UPGRADE_CHANGES, 'Upgrade change roster differs')
+    upgrade_preimages = {}
+    for name, change in upgrade['changes'].items():
+        require(set(change) == {'before', 'after'} and change['before'] != change['after'],
+                'Upgrade transition differs: ' + name)
+        raw = previous.read(HERE / 'upgrade-predecessor-bytes' / name)
+        require(previous.row(raw) == change['before'], 'Upgrade owner preimage differs: ' + name)
+        upgrade_preimages[name] = raw
+
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
@@ -208,7 +228,11 @@ def install_inputs():
         # The runner's historical row is pinned by the Pair23 digest below.
         # Restoration uses the original predecessor bytes from this archive.
         if name != EXPORT_RUNNER:
-            raw = pair23_preimages.get(name, capability_preimages.get(name))
+            raw = pair23_preimages.get(name)
+            if raw is None:
+                raw = capability_preimages.get(name)
+            if raw is None:
+                raw = upgrade_preimages.get(name)
             if raw is None:
                 raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
@@ -241,11 +265,23 @@ def install_inputs():
     require(previous.digest(expected_source) == starter['sourceAfter'] ==
             export['sourceBefore'] == STARTER_LOCK_SOURCE_SHA256, 'Starter lock source inverse differs')
     effective[EXPORT_RUNNER] = expected_source[EXPORT_RUNNER] = export['after']
+    require(previous.digest(expected_source) == export['sourceAfter'] ==
+            upgrade['sourceBefore'] == UPGRADE_PREDECESSOR_SHA256,
+            'Export runner source transition differs')
+    for name, change in upgrade['changes'].items():
+        require(effective[name] == change['before'], 'Upgrade predecessor owner differs: ' + name)
+        require(stat.S_IMODE((ROOT / name).stat().st_mode) == 0o644,
+                'Installed upgrade owner mode differs: ' + name)
+        if name not in CHANGES:
+            preimages[name] = (upgrade_preimages[name], 0o644)
+        effective[name] = change['after']
+        if name in UPGRADE_SOURCE_CHANGES:
+            expected_source[name] = change['after']
     require(current == expected_source and
-            export['sourceAfter'] == binding['source']['sha256'] and
+            upgrade['sourceAfter'] == binding['source']['sha256'] and
             len(current) == 141 and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
-            }, 'Export runner source transition differs')
+            }, 'Upgrade source transition differs')
     previous.check_rows(ROOT, {
         **effective, **{name: change['after'] for name, change in capability['changes'].items()}
     })
@@ -316,6 +352,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_export_runner_source141_sha256': binding['upgrade_transition']['sourceBefore'],
             'predecessor_starter_lock_source141_sha256': binding['export_runner_transition']['sourceBefore'],
             'predecessor_pair23_source141_sha256': binding['starter_lock_transition']['sourceBefore'],
             'predecessor_closeout_source141_sha256': binding['renderer_transition']['sourceBefore'],
