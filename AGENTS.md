@@ -922,3 +922,5 @@ copied top-level receipts are `verification/receipts/l06-combined-console-browse
 and `verification/receipts/l05-combined-native-build-41a05264.json`.
 
 The November 18 combined FieldLog API 36 replay recorded UNKNOWN custody for emulator PID/PGID 16950. Preserve the AVD fieldlog_combined_bec4cafba215, ports 5680, 5681, 49687, 18762 and 18763 and the retained verification/local/fieldlog-combined-listener-61klg3pb/replay/root-6_4c3udx namespace without inspection, probing, signals, retry or cleanup. Use the copied top-level verification/receipts/fieldlog-android-combined-report-and-custody-41a05264.json as the reference. The emulator direct child returned 0. Its process group was still observable at the cleanup check.
+
+The November 18 terminal build log console test left Chrome PGID 46845 with UNKNOWN custody after EPERM. Preserve its profile, home, temporary directory, log, and ownership files listed in verification/receipts/l05-console-terminal-build-log-view-41a05264.json without inspection, process operations, retry or cleanup. The browser acknowledged close and its direct child exited 0. Phoenix and PostgreSQL closed independently.

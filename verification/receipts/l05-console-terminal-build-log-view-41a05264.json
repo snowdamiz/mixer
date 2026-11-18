@@ -1,0 +1,527 @@
+{
+  "observedAt": "2026-11-18T19:04:24.024493+00:00",
+  "decision": "Browser, HTTP and SQL behavior passed. Chrome group cleanup unverified.",
+  "source": {
+    "baseCommit": "0fa35a8ad3a58efc529b377387147d3d3bdaee60",
+    "baseTree": "816a1d120e8806e65d5de5e58c01347d8122bd77",
+    "privateAppliedFullTree": "a14c211d2b507f699c7d0f734a4656b5a3ce9876",
+    "reverseRestoredBaseTree": true,
+    "patchSha256": "19ef30d6206666e656e8bdd629b1fd0a2638a001ccbf7ee65d8573978f40523b",
+    "afterimageSha256": {
+      "console/src/App.tsx": "5e1a748a82594750f459d62254c60bc9b80fec1db68c5cbdec8b573a089a3646",
+      "console/src/api/cookie-build-client.ts": "e35f010b6c9d94fe6df1de9dd57d63970f95efd566e9fde47881565d75cb9cda",
+      "console/src/components/ApplicationBuildPage.tsx": "c20dc9d60d62823dbf2055e15112da1564002b45e1dc61601e2e9159c197112b",
+      "console/src/components/BuildLogs.tsx": "3ed35d27dc0ae6438c61350de7f0ec0a7d354ca89e65fcc3d724fdf2318bc1d0",
+      "console/src/components/BuildOverview.tsx": "af3ed29a6d626b2fc993af53fe6f1aae5d6618d9b35d44e7ee9a5e384317a0a1",
+      "console/src/domain/build-catalog.ts": "f3169e0735d81af0b208cec570f0f594590031bbb9c02f9c376e3216fd0a5e1b",
+      "console/src/domain/build-overview.ts": "26bfe50bf2cbc282efd29af7e8ca8c01255a7666f79b8db04746ce85a024de76",
+      "console/src/domain/build-read.ts": "1bbb27ee1174dc75771fb4627f8c8328dbe3abe443869f41c60e7e41c3192e93",
+      "console/src/state/browser-session-controller.ts": "12e799e3600a56c5dc81cd44ad33d333d6377a8f5aae54c38bd49bfcc1bcfe6f",
+      "console/src/state/build-selection-controller.ts": "0ea90f289fc0778aa51bba379148a5e414e1280c08c44a8db581c57eb19ac567",
+      "console/tests/application-build-page.test.mjs": "fbfffee4b8e332febb0be6a6b674b1d7a58ee37a75794b0da0e01cdbcc264812",
+      "console/tests/cookie-build-client.test.mjs": "ab2051d3e7726351d330b2f52dd38f657b1391bf26bd8c3e2cc2d68f45d2c599"
+    },
+    "sharedIntegration": false,
+    "successorSourceAdmission": false
+  },
+  "tools": {
+    "node": "v22.23.3",
+    "python": "3.14.8",
+    "vite": "8.3.5",
+    "typescript": "5.9.3",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "chrome": "Chrome/155.0.8059.82"
+  },
+  "verification": {
+    "commands": [
+      "git apply --index <reviewed patch>",
+      "git diff --cached --check <base>",
+      "git apply --cached --reverse <reviewed patch>",
+      "console/node_modules/.bin/tsc --noEmit",
+      "console/node_modules/.bin/vite build --configLoader runner --outDir <private dist> --emptyOutDir",
+      "npm test",
+      "L05_LOGS_RUN=<owned attempt> python3 -B <private runner>"
+    ],
+    "runtimeCommands": [
+      {
+        "label": "initdb",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/initdb",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/pg",
+          "-U",
+          "fixture_admin",
+          "--locale=C",
+          "--encoding=UTF8",
+          "--auth=trust",
+          "--no-sync"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04"
+      },
+      {
+        "label": "postgres",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/pg",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "52828",
+          "-k",
+          "",
+          "-c",
+          "fsync=off",
+          "-c",
+          "jit=off"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04"
+      },
+      {
+        "label": "roles",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/psql",
+          "-X",
+          "-At",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "52828",
+          "-U",
+          "fixture_admin",
+          "-d",
+          "postgres",
+          "-c",
+          "CREATE ROLE browser_admin LOGIN SUPERUSER NOINHERIT NOBYPASSRLS;CREATE ROLE browser_schema_owner NOLOGIN NOINHERIT NOBYPASSRLS;CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOINHERIT NOBYPASSRLS;CREATE ROLE browser_writer NOLOGIN NOINHERIT NOBYPASSRLS;CREATE ROLE browser_lifecycle LOGIN NOINHERIT NOBYPASSRLS;CREATE ROLE browser_ordinary LOGIN NOINHERIT NOBYPASSRLS;"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04"
+      },
+      {
+        "label": "phoenix",
+        "argv": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/browser_auth/private_console_logs_live_test.exs"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/source/hosted"
+      },
+      {
+        "label": "browser",
+        "argv": [
+          "node",
+          "browser.mjs",
+          "https://127.0.0.1:52892",
+          "52828"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04"
+      },
+      {
+        "label": "db-absent",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/psql",
+          "-X",
+          "-At",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "52828",
+          "-U",
+          "fixture_admin",
+          "-d",
+          "postgres",
+          "-c",
+          "SELECT NOT EXISTS (SELECT FROM pg_database WHERE datname='browser_ordinary_installation_r1422');"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04"
+      }
+    ],
+    "consoleTests": {
+      "passed": 289,
+      "failed": 0
+    },
+    "privateExUnit": {
+      "passed": 1,
+      "failed": 0
+    },
+    "workflow": "Existing OrdinaryBrowserStartupFixture. Disposable TLS same-origin bridge, synthetic issuer, authenticated Chrome clicks via a CDP pipe, macOS outbound loopback policy and fresh Chrome profile. Bridge forwarded the real cookie and query to Phoenix and preserved the build-logs response.",
+    "replayInputSha256": {
+      "existingOrdinaryFixture": "b18f9d78c8c1dd2ef9d4560001d0f06e030d0e1d0fabb7beb742977bff9a66ca",
+      "documentedBridgeRunner": "b9929096ee2f85e352d997fec667f0384ff0c9ae1b119ea4faed6e00c05c26d7",
+      "privateBridgeRunner": "d65d07fc6d942fa906f060ed46ce5a22ee9b1de30509bb54ce394c3c265371f3",
+      "privateExUnitFixture": "938466d8c2e97b5546772642cb648de21b55c6e297e2e8218f0ed682618ec642",
+      "privateBrowserDriver": "19eb612ce0c4c868e17422ec855446fe5e9e11730fa03f3dce7efd4b7c94d65e",
+      "loopbackBrowserPolicy": "cf35cca89f2e1b677995e788c0fe365bf627c641f260a3e4ea80cbde31a0c60e",
+      "consolePackageLock": "c9211456af0220053efefcddcbfffa8bcbe506c1a96e754f8d3d58a4934bc1f0",
+      "hostedMixLock": "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837"
+    }
+  },
+  "browser": {
+    "clicks": [
+      "Sign in",
+      "Synthetic Free Workspace",
+      "Project A",
+      "Builds",
+      "fieldlog",
+      "logs-fixture-terminal",
+      "View build logs",
+      "logs-fixture-queued",
+      "logs-fixture-terminal"
+    ],
+    "renderedEvents": [
+      [
+        "Compiler finished (exit code 65).",
+        "320 bytes on stdout and 80 bytes on stderr.",
+        "Recorded phases were compile, link.",
+        "The output tail was truncated."
+      ],
+      [
+        "Build command finished (exit code 1)."
+      ]
+    ],
+    "switch": {
+      "buildId": "logs-fixture-queued",
+      "detailState": "queued",
+      "noLogPanel": true,
+      "noStaleEventText": true
+    },
+    "reselect": {
+      "buildId": "logs-fixture-terminal",
+      "logsIdle": true,
+      "automaticRefetch": false
+    },
+    "buildLogRequests": 1,
+    "buildLogsHTTP": {
+      "method": "GET",
+      "path": "/console-api/v1/build-logs",
+      "status": 200,
+      "selection": {
+        "organization_id": "org-a",
+        "project_id": "project-a",
+        "application_id": "fieldlog",
+        "build_id": "logs-fixture-terminal",
+        "platform": "ios",
+        "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "toolchain_lock_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "build_definition_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "cookiePresent": true,
+      "cacheControl": "no-store",
+      "response": {
+        "buildLogs": {
+          "state": "failed",
+          "events": [
+            {
+              "event": "compiler_finished",
+              "exitCode": 65,
+              "stdoutBytes": 320,
+              "stderrBytes": 80,
+              "tailTruncated": true,
+              "phases": [
+                "compile",
+                "link"
+              ]
+            },
+            {
+              "event": "build_command_finished",
+              "exitCode": 1
+            }
+          ],
+          "revision": 2,
+          "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "toolchainLockSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "buildDefinitionSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "platform": "ios",
+          "attempt": 1,
+          "organizationId": "org-a",
+          "projectId": "project-a",
+          "applicationId": "fieldlog",
+          "buildId": "logs-fixture-terminal",
+          "failureCode": "compiler_error",
+          "maxAttempts": 1,
+          "workerCompletionPending": false
+        }
+      }
+    },
+    "secureSessionCookieObserved": true,
+    "sessionRead503BeforeLogin": 1
+  },
+  "postgres": {
+    "terminal": {
+      "id": "logs-fixture-terminal",
+      "state": "failed",
+      "revision": 2
+    },
+    "queued": {
+      "id": "logs-fixture-queued",
+      "state": "queued",
+      "revision": 0
+    },
+    "workspace": {
+      "id": "org-a",
+      "fixture_plan": "free",
+      "build_limit": 2
+    },
+    "job_rows": 2,
+    "job_attempts": 0,
+    "billing_table_absent": true
+  },
+  "cleanup": {
+    "processes": [
+      {
+        "label": "initdb",
+        "pid": 43965,
+        "pgid": 43965,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "label": "postgres",
+        "pid": 44531,
+        "pgid": 44531,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "label": "roles",
+        "pid": 44560,
+        "pgid": 44560,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "label": "phoenix",
+        "pid": 44592,
+        "pgid": 44592,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "label": "browser",
+        "pid": 46809,
+        "pgid": 46809,
+        "exit": 1,
+        "groupAbsent": true
+      },
+      {
+        "label": "db-absent",
+        "pid": 49955,
+        "pgid": 49955,
+        "exit": 0,
+        "groupAbsent": true
+      }
+    ],
+    "databaseDropped": true,
+    "portsReusable": [
+      52828,
+      52890,
+      52884,
+      52872,
+      52892
+    ],
+    "chrome": {
+      "status": "UNKNOWN",
+      "pid": 46845,
+      "pgid": 46845,
+      "directChildReaped": true,
+      "directExit": {
+        "code": 0,
+        "signal": null
+      },
+      "browserCloseAcknowledged": true,
+      "groupObserverError": "EPERM",
+      "preserve": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/chrome-profile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/chrome-home",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/tmp",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/chrome.log",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/chrome-owner.json"
+      ],
+      "scope": "Preserve this exact browser group and listed scratch without inspection, enumeration, process operations, retry or cleanup. Separate services were reaped and their groups were observed absent."
+    },
+    "outerDriverExit": 1,
+    "independentScratchRemoved": true,
+    "externalNpmLogsRemoved": true
+  },
+  "earlierAttempts": [
+    {
+      "result": "Console brand parity test lacked pinned website inputs in the sparse copy. Added the assets and reran all tests."
+    },
+    {
+      "result": "Local fixture SQL string syntax prevented compilation before browser launch.",
+      "cleanup": [
+        {
+          "label": "initdb",
+          "pid": 21044,
+          "pgid": 21044,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "postgres",
+          "pid": 21577,
+          "pgid": 21577,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "roles",
+          "pid": 21620,
+          "pgid": 21620,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "phoenix",
+          "pid": 21687,
+          "pgid": 21687,
+          "exit": 1,
+          "groupAbsent": true
+        },
+        {
+          "label": "db-absent",
+          "pid": 22910,
+          "pgid": 22910,
+          "exit": 0,
+          "groupAbsent": true
+        }
+      ]
+    },
+    {
+      "result": "Build fixture seeding used Oban before its test-only instance started. Moved seeding after authenticated fixture startup.",
+      "cleanup": [
+        {
+          "label": "initdb",
+          "pid": 27578,
+          "pgid": 27578,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "postgres",
+          "pid": 27800,
+          "pgid": 27800,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "roles",
+          "pid": 27829,
+          "pgid": 27829,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "phoenix",
+          "pid": 27841,
+          "pgid": 27841,
+          "exit": 2,
+          "groupAbsent": true
+        },
+        {
+          "label": "db-absent",
+          "pid": 29737,
+          "pgid": 29737,
+          "exit": 0,
+          "groupAbsent": true
+        }
+      ]
+    },
+    {
+      "result": "macOS rejected the first sandbox rule spelling before Chrome started. Corrected localhost syntax and preflighted the policy.",
+      "cleanup": [
+        {
+          "label": "initdb",
+          "pid": 37306,
+          "pgid": 37306,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "postgres",
+          "pid": 38053,
+          "pgid": 38053,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "roles",
+          "pid": 38118,
+          "pgid": 38118,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "phoenix",
+          "pid": 38137,
+          "pgid": 38137,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "label": "browser",
+          "pid": 40260,
+          "pgid": 40260,
+          "exit": 1,
+          "groupAbsent": true
+        },
+        {
+          "label": "db-absent",
+          "pid": 40394,
+          "pgid": 40394,
+          "exit": 0,
+          "groupAbsent": true
+        }
+      ],
+      "chrome": {
+        "pid": 40274,
+        "pgid": 40274,
+        "exit": {
+          "code": 65,
+          "signal": null
+        },
+        "groupAbsent": true,
+        "profileRemoved": true
+      }
+    }
+  ],
+  "limits": [
+    "Two synthetic iOS journals and one owner-bound retained event file. The fixture seeded the documented free capacity defaults.",
+    "The failed iOS attempt was the only terminal state exercised in the live browser. Queued selection and reselect were observed.",
+    "No compiler, worker, payment service or payment credentials, remote endpoint, device or pre-existing held resource was used.",
+    "Whole L05 and GA remain unqualified."
+  ],
+  "hold": {
+    "status": "UNKNOWN",
+    "pid": 46845,
+    "pgid": 46845,
+    "directChildReaped": true,
+    "directExit": {
+      "code": 0,
+      "signal": null
+    },
+    "browserCloseAcknowledged": true,
+    "groupObserverError": "EPERM",
+    "preserve": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/chrome-profile",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/chrome-home",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/tmp",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/chrome.log",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l05-console-logs-live.bMYgx8sY/attempt-04/chrome-owner.json"
+    ],
+    "scope": "Preserve this exact browser group and listed scratch without inspection, enumeration, process operations, retry or cleanup. Separate services were reaped and their groups were observed absent."
+  },
+  "originalReceipt": {
+    "path": "verification/local/l05-console-logs-live.bMYgx8sY/receipt.json",
+    "sha256": "7a61243a44a0dcd43842fcf2b8d8a295817729bf24d00870ed89569359eee129"
+  }
+}
