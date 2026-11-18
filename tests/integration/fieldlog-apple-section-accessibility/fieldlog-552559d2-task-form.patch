@@ -1,0 +1,63 @@
+diff --git a/ios/FieldLogUITests/FieldLogUITests.swift b/ios/FieldLogUITests/FieldLogUITests.swift
+index b591f39..94e4e4c 100644
+--- a/ios/FieldLogUITests/FieldLogUITests.swift
++++ b/ios/FieldLogUITests/FieldLogUITests.swift
+@@ -90,6 +90,58 @@ import XCTest
+     app.terminate()
+   }
+ 
++  func testTaskFormSelectsFieldsByIdentifierAndSaves() {
++    continueAfterFailure = false
++    let app = XCUIApplication()
++    app.launchArguments = ["--fieldlog-ui-workspace", UUID().uuidString]
++    app.launch()
++    defer { app.terminate() }
++    XCTAssertTrue(app.staticTexts["test-workspace-badge"].waitForExistence(timeout: 15))
++    let create = app.buttons["create-first-project"]
++    XCTAssertTrue(create.waitForExistence(timeout: 15))
++    create.tap()
++    let projectName = app.textFields["project-name"]
++    XCTAssertTrue(projectName.waitForExistence(timeout: 5))
++    projectName.tap()
++    projectName.typeText("Task selector workshop")
++    app.buttons["save-project"].tap()
++    XCTAssertTrue(app.navigationBars["Task selector workshop"].waitForExistence(timeout: 10))
++
++    let addTask = app.buttons["Add task"]
++    reveal(addTask, in: app)
++    addTask.tap()
++    let title = exactTaskInput("task-title", in: app)
++    let responsible = exactTaskInput("task.responsible", in: app)
++    let section = app.descendants(matching: .any)
++      .matching(NSPredicate(format: "identifier == %@", "task.fields"))
++    XCTAssertEqual(section.count, 1, app.debugDescription)
++    XCTAssertEqual(section.firstMatch.label, "Task")
++
++    title.tap()
++    title.typeText("Check the gate")
++    responsible.tap()
++    responsible.typeText("Rae")
++    XCTAssertEqual(title.value as? String, "Check the gate")
++    XCTAssertEqual(responsible.value as? String, "Rae")
++
++    let submit = app.navigationBars["New task"].buttons["Add"]
++    XCTAssertTrue(submit.isEnabled)
++    submit.tap()
++    XCTAssertTrue(app.buttons["Check the gate, not completed"].waitForExistence(timeout: 10))
++  }
++
++  private func exactTaskInput(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
++    let predicate = NSPredicate(format: "identifier == %@", identifier)
++    let fields = app.textFields.matching(predicate)
++    let editors = app.textViews.matching(predicate)
++    let unique = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
++      fields.count + editors.count == 1
++    }, object: nil)
++    wait(for: [unique], timeout: 5)
++    XCTAssertEqual(fields.count + editors.count, 1, app.debugDescription)
++    return fields.count == 1 ? fields.firstMatch : editors.firstMatch
++  }
++
+   private func addTask(_ text: String, _ app: XCUIApplication) throws {
+     let add = app.buttons["Add task"]
+     reveal(add, in: app)

@@ -97,10 +97,23 @@ private struct NativeNode: SwiftUI.View {
     let snapshot: UIRenderSnapshot
     let dispatch: @MainActor (UIEventEnvelope) -> Void
 
+    private var accessibilityID: String {
+        node.properties["accessibilityIdentifier"]?.string ?? node.id
+    }
+
+    @ViewBuilder
     var body: some SwiftUI.View {
-        accessibility(accessibilityContainer(render()))
+        if node.kind == .section, let title = node.properties["title"]?.string, !title.isEmpty {
+            SwiftUI.Section { children } header: {
+                accessibility(AnyView(SwiftUI.Text(title)))
+                    .accessibilityIdentifier(accessibilityID)
+            }
             .disabled(node.properties["disabled"]?.bool == true)
-            .accessibilityIdentifier(node.properties["accessibilityIdentifier"]?.string ?? node.id)
+        } else {
+            accessibility(accessibilityContainer(render()))
+                .disabled(node.properties["disabled"]?.bool == true)
+                .accessibilityIdentifier(accessibilityID)
+        }
     }
 
     private func accessibilityContainer(_ view: AnyView) -> AnyView {
