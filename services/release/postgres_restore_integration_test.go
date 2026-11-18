@@ -72,6 +72,8 @@ func TestPostgresReleaseBackupRestore(t *testing.T) {
 	requireBytes("source artifact", read(source, deliveryPath, ""), wantArtifact)
 	requireBytes("source assignment", read(source, offerPath, ""), wantOffer)
 	wantAudit := read(source, auditPath, "pg reader")
+	wantLegacyPage := auditBody(t, source, v1Base, "pg reader", 2, 1)
+	checkAuditViews(t, source, "pg reader", 1)
 	events := auditEvents(wantAudit)
 	if len(events) != 3 || events[2].Action != "POST "+v3Base+"/channels/beta/publish" {
 		t.Fatal("source audit must contain upload, validation and publication")
@@ -113,6 +115,7 @@ func TestPostgresReleaseBackupRestore(t *testing.T) {
 	requireBytes("idempotent publish response", replay.Body.Bytes(), published.Body.Bytes())
 	pgStatus(t, v3Publish(restored, "publish", "fresh-publish-key", publisher, assignment), http.StatusConflict)
 	requireBytes("audit after replay", read(restored, auditPath, "pg reader"), wantAudit)
+	requireBytes("restored legacy audit page after replay", auditBody(t, restored, v2Base, "pg reader", 2, 1), wantLegacyPage)
 	requireBytes("assignment after replay", read(restored, offerPath, ""), wantOffer)
 
 	const tenantB = "pg tenant b"
@@ -164,7 +167,8 @@ func TestPostgresReleaseBackupRestore(t *testing.T) {
 	nextOffer := marshal(map[string]any{"signed_assignment": nextAssignment, "artifact_url": nextDeliveryPath})
 	requireBytes("sequence-2 offer after restore", read(restored, offerPath, ""), nextOffer)
 	requireBytes("sequence-2 delivery after restore", read(restored, nextDeliveryPath, ""), marshal(nextArtifact))
-	nextEvents := auditEvents(read(restored, auditPath, "pg reader"))
+	nextEvents := checkAuditViews(t, restored, "pg reader", 2)
+	requireAuditHeads(t, nextEvents, f3.Host.Runtime, channelHead(protocol.Assignment(assignment.Assignment)), channelHead(protocol.Assignment(nextAssignment.Assignment)))
 	if len(nextEvents) != len(events)+3 {
 		t.Fatal("new release must append three events")
 	}

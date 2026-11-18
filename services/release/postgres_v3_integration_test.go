@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"reflect"
@@ -64,33 +63,14 @@ func TestPostgresV3CoexistenceRLSReplayAndRuntimeIsolation(t *testing.T) {
 	v2Status(t, v2Request(s, "PUT", v3Base+"/artifacts/"+d, "upload-pg-v1-before3", "pg publisher", a), 409)
 	v2Status(t, v2Request(s, "POST", v2Base+"/releases/validate", "pg-v3-wrong-route", "pg publisher", map[string]string{"artifact_sha256": d}), 422)
 	v2Status(t, v2Request(s, "POST", v3Base+"/releases/validate", "pg-v3-validate", "pg publisher", map[string]string{"artifact_sha256": d}), 200)
-	v2Status(t, v3Publish(s, "publish", "pg-v3-publish", "pg editor", f3.AssignmentV3(t, a.SignedManifest.Manifest, 1, 10000)), 403)
-	v2Status(t, v3Publish(s, "publish", "pg-v3-publish", "pg publisher", f3.AssignmentV3(t, a.SignedManifest.Manifest, 1, 10000)), 200)
+	v2Status(t, v3Publish(s, "publish", "pg-v3-publish", "pg editor", f3.AssignmentV3(t, a.SignedManifest.Manifest, 1, 1000)), 403)
+	v2Status(t, v3Publish(s, "publish", "pg-v3-publish", "pg publisher", f3.AssignmentV3(t, a.SignedManifest.Manifest, 1, 1000)), 200)
 	newer := f3.AssignmentV3(t, a.SignedManifest.Manifest, 2, 10000)
-	codes = make(chan int, 2)
-	for i := 0; i < 2; i++ {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			target := s
-			if i == 1 {
-				target = other
-			}
-			codes <- v3Publish(target, "promote", fmt.Sprintf("pg-v3-race-%d", i), "pg publisher", newer).Code
-		}(i)
-	}
-	wg.Wait()
-	close(codes)
-	counts := map[int]int{}
-	for code := range codes {
-		counts[code]++
-	}
-	if counts[200] != 1 || counts[409] != 1 {
-		t.Fatal("v3 PG sequence race", counts)
-	}
+	winner := raceAuditPromotion(t, s, other, "pg publisher",
+		f3.AssignmentV3(t, a.SignedManifest.Manifest, 2, 5000), newer)
 	separate, _ := v3Upload(t, s, next, "pg-v3-next-runtime", "pg publisher")
 	v2Status(t, v3Publish(s, "publish", "pg-v3-next-runtime-publish", "pg publisher", next.AssignmentV3(t, separate.SignedManifest.Manifest, 1, 10000)), 200)
-	second, _ := v3Upload(t, s, f3, "pg-v3-second", "pg publisher")
+	second, secondDigest := v3Upload(t, s, f3, "pg-v3-second", "pg publisher")
 	v2Status(t, v3Publish(s, "publish", "pg-v3-second-publish", "pg publisher", f3.AssignmentV3(t, second.SignedManifest.Manifest, 3, 10000)), 200)
 	v2Status(t, v3Publish(s, "rollback", "pg-v3-stale", "pg publisher", newer), 409)
 	rollback := f3.AssignmentV3(t, a.SignedManifest.Manifest, 4, 10000)
@@ -128,6 +108,10 @@ func TestPostgresV3CoexistenceRLSReplayAndRuntimeIsolation(t *testing.T) {
 	if e = owner.QueryRow(context.Background(), "SELECT version,checksum FROM mixer_release.schema_migrations").Scan(&migration, &checksum); e != nil || migration != 1 || checksum != "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605" {
 		t.Fatal("v3 changed migration", e)
 	}
+	const reader = "pg reader"
+	events := checkAuditViews(t, s, reader, 3)
+	requireAuditHeads(t, events, f3.Host.Runtime, ChannelHead{1, d, 1000},
+		winner, ChannelHead{3, secondDigest, 10000}, channelHead(protocol.Assignment(rollback.Assignment)))
 	other.Close()
 	s.Close()
 	s = pgServer(t, cfg, nil)
@@ -135,6 +119,9 @@ func TestPostgresV3CoexistenceRLSReplayAndRuntimeIsolation(t *testing.T) {
 	v2Status(t, retry, 200)
 	if !bytes.Equal(saved.Body.Bytes(), retry.Body.Bytes()) || !bytes.Equal(oldOffer1, pgRequest(s, "GET", pgUpdates(f), "", "", nil).Body.Bytes()) || !bytes.Equal(oldOffer2, v2Request(s, "GET", v2OfferPath(f2, 2), "", "", nil).Body.Bytes()) || !bytes.Equal(oldWire1, pgRequest(s, "GET", "/v1/artifacts/"+d1+"?organization=org-a&project=project-a", "", "", nil).Body.Bytes()) || !bytes.Equal(oldWire2, pgRequest(s, "GET", "/v2/artifacts/"+d2+"?organization=org-a&project=project-a", "", "", nil).Body.Bytes()) {
 		t.Fatal("PG v3 reopen changed legacy/idempotent bytes")
+	}
+	if !reflect.DeepEqual(events, checkAuditViews(t, s, reader, 2)) {
+		t.Fatal("PostgreSQL reopen or rollback retry changed audit history")
 	}
 	if !reflect.DeepEqual(priorEvents, pgEvents(t, s)[:len(priorEvents)]) {
 		t.Fatal("PG v3 changed old audit hashes")

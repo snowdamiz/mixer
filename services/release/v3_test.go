@@ -117,33 +117,18 @@ func TestHTTPV3CoexistenceConcurrentSequenceAndMonotonicReopen(t *testing.T) {
 	v2Status(t, v2Request(s, "GET", v2OfferPath(f3, 3), "", "", nil), 204)
 	v2Status(t, v2Request(s, "GET", "/v3/artifacts/"+d+"?organization=org-a&project=project-a", "", "", nil), 404)
 	v2Status(t, v2Request(s, "POST", v3Base+"/releases/validate", "validate-v3", v3Publisher, map[string]string{"artifact_sha256": d}), 200)
-	first := f3.AssignmentV3(t, a.SignedManifest.Manifest, 1, 10000)
+	first := f3.AssignmentV3(t, a.SignedManifest.Manifest, 1, 1000)
 	v2Status(t, v3Publish(s, "publish", "publish-v3", v3Publisher, first), 200)
 	for _, version := range []uint64{1, 2} {
 		v2Status(t, v2Request(s, "GET", v2OfferPath(f3, version), "", "", nil), 204)
 		v2Status(t, v2Request(s, "GET", fmt.Sprintf("/v%d/artifacts/%s?organization=org-a&project=project-a", version, d), "", "", nil), 404)
 	}
-	second := f3.AssignmentV3(t, a.SignedManifest.Manifest, 2, 10000)
-	codes = make(chan int, 2)
-	for i := 0; i < 2; i++ {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			codes <- v3Publish(s, "promote", fmt.Sprintf("promote-v3-%d", i), v3Publisher, second).Code
-		}(i)
-	}
-	wg.Wait()
-	close(codes)
-	counts := map[int]int{}
-	for code := range codes {
-		counts[code]++
-	}
-	if counts[200] != 1 || counts[409] != 1 {
-		t.Fatal("sequence race", counts)
-	}
+	winner := raceAuditPromotion(t, s, s, v3Publisher,
+		f3.AssignmentV3(t, a.SignedManifest.Manifest, 2, 5000),
+		f3.AssignmentV3(t, a.SignedManifest.Manifest, 2, 10000))
 	newer, _ := v3Upload(t, s, next, "new-runtime-v3", v3Publisher)
 	v2Status(t, v3Publish(s, "publish", "new-runtime-publish", v3Publisher, next.AssignmentV3(t, newer.SignedManifest.Manifest, 1, 10000)), 200)
-	newerSame, _ := v3Upload(t, s, f3, "new-artifact-v3", v3Publisher)
+	newerSame, newerDigest := v3Upload(t, s, f3, "new-artifact-v3", v3Publisher)
 	v2Status(t, v3Publish(s, "publish", "new-artifact-publish", v3Publisher, f3.AssignmentV3(t, newerSame.SignedManifest.Manifest, 3, 10000)), 200)
 	v2Status(t, v3Publish(s, "rollback", "stale-rollback-v3", v3Publisher, first), 409)
 	rollback := f3.AssignmentV3(t, a.SignedManifest.Manifest, 4, 10000)
@@ -154,6 +139,10 @@ func TestHTTPV3CoexistenceConcurrentSequenceAndMonotonicReopen(t *testing.T) {
 	if s.db.(*store).state.Schema != 3 {
 		t.Fatal("legacy write downgraded schema3")
 	}
+	const reader = "TEST ONLY reader"
+	events := checkAuditViews(t, s, reader, 3)
+	requireAuditHeads(t, events, f3.Host.Runtime, channelHead(protocol.Assignment(first.Assignment)),
+		winner, ChannelHead{3, newerDigest, 10000}, channelHead(protocol.Assignment(rollback.Assignment)))
 	s.Close()
 	s, e = New(cfg)
 	if e != nil {
@@ -163,6 +152,9 @@ func TestHTTPV3CoexistenceConcurrentSequenceAndMonotonicReopen(t *testing.T) {
 	v2Status(t, retry, 200)
 	if !bytes.Equal(good.Body.Bytes(), retry.Body.Bytes()) {
 		t.Fatal("reopen changed idempotent bytes")
+	}
+	if !reflect.DeepEqual(events, checkAuditViews(t, s, reader, 2)) {
+		t.Fatal("reopen or rollback retry changed audit history")
 	}
 	if !bytes.Equal(oldOffer1, v2Request(s, "GET", v2OfferPath(f, 1), "", "", nil).Body.Bytes()) || !bytes.Equal(oldOffer2, v2Request(s, "GET", v2OfferPath(f2, 2), "", "", nil).Body.Bytes()) || !bytes.Equal(oldWire1, v2Request(s, "GET", "/v1/artifacts/"+d1+"?organization=org-a&project=project-a", "", "", nil).Body.Bytes()) || !bytes.Equal(oldWire2, v2Request(s, "GET", "/v2/artifacts/"+d2+"?organization=org-a&project=project-a", "", "", nil).Body.Bytes()) {
 		t.Fatal("v3 changed exact legacy delivery bytes")

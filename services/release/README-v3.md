@@ -29,13 +29,22 @@ limit cover all route families.
 
 ## Inspect channel history
 
-Tenant audit reads include a `channel_change` on new v3 publish, promote,
-halt and rollback events. It identifies the app scope, runtime and channel.
-The `previous` and `current` heads record the signed sequence, artifact digest
-and rollout basis points. The first assignment omits the previous head.
-An idempotent retry returns the original response and adds no audit event.
-Historical events retain their original encoding and hashes. A service reading
-new events needs support for the additional field in its strict audit decoder.
+The `/v3/.../audit` route serves the stored audit chain. A v3 publish, promote,
+halt or rollback records `channel_change` with the app scope, runtime and
+channel. Its `previous` and `current` heads contain the signed sequence,
+artifact digest and rollout basis points observed by the committing transaction.
+The first assignment omits the previous head. The canonical event hash covers
+the change. An idempotent retry returns the original response and adds no event.
+
+The v1 and v2 audit routes use the original event schema, including
+`rollout_halt` where recorded. All versions keep the same event IDs, state
+commitments, cursor positions and event order. The v1 and v2 hash chains share
+the canonical prefix through the last event before the first `channel_change`.
+From that change onward they hash the legacy event bytes and link to the
+preceding legacy hash. Verify a chain using one audit version throughout.
+The legacy view derives its cursor hash from the stored prefix. PostgreSQL
+does this within the configured query deadline. Stored events and canonical
+v3 hashes are preserved, including on reopen and restore.
 
 ## Halt an unhealthy rollout
 

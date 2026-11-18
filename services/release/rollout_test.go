@@ -95,6 +95,9 @@ func checkV3HealthHalt(t *testing.T, s http.Handler, f testutil.Fixture, publish
 	if err := protocol.DecodeJSON(audit.Body.Bytes(), &history); err != nil {
 		t.Fatal(err)
 	}
+	if paged := checkAuditViews(t, s, reader, 1); !reflect.DeepEqual(paged, history.Events) {
+		t.Fatal("canonical history differs between page sizes")
+	}
 	var changes []ChannelChange
 	for _, event := range history.Events {
 		if event.ChannelChange != nil {

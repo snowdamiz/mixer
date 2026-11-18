@@ -356,7 +356,8 @@ func (s *Server) read(r *http.Request, p []string, who access, version uint64) (
 		if e != nil || limit < 1 || limit > 100 {
 			return Response{}, apiError{400, "invalid_limit", "limit must be 1..100"}
 		}
-		events, work, next, e := s.db.history(r.Context(), who, after, limit)
+		legacyAudit := p[5] == "audit" && version < 3
+		events, work, next, e := s.db.history(r.Context(), who, after, limit, legacyAudit)
 		if e != nil {
 			return Response{}, e
 		}
@@ -469,9 +470,6 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 		if e != nil {
 			return Response{}, e
 		}
-		if version == 3 {
-			event.ChannelChange = newChannelChange(assigned.assignment())
-		}
 		return commit(raw, func(db releaseTransaction) (Response, error) {
 			a := assigned.assignment()
 			if a.Scope.Organization != org || a.Scope.Project != project {
@@ -511,10 +509,6 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 			}
 			if p[7] == "rollback" && (!exists || !rec.Published) {
 				return Response{}, apiError{409, "invalid_rollback", "rollback target must have been previously published"}
-			}
-			if exists && event.ChannelChange != nil {
-				previous := channelHead(old.assignment())
-				event.ChannelChange.Previous = &previous
 			}
 			if e := db.saveChannel(ck, assigned); e != nil {
 				return Response{}, e

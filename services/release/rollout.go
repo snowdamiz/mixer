@@ -26,8 +26,13 @@ func channelHead(a protocol.Assignment) ChannelHead {
 	return ChannelHead{Sequence: a.Sequence, ArtifactSHA256: a.ArtifactSHA256, RolloutBasisPoints: a.RolloutBasisPoints}
 }
 
-func newChannelChange(a protocol.Assignment) *ChannelChange {
-	return &ChannelChange{Scope: a.Scope, Runtime: a.Runtime, Channel: a.Channel, Current: channelHead(a)}
+func describeChannelChange(old Channel, exists bool, a protocol.Assignment) *ChannelChange {
+	change := &ChannelChange{Scope: a.Scope, Runtime: a.Runtime, Channel: a.Channel, Current: channelHead(a)}
+	if exists {
+		previous := channelHead(old.assignment())
+		change.Previous = &previous
+	}
+	return change
 }
 
 // RolloutHealth records an operator's observed installation outcomes for one
@@ -86,7 +91,6 @@ func (s *Server) haltRollout(r *http.Request, channel string, who access, key st
 		Scope: a.Scope, Runtime: a.Runtime, Channel: channel, ArtifactSHA256: a.ArtifactSHA256,
 		HaltSequence: a.Sequence, Health: health,
 	}
-	event.ChannelChange = newChannelChange(a)
 	hash := protocol.Hash(append([]byte(r.Method+" "+r.URL.Path+"\x00"), raw...))
 	return s.db.transaction(r.Context(), who, "publisher", key, hash, event, func(db releaseTransaction) (Response, error) {
 		ck := channelKey(a)
@@ -111,8 +115,6 @@ func (s *Server) haltRollout(r *http.Request, channel string, who access, key st
 		if a.Sequence <= prior.Sequence || protocol.VerifyAssignmentSignatureV3(req.Signed, s.cfg.Roots, uint64(s.now().Unix())) != nil {
 			return Response{}, apiError{409, "assignment_rejected", "halt requires a current signature and a higher sequence"}
 		}
-		previous := channelHead(prior)
-		event.ChannelChange.Previous = &previous
 		if e := db.saveChannel(ck, signed); e != nil {
 			return Response{}, e
 		}

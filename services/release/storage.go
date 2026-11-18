@@ -45,7 +45,7 @@ type releaseStorage interface {
 	artifact(context.Context, access, string) (Record, bool, error)
 	publicArtifact(context.Context, tenant, string) (Record, bool, error)
 	publicChannel(context.Context, tenant, string) (Channel, bool, error)
-	history(context.Context, access, uint64, int) ([]Event, []Work, uint64, error)
+	history(context.Context, access, uint64, int, bool) ([]Event, []Work, uint64, error)
 }
 
 func immutableEqual(a, b Record) bool {
@@ -78,8 +78,9 @@ func checkChannel(t tenant, key string, c Channel) error {
 }
 
 type memoryTransaction struct {
-	db  *database
-	who access
+	db            *database
+	who           access
+	channelChange *ChannelChange
 }
 
 func (t *memoryTransaction) artifact(digest string) (Record, bool, error) {
@@ -143,8 +144,15 @@ func (t *memoryTransaction) saveChannel(key string, c Channel) error {
 	if !exists || checkChannelArtifact(artifact, c) != nil {
 		return apiError{422, "assignment_invalid", "assignment artifact binding rejected"}
 	}
-	if old, ok := t.db.Channels[key]; ok && (c.version() != old.version() || c.assignment().Sequence <= old.assignment().Sequence) {
+	old, exists := t.db.Channels[key]
+	if exists && (c.version() != old.version() || c.assignment().Sequence <= old.assignment().Sequence) {
 		return apiError{409, "assignment_rejected", "assignment sequence must increase"}
+	}
+	if c.version() == 3 {
+		if t.channelChange != nil {
+			return apiError{503, "storage_unavailable", "multiple v3 channel changes in one transaction"}
+		}
+		t.channelChange = describeChannelChange(old, exists, c.assignment())
 	}
 	if version := c.version(); version > t.db.Schema {
 		t.db.Schema = version
@@ -200,7 +208,7 @@ func (s *store) publicChannel(ctx context.Context, t tenant, key string) (Channe
 	rec, ok := s.state.Channels[key]
 	return rec, ok, nil
 }
-func (s *store) history(ctx context.Context, who access, after uint64, limit int) ([]Event, []Work, uint64, error) {
+func (s *store) history(ctx context.Context, who access, after uint64, limit int, legacy bool) ([]Event, []Work, uint64, error) {
 	if e := who.require("reader"); e != nil {
 		return nil, nil, after, e
 	}
@@ -215,12 +223,18 @@ func (s *store) history(ctx context.Context, who access, after uint64, limit int
 	events := []Event{}
 	work := []Work{}
 	next := after
+	previous := ""
 	for _, ev := range s.state.Audit {
-		if ev.ID <= after || ev.Organization != who.Organization || ev.Project != who.Project {
-			continue
-		}
 		if len(events) >= limit {
 			break
+		}
+		// The file store chains all tenants, including events hidden from this reader.
+		if legacy {
+			ev = legacyEvent(ev, previous)
+			previous = ev.Hash
+		}
+		if ev.ID <= after || ev.Organization != who.Organization || ev.Project != who.Project {
+			continue
 		}
 		events = append(events, ev)
 		next = ev.ID

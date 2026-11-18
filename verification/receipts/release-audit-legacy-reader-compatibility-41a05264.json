@@ -1,0 +1,82 @@
+{
+  "baseRevision": "d58e41289f4dc230d93be92d6e58adff2fe8c5d8",
+  "parentRevision": "37afec46e30379047e279e2aa6e770c513f15106",
+  "sharedApplyCheckRevision": "781a17ae9be3021b625cc64535a82ec01b83e835",
+  "privateStagedTree": "76148cca8c458b78c9da50d8da2631d20a0bd4fc",
+  "patch": {
+    "path": "release-audit-compatibility.patch",
+    "sha256": "7b823b990035c14679e6979076406bdd8d97a061237ecf429ab86c4088a63d00"
+  },
+  "migrationSHA256": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605",
+  "goVersion": "go version go1.26.4 darwin/arm64",
+  "postgresVersion": "postgres (PostgreSQL) 17.11 (Homebrew)",
+  "commands": {
+    "race": {
+      "cwd": "services",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "test",
+        "-race",
+        "-count=1",
+        "./..."
+      ],
+      "exitCode": 0
+    },
+    "vet": {
+      "cwd": "services",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "vet",
+        "-tags=postgres_integration",
+        "./..."
+      ],
+      "exitCode": 0
+    },
+    "postgres": {
+      "cwd": "services",
+      "argv": [
+        "python3",
+        "verification/postgres.py",
+        "--output",
+        "../postgres-pinned"
+      ],
+      "exitCode": 0
+    },
+    "historicalRead": {
+      "cwd": "replay/services",
+      "argv": [
+        "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+        "test",
+        "-race",
+        "./release",
+        "-run",
+        "^TestPrivateReadHistoricalAudit$",
+        "-count=1",
+        "-v"
+      ],
+      "exitCodes": [
+        0,
+        0
+      ]
+    }
+  },
+  "postgresPrivateClusterRemoved": true,
+  "logsSHA256": {
+    "go-race-pinned.log": "520c3806a80bf24990339a0d2b91df75892bd40424b2e3a17527aa1fc3bad528",
+    "go-vet-pinned.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postgres-pinned/receipt.json": "833638fb122b4695ca237c4af20d87af102925d39cd59c377b94570de563a8a5",
+    "postgres-pinned/real-postgres-tests.stdout": "7592fc9cfc58330a4242ca8963063dfa23486e7e2a1cda2a99ec3bb1c67d5bd5",
+    "postgres-pinned/real-postgres-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "historical-parent-producer.log": "fd37d859f3f45300de2025f2920415287b67166f883aa62535d8015992fc0811",
+    "historical-d58-producer.log": "0ca4d277f13f88de83cb732d8312a9f7bbb2bad43d120921654d10548493262e",
+    "historical-applied-pinned.log": "89a4fa836118193c450bdf8a2aceba4124ea65e83799d85f9a5c5bcc2e0cec22",
+    "baseline-reproduction.log": "85d7d1d6d5c5e567bd2d7bd5ee0d05e511a5cfdbf2446421e76ba2ff79c7494f"
+  },
+  "retainedAttemptReceipts": [
+    "postgres-full/receipt.json",
+    "postgres-full-r2/receipt.json",
+    "postgres-focused-r3/receipt.json"
+  ],
+  "evidenceDirectory": "/private/tmp/mix-audit-fix.ZeM5u4",
+  "scope": "Local release service, file store and PostgreSQL. Legacy readers validate their own hash chain. Deep page costs remain unmeasured."
+}

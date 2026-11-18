@@ -312,9 +312,8 @@ func (s *postgresStore) transaction(ctx context.Context, who access, role, key, 
 		}{stateHash, current.changes})
 		event.Current = protocol.Hash(b)
 	}
-	event.Hash = ""
-	canonical, _ := json.Marshal(event)
-	event.Hash = protocol.Hash(canonical)
+	event.ChannelChange = current.channelChange
+	event.Hash = eventHash(event)
 	eventBytes, _ := json.Marshal(event)
 	workBytes, _ := json.Marshal(Work{ID: event.ID, EventID: event.ID, Kind: event.Action, Status: "pending_local_only", RequestID: event.RequestID})
 	id := strconv.FormatUint(event.ID, 10)
@@ -353,10 +352,11 @@ type domainChange struct {
 	After  string `json:"after"`
 }
 type postgresTransaction struct {
-	tx      pgx.Tx
-	ctx     context.Context
-	who     access
-	changes []domainChange
+	tx            pgx.Tx
+	ctx           context.Context
+	who           access
+	changes       []domainChange
+	channelChange *ChannelChange
 }
 
 func valueHash(v any) string { b, _ := json.Marshal(v); return protocol.Hash(b) }
@@ -365,11 +365,7 @@ func verifyStoredEvent(raw []byte, scope tenant, id uint64) (Event, bool) {
 	if protocol.DecodeJSON(raw, &event) != nil {
 		return Event{}, false
 	}
-	hash := event.Hash
-	event.Hash = ""
-	canonical, _ := json.Marshal(event)
-	event.Hash = hash
-	return event, event.ID == id && event.Organization == scope.Organization && event.Project == scope.Project && protocol.ValidDigest(event.Previous) && protocol.ValidDigest(event.Current) && event.Hash == protocol.Hash(canonical)
+	return event, event.ID == id && event.Organization == scope.Organization && event.Project == scope.Project && protocol.ValidDigest(event.Previous) && protocol.ValidDigest(event.Current) && event.Hash == eventHash(event)
 }
 func (t *postgresTransaction) artifact(digest string) (Record, bool, error) {
 	return queryArtifact(t.ctx, t.tx, t.who.tenant, digest, false)
@@ -496,6 +492,9 @@ func (t *postgresTransaction) saveChannel(key string, channel Channel) error {
 		}
 		before = valueHash(old)
 	}
+	if channel.version() == 3 && t.channelChange != nil {
+		return storageError()
+	}
 	raw, _ := json.Marshal(channel.wire())
 	sequence := strconv.FormatUint(a.Sequence, 10)
 	if _, e = t.tx.Exec(t.ctx, "INSERT INTO mixer_release.assignments(organization,project,channel_key,sequence,artifact_digest,signed_assignment) VALUES($1,$2,$3,$4,$5,$6)", t.who.Organization, t.who.Project, key, sequence, a.ArtifactSHA256, raw); e != nil {
@@ -503,6 +502,9 @@ func (t *postgresTransaction) saveChannel(key string, channel Channel) error {
 	}
 	if _, e = t.tx.Exec(t.ctx, "INSERT INTO mixer_release.channel_heads(organization,project,channel_key,sequence) VALUES($1,$2,$3,$4) ON CONFLICT(organization,project,channel_key) DO UPDATE SET sequence=EXCLUDED.sequence", t.who.Organization, t.who.Project, key, sequence); e != nil {
 		return storageError()
+	}
+	if channel.version() == 3 {
+		t.channelChange = describeChannelChange(old, exists, a)
 	}
 	t.changes = append(t.changes, domainChange{"channel", key, before, valueHash(channel)})
 	return nil
@@ -537,7 +539,7 @@ func (s *postgresStore) publicChannel(ctx context.Context, scope tenant, key str
 	defer rollbackPostgres(tx)
 	return queryChannel(ctx, tx, scope, key)
 }
-func (s *postgresStore) history(ctx context.Context, who access, after uint64, limit int) ([]Event, []Work, uint64, error) {
+func (s *postgresStore) history(ctx context.Context, who access, after uint64, limit int, legacy bool) ([]Event, []Work, uint64, error) {
 	if e := who.require("reader"); e != nil {
 		return nil, nil, after, e
 	}
@@ -550,23 +552,24 @@ func (s *postgresStore) history(ctx context.Context, who access, after uint64, l
 	}
 	defer cancel()
 	defer rollbackPostgres(tx)
-	previous := ""
-	previousState := ""
+	var prior Event
+	var legacyPrevious string
 	if after > 0 {
-		var raw []byte
-		var id string
-		e = tx.QueryRow(ctx, "SELECT id::text,event_body FROM mixer_release.audit_events WHERE organization=$1 AND project=$2 AND id<=$3 ORDER BY id DESC LIMIT 1", who.Organization, who.Project, strconv.FormatUint(after, 10)).Scan(&id, &raw)
-		if e != nil && !errors.Is(e, pgx.ErrNoRows) {
-			return nil, nil, after, storageError()
-		}
-		if e == nil {
-			number, err := strconv.ParseUint(id, 10, 64)
-			prior, valid := verifyStoredEvent(raw, who.tenant, number)
-			if err != nil || !valid {
-				return nil, nil, after, storageError()
+		if legacy {
+			prior, legacyPrevious, e = legacyPostgresCursor(ctx, tx, who.tenant, after)
+		} else {
+			var id string
+			var raw []byte
+			e = tx.QueryRow(ctx, "SELECT a.id::text,a.event_body FROM mixer_release.audit_events a WHERE a.organization=$1 AND a.project=$2 AND a.id<=$3 ORDER BY a.id DESC LIMIT 1", who.Organization, who.Project, strconv.FormatUint(after, 10)).Scan(&id, &raw)
+			if e == nil {
+				prior, e = decodeAuditRow(id, raw, who.tenant)
 			}
-			previous = prior.Hash
-			previousState = prior.Current
+			if errors.Is(e, pgx.ErrNoRows) {
+				e = nil
+			}
+		}
+		if e != nil {
+			return nil, nil, after, storageError()
 		}
 	}
 	rows, e := tx.Query(ctx, "SELECT a.id::text,a.event_body,o.work_body FROM mixer_release.audit_events a JOIN mixer_release.outbox o ON o.organization=a.organization AND o.project=a.project AND o.event_id=a.id WHERE a.organization=$1 AND a.project=$2 AND a.id>$3 ORDER BY a.id LIMIT $4", who.Organization, who.Project, strconv.FormatUint(after, 10), limit)
@@ -583,27 +586,65 @@ func (s *postgresStore) history(ctx context.Context, who access, after uint64, l
 		if e = rows.Scan(&id, &eventBytes, &workBytes); e != nil {
 			return nil, nil, after, storageError()
 		}
-		var event Event
 		var item Work
-		if protocol.DecodeJSON(eventBytes, &event) != nil || protocol.DecodeJSON(workBytes, &item) != nil {
+		event, e := decodeAuditRow(id, eventBytes, who.tenant)
+		if e != nil || event.ID != next+1 || !followsAuditEvent(event, prior) ||
+			protocol.DecodeJSON(workBytes, &item) != nil || item.EventID != event.ID || item.ID != event.ID || item.Status != "pending_local_only" {
 			return nil, nil, after, storageError()
 		}
-		number, e := strconv.ParseUint(id, 10, 64)
-		if e != nil {
-			return nil, nil, after, storageError()
-		}
-		event, valid := verifyStoredEvent(eventBytes, who.tenant, number)
-		if !valid || event.ID != next+1 || event.PreviousHash != previous || previousState != "" && event.Previous != previousState || item.EventID != event.ID || item.ID != event.ID || item.Status != "pending_local_only" {
-			return nil, nil, after, storageError()
+		prior = event
+		if legacy {
+			event = legacyEvent(event, legacyPrevious)
+			legacyPrevious = event.Hash
 		}
 		events = append(events, event)
 		work = append(work, item)
 		next = event.ID
-		previous = event.Hash
-		previousState = event.Current
 	}
 	if rows.Err() != nil {
 		return nil, nil, after, storageError()
 	}
 	return events, work, next, nil
+}
+
+func decodeAuditRow(id string, raw []byte, scope tenant) (Event, error) {
+	number, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return Event{}, storageError()
+	}
+	event, valid := verifyStoredEvent(raw, scope, number)
+	if !valid {
+		return Event{}, storageError()
+	}
+	return event, nil
+}
+
+func followsAuditEvent(event, prior Event) bool {
+	return event.PreviousHash == prior.Hash && (prior.ID == 0 || event.Previous == prior.Current)
+}
+
+func legacyPostgresCursor(ctx context.Context, tx pgx.Tx, scope tenant, after uint64) (Event, string, error) {
+	// A legacy cursor carries only an ID. Replay the canonical prefix under the
+	// normal storage deadline to recover the compatible predecessor hash.
+	rows, err := tx.Query(ctx, "SELECT a.id::text,a.event_body FROM mixer_release.audit_events a WHERE a.organization=$1 AND a.project=$2 AND a.id<=$3 ORDER BY a.id", scope.Organization, scope.Project, strconv.FormatUint(after, 10))
+	if err != nil {
+		return Event{}, "", err
+	}
+	defer rows.Close()
+	var prior Event
+	previous := ""
+	for rows.Next() {
+		var id string
+		var raw []byte
+		if err = rows.Scan(&id, &raw); err != nil {
+			return Event{}, "", err
+		}
+		event, err := decodeAuditRow(id, raw, scope)
+		if err != nil || event.ID != prior.ID+1 || !followsAuditEvent(event, prior) {
+			return Event{}, "", storageError()
+		}
+		prior = event
+		previous = legacyEvent(event, previous).Hash
+	}
+	return prior, previous, rows.Err()
 }

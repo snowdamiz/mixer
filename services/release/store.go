@@ -46,6 +46,23 @@ type Event struct {
 	RolloutHalt   *RolloutHalt   `json:"rollout_halt,omitempty"`
 	ChannelChange *ChannelChange `json:"channel_change,omitempty"`
 }
+
+func eventHash(event Event) string {
+	event.Hash = ""
+	b, _ := json.Marshal(event)
+	return protocol.Hash(b)
+}
+
+// legacyEvent uses the parent Event wire shape and hashes that exact value.
+func legacyEvent(event Event, previous string) Event {
+	if event.ChannelChange != nil || event.PreviousHash != previous {
+		event.ChannelChange = nil
+		event.PreviousHash = previous
+		event.Hash = eventHash(event)
+	}
+	return event
+}
+
 type Work struct {
 	ID        uint64 `json:"id"`
 	EventID   uint64 `json:"event_id"`
@@ -115,14 +132,11 @@ func openStore(dir string, fault durable.Fault) (*store, error) {
 		}
 		prev := ""
 		for i, ev := range s.state.Audit {
-			hash := ev.Hash
-			ev.Hash = ""
-			raw, _ := json.Marshal(ev)
-			if ev.ID != uint64(i+1) || ev.PreviousHash != prev || hash != protocol.Hash(raw) {
+			if ev.ID != uint64(i+1) || ev.PreviousHash != prev || ev.Hash != eventHash(ev) {
 				l.Close()
 				return nil, fmt.Errorf("audit chain corrupt")
 			}
-			prev = hash
+			prev = ev.Hash
 		}
 	} else {
 		s.state = database{Schema: 1, Artifacts: map[string]Record{}, Channels: map[string]Channel{}, Idempotency: map[string]Dedup{}, Audit: []Event{}, Outbox: []Work{}}
@@ -172,7 +186,8 @@ func (s *store) transaction(ctx context.Context, who access, role, key, hash str
 	if e != nil {
 		return Response{}, apiError{503, "storage_unavailable", "invalid durable state"}
 	}
-	response, e := fn(&memoryTransaction{db: &next, who: who})
+	tx := &memoryTransaction{db: &next, who: who}
+	response, e := fn(tx)
 	if e != nil {
 		return Response{}, e
 	}
@@ -183,8 +198,8 @@ func (s *store) transaction(ctx context.Context, who access, role, key, hash str
 	if len(next.Audit) > 0 {
 		event.PreviousHash = next.Audit[len(next.Audit)-1].Hash
 	}
-	b, _ := json.Marshal(event)
-	event.Hash = protocol.Hash(b)
+	event.ChannelChange = tx.channelChange
+	event.Hash = eventHash(event)
 	next.Audit = append(next.Audit, event)
 	next.Outbox = append(next.Outbox, Work{ID: uint64(len(next.Outbox) + 1), EventID: event.ID, Kind: event.Action, Status: "pending_local_only", RequestID: event.RequestID})
 	next.Idempotency[key] = Dedup{hash, response}
