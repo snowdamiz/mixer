@@ -97,5 +97,11 @@
       "retentionReason": "cluster command failed or was interrupted before cleanup was proven safe"
     }
   ],
-  "compatibility": "Older audit events omit change metadata and retain their hashes. New durable event data requires a service reader that recognizes channel_change."
+  "compatibility": "Older audit events omit change metadata and retain their hashes. New durable event data requires a service reader that recognizes channel_change.",
+  "independentReview": {
+    "decision": "request_changes",
+    "finding": "A page read via the v1 or v2 audit endpoint can now include channel_change from a v3 write. The parent release strict decoder rejects the page. Reproduced with the file store and PostgreSQL.",
+    "verified": "Competing assignments, halt, resume, rollback and replay, reading historical events and the restored predecessor head passed at their tested scope.",
+    "postgresReceipt": "/private/tmp/mix-audit.59EGZH/pg-review-r2/receipt.json"
+  }
 }
