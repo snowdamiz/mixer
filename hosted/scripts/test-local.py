@@ -121,7 +121,11 @@ parser.add_argument("--additional-test", action="append", default=[], type=Path,
                     help="Explicit repository-local independent ExUnit test; bound into the receipt")
 parser.add_argument("--only-additional-tests", action="store_true",
                     help="Run only explicitly supplied independent tests for a focused diagnostic")
+parser.add_argument("--test-timeout", type=int, default=300, metavar="SECONDS",
+                    help="Time budget for the ExUnit command (default: 300 seconds)")
 args = parser.parse_args()
+if args.test_timeout < 1:
+    parser.error("--test-timeout must be positive")
 root = Path(__file__).resolve().parents[1]
 additional_tests = [p.resolve() for p in args.additional_test]
 if args.only_additional_tests and not additional_tests:
@@ -155,18 +159,18 @@ def manifest():
     return inputs
 
 
-def run(label, argv, env=None, check=True):
+def run(label, argv, env=None, check=True, *, timeout=300):
     log = output / (label + ".log")
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
     with log.open("wb") as stream:
         try:
-            result = subprocess.run(argv, cwd=root, env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=300)
+            result = subprocess.run(argv, cwd=root, env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=timeout)
             exit_code = result.returncode
         except subprocess.TimeoutExpired:
-            stream.write(b"\nCOLLECTOR: command exceeded 300 seconds\n")
+            stream.write(f"\nCOLLECTOR: command exceeded {timeout} seconds\n".encode())
             exit_code = 124
     commands.append({"label": label, "argv": list(map(str, argv)), "cwd": str(root), "started": started,
-                     "exit_code": exit_code, "log": log.name, "sha256": digest(log)})
+                     "exit_code": exit_code, "timeout_seconds": timeout, "log": log.name, "sha256": digest(log)})
     if check and exit_code:
         raise RuntimeError(f"{label} failed ({exit_code}); see {log}")
     return exit_code
@@ -305,7 +309,7 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
         if not args.only_additional_tests:
             test_argv.append("test")
         test_argv.extend(map(str, additional_tests))
-    run("tests", test_argv, env)
+    run("tests", test_argv, env, timeout=args.test_timeout)
     if before != manifest():
         raise RuntimeError("source changed during tests")
     status = "passed"

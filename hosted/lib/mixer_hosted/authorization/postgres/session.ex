@@ -5,7 +5,7 @@ defmodule MixerHosted.Authorization.Postgres.Session do
   @locks ~w(profiles principals families credentials organization_heads project_heads)
 
   def prepare!(repo, lookup) do
-    linkage = prepare_identity_scope!(repo, lookup.identity, lookup.target)
+    {linkage, :ok} = prepare_identity_scope!(repo, lookup.identity, lookup.target, fn -> :ok end)
     lock!(repo, "organization_heads", :not_found)
     lock!(repo, "project_heads", :not_found)
     linkage
@@ -15,15 +15,22 @@ defmodule MixerHosted.Authorization.Postgres.Session do
   # select and lock their bounded tenant rows, and recheck before commit. This
   # helper supplies only linkage and identity locks, never artifact authority.
   def prepare_identity!(repo, identity) do
-    prepare_identity_scope!(repo, identity, %{
+    {linkage, :ok} = prepare_identity!(repo, identity, fn -> :ok end)
+    linkage
+  end
+
+  def prepare_identity!(repo, identity, before_locks) do
+    scope = %{
       organization_id: nil,
       project_id: nil,
       application_id: nil,
       environment_id: nil
-    })
+    }
+
+    prepare_identity_scope!(repo, identity, scope, before_locks)
   end
 
-  defp prepare_identity_scope!(repo, i, scope) do
+  defp prepare_identity_scope!(repo, i, scope, before_locks) do
     if not repo.in_transaction?(), do: repo.rollback(:authorization_unavailable)
 
     query!(repo, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
@@ -59,6 +66,7 @@ defmodule MixerHosted.Authorization.Postgres.Session do
       directory_mode: nil
     )
 
+    admission = before_locks.()
     lock!(repo, "profiles", :unauthenticated)
 
     principal =
@@ -79,7 +87,7 @@ defmodule MixerHosted.Authorization.Postgres.Session do
     context!(repo, family_id: family)
     lock!(repo, "families", :unauthenticated)
     lock!(repo, "credentials", :unauthenticated)
-    %{principal_id: principal, family_id: family}
+    {%{principal_id: principal, family_id: family}, admission}
   end
 
   def finish!(repo), do: query!(repo, "SELECT 1")

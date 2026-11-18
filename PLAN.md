@@ -16,6 +16,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+Concurrent browser requests to register the first application now acquire PostgreSQL identity locks in the same order. The full Phoenix suite passed 931 tests in 389.3 seconds on macOS. Two Linux network-namespace tests were skipped. [Qualification receipt](verification/receipts/phoenix-foundation-qualified-41a05264.json)
+
 The Apple SDK now lets an editor accept consecutive callbacks from the same text binding after it installs each exact value. Public FieldLog saved and reopened **Night shift** in the macOS replay, and both native field identifiers remained accessible. The SDK suite passed 228 tests and the FieldLog host suite passed 44. [Regression and consumer patch](tests/integration/fieldlog-apple-section-accessibility/README.md#consecutive-edits-in-the-same-text-field) · [Verification](verification/receipts/fieldlog-current-sdk-typing-41a05264.json)
 
 On the corrected iOS 27 build, the ordinary task editor showed **Night shift** before Add and saved it exactly, with one task-save event. The signed baseline was fetched and accepted at sequence 1, then recorded a deadline before first-screen health. The release service and owned Simulator closed. [Candidate runtime](verification/receipts/fieldlog-ios-assignee-candidate-runtime-41a05264.json)

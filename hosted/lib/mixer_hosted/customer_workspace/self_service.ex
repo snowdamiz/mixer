@@ -51,7 +51,7 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
 
       repo.transaction(
         fn ->
-          linkage = Session.prepare_identity!(repo, Policy.identity_key(identity))
+          expires = admission_expiry!(repo, browser, identity)
 
           %{connection_id: backend} =
             Session.query!(repo, "SELECT pg_catalog.set_config('search_path','pg_catalog',true)")
@@ -61,8 +61,6 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
 
           if operation == "register_application" and not application_registration?,
             do: repo.rollback(:authorization_unavailable)
-
-          expires = admission_expiry!(repo, browser, identity, linkage)
 
           [[value]] =
             Session.query!(
@@ -122,11 +120,14 @@ defmodule MixerHosted.CustomerWorkspace.SelfService do
 
   defp permitted_browser?(_, _, _), do: false
 
-  defp admission_expiry!(_repo, nil, identity, _linkage), do: identity.expires_at
+  defp admission_expiry!(repo, nil, identity) do
+    Session.prepare_identity!(repo, Policy.identity_key(identity))
+    identity.expires_at
+  end
 
-  defp admission_expiry!(repo, %Binding{} = browser, _identity, linkage) do
-    Session.query!(repo, "SET LOCAL bytea_output = 'hex'")
-    ActiveWorkspace.check_current!(repo, browser, linkage)
+  defp admission_expiry!(repo, %Binding{} = browser, _identity) do
+    {_linkage, expires} = ActiveWorkspace.prepare_identity!(repo, browser)
+    expires
   end
 
   # Usage already holds the organization head lock. Read the caller's current

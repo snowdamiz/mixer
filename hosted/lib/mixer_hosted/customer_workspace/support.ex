@@ -1,6 +1,6 @@
 defmodule MixerHosted.CustomerWorkspace.Support do
   @moduledoc false
-  alias MixerHosted.Authorization.{Policy, Scope}
+  alias MixerHosted.Authorization.Scope
   alias MixerHosted.Authorization.Postgres.Session
   alias MixerHosted.BrowserAuth.ActiveWorkspace
   alias MixerHosted.BrowserAuth.ActiveWorkspace.Binding
@@ -41,13 +41,7 @@ defmodule MixerHosted.CustomerWorkspace.Support do
          true <- Repo.get_dynamic_repo() === Repo do
       Repo.transaction(
         fn ->
-          %{principal_id: actor} =
-            linkage =
-            Session.prepare_identity!(Repo, Policy.identity_key(binding.identity))
-
-          Session.query!(Repo, "SET LOCAL search_path = pg_catalog")
-          Session.query!(Repo, "SET LOCAL bytea_output = 'hex'")
-          expires = ActiveWorkspace.check_current!(Repo, binding, linkage)
+          {%{principal_id: actor}, expires} = ActiveWorkspace.prepare_identity!(Repo, binding)
           Session.context!(Repo, organization_id: org)
 
           case Session.query!(Repo, "SELECT public.mixer_authz_lock_organization_heads()").rows do

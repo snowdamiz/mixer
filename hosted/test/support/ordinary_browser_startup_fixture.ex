@@ -45,7 +45,11 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
           do: {key, System.fetch_env(key)}
 
     name =
-      if profile == :workspace_builds, do: "ordinary-workspace-builds", else: "ordinary-r1422"
+      case profile do
+        :workspace_builds -> "ordinary-workspace-builds"
+        :workspace_manage -> "ordinary-workspace-manage"
+        _ -> "ordinary-r1422"
+      end
 
     root = Path.join(System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT"), name)
     :ok = File.mkdir(root)

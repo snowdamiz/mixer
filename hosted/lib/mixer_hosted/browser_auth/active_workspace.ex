@@ -1,6 +1,7 @@
 defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
   @moduledoc false
-  alias MixerHosted.Authorization.Scope
+  alias MixerHosted.Authorization.{Policy, Scope}
+  alias MixerHosted.Authorization.Postgres.Session
   alias MixerHosted.BrowserAuth.{ActiveCatalog, Config, Protocol, RuntimeConfig, RuntimeOwner}
   alias MixerHosted.CustomerBuilds.Selection
   alias MixerHosted.CustomerWorkspace.{SelfService, Support}
@@ -90,7 +91,22 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
     {:ok, result}
   end
 
-  def check_current!(repo, %Binding{} = b, %{principal_id: actor, family_id: family}) do
+  def prepare_identity!(repo, %Binding{} = binding) do
+    %{"principal_id" => actor, "family_id" => family} = binding.browser
+
+    # The browser admission takes exclusive identity locks. Acquire them before
+    # the shared authorization locks so two requests cannot both try to upgrade.
+    {%{principal_id: ^actor, family_id: ^family} = linkage, expires} =
+      Session.prepare_identity!(repo, Policy.identity_key(binding.identity), fn ->
+        Session.query!(repo, "SET LOCAL search_path = pg_catalog")
+        Session.query!(repo, "SET LOCAL bytea_output = 'hex'")
+        admit!(repo, binding, actor, family)
+      end)
+
+    {linkage, expires}
+  end
+
+  defp admit!(repo, %Binding{} = b, actor, family) do
     :ok = current!(b)
 
     :function_surface_verified =
@@ -103,8 +119,6 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
 
     browser = b.browser
     i = b.identity
-
-    true = browser["principal_id"] === actor and browser["family_id"] === family
 
     %Postgrex.Result{rows: [[expires]]} =
       Ecto.Adapters.SQL.query!(

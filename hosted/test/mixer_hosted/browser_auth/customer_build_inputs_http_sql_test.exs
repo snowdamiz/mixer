@@ -134,6 +134,11 @@ defmodule MixerHosted.CustomerBuildInputsFixture do
       end
 
       defp login(c) do
+        {cookie, csrf, _expires} = login_session(c)
+        {cookie, csrf}
+      end
+
+      defp login_session(c) do
         preauth = bootstrap_http(c)
         b = begin_http(c, preauth)
         r = http(c, "/auth/callback?" <> b.query, b.headers)
@@ -141,7 +146,12 @@ defmodule MixerHosted.CustomerBuildInputsFixture do
         cookie = response_cookie(r)
         r = http(c, "/auth/session", headers(cookie))
         assert r.status == 200
-        {cookie, Jason.decode!(r.body)["csrf_token"]}
+
+        assert %{"state" => "authenticated", "csrf_token" => csrf, "expires_at" => expires} =
+                 Jason.decode!(r.body)
+
+        assert is_integer(expires)
+        {cookie, csrf, expires}
       end
 
       defp list_path(overrides \\ %{}, cursor \\ nil) do
@@ -494,12 +504,8 @@ defmodule MixerHosted.CustomerBuildInputsHTTPSQLTest do
     note("malformed_trusted_row503_and_actual_exact25_no_cursor")
 
     :ok = GenServer.call(c.provider, {:mode, :short})
-    {short_cookie, _} = login(c)
-
-    short =
-      http(c, "/auth/session", headers(short_cookie)) |> Map.fetch!(:body) |> Jason.decode!()
-
-    :persistent_term.put({__MODULE__, :expire}, short["expires_at"])
+    {short_cookie, _, expires} = login_session(c)
+    :persistent_term.put({__MODULE__, :expire}, expires)
     expired = http(c, path, headers(short_cookie))
     :persistent_term.erase({__MODULE__, :expire})
     assert expired.status == 503, expired.body
@@ -850,9 +856,7 @@ defmodule MixerHosted.CustomerBuildInputsReadonlyHTTPTest do
 
     assert post(c, cookie, "invalid", "wrong-csrf", body).status == 403
     :ok = GenServer.call(c.provider, {:mode, :short})
-    {short_cookie, short_csrf} = login(c)
-    metadata = http(c, "/auth/session", headers(short_cookie))
-    expires = Jason.decode!(metadata.body)["expires_at"]
+    {short_cookie, short_csrf, expires} = login_session(c)
     Process.sleep(max(0, expires * 1000 - System.system_time(:millisecond) + 20))
     expired_get = http(c, list_path(), headers(short_cookie))
     expired_post = post(c, short_cookie, short_csrf, "expired-readonly", body)

@@ -205,6 +205,7 @@ ICU_NOTICE_CHANGES = {
 }
 REGISTRATION_WORKFLOW = 'application-registration-predecessor-bytes/' + VERIFY_WORKFLOW
 SOURCE_STARTER_WORKFLOW = 'source-starter-selection-predecessor-bytes/' + VERIFY_WORKFLOW
+PHOENIX_CI_WORKFLOW = 'phoenix-ci-predecessor-bytes/' + VERIFY_WORKFLOW
 APPLE_RENDERER = 'sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_PREIMAGE = 'apple-section-predecessor-bytes/sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_SECTION_SOURCE_SHA256 = '1d2ebd6883fff9147aeec6d558b3ce1b2ec8f7dffc22b99c12ec5a85ab19b438'
@@ -214,7 +215,7 @@ HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
 HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_sparse_checkout.py'}
-MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE,
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
@@ -345,7 +346,8 @@ def install_inputs():
                              'release_inspector_transition', 'icu_notice_transition',
                              'console_build_logs_workflow', 'halt_cli_transition',
                              'apple_section_accessibility_transition', 'apple_synchronous_text_transition',
-                             'application_registration_workflow', 'source_starter_selection_workflow'} and
+                             'application_registration_workflow', 'source_starter_selection_workflow',
+                             'phoenix_ci_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -668,6 +670,13 @@ def install_inputs():
             source_starter_workflow['before'] != source_starter_workflow['after'],
             'Source starter selection workflow preimage differs')
     installed[VERIFY_WORKFLOW] = source_starter_workflow['after']
+
+    phoenix_ci_workflow = binding['phoenix_ci_workflow']
+    before = read_predecessor_member(HERE / PHOENIX_CI_WORKFLOW)
+    require(set(phoenix_ci_workflow) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == phoenix_ci_workflow['before'] and
+            phoenix_ci_workflow['before'] != phoenix_ci_workflow['after'], 'Phoenix CI workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = phoenix_ci_workflow['after']
 
     apple = binding['apple_section_accessibility_transition']
     raw = read_predecessor_member(HERE / APPLE_PREIMAGE)
