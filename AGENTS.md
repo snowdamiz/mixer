@@ -893,3 +893,7 @@ Use the delivered top-level patch or
 `verification/receipts/l06-phoenix-af8bc9dc-41a05264.json`.
 
 The November 18 Android key-stream diagnostic left emulator PGID 49811 unresolved after EPERM. Preserve /Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-key-stream-41a05264/run-tkkno2c_/instance and its ports 5676, 5677 and 49265 without probing, signals, retry or cleanup. The separate private ADB group closed. The compact custody record is verification/receipts/fieldlog-android-input-title-hold-41a05264.json.
+
+The November 18 live cancellation campaigns left worker custody unresolved in three isolated attempts. Preserve worker groups 98038 and 6467 and their respective live-02 and live-03 state directories and logs under /Users/andreyyurlov/.t3/userdata/mixer-cancel-integration-41a05264.fwgroRxQ. Preserve the earlier /Users/andreyyurlov/.t3/userdata/mixer-l05-ordinary-cancel.Av1wQNdm/live-02 operation. Do not inspect, signal, wait on, retry or clean the held chains. Use the copied metadata in verification/receipts/l05-cancellation-custody-41a05264.json.
+
+The November 18 release-rotation review stopped its independent Go check with UNKNOWN custody for PGID 7312. Preserve that group and the entire `/tmp/mixer-rotation-review-go-ww3mr1gq` namespace without inspection, retry, signalling or cleanup. See `verification/receipts/release-v3-rotation-halt-review-41a05264.json`.

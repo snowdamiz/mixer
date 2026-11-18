@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "relatedRequirements": [
+    "W16",
+    "G29",
+    "G30",
+    "G31",
+    "Section 18.3"
+  ],
+  "status": "load_blocked",
+  "source": {
+    "revision": "a2f9365bf0c76519851d03362b6885698ae3384f",
+    "tree": "cf91e7c28ac0b739eb161ea18af05f23faa8aa0a",
+    "overlaySHA256": {
+      "tests/integration/local-outage.py": "cf7f791809013631d58fa686633c0043f8524d8a005bd0b61b2d6afc38d56431",
+      "services/release/postgres_local_outage_test.go": "eb0b19db6989353e59f1aa82835b23a475daa332e353cba24b34d051cefb6667",
+      "hosted/scripts/local-outage-processor.exs": "3339618fd62d0cabbf4cbb52b941948ba0ff377f3a7776ba49931d85e218545d",
+      "hosted/scripts/local_outage_http_test.exs": "d435061cdcf045a9f2df9796a8e5d5b9dfb65a13dc99695b56b063d42ec7205a",
+      "hosted/test/support/ordinary_browser_startup_fixture.ex": "020c42ed234f710597c0a7e45af6ebe9c5c0d30b26cd8158f1d74248adc00f40",
+      "hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs": "786788f9f248567d402c32dcbdce3bce67279250463cbb2371a6a73c4b3b3292"
+    }
+  },
+  "observedUTC": "2026-11-18T07:58:21.360771+00:00",
+  "tools": {
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "go": "go version go1.26.4 darwin/arm64"
+  },
+  "patch": {
+    "path": "verification/local/l07-integrated-outage-41a05264/local-outage.patch",
+    "bytes": 33686,
+    "sha256": "d73728bfee7ebd0ad8fb2d64ee7003e236f9562ff75cdb62d62d5d76a1c390e0"
+  },
+  "runbook": {
+    "path": "verification/local/l07-integrated-outage-41a05264/RUNBOOK.md",
+    "bytes": 2987,
+    "sha256": "a2ef95359a7f55398cb576e464f4f236b9dc18a0a33a9448afc7bf30ff5030f8"
+  },
+  "runs": [
+    {
+      "path": "verification/local/l07-integrated-outage-41a05264/first-run/receipt.json",
+      "bytes": 10430,
+      "sha256": "a154935c3ae80a0a0ca88ad4a78456853661e044127fe0bdfc12cffedd24e99b"
+    },
+    {
+      "path": "verification/local/l07-integrated-outage-41a05264/replay/receipt.json",
+      "bytes": 10430,
+      "sha256": "567e4c47b7063d92f3f0e4661183e6a3db35918deafa041119bd68d0133cbbc9"
+    }
+  ],
+  "observations": {
+    "backlog": {
+      "jobs": [
+        [
+          1,
+          "available",
+          0,
+          "created",
+          "org-a",
+          "project-a"
+        ],
+        [
+          2,
+          "available",
+          0,
+          "created",
+          "org-a",
+          "project-a"
+        ]
+      ],
+      "create_statuses": [
+        201,
+        201
+      ],
+      "replay_statuses": [
+        200,
+        200
+      ],
+      "cross_tenant_status": 404
+    },
+    "alert": {
+      "alert": "local_build_queue_stalled",
+      "queued_count": 2,
+      "minimum_stall_ms": 1100,
+      "processor_group_absent": true,
+      "action": "restart only the disposable restricted builds processor"
+    },
+    "drained": {
+      "jobs": [
+        [
+          1,
+          "completed",
+          1,
+          "created",
+          "org-a",
+          "project-a"
+        ],
+        [
+          2,
+          "completed",
+          1,
+          "created",
+          "org-a",
+          "project-a"
+        ],
+        [
+          3,
+          "completed",
+          1,
+          "start",
+          "org-a",
+          "project-a"
+        ],
+        [
+          4,
+          "completed",
+          1,
+          "start",
+          "org-a",
+          "project-a"
+        ],
+        [
+          5,
+          "completed",
+          1,
+          "expire",
+          "org-a",
+          "project-a"
+        ],
+        [
+          6,
+          "completed",
+          1,
+          "stopped",
+          "org-a",
+          "project-a"
+        ],
+        [
+          7,
+          "completed",
+          1,
+          "expire",
+          "org-a",
+          "project-a"
+        ],
+        [
+          8,
+          "completed",
+          1,
+          "stopped",
+          "org-a",
+          "project-a"
+        ]
+      ],
+      "reservations": [
+        [
+          3,
+          "start,expire,stopped",
+          false,
+          "coordinator:1:2:stopped",
+          "org-a",
+          "project-a"
+        ],
+        [
+          3,
+          "start,expire,stopped",
+          false,
+          "coordinator:1:2:stopped",
+          "org-a",
+          "project-a"
+        ]
+      ],
+      "tls_delivery_requests": 36
+    },
+    "loadRecovery": {
+      "after": {
+        "phase": "unavailable",
+        "generation": 2
+      },
+      "tls_delivery_requests": 12,
+      "wave_statuses": [
+        503,
+        503,
+        503,
+        503,
+        503
+      ],
+      "before": {
+        "phase": "storage_ready",
+        "generation": 1
+      },
+      "serial_retry_status": 503,
+      "refused_lifecycle_checkouts": 2,
+      "idle_pool_connections_after_wave": 2,
+      "queued_pool_checkouts_after_wave": 0,
+      "recovered_status": 200,
+      "original_listener_closed": true,
+      "new_phoenix_port": 59500
+    },
+    "portsReusable": true
+  },
+  "firstUnmetRequirement": "Under five concurrent ordinary authenticated POSTs, the two-connection browser lifecycle pool refused two checkouts before BEGIN. The browser-auth owner advanced from storage_ready generation 1 to unavailable generation 2. A serial authenticated GET still returned 503 when both pool connections were idle and no checkouts were queued. Restarting the owned Phoenix application restored the existing session and same-key replay without new jobs. The observed behavior blocks local availability and recovery under bounded load.",
+  "cleanup": {
+    "allCommandsExitedAndGroupsAbsent": true,
+    "databaseScratchRemoved": true,
+    "loopbackPortsReusable": true
+  },
+  "scope": [
+    "Two independent PostgreSQL 17.11 clusters. Phoenix/Oban uses SCRAM on IPv4 loopback, and the release cluster uses a private Unix socket only.",
+    "Normal Phoenix HTTP routes with signed test issuer login. Separate release origin served 48 peer-verified TLS GETs using an ephemeral certificate authority.",
+    "Idle restricted Oban process interrupted before workload. Actual Coordinator and PostgreSQL scheduler drained the queue using deterministic dispatch observations and zero native compiler starts.",
+    "Original and recovered app checked tenant isolation and data integrity. Release signatures were generated by the fixture and the served signed bytes compared against the initial published bytes.",
+    "Local file alert and executed restart action. Executing-job crash, external delivery caches, managed-provider failover, physical devices, and staffed alert routing are outside this exercise.",
+    "No payment credentials or services were needed."
+  ],
+  "checks": {
+    "freshPinnedPatchReplay": true,
+    "patchWhitespaceCheck": true,
+    "elixirFormat": true,
+    "goFormat": true,
+    "pythonParse": true
+  },
+  "wholeGatePassed": false
+}

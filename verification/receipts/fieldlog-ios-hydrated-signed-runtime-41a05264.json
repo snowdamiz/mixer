@@ -1,0 +1,112 @@
+{
+  "scope": "One installed FieldLog task on arm64 iOS 27.0 Simulator with local development-signed fixtures",
+  "predecessor": "verification/receipts/fieldlog-ios-first-frame-material-runtime-41a05264.json",
+  "generatorCorrection": "--- a/tools/prepare.py\n+++ b/tools/prepare.py\n@@ -153,7 +153,7 @@\n     [storage] = [entry for entry in template[\"capabilities\"] if entry[\"id\"] == storage_id]\n     grant = json.loads((inputs / \"storage-grant.json\").read_text())\n     grant[\"namespaces\"] = [\"fieldlog-task-v1\"]\n-    grant_bytes = json.dumps(grant, sort_keys=True, separators=(\",\", \":\")).encode()\n+    grant_bytes = (json.dumps(grant, sort_keys=True, separators=(\",\", \":\")) + \"\\n\").encode()\n     (fixtures / \"Installed/storage-grant.json\").write_bytes(grant_bytes)\n     storage[\"grants_sha256\"] = hashlib.sha256(grant_bytes).hexdigest()\n     template[\"capabilities\"] = [storage]\n",
+  "predecessorGenerator": {
+    "path": "verification/local/fieldlog-ios-hydration-qkQzKU/tools/prepare.py",
+    "sha256": "a98a5b5d44b7718a3ffc1c41ffd6ce95b3f06d125c09e0b5dee43a2cfc9e6122"
+  },
+  "correctedGenerator": {
+    "path": "verification/local/fieldlog-ios-hydration-canonical-r1/tools/prepare.py",
+    "sha256": "00e79ed96ae1d6f9fcc244e8808deeda989b22a2ce158ab99ba1ef7f29506861"
+  },
+  "signedInputs": [
+    {
+      "path": "verification/local/fieldlog-ios-hydration-qkQzKU/signed/Installed/storage-grant.json",
+      "sha256": "20a1d2a412fa4102ccec487a0bd43360500db8da60952b51460c633bb60c9d37"
+    },
+    {
+      "path": "verification/local/fieldlog-ios-hydration-canonical-r1/signed/Installed/storage-grant.json",
+      "sha256": "f630fb1bca6042918d6c29b88027dd8c8da28771599469aee06ff3cd5a3789be"
+    },
+    {
+      "path": "verification/local/fieldlog-ios-hydration-canonical-r1/signed/baseline.wasm",
+      "sha256": "d2e24083c7958101387455da4e30608aaa3b9519bda0f9c18d3ab58108c77dac"
+    },
+    {
+      "path": "verification/local/fieldlog-ios-hydration-canonical-r1/signed/reviewed.wasm",
+      "sha256": "83b9d741a7f3dd059aa66ec7572c3bef1ff58bbeeda86c8a6ea5d2d7743b736a"
+    }
+  ],
+  "signedApp": "eeeb100bb34f93c8303c6051106b36bdcd15e9abe7cab0350e878b77bf21558a",
+  "unsignedExecutableSameBeforeAfter": "58a8b0d6a15f7ed9e2983e8ad75a7c23b703ad29eb66e7cedb35aa05f8a28162",
+  "sourceBuild": {
+    "path": "verification/local/fieldlog-ios-hydration-qkQzKU/build-receipt.json",
+    "sha256": "6cdc456836951bee31f692cf62fec9c7a770531348c1787617336f64954e1fc4"
+  },
+  "correctedBuild": {
+    "path": "verification/local/fieldlog-ios-hydration-canonical-r1/build-receipt.json",
+    "sha256": "d61633d4ad9892785e4e9e4d3a029781f845e8f7803ae7d61c347d79d75c454f"
+  },
+  "run": {
+    "path": "verification/local/fieldlog-ios-hydration-canonical-runtime-r1/run.json",
+    "sha256": "3e309f760ab4a55af52d327b87ee324e5443961c321c176a01a111a3497626a4"
+  },
+  "verifier": {
+    "path": "verification/local/fieldlog-ios-hydration-canonical-r1/tools/accept_runtime.py",
+    "sha256": "cd5ed8483cea6949d19871c93c104e6509e7205d33ae444e164d852892159093"
+  },
+  "toolchain": "Xcode 27.2\nBuild version 27B52",
+  "target": {
+    "architecture": "arm64",
+    "deviceId": "6E315AED-9AD1-4F9E-81A0-1248D5A0BAFF",
+    "deviceName": "Mixer FieldLog Hydration Canonical R1",
+    "modelName": "iPhone 17 Pro",
+    "osBuildNumber": "24A434",
+    "osVersion": "27.0",
+    "platform": "iOS Simulator"
+  },
+  "externalSimulators": 14,
+  "accepted": {
+    "harnessExit": 0,
+    "tests": {
+      "totalTestCount": 1,
+      "passedTests": 1,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "expectedFailures": 0
+    },
+    "device": "6E315AED-9AD1-4F9E-81A0-1248D5A0BAFF",
+    "workspaceID": "cdb326d6-b667-426e-a3c2-126ba4b1cc8e",
+    "serviceExit": 0,
+    "listenerClosed": true,
+    "portReusable": true,
+    "ownedRemoved": true,
+    "externalExact": true,
+    "disk": {
+      "runtimeFingerprint": "5f1b061dc0b1f7562e01e5f99473d76f71c47d426fe120f7c7b0c56a59a1852e",
+      "acceptedSequence": 3,
+      "recoverySHA256": "9518f2cde7fd394f15d0805b4b8a0054e4de2547f9a53e25913720d73e366b54",
+      "healthy": {
+        "candidate": "125dca7536b8cc72ae3895728f908a93a36f807821e6bdf5fc4ff9b55cc090cc",
+        "launch": "919627A9-46D6-4C68-A223-2FFDF2F9B0CD",
+        "sequence": 3,
+        "artifactSHA256": "1b67b720266737eb38dd6a5c2ebce5769f1fa7fd5ab013fbe17bbf1175367cfd",
+        "payloadSHA256": "d2e24083c7958101387455da4e30608aaa3b9519bda0f9c18d3ab58108c77dac",
+        "milestones": [
+          "first_screen",
+          "feature_started"
+        ]
+      },
+      "previousHealthy": {
+        "candidate": "a79ea27592757fb4c7657cef94ac7217528bb52de9b5804f5469255b9069f711",
+        "launch": "3DCF0C47-ACF8-483A-AA8C-ADE758CF287D",
+        "sequence": 2,
+        "artifactSHA256": "1ed8835f966db15511dba9da24a072df9cfcb2c17d8fe8e7aed9cfbba2c26ae3",
+        "payloadSHA256": "83b9d741a7f3dd059aa66ec7572c3bef1ff58bbeeda86c8a6ea5d2d7743b736a",
+        "milestones": [
+          "first_screen",
+          "feature_started"
+        ]
+      },
+      "workspaceSHA256": "a464d1a1ce948b13f6b3f6b7872f29c98174ff038dd539b55e8a5dbc819cb405",
+      "workspaceRevision": 6,
+      "taskID": "C50C06DB-260E-428D-804E-7DD05AA39136",
+      "taskTitle": "Inspect pump",
+      "outboxEntries": 7
+    },
+    "buildReceiptSHA256": "d61633d4ad9892785e4e9e4d3a029781f845e8f7803ae7d61c347d79d75c454f",
+    "rootRunSHA256": "3e309f760ab4a55af52d327b87ee324e5443961c321c176a01a111a3497626a4"
+  },
+  "limits": "Offline launch omitted the delivery URL while the service remained running. Private hydration overlay, single task, one local installation."
+}

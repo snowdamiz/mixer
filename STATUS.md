@@ -12,6 +12,14 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The independently reviewed v3 halt stopped new offers across a service restart. The macOS installed host reopened a committed release offline after key expiry and accepted the replacement key on reconnect. The reviewer’s additional Go run stopped before producing a result and left a process group under hold. [Halt and rotation review](verification/receipts/release-v3-rotation-halt-review-41a05264.json).
+
+The relocated iOS starter built with the documented Pair24 pin and SDK dependency lock. On iOS 26.5 Simulator its title and initial progress appeared on launch and after termination and relaunch. Installed executable and debug library hashes matched the export. [Pinned iOS runtime](verification/receipts/l01-public-pin-ios-runtime-41a05264.json).
+
+On iOS 27.0 Simulator the installed FieldLog guest rendered the saved task on its first frame after a signed update, rollback, and relaunch without a delivery URL. Disk readback matched revision 6 and seven outbox records. Correcting the missing final newline in the fixture’s storage grant preserved the executable code and both Wasm payloads. [Hydrated iOS runtime](verification/receipts/fieldlog-ios-hydrated-signed-runtime-41a05264.json).
+
+During a local outage drill, the restarted Oban processor drained eight queued jobs once. A separate five-request burst exhausted the browser lifecycle pool and left authenticated requests unavailable even after the connections became idle. Restarting Phoenix restored the existing session. [Service outage drill](verification/receipts/l07-integrated-outage-41a05264.json).
+
 The public upgrade guide replay preserved FieldLog’s workspace, photo, outbox and dependency lock through recovery, upgrade, export and an independent Android build. The macOS bridge now reports the Swift source location for a trap in both optimized guest builds. A fresh root replay passed 53 tests. [Upgrade and exit](verification/receipts/l08-public-upgrade-02002272.json) · [Swift diagnostics](verification/receipts/l03-swift-diagnostics-review-41a05264.json).
 
 The first iOS build with automatic task hydration failed its installed capability material check before the baseline guest started. The loopback service closed and the owned Simulator was removed with all external identities and boot states preserved. [Hydration attempt](verification/receipts/fieldlog-ios-first-frame-material-runtime-41a05264.json).

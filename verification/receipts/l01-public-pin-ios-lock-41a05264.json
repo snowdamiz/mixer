@@ -1,0 +1,258 @@
+{
+  "scope": "Fresh pinned public Mixer checkout, relocated iOS CLI build, and exact Android source equivalence to the prior Pair24 runtime pass.",
+  "status": "host_verified_ios_runtime_pending",
+  "packet": "verification/local/l01-public-pin-41a05264",
+  "checkout": {
+    "url": "https://github.com/snowdamiz/mixer.git",
+    "revision": "c7956233d69caeffadfa5ab84227c3b2e09ff41d",
+    "tree": "ebc67749c29ca2852cb029e80b8e08ed0bbd9a36",
+    "inputTrees": {
+      "cli": "2e80b07d1e1a9ab4f5d11e488edffeb48af300ef",
+      "sdk": "ea6427ab49808d893f9b601a1e6b863326ef51d8",
+      "updates": "ec6b73179f8e0d4882761e157977502a12e32421",
+      "native/android": "da63a52d018c516cc7f82c5c9067682fac7fe98b"
+    }
+  },
+  "tools": [
+    "git version 2.56.0",
+    "Python 3.14.8",
+    "Xcode 26.6",
+    "Build version 17F113",
+    "swift-driver version: 1.148.6 Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)",
+    "Target: arm64-apple-macosx28.0",
+    "26.5",
+    "26.5",
+    "Darwin arm64",
+    "ProductName:\t\tmacOS",
+    "ProductVersion:\t\t27.0.1",
+    "BuildVersion:\t\t26A434"
+  ],
+  "cli": {
+    "build": [
+      "swift",
+      "build",
+      "--package-path",
+      "inputs/cli",
+      "--scratch-path",
+      "cli-build",
+      "--product",
+      "mixer"
+    ],
+    "version": "{\n  \"detail\" : \"0.1.0-dev\",\n  \"status\" : \"ok\"\n}",
+    "binary": {
+      "path": "cli-build/debug/mixer",
+      "bytes": 7528272,
+      "sha256": "c07e7a8ce4ab7e4a5c27d0efa8a650535cb2468e33b0fc4f6954d9e24dd503d1"
+    },
+    "driverResource": {
+      "path": "cli-build/debug/MixerCLI_MixerBuild.bundle/Resources/android-build.py",
+      "bytes": 56337,
+      "sha256": "ec2419f7733ae4b278f8e6a8c5713eec9053260cb5a8b37f3f959394c12aa543"
+    }
+  },
+  "ios": {
+    "command": [
+      "./cli-build/debug/mixer",
+      "build",
+      "--platform",
+      "ios",
+      "--directory",
+      "relocated/ExportNativeStarter"
+    ],
+    "xcodeCommand": [
+      "xcodebuild",
+      "-project",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l01-public-pin-41a05264/relocated/ExportNativeStarter/Platforms/iOS/ExportNativeStarter.xcodeproj",
+      "-scheme",
+      "ExportNativeStarter",
+      "-configuration",
+      "Debug",
+      "-sdk",
+      "iphonesimulator",
+      "-destination",
+      "generic/platform=iOS Simulator",
+      "-derivedDataPath",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l01-public-pin-41a05264/relocated/ExportNativeStarter/.mixer/ios-build",
+      "CODE_SIGNING_ALLOWED=NO",
+      "build"
+    ],
+    "exitCode": 0,
+    "buildLog": {
+      "path": "logs/build-ios.json",
+      "bytes": 690834,
+      "sha256": "b175b19bd81cd6e2c76c2d0e21d3de5bc0fc4bc6ce5e62445a1ecebecce22af8"
+    },
+    "removedLookupPaths": [
+      "original",
+      "inputs/sdk",
+      "inputs/native/android",
+      "public",
+      "exports/ExportNativeStarter",
+      "exports/DefaultStarter"
+    ],
+    "sdkDigest": "5a9f314dd6f5bef71317111d1427cbca884a10dc42d579916430a3f4128f41cc",
+    "inputLock": {
+      "path": "relocated/ExportNativeStarter/Generated/MixerSDK/Package.resolved",
+      "bytes": 656,
+      "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+    },
+    "effectiveWorkspaceLock": {
+      "path": "relocated/ExportNativeStarter/Platforms/iOS/ExportNativeStarter.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+      "bytes": 656,
+      "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+    },
+    "workspaceState": {
+      "path": "relocated/ExportNativeStarter/.mixer/ios-build/SourcePackages/workspace-state.json",
+      "bytes": 2351,
+      "sha256": "8a1b7010562aeafd38b2ce2aaea82bfc7d5b058a1ed55c169079d980cf2deb47"
+    },
+    "resolvedDependencies": {
+      "swift-asn1": {
+        "location": "https://github.com/apple/swift-asn1.git",
+        "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version": "1.7.3",
+        "checkoutHEAD": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2"
+      },
+      "swift-crypto": {
+        "location": "https://github.com/apple/swift-crypto.git",
+        "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+        "version": "5.0.3",
+        "checkoutHEAD": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+      }
+    },
+    "localPackagePathsInRelocatedExport": [
+      ".",
+      "Generated/MixerSDK"
+    ],
+    "packageCache": "Fresh project DerivedData and SourcePackages. Xcode reported cached shared repositories.",
+    "artifact": "artifacts/ExportNativeStarter.app",
+    "bundleIdentifier": "dev.mixer.exportnativestarter",
+    "version": "0.1.0",
+    "bundleBuild": "1",
+    "minimumSimulatorOS": "26.0",
+    "simulatorSDK": "iphonesimulator26.5",
+    "platformArchitectures": [
+      "arm64",
+      "x86_64"
+    ],
+    "artifactFiles": {
+      "ExportNativeStarter": {
+        "sha256": "99941081c0950a68c3c44a7849389109db8d745e2867ce446e9b6ddc4c1fa8d0",
+        "bytes": 73120,
+        "executable": true
+      },
+      "ExportNativeStarter.debug.dylib": {
+        "sha256": "6de97ecb06d9756969b987fbf10a81463a29e5602ae304acba1670b672f4fe70",
+        "bytes": 6991040,
+        "executable": true
+      },
+      "Info.plist": {
+        "sha256": "28d543d7bd4cc82b4b29c5d5a5349e8caa885cd00465a52e5138deb49ce6b0c7",
+        "bytes": 940,
+        "executable": false
+      },
+      "PkgInfo": {
+        "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+        "bytes": 8,
+        "executable": false
+      },
+      "__preview.dylib": {
+        "sha256": "242b0f47c3a9b0a5f879bbf5c40884d07710796fa9f4b56a664f9261a6ee7a1c",
+        "bytes": 33152,
+        "executable": true
+      }
+    },
+    "binaryIdentityLog": {
+      "path": "logs/app-identity.log",
+      "bytes": 4612,
+      "sha256": "a173077a551b0e1d6ede2f094defa354d343dd9111045cb16354d94984db5606"
+    },
+    "runner": {
+      "sourceAndProductFilesVerifiedAgainst": "verification/local/l01-export-runtime-handoff-41a05264/handoff-receipt.json",
+      "source": {
+        "path": "ios/UITests/StarterUITests.swift",
+        "sha256": "0e41452280e2624c27dbaca83242473f0665a409e4c6df65cbb4cac9fd3f93f3",
+        "bytes": 1423
+      },
+      "selection": {
+        "path": "ios/DerivedData/Build/Products/StarterUITests_StarterUITests_iphonesimulator26.5-arm64.xctestrun",
+        "sha256": "65956b209a32d87ffcf61d96dbf2d41542d6df00b531faf908b6f4096f0acfec",
+        "bytes": 5482
+      },
+      "test": "StarterUITests/StarterUITests/testExportedStarterMountsAfterRelaunch",
+      "inheritedProductFiles": 37,
+      "identityLog": {
+        "path": "logs/runner-identity.log",
+        "bytes": 704,
+        "sha256": "d05ab01834a99a2a9d027a8f90064c0a619813d0be190a6f59225c5bc86c2e8a"
+      },
+      "runtime": "pending root run on an owned Simulator"
+    }
+  },
+  "android": {
+    "application": "dev.mixer.defaultstarter/dev.mixer.android.MixerActivity",
+    "host": "legacy-v1",
+    "profile": {
+      "adapter_compatibility_sha256": "9d3a16cc05a2cfceccd9578b9f89a4deca66d06104ddc6a84ccec5ede8b496dd",
+      "default_descriptor": {
+        "bytes": 9587,
+        "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
+      },
+      "id": "mixer.android-source-pair.24",
+      "sdk_compatibility_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8"
+    },
+    "adapterSourceComparedFiles": 30,
+    "adapterDigest": "aec119766f1d8469b753f1115971a3b4c36ff57c0c2faf56e2458ed8c9eaac21",
+    "sdkDigest": "5a9f314dd6f5bef71317111d1427cbca884a10dc42d579916430a3f4128f41cc",
+    "generatedActivity": {
+      "sha256": "eec46229f1419353debfc47935a2c5a207a134c257cd04d6354978fc9c04e91f",
+      "bytes": 2318,
+      "executable": false
+    },
+    "renderedDriver": {
+      "path": "relocated/DefaultStarter/Generated/MixerAndroid/android-build.py",
+      "bytes": 75491,
+      "sha256": "45f2131c90e6c443fad735fd50927b52008b291cbcced777f959c16bcf045cd0"
+    },
+    "buildDriverProjectSourceTreeSHA256": "876a6af7ac24a303defc344a0577cd0b92bf7992a4ba6b766d8783237bad9552",
+    "platformLock": {
+      "path": "relocated/DefaultStarter/Platforms/Android/Package.resolved",
+      "bytes": 656,
+      "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+    },
+    "nativeRunReceipt": {
+      "path": "verification/receipts/l01-default-starter-pair24-runtime-41a05264.json",
+      "bytes": 3484,
+      "sha256": "b0572601906426a6210151ddd1ad202a211e2563c7c01b1e94d67e3f5a368cce"
+    },
+    "nativeBuildHandoffSHA256": "5cc2c934387b213d9caecb8ce2793d60773b745ac7d9966e1472f288b7135409",
+    "nativeBuildDriverReceiptSHA256": "dbdbe3d3141d7691bfe71b78316472c62dc2000c597423cc1da3cf3e8ecb7702",
+    "nativePassedAPK_SHA256": "6b10a3df9bb70b761f6eadf7858173943a449939fe8ebba986ca6bcc20e345af",
+    "toolchain": {
+      "sdk_id": "aarch64-unknown-linux-android28",
+      "abi": "arm64-v8a",
+      "min_api": 28,
+      "target_api": 37,
+      "swift_version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+      "javac_version": "javac 25.0.4.1",
+      "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+    }
+  },
+  "fieldlogPair23": {
+    "mixerRevision": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+    "fieldlogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fixturePatches": [
+      {
+        "path": "verification/fieldlog-pair23/public-build.patch",
+        "sha256": "8a09fb83471392e16c836aa3a95a8b02d841525e2cea2ea857415e0484006749",
+        "treeAfterApply": "95ae43b98649cd6c1b838518dc7af1dccf099c18"
+      },
+      {
+        "path": "verification/fieldlog-pair23/draft-fields.patch",
+        "sha256": "c118068f49e67f5d4fff24a549df515ca137167d94daaeda8ce5b6cf99818212",
+        "treeAfterApply": "c2f9f29f7000b35d456909ed5758d719f11c75e6"
+      }
+    ]
+  },
+  "deviceOperations": 0
+}
