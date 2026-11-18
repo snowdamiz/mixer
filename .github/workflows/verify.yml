@@ -47,6 +47,12 @@ jobs:
           python3 -B native/android/tests/run-public-surface-host.py \
             --java-home "$JAVA_HOME_17_X64" \
             --evidence "$RUNNER_TEMP/android-owner-public-surface"
+      - name: Default Android starter window lifecycle
+        timeout-minutes: 2
+        run: |
+          : "${JAVA_HOME_17_X64:?Official JDK 17 is required}"
+          JAVA_HOME="$JAVA_HOME_17_X64" python3 -I -B -S native/android/tests/run-mixer-activity-host.py
+          JAVA_HOME="$JAVA_HOME_17_X64" python3 -I -B -S -O native/android/tests/run-mixer-activity-host.py
       - name: Show retained Android host failure diagnostics
         if: failure()
         shell: python
@@ -1000,10 +1006,14 @@ jobs:
             /verification/plan-continuation-2026-11-07/source113-sparse-closure-fix-r2/
       - name: Bootstrap policy controls without native tools
         timeout-minutes: 2
-        run: python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v
+        run: |
+          python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v
+          python3 -I -B -S -O verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v
       - name: Sparse checkout controls without native tools
         timeout-minutes: 2
-        run: python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v
+        run: |
+          python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v
+          python3 -I -B -S -O verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v
       - name: Actual generated Java six-consumer integration
         timeout-minutes: 62
         shell: bash

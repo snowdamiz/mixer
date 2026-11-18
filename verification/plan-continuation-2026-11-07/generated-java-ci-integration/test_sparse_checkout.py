@@ -103,9 +103,9 @@ def admission_paths(root=None, binding=None):
                   'Invalid archive predecessor binding')
         dependencies = admission_paths(root, previous)
         dependencies.update(relative(path).as_posix() for path in declaration['changes'])
-        transition = declaration.get('capability_transition')
-        if transition is not None:
-            dependencies.update(relative(path).as_posix() for path in transition['changes'])
+        for key in ('capability_transition', 'upgrade_transition', 'pair24_transition'):
+            if key in declaration:
+                dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
         manifests += ('caller-inputs.json', 'owning-closure.json', 'historical-inputs.json')
         dependencies = set()
@@ -437,7 +437,12 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(observed['source_count'], len(B.admit_source_inputs(B.canonical(), B.canonical().load_profile())))
             self.assertFalse(observed['GA'])
             binding = json.loads((repo / SOURCE_BINDING).read_bytes())
-            changes = {**binding['changes'], **binding['capability_transition']['changes']}
+            pair24 = binding['pair24_transition']
+            self.assertEqual(observed['profile'], binding['profile'])
+            self.assertEqual(observed['predecessor_upgraded_pair23_sha256'], pair24['sourceBefore'])
+            self.assertEqual(pair24['sourceBefore'], binding['upgrade_transition']['sourceAfter'])
+            changes = {**binding['changes'], **binding['capability_transition']['changes'],
+                       **pair24['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:

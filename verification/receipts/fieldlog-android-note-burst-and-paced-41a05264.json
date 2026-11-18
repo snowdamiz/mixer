@@ -1,0 +1,79 @@
+{
+  "status": "paced input passed, burst input failed",
+  "scope": "Local FieldLog Android edit path and cold persisted readback on API 36 arm64, using Android shell-generated key events.",
+  "antecedent": {
+    "receipt": "verification/local/fieldlog-note-input-boundary-root-41a05264/run-a7elu4c4/run.json",
+    "sha256": "3129016049eb05c2d9b40eb9f49958f2221040383564327d6caa962341080ac0",
+    "outcome": "Private ADB disconnected during input-method observation before any Note was injected. Cleanup verified."
+  },
+  "burst": {
+    "apkSHA256": "80f10fbe9be5942fb5ef48747d1ed57f59efb0d35eebe2c422257d071cbf964a",
+    "runtime": {
+      "ro.build.fingerprint": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.boot.qemu.avd_name": "fieldlog_note_direct_41a05264"
+    },
+    "requested": 132,
+    "beforeDismiss": 119,
+    "settled": 119,
+    "exactPrefix": true,
+    "staleEvents": 26,
+    "trace": "verification/local/fieldlog-note-direct-root-41a05264/command-047.log",
+    "traceSHA256": "324cdc6ad1da71d5c1178eccf86f4992f735aa48a050c732c658f980b027dc36",
+    "driver": "verification/local/fieldlog-note-direct-root-41a05264/run.py",
+    "driverSHA256": "474a48b7aab6a3415b014538c4b2ee2a469f7ed94dc68f3e0b6587094491a8af",
+    "receipt": "verification/local/fieldlog-note-direct-root-41a05264/run.json",
+    "receiptSHA256": "214501f4f919c7b28ee40e92847328ed0c4df225dcfee3d905bf729a5f13867a",
+    "observedExactOnColdReadback": null,
+    "coldPIDs": [],
+    "reboundPorts": [
+      5684,
+      5685,
+      56170
+    ],
+    "groupAbsence": {
+      "private-adb": true,
+      "emulator": true
+    },
+    "removedOwnedInstance": true
+  },
+  "paced": {
+    "apkSHA256": "9816fd0f8ab22ed5fc53614661de5cc2c05b73d6c5d246535c1676d38150be8e",
+    "runtime": {
+      "ro.build.fingerprint": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.boot.qemu.avd_name": "fieldlog_note_paced_41a05264"
+    },
+    "requested": 132,
+    "beforeDismiss": 132,
+    "settled": 132,
+    "exactPrefix": true,
+    "staleEvents": 0,
+    "trace": "verification/local/fieldlog-note-paced-root-41a05264/command-069.log",
+    "traceSHA256": "5fcec7d5b9c2c2adfef04229dd54d8c642d638e1affbdec7066eba53e97bc69f",
+    "driver": "verification/local/fieldlog-note-paced-root-41a05264/run.py",
+    "driverSHA256": "3bf86eddfcc7c05da59c3316f621dfb0910c62ef80b340c1c3f150dd241b6ebd",
+    "receipt": "verification/local/fieldlog-note-paced-root-41a05264/run.json",
+    "receiptSHA256": "6b7bc831350c419240bf3d2983a1b9fa1630e2b263181a9e0414ca8dd2991da2",
+    "observedExactOnColdReadback": true,
+    "coldPIDs": [
+      "2429",
+      "4754"
+    ],
+    "reboundPorts": [
+      5684,
+      5685,
+      57363
+    ],
+    "groupAbsence": {
+      "private-adb": true,
+      "emulator": true
+    },
+    "removedOwnedInstance": true
+  },
+  "comparison": "The diagnostic build received one shell input text command. The ordinary app used the same 132 ASCII characters in 22 six-character commands with a 350 ms sleep after each. Android recorded 26 stale input drops during the burst and zero in the paced trace. Both build and pacing differed.",
+  "limits": "InputDispatcher reported drops without a key or editor ID. These runs do not verify physical keyboard behavior, arbitrary paste, or real IME composition. Burst reliability remains open.",
+  "earlierOrdinaryBurst": "verification/receipts/fieldlog-android-long-note-runtime-41a05264.json"
+}

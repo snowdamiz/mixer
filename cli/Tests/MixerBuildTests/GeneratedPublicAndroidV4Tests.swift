@@ -40,9 +40,9 @@ import Testing
     #expect(files["Sources/AppAndroid/NativeEntry.swift"]?.contains("directoryCount") == false)
 }
 
-@Test func publicV4Pair23AuthorityMatchesSelectedInputs() throws {
+@Test func publicV4CurrentPairAuthorityMatchesSelectedInputs() throws {
     let profile = AndroidSDKCompatibility.profile
-    #expect(profile.id == "mixer.android-source-pair.23")
+    #expect(profile.id == "mixer.android-source-pair.24")
     #expect(profile.wire.public_host_profiles == ["MEASURED_MULTILINE_LONG_NOTES_V4"])
     try AndroidSDKCompatibility.requireHost(.publicV4)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))

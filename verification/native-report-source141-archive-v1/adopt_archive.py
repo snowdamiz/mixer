@@ -85,6 +85,42 @@ UPGRADE_SOURCE_CHANGES = {
     'cli/Sources/MixerCLI/main.swift',
 }
 UPGRADE_CHANGES = UPGRADE_SOURCE_CHANGES | {'cli/build-tests/test_public_export.py'}
+PAIR24_PREDECESSOR_REVISION = '02002272c334dd0a3750c502ad5819b26d57fe0d'
+PAIR24_PREDECESSOR_SHA256 = 'd538efdbfc542f860b154f11cc1a50e0b1b01e29dfe03a5057671db9bf4eb557'
+STARTER_ACTIVITY = 'app/src/dev/mixer/android/MixerActivity.java'
+PAIR24_SOURCE_CHANGES = {
+    'native/android/' + STARTER_ACTIVITY,
+    'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift',
+    'cli/Sources/MixerBuild/Resources/android-build.py',
+    EXPORT_RUNNER,
+}
+ACTIVITY_TESTS = 'native/android/tests/'
+PAIR24_ADDITIONS = {
+    ACTIVITY_TESTS + 'MixerActivityHostTests.java',
+    ACTIVITY_TESTS + 'run-mixer-activity-host.py',
+} | {ACTIVITY_TESTS + 'MixerActivityHostLeaves/' + leaf for leaf in (
+    'android/app/Activity.java',
+    'android/os/Build.java',
+    'android/os/Bundle.java',
+    'android/util/Log.java',
+    'android/view/View.java',
+    'android/view/Window.java',
+    'android/view/WindowInsets.java',
+    'android/view/WindowInsetsController.java',
+    'android/widget/FrameLayout.java',
+    'android/widget/Toast.java',
+    'dev/mixer/android/NativeBridge.java',
+    'dev/mixer/android/NativeRenderer.java',
+    'dev/mixer/android/UiPacket.java',
+)}
+PAIR24_CHANGES = PAIR24_SOURCE_CHANGES | PAIR24_ADDITIONS | {
+    '.github/workflows/verify.yml',
+    'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
+    'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
+    JAVA + 'bootstrap.py',
+    JAVA + 'test_bootstrap.py',
+    JAVA + 'test_sparse_checkout.py',
+}
 MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
@@ -93,6 +129,8 @@ MEMBERS = {'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     'capability-predecessor-bytes/' + name for name in CAPABILITY_CHANGES - CAPABILITY_ADDITIONS
 } | {
     'upgrade-predecessor-bytes/' + name for name in UPGRADE_CHANGES
+} | {
+    'pair24-predecessor-bytes/' + name for name in PAIR24_CHANGES - PAIR24_ADDITIONS
 }
 
 
@@ -159,6 +197,24 @@ def read_capability_preimages(previous, transition, effective):
     return preimages
 
 
+def read_pair24_preimages(previous, transition):
+    require(set(transition) == {'baseRevision', 'sourceBefore', 'sourceAfter', 'changes', 'profileAfter'} and
+            transition['baseRevision'] == PAIR24_PREDECESSOR_REVISION and
+            set(transition['changes']) == PAIR24_CHANGES,
+            'Pair24 archive transition roster differs')
+    preimages = {}
+    for name, change in transition['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] != change['after'] and change['mode'] == 0o644 and
+                (change['before'] is None) == (name in PAIR24_ADDITIONS),
+                'Pair24 transition row differs: ' + name)
+        if name not in PAIR24_ADDITIONS:
+            raw = previous.read(HERE / 'pair24-predecessor-bytes' / name)
+            require(previous.row(raw) == change['before'], 'Pair24 predecessor bytes differ: ' + name)
+            preimages[name] = raw
+    return preimages
+
+
 def install_inputs():
     previous, old_seal = load_predecessor()
     seal = previous.load(HERE / 'seal.json')
@@ -172,7 +228,8 @@ def install_inputs():
     binding = previous.load(HERE / 'binding.json')
     require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
                              'changes', 'renderer_transition', 'starter_lock_transition',
-                             'export_runner_transition', 'capability_transition', 'upgrade_transition'} and
+                             'export_runner_transition', 'capability_transition', 'upgrade_transition',
+                             'pair24_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -219,6 +276,9 @@ def install_inputs():
         require(previous.row(raw) == change['before'], 'Upgrade owner preimage differs: ' + name)
         upgrade_preimages[name] = raw
 
+    pair24 = binding['pair24_transition']
+    pair24_preimages = read_pair24_preimages(previous, pair24)
+
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
@@ -233,6 +293,8 @@ def install_inputs():
                 raw = capability_preimages.get(name)
             if raw is None:
                 raw = upgrade_preimages.get(name)
+            if raw is None:
+                raw = pair24_preimages.get(name)
             if raw is None:
                 raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
@@ -277,14 +339,26 @@ def install_inputs():
         effective[name] = change['after']
         if name in UPGRADE_SOURCE_CHANGES:
             expected_source[name] = change['after']
+    require(previous.digest(expected_source) == upgrade['sourceAfter'] ==
+            pair24['sourceBefore'] == PAIR24_PREDECESSOR_SHA256,
+            'Pinned Pair23 upgrade source differs')
+    installed = {**effective, **{name: change['after'] for name, change in capability['changes'].items()}}
+    for name, change in pair24['changes'].items():
+        require(installed.get(name) == change['before'], 'Pair24 predecessor owner differs: ' + name)
+        installed[name] = change['after']
+        if name in PAIR24_SOURCE_CHANGES:
+            require(expected_source[name] == change['before'], 'Pair24 source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        if name in effective and name not in preimages and name not in capability['changes']:
+            preimages[name] = (pair24_preimages[name], change['mode'])
+        require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
+                'Installed Pair24 owner mode differs: ' + name)
     require(current == expected_source and
-            upgrade['sourceAfter'] == binding['source']['sha256'] and
+            pair24['sourceAfter'] == binding['source']['sha256'] and
             len(current) == 141 and binding['source'] == {
                 'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
-            }, 'Upgrade source transition differs')
-    previous.check_rows(ROOT, {
-        **effective, **{name: change['after'] for name, change in capability['changes'].items()}
-    })
+            }, 'Pair24 source transition differs')
+    previous.check_rows(ROOT, installed)
     for name, change in capability['changes'].items():
         require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
                 'Installed capability archive owner mode differs: ' + name)
@@ -300,11 +374,20 @@ def install_inputs():
                 'sourceBefore': CLOSEOUT_SOURCE_SHA256,
                 'sourceAfter': PAIR23_SOURCE_SHA256,
                 'profileAfter': expected_profile,
-            } and profile == expected_profile and previous.profile_summary(profile) == binding['profile'],
-            'Archive renderer successor profile differs')
+            }, 'Archive Pair23 renderer profile differs')
+    require(expected_profile['adapter_files'][STARTER_ACTIVITY] ==
+            pair24['changes']['native/android/' + STARTER_ACTIVITY]['before'],
+            'Pair23 Activity preimage differs')
+    adapter_files = {**expected_profile['adapter_files'],
+                     STARTER_ACTIVITY: current['native/android/' + STARTER_ACTIVITY]}
+    expected_current = {**expected_profile, 'id': 'mixer.android-source-pair.24', 'adapter_files': adapter_files,
+                        'adapter_compatibility_sha256': previous.digest(adapter_files)}
+    require(pair24['profileAfter'] == expected_current == profile and
+            previous.profile_summary(profile) == binding['profile'],
+            'Archive Pair24 starter profile differs')
     selector_path = ROOT / 'cli/build-tests/current_android_profile.py'
     selector = previous.module('native_archive_current_selector', selector_path)
-    require(selector.load_current_profile(ROOT) == profile, 'Current renderer selector differs')
+    require(selector.load_current_profile(ROOT) == profile, 'Current source-pair selector differs')
     require(owner.source_inputs(profile) == current, 'Actual archive owning source map differs')
 
     material = {}
@@ -352,6 +435,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_upgraded_pair23_sha256': binding['pair24_transition']['sourceBefore'],
             'predecessor_export_runner_source141_sha256': binding['upgrade_transition']['sourceBefore'],
             'predecessor_starter_lock_source141_sha256': binding['export_runner_transition']['sourceBefore'],
             'predecessor_pair23_source141_sha256': binding['starter_lock_transition']['sourceBefore'],

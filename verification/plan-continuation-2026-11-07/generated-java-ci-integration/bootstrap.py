@@ -63,13 +63,13 @@ def canonical():
 
 def admit_source_inputs(authority, profile):
     # The current source authority validates the exact archive owner,
-    # historical Source141 inverse, and compiled renderer successor.
+    # historical Source141 inverse, and current Pair24 starter profile.
     spec = importlib.util.spec_from_file_location('bootstrap_archive_authority', SOURCE_AUTHORITY)
     selected_authority = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(selected_authority)
     binding, selected, _ = selected_authority.admit()
-    require(profile == binding['renderer_transition']['profileAfter'],
-            'Sparse checkout profile differs from admitted source141 profile')
+    require(profile == binding['pair24_transition']['profileAfter'],
+            'Sparse checkout profile differs from admitted Pair24 profile')
     inputs = authority.source_inputs(profile)
     require(inputs == selected and len(inputs) == 141 and
             authority.source_digest(inputs) == binding['source']['sha256'],

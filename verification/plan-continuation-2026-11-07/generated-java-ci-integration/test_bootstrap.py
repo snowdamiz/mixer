@@ -129,8 +129,10 @@ class BootstrapControls(unittest.TestCase):
                 B.admit_source_inputs(a, profile)
         foreign = copy.deepcopy(profile)
         foreign['id'] = 'mixer.android-source-pair.unknown'
-        with self.assertRaisesRegex(RuntimeError, 'source141 profile'):
-            B.admit_source_inputs(a, foreign)
+        pair23 = json.loads((B.ROOT / SOURCE_BINDING).read_bytes())['renderer_transition']['profileAfter']
+        for rejected in (foreign, pair23):
+            with self.subTest(profile=rejected['id']), self.assertRaisesRegex(RuntimeError, 'Pair24 profile'):
+                B.admit_source_inputs(a, rejected)
 
     def test_current_source_missing_tampered_extra_case_symlink_refuse_before_dispatch(self):
         from contextlib import ExitStack, redirect_stdout
