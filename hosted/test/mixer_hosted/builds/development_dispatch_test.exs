@@ -210,7 +210,8 @@ defmodule MixerHosted.Builds.DevelopmentDispatchTest do
                "20261110000001_add_billing_usage_ledger.exs",
                "20261116000000_add_billing_reconciliation.exs",
                "20261116000001_add_billing_organization_state.exs",
-               "20261117000000_add_customer_workspace_self_service.exs"
+               "20261117000000_add_customer_workspace_self_service.exs",
+               "20261118000000_allow_free_workspace_billing_state_sync.exs"
              ]
 
     assert :ok = MixerHosted.Test.Migrations.check_files!(migrations)

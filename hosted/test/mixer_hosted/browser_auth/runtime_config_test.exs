@@ -136,6 +136,8 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
     assert {:ok, _} = construct(%{hosted() | processor_profile: :builds_v1})
     assert construct(%{hosted() | processor_profile: :unknown}) == @error
     assert construct(Map.delete(hosted(), :processor_profile)) == @error
+    assert construct(%{hosted() | build_operation_intent: :durable_intent_v1}) == @error
+    assert construct(Map.delete(hosted(), :build_operation_intent)) == @error
     assert construct(Map.put(hosted(), :unrecognized_processor_field, :builds_v1)) == @error
   end
 

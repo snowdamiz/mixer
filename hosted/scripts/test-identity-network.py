@@ -2852,25 +2852,25 @@ def _load_billing_reconciliation_source_authority():
     return CurrentSourceAuthority(value['selected']['source_count'], canonical_digest(manifest), manifest)
 
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v31/'
-WORKSPACE_SELECTION_SHA256 = '1876a6e959e719c357cb368e1ed1c4fc433017231d4a950c3285c026890dfea3'
-WORKSPACE_SOURCE_DIGEST = '45325da113073a4787872a08aeef0eba1c2612053cc82430eba243d0d6e8e188'
-WORKSPACE_SOURCE_COUNT = 370
+WORKSPACE_V31_SOURCE_BASE = 'verification/identity-network-current-source-v31/'
+WORKSPACE_V31_SELECTION_SHA256 = '1876a6e959e719c357cb368e1ed1c4fc433017231d4a950c3285c026890dfea3'
+WORKSPACE_V31_SOURCE_DIGEST = '45325da113073a4787872a08aeef0eba1c2612053cc82430eba243d0d6e8e188'
+WORKSPACE_V31_SOURCE_COUNT = 370
 
 
-def validate_workspace_source_metadata(metadata):
-    base = WORKSPACE_SOURCE_BASE
+def validate_workspace_v31_metadata(metadata):
+    base = WORKSPACE_V31_SOURCE_BASE
     require(set(metadata) == {base + name for name in ('selection.json', 'selected-source-manifest.json')},
             'workspace source metadata membership')
     body = metadata[base + 'selection.json']
-    require(hashlib.sha256(body).hexdigest() == WORKSPACE_SELECTION_SHA256, 'workspace selection pin')
+    require(hashlib.sha256(body).hexdigest() == WORKSPACE_V31_SELECTION_SHA256, 'workspace selection pin')
     selection = _restricted_processor_json(body)
     manifest_body = metadata[base + 'selected-source-manifest.json']
     require(selection['selected']['manifest'] ==
             {'path': 'selected-source-manifest.json', **_file_row(manifest_body)}, 'workspace manifest byte pin')
     manifest = _restricted_processor_json(manifest_body)
-    require(len(manifest) == selection['selected']['source_count'] == WORKSPACE_SOURCE_COUNT and
-            canonical_digest(manifest) == selection['selected']['source_digest_sha256'] == WORKSPACE_SOURCE_DIGEST,
+    require(len(manifest) == selection['selected']['source_count'] == WORKSPACE_V31_SOURCE_COUNT and
+            canonical_digest(manifest) == selection['selected']['source_digest_sha256'] == WORKSPACE_V31_SOURCE_DIGEST,
             'workspace manifest count or digest')
     predecessor = BILLING_RECONCILIATION_MANIFEST
     require(selection['predecessor'] == {
@@ -2890,6 +2890,48 @@ def validate_workspace_source_metadata(metadata):
     return selection, manifest
 
 
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v32/'
+WORKSPACE_SELECTION_SHA256 = '4d8e7c941f2b0e23c016e4b35ed024f4b3247eae80eda9c45d58a8690fc99a5f'
+WORKSPACE_SOURCE_DIGEST = 'd39a8a096e506015999a980f8a99bda07a272ca74f8a47d9d215755926af8517'
+WORKSPACE_SOURCE_COUNT = 373
+
+
+def workspace_source_metadata(root, base):
+    return {base + name: (root / base / name).read_bytes()
+            for name in ('selection.json', 'selected-source-manifest.json')}
+
+
+def validate_workspace_source_metadata(metadata):
+    base = WORKSPACE_SOURCE_BASE
+    require(set(metadata) == {base + name for name in ('selection.json', 'selected-source-manifest.json')},
+            'workspace source metadata membership')
+    body = metadata[base + 'selection.json']
+    require(hashlib.sha256(body).hexdigest() == WORKSPACE_SELECTION_SHA256, 'workspace selection pin')
+    selection = _restricted_processor_json(body)
+    manifest_body = metadata[base + 'selected-source-manifest.json']
+    require(selection['selected']['manifest'] ==
+            {'path': 'selected-source-manifest.json', **_file_row(manifest_body)}, 'workspace manifest byte pin')
+    manifest = _restricted_processor_json(manifest_body)
+    require(len(manifest) == selection['selected']['source_count'] == WORKSPACE_SOURCE_COUNT and
+            canonical_digest(manifest) == selection['selected']['source_digest_sha256'] == WORKSPACE_SOURCE_DIGEST,
+            'workspace manifest count or digest')
+    require(selection['predecessor'] == {
+        'source_count': WORKSPACE_V31_SOURCE_COUNT,
+        'source_digest_sha256': WORKSPACE_V31_SOURCE_DIGEST,
+        'selection_sha256': WORKSPACE_V31_SELECTION_SHA256,
+        'manifest_sha256': WORKSPACE_V31_MANIFEST_SHA256,
+    }, 'workspace source predecessor')
+    delta = {path: {'before': WORKSPACE_V31_MANIFEST.get(path), 'after': pin}
+             for path, pin in manifest.items() if pin != WORKSPACE_V31_MANIFEST.get(path)}
+    require(set(WORKSPACE_V31_MANIFEST) <= set(manifest) and delta == selection['exact_delta'],
+            'workspace source forward and inverse membership')
+    versions = sorted(PurePosixPath(path).name for path in manifest
+                      if path.startswith('hosted/priv/repo/migrations/') and path.endswith('.exs'))
+    require(versions == selection['reviewed_migrations'] and len(versions) == 16,
+            'workspace version inventory')
+    return selection, manifest
+
+
 def validate_workspace_source_manifest(manifest):
     require(type(manifest) is dict and len(manifest) == WORKSPACE_SOURCE_COUNT, 'workspace source path count')
     for path, row in manifest.items():
@@ -2900,19 +2942,9 @@ def validate_workspace_source_manifest(manifest):
     return manifest
 
 
-def _load_workspace_source_authority():
-    root = Path(__file__).resolve().parents[2]
-    metadata = {WORKSPACE_SOURCE_BASE + name: (root / WORKSPACE_SOURCE_BASE / name).read_bytes()
-                for name in ('selection.json', 'selected-source-manifest.json')}
-    _, manifest = validate_workspace_source_metadata(metadata)
-    return manifest
-
-
 def check_workspace_source(root):
-    base = WORKSPACE_SOURCE_BASE
-    metadata = {base + name: (root / base / name).read_bytes()
-                for name in ('selection.json', 'selected-source-manifest.json')}
-    selection, manifest = validate_workspace_source_metadata(metadata)
+    validate_workspace_v31_metadata(workspace_source_metadata(root, WORKSPACE_V31_SOURCE_BASE))
+    selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     observed = {path: _file_row((root / path).read_bytes()) for path in manifest}
     validate_workspace_source_manifest(observed)
     reviewed = json.loads((root / 'hosted/test/support/reviewed_migrations.json').read_bytes())
@@ -4015,6 +4047,10 @@ class Collector:
         billing_metadata = self.git_blobs([BILLING_RECONCILIATION_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         validate_billing_reconciliation_source_metadata(billing_metadata)
         metadata.update(billing_metadata)
+        workspace_v31_metadata = self.git_blobs(
+            [WORKSPACE_V31_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        validate_workspace_v31_metadata(workspace_v31_metadata)
+        metadata.update(workspace_v31_metadata)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         _, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -4105,6 +4141,18 @@ class Collector:
         database = self.pg_query(pg, sql)
         require(database == {"server_version_num": "160015", "timezone": "UTC", "database": "mixer_startup_test", "databases": ["mixer_startup_test", "postgres", "template0", "template1"]}, "private PostgreSQL scope/version mismatch")
         write_json(self.output / "database-before.json", database)
+        self.pg_query(pg, """
+            CREATE ROLE mixer_test_migration_owner NOLOGIN NOSUPERUSER NOBYPASSRLS
+              NOINHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
+            ALTER DATABASE mixer_startup_test OWNER TO mixer_test_migration_owner;
+            ALTER ROLE mixer_fixture IN DATABASE mixer_startup_test SET role TO mixer_test_migration_owner;
+            SELECT to_json(true);
+        """, quiet=True)
+        require(self.pg_query(pg, """
+            SELECT to_json(current_user = 'mixer_test_migration_owner'
+              AND NOT (rolcanlogin OR rolsuper OR rolbypassrls))
+            FROM pg_roles WHERE rolname = current_user;
+        """) is True, "private PostgreSQL migration owner policy mismatch")
         status, _, _ = self.execute(pg, ["/usr/bin/cat", "/proc/1/status"], environment=PG_ENV)
         uid = next((line.split()[1:] for line in status.decode().splitlines() if line.startswith("Uid:")), [])
         require(len(uid) == 4 and all(value.isdigit() and int(value) > 0 for value in uid), "PostgreSQL remains root")
@@ -4165,8 +4213,8 @@ class Collector:
         self.state["limitations"] = ["Ordinary remote synthetic fixture scope only; no syscall/child-command custody trace", "Existing TLSFixture discards successful OpenSSL child output; executable/parent trace/assertions retained", "No real provider/browser/Neon/Cloudflare/native/physical/GA qualification", "No new production release/exclusion run; root must separately accept exact unchanged-product evidence reuse", "Host loss/hard cancellation can prevent cleanup or upload; missing evidence is unqualified", "Independent root artifact download, digest validation and acceptance remain required"]
         self.persist()
 
-    def pg_query(self, pg, sql):
-        output, _, _ = self.execute(pg, ["/usr/lib/postgresql/16/bin/psql", "--no-psqlrc", "--set", "ON_ERROR_STOP=1", "--host", "127.0.0.1", "--username", "mixer_fixture", "--dbname", "mixer_startup_test", "--tuples-only", "--no-align", "--command", sql], environment=PG_ENV)
+    def pg_query(self, pg, sql, *, quiet=False):
+        output, _, _ = self.execute(pg, ["/usr/lib/postgresql/16/bin/psql", "--no-psqlrc", "--set", "ON_ERROR_STOP=1", "--host", "127.0.0.1", "--username", "mixer_fixture", "--dbname", "mixer_startup_test", "--tuples-only", "--no-align", *(["--quiet"] if quiet else []), "--command", sql], environment=PG_ENV)
         return json.loads(output)
 
 
@@ -4739,7 +4787,12 @@ PENDING_SESSION_MANIFEST = PENDING_SESSION_AUTHORITY.manifest
 
 BILLING_RECONCILIATION_AUTHORITY = _load_billing_reconciliation_source_authority()
 BILLING_RECONCILIATION_MANIFEST = BILLING_RECONCILIATION_AUTHORITY.manifest
-WORKSPACE_MANIFEST = _load_workspace_source_authority()
+_source_root = Path(__file__).resolve().parents[2]
+_workspace_v31_metadata = workspace_source_metadata(_source_root, WORKSPACE_V31_SOURCE_BASE)
+_, WORKSPACE_V31_MANIFEST = validate_workspace_v31_metadata(_workspace_v31_metadata)
+WORKSPACE_V31_MANIFEST_SHA256 = hashlib.sha256(
+    _workspace_v31_metadata[WORKSPACE_V31_SOURCE_BASE + 'selected-source-manifest.json']).hexdigest()
+_, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':
     try:

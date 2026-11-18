@@ -30,6 +30,7 @@ inputs = [
   "hosted/lib/mixer_hosted/identity/startup_config.ex",
   "hosted/lib/mixer_hosted/browser_auth/config.ex",
   "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
+  "hosted/lib/mixer_hosted/builds/operation_intent_schema.ex",
   "hosted/lib/mixer_hosted/builds/processor_profile.ex",
   "hosted/lib/mixer_hosted/billing/processor_profile.ex",
   "hosted/lib/mixer_hosted/runtime_config.ex",
@@ -42,7 +43,10 @@ inputs = [
 
 {_, []} =
   Code.with_diagnostics(fn ->
-    Enum.each(inputs, &Code.require_file(Path.join(root, &1)))
+    {:ok, _, _} =
+      Kernel.ParallelCompiler.compile(Enum.map(inputs, &Path.join(root, &1)),
+        return_diagnostics: true
+      )
   end)
 
 ExUnit.start(autorun: false, seed: 0, trace: true)

@@ -117,7 +117,12 @@ try:
     env["MIXER_BROWSER_MIGRATION_PORT"] = str(port)
     run("initdb", [pg / "initdb", "-D", scratch / "data", "-U", "migration_admin", "-A", "trust", "--no-locale", "-E", "UTF8"])
     run("postgres-start", [pg / "pg_ctl", "-D", scratch / "data", "-l", out / "postgres.log", "-o", f"-h 127.0.0.1 -p {port} -k '' -c timezone=UTC", "-w", "start"])
-    run("roles", [pg / "psql", "-X", "-h", "127.0.0.1", "-p", port, "-U", "migration_admin", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c", "CREATE ROLE migration_owner LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEROLE NOCREATEDB NOREPLICATION; CREATE ROLE migration_runtime LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEROLE NOCREATEDB NOREPLICATION;"])
+    run("roles", [pg / "psql", "-X", "-h", "127.0.0.1", "-p", port, "-U", "migration_admin",
+                  "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c",
+                  "CREATE ROLE migration_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEROLE NOCREATEDB NOREPLICATION; "
+                  "CREATE ROLE migration_operator LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEROLE NOCREATEDB NOREPLICATION; "
+                  "GRANT migration_owner TO migration_operator; "
+                  "CREATE ROLE migration_runtime LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT NOCREATEROLE NOCREATEDB NOREPLICATION;"])
     run("database", [pg / "createdb", "-h", "127.0.0.1", "-p", port, "-U", "migration_admin", "-O", "migration_owner", "browser_migrations"])
     result = out / "result.json"
     entrypoint = out / "selected_runner.exs"

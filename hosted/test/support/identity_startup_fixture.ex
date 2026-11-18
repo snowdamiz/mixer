@@ -290,14 +290,7 @@ defmodule MixerHosted.Identity.StartupFixture do
     Application.put_env(:mixer_hosted, :role, settings.role)
     Application.put_env(:mixer_hosted, :identity_startup, identity)
 
-    Application.put_env(:mixer_hosted, MixerHosted.Repo,
-      hostname: "127.0.0.1",
-      port: String.to_integer(System.fetch_env!("MIXER_TEST_DATABASE_PORT")),
-      database: "mixer_startup_test",
-      username: "mixer_fixture",
-      pool_size: 2,
-      ssl: false
-    )
+    Application.put_env(:mixer_hosted, MixerHosted.Repo, database_config())
 
     Application.put_env(:mixer_hosted, Oban, settings.oban)
 
@@ -320,14 +313,25 @@ defmodule MixerHosted.Identity.StartupFixture do
   end
 
   def prepare_database do
-    app_settings(StartupConfig.load!(%{}, :api, []))
+    {:ok, repo} = MixerHosted.Repo.start_link(database_config())
 
-    {:ok, repo} =
-      MixerHosted.Repo.start_link(Application.fetch_env!(:mixer_hosted, MixerHosted.Repo))
+    try do
+      path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
+      Ecto.Migrator.run(MixerHosted.Repo, path, :up, all: true)
+    after
+      Supervisor.stop(repo)
+    end
+  end
 
-    path = Application.app_dir(:mixer_hosted, "priv/repo/migrations")
-    Ecto.Migrator.run(MixerHosted.Repo, path, :up, all: true)
-    Supervisor.stop(repo)
+  defp database_config do
+    [
+      hostname: "127.0.0.1",
+      port: String.to_integer(System.fetch_env!("MIXER_TEST_DATABASE_PORT")),
+      database: "mixer_startup_test",
+      username: "mixer_fixture",
+      pool_size: 2,
+      ssl: false
+    ]
   end
 
   def token(key) do

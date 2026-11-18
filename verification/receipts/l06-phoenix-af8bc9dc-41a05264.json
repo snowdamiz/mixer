@@ -1,0 +1,288 @@
+{
+  "schema": 1,
+  "id": "l06-phoenix-af8bc9dc-41a05264",
+  "scope": "Local Phoenix and restricted PostgreSQL verification. Identity collector source preflight and host controls. Hosted Linux identity runtime and whole L06 remain unqualified.",
+  "status": "passed",
+  "base": "af8bc9dc240c24816d4be2dfdc654f1c8bd3283c",
+  "base_tree": "db616edac943c160ab1e2e67a93b491ee046bbe7",
+  "selected_tree": "19c2c4067a507a487f511a850f31c226e4e4a71b",
+  "patch": {
+    "path": "l06-phoenix-delivery.patch",
+    "bytes": 347486,
+    "sha256": "a524c9284af1db77126018e5349ee05a7353f702173e1030a622819fa003e462"
+  },
+  "inverse": "An isolated Git index accepted the patch, produced selected_tree, and reversed to base_tree byte-for-byte.",
+  "hosted_failure": {
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/44252407383/job/134625988983",
+    "step": "Startup secret constructor production-mode checks",
+    "confirmed_causes": [
+      "Missing OperationIntentSchema in the explicit harness compile inputs broke the zero-warning assertion.",
+      "Browser startup exact-field validation omitted build_operation_intent; browser construction now admits only :disabled.",
+      "Foundation and startup database fixtures leaked startup configuration into standalone coordinator tests."
+    ],
+    "reproduction": {
+      "path": "baseline-startup.log",
+      "bytes": 1054,
+      "sha256": "3863bf326892891157602531aaa6b85e27516b21388bee916d7a0e0af834347f"
+    }
+  },
+  "tools": {
+    "host": "Darwin arm64",
+    "elixir": "1.20.4",
+    "otp": "29.1.1",
+    "postgres": "17.11 (Homebrew)",
+    "node": "22.23.3",
+    "python": "3.14.8"
+  },
+  "phoenix": {
+    "command": "PHOENIX_LOCAL_TEST_TIMEOUT=540 ruby run-phoenix.rb phoenix-delivery candidate",
+    "environment_difference": "Executed all shell steps from the normal Phoenix workflow on macOS. Installed matching tool versions locally; used PostgreSQL 17 Homebrew binaries and extended the single 300-second Mix test cap to 540 seconds locally. Source and workflow limits stay pinned.",
+    "previous_runs": "Two ordinary runner attempts hit the original 300-second test cap. A later overlapping run hit the browser-login diagnostic startup deadline. Focused retries exposed and corrected the test-only pg_stat_activity observer role.",
+    "steps": [
+      {
+        "name": "Provision PostgreSQL 17 for disposable host checks",
+        "exit": 0,
+        "log": "03.log",
+        "sha256": "c6ca028f6b66af4e291b35f9a47bc0df6cb3cf03f33954e5bcf87182be7f96e1"
+      },
+      {
+        "name": "Check native artifact worker protocol with fixture processes",
+        "exit": 0,
+        "log": "04.log",
+        "sha256": "5339cadffa04f97a28f89b62227c3e3d51208af40ddaab33e42f270dca7b5631"
+      },
+      {
+        "name": "Resolve locked dependencies",
+        "exit": 0,
+        "log": "05.log",
+        "sha256": "c1e96e549367b3d2187b5dab3bb051317c508c385c900c5cebd30062c31b06c9"
+      },
+      {
+        "name": "Check frozen ordinary browser graph format",
+        "exit": 0,
+        "log": "06.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "Browser auth protocol host checks",
+        "exit": 0,
+        "log": "07.log",
+        "sha256": "f33fc974f68ff69d6cbd4fefa87eb29f2dad5a2392c995cd109756b6e4a40613"
+      },
+      {
+        "name": "Provider trust constructor production-mode checks",
+        "exit": 0,
+        "log": "08.log",
+        "sha256": "6ea368336b5a5cfbe06611aebf3faa2ac8fb400bd8ca1ce75a7d2fdaf8a3176b"
+      },
+      {
+        "name": "Startup secret constructor production-mode checks",
+        "exit": 0,
+        "log": "09.log",
+        "sha256": "3a9fffef6c1ce894c5e2c3b2606436717dc132854e6b3d6732614bfd4d40405e"
+      },
+      {
+        "name": "Compile locked dependencies for composition controls",
+        "exit": 0,
+        "log": "10.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "Run isolated configured startup composition controls with fake leaves",
+        "exit": 0,
+        "log": "11.log",
+        "sha256": "34e876932d37b378546b3bfffa86097ae8f529521803f8a77ee2f2e5d1796d2e"
+      },
+      {
+        "name": "Compile workspace client for real HTTP integration",
+        "exit": 0,
+        "log": "12.log",
+        "sha256": "d4f20d409e530ed7f0923d0cd560089877018ba307e09f575a6bfb53c34d459d"
+      },
+      {
+        "name": "Browser session storage and migration checks",
+        "exit": 0,
+        "log": "13.log",
+        "sha256": "c9108d563b3559bb6dd48bd8fcbef41c009fc7670e79fd2be4eb5966ba89e180"
+      },
+      {
+        "name": "Phoenix and disposable PostgreSQL host checks",
+        "exit": 0,
+        "log": "14.log",
+        "sha256": "669d31dd1688e79a80ac27dca45020b8a994171ea2837f00bba2fb5febb849d6"
+      }
+    ],
+    "details": {
+      "path": "phoenix-delivery/steps.json",
+      "bytes": 8218,
+      "sha256": "0ec00b821287574dbf1a8323ca6ecd36c90f30cc8aad70f9a53646312fae65d4"
+    },
+    "full": {
+      "status": "passed",
+      "source_tree_sha256": "a50c8d48acf64aa9c00c77158907c0d52118294eba9f674b8b9a5d398cb0caf4",
+      "test_result": [
+        "Result: 921 passed, 2 skipped"
+      ],
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "log": {
+        "path": "phoenix-delivery/phoenix-foundation/tests.log",
+        "bytes": 301635,
+        "sha256": "60faea2ab279fda4abda15df4399b3155bcc96a90a46a93813c50f9f3fddf184"
+      },
+      "receipt": {
+        "path": "phoenix-delivery/phoenix-foundation/receipt.json",
+        "bytes": 96073,
+        "sha256": "00a322152d0de48c8c73965123f2ce5b6519639773c8f9ba30fdcf63df61e8ae"
+      }
+    },
+    "focused": {
+      "status": "passed",
+      "source_tree_sha256": "a50c8d48acf64aa9c00c77158907c0d52118294eba9f674b8b9a5d398cb0caf4",
+      "test_result": [
+        "Result: 50 passed"
+      ],
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "log": {
+        "path": "startup-fixture-final-focused/tests.log",
+        "bytes": 37447,
+        "sha256": "1b58a3345e66557e3b4b2505cb191aa9bfb4a935a837cdcfd0e6a25b8085728e"
+      },
+      "receipt": {
+        "path": "startup-fixture-final-focused/receipt.json",
+        "bytes": 96485,
+        "sha256": "768f593d3c850b1a2be180fdd9f6e118957eec0bbcc10dfb16888305265ee36d"
+      }
+    }
+  },
+  "migration": {
+    "count": 16,
+    "result": {
+      "total": 1,
+      "failures": 0,
+      "skipped": 0,
+      "excluded": 0
+    },
+    "cleanup": {
+      "owned_postgres_stopped": true,
+      "owned_scratch_removed": true,
+      "owned_compile_products_removed": true
+    },
+    "source_unchanged": true,
+    "receipt": {
+      "path": "phoenix-delivery/browser-migrations/20261118T070440.900931Z-20ca0e01/receipt.json",
+      "bytes": 29469,
+      "sha256": "63e08013fafbf6fdc12af8cdc527f5ca5cc0975fa32e3380f992b211efc38027"
+    }
+  },
+  "l06": {
+    "command": "python3 http-replay/run.py attempt-fresh",
+    "requests": 38,
+    "same_production_files_as_patch": 189,
+    "tests": [
+      "Result: 2 passed, 7 excluded",
+      "Result: 1 passed"
+    ],
+    "sql": {
+      "organizations": "3",
+      "active_projects": "3",
+      "tombstones": "1",
+      "builds": "0",
+      "queue_jobs": "0",
+      "billing_mirrors": "3",
+      "inactive_billing_mirrors": "1",
+      "payment_credentials": "0"
+    },
+    "cleanup": {
+      "bandit_stopped": true,
+      "key_owner_stopped": true,
+      "jwks_workers_stopped": true,
+      "tls_fixture_stopped": true,
+      "repo_stopped": true,
+      "application_env_restored": true,
+      "ephemeral_tls_key_directory_removed": true,
+      "jwks_tls_request_count": null,
+      "bandit_port": 51411,
+      "tls_port": 51410
+    },
+    "pg_port_reusable": true,
+    "command_evidence": {
+      "path": "http-replay/attempt-fresh/commands.json",
+      "bytes": 12154,
+      "sha256": "77a6d8b4a6044bb9eeb5ba0e1d0acd8a37524298dd89a072c86214a9c9dbedeb"
+    }
+  },
+  "identity": {
+    "preflight": {
+      "identity": "hosted-free-workspace-organization-source-v32",
+      "runtime_or_GA_accepted": false,
+      "selection_sha256": "4d8e7c941f2b0e23c016e4b35ed024f4b3247eae80eda9c45d58a8690fc99a5f",
+      "source_count": 373,
+      "source_digest_sha256": "d39a8a096e506015999a980f8a99bda07a272ca74f8a47d9d215755926af8517"
+    },
+    "normal_controls": {
+      "cases": 315,
+      "passed": true,
+      "log": {
+        "path": "identity/isolated-normal.log",
+        "bytes": 53611,
+        "sha256": "066892cdfce0244287ad62c220f3f35a652b525dd8dd306e385c28c8ba27b32f"
+      }
+    },
+    "optimized_controls": {
+      "cases": 315,
+      "passed": true,
+      "log": {
+        "path": "identity/isolated-optimized.log",
+        "bytes": 53611,
+        "sha256": "e026dcceb1d326fb4b44c53fc2d2065d4524eaf2067e14c1d70722dfb255193d"
+      }
+    },
+    "isolation": "Each mode ran in its own source-only staged snapshot. A preliminary shared-snapshot replay had a concurrent selected-source mutation in a negative control.",
+    "commands": [
+      "python3 -B hosted/scripts/test-identity-network.py --check-source",
+      "python3 -O -B hosted/scripts/test-identity-network.py --check-workspace-source",
+      "python3 -B hosted/scripts/test_identity_network_collector.py",
+      "python3 -O -B hosted/scripts/test_identity_network_collector.py"
+    ],
+    "postgres_fixture_sql": {
+      "actual_collector_fixture_sql": true,
+      "actual_collector_pg_query": true,
+      "direct_exit": 0,
+      "group_absent": true,
+      "port_reusable": true,
+      "results": [
+        true,
+        true
+      ]
+    },
+    "adjacent_verify_workflow_binding": {
+      "path": "identity/adjacent-archive.json",
+      "bytes": 969,
+      "sha256": "b21f8e4ae6e7cce5f2a8985af94fbbae232c5b6f8671ff64a39319eed772346a"
+    }
+  },
+  "intermediate_identity_hold": {
+    "reason": "Two superseded identity control runs returned tool exit 142 before a complete unittest summary.",
+    "outer_exit_codes": [
+      142,
+      142
+    ],
+    "inner_pid_or_pgid_observed": false,
+    "group_absence_observed": false,
+    "preserve": [
+      "/Users/andreyyurlov/.t3/userdata/mixer-l06-phoenix-41a05264-UWaeeEC9/identity/final-normal-tmp",
+      "/Users/andreyyurlov/.t3/userdata/mixer-l06-phoenix-41a05264-UWaeeEC9/identity/final-optimized-tmp",
+      "/Users/andreyyurlov/.t3/userdata/mixer-l06-phoenix-41a05264-UWaeeEC9/checkout"
+    ],
+    "scope": "No inspection, process operations, retry, or cleanup in the listed chains. The exact delivery and final controls use separate staged source snapshots."
+  },
+  "artifact_retention": "Verification retention passed for 48841 tracked files and 939190990 bytes.",
+  "shared_branch_edits_or_delivery": false,
+  "deployment_or_device_operations": false
+}

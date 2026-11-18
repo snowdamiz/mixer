@@ -569,11 +569,17 @@ defmodule MixerHosted.Builds.CoordinatorOperationIntentTest do
     do: flunk("second refresh did not block on the exact owned DB mutex")
 
   defp r836_wait_blocked(blocker, remaining) do
-    rows =
-      Repo.query!(
-        "SELECT pid, wait_event_type, wait_event, query FROM pg_stat_activity WHERE $1::int = ANY(pg_blocking_pids(pid)) AND query = 'SELECT pg_advisory_xact_lock(1296648258, 1)'",
-        [blocker]
-      ).rows
+    # pg_stat_activity identifies the fixture connections by their login role.
+    # Restore that role for this observation transaction only.
+    {:ok, rows} =
+      Repo.transaction(fn ->
+        Repo.query!("SET LOCAL ROLE NONE")
+
+        Repo.query!(
+          "SELECT pid, wait_event_type, wait_event, query FROM pg_stat_activity WHERE $1::int = ANY(pg_blocking_pids(pid)) AND query = 'SELECT pg_advisory_xact_lock(1296648258, 1)'",
+          [blocker]
+        ).rows
+      end)
 
     case rows do
       [[_, "Lock", "advisory", _] = row] ->

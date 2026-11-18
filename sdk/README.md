@@ -17,9 +17,6 @@ The package uses Swift 6 language mode and declares iOS 26 and macOS 14 minima.
 The checked-in receipt records the actual toolchain used; declaring an OS minimum
 does not qualify every OS release or device in that range.
 
-To generate an app with a pinned copy of this SDK, follow the
-[local app build guide](../README.md#create-export-and-build-a-local-app).
-
 ## Public products
 
 | Product | Current public behavior |

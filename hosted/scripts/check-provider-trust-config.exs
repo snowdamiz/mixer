@@ -7,7 +7,9 @@ Mix.env(:prod)
 {:ok, _} = Application.ensure_all_started(:public_key)
 jason_sources = Path.wildcard(Path.join(jason_lib, "**/*.ex"))
 true = jason_sources != []
-{:ok, _, []} = Kernel.ParallelCompiler.compile(jason_sources)
+
+{:ok, _, %{compile_warnings: [], runtime_warnings: []}} =
+  Kernel.ParallelCompiler.compile(jason_sources, return_diagnostics: true)
 
 inputs = [
   "hosted/lib/mixer_hosted/identity/encoding.ex",
@@ -16,6 +18,7 @@ inputs = [
   "hosted/lib/mixer_hosted/identity/startup_config.ex",
   "hosted/lib/mixer_hosted/browser_auth/config.ex",
   "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",
+  "hosted/lib/mixer_hosted/builds/operation_intent_schema.ex",
   "hosted/lib/mixer_hosted/builds/processor_profile.ex",
   "hosted/lib/mixer_hosted/billing/processor_profile.ex",
   "hosted/lib/mixer_hosted/runtime_config.ex",
@@ -27,7 +30,11 @@ inputs = [
   "hosted/lib/mixer_hosted/browser_auth/installation.ex"
 ]
 
-Enum.each(inputs, &Code.require_file(Path.join(root, &1)))
+{:ok, _, _} =
+  Kernel.ParallelCompiler.compile(Enum.map(inputs, &Path.join(root, &1)),
+    return_diagnostics: true
+  )
+
 ExUnit.start(autorun: false, seed: 0, trace: true)
 test = "hosted/test/mixer_hosted/browser_auth/provider_trust_config_test.exs"
 Code.require_file(Path.join(root, test))

@@ -57,6 +57,7 @@ end
 
 inputs = [
   "hosted/lib/mixer_hosted/application.ex",
+  "hosted/lib/mixer_hosted/builds/operation_intent_schema.ex",
   "hosted/lib/mixer_hosted/builds/processor_profile.ex",
   "hosted/lib/mixer_hosted/browser_auth/config.ex",
   "hosted/lib/mixer_hosted/browser_auth/configuration_digest.ex",

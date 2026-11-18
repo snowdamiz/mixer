@@ -23,7 +23,8 @@ defmodule MixerBrowserMigrationFixture.Test do
        hostname: "127.0.0.1",
        port: String.to_integer(System.fetch_env!("MIXER_BROWSER_MIGRATION_PORT")),
        database: "browser_migrations",
-       username: "migration_owner",
+       username: "migration_operator",
+       after_connect: fn conn -> Postgrex.query!(conn, "SET ROLE migration_owner", []) end,
        ssl: false,
        pool_size: 2,
        log: false}
@@ -202,7 +203,8 @@ defmodule MixerBrowserMigrationFixture.Test do
           MixerHosted.Repo.Migrations.AddBillingUsageLedger,
           MixerHosted.Repo.Migrations.AddBillingReconciliation,
           MixerHosted.Repo.Migrations.AddBillingOrganizationState,
-          MixerHosted.Repo.Migrations.AddCustomerWorkspaceSelfService
+          MixerHosted.Repo.Migrations.AddCustomerWorkspaceSelfService,
+          MixerHosted.Repo.Migrations.AllowFreeWorkspaceBillingStateSync
         ] do
       :code.purge(module)
       :code.delete(module)

@@ -796,7 +796,8 @@ defmodule MixerHosted.Builds.CoordinatorReviewedMigrationsTest do
              20_261_110_000_001,
              20_261_116_000_000,
              20_261_116_000_001,
-             20_261_117_000_000
+             20_261_117_000_000,
+             20_261_118_000_000
            ]
   end
 end

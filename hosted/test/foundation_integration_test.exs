@@ -97,9 +97,19 @@ defmodule MixerHosted.FoundationIntegrationTest do
   end
 
   setup do
+    prior = Application.get_all_env(:mixer_hosted)
+
+    on_exit(fn ->
+      Application.stop(:mixer_hosted)
+
+      for {key, _} <- Application.get_all_env(:mixer_hosted),
+          do: Application.delete_env(:mixer_hosted, key)
+
+      for {key, value} <- prior, do: Application.put_env(:mixer_hosted, key, value)
+    end)
+
     boot("api")
     Repo.query!("TRUNCATE foundation_probe, oban_jobs")
-    on_exit(fn -> Application.stop(:mixer_hosted) end)
     :ok
   end
 

@@ -532,7 +532,8 @@ defmodule MixerHosted.Builds.OperationAdmissionReviewedMigrationsTest do
              20_261_110_000_001,
              20_261_116_000_000,
              20_261_116_000_001,
-             20_261_117_000_000
+             20_261_117_000_000,
+             20_261_118_000_000
            ]
 
     refute 20_261_110_000_498 in MixerHosted.Test.Migrations.versions()

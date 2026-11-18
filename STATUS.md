@@ -12,6 +12,10 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+Free organization creation passed against the full 16-migration PostgreSQL schema. The local Phoenix replay exercised 38 HTTP responses, and SQL counted zero payment credentials. The integrated checkout passed hosted and native source admission in both Python modes. [Free onboarding](verification/receipts/l06-hosted-free-onboarding-integrated-41a05264.json).
+
+The relocated iOS starter rendered its title and zero-entry progress on first launch and relaunch on iOS 26.5. A separate Android input trace stopped at the Title field before reaching Note. Emulator group custody is unresolved. [iOS starter](verification/receipts/l01-export-ios-runtime-41a05264.json) · [Android input hold](verification/receipts/fieldlog-android-input-title-hold-41a05264.json).
+
 The public setup guide includes both downstream FieldLog patches. A fresh checkout reproduced the exact Pair23 build tree and Android photo test tree. Android received 52 of 132 note characters before keyboard dismissal. After one retry of the missing suffix, the cold-reopened entry contained 90. [Public fixture replay](verification/receipts/fieldlog-pair23-public-fixtures-41a05264.json) · [Android input](verification/receipts/fieldlog-android-long-note-runtime-41a05264.json)
 
 The CLI changes are on main at `79233ba123` and the corrected Android renderer and Pair23 source profile are on main at `735ecec14e`. The default starter lock fix is on main at `f048e40c52`, the signed host replay at `9dadcee1d7`, and the restricted worker, ordinary artifact downloads and console navigation fix at `af8bc9dc24`.

@@ -257,21 +257,28 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
     lifecycle_evidence = output / "identity-lifecycle"
     lifecycle_evidence.mkdir()
     env["MIXER_KEY_OWNER_LIFECYCLE_EVIDENCE"] = str(lifecycle_evidence)
-    run("createdb", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
-                     "mixer_fixture", "mixer_foundation_test"])
-    run("createdb-operation-admission", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U", "mixer_fixture", "mixer_operation_admission_test"])
-    run("createdb-startup", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
-                            "mixer_fixture", "mixer_startup_test"])
-    run("createdb-builds", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
-                           "mixer_fixture", "mixer_builds_test"])
-    run("createdb-admission", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
-                              "mixer_fixture", "mixer_admission_test"])
-    run("createdb-aggregate-admission", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
-                                        "mixer_fixture", "mixer_aggregate_admission_test"])
-    run("createdb-coordinator", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
-                                "mixer_fixture", "mixer_coordinator_test"])
-    run("createdb-coordinator-intent", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
-                                       "mixer_fixture", "mixer_coordinator_intent_test"])
+    run("createdb-operation-admission", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
+                                        "-U", "mixer_fixture", "mixer_operation_admission_test"])
+    # Only the generic databases that apply the entire reviewed migration set
+    # need a session running as the restricted owner. Other fixture roles are separate.
+    psql = [str(args.pg_bin / "psql"), "-X", "-h", "127.0.0.1", "-p", str(port),
+            "-U", "mixer_fixture", "-d", "postgres", "-v", "ON_ERROR_STOP=1"]
+    run("migration-owner-role", psql + ["-c",
+        "CREATE ROLE mixer_test_migration_owner NOLOGIN NOSUPERUSER NOBYPASSRLS "
+        "NOINHERIT NOCREATEDB NOCREATEROLE NOREPLICATION"])
+    for label, database in (
+        ("createdb", "mixer_foundation_test"),
+        ("createdb-startup", "mixer_startup_test"),
+        ("createdb-builds", "mixer_builds_test"),
+        ("createdb-admission", "mixer_admission_test"),
+        ("createdb-aggregate-admission", "mixer_aggregate_admission_test"),
+        ("createdb-coordinator", "mixer_coordinator_test"),
+        ("createdb-coordinator-intent", "mixer_coordinator_intent_test"),
+    ):
+        run(label, [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port),
+                    "-U", "mixer_fixture", "-O", "mixer_test_migration_owner", database])
+        run(label + "-role", psql + ["-c",
+            f"ALTER ROLE mixer_fixture IN DATABASE {database} SET role TO mixer_test_migration_owner"])
     if additional_tests:
         run("createdb-builds-review", [str(args.pg_bin / "createdb"), "-h", "127.0.0.1", "-p", str(port), "-U",
                                       "mixer_fixture", "mixer_builds_review_test"])
