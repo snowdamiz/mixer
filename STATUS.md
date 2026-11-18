@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+A signed FieldLog update on the macOS host changed the Arabic checklist labels. The title and status aligned on the right in RTL and on the left in LTR. The title style change increased its measured height from 16 to 26 points. Changing the macOS accessibility size alone produced no measured growth in either the guest or the native controls. Mobile text scaling and clipping remain open. [Localized guest evidence](verification/receipts/fieldlog-localized-guest-host-41a05264.json).
+
 A signed C guest replayed the historical FieldLog task editor on the macOS VM. Save persisted Unicode input and one outbox event. Cancel preserved the workspace. Compiling that editor from Swift and mounting it through the installed mobile owner remain open. [Historical editor replay](verification/receipts/fieldlog-f05-signed-editor-host-41a05264.json).
 
 The Android build now packages the Swift SDK and NDK notices. The SDK exports the public guest draw and tap callback and retains its trial caller. The packaging controls checked the exact notice bytes in the retained starter APK. ICU attribution and Android runtime acceptance remain open. [Integration and controls](verification/receipts/android-sdk-public-witness-and-runtime-notices-41a05264.json).
