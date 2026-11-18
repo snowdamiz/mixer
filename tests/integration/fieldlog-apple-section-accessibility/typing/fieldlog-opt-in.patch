@@ -1,0 +1,40 @@
+--- a/Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift
++++ b/Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift
+@@ -139,6 +139,20 @@
+     catch { record(error, from: host, installation: receipt) }
+   }
+ 
++  func acceptIssued(_ issued: IssuedUIAction, from host: MixerUIHost) throws {
++    guard host === nativeHost else { throw TaskEditorAppleFieldsError.foreignHost }
++    _ = try host.snapshot.checkedEnvelope(for: issued)
++    try accept(issued.action, from: host, installation: installation)
++    eventFailure = nil
++  }
++
++  func record(_ error: any Error, from host: MixerUIHost, event: UIEventEnvelope) {
++    let receipt = installation
++    guard event.revision == receipt.native.document.revision,
++      event.identity == receipt.native.identity(for: event.identity.id) else { return }
++    record(error, from: host, installation: receipt)
++  }
++
+   func record(_ error: any Error, from host: MixerUIHost,
+     installation receipt: TaskEditorAppleFieldsInstallation)
+   {
+@@ -236,10 +250,12 @@
+   public var body: some View {
+     let owner = self.owner
+     let host = owner.nativeHost
+-    let receipt = owner.installation
+-    MixerNativeView(host: host,
+-      onAction: { [weak owner] action in owner?.receive(action, from: host, installation: receipt) },
+-      onEventFailure: { [weak owner] error in owner?.record(error, from: host, installation: receipt) })
++    MixerNativeView(host: host, trackSynchronousTextChanges: true,
++      onIssuedAction: { [weak owner] action in
++        guard let owner else { throw TaskEditorAppleFieldsError.closed }
++        try owner.acceptIssued(action, from: host)
++      },
++      onEventFailure: { [weak owner] event, error in owner?.record(error, from: host, event: event) })
+       .disabled(owner.inputUnavailable)
+   }
+ }

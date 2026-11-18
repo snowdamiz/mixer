@@ -1,0 +1,301 @@
+{
+  "schema": 1,
+  "recordedAtUTC": "2026-11-18T22:31:01.569440+00:00",
+  "base": {
+    "ref": "local origin/main",
+    "commit": "04abf82a7a3da083f82cac802c7839ab2ce7c63f",
+    "tree": "68f614b75b34e237ed7b1334f5393cecbc083233",
+    "candidateStagedTree": "84cf8ba7eeb9b9fdbbbcd00f78d7e85e0ebfdd60"
+  },
+  "source": {
+    "fieldLogCommitBeforeRecovery": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogHostInput": "verification/local/fieldlog-ios-sheet-recovery.wUznEzWK/source/fieldlog",
+    "privatePacket": "verification/local/fieldlog-ios-task-editor-save.tGxxJImG",
+    "privatePacketSourceHashesValidated": true,
+    "rendererBase": {
+      "bytes": 10661,
+      "sha256": "92a9050349effaf0fe50abf2e0f99b5f59e4cfd430915647416b202fc4cee771"
+    },
+    "rendererCandidate": {
+      "bytes": 15542,
+      "sha256": "fc2d70da8fb073495584fcba5790ebbf1927761e862c68d74a9cdf8d294be290"
+    },
+    "authoritySealDigest": "31f9c41e55cddd8d5c0e2e90474a4c7f7c6a1c478ce779a35a769e8f3df22eb3"
+  },
+  "tools": {
+    "git": "git version 2.56.0",
+    "python": "Python 3.14.8",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "xcode": "Xcode 27.2\nBuild version 27B52"
+  },
+  "checks": [
+    {
+      "name": "Apply-ready Mixer patch",
+      "command": "git apply --check --index; git apply --index; git diff --cached --check <base>; git diff --cached --full-index <base>; cmp",
+      "exitCode": 0,
+      "observed": "Exact patch reproduced from the full staged base tree in private scratch."
+    },
+    {
+      "name": "Staged artifact retention",
+      "command": "python3 -B scripts/check-verification-artifacts.py --repo <isolated-index-tree>",
+      "exitCode": 0,
+      "observed": "Verification retention passed for 49200 tracked files and 944684347 bytes."
+    },
+    {
+      "name": "Ordinary FieldLog host persistence and routing",
+      "command": "./replay-host.sh <Mixer checkout> <original private packet>",
+      "exitCode": 0,
+      "observed": {
+        "tests": 44,
+        "tracking": {
+          "revisions": [
+            2,
+            3
+          ],
+          "routingErrors": [],
+          "persistedAndReopened": "Night shift"
+        },
+        "default": {
+          "revisions": [
+            2,
+            2
+          ],
+          "routingErrors": [
+            "staleRevision"
+          ],
+          "persistedAndReopened": "Night shif"
+        },
+        "rejected": [
+          "unrelated render",
+          "expired issued action",
+          "foreign issued action",
+          "stale Add",
+          "edit after Add",
+          "disabled current input",
+          "closed owner"
+        ],
+        "failureAttribution": "Current oversized input reports an error after a successful write. A stale envelope cannot overwrite it. A valid retry clears it."
+      }
+    },
+    {
+      "name": "Live macOS accessibility",
+      "command": "./replay-host.sh <Mixer checkout> <original private packet>",
+      "exitCode": 0,
+      "observed": {
+        "accessibilityTrusted": true,
+        "optedInFieldLogForm": {
+          "heading": [
+            "task.fields",
+            "Task"
+          ],
+          "fields": [
+            "task-title",
+            "task-owner"
+          ]
+        },
+        "defaultTitledForm": {
+          "heading": [
+            "probe.section",
+            "Section label",
+            "Section hint",
+            "Section value"
+          ],
+          "fields": [
+            "probe.first",
+            "probe.second"
+          ]
+        },
+        "defaultHeaderlessFormAndStack": "Both child IDs present with zero headings."
+      }
+    },
+    {
+      "name": "Full SDK host test suite",
+      "command": "swift test --package-path sdk --scratch-path <owned>/sdk-build --cache-path <owned>/sdk-cache --config-path <owned>/sdk-config --security-path <owned>/sdk-security --manifest-cache local --disable-dependency-cache --disable-automatic-resolution -j 10",
+      "exitCode": 0,
+      "observed": {
+        "tests": 228,
+        "countsByTargetRun": [
+          132,
+          10,
+          10,
+          76
+        ],
+        "dependencyTransport": "File-only pre-existing SwiftPM mirrors at the Package.resolved pins",
+        "regression": [
+          "default and opted-in consecutive writes",
+          "retired identity",
+          "exact Unicode spelling in edited field and sibling"
+        ]
+      }
+    },
+    {
+      "name": "Installed SDK archive, normal and optimized",
+      "command": [
+        "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+        "python3 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed"
+      ],
+      "exitCode": 0,
+      "observed": {
+        "GA": false,
+        "activation": false,
+        "adoption": false,
+        "aggregate": false,
+        "holdsReleased": false,
+        "predecessor_apple_section_accessibility_sha256": "f976a477e9a59363355650ecd79a2daf2847df627701de587781ede562577d21",
+        "predecessor_apple_synchronous_text_sha256": "1d2ebd6883fff9147aeec6d558b3ce1b2ec8f7dffc22b99c12ec5a85ab19b438",
+        "predecessor_cancel_cli_source141_sha256": "eab895fab3e8735bbc8e9fff2ed60ddda76360dbe9bf7b7fd66e807ac1224ac6",
+        "predecessor_closeout_source141_sha256": "7e04cab7419cf65db0a8ad70a97f6ea94b1cb6db882f6c7ec724e24d170a2b28",
+        "predecessor_export_runner_source141_sha256": "e007c191d056317ec26a66da61c7d302d1de094f0efd9d2a374fa0faed890327",
+        "predecessor_icu_notice_sha256": "31af762a2f092df7da8fffa5f367e250f2646c9ac18d4a4e75f1b22a01caa579",
+        "predecessor_local_store_source141_sha256": "f6c45b282593c51b49d7b6fda2cc1bdc1c5a9de5a072df1db20c4e6132e9ea1f",
+        "predecessor_pair23_source141_sha256": "f68f02c92c93947becf9e29b7eeef43b88313f13e7f7c915fdf47f902f4f81cd",
+        "predecessor_pair24_source141_sha256": "6885ebe37677d9bc093c5d0f503bede1a5eac861a2ff9dd6ed0007e3d2d98f87",
+        "predecessor_release_inspector_sha256": "c8cdbb17d0538b61c6aebcb9b92c40f711d08862aaa2ccd8cdfe79360199061a",
+        "predecessor_runtime_notice_witness_sha256": "f0f6d666b2cd99a6a6f8f9cd450a0394a4dec84591cc66631e4239da3d0906eb",
+        "predecessor_source127_sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+        "predecessor_source141_sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+        "predecessor_source150_sha256": "4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8",
+        "predecessor_starter_lock_source141_sha256": "2da47ad99b33e45367cffce65d20b76d06e33a25eaab2bb4c421fef95d0849cf",
+        "predecessor_upgraded_pair23_sha256": "d538efdbfc542f860b154f11cc1a50e0b1b01e29dfe03a5057671db9bf4eb557",
+        "profile": {
+          "adapter_count": 27,
+          "adapter_sha256": "9d3a16cc05a2cfceccd9578b9f89a4deca66d06104ddc6a84ccec5ede8b496dd",
+          "id": "mixer.android-source-pair.24",
+          "java_sources": 21,
+          "sdk_count": 26,
+          "sdk_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8"
+        },
+        "schema": 1,
+        "source_count": 150,
+        "source_sha256": "0e7595225ba6fed59d49f6623ace68fa8e22b69c96b70ef3a504ede9d9ff5f00",
+        "type": "EXACT_NATIVE_REPORT_ARCHIVE_SOURCE141_SUCCESSOR"
+      }
+    },
+    {
+      "name": "Optimized archive refusal controls",
+      "command": "python3 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "exitCode": 1,
+      "observed": {
+        "missingNewPreimage": "Incomplete authority membership",
+        "staleInstalledRenderer": "Owning bytes differ: sdk/Sources/MixerApple/MixerNativeView.swift"
+      }
+    },
+    {
+      "name": "Source141 and Source127 archive replay",
+      "command": [
+        "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <owned>/source141",
+        "python3 -I -B -S <owned>/source141/verification/sdk-feature-ui-source141-v1/test_source141.py",
+        "python3 -I -B -S <owned>/source141/verification/sdk-feature-ui-source141-v1/adopt_sdk.py prepare-predecessor --out <owned>/source127"
+      ],
+      "exitCode": 0,
+      "observed": {
+        "source141": {
+          "files": 890,
+          "source127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+          "source141": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab"
+        },
+        "source127": {
+          "files": 845,
+          "native_gate": false,
+          "source127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"
+        },
+        "source141Tests": 3,
+        "rendererSHA256": {
+          "source141": "b67208cd8a93c76e98a5bbbf32acc5de56d4db101113c2a29c8821fdabd158b9",
+          "source127": "184547e4e5e11c336b0e9e968bd94eb4607eb1dca08bbfe79caa9abacd8c4d8f"
+        }
+      }
+    },
+    {
+      "name": "Generated-Java workflow sparse source admission",
+      "command": [
+        "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py",
+        "python3 -I -B -S -O verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py"
+      ],
+      "exitCode": 0,
+      "observed": {
+        "normalTests": 16,
+        "optimizedTests": 16
+      }
+    }
+  ],
+  "review": {
+    "providerModel": "gpt-6.2-sol",
+    "options": {
+      "reasoningEffort": "high",
+      "serviceTier": "default"
+    },
+    "round1": {
+      "taskId": "node:delegated-task:command%3Amcp%3Adbd972af-2139-4270-9f73-9cd7e7aeeac1%3Adelegate-task%3Amixer-typing-current-independent-review-v1",
+      "verdict": "REQUEST CHANGES",
+      "findings": [
+        "Unrelated canonically equivalent sibling string could advance a binding",
+        "Current failure was discarded by the old FieldLog installation receipt"
+      ]
+    },
+    "round2": {
+      "taskId": "node:delegated-task:command%3Amcp%3Adbd972af-2139-4270-9f73-9cd7e7aeeac1%3Adelegate-task%3Amixer-typing-current-independent-review-v2",
+      "verdict": "PASS",
+      "blockingFindings": 0
+    }
+  },
+  "separateRootEvidence": {
+    "path": "verification/receipts/fieldlog-ios-assignee-candidate-runtime-41a05264.json",
+    "result": "Earlier packet saved Night shift on iOS 27. The broader signed checklist journey remained incomplete."
+  },
+  "scope": "Mac host verification, live macOS accessibility and local source admission. Simulator run belongs to root's separate earlier packet.",
+  "artifacts": {
+    "AXProbe.swift": {
+      "bytes": 3903,
+      "sha256": "6adce9e47545453306db6faa21af6b680f75ff3f07ecf13778c8cd8068a7828f"
+    },
+    "HostPackage.swift": {
+      "bytes": 1151,
+      "sha256": "b4c1027bd60511c07e9144f42af761dd9bb4b47d43d73d1f8b541c04e1a4201b"
+    },
+    "TaskEditorSaveOrderingTests.swift": {
+      "bytes": 8672,
+      "sha256": "1e877dac4f2d9180ea2132772fab89f2c90686dc87882ef9cade1e6daf179513"
+    },
+    "fieldlog-opt-in.patch": {
+      "bytes": 1797,
+      "sha256": "f7dcb6f8cbf807c7346fae7d4113727301392c5b2b1d8afe304e6627e28d0cb4"
+    },
+    "mixer-current-main.patch": {
+      "bytes": 34429,
+      "sha256": "463b3c748d9beab30aebb7949be40a4922d1ebca38820e74b3bb1ba7e5b76174"
+    },
+    "replay-host.sh": {
+      "bytes": 3059,
+      "sha256": "067de0eeadf2817e80bde5c8c6c80fa8581eca473f05f9b2b17f6fcc681cb161"
+    }
+  },
+  "status": "REVIEWED_APPLY_READY",
+  "cleanup": {
+    "transientWorkRemoved": true,
+    "retained": [
+      "AXProbe.swift",
+      "HostPackage.swift",
+      "TaskEditorSaveOrderingTests.swift",
+      "fieldlog-opt-in.patch",
+      "mixer-current-main.patch",
+      "receipt.json",
+      "replay-host.sh"
+    ]
+  },
+  "rootReplay": {
+    "reviewedIndexTree": "84cf8ba7eeb9b9fdbbbcd00f78d7e85e0ebfdd60",
+    "privateOverlayReplay": {
+      "path": "verification/local/typing-root.9rrlMK0w/host.log",
+      "sha256": "c3446e37f3c099c391bc30edfaf56fc75fd3e2b4ed287bde63c7d41626506e4c"
+    },
+    "publicFieldLogCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "publicReplay": {
+      "path": "verification/local/typing-root.9rrlMK0w/public-repeat.log",
+      "sha256": "daa1a8d4d5b409bf0c4c0b6e86bac6c18edbd668c74a859e7c8ac6145c23354a"
+    },
+    "publicCommand": "tests/integration/fieldlog-apple-section-accessibility/typing/replay-host.sh \"$FIELDLOG_CHECKOUT\"",
+    "initialPublicReplay": "All 44 tests passed. The accessibility assertion expected the private checklist overlay identifier task-owner. The pinned public form uses task.responsible. The corrected assertion passed in the fresh public replay."
+  }
+}

@@ -69,25 +69,116 @@ private enum FeatureDisplayError: Error { case busy }
 public struct MixerNativeView: SwiftUI.View {
     @ObservedObject private var host: MixerUIHost
     private let dispatch: @MainActor (UIEventEnvelope) throws -> Void
-    private let onEventFailure: @MainActor (any Error) -> Void
+    private let onEventFailure: @MainActor (UIEventEnvelope, any Error) -> Void
+    private let trackSynchronousTextChanges: Bool
 
     public init(host: MixerUIHost, onAction: @escaping @MainActor (RoutedUIAction) -> Void,
                 onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
-        self.host = host; self.dispatch = { onAction(try host.route($0)) }; self.onEventFailure = onEventFailure
+        self.host = host
+        self.dispatch = { onAction(try host.route($0)) }
+        self.onEventFailure = { _, error in onEventFailure(error) }
+        self.trackSynchronousTextChanges = false
     }
 
     public init(host: MixerUIHost, onIssuedAction: @escaping @MainActor (IssuedUIAction) -> Void,
                 onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
-        self.host = host; self.dispatch = { onIssuedAction(try host.routeIssued($0)) }; self.onEventFailure = onEventFailure
+        self.init(host: host, trackSynchronousTextChanges: false, onIssuedAction: onIssuedAction,
+                  onEventFailure: { _, error in onEventFailure(error) })
+    }
+
+    /// Opt in when the issued-action handler synchronously installs the exact
+    /// text it accepts. The same SwiftUI binding can then deliver another edit
+    /// before SwiftUI installs a binding for the new render. Failures include
+    /// the original envelope so the consumer can attribute them to that render.
+    public init(host: MixerUIHost, trackSynchronousTextChanges: Bool,
+                onIssuedAction: @escaping @MainActor (IssuedUIAction) throws -> Void,
+                onEventFailure: @escaping @MainActor (UIEventEnvelope, any Error) -> Void = { _, _ in }) {
+        self.host = host
+        self.dispatch = { try onIssuedAction(host.routeIssued($0)) }
+        self.onEventFailure = onEventFailure
+        self.trackSynchronousTextChanges = trackSynchronousTextChanges
     }
 
     public var body: some SwiftUI.View {
-        NativeNode(node: host.snapshot.document.root, snapshot: host.snapshot) { envelope in
-            do { try dispatch(envelope) }
-            catch { onEventFailure(error) }
-        }
+        NativeNode(node: host.snapshot.document.root, snapshot: host.snapshot,
+                   textHost: trackSynchronousTextChanges ? host : nil, dispatch: dispatchEvent)
         .id(host.snapshot.identity(for: host.snapshot.document.root.id))
         .background(FeatureDisplayCompletion(id: host.featureDisplayID) { host.completeFeatureDisplay($0) })
+    }
+
+    func dispatchEvent(_ envelope: UIEventEnvelope) -> Bool {
+        do { try dispatch(envelope); return true }
+        catch { onEventFailure(envelope, error); return false }
+    }
+}
+
+/// Only the edit initiated by this binding may advance its render cursor.
+/// A separate update (including another control's edit) leaves it stale.
+@MainActor
+func mixerNativeTextBinding(node: UINode, snapshot: UIRenderSnapshot, host: MixerUIHost?,
+                            dispatch: @escaping @MainActor (UIEventEnvelope) -> Bool) -> Binding<String> {
+    let rendered = node.properties["value"]!.string!
+    let renderedRevision = snapshot.document.revision
+    guard let identity = snapshot.identity(for: node.id),
+          node.actions.contains(where: { $0.event == .textChange }) else {
+        return Binding(get: { rendered }, set: { _ in })
+    }
+    guard let host else {
+        return Binding(get: { rendered }, set: { value in
+            _ = dispatch(UIEventEnvelope(revision: renderedRevision, identity: identity,
+                                         event: .textChange, value: .string(value)))
+        })
+    }
+
+    var revision = renderedRevision
+    var accepted = rendered
+    var writing = false
+    return Binding(get: { accepted }, set: { [weak host] value in
+        guard !writing else { return }
+        writing = true
+        defer { writing = false }
+        guard let host else { return }
+        let before = host.snapshot
+        let issuedRevision = revision
+        guard dispatch(UIEventEnvelope(revision: issuedRevision, identity: identity, event: .textChange,
+                                       value: .string(value))) else { return }
+        let after = host.snapshot
+        guard before.document.revision == issuedRevision,
+              issuedRevision < UInt64.max, after.document.revision == issuedRevision + 1,
+              after.document.schemaVersion == before.document.schemaVersion,
+              after.identity(for: node.id) == identity,
+              matchesTextEdit(value, nodeID: node.id, before: before.document.root,
+                              after: after.document.root) else { return }
+        revision = after.document.revision
+        accepted = value
+    })
+}
+
+// Swift String equality treats canonically equivalent spellings as equal.
+// Check the actual bytes so a simultaneous change elsewhere cannot advance the binding.
+private func matchesTextEdit(_ value: String, nodeID: String, before: UINode, after: UINode) -> Bool {
+    guard before.id.utf8.elementsEqual(after.id.utf8), before.kind == after.kind,
+          before.children.count == after.children.count, before.actions.count == after.actions.count,
+          before.properties.count == after.properties.count else { return false }
+    for (old, new) in zip(before.actions, after.actions) {
+        guard old.event == new.event, old.id.utf8.elementsEqual(new.id.utf8) else { return false }
+    }
+    for (key, property) in before.properties {
+        guard let index = after.properties.index(forKey: key),
+              key.utf8.elementsEqual(after.properties[index].key.utf8) else { return false }
+        let expected = before.id == nodeID && key == "value" ? UIValue.string(value) : property
+        let installed = after.properties[index].value
+        switch (expected, installed) {
+        case let (.string(expected), .string(installed)):
+            guard expected.utf8.elementsEqual(installed.utf8) else { return false }
+        case let (.number(expected), .number(installed)):
+            guard expected.bitPattern == installed.bitPattern else { return false }
+        default:
+            guard expected == installed else { return false }
+        }
+    }
+    return zip(before.children, after.children).allSatisfy { old, new in
+        matchesTextEdit(value, nodeID: nodeID, before: old, after: new)
     }
 }
 
@@ -95,7 +186,8 @@ public struct MixerNativeView: SwiftUI.View {
 private struct NativeNode: SwiftUI.View {
     let node: UINode
     let snapshot: UIRenderSnapshot
-    let dispatch: @MainActor (UIEventEnvelope) -> Void
+    let textHost: MixerUIHost?
+    let dispatch: @MainActor (UIEventEnvelope) -> Bool
 
     private var accessibilityID: String {
         node.properties["accessibilityIdentifier"]?.string ?? node.id
@@ -127,14 +219,14 @@ private struct NativeNode: SwiftUI.View {
 
     private var children: some SwiftUI.View {
         ForEach(node.children, id: \.id) { child in
-            NativeNode(node: child, snapshot: snapshot, dispatch: dispatch)
+            NativeNode(node: child, snapshot: snapshot, textHost: textHost, dispatch: dispatch)
                 .id(snapshot.identity(for: child.id))
         }
     }
 
     private func emit(_ event: UIEventKind, value: UIValue = .null) {
         guard node.actions.contains(where: { $0.event == event }), let identity = snapshot.identity(for: node.id) else { return }
-        dispatch(UIEventEnvelope(revision: snapshot.document.revision, identity: identity, event: event, value: value))
+        _ = dispatch(UIEventEnvelope(revision: snapshot.document.revision, identity: identity, event: event, value: value))
     }
 
     private func render() -> AnyView {
@@ -148,7 +240,7 @@ private struct NativeNode: SwiftUI.View {
         case .button:
             return AnyView(SwiftUI.Button(node.properties["label"]!.string!, role: buttonRole) { emit(.activate) })
         case .textField:
-            let binding = Binding<String>(get: { node.properties["value"]!.string! }, set: { emit(.textChange, value: .string($0)) })
+            let binding = mixerNativeTextBinding(node: node, snapshot: snapshot, host: textHost, dispatch: dispatch)
             let axis: SwiftUI.Axis = node.properties["axis"]?.string == TextFieldAxis.vertical.rawValue ? .vertical : .horizontal
             return AnyView(SwiftUI.TextField(node.properties["label"]!.string!, text: binding, axis: axis).onSubmit { emit(.submit) })
         case .toggle:
@@ -169,7 +261,7 @@ private struct NativeNode: SwiftUI.View {
             return AnyView(SwiftUI.Section { children })
         case .navigation:
             return AnyView(SwiftUI.NavigationStack {
-                NativeNode(node: node.children[0], snapshot: snapshot, dispatch: dispatch)
+                NativeNode(node: node.children[0], snapshot: snapshot, textHost: textHost, dispatch: dispatch)
                     .id(snapshot.identity(for: node.children[0].id))
                     .navigationTitle(node.properties["title"]?.string ?? "")
             })
