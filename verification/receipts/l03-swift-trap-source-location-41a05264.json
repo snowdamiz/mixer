@@ -1,0 +1,114 @@
+{
+  "gate": "L03",
+  "commands": [
+    {
+      "label": "probe-build",
+      "argv": [
+        "/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/vm/include",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-diagnostic-recovery-41a05264-gkwh1vxy/probe.c",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-audit-41a05264-ip8_by5u/rust/release/libmixer_vm.a",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-diagnostic-recovery-41a05264-gkwh1vxy/probe"
+      ],
+      "pid": 85180,
+      "exitCode": 0,
+      "processGroupAbsent": true,
+      "logsSHA256": {
+        "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "baseline-probe",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-diagnostic-recovery-41a05264-gkwh1vxy/probe",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-diagnostic-recovery-41a05264-gkwh1vxy/baseline.wasm",
+        "0"
+      ],
+      "pid": 85184,
+      "exitCode": 0,
+      "processGroupAbsent": true,
+      "logsSHA256": {
+        "stdout": "0f1dbbd39f510c8c52667fe08cd1739e2ae88ec3b7bf30252e278df7be5b5156",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "fault-probe",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-diagnostic-recovery-41a05264-gkwh1vxy/probe",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-diagnostic-recovery-41a05264-gkwh1vxy/fault.wasm",
+        "2"
+      ],
+      "pid": 85188,
+      "exitCode": 0,
+      "processGroupAbsent": true,
+      "logsSHA256": {
+        "stdout": "49dd842b44e98bbec0e2882e8e35d8c70d049d0797b8bb993a1d0b5eb2fe46c0",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "label": "fault-debug-probe",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-diagnostic-recovery-41a05264-gkwh1vxy/probe",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-diagnostic-recovery-41a05264-gkwh1vxy/fault-debug.wasm",
+        "2"
+      ],
+      "pid": 85189,
+      "exitCode": 0,
+      "processGroupAbsent": true,
+      "logsSHA256": {
+        "stdout": "49dd842b44e98bbec0e2882e8e35d8c70d049d0797b8bb993a1d0b5eb2fe46c0",
+        "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "status": "original_source_location_missing_at_native_boundary",
+  "revision": "87e32900edc66853080c2fbe58802c43dbf33667",
+  "trees": [
+    "9e5e44ef8d67591fed5e89003e4a24e9296def03",
+    "6cc0a67d4d3fed4ae066e4f679120ef67f4248fe",
+    "5502eee85b73a8ab50ecd0e18927d8f10869d087"
+  ],
+  "versions": {
+    "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "lld": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434"
+  },
+  "intentionalFault": {
+    "source": "DiagnosticGuest.swift",
+    "line": 16,
+    "sha256": "01196a9e622ebc0c735aae9879179947f85bd5b9173bde503538418faf2dfe82"
+  },
+  "antecedent": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l03-audit-41a05264-ip8_by5u/receipt.json",
+  "antecedentSHA256": "2ec6436066f8c926ea3fab882439c0bc0b135c5982d92488631aa8a9be1fb406",
+  "results": {
+    "baseline": {
+      "sha256": "79f801d0b65a57e81d3a550124a5cec66a6a2f17da2cef93c27c6fd306f0ddec",
+      "bytes": 2757,
+      "dwarfLineSection": false,
+      "output": "validation=0 code=\nstartup=0 code= function=4294967295 offset=0 message=\nclose=0"
+    },
+    "fault": {
+      "sha256": "dd4a2087b409d077164532f58787799766a8ffa81d60fa02851eaa7190872a64",
+      "bytes": 2668,
+      "dwarfLineSection": false,
+      "output": "validation=0 code=\nstartup=2 code=unreachable function=6 offset=1066 message=unreachable instruction executed\nclose=0"
+    },
+    "fault-debug": {
+      "sha256": "b2633b6a3b4349b3f0ed5f39ac6fcb77d1b201f1906838ddb5b29dd40dd95c85",
+      "bytes": 25346,
+      "dwarfLineSection": true,
+      "output": "validation=0 code=\nstartup=2 code=unreachable function=6 offset=1066 message=unreachable instruction executed\nclose=0"
+    }
+  }
+}

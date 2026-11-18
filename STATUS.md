@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+On Android API 36, the signed fixture kept the same process through two Activity recreations. A separate installed fixture fetched baseline, review and rollback from the local v3 service. After an interrupted download and force-stop, it reopened the rollback with the service forwarding rule removed, then resumed and ran the reviewed release. The guest task remains in memory. [Activity recreation](verification/receipts/fieldlog-android-recreate-runtime-41a05264.json) · [Local service delivery](verification/receipts/fieldlog-android-network-runtime-41a05264.json).
+
 The local v3 release origin suppressed a previously published offer after its assignment key was revoked. The replacement key restored delivery at sequence 2, and the independently signed artifact retained its original bytes. [Release origin](verification/receipts/l07-v3-publisher-incident-41a05264.json). The default Android starter crashed in Activity startup on API 36 before rendering its first frame. Both disposable emulators and private ADB servers closed. [Android starter](verification/receipts/l01-export-android-startup-41a05264.json).
 
 Free organization creation passed against the full 16-migration PostgreSQL schema. The local Phoenix replay exercised 38 HTTP responses, and SQL counted zero payment credentials. The integrated checkout passed hosted and native source admission in both Python modes. [Free onboarding](verification/receipts/l06-hosted-free-onboarding-integrated-41a05264.json).
