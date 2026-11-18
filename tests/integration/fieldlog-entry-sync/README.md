@@ -58,3 +58,7 @@ unchanged. The original inline upload can also finalize an exact partial upload.
 The replay covers the macOS repository and loopback HTTP with synthetic
 accounts and SQLite. Mobile queue UI, public SDK capability transport, and
 deployed authentication require separate verification.
+
+## Source and dependencies
+
+The replay uses the caller’s FieldLog checkout at the revision above. Mixer distributes the downstream verification patches. Git and Apple Swift build the fixture, which uses AppKit, Foundation, CryptoKit, the Python standard library, and SQLite. [FieldLog source](https://github.com/snowdamiz/fieldlog/tree/552559d2d3278abb9b1aa7dcf0288102c09a202b)
