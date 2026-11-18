@@ -14,6 +14,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+On API 36 the ordinary FieldLog app saved all 132 characters from one IME commit after composition, followed immediately by blur and Save. A cold relaunch preserved the note, its linked JPEG and one matching outbox event. At 180 dpi a separate run lost the form after photo selection. [Android input and persistence](verification/receipts/fieldlog-android-ime-compose-paste-cold-41a05264.json).
+
 The candidate combined browser profile let one free owner create a project, submit a build and cancel it while queued. This run seeded the application and source input. The full owner registration, worker, support and exit journey remains open. [Free build workflow](verification/receipts/l06-free-owner-queued-build-41a05264.json).
 
 On macOS the installed signed FieldLog guest rejected a whitespace-only draft title after update, then preserved the draft, optional follow-up flag, JPEG and outbox across rollback. Mobile form delivery remains open. [Draft validation and schema rollback](verification/receipts/fieldlog-draft-validation-optional-rollback-41a05264.json).
