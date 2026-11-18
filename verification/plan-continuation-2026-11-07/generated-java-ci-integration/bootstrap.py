@@ -71,7 +71,7 @@ def admit_source_inputs(authority, profile):
     require(profile == binding['pair24_transition']['profileAfter'],
             'Sparse checkout profile differs from admitted Pair24 profile')
     inputs = authority.source_inputs(profile)
-    require(inputs == selected and len(inputs) == 141 and
+    require(inputs == selected and len(inputs) == binding['source']['count'] and
             authority.source_digest(inputs) == binding['source']['sha256'],
             'Sparse checkout owning inputs differ from admitted source141 closure')
     return inputs

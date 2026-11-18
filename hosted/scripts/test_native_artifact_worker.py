@@ -181,6 +181,8 @@ class NativeWorkerTest(unittest.TestCase):
                 self.assertTrue(waiting.wait(5))
                 self.assertEqual({"error": "uncertain"}, self.call(address, "stop", self.request))
                 self.assertEqual({"error": "uncertain"}, self.call(address, "shutdown", nonce=shutdown_nonce))
+                exported = self.root / "protocol-state" / ("customer-log-v1-" + self.request["operation_id"])
+                self.assertFalse(exported.exists())
             finally:
                 release.set()
             stopped = self.stopped(address)
@@ -192,6 +194,16 @@ class NativeWorkerTest(unittest.TestCase):
             self.assertTrue(closure["cli_reaped"] and closure["cli_group_absent"])
             self.assertEqual(123, closure["pid"])
             self.assertEqual(124, closure["commands"][0]["pid"])
+            self.assertEqual(0o400, exported.stat().st_mode & 0o777)
+            self.assertEqual({
+                "version": 1, "operationId": self.request["operation_id"],
+                "sourceSha256": self.spec["source"]["sha256"],
+                "toolchainLockSha256": self.spec["toolchain_lock_sha256"],
+                "buildDefinitionSha256": self.spec["build_definition_sha256"],
+                "cliExitCode": 0, "compiler": {"exitCode": 0, "stdoutBytes": 86,
+                                               "stderrBytes": 15, "tailTruncated": False,
+                                               "phases": ["compile"]},
+            }, json.loads(exported.read_bytes()))
             marker = self.root / "protocol-state" / self.request["operation_id"] / "tmp" / "cancel-requested"
             self.assertEqual(0o600, marker.stat().st_mode & 0o777)
             self.assertEqual(stopped, self.call(address, "stop", self.request))
@@ -235,6 +247,8 @@ class NativeWorkerTest(unittest.TestCase):
         (nested / "receipt.json").write_text(literal(dict.fromkeys(
             ("terminalCustody", "directChildReaped", "stdoutEOF", "stderrEOF", "descriptorsClosed",
              "ownedGroupAbsent"), True) | {"command": command, "state": "TERMINAL",
+                                           "exitCode": 0, "stdoutBytes": 86, "stderrBytes": 15,
+                                           "outputTruncated": False,
                                            "pid": 124, "ownedPGID": 124, "ownedSession": 124}))
 
         def store_owned(name, data):
@@ -251,7 +265,8 @@ class NativeWorkerTest(unittest.TestCase):
                               "ownedPath": store_owned(sha, data)})
         store_owned("native-build.json", literal({
             "formatVersion": 2, "scope": "unsigned-simulator/local-development",
-            "commandResult": {"exitCode": 0},
+            "commandResult": {"exitCode": 0, "output": "SwiftCompile /private/raw-input.swift\n"
+                                                   "error: EXAMPLE_PRIVATE_ENV_TOKEN=opaque"},
             "binding": {"command": command, "authoritativeSourceDigest": self.spec["source"]["sha256"],
                         "lockSHA256": self.spec["toolchain_lock_sha256"], "cliExecutableSHA256": "f" * 64,
                         "environment": {key: value for key, value in env.items()

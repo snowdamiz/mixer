@@ -9,6 +9,7 @@ defmodule MixerHosted.CustomerBuildInputsFixture do
       alias MixerHosted.Test.OrdinaryBrowserStartupFixture.Database, as: F
       alias MixerHosted.BrowserAuth.StorageFixture.{Admin, Migration}
       @create_scope unquote(Keyword.fetch!(opts, :create))
+      @retained_logs unquote(Keyword.get(opts, :retained_logs, false))
       setup_all do
         conn = F.connection!("browser_admin", "postgres")
 
@@ -116,6 +117,17 @@ defmodule MixerHosted.CustomerBuildInputsFixture do
           end
 
         F.q!(Admin, "UPDATE mixer_authz_memberships SET role='developer' WHERE id='member-a'")
+
+        c =
+          if @retained_logs do
+            root = Path.join(ev, "retained")
+            File.mkdir!(root)
+            File.chmod!(root, 0o700)
+            %{c | hosted: %{c.hosted | native: %{retained_root: root}}}
+          else
+            c
+          end
+
         c = Fixture.start!(c)
         assert MixerHosted.BrowserAuth.RuntimeOwner.status().phase == :storage_ready
         c
@@ -508,6 +520,128 @@ defmodule MixerHosted.CustomerBuildInputsHTTPSQLTest do
     assert revoked.status in [401, 503], revoked.body
     assert counts() == {[[2]], [[2]]}
     note("revocation_retained_checks_no_effect")
+    leases_clean()
+  end
+end
+
+defmodule MixerHosted.CustomerBuildLogsHTTPSQLTest do
+  use MixerHosted.CustomerBuildInputsFixture, create: true, retained_logs: true
+
+  test "authenticated terminal logs expose only the exact committed attempt", c do
+    alias MixerHosted.Builds.{Dispatch, Journal, Lifecycle}
+    {cookie, csrf} = login(c)
+    seed_input("fieldlog", "ios", "log-input")
+    [input] = Jason.decode!(http(c, list_path(), headers(cookie)).body)["inputs"]
+    created = post(c, cookie, csrf, "log-build", create_body(input))
+    assert created.status == 201
+    selection = Jason.decode!(created.body)["selection"]
+    url = "/console-api/v1/build-logs?" <> URI.encode_query(selection)
+    assert http(c, url, []).status == 401
+    assert http(c, url, headers(cookie), "POST").status == 404
+    assert http(c, url <> "&build_id=duplicate", headers(cookie)).status == 400
+    assert http(c, url, headers(cookie) ++ [{"x-http-method-override", "POST"}]).status == 400
+
+    [[id, queued]] = F.q!(Admin, "SELECT id::text,journal FROM mixer_builds").rows
+    {:ok, build} = Journal.restore(queued)
+    {:ok, ref} = Lifecycle.worker_ref(build)
+    operation = Dispatch.operation_id(id, ref)
+    path = Path.join(c.hosted.native.retained_root, "customer-log-v1-" <> operation)
+
+    payload = %{
+      version: 1,
+      operationId: operation,
+      sourceSha256: selection["source_sha256"],
+      toolchainLockSha256: selection["toolchain_lock_sha256"],
+      buildDefinitionSha256: selection["build_definition_sha256"],
+      cliExitCode: 1,
+      compiler: %{
+        exitCode: 65,
+        stdoutBytes: 320,
+        stderrBytes: 80,
+        tailTruncated: false,
+        phases: ["compile"]
+      }
+    }
+
+    File.write!(path, Jason.encode!(payload))
+    File.chmod!(path, 0o400)
+    assert http(c, url, headers(cookie)).status == 404
+
+    started_at = build.observed_at + 1
+
+    {:ok, running, _, :applied} =
+      Journal.append(queued, "log-start", %{type: :start, ref: ref}, started_at)
+
+    result = %{
+      outcome: :failed,
+      class: :compiler,
+      code: :compiler_error,
+      diagnostic_sha256: String.duplicate("d", 64)
+    }
+
+    {:ok, finished, _, :applied} =
+      Journal.append(
+        running,
+        "log-finished",
+        %{type: :completed, ref: ref, result: result},
+        started_at + 1
+      )
+
+    F.q!(Admin, "UPDATE mixer_builds SET journal=$1,revision=$2", [
+      finished,
+      length(finished["events"])
+    ])
+
+    response = http(c, url, headers(cookie))
+    assert response.status == 200, response.body
+    assert response_header(response, "cache-control") == ["no-store"]
+    assert %{"buildLogs" => logs} = Jason.decode!(response.body)
+    assert %{"state" => "failed", "attempt" => 1} = logs
+    assert logs["revision"] == length(finished["events"])
+
+    assert logs["events"] == [
+             %{
+               "event" => "compiler_finished",
+               "exitCode" => 65,
+               "stdoutBytes" => 320,
+               "stderrBytes" => 80,
+               "tailTruncated" => false,
+               "phases" => ["compile"]
+             },
+             %{"event" => "build_command_finished", "exitCode" => 1}
+           ]
+
+    refute response.body =~ operation
+    refute response.body =~ "secret-reference-do-not-disclose"
+
+    for {key, value} <- [
+          {"organization_id", "org-b"},
+          {"project_id", "project-b"},
+          {"application_id", "other"},
+          {"build_id", "other"},
+          {"source_sha256", String.duplicate("e", 64)},
+          {"toolchain_lock_sha256", String.duplicate("e", 64)},
+          {"build_definition_sha256", String.duplicate("e", 64)}
+        ] do
+      query = selection |> Map.put(key, value) |> URI.encode_query()
+      assert http(c, "/console-api/v1/build-logs?" <> query, headers(cookie)).status == 404
+    end
+
+    File.rm!(path)
+    assert http(c, url, headers(cookie)).status == 404
+    File.write!(path <> ".other", Jason.encode!(payload))
+    File.ln_s!(path <> ".other", path)
+    assert http(c, url, headers(cookie)).status == 503
+    File.rm!(path)
+    File.write!(path, Jason.encode!(Map.put(payload, :rawOutput, "private")))
+    File.chmod!(path, 0o400)
+    assert http(c, url, headers(cookie)).status == 503
+    File.rm!(path)
+    File.write!(path, Jason.encode!(payload))
+    File.chmod!(path, 0o400)
+
+    F.q!(Admin, "UPDATE mixer_authz_memberships SET active=false WHERE id='member-a'")
+    assert http(c, url, headers(cookie)).status == 404
     leases_clean()
   end
 end

@@ -142,7 +142,26 @@ HYDRATION_SOURCE_CHANGES = {
 HYDRATION_CHANGES = HYDRATION_SOURCE_CHANGES | {CAPABILITY + 'CapabilityColdStartWorker.swift'}
 VERIFY_WORKFLOW = '.github/workflows/verify.yml'
 HOSTED_V32_WORKFLOW = 'hosted-v32-predecessor-bytes/' + VERIFY_WORKFLOW
+LOCAL_STORE_PREFIX = 'local-store-predecessor-bytes/'
+LOCAL_STORE_ADDITIONS = {
+    'cli/Sources/MixerBuild/LocalStoreFixture.swift',
+    'cli/Sources/MixerBuild/LocalStoreSubmission.swift',
+}
+LOCAL_STORE_SOURCE_CHANGES = LOCAL_STORE_ADDITIONS | {
+    'cli/Sources/MixerBuild/AppStoreConnectBuildStatus.swift',
+    'cli/Sources/MixerBuild/PlayReleaseStatus.swift',
+    'cli/Sources/MixerBuild/StoreReconciliation.swift',
+    'cli/Sources/MixerCLI/main.swift',
+}
+LOCAL_STORE_CHANGES = LOCAL_STORE_SOURCE_CHANGES | {
+    VERIFY_WORKFLOW,
+    JAVA + 'bootstrap.py',
+    JAVA + 'test_bootstrap.py',
+    JAVA + 'test_sparse_checkout.py',
+}
 MEMBERS = {HOSTED_V32_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
+    LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
+} | {
     'predecessor-bytes/' + name for name in CHANGES - ADDITIONS
 } | {
     'pair23-predecessor-bytes/' + name for name in STARTER_CHANGES
@@ -254,7 +273,8 @@ def install_inputs():
     require(set(binding) == {'schema', 'type', 'source', 'profile', 'predecessor_binding',
                              'changes', 'renderer_transition', 'starter_lock_transition',
                              'export_runner_transition', 'capability_transition', 'upgrade_transition',
-                             'pair24_transition', 'cancel_cli_transition', 'hydration_transition', 'hosted_v33_workflow'} and
+                             'pair24_transition', 'cancel_cli_transition', 'hydration_transition',
+                             'hosted_v33_workflow', 'local_store_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -410,18 +430,42 @@ def install_inputs():
             expected_source[name] = change['after']
         # The existing inverse predates this transition where both own a path.
         preimages.setdefault(name, (raw, change['mode']))
-    require(current == expected_source and
-            hydration['sourceAfter'] == binding['source']['sha256'] and
-            len(current) == 141 and binding['source'] == {
-                'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
-            }, 'Hydration source transition differs')
+    require(previous.digest(expected_source) == hydration['sourceAfter'] and len(expected_source) == 141,
+            'Hydration source transition differs')
     workflow = binding['hosted_v33_workflow']
     before = previous.read(HERE / HOSTED_V32_WORKFLOW)
     require(set(workflow) == {'before', 'after'} and
             installed[VERIFY_WORKFLOW] == previous.row(before) == workflow['before'] and
             workflow['before'] != workflow['after'], 'Hosted v32 workflow preimage differs')
     installed[VERIFY_WORKFLOW] = workflow['after']
+    local_store = binding['local_store_transition']
+    require(set(local_store) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            local_store['sourceBefore'] == hydration['sourceAfter'] and
+            set(local_store['changes']) == LOCAL_STORE_CHANGES,
+            'Local store predecessor source differs')
+    for name, change in local_store['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed.get(name) and change['before'] != change['after'] and
+                type(change['mode']) is int and change['mode'] == 0o644,
+                'Local store owner row differs: ' + name)
+        if name not in LOCAL_STORE_ADDITIONS:
+            raw = read_predecessor_member(HERE / LOCAL_STORE_PREFIX / name)
+            require(previous.row(raw) == change['before'], 'Local store predecessor bytes differ: ' + name)
+            preimages.setdefault(name, (raw, change['mode']))
+        else:
+            require(name not in installed, 'Local store addition already owned: ' + name)
+        installed[name] = change['after']
+        if name in LOCAL_STORE_SOURCE_CHANGES:
+            require(expected_source.get(name) == change['before'], 'Local store source inverse differs: ' + name)
+            expected_source[name] = change['after']
+    require(current == expected_source and len(current) == 143 and
+            local_store['sourceAfter'] == binding['source']['sha256'] and binding['source'] == {
+                'count': len(current), 'sha256': previous.digest(current), 'manifest': 'current-source-inputs.json'
+            }, 'Local store source transition differs')
     previous.check_rows(ROOT, installed)
+    for name, change in local_store['changes'].items():
+        require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
+                'Installed local store owner mode differs: ' + name)
     for name, change in hydration['changes'].items():
         require(stat.S_IMODE((ROOT / name).stat().st_mode) == change['mode'],
                 'Installed hydration owner mode differs: ' + name)
@@ -501,6 +545,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_local_store_source141_sha256': binding['local_store_transition']['sourceBefore'],
             'predecessor_pair24_source141_sha256': binding['cancel_cli_transition']['sourceBefore'],
             'predecessor_cancel_cli_source141_sha256': binding['hydration_transition']['sourceBefore'],
             'predecessor_upgraded_pair23_sha256': binding['pair24_transition']['sourceBefore'],

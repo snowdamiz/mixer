@@ -68,7 +68,11 @@ public struct PlayTestingReport: Encodable, Sendable {
         case notObserved = "not-observed", unresolved
     }
     public let provider = "play"
+    #if MIXER_LOCAL_STORE_FIXTURE
+    public let qualification = "local-provider-fixture-only"
+    #else
     public let qualification = "provider-observation-only"
+    #endif
     public let identity: PlayTestingRequest
     public let status: Status
     public let code: PlayStatusFailure?
@@ -135,7 +139,13 @@ public struct PlayReleaseStatus: Sendable {
                   token.utf8.allSatisfy({ (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || [45, 46, 95, 126, 43, 47, 61].contains($0) }) else {
                 throw PlayStatusFailure.credentialRequired
             }
-            var request = URLRequest(url: identity.url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: Self.timeoutSeconds)
+            #if MIXER_LOCAL_STORE_FIXTURE
+            guard token == LocalStoreFixture.token else { throw PlayStatusFailure.credentialRequired }
+            let url = try LocalStoreFixture.url(for: identity.url)
+            #else
+            let url = identity.url
+            #endif
+            var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: Self.timeoutSeconds)
             request.httpMethod = "GET"
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
@@ -144,10 +154,13 @@ public struct PlayReleaseStatus: Sendable {
             config.httpShouldSetCookies = false; config.httpAdditionalHeaders = [:]
             config.timeoutIntervalForRequest = Self.timeoutSeconds; config.timeoutIntervalForResource = Self.timeoutSeconds
             config.waitsForConnectivity = false
-            let session = URLSession(configuration: config, delegate: PlayRedirectRefusal(), delegateQueue: nil)
+            #if MIXER_LOCAL_STORE_FIXTURE
+            LocalStoreFixture.configure(config)
+            #endif
+            let session = URLSession(configuration: config, delegate: StoreRedirectRefusal(), delegateQueue: nil)
             defer { session.invalidateAndCancel() }
             let (stream, response) = try await session.bytes(for: request)
-            guard let response = response as? HTTPURLResponse, response.url?.absoluteString == identity.url.absoluteString else {
+            guard let response = response as? HTTPURLResponse, response.url?.absoluteString == url.absoluteString else {
                 throw PlayStatusFailure.identityMismatch
             }
             switch response.statusCode {
@@ -210,7 +223,7 @@ private struct PlayReleaseList: Decodable {
     let releases: [Release]?
 }
 
-private final class PlayRedirectRefusal: NSObject, URLSessionTaskDelegate, Sendable {
+final class StoreRedirectRefusal: NSObject, URLSessionTaskDelegate, Sendable {
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
                     newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
         completionHandler(nil)

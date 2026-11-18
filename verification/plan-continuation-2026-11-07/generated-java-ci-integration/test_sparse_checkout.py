@@ -103,7 +103,8 @@ def admission_paths(root=None, binding=None):
                   'Invalid archive predecessor binding')
         dependencies = admission_paths(root, previous)
         dependencies.update(relative(path).as_posix() for path in declaration['changes'])
-        for key in ('capability_transition', 'upgrade_transition', 'pair24_transition', 'cancel_cli_transition'):
+        for key in ('capability_transition', 'upgrade_transition', 'pair24_transition',
+                    'cancel_cli_transition', 'local_store_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -442,8 +443,10 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(observed['predecessor_upgraded_pair23_sha256'], pair24['sourceBefore'])
             self.assertEqual(pair24['sourceBefore'], binding['upgrade_transition']['sourceAfter'])
             self.assertEqual(pair24['sourceAfter'], observed['predecessor_pair24_source141_sha256'])
+            self.assertEqual(binding['hydration_transition']['sourceAfter'],
+                             observed['predecessor_local_store_source141_sha256'])
             changes = {**binding['changes'], **binding['capability_transition']['changes'],
-                       **pair24['changes']}
+                       **pair24['changes'], **binding['local_store_transition']['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:

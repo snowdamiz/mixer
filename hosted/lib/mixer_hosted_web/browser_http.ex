@@ -6,10 +6,12 @@ defmodule MixerHostedWeb.BrowserHTTP do
   import Plug.Conn
 
   @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/workspace-admin /console-api/v1/support-requests /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog /console-api/v1/build-inputs)
+  @logs_path "/console-api/v1/build-logs"
   @cancel_path "/console-api/v1/builds/cancel"
   @artifact_paths for kind <- MixerHosted.Builds.RetainedNativeArtifacts.kinds(),
                       do: "/console-api/v1/build-artifacts/" <> kind
-  def owns_path?(path), do: path == @cancel_path or path in @paths or path in @artifact_paths
+  def owns_path?(path),
+    do: path in [@cancel_path, @logs_path] or path in @paths or path in @artifact_paths
 
   def init([]), do: []
 
@@ -169,14 +171,21 @@ defmodule MixerHostedWeb.BrowserHTTP do
   end
 
   defp dispatch(%{request_path: path} = conn)
-       when path == "/console-api/v1/builds" or path in @artifact_paths do
+       when path in ["/console-api/v1/builds", @logs_path] or path in @artifact_paths do
     kind =
       case path do
+        @logs_path -> :logs
         "/console-api/v1/build-artifacts/" <> kind -> kind
         _ -> nil
       end
 
-    with {:ok, selection} <- MixerHostedWeb.BrowserBuildRequest.parse(conn.query_string) do
+    with true <-
+           kind != :logs or
+             Enum.all?(
+               ~w(content-encoding x-http-method-override x-method-override),
+               &(get_req_header(conn, &1) == [])
+             ),
+         {:ok, selection} <- MixerHostedWeb.BrowserBuildRequest.parse(conn.query_string) do
       case RuntimeOwner.read_build(conn.req_headers, selection, kind) do
         {:ok, %{status: status, headers: headers, body: body}} ->
           conn |> merge_resp_headers(headers) |> send_resp(status, body)

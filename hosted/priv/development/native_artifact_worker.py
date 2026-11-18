@@ -9,6 +9,7 @@ import socketserver
 import stat
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import uuid
@@ -86,6 +87,41 @@ def check_artifact(store, descriptor, kind):
     return {"kind": kind, "sha256": sha, "sizeBytes": len(data)}
 
 
+def compiler_log(receipt):
+    fields = ("exitCode", "stdoutBytes", "stderrBytes")
+    values = {key: receipt.get(key) for key in fields}
+    truncated = receipt.get("outputTruncated")
+    if (any(type(value) is not int for value in values.values())
+            or not -255 <= values["exitCode"] <= 255
+            or not all(0 <= values[key] <= 2**32 for key in fields[1:])
+            or type(truncated) is not bool):
+        raise ValueError("Invalid compiler log fields")
+    return dict(values, tailTruncated=truncated, phases=[])
+
+
+def publish_customer_log(state, operation, spec, log):
+    # Keep the public projection outside the per-operation compiler tree.
+    # The final name is immutable and never replaces an earlier publication.
+    payload = literal(dict(log, version=1, operationId=operation,
+                           sourceSha256=spec["source"]["sha256"],
+                           toolchainLockSha256=spec["toolchain_lock_sha256"],
+                           buildDefinitionSha256=spec["build_definition_sha256"])).encode()
+    root = state.lstat()
+    if (state.resolve() != state or root.st_uid != os.getuid()
+            or root.st_mode != stat.S_IFDIR | 0o700):
+        raise ValueError("Invalid retained root")
+    fd, name = tempfile.mkstemp(prefix=".customer-log-", dir=state)
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fchmod(handle.fileno(), 0o400)
+            os.fsync(handle.fileno())
+        os.link(name, state / ("customer-log-v1-" + operation), follow_symlinks=False)
+    finally:
+        os.unlink(name)
+
+
 def build(recipe, files, output, request, launch):
     output.mkdir(mode=0o700)
     project, store, tmp, home = (output / p for p in ("project", "native", "tmp", "home"))
@@ -159,6 +195,11 @@ def build(recipe, files, output, request, launch):
         (output / "closure.json").write_text(literal(result))
     except OSError:
         pass
+    try:
+        result["customer_log"] = {"cliExitCode": code,
+                                  "compiler": compiler_log(compiler[0]) if compiler else None}
+    except ValueError:
+        pass  # Log projection cannot change the original build or closure outcome.
     if not compiler:
         return result
     try:
@@ -166,9 +207,8 @@ def build(recipe, files, output, request, launch):
         report = json.loads(manifest)
         binding = report["binding"]
         command = compiler[0]["command"]
-        if (code != 0 or report["formatVersion"] != 2
+        if (report["formatVersion"] != 2
                 or report["scope"] != "unsigned-simulator/local-development"
-                or report["commandResult"]["exitCode"] != 0
                 or command != binding["command"] or "CODE_SIGNING_ALLOWED=NO" not in command
                 or "generic/platform=iOS Simulator" not in command
                 or binding["authoritativeSourceDigest"] != request["spec"]["source"]["sha256"]
@@ -176,6 +216,21 @@ def build(recipe, files, output, request, launch):
                 or binding["cliExecutableSHA256"] != recipe["tools"][argv[0]]
                 or binding["environment"] != environment
                 or binding["resourceInventoryPolicy"] != "retained-app-files-v1"):
+            return result
+        command_result = report["commandResult"]
+        log = result.get("customer_log")
+        if log and command_result["exitCode"] == log["compiler"]["exitCode"]:
+            output_tail = command_result.get("output")
+            if isinstance(output_tail, str):
+                steps = {line.partition(" ")[0] for line in output_tail[-65_536:].splitlines()}
+                log["compiler"]["phases"] = [
+                    phase for phase, commands in (
+                        ("compile", {"SwiftCompile", "CompileC"}),
+                        ("link", {"Ld"}),
+                        ("package", {"ProcessInfoPlistFile", "CopySwiftLibs"}),
+                    ) if not steps.isdisjoint(commands)
+                ]
+        if code != 0 or command_result["exitCode"] != 0:
             return result
         products = report["nativeProduct"]
         descriptors = (products["nativeBinary"], products["debugSymbols"], report["resourceInventory"])
@@ -234,11 +289,17 @@ class NativeWorker(Worker):
         value["status"] = "uncertain"
         if result["closed"]:
             value.update(status="closed", closure={k: v for k, v in result.items()
-                                                   if k not in ("artifacts", "manifest_sha256")})
+                                                   if k not in ("artifacts", "manifest_sha256", "customer_log")})
             if "artifacts" in result and not value.get("tombstone"):
                 value.update(status="native_ready", artifacts=result["artifacts"],
                              manifest_sha256=result["manifest_sha256"])
         self.save(self.active, value)
+        if "customer_log" in result:
+            try:
+                publish_customer_log(self.state, self.active, value["binding"]["spec"],
+                                     result["customer_log"])
+            except (OSError, ValueError):
+                pass  # A missing export does not change custody or artifact delivery.
         self.future = None
         self.active = None
         self.launch = None

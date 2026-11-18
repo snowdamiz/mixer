@@ -1,7 +1,7 @@
 defmodule MixerHostedWeb.BrowserBuildDispatcher do
   @moduledoc "Private fixed composition for owner-retained access after active SQL admission."
   alias MixerHosted.CustomerBuilds
-  alias MixerHosted.Builds.RetainedNativeArtifacts
+  alias MixerHosted.Builds.{RetainedBuildLogs, RetainedNativeArtifacts}
   alias MixerHosted.CustomerBuilds.Selection
   alias MixerHosted.Identity.ConfiguredVerifier
 
@@ -33,6 +33,18 @@ defmodule MixerHostedWeb.BrowserBuildDispatcher do
 
   defp read(identity, selection, nil), do: CustomerBuilds.read(identity, selection)
 
+  defp read(identity, selection, :logs) do
+    with {:ok, {:retained_logs, operation, build} = locator} <-
+           CustomerBuilds.read(identity, selection, :logs),
+         {:ok, events} <- RetainedBuildLogs.read(operation, selection),
+         {:ok, ^locator} <- CustomerBuilds.read(identity, selection, :logs) do
+      {:ok, {:logs, Map.put(build, :events, events)}}
+    else
+      {:error, _} = error -> error
+      _ -> {:error, :authorization_unavailable}
+    end
+  end
+
   defp read(identity, selection, kind) do
     with {:ok, {:retained_native, operation, artifact} = locator} <-
            CustomerBuilds.read(identity, selection, kind),
@@ -59,6 +71,8 @@ defmodule MixerHostedWeb.BrowserBuildDispatcher do
        ]
      }}
   end
+
+  defp response({:ok, {:logs, dto}}, id), do: capture(200, %{buildLogs: dto}, id)
 
   defp response({:ok, dto}, id), do: capture(200, %{build: dto}, id)
 

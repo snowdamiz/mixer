@@ -46,7 +46,11 @@ public struct StoreBuildObservation: Codable, Sendable {
 
 public struct StoreReconciliationReport: Encodable, Sendable {
     public let provider = "app-store-connect"
+    #if MIXER_LOCAL_STORE_FIXTURE
+    public let qualification = "local-provider-fixture-only"
+    #else
     public let qualification = "local-observation-only"
+    #endif
     public let buildID: String
     public let appID: String
     public let bundleID: String
@@ -146,7 +150,12 @@ final class StoreObservationFile {
         var descriptor = Darwin.open(root.path, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
         guard descriptor >= 0 else { throw Self.failure() }
         do {
-            for component in [".mixer", "store"] {
+            #if MIXER_LOCAL_STORE_FIXTURE
+            let storeDirectory = "store-fixture"
+            #else
+            let storeDirectory = "store"
+            #endif
+            for component in [".mixer", storeDirectory] {
                 if mkdirat(descriptor, component, 0o700) != 0 && errno != EEXIST { throw Self.failure() }
                 let next = openat(descriptor, component, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
                 guard next >= 0 else { throw Self.failure() }

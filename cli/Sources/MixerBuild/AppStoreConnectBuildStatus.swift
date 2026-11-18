@@ -27,7 +27,12 @@ public struct AppStoreConnectBuildStatus: Sendable {
                 URLQueryItem(name: "fields[buildBetaDetails]", value: "internalBuildState,externalBuildState,build")
             ]
         }
+        #if MIXER_LOCAL_STORE_FIXTURE
+        guard token == LocalStoreFixture.token else { throw StoreQueryFailure.credentialRequired }
+        let url = try LocalStoreFixture.url(for: components.url!)
+        #else
         let url = components.url!
+        #endif
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: Self.timeoutSeconds)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -38,6 +43,9 @@ public struct AppStoreConnectBuildStatus: Sendable {
         config.timeoutIntervalForRequest = Self.timeoutSeconds
         config.timeoutIntervalForResource = Self.timeoutSeconds
         config.waitsForConnectivity = false
+        #if MIXER_LOCAL_STORE_FIXTURE
+        LocalStoreFixture.configure(config)
+        #endif
         let receiver = ASCResponseReceiver(expectedURL: url)
         let session = URLSession(configuration: config, delegate: receiver, delegateQueue: nil)
         defer { session.invalidateAndCancel() }

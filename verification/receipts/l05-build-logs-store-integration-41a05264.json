@@ -1,0 +1,165 @@
+{
+  "authority": {
+    "hosted": {
+      "identity": "hosted-local-terminal-build-logs-source-v34",
+      "runtime_or_GA_accepted": false,
+      "selection_sha256": "a5cfa48e8caff2358d47327a1954b69b573f8887c71bd26efb4a2be21f05879e",
+      "source_count": 391,
+      "source_digest_sha256": "9fe6ad412af00ede3adfc4fbbe46aa2dac8009b4634b328dd986a21cd7e886f6"
+    },
+    "native": {
+      "profile": {
+        "adapter_count": 27,
+        "adapter_sha256": "9d3a16cc05a2cfceccd9578b9f89a4deca66d06104ddc6a84ccec5ede8b496dd",
+        "id": "mixer.android-source-pair.24",
+        "java_sources": 21,
+        "sdk_count": 26,
+        "sdk_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8"
+      },
+      "source_count": 143,
+      "source_sha256": "ee3b392012d58e9dda7a949177dd658ef6a530d7942b528e997b0c72f4dd17c9"
+    },
+    "predecessor_restores": {
+      "hosted_v32": {
+        "manifest_sha256": "75c4bace4002591df58d7e70a22652cef1939006ca707b7975fb50fb653fc1a1",
+        "selection_sha256": "ddaac4cdf3ebf8ed54d5ace2b159cf1f402a9ae5f418f1c62d002bc0f89b4d5e",
+        "source_count": 389,
+        "source_digest_sha256": "82960e8e2371b2ef3a53bb12f16b15ced05205cc3e8d37a12db7809e26ab13b8"
+      },
+      "hosted_v33": {
+        "manifest_sha256": "583d19713fd0112cd1dd8685287842556dfeeb7c9b0ef4da8376bdba411ef8a7",
+        "selection_sha256": "3f3e452688761c67e1bdaad3ce5747914dd73d46ba7a80d4f5988a271b1fe87a",
+        "source_count": 389,
+        "source_digest_sha256": "55247e57f19e21506da6b4a9237552b485a5687b58782d56224f9e085b5b9152"
+      },
+      "native_base": {
+        "count": 141,
+        "manifest": "current-source-inputs.json",
+        "sha256": "f6c45b282593c51b49d7b6fda2cc1bdc1c5a9de5a072df1db20c4e6132e9ea1f"
+      },
+      "native_base_all_prior_transitions_unchanged": true,
+      "native_base_preimages": 8,
+      "source127": {
+        "files": 845,
+        "sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"
+      },
+      "source141": {
+        "files": 890,
+        "sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab"
+      }
+    },
+    "store_files_in_native_inputs": [
+      "LocalStoreFixture.swift",
+      "LocalStoreSubmission.swift"
+    ],
+    "v33_acl_migrations_and_hydration_sources_unchanged": true,
+    "verified_in_both_python_modes": true
+  },
+  "base": "9ce4ad5237a48eef506b8c47c03410729c9f9dd4",
+  "checks": {
+    "hosted_collector": {
+      "normal": 315,
+      "optimized": 315
+    },
+    "hosted_git_sparse_checkout": {
+      "identity-network": [
+        "normal",
+        "optimized"
+      ],
+      "phoenix": [
+        "normal",
+        "optimized"
+      ],
+      "services": [
+        "normal",
+        "optimized"
+      ]
+    },
+    "hosted_sql": {
+      "port_rebound": 61224,
+      "postgres_group_absent": true,
+      "tests": 4
+    },
+    "native": {
+      "normal": {
+        "bootstrap": 45,
+        "restored_source141": 3,
+        "sparse_checkout": 16
+      },
+      "optimized": {
+        "bootstrap": 45,
+        "restored_source141": 3,
+        "sparse_checkout": 16
+      }
+    },
+    "native_artifact_worker": {
+      "normal": 11,
+      "optimized": 11
+    },
+    "retention": "Verification retention passed for 49004 tracked files and 941626290 bytes.",
+    "scratch_allocated_bytes_at_check": 636944384,
+    "store": {
+      "all_cli_child_groups_absent": true,
+      "closed_and_rebound_ports": [
+        62331,
+        62350,
+        62353,
+        62372
+      ],
+      "durable_synthetic_rows": 2,
+      "fixture_binary_sha256": "c09847fae778482f8e998aee11346c23587354b39d57cae1f6f34f432ddd0312",
+      "loopback_cli_cases": 34,
+      "ordinary_binary_sha256": "89bcbcb19aa21f4e117ca57880a2382ad178f8999755706c9669cb517295e30f",
+      "swift_tests": 53,
+      "terminal_swift_children": 59
+    }
+  },
+  "entrypoints": [
+    "swift build --disable-sandbox --package-path cli --product mixer",
+    "swift test --disable-sandbox --package-path cli --filter Store|AppStoreConnect|PlayRelease",
+    "swift build --disable-sandbox --package-path cli --product mixer -Xswiftc -DMIXER_LOCAL_STORE_FIXTURE",
+    "python3 -I -B -S cli/Tests/store-fixture-submission.py FIXTURE_BIN ORDINARY_BIN HANDOFF_INPUTS OUTPUT",
+    "mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs",
+    "python3 [-O] -B hosted/scripts/test-identity-network.py --check-source",
+    "python3 [-O] -B hosted/scripts/test_identity_network_collector.py",
+    "python3 [-O] -B hosted/scripts/test_native_artifact_worker.py",
+    "python3 [-O] -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "python3 [-O] -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/{test_bootstrap,test_sparse_checkout}.py",
+    "python3 -B scripts/check-verification-artifacts.py"
+  ],
+  "patch": {
+    "applied_tree": "583273ccc97677fd90c976f65419c1973bf24fae",
+    "bytes": 553957,
+    "file": "l05-combined-9ce4ad5237.patch",
+    "fresh_index_apply_and_exact_reverse": true,
+    "paths": 46,
+    "sha256": "2a4adddc135f35eba8023eb76a90fb8523363a2aef7c8698fe3d9ec4545a109c",
+    "whitespace_check": "pass"
+  },
+  "recovered_setup_failures": [
+    "Initial sparse harness omitted older collector fixtures and native envelope inputs. Replayed the unchanged checks from checkout patterns containing the required inputs.",
+    "The initial CLI harness nested macOS sandboxes and refused to execute. Replayed with the fixture driver applying its own per-child loopback-only profiles.",
+    "The SQL launcher used a numeric IP in the macOS sandbox profile before the OS refused it. Replayed using the supported localhost match; disposable PostgreSQL shut down and its port rebound."
+  ],
+  "result": "pass-local-patch-delivery",
+  "scope": "Private host-only patch and checks. Store acceptance and durable receipts were synthetic loopback fixtures. Native verification covered installed source admission and restore. The hosted SQL assertions used a disposable local database. No devices, real store/provider requests or credentials, payments, remote operations, production qualification or L05 gate closure. L04 and L06 candidates remain separate.",
+  "tools": {
+    "elixir": "1.20.4 / Erlang OTP 29",
+    "git": "git version 2.56.0",
+    "postgres": "pg_ctl (PostgreSQL) 17.11 (Homebrew)",
+    "python": "Python 3.14.8",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0"
+  },
+  "rootIntegration": {
+    "parent": "50bdc20ff3",
+    "patchSHA256": "2a4adddc135f35eba8023eb76a90fb8523363a2aef7c8698fe3d9ec4545a109c",
+    "appliedPaths": 46,
+    "rootChecks": [
+      "git apply --check --index",
+      "git diff --cached --check",
+      "hosted --check-source in normal and optimized Python",
+      "native --workflow-installed in normal and optimized Python",
+      "11 worker regressions in each Python mode"
+    ]
+  }
+}

@@ -65,6 +65,17 @@ defmodule MixerHosted.CustomerBuilds.Snapshot do
 
   defp result(dto, _, _, _, nil), do: {:ok, dto}
 
+  defp result(dto, record, %{state: state} = build, %{platform: "ios"}, :logs)
+       when state in [:native_succeeded, :failed, :cancelled, :timed_out] do
+    with {:ok, id} <- Ecto.UUID.cast(record.id),
+         %{worker_ref: %Lifecycle.WorkerRef{} = ref} <-
+           Enum.find(build.history, &(&1.attempt == build.attempt)) do
+      {:ok, {:retained_logs, Dispatch.operation_id(id, ref), dto}}
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
   defp result(_, record, %{state: :native_succeeded} = build, _, kind) do
     with {:ok, id} <- Ecto.UUID.cast(record.id),
          %{worker_ref: ref} <- Enum.find(build.history, &(&1.attempt == build.attempt)),

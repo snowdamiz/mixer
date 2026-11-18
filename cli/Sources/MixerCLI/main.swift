@@ -12,7 +12,7 @@ struct Arguments {
             if value == "--help" { positional.append("help") }
             else if value == "--json" { json = true }
             else if value.hasPrefix("--") {
-                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track", "--request"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track", "--request", "--artifact"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
                 index += 1; options[value] = values[index]
             } else { positional.append(value) }
             index += 1
@@ -27,6 +27,19 @@ struct SuccessOutput: Encodable { let status = "ok"; let detail: String }
 func output<T: Encodable>(_ value: T) throws { FileHandle.standardOutput.write(try JSONFile.data(value)) }
 func path(_ value: String) -> URL { URL(fileURLWithPath: value, relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)).standardizedFileURL }
 let repository = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+
+#if MIXER_LOCAL_STORE_FIXTURE
+let fixtureHelp = """
+
+  mixer submit request|reconcile --provider app-store-connect --build-id BUILD_ID --app-id APP_ID
+    --artifact FILE [--directory PROJECT]
+  mixer submit request|reconcile --provider play --version-code CODE --track TRACK
+    --artifact FILE [--directory PROJECT]
+    Synthetic loopback only. Sends the development artifact's SHA-256, with no upload.
+"""
+#else
+let fixtureHelp = ""
+#endif
 
 let help = """
 mixer 0.1.0-dev — owned Swift mobile platform (development preview)
@@ -54,7 +67,7 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
     [--directory PROJECT]
     Read-only; uses mixer.yml application and MIXER_PLAY_BEARER_TOKEN.
     Published-on-track does not establish tester access or testing readiness.
-  mixer gates
+  mixer gates\(fixtureHelp)
 
 All commands emit structured JSON. Build/test errors preserve compiler diagnostics.
 Creation bundles a hashed SDK source snapshot for local development. Mobile host,
@@ -80,7 +93,7 @@ do {
         "release": ["--directory"], "export": ["--directory"],
         "upgrade": ["--directory", "--sdk-path", "--android-adapter-path"],
         "report": ["--request", "--output"],
-        "submit": ["--provider", "--build-id", "--app-id", "--version-code", "--track", "--directory"]
+        "submit": ["--provider", "--build-id", "--app-id", "--version-code", "--track", "--directory", "--artifact"]
     ]
     guard Set(arguments.options.keys).isSubset(of: allowedOptions[words.first ?? "help"] ?? []) else { throw MixerFailure("arguments.unused-option", "An option does not apply to this command.") }
     let root = path(arguments.options["--directory"] ?? ".")
@@ -174,6 +187,19 @@ do {
         try output(result)
         if !result.succeeded { exit(1) }
     case "submit":
+        #if MIXER_LOCAL_STORE_FIXTURE
+        try LocalStoreFixture.validate()
+        if words == ["submit", "request"] || words == ["submit", "reconcile"] {
+            guard let artifact = arguments.options["--artifact"] else {
+                throw MixerFailure("store.fixture-artifact", "Specify the development artifact with --artifact FILE.")
+            }
+            let report = try await LocalStoreSubmission.run(
+                create: words.last == "request", options: arguments.options, directory: root, artifact: path(artifact)
+            )
+            try output(report)
+            exit(report.exitCode)
+        }
+        #endif
         if arguments.options["--provider"] == "play" {
             let applicationID: String
             do { applicationID = try ApplicationConfiguration.load(root).application }
