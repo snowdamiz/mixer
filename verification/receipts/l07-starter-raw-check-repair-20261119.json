@@ -1,0 +1,35 @@
+{
+  "finished": true,
+  "scope": "One previously captured synthetic Starter database in a fresh isolated PostgreSQL cluster; no worker or API started.",
+  "postgresVersion": "postgres (PostgreSQL) 17.11 (Homebrew)",
+  "dumpSHA256": "ef30ea726111b32793a57a95c5ec786da645329457657f5592c5e4344de739db",
+  "relationManifestSHA256": "cbf683f7b7346122cda39a803ae21bc857a8ea08bdedcad0c3fbe2bdd2acd909",
+  "repairSHA256": "2bb9303965052068d678b6ff09e57d2de51ecbd3b5fcfe96c370a7d1341f5ce3",
+  "rawCheckMismatches": 2,
+  "exactManifestChecksAfterRepair": 80,
+  "relationsUnchanged": 10,
+  "idempotent": true,
+  "refusedMismatchAndRolledBack": true,
+  "observedUTC": "2026-11-19T16:18:43+00:00",
+  "commandCount": 48,
+  "ownerClosure": [
+    {
+      "label": "target",
+      "pid": 29037,
+      "groupAbsent": true,
+      "exit": 0
+    }
+  ],
+  "scratchRemoved": true,
+  "sourceCommit": "bb421c4c62ed02717888b628ec35231150f20d12",
+  "manifest": "hosted/priv/browser_auth/relation_surface_v1_pg17.json",
+  "replaySHA256": "474d773a315d07d226d51068d7a483af2fa724e6c90ce3b4d9711dbdc35d21a5",
+  "priorRestore": "verification/receipts/l05-l07-starter-restore-downloads-20261119.json",
+  "commands": [
+    "initdb with a private Unix socket directory",
+    "psql -X -v ON_ERROR_STOP=1 -f roles.sql",
+    "pg_restore --create --exit-on-error",
+    "psql -X -f restore-pinned-expiry-checks.sql"
+  ],
+  "scopeLimit": "Catalog and SQL readback only for PostgreSQL 17.11 with the retained local backup. The earlier fixture verified Phoenix using a separate restore workflow."
+}
