@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "scenario": "L03/D3 TaskCompletion native parity and source diagnostic",
+  "date": "2026-11-19",
+  "scope": "One signed development APK on an owned AOSP arm64 API 36 emulator. The replay covers this Swift task reducer, native frames, stale input, a source-mapped trap, and guest retirement. The iOS replay and local target performance comparison remain open.",
+  "productCommit": "7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99",
+  "taskSource": {
+    "path": "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+    "sha256": "617b60024af1accef044dd148360fcf889648594783057c7234b335b468071d7"
+  },
+  "privateTrialSourceCommit": "604afc5555c1df4d31f3954d13c233f42802ffdb",
+  "inputDigests": {
+    "buildReceiptSHA256": "6bc7faba7f2d8af70324a8d1b8e4465fc5299214bae5c712f0fb0b16a45d5d9d",
+    "apkSHA256": "f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787",
+    "wasmSHA256": "59623248e6afe4fd66e4dbb0adf8ae6cd353528ad6f4769b52269a3020e2811b",
+    "runnerSHA256": "ca0bea9a9de3ef3189a3a38e648435e13532772c764ec859e7dfeb27404c7329"
+  },
+  "observedInvocation": "python3.14 -B replay-pid-screens.py --foundation <engine-replay-packet> --port 5576",
+  "replayInputs": "The original command used an untracked Android trial APK, runner, and engine replay packet.",
+  "environment": {
+    "python": "3.14.8",
+    "adb": "Version 37.0.1-15733141",
+    "emulator": "Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)",
+    "androidImage": "system-images;android-36;default;arm64-v8a",
+    "androidBuildFingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+  },
+  "results": {
+    "stagedPackageManagerInstalls": 1,
+    "stagedAPKDigestMatched": true,
+    "stableTrialPID": true,
+    "nativeFrames": [
+      {
+        "revision": 1,
+        "status": "Open",
+        "action": "Complete task"
+      },
+      {
+        "revision": 2,
+        "status": "Review required",
+        "action": "Confirm completion"
+      },
+      {
+        "revision": 3,
+        "status": "Completed",
+        "action": "Reopen task"
+      },
+      {
+        "revision": 4,
+        "status": "Open",
+        "action": "Complete task"
+      }
+    ],
+    "pidScopedTimeline": [
+      "APPLIED revision=1",
+      "DRAWN revision=1",
+      "HEALTHY sequence=1 candidate=ad25621466a693e508ba3e3c63e74d2116c10544e3b0168c355bd19a2255ed24",
+      "TAP revision=1 code=0",
+      "APPLIED revision=2",
+      "DRAWN revision=2",
+      "STALE refused code=2 revision=2",
+      "TAP revision=2 code=0",
+      "APPLIED revision=3",
+      "DRAWN revision=3",
+      "TAP revision=3 code=0",
+      "APPLIED revision=4",
+      "DRAWN revision=4",
+      "TAP revision=4 code=0",
+      "DIAGNOSTIC invocation unreachable status=2 TaskCompletion.swift:94:9 function=8 offset=1883",
+      "CLOSED owner retired"
+    ],
+    "screenshots": [
+      {
+        "phase": "trial-initial",
+        "file": "001-trial-initial.png",
+        "sha256": "0bda5c1d13af5b9bf591416e1e89aca502e9ebd625e328e16ab6f25b3e340356",
+        "text": [
+          "Install diagnostic guest",
+          "Replay revision 1 input",
+          "Close guest"
+        ]
+      },
+      {
+        "phase": "revision-1",
+        "file": "002-revision-1.png",
+        "sha256": "262137d53fd85c693e81abefea11519325ffd790f49b81e0fa1a2b02745edce5",
+        "text": [
+          "Inspect pump",
+          "Open",
+          "Complete task",
+          "Install diagnostic guest",
+          "Replay revision 1 input",
+          "Close guest"
+        ]
+      },
+      {
+        "phase": "stale-frame",
+        "file": "003-stale-frame.png",
+        "sha256": "4f2ffc197e5c3fc58160917c06ec361a841e98efdd4a22fe5423921411d4a025",
+        "text": [
+          "Inspect pump",
+          "Review required",
+          "Confirm completion",
+          "Install diagnostic guest",
+          "Replay revision 1 input",
+          "Close guest"
+        ]
+      },
+      {
+        "phase": "revision-2",
+        "file": "004-revision-2.png",
+        "sha256": "619cc719da492eeec99da29980357306c8a26ad88a14962876721953cceb7818",
+        "text": [
+          "STALE refused code=2 revision=2",
+          "Inspect pump",
+          "Review required",
+          "Confirm completion",
+          "Replay revision 1 input",
+          "Close guest"
+        ]
+      },
+      {
+        "phase": "revision-3",
+        "file": "005-revision-3.png",
+        "sha256": "692fd3916102d7ba30ce6e2f5728f1c8e098e0e7f586ed38a5ae152c66fe571f",
+        "text": [
+          "Inspect pump",
+          "Completed",
+          "Reopen task",
+          "Replay revision 1 input",
+          "Close guest"
+        ]
+      },
+      {
+        "phase": "revision-4",
+        "file": "006-revision-4.png",
+        "sha256": "058894a7573bf16a5760d3a6e8c5356a87f66d56e87fe5ff2f16870f621273ef",
+        "text": [
+          "Inspect pump",
+          "Open",
+          "Complete task",
+          "Replay revision 1 input",
+          "Close guest"
+        ]
+      },
+      {
+        "phase": "trap-before-close",
+        "file": "007-trap-before-close.png",
+        "sha256": "cd3f99940c758c867d02eddf35f6c3924039f4507a94c92bbfb1a691ba64f4d1",
+        "text": [
+          "DIAGNOSTIC invocation unreachable status=2 TaskCompletion.swift:94:9 function=8 offset=1883",
+          "Install diagnostic guest",
+          "Replay revision 1 input",
+          "Close guest"
+        ]
+      }
+    ]
+  },
+  "rawEvidence": {
+    "resultSHA256": "0a882b7ee17e92e81474f9d91f2ff04b719f9c23366f0c9535e3a26f4cf86823",
+    "pidLogSHA256": "f2e5fbd05f54901e478d6d64e5cac6510619aa4d3c54ed92f48a8900b9e4799f",
+    "hostReceipt": "verification/receipts/l03-d3-task-review-event-trap-7b61fe1c.json"
+  },
+  "cleanup": {
+    "commandGroupsClosed": 344,
+    "ownedProcesses": [
+      "private-adb",
+      "emulator"
+    ],
+    "disposableEmulatorRemoved": true,
+    "reboundPorts": [
+      5576,
+      5577,
+      58482
+    ]
+  },
+  "status": "passed_scoped_native_android_replay"
+}
