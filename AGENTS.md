@@ -1063,3 +1063,14 @@ Do not inspect, probe, signal, wait on, retry or clean those resources.
 Use only the already returned compact result and its top-level `HOLD.json`.
 Phoenix, restricted Oban and PostgreSQL closed. Their closure releases
 neither the worker nor the input hold.
+
+The November 19 AOSP FieldLog engine-pair run at port 5578 saved an ordinary
+task and the manually observed sequence-7 guest closed with effects_closed.
+The original controller's screenshot wait expired before emulator and ADB
+teardown. Preserve private ADB PGID 78290 and port 50265, emulator PGID 78291
+and AVD `fieldlog_l04_c7b08e7e9520`, console ports 5578 and 5579, the owned
+reverse on 60299 inside that device, and the full
+`verification/local/fieldlog-engine-focus-api36.j85wePwg/run-5lp03i5y`
+namespace. Do not inspect, probe, signal, wait on, retry or clean these
+resources. Use the copied facts and top-level `HOLD.json` only.
+The separate origin and UID log reader closed.
