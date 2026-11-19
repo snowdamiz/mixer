@@ -1006,3 +1006,13 @@ Do not inspect, enumerate, probe, signal, wait on, retry, or clean up those reso
 Only the compact `verification/receipts/l07-real-build-freeze-3ec017157a.json` and the already issued top-level HOLD metadata may identify
 ownership. Confirmed Phoenix, Oban, and PostgreSQL closure does not release the
 worker or any nested process or input hold.
+
+The L05/L07 clean-provenance Starter replay stopped with UNKNOWN worker custody.
+Preserve PID/PGID 33670, listener port 50577, and the entire
+`/Users/andreyyurlov/.t3/worktrees/mixer/t3-9c31a4d0/verification/local/l05-l07-9c31a4d0.m1cSjqOj`
+namespace, including worker state, the compiled CLI, and all retained inputs.
+Do not inspect, enumerate, probe, signal, wait on, retry, or clean up those resources.
+The sole POST returned 201 and Oban committed a coordinator start. The observer
+stopped on an SQLite `absent` row before confirming a worker start or compiler
+launch. Phoenix, Oban, and PostgreSQL closure does not release worker custody.
+Use only the copied compact `verification/receipts/l05-l07-observer-worker-custody-20261119.json` for this attempt.
