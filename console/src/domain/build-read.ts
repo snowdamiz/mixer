@@ -113,8 +113,8 @@ function parseNativeArtifacts(input: unknown, selection: BuildReadSelection): re
     requireValid(kind === expectedKind && integerIn(sizeBytes, 1, 16 * 1024 * 1024) && digest(sha256) &&
       typeof downloadPath === "string" && downloadPath.length <= 2048 && downloadPath.startsWith(prefix));
     const supplied = new URLSearchParams(downloadPath.slice(prefix.length));
-    requireValid(supplied.size === expected.size &&
-      Array.from(expected).every(([key, value]) => supplied.get(key) === value));
+    requireValid(supplied.size === expected.size);
+    expected.forEach((value, key) => requireValid(supplied.get(key) === value));
     return Object.freeze({ kind: expectedKind, sizeBytes, sha256, downloadPath: prefix + query });
   }));
 }
