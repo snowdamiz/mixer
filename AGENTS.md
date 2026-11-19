@@ -1025,3 +1025,13 @@ fieldlog_l04_eb4f221ae2fe, ports 5598 and 5599, and the exact
 Do not inspect, enumerate, probe, signal, wait on, retry or clean this held
 attempt or its resources. The separate draft origin exited and its port
 was reclaimed. Refer to [the compact receipt](verification/receipts/fieldlog-android-selected-draft-install-hold-20261119.json).
+
+The November 19 Android engine-cohort replay installed its first APK through
+verified staging. Its first UI hierarchy read timed out with UNKNOWN custody.
+Preserve the dump client PID/PGID 59968, app log client PID/PGID 58856,
+private ADB PID/PGID 27466 and port 64320, emulator PID/PGID 27467,
+emulator-5602, AVD fieldlog_l04_80bf1be7c472, ports 5602 and 5603, and
+`verification/local/fieldlog-engine-native-w12jvzdk`.
+Do not inspect, enumerate, probe, signal, wait on, retry or clean the held
+attempt or its resources. The independent release origin closed and its
+loopback port was reclaimed. See [the compact receipt](verification/receipts/fieldlog-android-engine-cohort-ui-custody-20261119.json).
