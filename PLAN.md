@@ -16,6 +16,10 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 19 local verification
 
+The combined FieldLog iOS and Android storage patches passed 30 host checks across the compatible rollback and successor writers. All four writers refused newly introduced draft and entry ID overlaps and retained edits to existing snapshots. The compiled app recipes and signed mobile rollout remain open. [Composed storage receipt](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
+
+The signed FieldLog host kept the follow-up flag through an ordinary draft save while the rollback guest was active. The save advanced revision 3 to 4 and preserved record identity, JPEG bytes, the outbox prefix, and the restored draft. A fresh process reopened revision 4 with the re-upgraded guest from the installed cache. Mobile verification remains open. [Signed rollback receipt](verification/receipts/fieldlog-l08-signed-rollback-ordinary-save-20261119.json)
+
 The corrected CLI passed worker admission during one ordinary authenticated Starter request. Restricted Oban recorded one start and released capacity after terminal failure. The fixture had placed Phoenix's build cache under the compiler provenance root, so source hashing refused a symlink before Xcode. [Starter settlement receipt](verification/receipts/l05-l07-retained-worker-settlement-20261119.json)
 
 Both Android storage writer variants passed host saves and linked arm64 Swift and JNI products. Independent review verified that an older selected-draft adapter cannot access a replacement after committed deletion. A raw transaction can still introduce an overlapping draft and entry ID. [Storage and identity checks](verification/receipts/fieldlog-l08-storage-identity-and-android-20261119.json)
