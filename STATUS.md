@@ -145,6 +145,8 @@ The corrected standalone CLI built and reopened an unsigned Pair24 Android Start
 
 The local Phoenix route served all three Android artifact roles from a synthetic completed journal and replayed all three existing iOS artifact downloads. The 27,795,726-byte Android fixture verified the exact body, hash, and APK download headers. An unsigned Android APK has a 32 MiB cap. Other roles retain 16 MiB. The console labels the artifact **Unsigned APK**. Managed Android build and download from the same worker operation remain open. [Platform policy](verification/receipts/android-retained-policy-fc92687.json) [Authenticated read-path and source admission](verification/receipts/l05-android-retained-delivery-v46-20261119.json)
 
+The Phoenix CI replay exposed a missing two-argument reader used by the iOS compatibility controls. Restoring that entry point passed all 45 focused hosted tests. The authenticated route still passes the selected platform. [Compatibility and v47 source receipt](verification/receipts/l05-retained-reader-compatibility-v47-20261119.json)
+
 ### Android TaskCompletion parity and source diagnostic
 
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.

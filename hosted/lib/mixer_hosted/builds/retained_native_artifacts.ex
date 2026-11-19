@@ -22,6 +22,8 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
        else: {:error, :uncertain}
   end
 
+  def read(operation_id, artifact), do: read(operation_id, :ios, artifact)
+
   def read(operation_id, platform, %ArtifactRef{kind: kind} = artifact)
       when platform in [:ios, :android] and kind in @native_kinds do
     cap = Lifecycle.native_artifact_max_bytes(platform, kind)
