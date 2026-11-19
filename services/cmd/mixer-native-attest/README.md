@@ -65,3 +65,13 @@ This process assumes a trusted local loopback Phoenix server and an
 operator-owned state directory. The proof establishes temporal separation for
 these local worker processes. Running a signer alongside an untrusted worker
 under the same OS account would require an additional key-custody boundary.
+
+On macOS, run the concurrent publication check from the repository root.
+Two signer processes race on the same synthetic build and state directory.
+The test verifies the single published envelope under the winner’s key and
+confirms the other key is refused before HTTP.
+
+```sh
+CGO_ENABLED=1 go -C services test -race ./cmd/mixer-native-attest \
+  -run '^TestConcurrentAttestationsPublishOneEnvelope$'
+```
