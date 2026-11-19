@@ -14,9 +14,16 @@
 #include <time.h>
 #include <unistd.h>
 #ifdef __APPLE__
+#include <crt_externs.h>
 #include <spawn.h>
 #elif defined(__linux__)
 #include <sys/syscall.h>
+#endif
+
+#ifdef __APPLE__
+const void *mx_executable_header(void) {
+    return _NSGetMachExecuteHeader();
+}
 #endif
 
 static int descriptor_flags(int fd, int nonblocking) {

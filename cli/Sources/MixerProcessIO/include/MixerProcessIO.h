@@ -13,6 +13,9 @@ int mx_terminate_group(int32_t pid);
 int mx_reap(int32_t pid, int32_t *exit_code, int *reaped);
 int mx_group_absent(int32_t pid, int *absent);
 int mx_close(int fd);
+#if defined(__APPLE__)
+const void *mx_executable_header(void);
+#endif
 uint64_t mx_monotonic_ns(void);
 int mx_pause_ms(int milliseconds);
 int mx_sync_directory(const char *path);

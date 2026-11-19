@@ -1,6 +1,6 @@
 import Darwin
 import Foundation
-import MachO
+import MixerProcessIO
 
 /// Retains the products of one unsigned local Android build.
 public enum AndroidBuildOutput {
@@ -322,7 +322,7 @@ public enum AndroidBuildOutput {
         var mapped = proc_regionwithpathinfo()
         let mappedSize = Int32(MemoryLayout.size(ofValue: mapped))
         var held = stat()
-        guard let header = _dyld_get_image_header(0), header.pointee.filetype == MH_EXECUTE,
+        guard let header = mx_executable_header(),
               proc_pidinfo(getpid(), PROC_PIDREGIONPATHINFO, UInt64(UInt(bitPattern: header)),
                            &mapped, mappedSize) == mappedSize,
               fstat(fd, &held) == 0,
