@@ -1,4 +1,5 @@
 """Opt-in local worker for one operator-registered unsigned iOS Simulator project."""
+from enum import Enum
 import errno
 import hashlib
 import hmac
@@ -19,6 +20,18 @@ import starter_package_closure as starter
 
 KINDS = ("unsigned_native_binary", "debug_symbols", "resource_inventory")
 LIMIT = 256 * 1024 * 1024
+
+
+class BuildUncertainty(Enum):
+    CLI_PROCESS_HANDLE_UNAVAILABLE = "cli_process_handle_unavailable"
+    CLI_LAUNCH_RECORD_FAILED = "cli_launch_record_failed"
+    CLI_WAIT_TIMEOUT = "cli_wait_timeout"
+    CLI_ACK_MISSING = "cli_ack_missing"
+    CLI_ACK_INVALID = "cli_ack_invalid"
+    CLI_GROUP_UNCONFIRMED = "cli_group_unconfirmed"
+    NESTED_RECEIPT_INVALID = "nested_receipt_invalid"
+    CLI_RESULT_UNPROVEN = "cli_result_unproven"
+    FUTURE_EXCEPTION = "future_exception"
 
 
 class OwnedBuildProcess(subprocess.Popen):
@@ -149,24 +162,37 @@ def build(recipe, files, output, request, launch):
             remaining = min(recipe["timeout_seconds"], (request["deadline_ms"] - now) / 1000)
             if launch.cancelled or remaining <= 0 or request["guard"]["expires_at"] <= now:
                 return {"closed": True, "started": False}
-            proc = OwnedBuildProcess(argv, cwd=project, env=launch_environment,
-                                     stdin=subprocess.DEVNULL,
-                                     stdout=stdout, stderr=stderr, start_new_session=True)
+            try:
+                proc = OwnedBuildProcess(argv, cwd=project, env=launch_environment,
+                                         stdin=subprocess.DEVNULL,
+                                         stdout=stdout, stderr=stderr, start_new_session=True)
+            except OSError:
+                # A constructor error can leave child custody unknown.
+                return BuildUncertainty.CLI_PROCESS_HANDLE_UNAVAILABLE
             launch.control_directory = tmp
-        (output / "launch.json").write_text(literal({"pid": proc.pid, "argv": argv}))
+        launch_record = literal({"pid": proc.pid, "argv": argv})
+        try:
+            (output / "launch.json").write_text(launch_record)
+        except OSError:
+            return BuildUncertainty.CLI_LAUNCH_RECORD_FAILED
         try:
             code = proc.wait(timeout=remaining)
         except subprocess.TimeoutExpired:
-            return {"closed": False}
+            return BuildUncertainty.CLI_WAIT_TIMEOUT
     # The pinned CLI acknowledges only after its synchronous command scope
     # unwinds without a hold. Never inspect command scratch without that proof.
     try:
         prefix = "mixer-command-receipts-"
         basename = read_owned(tmp / "cli-closed", len(prefix) + 36, allow_owner_write=True).decode("ascii")
         if not basename.startswith(prefix) or str(uuid.UUID(basename[len(prefix):])).upper() != basename[len(prefix):]:
-            return {"closed": False}
-        if not group_absent(proc.pid):
-            return {"closed": False}
+            return BuildUncertainty.CLI_ACK_INVALID
+    except FileNotFoundError:
+        return BuildUncertainty.CLI_ACK_MISSING
+    except (OSError, ValueError, Refusal):
+        return BuildUncertainty.CLI_ACK_INVALID
+    if not group_absent(proc.pid):
+        return BuildUncertainty.CLI_GROUP_UNCONFIRMED
+    try:
         receipt_root = tmp / basename
         try:
             root_info = receipt_root.lstat()
@@ -174,23 +200,23 @@ def build(recipe, files, output, request, launch):
             directories = []
         else:
             if root_info.st_mode != stat.S_IFDIR | 0o700 or root_info.st_uid != os.getuid():
-                return {"closed": False}
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
             directories = sorted(receipt_root.iterdir())
         commands, proof = [], []
         for command in directories:
             if not command.name.startswith("command-"):
                 continue
             if not stat.S_ISDIR(command.lstat().st_mode):
-                return {"closed": False}
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
             try:
                 (command / "HOLD.json").lstat()
             except FileNotFoundError:
                 pass
             else:
-                return {"closed": False}
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
             receipt = command / "receipt.json"
             if not stat.S_ISREG(receipt.lstat().st_mode):
-                return {"closed": False}
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
             data = receipt.read_bytes()
             item = json.loads(data)
             argv_receipt = item["command"]
@@ -202,16 +228,16 @@ def build(recipe, files, output, request, launch):
                     or item["pid"] != item["ownedSession"] or item["pid"] <= 1
                     or not all(item.get(key) is True for key in ("terminalCustody", "directChildReaped",
                                "stdoutEOF", "stderrEOF", "descriptorsClosed", "ownedGroupAbsent"))):
-                return {"closed": False}
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
             commands.append(item)
             proof.append({"command": argv_receipt[0], "pid": item["pid"],
                           "receipt_sha256": digest(data), "stop_reason": item.get("stopReason"),
                           "group_terminate_sent": item.get("groupTerminateSent", False)})
     except (OSError, ValueError, KeyError, TypeError, Refusal):
-        return {"closed": False}
+        return BuildUncertainty.NESTED_RECEIPT_INVALID
     compiler = [c for c in commands if c["command"][0] == "/usr/bin/xcodebuild"]
     if len(compiler) > 1 or (not compiler and code <= 0):
-        return {"closed": False}
+        return BuildUncertainty.CLI_RESULT_UNPROVEN
     result = {"closed": True, "started": True, "pid": proc.pid, "exit": code,
               "cli_reaped": True, "cli_group_absent": True, "commands": proof}
     if not compiler:
@@ -320,9 +346,12 @@ class NativeWorker(Worker):
         try:
             result = self.future.result()
         except Exception:
-            result = {"closed": False}
+            result = BuildUncertainty.FUTURE_EXCEPTION
         value["status"] = "uncertain"
-        if result["closed"]:
+        if isinstance(result, BuildUncertainty):
+            value["uncertainty_reason"] = result.value
+            result = {}
+        elif result["closed"]:
             value.update(status="closed", closure={k: v for k, v in result.items()
                                                    if k not in ("artifacts", "manifest_sha256", "customer_log")})
             if "artifacts" in result and not value.get("tombstone"):

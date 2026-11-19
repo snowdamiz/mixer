@@ -348,7 +348,10 @@ class FormatAmendmentControls(unittest.TestCase):
         self.assertEqual(collector.FIXTURE_SOURCE_DIGEST, result["predecessor"]["source_digest_sha256"])
         self.assertEqual(collector.literal_helper_rows(), result["literal_helpers"])
         root = COLLECTOR_PATH.resolve().parents[2]
-        for path in ["hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs", "hosted/test/support/identity_tls_fixture.ex", "hosted/mix.lock", *["hosted/" + name for name in collector.TEST_ROOTS]]:
+        lock_path = "hosted/mix.lock"
+        historical_lock = workspace_predecessor_bytes(root, lock_path)
+        self.assertEqual(collector.FROZEN_MANIFEST[lock_path], collector._file_row(historical_lock))
+        for path in ["hosted/test/mixer_hosted/identity/tls_fixture_lifecycle_control_test.exs", "hosted/test/support/identity_tls_fixture.ex", *["hosted/" + name for name in collector.TEST_ROOTS]]:
             row = collector.FROZEN_MANIFEST[path]
             body = (root / path).read_bytes()
             self.assertEqual(row, {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()})
@@ -1799,7 +1802,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE, collector.RESTRICTED_PROCESSOR_SOURCE_BASE, collector.DEVELOPMENT_DISPATCH_SOURCE_BASE, collector.PENDING_SESSION_SOURCE_BASE, collector.BILLING_RECONCILIATION_SOURCE_BASE, collector.WORKSPACE_V31_SOURCE_BASE, collector.WORKSPACE_V32_SOURCE_BASE, collector.WORKSPACE_V33_SOURCE_BASE, collector.WORKSPACE_V34_SOURCE_BASE, collector.WORKSPACE_V35_SOURCE_BASE, collector.WORKSPACE_V36_SOURCE_BASE, collector.WORKSPACE_V37_SOURCE_BASE, collector.WORKSPACE_V38_SOURCE_BASE, collector.WORKSPACE_V39_SOURCE_BASE, collector.WORKSPACE_V40_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE, collector.RESTRICTED_PROCESSOR_SOURCE_BASE, collector.DEVELOPMENT_DISPATCH_SOURCE_BASE, collector.PENDING_SESSION_SOURCE_BASE, collector.BILLING_RECONCILIATION_SOURCE_BASE, collector.WORKSPACE_V31_SOURCE_BASE, collector.WORKSPACE_V32_SOURCE_BASE, collector.WORKSPACE_V33_SOURCE_BASE, collector.WORKSPACE_V34_SOURCE_BASE, collector.WORKSPACE_V35_SOURCE_BASE, collector.WORKSPACE_V36_SOURCE_BASE, collector.WORKSPACE_V37_SOURCE_BASE, collector.WORKSPACE_V38_SOURCE_BASE, collector.WORKSPACE_V39_SOURCE_BASE, collector.WORKSPACE_V40_SOURCE_BASE, collector.WORKSPACE_V41_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -2990,8 +2993,12 @@ def workspace_predecessor_bytes(root, path):
             raise RuntimeError("workspace predecessor pin: " + path)
         return body
     body = (root / path).read_bytes()
-    if collector.WORKSPACE_MANIFEST.get(path) != collector.WORKSPACE_V40_MANIFEST.get(path):
+    if collector.WORKSPACE_MANIFEST.get(path) != collector.WORKSPACE_V41_MANIFEST.get(path):
         body = (root / collector.WORKSPACE_SOURCE_BASE / "preimages" / path).read_bytes()
+        if collector._file_row(body) != collector.WORKSPACE_V41_MANIFEST[path]:
+            raise RuntimeError("native worker diagnostic predecessor pin: " + path)
+    if collector.WORKSPACE_V41_MANIFEST.get(path) != collector.WORKSPACE_V40_MANIFEST.get(path):
+        body = (root / collector.WORKSPACE_V41_SOURCE_BASE / "preimages" / path).read_bytes()
         if collector._file_row(body) != collector.WORKSPACE_V40_MANIFEST[path]:
             raise RuntimeError("hosted maintenance predecessor pin: " + path)
     if collector.WORKSPACE_V40_MANIFEST.get(path) != collector.WORKSPACE_V39_MANIFEST.get(path):
@@ -3099,8 +3106,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = '0335aee3ff2855bb446f862c10b5683405cb7f7377a150d640558262ccac06b6'
-    DIGEST = 'd4d07403cef9de09582788b8bfe4400f4b758cc0b9902c2bbe695e274998bea1'
+    PIN = 'd143ab3ac76f943110421cb9492fdbfa00cd9edc076f99d5b00dc5a2fc3171a3'
+    DIGEST = '1bb0e455a5831127fee0107c8ee3db220996d81952eb45e201c2ef8b41976593'
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -4926,7 +4933,7 @@ class BillingReconciliationV29Controls(unittest.TestCase):
 class WorkspaceSourceCutoverControls(unittest.TestCase):
     PIN = WorkflowSparseSourceControls.PIN
 
-    def test_active_selection_restores_v40_and_rejects_workspace_drift(self):
+    def test_active_selection_restores_v41_and_rejects_workspace_drift(self):
         root = COLLECTOR_PATH.resolve().parents[2]
         helper = WorkflowSparseSourceControls()
         base = collector.WORKSPACE_SOURCE_BASE
@@ -4934,7 +4941,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     for name in ("selection.json", "selected-source-manifest.json")}
         selection, manifest = collector.validate_workspace_source_metadata(metadata)
         self.assertEqual(407, len(manifest))
-        self.assertEqual(13, len(selection["exact_delta"]))
+        self.assertEqual(2, len(selection["exact_delta"]))
         self.assertEqual(20, len(selection["reviewed_migrations"]))
         inverse = dict(manifest)
         for path, change in selection["exact_delta"].items():
@@ -4944,9 +4951,9 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 data = (root / base / "preimages" / path).read_bytes()
                 inverse[path] = collector._file_row(data)
                 self.assertEqual(change["before"], inverse[path])
-        self.assertEqual(collector.WORKSPACE_V40_MANIFEST, inverse)
-        self.assertEqual(collector.WORKSPACE_V40_SOURCE_DIGEST, canonical_digest(inverse))
-        with tempfile.TemporaryDirectory(prefix="workspace-v41-source-") as directory:
+        self.assertEqual(collector.WORKSPACE_V41_MANIFEST, inverse)
+        self.assertEqual(collector.WORKSPACE_V41_SOURCE_DIGEST, canonical_digest(inverse))
+        with tempfile.TemporaryDirectory(prefix="workspace-v42-source-") as directory:
             stage = Path(directory)
             helper.materialize(root, stage, helper.patterns(
                 (root / ".github/workflows/identity-network.yml").read_text(), "identity-network"))
@@ -4965,9 +4972,12 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 collector.workspace_source_metadata(stage, collector.WORKSPACE_V39_SOURCE_BASE))
             v40_selection, _ = collector.validate_workspace_v40_metadata(
                 collector.workspace_source_metadata(stage, collector.WORKSPACE_V40_SOURCE_BASE))
+            v41_selection, _ = collector.validate_workspace_v41_metadata(
+                collector.workspace_source_metadata(stage, collector.WORKSPACE_V41_SOURCE_BASE))
             for relative in {
                 **collector.workspace_preimage_rows(selection),
                 **collector.workspace_preimage_rows(v40_selection, collector.WORKSPACE_V40_SOURCE_BASE),
+                **collector.workspace_preimage_rows(v41_selection, collector.WORKSPACE_V41_SOURCE_BASE),
                 **collector.workspace_preimage_rows(v39_selection, collector.WORKSPACE_V39_SOURCE_BASE),
                 **collector.workspace_preimage_rows(v38_selection, collector.WORKSPACE_V38_SOURCE_BASE),
                 **collector.workspace_preimage_rows(v37_selection, collector.WORKSPACE_V37_SOURCE_BASE),
@@ -5062,7 +5072,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
 
     def test_collector_refuses_active_workspace_selection_drift_before_docker(self):
         helper = CollectorMethodWiringControls()
-        with tempfile.TemporaryDirectory(prefix="workspace-v41-collect-") as directory:
+        with tempfile.TemporaryDirectory(prefix="workspace-v42-collect-") as directory:
             subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
             original = subject.git_blobs
             def blobs(paths):

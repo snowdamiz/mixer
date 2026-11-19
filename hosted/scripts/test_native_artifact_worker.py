@@ -1,22 +1,24 @@
 import concurrent.futures
-from contextlib import contextmanager
+from contextlib import closing, contextmanager, nullcontext
 import json
 from pathlib import Path
 import queue
 import secrets
 import socket
 import socketserver
+import sqlite3
+import subprocess
 import sys
 import tempfile
 import threading
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "priv" / "development"))
 from native_artifact_worker import (
-    KINDS, LaunchGate, NativeWorker, OwnedBuildProcess, Refusal, build, digest, exchange, literal, mac,
-    now_ms, serve,
+    KINDS, BuildUncertainty, LaunchGate, NativeWorker, OwnedBuildProcess, Refusal, build, digest,
+    exchange, literal, mac, now_ms, serve,
 )
 
 
@@ -229,6 +231,12 @@ class NativeWorkerTest(unittest.TestCase):
             self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", self.request))
         with self.listener() as address:
             self.assertEqual(ready, self.call(address, "artifacts", self.request))
+            artifact = ready["artifacts"][0]["sha256"]
+            stored = self.root / "protocol-state" / self.request["operation_id"] / "native" / artifact
+            stored.unlink()
+            stored.write_bytes(b"changed")
+            stored.chmod(0o400)
+            self.assertEqual({"error": "uncertain"}, self.call(address, "artifacts", self.request))
             self.assertEqual("stopped", self.call(address, "stop", self.request)["status"])
             self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", self.request))
 
@@ -273,17 +281,17 @@ exit 23
 
     def test_preflight_without_definitive_cli_closure_fails_closed(self):
         basename = "mixer-command-receipts-10000000-1000-1000-1000-100000000000"
-        for marker, absent, code, nested in (
-            (None, True, 23, None),
-            ("malformed", True, 23, None),
-            (basename, False, 23, None),
-            (basename, True, 0, None),
-            (basename, True, 0, "cancelled"),
-            (basename, True, -15, None),
-            (basename, True, 23, "hold"),
-            (basename, True, 23, "malformed_receipt"),
-            (basename, True, 23, "dangling_receipt_root"),
-            (basename, True, 23, "multiple_compilers"),
+        for marker, absent, code, nested, reason in (
+            (None, True, 23, None, BuildUncertainty.CLI_ACK_MISSING),
+            ("malformed", True, 23, None, BuildUncertainty.CLI_ACK_INVALID),
+            (basename, False, 23, None, BuildUncertainty.CLI_GROUP_UNCONFIRMED),
+            (basename, True, 0, None, BuildUncertainty.CLI_RESULT_UNPROVEN),
+            (basename, True, 0, "cancelled", BuildUncertainty.CLI_RESULT_UNPROVEN),
+            (basename, True, -15, None, BuildUncertainty.CLI_RESULT_UNPROVEN),
+            (basename, True, 23, "hold", BuildUncertainty.NESTED_RECEIPT_INVALID),
+            (basename, True, 23, "malformed_receipt", BuildUncertainty.NESTED_RECEIPT_INVALID),
+            (basename, True, 23, "dangling_receipt_root", BuildUncertainty.NESTED_RECEIPT_INVALID),
+            (basename, True, 23, "multiple_compilers", BuildUncertainty.CLI_RESULT_UNPROVEN),
         ):
             with self.subTest(marker=marker, absent=absent, code=code, nested=nested):
                 launch = LaunchGate()
@@ -313,7 +321,7 @@ exit 23
                       patch("native_artifact_worker.OwnedBuildProcess", side_effect=fixture),
                       patch("native_artifact_worker.group_absent", return_value=absent)):
                     result = build(self.recipe(), {}, Path(directory) / "state", self.request, launch)
-                    self.assertEqual({"closed": False}, result)
+                    self.assertIs(reason, result)
 
     def recipe(self):
         return {"cwd": str(self.root), "environment": {}, "argv": ["fixture-cli", str(self.root)],
@@ -374,26 +382,99 @@ exit 23
             process.__del__()
             poll.assert_not_called()
 
-    def test_worker_refuses_acknowledgement_without_cli_custody_proof(self):
-        def fixture(*args, **kwargs):
-            process = self.fixture_process(*args, **kwargs)
-            (Path(kwargs["env"]["TMPDIR"]) / "cli-closed").unlink()
-            return process
+    def test_uncertainty_reason_is_private_and_durable_across_restart(self):
+        operation = self.request["operation_id"]
 
-        with (patch.object(self.worker, "verify", return_value=self.recipe()),
-              patch("native_artifact_worker.OwnedBuildProcess", side_effect=fixture),
-              patch("native_artifact_worker.group_absent") as probe):
-            self.assertEqual({"status": "running"}, self.worker.request("ensure_started", self.request))
-            self.worker.future.result(timeout=5)
-            self.assertEqual({"error": "uncertain"}, self.worker.request("stop", self.request))
-            self.assertEqual({"error": "uncertain"}, self.worker.request("stop", self.request))
-            probe.assert_not_called()
-            self.assertNotIn("diagnostic_sha256", self.worker.load(self.request["operation_id"]))
-            # This fixture owns no OS child. Dispose only its in-process test resources.
-            with self.assertRaisesRegex(Refusal, "uncertain"):
-                self.worker.close()
-            self.worker.db.execute("DELETE FROM operations")
-            self.worker.db.commit()
+        @contextmanager
+        def open_worker(state):
+            worker = NativeWorker(self.config, str(state))
+            try:
+                yield worker
+            finally:
+                # No OS child exists in these fixtures. Close test resources despite
+                # the public shutdown refusal and keep the operation row for restart.
+                worker.executor.shutdown()
+                worker.db.close()
+                worker.lock.close()
+
+        def reply(worker, action, request=None):
+            nonce = secrets.token_hex(16)
+            body = literal({"worker_id": "native", "action": action, "request": request})
+            close, response = exchange(worker, {"body": body, "nonce": nonce,
+                                                "mac": mac(self.config["token"], "request", nonce, body)})
+            self.assertFalse(close)
+            self.assertEqual(mac(self.config["token"], "response", nonce, response["body"]), response["mac"])
+            return json.loads(response["body"])
+
+        for reason in ("cli_wait_timeout", "cli_ack_missing", "nested_receipt_invalid", "future_exception",
+                       "cli_process_handle_unavailable", "cli_launch_record_failed"):
+            with self.subTest(reason=reason):
+                state = self.root / reason
+                wait = Mock(side_effect=subprocess.TimeoutExpired(["private-fixture-argv"], 1))
+                inert_process = Mock(spec=OwnedBuildProcess, pid=2**31 - 1)
+
+                def fixture(*args, **kwargs):
+                    if reason == "cli_process_handle_unavailable":
+                        raise OSError("private-fixture-constructor-detail")
+                    if reason == "cli_launch_record_failed":
+                        # A directory at the fresh launch record path makes the real write fail.
+                        (Path(kwargs["env"]["TMPDIR"]).parent / "launch.json").mkdir()
+                        return inert_process
+                    process = self.fixture_process(*args, **kwargs)
+                    marker = Path(kwargs["env"]["TMPDIR"]) / "cli-closed"
+                    if reason == "cli_wait_timeout":
+                        process.wait = wait
+                    elif reason == "cli_ack_missing":
+                        marker.unlink()
+                    else:
+                        nested = marker.parent / marker.read_text() / "command-fixture" / "receipt.json"
+                        nested.write_text('{"private-fixture-receipt":true}')
+                    return process
+
+                launch_failure = reason in ("cli_process_handle_unavailable", "cli_launch_record_failed")
+                group_probe = (nullcontext() if launch_failure
+                               else patch("native_artifact_worker.group_absent", return_value=True))
+                with (patch.object(NativeWorker, "verify", return_value=self.recipe()),
+                      patch("native_artifact_worker.OwnedBuildProcess", side_effect=fixture) as spawn,
+                      group_probe as probe):
+                    with open_worker(state) as worker:
+                        if reason == "future_exception":
+                            (state / operation).mkdir()  # Fail output creation before the spawn boundary.
+                        self.assertEqual({"status": "running"}, reply(worker, "ensure_started", self.request))
+                        initial = worker.load(operation)
+                        self.assertEqual(1, initial["starts"])
+                        self.assertNotIn("uncertainty_reason", initial)
+                        self.assertFalse(concurrent.futures.wait([worker.future], timeout=5).not_done)
+                        self.assertEqual({"error": "uncertain"}, reply(worker, "query", self.request))
+
+                    ledger = state / "operations.sqlite"
+                    self.assertEqual(0o600, ledger.stat().st_mode & 0o777)
+                    with closing(sqlite3.connect(ledger)) as db:
+                        raw = db.execute("SELECT value FROM operations WHERE id=?", (operation,)).fetchone()[0]
+                    self.assertFalse((state / ("customer-log-v1-" + operation)).exists())
+                    self.assertFalse((state / "blobs").exists())
+
+                    with open_worker(state) as worker:
+                        reopened = worker.load(operation)
+                        for action in ("query", "ensure_started", "stop"):
+                            self.assertEqual({"error": "uncertain"}, reply(worker, action, self.request))
+                        later = dict(self.request, guard=dict(self.request["guard"], epoch=2))
+                        self.assertEqual({"error": "uncertain"}, reply(worker, "ensure_started", later))
+                        stopped = worker.load(operation)
+                        self.assertTrue(stopped["tombstone"])
+                        self.assertEqual(1, stopped["starts"])
+                        self.assertEqual({"error": "unavailable"}, reply(worker, "artifacts", later))
+                        other = dict(self.request, operation_id="e" * 64)
+                        self.assertEqual({"error": "unavailable"}, reply(worker, "ensure_started", other))
+                        self.assertEqual({"error": "uncertain"}, reply(worker, "shutdown"))
+                    self.assertEqual(int(reason != "future_exception"), spawn.call_count)
+                    if probe is not None:
+                        self.assertEqual(int(reason == "nested_receipt_invalid"), probe.call_count)
+                    self.assertEqual(int(reason == "cli_wait_timeout"), wait.call_count)
+                    self.assertEqual([], inert_process.mock_calls)
+                    self.assertEqual(dict(initial, status="uncertain", uncertainty_reason=reason), json.loads(raw))
+                    self.assertEqual(reason, reopened["uncertainty_reason"])
+                    self.assertEqual(reason, stopped["uncertainty_reason"])
 
     def test_authentication_precedes_worker_access(self):
         body = literal({"worker_id": "native", "action": "query", "request": self.request})
