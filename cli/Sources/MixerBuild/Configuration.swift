@@ -27,6 +27,9 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
     public var androidHost: AndroidApplicationHost? = nil
     public var updates = UpdateConfiguration()
     public init(name: String, application: String) { self.name = name; self.application = application }
+    package func applicationIdentifier(for platform: String) -> String {
+        applicationIdentifiers?[platform] ?? application
+    }
     public func validate() throws {
         guard schema == 1, language == "swift" else { throw MixerFailure("config.schema", "Only schema 1 and language swift are supported.") }
         guard name.range(of: "^[A-Za-z][A-Za-z0-9_]{0,63}$", options: .regularExpression) != nil else {

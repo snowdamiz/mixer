@@ -14,9 +14,17 @@ When a child stops before producing a result, follow the [delegated task recover
 
 The following checkpoints retain their historical sources and scope. Local completion is still pending; evaluate existing slice receipts against L01–L08 before claiming a pass.
 
-## November 18 local verification
+## November 19 local verification
+
+The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
+
+A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)
+
+The older FieldLog writer dropped the optional follow-up value after a draft save and after an unrelated task save. The read-only rollback preserved the exact workspace, and the record identity, outbox prefix, and JPEG survived the saves. The host result exposes a compatibility gap in whole-workspace writes. [Legacy writer reproduction](verification/receipts/fieldlog-l08-scenario4-legacy-save-58951594.json)
 
 The matched D3 macOS workload reproduced all four FieldLog frames and the original-source trap. Each path completed 36 timed turns across 12 fresh processes. Prepared-input to frame medians were 0.50 µs for native Swift and 317.27 µs for the owned VM. The rebuilt guest was 5,359 bytes raw and 2,691 bytes gzip. The receipt records the different timing boundaries, host contention, and peak process memory. Mobile parity remains open. [Host benchmark and raw samples](verification/receipts/l03-d3-task-completion-host-benchmark-7b61fe1c.json)
+
+## November 18 local verification
 
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
 

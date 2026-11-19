@@ -223,7 +223,7 @@ do {
         #endif
         if arguments.options["--provider"] == "play" {
             let applicationID: String
-            do { applicationID = try ApplicationConfiguration.load(root).application }
+            do { applicationID = try ApplicationConfiguration.load(root).applicationIdentifier(for: "android") }
             catch { throw MixerFailure("play.configuration-invalid", "Play status requires a valid application configuration.") }
             let request = try PlayTestingRequest.parse(words: words, options: arguments.options, applicationID: applicationID)
             let report = try await PlayReleaseStatus().status(

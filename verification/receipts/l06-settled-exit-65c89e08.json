@@ -1,0 +1,588 @@
+{
+  "schema": 1,
+  "gate": "L06",
+  "status": "SCOPED_PASS_SETTLED_BUILD_EXPORT_AND_EXIT",
+  "whole_gate_passed": false,
+  "observed_at": "2026-11-19T05:09:44+00:00",
+  "source": {
+    "revision": "65c89e08afde2a2d4305b1b68dd84553a88c9d45",
+    "tree": "257499c130eaef2f2cabaa10adefe57007256cc1",
+    "hosted_tree": "f178abcf814c58a7c0b47f2b2d8d6d1a05737d2b",
+    "tracked_hosted_blobs_verified": 342,
+    "tracked_hosted_overlays": {
+      "hosted/test/support/browser_login_provider_fixture.ex": {
+        "old_blob": "6323baf610895a3b4b3e1d07e7905b8f890cd73a",
+        "fixture_blob": "ede58f59cd18d593bdc6807ddc9f421091b08a02",
+        "purpose": "Select two synthetic subjects with independent real cookie sessions."
+      }
+    },
+    "mix_lock_sha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "native_worker_sha256": "f03052a171611ae3da967d61fcbad90c92ab565bef1da64a3570054e27c1119b",
+    "acknowledged_preflight_reference": "hosted/scripts/test_native_artifact_worker.py::NativeWorkerTest.test_protocol_preflight_failure_releases_worker_capacity",
+    "preflight_reference_sha256": "810e620b8e4bf7daaedc19ea8cb9379aedeb59c86c0a8013d26035a4f9f14873"
+  },
+  "references": [
+    "verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json",
+    "verification/receipts/l05-starter-preflight-failure-66bba3c2.json",
+    "hosted/lib/mixer_hosted/customer_workspace/self_service_schema.ex",
+    "hosted/lib/mixer_hosted/browser_auth/workspace_catalog.ex",
+    "hosted/lib/mixer_hosted/builds/coordinator.ex",
+    "hosted/lib/mixer_hosted/builds/native_development_dispatch.ex"
+  ],
+  "tools": {
+    "platform": "macOS 27.0.1 arm64",
+    "elixir": "1.20.4",
+    "erlang": "OTP 29 / ERTS 17.1",
+    "postgresql": "17.11",
+    "phoenix": "1.8.16",
+    "bandit": "1.14.1",
+    "oban": "2.24.2",
+    "python": "3.14.8",
+    "openssl": "4.1.0"
+  },
+  "scope": {
+    "http": "Loopback ordinary Phoenix workspace_v1 profile with workspace_builds scopes, actual OIDC PKCE callback, database-backed cookies, CSRF and two isolated synthetic subjects. Test provider and ephemeral signing/TLS material. No desktop browser.",
+    "sql": "Disposable PostgreSQL 17.11. browser_ordinary pool 8, restricted mixer_build_create pool 2 and restricted mixer_build_processor pool 4. Admin connection only for fixture provisioning and durable readback. Standard workspace and processor migrations/policies loaded before boot.",
+    "build": "Ordinary HTTP POST creates a real queued row and Oban job. A single synthetic registered source input was seeded by the fixture. Real restricted Oban queue, fenced durable_intent_v1 coordinator, and HMAC loopback worker. Only NativeWorker.verify's recipe resolution substitutes the reviewed /bin/sh closure-marker and exit-23 command. Tenant/spec authorization is still checked. Python audit hook limits Popen to that exact inert command and refuses process-spawn APIs.",
+    "payment": "Runner starts with allowlisted environment, synthetic identity/database/worker credentials only. No payment service, payment credentials, payment relations or paid jobs. The local organization-state billing mirror was present and followed tenant A's tombstone.",
+    "limits": "Local test provider and loopback PostgreSQL transport. Terminal failure journey, without a real compiler, device, native artifact, production, push or PR. No production code changes. L06 remains open."
+  },
+  "attempts": {
+    "attempt-01": {
+      "observation": "PostgreSQL rejected startup with no locale in the runner's sanitized environment. Both reserved ports were reusable and an exact-group follow-up observed ESRCH for the exited postmaster.",
+      "errors": [
+        "observation deadline",
+        "cleanup postgres: database-list exited 2"
+      ],
+      "postgres_group_absent": true,
+      "scoped_groups_absent": true,
+      "compiler_or_device_opened": false
+    },
+    "attempt-02": {
+      "observation": "Initial session bootstrap returned 503 because ordinary workspace storage admission refused.",
+      "errors": [
+        "phoenix-exunit exited 2"
+      ],
+      "postgres_group_absent": true,
+      "scoped_groups_absent": true,
+      "compiler_or_device_opened": false
+    },
+    "attempt-03": {
+      "observation": "First direct admission discriminator lacked the transaction timeout settings required by the verifier.",
+      "errors": [
+        "phoenix-exunit exited 2"
+      ],
+      "postgres_group_absent": true,
+      "scoped_groups_absent": true,
+      "compiler_or_device_opened": false
+    },
+    "attempt-04": {
+      "observation": "With matching transaction settings, function admission passed and relation admission refused.",
+      "errors": [
+        "phoenix-exunit exited 2"
+      ],
+      "postgres_group_absent": true,
+      "scoped_groups_absent": true,
+      "compiler_or_device_opened": false
+    },
+    "attempt-05": {
+      "observation": "The exception-only relation trace narrowed the failure to check!/5.",
+      "errors": [
+        "phoenix-exunit exited 2"
+      ],
+      "postgres_group_absent": true,
+      "scoped_groups_absent": true,
+      "compiler_or_device_opened": false
+    },
+    "attempt-06": {
+      "observation": "Temporary exception diagnostic identified WorkspaceCatalog.policies!/4. The combined fixture had omitted the documented workspace writer policies required by builds_v1. Restored exact product source and installed SelfServiceSchema.processor_policy_statements/0 before the passing attempts.",
+      "errors": [
+        "phoenix-exunit exited 2"
+      ],
+      "postgres_group_absent": true,
+      "scoped_groups_absent": true,
+      "compiler_or_device_opened": false
+    },
+    "attempt-07": {
+      "observation": "Full scoped outcome passed with clean shutdown. The final replay additionally verified public build-log access and revocation.",
+      "errors": [],
+      "postgres_group_absent": true,
+      "scoped_groups_absent": true,
+      "compiler_or_device_opened": false
+    }
+  },
+  "passing_attempt": "attempt-08",
+  "http_results": [
+    [
+      303,
+      "subject-1 OAuth callback"
+    ],
+    [
+      200,
+      "subject-1 cookie session"
+    ],
+    [
+      303,
+      "subject-2 OAuth callback"
+    ],
+    [
+      200,
+      "subject-2 cookie session"
+    ],
+    [
+      201,
+      "create /orgs"
+    ],
+    [
+      201,
+      "create /orgs"
+    ],
+    [
+      201,
+      "create /projects"
+    ],
+    [
+      201,
+      "create /projects"
+    ],
+    [
+      201,
+      "create /projects"
+    ],
+    [
+      200,
+      "delete_project"
+    ],
+    [
+      201,
+      "register A application"
+    ],
+    [
+      200,
+      "export"
+    ],
+    [
+      201,
+      "owner A creates one build"
+    ],
+    [
+      409,
+      "delete_organization"
+    ],
+    [
+      200,
+      "owner A terminal detail"
+    ],
+    [
+      200,
+      "owner A terminal log"
+    ],
+    [
+      200,
+      "owner A terminal catalog"
+    ],
+    [
+      200,
+      "usage"
+    ],
+    [
+      200,
+      "export"
+    ],
+    [
+      404,
+      "export"
+    ],
+    [
+      404,
+      "delete_organization"
+    ],
+    [
+      404,
+      "tenant B cannot read A build"
+    ],
+    [
+      409,
+      "delete_project"
+    ],
+    [
+      200,
+      "delete_organization"
+    ],
+    [
+      404,
+      "export"
+    ],
+    [
+      404,
+      "usage"
+    ],
+    [
+      404,
+      "delete_organization"
+    ],
+    [
+      404,
+      "ex-owner cannot reopen A build"
+    ],
+    [
+      404,
+      "ex-owner cannot reopen A log"
+    ],
+    [
+      404,
+      "ex-owner cannot reopen A catalog"
+    ],
+    [
+      404,
+      "ex-owner cannot replay create"
+    ],
+    [
+      404,
+      "ex-owner cannot create again"
+    ],
+    [
+      404,
+      "ex-owner cannot create under A"
+    ],
+    [
+      200,
+      "A session remains authenticated"
+    ],
+    [
+      200,
+      "export"
+    ],
+    [
+      200,
+      "usage"
+    ],
+    [
+      201,
+      "create /projects"
+    ],
+    [
+      200,
+      "export"
+    ]
+  ],
+  "durable_readback": {
+    "record_id": "bc2d924f-8b7e-410e-99ac-9c27cf9f5f18",
+    "jobs": [
+      [
+        1,
+        "created",
+        "completed"
+      ],
+      [
+        2,
+        "start",
+        "completed"
+      ],
+      [
+        3,
+        "completed",
+        "completed"
+      ]
+    ],
+    "export_a": {
+      "memberships": [
+        {
+          "active": true,
+          "principal_id": "person-1",
+          "role": "owner"
+        }
+      ],
+      "organization": {
+        "display_name": "L06 tenant A",
+        "id": "org-22d146c1435149c180f305109234697a"
+      },
+      "projects": [
+        {
+          "active": false,
+          "display_name": "Archived project",
+          "id": "project-9f7209a172d54b22bb1aa4b45b328ad8"
+        },
+        {
+          "active": true,
+          "display_name": "Settled project",
+          "id": "project-ea44b6895312474a8c629b7600028c0a"
+        }
+      ]
+    },
+    "organization_a": "org-22d146c1435149c180f305109234697a",
+    "organization_b": "org-2fe6997050f347e5b4b3c6632123e177",
+    "build_id": "build-c54496f95c26cf37ab5d27549480f42eb5e84d3b6f45a6955bab69a890f86cda",
+    "terminal_event": "coordinator:1:1:completed",
+    "journal_events": [
+      "start",
+      "completed"
+    ],
+    "diagnostic_sha256": "fb481ef8fe52634e12994f87f67cb62829bf9bf319ce0f376b85e098bc11afb2",
+    "previous_org_state": [
+      true,
+      4,
+      true,
+      2,
+      true
+    ],
+    "final_org_state": [
+      false,
+      5,
+      false,
+      0,
+      false
+    ],
+    "retained_rows_unchanged": true,
+    "public_build_log": [
+      {
+        "event": "build_command_finished",
+        "exitCode": 23
+      }
+    ],
+    "build_row_unchanged": true,
+    "tenant_b_after_exit_project_count": 2,
+    "payment_relations": 0,
+    "held_builds_after": 0
+  },
+  "org_state_columns": [
+    "active",
+    "authorization_head_revision",
+    "capacity_configured",
+    "capacity_limit",
+    "billing_mirror_active"
+  ],
+  "retention": {
+    "export_keys": [
+      "organization",
+      "projects",
+      "memberships"
+    ],
+    "before_exit_build_reads": "Build detail, catalog and safe terminal command log return 200 separately from workspace metadata export.",
+    "delete_project_with_build": 409,
+    "delete_organization_while_queued": 409,
+    "delete_organization_after_settlement": {
+      "http": 200,
+      "retention": "tombstone"
+    },
+    "retained_unchanged": [
+      "projects",
+      "project heads",
+      "memberships",
+      "application",
+      "source input",
+      "build journal",
+      "released reservation",
+      "per-platform capacities",
+      "three completed Oban jobs"
+    ],
+    "tenant_a_access": "Existing authenticated session received 404 for workspace export, usage and repeated exit, build detail, log, catalog, same-key replay, fresh build creation and project creation.",
+    "tenant_b_access": "Export unchanged after A exits, usage remains free, and tenant B created and re-exported a second project."
+  },
+  "worker": {
+    "operations": [
+      {
+        "id": "96bdda6aa31233f3f9c8069477147d6e405b75ce9946e7d900e635190e8edbd0",
+        "status": "closed",
+        "starts": 1,
+        "closure": {
+          "cli_group_absent": true,
+          "cli_reaped": true,
+          "closed": true,
+          "commands": [],
+          "exit": 23,
+          "pid": 95572,
+          "preflight_failed": true,
+          "started": true
+        },
+        "uncertainty_reason": null
+      }
+    ],
+    "inert_shell_launches": 1,
+    "compiler_starts": 0,
+    "native_artifacts": 0,
+    "closure_blob_matches_postgres_terminal_journal": true,
+    "retained_safe_log_sha256_after_exit": "8d1ceb885db199b830bb190e54a2156a590d630fc1bd070643cbf8c1fc8bf326",
+    "authenticated_shutdown": {
+      "status": "closed"
+    }
+  },
+  "commands": {
+    "prepare": [
+      "git archive 65c89e08afde2a2d4305b1b68dd84553a88c9d45 hosted | tar -xf - -C <replay>",
+      "cd <replay> && patch -p1 < provider-fixture.patch",
+      "Prepare isolated MIX_HOME, HEX_HOME and a read-only MIX_ARCHIVES path. Copy locally cached Rebar 1-20-otp-29, Hex packages and registry cache into the isolated homes.",
+      "cd <replay>/hosted && MIX_ENV=test mix deps.get",
+      "cd <replay>/hosted && MIX_ENV=test HEX_OFFLINE=1 mix compile --warnings-as-errors",
+      "cd <replay> && MIX_ARCHIVES=<local-mix-archives> python3 -B run.py attempt-08"
+    ],
+    "dependency_note": "Initial offline fetch lacked the locked Bandit 1.14.1 tarball. Hex fetched it during the locked dependency preparation. Fixture runtime ran with HEX_OFFLINE=1.",
+    "executed": {
+      "initdb": {
+        "argv": [
+          "initdb",
+          "-D",
+          "<replay>/attempt-08/postgres-data",
+          "-U",
+          "mixer_fixture",
+          "--no-locale",
+          "--encoding=UTF8",
+          "-A",
+          "trust"
+        ],
+        "pid": 93561,
+        "pgid": 93561,
+        "exit": 0,
+        "group_absent": true
+      },
+      "postgres": {
+        "argv": [
+          "postgres",
+          "-D",
+          "<replay>/attempt-08/postgres-data",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "60275",
+          "-k",
+          "",
+          "-c",
+          "logging_collector=off"
+        ],
+        "pid": 93723,
+        "pgid": 93723,
+        "exit": 0,
+        "group_absent": true
+      },
+      "roles": {
+        "argv": [
+          "psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "60275",
+          "-U",
+          "mixer_fixture",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-c",
+          "CREATE ROLE browser_admin LOGIN SUPERUSER; CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT; CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;"
+        ],
+        "pid": 93742,
+        "pgid": 93742,
+        "exit": 0,
+        "group_absent": true
+      },
+      "phoenix-exunit": {
+        "argv": [
+          "mix",
+          "test",
+          "--no-compile",
+          "--warnings-as-errors",
+          "--seed",
+          "0",
+          "--trace",
+          "diagnostics/l06_settled_exit_test.exs"
+        ],
+        "pid": 93754,
+        "pgid": 93754,
+        "exit": 0,
+        "group_absent": true
+      },
+      "worker": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "<replay>/worker_fixture.py",
+          "serve"
+        ],
+        "pid": 95179,
+        "pgid": 95179,
+        "exit": 0,
+        "group_absent": true
+      },
+      "processor": {
+        "argv": [
+          "mix",
+          "run",
+          "--no-start",
+          "--no-compile",
+          "diagnostics/l06_settled_exit_processor.exs"
+        ],
+        "pid": 95199,
+        "pgid": 95199,
+        "exit": 0,
+        "group_absent": true
+      },
+      "worker-shutdown": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "<replay>/worker_fixture.py",
+          "shutdown"
+        ],
+        "pid": 96427,
+        "pgid": 96427,
+        "exit": 0,
+        "group_absent": true
+      },
+      "database-list": {
+        "argv": [
+          "psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "60275",
+          "-U",
+          "mixer_fixture",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-Atc",
+          "SELECT datname FROM pg_database WHERE NOT datistemplate"
+        ],
+        "pid": 96429,
+        "pgid": 96429,
+        "exit": 0,
+        "group_absent": true
+      }
+    }
+  },
+  "cleanup": {
+    "database_dropped": true,
+    "all_owned_command_groups_absent": true,
+    "worker_inert_child_directly_reaped_and_group_absent": true,
+    "reusable_ports": {
+      "postgres": 60275,
+      "worker": 60276,
+      "phoenix": 60398,
+      "issuer": 60356,
+      "jwks": 60336
+    },
+    "postgres_data_and_worker_state_removed": true,
+    "synthetic_credentials_and_generated_tls_material_removed": true,
+    "dependency_and_build_scratch_removed": true,
+    "retained": "Replay source only in ignored verification/local, plus this compact receipt."
+  },
+  "private_replay": {
+    "directory": "verification/local/l06-settled-exit-65c89e08",
+    "sha256": {
+      "run.py": "98cea5cd9de2f9790026a6078d487bf3c5ea8879101ecd41de6460ddf6fe663d",
+      "worker_fixture.py": "0c0bcd0192744b1a2f2a2b1ee9f9e1e2ebd63516e9d1635414b0df1b5b428ebc",
+      "provider-fixture.patch": "f654934048789311f6045aeb4079dc69990cdcf8d6de838c039b35833d084864",
+      "hosted/diagnostics/l06_settled_exit_test.exs": "d4b0ec7e604f0d24365084c539c468016dd11b5e6163a6361bd31fa170f37d98",
+      "hosted/diagnostics/l06_settled_exit_processor.exs": "ada6418b1131f5a7b4fac38ee21c9542e80ec37ddb9d3815290aa5de7a4e2d3d"
+    },
+    "passing_output_sha256": {
+      "runner-result.json": "e183e1064a058d75d6d73dfc015c8ec6a7a395bd46764bb3f5697034ceb8ce98",
+      "product-result.json": "24e40ae4f1f4b4aba7c6e0fc4e48c9b9a86edcaca44e0b7795bc4ecc0419e835",
+      "http.jsonl": "ee544984bb3aab1e9180e53151667a9c64cbb9399a7162bc6e74c334538a9b01",
+      "phoenix-exunit.log": "c027499e3842705adcb965bf748af0f0650669ab028abb44e3c744a0e6610077"
+    }
+  }
+}

@@ -44,15 +44,16 @@ package enum LocalStoreSubmission {
         switch options["--provider"] {
         case "app-store-connect":
             let request = try StoreStatusRequest.parse(words: ["submit", "status"], options: providerOptions)
-            guard config.targets.contains("ios"), config.application.utf8.count <= 256 else {
+            let bundleID = config.applicationIdentifier(for: "ios")
+            guard config.targets.contains("ios"), bundleID.utf8.count <= 256 else {
                 throw MixerFailure("store.fixture-project", "A valid iOS application identity is required.")
             }
-            identity = Identity(provider: "app-store-connect", applicationID: config.application,
+            identity = Identity(provider: "app-store-connect", applicationID: bundleID,
                                 appID: request.appID, buildID: request.buildID)
             target = "/ios/\(request.appID)/\(request.buildID)"
         case "play":
             let request = try PlayTestingRequest.parse(words: ["submit", "testing-status"],
-                                                       options: providerOptions, applicationID: config.application)
+                                                       options: providerOptions, applicationID: config.applicationIdentifier(for: "android"))
             guard config.targets.contains("android") else {
                 throw MixerFailure("store.fixture-project", "An Android target is required.")
             }

@@ -1,0 +1,282 @@
+{
+  "schema": "mixer.local-development-evidence.v1",
+  "gate": "L08",
+  "requirement": "22.2.4",
+  "status": "legacy-writer-data-loss-reproduced",
+  "reviewer": null,
+  "localGatesPassed": [],
+  "observedUTC": "2026-11-19T05:09:01+00:00",
+  "scope": "Fresh-process macOS FieldLog repository and ordinary iOS WorkspaceModel persistence methods. Private synthetic saved workspace.",
+  "mixer": {
+    "revision": "58951594a866492be7ce204e93a9533f892b2550",
+    "tree": "f610b7745283d445727cf32e0ee3fd45427dd925"
+  },
+  "fieldLog": {
+    "repository": "https://github.com/snowdamiz/fieldlog",
+    "revision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "tree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "originalSourceSHA256": {
+      "Sources/FieldLogModels/Workspace.swift": "6f11d54b41081b20429be486f074f886ec6f53083753bf7a19c67a3c5d19e014",
+      "Sources/FieldLogStorage/WorkspaceRepository.swift": "e5d621ae25cd807f696cfc0174d93b2e3fa557ac417830a8d6e212ee9f6d927e",
+      "ios/FieldLog/WorkspaceModel.swift": "9be22a61b81fc2df5f0e49e3c0d0861b3287df4b7b2ff28db0a3e2ca7d5da0e8"
+    },
+    "legacySourceSHA256": {
+      "Sources/FieldLogModels/Workspace.swift": "6f11d54b41081b20429be486f074f886ec6f53083753bf7a19c67a3c5d19e014",
+      "Sources/FieldLogStorage/WorkspaceRepository.swift": "e5d621ae25cd807f696cfc0174d93b2e3fa557ac417830a8d6e212ee9f6d927e",
+      "ios/FieldLog/WorkspaceModel.swift": "08cfa5a90e3e1248d16e96fa28f24db93e4772eee34eb583e0bfd6886a032aab"
+    },
+    "optionalSourceSHA256": {
+      "Sources/FieldLogModels/Workspace.swift": "1398c4440b061e91110281c30bcdd7e185d5d6d8c737bc5b9de80a5560b87870",
+      "Sources/FieldLogStorage/WorkspaceRepository.swift": "d519f4aa49eb6a301dcb6eba575bd0b459a18ffb6bce1d9f03268eab959c1ad6",
+      "ios/FieldLog/WorkspaceModel.swift": "d7a8305c312f843a45872cb090a874cf4e504744ea7d673f7333005a7c03d859"
+    },
+    "overlaySHA256": "bec75ed00baa93cd448d64326253653eefe592ba240f88a562d61f02a8652f94",
+    "probeSHA256": "d75d126582a9f3ebd346727313e7f73572bd2e150a4ac6599907f34d654db9de",
+    "probeBinarySHA256": {
+      "legacy": "e0eb416cdff76607b22376b59ec5cd58f528b2abef93a7048afb6c6c5e5686a1",
+      "optional": "a9b5f3dbf62f87fe77d36988149353096ffc57755dccdbdd9565eaffea5d5375"
+    },
+    "overlay": "tests/integration/fieldlog-saved-draft/fieldlog-552559d2-check-saved-draft.patch",
+    "appliedPaths": [
+      "Sources/FieldLogModels/Workspace.swift",
+      "Sources/FieldLogStorage/WorkspaceRepository.swift",
+      "ios/FieldLog/WorkspaceModel.swift"
+    ],
+    "legacyInjection": "Only the receipt fixture's initializer and repository-open branch were added to WorkspaceModel. Legacy save logic, schema, repository and JSON codec stayed byte-identical to the public source."
+  },
+  "tools": {
+    "host": "arm64 macOS 27.0.1 (26A434)",
+    "swiftPath": "/usr/bin/swiftc",
+    "swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "git": "2.56.0",
+    "python": "3.14.8"
+  },
+  "priorSignedHostEvidence": {
+    "receipts": [
+      "verification/receipts/fieldlog-draft-validation-optional-rollback-41a05264.json",
+      "verification/receipts/fieldlog-check-saved-draft-host-41a05264.json"
+    ],
+    "finding": "Both signed host runs assigned the optional guest at sequence 3 and the corrected prior guest at sequence 4. Sequence 4 preserved the snapshot hash and field value. Sequence 5 recovered the optional guest, which then updated the value.",
+    "boundary": "Same linked host and repository writer across guest releases. Legacy readback and rejection of an invalid commit do not exercise a successful older writer.",
+    "thisRun": "Used the checked-in overlay from the signed fixture. Signed activation is covered by the cited runs. A new signed run would require rebuilding the Rust, Wasm and SwiftPM host with pinned dependencies and would keep the same writer underneath the guest rollback."
+  },
+  "dataset": {
+    "workspaceID": "15E97DAF-3D29-4868-A31A-9D652D1EB0D4",
+    "projectID": "552559D2-D327-48AB-9B1A-A7DCF0288103",
+    "recordID": "552559D2-D327-48AB-9B1A-A7DCF0288102",
+    "note": "Seal inspection at pump 4.\nÉtage nord.",
+    "attachmentID": "7A02DF85-93C5-4B2C-B22F-B36C08C6E9F6",
+    "jpegBytes": 707,
+    "jpegSHA256": "b7ec31f17895b6595e0fc1b4e540da08b49e5bc37ba30337341942d853045392",
+    "outboxIDs": [
+      "D3BDD7A7-4525-41B8-80F8-B4CDB0EE9725",
+      "5CA254A4-2386-4B65-87E1-AFD610DA3913"
+    ],
+    "title": "Seal inspection",
+    "category": "observation",
+    "jpegPixels": [
+      8,
+      8
+    ],
+    "occurredAtSecondsSince2001": 800000000,
+    "schema": 1,
+    "draftNoteAfterOldSave": "Seal inspection at pump 4.\nÉtage nord.\nLegacy save confirmed.",
+    "committedEntryOutboxID": "330F25C4-0BDB-4AE7-AC9D-691F131F9F6C",
+    "legacyTaskSaveOutboxID": "0B294FA7-10E7-407C-A416-CF74972027DC"
+  },
+  "observations": {
+    "old-seed": {
+      "recordKind": "draft",
+      "revision": 2,
+      "snapshotSHA256": "8f6af56565246a3a15fcb945c3e3cdf66365f105f491df7d3a6407813af0dd12",
+      "snapshotBytes": 1351,
+      "snapshotInode": 895883763,
+      "optionalKeyOnDisk": false,
+      "optionalValueOnDisk": null
+    },
+    "new-write": {
+      "recordKind": "draft",
+      "revision": 3,
+      "snapshotSHA256": "f6abf1a8a5d2341b021f5ada5ae60921ce05bbd3674b54e33e2ad49d823d2249",
+      "snapshotBytes": 1375,
+      "snapshotInode": 895883770,
+      "optionalKeyOnDisk": true,
+      "optionalValueOnDisk": true,
+      "decodedFollowUpRequired": true
+    },
+    "old-read-only": {
+      "recordKind": "draft",
+      "revision": 3,
+      "snapshotSHA256": "f6abf1a8a5d2341b021f5ada5ae60921ce05bbd3674b54e33e2ad49d823d2249",
+      "snapshotBytes": 1375,
+      "snapshotInode": 895883770,
+      "optionalKeyOnDisk": true,
+      "optionalValueOnDisk": true
+    },
+    "new-read-after-read-only": {
+      "recordKind": "draft",
+      "revision": 3,
+      "snapshotSHA256": "f6abf1a8a5d2341b021f5ada5ae60921ce05bbd3674b54e33e2ad49d823d2249",
+      "snapshotBytes": 1375,
+      "snapshotInode": 895883770,
+      "optionalKeyOnDisk": true,
+      "optionalValueOnDisk": true,
+      "decodedFollowUpRequired": true
+    },
+    "old-save-draft": {
+      "recordKind": "draft",
+      "revision": 4,
+      "snapshotSHA256": "de33f5c8d9a91dc1c1d58cde25c6cdd5be74a1a3be463c5b8afe567885b5e594",
+      "snapshotBytes": 1382,
+      "snapshotInode": 895883783,
+      "optionalKeyOnDisk": false,
+      "optionalValueOnDisk": null,
+      "saveAcknowledged": true
+    },
+    "new-read-after-legacy-draft-save": {
+      "recordKind": "draft",
+      "revision": 4,
+      "snapshotSHA256": "de33f5c8d9a91dc1c1d58cde25c6cdd5be74a1a3be463c5b8afe567885b5e594",
+      "snapshotBytes": 1382,
+      "snapshotInode": 895883783,
+      "optionalKeyOnDisk": false,
+      "optionalValueOnDisk": null,
+      "decodedFollowUpRequired": null
+    },
+    "new-save-entry": {
+      "recordKind": "entry",
+      "revision": 4,
+      "snapshotSHA256": "e350343bfb229822204d6238146562a9b9d758884eae91941b0bf0b098c29e0a",
+      "snapshotBytes": 1485,
+      "snapshotInode": 895883805,
+      "optionalKeyOnDisk": true,
+      "optionalValueOnDisk": true,
+      "decodedFollowUpRequired": true,
+      "saveAcknowledged": true
+    },
+    "old-read-entry": {
+      "recordKind": "entry",
+      "revision": 4,
+      "snapshotSHA256": "e350343bfb229822204d6238146562a9b9d758884eae91941b0bf0b098c29e0a",
+      "snapshotBytes": 1485,
+      "snapshotInode": 895883805,
+      "optionalKeyOnDisk": true,
+      "optionalValueOnDisk": true
+    },
+    "old-save-unrelated-task": {
+      "recordKind": "entry",
+      "revision": 5,
+      "snapshotSHA256": "633857f4482a07f0326986787f2984dbe3bab868020f59697994cd6ce088cf89",
+      "snapshotBytes": 1624,
+      "snapshotInode": 895883834,
+      "optionalKeyOnDisk": false,
+      "optionalValueOnDisk": null,
+      "saveAcknowledged": true
+    },
+    "new-read-entry-after-legacy-task-save": {
+      "recordKind": "entry",
+      "revision": 5,
+      "snapshotSHA256": "633857f4482a07f0326986787f2984dbe3bab868020f59697994cd6ce088cf89",
+      "snapshotBytes": 1624,
+      "snapshotInode": 895883834,
+      "optionalKeyOnDisk": false,
+      "optionalValueOnDisk": null,
+      "decodedFollowUpRequired": null
+    }
+  },
+  "actual": {
+    "readOnlyRollbackPreservesBytesAndInode": true,
+    "legacySaveDraftPreservesNewField": false,
+    "legacyUnrelatedTaskSavePreservesNewEntryField": false,
+    "draft": "The old app read revision 3 with identical bytes and file identity. Re-upgrade recovered true before further writes. The legacy keepDraft call acknowledged the edit and committed revision 4 with the field missing. The new reader returned nil on reopening revision 4.",
+    "entry": "Forked the exact revision 3 snapshot and JPEG before the legacy draft save. The new app committed the same draft ID as an entry with the field set to true. The old reader read the entry with identical bytes and file identity. An unrelated old toggleTask save committed revision 5, removing the field from the otherwise unchanged entry. The new reader returned nil.",
+    "integrity": "The repository decoded the linked JPEG after every process launch. Its bytes and reference, the workspace/project/record IDs, category, title, occurrence date, and original outbox records matched throughout. The intentional edits and corresponding new outbox rows survived.",
+    "cause": "The older synthesized Codable reader ignores the unknown key. WorkspaceRepository.transact re-encodes the entire workspace with the older model, including records outside the edit."
+  },
+  "replay": {
+    "localSources": {
+      "verification/local/l08-scenario4-replay/run.py": "364d86c5f1ff128a13f3fc89fb82ca3c63328a94591cc825ea675003dd30441e",
+      "verification/local/l08-scenario4-replay/Probe.swift": "d75d126582a9f3ebd346727313e7f73572bd2e150a4ac6599907f34d654db9de"
+    },
+    "checkout": [
+      "git init -q fieldlog",
+      "git -c credential.helper= fetch --no-tags --depth=1 https://github.com/snowdamiz/fieldlog.git 552559d2d3278abb9b1aa7dcf0288102c09a202b",
+      "git checkout --detach FETCH_HEAD"
+    ],
+    "command": "From the Mixer root, run python3 verification/local/l08-scenario4-replay/run.py NEW_SCRATCH with the clean pinned checkout in NEW_SCRATCH/fieldlog.",
+    "compile": "For each of legacy and optional, swiftc -swift-version 6 -module-cache-path WORK/module-cache -I WORK/VARIANT emits an object and swiftmodule for FieldLogModels and FieldLogStorage, then links them with Probe.swift and WorkspaceModel.swift. The optional executable uses -D OPTIONAL_FIELD.",
+    "runtime": "Each phase launches WORK/legacy/probe or WORK/optional/probe with one action and a workspace directory. Each process opens, decodes, runs the action and closes the real WorkspaceRepository.",
+    "bounds": {
+      "compilerInvocationsOnFinalRun": 6,
+      "secondsPerCompiler": 35,
+      "secondsPerProbe": 10,
+      "totalCompilerWallSeconds": 25.823
+    },
+    "commandOrder": [
+      "revision/tree",
+      "source status",
+      "patch check",
+      "patch apply",
+      "legacy model compile",
+      "legacy storage compile",
+      "legacy probe link",
+      "optional model compile",
+      "optional storage compile",
+      "optional probe link",
+      "old-seed",
+      "new-write",
+      "old-read-only",
+      "new-read-after-read-only",
+      "old-save-draft",
+      "new-read-after-legacy-draft-save",
+      "new-save-entry",
+      "old-read-entry",
+      "old-save-unrelated-task",
+      "new-read-entry-after-legacy-task-save"
+    ],
+    "normalExitPGIDs": [
+      98081,
+      98083,
+      98086,
+      98087,
+      98088,
+      98589,
+      98640,
+      99418,
+      99484,
+      99550,
+      99786,
+      99798,
+      99826,
+      99830,
+      99831,
+      99832,
+      99833,
+      99837,
+      99850,
+      99915
+    ],
+    "commandResultsSHA256": "02606f5f10c52d42127120746e6664ccf1bf888671319bbfe550848165e0eb3e",
+    "initialAttempt": {
+      "completedBuildAndSeed": true,
+      "seedPGID": 95833,
+      "cause": "The runner merged AppKit color-space diagnostics with the JSON result. It stopped before the optional write.",
+      "mergedOutputSHA256": "52c5ee50590dbaa56b7521dbe0eb3fb96fe5cc94f94dd0f76731289c241922dd",
+      "correction": "The fresh replay used a device RGB fixture color and separate stdout and stderr."
+    }
+  },
+  "cleanup": {
+    "scratchRemoved": true,
+    "ownedProbeAndCompilerGroupsAbsent": true,
+    "retained": "Compact receipt and two source-only replay files in the ignored local replay directory.",
+    "devicesStarted": 0,
+    "listenersStarted": 0,
+    "accountsUsed": 0,
+    "externalMutations": 0
+  },
+  "limitations": [
+    "Host process replacement exercised the older writer. No new signed activation, mobile app binary, or on-device downgrade ran.",
+    "This result covers the public pinned standalone workspace implementation and private optional-field overlay, not every storage route or future schema.",
+    "L08 and mobile scenario 4 acceptance remain open."
+  ]
+}

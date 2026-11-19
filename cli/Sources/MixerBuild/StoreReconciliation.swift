@@ -97,7 +97,8 @@ public enum StoreReconciliation {
         let config: ApplicationConfiguration
         do { config = try ApplicationConfiguration.load(directory) }
         catch { throw MixerFailure("store.project", "Cannot load a valid project application identity from mixer.yml.") }
-        let identity = StoreObservationFile.Identity(buildID: request.buildID, appID: request.appID, bundleID: config.application)
+        let identity = StoreObservationFile.Identity(buildID: request.buildID, appID: request.appID,
+                                                     bundleID: config.applicationIdentifier(for: "ios"))
         let token = environment["MIXER_ASC_BEARER_TOKEN"] ?? ""
         guard token.isEmpty || ![identity.buildID, identity.appID, identity.bundleID].contains(where: { $0.contains(token) }) else {
             throw MixerFailure("store.credential-reflection", "The credential overlaps an application identity; refusing to persist or emit it.")
@@ -111,7 +112,7 @@ public enum StoreReconciliation {
         let failure: StoreQueryFailure?
         let updated: Bool
         do {
-            let value = try reader.read(buildID: request.buildID, appID: request.appID, bundleID: config.application, token: token, testing: request.testing)
+            let value = try reader.read(buildID: request.buildID, appID: request.appID, bundleID: identity.bundleID, token: token, testing: request.testing)
             let result = try file.commit(.init(generation: generation, observedAt: Date(), providerValue: value))
             observation = result.0; updated = result.1; query = updated ? "observed" : "superseded"; failure = nil
         } catch let error as StoreQueryFailure {

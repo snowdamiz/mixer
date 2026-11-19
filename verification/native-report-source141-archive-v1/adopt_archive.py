@@ -221,6 +221,14 @@ CAPABILITY_IDENTITY_SOURCE_SHA256 = '039ef48877383861160dbe0a5dd639f0bba08d0076c
 GUEST_CUTOFF = 'sdk/Sources/MixerGuest/GuestUIExchangeCore.swift'
 GUEST_CUTOFF_PREIMAGE = 'guest-cutoff-predecessor-bytes/' + GUEST_CUTOFF
 GUEST_CUTOFF_SOURCE_SHA256 = '515091e8069c5115c340943da3d0fba525f7a05b90c813d813392680704a6334'
+STORE_PLATFORM_IDENTITY_PREFIX = 'store-platform-identity-predecessor-bytes/'
+STORE_PLATFORM_IDENTITY_SOURCE_SHA256 = '3d752fc0388f791368d4623078561858d4a1c39226806c50538afa87ff1283be'
+STORE_PLATFORM_IDENTITY_INPUTS = {
+    'cli/Sources/MixerBuild/Configuration.swift',
+    'cli/Sources/MixerBuild/LocalStoreSubmission.swift',
+    'cli/Sources/MixerBuild/StoreReconciliation.swift',
+    'cli/Sources/MixerCLI/main.swift',
+}
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -229,7 +237,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW,
     GUEST_CUTOFF_PREIMAGE,
-} | {
+} | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
@@ -361,7 +369,7 @@ def install_inputs():
                              'application_registration_workflow', 'source_starter_selection_workflow',
                              'phoenix_ci_workflow', 'starter_package_closure_workflow',
                              'capability_identity_transition', 'guest_cutoff_transition', 'hosted_v41_workflow', 'hosted_v41_notices',
-                             'hosted_v42_workflow'} and
+                             'hosted_v42_workflow', 'store_platform_identity_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -769,9 +777,27 @@ def install_inputs():
             'Installed guest cutoff owner mode differs')
     installed[GUEST_CUTOFF] = expected_source[GUEST_CUTOFF] = guest_cutoff['after']
     preimages.setdefault(GUEST_CUTOFF, (raw_guest_cutoff, 0o644))
+    require(previous.digest(expected_source) == GUEST_CUTOFF_SOURCE_SHA256,
+            'Guest cutoff source transition differs')
+
+    store_identity = binding['store_platform_identity_transition']
+    require(set(store_identity) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            store_identity['sourceBefore'] == GUEST_CUTOFF_SOURCE_SHA256 and
+            set(store_identity['changes']) == STORE_PLATFORM_IDENTITY_INPUTS,
+            'Store platform identity transition roster differs')
+    for name, change in store_identity['changes'].items():
+        raw = read_predecessor_member(HERE / (STORE_PLATFORM_IDENTITY_PREFIX + name))
+        require(set(change) == {'before', 'after'} and
+                change['before'] == previous.row(raw) == installed[name] == expected_source[name] and
+                change['before'] != change['after'], 'Store platform identity predecessor differs: ' + name)
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Installed store platform identity mode differs: ' + name)
+        installed[name] = expected_source[name] = change['after']
+        preimages.setdefault(name, (raw, 0o644))
     require(current == expected_source and len(current) == 150 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': GUEST_CUTOFF_SOURCE_SHA256,
-    } and previous.digest(current) == GUEST_CUTOFF_SOURCE_SHA256, 'Guest cutoff source transition differs')
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': STORE_PLATFORM_IDENTITY_SOURCE_SHA256,
+    } and previous.digest(current) == store_identity['sourceAfter'] == STORE_PLATFORM_IDENTITY_SOURCE_SHA256,
+            'Store platform identity source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
