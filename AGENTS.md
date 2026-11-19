@@ -999,3 +999,10 @@ AVD `fieldlog_combined_a40188fff954`, ports 5660, 5661 and 49332, and the entire
 inspection, enumeration, probing, signalling, waiting, retry or cleanup.
 Only the copied compact `verification/receipts/l03-d3-android-install-custody-41a05264.json` provides current custody evidence.
 The enclosing replay and outer command exited, and no application frame was observed. Neither fact releases the hold.
+
+The fresh L07 native build capture ended with UNKNOWN worker custody. Preserve PID/PGID 35514,
+listener port 61604, and the entire `/Users/andreyyurlov/.t3/worktrees/mixer/t3-e2b73689/verification/local/l07-real-build-freeze.DGB7gn6J` namespace.
+Do not inspect, enumerate, probe, signal, wait on, retry, or clean up those resources.
+Only the compact `verification/receipts/l07-real-build-freeze-3ec017157a.json` and the already issued top-level HOLD metadata may identify
+ownership. Confirmed Phoenix, Oban, and PostgreSQL closure does not release the
+worker or any nested process or input hold.

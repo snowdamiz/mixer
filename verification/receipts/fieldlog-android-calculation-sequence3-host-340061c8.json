@@ -1,0 +1,436 @@
+{
+  "requirement": "L08 and product plan Section 22.2.1",
+  "status": "sequence_3_host_pair_healthy_historical_deadline_unattributed",
+  "checkout": {
+    "revision": "58951594a866492be7ce204e93a9533f892b2550",
+    "tree": "f610b7745283d445727cf32e0ee3fd45427dd925",
+    "packetRecipeRevision": "9ef38c3c249a45724ae4685234d0359744e389c6",
+    "packetRecipeTree": "fb691aeebec6ab7d3e434b62dbc4cb2b2cebb0d8",
+    "packetVMRevision": "5dea19db36610e312b51918b384364ba590b6ef8"
+  },
+  "environment": {
+    "host": "macOS 27.0.1 (26A434), arm64, 15 logical CPUs",
+    "loadAverageBeforeAndAfter": [
+      [
+        34.91,
+        40.47,
+        40.45
+      ],
+      [
+        29.74,
+        35.65,
+        38.38
+      ]
+    ],
+    "compiler": "Apple clang 21.0.0 (clang-2100.4.1.1)",
+    "runner": "Python 3.14.8"
+  },
+  "packet": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf",
+    "probeSHA256": "8d13a1f2ecde84dd974d86f3d44817b6c5b110e5f614a42a46fcf64618549abd",
+    "runtime": "547596077934c970c61ea5c62672244dd31affc8abe22a469bbf7930d6d3350e",
+    "seedSHA256": "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260",
+    "matchedInputRecoverySHA256": "4b420e7d74be05e9affff78533ff00e19d8192e89c85f89fa4dfd11dc86db764",
+    "sequence3AssignmentSHA256": "92a0bd5b62ee3b94b662596f85434cadb66bbc5c236a6711fb5d56eda302f23b",
+    "sequence3WasmSHA256": "35feea36a6c37cfb6d7c104143f8da041acd93551f42e23fe42f1b885e107610",
+    "manifestEntriesCheckedBeforeAndAfter": 50,
+    "allManifestEntriesUnchanged": true
+  },
+  "method": {
+    "callSites": [
+      "0x100211084 native wake FFI",
+      "0x1000142fc host probe observeNativeDisplay"
+    ],
+    "clockSource": {
+      "cpu": "CLOCK_THREAD_CPUTIME_ID",
+      "wall": "CLOCK_UPTIME_RAW"
+    },
+    "codeBytes": 340,
+    "sha256": "b5cdea5db16fae4f00ac0f656451ac0fe03b93ffd7d91ef0aab8f589245e57a3",
+    "traceSHA256": "42b1c2026cbd092affcfb128a83f58191acb435b71454dbaa625baa33a1683b3",
+    "deadlineMs": 50,
+    "pair": "Sequences 1 and 2 ran once on the delivered probe. Two independent copies of the same sequence-2 durable state supplied rollback sequence 3, delivered-probe arm first.",
+    "diagnostic": "A disposable arm64 host executable copy redirected two direct call sites to a 340-byte shim in verified zero padding and was ad-hoc re-signed. The shim calls the original targets and returns their result. It reads clocks around the native wake FFI, writes the record after return, and timestamps the app-witness acknowledgement result. The native wrapper and clock reads are included in the measured span.",
+    "buildCommand": [
+      "/usr/bin/xcrun",
+      "clang",
+      "-c",
+      "verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/wake.S",
+      "-o",
+      "verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/wake.o"
+    ],
+    "runnerCommand": [
+      "python3",
+      "-B",
+      "verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/run.py",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-calculation-root-host.fHluYfkC/owned"
+    ],
+    "unchangedInputs": [
+      "signed packet",
+      "trust roots",
+      "grants",
+      "workspace",
+      "VM limits and deadline"
+    ]
+  },
+  "identityHashes": {
+    "assemblySHA256": "851f754443968ddfd28ff6e4e9a2293594789817eda6cfbdc257201a09b5e98f",
+    "rootCleanupSHA256": "91d64c39c6b1e207dc2afa269d42c66bc0f1c864b11bc26845696984b0670727",
+    "rootReceiptSHA256": "b72027a8e8c2d89375a251537df612fd0fa42e97d4f59a2ab804845151949cf9",
+    "rootSequence3LogSHA256": "86c4cc46ad97cabe3961952b81c4d93caf3c07b4a98521799ef0b827b50bf663",
+    "runnerSHA256": "8f1a1ad571a3fcdc9bb976b20622a68f050dfec48ad3f3bf90d1fd258a70b8d9"
+  },
+  "historicalControls": {
+    "rootReceiptDirectory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-calculation-root-host.fHluYfkC/owned",
+    "independentRoot": "Accepted sequence 3, recoveryRequired after effects intent, native wake status 2 capability_turn_timeout at function 12 byte 1981, stopped before first frame. Three groups closed and owned state removed.",
+    "publishedPacket": "One healthy three-phase and offline replay, one sequence-2 missing frame with no named cause, and one offline sequence-3 wake deadline at function 21 byte 4787 after healthy online rollback.",
+    "publishedTiming": "fieldlog-vm-clock-accounting-r5958.json and fieldlog-vm-frame-agreement-adoption-r6008.json measure a different text-input workload. They supply context for clock overhead and do not measure this calculation wake."
+  },
+  "commands": [
+    {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf/CalculationProbe",
+        "phase",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf/delivery-android",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/state",
+        "1"
+      ],
+      "custody": "CLOSED",
+      "elapsedNS": 1167719750,
+      "exit": 0,
+      "label": "setup-1",
+      "pgid": 67628,
+      "pid": 67628,
+      "recoverySHA256": "41188d3a722c127f1285eea8fd9be4ce15d6b4a6f0dd25bd7176533e23d5dc08",
+      "result": {
+        "candidate": "1180fcdc26e5e41bc9c92a8d2ce756387c27185edb1fe4fcf3f3239157da40bc",
+        "launchID": "9733107F-BAFA-4B00-94A7-95586820D22B",
+        "observed": [
+          "0%",
+          "100%",
+          "0%"
+        ],
+        "retired": true,
+        "sequence": 1
+      },
+      "state": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/state",
+      "stderrEOF": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "2ebcb527a2678e016159cacf6037fd26fafaf95d3e6837c8a15b03111be4d8ae",
+      "workspaceSHA256": "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260",
+      "workspaceUnchanged": true,
+      "recovery": {
+        "acceptedSequence": 1,
+        "attempt": null,
+        "healthy": {
+          "candidateID": "1180fcdc26e5e41bc9c92a8d2ce756387c27185edb1fe4fcf3f3239157da40bc",
+          "committedAtWallTime": 1795060081,
+          "completedMilestones": [
+            "first_screen",
+            "feature_started"
+          ],
+          "launchID": "9733107F-BAFA-4B00-94A7-95586820D22B",
+          "observationSeconds": 1
+        },
+        "installation": "9ab55dd2-32cd-4a29-a43b-a6d96867c761",
+        "lastRecovery": "effects_closed",
+        "pending": null,
+        "previousHealthy": null
+      }
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf/CalculationProbe",
+        "phase",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf/delivery-android",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/state",
+        "2"
+      ],
+      "custody": "CLOSED",
+      "elapsedNS": 1228056542,
+      "exit": 0,
+      "label": "setup-2",
+      "pgid": 67673,
+      "pid": 67673,
+      "recoverySHA256": "4b420e7d74be05e9affff78533ff00e19d8192e89c85f89fa4dfd11dc86db764",
+      "result": {
+        "candidate": "33c634e94b93df15926420f3754ff23998bd57d3639b3aa5298b7d6f09c53343",
+        "launchID": "37E7E595-FB32-4B64-BDB6-B08C9E92772B",
+        "observed": [
+          "33%",
+          "100%",
+          "0%"
+        ],
+        "retired": true,
+        "sequence": 2
+      },
+      "state": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/state",
+      "stderrEOF": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "76ae53d6677ee4a20855485b96c659200f184d5615abdfef1cdf743000bccd91",
+      "workspaceSHA256": "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260",
+      "workspaceUnchanged": true,
+      "recovery": {
+        "acceptedSequence": 2,
+        "attempt": null,
+        "healthy": {
+          "candidateID": "33c634e94b93df15926420f3754ff23998bd57d3639b3aa5298b7d6f09c53343",
+          "committedAtWallTime": 1795060082,
+          "completedMilestones": [
+            "first_screen",
+            "feature_started"
+          ],
+          "launchID": "37E7E595-FB32-4B64-BDB6-B08C9E92772B",
+          "observationSeconds": 1
+        },
+        "installation": "9ab55dd2-32cd-4a29-a43b-a6d96867c761",
+        "lastRecovery": "effects_closed",
+        "pending": null,
+        "previousHealthy": "1180fcdc26e5e41bc9c92a8d2ce756387c27185edb1fe4fcf3f3239157da40bc"
+      }
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf/CalculationProbe",
+        "phase",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf/delivery-android",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/rollback-plain",
+        "3"
+      ],
+      "custody": "CLOSED",
+      "elapsedNS": 2160800958,
+      "exit": 0,
+      "label": "rollback-plain",
+      "origin": [
+        {
+          "installation": "9ab55dd2-32cd-4a29-a43b-a6d96867c761",
+          "kind": "offer",
+          "sha256": "9e375f0d842639b64138ac539e5c3d569145013fb2793b5804c76e8d4dad0890",
+          "wireBytes": 783
+        },
+        {
+          "kind": "artifact",
+          "sha256": "263deaa9d05072a3d73450cade8cabe8ef0e8ad2aecb0056785b0038c0899b98",
+          "wireBytes": 15548
+        }
+      ],
+      "pgid": 67759,
+      "pid": 67759,
+      "recoverySHA256": "ccd4c879ddea841c39e872bd2d152355562954d8ef9c008288dcf50f59ac634e",
+      "result": {
+        "candidate": "29a7045cf5cbed6597d62da49b26307b3fe8b29704e14ca43479e5a21e3d1f97",
+        "launchID": "0C5DC1C1-53C4-4775-89D3-FEA831FD0AA7",
+        "observed": [
+          "0%",
+          "100%",
+          "0%"
+        ],
+        "retired": true,
+        "sequence": 3
+      },
+      "state": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/rollback-plain",
+      "stderrEOF": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "d06473ce350a0986c5edaa94a3ce938dd4f3493b602240a0487a1c3fe12a071a",
+      "workspaceSHA256": "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260",
+      "workspaceUnchanged": true,
+      "recovery": {
+        "acceptedSequence": 3,
+        "attempt": null,
+        "healthy": {
+          "candidateID": "29a7045cf5cbed6597d62da49b26307b3fe8b29704e14ca43479e5a21e3d1f97",
+          "committedAtWallTime": 1795060085,
+          "completedMilestones": [
+            "feature_started",
+            "first_screen"
+          ],
+          "launchID": "0C5DC1C1-53C4-4775-89D3-FEA831FD0AA7",
+          "observationSeconds": 1
+        },
+        "installation": "9ab55dd2-32cd-4a29-a43b-a6d96867c761",
+        "lastRecovery": "effects_closed",
+        "pending": null,
+        "previousHealthy": "33c634e94b93df15926420f3754ff23998bd57d3639b3aa5298b7d6f09c53343"
+      }
+    },
+    {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/CalculationProbe-timed",
+        "phase",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e9b2cbdf/verification/local/fieldlog-android-calculation-e9b2cbdf/delivery-android",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/rollback-timed",
+        "3"
+      ],
+      "custody": "CLOSED",
+      "elapsedNS": 1574657792,
+      "exit": 0,
+      "label": "rollback-timed",
+      "origin": [
+        {
+          "installation": "9ab55dd2-32cd-4a29-a43b-a6d96867c761",
+          "kind": "offer",
+          "sha256": "9e375f0d842639b64138ac539e5c3d569145013fb2793b5804c76e8d4dad0890",
+          "wireBytes": 783
+        },
+        {
+          "kind": "artifact",
+          "sha256": "263deaa9d05072a3d73450cade8cabe8ef0e8ad2aecb0056785b0038c0899b98",
+          "wireBytes": 15548
+        }
+      ],
+      "pgid": 67869,
+      "pid": 67869,
+      "recoverySHA256": "416cc54f6a856c821a72ce52bbdadd4f243a64ca4d919050fab2cdcf2f0b6730",
+      "result": {
+        "candidate": "29a7045cf5cbed6597d62da49b26307b3fe8b29704e14ca43479e5a21e3d1f97",
+        "launchID": "A595ADB2-FA29-401D-A81C-C63050AE558B",
+        "observed": [
+          "0%",
+          "100%",
+          "0%"
+        ],
+        "retired": true,
+        "sequence": 3
+      },
+      "state": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-340061c8/verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/rollback-timed",
+      "stderrEOF": true,
+      "stderrSHA256": "a663c5834c6bcf07bbabf8cebd145b121b6887e45fedf9ea3c49c94c7095f5a5",
+      "stdoutSHA256": "9ec35f62c14b4375fe410f491bf80a1999be4306e5ee8ac5cd469f2ceaf9cd94",
+      "workspaceSHA256": "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260",
+      "workspaceUnchanged": true,
+      "recovery": {
+        "acceptedSequence": 3,
+        "attempt": null,
+        "healthy": {
+          "candidateID": "29a7045cf5cbed6597d62da49b26307b3fe8b29704e14ca43479e5a21e3d1f97",
+          "committedAtWallTime": 1795060086,
+          "completedMilestones": [
+            "first_screen",
+            "feature_started"
+          ],
+          "launchID": "A595ADB2-FA29-401D-A81C-C63050AE558B",
+          "observationSeconds": 1
+        },
+        "installation": "9ab55dd2-32cd-4a29-a43b-a6d96867c761",
+        "lastRecovery": "effects_closed",
+        "pending": null,
+        "previousHealthy": "33c634e94b93df15926420f3754ff23998bd57d3639b3aa5298b7d6f09c53343"
+      }
+    }
+  ],
+  "timedWake": {
+    "events": [
+      {
+        "didInvoke": 0,
+        "endWallNS": 1201896386723500,
+        "event": "wake",
+        "function": 4294967295,
+        "offset": 0,
+        "reportFuel": 0,
+        "reportHostCalls": 0,
+        "startWallNS": 1201896386722125,
+        "status": 0,
+        "threadCPUNS": 833,
+        "wallMinusCPUNS": 542,
+        "wallNS": 1375
+      },
+      {
+        "didInvoke": 0,
+        "endWallNS": 1201896403145666,
+        "event": "wake",
+        "function": 4294967295,
+        "offset": 0,
+        "reportFuel": 0,
+        "reportHostCalls": 0,
+        "startWallNS": 1201896403144125,
+        "status": 0,
+        "threadCPUNS": 1125,
+        "wallMinusCPUNS": 416,
+        "wallNS": 1541
+      },
+      {
+        "didInvoke": 0,
+        "endWallNS": 1201896409008458,
+        "event": "wake",
+        "function": 4294967295,
+        "offset": 0,
+        "reportFuel": 0,
+        "reportHostCalls": 0,
+        "startWallNS": 1201896409006500,
+        "status": 0,
+        "threadCPUNS": 1333,
+        "wallMinusCPUNS": 625,
+        "wallNS": 1958
+      },
+      {
+        "didInvoke": 0,
+        "endWallNS": 1201896409041875,
+        "event": "wake",
+        "function": 4294967295,
+        "offset": 0,
+        "reportFuel": 0,
+        "reportHostCalls": 0,
+        "startWallNS": 1201896409041208,
+        "status": 0,
+        "threadCPUNS": 375,
+        "wallMinusCPUNS": 292,
+        "wallNS": 667
+      },
+      {
+        "didInvoke": 0,
+        "endWallNS": 1201896413042875,
+        "event": "wake",
+        "function": 4294967295,
+        "offset": 0,
+        "reportFuel": 0,
+        "reportHostCalls": 0,
+        "startWallNS": 1201896413040000,
+        "status": 0,
+        "threadCPUNS": 2292,
+        "wallMinusCPUNS": 583,
+        "wallNS": 2875
+      },
+      {
+        "didInvoke": 1,
+        "endWallNS": 1201896419877250,
+        "event": "wake",
+        "function": 4294967295,
+        "offset": 0,
+        "reportFuel": 77568,
+        "reportHostCalls": 1,
+        "startWallNS": 1201896413311333,
+        "status": 0,
+        "threadCPUNS": 1456125,
+        "wallMinusCPUNS": 5109792,
+        "wallNS": 6565917
+      },
+      {
+        "accepted": true,
+        "event": "observeNativeDisplay-return",
+        "wallNS": 1201896435723250
+      }
+    ],
+    "executingWakeWallNS": 6565917,
+    "executingWakeThreadCPUNS": 1456125,
+    "executingWakeWallMinusCPUNS": 5109792,
+    "acknowledgementAfterWakeReturnNS": 15846000
+  },
+  "finding": "Both sequence-3 launches earned first_screen and feature_started, retained sequence 2 as previousHealthy, and retired with exact workspace bytes. The measured successful wake took 6.566 ms wall, 1.456 ms execution-thread CPU and 5.110 ms wall minus CPU, including clock and wrapper overhead. The host witness acknowledged the first frame 15.846 ms after wake return.",
+  "unobservedBoundary": "The execution-thread CPU versus scheduler or wait split inside a sequence-3 wake that reaches capability_turn_timeout. The historical failure ends in the native wake before app acknowledgement. The matched pair did not reproduce that expiry.",
+  "closure": {
+    "processGroupsAbsentAfterReap": 4,
+    "loopbackPort": 53292,
+    "bindReusable": true,
+    "connectionRefused": true,
+    "socketClosed": true,
+    "threadJoined": true,
+    "ownedWorkspaceCopiesRemoved": true,
+    "diagnosticExecutableAndRawOutputsRemoved": true,
+    "retainedLocalInputs": [
+      "verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/run.py",
+      "verification/local/fieldlog-calculation-wake-340061c8.O9Fql4o2/wake.S"
+    ]
+  },
+  "localGatesPassed": []
+}
