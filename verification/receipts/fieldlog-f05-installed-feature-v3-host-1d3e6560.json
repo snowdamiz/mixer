@@ -1,0 +1,346 @@
+{
+  "schema": 1,
+  "status": "PASS_MACOS_SIGNED_FEATURE_V3_INSTALLED_COORDINATOR",
+  "observedUTC": "2026-11-19T02:34:54.637523+00:00",
+  "implementationCommit": "1d3e65600a5bb05770d94d26dff81d3f3df1cc9e",
+  "testedTree": "472b2edce4041347678d5a41f0a73b6bd32eb5ee",
+  "previousExactHostProofCommit": "a4376111f6cfa389e42076be0f1feab029aa1a8c",
+  "previousHostReceipt": "verification/receipts/fieldlog-f05-signed-feature-v3-host-3607a916.json",
+  "designDecision": "verification/receipts/fieldlog-f05-signed-design-decision-41a05264.json",
+  "patch": {
+    "path": "verification/local/f05-installed-path-delivery/f05-installed-path.patch",
+    "sha256": "5ab57852d593ef5d82c41cdaaccda2edcd1606906453912bfb13c832f866fdda"
+  },
+  "tools": {
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "sdk": "27.2",
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434"
+  },
+  "replay": {
+    "driver": "compiler/experiments/fieldlog-change-corpus/signed-feature-v3/replay.py",
+    "arguments": "Select a fresh --output under verification/local, the installed --cargo, and local repositories for --swift-crypto and --swift-asn1 at the exact Package.resolved revisions.",
+    "swiftDependencies": {
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2"
+    },
+    "commands": [
+      {
+        "name": "revision",
+        "argv": [
+          "/usr/bin/git",
+          "rev-parse",
+          "HEAD"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.746,
+        "stdoutSHA256": "604e47c76fa1646c3f922ea4d73cb4450a397f9b7b2606911969f9ac9c0f1292",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "swift-version",
+        "argv": [
+          "/usr/bin/swift",
+          "--version"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.203,
+        "stdoutSHA256": "4b59da256292ae42e3f04ef6d06ea3e139678613a3cd3d0dc37a6757c0bd290a",
+        "stderrSHA256": "bbc8b176d3c74d4c5a7fd00b40280f98168e116d5272273bfe8e71407625540e"
+      },
+      {
+        "name": "rust-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc",
+          "--version"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.187,
+        "stdoutSHA256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "cargo-version",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "--version"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.041,
+        "stdoutSHA256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "macos-sdk",
+        "argv": [
+          "/usr/bin/xcrun",
+          "--sdk",
+          "macosx",
+          "--show-sdk-version"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.03,
+        "stdoutSHA256": "53e1ae253beb3b8a3b99dd2d4ec1eb641d392378329fcdccb560779fdf46de0b",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "macos-version",
+        "argv": [
+          "/usr/bin/sw_vers"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.027,
+        "stdoutSHA256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "build-vm",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "build",
+          "--manifest-path",
+          "$checkout/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--release",
+          "--lib",
+          "--example",
+          "signed_feature_v3_fixture",
+          "--features",
+          "experimental-capability-native,experimental-signed-feature-v3-host"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 14.021,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e78c7bf83e3f312b2f585328e17c0d9aab7165f7564c90d26af0444467465ccb"
+      },
+      {
+        "name": "build-guest",
+        "argv": [
+          "$output/cargo/release/examples/signed_feature_v3_fixture",
+          "$output/guest.wasm"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.031,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "build-host",
+        "argv": [
+          "/usr/bin/swift",
+          "build",
+          "--package-path",
+          "$checkout/compiler/experiments/fieldlog-change-corpus/signed-feature-v3",
+          "--cache-path",
+          "$output/cache",
+          "--config-path",
+          "$output/config",
+          "--security-path",
+          "$output/security",
+          "--force-resolved-versions",
+          "--jobs",
+          "8",
+          "-Xcc",
+          "-I$checkout/vm/include",
+          "--scratch-path",
+          "$output/swift",
+          "-Xswiftc",
+          "-DMIXER_SIGNED_FEATURE_V3_PROBE",
+          "-Xswiftc",
+          "-enable-testing",
+          "-Xlinker",
+          "-L$output/lib"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 64.807,
+        "stdoutSHA256": "348e67851d265c2385cf4e6308b89cedf35857d6fb0f34462e28426de9ee21bb",
+        "stderrSHA256": "d44dfcfcde63db4b6fc56aa62a9c30bc97559dac8601f7d0ac96b52b7230f541"
+      },
+      {
+        "name": "host-bin-path",
+        "argv": [
+          "/usr/bin/swift",
+          "build",
+          "--package-path",
+          "$checkout/compiler/experiments/fieldlog-change-corpus/signed-feature-v3",
+          "--cache-path",
+          "$output/cache",
+          "--config-path",
+          "$output/config",
+          "--security-path",
+          "$output/security",
+          "--force-resolved-versions",
+          "--jobs",
+          "8",
+          "-Xcc",
+          "-I$checkout/vm/include",
+          "--scratch-path",
+          "$output/swift",
+          "-Xswiftc",
+          "-DMIXER_SIGNED_FEATURE_V3_PROBE",
+          "-Xswiftc",
+          "-enable-testing",
+          "-Xlinker",
+          "-L$output/lib",
+          "--show-bin-path"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.967,
+        "stdoutSHA256": "04088a14d61148633e8b8e30ff3f33137791a2a783befa1ee193ba2c784326b8",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "host-proof",
+        "argv": [
+          "$output/swift/out/Products/Debug/SignedFeatureV3HostProbe",
+          "$checkout/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures",
+          "$output/guest.wasm",
+          "$output/run"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 22.514,
+        "stdoutSHA256": "c7015951a016a2290e3690fdc6578c138c7ea9ddefc4e0764790eee5f81dae67",
+        "stderrSHA256": "6b901eb5553a23f22b3a1c7c3c81586a927bc7d15b58430a97fa9b2484df4064"
+      },
+      {
+        "name": "build-default-target",
+        "argv": [
+          "/usr/bin/swift",
+          "build",
+          "--package-path",
+          "$checkout/compiler/experiments/fieldlog-change-corpus/signed-feature-v3",
+          "--cache-path",
+          "$output/cache",
+          "--config-path",
+          "$output/config",
+          "--security-path",
+          "$output/security",
+          "--force-resolved-versions",
+          "--jobs",
+          "8",
+          "-Xcc",
+          "-I$checkout/vm/include",
+          "--scratch-path",
+          "$output/swift-default",
+          "--target",
+          "MixerCapabilityActivation"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 47.914,
+        "stdoutSHA256": "f1cf4741f4cb50f5400d23162642a5b8084310a8f25fe2d5581bd2824c6be600",
+        "stderrSHA256": "b27e747695a87d4c6ee6ae599163f436876699df8ff5df84ba6323e4fc7bf746"
+      },
+      {
+        "name": "guest-ui-v1-signed-runtime",
+        "argv": [
+          "/usr/bin/swift",
+          "test",
+          "--package-path",
+          "$checkout/capability-activation",
+          "--cache-path",
+          "$output/cache",
+          "--config-path",
+          "$output/config",
+          "--security-path",
+          "$output/security",
+          "--force-resolved-versions",
+          "--jobs",
+          "8",
+          "-Xcc",
+          "-I$checkout/vm/include",
+          "--scratch-path",
+          "$output/swift-default",
+          "-Xlinker",
+          "-L$output/lib",
+          "--filter",
+          "GuestUISignedRuntimeTests"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 39.07,
+        "stdoutSHA256": "06cfe85f4d827059c203a45cb52fbc9e6d9c54f470d9fa2a9aec6ec8931a4c4e",
+        "stderrSHA256": "0392dca5bee6a66e825fac24706ffe92339a9e874213e512b9a84e5c2546864e"
+      }
+    ]
+  },
+  "guest": {
+    "bytes": 1973,
+    "sha256": "3a0f646cccda9b95ae873179ecf83b95d5221bf9095a9c4428086d59ef8afdb3"
+  },
+  "vmArchiveSHA256": "fa9018f51fa7ed1a07243791d4ad44b38c95fc3cf56421af11c970980d75c78b",
+  "hostSHA256": "38e5d4547e591882c2fa8cc3a0993d807bb19073e0f8eebeec441cf6df2fc1fc",
+  "bounds": {
+    "authenticatedGuestBytes": 4194304,
+    "initialMemoryCeilingPages": 64,
+    "featureFrameBytes": 65536,
+    "startupMilliseconds": 5000,
+    "signedGuestFuel": 100000,
+    "observationSeconds": 10,
+    "hostProofDeadlineSeconds": 30
+  },
+  "observations": [
+    "guest_bytes=1973 guest_sha256=3a0f646cccda9b95ae873179ecf83b95d5221bf9095a9c4428086d59ef8afdb3 profile_sha256=7910c3c88954d55dd2aa372314c1d3c0d9c259719aa602d4c8dc75a114c1e0f4",
+    "refused=feature-profile-on-legacy-entry boundary=capability.runtime.installed_mode native_constructs=0 guest_entries=0",
+    "refused=wrong-installed-profile boundary=capability.store.feature_v3_profile native_constructs=0 guest_entries=0",
+    "refused=manifest-signature boundary=v3.signature.invalid native_constructs=0 guest_entries=0",
+    "refused=assignment-signature boundary=v3.signature.invalid native_constructs=0 guest_entries=0",
+    "refused=assignment-artifact-binding boundary=v3.assignment.binding native_constructs=0 guest_entries=0",
+    "refused=runtime-fingerprint boundary=v3.manifest.compatibility native_constructs=0 guest_entries=0",
+    "refused=signed-tuple boundary=v3.manifest.version native_constructs=0 guest_entries=0",
+    "refused=tampered-delivery boundary=v3.payload.integrity native_constructs=0 guest_entries=0",
+    "refused=signed-invalid-module boundary=capability.store.feature_v3_validation native_constructs=0 guest_entries=0",
+    "refused=signed-low-memory boundary=capability.store.feature_v3_validation native_constructs=0 guest_entries=0",
+    "refused=corrupt-staged-file boundary=prepare-selection native_constructs=0 guest_entries=0",
+    "refused=expired-after-consume boundary=capability.store.deadline native_constructs=0 guest_entries=0",
+    "refused=replayed-sequence boundary=v3.assignment.replay native_constructs=0 guest_entries=0",
+    "refused=foreign-topology-same-generation boundary=capability.store.selection native_constructs=0 guest_entries=0",
+    "refused=reused-selection boundary=capability.store.selection native_constructs=0 guest_entries=0",
+    "enabled_sequence=7 candidate=839a572e519eba789f4174713ac03255b399be8d3eba27c6b1c4e94fc3bf2455 launch=D9BFD508-E202-4438-A0E2-584FC32626A7 generation=1 native_constructs=1 guest_entries=1 durable_intent=true health=false native_clean=true",
+    "reopen=unknown_interruption_after_effects replay_high_water=7 retained_selection=false",
+    "legacy_route=provisionalGuest reservation_slots=0 status=pass",
+    "competing_attachment=refused before_native_construction=true effects_intent=false active_owner_unchanged=true",
+    "installed_launch=1 source=fresh generation=1 candidate=beb85ec4ca74ec1601377e8c9dd6471eff4b4abe67bdff3c5555535e78a56379 launch=C6ADA0EB-98EA-4EB0-924F-324BD79228BB durable_intent=true unacknowledged_after_observation=true",
+    "matched_display_ack=C6ADA0EB-98EA-4EB0-924F-324BD79228BB durable_health=beb85ec4ca74ec1601377e8c9dd6471eff4b4abe67bdff3c5555535e78a56379 fingerprint=327702bd8e76422e7070f68d4235c11f0d866a6d7c8ff0c924fe71dcf47dd938 ack_elapsed=0.002826208 seconds",
+    "retired_launch=C6ADA0EB-98EA-4EB0-924F-324BD79228BB native_clean=1 attachment_empty=true reservation_slots=0 durable_health_retained=true",
+    "stale_display_and_retirement=refused same_generation=1 retained_candidate=beb85ec4ca74ec1601377e8c9dd6471eff4b4abe67bdff3c5555535e78a56379",
+    "installed_launch=2 source=retained generation=1 candidate=beb85ec4ca74ec1601377e8c9dd6471eff4b4abe67bdff3c5555535e78a56379 launch=328A8F9A-E891-4A93-8690-C37C70D774BC durable_intent=true unacknowledged_after_observation=true",
+    "matched_display_ack=328A8F9A-E891-4A93-8690-C37C70D774BC durable_health=beb85ec4ca74ec1601377e8c9dd6471eff4b4abe67bdff3c5555535e78a56379 fingerprint=327702bd8e76422e7070f68d4235c11f0d866a6d7c8ff0c924fe71dcf47dd938 ack_elapsed=0.002164083 seconds",
+    "retired_launch=328A8F9A-E891-4A93-8690-C37C70D774BC native_clean=2 attachment_empty=true reservation_slots=0 durable_health_retained=true"
+  ],
+  "guestUIV1": {
+    "buildFlag": "default without MIXER_SIGNED_FEATURE_V3_PROBE",
+    "passed": 11,
+    "failures": 0,
+    "cases": [
+      "testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut",
+      "testMissingRequiredUIExportCannotStageOrCreateAdapter",
+      "testPostIntentPresentationFailurePublishesReopenInBothPublicSnapshots",
+      "testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone",
+      "testPublicUIOpenRejectsLegacyIdentityBeforeFullPoolAndFilesystem",
+      "testSignedEventCommitsStorageBeforeGuestShowsSaved",
+      "testSignedEventWithoutGrantReportsUnavailableWithoutStorage",
+      "testSignedStartupDisplaysButOffscreenCannotEarnHealth",
+      "testStartupUIProtocolFailureFallsBackWithoutTrapCoercionOrEffects",
+      "testThrowingBodyClosesExactRuntimeBeforeErrorEscapes",
+      "testWrongSignedPayloadFailsWithoutStagingOrEffects"
+    ]
+  },
+  "checks": [
+    "Fresh and retained launches used the public host SPI, the installed verifier, and the existing cold-start coordinator and durable store.",
+    "The offered first frame matched the on-disk effects intent, payload, launch, candidate, and installed fingerprint. The current launch had no health after the observation window and generic milestone reporting was rejected.",
+    "Only the exact controlled display ticket committed first_screen and health for the current launch. A retired ticket could neither acknowledge nor retire a newer launch with the same generation and candidate.",
+    "A second coordinator using the same attachment was refused before VM construction and effects intent. It did not displace the active frame.",
+    "Each successful installed launch performed one native startup and one clean native retirement. Its attachment was empty, reservation pool returned to zero, and committed health survived retirement and reopening."
+  ],
+  "scope": "Private macOS controlled display attachment with real signed WASM and real durable I/O. Application-native rendering, device qualification, and the complete F05 editor remain pending.",
+  "originalF05": {
+    "status": "UNQUALIFIED_ABOVE_INSTALLED_PAYLOAD_CEILING",
+    "bytes": 54739192,
+    "installedLimitBytes": 4194304,
+    "sizeAttribution": "verification/receipts/fieldlog-f05-size-attribution-3607a916.json"
+  },
+  "cleanupReceipt": "verification/receipts/fieldlog-f05-installed-feature-v3-cleanup-1d3e6560.json",
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}
