@@ -146,8 +146,13 @@ public enum AndroidProject {
     }
 
     public static func build(root: URL) throws -> CommandResult {
-        let lock = try ProjectBuild.verifyLock(root: root, androidRequired: true)
-        guard lock.android != nil else { throw MixerFailure("android.not-generated", "This project has no locked Android host. Create a new project with --platform android; existing sources are never overwritten.") }
+        _ = try prepareBuild(root: root)
+        return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root, policy: .developmentBuild)
+    }
+
+    static func prepareBuild(root: URL) throws -> (lock: ToolchainLock, bytes: Data) {
+        let validated = try ProjectBuild.verifiedLock(root: root, androidRequired: true)
+        guard validated.lock.android != nil else { throw MixerFailure("android.not-generated", "This project has no locked Android host. Create a new project with --platform android; existing sources are never overwritten.") }
         let config = try ApplicationConfiguration.load(root)
         try AndroidSDKCompatibility.requireHost(config.androidHost)
         let publicSelections = ["public-host-v3.json", "public-host-v4.json"].map {
@@ -165,7 +170,7 @@ public enum AndroidProject {
         guard try SourceDigest.files(in: root.appendingPathComponent("Resources")).isEmpty else { throw MixerFailure("android.unsupported-resources", "Android resource packaging is not integrated. App resources cannot be silently omitted.") }
         // Starters created before the seed was added may still have no platform lock.
         try seedDependencyLock(root: root)
-        return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root, policy: .developmentBuild)
+        return validated
     }
 
     private static let runtimePackage = """

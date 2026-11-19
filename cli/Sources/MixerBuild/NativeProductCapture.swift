@@ -129,7 +129,7 @@ public enum NativeProductCapture {
     private static func stamp(_ info: stat) -> String {
         "\(info.st_dev):\(info.st_ino):\(info.st_mode):\(info.st_nlink):\(info.st_size):\(info.st_mtimespec.tv_sec):\(info.st_mtimespec.tv_nsec):\(info.st_ctimespec.tv_sec):\(info.st_ctimespec.tv_nsec)"
     }
-    private static func regular(_ fd: Int32, maximum: Int = archiveByteLimit) throws -> Data {
+    static func regular(_ fd: Int32, maximum: Int = archiveByteLimit) throws -> Data {
         var before = stat(); try check(fstat(fd, &before))
         guard before.st_mode & S_IFMT == S_IFREG, before.st_nlink == 1, before.st_uid == geteuid(),
               before.st_size >= 0, before.st_size <= maximum else { throw Failure.unsafeFile }
@@ -372,20 +372,32 @@ public enum NativeProductCapture {
         return result
     }
     private static func readObject(_ descriptor: Descriptor, store: URL) throws -> Data {
-        guard digestString(descriptor.sha256), descriptor.sizeBytes > 0, descriptor.sizeBytes <= archiveByteLimit,
-              descriptor.ownedPath == store.path + "/" + descriptor.sha256 else { throw Failure.corruptObject }
         let root = try directory(store, privateStore: true); defer { close(root) }
-        let fd = openat(root, descriptor.sha256, O_RDONLY | O_NOFOLLOW | O_CLOEXEC); try check(fd); defer { close(fd) }
+        return try readContent(sha256: descriptor.sha256, size: descriptor.sizeBytes, path: descriptor.ownedPath,
+                               store: store, fd: root)
+    }
+    static func readContent(sha256: String, size: UInt64, path: String, store: URL, fd root: Int32) throws -> Data {
+        guard digestString(sha256), size > 0, size <= archiveByteLimit,
+              path == store.path + "/" + sha256 else { throw Failure.corruptObject }
+        let fd = openat(root, sha256, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC); try check(fd); defer { close(fd) }
         var info = stat(); try check(fstat(fd, &info))
         guard info.st_mode & 0o777 == 0o444 else { throw Failure.corruptObject }
         let bytes = try regular(fd)
-        guard UInt64(bytes.count) == descriptor.sizeBytes, hash(bytes) == descriptor.sha256 else { throw Failure.corruptObject }
+        var named = stat()
+        guard fstatat(root, sha256, &named, AT_SYMLINK_NOFOLLOW) == 0, stable(info, named),
+              UInt64(bytes.count) == size, hash(bytes) == sha256 else { throw Failure.corruptObject }
         return bytes
     }
     private static func retain(_ data: Data, kind: Kind, store: URL) throws -> Descriptor {
-        let digest = hash(data)
-        let descriptor = Descriptor(kind: kind, sha256: digest, sizeBytes: UInt64(data.count), ownedPath: store.path + "/" + digest)
         let root = try directory(store, privateStore: true); defer { close(root) }
+        let retained = try retainContent(data, store: store, fd: root)
+        return Descriptor(kind: kind, sha256: retained.sha256, sizeBytes: retained.size, ownedPath: retained.path)
+    }
+    static func retainContent(_ data: Data, store: URL, fd root: Int32) throws -> (sha256: String, size: UInt64, path: String) {
+        guard !data.isEmpty, data.count <= archiveByteLimit else { throw Failure.limit }
+        let digest = hash(data)
+        let path = store.path + "/" + digest
+        let size = UInt64(data.count)
         let temporary = ".stage-" + UUID().uuidString
         let fd = openat(root, temporary, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
         try check(fd)
@@ -403,7 +415,7 @@ public enum NativeProductCapture {
         if linkat(root, temporary, root, digest, 0) != 0, errno != EEXIST { throw Failure.io(errno) }
         // Remove the staging hard link before regular-file revalidation (nlink must be one).
         try check(unlinkat(root, temporary, 0)); try check(fsync(root))
-        guard try readObject(descriptor, store: store) == data else { throw Failure.corruptObject }
-        return descriptor
+        guard try readContent(sha256: digest, size: size, path: path, store: store, fd: root) == data else { throw Failure.corruptObject }
+        return (digest, size, path)
     }
 }

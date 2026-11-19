@@ -269,7 +269,7 @@ public enum ProjectBuild {
         try verifiedLock(root: root, androidRequired: androidRequired).lock
     }
 
-    private static func verifiedLock(
+    static func verifiedLock(
         root: URL, androidRequired: Bool = false, requireCurrentAndroidProfile: Bool = true,
         swiftExecutable: String = "swift"
     ) throws -> (lock: ToolchainLock, bytes: Data) {

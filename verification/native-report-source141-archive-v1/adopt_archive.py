@@ -236,6 +236,17 @@ STORE_PLATFORM_IDENTITY_INPUTS = {
 WORKER_SWIFT_PROBE = 'cli/Sources/MixerBuild/ProjectGenerator.swift'
 WORKER_SWIFT_PROBE_PREIMAGE = 'worker-swift-probe-predecessor-bytes/' + WORKER_SWIFT_PROBE
 WORKER_SWIFT_PROBE_SOURCE_SHA256 = 'a26f01a1ed80fbaaae03776d37e8ecce194c52adb28ff9770be9c608f136db1b'
+ANDROID_OUTPUT_PREFIX = 'android-retained-output-predecessor-bytes/'
+ANDROID_OUTPUT_SOURCE_SHA256 = 'de48670cd6bf7a0830b8793d3622e317da018df460c4850b1793d727416517b0'
+ANDROID_OUTPUT_ADDITION = 'cli/Sources/MixerBuild/AndroidBuildOutput.swift'
+ANDROID_OUTPUT_CHANGES = {
+    'cli/Sources/MixerBuild/AndroidProject.swift',
+    'cli/Sources/MixerBuild/NativeBuildOutput.swift',
+    'cli/Sources/MixerBuild/NativeProductCapture.swift',
+    'cli/Sources/MixerBuild/ProjectGenerator.swift',
+    'cli/Sources/MixerBuild/Resources/android-build.py',
+    'cli/Sources/MixerCLI/main.swift',
+}
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -246,6 +257,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW,
     GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
+    ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
+} | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
@@ -378,7 +391,8 @@ def install_inputs():
                              'phoenix_ci_workflow', 'starter_package_closure_workflow',
                              'capability_identity_transition', 'guest_cutoff_transition', 'hosted_v41_workflow', 'hosted_v41_notices',
                              'hosted_v42_workflow', 'store_platform_identity_transition',
-                             'worker_swift_probe_transition', 'fixture_rust_pin_workflow', 'hosted_v43_workflow',
+                             'worker_swift_probe_transition', 'android_retained_output_transition',
+                             'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
@@ -433,6 +447,10 @@ def install_inputs():
         name: read_predecessor_member(HERE / RELEASE_INSPECTOR_PREFIX / name)
         for name in RELEASE_INSPECTOR_CHANGES - RELEASE_INSPECTOR_ADDITIONS
     }
+    android_output_preimages = {
+        name: read_predecessor_member(HERE / ANDROID_OUTPUT_PREFIX / name)
+        for name in ANDROID_OUTPUT_CHANGES
+    }
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
@@ -451,6 +469,8 @@ def install_inputs():
                 raw = pair24_preimages.get(name)
             if raw is None:
                 raw = inspector_preimages.get(name)
+            if raw is None:
+                raw = android_output_preimages.get(name)
             if raw is None:
                 raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
@@ -846,10 +866,34 @@ def install_inputs():
             'Installed worker Swift probe owner mode differs')
     installed[WORKER_SWIFT_PROBE] = expected_source[WORKER_SWIFT_PROBE] = worker_swift['after']
     preimages.setdefault(WORKER_SWIFT_PROBE, (raw_worker_swift, 0o644))
-    require(current == expected_source and len(current) == 150 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': WORKER_SWIFT_PROBE_SOURCE_SHA256,
-    } and previous.digest(current) == WORKER_SWIFT_PROBE_SOURCE_SHA256,
+    require(len(expected_source) == 150 and previous.digest(expected_source) == WORKER_SWIFT_PROBE_SOURCE_SHA256,
             'Worker Swift probe source transition differs')
+
+    android_output = binding['android_retained_output_transition']
+    require(set(android_output) == {'sourceBefore', 'changes', 'addition'} and
+            android_output['sourceBefore'] == WORKER_SWIFT_PROBE_SOURCE_SHA256 and
+            set(android_output['changes']) == ANDROID_OUTPUT_CHANGES and
+            set(android_output['addition']) == {ANDROID_OUTPUT_ADDITION},
+            'Android retained output transition roster differs')
+    for name, change in android_output['changes'].items():
+        raw = android_output_preimages[name]
+        require(set(change) == {'before', 'after'} and
+                change['before'] == previous.row(raw) == installed[name] == expected_source[name] and
+                change['before'] != change['after'],
+                'Android retained output predecessor differs: ' + name)
+        installed[name] = expected_source[name] = change['after']
+        preimages.setdefault(name, (raw, 0o644))
+    require(ANDROID_OUTPUT_ADDITION not in installed, 'Android retained output addition already exists')
+    installed.update(android_output['addition'])
+    expected_source.update(android_output['addition'])
+    for name in ANDROID_OUTPUT_CHANGES | {ANDROID_OUTPUT_ADDITION}:
+        require(stat.S_ISREG((ROOT / name).lstat().st_mode) and
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Android retained output owner mode differs: ' + name)
+    require(current == expected_source and len(current) == 151 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': ANDROID_OUTPUT_SOURCE_SHA256,
+    } and previous.digest(current) == ANDROID_OUTPUT_SOURCE_SHA256,
+            'Android retained output source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
@@ -946,6 +990,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_android_retained_output_sha256': binding['android_retained_output_transition']['sourceBefore'],
             'predecessor_guest_cutoff_sha256': binding['guest_cutoff_transition']['sourceBefore'],
             'predecessor_capability_identity_sha256': binding['capability_identity_transition']['sourceBefore'],
             'predecessor_apple_synchronous_text_sha256': binding['apple_synchronous_text_transition']['sourceBefore'],

@@ -45,9 +45,12 @@ public enum NativeBuildOutput {
             else { throw MixerFailure("build.output-store", "Private output store identity changed.") }
         }
         func persist(_ report: Report) throws {
+            try persist(report, named: "native-build.json")
+        }
+        func persist<T: Encodable>(_ report: T, named name: String) throws {
             try check()
             let bytes = try JSONFile.data(report)
-            let file = openat(fd, "native-build.json", O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
+            let file = openat(fd, name, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
             guard file >= 0 else { throw MixerFailure("build.output-manifest", "Cannot exclusively create native manifest.") }
             defer { close(file) }
             try bytes.withUnsafeBytes { raw in
@@ -145,7 +148,7 @@ public enum NativeBuildOutput {
     }
 
     // Match retained-object admission, using the opened store and file identities.
-    private static func readManifest(store url: URL) throws -> Data {
+    static func openStore(_ url: URL) throws -> Store {
         guard url.isFileURL, url.path == url.standardizedFileURL.path,
               !url.path.utf8.contains(0), url.path != "/"
         else { throw MixerFailure("build.output-path", "Invalid native store path.") }
@@ -165,7 +168,12 @@ public enum NativeBuildOutput {
         } catch { close(directory); throw error }
         let store = Store(url: url, fd: directory)
         try store.check()
-        let file = openat(store.fd, "native-build.json", O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
+        return store
+    }
+
+    static func readManifest(store: Store, named name: String) throws -> Data {
+        try store.check()
+        let file = openat(store.fd, name, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
         guard file >= 0 else { throw MixerFailure("build.output-manifest", "Cannot open regular non-symlink native manifest.") }
         defer { close(file) }
         let maximum = 8 * 1_048_576
@@ -192,7 +200,7 @@ public enum NativeBuildOutput {
         }
         var after = stat(), named = stat()
         guard fstat(file, &after) == 0,
-              fstatat(store.fd, "native-build.json", &named, AT_SYMLINK_NOFOLLOW) == 0,
+              fstatat(store.fd, name, &named, AT_SYMLINK_NOFOLLOW) == 0,
               unchanged(before, after), unchanged(after, named), bytes.count == before.st_size
         else { throw MixerFailure("build.output-manifest", "Native manifest identity changed during read.") }
         try store.check()
@@ -201,7 +209,7 @@ public enum NativeBuildOutput {
 
 
     public static func reopen(store: URL) throws -> Report {
-        let report = try JSONDecoder().decode(Report.self, from: readManifest(store: store))
+        let report = try JSONDecoder().decode(Report.self, from: readManifest(store: openStore(store), named: "native-build.json"))
         guard report.scope == "unsigned-simulator/local-development", report.commandResult.succeeded,
               let products = report.nativeProduct
         else { throw MixerFailure("build.output-incomplete", "Manifest does not describe retained native products.") }

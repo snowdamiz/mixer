@@ -48,7 +48,7 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
     [--platform ios|android] [--android-adapter-path PATH] [--android-host legacy-v1|public-v3|public-v4]
   mixer doctor [--json]
   mixer config validate [--directory PATH]
-  mixer build [--platform host|ios|android] [--directory PATH] [--output NEW_PRIVATE_STORE (ios only)]
+  mixer build [--platform host|ios|android] [--directory PATH] [--output NEW_PRIVATE_STORE (ios or android)]
   mixer report --request REQUEST.json --output NEW_PRIVATE_STORE
   mixer test [--platform host] [--directory PATH]
   mixer run ios --device SIMULATOR_UUID [--directory PATH]
@@ -147,8 +147,12 @@ do {
     case "build", "test":
         guard words.count == 1 else { throw MixerFailure("arguments.build", "Unexpected positional argument") }
         if let destination = arguments.options["--output"] {
+            if words[0] == "build", arguments.options["--platform"] == "android" {
+                try output(AndroidBuildOutput.build(root: root, output: path(destination)))
+                exit(0)
+            }
             guard words[0] == "build", arguments.options["--platform"] == "ios" else {
-                throw MixerFailure("arguments.output-platform", "--output requires an explicit --platform ios build.")
+                throw MixerFailure("arguments.output-platform", "--output requires an explicit --platform ios or android build.")
             }
             let code: Int32
             do {

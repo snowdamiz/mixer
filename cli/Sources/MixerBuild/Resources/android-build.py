@@ -510,7 +510,7 @@ def verify_runtime_notices(archive, expected):
         raise RuntimeError('APK runtime notices differ from the selected toolchain files.')
 
 
-def checked_output(root, create=False):
+def checked_output(root, create=False, retained_output=None):
     """Reject redirected local staging before cleanup or writes.
 
     SwiftPM creates internal directory links (for example release -> triple/release),
@@ -519,13 +519,19 @@ def checked_output(root, create=False):
     arbitrary code executed by a package's build tools.
     """
     root = root.resolve(strict=True)
-    output = root / '.mixer/android-build'
-    for path in (root / '.mixer', output):
+    output = root / '.mixer/android-build' if retained_output is None else retained_output
+    if retained_output is not None:
+        parent = output.parent.lstat()
+        if (output.parent.resolve(strict=True) != output.parent or output.is_relative_to(root)
+                or not stat.S_ISDIR(parent.st_mode) or stat.S_IMODE(parent.st_mode) != 0o700
+                or parent.st_uid != os.getuid()):
+            raise RuntimeError('Retained Android build requires owned external scratch.')
+    for path in ((root / '.mixer', output) if retained_output is None else (output,)):
         try:
             info = path.lstat()
         except FileNotFoundError:
             if create:
-                path.mkdir()
+                path.mkdir(mode=0o700 if retained_output is not None else 0o777)
             continue
         if not stat.S_ISDIR(info.st_mode):
             raise RuntimeError('Unsafe Android staging directory: ' + str(path))
@@ -549,6 +555,43 @@ def checked_output(root, create=False):
             elif not stat.S_ISDIR(info.st_mode):
                 raise RuntimeError('Unsafe Android staging special file: ' + str(path))
     return output
+
+
+def retained_debug_products(run, output, libraries):
+    """Extract debug data from the exact linked libraries that will enter the APK."""
+    objcopy, readelf, dwarfdump = (NDK / 'bin' / name for name in
+                                 ('llvm-objcopy', 'llvm-readelf', 'llvm-dwarfdump'))
+
+    def build_id(path):
+        ids = re.findall(r'Build ID: ([a-f0-9]{40})\b', run([readelf, '--notes', path]))
+        if len(ids) != 1:
+            raise RuntimeError('Expected one SHA-1 ELF build ID: ' + path.name)
+        return ids[0]
+
+    results = []
+    with zipfile.ZipFile(output / 'debug-symbols.zip', 'x') as archive:
+        for library in sorted(libraries):
+            filename = library.name + '.debug'
+            debug = output / filename
+            identity = build_id(library)
+            # Drop Swift's optional name index, which the pinned NDK LLVM 18
+            # verifier cannot read. DWARF types, locations and lines remain.
+            run([objcopy, '--only-keep-debug', '--remove-section=.debug_names', library, debug])
+            sections = run([readelf, '--sections', '--wide', debug])
+            if not all(re.search(r'\s\.debug_' + name + r'\s', sections) for name in ('info', 'line')):
+                raise RuntimeError('Linked library is missing usable DWARF: ' + library.name)
+            run([dwarfdump, '--verify', debug])
+            run([objcopy, '--strip-debug', library])
+            if build_id(debug) != identity or build_id(library) != identity:
+                raise RuntimeError('Debug data and Android library ELF build IDs differ: ' + library.name)
+            entry = zipfile.ZipInfo('arm64-v8a/' + filename)
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            entry.external_attr = 0o100444 << 16
+            with debug.open('rb') as source, archive.open(entry, 'w') as destination:
+                shutil.copyfileobj(source, destination)
+            results.append({'library': 'lib/arm64-v8a/' + library.name, 'buildId': identity,
+                            'debugPath': entry.filename, 'sha256': digest(debug), 'sizeBytes': debug.stat().st_size})
+    return results
 
 
 class InspectionPhases:
@@ -874,7 +917,7 @@ def finish_source_guard(root, adapter, android, lock, source_before, apk_path, p
     return source_after
 
 
-def build(root):
+def build(root, retained_output=None):
     config = read_json(root / 'mixer.yml')
     if not isinstance(config, dict) or config.get('androidHost', 'legacy-v1') != 'legacy-v1':
         config = configuration(config)
@@ -893,7 +936,9 @@ def build(root):
     config = configuration(config)
     if any(p.is_file() for p in (root / 'Resources').rglob('*')):
         raise RuntimeError('Android resource packaging is not integrated; resources cannot be omitted.')
-    output = checked_output(root, create=True)
+    if retained_output is not None and (retained_output.exists() or retained_output.is_symlink()):
+        raise RuntimeError('Retained Android scratch output must be new.')
+    output = checked_output(root, create=True, retained_output=retained_output)
     receipt_path = output / 'build-receipt.json'
     receipt_path.unlink(missing_ok=True)
     (output / 'build-input.json').unlink(missing_ok=True)
@@ -904,7 +949,7 @@ def build(root):
         raise RuntimeError('Android toolchain differs from mixer.lock. Restore the exact installed tool distributions.')
     commands = []
     def run(args):
-        checked_output(root)
+        checked_output(root, retained_output=retained_output)
         args = list(map(str, args))
         p = subprocess.run(args, cwd=root, env=ENV, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         commands.append({'command': args, 'exit_code': p.returncode, 'output': p.stdout})
@@ -926,6 +971,8 @@ def build(root):
     temporary_input.write_text(json.dumps(build_input, indent=2) + '\n')
     temporary_input.replace(output / 'build-input.json')
     swift_args = [SWIFT, 'build', *swift_options, '--force-resolved-versions', '-c', 'release', '--product', 'AppAndroid', '-Xlinker', '-z', '-Xlinker', 'max-page-size=16384']
+    if retained_output is not None:
+        swift_args += ['-Xswiftc', '-g', '-Xlinker', '--build-id=sha1']
     if public:
         swift_args += ['--jobs', '2']
     run(swift_args)
@@ -934,7 +981,7 @@ def build(root):
     if not engine.is_file():
         raise RuntimeError('Actual app Swift library missing: ' + str(engine))
     for path in [output / 'apk', output / 'classes', output / 'dex']:
-        checked_output(root)
+        checked_output(root, retained_output=retained_output)
         if path.exists():
             shutil.rmtree(path)
         path.mkdir()
@@ -942,7 +989,8 @@ def build(root):
     libdir.mkdir(parents=True)
     jni = package / 'Bridge/PublicBridge.c' if public else adapter / 'bridge/jni.c'
     jni_library = 'libmixer_public_android_jni.so' if public else 'libmixer_android_jni.so'
-    run([NDK / 'bin/aarch64-linux-android28-clang', '-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-I', adapter / 'bridge', jni, '-L', bin_path, '-lAppAndroid', '-Wl,--no-undefined', '-Wl,-z,max-page-size=16384', '-o', libdir / jni_library])
+    jni_debug = ['-g', '-Wl,--build-id=sha1'] if retained_output is not None else []
+    run([NDK / 'bin/aarch64-linux-android28-clang', '-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-I', adapter / 'bridge', jni, '-L', bin_path, '-lAppAndroid', '-Wl,--no-undefined', '-Wl,-z,max-page-size=16384', *jni_debug, '-o', libdir / jni_library])
     shutil.copy2(engine, libdir / engine.name)
     system = {'libc.so', 'libdl.so', 'libm.so', 'liblog.so', 'libandroid.so'}
     pending = list(libdir.glob('*.so'))
@@ -967,6 +1015,8 @@ def build(root):
             pending.append(libdir / name)
             runtime_sources.add(found.parent)
     notices = runtime_notices(runtime_sources, libdir)
+    debug_products = (retained_debug_products(run, output, [libdir / engine.name, libdir / jni_library])
+                      if retained_output is not None else None)
     classes, dex = output / 'classes', output / 'dex'
     sources = sorted((adapter / 'app/src').rglob('*.java')) + sorted((package / 'Java').rglob('*.java'))
     if public:
@@ -993,7 +1043,7 @@ def build(root):
     if admit_source_pair(root, profile) != appearance or source_tree(adapter) != android['adapterDigest']:
         raise RuntimeError('Android appearance/adapter input changed before packaging.')
     run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '-A', adapter / 'app/assets', '--min-sdk-version', str(min_api), '--target-sdk-version', '37', '-o', unsigned])
-    checked_output(root)
+    checked_output(root, retained_output=retained_output)
     with zipfile.ZipFile(unsigned, 'a', compression=zipfile.ZIP_DEFLATED) as archive:
         for item in sorted((output / 'apk').rglob('*')):
             if item.is_file():
@@ -1032,6 +1082,15 @@ def build(root):
         if any(n.startswith('META-INF/') for n in names) or any('ChecklistEngine' in n for n in names):
             raise RuntimeError('Unexpected signing/example content in unsigned consumer.')
         content = {n: hashlib.sha256(archive.read(n)).hexdigest() for n in sorted(names)}
+        if retained_output is not None:
+            if len(names) != len(content):
+                raise RuntimeError('Duplicate APK entries cannot be retained.')
+            with apk_path.open('rb') as apk_file:
+                apk_file.seek(archive.start_dir - 16)
+                if apk_file.read(16) == b'APK Sig Block 42':
+                    raise RuntimeError('Unexpected APK signing block in unsigned consumer.')
+            entries = [{'path': name, 'sha256': sha, 'sizeBytes': archive.getinfo(name).file_size,
+                        'directory': archive.getinfo(name).is_dir()} for name, sha in content.items()]
     normalized = hashlib.sha256(json.dumps(content, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     source_after = finish_source_guard(root, adapter, android, lock, source_before, apk_path, profile, appearance)
     receipt = {
@@ -1049,7 +1108,13 @@ def build(root):
         'native_libraries': {p.name: digest(p) for p in sorted(libdir.glob('*.so'))}, 'commands': commands,
         'scope': ('App-owned Swift, public C ABI/JNI registration, owned native widgets, arm64 Android APK inspected.' if public else 'Actual generated AppModels/AppFeatures Swift, owned JNI/native widgets, arm64 Android APK inspected.') + ' Unsigned; no install, device interaction, lifecycle, accessibility, performance, published SDK, store or FieldLog qualification.',
     }
-    checked_output(root)
+    checked_output(root, retained_output=retained_output)
+    if retained_output is not None:
+        debug_archive = output / 'debug-symbols.zip'
+        receipt.update({'apk_entries': entries, 'schema_version': 2, 'debug_products': debug_products,
+                        'symbols_sha256': digest(debug_archive), 'symbols_bytes': debug_archive.stat().st_size})
+        for command in commands:
+            del command['output']
     receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')
     print('UNSIGNED APK:', apk_path, 'SHA256:', receipt['apk_sha256'], flush=True)
     print('RECEIPT:', receipt_path, flush=True)
@@ -1514,6 +1579,8 @@ if __name__ == '__main__':
             print(json.dumps(inspect(), sort_keys=True))
         elif len(sys.argv) == 3 and sys.argv[1] == 'build':
             build(pathlib.Path(sys.argv[2]).resolve())
+        elif len(sys.argv) == 4 and sys.argv[1] == 'build-retained-v1':
+            build(pathlib.Path(sys.argv[2]).resolve(strict=True), pathlib.Path(sys.argv[3]))
         else:
             raise RuntimeError('Usage: android-build.py inspect | build PROJECT')
     except Exception as error:
