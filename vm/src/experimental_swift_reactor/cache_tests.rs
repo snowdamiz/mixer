@@ -2066,43 +2066,77 @@ fn frozen_layout_allocation_work_error_snapshots() {
     );
 }
 fn external_privacy() {
+    use std::path::PathBuf;
     use std::process::Command;
+
+    struct Scratch(PathBuf);
+    impl Drop for Scratch {
+        fn drop(&mut self) {
+            let result = std::fs::remove_dir_all(&self.0);
+            if !std::thread::panicking() {
+                result.expect("remove external privacy scratch");
+            }
+        }
+    }
+
+    let (profile, profile_dir) = if cfg!(debug_assertions) {
+        ("dev", "debug")
+    } else {
+        ("release", "release")
+    };
+    let folder = std::path::absolute(std::env::temp_dir())
+        .unwrap()
+        .join(format!("mixer-cache-privacy-{}-{profile}", std::process::id()));
+    std::fs::create_dir(&folder).expect("create fresh external privacy scratch");
+    let scratch = Scratch(folder);
+    let folder = &scratch.0;
+    let target = folder.join("target");
+
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
-    let mut build = Command::new(cargo);
-    build.current_dir(root).args([
-        "build",
-        "--locked",
-        "--lib",
-        "--features",
-        "experimental-swift-reactor,experimental-span-execution",
-    ]);
-    if !cfg!(debug_assertions) {
-        build.arg("--release");
-    }
-    let output = build.output().unwrap();
+    let rustc = std::env::var_os("RUSTC").unwrap_or_else(|| "rustc".into());
+    let host = Command::new(&rustc)
+        .args(["--print", "host-tuple"])
+        .output()
+        .unwrap();
+    assert!(
+        host.status.success(),
+        "external privacy rustc host: {}",
+        String::from_utf8_lossy(&host.stderr)
+    );
+    let host = std::str::from_utf8(&host.stdout).unwrap().trim();
+    let output = Command::new(cargo)
+        .current_dir(root)
+        .env("CARGO_BUILD_BUILD_DIR", &target)
+        .args([
+            "build",
+            "--locked",
+            "--lib",
+            "--features",
+            "experimental-swift-reactor,experimental-span-execution",
+            "--profile",
+            profile,
+            "--target",
+            host,
+            "--target-dir",
+        ])
+        .arg(&target)
+        .output()
+        .unwrap();
     assert!(
         output.status.success(),
         "external current library build: {}",
         String::from_utf8_lossy(&output.stderr)
     );
-    let deps = std::env::current_exe()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf();
-    let library = deps.join("libmixer_vm.rlib");
-    assert!(library.is_file());
-    let folder = std::env::temp_dir().join(format!(
-        "mixer-cache-privacy-{}-{}",
-        std::process::id(),
-        if cfg!(debug_assertions) {
-            "debug"
-        } else {
-            "release"
-        }
-    ));
-    std::fs::create_dir_all(&folder).unwrap();
+    // Cargo exports the primary library in the selected target and profile.
+    let library = target.join(host).join(profile_dir).join("libmixer_vm.rlib");
+    assert!(
+        library.is_file(),
+        "missing Cargo library {}",
+        library.display()
+    );
+    let mut external = std::ffi::OsString::from("mixer_vm=");
+    external.push(&library);
     let cases=[
         ("positive", "use mixer_vm::experimental::cache::{CacheBudget,FunctionCache};use mixer_vm::experimental_swift_reactor::ValidatedSwiftReactor;fn f(_:CacheBudget,_:Option<FunctionCache>,p:&ValidatedSwiftReactor){let _=p.source();}",None),
         ("private_cache", "use mixer_vm::experimental_swift_reactor::cache::SwiftFunctionCache;",Some("E0603")),
@@ -2121,18 +2155,16 @@ fn external_privacy() {
     for (name, source, expected) in cases {
         let file = folder.join(format!("{name}.rs"));
         std::fs::write(&file, source).unwrap();
-        let output = Command::new("rustc")
+        let output = Command::new(&rustc)
             .args([
                 "--edition=2021",
                 "--crate-type=lib",
                 "--emit=metadata",
                 "--extern",
             ])
-            .arg(format!("mixer_vm={}", library.display()))
-            .arg("-L")
-            .arg(format!("dependency={}", deps.display()))
+            .arg(&external)
             .arg("--out-dir")
-            .arg(&folder)
+            .arg(folder)
             .arg(&file)
             .output()
             .unwrap();

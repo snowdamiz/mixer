@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+All nine engine jobs passed at `1cbb6f9a26`. A later run on Cargo 1.100.0 moved the VM test executable and exposed a stale test-only library lookup. The privacy test now compiles the library in its own target and passes Cargo’s final output to the original 13 compiler probes. The exact test passed on Cargo 1.99.0 and 1.100.0, and all 46 optimized cache controls passed. Ubuntu validation of the correction is pending. [VM CI receipt](verification/receipts/vm-external-privacy-cargo-layout-e990792f53.json)
+
 The first iOS calculation test installed the intended app and preserved the exact 3,530-byte saved workspace. FieldLog opened Upcoming inspection, while XCTest expected Filter inspection. The test stopped before guest launch. The release origin closed and the owned Simulator was removed. A new test selects the intended project through the ordinary screen. [Simulator receipt](verification/receipts/fieldlog-ios-calculation-project-route-41a05264.json)
 
 A free project owner submitted the selected iOS starter. Real Phoenix and restricted Oban dispatched the same source, recipe and lock recorded in PostgreSQL to the worker. SwiftPM identified a remote Swift Crypto dependency in the local-only recipe. A test guard refused launch, and the worker recorded zero compiler starts. Owner cancellation released capacity, SQLite reopened the stopped record, and billing rows stayed unchanged. Local package admission and compilation remain open. [Worker dispatch receipt](verification/receipts/free-starter-dispatch-to-worker-41a05264.json)

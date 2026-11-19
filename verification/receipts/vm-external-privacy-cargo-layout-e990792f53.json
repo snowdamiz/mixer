@@ -1,0 +1,424 @@
+{
+  "scope": "VM external API and borrow-privacy test harness on macOS. No engine changes or hosted candidate execution.",
+  "observed_utc": "2026-11-19T00:33:24+00:00",
+  "source": {
+    "base_commit": "e990792f5362d5e6ba0831a69bd1d1fab44830e2",
+    "base_tree": "b4b9fab5b34a812e5d9ef6e083d79a77aded172a",
+    "base_vm_tree": "527dbfd4f7f8a5a0f9556ba870b38d15187636a2",
+    "candidate_path": "vm/src/experimental_swift_reactor/cache_tests.rs",
+    "candidate_blob": "fa235e2a7351856ef1277ae4cc8230d193886975",
+    "candidate_sha256": "c803a494ec78129ea4ffa3ad1f2671e827b2357b06a5b29087235ca6fefcb6a2",
+    "probe_sources_expected_diagnostics_and_runtime_assertions_identical_to_base": true
+  },
+  "hosted": {
+    "previous_green": {
+      "commit": "1cbb6f9a26d5081489c741bf71a7b8fa595a9639",
+      "run": 44421788351,
+      "job": 135216362544,
+      "successful_jobs": 9,
+      "runner": "ubuntu-24.04",
+      "cargo": "1.99.1 (5f94df478 2026-08-27)",
+      "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+      "combined_debug_unit_tests": "480 passed",
+      "combined_debug_executable": "vm/target/debug/deps/mixer_vm-e171b12bc7e70980"
+    },
+    "failure": {
+      "commit": "e990792f5362d5e6ba0831a69bd1d1fab44830e2",
+      "run": 44422204838,
+      "job": 135217765243,
+      "other_successful_jobs": 8,
+      "runner": "ubuntu-24.04",
+      "cargo": "1.100.0 (3acc79c0c 2026-11-05)",
+      "rustc": "1.100.0 (0ef1bc386 2026-11-09)",
+      "vm_and_workflow_diff_from_previous_green": "empty",
+      "combined_debug_unit_tests": "479 passed, 1 failed",
+      "combined_debug_executable": "vm/target/debug/build/mixer-vm/021b47a3dc76003e/out/mixer_vm-021b47a3dc76003e",
+      "panic": "src/experimental_swift_reactor/cache_tests.rs:2095:5: assertion failed: library.is_file()",
+      "skipped": "Remaining commands in combined feature step, then reactor-only, allocation noise, Android transport and native C client steps"
+    },
+    "latest_observed": {
+      "commit": "7fd1e909886cfc08f40888d66417bf8062f2d8fd",
+      "run": 44428690998,
+      "job": 135240136029,
+      "vm_job_at_observation": "in_progress",
+      "combined_feature_step_at_observation": "success",
+      "cache_test_changed_in_commit": false,
+      "local_candidate_present": false
+    }
+  },
+  "local_tools": {
+    "os": "macOS 27.0.1 (26A434), arm64",
+    "cargo": [
+      "cargo 1.100.0 (3acc79c0c 2026-11-05)",
+      "release: 1.100.0",
+      "commit-hash: 3acc79c0c841844675bc53a605922dbfc441e750",
+      "commit-date: 2026-11-05",
+      "host: aarch64-apple-darwin",
+      "libgit2: 1.9.6 (sys:0.21.0 vendored)",
+      "libcurl: 8.7.1 (sys:0.4.90+curl-8.21.0 system ssl:(SecureTransport) LibreSSL/3.3.6)",
+      "ssl: OpenSSL 3.6.3 9 Jun 2026",
+      "os: Mac OS 27.0.1 [64-bit]"
+    ],
+    "rustc": [
+      "rustc 1.100.0 (0ef1bc386 2026-11-09)",
+      "binary: rustc",
+      "commit-hash: 0ef1bc386059596dada8fb65b50425aab2ea637a",
+      "commit-date: 2026-11-09",
+      "host: aarch64-apple-darwin",
+      "release: 1.100.0",
+      "LLVM version: 23.1.5"
+    ],
+    "legacy_cargo": "1.99.0 (5f94df478 2026-08-27)",
+    "legacy_rustc": "1.99.0 (b940084d7 2026-09-28)",
+    "python": "3.14.8",
+    "git": "2.56.0",
+    "gh": "2.102.0"
+  },
+  "local_baseline": {
+    "argv": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/cargo",
+      "test",
+      "--locked",
+      "--offline",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--lib",
+      "--features",
+      "experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native",
+      "experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy",
+      "--",
+      "--exact"
+    ],
+    "pgid": 66287,
+    "exit": 101,
+    "owned_group_gone": true,
+    "output_sha256": "c2727d39f6522a449f39a62e6c6067cceec797dda74f20ac78cec47cacc8fae3",
+    "source": "HEAD before patch",
+    "environment": {
+      "CARGO_HOME": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/cargo-home",
+      "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/target",
+      "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/tmp",
+      "CARGO_INCREMENTAL": "0"
+    },
+    "output": [
+      "Running unittests src/lib.rs (verification/local/vm-privacy-cargo100-0seulkup/target/debug/build/mixer-vm/3ee3ebe771a0baeb/out/mixer_vm-3ee3ebe771a0baeb)",
+      "test experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy ... FAILED",
+      "thread 'experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy' (260647562) panicked at src/experimental_swift_reactor/cache_tests.rs:2095:5:",
+      "assertion failed: library.is_file()",
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 479 filtered out; finished in 9.35s"
+    ]
+  },
+  "local_artifact_evidence": {
+    "argv": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/cargo",
+      "build",
+      "--locked",
+      "--offline",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--lib",
+      "--features",
+      "experimental-swift-reactor,experimental-span-execution",
+      "--message-format=json"
+    ],
+    "pgid": 70142,
+    "exit": 0,
+    "owned_group_gone": true,
+    "output_sha256": "38810aaf16eb62207152fe6dc850bd3194bedbe3b7bb6248675546b6db9c06c1",
+    "environment": {
+      "CARGO_HOME": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/cargo-home",
+      "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/target",
+      "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/tmp",
+      "CARGO_INCREMENTAL": "0"
+    },
+    "cargo_artifact": {
+      "reason": "compiler-artifact",
+      "manifest_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/vm/Cargo.toml",
+      "target": {
+        "kind": [
+          "rlib",
+          "staticlib",
+          "cdylib"
+        ],
+        "crate_types": [
+          "rlib",
+          "staticlib",
+          "cdylib"
+        ],
+        "name": "mixer_vm",
+        "src_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/vm/src/lib.rs",
+        "edition": "2021",
+        "doc": true,
+        "doctest": true,
+        "test": true
+      },
+      "features": [
+        "default",
+        "experimental-function-cache",
+        "experimental-span-execution",
+        "experimental-stream-validation",
+        "experimental-swift-reactor",
+        "experimental-swift-wasi"
+      ],
+      "filenames": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/target/debug/libmixer_vm.rlib",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/target/debug/libmixer_vm.a",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/target/debug/libmixer_vm.dylib"
+      ],
+      "fresh": true
+    },
+    "old_assumed_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/target/debug/build/mixer-vm/3ee3ebe771a0baeb/out/libmixer_vm.rlib",
+    "old_assumed_path_is_file": false,
+    "reported_rlib": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/target/debug/libmixer_vm.rlib",
+    "reported_rlib_is_file": true
+  },
+  "local_candidate_controls": {
+    "exact_on_hosted_toolchain_version": {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native",
+        "experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "env": {
+        "CARGO_HOME": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-exact-cargo-home",
+        "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-exact-target",
+        "CARGO_BUILD_BUILD_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-exact-intermediate",
+        "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-exact tmp",
+        "CARGO_INCREMENTAL": "0",
+        "RUSTC": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/rustc",
+        "PATH": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      },
+      "pgid": 85229,
+      "exit": 0,
+      "owned_group_gone": true,
+      "elapsed_seconds": 64.52,
+      "observations": [
+        "     Running unittests src/lib.rs (verification/local/vm-privacy-cargo100-0seulkup/after-exact-intermediate/debug/build/mixer-vm/3ee3ebe771a0baeb/out/mixer_vm-3ee3ebe771a0baeb)",
+        "test experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy ... ok",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 479 filtered out; finished in 19.43s"
+      ],
+      "external_privacy_checks": [
+        "external privacy positive: expected=None exit=exit status: 0",
+        "external privacy private_cache: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy private_parts: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy private_control: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy proof_forge: expected=Some(\"private fields\") exit=exit status: 1",
+        "external privacy proof_clone: expected=Some(\"E0599\") exit=exit status: 1",
+        "external privacy legacy_conversion: expected=Some(\"E0308\") exit=exit status: 1",
+        "external privacy mutable_source: expected=Some(\"E0594\") exit=exit status: 1",
+        "external privacy proof_reuse: expected=Some(\"E0382\") exit=exit status: 1",
+        "external privacy view_mutation: expected=Some(\"E0502\") exit=exit status: 1",
+        "external privacy view_release: expected=Some(\"E0502\") exit=exit status: 1",
+        "external privacy pin_clone: expected=Some(\"E0599\") exit=exit status: 1",
+        "external privacy pin_forge: expected=Some(\"E0451\") exit=exit status: 1"
+      ],
+      "tmp_entries": [],
+      "output_sha256": "a7b8b4157ba3b45f72df92799fa0bbbf05e6e2e8decaaaea92d7ad9ec0c26ea9"
+    },
+    "combined_release_cache_module": {
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--lib",
+        "--release",
+        "--features",
+        "experimental-stream-validation,experimental-function-cache,experimental-span-execution,experimental-swift-wasi,experimental-swift-reactor,experimental-capability-native",
+        "experimental_swift_reactor::cache_tests",
+        "--",
+        "--nocapture"
+      ],
+      "env": {
+        "CARGO_HOME": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-combined-release-cargo-home",
+        "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-combined-release-target",
+        "CARGO_BUILD_BUILD_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-combined-release-intermediate",
+        "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-combined-release tmp",
+        "CARGO_INCREMENTAL": "0",
+        "RUSTC": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/rustc",
+        "PATH": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      },
+      "pgid": 85239,
+      "exit": 0,
+      "owned_group_gone": true,
+      "elapsed_seconds": 151.26,
+      "observations": [
+        "     Running unittests src/lib.rs (verification/local/vm-privacy-cargo100-0seulkup/after-combined-release-intermediate/release/build/mixer-vm/dd8d402b2ed635ac/out/mixer_vm-dd8d402b2ed635ac)",
+        "test experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy ... ok",
+        "test result: ok. 46 passed; 0 failed; 0 ignored; 0 measured; 434 filtered out; finished in 79.60s"
+      ],
+      "external_privacy_checks": [
+        "external privacy positive: expected=None exit=exit status: 0",
+        "external privacy private_cache: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy private_parts: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy private_control: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy proof_forge: expected=Some(\"private fields\") exit=exit status: 1",
+        "external privacy proof_clone: expected=Some(\"E0599\") exit=exit status: 1",
+        "external privacy legacy_conversion: expected=Some(\"E0308\") exit=exit status: 1",
+        "external privacy mutable_source: expected=Some(\"E0594\") exit=exit status: 1",
+        "external privacy proof_reuse: expected=Some(\"E0382\") exit=exit status: 1",
+        "external privacy view_mutation: expected=Some(\"E0502\") exit=exit status: 1",
+        "external privacy view_release: expected=Some(\"E0502\") exit=exit status: 1",
+        "external privacy pin_clone: expected=Some(\"E0599\") exit=exit status: 1",
+        "external privacy pin_forge: expected=Some(\"E0451\") exit=exit status: 1"
+      ],
+      "tmp_entries": [],
+      "output_sha256": "cbce8e496e64427791cadd4b55baa6ebab963da0db08739f72e9db6b559a7c3f"
+    },
+    "reactor_only_on_legacy_layout": {
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--lib",
+        "--features",
+        "experimental-swift-reactor",
+        "experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "env": {
+        "CARGO_HOME": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-legacy-layout-cargo-home",
+        "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-legacy-layout-target",
+        "CARGO_BUILD_BUILD_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-legacy-layout-intermediate",
+        "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/after-legacy-layout tmp",
+        "CARGO_INCREMENTAL": "0",
+        "RUSTC": "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "PATH": "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      },
+      "pgid": 85230,
+      "exit": 0,
+      "owned_group_gone": true,
+      "elapsed_seconds": 60.51,
+      "observations": [
+        "     Running unittests src/lib.rs (verification/local/vm-privacy-cargo100-0seulkup/after-legacy-layout-intermediate/debug/deps/mixer_vm-87d77566dabc411b)",
+        "test experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy ... ok",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 449 filtered out; finished in 17.84s"
+      ],
+      "external_privacy_checks": [
+        "external privacy positive: expected=None exit=exit status: 0",
+        "external privacy private_cache: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy private_parts: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy private_control: expected=Some(\"E0603\") exit=exit status: 1",
+        "external privacy proof_forge: expected=Some(\"private fields\") exit=exit status: 1",
+        "external privacy proof_clone: expected=Some(\"E0599\") exit=exit status: 1",
+        "external privacy legacy_conversion: expected=Some(\"E0308\") exit=exit status: 1",
+        "external privacy mutable_source: expected=Some(\"E0594\") exit=exit status: 1",
+        "external privacy proof_reuse: expected=Some(\"E0382\") exit=exit status: 1",
+        "external privacy view_mutation: expected=Some(\"E0502\") exit=exit status: 1",
+        "external privacy view_release: expected=Some(\"E0502\") exit=exit status: 1",
+        "external privacy pin_clone: expected=Some(\"E0599\") exit=exit status: 1",
+        "external privacy pin_forge: expected=Some(\"E0451\") exit=exit status: 1"
+      ],
+      "tmp_entries": [],
+      "output_sha256": "9883f8f026e363db0e37650bfa54fb984efd39d1e926b12048cff68db1988c45"
+    }
+  },
+  "custody": {
+    "observer": "Direct child wait and ESRCH from killpg(pgid, 0) on each owned group.",
+    "exact_toolchain_install": {
+      "argv": [
+        "/opt/homebrew/opt/rustup/bin/rustup",
+        "toolchain",
+        "install",
+        "1.100.0",
+        "--profile",
+        "minimal",
+        "--no-self-update"
+      ],
+      "pgid": 65660,
+      "exit": 0,
+      "owned_group_gone": true,
+      "output_sha256": "2d319bb1d5b6c2254ff868862f73def76eff1471d93ee67b3c3462aa5c141af5"
+    },
+    "exact_tool_identity": [
+      {
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/cargo",
+          "-Vv"
+        ],
+        "pgid": 66276,
+        "exit": 0,
+        "owned_group_gone": true,
+        "output_sha256": "7741cfb1bd219b6181209c4215383f63b89ed894f02770340b3560ebcf803e9a"
+      },
+      {
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup/rustup/toolchains/1.100.0-aarch64-apple-darwin/bin/rustc",
+          "-Vv"
+        ],
+        "pgid": 66284,
+        "exit": 0,
+        "owned_group_gone": true,
+        "output_sha256": "408acb044ad9f92dcbaeb61386ef4dc1c39dd1c92d20b02c82b694a783c4b809"
+      }
+    ],
+    "separate_tiny_layout_pilots": [
+      {
+        "pgid": 70996,
+        "exit": 101,
+        "owned_group_gone": true,
+        "result": "Explicit rustc output path required an existing parent directory."
+      },
+      {
+        "pgid": 71042,
+        "exit": 101,
+        "owned_group_gone": true,
+        "result": "Empty build.target CLI config did not cancel CARGO_BUILD_TARGET."
+      },
+      {
+        "pgid": 72560,
+        "exit": 0,
+        "owned_group_gone": true,
+        "result": "Explicit rustc output worked with an existing parent but was not a Cargo-reported final artifact."
+      }
+    ],
+    "removed_scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c39864e/verification/local/vm-privacy-cargo100-0seulkup",
+    "historical_holds_touched": false
+  },
+  "limits": "Candidate exercised locally only. The optimized combined-feature control covers the cache module, not the full VM job. Ubuntu candidate CI remains unverified.",
+  "rootExactReplay": {
+    "argv": [
+      "/opt/homebrew/opt/rustup/bin/cargo",
+      "+1.99.0",
+      "test",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "vm/Cargo.toml",
+      "--features",
+      "experimental-swift-reactor,experimental-span-execution,experimental-capability-native",
+      "--lib",
+      "experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy",
+      "--",
+      "--exact"
+    ],
+    "pid": 27834,
+    "pgid": 27834,
+    "namespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/vm-external-privacy-root.XO32mQ5l",
+    "groupAbsent": true,
+    "returncode": 0,
+    "directChildReaped": true,
+    "logSHA256": "62255348697375780a64bb99dbcb50ae374061a7bf23b84c8d685a955883a646",
+    "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 05s\n     Running unittests src/lib.rs (verification/local/vm-external-privacy-root.XO32mQ5l/cargo-target/debug/deps/mixer_vm-f739d999de49f627)\n\nrunning 1 test\ntest experimental_swift_reactor::cache_tests::external_surface_and_borrow_privacy ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 479 filtered out; finished in 20.00s\n",
+    "ownedBuildDataRemoved": true,
+    "patchSHA256": "8325479b98743b199d4cae6b615ee6ef947ad9edf95119c7a882ac734580a296"
+  },
+  "deliveredReceiptSHA256": "13970dc0e0846be0529183fbf8496fcdffba4e25e3d9350a1a78ff7653dfb62e"
+}
