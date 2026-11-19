@@ -125,14 +125,16 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
     )
   end
 
-  @tag :tmp_dir
   test "bounded retained verification widens only the Android binary role", %{
-    request: %{operation_id: operation},
-    tmp_dir: tmp_dir
+    request: %{operation_id: operation}
   } do
-    root = Path.expand(tmp_dir)
-    store = Path.join([root, operation, "native"])
+    {tmp_dir, 0} = System.cmd("realpath", [System.tmp_dir!()])
+    suffix = Base.url_encode64(:crypto.strong_rand_bytes(12), padding: false)
+    root = Path.join(String.trim_trailing(tmp_dir, "\n"), "mixer-retained-artifacts-#{suffix}")
+    File.mkdir!(root)
+    on_exit(fn -> File.rm_rf!(root) end)
     File.chmod!(root, 0o700)
+    store = Path.join([root, operation, "native"])
     File.mkdir_p!(store)
     Application.put_env(:mixer_hosted, @key, %{retained_root: root})
 

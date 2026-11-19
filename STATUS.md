@@ -147,6 +147,8 @@ The local Phoenix route served all three Android artifact roles from a synthetic
 
 The Phoenix CI replay exposed a missing two-argument reader used by the iOS compatibility controls. Restoring that entry point passed all 45 focused hosted tests. The authenticated route still passes the selected platform. [Compatibility and v47 source receipt](verification/receipts/l05-retained-reader-compatibility-v47-20261119.json)
 
+The next Phoenix CI run passed 935 tests and skipped two before its source-integrity check failed. The retained artifact control reproduced seven writes under the hosted checkout. The corrected control used system scratch and left the hosted inventory unchanged. [Fixture scratch receipt](verification/receipts/l05-retained-ci-scratch-v48-20261119.json)
+
 ### Android TaskCompletion parity and source diagnostic
 
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.
