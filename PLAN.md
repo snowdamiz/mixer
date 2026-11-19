@@ -16,6 +16,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 19 local verification
 
+The retained iOS build now runs the worker's Swift version probe as `/usr/bin/swift --version`. The compiled CLI produced an absolute-path terminal receipt, and the worker settled the deliberate pre-compiler veto and accepted shutdown. Ordinary CLI commands still resolve Swift through PATH. The archive admits the corrected source and refuses the relative-probe predecessor. [Compiled preflight and archive verification](verification/receipts/l05-l07-worker-swift-probe-20261119.json)
+
 The D2 source audit matched the iOS 27 and Android 16 conflict runs to the same FieldLog task contract and SQLite backend. Both native runs retained the local title and peer assignee at version 3 with two committed events. The apps used separate workspaces, platform adapters, and SDK revisions. A fresh host replay reached version 4 after a lost acknowledgement and another offline edit. [Source sharing and paired workflow](verification/receipts/fieldlog-d2-task-conflict-source-sharing-20261119.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)

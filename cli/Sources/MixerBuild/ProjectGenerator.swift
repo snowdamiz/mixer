@@ -270,7 +270,8 @@ public enum ProjectBuild {
     }
 
     private static func verifiedLock(
-        root: URL, androidRequired: Bool = false, requireCurrentAndroidProfile: Bool = true
+        root: URL, androidRequired: Bool = false, requireCurrentAndroidProfile: Bool = true,
+        swiftExecutable: String = "swift"
     ) throws -> (lock: ToolchainLock, bytes: Data) {
         let config = try ApplicationConfiguration.load(root)
         try AndroidSDKCompatibility.requireHost(config.androidHost)
@@ -294,7 +295,7 @@ public enum ProjectBuild {
         if let android = lock.android {
             guard try SourceDigest.tree(root.appendingPathComponent("Generated/MixerAndroid")) == android.adapterDigest else { throw MixerFailure("lock.android-drift", "Bundled Android adapter source differs from mixer.lock. Restore the original locked adapter snapshot.") }
         }
-        let version = try ProcessRunner.run(["swift", "--version"], policy: .toolInspection)
+        let version = try ProcessRunner.run([swiftExecutable, "--version"], policy: .toolInspection)
         if ProcessInfo.processInfo.environment["MIXER_SWIFT_IDENTITY_DIAGNOSTICS"] == "1" {
             let environment = ProcessInfo.processInfo.environment
             let observation: [String: Any] = [
@@ -323,7 +324,9 @@ public enum ProjectBuild {
             throw MixerFailure("build.output-platform", "--output requires an explicit non-test --platform ios build.")
         }
         let store = try NativeBuildOutput.prepare(output: output, root: root)
-        let lock = try verifyLock(root: root)
+        let swiftExecutable = ProcessInfo.processInfo.environment["MIXER_WORKER_COMMAND_CONTROL"] == "1"
+            ? "/usr/bin/swift" : "swift"
+        let lock = try verifiedLock(root: root, swiftExecutable: swiftExecutable).lock
         return try AppleProject.build(root: root, retainingIn: store, lock: lock)
     }
     public static func export(root: URL, destination: URL) throws -> String {

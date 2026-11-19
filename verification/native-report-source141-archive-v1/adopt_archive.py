@@ -229,6 +229,9 @@ STORE_PLATFORM_IDENTITY_INPUTS = {
     'cli/Sources/MixerBuild/StoreReconciliation.swift',
     'cli/Sources/MixerCLI/main.swift',
 }
+WORKER_SWIFT_PROBE = 'cli/Sources/MixerBuild/ProjectGenerator.swift'
+WORKER_SWIFT_PROBE_PREIMAGE = 'worker-swift-probe-predecessor-bytes/' + WORKER_SWIFT_PROBE
+WORKER_SWIFT_PROBE_SOURCE_SHA256 = 'a26f01a1ed80fbaaae03776d37e8ecce194c52adb28ff9770be9c608f136db1b'
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -236,7 +239,7 @@ HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_spar
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW,
-    GUEST_CUTOFF_PREIMAGE,
+    GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
@@ -369,7 +372,8 @@ def install_inputs():
                              'application_registration_workflow', 'source_starter_selection_workflow',
                              'phoenix_ci_workflow', 'starter_package_closure_workflow',
                              'capability_identity_transition', 'guest_cutoff_transition', 'hosted_v41_workflow', 'hosted_v41_notices',
-                             'hosted_v42_workflow', 'store_platform_identity_transition'} and
+                             'hosted_v42_workflow', 'store_platform_identity_transition',
+                             'worker_swift_probe_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -794,10 +798,24 @@ def install_inputs():
                 'Installed store platform identity mode differs: ' + name)
         installed[name] = expected_source[name] = change['after']
         preimages.setdefault(name, (raw, 0o644))
-    require(current == expected_source and len(current) == 150 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': STORE_PLATFORM_IDENTITY_SOURCE_SHA256,
-    } and previous.digest(current) == store_identity['sourceAfter'] == STORE_PLATFORM_IDENTITY_SOURCE_SHA256,
+    require(previous.digest(expected_source) == store_identity['sourceAfter'] == STORE_PLATFORM_IDENTITY_SOURCE_SHA256,
             'Store platform identity source transition differs')
+
+    worker_swift = binding['worker_swift_probe_transition']
+    raw_worker_swift = read_predecessor_member(HERE / WORKER_SWIFT_PROBE_PREIMAGE)
+    require(set(worker_swift) == {'sourceBefore', 'before', 'after'} and
+            worker_swift['sourceBefore'] == STORE_PLATFORM_IDENTITY_SOURCE_SHA256 and
+            worker_swift['before'] == previous.row(raw_worker_swift) == installed[WORKER_SWIFT_PROBE] ==
+            expected_source[WORKER_SWIFT_PROBE] and worker_swift['before'] != worker_swift['after'],
+            'Worker Swift probe predecessor differs')
+    require(stat.S_IMODE((ROOT / WORKER_SWIFT_PROBE).lstat().st_mode) == 0o644,
+            'Installed worker Swift probe owner mode differs')
+    installed[WORKER_SWIFT_PROBE] = expected_source[WORKER_SWIFT_PROBE] = worker_swift['after']
+    preimages.setdefault(WORKER_SWIFT_PROBE, (raw_worker_swift, 0o644))
+    require(current == expected_source and len(current) == 150 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': WORKER_SWIFT_PROBE_SOURCE_SHA256,
+    } and previous.digest(current) == WORKER_SWIFT_PROBE_SOURCE_SHA256,
+            'Worker Swift probe source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
