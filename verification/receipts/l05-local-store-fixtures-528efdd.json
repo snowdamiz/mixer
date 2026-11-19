@@ -1,0 +1,710 @@
+{
+  "schema": 1,
+  "gate": "L05",
+  "status": "scoped-local-pass",
+  "sourceRevision": "528efdd558dd3fe37ea31cac780c6b65887bdaea",
+  "sourceTree": "a997158d61219dc1da2a394fe05d059afae66ad8",
+  "versions": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "Xcode": "Xcode 27.2\nBuild version 27B52",
+    "Swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "Git": "git version 2.56.0",
+    "Python": "Python 3.14.8"
+  },
+  "dependencies": [
+    {
+      "identity": "swift-asn1",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/apple/swift-asn1.git",
+      "state": {
+        "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version": "1.7.3"
+      }
+    },
+    {
+      "identity": "swift-crypto",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/apple/swift-crypto.git",
+      "state": {
+        "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+        "version": "5.0.3"
+      }
+    }
+  ],
+  "binaries": {
+    "ordinary": {
+      "sha256": "3c0d4fa2097efe3beeb3a4c1f3b68e494cd8202f3309fffe76f26ef5232bd322",
+      "bytes": 10231264
+    },
+    "fixture": {
+      "sha256": "b147317a88dd01b5a166c83754136f110c6a5e7b08478c3439e776ac56666bff",
+      "bytes": 10394368
+    }
+  },
+  "recordedAtUTC": "2026-11-19T20:19:00.138873+00:00",
+  "fixture": {
+    "path": "cli/Tests/store-fixture-submission.py",
+    "sha256": "68120608a6d04e130c079e499ea050cdb34c009763ec3c358d642f65ee8ed487"
+  },
+  "scope": "Compiled CLI submission controls used synthetic artifact bytes over loopback. The status tests used scripted URLProtocol responses with network access denied.",
+  "sandboxObservation": "macOS refused the nested sandbox. The fixture used its standalone per-child sandbox and a loopback-only Python guard. The standalone preflight refused a non-loopback connection.",
+  "compiledSubmission": {
+    "count": 34,
+    "durableRows": {
+      "ios": 3,
+      "android": 3
+    },
+    "requestCount": 38,
+    "rawReceiptSHA256": "8ff643df982dda425990a8b093839f61b74efd53b720c5e943e55a4bd583263d",
+    "cases": {
+      "ios-missing-port": {
+        "exit": 1,
+        "status": "error",
+        "code": "store.fixture-configuration",
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": []
+      },
+      "ios-wrong-token": {
+        "exit": 1,
+        "status": "error",
+        "code": "store.fixture-configuration",
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": []
+      },
+      "ios-default-request": {
+        "exit": 1,
+        "status": "error",
+        "code": "workflow.not-qualified",
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": []
+      },
+      "ios-default-reconcile": {
+        "exit": 1,
+        "status": "error",
+        "code": "workflow.not-qualified",
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": []
+      },
+      "ios-absent-reconcile": {
+        "exit": 2,
+        "status": "not-observed",
+        "code": null,
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ]
+        ]
+      },
+      "ios-accepted": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          0,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            201
+          ]
+        ]
+      },
+      "ios-accepted-replay": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "ios-stale": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-stale-artifact",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "ios-wrong-identity": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-identity-mismatch",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "ios-lookup-failure": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-provider-error",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            503
+          ]
+        ]
+      },
+      "ios-rejection": {
+        "exit": 1,
+        "status": "rejected",
+        "code": "store.fixture-rejected",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            422
+          ]
+        ]
+      },
+      "ios-rejected-remains-absent": {
+        "exit": 2,
+        "status": "not-observed",
+        "code": null,
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ]
+        ]
+      },
+      "ios-redirect": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-redirect",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            307
+          ]
+        ]
+      },
+      "ios-conditional-race": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          1,
+          2
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            412
+          ],
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "ios-lost-ack": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-transport",
+        "durableRows": [
+          2,
+          3
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            "connection-closed-before-ack"
+          ]
+        ]
+      },
+      "ios-lost-ack-reconcile": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          3,
+          3
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "ios-lost-ack-replay": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          3,
+          3
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "android-missing-port": {
+        "exit": 1,
+        "status": "error",
+        "code": "store.fixture-configuration",
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": []
+      },
+      "android-wrong-token": {
+        "exit": 1,
+        "status": "error",
+        "code": "store.fixture-configuration",
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": []
+      },
+      "android-default-request": {
+        "exit": 1,
+        "status": "error",
+        "code": "play.invalid-request",
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": []
+      },
+      "android-default-reconcile": {
+        "exit": 1,
+        "status": "error",
+        "code": "play.invalid-request",
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": []
+      },
+      "android-absent-reconcile": {
+        "exit": 2,
+        "status": "not-observed",
+        "code": null,
+        "durableRows": [
+          0,
+          0
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ]
+        ]
+      },
+      "android-accepted": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          0,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            201
+          ]
+        ]
+      },
+      "android-accepted-replay": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "android-stale": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-stale-artifact",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "android-wrong-identity": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-identity-mismatch",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "android-lookup-failure": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-provider-error",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            503
+          ]
+        ]
+      },
+      "android-rejection": {
+        "exit": 1,
+        "status": "rejected",
+        "code": "store.fixture-rejected",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            422
+          ]
+        ]
+      },
+      "android-rejected-remains-absent": {
+        "exit": 2,
+        "status": "not-observed",
+        "code": null,
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ]
+        ]
+      },
+      "android-redirect": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-redirect",
+        "durableRows": [
+          1,
+          1
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            307
+          ]
+        ]
+      },
+      "android-conditional-race": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          1,
+          2
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            412
+          ],
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "android-lost-ack": {
+        "exit": 1,
+        "status": "unresolved",
+        "code": "store.fixture-transport",
+        "durableRows": [
+          2,
+          3
+        ],
+        "requests": [
+          [
+            "GET",
+            404
+          ],
+          [
+            "PUT",
+            "connection-closed-before-ack"
+          ]
+        ]
+      },
+      "android-lost-ack-reconcile": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          3,
+          3
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      },
+      "android-lost-ack-replay": {
+        "exit": 0,
+        "status": "accepted",
+        "code": null,
+        "durableRows": [
+          3,
+          3
+        ],
+        "requests": [
+          [
+            "GET",
+            200
+          ]
+        ]
+      }
+    }
+  },
+  "providerStatus": {
+    "count": 25,
+    "tests": {
+      "StoreSubmissionReconciliationTests": [
+        "processingStatesAndRepeatedInvocationPreserveVersionWithoutReadiness",
+        "timeoutMalformedAndAuthenticationAfterValidRetainObservation",
+        "identityAndAmbiguousJSONCannotProduceObservation",
+        "boundsRedirectsErrorsAndReflectedTokenAreRedacted",
+        "missingOrInvalidCredentialNeverSendsARequest",
+        "olderConcurrentResponseCannotOverwriteNewerObservation",
+        "localRecordRejectsSymlinkAndRebindsProjectIdentity",
+        "argumentAdmissionAndActualCLIRefusals"
+      ],
+      "StoreTestingReconciliationTests": [
+        "exactSparseReadAndSeparateProviderReadiness",
+        "officialInternalAndExternalStatesAreConservativelyMapped",
+        "missingNullUnknownAndProcessingOnlyCannotInventReadiness",
+        "expiryAndContradictoryProcessingDenyPositiveClaims",
+        "malformedIdentityAndLinkageRefuseWithoutReplacingPriorObservation",
+        "httpRefusalsRetainOldTimestampWithoutFreshSuccess",
+        "optionalFieldsRejectMalformedTypesBudgetsControlsAndReflection",
+        "argumentScopeAndMissingTokenNeverDispatch"
+      ],
+      "PlayReleaseStatusTests": [
+        "publishedIsExactReadButNeverTestingQualification",
+        "lifecycleTransitionsKeepHumanActionsAndRejectionsVisible",
+        "timeoutRetainsHistoryWithoutRetryAndRecoveryUsesSameIdentity",
+        "previousObservationsCannotCrossAppVersionOrTrack",
+        "wrongResponseContextAndWrongTrackRefuse",
+        "unknownUnspecifiedAmbiguousAndMalformedRefuse",
+        "uploadSuccessAndEmptyReleaseListCannotProveTestingReady",
+        "authRedirectMimeAndResponseBoundsAreExplicit",
+        "invalidIdentitiesAndCredentialsNeverStartAQuery"
+      ]
+    },
+    "coverage": {
+      "App Store Connect": "Exact read-only processing status and identity; pending, failed, invalid, valid, and unknown states. Missing or invalid auth before dispatch, 401/403, 404, 429, 5xx, redirect, timeout, transport, malformed or oversized body, reflected-token redaction, and stale or cross-identity observation protection.",
+      "TestFlight": "Exact sparse read, internal and external state mapping, expiry, contradictions, missing data, malformed association and fields, reflected-token redaction, and HTTP or timeout failures that preserve old timestamps without reporting fresh readiness.",
+      "Google Play": "Exact read-only track/app/version lookup; draft, review, rejection, publication, and no observation. Missing or invalid auth, HTTP refusals, redirects, malformed or ambiguous bodies, bounds, and timeout/recovery with identity fencing. Published state leaves testing readiness unverified."
+    },
+    "rawOutputSHA256": "63d2d0c8eeeafcf8e159e07f3d65d852e40e24411809bbb3fef8471ecc65cb8f"
+  },
+  "observedCommands": {
+    "ordinary-build-offline": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1)\n(allow default)\n(deny network*)\n",
+      "/usr/bin/swift",
+      "build",
+      "--package-path",
+      "<scratch>/source/cli",
+      "--scratch-path",
+      "<scratch>/ordinary",
+      "--cache-path",
+      "<scratch>/cache",
+      "--config-path",
+      "<scratch>/config",
+      "--security-path",
+      "<scratch>/security",
+      "--swift-sdks-path",
+      "<scratch>/swiftsdks",
+      "--force-resolved-versions",
+      "--disable-sandbox",
+      "--jobs",
+      "7",
+      "--build-tests"
+    ],
+    "fixture-build-offline": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1)\n(allow default)\n(deny network*)\n",
+      "/usr/bin/swift",
+      "build",
+      "--package-path",
+      "<scratch>/source/cli",
+      "--scratch-path",
+      "<scratch>/fixture",
+      "--cache-path",
+      "<scratch>/cache",
+      "--config-path",
+      "<scratch>/config",
+      "--security-path",
+      "<scratch>/security",
+      "--swift-sdks-path",
+      "<scratch>/swiftsdks",
+      "--force-resolved-versions",
+      "--disable-sandbox",
+      "--jobs",
+      "7",
+      "--product",
+      "mixer",
+      "-Xswiftc",
+      "-DMIXER_LOCAL_STORE_FIXTURE"
+    ],
+    "ordinary-test-offline": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1)\n(allow default)\n(deny network*)\n",
+      "/usr/bin/swift",
+      "test",
+      "--package-path",
+      "<scratch>/source/cli",
+      "--scratch-path",
+      "<scratch>/ordinary",
+      "--cache-path",
+      "<scratch>/cache",
+      "--config-path",
+      "<scratch>/config",
+      "--security-path",
+      "<scratch>/security",
+      "--swift-sdks-path",
+      "<scratch>/swiftsdks",
+      "--force-resolved-versions",
+      "--disable-sandbox",
+      "--skip-build",
+      "--disable-xctest",
+      "--filter",
+      "StoreSubmissionReconciliationTests[/.](processingStatesAndRepeatedInvocationPreserveVersionWithoutReadiness|timeoutMalformedAndAuthenticationAfterValidRetainObservation|identityAndAmbiguousJSONCannotProduceObservation|boundsRedirectsErrorsAndReflectedTokenAreRedacted|missingOrInvalidCredentialNeverSendsARequest|olderConcurrentResponseCannotOverwriteNewerObservation|localRecordRejectsSymlinkAndRebindsProjectIdentity|argumentAdmissionAndActualCLIRefusals)|StoreTestingReconciliationTests[/.](exactSparseReadAndSeparateProviderReadiness|officialInternalAndExternalStatesAreConservativelyMapped|missingNullUnknownAndProcessingOnlyCannotInventReadiness|expiryAndContradictoryProcessingDenyPositiveClaims|malformedIdentityAndLinkageRefuseWithoutReplacingPriorObservation|httpRefusalsRetainOldTimestampWithoutFreshSuccess|optionalFieldsRejectMalformedTypesBudgetsControlsAndReflection|argumentScopeAndMissingTokenNeverDispatch)|PlayReleaseStatusTests[/.](publishedIsExactReadButNeverTestingQualification|lifecycleTransitionsKeepHumanActionsAndRejectionsVisible|timeoutRetainsHistoryWithoutRetryAndRecoveryUsesSameIdentity|previousObservationsCannotCrossAppVersionOrTrack|wrongResponseContextAndWrongTrackRefuse|unknownUnspecifiedAmbiguousAndMalformedRefuse|uploadSuccessAndEmptyReleaseListCannotProveTestingReady|authRedirectMimeAndResponseBoundsAreExplicit|invalidIdentitiesAndCredentialsNeverStartAQuery)"
+    ]
+  },
+  "cleanup": {
+    "outerGroupsClosed": 21,
+    "submissionGroupsClosed": 34,
+    "statusChildGroupsClosed": 8,
+    "fixturePortsRebound": 4,
+    "scratchRemoved": true
+  },
+  "rawEvidenceSHA256": "5252856bbc463ac0ffe1c5f40c1408c5f7fbc76e6c740d7edfc9c1e32743c042",
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}
