@@ -99,6 +99,12 @@ The older FieldLog writer dropped the optional follow-up value after a draft sav
 
 The matched D3 macOS workload reproduced all four FieldLog frames and the original-source trap. Each path completed 36 timed turns across 12 fresh processes. Prepared-input to frame medians were 0.50 µs for native Swift and 317.27 µs for the owned VM. The rebuilt guest was 5,359 bytes raw and 2,691 bytes gzip. The receipt records the different timing boundaries, host contention, and peak process memory. Mobile parity remains open. [Host benchmark and raw samples](verification/receipts/l03-d3-task-completion-host-benchmark-7b61fe1c.json)
 
+### Restart of a closed Starter worker
+
+On `9315129781d6d32215a452b0bd2722cf6123ffd1`, one authenticated free iOS Starter request returned HTTP 201. The local relay withheld the first artifact response after the worker verified that Xcode and the CLI had closed. A replacement worker opened the same SQLite ledger and artifact store on a fresh port. Restricted Oban settled the original build at revision 2 with `native_succeeded`. The worker ledger recorded one start and one Xcode invocation, and PostgreSQL recorded one capacity release. All three authenticated downloads matched the stored sizes and SHA-256 hashes. A separate tenant received HTTP 404 for the build and each download.
+
+The fixture used PostgreSQL 17.11, Elixir 1.20.4, and Xcode 27.2 on macOS arm64. It checked the persisted request key, deterministic build ID, and stable authenticated reads with one POST. Billing rows matched before and after the build. The fixture ran without a payment service. All owned groups exited, all seven ports were reusable, and the disposable database and scratch were removed. L07 remains open for recovery when the compiler exits without verified closure and for combined load and delivery recovery.
+
 ## November 18 local verification
 
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
