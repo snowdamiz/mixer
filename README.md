@@ -12,6 +12,158 @@ The iOS product target is **iOS 26.0 and later**, including iOS 27 and subsequen
 releases. Package and generated app deployment minimums are 26.0. Runtime
 qualification across supported versions remains pending; see product-plan §19.1.
 
+## Development progress
+
+The implementation plan is complete when the eight local gates L01–L08 pass.
+Each gate needs working behavior on iOS Simulator and Android emulator with the
+console, API, database, workers, and update delivery running locally. Payments,
+physical phones, store approval, and live deployment do not block these gates.
+They belong to the separate launch checklist.
+
+This snapshot is from November 19, 2026. Run `python3 scripts/progress.py` to
+print the table below from the current records. Each mark in **Progress** is one
+item in ID order: `█` passed, `▒` in progress, `✗` blocked or failed, and `░` not
+started.
+
+| Checklist | Progress | Passed | In progress | Blocked | Not started | Record |
+| --- | --- | --- | --- | --- | --- | --- |
+| Local gates L01–L08 | `█▒▒▒▒▒▒▒` | 1 | 7 | 0 | 0 | [`gates/local.json`](gates/local.json) |
+| FieldLog milestones D0–D6, D8 | `░░▒▒▒▒░░` | 0 | 4 | 0 | 4 | [`dogfood/receipts/milestones.json`](dogfood/receipts/milestones.json) |
+| Work packages W01–W18 | `▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░` | 0 | 17 | 0 | 1 | [`work-graph.json`](work-graph.json) |
+| Launch gates G01–G38 | `░▒░░░░░░░░░░▒▒▒▒░░░░░░░░▒▒▒░░░░░░░░░░░` | 0 | 8 | 0 | 30 | [`gates/ga.json`](gates/ga.json) |
+
+### Local gate checklist
+
+A gate is checked only when its record in `gates/local.json` says `passed`.
+A checked sub-item has a receipt that shows the behavior at the scope the
+receipt states. That evidence does not pass its gate by itself. Unchecked
+sub-items are the main open work, not a complete list.
+[STATUS.md](STATUS.md) has the full history.
+
+- [x] **L01 Setup, adoption, and export.** Passed independent review on
+  November 18. The public CLI and SDK create, export, and build starter apps
+  for both targets, and the importer reports on FieldLog's iOS source.
+  [L01 decision](verification/receipts/l01-independent-final-review-41a05264.json)
+- [ ] **L02 Shared app and native UI.** In progress.
+  - [x] The FieldLog task-conflict workflow ran on an iOS 27 Simulator and an
+    Android 16 emulator against one shared task contract.
+    [Paired workflow](verification/receipts/fieldlog-d2-task-conflict-source-sharing-20261119.json)
+  - [x] On Android, FieldLog returns from the report share sheet with its
+    workspace and queued changes intact.
+    [Report return](verification/receipts/fieldlog-android-offline-report-return-41a05264.json)
+  - [ ] Save draft in the Android guest editor. The emulator showed blank frames
+    after Save, and the workspace did not change.
+    [Latest trace](verification/receipts/fieldlog-android-save-current-frame-root-r6016.json)
+  - [ ] Text scaling for accessibility. In a macOS probe, semantic fonts kept
+    their size when the text size setting changed.
+    [Scale probe](verification/receipts/fieldlog-localization-scale-c2bae0e57.json)
+  - [ ] The full screen, navigation, input, and accessibility matrix on both
+    targets.
+- [ ] **L03 Compiler and owned runtime.** In progress.
+  - [x] FieldLog guests run in the owned VM on macOS and save and reload a task.
+    [Guest execution](verification/receipts/fieldlog-guest-five-export-repair-r5790.json)
+  - [x] Five paired macOS runs matched native and guest results over 60
+    actions each.
+    [Matched workload](verification/receipts/fieldlog-matched-persisted-host-41a05264.json)
+  - [x] Both iOS guest variants passed exact input, Save, dismissal, and
+    relaunch on Simulator as bundled guests.
+    [Simulator run](verification/receipts/fieldlog-ios-both-variant-save-reopen-root-r6054.json)
+  - [x] A macOS benchmark measured a median of 0.50 µs native and 317.27 µs in
+    the owned VM from prepared input to frame. The guest is 2,691 bytes gzipped.
+    [Host benchmark](verification/receipts/l03-d3-task-completion-host-benchmark-7b61fe1c.json)
+  - [ ] A compact guest for signed delivery. The bundled guests exceed the
+    signed runtime's 4 MiB limit and use a different ABI.
+  - [ ] Guest parity and performance on iOS Simulator and Android emulator.
+  - [ ] Complete conformance, fuzzing, differential, and resource-limit checks.
+- [ ] **L04 Safe OTA and recovery.** In progress.
+  - [x] On Android, a signed guest read the saved task before its first frame.
+    The app kept its workspace through Activity recreation, rollback, and a
+    cold offline reopen, and it resumed a partial download.
+    [Android runtime](verification/receipts/fieldlog-android-hydrated-signed-runtime-41a05264.json)
+  - [x] On iOS Simulator, one installed FieldLog task survived a signed
+    baseline, review, and rollback, then launched without the delivery URL.
+    [iOS runtime](verification/receipts/fieldlog-ios-hydrated-signed-runtime-41a05264.json)
+  - [x] Installed Android key rotation passed, and the app kept its update
+    offline across the key change.
+    [Key rotation](verification/receipts/fieldlog-android-key-rotation-native-41a05264.json)
+  - [x] The release origin gives each Android runtime its own signed offer and
+    refuses delivery to a different runtime.
+    [Runtime cohorts](verification/receipts/fieldlog-android-runtime-cohort-offers-501eca8a.json)
+  - [x] `mixer release inspect` reports `ota-compatible` for an eligible edit
+    and `store-build-required` for a new Android permission.
+    [Inspector cases](verification/receipts/l04-release-inspector-source150-41a05264.json)
+  - [ ] Signed delivery through FieldLog's supported entry points, which the
+    independent review requires.
+    [L04 review](verification/receipts/l04-independent-review-9fd7e7f6eb-41a05264.json)
+  - [ ] iOS key rotation.
+  - [ ] Installed rollback with FieldLog's selected-draft adapter on both
+    targets.
+  - [ ] Android in-place binary replacement that keeps the workspace.
+- [ ] **L05 Local platform workflow.** In progress.
+  - [x] A browser **Create build** click returned HTTP 201 and queued one
+    build and one job in PostgreSQL.
+    [Browser create](verification/receipts/free-workspace-default-build-create-root-r5990.json)
+  - [x] A free iOS Starter build reached `native_succeeded` through Phoenix,
+    restricted Oban, and one Xcode run.
+    [Closed Starter build](verification/receipts/l05-l07-native-starter-closed-20261119.json)
+  - [x] A free client downloaded the app, symbols, and inventory after worker
+    shutdown. Cancellation during an Xcode run released capacity once.
+    [Native build](verification/receipts/l05-combined-native-build-41a05264.json)
+  - [x] Against provider fixtures, the store CLI reconciled a lost
+    acknowledgement on both platforms with one submission each.
+    [Store fixtures](verification/receipts/l05-local-submission-reconciliation-41a05264.json)
+  - [ ] Authenticated artifact delivery and a backup from one closed Starter
+    build.
+  - [ ] One run of the whole workflow, including update, promotion, and
+    rollback.
+- [ ] **L06 Free accounts and administration.** In progress.
+  - [x] A real browser signed in and created a free organization and project
+    with payments disabled.
+    [Browser onboarding](verification/receipts/free-workspace-browser-onboarding-root-r5946.json)
+  - [x] Over local HTTP, a free owner passed login, authorization, quotas,
+    export, and deletion.
+    [Self-service HTTP](verification/receipts/free-self-service-http-private-evidence-r5868.json)
+  - [x] The console refused organization exit until the owner's build
+    settled. Another tenant kept its export and access.
+    [Settled exit](verification/receipts/l06-settled-exit-65c89e08.json)
+  - [ ] One browser journey in which a free owner manages the workspace and
+    uses its build services.
+    [Browser administration](verification/receipts/l06-combined-console-browser-793196991d.json)
+- [ ] **L07 Security and local reliability.** In progress.
+  - [x] Release metadata and artifacts restored from a PostgreSQL backup.
+    [Backup and restore](verification/receipts/release-postgres-backup-restore-20261118.json)
+  - [x] The API recovered browser sessions after a refused pool checkout and
+    after both browser lifecycle connections were exhausted.
+    [Session recovery](verification/receipts/l07-recovery-v33-41a05264.json) ·
+    [Checkout recovery](verification/receipts/l07-bounded-checkout-recovery-c2bae0e5.json)
+  - [ ] Backup and restore of one closed native build, reconciled with Phoenix.
+  - [ ] An independent provenance and licensing review.
+- [ ] **L08 FieldLog and documentation.** In progress.
+  - [x] The public upgrade, recovery, and exit replay built FieldLog's Android
+    APK without the original project, SDK checkouts, or Mixer CLI.
+    [Upgrade and exit replay](verification/receipts/l08-public-upgrade-02002272.json)
+  - [x] In host checks, FieldLog's storage writers for both platforms refused
+    overlapping draft and entry IDs and recovered after a write fault.
+    [Storage checks](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
+  - [ ] The complete FieldLog workflow on both targets through public tooling,
+    including OTA, rollback, and export.
+  - [ ] The reviewed 20-change OTA corpus.
+
+### FieldLog dogfood milestones
+
+L08 needs the local version of every milestone except D7. Statuses come from
+the `localAcceptance` records in `dogfood/receipts/milestones.json`.
+
+- [ ] **D0 Baseline.** Not started.
+- [ ] **D1 Engine adoption.** Not started.
+- [ ] **D2 Shared Android.** In progress.
+- [ ] **D3 Interpreted parity.** In progress.
+- [ ] **D4 OTA delivery.** In progress.
+- [ ] **D5 Recovery.** In progress.
+- [ ] **D6 Platform workflow.** Not started.
+- **D7 Production use.** Deferred. The plan does not require it.
+- [ ] **D8 Scenario confidence.** Not started.
+
 ## Create, export, and build a local app
 
 Run these commands on an Apple silicon Mac from a checkout of the public
