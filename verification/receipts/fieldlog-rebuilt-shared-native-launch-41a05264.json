@@ -1,0 +1,113 @@
+{
+  "status": "failed-before-signed-release-phases",
+  "gates": [
+    "L04",
+    "L08"
+  ],
+  "scope": "One shared origin, Android API 36 arm64 emulator, and iOS 27 Simulator.",
+  "android": {
+    "run": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-f35e6764/verification/local/fieldlog-rebuilt-shared-RXMZdSOE/native-root-resumed-41a05264/android/run.json",
+      "sha256": "60489efb1f32fb072f2f6294c8aaa57cc0988078d7c7d565269662290865b400"
+    },
+    "device": {
+      "ro.boot.qemu.avd_name": "fieldlog_combined_95f2600edbe5",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.build.fingerprint": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+      "sys.boot_completed": "1"
+    },
+    "tools": {
+      "adb": "Android Debug Bridge version 1.0.41\nVersion 37.0.1-15733141\nInstalled as /opt/homebrew/share/android-commandlinetools/platform-tools/adb\nRunning on Darwin 27.0.0 (arm64)",
+      "emulator": "Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)\nCopyright (C) 2006-2024 The Android Open Source Project and many others.\nThis program is a derivative of the QEMU CPU emulator (www.qemu.org).\n\n  This software is licensed under the terms of the GNU General Public\n  License version 2, as published by the Free Software Foundation, and\n  may be copied, distributed, and modified under those terms.\n\n  This program is distributed in the hope that it will be useful,\n  but WITHOUT ANY WARRANTY; without even the implied warranty of\n  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n  GNU General Public License for more details.",
+      "aapt2": "Android Asset Packaging Tool (aapt) 2.20-13193326"
+    },
+    "installedArtifacts": {
+      "dev.fieldlog.generatedr90": {
+        "path": "/data/app/~~47QWu2LgYqT2FyEAgnjImg==/dev.fieldlog.generatedr90-xAHzKwY68MCCmPXGr7HDeA==/base.apk",
+        "sha256": "05c30e56abaf1ab2f655642deb4b1e910717be802e6a4d70aee8f57be4c8d6cb"
+      },
+      "dev.mixer.verification.reportreader": {
+        "path": "/data/app/~~T7D-fXBDEGrpQ9EcMpH5Rg==/dev.mixer.verification.reportreader-u_4SGGGTFR2im3T9lTwO9g==/base.apk",
+        "sha256": "907f27fd27346dd1e1a194406adcd8232fcbb15b0aae8aeaf53d8fbb9735aa02"
+      }
+    },
+    "network": [
+      {
+        "stage": "offline_before_first_launch",
+        "airplane": "enabled",
+        "defaultNetwork": "none"
+      }
+    ],
+    "firstFailure": {
+      "stage": "offline_before_first_launch",
+      "type": "RuntimeError",
+      "error": "FieldLog failed to launch: Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=dev.fieldlog.generatedr90/.androidhost.PublicActivity }\nStatus: timeout\nLaunchState: UNKNOWN (-1)\nActivity: dev.fieldlog.generatedr90/.androidhost.PublicActivity\nWaitTime: 19420\nComplete"
+    },
+    "crashBuffer": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-f35e6764/verification/local/fieldlog-rebuilt-shared-RXMZdSOE/native-root-resumed-41a05264/android/command-236.out",
+      "sha256": "2648f1118f65f88eba6566d69594ab6f2c1a96bec3bcf6a7d272335ba1f48db2"
+    },
+    "crashProcessOccurrences": [
+      "com.google.android.bluetooth",
+      "com.google.android.bluetooth",
+      "com.google.android.bluetooth",
+      "com.google.android.bluetooth"
+    ],
+    "cleanup": {
+      "errors": [],
+      "reusablePorts": [
+        5634,
+        5635,
+        49198
+      ],
+      "removedOwnedScratch": true
+    }
+  },
+  "ios": {
+    "run": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-f35e6764/verification/local/fieldlog-rebuilt-shared-RXMZdSOE/native-root-resumed-41a05264/ios/receipt.json",
+      "sha256": "d419f1e3fd0eaf6ae617ffd0224cd86ec58a01a3731b085a9821b181d3aa42aa"
+    },
+    "ownedUUID": "3590B62F-FE6E-49F8-B953-8967BD8CCFBC",
+    "failure": "Android did not preserve its partial and reach the offline rendezvous",
+    "ownedRemoved": true,
+    "externalExact": true,
+    "xcodeVersion": "Xcode 27.2\nBuild version 27B52"
+  },
+  "origin": {
+    "run": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-f35e6764/verification/local/fieldlog-rebuilt-shared-RXMZdSOE/native-root-resumed-41a05264/origin/receipt.json",
+      "sha256": "addaebe80c3fbcac828b6fec75ca9a61ef50483a643658676fad45ab85257e30"
+    },
+    "platformPhases": {
+      "android": {},
+      "ios": {}
+    },
+    "positiveClosure": true,
+    "cleanup": {
+      "control": {
+        "connectionRefused": true,
+        "socketClosed": true,
+        "threadJoined": true
+      },
+      "delivery": {
+        "relay": {
+          "connectionRefused": true,
+          "socketClosed": true,
+          "threadJoined": true
+        },
+        "service": {
+          "connectionRefused": true,
+          "directChildReaped": true,
+          "forced": false,
+          "groupAbsent": true,
+          "pgid": 62262,
+          "pid": 62262,
+          "returncode": 0
+        }
+      }
+    }
+  },
+  "limitation": "The captured Android system Bluetooth crashes do not establish the cause of the Activity Manager timeout."
+}

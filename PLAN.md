@@ -16,6 +16,12 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The full iOS calculation run stopped at installation with CoreSimulator Mach error -308. Root removed the disposable device after confirming Shutdown. The external comparison found one unrelated Minds Simulator changed from Booted to Shutdown. Mixer iOS runs are paused for recovery coordination. [Install and cleanup receipt](verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json)
+
+In the rebuilt shared-origin replay, both Android APKs installed and matched their pins. Activity Manager reported a launch timeout before the first FieldLog screen. The crash buffer contained repeated Android Bluetooth service failures. iOS ended its rendezvous wait, and the owned emulator, Simulator, private ADB and origin closed. Neither app reached a signed release phase. [Joint native attempt](verification/receipts/fieldlog-rebuilt-shared-native-launch-41a05264.json)
+
+The exact rebuilt FieldLog APK contained all four selected Swift, NDK and ICU notices. The complete archive and both Python test modes passed five checks each. [Runtime notice receipt](verification/receipts/fieldlog-rebuilt-runtime-notices-41a05264.json)
+
 An instrumented iOS 27 run rendered the signed calculation baseline on the saved task and committed health. The first hydration wake took 5.031 ms elapsed and 1.697 ms thread CPU. The readback kept revision 9 and 11 outbox rows. The Simulator was removed. The external inventory matched after resuming. The earlier effects deadline remains unexplained. [iOS timing receipt](verification/receipts/fieldlog-ios-calculation-baseline-diagnostic-41a05264.json)
 
 The shared localhost origin served sequences 1–5 to the original iOS packet and the rebuilt Android packet. All 43 host controls passed, and both interrupted 2,048-byte prefixes matched across restart. Native verification and the separate Android 240-byte title deadline remain open. [Shared-origin host replay](verification/receipts/fieldlog-rebuilt-shared-origin-host-41a05264.json)
@@ -30,7 +36,7 @@ The corrected iOS calculation test opened Filter inspection and the intended sav
 
 The Android task-conflict host replay preserved all four prior outbox rows and converged on the local title and peer assignee. Four API 36 attempts stopped during offline setup, an unresponsive System UI dialog, or streamed installation. Separate push-and-install verified the same APK on disk. In that run Wi-Fi was off and LTE remained the default route. The four owned emulators and private ADB groups closed. [Android attempts](verification/receipts/fieldlog-android-task-conflict-preflight-41a05264.json)
 
-All nine engine jobs passed at `1cbb6f9a26`. A later run on Cargo 1.100.0 moved the VM test executable and exposed a stale test-only library lookup. The privacy test now compiles the library in its own target and passes Cargo’s final output to the original 13 compiler probes. The exact test passed on Cargo 1.99.0 and 1.100.0, and all 46 optimized cache controls passed. Ubuntu validation of the correction is pending. [VM CI receipt](verification/receipts/vm-external-privacy-cargo-layout-e990792f53.json)
+All nine engine jobs passed at `1cbb6f9a26`. A later run on Cargo 1.100.0 moved the VM test executable and exposed a stale test-only library lookup. The privacy test now compiles the library in its own target and passes Cargo’s final output to the original 13 compiler probes. The exact test passed on Cargo 1.99.0 and 1.100.0, and all 46 optimized cache controls passed. All nine engine jobs passed on the correction commit. [Hosted CI](https://github.com/snowdamiz/mixer/actions/runs/44430570539) · [VM CI receipt](verification/receipts/vm-external-privacy-cargo-layout-e990792f53.json)
 
 The first iOS calculation test installed the intended app and preserved the exact 3,530-byte saved workspace. FieldLog opened Upcoming inspection, while XCTest expected Filter inspection. The test stopped before guest launch. The release origin closed and the owned Simulator was removed. A new test selects the intended project through the ordinary screen. [Simulator receipt](verification/receipts/fieldlog-ios-calculation-project-route-41a05264.json)
 

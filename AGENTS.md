@@ -956,3 +956,10 @@ Preserve /private/tmp/mixer-starter-review.X6niS81d and
 /Users/andreyyurlov/.t3/userdata/mixer-starter-review-fixture.aHQfzxuX until
 their owner can establish closure. Read the delivered review summary and
 receipt for findings. Fresh isolated correction work remains authorized.
+
+The full iOS calculation replay stopped at a CoreSimulator Mach server error.
+Root removed the exact disposable device after confirming Shutdown. External
+Minds Simulator UUID 8DE4FDD2-5E76-4148-AAF4-EED4F1C59780 was Booted at baseline
+and Shutdown at cleanup. Pause new Mixer iOS Simulator runs while the device
+owner coordinates recovery. Do not operate on that unrelated Simulator without
+authorization. See verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json.
