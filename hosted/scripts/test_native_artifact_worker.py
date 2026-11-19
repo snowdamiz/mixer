@@ -15,7 +15,8 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "priv" / "development"))
 from native_artifact_worker import (
-    KINDS, NativeWorker, OwnedBuildProcess, Refusal, build, digest, exchange, literal, mac, now_ms, serve,
+    KINDS, LaunchGate, NativeWorker, OwnedBuildProcess, Refusal, build, digest, exchange, literal, mac,
+    now_ms, serve,
 )
 
 
@@ -230,6 +231,89 @@ class NativeWorkerTest(unittest.TestCase):
             self.assertEqual(ready, self.call(address, "artifacts", self.request))
             self.assertEqual("stopped", self.call(address, "stop", self.request)["status"])
             self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", self.request))
+
+    def test_protocol_preflight_failure_releases_worker_capacity(self):
+        recipe = dict(self.recipe(), argv=["/bin/sh", "-c", '''
+printf '%s' mixer-command-receipts-10000000-1000-1000-1000-100000000000 > "$TMPDIR/cli-closed"
+exit 23
+''', "inert-cli", str(self.root)])
+        later = dict(self.request, operation_id="e" * 64)
+
+        def failed(address, request):
+            deadline = time.monotonic() + 5
+            while True:
+                reply = self.call(address, "query", request)
+                if reply != {"status": "running"} or time.monotonic() >= deadline:
+                    break
+            self.assertEqual("preflight_failed", reply.get("status"), reply)
+            state = self.root / "protocol-state"
+            raw = (state / "blobs" / reply["diagnostic_sha256"]).read_bytes()
+            self.assertEqual(reply["diagnostic_sha256"], digest(raw))
+            proof = json.loads(raw)
+            self.assertEqual(request["operation_id"], proof["operation_id"])
+            self.assertEqual(23, proof["closure"]["exit"])
+            self.assertEqual([], proof["closure"]["commands"])
+            self.assertTrue(proof["closure"]["cli_reaped"] and proof["closure"]["cli_group_absent"])
+            self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", request))
+            log = json.loads((state / ("customer-log-v1-" + request["operation_id"])).read_bytes())
+            self.assertEqual((23, None), (log["cliExitCode"], log["compiler"]))
+            return reply
+
+        with patch.object(NativeWorker, "verify", return_value=recipe), self.listener() as address:
+            self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+            first = failed(address, self.request)
+            self.assertEqual(first, self.call(address, "ensure_started", self.request))
+            self.assertEqual({"status": "running"}, self.call(address, "ensure_started", later))
+            failed(address, later)
+            self.assertEqual({"status": "closed"}, self.call(address, "shutdown"))
+        with self.listener() as address:
+            self.assertEqual(first, self.call(address, "query", self.request))
+            stopped = self.call(address, "stop", self.request)
+            self.assertEqual({"status": "stopped", "diagnostic_sha256": first["diagnostic_sha256"]}, stopped)
+
+    def test_preflight_without_definitive_cli_closure_fails_closed(self):
+        basename = "mixer-command-receipts-10000000-1000-1000-1000-100000000000"
+        for marker, absent, code, nested in (
+            (None, True, 23, None),
+            ("malformed", True, 23, None),
+            (basename, False, 23, None),
+            (basename, True, 0, None),
+            (basename, True, 0, "cancelled"),
+            (basename, True, -15, None),
+            (basename, True, 23, "hold"),
+            (basename, True, 23, "malformed_receipt"),
+            (basename, True, 23, "dangling_receipt_root"),
+            (basename, True, 23, "multiple_compilers"),
+        ):
+            with self.subTest(marker=marker, absent=absent, code=code, nested=nested):
+                launch = LaunchGate()
+
+                def fixture(*args, **kwargs):
+                    tmp = Path(kwargs["env"]["TMPDIR"])
+                    if marker is not None:
+                        (tmp / "cli-closed").write_text(marker)
+                    if nested == "multiple_compilers":
+                        self.fixture_process(*args, **kwargs)
+                        second = tmp / basename / "command-second"
+                        second.mkdir()
+                        receipt = tmp / basename / "command-fixture" / "receipt.json"
+                        (second / "receipt.json").write_bytes(receipt.read_bytes())
+                    elif nested == "cancelled":
+                        launch.cancelled = True
+                    elif nested == "dangling_receipt_root":
+                        (tmp / basename).symlink_to(tmp / "missing")
+                    elif nested:
+                        command = tmp / basename / "command-preflight"
+                        command.mkdir(parents=True)
+                        name = "HOLD.json" if nested == "hold" else "receipt.json"
+                        (command / name).write_text("{}")
+                    return type("InertProcess", (), {"pid": 123, "wait": lambda self, timeout: code})()
+
+                with (tempfile.TemporaryDirectory(dir=self.root) as directory,
+                      patch("native_artifact_worker.OwnedBuildProcess", side_effect=fixture),
+                      patch("native_artifact_worker.group_absent", return_value=absent)):
+                    result = build(self.recipe(), {}, Path(directory) / "state", self.request, launch)
+                    self.assertEqual({"closed": False}, result)
 
     def recipe(self):
         return {"cwd": str(self.root), "environment": {}, "argv": ["fixture-cli", str(self.root)],

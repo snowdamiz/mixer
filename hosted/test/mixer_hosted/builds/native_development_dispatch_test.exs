@@ -70,6 +70,32 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
     )
   end
 
+  test "preflight failure completes without querying native artifacts", %{request: request} do
+    sha = String.duplicate("b", 64)
+    reply = %{"status" => "preflight_failed", "diagnostic_sha256" => sha}
+
+    for {action, callback} <- [
+          {"query", &NativeDevelopmentDispatch.query_completion/1},
+          {"ensure_started", &NativeDevelopmentDispatch.ensure_started/1}
+        ] do
+      with_peer(action, reply, fn ->
+        assert {:ok,
+                {:completed,
+                 %{
+                   outcome: :failed,
+                   class: :unknown,
+                   code: :unknown_failure,
+                   diagnostic_sha256: ^sha
+                 }}} =
+                 Dispatch.observation(request, callback.(request))
+      end)
+    end
+
+    with_peer("query", %{reply | "diagnostic_sha256" => "malformed"}, fn ->
+      assert NativeDevelopmentDispatch.query_completion(request) == {:error, :uncertain}
+    end)
+  end
+
   test "an authenticated oversized native result is a definitive policy failure", %{
     request: request
   } do

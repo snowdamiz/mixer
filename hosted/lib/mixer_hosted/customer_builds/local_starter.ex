@@ -12,8 +12,13 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   @max_file 4 * 1024 * 1024
   @max_tree 32 * 1024 * 1024
   @max_tool 64 * 1024 * 1024
+  @stat_options [:raw]
   @spec_keys ~w(organization_id project_id application_id platform source toolchain_lock_sha256 build_definition_sha256)
   @tool_environment ~w(PATH DEVELOPER_DIR LANG LC_ALL)
+  @starter_package_closure "v38-local-v1"
+  @starter_sdk_prefix "Generated/MixerSDK/"
+  @starter_sdk_sha256 "ee03d620f05de3ecf3bb1242ab14da76082ca9b7d26ddcfbf72f8c82c967d50b"
+  @starter_app_sha256 "9a3675d963109cb0d3e67b4230c1d2013a16a135263178d1c09a3fa7c6b38672"
   @excluded ~w(.build .git .swiftpm node_modules .gradle .mixer target .DS_Store)
   @private_suffix ~w(.pem .key .p12 .pfx .mobileprovision .keystore .jks)
 
@@ -111,15 +116,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   defp apply_selection(scope, :list, {:ok, starter}) do
     Schema.admit!(CreateRepo)
 
-    [provisioned] =
-      Session.one!(
-        CreateRepo,
-        "SELECT public.mixer_local_starter_v1($1,$2,$3,false)",
-        [starter.id, starter.pin, starter.spec],
-        :authorization_unavailable
-      )
-
-    case provisioned do
+    case selection_status(scope, starter, false) do
       "available" -> {:ok, Map.put(public_scope(scope), :starter, %{id: starter.id})}
       "missing" -> {:ok, Map.put(public_scope(scope), :starter, nil)}
       _ -> {:error, :authorization_unavailable}
@@ -131,15 +128,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   defp apply_selection(scope, {:select, id}, {:ok, %{id: id} = starter}) do
     Schema.admit!(CreateRepo)
 
-    [result] =
-      Session.one!(
-        CreateRepo,
-        "SELECT public.mixer_local_starter_v1($1,$2,$3,true)",
-        [id, starter.pin, starter.spec],
-        :authorization_unavailable
-      )
-
-    case result do
+    case selection_status(scope, starter, true) do
       "selected" ->
         %{
           "source" => %{"sha256" => source},
@@ -165,6 +154,60 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   end
 
   defp apply_selection(_, {:select, _}, _), do: {:error, :not_found}
+
+  defp selection_status(scope, starter, select?) do
+    [status] =
+      Session.one!(
+        CreateRepo,
+        "SELECT public.mixer_local_starter_v1($1,$2,$3,$4)",
+        [starter.id, starter.pin, starter.spec, select? and starter.local_closure?],
+        :authorization_unavailable
+      )
+
+    if status == "available" and not starter.local_closure? do
+      existing_selection(scope, starter, select?)
+    else
+      status
+    end
+  end
+
+  # A legacy selection is a read of the already-persisted receipt. It never
+  # enters the SQL writer, even if the input disappears concurrently.
+  defp existing_selection(scope, %{id: id, spec: spec}, select?) do
+    source = spec["source"]
+
+    rows =
+      Session.query!(
+        CreateRepo,
+        """
+        SELECT platform,input_id,source_kind,source_reference,source_sha256,
+          toolchain_lock_sha256,build_definition_sha256,max_attempts,timeout_ms,retry_backoff_ms
+        FROM public.mixer_customer_build_inputs
+        WHERE organization_id=$1 AND project_id=$2 AND application_id=$3
+        LIMIT 2
+        """,
+        [scope.organization_id, scope.project_id, scope.application_id]
+      ).rows
+
+    expected = [
+      "ios",
+      id,
+      source["kind"],
+      source["reference"],
+      source["sha256"],
+      spec["toolchain_lock_sha256"],
+      spec["build_definition_sha256"],
+      1,
+      1_800_000,
+      0
+    ]
+
+    case rows do
+      [^expected] -> if(select?, do: "selected", else: "available")
+      [] -> "missing"
+      _ -> if(select?, do: "conflict", else: "missing")
+    end
+  end
 
   defp public_scope(scope) do
     %{
@@ -214,8 +257,10 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
          ^definition <- sha(recipe_bytes),
          {:ok, ^files, _} <- inventory(root),
          ^tree <- tree_digest(files),
-         true <- recipe_matches?(recipe_bytes, policy, root, files) do
-      {:ok, %{id: id, pin: pin, spec: spec}}
+         {:ok, recipe} <- Jason.decode(recipe_bytes),
+         true <- recipe_matches?(recipe, policy, root, files),
+         {:ok, local_closure?} <- package_closure(recipe, policy, root, files) do
+      {:ok, %{id: id, pin: pin, spec: spec, local_closure?: local_closure?}}
     else
       _ -> {:error, :not_found}
     end
@@ -223,19 +268,18 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
     _ -> {:error, :not_found}
   end
 
-  defp recipe_matches?(bytes, policy, root, files) do
-    with {:ok,
-          %{
-            "argv" => [cli, "build", "--platform", "ios", "--directory", ^root],
-            "cwd" => ^root,
-            "environment" => %{"PATH" => "/usr/bin:/bin:/usr/sbin:/sbin"} = env,
-            "profile" => "unsigned-ios-simulator-v1",
-            "package_policy" => "exact-owned-local-manifests-no-external-packages",
-            "inputs" => inputs,
-            "tools" => tools,
-            "timeout_seconds" => timeout
-          }}
-         when is_integer(timeout) and timeout in 1..1800 <- Jason.decode(bytes),
+  defp recipe_matches?(recipe, policy, root, files) do
+    with %{
+           "argv" => [cli, "build", "--platform", "ios", "--directory", ^root],
+           "cwd" => ^root,
+           "environment" => %{"PATH" => "/usr/bin:/bin:/usr/sbin:/sbin"} = env,
+           "profile" => "unsigned-ios-simulator-v1",
+           "package_policy" => "exact-owned-local-manifests-no-external-packages",
+           "inputs" => inputs,
+           "tools" => tools,
+           "timeout_seconds" => timeout
+         }
+         when is_integer(timeout) and timeout in 1..1800 <- recipe,
          %{"cli" => ^cli, "inputs" => ^inputs, "tools" => ^tools, "environment" => ^env} <- policy,
          true <- Map.keys(env) -- @tool_environment == [],
          true <- Enum.all?(env, fn {_name, value} -> is_binary(value) end),
@@ -253,77 +297,121 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
     end
   end
 
-  defp inventory(root) do
-    with true <- canonical?(root),
-         {:ok, %{type: :directory, mode: mode}} when Bitwise.band(mode, 0o222) == 0 <-
-           File.lstat(root) do
-      walk(root, [""], %{}, 0, 0)
+  defp package_closure(recipe, policy, root, files) do
+    case {Map.fetch(recipe, "starter_package_closure"),
+          Map.fetch(policy, "starter_package_closure")} do
+      {:error, :error} ->
+        {:ok, false}
+
+      {{:ok, @starter_package_closure}, {:ok, @starter_package_closure}} ->
+        {sdk, app} =
+          files
+          |> Map.delete("mixer.lock")
+          |> Enum.split_with(fn {name, _} -> String.starts_with?(name, @starter_sdk_prefix) end)
+
+        sdk =
+          Enum.map(sdk, fn {name, hash} ->
+            {String.replace_prefix(name, @starter_sdk_prefix, ""), hash}
+          end)
+
+        with true <- recipe["inputs"] == files,
+             @starter_sdk_sha256 <- tree_digest(sdk),
+             @starter_app_sha256 <- tree_digest(app),
+             {:ok, lock} <- read(Path.join(root, "mixer.lock"), @max_file),
+             true <- sha(lock) == files["mixer.lock"],
+             {:ok, %{"sdkDigest" => @starter_sdk_sha256}} <- Jason.decode(lock) do
+          {:ok, true}
+        end
+
+      _ ->
+        :error
     end
   end
 
-  defp walk(_, [], files, bytes, _), do: {:ok, files, bytes}
+  defp inventory(root) do
+    with true <- canonical?(root),
+         {:ok, %{type: :directory} = info} <- File.lstat(root, @stat_options),
+         {:ok, {files, bytes, _}} <- walk(root, "", info, {%{}, 0, 0}),
+         true <- canonical?(root) do
+      {:ok, files, bytes}
+    end
+  end
 
-  defp walk(root, [relative | pending], files, bytes, entries) do
-    with {:ok, names} <- File.ls(Path.join(root, relative)),
-         true <- entries + length(names) <= @max_files do
-      Enum.reduce_while(names, {:ok, pending, files, bytes}, fn name, {:ok, dirs, acc, total} ->
-        child = Path.join(relative, name)
-        path = Path.join(root, child)
+  # Recheck each directory after all its descendants have been read. This
+  # keeps the ancestor checks in the traversal instead of repeating them
+  # for every directory in the export.
+  defp walk(directory, relative, %{type: :directory, mode: mode} = info, {files, bytes, entries})
+       when Bitwise.band(mode, 0o222) == 0 do
+    with {:ok, names} <- File.ls(directory),
+         count = entries + length(names),
+         true <- count <= @max_files,
+         {:ok, result} <-
+           Enum.reduce_while(names, {:ok, {files, bytes, count}}, fn name, {:ok, state} ->
+             case inventory_entry(directory, relative, name, state) do
+               {:ok, _} = scanned -> {:cont, scanned}
+               _ -> {:halt, :error}
+             end
+           end),
+         true <- same_file?(directory, info) do
+      {:ok, result}
+    end
+  end
 
-        result =
-          with true <-
-                 name not in @excluded and not String.starts_with?(String.downcase(name), ".env"),
-               false <- String.downcase(Path.extname(name)) in @private_suffix,
-               true <- String.valid?(name) and not String.contains?(name, ["\n", "\r"]),
-               {:ok, %{type: type, mode: mode}} when Bitwise.band(mode, 0o222) == 0 <-
-                 File.lstat(path) do
-            case type do
-              :directory ->
-                {:ok, [child | dirs], acc, total}
+  defp walk(path, relative, %{type: :regular} = info, {files, bytes, entries}) do
+    with {:ok, body} <- read_snapshot(path, info, min(@max_file, @max_tree - bytes), 0o222) do
+      {:ok, {Map.put(files, relative, sha(body)), bytes + byte_size(body), entries}}
+    end
+  end
 
-              :regular ->
-                with {:ok, body} <- read(path, min(@max_file, @max_tree - total)) do
-                  {:ok, dirs, Map.put(acc, child, sha(body)), total + byte_size(body)}
-                end
+  defp walk(_, _, _, _), do: :error
 
-              _ ->
-                :error
-            end
-          end
+  defp inventory_entry(directory, relative, name, state) do
+    path = Path.join(directory, name)
 
-        case result do
-          {:ok, _, _, _} -> {:cont, result}
-          _ -> {:halt, :error}
-        end
-      end)
-      |> case do
-        {:ok, dirs, acc, total} -> walk(root, dirs, acc, total, entries + length(names))
-        _ -> :error
-      end
+    with true <- name not in @excluded and not String.starts_with?(String.downcase(name), ".env"),
+         false <- String.downcase(Path.extname(name)) in @private_suffix,
+         true <- String.valid?(name) and not String.contains?(name, ["\n", "\r"]),
+         {:ok, info} <- File.lstat(path, @stat_options) do
+      walk(path, Path.join(relative, name), info, state)
     end
   end
 
   defp read(path, limit, write_mask \\ 0o222) do
     with true <- canonical?(path),
-         {:ok, before = %{type: :regular, size: size, links: links, mode: mode}}
-         when size <= limit and Bitwise.band(mode, write_mask) == 0 and
-                (links == 1 or write_mask == 0o022) <- File.lstat(path),
-         {:ok, file} <- File.open(path, [:read, :binary]) do
+         {:ok, info} <- File.lstat(path, @stat_options) do
+      read_snapshot(path, info, limit, write_mask)
+    end
+  end
+
+  defp read_snapshot(
+         path,
+         %{type: :regular, size: size, links: links, mode: mode} = before,
+         limit,
+         write_mask
+       )
+       when size <= limit and Bitwise.band(mode, write_mask) == 0 and
+              (links == 1 or write_mask == 0o022) do
+    with {:ok, file} <- File.open(path, [:read, :binary, :raw]) do
       bytes =
         try do
-          if size == 0, do: "", else: IO.binread(file, size + 1)
+          if size == 0, do: {:ok, ""}, else: :file.read(file, size + 1)
         after
           File.close(file)
         end
 
-      if is_binary(bytes) and byte_size(bytes) == size and same_file?(path, before),
-        do: {:ok, bytes},
-        else: :error
+      with {:ok, data} when byte_size(data) == size <- bytes,
+           true <- same_file?(path, before) do
+        {:ok, data}
+      else
+        _ -> :error
+      end
     end
   end
 
+  defp read_snapshot(_, _, _, _), do: :error
+
   defp same_file?(path, before) do
-    case File.lstat(path) do
+    case File.lstat(path, @stat_options) do
       {:ok, after_read} -> %{after_read | atime: before.atime} == before
       _ -> false
     end
@@ -335,7 +423,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
       |> Path.split()
       |> Enum.scan(&Path.join(&2, &1))
       |> Enum.all?(fn part ->
-        case File.lstat(part) do
+        case File.lstat(part, @stat_options) do
           {:ok, %{type: type, mode: mode}} when type in [:regular, :directory] ->
             Bitwise.band(mode, 0o022) == 0
 

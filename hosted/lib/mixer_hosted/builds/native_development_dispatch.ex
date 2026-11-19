@@ -128,6 +128,17 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
   defp status(%{"status" => "absent"}), do: {:ok, :absent}
   defp status(%{"status" => "running"}), do: {:ok, :running}
 
+  defp status(%{"status" => "preflight_failed", "diagnostic_sha256" => sha} = reply)
+       when map_size(reply) == 2 do
+    if sha?(sha) do
+      {:ok,
+       {:completed,
+        %{outcome: :failed, class: :unknown, code: :unknown_failure, diagnostic_sha256: sha}}}
+    else
+      {:error, :uncertain}
+    end
+  end
+
   defp status(%{"status" => "stopped", "diagnostic_sha256" => sha}) do
     if sha?(sha), do: {:ok, {:stopped, sha}}, else: {:error, :uncertain}
   end

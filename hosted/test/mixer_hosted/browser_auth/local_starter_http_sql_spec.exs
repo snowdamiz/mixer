@@ -105,6 +105,8 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     assert starter_list(c, auth, scope) == Map.put(public_scope(scope), "starter", %{"id" => id})
 
     unless live do
+      legacy_selection_controls!(c, auth, scope, descriptor, config)
+
       assert starter_list(c, auth, other_project) ==
                Map.put(public_scope(other_project), "starter", nil)
 
@@ -184,13 +186,7 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     assert input["platform"] == "ios"
     expected_receipt = Map.merge(public_scope(scope), input)
 
-    worker_admission =
-      if live do
-        browser_handoff!(live, c, scope, input)
-        assert_input_row!(descriptor)
-        assert input_list(c, login(c), scope) == input_page(scope, [input])
-        worker_accepts_persisted_input!(config, descriptor)
-      end
+    if live, do: browser_handoff!(live, c, scope, input)
 
     for _ <- 1..2 do
       selected = post(c, auth, @starters, payload)
@@ -202,6 +198,7 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     assert input_list(c, auth, other_project) == input_page(other_project, [])
     assert get(c, auth, @inputs, wrong_app).status == 404
     assert side_effect_rows() == baseline
+    worker_admission = worker_accepts_persisted_input!(config, descriptor)
 
     IO.puts(
       "SOURCE_SELECTION_EVIDENCE " <>
@@ -221,6 +218,167 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
           mode: if(live, do: "browser-first", else: "http-controls")
         })
     )
+  end
+
+  defp legacy_selection_controls!(c, auth, scope, current, config) do
+    settings = Application.fetch_env!(:mixer_hosted, LocalStarter)
+    legacy_dir = Path.join(Path.dirname(config), "legacy")
+    File.mkdir!(legacy_dir)
+    legacy_config = Path.join(legacy_dir, "registration.json")
+    startup_path = Path.rootname(config) <> ".worker-startup.json"
+    startup = Jason.decode!(File.read!(startup_path))
+    descriptor = Jason.decode!(File.read!(config))
+    recipe = Jason.decode!(File.read!(startup["registration"]["recipe"]))
+    key = "starter_package_closure"
+
+    legacy_recipe =
+      recipe
+      |> Map.delete(key)
+      |> Map.update!("inputs", &Map.take(&1, ["mixer.lock"]))
+
+    legacy_policy =
+      startup["policy"] |> Map.delete(key) |> Map.put("inputs", legacy_recipe["inputs"])
+
+    legacy_recipe_path = Path.join(legacy_dir, "legacy-recipe.json")
+    recipe_bytes = Jason.encode!(legacy_recipe)
+    write_read_only!(legacy_recipe_path, recipe_bytes)
+    definition = sha256(recipe_bytes)
+    legacy_spec = Map.put(current["spec"], "build_definition_sha256", definition)
+
+    registration =
+      startup["registration"]
+      |> Map.merge(%{"recipe" => legacy_recipe_path, "spec" => legacy_spec})
+
+    {:ok, listener} = :gen_tcp.listen(0, ip: {127, 0, 0, 1})
+    {:ok, port} = :inet.port(listener)
+    :ok = :gen_tcp.close(listener)
+    refute port == startup["port"]
+
+    startup =
+      Map.merge(startup, %{
+        "port" => port,
+        "registration" => registration,
+        "policy" => Map.put(legacy_policy, "recipe_sha256", definition)
+      })
+
+    startup_bytes = Jason.encode!(startup)
+    startup_pin = sha256(startup_bytes)
+    legacy_startup = Path.rootname(legacy_config) <> ".worker-startup.json"
+    write_read_only!(legacy_startup, startup_bytes)
+
+    worker =
+      Map.merge(descriptor["worker"], %{"configuration_sha256" => startup_pin, "port" => port})
+
+    bytes =
+      startup
+      |> Map.take(~w(tenant registration policy))
+      |> Map.put("worker", worker)
+      |> Jason.encode!()
+
+    write_read_only!(legacy_config, bytes)
+    pin = sha256(bytes)
+    id = "starter-" <> pin
+    legacy = %{"id" => id, "pin" => pin, "spec" => legacy_spec, "worker" => worker}
+    payload = Map.put(scope, :starter_id, id)
+
+    {operator_result, status} =
+      System.cmd(
+        "python3",
+        [
+          "-B",
+          System.fetch_env!("MIXER_STARTER_PREPARE"),
+          "--from-worker",
+          Path.join(legacy_dir, "new-descriptor.json"),
+          legacy_startup,
+          startup_pin,
+          worker["id"],
+          to_string(worker["port"])
+        ],
+        stderr_to_stdout: true
+      )
+
+    assert status != 0
+    assert operator_result =~ "starter package closure is required"
+
+    try do
+      replace_catalog!(legacy)
+
+      Application.put_env(:mixer_hosted, LocalStarter, %{
+        settings
+        | path: legacy_config,
+          sha256: pin,
+          worker_sha256: startup_pin
+      })
+
+      assert {:ok, %{local_closure?: false}} = LocalStarter.load(scope)
+      assert starter_list(c, auth, scope) == Map.put(public_scope(scope), "starter", nil)
+      assert post(c, auth, @starters, payload).status == 404
+      assert input_rows() == []
+
+      source = legacy_spec["source"]
+
+      assert DB.q!(
+               Admin,
+               """
+               INSERT INTO public.mixer_customer_build_inputs
+                 (organization_id,project_id,application_id,platform,input_id,source_kind,source_reference,
+                  source_sha256,toolchain_lock_sha256,build_definition_sha256,max_attempts,timeout_ms,retry_backoff_ms)
+               VALUES ($1,$2,$3,'ios',$4,$5,$6,$7,$8,$9,1,1800000,0)
+               """,
+               [
+                 scope.organization_id,
+                 scope.project_id,
+                 scope.application_id,
+                 id,
+                 source["kind"],
+                 source["reference"],
+                 source["sha256"],
+                 legacy_spec["toolchain_lock_sha256"],
+                 definition
+               ]
+             ).num_rows == 1
+
+      assert starter_list(c, auth, scope) ==
+               Map.put(public_scope(scope), "starter", %{"id" => id})
+
+      assert %{"inputs" => [%{"sourceInputId" => ^id}]} = input_list(c, auth, scope)
+
+      first = response_json!(post(c, auth, @starters, payload), 200)
+      assert first["sourceInputId"] == id
+      assert first == response_json!(post(c, auth, @starters, payload), 200)
+      assert_input_row!(legacy)
+      assert worker_accepts_persisted_input!(legacy_config, legacy)["starts"] == 0
+
+      assert DB.q!(
+               Admin,
+               """
+               UPDATE public.mixer_customer_build_inputs SET source_reference='different-reference'
+               WHERE input_id=$1
+               """,
+               [id]
+             ).num_rows == 1
+
+      assert starter_list(c, auth, scope) == Map.put(public_scope(scope), "starter", nil)
+      assert post(c, auth, @starters, payload).status == 409
+      assert [[_, _, _, _, ^id, _, "different-reference" | _]] = input_rows()
+    after
+      DB.q!(Admin, "DELETE FROM public.mixer_customer_build_inputs WHERE input_id=$1", [id])
+      replace_catalog!(current)
+      Application.put_env(:mixer_hosted, LocalStarter, settings)
+    end
+  end
+
+  defp replace_catalog!(%{"id" => id, "pin" => pin, "spec" => spec}) do
+    assert DB.q!(
+             Migration,
+             "UPDATE public.mixer_local_starters SET input_id=$1, registration_pin=$2, spec=$3",
+             [id, pin, spec]
+           ).num_rows == 1
+  end
+
+  defp write_read_only!(path, bytes) do
+    File.write!(path, bytes, [:exclusive])
+    File.chmod!(path, 0o400)
   end
 
   defp register_app(c, auth, org, name) do

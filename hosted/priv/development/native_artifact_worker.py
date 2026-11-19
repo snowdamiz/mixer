@@ -15,6 +15,7 @@ import time
 import uuid
 
 from compiler_worker import Refusal, Worker, digest, literal
+import starter_package_closure as starter
 
 KINDS = ("unsigned_native_binary", "debug_symbols", "resource_inventory")
 LIMIT = 256 * 1024 * 1024
@@ -57,12 +58,12 @@ def group_absent(pid):
     return False
 
 
-def read_owned(path, limit):
+def read_owned(path, limit, *, allow_owner_write=False):
     fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
     with os.fdopen(fd, "rb") as handle:
         before = os.fstat(handle.fileno())
         if (not stat.S_ISREG(before.st_mode) or before.st_uid != os.getuid()
-                or before.st_nlink != 1 or before.st_mode & 0o222
+                or before.st_nlink != 1 or before.st_mode & (0o022 if allow_owner_write else 0o222)
                 or not 0 < before.st_size <= limit):
             raise Refusal("uncertain")
         data = handle.read(limit + 1)
@@ -139,13 +140,16 @@ def build(recipe, files, output, request, launch):
         target.write_bytes(data)
     environment = dict(recipe["environment"], TMPDIR=str(tmp), CFFIXED_USER_HOME=str(home))
     argv = [*recipe["argv"][:-1], str(project), "--output", str(store)]
+    launch_environment = dict(environment, MIXER_WORKER_COMMAND_CONTROL="1")
+    if starter.KEY in recipe:
+        launch_environment["HOME"] = str(home)
     with (output / "stdout").open("xb") as stdout, (output / "stderr").open("xb") as stderr:
         with launch.lock:
             now = now_ms()
             remaining = min(recipe["timeout_seconds"], (request["deadline_ms"] - now) / 1000)
             if launch.cancelled or remaining <= 0 or request["guard"]["expires_at"] <= now:
                 return {"closed": True, "started": False}
-            proc = OwnedBuildProcess(argv, cwd=project, env=dict(environment, MIXER_WORKER_COMMAND_CONTROL="1"),
+            proc = OwnedBuildProcess(argv, cwd=project, env=launch_environment,
                                      stdin=subprocess.DEVNULL,
                                      stdout=stdout, stderr=stderr, start_new_session=True)
             launch.control_directory = tmp
@@ -157,40 +161,61 @@ def build(recipe, files, output, request, launch):
     # The pinned CLI acknowledges only after its synchronous command scope
     # unwinds without a hold. Never inspect command scratch without that proof.
     try:
-        basename = (tmp / "cli-closed").read_text()
         prefix = "mixer-command-receipts-"
+        basename = read_owned(tmp / "cli-closed", len(prefix) + 36, allow_owner_write=True).decode("ascii")
         if not basename.startswith(prefix) or str(uuid.UUID(basename[len(prefix):])).upper() != basename[len(prefix):]:
             return {"closed": False}
         if not group_absent(proc.pid):
             return {"closed": False}
+        receipt_root = tmp / basename
         try:
-            directories = sorted((tmp / basename).iterdir())
+            root_info = receipt_root.lstat()
         except FileNotFoundError:
             directories = []
+        else:
+            if root_info.st_mode != stat.S_IFDIR | 0o700 or root_info.st_uid != os.getuid():
+                return {"closed": False}
+            directories = sorted(receipt_root.iterdir())
         commands, proof = [], []
         for command in directories:
             if not command.name.startswith("command-"):
                 continue
-            if (command / "HOLD.json").exists():
+            if not stat.S_ISDIR(command.lstat().st_mode):
                 return {"closed": False}
-            data = (command / "receipt.json").read_bytes()
+            try:
+                (command / "HOLD.json").lstat()
+            except FileNotFoundError:
+                pass
+            else:
+                return {"closed": False}
+            receipt = command / "receipt.json"
+            if not stat.S_ISREG(receipt.lstat().st_mode):
+                return {"closed": False}
+            data = receipt.read_bytes()
             item = json.loads(data)
-            if (item["state"] != "TERMINAL" or item["pid"] != item["ownedPGID"]
+            argv_receipt = item["command"]
+            if (type(argv_receipt) is not list or not argv_receipt
+                    or not all(type(arg) is str for arg in argv_receipt) or not argv_receipt[0].startswith("/")
+                    or item["state"] != "TERMINAL"
+                    or any(type(item[key]) is not int for key in ("pid", "ownedPGID", "ownedSession"))
+                    or item["pid"] != item["ownedPGID"]
                     or item["pid"] != item["ownedSession"] or item["pid"] <= 1
                     or not all(item.get(key) is True for key in ("terminalCustody", "directChildReaped",
                                "stdoutEOF", "stderrEOF", "descriptorsClosed", "ownedGroupAbsent"))):
                 return {"closed": False}
             commands.append(item)
-            proof.append({"command": item["command"][0], "pid": item["pid"],
+            proof.append({"command": argv_receipt[0], "pid": item["pid"],
                           "receipt_sha256": digest(data), "stop_reason": item.get("stopReason"),
                           "group_terminate_sent": item.get("groupTerminateSent", False)})
-    except (OSError, ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError, Refusal):
         return {"closed": False}
     compiler = [c for c in commands if c["command"][0] == "/usr/bin/xcodebuild"]
-    if len(compiler) != 1 and not (not compiler and launch.cancelled):
+    if len(compiler) > 1 or (not compiler and code <= 0):
         return {"closed": False}
     result = {"closed": True, "started": True, "pid": proc.pid, "exit": code,
               "cli_reaped": True, "cli_group_absent": True, "commands": proof}
+    if not compiler:
+        result["preflight_failed"] = True
     try:
         (output / "closure.json").write_text(literal(result))
     except OSError:
@@ -276,6 +301,16 @@ class NativeWorker(Worker):
                 or type(recipe["timeout_seconds"]) is not int
                 or not 1 <= recipe["timeout_seconds"] <= 1800):
             raise Refusal("unavailable")
+        policy = self.config["policy"]
+        if starter.KEY in recipe or starter.KEY in policy:
+            if (recipe.get(starter.KEY) != starter.VERSION or policy.get(starter.KEY) != starter.VERSION
+                    or recipe["inputs"] != self.config["registration"]["files"]
+                    or set(recipe["tools"]) != {cli, "/usr/bin/xcodebuild"}):
+                raise Refusal("unavailable")
+            try:
+                starter.check_starter_inputs(recipe["inputs"], (Path(recipe["cwd"]) / "mixer.lock").read_bytes())
+            except (OSError, ValueError, AttributeError) as error:
+                raise Refusal("unavailable") from error
         return recipe
 
     def finish(self):
@@ -322,10 +357,13 @@ class NativeWorker(Worker):
         # Persist the tombstone before attempting the evidence write.
         value["status"] = "closed"
         self.save(operation, value)
-        sha = self.blob((literal({"operation_id": operation, "closure": value["closure"]}) + "\n").encode())
+        sha = self.closure_diagnostic(operation, value)
         value.update(status="stopped", diagnostic_sha256=sha)
         self.save(operation, value)
         return {"status": "stopped", "diagnostic_sha256": sha}
+
+    def closure_diagnostic(self, operation, value):
+        return self.blob((literal({"operation_id": operation, "closure": value["closure"]}) + "\n").encode())
 
     def request(self, action, request):
         if action not in ("query", "ensure_started", "stop", "artifacts"):
@@ -353,6 +391,8 @@ class NativeWorker(Worker):
             return {"status": "native_ready", "artifacts": value["artifacts"]}
         if action == "artifacts":
             raise Refusal("unavailable")
+        if status == "closed" and not value.get("tombstone") and value["closure"].get("preflight_failed"):
+            return {"status": "preflight_failed", "diagnostic_sha256": self.closure_diagnostic(operation, value)}
         if status in ("closed", "native_ready"):
             # Reconciliation can install the stop tombstone when its deadline expires.
             return {"status": "running"}

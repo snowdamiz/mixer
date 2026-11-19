@@ -3,6 +3,7 @@
 import errno
 import hmac
 import json
+import os
 from pathlib import Path
 import secrets
 import socket
@@ -11,7 +12,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 import time
 
-sys.path.insert(0, str(Path("priv/development").resolve(strict=True)))
+sys.path.insert(0, str(Path(os.environ.get("MIXER_STARTER_WORKER_CODE", "priv/development")).resolve(strict=True)))
 from native_artifact_worker import NativeWorker, Refusal, digest, literal, mac, serve
 
 
