@@ -137,6 +137,12 @@ On public Mixer `a5398fad7c`, the ordinary console completed one free iOS Starte
 
 The ordinary Pair24 Android Starter resolved both locked Swift dependencies using the two verified local Git mirrors. SwiftPM exited successfully, both checkouts matched the pinned revisions, and the SDK and platform lockfiles retained all 656 original bytes. This run evaluated dependency manifests. Managed Android compilation and artifact delivery remain open. [Offline Android resolve receipt](verification/receipts/l05-w12-pair24-offline-swiftpm-120s-20261119.json)
 
+A separate settled-journal control used the ordinary Phoenix endpoint at the same hosted source pin. The first expired former-owner build request returned 401. The first renewed former-owner request returned 404. The journal stayed intact, and the earlier HTTP 503 did not recur. [Former-owner read receipt](verification/receipts/l06-starter-owner-exit-discriminator-a5398fa-20261119.json)
+
+### Retained Android Starter artifacts
+
+The corrected standalone CLI built and reopened an unsigned Pair24 Android Starter APK, detached debug symbols, and a canonical inventory. The actual APK measured 27,795,726 bytes and declared arm64, minimum API 28, and target API 37. The report matched the CLI executable mapped into the running process. A separate development signer ran after compiler closure, verified the v3 signature and 16 KiB alignment, and preserved all 26 APK payload entries. Managed Android builds and authorized downloads remain open. [Retained Android and development signing receipt](verification/receipts/l05-android-retained-starter-build-signing-20261119.json)
+
 ### Android TaskCompletion parity and source diagnostic
 
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.

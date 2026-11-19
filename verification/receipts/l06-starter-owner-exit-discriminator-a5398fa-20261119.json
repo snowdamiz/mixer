@@ -1,0 +1,377 @@
+{
+  "cleanup": {
+    "allFourOwnedPortsRebound": true,
+    "allOwnedCommandsReapedAndGroupsAbsent": true,
+    "initialAttempt": {
+      "phoenixCustody": "UNKNOWN",
+      "phoenixPIDAndPGID": 55285,
+      "postgresClosureObserved": false,
+      "preservedNamespace": "verification/local/l06-owner-exit-a5398fa.C15Ryw3p",
+      "status": "preparation_deadline_before_first_observations",
+      "timeoutSeconds": 150
+    },
+    "reboundPortCount": 4,
+    "scratchRemoved": true,
+    "testDatabaseDropped": true
+  },
+  "commands": {
+    "db-dropped": {
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-XqAt",
+        "-w",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "55683",
+        "-U",
+        "fixture_admin",
+        "-d",
+        "postgres",
+        "-c",
+        "SELECT count(*) FROM pg_database WHERE datname='browser_ordinary_installation_r1422'"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 0.09,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "db-init": {
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "<owned-scratch>/pg",
+        "-U",
+        "fixture_admin",
+        "--locale=C",
+        "--encoding=UTF8",
+        "--auth=trust",
+        "--no-sync"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 1.594,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "9185910e68619bd118571e083fa3a7a8b172957e4ba5c88d86f5e9e7bb98b860"
+    },
+    "db-roles": {
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-XqAt",
+        "-w",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "55683",
+        "-U",
+        "fixture_admin",
+        "-d",
+        "postgres",
+        "-f",
+        "<owned-scratch>/roles.sql"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 0.079,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "db-server": {
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "-D",
+        "<owned-scratch>/pg",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "55683",
+        "-k",
+        "",
+        "-c",
+        "jit=off",
+        "-c",
+        "log_min_messages=warning"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 135.501,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "5df144ee9f1ae34d984b3a15a9f61ab1481a28e799fcd62f3c51ca6823831b6c",
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "hosted-fixture-prepare": {
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "compile"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 86.679,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "79d9da2d35209d5a838063b212747bc1b6d64f41b27a90d95e54fa73e1c18678",
+      "stdoutSHA256": "52c50b20422dc2ce12265cad9102cd263664a13ae1e2b8880547ad7dbd50f9c4"
+    },
+    "locked-deps": {
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 10.745,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "12b0c14b3341c97ed5ac76907be7a434f92391ee6476240c4648cf91d0ec7106"
+    },
+    "phoenix": {
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "test",
+        "--no-compile",
+        "--seed",
+        "0",
+        "--trace",
+        "test/mixer_hosted/browser_auth/owned_starter_capture_test.exs"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 135.119,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "b0f43a9a5af73ee8d9063363942df941cf0d1458eddda944952bbd8425053a64",
+      "stdoutSHA256": "420bf5070e75ea2aacc21dea30347621c83c654c0ecbd09588609fcc542b5364"
+    },
+    "pin-archive": {
+      "argv": [
+        "/usr/bin/git",
+        "archive",
+        "--format=tar",
+        "a5398fad7cadf66d9eca17e15afebfb46b4da33c",
+        "hosted",
+        "tests/integration/free-project-starter/registration-runner.py"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 2.458,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "de09f044eef354e35feff90be1701f98881a7479978e97dcfaf9a8c6fcdfb153"
+    },
+    "pin-extract": {
+      "argv": [
+        "/usr/bin/tar",
+        "-xf",
+        "<owned-scratch>/source.tar",
+        "-C",
+        "<owned-scratch>/service"
+      ],
+      "custody": "TERMINAL",
+      "directChildReaped": true,
+      "elapsedSeconds": 0.835,
+      "exit": 0,
+      "groupAbsent": true,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "historicalReplay": {
+    "currentFormerOwnerFirstReadObserved": false,
+    "expiredOwnerFirstHTTP": 503,
+    "historical503Reclassified": false,
+    "receipt": "t3-60d05444/verification/receipts/l06-starter-console-ca-a5398fa-20261119.json",
+    "sha256": "f3c30e8f1348e0225a0cb3c313bdefa2263949f45b298310f9c71acc32d5cc29"
+  },
+  "localFixture": {
+    "buildFirstReadsAfterExit": {
+      "currentFormerOwner": {
+        "bodyBytes": 30,
+        "bodyCaptureLimit": 1024,
+        "bodyClass": "dispatcher_error",
+        "buildIdBodyPresent": false,
+        "cookieSetByResponse": false,
+        "elapsedMs": 1014,
+        "errorCode": "not_found",
+        "httpStatus": 404,
+        "jsonContentType": true,
+        "lifecycleTransactions": [
+          {
+            "outcome": "ok",
+            "phase": "begin"
+          },
+          {
+            "outcome": "ok",
+            "phase": "commit"
+          },
+          {
+            "outcome": "ok",
+            "phase": "begin"
+          },
+          {
+            "outcome": "ok",
+            "phase": "commit"
+          }
+        ],
+        "ordinaryBuildTransactionOutcome": "rolled_back",
+        "ordinaryBuildTransactions": [
+          {
+            "outcome": "ok",
+            "phase": "begin"
+          },
+          {
+            "outcome": "ok",
+            "phase": "rollback"
+          }
+        ],
+        "requestIdBodyPresent": false,
+        "requestIdHeaderPresent": true,
+        "retryAfterOneSecond": false,
+        "runtimeAfter": {
+          "generation": 1,
+          "phase": "storage_ready"
+        },
+        "runtimeBefore": {
+          "generation": 1,
+          "phase": "storage_ready"
+        },
+        "session": {
+          "credentialActive": true,
+          "credentialExpiresAt": 1795125166,
+          "credentialTimePhase": "current",
+          "rowStatus": "active",
+          "sampleAt": 1795125049,
+          "sessionExpiresAt": 1795125166,
+          "sessionPhase": "current"
+        },
+        "storeFailures": []
+      },
+      "expiredOwner": {
+        "bodyBytes": 73,
+        "bodyCaptureLimit": 1024,
+        "bodyClass": "browser_boundary_error",
+        "buildIdBodyPresent": false,
+        "cookieSetByResponse": false,
+        "elapsedMs": 710,
+        "errorCode": "unauthenticated",
+        "httpStatus": 401,
+        "jsonContentType": true,
+        "lifecycleTransactions": [
+          {
+            "outcome": "ok",
+            "phase": "begin"
+          },
+          {
+            "outcome": "ok",
+            "phase": "commit"
+          }
+        ],
+        "ordinaryBuildTransactionOutcome": "not_started",
+        "ordinaryBuildTransactions": [],
+        "requestIdBodyPresent": false,
+        "requestIdHeaderPresent": true,
+        "retryAfterOneSecond": false,
+        "runtimeAfter": {
+          "generation": 1,
+          "phase": "storage_ready"
+        },
+        "runtimeBefore": {
+          "generation": 1,
+          "phase": "storage_ready"
+        },
+        "session": {
+          "credentialActive": true,
+          "credentialExpiresAt": 1795125044,
+          "credentialTimePhase": "expired",
+          "rowStatus": "active",
+          "sampleAt": 1795125049,
+          "sessionExpiresAt": 1795124969,
+          "sessionPhase": "expired"
+        },
+        "storeFailures": []
+      }
+    },
+    "buildPOSTs": 0,
+    "ownerExit": {
+      "httpStatus": 200,
+      "organizationActiveAfter": false,
+      "tombstoneResponse": true
+    },
+    "seededSettledBuild": {
+      "coordinatorLeases": 0,
+      "obanJobs": 0,
+      "operationAdmissions": 0,
+      "preExitExactReadHTTP": 200,
+      "reservationHeld": false,
+      "sameRowAndJournalConfirmed": true,
+      "state": "native_succeeded",
+      "terminalRevision": 2
+    },
+    "shortSessionInitialPhase": "current"
+  },
+  "observedUtc": "2026-11-19T21:51:16.156356+00:00",
+  "result": {
+    "firstAttemptExpected": {
+      "currentFormerOwner": 404,
+      "expiredOwner": 401
+    },
+    "firstAttemptObserved": {
+      "currentFormerOwner": 404,
+      "expiredOwner": 401
+    },
+    "fixtureCorrection": "Capture both first GET outcomes, session/runtime state, response classification and transaction telemetry before asserting expected statuses. Keep the expired-cookie 401 and current former-owner 404 expectations and avoid retries.",
+    "historical503Cause": "undetermined",
+    "phoenixTestExit": 0,
+    "statusRetries": 0
+  },
+  "schemaVersion": 1,
+  "scope": {
+    "browserLaunches": 0,
+    "buildPOSTs": 0,
+    "gate": "L06 ordinary post-exit build detail only",
+    "gateTransitions": [],
+    "hostedPreparation": "Pinned test BEAMs prepared with Mix, then live probe invoked mix test --no-compile",
+    "identity": "same synthetic owner, natural short-session expiry, distinct cookie through ordinary sign-in",
+    "nativeCompilerStarts": 0,
+    "nativeWorkerStarts": 0,
+    "published": false,
+    "route": "GET /console-api/v1/builds with all eight exact selection fields",
+    "transport": "direct loopback HTTP to the same ordinary Phoenix endpoint behind the historical console bridge"
+  },
+  "source": {
+    "apiHarnessSHA256": "b0ed82797eda9f3b33284686fffd4de8a5dfac25e32ac463aa356182b03ad2e0",
+    "hostedLockSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "hostedTree": "d9511926301606a68cab25026a43462c93ccd4ed",
+    "localScenarioSHA256": "d887fcd0d84502293e442f39605e17769876c4fb2d4073d60dc804f721fa5493",
+    "overlayScope": "Only test fixture files. No product source overlay.",
+    "providerFixtureSHA256": "58f4336a15a65a95d8b03efd5ed4388a5d92dc00ffb0aa284cf8299abf4123a7",
+    "revision": "a5398fad7cadf66d9eca17e15afebfb46b4da33c",
+    "testFixture": "Existing settled-journal scenario from t3-da0575bf, using the Starter ordinary startup and loopback issuer from t3-2bea82f5",
+    "tree": "b3170d9300280f028d6ba9a52b86415ae26e9732"
+  },
+  "status": "expected_first_statuses_observed",
+  "tools": {
+    "bandit": "1.14.1",
+    "elixir": "1.20.4",
+    "erlang": "OTP 29 / ERTS 17.1",
+    "oban": "2.24.2",
+    "os": "macOS 27.0.1 arm64",
+    "phoenix": "1.8.16",
+    "postgres": "17.11",
+    "python": "3.14.8"
+  }
+}
