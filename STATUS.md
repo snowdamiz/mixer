@@ -8,7 +8,10 @@ Testing and early launch are free. Payment and purchase implementation, Stripe i
 
 [Section 29](mixer-product-plan.md#29-completion-gates-and-later-qualification) maps every G01–G38 gate to local evidence and later qualification. Live deployment, provider operations, physical phones, registry publication, store approval, external apps/customers, paid pilots, and commercial metrics do not block plan completion. The launch checklist is tracked separately. The local checklist records the current evidence and remaining work. All recorded holds stay in force.
 
-The following checkpoints retain their historical sources and scope. Local completion is still pending; evaluate existing slice receipts against L01–L08 before claiming a pass.
+Local completion is still pending. Checkpoints retain their original scope.
+Use the tracked results to assess L01–L08 and rerun any check that needs fresh
+evidence from a clean checkout. Paths to disposable run files are historical
+references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
 ## November 19 local verification
 

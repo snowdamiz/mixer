@@ -71,14 +71,14 @@ customer communication, credential change, or destructive migration.
 
 ## Clean up after your task
 
-Keep track of what you create outside the Git checkout. Before you finish,
-delete everything you created there for the task, including temporary files,
-test data, build outputs, logs, caches, and disposable checkouts. Clean up
-after failed or canceled runs too.
-
+Put local verification files created for the task under ignored
+`verification/local/` in the current worktree. Set temporary, cache, and output
+paths for child tools there too. Clean up owned disposable files and resources
+after successful, failed, or canceled runs, or as part of worktree removal.
 Preserve pre-existing files, resources owned by others, user-requested
-deliverables, and anything under an explicit hold. Report the path and reason
-for anything you could not safely remove.
+deliverables, and anything under an explicit hold. A worktree with held
+resources stays in place until the hold is released. Report any path you
+could not safely remove and the reason.
 
 ## Verification
 
@@ -344,20 +344,20 @@ These holds do not cover the independent runner sources or corrected replay.
 
 ## Verification artifact retention
 
-New build outputs, APKs, compiler dumps, copied checkouts and dependency trees
-belong in ignored `verification/local/` or an owned external scratch directory.
-Write new compact receipts under `verification/receipts/`. Existing tracked
-fixtures and all custody holds remain protected. Historical reports may refer
-to archived inputs: use `verification/README.md` to restore the corresponding
-campaign before replaying an old driver.
+Keep one-off verification scripts, proofs, raw receipts, and all other run
+files untracked under `verification/local/`. Record the result and the
+clean-checkout replay recipe in the applicable tracked gate or status record
+per product-plan Section 2.3. Build new runs from versioned test code or
+documented commands and pinned inputs. Recreate any intermediate a later step
+needs in that run's directory. Treat old local paths and archive links as
+historical references. See [the verification guide](verification/README.md).
 
 Run `python3 scripts/check-verification-artifacts.py` after staging verification
-changes. It checks the index, including sparse paths. New canonical fixtures
-outside `verification/receipts/` require explicit `git add -f`; generated or
-large fixtures also require an exact blob/size/reason entry in
-`scripts/verification-artifact-policy.json`. Keep the whole verification tree
-within its 1 GiB budget. Do not loosen the budget to accommodate transient runs.
-The archive tag preserves old evidence; this change releases no custody hold.
+changes. It checks the index, including sparse paths. Required maintained
+fixtures under `verification/` require explicit `git add -f`. Generated or
+large canonical fixtures also require an exact blob, size, and reason in
+`scripts/verification-artifact-policy.json`. The tracked verification tree has
+a 1 GiB budget. Preserve existing tracked evidence and every explicit hold.
 The private R684 build-admission integration left UNKNOWN PostgreSQL readiness
 and custody for PID/PGID 80819. Preserve the entire
 `verification/local/build-admission-coordinator-r684` namespace, including its

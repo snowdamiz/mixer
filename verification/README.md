@@ -8,9 +8,33 @@ at `refs/tags/verification-archive/2026-11-10-204428` (commit
 removed counts per campaign. The tagged Git tree is the complete file manifest.
 No published history was rewritten.
 
-## Restore an old campaign
+## Run verification from a clean checkout
 
-Fetch the archive when using a shallow or partial clone:
+1. Start with the tracked test or documented command and its pinned inputs.
+   Use an exact source revision for each checkout. Create any disposable
+   checkouts and dependency installs for the run inside the current worktree.
+2. Create a unique run directory under `verification/local/`. Put one-off
+   scripts, build outputs, proofs, raw receipts, logs, recordings, and test
+   data there. Set `TMPDIR` and tool-specific output, cache, and data paths
+   inside that directory for the run and its child processes.
+3. Record the exact command, source and input identities, environment, result,
+   limitations, cleanup, and reviewer in the applicable tracked gate or status
+   record. Include the command that rebuilds any input a later step needs.
+   Maintained tests and required fixtures can be tracked as source inputs.
+4. Remove closed run files when finished or when removing the worktree.
+   Preserve held paths and keep any worktree containing held resources until
+   the hold is released. Follow the separate cleanup rules for owned processes
+   and devices.
+
+Every ongoing verification step must work when `verification/local/` starts
+empty and previous worktrees are gone. If tracked results lack enough evidence
+for a decision, rerun the applicable check from pinned inputs. See
+[the binding policy](../mixer-product-plan.md#worktree-local-verification).
+
+## Inspect a historical campaign
+
+Restore archived files only to investigate a specific past run. For a shallow
+or partial clone, fetch the archive tag first.
 
 ```sh
 git fetch --filter=blob:none origin refs/tags/verification-archive/2026-11-10-204428:refs/tags/verification-archive/2026-11-10-204428
@@ -25,27 +49,12 @@ Pass a campaign directory instead of the APK path to restore its files. The
 output directory must not exist; the tool preserves paths beneath that output
 directory and verifies blob hashes. The output parent must already exist.
 `--fetch-missing-from origin` explicitly permits fetching only requested missing
-blobs; omit it when the archive is already available locally. It refuses non-regular Git entries and
-unsafe destinations. Use a separate checkout of the archive tag if a historical
-campaign requires symlinks or its exact historical product source:
+blobs. Omit it when the archive is already available locally. The tool refuses
+non-regular Git entries and unsafe destinations. Restore only the files needed
+for the investigation. A full historical checkout requires about 18.5 GB.
 
-```sh
-git worktree add --detach /path/to/owned/archive-checkout \
-  refs/tags/verification-archive/2026-11-10-204428
-```
+## Check tracked verification inputs
 
-That full historical checkout requires about 18.5 GB. Prefer restoring only the
-needed campaign. Historical drivers and report links may require the archived
-inputs; retaining a report does not claim its old driver runs in the reduced
-checkout. The current CI inputs and complete held plan-continuation campaign
-remain tracked unchanged.
-
-## Keep new runs small
-
-- Store generated apps, compiler output, dependency installations and copied
-  repositories in `verification/local/` or owned external scratch.
-- Store new compact receipts in `verification/receipts/`. Include source revision,
-  command, result and artifact hashes instead of embedding generated payloads.
 - Add new required fixtures deliberately with `git add -f`. The staged-tree guard
   rejects generated files and files above 1 MiB unless the policy names their
   exact Git blob, size and reason. Updating an exceptional fixture requires
@@ -54,15 +63,11 @@ remain tracked unchanged.
   check runs in CI and before `scripts/verify.sh`. It includes sparse paths and
   caps verification at 1 GiB and 75,000 files.
 
-The checkout reduction does not shrink shared Git history or update existing
-active branches. Those branches benefit after integrating the retention commit.
-Existing working files and recovery archives were not cleaned by this change.
-
 ## Local completion and later release evidence
 
 L01–L08 in [`gates/local.json`](../gates/local.json) govern implementation-plan
-completion. Record actual local app and service behavior, source revision, tools,
-commands, failures, substitutions, cleanup, and reviewer in compact receipts.
+completion. Include actual local app and service behavior, failures, and
+substitutions in the tracked gate record.
 Simulator/emulator and pinned public-checkout evidence can satisfy this milestone.
 No live deployment, store approval, payment implementation or activation, registry
 publication, customer uptake, or physical-phone run is required.
