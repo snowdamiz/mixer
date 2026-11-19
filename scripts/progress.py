@@ -44,3 +44,5 @@ print('| Checklist | ' + ' | '.join(COLUMNS[i][0] for i in shown) + ' |')
 print('| --- |' + ' :-: |' * len(shown))
 for (label, source, _), row in zip(rows, counts):
     print(f'| [{label}]({source}) | ' + ' | '.join(str(row[i]) for i in shown) + ' |')
+passed, total = counts[0][0], sum(counts[0])
+print(f'\nhttps://img.shields.io/badge/local%20gates-{passed}%20of%20{total}%20passed-426b50')

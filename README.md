@@ -1,25 +1,92 @@
-# mixer
+<p align="center">
+  <img src="website/public/assets/flick-256.webp" alt="Flick, the Mixer fox" width="128">
+</p>
 
-Mixer builds native iOS and Android apps from one Swift codebase. Each platform
-renders the app with its own native controls. Compatible logic and UI fixes
-reach installed apps as signed over-the-air updates, which run in Mixer's own
-WebAssembly interpreter. A local service builds apps, publishes releases, and
-rolls them back.
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/mixer-wordmark-dark.svg">
+    <img src="docs/assets/mixer-wordmark-light.svg" alt="mixer" height="64">
+  </picture>
+</h1>
+
+<p align="center">
+  <strong>Write Swift. Ship both.</strong><br>
+  Native iOS and Android apps from one Swift codebase, with signed over-the-air updates.
+</p>
+
+<p align="center">
+  <a href="https://github.com/snowdamiz/mixer/actions/workflows/verify.yml"><img alt="Owned engine checks" src="https://github.com/snowdamiz/mixer/actions/workflows/verify.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/snowdamiz/mixer/actions/workflows/hosted.yml"><img alt="Phoenix foundation checks" src="https://github.com/snowdamiz/mixer/actions/workflows/hosted.yml/badge.svg?branch=main"></a>
+  <br>
+  <img alt="Swift 6.2 or later" src="https://img.shields.io/badge/Swift-6.2%2B-F05138?logo=swift&logoColor=white">
+  <img alt="iOS 26 or later" src="https://img.shields.io/badge/iOS-26%2B-147EFB?logo=apple&logoColor=white">
+  <img alt="Android API 28 or later" src="https://img.shields.io/badge/Android-API%2028%2B-3DDC84?logo=android&logoColor=white">
+  <a href="#progress"><img alt="Local gates: 1 of 8 passed" src="https://img.shields.io/badge/local%20gates-1%20of%208%20passed-426b50"></a>
+  <img alt="Status: active development" src="https://img.shields.io/badge/status-active%20development-e56235">
+</p>
+
+<p align="center">
+  <a href="#create-export-and-build-a-local-app">Quick start</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#progress">Progress</a> ·
+  <a href="#guides">Guides</a> ·
+  <a href="#cli-commands">CLI</a> ·
+  <a href="STATUS.md">Status</a>
+</p>
 
 > [!IMPORTANT]
 > Mixer is in active development. It does not yet meet its general-availability
 > or FieldLog release gates. Its APIs have no stable release or compatibility
 > guarantee.
 
-The engine uses the official Swift compilers, an owned Swift UI and state
-contract, native platform adapters, an owned Rust Wasm interpreter, and
-separately authorized signed artifacts and rollout assignments. It uses no
-Patch or Skip implementation. [mixer-product-plan.md](mixer-product-plan.md)
-defines the full scope.
+## How it works
 
-The iOS target is iOS 26.0 and later, including iOS 27. Package and generated
-app deployment minimums are 26.0. Runtime qualification across supported
-versions is pending. See product plan §19.1.
+You write the app once in Swift. Mixer compiles it two ways. The native build
+becomes the iOS and Android apps you install. The guest build becomes a
+WebAssembly feature module that can ship later as a signed over-the-air update.
+
+```mermaid
+flowchart LR
+  swift["Shared Swift app"] --> native["Native iOS and Android apps"]
+  swift --> update["Signed Wasm update"]
+  native -->|install| device["Installed app with MixerVM"]
+  update -->|over the air| device
+  device --> controls["SwiftUI, UIKit, and Android widgets"]
+```
+
+The native platform adapters are compiled into the installed app. An update
+never contains native code such as `.so`, DEX, or Mach-O files.
+`mixer release inspect` reports whether a change can ship over the air or needs
+a new store build.
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <strong>One Swift codebase</strong><br>
+      App state, effects, and UI are written once in Swift with <code>MixerCore</code> and <code>MixerUI</code>.
+    </td>
+    <td width="50%" valign="top">
+      <strong>Native controls</strong><br>
+      The app renders with SwiftUI and UIKit on iOS and with native Android widgets on Android.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <strong>Signed updates with fallback</strong><br>
+      Compatible fixes run in MixerVM, Mixer's own Rust interpreter. A failed update falls back to a healthy version.
+    </td>
+    <td width="50%" valign="top">
+      <strong>Local build and release service</strong><br>
+      A Phoenix API, PostgreSQL, Oban workers, and a SolidJS console make up the build and release service that runs on your machine.
+    </td>
+  </tr>
+</table>
+
+The engine uses the official Swift compilers and no Patch or Skip
+implementation. [mixer-product-plan.md](mixer-product-plan.md) defines the full
+scope. The iOS target is iOS 26.0 and later, including iOS 27, and package and
+generated app deployment minimums are 26.0. The proposed Android baseline is API
+28 and later. Runtime qualification across supported versions is pending.
 
 ## Progress
 
@@ -45,7 +112,8 @@ these gates. The separate launch checklist tracks them.
 | [Work packages W01–W18](work-graph.json) | 0 | 17 | 1 |
 | [Launch gates G01–G38](gates/ga.json) | 0 | 8 | 30 |
 
-Run `python3 scripts/progress.py` to print this table from the current records.
+Run `python3 scripts/progress.py` to print this table and the gates badge URL
+from the current records.
 [STATUS.md](STATUS.md) has the full history.
 
 <details>
@@ -397,6 +465,8 @@ activation binary.
 | `capabilities/` | Generated Swift and Java codecs, bounded request ownership, typed HTTP hook, app-private key-value storage | Guest and JNI transport, bundled networking, other native families, physical qualification |
 | `native/android/` | Swift, JNI, and native widgets with physical Pixel input and identity tests | FieldLog adoption; lifecycle, accessibility, performance, and device matrix |
 | `updates/` | Swift signed artifact and assignment verifier, durable recovery store | Integrated physical activation, state migration, delegated key rotation |
+| `hosted/` | Phoenix control plane with organizations, projects, usage, export, audit, artifacts, and build coordination over PostgreSQL and Oban | Live deployment, hosted identity, billing activation |
+| `console/` | SolidJS console for sign-in, free workspaces, projects, and build creation | Release, promotion, and rollback journeys |
 | `services/` | Signed CBOR contracts, authenticated development release API, local PostgreSQL tenant transactions, audit, and outbox | Hosted identity and durability, isolated workers and signers, stores, billing, SSO |
 | `compiler/` | Full-SDK FieldLog model corpus, measured size and layout experiments | Full feature dependency graph, owned Swift execution, production budgets |
 
