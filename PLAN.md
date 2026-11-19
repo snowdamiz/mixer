@@ -16,6 +16,10 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The corrected iOS calculation test opened Filter inspection and the intended saved task. The app retained the exact workspace and accepted the signed 10,540-byte baseline at sequence 1. Activation recorded effects_deadline before a healthy calculation frame. The owned Simulator and release origin closed. [iOS activation observation](verification/receipts/fieldlog-ios-calculation-effects-deadline-41a05264.json)
+
+The Android task-conflict host replay preserved all four prior outbox rows and converged on the local title and peer assignee. Four API 36 attempts stopped during offline setup, an unresponsive System UI dialog, or streamed installation. Separate push-and-install verified the same APK on disk. In that run Wi-Fi was off and LTE remained the default route. The four owned emulators and private ADB groups closed. [Android attempts](verification/receipts/fieldlog-android-task-conflict-preflight-41a05264.json)
+
 All nine engine jobs passed at `1cbb6f9a26`. A later run on Cargo 1.100.0 moved the VM test executable and exposed a stale test-only library lookup. The privacy test now compiles the library in its own target and passes Cargo’s final output to the original 13 compiler probes. The exact test passed on Cargo 1.99.0 and 1.100.0, and all 46 optimized cache controls passed. Ubuntu validation of the correction is pending. [VM CI receipt](verification/receipts/vm-external-privacy-cargo-layout-e990792f53.json)
 
 The first iOS calculation test installed the intended app and preserved the exact 3,530-byte saved workspace. FieldLog opened Upcoming inspection, while XCTest expected Filter inspection. The test stopped before guest launch. The release origin closed and the owned Simulator was removed. A new test selects the intended project through the ordinary screen. [Simulator receipt](verification/receipts/fieldlog-ios-calculation-project-route-41a05264.json)
