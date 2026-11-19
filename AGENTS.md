@@ -984,3 +984,10 @@ verification/local/starter-v40-composed-root.AmrZwkOX directory, including its
 projection and temporary targets, without inspection, process operations,
 retry or cleanup. There is no reliable inner identity. Use the copied compact
 verification/receipts/l05-v40-composed-collector-hold-41a05264.json.
+
+The first F05 guest size probe timed out at MixerUI compilation. Preserve PGID
+73807 and the complete
+/Users/andreyyurlov/.t3/worktrees/mixer/t3-2e57b098/verification/local/f05-size-probe.fBlyIXg4
+namespace without inspection, enumeration, probing, signalling, waiting, reuse
+or cleanup. The direct exit does not establish group absence. Use the compact
+verification/receipts/fieldlog-f05-size-attribution-3607a916.json.

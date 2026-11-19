@@ -1,0 +1,1350 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "scope": "FieldLog D0/D1 sign-in P1 revocation host replay with exact client source",
+  "originalPacketSHA256": {
+    "README.md": "b11c3fc21cff080ec59cd66d6144bc9046f247075a991e69db8d09fd6e0b626a",
+    "SignInProbe.swift": "b39de5726dd94dd96c2d5d974fa0b5c8ee7e8d3dc1f3a39ddd08a101919e3f8a",
+    "fieldlog-debug-loopback-552559d2.patch": "73401598dd54b00fb3a418e51984f60ae809f140a9c0be681330c3fdc1aaa96a",
+    "fieldlog-debug-loopback-9a69cb9.patch": "36deac8cd0bf8f49ade4dac2702b80f66ac618da74b8950dc34bfa2720534704",
+    "fieldlog-local-sign-in.patch": "57399294753a2d9e9c52f2a44a0184b479969515419fec63220e8ececba4fac0",
+    "result.json": "9e4bbd849d3b652245025de03c05ee7d54db11b20e45e39c7ea76072e4d01e17",
+    "verify.py": "daf915ba3996fb5875da4bc8838a1e3f3c60eaad676f7843d2427d87fd681b0c"
+  },
+  "backendPatchSHA256": "4ef0c920f5948b71caa890bab78aa574fc968fe72775cbdd538faee211146c0d",
+  "sourcePins": {
+    "baseline": {
+      "revision": "9a69cb9d97728f5f8f85f78193e1ed5d09059b54",
+      "archiveSHA256": "7b36f2dbe3e2849921d95f89c30b11025db0a63b135c7352af19cd0deb8ed644"
+    },
+    "adoption": {
+      "revision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+      "archiveSHA256": "75d2ce2663ade805ca40831b17a460c248e88c62a7689d5a671182bbf0ed7840"
+    }
+  },
+  "deliverySHA256": {
+    "fieldlog-local-sign-in-p1.patch": "78f122be9267a04952de56dbd3604b483ce8fa103e72dd7cca7eb660fa10f83a",
+    "RevocationProbe.swift": "f049e5662fab0918f9ce1e354fc2160edf99483d999e1f44867ecb2dd61819a7",
+    "verify-revocation.py": "5211aff4015f1fb9c27453963ae86dc1db0feb02be8be9c15ac5a019c8d68a6a"
+  },
+  "commands": {
+    "swift-version": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "--version"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.78,
+      "groupAbsent": true
+    },
+    "baseline-patch-0": {
+      "argv": [
+        "/usr/bin/git",
+        "apply",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-7a6523d2/verification/fieldlog-entry-sync/fieldlog-552559d2-local-backend.patch"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "groupAbsent": true
+    },
+    "baseline-patch-1": {
+      "argv": [
+        "/usr/bin/git",
+        "apply",
+        "$DELIVERY/fieldlog-local-sign-in.patch"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "groupAbsent": true
+    },
+    "baseline-patch-2": {
+      "argv": [
+        "/usr/bin/git",
+        "apply",
+        "$DELIVERY/fieldlog-debug-loopback-9a69cb9.patch"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "groupAbsent": true
+    },
+    "baseline-old-client-blob": {
+      "argv": [
+        "/usr/bin/git",
+        "hash-object",
+        "$SCRATCH/baseline/Sources/FieldLogStorage/LocalWorkspaceSignIn.swift"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "groupAbsent": true
+    },
+    "baseline-old-FieldLogModels": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-baseline-old/module-cache",
+        "-module-name",
+        "FieldLogModels",
+        "-emit-module",
+        "-emit-library",
+        "$SCRATCH/baseline/Sources/FieldLogModels/Workspace.swift",
+        "-o",
+        "$SCRATCH/host-baseline-old/libFieldLogModels.dylib"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 4.14,
+      "groupAbsent": true
+    },
+    "baseline-old-FieldLogStorage": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-baseline-old/module-cache",
+        "-module-name",
+        "FieldLogStorage",
+        "-emit-module",
+        "-emit-library",
+        "-I",
+        "$SCRATCH/host-baseline-old",
+        "-L",
+        "$SCRATCH/host-baseline-old",
+        "-lFieldLogModels",
+        "-enable-testing",
+        "$SCRATCH/baseline/Sources/FieldLogStorage/LocalWorkspaceSignIn.swift",
+        "$SCRATCH/baseline/Sources/FieldLogStorage/WorkspaceRepository.swift",
+        "-o",
+        "$SCRATCH/host-baseline-old/libFieldLogStorage.dylib"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 1.31,
+      "groupAbsent": true
+    },
+    "baseline-old-probe": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-baseline-old/module-cache",
+        "-parse-as-library",
+        "-I",
+        "$SCRATCH/host-baseline-old",
+        "-L",
+        "$SCRATCH/host-baseline-old",
+        "-lFieldLogModels",
+        "-lFieldLogStorage",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "$SCRATCH/host-baseline-old",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-7a6523d2/verification/local/fieldlog-d0-d1-sign-in-p1/delivery/RevocationProbe.swift",
+        "-o",
+        "$SCRATCH/host-baseline-old/probe"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.51,
+      "groupAbsent": true
+    },
+    "baseline-old-form-401-seed": {
+      "argv": [
+        "$SCRATCH/host-baseline-old/probe",
+        "$SCRATCH/baseline-old-form-401/support",
+        "$SCRATCH/baseline-old-form-401/grant"
+      ],
+      "pid": 41154,
+      "pgid": 41154,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.17,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "baseline-old-restore-401-seed": {
+      "argv": [
+        "$SCRATCH/host-baseline-old/probe",
+        "$SCRATCH/baseline-old-restore-401/support",
+        "$SCRATCH/baseline-old-restore-401/grant"
+      ],
+      "pid": 41156,
+      "pgid": 41156,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "baseline-old-form-401-cold-503": {
+      "argv": [
+        "$SCRATCH/host-baseline-old/probe",
+        "$SCRATCH/baseline-old-form-401/support",
+        "$SCRATCH/baseline-old-form-401/grant"
+      ],
+      "pid": 41162,
+      "pgid": 41162,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "restore-unavailable-retained",
+      "observed": "restore-unavailable-retained"
+    },
+    "baseline-old-form-401-form-401": {
+      "argv": [
+        "$SCRATCH/host-baseline-old/probe",
+        "$SCRATCH/baseline-old-form-401/support",
+        "$SCRATCH/baseline-old-form-401/grant"
+      ],
+      "pid": 41164,
+      "pgid": 41164,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "baseline-old-restore-401-cold-401": {
+      "argv": [
+        "$SCRATCH/host-baseline-old/probe",
+        "$SCRATCH/baseline-old-restore-401/support",
+        "$SCRATCH/baseline-old-restore-401/grant"
+      ],
+      "pid": 41165,
+      "pgid": 41165,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "restore-rejected-cleared",
+      "observed": "restore-rejected-cleared"
+    },
+    "baseline-old-form-401-offline": {
+      "argv": [
+        "$SCRATCH/host-baseline-old/probe",
+        "$SCRATCH/baseline-old-form-401/support",
+        "$SCRATCH/baseline-old-form-401/grant"
+      ],
+      "pid": 41166,
+      "pgid": 41166,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "restore-offline-opened",
+      "observed": "restore-offline-opened"
+    },
+    "baseline-old-restore-401-offline": {
+      "argv": [
+        "$SCRATCH/host-baseline-old/probe",
+        "$SCRATCH/baseline-old-restore-401/support",
+        "$SCRATCH/baseline-old-restore-401/grant"
+      ],
+      "pid": 41170,
+      "pgid": 41170,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.01,
+      "expected": "restore-empty",
+      "observed": "restore-empty"
+    },
+    "baseline-p1-patch": {
+      "argv": [
+        "/usr/bin/git",
+        "apply",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-7a6523d2/verification/local/fieldlog-d0-d1-sign-in-p1/delivery/fieldlog-local-sign-in-p1.patch"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "groupAbsent": true
+    },
+    "baseline-p1-client-blob": {
+      "argv": [
+        "/usr/bin/git",
+        "hash-object",
+        "$SCRATCH/baseline/Sources/FieldLogStorage/LocalWorkspaceSignIn.swift"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "groupAbsent": true
+    },
+    "baseline-p1-FieldLogModels": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-baseline-p1/module-cache",
+        "-module-name",
+        "FieldLogModels",
+        "-emit-module",
+        "-emit-library",
+        "$SCRATCH/baseline/Sources/FieldLogModels/Workspace.swift",
+        "-o",
+        "$SCRATCH/host-baseline-p1/libFieldLogModels.dylib"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 3.04,
+      "groupAbsent": true
+    },
+    "baseline-p1-FieldLogStorage": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-baseline-p1/module-cache",
+        "-module-name",
+        "FieldLogStorage",
+        "-emit-module",
+        "-emit-library",
+        "-I",
+        "$SCRATCH/host-baseline-p1",
+        "-L",
+        "$SCRATCH/host-baseline-p1",
+        "-lFieldLogModels",
+        "-enable-testing",
+        "$SCRATCH/baseline/Sources/FieldLogStorage/LocalWorkspaceSignIn.swift",
+        "$SCRATCH/baseline/Sources/FieldLogStorage/WorkspaceRepository.swift",
+        "-o",
+        "$SCRATCH/host-baseline-p1/libFieldLogStorage.dylib"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 1.62,
+      "groupAbsent": true
+    },
+    "baseline-p1-probe": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-baseline-p1/module-cache",
+        "-parse-as-library",
+        "-I",
+        "$SCRATCH/host-baseline-p1",
+        "-L",
+        "$SCRATCH/host-baseline-p1",
+        "-lFieldLogModels",
+        "-lFieldLogStorage",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "$SCRATCH/host-baseline-p1",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-7a6523d2/verification/local/fieldlog-d0-d1-sign-in-p1/delivery/RevocationProbe.swift",
+        "-o",
+        "$SCRATCH/host-baseline-p1/probe"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.67,
+      "groupAbsent": true
+    },
+    "baseline-p1-form-401-seed": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-form-401/support",
+        "$SCRATCH/baseline-p1-form-401/grant"
+      ],
+      "pid": 41313,
+      "pgid": 41313,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.16,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "baseline-p1-restore-401-seed": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-restore-401/support",
+        "$SCRATCH/baseline-p1-restore-401/grant"
+      ],
+      "pid": 41315,
+      "pgid": 41315,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "baseline-p1-form-404-seed": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-form-404/support",
+        "$SCRATCH/baseline-p1-form-404/grant"
+      ],
+      "pid": 41316,
+      "pgid": 41316,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "baseline-p1-transient-seed": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41318,
+      "pgid": 41318,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "baseline-p1-transient-other-token": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41319,
+      "pgid": 41319,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.02,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "baseline-p1-transient-account-mismatch": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41320,
+      "pgid": 41320,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "baseline-p1-transient-other-project": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41322,
+      "pgid": 41322,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "baseline-p1-transient-other-port": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41323,
+      "pgid": 41323,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.02,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "baseline-p1-form-401-cold-503": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-form-401/support",
+        "$SCRATCH/baseline-p1-form-401/grant"
+      ],
+      "pid": 41324,
+      "pgid": 41324,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "restore-unavailable-retained",
+      "observed": "restore-unavailable-retained"
+    },
+    "baseline-p1-transient-form-503": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41326,
+      "pgid": 41326,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "sign-in-unavailable-retained",
+      "observed": "sign-in-unavailable-retained"
+    },
+    "baseline-p1-transient-other-account-401": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41327,
+      "pgid": 41327,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "baseline-p1-form-401-form-401": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-form-401/support",
+        "$SCRATCH/baseline-p1-form-401/grant"
+      ],
+      "pid": 41328,
+      "pgid": 41328,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "sign-in-rejected-cleared",
+      "observed": "sign-in-rejected-cleared"
+    },
+    "baseline-p1-restore-401-cold-401": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-restore-401/support",
+        "$SCRATCH/baseline-p1-restore-401/grant"
+      ],
+      "pid": 41329,
+      "pgid": 41329,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "restore-rejected-cleared",
+      "observed": "restore-rejected-cleared"
+    },
+    "baseline-p1-form-401-offline": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-form-401/support",
+        "$SCRATCH/baseline-p1-form-401/grant"
+      ],
+      "pid": 41338,
+      "pgid": 41338,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.01,
+      "expected": "restore-empty",
+      "observed": "restore-empty"
+    },
+    "baseline-p1-restore-401-offline": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-restore-401/support",
+        "$SCRATCH/baseline-p1-restore-401/grant"
+      ],
+      "pid": 41339,
+      "pgid": 41339,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.01,
+      "expected": "restore-empty",
+      "observed": "restore-empty"
+    },
+    "baseline-p1-transient-form-transport-refusal": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41340,
+      "pgid": 41340,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "sign-in-transport-retained",
+      "observed": "sign-in-transport-retained"
+    },
+    "baseline-p1-transient-offline": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-transient/support",
+        "$SCRATCH/baseline-p1-transient/grant"
+      ],
+      "pid": 41341,
+      "pgid": 41341,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.05,
+      "expected": "restore-offline-opened",
+      "observed": "restore-offline-opened"
+    },
+    "baseline-p1-form-404-form-404": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-form-404/support",
+        "$SCRATCH/baseline-p1-form-404/grant"
+      ],
+      "pid": 41343,
+      "pgid": 41343,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "sign-in-rejected-cleared",
+      "observed": "sign-in-rejected-cleared"
+    },
+    "baseline-p1-form-404-offline": {
+      "argv": [
+        "$SCRATCH/host-baseline-p1/probe",
+        "$SCRATCH/baseline-p1-form-404/support",
+        "$SCRATCH/baseline-p1-form-404/grant"
+      ],
+      "pid": 41344,
+      "pgid": 41344,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.02,
+      "expected": "restore-empty",
+      "observed": "restore-empty"
+    },
+    "adoption-patch-0": {
+      "argv": [
+        "/usr/bin/git",
+        "apply",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-7a6523d2/verification/fieldlog-entry-sync/fieldlog-552559d2-local-backend.patch"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.08,
+      "groupAbsent": true
+    },
+    "adoption-patch-1": {
+      "argv": [
+        "/usr/bin/git",
+        "apply",
+        "$DELIVERY/fieldlog-local-sign-in.patch"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.09,
+      "groupAbsent": true
+    },
+    "adoption-patch-2": {
+      "argv": [
+        "/usr/bin/git",
+        "apply",
+        "$DELIVERY/fieldlog-debug-loopback-552559d2.patch"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "groupAbsent": true
+    },
+    "adoption-old-client-blob": {
+      "argv": [
+        "/usr/bin/git",
+        "hash-object",
+        "$SCRATCH/adoption/Sources/FieldLogStorage/LocalWorkspaceSignIn.swift"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.04,
+      "groupAbsent": true
+    },
+    "adoption-old-FieldLogModels": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-adoption-old/module-cache",
+        "-module-name",
+        "FieldLogModels",
+        "-emit-module",
+        "-emit-library",
+        "$SCRATCH/adoption/Sources/FieldLogModels/Workspace.swift",
+        "-o",
+        "$SCRATCH/host-adoption-old/libFieldLogModels.dylib"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 4.5,
+      "groupAbsent": true
+    },
+    "adoption-old-FieldLogStorage": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-adoption-old/module-cache",
+        "-module-name",
+        "FieldLogStorage",
+        "-emit-module",
+        "-emit-library",
+        "-I",
+        "$SCRATCH/host-adoption-old",
+        "-L",
+        "$SCRATCH/host-adoption-old",
+        "-lFieldLogModels",
+        "-enable-testing",
+        "$SCRATCH/adoption/Sources/FieldLogStorage/LocalWorkspaceSignIn.swift",
+        "$SCRATCH/adoption/Sources/FieldLogStorage/WorkspaceRepository.swift",
+        "-o",
+        "$SCRATCH/host-adoption-old/libFieldLogStorage.dylib"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 1.46,
+      "groupAbsent": true
+    },
+    "adoption-old-probe": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-adoption-old/module-cache",
+        "-parse-as-library",
+        "-I",
+        "$SCRATCH/host-adoption-old",
+        "-L",
+        "$SCRATCH/host-adoption-old",
+        "-lFieldLogModels",
+        "-lFieldLogStorage",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "$SCRATCH/host-adoption-old",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-7a6523d2/verification/local/fieldlog-d0-d1-sign-in-p1/delivery/RevocationProbe.swift",
+        "-o",
+        "$SCRATCH/host-adoption-old/probe"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 1.09,
+      "groupAbsent": true
+    },
+    "adoption-old-form-401-seed": {
+      "argv": [
+        "$SCRATCH/host-adoption-old/probe",
+        "$SCRATCH/adoption-old-form-401/support",
+        "$SCRATCH/adoption-old-form-401/grant"
+      ],
+      "pid": 41702,
+      "pgid": 41702,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.31,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "adoption-old-restore-401-seed": {
+      "argv": [
+        "$SCRATCH/host-adoption-old/probe",
+        "$SCRATCH/adoption-old-restore-401/support",
+        "$SCRATCH/adoption-old-restore-401/grant"
+      ],
+      "pid": 41704,
+      "pgid": 41704,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.09,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "adoption-old-form-401-cold-503": {
+      "argv": [
+        "$SCRATCH/host-adoption-old/probe",
+        "$SCRATCH/adoption-old-form-401/support",
+        "$SCRATCH/adoption-old-form-401/grant"
+      ],
+      "pid": 41705,
+      "pgid": 41705,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.05,
+      "expected": "restore-unavailable-retained",
+      "observed": "restore-unavailable-retained"
+    },
+    "adoption-old-form-401-form-401": {
+      "argv": [
+        "$SCRATCH/host-adoption-old/probe",
+        "$SCRATCH/adoption-old-form-401/support",
+        "$SCRATCH/adoption-old-form-401/grant"
+      ],
+      "pid": 41706,
+      "pgid": 41706,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "adoption-old-restore-401-cold-401": {
+      "argv": [
+        "$SCRATCH/host-adoption-old/probe",
+        "$SCRATCH/adoption-old-restore-401/support",
+        "$SCRATCH/adoption-old-restore-401/grant"
+      ],
+      "pid": 41708,
+      "pgid": 41708,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "restore-rejected-cleared",
+      "observed": "restore-rejected-cleared"
+    },
+    "adoption-old-form-401-offline": {
+      "argv": [
+        "$SCRATCH/host-adoption-old/probe",
+        "$SCRATCH/adoption-old-form-401/support",
+        "$SCRATCH/adoption-old-form-401/grant"
+      ],
+      "pid": 41709,
+      "pgid": 41709,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.05,
+      "expected": "restore-offline-opened",
+      "observed": "restore-offline-opened"
+    },
+    "adoption-old-restore-401-offline": {
+      "argv": [
+        "$SCRATCH/host-adoption-old/probe",
+        "$SCRATCH/adoption-old-restore-401/support",
+        "$SCRATCH/adoption-old-restore-401/grant"
+      ],
+      "pid": 41710,
+      "pgid": 41710,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.02,
+      "expected": "restore-empty",
+      "observed": "restore-empty"
+    },
+    "adoption-p1-patch": {
+      "argv": [
+        "/usr/bin/git",
+        "apply",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-7a6523d2/verification/local/fieldlog-d0-d1-sign-in-p1/delivery/fieldlog-local-sign-in-p1.patch"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.13,
+      "groupAbsent": true
+    },
+    "adoption-p1-client-blob": {
+      "argv": [
+        "/usr/bin/git",
+        "hash-object",
+        "$SCRATCH/adoption/Sources/FieldLogStorage/LocalWorkspaceSignIn.swift"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 0.08,
+      "groupAbsent": true
+    },
+    "adoption-p1-FieldLogModels": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-adoption-p1/module-cache",
+        "-module-name",
+        "FieldLogModels",
+        "-emit-module",
+        "-emit-library",
+        "$SCRATCH/adoption/Sources/FieldLogModels/Workspace.swift",
+        "-o",
+        "$SCRATCH/host-adoption-p1/libFieldLogModels.dylib"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 10.52,
+      "groupAbsent": true
+    },
+    "adoption-p1-FieldLogStorage": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-adoption-p1/module-cache",
+        "-module-name",
+        "FieldLogStorage",
+        "-emit-module",
+        "-emit-library",
+        "-I",
+        "$SCRATCH/host-adoption-p1",
+        "-L",
+        "$SCRATCH/host-adoption-p1",
+        "-lFieldLogModels",
+        "-enable-testing",
+        "$SCRATCH/adoption/Sources/FieldLogStorage/LocalWorkspaceSignIn.swift",
+        "$SCRATCH/adoption/Sources/FieldLogStorage/WorkspaceRepository.swift",
+        "-o",
+        "$SCRATCH/host-adoption-p1/libFieldLogStorage.dylib"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 3.38,
+      "groupAbsent": true
+    },
+    "adoption-p1-probe": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swiftc",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$SCRATCH/host-adoption-p1/module-cache",
+        "-parse-as-library",
+        "-I",
+        "$SCRATCH/host-adoption-p1",
+        "-L",
+        "$SCRATCH/host-adoption-p1",
+        "-lFieldLogModels",
+        "-lFieldLogStorage",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "$SCRATCH/host-adoption-p1",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-7a6523d2/verification/local/fieldlog-d0-d1-sign-in-p1/delivery/RevocationProbe.swift",
+        "-o",
+        "$SCRATCH/host-adoption-p1/probe"
+      ],
+      "exit": 0,
+      "timedOut": false,
+      "seconds": 1.16,
+      "groupAbsent": true
+    },
+    "adoption-p1-form-401-seed": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-form-401/support",
+        "$SCRATCH/adoption-p1-form-401/grant"
+      ],
+      "pid": 41878,
+      "pgid": 41878,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.25,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "adoption-p1-restore-401-seed": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-restore-401/support",
+        "$SCRATCH/adoption-p1-restore-401/grant"
+      ],
+      "pid": 41883,
+      "pgid": 41883,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.08,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "adoption-p1-form-404-seed": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-form-404/support",
+        "$SCRATCH/adoption-p1-form-404/grant"
+      ],
+      "pid": 41884,
+      "pgid": 41884,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.12,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "adoption-p1-transient-seed": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41886,
+      "pgid": 41886,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.09,
+      "expected": "seeded",
+      "observed": "seeded"
+    },
+    "adoption-p1-transient-other-token": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41888,
+      "pgid": 41888,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.06,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "adoption-p1-transient-account-mismatch": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41889,
+      "pgid": 41889,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "adoption-p1-transient-other-project": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41890,
+      "pgid": 41890,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "adoption-p1-transient-other-port": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41892,
+      "pgid": 41892,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "adoption-p1-form-401-cold-503": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-form-401/support",
+        "$SCRATCH/adoption-p1-form-401/grant"
+      ],
+      "pid": 41893,
+      "pgid": 41893,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.05,
+      "expected": "restore-unavailable-retained",
+      "observed": "restore-unavailable-retained"
+    },
+    "adoption-p1-transient-form-503": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41894,
+      "pgid": 41894,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.03,
+      "expected": "sign-in-unavailable-retained",
+      "observed": "sign-in-unavailable-retained"
+    },
+    "adoption-p1-transient-other-account-401": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41895,
+      "pgid": 41895,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.05,
+      "expected": "sign-in-rejected-retained",
+      "observed": "sign-in-rejected-retained"
+    },
+    "adoption-p1-form-401-form-401": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-form-401/support",
+        "$SCRATCH/adoption-p1-form-401/grant"
+      ],
+      "pid": 41898,
+      "pgid": 41898,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "sign-in-rejected-cleared",
+      "observed": "sign-in-rejected-cleared"
+    },
+    "adoption-p1-restore-401-cold-401": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-restore-401/support",
+        "$SCRATCH/adoption-p1-restore-401/grant"
+      ],
+      "pid": 41899,
+      "pgid": 41899,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.05,
+      "expected": "restore-rejected-cleared",
+      "observed": "restore-rejected-cleared"
+    },
+    "adoption-p1-form-401-offline": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-form-401/support",
+        "$SCRATCH/adoption-p1-form-401/grant"
+      ],
+      "pid": 41900,
+      "pgid": 41900,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.02,
+      "expected": "restore-empty",
+      "observed": "restore-empty"
+    },
+    "adoption-p1-restore-401-offline": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-restore-401/support",
+        "$SCRATCH/adoption-p1-restore-401/grant"
+      ],
+      "pid": 41902,
+      "pgid": 41902,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.01,
+      "expected": "restore-empty",
+      "observed": "restore-empty"
+    },
+    "adoption-p1-transient-form-transport-refusal": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41904,
+      "pgid": 41904,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.05,
+      "expected": "sign-in-transport-retained",
+      "observed": "sign-in-transport-retained"
+    },
+    "adoption-p1-transient-offline": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-transient/support",
+        "$SCRATCH/adoption-p1-transient/grant"
+      ],
+      "pid": 41905,
+      "pgid": 41905,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.05,
+      "expected": "restore-offline-opened",
+      "observed": "restore-offline-opened"
+    },
+    "adoption-p1-form-404-form-404": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-form-404/support",
+        "$SCRATCH/adoption-p1-form-404/grant"
+      ],
+      "pid": 41906,
+      "pgid": 41906,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.04,
+      "expected": "sign-in-rejected-cleared",
+      "observed": "sign-in-rejected-cleared"
+    },
+    "adoption-p1-form-404-offline": {
+      "argv": [
+        "$SCRATCH/host-adoption-p1/probe",
+        "$SCRATCH/adoption-p1-form-404/support",
+        "$SCRATCH/adoption-p1-form-404/grant"
+      ],
+      "pid": 41908,
+      "pgid": 41908,
+      "exit": 0,
+      "timedOut": false,
+      "groupAbsent": true,
+      "seconds": 0.01,
+      "expected": "restore-empty",
+      "observed": "restore-empty"
+    }
+  },
+  "client": {
+    "baseline-old": {
+      "gitBlob": "c887618e076082c13312ed0442f30d2266d81604",
+      "sha256": "ea8768931a4346f54a59a2c4dec4750040f03b4a69cd156cf336a02a5bf70396",
+      "probeSHA256": "a4d611a335fa2c1fc266b6a8e9835abe5daa111eae06d72e91748fa2f0ef7d5e"
+    },
+    "baseline-p1": {
+      "gitBlob": "792c4cf756d96bd46595088bf3dcc92ed36cb030",
+      "sha256": "6da822e40293a4e5dc2828ae2fb53f271aa263fd7321eb758e611730770c8778",
+      "probeSHA256": "77f29c064bc67207c6bc51b9ea72da5c5de13eeb876241dd6e5ff01dbedd2915"
+    },
+    "adoption-old": {
+      "gitBlob": "c887618e076082c13312ed0442f30d2266d81604",
+      "sha256": "ea8768931a4346f54a59a2c4dec4750040f03b4a69cd156cf336a02a5bf70396",
+      "probeSHA256": "11ff4efd885573f792e9029526b0f5a9b79fe92629e0cabeecf7f0a4d6a08c2a"
+    },
+    "adoption-p1": {
+      "gitBlob": "792c4cf756d96bd46595088bf3dcc92ed36cb030",
+      "sha256": "6da822e40293a4e5dc2828ae2fb53f271aa263fd7321eb758e611730770c8778",
+      "probeSHA256": "533b609bd71fc043e142ffaa6413562b8b3ac199e328c890966096ad976abba2"
+    }
+  },
+  "integration": {
+    "baseline-old": {
+      "primaryPort": 57669,
+      "loopbackListenerClosed": true,
+      "allServersJoined": true,
+      "workspaceBytesPreserved": true,
+      "backendEntryTablesUntouched": true,
+      "httpChecks": [
+        200,
+        503,
+        401
+      ]
+    },
+    "baseline-p1": {
+      "primaryPort": 57736,
+      "loopbackListenerClosed": true,
+      "allServersJoined": true,
+      "workspaceBytesPreserved": true,
+      "backendEntryTablesUntouched": true,
+      "httpChecks": [
+        200,
+        503,
+        401,
+        404
+      ]
+    },
+    "adoption-old": {
+      "primaryPort": 57829,
+      "loopbackListenerClosed": true,
+      "allServersJoined": true,
+      "workspaceBytesPreserved": true,
+      "backendEntryTablesUntouched": true,
+      "httpChecks": [
+        200,
+        503,
+        401
+      ]
+    },
+    "adoption-p1": {
+      "primaryPort": 57949,
+      "loopbackListenerClosed": true,
+      "allServersJoined": true,
+      "workspaceBytesPreserved": true,
+      "backendEntryTablesUntouched": true,
+      "httpChecks": [
+        200,
+        503,
+        401,
+        404
+      ]
+    }
+  },
+  "limits": [
+    "Exact repository and sign-in client code ran as macOS Swift executables in separate processes.",
+    "Private fixture file substitutes for Keychain; only synthetic tokens, supplied via stdin.",
+    "Actual loopback backend 200/401/404; a handler override on the same real server supplies 503.",
+    "No iOS app launch, Keychain invocation, Simulator, GUI, devices, XCTest, or remote auth.",
+    "Already-open-session revocation was outside this replay."
+  ],
+  "tools": {
+    "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "python": "3.14.8"
+  },
+  "originalPacketUnchanged": true,
+  "scratchRemoved": true
+}
