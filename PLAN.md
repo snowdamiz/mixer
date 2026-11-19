@@ -129,6 +129,22 @@ PostgreSQL and the worker agreed on the size and SHA-256 of all three artifacts.
 
 A loopback Chrome control forced HTTP 401 on a saved build at `72d135441e`. The test clicked **Check session**, signed in again, and reselected the same build. Chrome showed the terminal log and saved three synthetic attachments with matching SHA-256 hashes. The control issued zero build POSTs and ran no compiler. The console and hosted source trees match `9315129781`. The full browser journey with real artifact downloads, export, and exit remains open.
 
+A fresh ordinary console run at `201ead70ff68bfe18de24c0642f518701459e0a4` submitted one real iOS Starter build. Phoenix returned HTTP 201 and persisted the browser's idempotency key. Restricted Oban ran Xcode once, and PostgreSQL released capacity once. After session expiry, **Check session** and a fresh sign-in let Chrome reselect the exact build and display its terminal compiler log. All three authenticated browser downloads matched the native worker's SHA-256 hashes. Workspace export and organization exit returned HTTP 200. The separate tenant received HTTP 404 for the build. Billing rows stayed identical and the fixture ran without a payment service.
+
+The tenant's session and organization list returned HTTP 200 after the owner exited, but its project list returned HTTP 503. A separate zero-build control returned HTTP 200 for session, organizations, projects, and applications before and after exit. The same tenant directories matched. The integrated 503 remains unexplained. The disposable databases were removed, owned process groups closed, and their ports were reusable. L05 and L06 remain running.
+
+### Android TaskCompletion parity and source diagnostic
+
+At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.
+
+The rebuild used Wasm SHA-256 `59623248e6afe4fd66e4dbb0adf8ae6cd353528ad6f4769b52269a3020e2811b` and verified the same four frames and diagnostic on macOS before the Android run. The first Android attempt reused a debug-only `run-as` check and closed before guest launch. The passing run used direct screenshots and PID-scoped logcat readback. It used Android Emulator 37.2.12, ADB 37.0.1, and system image build 13818094. All 344 recorded groups closed, the private ADB and emulator exited, the disposable AVD was removed, and all three ports were reusable. D3 remains open for iOS and the local target performance comparison.
+
+### Reproducible Android engine pair
+
+The [engine-pair recipe](tests/integration/fieldlog-android-engine-pair/README.md) passed all seven phases from a fresh checkout of `201ead70ff68bfe18de24c0642f518701459e0a4` on Xcode 26.6 and macOS SDK 26.5. The build matched both pinned VM trees and all four Android and host archives. Swift's incremental LLVM module hash caused the original Wasm pin mismatch. Disabling that incremental step produced byte-identical guests across fresh builds and both guests passed on both host engines.
+
+The recipe built versions 24101 and 24102 with one development certificate, distinct linked runtimes, and 16 KiB APK alignment. The signed replay passed 35 HTTP and 20 Swift verifier checks and preserved durable state across the origin restart. Both service groups closed, the port was reusable, and the private keys and build scratch were removed. This proof covers newly built host artifacts. The earlier Android engine replacement used a separately built pair.
+
 ## November 18 local verification
 
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
