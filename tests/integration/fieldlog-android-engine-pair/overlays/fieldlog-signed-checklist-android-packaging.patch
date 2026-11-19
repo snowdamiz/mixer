@@ -1,0 +1,201 @@
+diff --git a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+new file mode 100644
+index 0000000..25cc2a0
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+@@ -0,0 +1,195 @@
++#!/usr/bin/env python3
++"""Assemble and verify the FieldLog signed-checklist development APK."""
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import stat
++import subprocess
++import sys
++import tempfile
++import zipfile
++
++APPEARANCE = "MixerAppearanceV2/descriptor.json"
++APPEARANCE_BYTES = 9587
++APPEARANCE_SHA256 = "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
++CHECKLIST_LIMITS = {
++    "bridge.json": 65_536,
++    "identity.json": 131_072,
++    "port.txt": 32,
++    "roots.json": 65_536,
++    "storage-grant.json": 65_536,
++    "storage.json": 65_536,
++}
++MANIFEST_MEMBERS = {"AndroidManifest.xml", "res/xml/checklist_network.xml", "resources.arsc"}
++NATIVE_PREFIX = "lib/arm64-v8a/"
++
++
++def read_bounded(path, limit):
++    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++    with os.fdopen(fd, "rb") as stream:
++        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
++            raise ValueError(f"Expected a regular file: {path}")
++        data = stream.read(limit + 1)
++    if not 0 < len(data) <= limit:
++        raise ValueError(f"Invalid input size: {path}")
++    return data
++
++
++def appearance_asset(project):
++    directory = project
++    for component in ("Generated", "MixerAndroid", "app", "assets", "MixerAppearanceV2"):
++        directory /= component
++        if directory.is_symlink() or not directory.is_dir():
++            raise ValueError(f"Missing or invalid Mixer appearance directory: {directory}")
++    descriptor = read_bounded(directory / "descriptor.json", APPEARANCE_BYTES)
++    if len(descriptor) != APPEARANCE_BYTES or hashlib.sha256(descriptor).hexdigest() != APPEARANCE_SHA256:
++        raise ValueError(f"Mixer appearance descriptor differs from the admitted default: {directory}")
++    return descriptor
++
++
++def checklist_assets(directory, lock):
++    if directory.is_symlink() or {path.name for path in directory.iterdir()} != CHECKLIST_LIMITS.keys():
++        raise ValueError("Expected exactly the six Installed checklist inputs")
++    pins = json.loads(read_bounded(lock, 4096))
++    if not isinstance(pins, dict) or pins.keys() != CHECKLIST_LIMITS.keys():
++        raise ValueError("Checklist SHA-256 JSON must pin exactly the six Installed files")
++    assets = {}
++    for name, limit in CHECKLIST_LIMITS.items():
++        data = read_bounded(directory / name, limit)
++        if hashlib.sha256(data).hexdigest() != pins[name]:
++            raise ValueError(f"Installed checklist input differs from its SHA-256 pin: {name}")
++        assets[f"assets/ChecklistRelease/{name}"] = data
++    return assets
++
++
++def run(env, *args):
++    return subprocess.check_output(args, env=env, text=True, stderr=subprocess.STDOUT, timeout=90)
++
++
++def native_libraries(engine, ndk, swift_sdk, env):
++    sys_libs = ndk / "sysroot/usr/lib/aarch64-linux-android"
++    platform_libs = {path.name for path in (sys_libs / "28").glob("*.so")}
++    if not platform_libs or engine.name != "libmixer_public_android_jni.so":
++        raise ValueError("Expected the Android 28 sysroot and the signed-checklist JNI library")
++    swift_libs = swift_sdk / "swift-resources/usr/lib/swift-aarch64/android"
++    libraries = {engine.name: engine}
++    pending = [engine]
++    while pending:
++        library = pending.pop()
++        dump = run(env, ndk / "bin/llvm-readelf", "-h", "-d", "-lW", library)
++        loads = [line.split() for line in dump.splitlines() if line.lstrip().startswith("LOAD ")]
++        if not re.search(r"^\s*Machine:\s*AArch64\s*$", dump, re.MULTILINE) or not loads:
++            raise ValueError(f"Expected an arm64 ELF with loadable segments: {library}")
++        if any(int(load[-1], 16) < 16_384 for load in loads):
++            raise ValueError(f"ELF load alignment is below 16 KiB: {library}")
++        for name in re.findall(r"\(NEEDED\)[^\n]*\[([^\]]+)\]", dump):
++            if not re.fullmatch(r"lib[A-Za-z0-9_+.-]+\.so", name):
++                raise ValueError(f"Invalid ELF dependency name: {name}")
++            if name in platform_libs or name in libraries:
++                continue
++            path = (sys_libs if name == "libc++_shared.so" else swift_libs) / name
++            libraries[name] = path
++            pending.append(path)
++    return libraries
++
++
++def verify_image(path, assets, libraries, signed=False):
++    with zipfile.ZipFile(path) as apk:
++        names = apk.namelist()
++        if len(set(names)) != len(names):
++            raise ValueError("Duplicate APK entry")
++        if {name for name in names if name.startswith("assets/")} != assets.keys():
++            raise ValueError("APK asset inventory differs from the appearance and checklist inputs")
++        for name, data in assets.items():
++            with apk.open(name) as stream:
++                if stream.read(len(data) + 1) != data:
++                    raise ValueError(f"APK asset differs from its admitted input: {name}")
++        native_names = {NATIVE_PREFIX + name for name in libraries}
++        payload_names = {name for name in names if not signed or not name.startswith("META-INF/")}
++        if payload_names != MANIFEST_MEMBERS | {"classes.dex"} | assets.keys() | native_names:
++            raise ValueError("Unexpected APK payload inventory")
++        if any(apk.getinfo(name).compress_type != zipfile.ZIP_STORED for name in native_names):
++            raise ValueError("APK native library must be stored")
++
++
++def build(args):
++    output = args.output
++    if output.exists() or output.is_symlink():
++        raise FileExistsError(output)
++    assets = {"assets/" + APPEARANCE: appearance_asset(args.mixer_project)}
++    assets.update(checklist_assets(args.installed_checklist, args.checklist_sha256))
++    env = os.environ | {"JAVA_HOME": str(args.java_home), "LC_ALL": "C"}
++    tools = args.android_sdk / "build-tools/36.0.0"
++    ndk = args.android_sdk / "ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64"
++    libraries = native_libraries(args.jni_library, ndk, args.swift_android_sdk, env)
++    with tempfile.TemporaryDirectory(prefix="fieldlog-apk-", dir=output.parent) as scratch:
++        work = Path(scratch)
++        unsigned, aligned, signed = (work / name for name in ("unsigned.apk", "aligned.apk", "signed.apk"))
++        with (zipfile.ZipFile(args.manifest_apk) as manifest,
++              zipfile.ZipFile(unsigned, "x", zipfile.ZIP_STORED) as apk):
++            if sorted(manifest.namelist()) != sorted(MANIFEST_MEMBERS):
++                raise ValueError("Expected the unsigned signed-checklist manifest and network policy")
++            for name in sorted(MANIFEST_MEMBERS):
++                apk.writestr(name, manifest.read(name))
++            apk.write(args.dex, "classes.dex")
++            for name, data in assets.items():
++                apk.writestr(name, data)
++            for name, path in sorted(libraries.items()):
++                apk.write(path, NATIVE_PREFIX + name)
++        verify_image(unsigned, assets, libraries)
++        run(env, tools / "zipalign", "-P", "16", "-f", "4", unsigned, aligned)
++        key = work / "development.p12"
++        password = "FIELDLOG_LOCAL_APK_PASSWORD"
++        signing = env | {password: os.urandom(24).hex()}
++        run(signing, args.java_home / "bin/keytool", "-genkeypair", "-storetype", "PKCS12", "-keystore", key,
++            "-alias", "fieldlog-local", "-storepass:env", password, "-keypass:env", password,
++            "-keyalg", "EC", "-groupname", "secp256r1", "-validity", "30", "-dname", "CN=FieldLog Local L04")
++        run(signing, tools / "apksigner", "sign", "--ks", key, "--ks-pass", f"env:{password}",
++            "--v3-signing-enabled", "true", "--v4-signing-enabled", "false", "--out", signed, aligned)
++        signatures = run(env, tools / "apksigner", "verify", "--verbose", "--print-certs", "-Werr", signed)
++        if "Verified using v3 scheme (APK Signature Scheme v3): true" not in signatures:
++            raise ValueError("Expected a v3 development APK signature")
++        run(env, tools / "zipalign", "-c", "-P", "16", "4", signed)
++        badging = run(env, tools / "aapt2", "dump", "badging", signed)
++        lines = badging.splitlines()
++        for entry in ("minSdkVersion:'36'", "targetSdkVersion:'37'", "native-code: 'arm64-v8a'"):
++            if entry not in lines:
++                raise ValueError(f"Unexpected APK badging. Expected {entry}")
++        for prefix in ("package: name='dev.fieldlog.generatedr90' ",
++                       "launchable-activity: name='dev.fieldlog.generatedr90.androidhost.PublicActivity' "):
++            if not any(line.startswith(prefix) for line in lines):
++                raise ValueError(f"Unexpected APK badging. Expected {prefix.strip()}")
++        verify_image(signed, assets, libraries, signed=True)
++        os.link(signed, output)
++    print(f"Development APK: {output}")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    paths = {
++        "mixer-project": "Project prepared by the pinned Mixer CLI with public-v4",
++        "manifest-apk": "Unsigned aapt2 link output for the signed checklist",
++        "dex": "Signed-checklist app classes.dex from d8",
++        "jni-library": "Strict-linked libmixer_public_android_jni.so",
++        "installed-checklist": "Installed directory from the signed checklist build",
++        "checklist-sha256": "Trusted JSON object mapping the six Installed names to their SHA-256 values",
++        "android-sdk": "Android SDK with build tools 36.0.0 and NDK 27.1.12297006",
++        "swift-android-sdk": "swift-android directory from the pinned Swift Android SDK",
++        "java-home": "JDK home containing bin/keytool",
++        "output": "Fresh APK path in an existing destination directory",
++    }
++    for name, help_text in paths.items():
++        parser.add_argument("--" + name, required=True, type=Path, help=help_text)
++    try:
++        build(parser.parse_args())
++    except subprocess.CalledProcessError as error:
++        sys.exit(f"{error}\n{error.stdout}")
++    except (OSError, ValueError, subprocess.TimeoutExpired, zipfile.BadZipFile) as error:
++        sys.exit(str(error))
++
++
++if __name__ == "__main__":
++    main()

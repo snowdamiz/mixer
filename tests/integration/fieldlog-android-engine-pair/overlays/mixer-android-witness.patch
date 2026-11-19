@@ -1,0 +1,46 @@
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
+index ebcb7ce9a5..ed6f9d4845 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
+@@ -293,12 +293,14 @@ final class CapabilityGuestUIAndroidResources: @unchecked Sendable {
+         }
+     }
+ }
+-#if MIXER_FIELDLOG_ANDROID_TRIAL
+-@_cdecl("mxfield_witness")
+-func fieldLogNativeWitness(_ facade: UInt64, _ attachment: UInt64, _ token: UInt64, _ display: UInt32) -> Int32 {
+-    guard display <= 1 else { return Int32(MXUIT_INVALID.rawValue) }
++
++@_cdecl("mxis_guest_ui_witness")
++func guestUIWitness(_ facade: UInt64, _ attachment: UInt64, _ token: UInt64, _ kind: UInt32) -> Int32 {
++    let drawn = UInt32(MXIS_WITNESS_DRAWN.rawValue)
++    guard kind == drawn || kind == UInt32(MXIS_WITNESS_TOGGLE_TAPPED.rawValue) else {
++        return Int32(MXUIT_INVALID.rawValue)
++    }
+     return CapabilityGuestUIAndroidResources.nativeWitness(facade: facade, attachment: attachment,
+-        token: token, display: display == 1)
++        token: token, display: kind == drawn)
+ }
+ #endif
+-#endif
+diff --git a/native/android/signed-guest-ui/binding/include/mixer_ui_binding.h b/native/android/signed-guest-ui/binding/include/mixer_ui_binding.h
+index 6d7ee86597..52bcce8d15 100644
+--- a/native/android/signed-guest-ui/binding/include/mixer_ui_binding.h
++++ b/native/android/signed-guest-ui/binding/include/mixer_ui_binding.h
+@@ -6,4 +6,16 @@ int32_t mxis_apply(uint64_t facade, uint64_t entry, uint64_t attachment,
+                    const uint8_t *packet, uint32_t packet_bytes);
+ int32_t mxis_interaction(uint64_t facade, uint64_t entry, uint32_t enabled);
+ int32_t mxis_retire(uint64_t facade, uint64_t entry, uint32_t final_facade);
++
++enum mxis_guest_ui_witness_kind {
++    MXIS_WITNESS_DRAWN = 1,
++    MXIS_WITNESS_TOGGLE_TAPPED = 2
++};
++/* For the registered native renderer on the installation/UI thread.
++ * Report a draw only after the current attached view draws. Pass its probe
++ * token from mxis_apply. Report toggle activation only from the current
++ * observed view's enabled toggle callback, using its input token.
++ * Both operations use the facade and attachment from that same apply.
++ * Returns mxuit_status. The call retains no native view or listener. */
++int32_t mxis_guest_ui_witness(uint64_t facade, uint64_t attachment, uint64_t token, uint32_t kind);
+ #endif

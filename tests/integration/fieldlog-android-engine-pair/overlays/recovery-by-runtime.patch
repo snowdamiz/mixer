@@ -1,0 +1,12 @@
+--- a/Integrations/InstalledGuest/SignedTask.swift
++++ b/Integrations/InstalledGuest/SignedTask.swift
+@@ -54,7 +54,8 @@
+             applicationStorage: .init(runtimeFingerprint: identity.fingerprint, namespace: FieldLogTaskStorage.namespace,
+                 service: storage, allowsDeferredGuestUIStartup: true))
+         let installation = installation.uuidString.lowercased()
+-        let owner = try await Owner.open(configuration: .init(directory: directory.appendingPathComponent("recovery"),
++        let recoveryDirectory = directory.appendingPathComponent("recovery-" + identity.fingerprint, isDirectory: true)
++        let owner = try await Owner.open(configuration: .init(directory: recoveryDirectory,
+             channel: "beta", installation: installation, observationSeconds: 1), execution: execution)
+         return Self(owner: owner, identity: identity, installation: installation, port: port, directory: directory)
+     }

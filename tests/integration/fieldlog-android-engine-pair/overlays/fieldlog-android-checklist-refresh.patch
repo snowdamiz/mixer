@@ -1,0 +1,222 @@
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -140,6 +140,10 @@
+     if(result==0) result=execute_report(e,c,NULL,0,-1);
+     return result;
+ }
++static jint refresh_host(JNIEnv *e,jclass ignored,jlong id) {
++    (void)ignored;
++    return execute(e,find(id),3,NULL,0,NULL,0,NULL,0);
++}
+ static jint close_host(JNIEnv *e,jclass ignored,jlong id) {
+     (void)ignored; Context *c=find(id); if(!c||c->failed) return 1;
+     if(execute(e,c,2,NULL,0,NULL,0,NULL,0)) { c->failed=1; return 1; }
+@@ -154,7 +158,8 @@
+     jclass type=(*e)->FindClass(e,"dev/fieldlog/generatedr90/androidhost/PublicBridge"); if(!type) return JNI_ERR;
+     JNINativeMethod methods[]={{"openNative","(Ldev/fieldlog/generatedr90/androidhost/PublicActivity;Ljava/lang/String;[B)J",(void*)open_host},
+         {"eventNative","(J[B[B)I",(void*)event_host},{"closeNative","(J)I",(void*)close_host},
+-        {"photoNative","(J[BI[B)I",(void*)photo_host},{"reportNative","(J[BI)I",(void*)report_host}};
+-    jint status=(*e)->RegisterNatives(e,type,methods,5); (*e)->DeleteLocalRef(e,type);
++        {"photoNative","(J[BI[B)I",(void*)photo_host},{"reportNative","(J[BI)I",(void*)report_host},
++        {"refreshNative","(J)I",(void*)refresh_host}};
++    jint status=(*e)->RegisterNatives(e,type,methods,6); (*e)->DeleteLocalRef(e,type);
+     return status==0?JNI_VERSION_1_6:JNI_ERR;
+ }
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -26,8 +26,24 @@
+     private final Handler handler = new Handler(Looper.getMainLooper());
+     private FrameLayout root;
+     private ChecklistPanel checklist;
++    private boolean resumed, checklistRefreshPending;
+     void checklistClosed(ChecklistPanel holder) {
+-        if (checklist == holder) checklist = null;
++        if (checklist != holder) return;
++        checklist = null;
++        if (destroyed || failed || isFinishing()) return;
++        checklistRefreshPending = true;
++        scheduleChecklistRefresh();
++    }
++    private void scheduleChecklistRefresh() {
++        if (checklistRefreshPending && !handler.post(this::refreshChecklistWhenFocused)) fail();
++    }
++    private void refreshChecklistWhenFocused() {
++        if (!checklistRefreshPending || !resumed || destroyed || failed || isFinishing() || !root.hasWindowFocus()) return;
++        checklistRefreshPending = false;
++        if (PublicBridge.refreshChecklist(context) != 0) {
++            fail();
++            android.widget.Toast.makeText(this, "FieldLog could not refresh the workspace", android.widget.Toast.LENGTH_LONG).show();
++        }
+     }
+     private AndroidUINativeSurface surface;
+     private byte[] owner;
+@@ -191,7 +207,7 @@
+     private int eventBytes = 2; // JSON array delimiters, plus comma per subsequent event.
+     private int readiness;
+     private byte[] pendingPhoto;
+-    private boolean photoResultClaimed;
++    private boolean photoLaunchQueued, photoResultClaimed;
+     private long photoContext;
+     private int photoCode, nextPhotoCode = 100;
+     private volatile CancellationSignal photoCancellation;
+@@ -217,9 +233,15 @@
+     // Called only by the separate app-native service after public UI admission.
+     public int photoRequest(long capturedContext, byte[] request) {
+         if (Looper.myLooper() != Looper.getMainLooper() || destroyed || failed || capturedContext != context ||
+-                request == null || request.length != 36) return 1;
++                photoLaunchQueued || request == null || request.length != 36) return 1;
+         final byte[] token = request.clone();
+-        return handler.post(() -> launchPhoto(capturedContext, token)) ? 0 : 1;
++        photoLaunchQueued = true;
++        if (handler.post(() -> {
++            photoLaunchQueued = false;
++            launchPhoto(capturedContext, token);
++        })) return 0;
++        photoLaunchQueued = false;
++        return 1;
+     }
+     @SuppressWarnings("deprecation")
+     private void launchPhoto(long capturedContext, byte[] request) {
+@@ -311,17 +333,27 @@
+             android.widget.Button open = new android.widget.Button(this);
+             open.setText("Open signed checklist");
+             open.setAllCaps(false);
+-            open.setOnClickListener(view -> {
+-                if (checklist != null || context <= 0 || failed || destroyed || pendingPhoto != null || pendingReport != null) return;
+-                ChecklistPanel panel = new ChecklistPanel(this, context);
+-                if (panel.open()) checklist = panel;
+-            });
++            open.setOnClickListener(view -> openChecklist());
+             content.addView(open, new FrameLayout.LayoutParams(-2, -2, android.view.Gravity.BOTTOM | android.view.Gravity.END));
+         } catch (IOException absent) {
+             // The ordinary package omits signed checklist material.
+         }
+         configureSystemBarAppearance();
+         if (!handler.post(this::openWhenReady)) throw new IllegalStateException("host queue unavailable");
++    }
++    private void openChecklist() {
++        if (checklist != null || checklistRefreshPending || context <= 0 || failed || destroyed || isFinishing()
++                || !resumed || !root.hasWindowFocus() || checklistBlockedByService()) return;
++        if (!events.isEmpty()) drainEvents();
++        if (failed || checklistBlockedByService()) return;
++        ChecklistPanel panel = new ChecklistPanel(this, context);
++        if (panel.open()) {
++            checklist = panel;
++            surface.gateInput();
++        }
++    }
++    private boolean checklistBlockedByService() {
++        return photoLaunchQueued || pendingPhoto != null || pendingReport != null;
+     }
+     private void configureSystemBarAppearance() {
+         // The manifest fixes this app window to Theme.Material.Light.NoActionBar.
+@@ -421,11 +453,27 @@
+         } catch (RuntimeException error) { android.util.Log.e("MixerAndroidHost", "Native surface operation failed: " + operation, error); fail(); return 1; }
+     }
+     private void fail() { failed = true; invalidateEvents(); if (surface != null) surface.gateInput(); }
+-    @Override public void onResume() { super.onResume(); if (surface != null) surface.onResume(); if(reportPaused && reportLaunched) finishReport(0); }
+-    @Override public void onPause() { if(reportLaunched) reportPaused=true; if (surface != null) surface.onPause(); super.onPause(); }
++    @Override public void onWindowFocusChanged(boolean hasFocus) {
++        super.onWindowFocusChanged(hasFocus);
++        if (hasFocus) scheduleChecklistRefresh();
++    }
++    @Override public void onResume() {
++        super.onResume();
++        resumed = true;
++        if (surface != null) surface.onResume();
++        if (reportPaused && reportLaunched) finishReport(0);
++        scheduleChecklistRefresh();
++    }
++    @Override public void onPause() {
++        resumed = false;
++        if (reportLaunched) reportPaused = true;
++        if (surface != null) surface.onPause();
++        super.onPause();
++    }
+     @Override public void onStop() { if (surface != null) surface.onStop(); super.onStop(); }
+     @Override public void onDestroy() {
+-        destroyed = true; finishReport(2); revokeReport(); pendingPhoto = null; cancelPhotoWorker();
++        destroyed = true; finishReport(2); revokeReport();
++        photoLaunchQueued = false; pendingPhoto = null; cancelPhotoWorker();
+         Thread worker = photoThread;
+         if (worker != null) try { worker.join(100); } catch (InterruptedException error) { Thread.currentThread().interrupt(); }
+         // A provider that ignores cancellation may outlive this bounded join;
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+@@ -24,6 +24,7 @@
+         }
+     }
+     public static int event(long context, byte[] owner, byte[] envelope) { requireMain(); return eventNative(context, owner, envelope); }
++    static int refreshChecklist(long context) { requireMain(); return refreshNative(context); }
+     public static int close(long context) { requireMain(); return closeNative(context); }
+     public static int photo(long context, byte[] request, int result, byte[] jpeg) { requireMain(); return photoNative(context, request, result, jpeg); }
+     public static int report(long context, byte[] request, int result) { requireMain(); android.util.Log.i("FieldLogShareR1702", "report-jni-enter"); int status=reportNative(context, request, result); android.util.Log.i("FieldLogShareR1702", "report-jni-return accepted="+(status==0)); return status; }
+@@ -31,6 +32,7 @@
+     private static native int photoNative(long context, byte[] request, int result, byte[] jpeg);
+     private static native long openNative(PublicActivity receiver, String profile, byte[] directory);
+     private static native int eventNative(long context, byte[] originalOwner, byte[] originalEnvelope);
++    private static native int refreshNative(long context);
+     private static native int closeNative(long context);
+     private static void requireMain() {
+         if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) throw new IllegalStateException("Android main thread required");
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -126,6 +126,10 @@
+                 await application.close()
+                 guard !surface.failure else { throw PublicHostError.surface }
+                 values.removeValue(forKey: id)
++            case 3:
++                guard let (application, surface) = values[id], !surface.failure else { throw PublicHostError.context }
++                try await application.presentation.reloadChecklist()
++                try await application.settle()
+             default: throw PublicHostError.context
+             }
+             return 1
+@@ -145,7 +149,8 @@
+     _ owner: UnsafePointer<UInt8>?, _ ownerCount: Int,
+     _ event: UnsafePointer<UInt8>?, _ eventCount: Int,
+     _ callback: @convention(c) @Sendable @escaping (Int64, Int32, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int) -> Int32) -> Int32 {
+-    guard context > 0, (0...2).contains(operation), (0...64).contains(profileCount),
++    guard context > 0, (0...3).contains(operation), (0...64).contains(profileCount),
++          (operation != 3 || (profileCount == 0 && ownerCount == 0 && eventCount == 0)),
+           (0...4096).contains(directoryCount), (operation == 0 ? directoryCount > 0 : directoryCount == 0),
+           (directoryCount == 0 || directory != nil), (0...64).contains(ownerCount), (0...1_048_576).contains(eventCount),
+           (profileCount == 0 || profile != nil), (ownerCount == 0 || owner != nil), (eventCount == 0 || event != nil) else { return 1 }
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -211,15 +211,17 @@
+         guard tasks.count == 1, let task = tasks.first else { throw PublicHostError.action }
+         return task
+     }
++    #endif
+     func reloadChecklist() async throws {
++        try await waitForSave()
+         let saved = try await repository.readCommittedSnapshot()
+-        let (next, frame) = try render(state, workspace: saved, feedback: nil, failure: nil)
++        guard !closed else { throw PublicHostError.closed }
++        let (next, frame) = try render(state, workspace: saved, feedback: changeFeedback, failure: changeFailure)
+         workspace = saved
+         reconciler = next
+         snapshot = frame
+         publish()
+     }
+-    #endif
+     public func send(_ event: UIEventEnvelope) throws { try sendBatch([event], from: snapshot) }
+ 
+     public func sendBatch(_ events: [UIEventEnvelope], from captured: UIRenderSnapshot) throws {
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+@@ -40,11 +40,9 @@
+         }
+         guest = nil
+         if action == 2 {
+-            do {
+-                try await checklistPresentation(id)?.reloadChecklist()
+-                checklistReply.set("Closed")
+-            } catch { checklistReply.set("Closed with workspace refresh failure") }
+             context = nil
++            // The ordinary activity reloads after retirement through its own native bridge.
++            checklistReply.set("Closed")
+             return
+         }
+         do {

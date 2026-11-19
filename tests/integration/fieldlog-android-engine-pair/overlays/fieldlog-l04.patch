@@ -1,0 +1,1233 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
+new file mode 100644
+index 0000000..a4c6f2d
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
+@@ -0,0 +1,234 @@
++#include "mixer_ui_binding.h"
++#include "mixer_android_host_bridge.h"
++#include <jni.h>
++#include <pthread.h>
++#include <string.h>
++
++extern int32_t mxfield_witness(uint64_t, uint64_t, uint64_t, uint32_t);
++extern int32_t fieldlog_checklist_submit(int32_t, int64_t, const char *, const char *, const char *, const char *);
++extern void fieldlog_checklist_status(char *, intptr_t);
++
++struct slot {
++    struct mxis_host_snapshot state;
++    jweak window;
++};
++
++// Only the final destructor uses this mutex off the installed UI thread.
++// No Java call runs while it is held.
++static pthread_mutex_t slots_lock = PTHREAD_MUTEX_INITIALIZER;
++static struct slot slots[MXUIT_FACADE_CAPACITY];
++static uint64_t generations;
++static JavaVM *vm;
++// Registration and Java callbacks are main-Looper-owned. The Swift close
++// outcome and the destructor's slot release are separate retirement proofs.
++static jweak registered;
++static int close_requested;
++static jmethodID apply_method, enable_method, retire_method;
++
++static JNIEnv *env_for_ui(void) {
++    JNIEnv *env = NULL;
++    return vm && (*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) == JNI_OK ? env : NULL;
++}
++static int32_t result(JNIEnv *env, jboolean accepted) {
++    if ((*env)->ExceptionCheck(env)) { (*env)->ExceptionClear(env); return MXUIT_IO; }
++    return accepted ? MXUIT_OK : MXUIT_IO;
++}
++static struct slot *lookup(uint64_t facade, uint64_t entry) {
++    if (mxuit_ui_validate(facade, entry) != MXUIT_OK) return NULL;
++    struct slot *found = NULL;
++    pthread_mutex_lock(&slots_lock);
++    for (unsigned i = 0; i < MXUIT_FACADE_CAPACITY; ++i)
++        if (slots[i].state.facade == facade) { found = &slots[i]; break; }
++    pthread_mutex_unlock(&slots_lock);
++    return found;
++}
++
++int32_t mxis_host_slot_acquire(uint64_t facade, uint64_t entry, uint64_t *generation) {
++    if (!generation || mxuit_ui_validate(facade, entry) != MXUIT_OK) return MXUIT_INVALID;
++    *generation = 0;
++    JNIEnv *env = env_for_ui();
++    if (!env || !registered) return MXUIT_UNAVAILABLE;
++    jobject window = (*env)->NewLocalRef(env, registered);
++    if (!window) return result(env, JNI_FALSE);
++    jweak weak = (*env)->NewWeakGlobalRef(env, window);
++    (*env)->DeleteLocalRef(env, window);
++    if (!weak) return result(env, JNI_FALSE);
++    pthread_mutex_lock(&slots_lock);
++    for (unsigned i = 0; i < MXUIT_FACADE_CAPACITY; ++i) {
++        if (!slots[i].state.facade && generations != UINT64_MAX) {
++            *generation = ++generations;
++            slots[i].state = (struct mxis_host_snapshot){.facade=facade, .generation=*generation, .published=1, .weak_owner_live=1};
++            slots[i].window = weak;
++            break;
++        }
++    }
++    pthread_mutex_unlock(&slots_lock);
++    if (!*generation) (*env)->DeleteWeakGlobalRef(env, weak);
++    return *generation ? MXUIT_OK : MXUIT_CAPACITY;
++}
++
++int32_t mxis_host_inspect(uint64_t facade, uint64_t entry, struct mxis_host_snapshot *out) {
++    struct slot *slot = lookup(facade, entry);
++    JNIEnv *env = env_for_ui();
++    if (!slot || !env || !out) return MXUIT_STALE;
++    *out = slot->state;
++    if (slot->window) out->weak_owner_live = !(*env)->IsSameObject(env, slot->window, NULL);
++    return MXUIT_OK;
++}
++
++int32_t mxis_apply(uint64_t facade, uint64_t entry, uint64_t attachment, uint64_t input,
++                   uint64_t probe, const uint8_t *packet, uint32_t bytes) {
++    struct slot *slot = lookup(facade, entry);
++    JNIEnv *env = env_for_ui();
++    if (!env || !slot || !slot->window || !packet || !bytes || bytes > 65536) return MXUIT_INVALID;
++    jobject window = (*env)->NewLocalRef(env, slot->window);
++    jbyteArray copy = window ? (*env)->NewByteArray(env, (jsize)bytes) : NULL;
++    jboolean accepted = JNI_FALSE;
++    if (copy) {
++        (*env)->SetByteArrayRegion(env, copy, 0, (jsize)bytes, (const jbyte *)packet);
++        if (!(*env)->ExceptionCheck(env))
++            accepted = (*env)->CallBooleanMethod(env, window, apply_method, (jlong)facade, (jlong)attachment,
++                                                  (jlong)input, (jlong)probe, copy);
++        (*env)->DeleteLocalRef(env, copy);
++    }
++    if (window) (*env)->DeleteLocalRef(env, window);
++    int32_t status = result(env, accepted);
++    if (status == MXUIT_OK) {
++        slot->state.tree_live = slot->state.listener_live = 1;
++        slot->state.packet_bytes = bytes;
++    }
++    return status;
++}
++
++int32_t mxis_interaction(uint64_t facade, uint64_t entry, uint32_t enabled) {
++    struct slot *slot = lookup(facade, entry);
++    JNIEnv *env = env_for_ui();
++    if (!env || !slot || !slot->window || enabled > 1) return MXUIT_INVALID;
++    jobject window = (*env)->NewLocalRef(env, slot->window);
++    jboolean accepted = window ? (*env)->CallBooleanMethod(env, window, enable_method, (jlong)facade, (jboolean)enabled) : JNI_FALSE;
++    if (window) (*env)->DeleteLocalRef(env, window);
++    int32_t status = result(env, accepted);
++    if (status == MXUIT_OK) slot->state.interaction = enabled;
++    return status;
++}
++
++int32_t mxis_retire(uint64_t facade, uint64_t entry, uint32_t final) {
++    struct slot *slot = lookup(facade, entry);
++    JNIEnv *env = env_for_ui();
++    if (!env || !slot || !slot->window || final > 1) return MXUIT_INVALID;
++    jobject window = (*env)->NewLocalRef(env, slot->window);
++    jboolean accepted = window ? (*env)->CallBooleanMethod(env, window, retire_method, (jlong)facade) : JNI_FALSE;
++    if (window) (*env)->DeleteLocalRef(env, window);
++    int32_t status = result(env, accepted);
++    if (status != MXUIT_OK) return status;
++    slot->state.tree_live = slot->state.listener_live = slot->state.packet_bytes = slot->state.interaction = 0;
++    if (final) {
++        (*env)->DeleteWeakGlobalRef(env, slot->window);
++        slot->window = NULL;
++        slot->state.weak_owner_live = 0;
++        slot->state.cleared = 1;
++        slot->state.final_entry = entry;
++    }
++    return MXUIT_OK;
++}
++
++int32_t mxis_host_release_destroyed(uint64_t facade, uint64_t generation) {
++    if (mxuit_facade_begin_close(facade) != MXUIT_STALE) return MXUIT_BUSY;
++    int32_t status = MXUIT_STALE;
++    pthread_mutex_lock(&slots_lock);
++    for (unsigned i = 0; i < MXUIT_FACADE_CAPACITY; ++i) {
++        struct slot *slot = &slots[i];
++        if (slot->state.facade == facade && slot->state.generation == generation &&
++            slot->state.cleared && slot->state.final_entry && !slot->window) {
++            memset(slot, 0, sizeof(*slot));
++            status = MXUIT_OK;
++            break;
++        }
++    }
++    pthread_mutex_unlock(&slots_lock);
++    return status;
++}
++
++static int main_looper(JNIEnv *env) {
++    jclass cls = (*env)->FindClass(env, "android/os/Looper");
++    if (!cls) return 0;
++    jmethodID my = (*env)->GetStaticMethodID(env, cls, "myLooper", "()Landroid/os/Looper;");
++    jmethodID main = my ? (*env)->GetStaticMethodID(env, cls, "getMainLooper", "()Landroid/os/Looper;") : NULL;
++    jobject current = main ? (*env)->CallStaticObjectMethod(env, cls, my) : NULL;
++    if ((*env)->ExceptionCheck(env) || !current) return 0;
++    jobject expected = (*env)->CallStaticObjectMethod(env, cls, main);
++    if ((*env)->ExceptionCheck(env) || !expected) return 0;
++    return (*env)->IsSameObject(env, current, expected);
++}
++
++static int owns_registration(JNIEnv *env, jobject self) {
++    return main_looper(env) && registered && (*env)->IsSameObject(env, self, registered);
++}
++
++static int slots_empty(void) {
++    int empty = 1;
++    pthread_mutex_lock(&slots_lock);
++    for (unsigned i = 0; i < MXUIT_FACADE_CAPACITY; ++i) {
++        if (slots[i].state.facade) {
++            empty = 0;
++            break;
++        }
++    }
++    pthread_mutex_unlock(&slots_lock);
++    return empty;
++}
++
++#define JNI_NAME(name) Java_dev_fieldlog_generatedr90_androidhost_ChecklistPanel_##name
++JNIEXPORT jboolean JNICALL JNI_NAME(initialize)(JNIEnv *env, jobject self) {
++    if (!main_looper(env)) return JNI_FALSE;
++    if (registered) return (*env)->IsSameObject(env, self, registered);
++    if (!slots_empty()) return JNI_FALSE;
++    jclass cls = (*env)->GetObjectClass(env, self);
++    if (!cls) return JNI_FALSE;
++    apply_method = (*env)->GetMethodID(env, cls, "applyGuest", "(JJJJ[B)Z");
++    if (!apply_method) return JNI_FALSE;
++    enable_method = (*env)->GetMethodID(env, cls, "enableGuest", "(JZ)Z");
++    if (!enable_method) return JNI_FALSE;
++    retire_method = (*env)->GetMethodID(env, cls, "retireGuest", "(J)Z");
++    if (!retire_method || (*env)->GetJavaVM(env, &vm) != JNI_OK || mxuit_install() != MXUIT_OK) return JNI_FALSE;
++    registered = (*env)->NewWeakGlobalRef(env, self);
++    return registered != NULL;
++}
++
++JNIEXPORT jboolean JNICALL JNI_NAME(unregisterRetired)(JNIEnv *env, jobject self) {
++    if (!owns_registration(env, self) || !close_requested) return JNI_FALSE;
++    char text[512] = {0};
++    fieldlog_checklist_status(text, sizeof(text));
++    if (strncmp(text, "Closed", 6) != 0 || !slots_empty()) return JNI_FALSE;
++    (*env)->DeleteWeakGlobalRef(env, registered);
++    registered = NULL;
++    close_requested = 0;
++    return JNI_TRUE;
++}
++
++JNIEXPORT jint JNICALL JNI_NAME(witness)(JNIEnv *env, jobject self, jlong facade, jlong attachment, jlong token, jboolean display) {
++    if (!owns_registration(env, self) || facade <= 0 || attachment <= 0 || token <= 0)
++        return MXUIT_INVALID;
++    return mxfield_witness(facade, attachment, token, display);
++}
++JNIEXPORT jboolean JNICALL JNI_NAME(cycle)(JNIEnv *env, jobject self, jint action, jlong context,
++                                         jstring root, jstring assets, jstring installation, jstring bundle) {
++    if (!owns_registration(env, self) || !root || !assets || !installation || !bundle) return JNI_FALSE;
++    jstring args[] = {root, assets, installation, bundle};
++    const char *text[4] = {0};
++    for (int i = 0; i < 4; ++i) {
++        if ((*env)->GetStringUTFLength(env, args[i]) > 4096) break;
++        text[i] = (*env)->GetStringUTFChars(env, args[i], NULL);
++        if (!text[i]) break;
++    }
++    jboolean accepted = text[3] && fieldlog_checklist_submit(action, context, text[0], text[1], text[2], text[3]);
++    for (int i = 0; i < 4 && text[i]; ++i) (*env)->ReleaseStringUTFChars(env, args[i], text[i]);
++    if (accepted) close_requested = action == 2;
++    return accepted;
++}
++JNIEXPORT jstring JNICALL JNI_NAME(status)(JNIEnv *env, jobject self) {
++    if (!owns_registration(env, self)) return NULL;
++    char text[512] = {0};
++    fieldlog_checklist_status(text, sizeof(text));
++    return (*env)->NewStringUTF(env, text);
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/ChecklistPanel.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/ChecklistPanel.java
+new file mode 100644
+index 0000000..de0bd3e
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/ChecklistPanel.java
+@@ -0,0 +1,286 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import android.app.Dialog;
++import android.graphics.Canvas;
++import android.graphics.Rect;
++import android.os.Handler;
++import android.os.Looper;
++import android.view.View;
++import android.widget.Button;
++import android.widget.LinearLayout;
++import android.widget.TextView;
++import java.io.File;
++import java.io.IOException;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.StandardCopyOption;
++import java.util.UUID;
++import org.json.JSONArray;
++import org.json.JSONException;
++import org.json.JSONObject;
++
++/** Native surface for the signed checklist opened from FieldLog's public activity. */
++final class ChecklistPanel {
++    static { System.loadLibrary("mixer_public_android_jni"); }
++    private native boolean initialize();
++    private native boolean unregisterRetired();
++    private native boolean cycle(int action, long context, String directory, String assets, String installation, String bundle);
++    private native String status();
++    private native int witness(long facade, long attachment, long token, boolean display);
++
++    private final PublicActivity activity;
++    private final long context;
++    private final Dialog dialog;
++    private final Button update, done;
++    private final TextView result;
++    private final LinearLayout guest;
++    private final Handler handler = new Handler(Looper.getMainLooper());
++    private GuestFrame current;
++    private boolean enabled, closing, closeAfterOperation;
++    private int remaining;
++    private Runnable afterClose = () -> {};
++
++    ChecklistPanel(PublicActivity activity, long context) {
++        this.activity = activity;
++        this.context = context;
++        dialog = new Dialog(activity);
++        dialog.setTitle("Signed checklist");
++        dialog.setCancelable(false);
++        LinearLayout contents = new LinearLayout(activity);
++        contents.setOrientation(LinearLayout.VERTICAL);
++        contents.setPadding(24, 24, 24, 24);
++        result = new TextView(activity);
++        update = new Button(activity);
++        done = new Button(activity);
++        guest = new LinearLayout(activity);
++        guest.setOrientation(LinearLayout.VERTICAL);
++        update.setText("Check for update");
++        done.setText("Done");
++        update.setAllCaps(false);
++        done.setAllCaps(false);
++        update.setOnClickListener(view -> start(1));
++        done.setOnClickListener(view -> close(() -> {}));
++        contents.addView(result);
++        contents.addView(guest);
++        contents.addView(update);
++        contents.addView(done);
++        dialog.setContentView(contents);
++    }
++
++    boolean open() {
++        if (!initialize()) return false;
++        dialog.show();
++        start(1);
++        return true;
++    }
++
++    void close(Runnable completion) {
++        afterClose = completion;
++        closeAfterOperation = true;
++        if (remaining == 0 && !closing) start(2);
++    }
++
++    private String installation() throws IOException {
++        android.content.SharedPreferences preferences = activity.getSharedPreferences("signed-checklist", 0);
++        String value = preferences.getString("installation", null);
++        if (value != null) return value;
++        value = UUID.randomUUID().toString();
++        if (!preferences.edit().putString("installation", value).commit()) throw new IOException("installation");
++        return value;
++    }
++
++    private File installedMaterial() throws IOException {
++        File directory = new File(activity.getFilesDir(), "checklist-installed");
++        if (!directory.exists() && !directory.mkdir()) throw new IOException("directory");
++        for (String name : new String[]{"identity.json", "roots.json", "storage.json", "storage-grant.json", "bridge.json", "port.txt"}) {
++            try (java.io.InputStream asset = activity.getAssets().open("ChecklistRelease/" + name)) {
++                Files.copy(asset, new File(directory, name).toPath(), StandardCopyOption.REPLACE_EXISTING);
++            }
++        }
++        return directory;
++    }
++
++    private void start(int action) {
++        if (remaining != 0) return;
++        closing = action == 2;
++        try {
++            File materials = action == 1 ? installedMaterial() : new File(activity.getFilesDir(), "checklist-installed");
++            if (!cycle(action, context, activity.getFilesDir().getCanonicalPath(), materials.getCanonicalPath(),
++                installation(), activity.getPackageName())) throw new IOException("checklist operation");
++            result.setText("Opening checklist");
++            update.setEnabled(false);
++            done.setEnabled(false);
++            if (current != null) current.action.setEnabled(false);
++            remaining = 500;
++            handler.post(this::poll);
++        } catch (IOException error) {
++            result.setText("Checklist materials could not be opened");
++            update.setEnabled(!closing);
++            done.setEnabled(!closing);
++        }
++    }
++
++    private void poll() {
++        String state = status();
++        if (state == null) return;
++        if (state.equals("Opening checklist") && --remaining > 0) {
++            handler.postDelayed(this::poll, 50);
++            return;
++        }
++        remaining = 0;
++        result.setText(state);
++        if (closing) {
++            if (state.startsWith("Closed") && unregisterRetired()) {
++                dialog.dismiss();
++                afterClose.run();
++                activity.checklistClosed(this);
++            }
++        } else if (closeAfterOperation && !state.equals("Opening checklist")) {
++            start(2);
++        } else if (!state.equals("Opening checklist")) {
++            update.setEnabled(true);
++            done.setEnabled(true);
++        } else {
++            result.setText("Checklist operation has not settled");
++        }
++    }
++
++    @SuppressWarnings("unused") // JNI transport callbacks
++    private boolean applyGuest(long facade, long attachment, long input, long probe, byte[] packet) {
++        try {
++            JSONObject frame = new JSONObject(new String(packet, StandardCharsets.UTF_8));
++            JSONObject root = frame.getJSONObject("root");
++            require(frame.getInt("schemaVersion") == 1 && frame.getLong("revision") > 0
++                && "fieldlog-task".equals(root.getString("id")) && "vStack".equals(root.getString("kind"))
++                && root.getJSONObject("properties").length() == 0 && root.getJSONArray("actions").length() == 0);
++            JSONArray nodes = root.getJSONArray("children");
++            require(nodes.length() == 3);
++            GuestFrame next = new GuestFrame(facade, attachment, input, probe);
++            for (int i = 0; i < 2; i++) {
++                JSONObject node = nodes.getJSONObject(i);
++                require((i == 0 ? "task" : "status").equals(node.getString("id"))
++                    && "text".equals(node.getString("kind")) && node.getJSONArray("children").length() == 0
++                    && node.getJSONArray("actions").length() == 0 && node.getJSONObject("properties").length() == 1);
++                TextView text = new TextView(activity);
++                text.setText(node.getJSONObject("properties").getString("text"));
++                text.setTextSize(i == 0 ? 24 : 18);
++                next.addView(text);
++            }
++            JSONObject node = nodes.getJSONObject(2);
++            JSONArray commands = node.getJSONArray("actions");
++            require("toggle".equals(node.getString("id")) && "button".equals(node.getString("kind"))
++                && node.getJSONArray("children").length() == 0 && node.getJSONObject("properties").length() == 1
++                && commands.length() == 1 && "task.toggle".equals(commands.getJSONObject(0).getString("id"))
++                && "activate".equals(commands.getJSONObject(0).getString("event")));
++            next.action.setText(node.getJSONObject("properties").getString("label"));
++            next.addView(next.action);
++            return replaceGuest(next);
++        } catch (JSONException failure) {
++            return false;
++        }
++    }
++
++    private static void require(boolean condition) throws JSONException {
++        if (!condition) throw new JSONException("Unsupported FieldLog presentation");
++    }
++
++    private boolean replaceGuest(GuestFrame next) {
++        // Keep the previous frame and its state until the new child is attached.
++        try {
++            guest.addView(next);
++        } catch (RuntimeException failure) {
++            // ViewGroup can throw after it has already inserted the child.
++            next.disarm();
++            guest.removeView(next);
++            if (current == null) result.setText("FAILED guest frame attachment");
++            return false;
++        }
++        detachCurrent();
++        current = next;
++        return true;
++    }
++
++    private void detachCurrent() {
++        if (current != null) {
++            // Remove posted animation callbacks while the View is still attached.
++            current.disarm();
++            guest.removeView(current);
++            current = null;
++        }
++        enabled = false;
++    }
++
++    @SuppressWarnings("unused")
++    private boolean enableGuest(long facade, boolean value) {
++        if (current == null) return !value;
++        if (current.facade != facade) return false;
++        enabled = value;
++        current.action.setEnabled(value && current.observed);
++        return true;
++    }
++
++    @SuppressWarnings("unused")
++    private boolean retireGuest(long facade) {
++        if (current != null && current.facade != facade) return false;
++        detachCurrent();
++        if (guest.getChildCount() != 0) return false;
++        if (result.getText().toString().startsWith("HEALTHY")) result.setText("Guest retired");
++        return true;
++    }
++
++    private final class GuestFrame extends LinearLayout {
++        final long facade, attachment, input, probe;
++        final Button action = new Button(activity);
++        boolean scheduled;
++        boolean observed;
++        private final Runnable afterDraw = this::queueObservation;
++        private final Runnable observe = this::observeFrame;
++
++        GuestFrame(long facade, long attachment, long input, long probe) {
++            super(activity);
++            this.facade = facade; this.attachment = attachment; this.input = input; this.probe = probe;
++            setOrientation(LinearLayout.VERTICAL);
++            action.setAllCaps(false);
++            action.setEnabled(false);
++            action.setOnClickListener(view -> {
++                if (current != this || !observed || !enabled || !visible()) return;
++                if (witness(facade, attachment, input, false) == 0) action.setEnabled(false);
++            });
++        }
++        void disarm() {
++            action.setOnClickListener(null);
++            action.setEnabled(false);
++            removeCallbacks(afterDraw);
++            removeCallbacks(observe);
++            scheduled = false;
++        }
++
++        private void queueObservation() {
++            if (visible()) postOnAnimation(observe);
++            else scheduled = false;
++        }
++
++        private void observeFrame() {
++            scheduled = false;
++            if (!visible()) return;
++            int status = witness(facade, attachment, probe, true);
++            observed = status == 0;
++            if (status != 0) android.util.Log.w("FieldLogChecklist", "Display witness refused: " + status);
++            action.setEnabled(observed && enabled);
++        }
++
++        private boolean visible() {
++            Rect bounds = new Rect();
++            return current == this && !closing && isAttachedToWindow() && isShown()
++                && hasWindowFocus() && getWindowVisibility() == View.VISIBLE && getGlobalVisibleRect(bounds)
++                && bounds.width() > 0 && bounds.height() > 0;
++        }
++        @Override protected void dispatchDraw(Canvas canvas) {
++            // Backgroundless ViewGroups can reach child drawing without entering draw().
++            super.dispatchDraw(canvas);
++            if (observed || scheduled || !visible()) return;
++            scheduled = true;
++            postOnAnimation(afterDraw);
++        }
++    }
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 3af3f34..b0b22fe 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -25,6 +25,10 @@ import java.util.ArrayDeque;
+ public final class PublicActivity extends Activity {
+     private final Handler handler = new Handler(Looper.getMainLooper());
+     private FrameLayout root;
++    private ChecklistPanel checklist;
++    void checklistClosed(ChecklistPanel holder) {
++        if (checklist == holder) checklist = null;
++    }
+     private AndroidUINativeSurface surface;
+     private byte[] owner;
+     private long context;
+@@ -297,7 +301,25 @@ public final class PublicActivity extends Activity {
+         if (!destroyed && !failed && PublicBridge.photo(capturedContext, request, result, jpeg) != 0) fail();
+     }
+     @Override public void onCreate(Bundle state) {
+-        super.onCreate(state); root = new FrameLayout(this); setContentView(root);
++        super.onCreate(state);
++        FrameLayout content = new FrameLayout(this);
++        root = new FrameLayout(this);
++        content.addView(root, new FrameLayout.LayoutParams(-1, -1));
++        setContentView(content);
++        try (InputStream material = getAssets().open("ChecklistRelease/identity.json")) {
++            if (material.read() < 0) throw new IOException("empty checklist identity");
++            android.widget.Button open = new android.widget.Button(this);
++            open.setText("Open signed checklist");
++            open.setAllCaps(false);
++            open.setOnClickListener(view -> {
++                if (checklist != null || context <= 0 || failed || destroyed || pendingPhoto != null || pendingReport != null) return;
++                ChecklistPanel panel = new ChecklistPanel(this, context);
++                if (panel.open()) checklist = panel;
++            });
++            content.addView(open, new FrameLayout.LayoutParams(-2, -2, android.view.Gravity.BOTTOM | android.view.Gravity.END));
++        } catch (IOException absent) {
++            // The ordinary package omits signed checklist material.
++        }
+         configureSystemBarAppearance();
+         if (!handler.post(this::openWhenReady)) throw new IllegalStateException("host queue unavailable");
+     }
+@@ -409,7 +431,12 @@ public final class PublicActivity extends Activity {
+         // A provider that ignores cancellation may outlive this bounded join;
+         // destroyed/context/request fencing prevents every late mutation.
+         invalidateEvents(); handler.removeCallbacksAndMessages(null);
++        if (checklist == null) closeSurface();
++        else checklist.close(this::closeSurface);
++        super.onDestroy();
++    }
++    private void closeSurface() {
+         if (context > 0 && PublicBridge.close(context) != 0) failed = true;
+-        if (surface != null) surface.close(); super.onDestroy();
++        if (surface != null) surface.close();
+     }
+ }
+diff --git a/Integrations/GeneratedReport/Platforms/Android/res/xml/checklist_network.xml b/Integrations/GeneratedReport/Platforms/Android/res/xml/checklist_network.xml
+new file mode 100644
+index 0000000..876ea67
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/res/xml/checklist_network.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<network-security-config>
++  <base-config cleartextTrafficPermitted="false" />
++  <domain-config cleartextTrafficPermitted="true"><domain>127.0.0.1</domain></domain-config>
++</network-security-config>
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index 9d20e7a..904b2eb 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -50,7 +50,12 @@ private final class Replies: @unchecked Sendable {
+ }
+ private let replies = Replies()
+ @MainActor private enum Applications {
+-    static var values: [Int64: (PublicAndroidApplication, BridgeSurface)] = [:]
++    private static var values: [Int64: (PublicAndroidApplication, BridgeSurface)] = [:]
++    #if FIELDLOG_SIGNED_CHECKLIST
++    static func checklistPresentation(_ context: Int64) -> ProjectPresentation? {
++        values[context]?.0.presentation
++    }
++    #endif
+     static func report(_ id: Int64, _ token: Data, _ result: Int32,
+         _ callback: @escaping @convention(c) @Sendable (Int64, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int, Int, Int32) -> Int32) async -> Int32 {
+         guard let (app, surface) = values[id], !surface.failure else { return 2 }
+@@ -127,6 +132,12 @@ private let replies = Replies()
+         } catch { return 2 }
+     }
+ }
++#if FIELDLOG_SIGNED_CHECKLIST
++@MainActor func checklistPresentation(_ context: Int64) -> ProjectPresentation? {
++    Applications.checklistPresentation(context)
++}
++#endif
++
+ @_cdecl("mixer_public_android_submit")
+ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
+     _ profile: UnsafePointer<UInt8>?, _ profileCount: Int,
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 73b481f..08fbaef 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -107,7 +107,7 @@ private enum WorkspaceEdit: Sendable {
+     public private(set) var snapshot: UIRenderSnapshot
+     public private(set) var workspace: Workspace
+     public var state: TaskEditorState { editor.state }
+-    private let repository: WorkspaceRepository
++    let repository: WorkspaceRepository
+     private let projectID: UUID
+     private var editor: TaskEditor
+     private var editorObservation: UUID?
+@@ -204,6 +204,22 @@ private enum WorkspaceEdit: Sendable {
+         let id = UUID(); observers[id] = receive
+         return { [weak self] in self?.observers.removeValue(forKey: id) }
+     }
++    #if FIELDLOG_SIGNED_CHECKLIST
++    func checklistTask() async throws -> WorkTask {
++        try await waitForSave()
++        let tasks = (try await repository.readCommittedSnapshot()).tasks(for: projectID)
++        guard tasks.count == 1, let task = tasks.first else { throw PublicHostError.action }
++        return task
++    }
++    func reloadChecklist() async throws {
++        let saved = try await repository.readCommittedSnapshot()
++        let (next, frame) = try render(state, workspace: saved, feedback: nil, failure: nil)
++        workspace = saved
++        reconciler = next
++        snapshot = frame
++        publish()
++    }
++    #endif
+     public func send(_ event: UIEventEnvelope) throws { try sendBatch([event], from: snapshot) }
+ 
+     public func sendBatch(_ events: [UIEventEnvelope], from captured: UIRenderSnapshot) throws {
+@@ -821,7 +837,13 @@ private enum WorkspaceEdit: Sendable {
+                             let key = "task." + task.id.uuidString.lowercased()
+                             MixerUI.Text(key + ".title", "\(index + 1). " + task.title + (task.completed ? " · Completed" : " · Not completed"))
+                             if !task.responsible.isEmpty { MixerUI.Text(key + ".responsible", task.responsible) }
++                            #if FIELDLOG_SIGNED_CHECKLIST
++                            if tasks.count != 1 {
++                                MixerUI.Button(key + ".complete", (task.completed ? "Reopen: " : "Complete: ") + task.title, action: key + ".complete").accessibilityIdentifier(key + ".complete").disabled(inactive)
++                            }
++                            #else
+                             MixerUI.Button(key + ".complete", (task.completed ? "Reopen: " : "Complete: ") + task.title, action: key + ".complete").accessibilityIdentifier(key + ".complete").disabled(inactive)
++                            #endif
+                             if tasks.count > 1 {
+                                 MixerUI.Button(key + ".up", "Move up: " + task.title, action: key + ".up").accessibilityIdentifier(key + ".up").disabled(inactive || index == 0)
+                                 MixerUI.Button(key + ".down", "Move down: " + task.title, action: key + ".down").accessibilityIdentifier(key + ".down").disabled(inactive || index == tasks.count - 1)
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+new file mode 100644
+index 0000000..5fbc079
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+@@ -0,0 +1,97 @@
++#if FIELDLOG_SIGNED_CHECKLIST
++import FieldLogInstalledGuest
++import Foundation
++
++private final class ChecklistReply: @unchecked Sendable {
++    private let lock = NSLock()
++    private var text = "Preparing checklist"
++    func begin() -> Bool {
++        lock.withLock {
++            guard text != "Opening checklist", text != "Checklist retirement pending" else { return false }
++            text = "Opening checklist"
++            return true
++        }
++    }
++    func set(_ value: String) { lock.withLock { text = value } }
++    func copy(to output: UnsafeMutablePointer<CChar>, capacity: Int) {
++        lock.withLock {
++            let bytes = text.utf8.prefix(capacity - 1)
++            for (index, byte) in bytes.enumerated() { output[index] = byte < 128 ? CChar(byte) : 63 }
++            output[bytes.count] = 0
++        }
++    }
++}
++private let checklistReply = ChecklistReply()
++
++@MainActor private enum Checklist {
++    static var guest: FieldLogSignedTask?
++    static var context: Int64?
++
++    static func perform(_ action: Int32, context id: Int64, root: URL, material: URL,
++                        installation: UUID, bundleID: String) async {
++        guard context == nil || context == id else {
++            checklistReply.set("Checklist retirement pending")
++            return
++        }
++        context = id
++        if let guest, !(await guest.close()) {
++            checklistReply.set("Checklist retirement pending")
++            return
++        }
++        guest = nil
++        if action == 2 {
++            do {
++                try await checklistPresentation(id)?.reloadChecklist()
++                checklistReply.set("Closed")
++            } catch { checklistReply.set("Closed with workspace refresh failure") }
++            context = nil
++            return
++        }
++        do {
++            guard let presentation = checklistPresentation(id) else { throw PublicHostError.context }
++            let task = try await presentation.checklistTask()
++            let opened = try await FieldLogSignedTask.open(task: task, repository: presentation.repository,
++                material: material, directory: root.appendingPathComponent("signed-checklist"),
++                bundleID: bundleID, installation: installation)
++            guest = opened
++            let delivery = try await opened.start()
++            let deadline = ContinuousClock.now + .seconds(12)
++            while ContinuousClock.now < deadline {
++                let state = await opened.recovery()
++                if state.activation.phase == .healthyGuest, state.healthy == state.activation.candidateID {
++                    checklistReply.set("\(delivery) | Sequence \(state.acceptedSequence)")
++                    return
++                }
++                if state.activation.terminalCause != nil { break }
++                try await Task.sleep(for: .milliseconds(50))
++            }
++            checklistReply.set("The signed checklist could not be displayed")
++        } catch {
++            checklistReply.set("Open the signed checklist after saving one task and publishing a compatible release")
++        }
++    }
++}
++
++@_cdecl("fieldlog_checklist_submit")
++func checklistSubmit(_ action: Int32, _ context: Int64, _ root: UnsafePointer<CChar>,
++                     _ material: UnsafePointer<CChar>, _ id: UnsafePointer<CChar>,
++                     _ bundle: UnsafePointer<CChar>) -> Int32 {
++    guard (1...2).contains(action), context > 0,
++          let installation = UUID(uuidString: String(cString: id)), checklistReply.begin() else { return 0 }
++    let directory = URL(fileURLWithPath: String(cString: root), isDirectory: true)
++    let materials = URL(fileURLWithPath: String(cString: material), isDirectory: true)
++    let bundleID = String(cString: bundle)
++    Task { @MainActor in
++        await Checklist.perform(action, context: context, root: directory, material: materials,
++                                installation: installation, bundleID: bundleID)
++    }
++    return 1
++}
++
++@_cdecl("fieldlog_checklist_status")
++func checklistStatus(_ output: UnsafeMutablePointer<CChar>, _ capacity: Int) {
++    guard Thread.isMainThread, (2...512).contains(capacity) else { return }
++    _ = RunLoop.main.run(mode: .default, before: Date(timeIntervalSinceNow: 0.001))
++    checklistReply.copy(to: output, capacity: capacity)
++}
++#endif
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+index c3aa7a1..ea4999e 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -74,6 +74,13 @@ public actor WorkspaceRepository {
+   }
+   public func snapshot() -> Workspace { workspace }
+ 
++  public func readCommittedSnapshot() throws -> Workspace {
++    guard !unavailable else { throw FieldLogError.storage("Workspace is closed or requires reopening.") }
++    let current = try Self.read(directory.appendingPathComponent("workspace.json"))
++    guard current == workspace else { throw FieldLogError.staleRevision }
++    return current
++  }
++
+   @discardableResult public func transact(
+     expectedRevision: UInt64? = nil, _ mutation: @Sendable (inout Workspace) throws -> Void
+   ) throws -> Workspace {
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index 7bfc7ed..b40d2dd 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -24,7 +24,7 @@ def app_inputs():
+              (platform / "Bridge/PublicBridge.c", Path("Platforms/Android/Bridge/PublicBridge.c"))]
+     java = Path("Java/dev/fieldlog/generatedr90/androidhost")
+     files += [(platform / java / name, Path("Platforms/Android") / java / name)
+-              for name in ("PublicBridge.java", "PublicActivity.java")]
++              for name in ("PublicBridge.java", "PublicActivity.java", "ChecklistPanel.java")]
+     files += [(APP / "Sources/FieldLogAndroid" / name,
+                Path("Platforms/Android/Sources/AppAndroid") / name)
+               for name in ("NativeEntry.swift", "PublicFactory.swift")]
+diff --git a/Integrations/InstalledGuest/Delivery.swift b/Integrations/InstalledGuest/Delivery.swift
+new file mode 100644
+index 0000000..e5e2dbd
+--- /dev/null
++++ b/Integrations/InstalledGuest/Delivery.swift
+@@ -0,0 +1,199 @@
++import Foundation
++#if canImport(FoundationNetworking)
++import FoundationNetworking
++#endif
++import MixerUpdates
++
++struct FieldLogDelivery {
++    struct Package {
++        let manifest: Data
++        let assignment: Data
++        let payload: Data
++    }
++
++    let port: UInt16
++    let host: InstalledRuntime
++    let installation: String
++    let partialFile: URL
++
++    func fetch(after sequence: UInt64) async throws -> Package? {
++        let scope = host.scope
++        let tenant = [("organization", scope.organization), ("project", scope.project)]
++        let offerURL = try url("/v3/updates", tenant + [
++            ("app", scope.app), ("environment", scope.environment), ("platform", scope.platform),
++            ("runtime", host.runtime), ("channel", "beta"), ("installation", installation),
++        ])
++        guard let offer = try await fetchObject(offerURL, permitsNoOffer: true) else { return nil }
++        guard Set(offer.keys) == ["signed_assignment", "artifact_url"],
++              let assignment = offer["signed_assignment"], let fields = assignment.object?["assignment"]?.object,
++              let offeredSequence = fields["sequence"]?.uint, let digest = fields["artifact_sha256"]?.text,
++              digest.utf8.count == 64, digest.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else {
++            throw invalidOffer
++        }
++        guard offeredSequence > sequence else { return nil }
++        let artifactURL = try url("/v3/artifacts/" + digest, tenant)
++        guard offer["artifact_url"]?.text == artifactURL.path + "?" + (artifactURL.query ?? ""),
++              let artifact = try await fetchObject(artifactURL, permitsNoOffer: false, partial: PartialArtifact(url: partialFile, digest: digest)),
++              Set(artifact.keys) == ["signed_manifest", "payload"],
++              let manifest = artifact["signed_manifest"], let encoded = artifact["payload"]?.text,
++              let payload = Data(base64Encoded: encoded), !payload.isEmpty,
++              payload.count <= 8192, payload.base64EncodedString() == encoded else { throw invalidOffer }
++        let encoder = JSONEncoder()
++        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        return try Package(manifest: encoder.encode(manifest), assignment: encoder.encode(assignment), payload: payload)
++    }
++
++    private var invalidOffer: UpdateError { UpdateError("fieldlog.delivery", "Invalid checklist release response") }
++
++    private func url(_ path: String, _ query: [(String, String)]) throws -> URL {
++        var target = URLComponents()
++        target.scheme = "http"
++        target.host = "127.0.0.1"
++        target.port = Int(port)
++        target.path = path
++        target.queryItems = query.map { URLQueryItem(name: $0.0, value: $0.1) }
++        guard let url = target.url else { throw invalidOffer }
++        return url
++    }
++
++    private func fetchObject(_ url: URL, permitsNoOffer: Bool, partial: PartialArtifact? = nil) async throws -> [String: CanonicalValue]? {
++        let configuration = URLSessionConfiguration.ephemeral
++        configuration.timeoutIntervalForRequest = 4
++        configuration.timeoutIntervalForResource = 7
++        configuration.urlCredentialStorage = nil
++        configuration.httpShouldSetCookies = false
++        configuration.connectionProxyDictionary = ["HTTPEnable": false, "HTTPSEnable": false, "SOCKSEnable": false]
++        let receiver = ResponseReceiver(url: url, permitsNoOffer: permitsNoOffer, partial: partial)
++        let queue = OperationQueue()
++        queue.maxConcurrentOperationCount = 1
++        let session = URLSession(configuration: configuration, delegate: receiver, delegateQueue: queue)
++        defer { session.invalidateAndCancel() }
++        var response = receiver.response(in: session).makeAsyncIterator()
++        guard let result = try await response.next(), let bytes = result else {
++            try Task.checkCancellation()
++            return nil
++        }
++        guard let fields = try StrictJSON.decode(CanonicalValue.self, from: bytes, maximumBytes: ResponseReceiver.limit).object else {
++            throw invalidOffer
++        }
++        return fields
++    }
++}
++
++/// The service returns a complete JSON envelope. On reconnect, compare the
++/// replayed prefix before appending new bytes. The spool carries no authority.
++private struct PartialArtifact {
++    let url: URL
++    let digest: String
++
++    func read(maximumBytes: Int) -> Data {
++        guard let input = try? FileHandle(forReadingFrom: url) else { return Data() }
++        defer { try? input.close() }
++        let key = Data(digest.utf8)
++        guard let bytes = try? input.read(upToCount: maximumBytes + key.count + 1),
++              bytes.count <= maximumBytes + key.count, bytes.starts(with: key) else { return Data() }
++        return Data(bytes.dropFirst(key.count))
++    }
++
++    func save(_ bytes: Data) throws {
++        try (Data(digest.utf8) + bytes).write(to: url, options: .atomic)
++    }
++
++    func remove() { try? FileManager.default.removeItem(at: url) }
++}
++
++private final class ResponseReceiver: NSObject, URLSessionDataDelegate, @unchecked Sendable {
++    static let limit = 65_536
++    private let url: URL
++    private let permitsNoOffer: Bool
++    private var body: Data?
++    private var declined = false
++    private let partial: PartialArtifact?
++    private let prefix: Data
++    private var received = 0
++    private let continuation: AsyncThrowingStream<Data?, any Error>.Continuation
++    private let stream: AsyncThrowingStream<Data?, any Error>
++
++    init(url: URL, permitsNoOffer: Bool, partial: PartialArtifact?) {
++        self.url = url
++        self.permitsNoOffer = permitsNoOffer
++        self.partial = partial
++        self.prefix = partial?.read(maximumBytes: Self.limit) ?? Data()
++        (stream, continuation) = AsyncThrowingStream.makeStream(bufferingPolicy: .bufferingNewest(1))
++    }
++
++    func response(in session: URLSession) -> AsyncThrowingStream<Data?, any Error> {
++        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
++        request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
++        let task = session.dataTask(with: request)
++        continuation.onTermination = { _ in task.cancel() }
++        task.resume()
++        return stream
++    }
++
++    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
++                    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
++        completionHandler(nil)
++    }
++
++    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
++                    completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
++        if let http = response as? HTTPURLResponse, http.url == url {
++            if permitsNoOffer, http.statusCode == 204 || http.statusCode == 404 {
++                declined = true
++                continuation.yield(nil)
++                continuation.finish()
++                completionHandler(.cancel)
++                return
++            }
++            if http.statusCode == 200, http.mimeType == "application/json",
++               http.expectedContentLength <= Self.limit {
++                body = prefix
++                completionHandler(.allow)
++                return
++            }
++        }
++        refuse()
++        completionHandler(.cancel)
++    }
++
++    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
++        guard body != nil, data.count <= Self.limit - received else {
++            refuse()
++            dataTask.cancel()
++            return
++        }
++        let repeated = min(data.count, max(0, prefix.count - received))
++        guard repeated == 0 || prefix[received..<received + repeated].elementsEqual(data.prefix(repeated)) else {
++            partial?.remove()
++            refuse()
++            dataTask.cancel()
++            return
++        }
++        received += data.count
++        if repeated < data.count, let body {
++            let next = body + data.dropFirst(repeated)
++            do {
++                try partial?.save(next)
++                self.body = next
++            } catch {
++                continuation.finish(throwing: error)
++                dataTask.cancel()
++            }
++        }
++    }
++
++    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
++        if declined { return }
++        if let error { continuation.finish(throwing: error) }
++        else if let body, received == body.count {
++            partial?.remove()
++            continuation.yield(body)
++            continuation.finish()
++        } else { refuse() }
++    }
++
++    private func refuse() {
++        continuation.finish(throwing: UpdateError("fieldlog.delivery", "Release service returned an invalid response"))
++    }
++}
+diff --git a/Integrations/InstalledGuest/SignedTask.swift b/Integrations/InstalledGuest/SignedTask.swift
+new file mode 100644
+index 0000000..b24596d
+--- /dev/null
++++ b/Integrations/InstalledGuest/SignedTask.swift
+@@ -0,0 +1,125 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerCapabilities
++#if os(Android)
++@_spi(AndroidGuestUIV1) import MixerCapabilityActivation
++#else
++import MixerCapabilityActivation
++#endif
++import MixerRuntimeIdentity
++import MixerUpdates
++
++public struct FieldLogSignedTask: Sendable {
++    #if os(Android)
++    private typealias Owner = CapabilityGuestUIAndroidRuntime
++    #else
++    public typealias Owner = CapabilityGuestUIRuntime
++    #endif
++
++    #if os(Android)
++    private let owner: Owner
++    #else
++    public let owner: Owner
++    #endif
++    private let identity: CapabilityRuntimeIdentity
++    private let installation: String
++    private let port: UInt16
++    private let directory: URL
++
++    public static func open(task: WorkTask, repository: WorkspaceRepository, material: URL,
++                            directory: URL, bundleID: String, installation: UUID) async throws -> Self {
++        let identityBytes = try read(material, "identity.json", limit: 131_072)
++        let identity = try CapabilityRuntimeIdentity(json: identityBytes)
++        let scope = identity.installedRuntime.scope
++        guard scope.environment == "development",
++              identity.descriptor.object?["application"]?.object?["bundle_id"]?.text == bundleID,
++              let port = UInt16(try String(contentsOf: material.appendingPathComponent("port.txt"), encoding: .utf8)
++                .trimmingCharacters(in: .whitespacesAndNewlines)), port > 0 else {
++            throw UpdateError("fieldlog.identity", "Invalid installed FieldLog delivery identity")
++        }
++        let storageID = CapabilitySchemas.storageID
++        guard Set(identity.installedRuntime.capabilityHashes.keys) == [storageID] else {
++            throw UpdateError("fieldlog.capabilities", "The checklist guest requires only task storage")
++        }
++        let storage = FieldLogTaskStorage(repository: repository, projectID: task.projectID, taskID: task.id)
++        let materials: [CapabilityMaterialFile] = try [
++            .init(role: .bridgePolicy, bytes: read(material, "bridge.json")),
++            .init(role: .configuration(capabilityID: storageID), bytes: read(material, "storage.json")),
++            .init(role: .installedGrant(capabilityID: storageID), bytes: read(material, "storage-grant.json")),
++        ]
++        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
++        let execution = try InstalledCapabilityExecution(identityJSON: identityBytes, materials: materials,
++            trustRootsJSON: read(material, "roots.json"), privateContainer: directory,
++            applicationStorage: .init(runtimeFingerprint: identity.fingerprint, namespace: FieldLogTaskStorage.namespace,
++                service: storage, allowsDeferredGuestUIStartup: true))
++        let installation = installation.uuidString.lowercased()
++        let owner = try await Owner.open(configuration: .init(directory: directory.appendingPathComponent("recovery"),
++            channel: "beta", installation: installation, observationSeconds: 1), execution: execution)
++        return Self(owner: owner, identity: identity, installation: installation, port: port, directory: directory)
++    }
++
++    public func start() async throws -> String {
++        let previous = await recovery()
++        var deliveryError: (any Error)?
++        do {
++            let delivery = FieldLogDelivery(port: port, host: identity.installedRuntime, installation: installation,
++                partialFile: directory.appendingPathComponent("artifact.partial"))
++            if let package = try await delivery.fetch(after: previous.acceptedSequence) {
++                #if os(Android)
++                try await owner.stage(manifest: package.manifest, assignment: package.assignment, bytes: package.payload)
++                #else
++                try await owner.beginDownload(signedManifest: package.manifest, signedAssignment: package.assignment)
++                try await owner.appendDownload(package.payload, atOffset: 0)
++                try await owner.finishDownload()
++                #endif
++            }
++        } catch is CancellationError {
++            throw CancellationError()
++        } catch {
++            deliveryError = error
++        }
++        try Task.checkCancellation()
++        let activation = try await owner.start()
++        guard activation.candidateID != nil else {
++            if let deliveryError { throw deliveryError }
++            throw UpdateError("fieldlog.release", "No signed checklist release is available")
++        }
++        return deliveryError == nil ? "Signed checklist" : "Using saved checklist release"
++    }
++
++    public func recovery() async -> CapabilityGuestUIRecoverySnapshot {
++        #if os(Android)
++        owner.recoverySnapshot()
++        #else
++        await owner.recoverySnapshot()
++        #endif
++    }
++
++    public func close() async -> Bool {
++        #if os(Android)
++        await owner.close()
++        #else
++        await owner.close()
++        let deadline = ContinuousClock.now + .seconds(8)
++        repeat {
++            let state = await owner.recoverySnapshot()
++            guard state.closed, !state.incompleteAttempt else { return false }
++            if !state.activation.cleanupPending { return true }
++            do { try await Task.sleep(for: .milliseconds(20)) }
++            catch { return false }
++        } while ContinuousClock.now < deadline
++        return false
++        #endif
++    }
++
++    private static func read(_ directory: URL, _ name: String, limit: Int = 65_536) throws -> Data {
++        let handle = try FileHandle(forReadingFrom: directory.appendingPathComponent(name))
++        defer { try? handle.close() }
++        let bytes = try handle.read(upToCount: limit + 1) ?? Data()
++        guard !bytes.isEmpty, bytes.count <= limit else {
++            throw UpdateError("fieldlog.material", "Invalid installed checklist material")
++        }
++        return bytes
++    }
++}
+diff --git a/Integrations/InstalledGuest/TaskStorage.swift b/Integrations/InstalledGuest/TaskStorage.swift
+new file mode 100644
+index 0000000..799a8d8
+--- /dev/null
++++ b/Integrations/InstalledGuest/TaskStorage.swift
+@@ -0,0 +1,77 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerCapabilities
++
++/// A view of one host-selected task in the open FieldLog workspace.
++public struct FieldLogTaskStorage: InstalledApplicationStorageServing {
++    public static let namespace = "fieldlog-task-v1"
++    private let repository: WorkspaceRepository
++    private let projectID: UUID
++    private let taskID: UUID
++
++    public init(repository: WorkspaceRepository, projectID: UUID, taskID: UUID) {
++        self.repository = repository
++        self.projectID = projectID
++        self.taskID = taskID
++    }
++
++    public func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
++        try authorize(arguments.namespace, arguments.key)
++        try Task.checkCancellation()
++        let state: Workspace
++        do {
++            state = try await repository.readCommittedSnapshot()
++        } catch {
++            throw CapabilityFailure.ioFailure
++        }
++        try Task.checkCancellation()
++        guard let task = task(in: state) else {
++            return KVGetResponse(found: false, valueBase64: "")
++        }
++        // Versioned namespace, UInt64 big-endian revision and one completion byte.
++        var bytes = withUnsafeBytes(of: state.revision.bigEndian) { Data($0) }
++        bytes.append(task.completed ? 1 : 0)
++        return KVGetResponse(found: true, valueBase64: bytes.base64EncodedString())
++    }
++
++    public func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) async throws -> KVMutationResponse {
++        try authorize(arguments.namespace, arguments.key)
++        guard let bytes = Data(base64Encoded: arguments.valueBase64), bytes.count == 9,
++              let bit = bytes.last, bit <= 1 else { throw CapabilityFailure.invalidResponse }
++        // The installed quota applies to one bounded value.
++        guard maximumEntries >= 1, maximumTotalBytes >= bytes.count else {
++            throw CapabilityFailure.quotaExceeded
++        }
++        let revision = bytes.prefix(8).reduce(UInt64(0)) { ($0 << 8) | UInt64($1) }
++        do {
++            _ = try await repository.transact(expectedRevision: revision) { state in
++                try Task.checkCancellation()
++                guard let task = task(in: state) else { throw CapabilityFailure.permissionDenied }
++                guard task.completed != (bit == 1) else { throw WriteUnchanged() }
++                try state.toggleTask(task.id)
++            }
++            return KVMutationResponse(committed: true)
++        } catch is WriteUnchanged {
++            return KVMutationResponse(committed: true)
++        } catch FieldLogError.staleRevision {
++            return KVMutationResponse(committed: false)
++        }
++    }
++
++    public func delete(_ arguments: KVDeleteArguments) async throws -> KVMutationResponse {
++        throw CapabilityFailure.permissionDenied
++    }
++
++    private func authorize(_ namespace: String, _ key: String) throws {
++        guard namespace == Self.namespace, key == "selected-task" else {
++            throw CapabilityFailure.permissionDenied
++        }
++    }
++
++    private func task(in state: Workspace) -> WorkTask? {
++        state.tasks.first { $0.id == taskID && $0.projectID == projectID }
++    }
++
++    private struct WriteUnchanged: Error {}
++}

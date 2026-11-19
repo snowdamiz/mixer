@@ -1,0 +1,17 @@
+--- build-signed-checklist-android.py
++++ build-signed-checklist-android.py
+@@ -141,12 +141,9 @@
+                 apk.write(path, NATIVE_PREFIX + name)
+         verify_image(unsigned, assets, libraries)
+         run(env, tools / "zipalign", "-P", "16", "-f", "4", unsigned, aligned)
+-        key = work / "development.p12"
++        key = Path(env["FIELDLOG_PAIR_APK_KEYSTORE"])
+         password = "FIELDLOG_LOCAL_APK_PASSWORD"
+-        signing = env | {password: os.urandom(24).hex()}
+-        run(signing, args.java_home / "bin/keytool", "-genkeypair", "-storetype", "PKCS12", "-keystore", key,
+-            "-alias", "fieldlog-local", "-storepass:env", password, "-keypass:env", password,
+-            "-keyalg", "EC", "-groupname", "secp256r1", "-validity", "30", "-dname", "CN=FieldLog Local L04")
++        signing = env
+         run(signing, tools / "apksigner", "sign", "--ks", key, "--ks-pass", f"env:{password}",
+             "--v3-signing-enabled", "true", "--v4-signing-enabled", "false", "--out", signed, aligned)
+         signatures = run(env, tools / "apksigner", "verify", "--verbose", "--print-certs", "-Werr", signed)

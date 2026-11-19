@@ -1,0 +1,56 @@
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
+@@ -4,7 +4,6 @@
+ #include <pthread.h>
+ #include <string.h>
+ 
+-extern int32_t mxfield_witness(uint64_t, uint64_t, uint64_t, uint32_t);
+ extern int32_t fieldlog_checklist_submit(int32_t, int64_t, const char *, const char *, const char *, const char *);
+ extern void fieldlog_checklist_status(char *, intptr_t);
+ 
+@@ -209,7 +208,8 @@
+ JNIEXPORT jint JNICALL JNI_NAME(witness)(JNIEnv *env, jobject self, jlong facade, jlong attachment, jlong token, jboolean display) {
+     if (!owns_registration(env, self) || facade <= 0 || attachment <= 0 || token <= 0)
+         return MXUIT_INVALID;
+-    return mxfield_witness(facade, attachment, token, display);
++    return mxis_guest_ui_witness(facade, attachment, token,
++                                 display ? MXIS_WITNESS_DRAWN : MXIS_WITNESS_TOGGLE_TAPPED);
+ }
+ JNIEXPORT jboolean JNICALL JNI_NAME(cycle)(JNIEnv *env, jobject self, jint action, jlong context,
+                                          jstring root, jstring assets, jstring installation, jstring bundle) {
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/ChecklistPanel.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/ChecklistPanel.java
+@@ -154,23 +154,27 @@
+                 && "fieldlog-task".equals(root.getString("id")) && "vStack".equals(root.getString("kind"))
+                 && root.getJSONObject("properties").length() == 0 && root.getJSONArray("actions").length() == 0);
+             JSONArray nodes = root.getJSONArray("children");
+-            require(nodes.length() == 3);
++            int nodeCount = nodes.length();
++            require(nodeCount == 2 || nodeCount == 3);
++            boolean hasTaskTitle = nodeCount == 3;
+             GuestFrame next = new GuestFrame(facade, attachment, input, probe);
+-            for (int i = 0; i < 2; i++) {
++            for (int i = 0; i < nodeCount - 1; i++) {
+                 JSONObject node = nodes.getJSONObject(i);
+-                require((i == 0 ? "task" : "status").equals(node.getString("id"))
++                boolean isTaskTitle = hasTaskTitle && i == 0;
++                require((isTaskTitle ? "task" : "status").equals(node.getString("id"))
+                     && "text".equals(node.getString("kind")) && node.getJSONArray("children").length() == 0
+                     && node.getJSONArray("actions").length() == 0 && node.getJSONObject("properties").length() == 1);
+                 TextView text = new TextView(activity);
+                 text.setText(node.getJSONObject("properties").getString("text"));
+-                text.setTextSize(i == 0 ? 24 : 18);
++                text.setTextSize(isTaskTitle ? 24 : 18);
+                 next.addView(text);
+             }
+-            JSONObject node = nodes.getJSONObject(2);
++            JSONObject node = nodes.getJSONObject(nodeCount - 1);
+             JSONArray commands = node.getJSONArray("actions");
+             require("toggle".equals(node.getString("id")) && "button".equals(node.getString("kind"))
+                 && node.getJSONArray("children").length() == 0 && node.getJSONObject("properties").length() == 1
+-                && commands.length() == 1 && "task.toggle".equals(commands.getJSONObject(0).getString("id"))
++                && commands.length() == 1
++                && (hasTaskTitle ? "task.toggle" : "task.action").equals(commands.getJSONObject(0).getString("id"))
+                 && "activate".equals(commands.getJSONObject(0).getString("event")));
+             next.action.setText(node.getJSONObject("properties").getString("label"));
+             next.addView(next.action);

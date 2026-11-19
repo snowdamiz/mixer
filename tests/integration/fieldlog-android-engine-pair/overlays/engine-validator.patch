@@ -1,0 +1,77 @@
+diff --git a/vm/src/experimental/validate.rs b/vm/src/experimental/validate.rs
+index dcac3f83ee..f16f15ebae 100644
+--- a/vm/src/experimental/validate.rs
++++ b/vm/src/experimental/validate.rs
+@@ -323,21 +323,29 @@ pub(super) fn all<const COMMAND: bool, const UI: bool>(
+                 0x0e => {
+                     let count = r.count(limits.instructions(), meter)?;
+                     state.pop(Type::I32, meter)?;
+-                    let mut expected = None;
++                    let depth = r.uint(meter)?;
++                    let expected = state.label(depth, meter)?;
++                    let v3 = matches!(limits, policy::Policy::Frozen(l)
++                        if l.profile == crate::Profile::TableMemoryV3);
++                    let mut differing_types = false;
++                    // The count excludes the default. One target was read above.
+                     for _ in 0..count {
+                         let depth = r.uint(meter)?;
+                         let ty = state.label(depth, meter)?;
+-                        if expected.is_some_and(|expected| expected != ty) {
+-                            return Err(state.error(meter, "branch_table_types"));
++                        if ty != expected {
++                            if !v3 || ty.is_some() != expected.is_some() {
++                                return Err(state.error(meter, "branch_table_types"));
++                            }
++                            differing_types = true;
+                         }
+-                        expected = Some(ty);
+                     }
+-                    let depth = r.uint(meter)?;
+-                    let default = state.label(depth, meter)?;
+-                    if expected.is_some_and(|expected| expected != default) {
+-                        return Err(state.error(meter, "branch_table_types"));
++                    if differing_types {
++                        if state.pop_any(meter)?.is_some() {
++                            return Err(state.error(meter, "branch_table_types"));
++                        }
++                    } else {
++                        state.result(expected, meter)?;
+                     }
+-                    state.result(default, meter)?;
+                     state.unreachable(meter)?;
+                 }
+                 0x0f => {
+diff --git a/vm/src/validate.rs b/vm/src/validate.rs
+index 6a3ae02b54..71ccb32ea2 100644
+--- a/vm/src/validate.rs
++++ b/vm/src/validate.rs
+@@ -305,12 +305,27 @@ pub(crate) fn module_with_admission(
+                 Op::BrTable(labels, default) => {
+                     v.pop(Type::I32)?;
+                     let t = v.label(*default)?;
++                    let mut differing_types = false;
+                     for n in labels {
+-                        if v.label(*n)? != t {
++                        let target = v.label(*n)?;
++                        if target != t {
++                            if limits.profile != Profile::TableMemoryV3
++                                || target.is_some() != t.is_some()
++                            {
++                                return Err(v.error("br_table targets have different label types"));
++                            }
++                            differing_types = true;
++                        }
++                    }
++                    // Equal-arity labels with different types can only share an
++                    // unknown operand from the polymorphic stack.
++                    if differing_types {
++                        if v.pop_any()?.is_some() {
+                             return Err(v.error("br_table targets have different label types"));
+                         }
++                    } else {
++                        v.result(t)?;
+                     }
+-                    v.result(t)?;
+                     v.unreachable();
+                 }
+                 Op::Return => {
