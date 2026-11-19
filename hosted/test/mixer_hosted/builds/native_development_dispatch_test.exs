@@ -1,6 +1,7 @@
 defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
   use ExUnit.Case, async: false
-  alias MixerHosted.Builds.{Dispatch, Lifecycle, NativeDevelopmentDispatch}
+  alias MixerHosted.Builds.{Dispatch, NativeDevelopmentDispatch, RetainedNativeArtifacts}
+  alias MixerHosted.Builds.Lifecycle.ArtifactRef
   alias MixerHosted.Builds.Dispatch.Request
 
   @key :native_development_dispatch
@@ -104,7 +105,7 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
         %{
           "kind" => kind,
           "sha256" => String.duplicate("a", 64),
-          "sizeBytes" => Lifecycle.native_artifact_max_bytes() + 1
+          "sizeBytes" => if(kind == "unsigned_native_binary", do: 16 * 1024 * 1024 + 1, else: 10)
         }
       end)
 
@@ -122,6 +123,72 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
       end,
       :valid
     )
+  end
+
+  @tag :tmp_dir
+  test "bounded retained verification widens only the Android binary role", %{
+    request: %{operation_id: operation},
+    tmp_dir: tmp_dir
+  } do
+    root = Path.expand(tmp_dir)
+    store = Path.join([root, operation, "native"])
+    File.chmod!(root, 0o700)
+    File.mkdir_p!(store)
+    Application.put_env(:mixer_hosted, @key, %{retained_root: root})
+
+    binary = sparse_artifact(store, :unsigned_native_binary, 1)
+    symbols = sparse_artifact(store, :debug_symbols, 2)
+    inventory = sparse_artifact(store, :resource_inventory, 3)
+    ios_cap = sparse_artifact(store, :unsigned_native_binary, 16 * 1024 * 1024)
+    apk = sparse_artifact(store, :unsigned_native_binary, 27_795_723)
+    android_cap = sparse_artifact(store, :unsigned_native_binary, 32 * 1024 * 1024)
+    over_cap = sparse_artifact(store, :unsigned_native_binary, 32 * 1024 * 1024 + 1)
+
+    assert :ok = RetainedNativeArtifacts.verify(operation, [ios_cap, symbols, inventory])
+    assert :ok = RetainedNativeArtifacts.verify(operation, :android, [apk, symbols, inventory])
+
+    assert :ok =
+             RetainedNativeArtifacts.verify(operation, :android, [android_cap, symbols, inventory])
+
+    assert {:error, :uncertain} =
+             RetainedNativeArtifacts.verify(operation, :android, [over_cap, symbols, inventory])
+
+    assert {:error, :uncertain} =
+             RetainedNativeArtifacts.verify(operation, :ios, [apk, symbols, inventory])
+
+    assert {:error, :uncertain} =
+             RetainedNativeArtifacts.verify(operation, :android, [
+               binary,
+               %{apk | kind: :debug_symbols},
+               inventory
+             ])
+
+    assert {:error, :uncertain} =
+             RetainedNativeArtifacts.verify(operation, :android, [apk, inventory, symbols])
+
+    assert {:ok, <<0>>} = RetainedNativeArtifacts.read(operation, binary)
+    assert {:error, :storage_unavailable} = RetainedNativeArtifacts.read(operation, apk)
+  end
+
+  defp sparse_artifact(store, kind, size) do
+    path = Path.join(store, "fixture")
+
+    File.open!(path, [:write, :binary, :raw], fn file ->
+      {:ok, ^size} = :file.position(file, size)
+      :ok = :file.truncate(file)
+    end)
+
+    digest =
+      path
+      |> File.stream!(64 * 1024)
+      |> Enum.reduce(:crypto.hash_init(:sha256), &:crypto.hash_update(&2, &1))
+      |> :crypto.hash_final()
+      |> Base.encode16(case: :lower)
+
+    destination = Path.join(store, digest)
+    File.rename!(path, destination)
+    File.chmod!(destination, 0o400)
+    %ArtifactRef{kind: kind, size_bytes: size, sha256: digest}
   end
 
   defp with_peer(action, reply, fun, signature \\ :valid) do

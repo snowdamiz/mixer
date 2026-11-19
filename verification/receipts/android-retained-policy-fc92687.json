@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "scope": "W12/L05 Android retained native completion, journal replay, artifact DTO parsing, and bounded file verification",
+  "base_commit": "fc92687c8f7a78a9b27af20de6be8ec3c860c745",
+  "base_tree": "cf6818f6b43d84f2d22dfcdb87d54e207ec6dbc6",
+  "caps_bytes": {
+    "android_unsigned_native_binary": 33554432,
+    "other_retained_native_roles": 16777216
+  },
+  "pair24_measured_size_input_bytes": 27795723,
+  "tools": {
+    "elixir": "1.20.4",
+    "erlang_otp": 29,
+    "jason": "1.4.5",
+    "plug_crypto": "2.2.1",
+    "node": "22.23.3",
+    "typescript": "5.9.3",
+    "git": "2.56.0"
+  },
+  "controls": [
+    {
+      "cwd": "source",
+      "command": "ERL_FLAGS=\"+S 2:2 +A 2\" elixir -pa .focused-deps/beams -e 'ExUnit.start(); for path <- System.argv(), do: Code.require_file(path)' -- hosted/lib/mixer_hosted/identity/startup_config.ex hosted/lib/mixer_hosted/{runtime_config,application}.ex hosted/lib/mixer_hosted/builds/{lifecycle,journal,dispatch,retained_native_artifacts,native_development_dispatch}.ex hosted/lib/mixer_hosted/customer_builds/{selection,snapshot}.ex hosted/test/mixer_hosted/builds/{lifecycle,journal,native_development_dispatch}_test.exs",
+      "input_setup": "Compile cached Jason and Plug.Crypto at the hosted lockfile versions into .focused-deps/beams before the command.",
+      "base_observation": "Lifecycle and Journal regression controls failed with {:error, :invalid_event} for the Android boundary.",
+      "output": "Result: 45 passed (seed 750999). Direct loading omits unused application and Ecto dependencies and warns about their unresolved calls.",
+      "observed": "Exact caps and cap+1 refusals, Pair24-sized Android journal and observed-platform DTO, foreign ref and wrong role refusals, iOS worker peer policy, and genuine bounded size/digest checks on synthetic sparse files."
+    },
+    {
+      "cwd": "source/console",
+      "command": "TMPDIR=\"$PWD/../.focused-deps\" node --test tests/cookie-build-client.test.mjs tests/build-overview-domain.test.mjs",
+      "input_setup": "Extract cached TypeScript 5.9.3 into console/node_modules/typescript for the tests' built-in TypeScript runner.",
+      "base_observation": "The new browser DTO control failed with Invalid build read on the Android terminal record.",
+      "output": "28 passed, 0 failed.",
+      "observed": "Exact caps, cap+1 refusals, Pair24 descriptor size, platform equality, same route query and order, and iOS-only retained log target."
+    }
+  ],
+  "pending": [
+    "Authenticated delivery: the existing read/2 stays capped at 16 MiB. Platform-aware authenticated download, Android APK media and naming, and live route verification remain separate.",
+    "The fixture establishes policy behavior with synthetic journal and file inputs. The L05 integrated route, Android worker dispatch, native builds and device qualification remain outside this slice."
+  ]
+}

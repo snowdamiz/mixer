@@ -22,7 +22,7 @@ if (!supplied) {
 const load = path => import(pathToFileURL(join(output, path)).href);
 const { createCookieBuildClient } = await load("api/cookie-build-client.js");
 const { WorkspaceClientError } = await load("api/workspace-client.js");
-const { parseBuildRead, snapshotBuildReadSelection } = await load("domain/build-read.js");
+const { buildLogTarget, parseBuildRead, snapshotBuildReadSelection } = await load("domain/build-read.js");
 const { summarizeBuildOverview } = await load("domain/build-overview.js");
 const keys = ["organizationId", "projectId", "applicationId", "buildId", "platform",
   "sourceSha256", "toolchainLockSha256", "buildDefinitionSha256"];
@@ -255,6 +255,52 @@ test("R1134 immutable intent survives delayed body and redacts parser exceptions
  assert.equal(summarizeBuildOverview({scope:{organizationId,projectId,applicationId},expected:[target],reports:[snapshot.report]}).reportedCount,1);
  const bad=createCookieBuildClient({fetch:async()=>new Response("SECRET_COOKIE_TOKEN",{headers:{"content-type":"application/json"}})});
  await assert.rejects(bad.read(selection),e=>e.code==="invalid_response"&&!String(e.stack).includes("SECRET_COOKIE_TOKEN"));
+});
+
+test("retained build DTOs enforce the selected platform and per-role byte caps", () => {
+  const kinds = ["unsigned_native_binary", "debug_symbols", "resource_inventory"];
+  const mib = 1024 * 1024;
+
+  for (const platform of ["ios", "android"]) {
+    const selection = { ...selected(), platform };
+    const query = keys.map((key, index) => `${wireKeys[index]}=${selection[key]}`).join("&");
+    const artifacts = kinds.map((kind, index) => ({
+      kind, sizeBytes: (platform === "android" && kind === kinds[0] ? 32 : 16) * mib,
+      sha256: "def"[index].repeat(64), downloadPath: `/console-api/v1/build-artifacts/${kind}?${query}`,
+    }));
+    const value = dto({ ...selection, state: "native_succeeded", revision: 2, artifacts });
+    const parse = () => parseBuildRead(value, selection);
+    const snapshot = parse();
+    assert.equal(snapshot.report.platform, platform);
+    assert.equal(snapshot.report.state, "native_succeeded");
+    assert.deepEqual(snapshot.artifacts, artifacts);
+    if (platform === "android") assert.equal(buildLogTarget({ selection, snapshot }), undefined);
+
+    for (const artifact of artifacts) {
+      artifact.sizeBytes++;
+      assert.throws(parse, TypeError);
+      artifact.sizeBytes--;
+    }
+
+    artifacts[0].sizeBytes = 27_795_723;
+    if (platform === "android") assert.equal(parse().artifacts[0].sizeBytes, 27_795_723);
+    else assert.throws(parse, TypeError);
+    artifacts[0].sizeBytes = 1;
+
+    const otherPlatform = platform === "ios" ? "android" : "ios";
+    assert.throws(() => parseBuildRead(value, { ...selection, platform: otherPlatform }), TypeError);
+    const originalPath = artifacts[0].downloadPath;
+    artifacts[0].downloadPath = originalPath.replace(`platform=${platform}`, `platform=${otherPlatform}`);
+    assert.throws(parse, TypeError);
+    artifacts[0].downloadPath = originalPath;
+    artifacts[0].kind = "guest_artifact";
+    assert.throws(parse, TypeError);
+    artifacts[0].kind = kinds[0];
+    artifacts.pop();
+    assert.throws(parse, TypeError);
+    delete value.build.artifacts;
+    assert.throws(parse, TypeError);
+  }
 });
 
 const logTarget = (changes = {}) => ({

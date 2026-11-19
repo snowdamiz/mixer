@@ -199,6 +199,32 @@ test("normal route opens retained logs from an already successful native catalog
   } finally { f.close(); }
 });
 
+test("selected Android build labels its retained app as an unsigned APK", async () => {
+  const readAndroid = readPath.replace("build_id=b-ios&platform=ios", "build_id=c-android&platform=android");
+  const artifacts = nativeDetail.artifacts.map(artifact => ({
+    ...artifact,
+    sizeBytes: artifact.kind === "unsigned_native_binary" ? 27_795_726 : artifact.sizeBytes,
+    downloadPath: "/console-api/v1/build-artifacts/" + artifact.kind + "?" + readAndroid.split("?")[1],
+  }));
+  const android = { ...nativeDetail, artifacts, buildId: "c-android", platform: "android" };
+  const f = fixture();
+  try {
+    (await admitted(f)).resolve(json(apps()));
+    await flush();
+    f.click("Application IDapp");
+    (await f.request(catalogPath)).resolve(json(catalog([android])));
+    await flush();
+    f.click("c-android");
+    (await f.request(readAndroid)).resolve(json({ build: android }));
+    await flush();
+
+    const links = artifactLinks(f.container);
+    assert.deepEqual(links.map(link => link.textContent), ["Unsigned APK", "Debug symbols", "Resource inventory"]);
+    assert.deepEqual(links.map(link => link.getAttribute("href")), artifacts.map(artifact => artifact.downloadPath));
+    assert.doesNotMatch(f.text(), /View build logs/);
+  } finally { f.close(); }
+});
+
 test("selected build refuses foreign, repeated, and cross-origin artifact routes", async () => {
   const path = nativeDetail.artifacts[0].downloadPath;
   const invalidPaths = [

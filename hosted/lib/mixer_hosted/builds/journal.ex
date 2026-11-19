@@ -82,7 +82,7 @@ defmodule MixerHosted.Builds.Journal do
     with true <- exact?(document, ~w(schema creation events)),
          1 <- document["schema"],
          {:ok, spec, policy, request_key, now_ms} <- decode_creation(document["creation"]),
-         {:ok, rows} <- decode_rows(document["events"]),
+         {:ok, rows} <- decode_rows(document["events"], spec.platform),
          true <- bounded_json?(document),
          {:ok, build} <- Lifecycle.new(spec, policy, request_key, now_ms),
          {:ok, build} <- replay(rows, build) do
@@ -99,7 +99,7 @@ defmodule MixerHosted.Builds.Journal do
   def append(document, event_id, event, now_ms) do
     with {:ok, build} <- restore(document),
          true <- text?(event_id, 128) do
-      case encode_event(event) do
+      case encode_event(event, build.spec.platform) do
         {:ok, encoded} ->
           append_event(document, build, event_id, event, encoded, now_ms)
 
@@ -218,12 +218,12 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp decode_rows(rows) do
+  defp decode_rows(rows, platform) do
     if bounded_list?(rows, 0, @max_events) do
       Enum.reduce_while(rows, {:ok, []}, fn row, {:ok, acc} ->
         with true <- exact?(row, ~w(id event now_ms)),
              true <- text?(row["id"], 128) and time?(row["now_ms"]),
-             {:ok, event} <- decode_event(row["event"]) do
+             {:ok, event} <- decode_event(row["event"], platform) do
           {:cont, {:ok, [{row["id"], event, row["now_ms"]} | acc]}}
         else
           _ -> {:halt, :error}
@@ -238,7 +238,7 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp encode_event(%{type: type, ref: ref} = value) when type in [:start, :expire] do
+  defp encode_event(%{type: type, ref: ref} = value, _platform) when type in [:start, :expire] do
     with true <- exact?(value, [:type, :ref]),
          {:ok, ref} <- encode_ref(ref) do
       {:ok, %{"type" => encode_enum!(type, start: "start", expire: "expire"), "ref" => ref}}
@@ -247,17 +247,17 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp encode_event(%{type: :cancel, reason: reason} = value) do
+  defp encode_event(%{type: :cancel, reason: reason} = value, _platform) do
     if exact?(value, [:type, :reason]) and text?(reason, 512),
       do: {:ok, %{"type" => "cancel", "reason" => reason}},
       else: :error
   end
 
-  defp encode_event(%{type: :retry} = value) do
+  defp encode_event(%{type: :retry} = value, _platform) do
     if exact?(value, [:type]), do: {:ok, %{"type" => "retry"}}, else: :error
   end
 
-  defp encode_event(%{type: :stopped, ref: ref, diagnostic_sha256: digest} = value) do
+  defp encode_event(%{type: :stopped, ref: ref, diagnostic_sha256: digest} = value, _platform) do
     with true <- exact?(value, [:type, :ref, :diagnostic_sha256]) and sha?(digest),
          {:ok, ref} <- encode_ref(ref) do
       {:ok, %{"type" => "stopped", "ref" => ref, "diagnostic_sha256" => digest}}
@@ -266,19 +266,20 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp encode_event(%{type: :completed, ref: ref, result: result} = value) do
+  defp encode_event(%{type: :completed, ref: ref, result: result} = value, platform) do
     with true <- exact?(value, [:type, :ref, :result]),
          {:ok, ref} <- encode_ref(ref),
-         {:ok, result} <- encode_result(result) do
+         {:ok, result} <- encode_result(result, platform) do
       {:ok, %{"type" => "completed", "ref" => ref, "result" => result}}
     else
       _ -> :error
     end
   end
 
-  defp encode_event(_), do: :error
+  defp encode_event(_, _), do: :error
 
-  defp decode_event(%{"type" => type, "ref" => ref} = value) when type in ["start", "expire"] do
+  defp decode_event(%{"type" => type, "ref" => ref} = value, _platform)
+       when type in ["start", "expire"] do
     with true <- exact?(value, ~w(type ref)),
          {:ok, ref} <- decode_ref(ref),
          {:ok, type} <- decode_enum(type, start: "start", expire: "expire") do
@@ -288,17 +289,20 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp decode_event(%{"type" => "cancel", "reason" => reason} = value) do
+  defp decode_event(%{"type" => "cancel", "reason" => reason} = value, _platform) do
     if exact?(value, ~w(type reason)) and text?(reason, 512),
       do: {:ok, %{type: :cancel, reason: reason}},
       else: :error
   end
 
-  defp decode_event(%{"type" => "retry"} = value) do
+  defp decode_event(%{"type" => "retry"} = value, _platform) do
     if exact?(value, ["type"]), do: {:ok, %{type: :retry}}, else: :error
   end
 
-  defp decode_event(%{"type" => "stopped", "ref" => ref, "diagnostic_sha256" => digest} = value) do
+  defp decode_event(
+         %{"type" => "stopped", "ref" => ref, "diagnostic_sha256" => digest} = value,
+         _platform
+       ) do
     with true <- exact?(value, ~w(type ref diagnostic_sha256)) and sha?(digest),
          {:ok, ref} <- decode_ref(ref) do
       {:ok, %{type: :stopped, ref: ref, diagnostic_sha256: digest}}
@@ -307,17 +311,17 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp decode_event(%{"type" => "completed", "ref" => ref, "result" => result} = value) do
+  defp decode_event(%{"type" => "completed", "ref" => ref, "result" => result} = value, platform) do
     with true <- exact?(value, ~w(type ref result)),
          {:ok, ref} <- decode_ref(ref),
-         {:ok, result} <- decode_result(result) do
+         {:ok, result} <- decode_result(result, platform) do
       {:ok, %{type: :completed, ref: ref, result: result}}
     else
       _ -> :error
     end
   end
 
-  defp decode_event(_), do: :error
+  defp decode_event(_, _), do: :error
 
   defp encode_ref(%WorkerRef{} = value) do
     if exact_struct?(value, WorkerRef, @ref_keys) do
@@ -353,7 +357,7 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp encode_result(%{outcome: :succeeded, artifacts: artifacts} = value) do
+  defp encode_result(%{outcome: :succeeded, artifacts: artifacts} = value, _platform) do
     with true <- exact?(value, [:outcome, :artifacts]) and bounded_list?(artifacts, 7, 7),
          {:ok, encoded} <- map_valid(artifacts, &encode_artifact/1) do
       {:ok, %{"outcome" => "succeeded", "artifacts" => encoded}}
@@ -362,8 +366,10 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp encode_result(%{outcome: :native_succeeded, artifacts: artifacts} = value) do
-    with true <- exact?(value, [:outcome, :artifacts]) and Lifecycle.native_artifacts?(artifacts),
+  defp encode_result(%{outcome: :native_succeeded, artifacts: artifacts} = value, platform) do
+    with true <-
+           exact?(value, [:outcome, :artifacts]) and
+             Lifecycle.native_artifacts?(platform, artifacts),
          {:ok, encoded} <- map_valid(artifacts, &encode_artifact/1) do
       {:ok, %{"outcome" => "native_succeeded", "artifacts" => encoded}}
     else
@@ -371,7 +377,7 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp encode_result(%{outcome: :failed} = value) do
+  defp encode_result(%{outcome: :failed} = value, platform) do
     if exact?(value, [:outcome, :class, :code, :diagnostic_sha256]) and
          sha?(value.diagnostic_sha256) do
       encoded = %{
@@ -381,7 +387,7 @@ defmodule MixerHosted.Builds.Journal do
         "diagnostic_sha256" => value.diagnostic_sha256
       }
 
-      case decode_result(encoded) do
+      case decode_result(encoded, platform) do
         {:ok, _} -> {:ok, encoded}
         _ -> :error
       end
@@ -390,9 +396,9 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp encode_result(_), do: :error
+  defp encode_result(_, _), do: :error
 
-  defp decode_result(%{"outcome" => "succeeded", "artifacts" => artifacts} = value) do
+  defp decode_result(%{"outcome" => "succeeded", "artifacts" => artifacts} = value, _platform) do
     with true <- exact?(value, ~w(outcome artifacts)) and bounded_list?(artifacts, 7, 7),
          {:ok, decoded} <- map_valid(artifacts, &decode_artifact/1) do
       {:ok, %{outcome: :succeeded, artifacts: decoded}}
@@ -401,17 +407,20 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp decode_result(%{"outcome" => "native_succeeded", "artifacts" => artifacts} = value) do
+  defp decode_result(
+         %{"outcome" => "native_succeeded", "artifacts" => artifacts} = value,
+         platform
+       ) do
     with true <- exact?(value, ~w(outcome artifacts)) and bounded_list?(artifacts, 3, 3),
          {:ok, decoded} <- map_valid(artifacts, &decode_artifact/1),
-         true <- Lifecycle.native_artifacts?(decoded) do
+         true <- Lifecycle.native_artifacts?(platform, decoded) do
       {:ok, %{outcome: :native_succeeded, artifacts: decoded}}
     else
       _ -> :error
     end
   end
 
-  defp decode_result(%{"outcome" => "failed"} = value) do
+  defp decode_result(%{"outcome" => "failed"} = value, _platform) do
     with true <- exact?(value, ~w(outcome class code diagnostic_sha256)),
          true <- sha?(value["diagnostic_sha256"]),
          {:ok, class} <- decode_enum(value["class"], @classes),
@@ -428,7 +437,7 @@ defmodule MixerHosted.Builds.Journal do
     end
   end
 
-  defp decode_result(_), do: :error
+  defp decode_result(_, _), do: :error
 
   defp encode_artifact(%ArtifactRef{} = value) do
     if exact_struct?(value, ArtifactRef, [:kind, :sha256, :size_bytes]) do

@@ -128,7 +128,6 @@ export function summarizeBuildOverview(input: unknown): BuildOverviewSnapshot {
     requireValid(target !== undefined && identityKeys.every(key => value[key] === target[key]), "Report does not match selected build");
     requireValid(!observations.has(target.platform), "Duplicate build report");
     requireValid(typeof value.state === "string" && states.includes(value.state) &&
-      (value.state !== "native_succeeded" || target.platform === "ios") &&
       typeof value.attempt === "number" && Number.isInteger(value.attempt) && value.attempt >= 1 &&
       typeof value.maxAttempts === "number" && Number.isInteger(value.maxAttempts) && value.maxAttempts <= 5 &&
       value.attempt <= value.maxAttempts &&

@@ -7,20 +7,26 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
   """
   alias MixerHosted.Builds.Lifecycle
   alias MixerHosted.Builds.Lifecycle.ArtifactRef
-  @kinds Enum.map(Lifecycle.native_artifact_kinds(), &Atom.to_string/1)
-  @max_bytes Lifecycle.native_artifact_max_bytes()
+  @native_kinds Lifecycle.native_artifact_kinds()
+  @kinds Enum.map(@native_kinds, &Atom.to_string/1)
   @chunk_bytes 64 * 1024
 
   def kinds, do: @kinds
 
-  def verify(operation_id, artifacts) do
-    if Enum.all?(artifacts, &verified?(operation_id, &1)),
-      do: :ok,
-      else: {:error, :uncertain}
+  def verify(operation_id, artifacts), do: verify(operation_id, :ios, artifacts)
+
+  def verify(operation_id, platform, artifacts) do
+    if Lifecycle.native_artifacts?(platform, artifacts) and
+         Enum.all?(artifacts, &verified?(operation_id, platform, &1)),
+       do: :ok,
+       else: {:error, :uncertain}
   end
 
-  def read(operation_id, artifact) do
-    with {:ok, path, size, digest} <- artifact_path(operation_id, artifact),
+  def read(operation_id, platform, %ArtifactRef{kind: kind} = artifact)
+      when platform in [:ios, :android] and kind in @native_kinds do
+    cap = Lifecycle.native_artifact_max_bytes(platform, kind)
+
+    with {:ok, path, size, digest} <- artifact_path(operation_id, artifact, cap),
          {:ok, {:ok, bytes}} when byte_size(bytes) == size <-
            File.open(path, [:read, :binary, :raw], &:file.read(&1, size + 1)),
          ^digest <- :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower) do
@@ -30,8 +36,12 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
     end
   end
 
-  defp verified?(operation_id, artifact) do
-    with {:ok, path, size, digest} <- artifact_path(operation_id, artifact),
+  def read(_, _, _), do: {:error, :storage_unavailable}
+
+  defp verified?(operation_id, platform, artifact) do
+    cap = Lifecycle.native_artifact_max_bytes(platform, artifact.kind)
+
+    with {:ok, path, size, digest} <- artifact_path(operation_id, artifact, cap),
          {:ok, {:ok, ^digest}} <-
            File.open(
              path,
@@ -61,8 +71,8 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
     end
   end
 
-  defp artifact_path(operation_id, %ArtifactRef{sha256: digest, size_bytes: size})
-       when is_integer(size) and size in 1..@max_bytes do
+  defp artifact_path(operation_id, %ArtifactRef{sha256: digest, size_bytes: size}, cap)
+       when is_integer(size) and size >= 1 and size <= cap do
     with true <- hex?(operation_id) and hex?(digest),
          %{retained_root: root} when is_binary(root) <-
            MixerHosted.RuntimeConfig.native_settings(),
@@ -83,7 +93,7 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
     end
   end
 
-  defp artifact_path(_, _), do: {:error, :storage_unavailable}
+  defp artifact_path(_, _, _), do: {:error, :storage_unavailable}
 
   defp directory?(path), do: match?({:ok, %File.Stat{type: :directory}}, File.lstat(path))
 

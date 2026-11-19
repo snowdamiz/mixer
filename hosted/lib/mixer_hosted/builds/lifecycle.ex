@@ -23,6 +23,7 @@ defmodule MixerHosted.Builds.Lifecycle do
   ]
   @native_kinds [:unsigned_native_binary, :debug_symbols, :resource_inventory]
   @native_max_bytes 16 * 1024 * 1024
+  @android_binary_max_bytes 32 * 1024 * 1024
   @states [
     :queued,
     :running,
@@ -183,7 +184,7 @@ defmodule MixerHosted.Builds.Lifecycle do
       not time?(now_ms) or now_ms < build.observed_at ->
         {:error, :invalid_observation_time}
 
-      not event?(event) ->
+      not event?(event, build.spec.platform) ->
         {:error, :invalid_event}
 
       true ->
@@ -264,7 +265,7 @@ defmodule MixerHosted.Builds.Lifecycle do
        ) do
     with :ok <- expect_state(build, [:running]),
          :ok <- expect_ref(ref, build.active_ref),
-         true <- build.spec.platform == :ios and now < build.deadline do
+         true <- now < build.deadline do
       finish(build, :native_succeeded, nil, result.artifacts, now)
     else
       false -> {:error, :invalid_native_completion}
@@ -420,38 +421,40 @@ defmodule MixerHosted.Builds.Lifecycle do
     |> then(&struct!(WorkerRef, &1))
   end
 
-  defp event?(%{type: :start} = event),
+  defp event?(%{type: :start} = event, _platform),
     do: exact?(event, [:type, :ref]) and ref?(event.ref)
 
-  defp event?(%{type: :cancel} = event),
+  defp event?(%{type: :cancel} = event, _platform),
     do: exact?(event, [:type, :reason]) and text?(event.reason, 512)
 
-  defp event?(%{type: :expire} = event),
+  defp event?(%{type: :expire} = event, _platform),
     do: exact?(event, [:type, :ref]) and ref?(event.ref)
 
-  defp event?(%{type: :completed} = event),
-    do: exact?(event, [:type, :ref, :result]) and ref?(event.ref) and result?(event.result)
+  defp event?(%{type: :completed} = event, platform),
+    do:
+      exact?(event, [:type, :ref, :result]) and ref?(event.ref) and
+        result?(event.result, platform)
 
-  defp event?(%{type: :stopped} = event),
+  defp event?(%{type: :stopped} = event, _platform),
     do:
       exact?(event, [:type, :ref, :diagnostic_sha256]) and ref?(event.ref) and
         sha?(event.diagnostic_sha256)
 
-  defp event?(%{type: :retry} = event), do: exact?(event, [:type])
-  defp event?(_), do: false
+  defp event?(%{type: :retry} = event, _platform), do: exact?(event, [:type])
+  defp event?(_, _), do: false
 
-  defp result?(%{outcome: :succeeded} = result),
+  defp result?(%{outcome: :succeeded} = result, _platform),
     do: exact?(result, [:outcome, :artifacts]) and artifacts?(result.artifacts)
 
-  defp result?(%{outcome: :native_succeeded} = result),
-    do: exact?(result, [:outcome, :artifacts]) and native_artifacts?(result.artifacts)
+  defp result?(%{outcome: :native_succeeded} = result, platform),
+    do: exact?(result, [:outcome, :artifacts]) and native_artifacts?(platform, result.artifacts)
 
-  defp result?(%{outcome: :failed} = result) do
+  defp result?(%{outcome: :failed} = result, _platform) do
     exact?(result, [:outcome, :class, :code, :diagnostic_sha256]) and
       result.code in Map.get(@failure_codes, result.class, []) and sha?(result.diagnostic_sha256)
   end
 
-  defp result?(_), do: false
+  defp result?(_, _), do: false
 
   defp artifacts?(refs) do
     bounded_list?(refs, 7, 7) and Enum.all?(refs, &artifact?/1) and
@@ -474,12 +477,24 @@ defmodule MixerHosted.Builds.Lifecycle do
   def native_artifact_max_bytes, do: @native_max_bytes
 
   @doc false
-  def native_artifacts?(refs) do
+  def native_artifact_max_bytes(:android, :unsigned_native_binary), do: @android_binary_max_bytes
+
+  def native_artifact_max_bytes(platform, kind)
+      when platform in [:ios, :android] and kind in @native_kinds,
+      do: @native_max_bytes
+
+  @doc false
+  def native_artifacts?(refs), do: native_artifacts?(:ios, refs)
+
+  @doc false
+  def native_artifacts?(platform, refs) when platform in [:ios, :android] do
     bounded_list?(refs, 3, 3) and Enum.all?(refs, &artifact?/1) and
       Enum.map(refs, & &1.kind) == @native_kinds and
-      Enum.all?(refs, &(&1.size_bytes <= @native_max_bytes)) and
+      Enum.all?(refs, &(&1.size_bytes <= native_artifact_max_bytes(platform, &1.kind))) and
       consistent_artifact_sizes?(refs)
   end
+
+  def native_artifacts?(_, _), do: false
 
   defp artifact?(%ArtifactRef{} = ref),
     do:
@@ -570,7 +585,7 @@ defmodule MixerHosted.Builds.Lifecycle do
       build.finished_at >= build.queued_at and
       case build.state do
         :native_succeeded ->
-          build.spec.platform == :ios and native_artifacts?(build.artifacts) and
+          native_artifacts?(build.spec.platform, build.artifacts) and
             is_nil(build.failure) and is_nil(build.retry_after)
 
         :succeeded ->

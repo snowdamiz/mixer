@@ -3,6 +3,7 @@ defmodule MixerHosted.Builds.JournalTest do
 
   alias MixerHosted.Builds.{Journal, Lifecycle}
   alias MixerHosted.Builds.Lifecycle.{ArtifactRef, Policy, Spec}
+  alias MixerHosted.CustomerBuilds.Snapshot
 
   @max_time 9_223_372_036_854_775_807
   @kinds [
@@ -159,15 +160,9 @@ defmodule MixerHosted.Builds.JournalTest do
     {cancelled, _} = append!(pair, "cancel", cancel(), 2)
     assert {:error, _} = Journal.append(cancelled, "late-completion", event, 3)
 
-    {android, android_build} = new!(%{spec() | platform: :android}) |> start!()
+    {android, _} = new!(%{spec() | platform: :android}) |> start!()
 
-    assert {:error, _} =
-             Journal.append(
-               android,
-               "wrong-platform",
-               %{event | ref: android_build.active_ref},
-               2
-             )
+    assert {:error, :stale_worker_ref} = Journal.append(android, "wrong-platform", event, 2)
 
     assert {:error, _} =
              Journal.append(
@@ -179,6 +174,99 @@ defmodule MixerHosted.Builds.JournalTest do
 
     assert {:error, _} =
              Journal.append(document, "full-success", put_in(event.result.outcome, :succeeded), 2)
+  end
+
+  test "Android native descriptors round trip under the recorded platform and role caps" do
+    {document, build} = pair = new!(%{spec() | platform: :android}) |> start!()
+    kinds = [:unsigned_native_binary, :debug_symbols, :resource_inventory]
+    caps = [32 * 1024 * 1024, 16 * 1024 * 1024, 16 * 1024 * 1024]
+
+    outputs =
+      Enum.zip_with(kinds, caps, fn kind, size ->
+        %{Enum.find(artifacts(), &(&1.kind == kind)) | size_bytes: size}
+      end)
+
+    event = %{
+      type: :completed,
+      ref: build.active_ref,
+      result: %{outcome: :native_succeeded, artifacts: outputs}
+    }
+
+    {capped, _} = append!(pair, "cap", event, 2)
+
+    for {cap, index} <- Enum.with_index(caps) do
+      too_large = List.update_at(outputs, index, &%{&1 | size_bytes: cap + 1})
+
+      assert {:error, :invalid_event} =
+               Journal.append(document, "over", put_in(event.result.artifacts, too_large), 2)
+
+      tampered =
+        row_event(capped, 1, fn row ->
+          update_in(row, ["result", "artifacts"], fn refs ->
+            List.update_at(refs, index, &Map.put(&1, "size_bytes", cap + 1))
+          end)
+        end)
+
+      assert {:error, :invalid_journal} = Journal.restore(tampered)
+    end
+
+    apk = List.update_at(outputs, 0, &%{&1 | size_bytes: 27_795_723})
+    {starter, completed} = append!(pair, "pair24-size", put_in(event.result.artifacts, apk), 2)
+    assert completed.artifacts == apk
+
+    selection =
+      build.spec
+      |> Map.take([:organization_id, :project_id, :application_id, :build_id])
+      |> Map.merge(%{
+        platform: "android",
+        source_sha256: build.spec.source.sha256,
+        toolchain_lock_sha256: build.spec.toolchain_lock_sha256,
+        build_definition_sha256: build.spec.build_definition_sha256
+      })
+
+    record =
+      Map.merge(selection, %{revision: 2, request_key: build.request_key, journal: starter})
+
+    assert {:ok, %{platform: "android", state: "native_succeeded", artifacts: descriptors}} =
+             Snapshot.project(record, selection)
+
+    for {descriptor, ref} <- Enum.zip(descriptors, apk) do
+      kind = Atom.to_string(ref.kind)
+      prefix = "/console-api/v1/build-artifacts/" <> kind
+
+      assert %{kind: ^kind, sizeBytes: size, sha256: digest, downloadPath: path} = descriptor
+      assert size == ref.size_bytes and digest == ref.sha256
+      assert %URI{path: ^prefix, query: query} = URI.parse(path)
+
+      assert URI.decode_query(query) ==
+               Map.new(selection, fn {key, value} -> {to_string(key), value} end)
+    end
+
+    assert {:error, :storage_unavailable} =
+             Snapshot.project(record, %{selection | platform: "ios"})
+
+    wrong_role =
+      row_event(starter, 1, fn row ->
+        update_in(row, ["result", "artifacts"], fn refs ->
+          List.update_at(refs, 0, &Map.put(&1, "kind", "guest_artifact"))
+        end)
+      end)
+
+    assert {:error, :invalid_journal} = Journal.restore(wrong_role)
+
+    wrong_fence_platform = row_event(starter, 1, &put_in(&1, ["ref", "platform"], "ios"))
+    assert {:error, :invalid_journal} = Journal.restore(wrong_fence_platform)
+
+    assert {:error, :storage_unavailable} =
+             Snapshot.project(%{record | journal: wrong_fence_platform}, selection)
+
+    ios =
+      starter
+      |> put_in(["creation", "spec", "platform"], "ios")
+      |> row_event(0, &put_in(&1, ["ref", "platform"], "ios"))
+      |> row_event(1, &put_in(&1, ["ref", "platform"], "ios"))
+
+    assert {:error, :invalid_journal} = Journal.restore(ios)
   end
 
   test "success round trips every artifact kind, exact refs and the lifecycle history" do

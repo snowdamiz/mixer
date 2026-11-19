@@ -123,6 +123,71 @@ defmodule MixerHosted.Builds.LifecycleTest do
     assert done.artifacts == refs
   end
 
+  test "native completion uses the build platform and exact artifact role" do
+    mib = 1024 * 1024
+
+    for platform <- [:ios, :android] do
+      build = running(queued(%{spec() | platform: platform}))
+      kinds = [:unsigned_native_binary, :debug_symbols, :resource_inventory]
+      artifacts = Enum.map(kinds, fn kind -> Enum.find(artifacts(), &(&1.kind == kind)) end)
+
+      event = %{
+        type: :completed,
+        ref: build.active_ref,
+        result: %{outcome: :native_succeeded, artifacts: artifacts}
+      }
+
+      for {kind, index} <- Enum.with_index(kinds) do
+        cap =
+          if platform == :android and kind == :unsigned_native_binary,
+            do: 32 * mib,
+            else: 16 * mib
+
+        at_cap = List.update_at(artifacts, index, &%{&1 | size_bytes: cap})
+        done = apply!(build, "at-cap", put_in(event.result.artifacts, at_cap), 2)
+
+        assert {:ok, %{platform: ^platform, state: :native_succeeded, artifacts: ^at_cap}} =
+                 Lifecycle.customer_status(done)
+
+        over_cap = List.update_at(artifacts, index, &%{&1 | size_bytes: cap + 1})
+
+        assert {:error, :invalid_event} =
+                 Lifecycle.transition(
+                   build,
+                   "over-cap",
+                   put_in(event.result.artifacts, over_cap),
+                   2
+                 )
+      end
+
+      apk = List.update_at(artifacts, 0, &%{&1 | size_bytes: 27_795_723})
+      completion = put_in(event.result.artifacts, apk)
+
+      if platform == :android do
+        assert apply!(build, "pair24-size", completion, 2).state == :native_succeeded
+
+        assert {:error, :stale_worker_ref} =
+                 Lifecycle.transition(build, "foreign", put_in(completion.ref.platform, :ios), 2)
+
+        assert {:error, :invalid_native_completion} =
+                 Lifecycle.transition(build, "late", completion, build.deadline)
+      else
+        assert {:error, :invalid_event} =
+                 Lifecycle.transition(build, "pair24-size", completion, 2)
+      end
+
+      wrong_role = List.update_at(artifacts, 0, &%{&1 | kind: :guest_artifact})
+
+      assert {:error, :invalid_event} =
+               Lifecycle.transition(
+                 build,
+                 "wrong-role",
+                 put_in(event.result.artifacts, wrong_role),
+                 2
+               )
+    end
+  end
+
   test "new input is closed, typed and bounded with no source or identity inference" do
     for key <- Map.keys(spec()) do
       assert {:error, :invalid_spec} = Lifecycle.new(Map.delete(spec(), key), policy(), "r", 0),

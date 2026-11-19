@@ -46,26 +46,30 @@ defmodule MixerHostedWeb.BrowserBuildDispatcher do
   end
 
   defp read(identity, selection, kind) do
+    platform = if selection.platform == "android", do: :android, else: :ios
+
     with {:ok, {:retained_native, operation, artifact} = locator} <-
            CustomerBuilds.read(identity, selection, kind),
-         {:ok, bytes} <- RetainedNativeArtifacts.read(operation, artifact),
+         {:ok, bytes} <- RetainedNativeArtifacts.read(operation, platform, artifact),
          {:ok, ^locator} <- CustomerBuilds.read(identity, selection, kind) do
-      {:ok, {:download, artifact.kind, bytes}}
+      {:ok, {:download, platform, artifact.kind, bytes}}
     else
       {:error, _} = error -> error
       _ -> {:error, :authorization_unavailable}
     end
   end
 
-  defp response({:ok, {:download, kind, bytes}}, id) do
+  defp response({:ok, {:download, platform, kind, bytes}}, id) do
+    {media, filename} = attachment(platform, kind)
+
     {:ok,
      %{
        status: 200,
        body: bytes,
        headers: [
          {"cache-control", "no-store"},
-         {"content-type", "application/octet-stream"},
-         {"content-disposition", ~s(attachment; filename="#{kind}")},
+         {"content-type", media},
+         {"content-disposition", ~s(attachment; filename="#{filename}")},
          {"x-content-type-options", "nosniff"},
          {"x-request-id", id}
        ]
@@ -90,6 +94,16 @@ defmodule MixerHostedWeb.BrowserBuildDispatcher do
   end
 
   defp response(_, id), do: response({:error, :authorization_unavailable}, id)
+
+  defp attachment(:android, :unsigned_native_binary),
+    do: {"application/vnd.android.package-archive", "unsigned.apk"}
+
+  defp attachment(:android, :debug_symbols), do: {"application/zip", "debug-symbols.zip"}
+
+  defp attachment(:android, :resource_inventory),
+    do: {"application/json", "resource-inventory.json"}
+
+  defp attachment(:ios, kind), do: {"application/octet-stream", Atom.to_string(kind)}
 
   defp capture(status, value, id) do
     body = Jason.encode!(value)

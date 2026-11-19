@@ -22,6 +22,8 @@ const buildKeys = [...selectionKeys, "revision", "state", "attempt", "maxAttempt
 const nativeBuildKeys = [...buildKeys, "artifacts"];
 const logKeys = [...buildKeys, "events"];
 const nativeArtifactKinds = ["unsigned_native_binary", "debug_symbols", "resource_inventory"] as const;
+const nativeArtifactMaxBytes = 16 * 1024 * 1024;
+const androidBinaryMaxBytes = 32 * 1024 * 1024;
 const compilerPhases: readonly ("compile" | "link" | "package")[] = ["compile", "link", "package"];
 
 type RetainedLogState = Extract<BuildState, "native_succeeded" | "failed" | "cancelled" | "timed_out">;
@@ -93,7 +95,7 @@ export function parseBuildRead(input: unknown, expected: BuildReadSelection): Bu
   const selection = snapshotBuildReadSelection(expected);
   requireValid(closed(input, ["build"]));
   if (closed(input.build, nativeBuildKeys)) {
-    requireValid(selection.platform === "ios" && input.build.state === "native_succeeded");
+    requireValid(input.build.state === "native_succeeded");
     const snapshot = parseBuildFields(input.build, selection);
     return Object.freeze({ ...snapshot, artifacts: parseNativeArtifacts(input.build.artifacts, selection) });
   }
@@ -110,7 +112,9 @@ function parseNativeArtifacts(input: unknown, selection: BuildReadSelection): re
     requireValid(closed(item, ["kind", "sizeBytes", "sha256", "downloadPath"]));
     const { kind, sizeBytes, sha256, downloadPath } = item;
     const prefix = `/console-api/v1/build-artifacts/${expectedKind}?`;
-    requireValid(kind === expectedKind && integerIn(sizeBytes, 1, 16 * 1024 * 1024) && digest(sha256) &&
+    const maxBytes = selection.platform === "android" && expectedKind === "unsigned_native_binary"
+      ? androidBinaryMaxBytes : nativeArtifactMaxBytes;
+    requireValid(kind === expectedKind && integerIn(sizeBytes, 1, maxBytes) && digest(sha256) &&
       typeof downloadPath === "string" && downloadPath.length <= 2048 && downloadPath.startsWith(prefix));
     const supplied = new URLSearchParams(downloadPath.slice(prefix.length));
     requireValid(supplied.size === expected.size);

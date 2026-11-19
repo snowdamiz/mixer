@@ -177,7 +177,10 @@ export function ApplicationBuildPage(props: {
             <section class="workspace-message" aria-labelledby="build-artifacts-heading">
               <h3 id="build-artifacts-heading">Build artifacts</h3>
               <ul><For each={artifacts()}>{artifact =>
-                <li><a href={artifact.downloadPath} download="" referrerpolicy="no-referrer">{artifactLabels[artifact.kind]}</a></li>
+                <li><a href={artifact.downloadPath} download="" referrerpolicy="no-referrer">
+                  {artifact.kind === "unsigned_native_binary" && detail()?.selection.platform === "android"
+                    ? "Unsigned APK" : artifactLabels[artifact.kind]}
+                </a></li>
               }</For></ul>
             </section>
           }</Show>
