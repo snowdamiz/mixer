@@ -1043,3 +1043,23 @@ namespace and group without inspection, enumeration, probing, signalling,
 waiting, retry or cleanup. Chrome and the local services closed separately.
 Use the compact `verification/receipts/l06-browser-starter-dispatch-20261119.json`.
 The independent final browser attempt closed and does not release this hold.
+
+The November 19 rebuilt FieldLog engine-pair run on API 36 left the initial
+screenshot recognizer at UNKNOWN custody for PGID 57719. Preserve the exact
+`verification/local/fieldlog-engine-owned-api36.vq4AbhGi/run-pothv0wc` namespace
+and the recognizer executable it used in that campaign's
+`verification/local/android-screenshot-observation.qjmbaYSf` projection.
+Preserve private ADB PGID 39510 and port 64371, emulator PGID 39511, AVD
+`fieldlog_l04_74eda59335b9`, and ports 5652 and 5653. Do not inspect, probe,
+signal, wait on, retry or clean those resources. Use only the already returned
+metadata and the top-level `HOLD.json` in that run. The origin and log reader
+closed. A separate fresh emulator does not release this hold.
+
+The November 19 local Starter restart attempt at `30846456d5` accepted
+one build and lost the relay response before compiler closure was proven.
+Preserve worker PID/PGID 25870, port 59331 and its required inputs under
+`/Users/andreyyurlov/.t3/worktrees/mixer/t3-l07-restart-30846456/verification/local/l07-restart-30846456`.
+Do not inspect, probe, signal, wait on, retry or clean those resources.
+Use only the already returned compact result and its top-level `HOLD.json`.
+Phoenix, restricted Oban and PostgreSQL closed. Their closure releases
+neither the worker nor the input hold.
