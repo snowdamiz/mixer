@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "checkpoint": "W16 / G29–G31 local evidence",
+  "status": "Scoped host signer recovery passed; L07 remains running",
+  "source": {
+    "revision": "5961ea0cae969d8195a9d72c699ff424268880e6",
+    "tree": "12a3488436d9f443382f09b84bd809374bb27b34",
+    "attesterTree": "3e2cdd4194a7a86683a9a485e269a80c8bc21d7d",
+    "productEdits": false
+  },
+  "tools": {
+    "platform": "macOS 27.0.1 arm64",
+    "go": "go1.26.4 darwin/arm64",
+    "python": "3.14.8",
+    "cCompiler": "Apple clang 21.0.0 (clang-2100.4.1.1)"
+  },
+  "check": {
+    "runner": "verification/local/l07-signer-loss-review-5961ea0c/run.py",
+    "runnerSHA256": "7c3c68c48bf4ed9281d4e41c8394e238e6d991d1f06601ceb17a558dcfa3301e",
+    "command": [
+      "python3",
+      "-I",
+      "-B",
+      "-S",
+      "verification/local/l07-signer-loss-review-5961ea0c/run.py"
+    ],
+    "cwdForGo": "services",
+    "scope": "Real native attestation CLI sign/verify entry points in separate macOS processes using the existing synthetic authenticated HTTP build fixture behind an owned loopback proxy. Fixture held the symbols request after the build detail and binary were read, before key use or envelope publication. No Phoenix, Oban, native worker, browser, device, payment, external service or inherited credentials in the run.",
+    "firstAttempt": {
+      "exit": 1,
+      "pidPgid": 28314,
+      "ownedGroupAbsent": true,
+      "scratch": "/private/tmp/mixer-l07-signer-loss-5961-m4x375_r",
+      "fixtureSHA256": "6a1979c79a78b5c62bada4caaa3937e94796b61bcfbfbdebe978c951f80cd711",
+      "logSHA256": "098749d69f45ec89b3681cbd610fc483b9f715c2b5f5574544fa89d7ca02535b",
+      "logBytes": 434,
+      "wallSeconds": 12.454,
+      "argv": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "test",
+        "-p=4",
+        "-overlay",
+        "/private/tmp/mixer-l07-signer-loss-5961-m4x375_r/overlay.json",
+        "./cmd/mixer-native-attest",
+        "-run",
+        "^TestLocalSignerInterruptedBeforePublication$",
+        "-count=1",
+        "-timeout=32s",
+        "-v"
+      ],
+      "stdout": "=== RUN   TestLocalSignerInterruptedBeforePublication\n    signer_interruption_darwin_test.go:102: owned signer SIGKILL and reap during symbols download; upstream requests=2; attestation entries=0\n    signer_interruption_darwin_test.go:113: fresh signer failed ordinary publication with five authenticated reads\n--- FAIL: TestLocalSignerInterruptedBeforePublication (0.04s)\nFAIL\nFAIL\tmixer/services/cmd/mixer-native-attest\t0.142s\nFAIL\n",
+      "scratchRemovedAndAbsent": true,
+      "interpretation": "The fixture expected five authenticated reads. The product performs four: build detail and three artifacts. The signer interruption, request cancellation and zero-entry checks had already passed. The first run did not establish retry success."
+    },
+    "correctedAttempt": {
+      "exit": 0,
+      "pidPgid": 42174,
+      "ownedGroupAbsent": true,
+      "scratch": "/private/tmp/mixer-l07-signer-loss-5961-1ovgdc0b",
+      "fixtureSHA256": "5c5d337449cf0ff813ccbc89f7c2ab520948028c4bd46a3f5fd8d24e7497563f",
+      "logSHA256": "2b3ee2325221bf1a2ed880a77873e4f1eeff76c1fa69b29ff3a4bd7620043425",
+      "logBytes": 617,
+      "wallSeconds": 18.753,
+      "argv": [
+        "/Users/andreyyurlov/.local/bin/go",
+        "test",
+        "-p=4",
+        "-overlay",
+        "/private/tmp/mixer-l07-signer-loss-5961-1ovgdc0b/overlay.json",
+        "./cmd/mixer-native-attest",
+        "-run",
+        "^TestLocalSignerInterruptedBeforePublication$",
+        "-count=1",
+        "-timeout=32s",
+        "-v"
+      ],
+      "stdout": "=== RUN   TestLocalSignerInterruptedBeforePublication\n    signer_interruption_darwin_test.go:101: owned signer PID 43964 reaped via SIGKILL during symbols download; request canceled; upstream reads=2; attestation entries=0\n    signer_interruption_darwin_test.go:125: fresh signer published exactly one envelope; separate public-key verifier returned the same name; each made four authenticated reads\n    signer_interruption_darwin_test.go:139: both owned loopback listeners closed and ports rebound\n--- PASS: TestLocalSignerInterruptedBeforePublication (0.05s)\nPASS\nok  \tmixer/services/cmd/mixer-native-attest\t0.153s\n",
+      "scratchRemovedAndAbsent": true
+    },
+    "closure": "The interrupted child was explicitly reaped. Retry and verifier returned normally. Listener closure and both port rebinds were observed. The Go group absence probe returned ESRCH and each external scratch path was removed and checked absent. The inert runner alone is retained in the ignored checkout for replay.",
+    "remaining": "The cut point is before publication. Integrated Phoenix/worker/signer interruption, publish-phase ambiguity and concurrent signer/worker key-custody isolation remain open."
+  },
+  "reviewed": [
+    {
+      "row": "Database backup/restore and tenant isolation",
+      "evidenced": "Restore into a fresh database preserved signed artifact, assignment, audit and idempotent replay bytes, plus direct restricted-role tenant visibility and successful fresh sequence-2 publish. CLI halt replay restored sequence 5 and accepted a new signed promotion.",
+      "remaining": "Independent cluster reconstruction with roles/configuration and integrated build journal/artifact or external-effect reconciliation are outside those receipts.",
+      "receipts": [
+        "verification/receipts/release-postgres-backup-restore-20261118.json",
+        "verification/receipts/public-cli-halt-restore-41a05264.json"
+      ]
+    },
+    {
+      "row": "Local service, load and incident recovery",
+      "evidenced": "Restricted Oban recovered an eight-job backlog and a local stall alert triggered the restart. The original five-request pool exhaustion stranded ordinary authenticated requests. The successor recovered the same session on the same listener and passed its 15 PostgreSQL cases. The signed FieldLog host reopened offline and resumed its partial download against the restarted origin.",
+      "remaining": "One current combined run tying bounded authenticated load, worker and delivery recovery together remains open. The FieldLog receipt is scoped to graceful host service exit.",
+      "receipts": [
+        "verification/receipts/l07-integrated-outage-41a05264.json",
+        "verification/receipts/l07-ordinary-session-recovery-41a05264.json",
+        "verification/receipts/l07-recovery-v33-41a05264.json",
+        "verification/receipts/fieldlog-release-service-outage-41a05264.json"
+      ]
+    },
+    {
+      "row": "Restricted processor/worker restart and store access",
+      "evidenced": "The private compiler-error join preserved the terminal diagnostic and starts=1 after worker restart. Its customer GET and replay predate that restart. A separate integrated native build proved all three authenticated artifacts readable byte-for-byte after worker shutdown, 401 for no session and 404 for foreign scope or revoked membership. Local iOS/Android store fixtures reconciled a lost acknowledgement once per platform.",
+      "remaining": "In-flight loss and recovery through the ordinary supported route, including post-restart customer artifact readback, remains open. The separate durable-intent candidate received PostgreSQL 42501 on mixer_build_operation_admit in builds_v1. Its scheduled job held capacity without a terminal event. The selected build mode should stay explicit when selecting a successor.",
+      "receipts": [
+        "verification/receipts/real-compiler-Oban-join-r2834.json",
+        "verification/receipts/real-compiler-Oban-review-r2844.json",
+        "verification/receipts/l05-combined-native-build-41a05264.json",
+        "verification/receipts/l05-local-submission-reconciliation-41a05264.json",
+        "verification/receipts/l05-restricted-durable-intent-scheduler-41a05264.json"
+      ]
+    },
+    {
+      "row": "Signer separation and publisher containment",
+      "evidenced": "The separate development signer used a key created after worker/processor shutdown, attested three authenticated downloads, and verified against the original loopback origin after service restart using a fresh session. The v3 correction suppressed the revoked assignment key, recovered at sequence 2 and retained the independently signed artifact. The new host check observes signer-process interruption and retry.",
+      "remaining": "The integrated proof gives temporal key separation. Concurrent key custody, artifact-signer compromise, active cache isolation/freshness where a shared cache is present, and broader incident rehearsal remain open.",
+      "receipts": [
+        "verification/receipts/l05-native-development-attestation-41a05264.json",
+        "verification/receipts/l05-native-attestation-acl-restart-41a05264.json",
+        "verification/receipts/l07-v3-publisher-incident-41a05264.json",
+        "verification/receipts/release-v3-rotation-halt-41a05264.json"
+      ]
+    },
+    {
+      "row": "Licensing, privacy and authorization",
+      "evidenced": "Exact rebuilt FieldLog APK contains Swift SDK, NDK runtime/toolchain and ICU notices. Free HTTP/RLS fixtures cover two tenants, owner/member/viewer scope, allowlisted export and tombstone deletion, without payment credentials. The combined admin fixture retained a settled build during authorized exit.",
+      "remaining": "Exact distributed artifact/source provenance and licensing coverage across the local matrix, privacy and diagnostic-redaction coverage through the complete populated workflow, and the cross-component VM/bridge/update/security decision are still scoped rather than accepted as a whole.",
+      "receipts": [
+        "verification/receipts/android-sdk-public-witness-and-runtime-notices-41a05264.json",
+        "verification/receipts/fieldlog-rebuilt-runtime-notices-41a05264.json",
+        "verification/receipts/free-self-service-http-private-evidence-r5868.json",
+        "verification/receipts/l06-free-admin-41a05264.json",
+        "verification/receipts/l06-combined-admin-support-cancel-41a05264.json",
+        "verification/receipts/fieldlog-compact-abi2-review-replay-41a05264.json"
+      ]
+    }
+  ],
+  "nextExecutable": "Extend the existing local restricted-processor/worker fixture on the selected supported build mode. Use one disposable loopback PostgreSQL/Phoenix/Oban/worker topology and one ordinary authenticated build. Interrupt the owned worker after its durable start but before terminal acknowledgement, restart against the same journal/store, and prove one fenced outcome, capacity/lease settlement, same-key replay, artifact hash availability for the owner and foreign-tenant refusal through the ordinary API. Closed prior compiler-error and graceful-shutdown evidence are separate controls. If testing the durable-intent candidate, first prove the exact start-job authority with the restricted PostgreSQL role; prior 42501 is candidate evidence.",
+  "localGatesPassed": []
+}
