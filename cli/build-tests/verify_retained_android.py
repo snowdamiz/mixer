@@ -51,10 +51,16 @@ def inspect(store, ordinary, project, build_tools, ndk_bin):
     identity = [line for line in badging.splitlines() if line.startswith(identity_fields)]
     require(identity == [line for line in ordinary_badging.splitlines() if line.startswith(identity_fields)],
             'APK identity differs from the ordinary Starter build')
-    for expected in (f"package: name='{inventory['application']}'", f"name='{inventory['activity']}'",
-                     f"native-code: '{inventory['abi']}'", f"minSdkVersion:'{inventory['minAPI']}'",
-                     f"targetSdkVersion:'{inventory['targetAPI']}'"):
-        require(any(expected in line for line in identity), 'APK badging differs from inventory: ' + expected)
+    for prefix, expected, trailing in [
+        ('package: ', f"name='{inventory['application']}'", r'(?: .*)?'),
+        ('launchable-activity: ', f"name='{inventory['activity']}'", r'(?: .*)?'),
+        ('native-code: ', f"'{inventory['abi']}'", ''),
+        ('minSdkVersion:', f"'{inventory['minAPI']}'", ''),
+        ('targetSdkVersion:', f"'{inventory['targetAPI']}'", ''),
+    ]:
+        matching = [line for line in identity if line.startswith(prefix)]
+        require(len(matching) == 1 and re.fullmatch(re.escape(prefix + expected) + trailing, matching[0]),
+                'APK badging differs from inventory: ' + prefix + expected)
     run(build_tools / 'zipalign', '-c', '-P', '16', '4', apk)
     signing = run(build_tools / 'apksigner', 'verify', apk, expected=1)
     require('DOES NOT VERIFY' in signing and 'Missing META-INF/MANIFEST.MF' in signing, 'Unexpected signing result')

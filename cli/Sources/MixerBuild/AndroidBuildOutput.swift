@@ -84,6 +84,13 @@ public enum AndroidBuildOutput {
     }
 
     private struct DriverReceipt: Decodable {
+        struct APKIdentity: Decodable {
+            let application: String
+            let activity: String
+            let abi: String
+            let minAPI: Int
+            let targetAPI: Int
+        }
         struct PinLock: Decodable {
             let path: String
             let sha256: String
@@ -103,6 +110,7 @@ public enum AndroidBuildOutput {
         let activity: String
         let applicationMinApi: Int
         let apk: String
+        let apkIdentity: APKIdentity
         let apkSha256: String
         let apkBytes: UInt64
         let apkEntries: [APKEntry]
@@ -121,6 +129,7 @@ public enum AndroidBuildOutput {
         enum CodingKeys: String, CodingKey {
             case qualification, application, activity, apk, toolchain, commands
             case schemaVersion = "schema_version", androidHost = "android_host", applicationMinApi = "application_min_api"
+            case apkIdentity = "apk_identity"
             case apkSha256 = "apk_sha256", apkBytes = "apk_bytes", apkEntries = "apk_entries"
             case symbolsSha256 = "symbols_sha256", symbolsBytes = "symbols_bytes", debugProducts = "debug_products"
             case sourceTreeSha256 = "source_tree_sha256", sourceTreeAfterSha256 = "source_tree_after_sha256"
@@ -145,7 +154,7 @@ public enum AndroidBuildOutput {
               !context.receiptDirectory.path.hasPrefix(root.path + "/") else {
             throw MixerFailure("android.output-scratch", "Retained Android builds require temporary storage outside the project.")
         }
-        let store = try NativeBuildOutput.prepare(output: output, root: root)
+        let store = try NativeBuildOutput.prepare(output: output, root: root, requireSourceIdentity: true)
         let validated = try AndroidProject.prepareBuild(root: root)
         guard let android = validated.lock.android else {
             throw MixerFailure("android.not-generated", "Retained products require a locked Android project.")
@@ -153,8 +162,7 @@ public enum AndroidBuildOutput {
         let before = try source(root)
         guard before.lock == identity(validated.bytes) else { throw drift }
         let config = try ApplicationConfiguration.load(root)
-        let executable = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
-        let cli = try identity(file: executable, maximum: NativeProductCapture.archiveByteLimit)
+        let cli = try runningExecutableIdentity()
 
         let scratch = try context.makeInputSnapshot()
         defer { scratch.removeIfUnheld() }
@@ -175,13 +183,22 @@ public enum AndroidBuildOutput {
             from: read("build-receipt.json", in: stagingFD, maximum: 4 * 1_048_576))
         let after = try source(root)
         let apkName = config.name + "-unsigned.apk"
-        guard before == after, cli == (try identity(file: executable, maximum: NativeProductCapture.archiveByteLimit)),
+        guard before == after, cli == (try runningExecutableIdentity()),
               captured.sourceTreeSha256 == captured.sourceTreeAfterSha256,
               captured.platformDependencyLock.path == platformPins,
               captured.platformDependencyLock.sha256 == before.platformPins.sha256,
               captured.platformDependencyLock.bytes == before.platformPins.sizeBytes else { throw drift }
+        let apkIdentity = captured.apkIdentity
+        let isPublic = config.androidHost?.isPublic == true
+        let expectedActivity = isPublic ? config.application + ".androidhost.PublicActivity" : "dev.mixer.android.MixerActivity"
         guard captured.schemaVersion == 2, captured.qualification == "local-unsigned-cross-build-only",
               captured.apk == staging.appendingPathComponent(apkName).path, captured.application == config.application,
+              apkIdentity.application == config.application,
+              apkIdentity.activity == expectedActivity, apkIdentity.activity == captured.activity,
+              apkIdentity.abi == android.toolchain.abi,
+              apkIdentity.minAPI == captured.applicationMinApi,
+              apkIdentity.minAPI >= (isPublic ? max(36, android.toolchain.min_api) : android.toolchain.min_api),
+              apkIdentity.minAPI <= apkIdentity.targetAPI, apkIdentity.targetAPI == android.toolchain.target_api,
               captured.androidHost == (config.androidHost?.rawValue ?? "legacy-v1"), captured.toolchain == android.toolchain,
               captured.sourceProfile == android.profile, captured.sdkDigest == validated.lock.sdkDigest,
               captured.adapterDigest == android.adapterDigest, !captured.commands.isEmpty,
@@ -193,9 +210,9 @@ public enum AndroidBuildOutput {
             toolCommands: captured.commands.map(\.command), environment: environment)
         let inventory = Inventory(formatVersion: 1, bindingSHA256: SourceDigest.sha256(try JSONFile.data(binding)),
             apkSHA256: captured.apkSha256, debugSymbolsSHA256: captured.symbolsSha256,
-            application: captured.application, androidHost: captured.androidHost,
-            activity: captured.activity, abi: captured.toolchain.abi, minAPI: captured.applicationMinApi,
-            targetAPI: captured.toolchain.target_api, entries: captured.apkEntries,
+            application: apkIdentity.application, androidHost: captured.androidHost,
+            activity: apkIdentity.activity, abi: apkIdentity.abi, minAPI: apkIdentity.minAPI,
+            targetAPI: apkIdentity.targetAPI, entries: captured.apkEntries,
             nativeDependencies: captured.nativeDependencies, debugProducts: captured.debugProducts)
         try validate(inventory, binding: binding)
         let apk = try read(apkName, in: stagingFD)
@@ -284,6 +301,27 @@ public enum AndroidBuildOutput {
     }
     private static func identity(file: URL, maximum: Int = 1_048_576) throws -> FileIdentity {
         try identity(read(file.path, in: AT_FDCWD, maximum: maximum))
+    }
+    private static func runningExecutableIdentity() throws -> FileIdentity {
+        func executablePath() throws -> String {
+            // libproc resolves the current process's executable vnode.
+            var bytes = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
+            let count = proc_pidpath(getpid(), &bytes, UInt32(bytes.count))
+            guard count > 0, count < bytes.count, let path = bytes.withUnsafeBufferPointer({
+                $0.baseAddress.flatMap { String(validatingCString: $0) }
+            }), path.hasPrefix("/") else { throw drift }
+            return path
+        }
+
+        let path = try executablePath()
+        let fd = open(path, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
+        guard fd >= 0 else { throw drift }
+        defer { close(fd) }
+        let bytes = try NativeProductCapture.regular(fd)
+        var held = stat(), named = stat()
+        guard try executablePath() == path, fstat(fd, &held) == 0, lstat(path, &named) == 0,
+              held.st_dev == named.st_dev, held.st_ino == named.st_ino else { throw drift }
+        return identity(bytes)
     }
     private static func identity(_ store: NativeBuildOutput.Store) throws -> stat {
         try store.check()

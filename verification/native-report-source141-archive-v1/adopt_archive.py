@@ -247,6 +247,14 @@ ANDROID_OUTPUT_CHANGES = {
     'cli/Sources/MixerBuild/Resources/android-build.py',
     'cli/Sources/MixerCLI/main.swift',
 }
+ANDROID_OUTPUT_CORRECTION_PREFIX = 'android-retained-output-correction-predecessor-bytes/'
+ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256 = 'add4e30b0bf4d67e07280e9ed2f0ef69d7a2c5d35edff5ffec618f37dbfed83c'
+ANDROID_OUTPUT_CORRECTION_CHANGES = {
+    ANDROID_OUTPUT_ADDITION,
+    'cli/Sources/MixerBuild/NativeBuildOutput.swift',
+    'cli/Sources/MixerBuild/Resources/android-build.py',
+}
+ANDROID_OUTPUT_CORRECTION_TEST = 'cli/build-tests/test_android_public_host.py'
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -258,6 +266,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
+} | {
+    ANDROID_OUTPUT_CORRECTION_PREFIX + name
+    for name in ANDROID_OUTPUT_CORRECTION_CHANGES | {ANDROID_OUTPUT_CORRECTION_TEST}
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
@@ -392,6 +403,7 @@ def install_inputs():
                              'capability_identity_transition', 'guest_cutoff_transition', 'hosted_v41_workflow', 'hosted_v41_notices',
                              'hosted_v42_workflow', 'store_platform_identity_transition',
                              'worker_swift_probe_transition', 'android_retained_output_transition',
+                             'android_retained_output_correction_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
@@ -890,10 +902,29 @@ def install_inputs():
         require(stat.S_ISREG((ROOT / name).lstat().st_mode) and
                 stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
                 'Android retained output owner mode differs: ' + name)
-    require(current == expected_source and len(current) == 151 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': ANDROID_OUTPUT_SOURCE_SHA256,
-    } and previous.digest(current) == ANDROID_OUTPUT_SOURCE_SHA256,
+    require(len(expected_source) == 151 and previous.digest(expected_source) == ANDROID_OUTPUT_SOURCE_SHA256,
             'Android retained output source transition differs')
+
+    correction = binding['android_retained_output_correction_transition']
+    require(set(correction) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            correction['sourceBefore'] == ANDROID_OUTPUT_SOURCE_SHA256 and
+            set(correction['changes']) == ANDROID_OUTPUT_CORRECTION_CHANGES | {ANDROID_OUTPUT_CORRECTION_TEST},
+            'Android retained output correction transition roster differs')
+    for name, change in correction['changes'].items():
+        raw = read_predecessor_member(HERE / (ANDROID_OUTPUT_CORRECTION_PREFIX + name))
+        require(set(change) == {'before', 'after'} and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['before'] != change['after'],
+                'Android retained output correction predecessor differs: ' + name)
+        installed[name] = change['after']
+        if name in ANDROID_OUTPUT_CORRECTION_CHANGES:
+            require(expected_source[name] == change['before'], 'Android correction source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        preimages.setdefault(name, (raw, 0o644))
+    require(current == expected_source and len(current) == 151 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256,
+    } and previous.digest(current) == correction['sourceAfter'] == ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256,
+            'Android retained output correction source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
@@ -990,6 +1021,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_android_retained_output_correction_sha256': binding['android_retained_output_correction_transition']['sourceBefore'],
             'predecessor_android_retained_output_sha256': binding['android_retained_output_transition']['sourceBefore'],
             'predecessor_guest_cutoff_sha256': binding['guest_cutoff_transition']['sourceBefore'],
             'predecessor_capability_identity_sha256': binding['capability_identity_transition']['sourceBefore'],

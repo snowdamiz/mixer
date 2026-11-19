@@ -18,6 +18,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 SDK_ID = 'aarch64-unknown-linux-android28'
+TARGET_API = 37
 ENV = os.environ.copy()
 HOME_DIR = pathlib.Path.home()
 SDK = pathlib.Path(ENV.get('ANDROID_HOME', ENV.get('ANDROID_SDK_ROOT', '/opt/homebrew/share/android-commandlinetools'))).resolve()
@@ -401,7 +402,7 @@ def public_host(root, config):
     return True
 
 
-def application_min_api(root, config):
+def application_min_api(root, config, *, required_target_api=None):
     """Admit the declared app floor before tool execution or output creation.
 
     The Swift/NDK ABI remains android28. Public hosts additionally require the
@@ -420,14 +421,18 @@ def application_min_api(root, config):
     except ET.ParseError as error:
         raise RuntimeError('android.api-floor: malformed manifest.') from error
     uses = manifest.findall('uses-sdk')
-    value = uses[0].get('{http://schemas.android.com/apk/res/android}minSdkVersion') if len(uses) == 1 else None
+    android = '{http://schemas.android.com/apk/res/android}'
+    value = uses[0].get(android + 'minSdkVersion') if len(uses) == 1 else None
     if manifest.tag != 'manifest' or value is None or re.fullmatch(r'[1-9][0-9]{0,2}', value) is None:
         raise RuntimeError('android.api-floor: manifest requires one explicit integer minSdkVersion.')
     declared = int(value)
-    if declared < required or declared > 37:
+    if declared < required or declared > TARGET_API:
         raise RuntimeError('android.api-floor: ' + host + ' requires minSdkVersion >= ' + str(required) +
                            ' and <= target API 37; declared ' + value +
                            ('. Public appearance requires API36 high-contrast read/listener.' if required == 36 else '.'))
+    if required_target_api is not None and uses[0].get(android + 'targetSdkVersion') != str(required_target_api):
+        raise RuntimeError('android.target-api: retained manifest requires explicit targetSdkVersion=' +
+                           str(required_target_api) + '.')
     return declared
 
 
@@ -798,7 +803,7 @@ def inspect_phases(phases):
         if not path.is_file() or not os.access(path, os.X_OK):
             raise RuntimeError('Missing executable ' + name + ': ' + str(path))
     return {
-        'schema': 1, 'sdk_id': SDK_ID, 'abi': 'arm64-v8a', 'min_api': 28, 'target_api': 37,
+        'schema': 1, 'sdk_id': SDK_ID, 'abi': 'arm64-v8a', 'min_api': 28, 'target_api': TARGET_API,
         'swift_version': swift_version, 'javac_version': phases.run('probe.javac', probe, [JDK / 'bin/javac', '--version']),
         'java_version': phases.run('probe.java', probe, [JDK / 'bin/java', '--version']),
         'python_version': sys.version,
@@ -917,11 +922,35 @@ def finish_source_guard(root, adapter, android, lock, source_before, apk_path, p
     return source_after
 
 
+def retained_apk_identity(badging, *, application, activity, abi, min_api, target_api):
+    lines = badging.split('\n')
+
+    def field(name, pattern):
+        fields = [line for line in lines if re.match(r'\s*' + name + r'\s*:', line)]
+        match = re.fullmatch(name + pattern, fields[0]) if len(fields) == 1 else None
+        if match is None:
+            raise RuntimeError('Retained APK requires one explicit badging field: ' + name)
+        return match[1]
+
+    actual = {
+        'application': field('package', r": name='([^']+)'(?: .*)?"),
+        'activity': field('launchable-activity', r": name='([^']+)'(?: .*)?"),
+        'abi': field('native-code', r": '([a-zA-Z0-9_-]+)'"),
+        'minAPI': int(field('minSdkVersion', r":'([1-9][0-9]{0,2})'")),
+        'targetAPI': int(field('targetSdkVersion', r":'([1-9][0-9]{0,2})'")),
+    }
+    expected = {'application': application, 'activity': activity, 'abi': abi, 'minAPI': min_api, 'targetAPI': target_api}
+    for name, value in expected.items():
+        if actual[name] != value:
+            raise RuntimeError(f'Retained APK {name} differs: expected {value!r}, observed {actual[name]!r}.')
+    return actual
+
+
 def build(root, retained_output=None):
     config = read_json(root / 'mixer.yml')
     if not isinstance(config, dict) or config.get('androidHost', 'legacy-v1') != 'legacy-v1':
         config = configuration(config)
-    min_api = application_min_api(root, config)
+    min_api = application_min_api(root, config, required_target_api=TARGET_API if retained_output is not None else None)
     public = public_host(root, config)
     profile = source_profile()
     lock = read_json(root / 'mixer.lock')
@@ -1042,7 +1071,7 @@ def build(root, retained_output=None):
     unsigned = output / 'unaligned.apk'
     if admit_source_pair(root, profile) != appearance or source_tree(adapter) != android['adapterDigest']:
         raise RuntimeError('Android appearance/adapter input changed before packaging.')
-    run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '-A', adapter / 'app/assets', '--min-sdk-version', str(min_api), '--target-sdk-version', '37', '-o', unsigned])
+    run([BT / 'aapt2', 'link', '-I', JAR, '--manifest', package / 'AndroidManifest.xml', '-A', adapter / 'app/assets', '--min-sdk-version', str(min_api), '--target-sdk-version', str(TARGET_API), '-o', unsigned])
     checked_output(root, retained_output=retained_output)
     with zipfile.ZipFile(unsigned, 'a', compression=zipfile.ZIP_DEFLATED) as archive:
         for item in sorted((output / 'apk').rglob('*')):
@@ -1062,6 +1091,9 @@ def build(root, retained_output=None):
                       if re.match(r"\s*(?:minSdkVersion|sdkVersion)\b", line)]
     if minimum_fields != ["minSdkVersion:'" + str(min_api) + "'"]:
         raise RuntimeError('APK minimum SDK differs from admitted application floor.')
+    if retained_output is not None:
+        apk_identity = retained_apk_identity(badging, application=config['application'], activity=activity,
+                                             abi=identity['abi'], min_api=min_api, target_api=identity['target_api'])
     dex_dump = run([BT / 'dexdump', '-f', dex / 'classes.dex'])
     descriptors = ['Ldev/mixer/android/MixerActivity;', 'Ldev/mixer/android/NativeBridge;', 'Ldev/mixer/android/NativeRenderer;']
     if public:
@@ -1111,7 +1143,7 @@ def build(root, retained_output=None):
     checked_output(root, retained_output=retained_output)
     if retained_output is not None:
         debug_archive = output / 'debug-symbols.zip'
-        receipt.update({'apk_entries': entries, 'schema_version': 2, 'debug_products': debug_products,
+        receipt.update({'apk_entries': entries, 'apk_identity': apk_identity, 'schema_version': 2, 'debug_products': debug_products,
                         'symbols_sha256': digest(debug_archive), 'symbols_bytes': debug_archive.stat().st_size})
         for command in commands:
             del command['output']

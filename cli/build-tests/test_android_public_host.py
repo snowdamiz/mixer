@@ -26,7 +26,7 @@ class APKMinimumFieldTests(unittest.TestCase):
         # Official build-tools 37 AAPT2 emits minSdkVersion, not sdkVersion.
         for floor in (28,36):
             with self.subTest(floor=floor):
-                exec(self.guard(), {'re':re,'badging':"package: name='example.floor'\nminSdkVersion:'%d'\ntargetSdkVersion:'37'\n" % floor,'min_api':floor})
+                exec(self.guard(), {'re':re,'badging':"package: name='example.floor'\nminSdkVersion:'%d'\ntargetSdkVersion:'37'\n" % floor,'min_api':floor,'retained_output':None})
 
     def test_missing_alias_ambiguous_malformed_and_below_floor_refuse(self):
         for text in ("", "sdkVersion:'36'", "targetSdkVersion:'36'", "minSdkVersion:'35'",
@@ -34,7 +34,7 @@ class APKMinimumFieldTests(unittest.TestCase):
                      "minSdkVersion:'36'\nminSdkVersion:bad", "minSdkVersion:'036'",
                      " minSdkVersion:'36'", 'minSdkVersion:"36"', "minSdkVersion:'36' extra"):
             with self.subTest(badging=text):
-                with self.assertRaises(RuntimeError): exec(self.guard(),{'re':re,'badging':text,'min_api':36})
+                with self.assertRaises(RuntimeError): exec(self.guard(),{'re':re,'badging':text,'min_api':36,'retained_output':None})
 
 class AndroidPublicHostTests(CompatibilityFixture, unittest.TestCase):
     def setUp(self):

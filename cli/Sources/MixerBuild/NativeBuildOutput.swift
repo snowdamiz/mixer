@@ -69,31 +69,53 @@ public enum NativeBuildOutput {
     }
 
     /// Admission precedes tool inspection, generation, and compilation.
-    static func prepare(output: URL, root: URL) throws -> Store {
+    static func prepare(output: URL, root: URL, requireSourceIdentity: Bool = false) throws -> Store {
         let output = output.standardizedFileURL
+        let outsideProject = MixerFailure("build.output-path", "Output must be a new private store outside the source project.")
         guard output.path != root.standardizedFileURL.path,
               !output.path.hasPrefix(root.standardizedFileURL.path + "/"),
               !output.path.utf8.contains(0), output.path != "/"
-        else { throw MixerFailure("build.output-path", "Output must be a new private store outside the source project.") }
+        else { throw outsideProject }
+        let directoryFlags = O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC
+        var source: Int32 = -1
+        defer { if source >= 0 { close(source) } }
+        var sourceInfo: stat?
+        if requireSourceIdentity {
+            source = open(root.path, directoryFlags)
+            var info = stat()
+            guard source >= 0, fstat(source, &info) == 0 else {
+                throw MixerFailure("build.output-path", "Cannot identify the source project directory.")
+            }
+            sourceInfo = info
+        }
+        func isSource(_ info: stat) -> Bool {
+            guard let sourceInfo else { return false }
+            return info.st_dev == sourceInfo.st_dev && info.st_ino == sourceInfo.st_ino
+        }
         let parts = output.path.split(separator: "/").map(String.init)
-        var parent = open("/", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        var parent = open("/", directoryFlags)
         guard parent >= 0 else { throw MixerFailure("build.output-path", "Cannot open output ancestors.") }
         defer { close(parent) }
-        for part in parts.dropLast() {
-            let next = openat(parent, part, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
-            guard next >= 0 else { throw MixerFailure("build.output-path", "Output ancestors must be existing real directories.") }
-            var info = stat()
-            guard fstat(next, &info) == 0, info.st_mode & 0o022 == 0,
-                  info.st_uid == 0 || info.st_uid == getuid()
-            else { close(next); throw MixerFailure("build.output-path", "Unsafe output ancestor ownership or mode.") }
-            close(parent); parent = next
-        }
         var info = stat()
-        guard fstat(parent, &info) == 0, info.st_uid == getuid(), info.st_mode & 0o7777 == 0o700
+        guard fstat(parent, &info) == 0, !isSource(info) else { throw outsideProject }
+        for part in parts.dropLast() {
+            let next = openat(parent, part, directoryFlags)
+            guard next >= 0 else { throw MixerFailure("build.output-path", "Output ancestors must be existing real directories.") }
+            close(parent); parent = next
+            guard fstat(parent, &info) == 0, info.st_mode & 0o022 == 0,
+                  info.st_uid == 0 || info.st_uid == getuid()
+            else { throw MixerFailure("build.output-path", "Unsafe output ancestor ownership or mode.") }
+            guard !isSource(info) else { throw outsideProject }
+        }
+        guard info.st_uid == getuid(), info.st_mode & 0o7777 == 0o700
         else { throw MixerFailure("build.output-private", "Output parent must be owned by this user with mode 0700.") }
+        if requireSourceIdentity {
+            var namedSource = stat()
+            guard lstat(root.path, &namedSource) == 0, isSource(namedSource) else { throw outsideProject }
+        }
         guard let name = parts.last, mkdirat(parent, name, 0o700) == 0
         else { throw MixerFailure("build.output-exists", "Output must not already exist.") }
-        let fd = openat(parent, parts.last!, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        let fd = openat(parent, name, directoryFlags)
         guard fd >= 0 else { throw MixerFailure("build.output-store", "Cannot open newly owned store.") }
         let store = Store(url: output, fd: fd)
         try store.check()
