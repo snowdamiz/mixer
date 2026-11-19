@@ -971,3 +971,16 @@ attempt and unconfirmed shutdown. Preserve PID/PGID 94206 and listener port
 Do not inspect, enumerate, probe, signal, wait on, retry or clean these
 resources. Use the delivered top-level HOLD-live-06.json or the compact
 verification/receipts/l05-starter-package-closure-successor-777e22f9.json.
+
+The L07 terminal worker restart stopped with unknown compiler custody. Worker
+PID/PGID 36301 and the exact /private/tmp/mixer-l07-closure.vGVjHJeN namespace
+remain held without inspection, enumeration, probing, signalling, waits, retry
+or cleanup. PostgreSQL closed separately. Use the supplied top-level HOLD.json
+or verification/receipts/l07-worker-terminal-restart-hold-41a05264.json.
+
+The composed v40 normal collector ended with outer exit 142 and unresolved
+inner custody. Preserve the entire exact
+verification/local/starter-v40-composed-root.AmrZwkOX directory, including its
+projection and temporary targets, without inspection, process operations,
+retry or cleanup. There is no reliable inner identity. Use the copied compact
+verification/receipts/l05-v40-composed-collector-hold-41a05264.json.

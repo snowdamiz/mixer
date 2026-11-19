@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "gate": "L05",
+  "scope": "Local native worker pre-compiler exit and hosted dispatch only",
+  "base_commit": "07a536f3173e124643769b9f7cb6b2f1a73b9a3a",
+  "input_patch_sha256": "63d80a76cb2a17c1a94ac60e873e515271c7a6755bfc877ffaa6316866de5ff3",
+  "follow_up_patch_sha256": "92c6e9f237e39c7a3b14dd1f9abb448cebd498f789269430fd61ebc5988992e8",
+  "local_candidate_tree_without_receipt": "9de170b88351ab9cbe7ffd3070075e118864694b",
+  "replayed_tree_with_input_workflow_hunks": "9350751d34324ef108a9fcabc6b57d0835474a01",
+  "v40": {
+    "source_count": 405,
+    "exact_delta_from_v39_count": 7,
+    "selection_sha256": "ef25ad153e9e2e2ae99e4814a1cd6ac2c4c1fe000cdd53bd287556bf51874ea3",
+    "source_digest_sha256": "15f0f4ba03aad497bc32f8205520fbc7f96857299b1b3e87706ab8d40da866c2",
+    "manifest_sha256": "be50ce7d68f60692ffd8175110f4cfcc4712f7d1d1156ca79abc346f2b793ec1",
+    "installed_worker_sha256": "292ce8fd30dc33461f508c427b4ee93e65899943b438600235eaac822cd5572a",
+    "predecessor_bytes_verified": true,
+    "workflow_hunks_in_follow_up": false
+  },
+  "checks": [
+    {
+      "command": "python3 -B -m unittest -v hosted.scripts.test_native_artifact_worker.NativeWorkerTest.test_protocol_preflight_failure_releases_worker_capacity (before fix)",
+      "observation": "Exit 23 with a valid CLI marker and zero compiler receipts returned uncertain and shutdown refused."
+    },
+    {
+      "commands": ["python3 -B hosted/scripts/test_native_artifact_worker.py", "python3 -OB hosted/scripts/test_native_artifact_worker.py"],
+      "tool": "Python 3.14.8",
+      "observation": "13 passed per mode from isolated manifest-verified installed modules. Actual /bin/sh children exited 23, were directly reaped, and their groups were observed absent. Two operations completed in succession, artifacts remained unavailable, failure survived restart, and shutdown succeeded. Refusal cases included zero exit with cancellation, signal exit, malformed or missing proof, unproven group absence, nested hold, and multiple compiler receipts.",
+      "terminal_test_runner_pgids_esrch": [60972, 61412]
+    },
+    {
+      "commands": ["python3 -B hosted/scripts/test-identity-network.py --check-workspace-source", "python3 -OB hosted/scripts/test-identity-network.py --check-workspace-source"],
+      "observation": "405 selected afterimages and v34 through v40 preimages verified in both modes. Two focused collector controls per mode passed for exact source transfer/prepared archives and rejection of modified v40 selection before Docker."
+    },
+    {
+      "commands": ["mix format --check-formatted <two changed Elixir files>", "mix test test/mixer_hosted/builds/native_development_dispatch_test.exs test/mixer_hosted/builds/lifecycle_test.exs"],
+      "tool": "Elixir 1.20.4 / OTP 29",
+      "observation": "27 passed in a private checkout using checksum-verified cached Hex packages. Signed preflight failure mapped directly to failed completion and rejected a malformed digest. Source inspection confirmed the coordinator appends the completion and releases the reservation in one transaction.",
+      "terminal_mix_pgids_esrch": [49189, 49712, 49791]
+    }
+  ],
+  "limits": [
+    "No fresh Xcode build, application run, live SQL processor run, or L05 acceptance. The prior held native attempt remains unattributed.",
+    "The optional no-billing full-build attempt was skipped. The targeted checks used no payment service, credentials, devices, or browser.",
+    "PGID 94206, port 62275, and held scratch and logs were left untouched. Fresh diagnostic stages were removed after terminal observations."
+  ]
+}

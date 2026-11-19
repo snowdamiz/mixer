@@ -1,0 +1,632 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "status": "PASS_SCOPED_PRE_SPAWN_WORKER_LOSS_UNKNOWN_RECOVERY",
+  "observed_at": "2026-11-19T01:38:52.914327+00:00",
+  "source": {
+    "revision": "07a536f3173e124643769b9f7cb6b2f1a73b9a3a",
+    "public_main_revision_observed": "07a536f3173e124643769b9f7cb6b2f1a73b9a3a",
+    "tree": "b6764568b2ba7bd61e92990419a08cca1cfb6b55",
+    "hosted_tree": "dfde188ba7a9924131158448bc7937eb522a45ca",
+    "services_tree": "7b61ba7507e2fe2013ab7d048eb27ace958a4fa9",
+    "copied_tracked_hosted_blobs_matched": 339,
+    "native_artifact_worker_sha256": "f4d84aafc7611ec7814a2978ebcfded95a3b36405e84086d1fa1fbae94eeadc1",
+    "compiler_worker_sha256": "7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24",
+    "signer_review_hosted_and_services_unchanged": true
+  },
+  "references": [
+    "l07-signer-interruption-review-5961ea0c.json",
+    "verification/receipts/l05-restricted-durable-intent-scheduler-41a05264.json",
+    "verification/receipts/ordinary-build-cancel-integration-41a05264.json",
+    "verification/receipts/real-compiler-Oban-join-r2834.json"
+  ],
+  "tools": {
+    "platform": "macOS 27.0.1 arm64",
+    "python": "3.14.8",
+    "elixir": "1.20.4",
+    "erlang": "OTP 29 / ERTS 17.1",
+    "postgresql": "17.11",
+    "oban": "2.24.2",
+    "sqlite": "3.53.4"
+  },
+  "mode": {
+    "api": "loopback ordinary authenticated Phoenix fixture, browser_ordinary and mixer_build_create",
+    "processor": "real Oban builds queue, builds_v1 / durable_intent_v1, mixer_build_processor",
+    "migrations": [
+      20261110000498,
+      20261110000499,
+      20261110000500
+    ],
+    "processor_legacy_admit_execute": false,
+    "processor_fenced_intent_execute": true,
+    "processor_private_admissions_select": false,
+    "admission_42501_reproduced": false
+  },
+  "cut_point": "Canonical worker validates the registered input and commits SQLite running/starts=1. A fixture callable blocks in its executor thread before any compiler spawn. Python audit hook denies process creation; the would-be CLI is /usr/bin/false. Test transport enables same-port reuse and observes authenticated worker replies. No completion or stop evidence is injected.",
+  "build_create": {
+    "session": 200,
+    "create": 201,
+    "callback": 303,
+    "build_id": "build-f0722d0dfc78fb8e461e345a2e8ef9bb5746c981d29b6e41f510a5de39b43ed4"
+  },
+  "before_loss_postgres": {
+    "operation_id": "9f0ee8c45fafa805dc0b571d3c1c3e83b6e95200953100adec7defefe8e80f47",
+    "admission_state": "admitted",
+    "revision": 1,
+    "last_event": "start",
+    "held": true,
+    "terminal_event": null
+  },
+  "worker": {
+    "worker_before": {
+      "operation_id": "9f0ee8c45fafa805dc0b571d3c1c3e83b6e95200953100adec7defefe8e80f47",
+      "status": "running",
+      "starts": 1,
+      "tombstone": false,
+      "device_inode": [
+        16777232,
+        881122621
+      ],
+      "bound_scope": {
+        "organization_id": "org-a",
+        "project_id": "project-a",
+        "application_id": "fieldlog",
+        "build_id": "build-f0722d0dfc78fb8e461e345a2e8ef9bb5746c981d29b6e41f510a5de39b43ed4",
+        "platform": "ios"
+      }
+    },
+    "worker_after": {
+      "operation_id": "9f0ee8c45fafa805dc0b571d3c1c3e83b6e95200953100adec7defefe8e80f47",
+      "status": "uncertain",
+      "starts": 1,
+      "tombstone": false,
+      "device_inode": [
+        16777232,
+        881122621
+      ],
+      "bound_scope": {
+        "organization_id": "org-a",
+        "project_id": "project-a",
+        "application_id": "fieldlog",
+        "build_id": "build-f0722d0dfc78fb8e461e345a2e8ef9bb5746c981d29b6e41f510a5de39b43ed4",
+        "platform": "ios"
+      },
+      "pid": 26817
+    },
+    "worker_final": {
+      "operation_id": "9f0ee8c45fafa805dc0b571d3c1c3e83b6e95200953100adec7defefe8e80f47",
+      "status": "uncertain",
+      "starts": 1,
+      "tombstone": true,
+      "device_inode": [
+        16777232,
+        881122621
+      ],
+      "bound_scope": {
+        "organization_id": "org-a",
+        "project_id": "project-a",
+        "application_id": "fieldlog",
+        "build_id": "build-f0722d0dfc78fb8e461e345a2e8ef9bb5746c981d29b6e41f510a5de39b43ed4",
+        "platform": "ios"
+      }
+    },
+    "worker_exchanges": [
+      {
+        "pid": 23473,
+        "action": "query",
+        "reply": {
+          "status": "absent"
+        }
+      },
+      {
+        "pid": 23473,
+        "action": "ensure_started",
+        "reply": {
+          "status": "running"
+        }
+      },
+      {
+        "pid": 26817,
+        "action": "query",
+        "reply": {
+          "error": "uncertain"
+        }
+      },
+      {
+        "pid": 26817,
+        "action": "query",
+        "reply": {
+          "error": "uncertain"
+        }
+      },
+      {
+        "pid": 26817,
+        "action": "stop",
+        "reply": {
+          "error": "uncertain"
+        }
+      }
+    ],
+    "barrier_calls": 1,
+    "compiler_invocations": 0,
+    "artifact_files": 0,
+    "stop_refusal": {
+      "error": "uncertain"
+    }
+  },
+  "after_restart_api": {
+    "cancel": 202,
+    "events": [
+      "start",
+      "cancel"
+    ],
+    "owner_artifact": 404,
+    "duplicate_cancel": 202,
+    "capacity_held": true,
+    "terminal_event": null,
+    "lease_yielded_by_expiry": true,
+    "owner_get_after_restart": 200,
+    "owner_state_after_restart": "running",
+    "anonymous_get": 401,
+    "authenticated_cross_tenant_get": 404,
+    "foreign_project_get": 200,
+    "same_key_replay": 200,
+    "operation_rows": 1,
+    "operation_state_before_cancel": "admitted",
+    "operation_state_after_cancel": "stop_intent",
+    "processor_can_read_private_admissions_table": false
+  },
+  "after_cancel_postgres": {
+    "events": [
+      "start",
+      "cancel"
+    ],
+    "revision": 2,
+    "capacity_held": true,
+    "terminal_event": null,
+    "lease_yielded_by_expiry": true,
+    "jobs": [
+      [
+        "created",
+        "completed",
+        1
+      ],
+      [
+        "start",
+        "completed",
+        1
+      ],
+      [
+        "cancel",
+        "scheduled",
+        1
+      ]
+    ]
+  },
+  "notes": [
+    "The owner-visible build was running after restart; the authenticated native-worker query returned uncertain twice. The same-key POST returned the original build; the worker received one ensure_started in the run.",
+    "Authenticated owner was moved from tenant A to B after the replay. The same live session could list B's project and was denied access to the exact A build.",
+    "The stop intent and worker tombstone became durable. The worker returned uncertain on stop and authenticated shutdown, producing no terminal event and releasing no capacity. The coordination lease yielded by expiry."
+  ],
+  "commands": [
+    {
+      "label": "deps",
+      "argv": [
+        "mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "pid_pgid": 79448,
+      "custody": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "pid_pgid": 80216,
+      "custody": "TERMINAL",
+      "exit": 1,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "private-compile",
+      "argv": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "pid_pgid": 95341,
+      "custody": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "initdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "<scratch>/pgdata",
+        "-U",
+        "mixer_fixture",
+        "--auth=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "pid_pgid": 22072,
+      "custody": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "postgres",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "-D",
+        "<scratch>/pgdata",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "58228",
+        "-k",
+        "",
+        "-c",
+        "timezone=UTC",
+        "-c",
+        "listen_addresses=127.0.0.1"
+      ],
+      "pid_pgid": 23405,
+      "custody": "TERMINAL",
+      "signal": "SIGINT",
+      "exit": 0,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "role-fixture",
+      "argv": [
+        "psql",
+        "owned PostgreSQL",
+        "install synthetic fixture roles"
+      ],
+      "pid_pgid": 23422,
+      "custody": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "worker-first",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "<scratch>/worker_probe.py"
+      ],
+      "pid_pgid": 23473,
+      "custody": "TERMINAL",
+      "signal": "SIGKILL",
+      "exit": -9,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "api-exunit",
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "--trace",
+        "<scratch>/recovery_test.exs"
+      ],
+      "pid_pgid": 23531,
+      "custody": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "processor",
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "<scratch>/processor.exs"
+      ],
+      "pid_pgid": 25736,
+      "custody": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "before-loss-pg",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-w",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "58228",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "browser_ordinary_installation_r1422",
+        "-Aqt",
+        "-c",
+        "<join operation admission/build journal/reservation>"
+      ],
+      "pid_pgid": 26775,
+      "custody": "TERMINAL",
+      "exit": 0,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    },
+    {
+      "label": "worker-restart",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-I",
+        "-B",
+        "-S",
+        "<scratch>/worker_probe.py"
+      ],
+      "pid_pgid": 26817,
+      "custody": "TERMINAL",
+      "signal": "SIGTERM",
+      "exit": -15,
+      "direct_reaped": true,
+      "owned_group_absent": true
+    }
+  ],
+  "test": {
+    "attempt": 3,
+    "passed": 1,
+    "failed": 0,
+    "exunit_exit": 0,
+    "exunit_log_sha256": "72301f9d71f895cc1d71ba0a302bbe6897dbb3a4bafcfb156d36b7d683268575",
+    "fixture_source_sha256": {
+      "runner.py": "232e6db4d95e1f69c6e7231acfbbe94d18d70d36d16ba5cf8a4214cff8280276",
+      "worker_probe.py": "88bb32a04f5e95aaa1ec92f2b0b4f6ba3a13fd408aed7f59dddfa29e55104091",
+      "processor.exs": "d9dfb023853ae928348f59bffac8cf4ee0d1aa0d3f44d6d4355feca02307ec8e",
+      "recovery_test.exs": "1113c6a05e2fc1c7f6cd5d734391da4df9fa1fb7c14601fae3cd68316c310683"
+    },
+    "prepare_correction": "The first strict compile failed because a project module reads hosted/deps directly. An isolated hosted copy exposed the same locked Oban files at that path; its strict compile passed."
+  },
+  "earlier_attempts": [
+    {
+      "attempt": 1,
+      "result": "fixture assertion failed after controlled worker restart",
+      "observation": "Duplicate cancel returned 202 while cancelling. The fixture had incorrectly expected the 200 used after terminal cancellation.",
+      "fresh_operation": "f038006a23c6d8aa01ac603b1fc13a3eaf4eaabc01bcd57d9fee19ae55e09f68",
+      "worker_replies": [
+        {
+          "status": "absent"
+        },
+        {
+          "status": "running"
+        },
+        {
+          "error": "uncertain"
+        },
+        {
+          "error": "uncertain"
+        }
+      ],
+      "api_test_exit": 2,
+      "ports": {
+        "postgres": 56065,
+        "worker": 56066,
+        "http": 56177
+      },
+      "ports_reusable": {
+        "postgres": true,
+        "worker": true,
+        "http": true
+      },
+      "command_custody": [
+        {
+          "label": "initdb",
+          "pid_pgid": 99907,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "postgres",
+          "pid_pgid": 99933,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "role-fixture",
+          "pid_pgid": 99942,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "worker-first",
+          "pid_pgid": 99945,
+          "exit": -9,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "api-exunit",
+          "pid_pgid": 99953,
+          "exit": 2,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "processor",
+          "pid_pgid": 383,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "before-loss-pg",
+          "pid_pgid": 1291,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "worker-restart",
+          "pid_pgid": 1328,
+          "exit": -15,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        }
+      ],
+      "test_source_sha256": "82e8e7ee46bc7e07aa8e7d3c27e9c96378098e060d7fd718877844c26c9767dc",
+      "exunit_log_sha256": "2a61fca532db53b739cfce1a68f7959d4de7a41186843328e5e6eb8d89d9528e"
+    },
+    {
+      "attempt": 2,
+      "result": "fixture assertion failed after controlled worker restart",
+      "observation": "The fixture incorrectly expected the yielded lease owner to become NULL. Lease yield retains the owner and expires the lease using database time.",
+      "fresh_operation": "575d9fe422df3028b7334871dff5de5e956ccb8db008d634a0c83446558a81c3",
+      "worker_replies": [
+        {
+          "status": "absent"
+        },
+        {
+          "status": "running"
+        },
+        {
+          "error": "uncertain"
+        },
+        {
+          "error": "uncertain"
+        },
+        {
+          "error": "uncertain"
+        },
+        {
+          "error": "uncertain"
+        },
+        {
+          "error": "uncertain"
+        },
+        {
+          "error": "uncertain"
+        }
+      ],
+      "api_test_exit": 2,
+      "ports": {
+        "postgres": 57394,
+        "worker": 57395,
+        "http": 57520
+      },
+      "ports_reusable": {
+        "postgres": true,
+        "worker": true,
+        "http": true
+      },
+      "command_custody": [
+        {
+          "label": "initdb",
+          "pid_pgid": 13098,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "postgres",
+          "pid_pgid": 13426,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "role-fixture",
+          "pid_pgid": 13434,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "worker-first",
+          "pid_pgid": 13442,
+          "exit": -9,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "api-exunit",
+          "pid_pgid": 13444,
+          "exit": 2,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "processor",
+          "pid_pgid": 14387,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "before-loss-pg",
+          "pid_pgid": 15225,
+          "exit": 0,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        },
+        {
+          "label": "worker-restart",
+          "pid_pgid": 15237,
+          "exit": -15,
+          "direct_reaped": true,
+          "owned_group_absent": true
+        }
+      ],
+      "test_source_sha256": "cffe02873f628697f0f10d6c0c2e6add74caaac5f9763a0ec4d9d2bf2c6a4529",
+      "exunit_log_sha256": "eec90c5854291a1f20a2f6d87497821fbf6560e3b05033e4a4af35dfa09c1047"
+    }
+  ],
+  "cleanup": {
+    "all_owned_groups_absent": true,
+    "direct_workers_reaped": true,
+    "processor_stopped_cleanly": true,
+    "postgres_exit": 0,
+    "ports": {
+      "postgres": 58228,
+      "worker": 58229,
+      "http": 58327
+    },
+    "ports_reusable": {
+      "postgres": true,
+      "worker": true,
+      "http": true
+    },
+    "new_custody_holds": [],
+    "scratch_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-4e38b5d7/verification/local/l07-worker-recovery-07a536f3.eQnQrm9z",
+    "scratch_removed_and_absent": true
+  },
+  "remaining": [
+    "The cut point is before native compiler spawn. Worker-accepted terminal custody, post-spawn recovery, capacity release after recognized closure, and post-restart artifact hashes were outside this test.",
+    "L07 remains open. No XCTest, simulator, emulator, browser, real credentials, billing service, deployment, commit, or push was involved."
+  ],
+  "local_gates_passed": []
+}

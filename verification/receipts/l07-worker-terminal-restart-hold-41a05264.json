@@ -1,0 +1,162 @@
+{
+  "status": "HOLD_UNKNOWN_CLI_CLOSURE",
+  "observed_at": "2026-11-19T01:50:32.796955+00:00",
+  "scope": "L07 local authenticated build recovery. No terminal restart exercised.",
+  "checkout_revision": "3607a9160069605737adb0a941a1cd73788dac4c",
+  "hosted_tree": "dfde188ba7a9924131158448bc7937eb522a45ca",
+  "worker_sha256": "f4d84aafc7611ec7814a2978ebcfded95a3b36405e84086d1fa1fbae94eeadc1",
+  "fixture_source_sha256": "39b06c74368311207cacc3b9c10ae8b004a4f38b123b661f60c1a6daec1e3ec7",
+  "fixture_cli_sha256": "24d210d25725e299079cd4ab71d5a7ba03d999c8f92589dd4f9bbd6caf2629a1",
+  "closure_protocol_introduced_at": "793196991da046870e9e3eae1ba767135a2ff62d",
+  "missing_cli_markers": [
+    "MIXER_WORKER_COMMAND_CONTROL",
+    "cli-closed"
+  ],
+  "initial_fixture": {
+    "blocker": "Copied processor setup never populated runtime native settings",
+    "compiler_spawns": 0,
+    "worker_operations": 0,
+    "cleanup": {
+      "worker": {
+        "port": 64450,
+        "listener_absent": true,
+        "reusable": true
+      },
+      "postgres": {
+        "port": 64449,
+        "listener_absent": true,
+        "reusable": true
+      },
+      "all_groups_terminal": true,
+      "compiler_nested_terminal": false,
+      "worker_config_removed": true
+    }
+  },
+  "corrected_fixture": {
+    "session_http": 200,
+    "callback_http": 303,
+    "build_create_http": 201,
+    "processor": "restricted builds_v1 and durable_intent_v1",
+    "operation_id": "6474faf9c0483aa0643557ab4ac48151d41d6aaefc5a42a1eec5120c84d2dff2",
+    "worker_query_replies": [
+      "absent",
+      "uncertain"
+    ],
+    "worker_start_requests": 1,
+    "cli_launch_attempts": 1,
+    "compiler_termination": "unobserved",
+    "shutdown_acknowledgement": {
+      "error": "uncertain"
+    },
+    "terminal_reply_barrier_reached": false,
+    "worker_restarted": false,
+    "commands": [
+      {
+        "label": "initdb",
+        "pid": 35554,
+        "pgid": 35554,
+        "custody": "TERMINAL",
+        "exit": 0,
+        "direct_reaped": true,
+        "group_absent": true
+      },
+      {
+        "label": "postgres",
+        "pid": 36219,
+        "pgid": 36219,
+        "custody": "TERMINAL",
+        "exit": 0,
+        "direct_reaped": true,
+        "group_absent": true
+      },
+      {
+        "label": "roles",
+        "pid": 36232,
+        "pgid": 36232,
+        "custody": "TERMINAL",
+        "exit": 0,
+        "direct_reaped": true,
+        "group_absent": true
+      },
+      {
+        "label": "mixer_coordinator_intent_test",
+        "pid": 36255,
+        "pgid": 36255,
+        "custody": "TERMINAL",
+        "exit": 0,
+        "direct_reaped": true,
+        "group_absent": true
+      },
+      {
+        "label": "mixer_operation_admission_test",
+        "pid": 36261,
+        "pgid": 36261,
+        "custody": "TERMINAL",
+        "exit": 0,
+        "direct_reaped": true,
+        "group_absent": true
+      },
+      {
+        "label": "mixer_coordinator_test",
+        "pid": 36277,
+        "pgid": 36277,
+        "custody": "TERMINAL",
+        "exit": 0,
+        "direct_reaped": true,
+        "group_absent": true
+      },
+      {
+        "label": "worker-first",
+        "pid": 36301,
+        "pgid": 36301,
+        "custody": "UNKNOWN",
+        "exit": null,
+        "direct_reaped": null,
+        "group_absent": null
+      },
+      {
+        "label": "ordinary",
+        "pid": 36320,
+        "pgid": 36320,
+        "custody": "TERMINAL",
+        "exit": 2,
+        "direct_reaped": true,
+        "group_absent": true
+      },
+      {
+        "label": "processor",
+        "pid": 37744,
+        "pgid": 37744,
+        "custody": "TERMINAL",
+        "exit": 2,
+        "direct_reaped": true,
+        "group_absent": true
+      }
+    ]
+  },
+  "no_spawn_control": {
+    "passed": 3,
+    "failed": 0,
+    "scratch_removed": true,
+    "tests": [
+      "test_worker_refuses_acknowledgement_without_cli_custody_proof",
+      "test_protocol_native_artifacts_survive_authorized_restart_until_stop",
+      "test_registration_and_operation_binding_refuse_another_scope"
+    ]
+  },
+  "cleanup": {
+    "first_run_removed": true,
+    "corrected_postgres_data_removed": true,
+    "postgres": {
+      "port": 49867,
+      "listener_absent": true,
+      "reusable": true
+    },
+    "retained_root": "/private/tmp/mixer-l07-closure.vGVjHJeN",
+    "retained_worker_run": "/private/tmp/mixer-l07-closure.vGVjHJeN/corrected",
+    "worker_pid_pgid": 36301,
+    "nested_compiler_custody": "UNKNOWN",
+    "hold": "Preserve the worker group, retained fixture and run. Do not inspect worker state or nested scratch, probe, signal, wait, retry or delete the held chain."
+  },
+  "next_diagnostic": "Validate a closure-capable CLI from the current public revision with a no-compiler control before any new native attempt. The next integrated diagnostic should witness native_ready committed and the authenticated reply dropped while SQL is running and holds the reservation."
+}

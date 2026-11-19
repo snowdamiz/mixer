@@ -1,0 +1,191 @@
+{
+  "schema": 1,
+  "id": "fieldlog-f05-public-swift-5961ea0c",
+  "gate": "L08",
+  "corpusRow": "F05",
+  "status": "HOST_BEHAVIOR_PASS",
+  "observedUTC": "2026-11-19T01:38:43.306767+00:00",
+  "scope": "macOS arm64 host using an actual Swift WASI guest and the native backend's development256 VM entry point.",
+  "inputs": {
+    "mixer": "5961ea0cae969d8195a9d72c699ff424268880e6",
+    "mixerTrees": {
+      "sdk": "9625f4808a5a3dd4ff65d24ec02d3c80be557e52",
+      "compiler": "878ffc7fedfaf5afbc291c48c1a0959a3feab91a",
+      "vm": "62efca2793a308383a8ff43d448c48765d25ff75"
+    },
+    "fieldlog": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "before": "82192341e6dd8c7ac2435dcf7cc4541f0af71e1f",
+    "after": "70f3aa1d28f29e7c327a17fd46199480d41ca749",
+    "historicalSDK": "d8c6965a277ca21e685f3ef9e0f68a7d59b46156",
+    "historicalSDKTree": "fa1a446b6fa6f4b1b5e79fa3b19284e0c1013dba",
+    "probeSHA256": {
+      "Guest.swift": "59f9a46718da2feae1d82d7f13aae1f0868fb20968e8b739f669530a4a8952ad",
+      "probe.rs": "cbe4740c5d6bbab2d2737173d073c357440c07854ff2b4241961733b9cd5b2c2",
+      "replay.py": "5ae580c70d897a23687fddd8f4210f865f28e336e4f1d788a63448377310c7f8"
+    },
+    "mixerArchiveSHA256": "4d5a6058cc0fe965616f059442d01a46354990044f3b661bad57a346a7de6fb0",
+    "sdkCutoffFix": {
+      "path": "sdk/Sources/MixerGuest/GuestUIExchangeCore.swift",
+      "sha256": "22d66a1309e39a2de258cbc9177a816cb61270c90d08be851e717d4363863a5c"
+    },
+    "appArchiveSHA256": "3a7378762ba68f9cc84c247014174e0ace43a7d50577306a9176dad7969e0d74"
+  },
+  "publicMainReadback": {
+    "revision": "07a536f3173e124643769b9f7cb6b2f1a73b9a3a",
+    "trees": {
+      "capability-activation": "29fa2954435e018582f8630b9d943b978b4eeefe",
+      "compiler": "878ffc7fedfaf5afbc291c48c1a0959a3feab91a",
+      "sdk": "9625f4808a5a3dd4ff65d24ec02d3c80be557e52",
+      "vm": "62efca2793a308383a8ff43d448c48765d25ff75"
+    }
+  },
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "swiftc": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "wasm-ld": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "wasmSDKDescriptors": {
+    "swift-sdk.json": "5ce9854bf06caef51f4df3993e1c98f686b296e1029ea60a9fd0265df8966f04",
+    "toolset.json": "44d1b0b287ac787f0ae2de87744148de464810444afe1f12f45d367391699986"
+  },
+  "guest": {
+    "bytes": 54739192,
+    "sha256": "09eb2615b121bfde28c3e4884aebc522e479a0c77a4ee0def839f6b95d1a2917"
+  },
+  "vmArchiveSHA256": "30c01e0007e5b4224534c20a52634d2538cceb1fbe0d72ee33b89f44a298339f",
+  "command": {
+    "launcher": "env -i PATH=/usr/bin:/bin HOME=/var/empty LC_ALL=C /opt/homebrew/bin/python3 -I -B",
+    "runner": "compiler/experiments/fieldlog-change-corpus/public-swift/replay.py",
+    "argv": [
+      "--fieldlog",
+      "/private/tmp/mixer-f05-public-swift.zR3RubMO/fieldlog",
+      "--swift-bin",
+      "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin",
+      "--wasm-sdk",
+      "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1",
+      "--rust-bin",
+      "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin",
+      "--sdk-cutoff-fix",
+      "--receipt",
+      "/private/tmp/mixer-f05-public-swift.zR3RubMO/attempt-5.json"
+    ],
+    "vmEntry": "mixer_swift_ui_open_profile_v1(profile=1)",
+    "compileTarget": "wasm32-unknown-wasip1",
+    "compilerMode": "-Osize -whole-module-optimization -swift-version 6; WASI reactor",
+    "linkedVM": "cargo rustc --offline --locked --release --lib --jobs 1 --features experimental-swift-reactor --crate-type rlib",
+    "namedCommands": [
+      "compile-MixerCore",
+      "compile-MixerUI",
+      "compile-MixerGuest",
+      "compile-FieldLogModels",
+      "compile-FieldLogFeatures",
+      "link-f05-reactor",
+      "build-owned-vm",
+      "link-host-probe",
+      "run-owned-probe"
+    ],
+    "host": {
+      "name": "run-owned-probe",
+      "argv": [
+        "/private/tmp/mixer-f05-replay-nolawj7a/probe",
+        "/private/tmp/mixer-f05-replay-nolawj7a/f05.wasm"
+      ],
+      "exitCode": 0,
+      "ownedGroupAbsent": true,
+      "stdoutSHA256": "a999ac3649ce1b342cbb3690f8daeb67fc9bc23b4c029a94f86d13925992b53b",
+      "stderrSHA256": "18e565aef467b9b4739fbe591198cb1d705bbbdb45e40e0b45e0738e4d4aae81"
+    }
+  },
+  "observations": [
+    "ownerCleanup=clean; currents=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; tickets=0; invariants=0",
+    "Original before reducer and historical after presentation passed in the owned VM"
+  ],
+  "checks": {
+    "historicalBefore": "The common reducer blob accepts the direct title setter after a prior edit. The adapter calls close at the boundary used by the parent sheet's onDisappear.",
+    "historicalAfter": "The source-built task presentation starts the newTask route. A current edit changes the frame. Replaying a stale revision preserves the exact frame. The historical presentation also refuses a foreign node generation, Boolean and overlong text values, and an unbound activate. Cancel pops the route, preserves unsaved text, and prevents subsequent Save.",
+    "wasiCutoff": "The WASI guest accepts a valid V1 startup with no cutoff. A supplied UInt64.max Dispatch cutoff fails as startup/startupDeadline before revision admission or effects.",
+    "storage": "The F05 cancellation and rejection path uses an injected save closure that traps if called. The probe does not exercise successful persistence.",
+    "cleanup": "VM consume status 1 with fourteen zero ledger currents, zero live tickets, and zero cleanup invariant failures."
+  },
+  "priorProbeAttempts": [
+    {
+      "number": 1,
+      "status": "HARNESS_FAILED",
+      "lastCommand": "compile-MixerUI",
+      "exitCode": 1,
+      "firstDiagnostic": "/private/tmp/mixer-f05-replay-8j79zrag/mixer/sdk/Sources/MixerUI/NativePresentation.swift:8:5: error: the package access level used on 'init(document:)' requires a package name; set it with the compiler flag -package-name",
+      "stderrSHA256": "f9ec476dbc433edfada41b0b9f1246f882b2f8c529d07d71ac330a74fe2d45e0",
+      "resolvedBy": "Set -package-name to match the package manifests in the direct swiftc invocation."
+    },
+    {
+      "number": 2,
+      "status": "HARNESS_FAILED",
+      "lastCommand": "compile-MixerGuest",
+      "exitCode": 1,
+      "firstDiagnostic": "/private/tmp/mixer-f05-replay-hufnz2ok/mixer/sdk/Sources/MixerGuest/GuestUIExchangeCore.swift:213:35: error: cannot find 'DispatchTime' in scope",
+      "stderrSHA256": "109306be4af0db7a30f26f28b3494453df66203566df27cd6d104c99169887a1",
+      "resolvedBy": "Overlay the checkout cutoff fix in GuestUIExchangeCore.swift."
+    },
+    {
+      "number": 3,
+      "status": "OWNED_VM_REFUSED",
+      "entry": "PersistentSwiftUIOwner.construct with default SwiftRunBudget",
+      "diagnostic": "startup:SwiftRunFailure { stage: Invocation, kind: FrameLimit, code: \"swift_frame_depth\", function: Some(28240), offset: Some(5079404), resource: Some(Frames), attempted: 65, limit: 64, observed_capacity: None, deadline_origin: Run, wasi_failure: None, guest_exit: None, at_failure: SwiftRunUsage { reservations: SwiftReservations { retained_source: SwiftReservationUsage { current: 54735250, peak: 54735250 }, retained_metadata: SwiftReservationUsage { current: 1091884, peak: 1091884 }, cache: SwiftReservationUsage { current: 1268707, peak: 2118140 }, state: SwiftReservationUsage { current: 45770168, peak: 45770168 }, wasi: SwiftReservationUsage { current: 264712, peak: 264712 }, shared: SwiftReservationUsage { current: 1832, peak: 1832 }, construction: SwiftReservationUsage { current: 16122440, peak: 16228974 }, combined: SwiftReservationUsage { current: 119254993, peak: 120210960 }, live_tickets: 85, peak_tickets: 85 }, live: SwiftLiveUsage { cache_entries: SwiftReservationUsage { current: 64, peak: 64 }, active_pins: SwiftReservationUsage { current: 64, peak: 64 }, frames: SwiftReservationUsage { current: 64, peak: 64 }, values: SwiftReservationUsage { current: 663, peak: 724 }, controls: SwiftReservationUsage { current: 242, peak: 257 }, memory_pages: SwiftReservationUsage { current: 586, peak: 586 } }, cache_work: 24310082, execution_work: 95681807, instruction_fuel: 5668366, instructions: 5665135, host_calls: 8, cleanup_invariant: None, elapsed_micros: 2047705, deadline_ms: 30000, deadline_origin: Run, deadline_overshoot_micros: 0, validation: SwiftValidationUsage { input_visible_bytes: 54735250, source_bytes: 54735250, metadata_reserved: 1091884, scratch_reserved: 0, metadata_peak_reserved: 1091884, scratch_peak_reserved: 13312, total_peak_reserved: 55840446, work_used: 192713575, elapsed_micros: 836000, deadline_ms: 120000 }, wasi: Some(WasiUsage { calls: 8, work: 595, transfer_bytes: 70, random_bytes: 36, log_bytes: 0, failures: 0, reservations: WasiReservations { fixed_state_bytes: 1632, staging_bytes: 65536, rollback_bytes: 65536, stdout_bytes: 65536, stderr_bytes: 65536, current_bytes: 263776, peak_bytes: 263776 } }) }, after_cleanup: None }",
+      "guest": {
+        "bytes": 54735250,
+        "sha256": "ac48a26c6770f7efe5072a7d786736e78c800db8d2835e26cf9c65107aa15109"
+      },
+      "exitCode": 10,
+      "stdoutSHA256": "efc607da5fa2eb0c8d6a75705510469dcc30c924fcc37a28d1af375026ce2f59",
+      "stderrSHA256": "1e5c77af4492b2290027fb9963d26e0825a2f8c2fb0a99c2856fcb410a4492ab",
+      "resolvedBy": "Use the development256 VM entry point selected by NativeSwiftFeatureBackend."
+    },
+    {
+      "number": 4,
+      "status": "HOST_BEHAVIOR_PASS",
+      "guest": {
+        "bytes": 54735250,
+        "sha256": "1a651e06ec5c07d0af3cd1466f315b4c0f2cd4fd08ea9a7292ab8787a6a4ebfb"
+      },
+      "stdoutSHA256": "a999ac3649ce1b342cbb3690f8daeb67fc9bc23b4c029a94f86d13925992b53b",
+      "checks": [
+        "before reducer",
+        "current title edit",
+        "stale revision",
+        "shared Cancel",
+        "zero cleanup ledger"
+      ]
+    }
+  ],
+  "historicalEvidence": {
+    "verification/receipts/fieldlog-history-corpus-41a05264.json": "e17df654c0a8e916cdb210123476b5be94c358a181f00b6feb52f3958e055945",
+    "verification/receipts/fieldlog-f05-signed-editor-host-41a05264.json": "6239a1a4a0f6e2e37e00c171493edf757956ff7a0656572677ebab36da1453a9"
+  },
+  "historicalFailures": [
+    "Original F05 frame refused by Guest UI V1 as startup/document before effects intent.",
+    "The broad 70f3aa1 suite expected responsible person Rae while disk preserved the surrounding spaces."
+  ],
+  "cleanup": {
+    "commandGroupsAbsent": true,
+    "buildProjectionsRemoved": [
+      "/private/tmp/mixer-f05-replay-8j79zrag",
+      "/private/tmp/mixer-f05-replay-hufnz2ok",
+      "/private/tmp/mixer-f05-replay-l7cz682w",
+      "/private/tmp/mixer-f05-replay-qlsrvxym",
+      "/private/tmp/mixer-f05-replay-nolawj7a"
+    ],
+    "outerScratch": "/private/tmp/mixer-f05-public-swift.zR3RubMO",
+    "outerScratchRemoval": "Removed the fresh FieldLog clone and intermediate receipts.",
+    "outerScratchRemoved": true
+  },
+  "nextScopeDecision": "An installed signed F05 replay requires selecting a versioned FeatureUIV3 route in the installed activation owner. The current installed Guest UI mode requires V1. Qualify the new selector and fail-closed recovery in a host replay before attempting either mobile target.",
+  "deviceRuns": 0,
+  "signedAssignmentsExercised": 0,
+  "dualTargetOTA": 0,
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}
