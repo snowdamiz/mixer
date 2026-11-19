@@ -1,0 +1,280 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "status": "bounded_pre_begin_http_recovery_passed_on_pinned_source",
+  "source": {
+    "revision": "c2bae0e57e5ff635f0c7a6c9c6cc4476ba044dc5",
+    "tree": "353800017b792f10c642b80098d0c83d08492e54",
+    "hostedTree": "f178abcf814c58a7c0b47f2b2d8d6d1a05737d2b",
+    "mixLockSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "canonicalTestSHA256": "797bf7407edf8bd2cd7b4e15d0c2d4be23942520250e49331374346f263c8be8",
+    "instrumentedTestSHA256": "b8371fedbf5dc9b292c7d73db642de7fbd9c64b5fe366387984ca1e7667446e5",
+    "existingProductFix": "47a9282ae27cd4841122a0d3fbbdd202778124e3",
+    "productionSourceModified": false
+  },
+  "historicalReceipts": [
+    "verification/receipts/l07-integrated-outage-41a05264.json",
+    "verification/receipts/l07-ordinary-session-recovery-41a05264.json",
+    "verification/receipts/hosted-v41-local-qualification-20261118.json"
+  ],
+  "tools": {
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:2:2:2] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "3.14.8",
+    "git": "git version 2.56.0",
+    "db_connection": "2.10.2",
+    "ecto_sql": "3.14.0",
+    "postgrex": "0.22.4",
+    "verifiedLockTarballHashesPerFixture": 21
+  },
+  "refusalBoundary": {
+    "heldConnections": 2,
+    "distinctPostgresBackendsHeld": 2,
+    "readyPoolConnectionsBeforeDuringAfter": [
+      2,
+      0,
+      2
+    ],
+    "queuedPoolCheckouts": 0,
+    "ectoQueryLabel": "begin",
+    "reason": "error",
+    "message": "connection not available and queuing is disabled",
+    "metadataMatchesSameCallerWithReceiptReference": true,
+    "otherTransactionFramesDuringHeldWaves": 0,
+    "sourceTrace": "DBConnection returns the queue-disabled busy-pool error before giving the caller a holder. It never calls the driver BEGIN function for that branch. Ecto labels the failed attempt begin and emits only equal queue_time and total_time. Store maps that exact caller-bound receipt while awaiting BEGIN to not_started. RuntimeOwner releases the lease without invalidating its generation. It still invalidates on unknown outcome or admission failure after transaction start."
+  },
+  "waves": [
+    {
+      "finishedUTC": "2026-11-19T06:14:01.275976+00:00",
+      "httpTest": {
+        "result": "1 passed, 3 excluded",
+        "pidPGID": 50375,
+        "exit": 0,
+        "logSHA256": "86105da328543b7d4f041e74eecd35fdf06d63122edb2dcc5adbcb799a474bf7"
+      },
+      "postgres": {
+        "pidPGID": 50366,
+        "port": 64065,
+        "exit": 0,
+        "logSHA256": "0550e8bf0f7ea4b72ef976cccc1e1d46a4f78a1beb436915f85a0ddbc9d2e65a"
+      },
+      "listeners": {
+        "http": 64154,
+        "issuer": 64138,
+        "jwks": 64125
+      },
+      "portsRebound": [
+        64065,
+        64125,
+        64138,
+        64154
+      ],
+      "ownerBeforeDuringAfter": [
+        {
+          "phase": "storage_ready",
+          "generation": 1
+        },
+        {
+          "phase": "storage_ready",
+          "generation": 1
+        },
+        {
+          "phase": "storage_ready",
+          "generation": 1
+        }
+      ],
+      "initialCreate": 201,
+      "saturatedPOSTStatuses": [
+        503,
+        503,
+        503,
+        503,
+        503
+      ],
+      "checkoutRefusalMeasurementsNativeUnits": [
+        {
+          "queue_time": 8542,
+          "total_time": 8542
+        },
+        {
+          "queue_time": 5250,
+          "total_time": 5250
+        },
+        {
+          "queue_time": 34000,
+          "total_time": 34000
+        },
+        {
+          "queue_time": 38625,
+          "total_time": 38625
+        },
+        {
+          "queue_time": 32000,
+          "total_time": 32000
+        }
+      ],
+      "afterCheckin": {
+        "checkout_queue_length": 0,
+        "ready_connections": 2,
+        "no_restart": true,
+        "same_session_and_csrf": true,
+        "no_reissued_cookie": true,
+        "auth_session": 200,
+        "existing_replay": 200,
+        "retry_create": 201,
+        "retry_replay": 200,
+        "build_read": 200,
+        "other_tenant_read": 404,
+        "builds_jobs_checkpoints": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "outstanding_leases": 0
+      },
+      "allRecordedCommandGroupsAbsent": true,
+      "scratchRemoved": true
+    },
+    {
+      "finishedUTC": "2026-11-19T06:15:50.210787+00:00",
+      "httpTest": {
+        "result": "1 passed, 3 excluded",
+        "pidPGID": 64476,
+        "exit": 0,
+        "logSHA256": "b607b253afe3e138507a7ce7a8996fa1a08c9822e88df43fb3da0d3b01b0d7cc"
+      },
+      "postgres": {
+        "pidPGID": 64456,
+        "port": 65251,
+        "exit": 0,
+        "logSHA256": "13cb0fb7e74c64a29cd6b0a3ef9a369827e23197b1321b585e27dc4637af318b"
+      },
+      "listeners": {
+        "http": 65362,
+        "issuer": 65349,
+        "jwks": 65336
+      },
+      "portsRebound": [
+        65251,
+        65336,
+        65349,
+        65362
+      ],
+      "ownerBeforeDuringAfter": [
+        {
+          "phase": "storage_ready",
+          "generation": 1
+        },
+        {
+          "phase": "storage_ready",
+          "generation": 1
+        },
+        {
+          "phase": "storage_ready",
+          "generation": 1
+        }
+      ],
+      "initialCreate": 201,
+      "saturatedPOSTStatuses": [
+        503,
+        503,
+        503,
+        503,
+        503
+      ],
+      "checkoutRefusalMeasurementsNativeUnits": [
+        {
+          "queue_time": 19916,
+          "total_time": 19916
+        },
+        {
+          "queue_time": 22542,
+          "total_time": 22542
+        },
+        {
+          "queue_time": 65000,
+          "total_time": 65000
+        },
+        {
+          "queue_time": 2625,
+          "total_time": 2625
+        },
+        {
+          "queue_time": 1791,
+          "total_time": 1791
+        }
+      ],
+      "afterCheckin": {
+        "checkout_queue_length": 0,
+        "ready_connections": 2,
+        "no_restart": true,
+        "same_session_and_csrf": true,
+        "no_reissued_cookie": true,
+        "auth_session": 200,
+        "existing_replay": 200,
+        "retry_create": 201,
+        "retry_replay": 200,
+        "build_read": 200,
+        "other_tenant_read": 404,
+        "builds_jobs_checkpoints": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "outstanding_leases": 0
+      },
+      "allRecordedCommandGroupsAbsent": true,
+      "scratchRemoved": true
+    }
+  ],
+  "setupControl": {
+    "note": "Initial line-based selection also ran neighboring tests and reached its deadline during setup before the recovery test. Both selected neighboring tests used the existing ordinary fixture. The dedicated tag corrected selection.",
+    "targetRan": false,
+    "allRecordedCommandGroupsAbsent": true,
+    "postgresPortRebound": 62495,
+    "otherListenerCleanup": "Neighboring fixture listeners ran inside the reaped ExUnit VM. Their ephemeral HTTP port numbers were not captured for rebind.",
+    "scratchRemoved": true
+  },
+  "scope": {
+    "covered": "Two independent synthetic signed-in loopback Phoenix builds fixtures. Each used two deliberately held lifecycle connections and five ordinary same/new-key build POSTs, followed by session, same-key replay, retried creation, normal GET and a cross-tenant refusal without restart.",
+    "gap": "The deterministic barrier forces every request to miss checkout. The historical workload used natural five-way contention alongside a separate outage drill. Racing transactions that win checkout and the v41 role-edit/read contention scenario were not exercised here.",
+    "nativeCompilerStarts": 0,
+    "nativeWorkerStarts": 0,
+    "paymentRequired": false,
+    "wholeGatePassed": false
+  },
+  "checks": {
+    "observerPatchAppliesWithoutWhitespaceErrors": true,
+    "runnerParses": true,
+    "simulatedCustodyObservationAndSignalDenialsRetainScratch": true,
+    "verificationRetentionValidatedWithIsolatedStagingIndex": true
+  },
+  "sourceReceiptSHA256": "ede980bfdee627a4fb4173b4d851cc39f6fe9f3f9085a3df40cd77ee65f0f7da",
+  "localGatesPassed": []
+}
