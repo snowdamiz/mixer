@@ -113,6 +113,22 @@ On `9315129781d6d32215a452b0bd2722cf6123ffd1`, one authenticated free iOS Starte
 
 The fixture used PostgreSQL 17.11, Elixir 1.20.4, and Xcode 27.2 on macOS arm64. It checked the persisted request key, deterministic build ID, and stable authenticated reads with one POST. Billing rows matched before and after the build. The fixture ran without a payment service. All owned groups exited, all seven ports were reusable, and the disposable database and scratch were removed. L07 remains open for recovery when the compiler exits without verified closure and for combined load and delivery recovery.
 
+### Android FieldLog engine replacement
+
+Section 22.2.13 passed on one owned AOSP arm64 API 36 emulator. FieldLog saved an open task through the ordinary form. Android installed version 24102 over 24101 with `pm install -r` and the same development signer. The old engine displayed signed sequence 7, and the replacement displayed sequence 1. Both showed **Open** and reached durable `first_screen` and `feature_started` before **Done** closed effects.
+
+The APKs linked Mixer engines `15a2c0a98593d6e2bafaa1f5c00eb045c9815944` and `9fd7e7f6ebd9cadfd96d71a6c71225e6b11e33b9` with FieldLog `552559d2d3278abb9b1aa7dcf0288102c09a202b` and the pinned Android host overlay. The installed APKs matched SHA-256 `dfe81f4e03f4dd60e2db6116a340872c518c776357a826c428712c9374a5d15a` and `1e01140e6daa3ea0e54e581c7004991bb9c7b93ae3cea0d02587ceed15509711`. The two runtimes kept separate recovery cursors under installation `908880d5-6fab-43db-8cad-a11abee08cdc`. The old journal and the 888-byte revision-2 workspace each matched byte for byte after replacement. The workspace SHA-256 was `fa28b39831416d4ca070c945ae996e6356808d8ee6ae98f22aa436a1514657e7`.
+
+The first replacement attempt reopened a workspace with one task but stopped while looking for its title below the visible checklist controls. The corrected replay checked the rendered task count and compared the full saved workspace before opening the guest. It used Python 3.14.8, ADB 37.0.1 and Android Emulator 37.2.12 with image build 13818094. All 578 recorded command groups closed. The reverse mapping, private ADB, origin, log reader and emulator closed, all four ports were reusable, and the disposable AVD was removed. L04 and L08 remain running.
+
+### Rendered free Starter build
+
+At `72d135441ea5b50dbcf87902252e0c05e1e3b179`, Chrome signed in, created the free organization and project, registered the app, and selected the pinned Starter. The first fixture returned HTTP 400 because its proxy dropped `Idempotency-Key`. The corrected fixture forwarded the header, accepted one POST, and rendered the matching build ID. The stock admission API configured one fleet slot and one iOS slot. Restricted Oban dispatched one Xcode run, and the build reached `native_succeeded`.
+
+PostgreSQL and the worker agreed on the size and SHA-256 of all three artifacts. Billing rows stayed unchanged, and the fixture used no payment credentials. Chrome then displayed **Check session** while the runner waited for **Refresh build**. The fixture closed before session recovery, rendered terminal logs, downloads, export, or exit. The database and scratch were removed, all owned groups closed, and all six ports were reusable. L05 and L06 remain running.
+
+A loopback Chrome control forced HTTP 401 on a saved build at `72d135441e`. The test clicked **Check session**, signed in again, and reselected the same build. Chrome showed the terminal log and saved three synthetic attachments with matching SHA-256 hashes. The control issued zero build POSTs and ran no compiler. The console and hosted source trees match `9315129781`. The full browser journey with real artifact downloads, export, and exit remains open.
+
 ## November 18 local verification
 
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
