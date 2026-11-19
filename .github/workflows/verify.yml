@@ -254,15 +254,24 @@ jobs:
           python3 -I -B -S "$MIXER_NATIVE_PREDECESSOR/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/test_source113.py" \
             > "$MIXER_ADOPTION_DIR/logs/source113-controls.stdout" \
             2> "$MIXER_ADOPTION_DIR/logs/source113-controls.stderr"
+      - name: Install pinned Rust toolchain for the fixture
+        timeout-minutes: 3
+        shell: bash
+        env:
+          RUSTUP_HOME: ${{ runner.temp }}/mixer-fixture-rustup
+          RUSTUP_DIST_SERVER: https://static.rust-lang.org
+        run: rustup toolchain install 1.99.1-aarch64-apple-darwin --profile minimal --no-self-update
       - name: Historical source127 analyzer envelope with prospectively selected compiler
         # 480 active + 60 retention/cleanup seconds; 180 seconds startup margin.
         timeout-minutes: 12
         shell: bash
+        env:
+          RUSTUP_HOME: ${{ runner.temp }}/mixer-fixture-rustup
         run: |
           set -euo pipefail
           export RUSTUP_AUTO_INSTALL=0
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/envelope-rust-1991-default-ci-adoption"
-          MIXER_ENVELOPE_RUSTC_LAUNCHER="$(command -v rustc)"
+          MIXER_ENVELOPE_RUSTC_LAUNCHER="$(rustup which --toolchain 1.99.1-aarch64-apple-darwin rustc)"
           MIXER_SOURCE127_PREDECESSOR="$RUNNER_TEMP/sdk-source127-controls"
           GITHUB_SHA="$(head -n 1 "$MIXER_ADOPTION_DIR/logs/source127-synthetic-git.txt")" \
           python3 -B "$MIXER_SOURCE127_PREDECESSOR/verification/native-report-source127-v1/adopt_envelope.py" run \
@@ -961,15 +970,24 @@ jobs:
           python3 -I -B -S "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/test_selection.py" -v \
             > "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stdout" \
             2> "$GITHUB_WORKSPACE/verification/plan-continuation-2026-11-07/cache-fix/logs/selection-controls.stderr"
+      - name: Install pinned Rust toolchain for the fixture
+        timeout-minutes: 3
+        shell: bash
+        env:
+          RUSTUP_HOME: ${{ runner.temp }}/mixer-fixture-rustup
+          RUSTUP_DIST_SERVER: https://static.rust-lang.org
+        run: rustup toolchain install 1.99.1-aarch64-apple-darwin --profile minimal --no-self-update
       - name: One complete shared fixture with exact prospective Rust 1.99.1 admission
         timeout-minutes: 12
         shell: bash
+        env:
+          RUSTUP_HOME: ${{ runner.temp }}/mixer-fixture-rustup
         run: |
           set -euo pipefail
           MIXER_ADOPTION_DIR="$GITHUB_WORKSPACE/verification/shared-fixture-clock-controls-correction"
           MIXER_SHARED_INPUT_DIR="$GITHUB_WORKSPACE/verification/cache-fixture-shared-input-candidate-v2"
           {
-            MIXER_CACHE_RUSTC_LAUNCHER="$(command -v rustc)"
+            MIXER_CACHE_RUSTC_LAUNCHER="$(rustup which --toolchain 1.99.1-aarch64-apple-darwin rustc)"
             python3 -B "$GITHUB_WORKSPACE/verification/cache-descendant-custody-contract-v1/adopt_fixture.py" run \
               --rustc "$MIXER_CACHE_RUSTC_LAUNCHER" \
               --out "$MIXER_SHARED_INPUT_DIR/runs/ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"

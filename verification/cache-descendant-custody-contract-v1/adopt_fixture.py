@@ -6,6 +6,7 @@ ROOT=HERE.parents[1]
 PREVIOUS=ROOT/'verification/plan-continuation-2026-11-07/cache-refusal-cleanup-r8'
 SOURCE=ROOT/'verification/cache-fixture-shared-input-candidate-v2/check_cache_state.py'
 WORKFLOW=ROOT/'.github/workflows/verify.yml'
+INSTALLED_JOB_SHA256='4f199ba7ca6b90e61e02e8d175bcf94af6b148c80ea049e8b8474f2958f11126'
 KIND='cache-descendant-custody-contract-v1'
 PREVIOUS_SEAL='b03ce3298336634c28f97502d8b035f4f28de176a4675bce6b083f457fe38e65'
 SHIPPING=['adopt_fixture.py','commands.py','process_adapter.py','test_contract.py','test_original.py','workflow-job.yml']
@@ -28,7 +29,11 @@ def verify(installed=False,workflow=None):
     binding=old.previous().previous().baseline()
     binding.check_rows(HERE,seal['members'])
     need(seal['tree_sha256']==binding.tree(seal['members']),'Successor source tree differs')
-    if installed:need(binding.job_text((WORKFLOW if workflow is None else workflow).read_text())==(HERE/'workflow-job.yml').read_text(),'Installed cache job differs')
+    if installed:
+        workflow_text=(WORKFLOW if workflow is None else workflow).read_bytes().decode('utf-8')
+        actual_job=binding.job_text(workflow_text)
+        need(hashlib.sha256(actual_job.encode('utf-8')).hexdigest()==INSTALLED_JOB_SHA256,
+             'Installed cache job differs')
     return {'kind':KIND,'previous':proof,'sources_sha256':digest(HERE/'sources.json'),'tree_sha256':seal['tree_sha256'],'installed':installed,'compiler_qualified':False,'GA':False}
 def install(runner):
     need(digest(Path(runner.__file__))==digest(SOURCE),'Frozen runner differs')
