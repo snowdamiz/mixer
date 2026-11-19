@@ -1,0 +1,397 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_android_installed_verifier_host_native_pending",
+  "finishedUTC": "2026-11-19T02:53:53.678923+00:00",
+  "localGate": "L04",
+  "localGatesPassed": [],
+  "scenarios": [
+    "22.2 #11 (scoped host signing control and Android handoff)"
+  ],
+  "inputs": {
+    "worktreeRevision": "58951594a866492be7ce204e93a9533f892b2550",
+    "testedMixerRevision": "5dea19db36610e312b51918b384364ba590b6ef8",
+    "testedMixerTree": "b0a6a2fed1837169edc655da6b17ef3ccf58afec",
+    "fieldLogBase": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogTree": "32f682cb86a3d7d734271a4304a9986644888e8d",
+    "baseSourceCapture": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-android-dev-replay-43f653e9.ZrknWSZ5/signed/source-capture.json",
+      "sha256": "4bf12c1a9b7a2ae267bf274e36ec97ad919838901b7941fb93ed43228df34398"
+    },
+    "baseAPK": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-android-dev-replay-43f653e9.ZrknWSZ5/signed/FieldLog-combined-development.apk",
+      "sha256": "045667d5720f4ad578df4da581ddf800d85e940ec15e9ab800e3d6d9ac215ff6",
+      "signerSHA256": "f5fb7d5856f803009c3fea7306e44a60f8e4ac97fbae57684b86f09f3f091b3b"
+    },
+    "baseRecipeReceipt": {
+      "path": "verification/receipts/fieldlog-android-restage-host-43f653e9.json",
+      "sha256": "2491f181ecb3ae19086c27e526cf089786ba0f33ccd5356801e1345d55cf6897"
+    },
+    "predecessor": {
+      "path": "verification/receipts/release-v3-rotation-halt-41a05264.json",
+      "sha256": "6a2e76dc03d5cac2807aa922dd5b911d0a48551623b631218697ef5390c6e84f"
+    },
+    "linkedVM_SHA256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116",
+    "loopbackServiceSHA256": "e3f1206550779cf15475b49eed20aa005d6c26b7e70626f1d15f3625b5b72c0e",
+    "testBinarySHA256": "d2d30d8a09967e0939b86897416963c5a856cf5945dbb390045f59dc6da776eb",
+    "dependencyPins": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    },
+    "testSourceSHA256": "9fb17a99f8bb87c5b11b8264627d19e1782143a3771b0d35c3ba2309b927058c"
+  },
+  "tools": {
+    "macOS": "27.0.1",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "python": "3.14.8",
+    "androidBuildTools": "36.0.0",
+    "apkSigner": "0.9",
+    "aapt2": "Android Asset Packaging Tool (aapt) 2.20-13193326"
+  },
+  "scope": [
+    "Unmodified InstalledCapabilityExecution and CapabilityRecoveryStore sources from the exact Android replacement revision, with the Android descriptor and materials, actual v3 developer loopback service and real linked VM preflight.",
+    "Both valid releases downloaded and completed durable staging in the same installed owner with one installation identifier, with high-water 1 then 2.",
+    "Explicit revoked artifact and assignment controls used independently signed, coherent sequence-2 offers. The service rejected them with 422/409. The installed client separately rejected each at beginDownload with v3.signature.authority and left state.json byte-identical.",
+    "The same initial signing keys were also refused for a fresh sequence-2 offer at expiry with a host test clock. The explicit revocation fixture uses distinct pre-revoked keys. Trust remains immutable in the APK.",
+    "Host staging result provides no Android presentation or native health evidence. Android install, update, and first-screen receipt remain root-owned."
+  ],
+  "observations": [
+    "FIELDLOG HTTP GET /healthz 200",
+    "FIELDLOG HTTP PUT /v3/orgs/mixer-local/projects/fieldlog/artifacts/56123982f4bdf5fe08d33264d74033d3984f0b11fc65893b7aa54de29a9b09b0 201",
+    "FIELDLOG HTTP POST /v3/orgs/mixer-local/projects/fieldlog/releases/validate 200",
+    "FIELDLOG HTTP POST /v3/orgs/mixer-local/projects/fieldlog/channels/beta/publish 200",
+    "FIELDLOG HTTP GET /v3/updates 200",
+    "FIELDLOG HTTP GET /v3/artifacts/56123982f4bdf5fe08d33264d74033d3984f0b11fc65893b7aa54de29a9b09b0 200",
+    "FIELDLOG HTTP PUT /v3/orgs/mixer-local/projects/fieldlog/artifacts/b5516827f866f049996d3a13793d2e891bec1b3d84347b85dafba1c59aa854e6 422",
+    "FIELDLOG HTTP PUT /v3/orgs/mixer-local/projects/fieldlog/artifacts/8afbe19dd8780f70f53f4368be66364b7b8ea01447d858762ab87ebd7ee8bf37 201",
+    "FIELDLOG HTTP POST /v3/orgs/mixer-local/projects/fieldlog/releases/validate 200",
+    "FIELDLOG HTTP POST /v3/orgs/mixer-local/projects/fieldlog/channels/beta/publish 409",
+    "ANDROID ROTATION explicitly revoked artifact key: v3.signature.authority; durable state unchanged",
+    "ANDROID ROTATION explicitly revoked assignment key: v3.signature.authority; durable state unchanged",
+    "ANDROID ROTATION initial key at its expiry: v3.signature.authority; durable state unchanged",
+    "FIELDLOG HTTP POST /v3/orgs/mixer-local/projects/fieldlog/channels/beta/publish 200",
+    "FIELDLOG HTTP GET /v3/updates 200",
+    "FIELDLOG HTTP GET /v3/artifacts/8afbe19dd8780f70f53f4368be66364b7b8ea01447d858762ab87ebd7ee8bf37 200",
+    "ANDROID ROTATION baseline=1 replacement=2 runtime=7eff58728f98b065dd798f4f26d52c047aa7466082e95a8f8e2af873186072b3 replacement_artifact=8afbe19dd8780f70f53f4368be66364b7b8ea01447d858762ab87ebd7ee8bf37 cutover=1795661439"
+  ],
+  "staged": {
+    "sequence": 2,
+    "artifactSHA256": "8afbe19dd8780f70f53f4368be66364b7b8ea01447d858762ab87ebd7ee8bf37",
+    "candidateID": "3aaebb7c15b403cd3ae53cc09a97ac0cf04cea89ce1b33c4f945b900b758e956",
+    "runtime": "7eff58728f98b065dd798f4f26d52c047aa7466082e95a8f8e2af873186072b3",
+    "installation": "fieldlog-rotation-host",
+    "stateSHA256": "e32fe8e5b978bdb7a8d0ff6666833804c19ca551a09511575ed467a0c4b7d12c"
+  },
+  "commands": {
+    "build": {
+      "argv": [
+        "/usr/bin/swift",
+        "build",
+        "--build-tests",
+        "--package-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/src/capability-activation",
+        "--scratch-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/spm",
+        "--cache-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/cache",
+        "--config-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/config",
+        "--security-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/security",
+        "--manifest-cache",
+        "local",
+        "--disable-prefetching",
+        "--skip-update",
+        "--force-resolved-versions",
+        "--jobs",
+        "10",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/include",
+        "-Xlinker",
+        "-L",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/lib"
+      ],
+      "status": "closed",
+      "pid": 12009,
+      "pgid": 12009,
+      "exit": 1,
+      "mergedOutputSHA256": "4a3a78784a102fc86b5a62f14d8582264b2322dba803925a947dfa8a7d043fe0"
+    },
+    "vm-pinned": {
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/src/vm/Cargo.toml",
+        "--target-dir",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/rust",
+        "-j",
+        "8",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-capability-native"
+      ],
+      "status": "closed",
+      "pid": 22236,
+      "pgid": 22236,
+      "exit": 0,
+      "mergedOutputSHA256": "07157babcefd2e67cdab21dbb890692cba5a2763a9c19f1429caae78c9b8bc60"
+    },
+    "build-pinned": {
+      "argv": [
+        "/usr/bin/swift",
+        "build",
+        "--build-tests",
+        "--package-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/src/capability-activation",
+        "--scratch-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/spm",
+        "--cache-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/cache",
+        "--config-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/config",
+        "--security-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/security",
+        "--manifest-cache",
+        "local",
+        "--disable-prefetching",
+        "--skip-update",
+        "--force-resolved-versions",
+        "--jobs",
+        "10",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/include",
+        "-Xlinker",
+        "-L",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/lib"
+      ],
+      "status": "closed",
+      "pid": 29150,
+      "pgid": 29150,
+      "exit": 0,
+      "mergedOutputSHA256": "9438ea469213f02f78d84c6e6cc647decfd823efbf92353b9b23eb69d7983aed"
+    },
+    "host": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "xctest",
+        "-XCTest",
+        "MixerCapabilityActivationTests.AndroidRotationProbe/testInstalledAndroidTrustAtDurableAdmission",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/spm/out/Products/Debug/MixerCapabilityActivationTests.xctest"
+      ],
+      "status": "closed",
+      "pid": 43146,
+      "pgid": 43146,
+      "exit": 0,
+      "mergedOutputSHA256": "0bccaebe31f1d58628370abece982902436d3778fabdd2998b417708d3644fe5"
+    },
+    "zipalign": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/zipalign",
+        "-P",
+        "16",
+        "-f",
+        "4",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/unsigned.apk",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/aligned.apk"
+      ],
+      "status": "closed",
+      "pid": 46900,
+      "pgid": 46900,
+      "exit": 0,
+      "mergedOutputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "keytool": {
+      "argv": [
+        "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/keytool",
+        "-genkeypair",
+        "-noprompt",
+        "-alias",
+        "disposable-rotation-checkpoint",
+        "-dname",
+        "CN=Disposable FieldLog rotation development",
+        "-keystore",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/rotation-disposable.p12",
+        "-storetype",
+        "PKCS12",
+        "-storepass:env",
+        "FIELDLOG_ROTATION_APK_PASS",
+        "-keyalg",
+        "RSA",
+        "-keysize",
+        "2048",
+        "-validity",
+        "30"
+      ],
+      "status": "closed",
+      "pid": 46953,
+      "pgid": 46953,
+      "exit": 0,
+      "mergedOutputSHA256": "3ec4ebc8a67510d68234507aa7b62220f93d20cc822450e14c8feae4dc6a2368"
+    },
+    "apksign": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/apksigner",
+        "sign",
+        "--ks",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/rotation-disposable.p12",
+        "--ks-pass",
+        "env:FIELDLOG_ROTATION_APK_PASS",
+        "--v1-signing-enabled",
+        "false",
+        "--v2-signing-enabled",
+        "true",
+        "--v3-signing-enabled",
+        "true",
+        "--v4-signing-enabled",
+        "false",
+        "--out",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/handoff/FieldLog-Android-rotation-development.apk",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/aligned.apk"
+      ],
+      "status": "closed",
+      "pid": 47055,
+      "pgid": 47055,
+      "exit": 0,
+      "mergedOutputSHA256": "34d2a6e3d204d5515e3a9b1550a6bf0e64c3c755494aec1d7d2dc45173e311b5"
+    },
+    "apkverify": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/apksigner",
+        "verify",
+        "--verbose",
+        "--print-certs",
+        "-Werr",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/handoff/FieldLog-Android-rotation-development.apk"
+      ],
+      "status": "closed",
+      "pid": 47137,
+      "pgid": 47137,
+      "exit": 0,
+      "mergedOutputSHA256": "c6debe168011011139ea1e54167a4d110b288bdedb3e6a1028189304da600a86"
+    },
+    "alignment-check": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/zipalign",
+        "-c",
+        "-P",
+        "16",
+        "4",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/handoff/FieldLog-Android-rotation-development.apk"
+      ],
+      "status": "closed",
+      "pid": 47200,
+      "pgid": 47200,
+      "exit": 0,
+      "mergedOutputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "signer-version": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/apksigner",
+        "version"
+      ],
+      "status": "closed",
+      "pid": 68045,
+      "pgid": 68045,
+      "exit": 0,
+      "mergedOutputSHA256": "52d89d3f8b80861a3b9aa2d04176e8a6fbde6e3a60de82461b3aa8f77618e151"
+    }
+  },
+  "recoveredAttempts": [
+    "Initial Swift build exited 1 with group closed because the older archive lacked the deferred UI header. A fresh VM archive and headers from the APK source revision passed.",
+    "An attempted Cargo path lookup failed before compiler execution. The pinned absolute Rust toolchain executed successfully."
+  ],
+  "nativeHandoff": {
+    "apk": "FieldLog-Android-rotation-development.apk",
+    "apkSHA256": "1dd4a24f1e7a6bc6d820703a151d3e6aefe55d6c89b72278fddd4320763e4af2",
+    "baseAPK_SHA256": "045667d5720f4ad578df4da581ddf800d85e940ec15e9ab800e3d6d9ac215ff6",
+    "certificateSHA256": "3cfdc100fa982d4930985853c6f77b0b594b9f0769d2b7e2517c90a0850784ea",
+    "changedMembers": [
+      "assets/ChecklistRelease/identity.json",
+      "assets/ChecklistRelease/port.txt",
+      "assets/ChecklistRelease/roots.json"
+    ],
+    "jniSHA256": "e80e859e465607e5a95d270c14253f6cde1d9b5ecfff4fbe163df88cba0771e7",
+    "dexSHA256": "6f8c02bb9d066f52aefe554f5d94b752cf01bf6dbc2eeebfff7069b2281306d8",
+    "manifestSHA256": "bc8cdd88f205533c9071b897539950535d6d6961df104f35d48e288008ddd0b2",
+    "apkV3Verified": true,
+    "alignment16KVerified": true,
+    "directory": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/handoff",
+    "sha256SumsSHA256": "91b6f82adf4467dcc3f08f602238a86420c14de3713eadbe673e13bb9b097dec",
+    "deviceLoopbackPort": 37463,
+    "checkpoint": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/handoff/ROOT-CHECKPOINT.md",
+    "initialKeyExpiryUTC": "2026-11-26T02:50:39+00:00",
+    "staticOriginHostSmoke": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/handoff/native-origin.py",
+        "--phase-file",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/phase.txt",
+        "--seconds",
+        "15"
+      ],
+      "pid": 51782,
+      "pgid": 51782,
+      "status": "closed",
+      "endpoint": {
+        "listen": 62136,
+        "devicePort": 37463,
+        "runtime": "7eff58728f98b065dd798f4f26d52c047aa7466082e95a8f8e2af873186072b3"
+      },
+      "phases": [
+        "baseline",
+        "revoked-artifact",
+        "revoked-assignment",
+        "replacement"
+      ],
+      "secondInstallationHTTP": 403,
+      "productionScopeHTTP": 422,
+      "exit": 0,
+      "responses": [
+        "{\"phase\": \"baseline\", \"route\": \"updates\", \"installation\": \"host-one-install\", \"sequence\": 1}",
+        "{\"phase\": \"baseline\", \"route\": \"artifact\", \"bytes\": 10588}",
+        "{\"phase\": \"revoked-artifact\", \"route\": \"updates\", \"installation\": \"host-one-install\", \"sequence\": 2}",
+        "{\"phase\": \"revoked-artifact\", \"route\": \"artifact\", \"bytes\": 10632}",
+        "{\"phase\": \"revoked-assignment\", \"route\": \"updates\", \"installation\": \"host-one-install\", \"sequence\": 2}",
+        "{\"phase\": \"revoked-assignment\", \"route\": \"artifact\", \"bytes\": 10632}",
+        "{\"phase\": \"replacement\", \"route\": \"updates\", \"installation\": \"host-one-install\", \"sequence\": 2}",
+        "{\"phase\": \"replacement\", \"route\": \"artifact\", \"bytes\": 10632}"
+      ],
+      "portReusable": true
+    }
+  },
+  "cleanup": {
+    "service": {
+      "state": "CLOSED",
+      "ownedGroupAbsent": true,
+      "pgid": 43647,
+      "executable": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work/mixer-service",
+      "exitCode": 0,
+      "pid": 43647,
+      "parentPID": 43146,
+      "directChildReaped": true
+    },
+    "servicePort": 60511,
+    "servicePortReusable": true,
+    "newHolds": [],
+    "deviceOrEmulatorCommands": 0,
+    "apkPrivateKeyDeletedAfterSigning": true,
+    "otaKeysMemoryOnly": true,
+    "retained": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/handoff",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/receipts/fieldlog-android-rotation-host-bceb3705.json"
+    ],
+    "removedScratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-bceb3705/verification/local/fieldlog-android-key-rotation-bceb3705.m8AssBJt/work",
+    "removedScratchVerified": true
+  }
+}
