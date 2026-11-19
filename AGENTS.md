@@ -1016,3 +1016,12 @@ The sole POST returned 201 and Oban committed a coordinator start. The observer
 stopped on an SQLite `absent` row before confirming a worker start or compiler
 launch. Phoenix, Oban, and PostgreSQL closure does not release worker custody.
 Use only the copied compact `verification/receipts/l05-l07-observer-worker-custody-20261119.json` for this attempt.
+
+The November 19 Android selected-draft APK install timed out with UNKNOWN custody.
+Preserve install command PID/PGID 80923, private ADB PID/PGID 56599 and
+port 58299, emulator PID/PGID 56600, emulator-5598, AVD
+fieldlog_l04_eb4f221ae2fe, ports 5598 and 5599, and the exact
+`verification/local/fieldlog-selected-draft-native.lXY0vxqt` namespace.
+Do not inspect, enumerate, probe, signal, wait on, retry or clean this held
+attempt or its resources. The separate draft origin exited and its port
+was reclaimed. Refer to [the compact receipt](verification/receipts/fieldlog-android-selected-draft-install-hold-20261119.json).
