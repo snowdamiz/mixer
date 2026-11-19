@@ -12,6 +12,12 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 19 local verification
 
+The corrected CLI passed worker admission during one ordinary authenticated Starter request. Restricted Oban recorded one start and released capacity after terminal failure. The fixture had placed Phoenix's build cache under the compiler provenance root, so source hashing refused a symlink before Xcode. [Starter settlement receipt](verification/receipts/l05-l07-retained-worker-settlement-20261119.json)
+
+Both Android storage writer variants passed host saves and linked arm64 Swift and JNI products. Independent review verified that an older selected-draft adapter cannot access a replacement after committed deletion. A raw transaction can still introduce an overlapping draft and entry ID. [Storage and identity checks](verification/receipts/fieldlog-l08-storage-identity-and-android-20261119.json)
+
+The private F01 host profile configured interactive keyboard dismissal from the historical FieldLog change. Installed older profiles and Android refused the new operation. Signed selection and the iOS keyboard gesture remain open. [F01 host comparison](verification/receipts/fieldlog-f01-scroll-host-profile-20261119.json)
+
 The retained iOS build now runs the worker's Swift version probe as `/usr/bin/swift --version`. The compiled CLI produced an absolute-path terminal receipt, and the worker settled the deliberate pre-compiler veto and accepted shutdown. Ordinary CLI commands still resolve Swift through PATH. The archive admits the corrected source and refuses the relative-probe predecessor. [Compiled preflight and archive verification](verification/receipts/l05-l07-worker-swift-probe-20261119.json)
 
 The D2 source audit matched the iOS 27 and Android 16 conflict runs to the same FieldLog task contract and SQLite backend. Both native runs retained the local title and peer assignee at version 3 with two committed events. The apps used separate workspaces, platform adapters, and SDK revisions. A fresh host replay reached version 4 after a lost acknowledgement and another offline edit. [Source sharing and paired workflow](verification/receipts/fieldlog-d2-task-conflict-source-sharing-20261119.json)
