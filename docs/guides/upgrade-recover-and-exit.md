@@ -1,0 +1,139 @@
+# Upgrade, recover, and exit
+
+This guide upgrades a locked Mixer project to a new SDK. It also covers
+recovery from an interrupted edit and a build of the Android export without
+the Mixer CLI. The commands use the FieldLog Android example.
+
+## Before you start
+
+- Export a recovery copy with the original CLI and host Swift toolchain before
+  you change the project's SDK.
+- Close editors and builds.
+- Back up installed app data, signing material, and any files that export
+  excludes.
+- Set the Android toolchain variables from
+  [Build for Android](../../README.md#build-for-android) and use Xcode 26.6
+  throughout.
+- Run the commands from a checkout of the public Mixer repository with both
+  Mixer revisions available locally.
+
+## Build both CLIs and prepare the old project
+
+These commands build the original and target CLIs and prepare the FieldLog
+project with the original one.
+
+```sh
+mixer_repo="$(git rev-parse --show-toplevel)"
+upgrade_rev=02002272c334dd0a3750c502ad5819b26d57fe0d
+pair20_rev=8efc1a9e5b1602117f8211c95bfd4203cc91f689
+fieldlog_rev=552559d2d3278abb9b1aa7dcf0288102c09a202b
+work="$(mktemp -d "${TMPDIR:-/tmp}/mixer-upgrade.XXXXXX")"
+target_checkout="$work/upgrade-inputs"
+mkdir "$target_checkout"
+git archive "$upgrade_rev" cli sdk updates native/android | tar -xf - -C "$target_checkout"
+
+git clone --shared --no-checkout "$mixer_repo" "$work/pair20"
+git -C "$work/pair20" sparse-checkout set cli sdk updates native/android
+git -C "$work/pair20" checkout --detach "$pair20_rev"
+
+swift build --package-path "$work/pair20/cli" --scratch-path "$work/pair20-cli" \
+	--cache-path "$work/pair20-cache" --jobs 6 --product mixer
+swift build --package-path "$target_checkout/cli" --scratch-path "$work/upgrade-cli-build" \
+	--cache-path "$work/upgrade-cli-cache" --jobs 6 --product mixer
+old_cli="$work/pair20-cli/debug/mixer"
+new_cli="$work/upgrade-cli-build/debug/mixer"
+"$old_cli" version
+"$new_cli" version
+
+git clone --depth 1 --filter=blob:none --sparse https://github.com/snowdamiz/fieldlog.git \
+	"$work/FieldLog-baseline"
+git -C "$work/FieldLog-baseline" fetch --depth 1 --filter=blob:none origin "$fieldlog_rev"
+git -C "$work/FieldLog-baseline" sparse-checkout set Integrations/GeneratedReport
+git -C "$work/FieldLog-baseline" checkout --detach "$fieldlog_rev"
+source_project="$work/FieldLog-old"
+python3 "$work/FieldLog-baseline/Integrations/GeneratedReport/scripts/build-android.py" \
+	--mixer "$old_cli" --sdk-checkout "$work/pair20" \
+	--android-adapter-path "$work/pair20/native/android" \
+	--output "$source_project" --prepare-only
+```
+
+## Seed the lock, upgrade, and build
+
+The historical recipe leaves the Android package lock absent. To test lock
+preservation, seed the prepared project with the FieldLog platform lock from
+the Pair23 migration. The first command applies only the lock file from that
+patch.
+
+```sh
+platform_lock=Platforms/Android/Package.resolved
+fieldlog_path=Integrations/GeneratedReport/$platform_lock
+git -C "$work/FieldLog-baseline" apply --include="$fieldlog_path" \
+	"$mixer_repo/verification/fieldlog-pair23/public-build.patch"
+cp "$work/FieldLog-baseline/$fieldlog_path" "$source_project/$platform_lock"
+
+recovery_copy="$work/FieldLog-recovery"
+upgraded_project="$work/FieldLog-upgraded"
+build_copy="$work/FieldLog-build"
+"$old_cli" export "$recovery_copy" --directory "$source_project"
+"$new_cli" upgrade "$upgraded_project" --directory "$source_project" \
+	--sdk-path "$target_checkout/sdk" \
+	--android-adapter-path "$target_checkout/native/android"
+cmp "$source_project/$platform_lock" "$upgraded_project/$platform_lock"
+"$new_cli" export "$build_copy" --directory "$upgraded_project"
+"$new_cli" build --platform android --directory "$build_copy"
+```
+
+The upgrade writes the new SDK, Android adapter, and `mixer.lock` into a new
+copy. It keeps an existing `Platforms/Android/Package.resolved`. If the Android
+dependency pins conflict, follow your app's dependency migration for the target
+SDK. For an iOS-only project, omit `--android-adapter-path` and select
+`--platform ios` for the build. Reopen your saved data in the upgraded app
+before you switch to it.
+
+## Recover from an interrupted project edit
+
+If upgrade reports `lock.sdk-drift` after an interrupted SDK edit, save the
+damaged file separately. Then restore the original bytes from the recovery
+copy. If the damage is limited to the bundled SDK manifest, run these commands
+before you retry the upgrade.
+
+```sh
+sdk_manifest=Generated/MixerSDK/Package.swift
+cp "$source_project/$sdk_manifest" "$work/damaged-Package.swift"
+cp "$recovery_copy/$sdk_manifest" "$source_project/$sdk_manifest"
+```
+
+If an upgrade destination already exists, keep it and choose a fresh
+destination for the retry. If an interrupted FieldLog save reports a storage
+error, close and reopen the workspace. Check the saved entry, draft, and outbox
+before you try the save again.
+
+## Test an installed upgrade on iOS Simulator
+
+Build both app versions from the pinned checkouts and import a photo through
+Files. The replay replaces the app in place. It checks that the same draft,
+JPEG, and pending changes survive. Follow the
+[installed upgrade replay](../../tests/integration/fieldlog-ios-installed-upgrade/README.md).
+
+## Build an Android export without the Mixer CLI
+
+Export a fresh copy to move to a build machine. Keep its bundled SDK, Android
+adapter, and dependency lock together. Use the tool versions and installation
+paths recorded in `mixer.lock`. Move installed app data separately.
+
+```sh
+exit_copy="$work/FieldLog-exit"
+mkdir "$work/NativeExit"
+"$new_cli" export "$exit_copy" --directory "$upgraded_project"
+mv "$exit_copy" "$work/NativeExit/FieldLogGenerated"
+(
+	cd "$work/NativeExit/FieldLogGenerated"
+	python3 Generated/MixerAndroid/android-build.py build "$PWD"
+)
+```
+
+The FieldLog build writes `.mixer/android-build/FieldLogGenerated-unsigned.apk`
+in the export. The public replay built this APK while the original project,
+the SDK checkouts, and the Mixer CLI builds were unavailable. It also reopened
+a saved FieldLog workspace through the app's storage code on the host. See the
+[upgrade, recovery, and exit replay](../../verification/receipts/l08-public-upgrade-02002272.json).

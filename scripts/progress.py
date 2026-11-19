@@ -5,11 +5,11 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-GROUPS = (
-    ('█', {'passed', 'verified'}),
-    ('▒', {'running', 'in_progress', 'review'}),
-    ('✗', {'blocked', 'failed'}),
-    ('░', {'planned', 'ready'}),
+COLUMNS = (
+    ('Passed', {'passed', 'verified'}),
+    ('In progress', {'running', 'in_progress', 'review'}),
+    ('Blocked', {'blocked', 'failed'}),
+    ('Not started', {'planned', 'ready'}),
 )
 
 
@@ -17,15 +17,17 @@ def load(name):
     return json.loads((ROOT / name).read_text())
 
 
-def row(label, source, statuses):
-    marks = [next(mark for mark, names in GROUPS if status in names) for status in statuses]
-    counts = ' | '.join(str(marks.count(mark)) for mark, _ in GROUPS)
-    return f"| {label} | `{''.join(marks)}` | {counts} | [`{source}`]({source}) |"
+def count(label, statuses):
+    known = set().union(*(names for _, names in COLUMNS))
+    unknown = set(statuses) - known
+    if unknown:
+        raise SystemExit(f'{label}: unknown status {sorted(unknown)}')
+    return [sum(status in names for status in statuses) for _, names in COLUMNS]
 
 
 milestones = [m['localAcceptance'] for m in load('dogfood/receipts/milestones.json')['milestones']
               if m['localAcceptance']['requiredForPlanCompletion']]
-rows = (
+rows = [
     ('Local gates L01–L08', 'gates/local.json',
      [g['status'] for g in load('gates/local.json')['gates']]),
     ('FieldLog milestones D0–D6, D8', 'dogfood/receipts/milestones.json',
@@ -34,8 +36,11 @@ rows = (
      [p['state'] for p in load('work-graph.json')['packages']]),
     ('Launch gates G01–G38', 'gates/ga.json',
      [g['status'] for g in load('gates/ga.json')['gates']]),
-)
-print('| Checklist | Progress | Passed | In progress | Blocked | Not started | Record |')
-print('| --- | --- | --- | --- | --- | --- | --- |')
-for label, source, statuses in rows:
-    print(row(label, source, statuses))
+]
+counts = [count(label, statuses) for label, _, statuses in rows]
+shown = [i for i, (name, _) in enumerate(COLUMNS)
+         if name != 'Blocked' or any(row[i] for row in counts)]
+print('| Checklist | ' + ' | '.join(COLUMNS[i][0] for i in shown) + ' |')
+print('| --- |' + ' :-: |' * len(shown))
+for (label, source, _), row in zip(rows, counts):
+    print(f'| [{label}]({source}) | ' + ' | '.join(str(row[i]) for i in shown) + ' |')
