@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import MachO
 
 /// Retains the products of one unsigned local Android build.
 public enum AndroidBuildOutput {
@@ -304,7 +305,6 @@ public enum AndroidBuildOutput {
     }
     private static func runningExecutableIdentity() throws -> FileIdentity {
         func executablePath() throws -> String {
-            // libproc resolves the current process's executable vnode.
             var bytes = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
             let count = proc_pidpath(getpid(), &bytes, UInt32(bytes.count))
             guard count > 0, count < bytes.count, let path = bytes.withUnsafeBufferPointer({
@@ -317,9 +317,21 @@ public enum AndroidBuildOutput {
         let fd = open(path, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
         guard fd >= 0 else { throw drift }
         defer { close(fd) }
+        // The executable's path can now name a replacement. The main Mach-O
+        // mapping identifies the vnode from which this process actually runs.
+        var mapped = proc_regionwithpathinfo()
+        let mappedSize = Int32(MemoryLayout.size(ofValue: mapped))
+        var held = stat()
+        guard let header = _dyld_get_image_header(0), header.pointee.filetype == MH_EXECUTE,
+              proc_pidinfo(getpid(), PROC_PIDREGIONPATHINFO, UInt64(UInt(bitPattern: header)),
+                           &mapped, mappedSize) == mappedSize,
+              fstat(fd, &held) == 0,
+              UInt32(bitPattern: held.st_dev) == mapped.prp_vip.vip_vi.vi_stat.vst_dev,
+              held.st_ino == mapped.prp_vip.vip_vi.vi_stat.vst_ino else { throw drift }
+
         let bytes = try NativeProductCapture.regular(fd)
-        var held = stat(), named = stat()
-        guard try executablePath() == path, fstat(fd, &held) == 0, lstat(path, &named) == 0,
+        var named = stat()
+        guard try executablePath() == path, lstat(path, &named) == 0,
               held.st_dev == named.st_dev, held.st_ino == named.st_ino else { throw drift }
         return identity(bytes)
     }

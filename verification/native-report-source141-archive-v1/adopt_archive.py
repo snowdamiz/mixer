@@ -248,7 +248,7 @@ ANDROID_OUTPUT_CHANGES = {
     'cli/Sources/MixerCLI/main.swift',
 }
 ANDROID_OUTPUT_CORRECTION_PREFIX = 'android-retained-output-correction-predecessor-bytes/'
-ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256 = 'add4e30b0bf4d67e07280e9ed2f0ef69d7a2c5d35edff5ffec618f37dbfed83c'
+ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256 = 'a799d5231feeb9f8ed837aebe9841328ddbad0a7f1c73564c5e4855f5ddb102b'
 ANDROID_OUTPUT_CORRECTION_CHANGES = {
     ANDROID_OUTPUT_ADDITION,
     'cli/Sources/MixerBuild/NativeBuildOutput.swift',
