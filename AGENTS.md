@@ -1035,3 +1035,11 @@ emulator-5602, AVD fieldlog_l04_80bf1be7c472, ports 5602 and 5603, and
 Do not inspect, enumerate, probe, signal, wait on, retry or clean the held
 attempt or its resources. The independent release origin closed and its
 loopback port was reclaimed. See [the compact receipt](verification/receipts/fieldlog-android-engine-cohort-ui-custody-20261119.json).
+
+The first November 19 rendered Starter attempt ended with unknown custody for
+browser-driver PID/PGID 6007 before any build POST. Preserve the exact
+`/Users/andreyyurlov/.t3/worktrees/mixer/t3-c81383c3/verification/local/l06-browser-starter.JA9apx9G/live`
+namespace and group without inspection, enumeration, probing, signalling,
+waiting, retry or cleanup. Chrome and the local services closed separately.
+Use the compact `verification/receipts/l06-browser-starter-dispatch-20261119.json`.
+The independent final browser attempt closed and does not release this hold.
