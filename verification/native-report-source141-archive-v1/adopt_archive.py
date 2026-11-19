@@ -213,6 +213,7 @@ HOSTED_V42_WORKFLOW = 'hosted-v42-predecessor-bytes/' + VERIFY_WORKFLOW
 FIXTURE_RUST_PIN_WORKFLOW = 'fixture-rust-pin-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V43_WORKFLOW = 'hosted-v43-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V44_WORKFLOW = 'hosted-v44-predecessor-bytes/' + VERIFY_WORKFLOW
+HOSTED_V45_WORKFLOW = 'hosted-v45-predecessor-bytes/' + VERIFY_WORKFLOW
 APPLE_RENDERER = 'sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_PREIMAGE = 'apple-section-predecessor-bytes/sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_SECTION_SOURCE_SHA256 = '1d2ebd6883fff9147aeec6d558b3ce1b2ec8f7dffc22b99c12ec5a85ab19b438'
@@ -242,7 +243,7 @@ HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_spar
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
-    HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW,
+    HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW,
     GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
@@ -377,7 +378,8 @@ def install_inputs():
                              'phoenix_ci_workflow', 'starter_package_closure_workflow',
                              'capability_identity_transition', 'guest_cutoff_transition', 'hosted_v41_workflow', 'hosted_v41_notices',
                              'hosted_v42_workflow', 'store_platform_identity_transition',
-                             'worker_swift_probe_transition', 'fixture_rust_pin_workflow', 'hosted_v43_workflow', 'hosted_v44_workflow'} and
+                             'worker_swift_probe_transition', 'fixture_rust_pin_workflow', 'hosted_v43_workflow',
+                             'hosted_v44_workflow', 'hosted_v45_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -750,6 +752,13 @@ def install_inputs():
             installed[VERIFY_WORKFLOW] == previous.row(before) == hosted_v44['before'] and
             hosted_v44['before'] != hosted_v44['after'], 'Hosted v44 workflow preimage differs')
     installed[VERIFY_WORKFLOW] = hosted_v44['after']
+
+    hosted_v45 = binding['hosted_v45_workflow']
+    before = read_predecessor_member(HERE / HOSTED_V45_WORKFLOW)
+    require(set(hosted_v45) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == hosted_v45['before'] and
+            hosted_v45['before'] != hosted_v45['after'], 'Hosted v45 workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = hosted_v45['after']
 
     notices = binding['hosted_v41_notices']
     before = read_predecessor_member(HERE / HOSTED_V41_NOTICES)

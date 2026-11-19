@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "scope": "Bounded retained artifact verification before native build completion.",
+  "source_composition": "6fabcd67d75e21d9f026bcef2ce8800dc8ca9915",
+  "checked_against_main": "183f21300d5da48f2144dd0f6b6df9cfe52cf2ae",
+  "tools": {
+    "platform": "macOS arm64",
+    "python": "3.14.8",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "git": "git version 2.56.0"
+  },
+  "source_admission": {
+    "identity": "hosted-bounded-retained-verification-source-v45",
+    "runtime_or_GA_accepted": false,
+    "selection_sha256": "2dc48412d288322b366214f3b0e4b2c1e2a02340c798041a4010614a641ca196",
+    "source_count": 407,
+    "source_digest_sha256": "b21b71e934862ceea287979c00a6ae46cc889f29aece077e44c4b013fbcb67e7",
+    "manifest_sha256": "2d294d2dd34b6085c8daefa13333bb5610adc363a580916a7b32ddfd4a5dec45",
+    "changed_member": "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex",
+    "v44_preserved_byte_for_byte": true,
+    "commands": [
+      "python3 -B hosted/scripts/test-identity-network.py --check-source",
+      "python3 -O -B hosted/scripts/test-identity-network.py --check-source"
+    ]
+  },
+  "owned_engine_archive": {
+    "source_count": 150,
+    "source_sha256": "a26f01a1ed80fbaaae03776d37e8ecce194c52adb28ff9770be9c608f136db1b",
+    "commands": [
+      "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "python3 -I -B -S [-O] verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v SparseControls.test_materialized_checkout_runs_selected_installed_admission"
+    ],
+    "normal": "passed",
+    "optimized": "passed"
+  },
+  "storage": {
+    "proof": "verification/local/retained-v45-proof/retained-file-control.exs",
+    "proof_sha256": "feee8795afc660c7bac58c3131c98e26378e5083d6be1a2d528e8900d7b45a6e",
+    "command": "ERL_FLAGS='+S 2:2' RETAINED_IMPLEMENTATION=<baseline|candidate> elixir -r hosted/lib/mixer_hosted/builds/lifecycle.ex -r hosted/lib/mixer_hosted/runtime_config.ex -r <module> verification/local/retained-v45-proof/retained-file-control.exs",
+    "inputs": {
+      "baseline": "verification/identity-network-current-source-v45/preimages/hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex",
+      "candidate": "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex"
+    },
+    "verified_bytes": 16777216,
+    "baseline": {
+      "reads": 1,
+      "largest_request_bytes": 16777217
+    },
+    "candidate": {
+      "reads": 257,
+      "largest_request_bytes": 65536,
+      "eof_request_bytes": 1
+    },
+    "exact_readback_and_eight_refusals": "passed on both inputs",
+    "runtime_config_scope": "Loads the real RuntimeConfig and stubs only Application.startup to select isolated configuration."
+  },
+  "collector": {
+    "tests_passed": {
+      "normal": 316,
+      "optimized": 316
+    },
+    "commands_and_outputs": [
+      "verification/local/retained-v45-proof/selector-shards.json",
+      "verification/local/retained-v45-proof/selector-shard-exclusive-replay.json"
+    ],
+    "observations": [
+      "The initial monolithic normal run reached the built-in 360-second alarm. The accepted runs cover the same methods in six groups per mode with the alarm intact.",
+      "One optimized group overlapped a normal fixture mutation in the private checkout. The full optimized group passed on exclusive replay, and the checkout returned to its clean committed bytes."
+    ]
+  },
+  "worker_fixture": {
+    "command": "python3 -B [-O] hosted/scripts/test_native_artifact_worker.py",
+    "passed": {
+      "normal": 13,
+      "optimized": 13
+    }
+  },
+  "focused_hosted": {
+    "setup": "mix deps.get --check-locked; isolated Mix/Hex caches and existing OTP 29 Rebar; MIX_ENV=test",
+    "commands_from_hosted": [
+      "mix format --check-formatted lib/mixer_hosted/builds/retained_native_artifacts.ex",
+      "mix test test/mixer_hosted/builds/native_development_dispatch_test.exs test/mixer_hosted/builds/lifecycle_test.exs test/mixer_hosted_web/customer_artifact_transport_test.exs"
+    ],
+    "tests_passed": 59
+  },
+  "outside_scope": [
+    "DB-backed authenticated delivery streaming",
+    "Android worker admission",
+    "browser, native device, production and launch qualification"
+  ],
+  "integration_recheck": {
+    "source_manifest_changed_files": 1,
+    "normal_and_optimized_changed_verifier_refused": true
+  },
+  "raw_receipt_sha256": "a233ca398e5f727622457adb8cdd01d72c9f10bb6ac8144ad273637655d8ee92",
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}

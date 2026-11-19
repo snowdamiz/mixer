@@ -131,6 +131,8 @@ Separate store checks on the same source passed 34 compiled submission controls 
 
 Two traced Chrome controls returned HTTP 200 for the first organization read after both cold sign-in and renewed sign-in. Each first request was observed without a retry. The complete trace showed successful lifecycle and directory transactions with the owner in `storage_ready`. The controls submitted no builds. The original post-build HTTP 503 remains unexplained. [Renewal trace receipt](verification/receipts/l06-renewal-directory-trace-fef67b64.json)
 
+Native build completion now verifies each retained artifact with reads of at most 64 KiB. A 16 MiB storage control returned the same bytes and passed eight refusal checks on both revisions. Hosted source v45 admits the exact verifier, and its 59 focused Elixir tests passed. Authenticated HTTP streaming and the Android worker remain open. [Bounded verification receipt](verification/receipts/hosted-bounded-retained-verification-v45.json)
+
 ### Android TaskCompletion parity and source diagnostic
 
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.
