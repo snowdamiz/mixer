@@ -2941,10 +2941,16 @@ WORKSPACE_V39_SOURCE_DIGEST = '86f1125938fedc09c16a0ce0c00df5d292f4f56719aafa54d
 WORKSPACE_V39_SOURCE_COUNT = 404
 WORKSPACE_V39_MANIFEST_SHA256 = '5d0aee7a15f56f6daa3627c5c2805d5b6c677239bef6ae925f528107ae467b30'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v40/'
-WORKSPACE_SELECTION_SHA256 = 'ef25ad153e9e2e2ae99e4814a1cd6ac2c4c1fe000cdd53bd287556bf51874ea3'
-WORKSPACE_SOURCE_DIGEST = '15f0f4ba03aad497bc32f8205520fbc7f96857299b1b3e87706ab8d40da866c2'
-WORKSPACE_SOURCE_COUNT = 405
+WORKSPACE_V40_SOURCE_BASE = 'verification/identity-network-current-source-v40/'
+WORKSPACE_V40_SELECTION_SHA256 = 'ef25ad153e9e2e2ae99e4814a1cd6ac2c4c1fe000cdd53bd287556bf51874ea3'
+WORKSPACE_V40_SOURCE_DIGEST = '15f0f4ba03aad497bc32f8205520fbc7f96857299b1b3e87706ab8d40da866c2'
+WORKSPACE_V40_SOURCE_COUNT = 405
+WORKSPACE_V40_MANIFEST_SHA256 = 'be50ce7d68f60692ffd8175110f4cfcc4712f7d1d1156ca79abc346f2b793ec1'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v41/'
+WORKSPACE_SELECTION_SHA256 = '0335aee3ff2855bb446f862c10b5683405cb7f7377a150d640558262ccac06b6'
+WORKSPACE_SOURCE_DIGEST = 'd4d07403cef9de09582788b8bfe4400f4b758cc0b9902c2bbe695e274998bea1'
+WORKSPACE_SOURCE_COUNT = 407
 WORKSPACE_LOCAL_SOURCE_MIGRATION = 'hosted/priv/local_source_selection/20261118000012_local_source_selection.exs'
 STARTER_PACKAGE_CLOSURE_SOURCE = 'hosted/priv/development/starter_package_closure.py'
 
@@ -3112,10 +3118,10 @@ def validate_workspace_v39_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v40_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V39_MANIFEST, {
+        metadata, WORKSPACE_V40_SOURCE_BASE, WORKSPACE_V40_SELECTION_SHA256,
+        WORKSPACE_V40_SOURCE_COUNT, WORKSPACE_V40_SOURCE_DIGEST, WORKSPACE_V39_MANIFEST, {
             'source_count': WORKSPACE_V39_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V39_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V39_SELECTION_SHA256,
@@ -3127,6 +3133,28 @@ def validate_workspace_source_metadata(metadata):
             'local starter package closure source scope')
     require(set(manifest) - set(WORKSPACE_V39_MANIFEST) == {STARTER_PACKAGE_CLOSURE_SOURCE},
             'local starter package closure source membership')
+    require(selection['opt_in_migration'] == WORKSPACE_LOCAL_SOURCE_MIGRATION and
+            WORKSPACE_LOCAL_SOURCE_MIGRATION in manifest, 'opt-in source starter migration')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V40_MANIFEST, {
+            'source_count': WORKSPACE_V40_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V40_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V40_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V40_MANIFEST_SHA256,
+        }, migration_count=20)
+    require(selection['identity'] == 'hosted-browser-active-read-and-dependency-update-source-v41' and
+            selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'hosted maintenance source scope')
+    require(set(manifest) == set(WORKSPACE_V40_MANIFEST) |
+            {'hosted/priv/unselected_browser_active_read/print_upgrade_sql.exs',
+             'hosted/priv/unselected_browser_active_read/apply-active-read-upgrade.sh'},
+            'hosted maintenance source membership')
     require(selection['opt_in_migration'] == WORKSPACE_LOCAL_SOURCE_MIGRATION and
             WORKSPACE_LOCAL_SOURCE_MIGRATION in manifest, 'opt-in source starter migration')
     return selection, manifest
@@ -3180,6 +3208,10 @@ def check_workspace_source(root):
         workspace_source_metadata(root, WORKSPACE_V39_SOURCE_BASE))
     v39_rows = workspace_preimage_rows(v39_selection, WORKSPACE_V39_SOURCE_BASE)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v39_rows}, v39_rows)
+    v40_selection, _ = validate_workspace_v40_metadata(
+        workspace_source_metadata(root, WORKSPACE_V40_SOURCE_BASE))
+    v40_rows = workspace_preimage_rows(v40_selection, WORKSPACE_V40_SOURCE_BASE)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v40_rows}, v40_rows)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows = workspace_preimage_rows(selection)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
@@ -4181,7 +4213,7 @@ class Collector:
         product = self.git_blobs(sorted(WORKSPACE_MANIFEST))
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
         validate_workspace_source_manifest(observed)  # All static product/lock checks precede create/pull.
-        self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": FROZEN_LOCK_SHA256}
+        self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": observed["hosted/mix.lock"]["sha256"]}
         write_json(self.output / "product-source-manifest.json", observed)
         control_paths = ["hosted/scripts/test-identity-network.py", "hosted/scripts/test_identity_network_collector.py", "docs/hosted-identity-production-network-ci-contract.md", ".github/workflows/identity-network.yml"]
         controls = self.git_blobs(control_paths)
@@ -4348,6 +4380,14 @@ class Collector:
         validate_workspace_preimages(v39_preimages, v39_rows)
         metadata.update(v39_metadata)
         metadata.update(v39_preimages)
+        v40_metadata = self.git_blobs(
+            [WORKSPACE_V40_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v40_selection, _ = validate_workspace_v40_metadata(v40_metadata)
+        v40_rows = workspace_preimage_rows(v40_selection, WORKSPACE_V40_SOURCE_BASE)
+        v40_preimages = self.git_blobs(sorted(v40_rows))
+        validate_workspace_preimages(v40_preimages, v40_rows)
+        metadata.update(v40_metadata)
+        metadata.update(v40_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -5107,6 +5147,8 @@ _, WORKSPACE_V38_MANIFEST = validate_workspace_v38_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V38_SOURCE_BASE))
 _, WORKSPACE_V39_MANIFEST = validate_workspace_v39_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V39_SOURCE_BASE))
+_, WORKSPACE_V40_MANIFEST = validate_workspace_v40_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V40_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':

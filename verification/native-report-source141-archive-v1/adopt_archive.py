@@ -207,6 +207,8 @@ REGISTRATION_WORKFLOW = 'application-registration-predecessor-bytes/' + VERIFY_W
 SOURCE_STARTER_WORKFLOW = 'source-starter-selection-predecessor-bytes/' + VERIFY_WORKFLOW
 PHOENIX_CI_WORKFLOW = 'phoenix-ci-predecessor-bytes/' + VERIFY_WORKFLOW
 STARTER_PACKAGE_CLOSURE_WORKFLOW = 'starter-package-closure-predecessor-bytes/' + VERIFY_WORKFLOW
+HOSTED_V41_WORKFLOW = 'hosted-v41-predecessor-bytes/' + VERIFY_WORKFLOW
+HOSTED_V41_NOTICES = 'hosted-v41-predecessor-bytes/THIRD_PARTY.yml'
 APPLE_RENDERER = 'sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_PREIMAGE = 'apple-section-predecessor-bytes/sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_SECTION_SOURCE_SHA256 = '1d2ebd6883fff9147aeec6d558b3ce1b2ec8f7dffc22b99c12ec5a85ab19b438'
@@ -224,6 +226,7 @@ HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
 HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_sparse_checkout.py'}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
+    HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES,
     GUEST_CUTOFF_PREIMAGE,
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
@@ -356,7 +359,7 @@ def install_inputs():
                              'apple_section_accessibility_transition', 'apple_synchronous_text_transition',
                              'application_registration_workflow', 'source_starter_selection_workflow',
                              'phoenix_ci_workflow', 'starter_package_closure_workflow',
-                             'capability_identity_transition', 'guest_cutoff_transition'} and
+                             'capability_identity_transition', 'guest_cutoff_transition', 'hosted_v41_workflow', 'hosted_v41_notices'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -694,6 +697,21 @@ def install_inputs():
             starter_package_closure['before'] != starter_package_closure['after'],
             'Starter package closure workflow preimage differs')
     installed[VERIFY_WORKFLOW] = starter_package_closure['after']
+
+    hosted_v41 = binding['hosted_v41_workflow']
+    before = read_predecessor_member(HERE / HOSTED_V41_WORKFLOW)
+    require(set(hosted_v41) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == hosted_v41['before'] and
+            hosted_v41['before'] != hosted_v41['after'], 'Hosted v41 workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = hosted_v41['after']
+
+    notices = binding['hosted_v41_notices']
+    before = read_predecessor_member(HERE / HOSTED_V41_NOTICES)
+    require(set(notices) == {'before', 'after'} and
+            installed['THIRD_PARTY.yml'] == previous.row(before) == notices['before'] and
+            notices['before'] != notices['after'], 'Hosted v41 notice preimage differs')
+    preimages.setdefault('THIRD_PARTY.yml', (before, 0o644))
+    installed['THIRD_PARTY.yml'] = notices['after']
 
     apple = binding['apple_section_accessibility_transition']
     raw = read_predecessor_member(HERE / APPLE_PREIMAGE)

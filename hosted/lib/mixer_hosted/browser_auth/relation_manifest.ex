@@ -6,8 +6,8 @@ defmodule MixerHosted.BrowserAuth.RelationManifest do
   for path <- @resources, do: @external_resource(path)
 
   @expected_hashes %{
-    16 => "92e7628577883384d7a5eb882223b91d877ef775d1bee18aa25ffac9bc202318",
-    17 => "314fdc83420aba815f5c293b39ecbe5c2be55e24303db511c3287892331ec15e"
+    16 => "251403a75bf373c894cbea8e326cbd8aaa26a0a2d72109272f8672b3670e893e",
+    17 => "cbf683f7b7346122cda39a803ae21bc857a8ea08bdedcad0c3fbe2bdd2acd909"
   }
   @manifests Map.new(Enum.zip([16, 17], @resources), fn {major, path} ->
                bytes = File.read!(path)

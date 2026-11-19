@@ -120,8 +120,10 @@ defmodule MixerHosted.CustomerBuildInputsFixture do
 
         c =
           if @retained_logs do
-            root = Path.join(ev, "retained")
+            # Evidence can live under a shared temporary directory, but retained logs need trusted ancestors.
+            root = Path.join(System.user_home!(), "mixer-retained-logs-" <> Path.basename(ev))
             File.mkdir!(root)
+            on_exit(fn -> File.rm_rf!(root) end)
             File.chmod!(root, 0o700)
             %{c | hosted: %{c.hosted | native: %{retained_root: root}}}
           else

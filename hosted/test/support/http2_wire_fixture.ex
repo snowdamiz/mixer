@@ -141,7 +141,7 @@ defmodule MixerHosted.HTTP2WireFixture do
     started = now()
     deadline = min(started + 3_000, :atomics.get(budget, 1) - 500)
     check(deadline > started, "HTTP/2 module budget exhausted")
-    check(Application.spec(:bandit, :vsn) == ~c"1.14.0", "actual Bandit must be 1.14.0")
+    check(Application.spec(:bandit, :vsn) == ~c"1.14.1", "actual Bandit must be 1.14.1")
 
     case_state = %{
       budget: budget,
@@ -645,7 +645,7 @@ defmodule MixerHosted.HTTP2WireFixture do
     receipt = %{
       case: s.name,
       mode: s.mode,
-      bandit: "1.14.0",
+      bandit: "1.14.1",
       protocol: "HTTP/2",
       passed: s.passed and cleanup.complete,
       bytes_sent: s.bytes_sent,

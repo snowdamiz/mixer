@@ -1799,7 +1799,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE, collector.RESTRICTED_PROCESSOR_SOURCE_BASE, collector.DEVELOPMENT_DISPATCH_SOURCE_BASE, collector.PENDING_SESSION_SOURCE_BASE, collector.BILLING_RECONCILIATION_SOURCE_BASE, collector.WORKSPACE_V31_SOURCE_BASE, collector.WORKSPACE_V32_SOURCE_BASE, collector.WORKSPACE_V33_SOURCE_BASE, collector.WORKSPACE_V34_SOURCE_BASE, collector.WORKSPACE_V35_SOURCE_BASE, collector.WORKSPACE_V36_SOURCE_BASE, collector.WORKSPACE_V37_SOURCE_BASE, collector.WORKSPACE_V38_SOURCE_BASE, collector.WORKSPACE_V39_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE, collector.RESTRICTED_PROCESSOR_SOURCE_BASE, collector.DEVELOPMENT_DISPATCH_SOURCE_BASE, collector.PENDING_SESSION_SOURCE_BASE, collector.BILLING_RECONCILIATION_SOURCE_BASE, collector.WORKSPACE_V31_SOURCE_BASE, collector.WORKSPACE_V32_SOURCE_BASE, collector.WORKSPACE_V33_SOURCE_BASE, collector.WORKSPACE_V34_SOURCE_BASE, collector.WORKSPACE_V35_SOURCE_BASE, collector.WORKSPACE_V36_SOURCE_BASE, collector.WORKSPACE_V37_SOURCE_BASE, collector.WORKSPACE_V38_SOURCE_BASE, collector.WORKSPACE_V39_SOURCE_BASE, collector.WORKSPACE_V40_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -2990,8 +2990,12 @@ def workspace_predecessor_bytes(root, path):
             raise RuntimeError("workspace predecessor pin: " + path)
         return body
     body = (root / path).read_bytes()
-    if collector.WORKSPACE_MANIFEST.get(path) != collector.WORKSPACE_V39_MANIFEST.get(path):
+    if collector.WORKSPACE_MANIFEST.get(path) != collector.WORKSPACE_V40_MANIFEST.get(path):
         body = (root / collector.WORKSPACE_SOURCE_BASE / "preimages" / path).read_bytes()
+        if collector._file_row(body) != collector.WORKSPACE_V40_MANIFEST[path]:
+            raise RuntimeError("hosted maintenance predecessor pin: " + path)
+    if collector.WORKSPACE_V40_MANIFEST.get(path) != collector.WORKSPACE_V39_MANIFEST.get(path):
+        body = (root / collector.WORKSPACE_V40_SOURCE_BASE / "preimages" / path).read_bytes()
         if collector._file_row(body) != collector.WORKSPACE_V39_MANIFEST[path]:
             raise RuntimeError("starter package closure predecessor pin: " + path)
     if collector.WORKSPACE_V39_MANIFEST.get(path) != collector.WORKSPACE_V38_MANIFEST.get(path):
@@ -3095,8 +3099,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = 'ef25ad153e9e2e2ae99e4814a1cd6ac2c4c1fe000cdd53bd287556bf51874ea3'
-    DIGEST = '15f0f4ba03aad497bc32f8205520fbc7f96857299b1b3e87706ab8d40da866c2'
+    PIN = '0335aee3ff2855bb446f862c10b5683405cb7f7377a150d640558262ccac06b6'
+    DIGEST = 'd4d07403cef9de09582788b8bfe4400f4b758cc0b9902c2bbe695e274998bea1'
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3165,7 +3169,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(405, observed["source_count"])
+            self.assertEqual(407, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3446,7 +3450,7 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
             with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
-        self.assertEqual(405,observed['source_count'])
+        self.assertEqual(407,observed['source_count'])
         self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST,observed['source_digest_sha256'])
         self.assertEqual(collector.WORKSPACE_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
@@ -3968,7 +3972,7 @@ class PublicConsoleSigninSourceControls(unittest.TestCase):
                         runpy.run_path(str(path), run_name='__main__')
                 self.assertEqual(0, exited.exception.code)
                 observed = json.loads(output.getvalue())
-                self.assertEqual(405, observed['source_count'])
+                self.assertEqual(407, observed['source_count'])
                 self.assertEqual(collector.WORKSPACE_SELECTION_SHA256, observed['selection_sha256'])
 
     def test_v19_actual_collect_refuses_changed_new_source_before_docker(self):
@@ -4781,7 +4785,7 @@ class PendingSessionV28Controls(unittest.TestCase):
             with mock.patch.dict('os.environ', {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'Linux', 'RUNNER_ARCH': 'X64'}, clear=True), mock.patch.object(collector.os, 'uname', return_value=collector.os.uname_result(('Linux', 'control', '0', '0', 'x86_64'))):
                 with self.assertRaisesRegex(collector.CollectorError, 'pending session selection pin'):
                     subject.collect()
-            self.assertEqual(405, subject.state['source']['product_files'])
+            self.assertEqual(407, subject.state['source']['product_files'])
             self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST, subject.state['source']['product_tree_digest_sha256'])
             self.assertFalse(any(argv[0] == 'docker' for argv in calls))
 
@@ -4914,7 +4918,7 @@ class BillingReconciliationV29Controls(unittest.TestCase):
             subject.git_blobs=blobs
             with mock.patch.dict('os.environ',{'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64'},clear=True),mock.patch.object(collector.os,'uname',return_value=collector.os.uname_result(('Linux','control','0','0','x86_64'))):
                 with self.assertRaisesRegex(collector.CollectorError,'billing reconciliation selection pin'):subject.collect()
-            self.assertEqual(405,subject.state['source']['product_files'])
+            self.assertEqual(407,subject.state['source']['product_files'])
             self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST,subject.state['source']['product_tree_digest_sha256'])
             self.assertFalse(any(argv[0]=='docker' for argv in calls))
 
@@ -4922,15 +4926,15 @@ class BillingReconciliationV29Controls(unittest.TestCase):
 class WorkspaceSourceCutoverControls(unittest.TestCase):
     PIN = WorkflowSparseSourceControls.PIN
 
-    def test_active_selection_restores_v39_and_rejects_workspace_drift(self):
+    def test_active_selection_restores_v40_and_rejects_workspace_drift(self):
         root = COLLECTOR_PATH.resolve().parents[2]
         helper = WorkflowSparseSourceControls()
         base = collector.WORKSPACE_SOURCE_BASE
         metadata = {base + name: (root / base / name).read_bytes()
                     for name in ("selection.json", "selected-source-manifest.json")}
         selection, manifest = collector.validate_workspace_source_metadata(metadata)
-        self.assertEqual(405, len(manifest))
-        self.assertEqual(7, len(selection["exact_delta"]))
+        self.assertEqual(407, len(manifest))
+        self.assertEqual(13, len(selection["exact_delta"]))
         self.assertEqual(20, len(selection["reviewed_migrations"]))
         inverse = dict(manifest)
         for path, change in selection["exact_delta"].items():
@@ -4940,9 +4944,9 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 data = (root / base / "preimages" / path).read_bytes()
                 inverse[path] = collector._file_row(data)
                 self.assertEqual(change["before"], inverse[path])
-        self.assertEqual(collector.WORKSPACE_V39_MANIFEST, inverse)
-        self.assertEqual(collector.WORKSPACE_V39_SOURCE_DIGEST, canonical_digest(inverse))
-        with tempfile.TemporaryDirectory(prefix="workspace-v40-source-") as directory:
+        self.assertEqual(collector.WORKSPACE_V40_MANIFEST, inverse)
+        self.assertEqual(collector.WORKSPACE_V40_SOURCE_DIGEST, canonical_digest(inverse))
+        with tempfile.TemporaryDirectory(prefix="workspace-v41-source-") as directory:
             stage = Path(directory)
             helper.materialize(root, stage, helper.patterns(
                 (root / ".github/workflows/identity-network.yml").read_text(), "identity-network"))
@@ -4959,8 +4963,11 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 collector.workspace_source_metadata(stage, collector.WORKSPACE_V38_SOURCE_BASE))
             v39_selection, _ = collector.validate_workspace_v39_metadata(
                 collector.workspace_source_metadata(stage, collector.WORKSPACE_V39_SOURCE_BASE))
+            v40_selection, _ = collector.validate_workspace_v40_metadata(
+                collector.workspace_source_metadata(stage, collector.WORKSPACE_V40_SOURCE_BASE))
             for relative in {
                 **collector.workspace_preimage_rows(selection),
+                **collector.workspace_preimage_rows(v40_selection, collector.WORKSPACE_V40_SOURCE_BASE),
                 **collector.workspace_preimage_rows(v39_selection, collector.WORKSPACE_V39_SOURCE_BASE),
                 **collector.workspace_preimage_rows(v38_selection, collector.WORKSPACE_V38_SOURCE_BASE),
                 **collector.workspace_preimage_rows(v37_selection, collector.WORKSPACE_V37_SOURCE_BASE),
@@ -5055,7 +5062,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
 
     def test_collector_refuses_active_workspace_selection_drift_before_docker(self):
         helper = CollectorMethodWiringControls()
-        with tempfile.TemporaryDirectory(prefix="workspace-v40-collect-") as directory:
+        with tempfile.TemporaryDirectory(prefix="workspace-v41-collect-") as directory:
             subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
             original = subject.git_blobs
             def blobs(paths):
@@ -5069,7 +5076,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
                 with self.assertRaisesRegex(collector.CollectorError, "workspace selection pin"):
                     subject.collect()
-            self.assertEqual(405, subject.state["source"]["product_files"])
+            self.assertEqual(407, subject.state["source"]["product_files"])
             self.assertEqual(WorkflowSparseSourceControls.DIGEST, subject.state["source"]["product_tree_digest_sha256"])
             self.assertFalse(any(argv[0] == "docker" for argv in calls))
 

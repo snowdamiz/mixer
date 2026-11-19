@@ -193,7 +193,7 @@ defmodule MixerHosted.BrowserAuth.ActiveCreateSchema do
   @moduledoc false
 
   def function do
-    MixerHosted.BrowserAuth.ActiveReadSchema.function()
+    MixerHosted.BrowserAuth.ActiveReadSchema.function(:create)
     |> String.replace("mixer_browser_current_active_load", "mixer_browser_create_active_load")
     |> String.replace(
       "WHERE id=d.profile_id AND version=d.profile_version FOR UPDATE;",

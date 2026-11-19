@@ -41,7 +41,11 @@ defmodule MixerHosted.BrowserAuth.ActiveReadSchema do
     ]
   end
 
-  def function do
+  def function, do: function(:read)
+
+  def function(mode) when mode in [:read, :create] do
+    authority_lock = if mode == :read, do: "FOR SHARE", else: "FOR UPDATE"
+
     """
     CREATE FUNCTION public.mixer_browser_current_active_load(p_cookie bytea,p_config bytea,p_revision bigint,i public.mixer_browser_access_evidence)
     RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER
@@ -65,11 +69,11 @@ defmodule MixerHosted.BrowserAuth.ActiveReadSchema do
       THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;
       SELECT * INTO STRICT d FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie;
       -- Same shared authority lock order as activation and ordinary authz.
-      SELECT * INTO STRICT p FROM public.mixer_authz_profiles WHERE id=d.profile_id AND version=d.profile_version FOR UPDATE;
+      SELECT * INTO STRICT p FROM public.mixer_authz_profiles WHERE id=d.profile_id AND version=d.profile_version #{authority_lock};
       SELECT * INTO STRICT binding FROM public.mixer_authz_bindings WHERE profile_id=p.id AND profile_version=p.version AND subject=i.subject;
-      SELECT * INTO STRICT principal FROM public.mixer_authz_principals WHERE id=d.principal_id FOR UPDATE;
-      SELECT * INTO STRICT f FROM public.mixer_authz_families WHERE id=d.family_id FOR UPDATE;
-      PERFORM 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id ORDER BY profile_id COLLATE "C",profile_version,reference COLLATE "C" LIMIT 2 FOR UPDATE;
+      SELECT * INTO STRICT principal FROM public.mixer_authz_principals WHERE id=d.principal_id #{authority_lock};
+      SELECT * INTO STRICT f FROM public.mixer_authz_families WHERE id=d.family_id #{authority_lock};
+      PERFORM 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id ORDER BY profile_id COLLATE "C",profile_version,reference COLLATE "C" LIMIT 2 #{authority_lock};
       SELECT count(*) INTO cnt FROM (SELECT 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id LIMIT 2) bounded;
       SELECT * INTO STRICT c FROM public.mixer_authz_credentials WHERE profile_id=d.profile_id AND profile_version=d.profile_version AND reference=d.credential_ref;
       SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=d.id FOR SHARE;

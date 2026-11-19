@@ -21,11 +21,11 @@ BEGIN
   THEN RAISE EXCEPTION 'browser session unavailable' USING ERRCODE='P0001'; END IF;
   SELECT * INTO STRICT d FROM public.mixer_browser_sessions WHERE cookie_digest=p_cookie;
   -- Same shared authority lock order as activation and ordinary authz.
-  SELECT * INTO STRICT p FROM public.mixer_authz_profiles WHERE id=d.profile_id AND version=d.profile_version FOR UPDATE;
+  SELECT * INTO STRICT p FROM public.mixer_authz_profiles WHERE id=d.profile_id AND version=d.profile_version FOR SHARE;
   SELECT * INTO STRICT binding FROM public.mixer_authz_bindings WHERE profile_id=p.id AND profile_version=p.version AND subject=i.subject;
-  SELECT * INTO STRICT principal FROM public.mixer_authz_principals WHERE id=d.principal_id FOR UPDATE;
-  SELECT * INTO STRICT f FROM public.mixer_authz_families WHERE id=d.family_id FOR UPDATE;
-  PERFORM 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id ORDER BY profile_id COLLATE "C",profile_version,reference COLLATE "C" LIMIT 2 FOR UPDATE;
+  SELECT * INTO STRICT principal FROM public.mixer_authz_principals WHERE id=d.principal_id FOR SHARE;
+  SELECT * INTO STRICT f FROM public.mixer_authz_families WHERE id=d.family_id FOR SHARE;
+  PERFORM 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id ORDER BY profile_id COLLATE "C",profile_version,reference COLLATE "C" LIMIT 2 FOR SHARE;
   SELECT count(*) INTO cnt FROM (SELECT 1 FROM public.mixer_authz_credentials WHERE family_id=d.family_id LIMIT 2) bounded;
   SELECT * INTO STRICT c FROM public.mixer_authz_credentials WHERE profile_id=d.profile_id AND profile_version=d.profile_version AND reference=d.credential_ref;
   SELECT * INTO STRICT b FROM public.mixer_browser_sessions WHERE id=d.id FOR SHARE;

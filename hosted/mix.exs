@@ -32,8 +32,8 @@ defmodule MixerHosted.MixProject do
   defp deps do
     [
       {:phoenix, "== 1.8.16"},
-      {:plug, "== 1.20.3"},
-      {:bandit, "== 1.14.0"},
+      {:plug, "== 1.20.4"},
+      {:bandit, "== 1.14.1"},
       {:ecto_sql, "== 3.14.0"},
       {:postgrex, "== 0.22.4"},
       {:oban, "== 2.24.2"},

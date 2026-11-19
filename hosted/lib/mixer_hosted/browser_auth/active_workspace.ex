@@ -94,8 +94,8 @@ defmodule MixerHosted.BrowserAuth.ActiveWorkspace do
   def prepare_identity!(repo, %Binding{} = binding) do
     %{"principal_id" => actor, "family_id" => family} = binding.browser
 
-    # The browser admission takes exclusive identity locks. Acquire them before
-    # the shared authorization locks so two requests cannot both try to upgrade.
+    # Acquire the browser admission's shared authority locks in the same order
+    # as the authorization transaction.
     {%{principal_id: ^actor, family_id: ^family} = linkage, expires} =
       Session.prepare_identity!(repo, Policy.identity_key(binding.identity), fn ->
         Session.query!(repo, "SET LOCAL search_path = pg_catalog")
