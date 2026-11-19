@@ -12,6 +12,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The matched D3 macOS workload reproduced all four FieldLog frames and the original-source trap. Each path completed 36 timed turns across 12 fresh processes. Prepared-input to frame medians were 0.50 µs for native Swift and 317.27 µs for the owned VM. The rebuilt guest was 5,359 bytes raw and 2,691 bytes gzip. The receipt records the different timing boundaries, host contention, and peak process memory. Mobile parity remains open. [Host benchmark and raw samples](verification/receipts/l03-d3-task-completion-host-benchmark-7b61fe1c.json)
+
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
 
 The native build worker records a fixed reason in its private SQLite ledger when a build's closure is uncertain. It distinguishes a failure before it receives a process handle from a failure recording the launch after it receives one. Both cases retain the capacity hold. The identity-network collector also reads the preserved lock for its historical format test. L07 still needs a closed native build backup and restore. [Verification receipt](verification/receipts/l07-hosted-worker-uncertainty-v42-20261118.json)
