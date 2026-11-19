@@ -9,6 +9,7 @@ import { createMemo, For, Match, Show, Switch } from "solid-js";
 import type { BuildCatalogRow } from "../domain/build-catalog.js";
 import type { BuildOverviewInput, BuildState } from "../domain/build-overview.js";
 import { buildLogTarget } from "../domain/build-read.js";
+import type { RetainedNativeArtifact } from "../domain/build-read.js";
 import { resolveWorkspaceDirectory, workspaceDisplayName } from "../domain/workspace-directory.js";
 import type { WorkspaceDirectoryState } from "../domain/workspace-directory.js";
 import type { BuildSelectionBinding } from "../state/build-selection-binding.js";
@@ -22,6 +23,12 @@ const labels: Record<BuildState, string> = {
   queued: "Queued", running: "Running", cancelling: "Cancelling", reconciling: "Confirming outcome",
   failed: "Failed", cancelled: "Cancelled", timed_out: "Timed out", succeeded: "Succeeded", native_succeeded: "Succeeded",
 };
+const artifactLabels: Record<RetainedNativeArtifact["kind"], string> = {
+  unsigned_native_binary: "Unsigned iOS build",
+  debug_symbols: "Debug symbols",
+  resource_inventory: "Resource inventory",
+};
+
 type Load = BuildSelectionState["applications"] | BuildSelectionState["builds"] | BuildSelectionState["detail"];
 function LoadMessage(props: { state: Load; noun: string; onRetrySession: (() => void) | undefined }) {
   const copy = createMemo(() => {
@@ -166,6 +173,14 @@ export function ApplicationBuildPage(props: {
           }</Show>
           <Show when={detail()?.snapshot.report.workerCompletionPending}><p class="workspace-message" role="status">Waiting for the build worker to finish. The outcome is still being confirmed.</p></Show>
           <BuildOverview state={{ kind: "ready", input: input() }} />
+          <Show when={detail()?.snapshot.artifacts}>{artifacts =>
+            <section class="workspace-message" aria-labelledby="build-artifacts-heading">
+              <h3 id="build-artifacts-heading">Build artifacts</h3>
+              <ul><For each={artifacts()}>{artifact =>
+                <li><a href={artifact.downloadPath} download="" referrerpolicy="no-referrer">{artifactLabels[artifact.kind]}</a></li>
+              }</For></ul>
+            </section>
+          }</Show>
           <Show when={props.buildReader} keyed>{reader =>
             <Show when={logTarget()} keyed>{target =>
               <BuildLogs target={target} readLogs={reader.readLogs} />

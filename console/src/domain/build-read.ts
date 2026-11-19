@@ -10,7 +10,7 @@ export interface BuildReadSnapshot {
   readonly artifacts?: readonly RetainedNativeArtifact[];
 }
 
-interface RetainedNativeArtifact {
+export interface RetainedNativeArtifact {
   readonly kind: typeof nativeArtifactKinds[number];
   readonly sizeBytes: number;
   readonly sha256: string;
@@ -78,6 +78,16 @@ export function snapshotBuildReadSelection(input: unknown): BuildReadSelection {
     sourceSha256, toolchainLockSha256, buildDefinitionSha256 });
 }
 
+export function buildSelectionQuery(selection: BuildReadSelection): string {
+  const fields: readonly (readonly [string, string])[] = [
+    ["organization_id", selection.organizationId], ["project_id", selection.projectId],
+    ["application_id", selection.applicationId], ["build_id", selection.buildId], ["platform", selection.platform],
+    ["source_sha256", selection.sourceSha256], ["toolchain_lock_sha256", selection.toolchainLockSha256],
+    ["build_definition_sha256", selection.buildDefinitionSha256],
+  ];
+  return fields.map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
+}
+
 /** Decode only the closed server projection for the caller's exact selection. */
 export function parseBuildRead(input: unknown, expected: BuildReadSelection): BuildReadSnapshot {
   const selection = snapshotBuildReadSelection(expected);
@@ -85,23 +95,27 @@ export function parseBuildRead(input: unknown, expected: BuildReadSelection): Bu
   if (closed(input.build, nativeBuildKeys)) {
     requireValid(selection.platform === "ios" && input.build.state === "native_succeeded");
     const snapshot = parseBuildFields(input.build, selection);
-    return Object.freeze({ ...snapshot, artifacts: parseNativeArtifacts(input.build.artifacts) });
+    return Object.freeze({ ...snapshot, artifacts: parseNativeArtifacts(input.build.artifacts, selection) });
   }
   requireValid(closed(input.build, buildKeys) && input.build.state !== "native_succeeded");
   return parseBuildFields(input.build, selection);
 }
 
-// Keep descriptors as validated data for catalog and detail revalidation.
-function parseNativeArtifacts(input: unknown): readonly RetainedNativeArtifact[] {
+function parseNativeArtifacts(input: unknown, selection: BuildReadSelection): readonly RetainedNativeArtifact[] {
   requireValid(Array.isArray(input) && input.length === nativeArtifactKinds.length);
+  const query = buildSelectionQuery(selection);
+  const expected = new URLSearchParams(query);
   return Object.freeze(nativeArtifactKinds.map((expectedKind, index) => {
     const item: unknown = input[index];
     requireValid(closed(item, ["kind", "sizeBytes", "sha256", "downloadPath"]));
     const { kind, sizeBytes, sha256, downloadPath } = item;
+    const prefix = `/console-api/v1/build-artifacts/${expectedKind}?`;
     requireValid(kind === expectedKind && integerIn(sizeBytes, 1, 16 * 1024 * 1024) && digest(sha256) &&
-      typeof downloadPath === "string" && downloadPath.length <= 2048 &&
-      downloadPath.startsWith(`/console-api/v1/build-artifacts/${kind}?`));
-    return Object.freeze({ kind: expectedKind, sizeBytes, sha256, downloadPath });
+      typeof downloadPath === "string" && downloadPath.length <= 2048 && downloadPath.startsWith(prefix));
+    const supplied = new URLSearchParams(downloadPath.slice(prefix.length));
+    requireValid(supplied.size === expected.size &&
+      Array.from(expected).every(([key, value]) => supplied.get(key) === value));
+    return Object.freeze({ kind: expectedKind, sizeBytes, sha256, downloadPath: prefix + query });
   }));
 }
 

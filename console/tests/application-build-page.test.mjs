@@ -149,6 +149,8 @@ const nativeDetail = {
     downloadPath: "/console-api/v1/build-artifacts/" + kind + "?" + readPath.split("?")[1],
   })),
 };
+const artifactLinks = container => walk(container).filter(node => node.nodeName === "A" && node.hasAttribute("download"));
+
 const command = { event: "build_command_finished", exitCode: 0 };
 const compiler = { event: "compiler_finished", exitCode: 0, stdoutBytes: 320, stderrBytes: 80,
   tailTruncated: true, phases: ["compile", "link"] };
@@ -163,10 +165,21 @@ test("normal route opens retained logs from an already successful native catalog
     (await f.request(catalogPath)).resolve(json(catalog([nativeDetail])));
     await flush();
     assert.match(f.text(), /b-iosSucceeded/);
+    assert.equal(artifactLinks(f.container).length, 0);
     f.click("b-ios");
-    (await f.request(readPath)).resolve(json({ build: nativeDetail }));
+    const buildRequest = await f.request(readPath);
+    assert.equal(artifactLinks(f.container).length, 0);
+    const shuffled = nativeDetail.artifacts.map(artifact => {
+      const [path, params] = artifact.downloadPath.split("?");
+      return { ...artifact, downloadPath: path + "?" + params.split("&").reverse().join("&") };
+    });
+    buildRequest.resolve(json({ build: { ...nativeDetail, artifacts: shuffled } }));
     await flush();
     assert.match(f.text(), /This platform build completed successfully/);
+    const links = artifactLinks(f.container);
+    assert.deepEqual(links.map(link => link.textContent), ["Unsigned iOS build", "Debug symbols", "Resource inventory"]);
+    assert.deepEqual(links.map(link => link.getAttribute("href")), nativeDetail.artifacts.map(artifact => artifact.downloadPath));
+    assert.ok(links.every(link => link.getAttribute("referrerpolicy") === "no-referrer"));
     assert.equal(f.calls.some(call => call.path.startsWith("/console-api/v1/build-logs")), false);
     f.click("View build logs");
     const read = await f.request(logsPath);
@@ -177,7 +190,35 @@ test("normal route opens retained logs from an already successful native catalog
     assert.ok(events);
     assert.match(events.textContent, /Compiler finished \(exit code 0\).*320 bytes on stdout.*80 bytes on stderr.*compile, link.*truncated.*Build command finished \(exit code 0\)/);
     assert.match(f.text(), /This platform build completed successfully/);
+    f.click("Refresh build");
+    const refresh = await f.request(readPath);
+    assert.equal(artifactLinks(f.container).length, 0);
+    refresh.resolve(new Response(null, { status: 403 }));
+    await flush();
+    assert.equal(artifactLinks(f.container).length, 0);
   } finally { f.close(); }
+});
+
+test("selected build refuses foreign, repeated, and cross-origin artifact routes", async () => {
+  const path = nativeDetail.artifacts[0].downloadPath;
+  const invalidPaths = [
+    path.replace("build_id=b-ios", "build_id=another-build"),
+    path + "&build_id=b-ios",
+    "https://foreign.example" + path,
+  ];
+  for (const invalidPath of invalidPaths) {
+    const f = fixture();
+    try {
+      await listed(f);
+      f.click("b-ios");
+      const artifacts = nativeDetail.artifacts.map((artifact, index) =>
+        index === 0 ? { ...artifact, downloadPath: invalidPath } : artifact);
+      (await f.request(readPath)).resolve(json({ build: { ...nativeDetail, artifacts } }));
+      await flush();
+      assert.match(f.text(), /Could not load a build/);
+      assert.equal(artifactLinks(f.container).length, 0);
+    } finally { f.close(); }
+  }
 });
 
 test("cancelled build reads command-only events and recovers from unavailable or malformed logs", { timeout: 3000 }, async () => {
