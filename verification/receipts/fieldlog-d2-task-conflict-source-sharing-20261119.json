@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "status": "paired_workflow_and_source_contract_observed",
+  "gate": "L08",
+  "milestone": "D2",
+  "workflow": "Resolve competing offline FieldLog task edits",
+  "inputReceipts": {
+    "ios": {
+      "path": "verification/receipts/fieldlog-ios-ordinary-task-conflict-41a05264.json",
+      "sha256": "47e767745593c8cc5f7b420f37df3d5e5cf636c4aa732d4a1ee2ae0d9eb482bc"
+    },
+    "android": {
+      "path": "verification/receipts/fieldlog-android-ordinary-task-conflict-41a05264.json",
+      "sha256": "4acc9eb376d816f940957c41feb8d8a217a4af078c43e404eb164508dd783fed"
+    }
+  },
+  "fieldLog": {
+    "publicCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "publicTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "taskContractTree": "8f3797522b9cbb4e359f63cc1a70cb7e7e074ced",
+    "auditedContractFiles": {
+      "Backend/local_entry_sync.py": {
+        "bytes": 20461,
+        "sha256": "5d8058a008e2949321c146dedb9f25691fe1fe47c461cc289cc77a624869fe27"
+      },
+      "Sources/FieldLogModels/TaskSync.swift": {
+        "bytes": 1028,
+        "sha256": "56b9a7f57439bebaa7b611ed83596dc67c286c69e9da5adffdca757d91d13a0c"
+      },
+      "Sources/FieldLogModels/Workspace.swift": {
+        "bytes": 24060,
+        "sha256": "f2f1250d2ead113060d3c47295a183770f88e90304416be3c8105cde259d4a94"
+      },
+      "Sources/FieldLogStorage/TaskSyncClient.swift": {
+        "bytes": 5301,
+        "sha256": "016980728fddacb9fd8ff139d84616ac287f0fc4463f29f22c53495c30e37685"
+      },
+      "Sources/FieldLogStorage/WorkspaceRepository.swift": {
+        "bytes": 9594,
+        "sha256": "f02dadeb2616a2944fc3a7818d330de2a2343909ae2622cad1b3bf40ec23ca46"
+      }
+    },
+    "iosPatchedSourceTree": "cf223341f461a9788fefed75d05f2a5cfe7bdcd1",
+    "androidDeliveryReceiptSHA256": "eed1b589a3fbf159630aaaca867d31d487e8ab3288bd35645777f92a61e77e83",
+    "androidFinalSourceTree": "8934246b739432d608bcde1b6dc6ecfc68374e9d",
+    "androidPatchSHA256": "09b22d648babfb250033d9e094336444fe66aa7d0a5edf26d165f0fc7a56d98a",
+    "androidPlatformOverlays": [
+      "Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift",
+      "Integrations/GeneratedReport/Sources/FieldLogAndroid/SavedTaskPresentation.swift",
+      "Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift",
+      "Integrations/GeneratedReport/Sources/FieldLogStorage/EntrySyncClient.swift",
+      "Integrations/GeneratedReport/Sources/FieldLogStorage/LoopbackResponse.swift",
+      "Integrations/GeneratedReport/Sources/FieldLogStorage/TaskSyncClient.swift",
+      "Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift",
+      "Integrations/GeneratedReport/scripts/build-android.py"
+    ]
+  },
+  "ios": {
+    "runtime": "iOS 27.0 Simulator, iPhone 17 Pro",
+    "toolchain": "Xcode 27.2\nBuild version 27B52",
+    "priorOutboxRowsPreserved": 7,
+    "mixerSDKCommit": "46c322994620fe2a9e4a5622a4a3ef14d18207ab",
+    "workspaceID": "64c4eb4d-33a8-4ea5-af3d-0a4007e0ea4a"
+  },
+  "android": {
+    "runtime": "Android 16 API 36 arm64-v8a emulator",
+    "fingerprint": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+    "priorOutboxRowsPreservedPerReplica": 4,
+    "mixerPair23Source": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+    "installedAPKSha256": "46faa2d4046d48e612451dae1f9a323655ad718b36242d4d5a9b5dda7322deeb",
+    "workspaceID": "bab38368-8965-4e3b-a001-9766c2c35b6a",
+    "packagingInputsMatchedWithinAndroidBuild": 30
+  },
+  "pairedResult": {
+    "finalTask": {
+      "responsible": "Morgan",
+      "title": "Inspect valve today"
+    },
+    "version": 3,
+    "committedEvents": 2,
+    "bothObservedHTTP409": true
+  },
+  "scope": "One paired conflict workflow. The two applications used separate workspaces and platform presentation adapters. Source hashes describe the shared task contract before Android adaptations.",
+  "observedUTC": "2026-11-19T05:21:48.250738+00:00",
+  "hostReplay": {
+    "command": [
+      "python3",
+      "-B",
+      "verification/host/replay-saved-task-sync.py",
+      "<fresh scratch>"
+    ],
+    "selectedSourceTree": "cf223341f461a9788fefed75d05f2a5cfe7bdcd1",
+    "swiftVersion": [
+      "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+      "Target: arm64-apple-macosx27.0.0"
+    ],
+    "observedResult": {
+      "http": [
+        [
+          "GET",
+          401
+        ],
+        [
+          "GET",
+          404
+        ],
+        [
+          "GET",
+          200
+        ],
+        [
+          "GET",
+          200
+        ],
+        [
+          "POST",
+          201
+        ],
+        [
+          "POST",
+          409
+        ],
+        [
+          "GET",
+          200
+        ],
+        [
+          "POST",
+          201
+        ],
+        [
+          "POST",
+          200
+        ],
+        [
+          "POST",
+          201
+        ],
+        [
+          "GET",
+          200
+        ],
+        [
+          "GET",
+          200
+        ],
+        [
+          "POST",
+          200
+        ],
+        [
+          "POST",
+          409
+        ]
+      ],
+      "taskVersion": 4,
+      "taskEvents": 3,
+      "finalText": {
+        "responsible": "Later offline assignee",
+        "title": "Inspect valve today"
+      },
+      "unrelatedOutbox": 7
+    },
+    "closedGroups": 12,
+    "reusableLoopbackPorts": 3,
+    "logSHA256": "beed093ba2793cd66fd7044b0e747aebf9b47291f79be1de776a1670f2458333"
+  },
+  "cleanup": {
+    "freshSourceAndReplayScratchRemoved": true
+  }
+}
