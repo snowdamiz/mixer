@@ -942,3 +942,17 @@ namespace and its `operation`, plus the sibling `work/mixer`, without
 inspection, enumeration, probing, signalling, waiting, retry or cleanup. Use
 the copied top-level `verification/receipts/l05-starter-package-closure-f923af86.json`.
 The separately closed compiler and free-owner runs leave this hold in place.
+
+The interrupted Android conflict Save attempt left UNKNOWN custody for private
+ADB PGID 96778, emulator PGID 96840, and the uncollected transport command
+PGID 14009. Preserve AVD fieldlog_task_conflict_360880f1eae4, ports 5630,
+5631, 49196 and 48997, and the full
+verification/local/fieldlog-android-conflict-save.ZEKXwzLN/root-native-yxcuf3hi
+namespace without inspection, enumeration, probing, signalling, waiting,
+retry or cleanup. Use only the compact verification/receipts/fieldlog-android-conflict-save-interruption-41a05264.json receipt.
+
+Cleanup was unconfirmed when the free starter package-closure review stopped.
+Preserve /private/tmp/mixer-starter-review.X6niS81d and
+/Users/andreyyurlov/.t3/userdata/mixer-starter-review-fixture.aHQfzxuX until
+their owner can establish closure. Read the delivered review summary and
+receipt for findings. Fresh isolated correction work remains authorized.
