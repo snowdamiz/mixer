@@ -16,6 +16,8 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
+
 The native build worker records a fixed reason in its private SQLite ledger when a build's closure is uncertain. It distinguishes a failure before it receives a process handle from a failure recording the launch after it receives one. Both cases retain the capacity hold. The identity-network collector also reads the preserved lock for its historical format test. L07 still needs a closed native build backup and restore. [Verification receipt](verification/receipts/l07-hosted-worker-uncertainty-v42-20261118.json)
 
 Hosted v41 passed 932 tests with two skips on the local Phoenix and PostgreSQL fixture. The role edit and overlapping member read both returned HTTP 200 after upgrade. Conflicting authority writes still waited, and rollback restored the catalog exactly. The terminal log and concurrent build replay checks passed with the workflow's full fixture set. L06 and L07 remain open. [Verification receipt](verification/receipts/hosted-v41-local-qualification-20261118.json)
