@@ -1,0 +1,246 @@
+{
+  "schema": 1,
+  "gate": "L06",
+  "status": "historical-failure-not-reproduced",
+  "sourceRevision": "fef67b64cddf5e0185d2f4234a60f15a070d26cd",
+  "publicTree": "76d28fa9a9a0c9802c953dfbdd507027737b763e",
+  "consoleTree": "018eb2a153c2e5c2a5ee1a66796269cf89af4130",
+  "hostedTree": "a435b4555f55b9fd0d0e288c0c616441f19e8366",
+  "identicalHostedAndConsoleTreesToHistoricalRun": true,
+  "privateProbeAndInstrumentedSourcesSHA256": {
+    "common.py": "92e9b98a81dcae241a95fd2522affff5be2103c1fdcc1a5fc8468661dc801963",
+    "compact_result.py": "3bd1f0fe3e13ed0528c1c8a640028151a5460c0b1609d1da6c3390ed6e5cc7ea",
+    "console_bridge.py": "639020bd1b870981787b53db5d49f25eefb69c730c0755971b4191bd9e389642",
+    "navigation.mjs": "d93bf2e4923688f790344d522235ef0e5f2f9f460e65f5d14aadca7509dc108c",
+    "prepare_console.py": "626825ab1191a2e5229ebbc84241a46c1f3d998fe92a2365e0e209ebff92e144",
+    "replay_a.mjs": "311f8b310904a17a865df4e776b7f9f9a0e660f221100aaa7291cee8376f1e09",
+    "run_a.py": "0a99d038a239bffe8a7ec31538ed413db4ffa378e3c20f52129fd2f518fa8727",
+    "service/hosted/lib/mixer_hosted/browser_auth/active_read.ex": "763d9de068acaaa644aef8ec9a963b05011c38053599aa4d1f30cbb41a55f34d",
+    "service/hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex": "fc3e0e46f3e33b7bf28e5bc65eadd6a1311b4a549e301f2f6da468f5ecc51e86",
+    "service/hosted/lib/mixer_hosted/browser_auth/store.ex": "734bca8a1f60055f26091d9e0a3124706dcec186276d29f2ef2b7574daa31940",
+    "service/hosted/lib/mixer_hosted/customer_workspace/storage.ex": "2d896a5947e185b74fd1b5654d39ad97c5a60b60c223619c4755f9edad75a700",
+    "service/hosted/lib/mixer_hosted_web/browser_workspace_dispatcher.ex": "a9530495e87ed0d1deeda9d77b79c93f4a686f51d187a2edf2458b4d84fb6be9",
+    "service/hosted/test/mixer_hosted/browser_auth/owned_l06_first_a_test.exs": "34ea904a724ea22b95662bebe008a8672bfe89c26f3331671d0097f854f41aa5",
+    "service/hosted/test/support/browser_login_provider_fixture.ex": "58f4336a15a65a95d8b03efd5ed4388a5d92dc00ffb0aa284cf8299abf4123a7",
+    "service/hosted/test/support/l06_replay_trace.ex": "323b827ec757969b4c42c94e65a7a8c84cfd8b5deac4095ded907a93d188d2df",
+    "tenant_observation.py": "9246febe4402603f0d6eabd46c5bac4b9a4c84d5d3d1a1e7a2af61de45def0c2"
+  },
+  "tools": {
+    "chrome": "Google Chrome 155.0.8059.82",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "node": "v22.23.3",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "3.14.8"
+  },
+  "scope": {
+    "buildPOSTs": 0,
+    "deviceRuns": 0,
+    "gaGatesPassed": [],
+    "localGatesPassed": [],
+    "loopbackServicesOnly": true,
+    "nativeStarterBuilds": 0,
+    "onlyFakeIdentity": true,
+    "paymentConfigured": false
+  },
+  "controls": [
+    {
+      "case": "ordinary-1",
+      "tenantBReadStatuses": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "cold": {
+        "http": 200,
+        "attempts": 1,
+        "owner": {
+          "generation": 1,
+          "phase": "storage_ready"
+        },
+        "traceCapReached": true,
+        "transactions": [
+          {
+            "count": 2,
+            "outcome": "ok",
+            "phase": "begin",
+            "pool": "lifecycle"
+          },
+          {
+            "count": 2,
+            "outcome": "ok",
+            "phase": "commit",
+            "pool": "lifecycle"
+          },
+          {
+            "count": 1,
+            "outcome": "ok",
+            "phase": "begin",
+            "pool": "ordinary"
+          },
+          {
+            "count": 50,
+            "outcome": "lock_granted",
+            "phase": "workspace_heads",
+            "pool": "ordinary"
+          }
+        ]
+      },
+      "firstAfterRenewal": {
+        "http": 200,
+        "attempts": 1,
+        "owner": {
+          "generation": 1,
+          "phase": "storage_ready"
+        },
+        "traceCapReached": true,
+        "transactions": [
+          {
+            "count": 2,
+            "outcome": "ok",
+            "phase": "begin",
+            "pool": "lifecycle"
+          },
+          {
+            "count": 2,
+            "outcome": "ok",
+            "phase": "commit",
+            "pool": "lifecycle"
+          },
+          {
+            "count": 1,
+            "outcome": "ok",
+            "phase": "begin",
+            "pool": "ordinary"
+          },
+          {
+            "count": 50,
+            "outcome": "lock_granted",
+            "phase": "workspace_heads",
+            "pool": "ordinary"
+          }
+        ]
+      }
+    },
+    {
+      "case": "ordinary-2",
+      "tenantBReadStatuses": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "cold": {
+        "http": 200,
+        "attempts": 1,
+        "owner": {
+          "generation": 1,
+          "phase": "storage_ready"
+        },
+        "traceCapReached": false,
+        "transactions": [
+          {
+            "count": 2,
+            "outcome": "ok",
+            "phase": "begin",
+            "pool": "lifecycle"
+          },
+          {
+            "count": 2,
+            "outcome": "ok",
+            "phase": "commit",
+            "pool": "lifecycle"
+          },
+          {
+            "count": 1,
+            "outcome": "ok",
+            "phase": "begin",
+            "pool": "ordinary"
+          },
+          {
+            "count": 1,
+            "outcome": "ok",
+            "phase": "commit",
+            "pool": "ordinary"
+          },
+          {
+            "count": 51,
+            "outcome": "lock_granted",
+            "phase": "workspace_heads",
+            "pool": "ordinary"
+          }
+        ]
+      },
+      "firstAfterRenewal": {
+        "http": 200,
+        "attempts": 1,
+        "owner": {
+          "generation": 1,
+          "phase": "storage_ready"
+        },
+        "traceCapReached": false,
+        "transactions": [
+          {
+            "count": 2,
+            "outcome": "ok",
+            "phase": "begin",
+            "pool": "lifecycle"
+          },
+          {
+            "count": 2,
+            "outcome": "ok",
+            "phase": "commit",
+            "pool": "lifecycle"
+          },
+          {
+            "count": 1,
+            "outcome": "ok",
+            "phase": "begin",
+            "pool": "ordinary"
+          },
+          {
+            "count": 1,
+            "outcome": "ok",
+            "phase": "commit",
+            "pool": "ordinary"
+          },
+          {
+            "count": 51,
+            "outcome": "lock_granted",
+            "phase": "workspace_heads",
+            "pool": "ordinary"
+          }
+        ]
+      }
+    }
+  ],
+  "findings": {
+    "aOrgLifecycleCheckoutAndBegin": "Success in both passes. Complete control confirms both lifecycle COMMITs.",
+    "aOrgOrdinaryCheckoutBeginAuthAndCommit": "Trace 2 confirms identity assigned, ordinary checkout and BEGIN, requested scope checks, ordinary COMMIT, and owner publication.",
+    "firstAOrgRequestWasNeverRetried": true,
+    "firstAOrgStatusesByControl": [
+      [
+        200,
+        200
+      ],
+      [
+        200,
+        200
+      ]
+    ],
+    "knownDifferenceFromB": "A's ordinary directory transaction granted 51 workspace-head locks in both full traces. B's org transaction granted one.",
+    "originalFailingBoundary": "The closed 528e bridge forwarded the original upstream 503. No tenant-A Phoenix auth or SQL trace was captured. The fault beyond that cannot be assigned from these controls.",
+    "renewalOverlap": "Renewed session checks overlapped each other, then no overlap with first org at the bridge or across successful lifecycle transaction spans."
+  },
+  "cleanup": {
+    "allChildrenReapedAndGroupsAbsent": true,
+    "allSixPortsReusableInBothControls": true,
+    "disposableDatabasesDropped": true,
+    "checkoutScratchRemoved": true,
+    "holdsCreated": false
+  },
+  "historicalFailure": "verification/receipts/l06-rendered-starter-renewal-528efdd.json",
+  "rawReceiptSHA256": "e86543a4da4bc37f3928011607fe1c3efe30aa65ad103c187854abd48b1efddc",
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}
