@@ -215,12 +215,16 @@ APPLE_TEXT_SOURCE_SHA256 = '0e7595225ba6fed59d49f6623ace68fa8e22b69c96b70ef3a504
 CAPABILITY_IDENTITY = 'sdk/Sources/MixerCapabilities/GeneratedIdentity.swift'
 CAPABILITY_IDENTITY_PREIMAGE = 'capability-identity-predecessor-bytes/' + CAPABILITY_IDENTITY
 CAPABILITY_IDENTITY_SOURCE_SHA256 = '039ef48877383861160dbe0a5dd639f0bba08d0076c254e7035caf812387cc49'
+GUEST_CUTOFF = 'sdk/Sources/MixerGuest/GuestUIExchangeCore.swift'
+GUEST_CUTOFF_PREIMAGE = 'guest-cutoff-predecessor-bytes/' + GUEST_CUTOFF
+GUEST_CUTOFF_SOURCE_SHA256 = '515091e8069c5115c340943da3d0fba525f7a05b90c813d813392680704a6334'
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
 HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_sparse_checkout.py'}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
+    GUEST_CUTOFF_PREIMAGE,
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
@@ -352,7 +356,7 @@ def install_inputs():
                              'apple_section_accessibility_transition', 'apple_synchronous_text_transition',
                              'application_registration_workflow', 'source_starter_selection_workflow',
                              'phoenix_ci_workflow', 'starter_package_closure_workflow',
-                             'capability_identity_transition'} and
+                             'capability_identity_transition', 'guest_cutoff_transition'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -724,9 +728,23 @@ def install_inputs():
             'Capability identity predecessor differs')
     installed[CAPABILITY_IDENTITY] = expected_source[CAPABILITY_IDENTITY] = identity['after']
     preimages.setdefault(CAPABILITY_IDENTITY, (raw_identity, 0o644))
+    require(previous.digest(expected_source) == CAPABILITY_IDENTITY_SOURCE_SHA256,
+            'Capability identity source transition differs')
+
+    guest_cutoff = binding['guest_cutoff_transition']
+    raw_guest_cutoff = read_predecessor_member(HERE / GUEST_CUTOFF_PREIMAGE)
+    require(set(guest_cutoff) == {'sourceBefore', 'before', 'after'} and
+            guest_cutoff['sourceBefore'] == CAPABILITY_IDENTITY_SOURCE_SHA256 and
+            guest_cutoff['before'] == previous.row(raw_guest_cutoff) == installed[GUEST_CUTOFF] ==
+            expected_source[GUEST_CUTOFF] and guest_cutoff['before'] != guest_cutoff['after'],
+            'Guest cutoff predecessor differs')
+    require(stat.S_IMODE((ROOT / GUEST_CUTOFF).lstat().st_mode) == 0o644,
+            'Installed guest cutoff owner mode differs')
+    installed[GUEST_CUTOFF] = expected_source[GUEST_CUTOFF] = guest_cutoff['after']
+    preimages.setdefault(GUEST_CUTOFF, (raw_guest_cutoff, 0o644))
     require(current == expected_source and len(current) == 150 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': CAPABILITY_IDENTITY_SOURCE_SHA256,
-    } and previous.digest(current) == CAPABILITY_IDENTITY_SOURCE_SHA256, 'Capability identity source transition differs')
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': GUEST_CUTOFF_SOURCE_SHA256,
+    } and previous.digest(current) == GUEST_CUTOFF_SOURCE_SHA256, 'Guest cutoff source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
@@ -823,6 +841,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_guest_cutoff_sha256': binding['guest_cutoff_transition']['sourceBefore'],
             'predecessor_capability_identity_sha256': binding['capability_identity_transition']['sourceBefore'],
             'predecessor_apple_synchronous_text_sha256': binding['apple_synchronous_text_transition']['sourceBefore'],
             'predecessor_apple_section_accessibility_sha256': binding['apple_section_accessibility_transition']['sourceBefore'],

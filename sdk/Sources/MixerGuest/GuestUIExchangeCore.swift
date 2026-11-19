@@ -1,5 +1,8 @@
 import Foundation
 import MixerUI
+#if canImport(Dispatch)
+import Dispatch
+#endif
 
 /// One fixed data-only control object shared by the bridge and coordinator.
 /// It never owns a task, executor, callback, model, session, or activation owner.
@@ -185,6 +188,15 @@ final class GuestUIExchangeCore: @unchecked Sendable {
             s.turn = nil; notices.insert(.nativeInputReadiness)
         }
     }
+    private static func startupDeadlineReached(_ cutoff: UInt64) -> Bool {
+        #if canImport(Dispatch)
+        DispatchTime.now().uptimeNanoseconds >= cutoff
+        #else
+        // A supplied cutoff belongs to the Dispatch clock domain.
+        true
+        #endif
+    }
+
     public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data, startupCutoff: UInt64? = nil) throws {
         try mutate { s, _ in try requireTurn(claim, s) }
         guard (1...codec.maximumBytes).contains(documentBytes.count) else {
@@ -210,7 +222,7 @@ final class GuestUIExchangeCore: @unchecked Sendable {
         }
         try mutate { s, notices in
             try requireTurn(claim, s)
-            if let startupCutoff, DispatchTime.now().uptimeNanoseconds >= startupCutoff {
+            if let startupCutoff, Self.startupDeadlineReached(startupCutoff) {
                 let error = GuestUIProtocolFailureV1(phase: .startup, code: .startupDeadline)
                 protocolStop(error, &s, &notices); throw error
             }

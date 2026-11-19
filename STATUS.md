@@ -26,6 +26,10 @@ An owned API 36 emulator completed the ordinary FieldLog task conflict. After a 
 
 The measured F05 guest weighs 54,739,192 bytes and requests 586 initial memory pages. ICU data accounts for 33,976,096 bytes and code for 16,569,305. Removing ICU data alone would leave the guest over the installed 4 MiB limit. The next Swift/WASI probe targets the guest runtime dependency surface. No signed limit was raised. [Size measurement](verification/receipts/fieldlog-f05-size-attribution-3607a916.json)
 
+The public GuestUI cutoff now builds on Swift/WASI. The debug and release probes admitted startup without a cutoff and refused an unsupported cutoff before revision or effects admission. All four focused deferred-startup tests and both archive modes passed. The delivery uses the reviewed source without the local diagnostic overlay. [Cutoff verification](verification/receipts/fieldlog-guest-ui-wasi-cutoff-41a05264.json)
+
+A reduced byte-array JSON probe removed the Foundation archive and linked to 5,534,857 bytes and 20 initial pages. It passed 527 scalar parity cases, but the owned VM refused the oversized artifact at the unchanged 4 MiB cap. The exact F05 editor remains open. [Scalar JSON probe](verification/receipts/fieldlog-f05-scalar-87a40238.json)
+
 A reduced F05 JSON probe linked to 12,651,963 bytes and 40 initial memory pages with FoundationEssentials. That cleared the memory ceiling and exceeded the 4 MiB payload ceiling. FoundationEssentials also lacked the lock used by the V1 cutoff path. The exact editor remains open. [FoundationEssentials probe](verification/receipts/fieldlog-f05-foundation-essentials-ec0b6949.json)
 
 The F05 design keeps the existing signed recovery authority and selects one closed V3 runtime owner. The exact guest exceeds the 4 MiB installed ceiling. Work proceeds on a compact signed-host control and a separate guest-size measurement. [Design decision](verification/receipts/fieldlog-f05-signed-design-decision-41a05264.json)
