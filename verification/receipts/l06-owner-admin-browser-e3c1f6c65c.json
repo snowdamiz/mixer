@@ -1,0 +1,571 @@
+{
+  "schema": 1,
+  "observedAt": "2026-11-19T02:19:01.791059+00:00",
+  "commit": "e3c1f6c65c57d8aafc276d11f12b0d98f7316101",
+  "tree": "1a6b5f94430f98ca51e5e13c0f308903bf9cc49c",
+  "productInputs": {
+    "consoleTree": "ace99c78214925cf921dff779c1dc07ac28bdd87",
+    "hostedTree": "48ee9c7f802d85ef3eb17df92a81ad18604c4ad2",
+    "verifiedTrackedFiles": 436,
+    "onlyDifferencesInPrivateCopy": {
+      "hosted/test/support/browser_login_provider_fixture.ex": {
+        "beforeGitBlob": "6323baf610895a3b4b3e1d07e7905b8f890cd73a",
+        "afterGitBlob": "4ada0c405e7ea770acd2071c758765923a687522",
+        "afterSha256": "d1cae3e6be37183307c0b14e14384647daecf4b87f39de935164a3bca8e345a2"
+      },
+      "hosted/test/support/ordinary_browser_startup_fixture.ex": {
+        "beforeGitBlob": "430dc178f631aef6f85feff0100efc2c39b043c8",
+        "afterGitBlob": "00ee162aff9956ecaa6eca32aadf651e011d5000",
+        "afterSha256": "efff51effa4604bcc69ada4cb01bc9fde786d00a311251fb825351bcf48b9856"
+      }
+    },
+    "addedExUnitHarness": "hosted/test/mixer_hosted/browser_auth/l06_owner_browser_probe_test.exs",
+    "assetSha256": {
+      "assets/favicon-32.png": "3e770ea0378151a2c088e43e1b5d8713f142e688fa0edc93289eb178acf6554d",
+      "assets/flick-128.webp": "f366034547d29813bba5ffdfb99e1d8b5b3a359ef770486721a8b566ab4bf316",
+      "assets/index--gzCZGc1.css": "28d1c08292885b023222651df8faf596a8c431438fe9ffc1f1cf3659587e7cd2",
+      "assets/index-Ba0o5u8z.js": "a9e5907fd270ab186bf2fda36636683e72c57da68d3789a3a2e06fa9ad294fe9",
+      "index.html": "1055190fbe74128c05e3bfc87345dc78ba0d6d86eb8d457be1267d8a7ea7e88f",
+      "third-party-notices.txt": "90bc9ee087e8c876fb6edac6f8eb61b7013c94dded0f1eaf88b8972a68706551"
+    },
+    "npmLockSha256": "c9211456af0220053efefcddcbfffa8bcbe506c1a96e754f8d3d58a4934bc1f0",
+    "mixLockSha256": "1eada39dcaf4863d02d39f51e218d2bad8908b36a0cba47ff2d16037b7bcf837"
+  },
+  "L06": {
+    "status": "running",
+    "slice": "Free owner administration and exit with empty build history",
+    "decision": "Scoped pass with session availability and overlapping role-change failures",
+    "wholeGatePassed": false
+  },
+  "versions": {
+    "chrome": "155.0.8059.82",
+    "postgres": "17.11",
+    "elixir": "1.20.4",
+    "otp": 29,
+    "node": "22.23.3",
+    "python": "3.14.8",
+    "vite": "8.3.5"
+  },
+  "commands": {
+    "hosted": "MIX_ENV=test HEX_OFFLINE=1 mix deps.get && mix compile --warnings-as-errors",
+    "console": "npm ls --all && ./node_modules/.bin/tsc --noEmit && ./node_modules/.bin/vite build --mode local-workspace-manage --configLoader runner --outDir ../dist --emptyOutDir",
+    "phoenix": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/browser_auth/l06_owner_browser_probe_test.exs",
+    "passing": "python3 -B tools/run.py live05 product-default settled",
+    "discriminator": "python3 -B tools/run.py <fresh-attempt> product-default overlap",
+    "readback": "Separate PostgreSQL 17 psql process, ON_ERROR_STOP=1. See SQL and expectations in run.py."
+  },
+  "fixture": {
+    "profile": "Exact local-workspace-manage console and workspace_v1 Phoenix. Ordinary Repo pool 8 in passing and same-pool overlap controls, read from product defaults. Existing lifecycle pool unchanged.",
+    "identity": "Two pre-registered synthetic principals via the repository identity fixture. Locally minted ephemeral signing/TLS material, real product PKCE callback and durable session/authorization. Separate real Chrome browser contexts. External identity and deployment TLS unqualified.",
+    "transport": "Two loopback HTTPS bridges with host mapping and pinned ephemeral SPKI. Forwarded cookie, Origin, CSRF and HTTP payloads unchanged. Chrome headless --no-sandbox and Phoenix wrapped by OS outbound restriction to loopback. Fresh browser profile and home.",
+    "database": "Fresh loopback PostgreSQL and restricted product roles, using repository provisioning and migrations. Started with zero organizations, projects, memberships, support requests, build records and jobs.",
+    "payments": "No payment service, payment credentials, paid entitlements or external support delivery. Free billing-state mirror followed org creation and deletion.",
+    "build": "Processor profile absent and scheduler queues disabled. No build records, jobs or reservations.",
+    "dependencies": "Hex lock packages and Rebar from local cache. npm offline cache missing yallist@3.1.1, so copied existing lockfile-identical dependencies and verified npm ls --all. No online retrieval."
+  },
+  "attemptNotes": {
+    "live01": "Harness queried the optional payment credential table omitted by free-only provisioning. Corrected readback uses to_regclass.",
+    "live02": "Assertion waited for the membership success message after export had already replaced it. Both operations had returned 200.",
+    "live03": "Original test fixture pool 1. Owner demotion overlapped the member's initial reads. set_member 503 after initial developer creation 200.",
+    "live04": "Product default pool 8. Same overlapping role-change failure. Increasing pool size alone did not prevent it.",
+    "live05": "Product default pool 8. Waited for member project and usage views before demotion. Full browser and independent SQL assertions passed.",
+    "live06": "Final overlap replay stopped before any org API request. Callback 303, then alternating session 200/503; the directory remained unavailable after visible retries. Partial SQL confirmed empty workspace state."
+  },
+  "attempts": [
+    {
+      "attempt": "live01",
+      "fixtureRuntime": null,
+      "browserPhase": null,
+      "failure": "Phoenix fixture unavailable (child exit=2)",
+      "httpCounts": {},
+      "cleanup": {
+        "commandCount": 9,
+        "allCommandGroupsAbsent": true,
+        "serviceGroups": {
+          "postgres": {
+            "pid": 14912,
+            "pgid": 14912,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "phoenix": {
+            "pid": 14937,
+            "pgid": 14937,
+            "direct_exit": 2,
+            "group_absent": true
+          }
+        },
+        "reusablePorts": {
+          "postgres": 62568
+        },
+        "proxiesStopped": true,
+        "databaseDropped": true,
+        "postgresDataRemoved": true,
+        "browserProfileRemoved": null,
+        "downloadsRemoved": null,
+        "tlsMaterialRemoved": true
+      }
+    },
+    {
+      "attempt": "live02",
+      "fixtureRuntime": {
+        "phoenix": 62788,
+        "issuer": 62779,
+        "jwks": 62775
+      },
+      "browserPhase": "membership",
+      "failure": "Browser assertion timed out: Membership role saved.",
+      "httpCounts": {
+        "GET /auth/callback 303": 1,
+        "GET /console-api/v1/projects 503": 1,
+        "POST /console-api/v1/workspace-admin set_member 200": 1,
+        "POST /console-api/v1/workspace-admin usage 503": 3
+      },
+      "cleanup": {
+        "commandCount": 13,
+        "allCommandGroupsAbsent": true,
+        "serviceGroups": {
+          "postgres": {
+            "pid": 17284,
+            "pgid": 17284,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "phoenix": {
+            "pid": 17296,
+            "pgid": 17296,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "chrome": {
+            "pid": 17396,
+            "pgid": 17396,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "browser-drive": {
+            "pid": 17417,
+            "pgid": 17417,
+            "direct_exit": 1,
+            "group_absent": true
+          }
+        },
+        "reusablePorts": {
+          "postgres": 62746,
+          "phoenix": 62788,
+          "issuer": 62779,
+          "jwks": 62775,
+          "console_tls": 62789,
+          "issuer_tls": 62790,
+          "chrome_cdp": 62793
+        },
+        "proxiesStopped": true,
+        "databaseDropped": true,
+        "postgresDataRemoved": true,
+        "browserProfileRemoved": true,
+        "downloadsRemoved": true,
+        "tlsMaterialRemoved": true
+      }
+    },
+    {
+      "attempt": "live03",
+      "fixtureRuntime": {
+        "phoenix": 63411,
+        "issuer": 63401,
+        "jwks": 63397
+      },
+      "browserPhase": "membership",
+      "failure": "Browser assertion timed out: Membership role saved.",
+      "httpCounts": {
+        "GET /auth/callback 303": 2,
+        "GET /auth/session 503": 1,
+        "GET /console-api/v1/projects 503": 5,
+        "POST /console-api/v1/workspace-admin set_member 200": 1,
+        "POST /console-api/v1/workspace-admin set_member 503": 1,
+        "POST /console-api/v1/workspace-admin usage 503": 1
+      },
+      "cleanup": {
+        "commandCount": 13,
+        "allCommandGroupsAbsent": true,
+        "serviceGroups": {
+          "postgres": {
+            "pid": 58822,
+            "pgid": 58822,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "phoenix": {
+            "pid": 58833,
+            "pgid": 58833,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "chrome": {
+            "pid": 60565,
+            "pgid": 60565,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "browser-drive": {
+            "pid": 60990,
+            "pgid": 60990,
+            "direct_exit": 1,
+            "group_absent": true
+          }
+        },
+        "reusablePorts": {
+          "postgres": 63352,
+          "phoenix": 63411,
+          "issuer": 63401,
+          "jwks": 63397,
+          "console_tls": 63412,
+          "issuer_tls": 63413,
+          "chrome_cdp": 63420
+        },
+        "proxiesStopped": true,
+        "databaseDropped": true,
+        "postgresDataRemoved": true,
+        "browserProfileRemoved": true,
+        "downloadsRemoved": true,
+        "tlsMaterialRemoved": true
+      }
+    },
+    {
+      "attempt": "live04",
+      "fixtureRuntime": {
+        "phoenix": 64488,
+        "issuer": 64472,
+        "jwks": 64469,
+        "ordinary_pool": 8
+      },
+      "browserPhase": "membership",
+      "failure": "Browser assertion timed out: Membership role saved.",
+      "httpCounts": {
+        "GET /auth/callback 303": 2,
+        "GET /auth/session 503": 2,
+        "POST /console-api/v1/workspace-admin set_member 200": 1,
+        "POST /console-api/v1/workspace-admin set_member 503": 1,
+        "POST /console-api/v1/workspace-admin usage 503": 1
+      },
+      "cleanup": {
+        "commandCount": 13,
+        "allCommandGroupsAbsent": true,
+        "serviceGroups": {
+          "postgres": {
+            "pid": 98938,
+            "pgid": 98938,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "phoenix": {
+            "pid": 99013,
+            "pgid": 99013,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "chrome": {
+            "pid": 1264,
+            "pgid": 1264,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "browser-drive": {
+            "pid": 1605,
+            "pgid": 1605,
+            "direct_exit": 1,
+            "group_absent": true
+          }
+        },
+        "reusablePorts": {
+          "postgres": 64420,
+          "phoenix": 64488,
+          "issuer": 64472,
+          "jwks": 64469,
+          "console_tls": 64490,
+          "issuer_tls": 64491,
+          "chrome_cdp": 64502
+        },
+        "proxiesStopped": true,
+        "databaseDropped": true,
+        "postgresDataRemoved": true,
+        "browserProfileRemoved": true,
+        "downloadsRemoved": true,
+        "tlsMaterialRemoved": true
+      }
+    },
+    {
+      "attempt": "live05",
+      "fixtureRuntime": {
+        "phoenix": 49611,
+        "issuer": 49594,
+        "jwks": 49587,
+        "ordinary_pool": 8
+      },
+      "browserPhase": "complete",
+      "failure": null,
+      "httpCounts": {
+        "GET /auth/callback 303": 2,
+        "GET /auth/session 200": 34,
+        "GET /auth/session 503": 4,
+        "GET /authorize 302": 2,
+        "GET /console-api/v1/orgs 200": 12,
+        "GET /console-api/v1/projects 200": 10,
+        "POST /auth/login 200": 2,
+        "POST /console-api/v1/orgs 201": 2,
+        "POST /console-api/v1/projects 201": 4,
+        "POST /console-api/v1/projects 409": 1,
+        "POST /console-api/v1/support-requests list 200": 15,
+        "POST /console-api/v1/support-requests list 404": 3,
+        "POST /console-api/v1/support-requests submit 201": 11,
+        "POST /console-api/v1/support-requests submit 404": 1,
+        "POST /console-api/v1/support-requests submit 409": 1,
+        "POST /console-api/v1/workspace-admin delete_organization 200": 1,
+        "POST /console-api/v1/workspace-admin delete_organization 400": 1,
+        "POST /console-api/v1/workspace-admin delete_organization 403": 2,
+        "POST /console-api/v1/workspace-admin delete_organization 404": 2,
+        "POST /console-api/v1/workspace-admin delete_project 200": 1,
+        "POST /console-api/v1/workspace-admin delete_project 403": 1,
+        "POST /console-api/v1/workspace-admin export 200": 7,
+        "POST /console-api/v1/workspace-admin export 403": 1,
+        "POST /console-api/v1/workspace-admin export 404": 2,
+        "POST /console-api/v1/workspace-admin set_member 200": 2,
+        "POST /console-api/v1/workspace-admin set_member 403": 1,
+        "POST /console-api/v1/workspace-admin usage 200": 16,
+        "POST /console-api/v1/workspace-admin usage 403": 1,
+        "POST /console-api/v1/workspace-admin usage 404": 2
+      },
+      "cleanup": {
+        "commandCount": 14,
+        "allCommandGroupsAbsent": true,
+        "serviceGroups": {
+          "postgres": {
+            "pid": 22661,
+            "pgid": 22661,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "phoenix": {
+            "pid": 22727,
+            "pgid": 22727,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "chrome": {
+            "pid": 23111,
+            "pgid": 23111,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "browser-drive": {
+            "pid": 23178,
+            "pgid": 23178,
+            "direct_exit": 0,
+            "group_absent": true
+          }
+        },
+        "reusablePorts": {
+          "postgres": 49462,
+          "phoenix": 49611,
+          "issuer": 49594,
+          "jwks": 49587,
+          "console_tls": 49614,
+          "issuer_tls": 49615,
+          "chrome_cdp": 49628
+        },
+        "proxiesStopped": true,
+        "databaseDropped": true,
+        "postgresDataRemoved": true,
+        "browserProfileRemoved": true,
+        "downloadsRemoved": true,
+        "tlsMaterialRemoved": true
+      }
+    },
+    {
+      "attempt": "live06",
+      "fixtureRuntime": {
+        "phoenix": 51149,
+        "issuer": 51128,
+        "jwks": 51121,
+        "ordinary_pool": 8
+      },
+      "browserPhase": null,
+      "failure": "Browser assertion timed out: No organizations yet",
+      "httpCounts": {
+        "GET /auth/callback 303": 1,
+        "GET /auth/session 503": 7
+      },
+      "cleanup": {
+        "commandCount": 14,
+        "allCommandGroupsAbsent": true,
+        "serviceGroups": {
+          "postgres": {
+            "pid": 35528,
+            "pgid": 35528,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "phoenix": {
+            "pid": 35557,
+            "pgid": 35557,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "chrome": {
+            "pid": 37076,
+            "pgid": 37076,
+            "direct_exit": 0,
+            "group_absent": true
+          },
+          "browser-drive": {
+            "pid": 37145,
+            "pgid": 37145,
+            "direct_exit": 1,
+            "group_absent": true
+          }
+        },
+        "reusablePorts": {
+          "postgres": 50969,
+          "phoenix": 51149,
+          "issuer": 51128,
+          "jwks": 51121,
+          "console_tls": 51154,
+          "issuer_tls": 51155,
+          "chrome_cdp": 51177
+        },
+        "proxiesStopped": true,
+        "databaseDropped": true,
+        "postgresDataRemoved": true,
+        "browserProfileRemoved": true,
+        "downloadsRemoved": true,
+        "tlsMaterialRemoved": true
+      }
+    }
+  ],
+  "passingBrowser": {
+    "visibleReadRetries": [
+      "Try again",
+      "Try again",
+      "Try again",
+      "Try again",
+      "Try again",
+      "Try again",
+      "Try again"
+    ],
+    "ownerAuthenticated": true,
+    "phase": "complete",
+    "activeProjectsAtQuota": 3,
+    "developerExport": true,
+    "memberReadOrder": "settled",
+    "organizationId": "org-7f0d5c2b46ff478e8dce7deae8bd7a0c",
+    "archivedProjectId": "project-f0183aebcae04e04ba15875ee62301ba",
+    "membershipRoles": [
+      "developer",
+      "viewer"
+    ],
+    "export": {
+      "beforeProjects": 3,
+      "archivedRetained": true,
+      "rereadAfterReload": true
+    },
+    "activeProjectsAfterArchive": 2,
+    "replacementProjectCreated": true,
+    "csrfRefusal": 403,
+    "viewerRefusals": {
+      "export": 403,
+      "delete_organization": 403,
+      "set_member": 403,
+      "delete_project": 403
+    },
+    "viewerForeignRefusal": 404,
+    "supportQuota": {
+      "persisted": 10,
+      "refusedEleventh": true
+    },
+    "support": {
+      "filedTenants": 2,
+      "ownHistoryAfterReload": true,
+      "otherMemberIsolated": true,
+      "oldOwnerRead": 404,
+      "oldMemberRead": 404,
+      "oldMemberWrite": 404
+    },
+    "deletion": {
+      "wrongConfirmation": 400,
+      "missingCsrf": 403,
+      "crossTenant": 404,
+      "ownerRemoved": true,
+      "reloadRemoved": true,
+      "repeat": 404,
+      "exportAfterDelete": 404,
+      "remainingTenantUnchanged": true,
+      "separateOrganizationId": "org-aab9e4492f52464a98ef81801ff1b50d"
+    },
+    "secureCookie": {
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax",
+      "separateContexts": true
+    }
+  },
+  "passingDurableReadback": {
+    "jobs": 0,
+    "role": [
+      "viewer",
+      true,
+      2
+    ],
+    "trigger": "mixer_free_workspace_sync_billing_state_v1",
+    "archived": [
+      {
+        "id": "project-f0183aebcae04e04ba15875ee62301ba",
+        "organization_id": "org-7f0d5c2b46ff478e8dce7deae8bd7a0c"
+      }
+    ],
+    "migration": 1,
+    "build_rows": 0,
+    "deleted_orgs": 1,
+    "support_rows": 11,
+    "organizations": 2,
+    "active_projects": 3,
+    "free_org_mirror": 1,
+    "deletion_migration": 1,
+    "active_reservations": 0,
+    "exit_capacity_fenced": 1,
+    "support_by_principal": {
+      "person-1": 10,
+      "person-2": 1
+    },
+    "retained_org_projects": 4,
+    "inactive_billing_mirror": 1,
+    "separate_owner_memberships": 1,
+    "payment_credentials_table_installed": false
+  },
+  "finalOverlapDurableReadback": {
+    "job_count": 0,
+    "build_count": 0,
+    "memberships": [],
+    "support_count": 0,
+    "organization_count": 0,
+    "active_project_count": 0
+  },
+  "limits": [
+    "Passing attempt saw four /auth/session 503s and seven visible Try again clicks. SQL cause of the overlapping demotion and session failures was not established.",
+    "Exit exercised a workspace with no build history. Native build execution and live unsettled-build exit behavior were outside this lane."
+  ],
+  "privateReplay": {
+    "directory": "verification/local/l06-owner-admin-replay-e3c1f6c65c",
+    "sha256": {
+      "drive.mjs": "2cb3528ef6d1a6fda0ae95ca1e44da5a18a764bb716d94955026363c3e7985c3",
+      "l06_owner_browser_probe_test.exs": "ede778a61f7c00137f8d1b95e4070569eafc14664ded855e7b3c92a887b54257",
+      "ordinary-fixture.patch": "81262295f68414081b76635e572c83d2dcb2b0a459da3ca1c0d96dcdf0520614",
+      "provider-fixture.patch": "7034bf3b20979b4e08ba44924f4156df86f09ccfac01a4ba5f3765fef895841e",
+      "run.py": "03d73f17518122af10a848e5940903e0e49257c79e0d37b7489ed59d6e7857c8"
+    },
+    "setup": [
+      "Archive the exact commit's hosted and console trees into a fresh checkout-local scratch. Create home, tmp, mix, hex, dist and tools directories.",
+      "Apply both supplied fixture patches at the scratch root using patch -p1. Copy the ExUnit test to its fixture path and copy run.py and drive.mjs into tools.",
+      "Prepare offline locked hosted and console dependencies and build as specified. Use scratch MIX_HOME and HEX_HOME, local MIX_ARCHIVES, and Rebar 1-20-otp-29 in MIX_HOME/elixir.",
+      "Run settled and overlap with different fresh attempt names. Runner records exit, group absence, database removal, listener reuse and scoped outputs."
+    ]
+  }
+}

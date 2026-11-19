@@ -1,0 +1,214 @@
+{
+  "schema": 1,
+  "id": "fieldlog-f05-signed-feature-v3-host-3607a916",
+  "status": "PASS_COMPACT_MACOS_SIGNED_FEATURE_V3",
+  "observedUTC": "2026-11-19T02:18:28.455100+00:00",
+  "baseRevision": "3607a9160069605737adb0a941a1cd73788dac4c",
+  "testedTreeBeforeReceipt": "5a974d42785199cb4a54e99af18074cd16454647",
+  "tools": {
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "sdk": "27.2",
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434"
+  },
+  "replay": {
+    "driver": "compiler/experiments/fieldlog-change-corpus/signed-feature-v3/replay.py",
+    "inputs": "A fresh verification/local output path, installed cargo, and existing local Swift Crypto and Swift ASN.1 Git repositories",
+    "dependencyPins": "compiler/experiments/fieldlog-change-corpus/signed-feature-v3/Package.resolved",
+    "commands": [
+      {
+        "name": "build-vm",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+          "build",
+          "--manifest-path",
+          "$checkout/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--release",
+          "--lib",
+          "--example",
+          "signed_feature_v3_fixture",
+          "--features",
+          "experimental-capability-native,experimental-signed-feature-v3-host"
+        ],
+        "exitCode": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "88b320051dfb16b726a0ffe9d0ccfad50f7296bbf68b2f9ff0e254fbbff764a8"
+      },
+      {
+        "name": "build-guest",
+        "argv": [
+          "$output/cargo/release/examples/signed_feature_v3_fixture",
+          "$output/guest.wasm"
+        ],
+        "exitCode": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "build-host",
+        "argv": [
+          "/usr/bin/swift",
+          "build",
+          "--package-path",
+          "$checkout/compiler/experiments/fieldlog-change-corpus/signed-feature-v3",
+          "--cache-path",
+          "$output/cache",
+          "--config-path",
+          "$output/config",
+          "--security-path",
+          "$output/security",
+          "--force-resolved-versions",
+          "--jobs",
+          "8",
+          "-Xcc",
+          "-I$checkout/vm/include",
+          "--scratch-path",
+          "$output/swift",
+          "-Xswiftc",
+          "-DMIXER_SIGNED_FEATURE_V3_PROBE",
+          "-Xswiftc",
+          "-enable-testing",
+          "-Xlinker",
+          "-L$output/lib"
+        ],
+        "exitCode": 0,
+        "stdoutSHA256": "103ffe496d74efa07dd0aedf4c9b8ae41b5a778ff2ba9c606dca7e1cd30bd30a",
+        "stderrSHA256": "c737359b89be8252645e0f200f5fe12587711ca3482dc73a723bf2fde0373dd2"
+      },
+      {
+        "name": "host-bin-path",
+        "argv": [
+          "/usr/bin/swift",
+          "build",
+          "--package-path",
+          "$checkout/compiler/experiments/fieldlog-change-corpus/signed-feature-v3",
+          "--cache-path",
+          "$output/cache",
+          "--config-path",
+          "$output/config",
+          "--security-path",
+          "$output/security",
+          "--force-resolved-versions",
+          "--jobs",
+          "8",
+          "-Xcc",
+          "-I$checkout/vm/include",
+          "--scratch-path",
+          "$output/swift",
+          "-Xswiftc",
+          "-DMIXER_SIGNED_FEATURE_V3_PROBE",
+          "-Xswiftc",
+          "-enable-testing",
+          "-Xlinker",
+          "-L$output/lib",
+          "--show-bin-path"
+        ],
+        "exitCode": 0,
+        "stdoutSHA256": "c2e31059d99b8d0084efc7613fd68a559f4f89e3aa4d42fb334d4ae342294673",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "host-proof",
+        "argv": [
+          "$output/swift/out/Products/Debug/SignedFeatureV3HostProbe",
+          "$checkout/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures",
+          "$output/guest.wasm",
+          "$output/run"
+        ],
+        "exitCode": 0,
+        "stdoutSHA256": "bf12cb5cb4763b1b24789a8d4e33815db7fcf2805b7556a0d385432f9817cd91",
+        "stderrSHA256": "8899935e0b5bf7261437e297bd068024e1b4f792a2a7f5a51a6c6c4a17264aaa"
+      },
+      {
+        "name": "build-default-target",
+        "argv": [
+          "/usr/bin/swift",
+          "build",
+          "--package-path",
+          "$checkout/compiler/experiments/fieldlog-change-corpus/signed-feature-v3",
+          "--cache-path",
+          "$output/cache",
+          "--config-path",
+          "$output/config",
+          "--security-path",
+          "$output/security",
+          "--force-resolved-versions",
+          "--jobs",
+          "8",
+          "-Xcc",
+          "-I$checkout/vm/include",
+          "--scratch-path",
+          "$output/swift-default",
+          "--target",
+          "MixerCapabilityActivation"
+        ],
+        "exitCode": 0,
+        "stdoutSHA256": "fa706623e500a26099c6a0a01542640f961504015f55caf0e9fd738f6125ad16",
+        "stderrSHA256": "184805645428bbc6041cc59ae1f9e367853300d7dfabbbec516b99c94a21c286"
+      }
+    ]
+  },
+  "compactGuest": {
+    "bytes": 1973,
+    "sha256": "3a0f646cccda9b95ae873179ecf83b95d5221bf9095a9c4428086d59ef8afdb3"
+  },
+  "vmArchiveSHA256": "f9388893b2a24fac18986702244626d440931c5e49aaa88bfc9a20f3950bb8df",
+  "hostSHA256": "b9b479629f251211470890218666ca77fc0e18c69173cfa4eb51cac3e218b4cb",
+  "observations": [
+    "guest_bytes=1973 guest_sha256=3a0f646cccda9b95ae873179ecf83b95d5221bf9095a9c4428086d59ef8afdb3 profile_sha256=7910c3c88954d55dd2aa372314c1d3c0d9c259719aa602d4c8dc75a114c1e0f4",
+    "refused=feature-profile-on-legacy-entry boundary=capability.runtime.installed_mode native_constructs=0 guest_entries=0",
+    "refused=wrong-installed-profile boundary=capability.store.feature_v3_profile native_constructs=0 guest_entries=0",
+    "refused=manifest-signature boundary=v3.signature.invalid native_constructs=0 guest_entries=0",
+    "refused=assignment-signature boundary=v3.signature.invalid native_constructs=0 guest_entries=0",
+    "refused=assignment-artifact-binding boundary=v3.assignment.binding native_constructs=0 guest_entries=0",
+    "refused=runtime-fingerprint boundary=v3.manifest.compatibility native_constructs=0 guest_entries=0",
+    "refused=signed-tuple boundary=v3.manifest.version native_constructs=0 guest_entries=0",
+    "refused=tampered-delivery boundary=v3.payload.integrity native_constructs=0 guest_entries=0",
+    "refused=signed-invalid-module boundary=capability.store.feature_v3_validation native_constructs=0 guest_entries=0",
+    "refused=signed-low-memory boundary=capability.store.feature_v3_validation native_constructs=0 guest_entries=0",
+    "refused=corrupt-staged-file boundary=prepare-selection native_constructs=0 guest_entries=0",
+    "refused=expired-after-consume boundary=capability.store.deadline native_constructs=0 guest_entries=0",
+    "refused=replayed-sequence boundary=v3.assignment.replay native_constructs=0 guest_entries=0",
+    "refused=foreign-topology-same-generation boundary=capability.store.selection native_constructs=0 guest_entries=0",
+    "refused=reused-selection boundary=capability.store.selection native_constructs=0 guest_entries=0",
+    "enabled_sequence=7 candidate=4453e0c7516c865a759b4cfa23d781151fb6134deb11fc9087d35dee06ffd201 launch=A76F6DDA-530A-4895-9C8F-A0EFC010651F generation=1 native_constructs=1 guest_entries=1 durable_intent=true health=false native_clean=true",
+    "reopen=unknown_interruption_after_effects replay_high_water=7 retained_selection=false",
+    "legacy_route=provisionalGuest reservation_slots=0 status=pass"
+  ],
+  "nativeStartupTrace": [
+    "R3238_TURN function=34",
+    "R3238_TURN function=35"
+  ],
+  "checks": [
+    "Ephemeral Ed25519 manifest and assignment verify through the installed ReleaseVerifierV3 and existing recovery store.",
+    "Two bounded chunks stage the exact signed hash. Durable state binds the accepted sequence, installed fingerprint, candidate, and launch before acquisition.",
+    "Consume binds the precise headless topology to one launch, generation, and reservation.",
+    "The real VM records zero instructions at construction. The initializer repairs the frame marker during startup and the start export returns the frame.",
+    "Startup has zero WASI host calls. The validated frame remains private until the same store writes durable effects intent and issues the permit for that launch.",
+    "The Rust owner reports clean native retirement. The store and adapter release their reservation. Reopen keeps sequence 7 and clears the interrupted stage.",
+    "A signed legacy capability cold start reaches provisionalGuest through the existing coordinator. The default activation module also compiles with the probe disabled."
+  ],
+  "buildSetupCorrections": [
+    "The first build needed the existing vm/include search path for the legacy capability header.",
+    "The second build needed the private Rust declarations included by the C target umbrella header."
+  ],
+  "scope": [
+    "The private macOS route uses an exact fingerprinted dependency marker and the existing protocol 3, ABI 2, UI 1 release tuple.",
+    "The standalone executable coordinates the V3 arm directly through the existing store. The public cold-start worker still needs its V3 dispatch.",
+    "The enable permit releases a staged FeatureDocumentV3 frame. The host probe exposes no event endpoint or app capability grants.",
+    "Display acknowledgement, health commit, retained healthy selection, shared native cancellation, and platform retirement remain pending.",
+    "No XCTest, simulator, emulator, or device run occurred."
+  ],
+  "originalF05": {
+    "status": "UNQUALIFIED",
+    "bytes": 54739192,
+    "sha256": "09eb2615b121bfde28c3e4884aebc522e479a0c77a4ee0def839f6b95d1a2917",
+    "currentCeilingBytes": 4194304,
+    "next": "Coordinate the installed profile with root after size attribution. Exercise the exact editor through the existing coordinator and attach a real display witness before testing health and complete retirement."
+  },
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}

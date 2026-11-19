@@ -1,0 +1,71 @@
+{
+  "status": "passed",
+  "gates": [
+    "L07"
+  ],
+  "scope": "Exact replacement Android development APK archive and runtime notices",
+  "app": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-android-dev-replay-43f653e9.ZrknWSZ5/signed/FieldLog-combined-development.apk",
+    "sha256": "045667d5720f4ad578df4da581ddf800d85e940ec15e9ab800e3d6d9ac215ff6",
+    "signerSHA256": "f5fb7d5856f803009c3fea7306e44a60f8e4ac97fbae57684b86f09f3f091b3b"
+  },
+  "toolchain": "Swift 6.3.3 Android artifact bundle, NDK r27d",
+  "python": "3.14.8",
+  "noticeEntries": {
+    "third-party-notices/Swift-SDK-LICENSE.txt": {
+      "bytes": 11751,
+      "sha256": "770af8291f708538d8ff885a0bbc4e045cd700531741c4f99528d435c14d7f55"
+    },
+    "third-party-notices/Android-NDK-NOTICE.txt": {
+      "bytes": 522923,
+      "sha256": "4d5224d1c0b54ffa88b0dc0088191638fdbb7227835095dfb98f7f66b416a323"
+    },
+    "third-party-notices/Android-NDK-NOTICE.toolchain.txt": {
+      "bytes": 806124,
+      "sha256": "cbe3237be53c0a819f8df6aac5358fdee848eee3b6571b4e2ca20767ebd7465e"
+    },
+    "third-party-notices/Apple-ICU-76.1-LICENSE.txt": {
+      "bytes": 22559,
+      "sha256": "92841ff27a1b2d1030b00e0958af4d1f70353ff42c5dad7041f1950e909ccc5e"
+    }
+  },
+  "tests": [
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "-B",
+        "-S",
+        "cli/build-tests/test_android_runtime_notices.py",
+        "-v"
+      ],
+      "environment": {
+        "MIXER_ANDROID_NOTICE_TEST_APK": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-android-dev-replay-43f653e9.ZrknWSZ5/signed/FieldLog-combined-development.apk"
+      },
+      "testCount": 5,
+      "log": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-restage-notices.RfAD8qxp/normal-apk.log",
+      "sha256": "62660dd40221ec49d59a1f6f1d0ff85f4d28e1deb90680a3f9ad958c86b3cb67"
+    },
+    {
+      "argv": [
+        "python3",
+        "-I",
+        "-B",
+        "-S",
+        "-O",
+        "cli/build-tests/test_android_runtime_notices.py",
+        "-v"
+      ],
+      "environment": {
+        "MIXER_ANDROID_NOTICE_TEST_APK": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-android-dev-replay-43f653e9.ZrknWSZ5/signed/FieldLog-combined-development.apk"
+      },
+      "testCount": 5,
+      "log": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/fieldlog-restage-notices.RfAD8qxp/optimized-apk.log",
+      "sha256": "e03b64839d86fc29bcf8c4e6b5f4eb622e72d63fda7453d82cd832d86158d8de"
+    }
+  ],
+  "cleanup": {
+    "temporaryDirectoriesRemoved": true
+  },
+  "comparison": "Each of the four embedded notices matches the preceding development APK byte for byte."
+}
