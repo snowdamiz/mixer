@@ -53,12 +53,15 @@ output path on each run.
 To exercise backup recovery, add `--restore-after-halt` alongside `--postgres`
 and put the matching `pg_dump` and `pg_restore` tools on `PATH`. The replay
 backs up the halted channel at sequence 5 and promotes the source database to
-sequence 6. It restores the backup into a new database in the same disposable
-cluster, using the existing local roles. It checks the restored audit, outbox,
-assignments, idempotency receipts, and HTTP 204 offers. A fresh promotion must
-deliver the same signed assignment, manifest, and payload from that database.
+sequence 6. It initializes a second disposable PostgreSQL cluster with a
+different system identifier, provisions a restricted runtime login there,
+and restores the backup. It checks the restored audit, outbox, assignments,
+idempotency receipts, tenant denial, and HTTP 204 offers. A fresh promotion
+must deliver the same signed assignment, manifest, and payload as the source
+while preserving the restored audit, outbox, and idempotency history. The
+source database stays unchanged.
 
-The PostgreSQL run uses one private Unix-socket cluster. The origin uses a
+Each PostgreSQL cluster uses a private Unix socket. The origin uses a
 restricted runtime login, while the fixture applies the real migration and
 reads committed rows over a separate connection. The signer exits before any
 CLI operation. The CLI takes an explicit channel and percentage for publish.
@@ -76,9 +79,9 @@ sample after the halt is rejected without adding history. All three tested
 cohorts receive an empty HTTP 204 before and after restarting the origin.
 A later signed promotion resumes offers for the two eligible cohorts.
 
-On success the runner reaps all three origin instances and PostgreSQL and removes
-their fixture and socket directory. Build outputs and the receipt remain in
-`$run`. If a run fails, the driver prints the retained fixture location.
+On success the runner reaps the origin instances and PostgreSQL clusters and
+removes their fixture and socket directories. Build outputs and the receipt
+remain in `$run`. If a run fails, the driver prints the retained fixture location.
 `HOLD.json` identifies any process groups whose exit could not be verified.
 
 The fixture uses one synthetic iOS runtime and two test payloads. It restarts

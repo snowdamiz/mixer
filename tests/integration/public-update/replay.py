@@ -28,7 +28,7 @@ parser.add_argument("signer", type=lambda value: Path(value).resolve())
 parser.add_argument("evidence", type=Path)
 parser.add_argument("--postgres", action="store_true", help="use a fresh private PostgreSQL cluster")
 parser.add_argument("--restore-after-halt", action="store_true",
-                    help="restore the halted PostgreSQL backup into a second disposable database")
+                    help="restore the halted PostgreSQL backup into an independent disposable cluster")
 args = parser.parse_args()
 if args.restore_after_halt and not args.postgres:
     parser.error("--restore-after-halt requires --postgres")
@@ -45,7 +45,6 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 local_http = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 reason = "--validation regression"
 last_output = {}
-database_environment = {}
 unproven_groups = set()
 
 
@@ -183,11 +182,13 @@ def service_environment():
 
 
 @contextlib.contextmanager
-def service():
+def service(db):
     prior_exits = len(steps.get("origin_cleanup", []))
+    env = service_environment()
+    if db is not None:
+        env["MIXER_FIXTURE_RUNTIME"] = db.dsn(db.runtime)
     try:
-        with owned_server("origin", [args.service], {**service_environment(), **database_environment},
-                          signal.SIGTERM) as process:
+        with owned_server("origin", [args.service], env, signal.SIGTERM) as process:
             deadline = time.monotonic() + 5
             while True:
                 require(process.poll() is None and time.monotonic() < deadline, "origin startup failed")
@@ -211,10 +212,9 @@ class Postgres:
     owner = "mixer_migration_owner"
     runtime = "mixer_test_runtime"
 
-    def __init__(self, sockets):
+    def __init__(self, sockets, label):
         self.sockets = sockets
-        self.data = directory / "postgres-data"
-        self.database = "postgres"
+        self.data = directory / f"{label}-data"
         self.tools = {name: shutil.which(name) for name in ("initdb", "postgres", "psql")}
         require(all(self.tools.values()), "--postgres requires initdb, postgres and psql in PATH")
         if args.restore_after_halt:
@@ -226,7 +226,7 @@ class Postgres:
 
     def sql(self, query):
         return subprocess.run([self.tools["psql"], "-XAtq", "-w", "-v", "ON_ERROR_STOP=1",
-                               "-h", self.sockets, "-p", "5432", "-U", self.owner, "-d", self.database,
+                               "-h", self.sockets, "-p", "5432", "-U", self.owner, "-d", "postgres",
                                "-c", query], env=self.env, capture_output=True, timeout=7)
 
     def query(self, query):
@@ -235,14 +235,15 @@ class Postgres:
         return result.stdout
 
     def dsn(self, role):
-        return f"host={self.sockets} port=5432 dbname={self.database} user={role} sslmode=disable"
+        return f"host={self.sockets} port=5432 dbname=postgres user={role} sslmode=disable"
 
-    def configure(self, process):
+    def wait_for_startup(self, process):
         deadline = time.monotonic() + 8
         while True:
             require(process.poll() is None and time.monotonic() < deadline, "PostgreSQL startup failed")
             result = self.sql("""
                 SELECT json_build_object('version', version(), 'data', current_setting('data_directory'),
+                    'system_identifier', (SELECT system_identifier::text FROM pg_control_system()),
                     'listen', current_setting('listen_addresses'), 'fsync', current_setting('fsync'),
                     'full_page_writes', current_setting('full_page_writes'),
                     'synchronous_commit', current_setting('synchronous_commit'))
@@ -254,8 +255,9 @@ class Postgres:
         require(Path(settings.pop("data")).resolve() == self.data.resolve(), "unexpected database directory")
         require(settings["listen"] == "" and all(settings[key] == "on" for key in
                 ("fsync", "full_page_writes", "synchronous_commit")), settings)
-        steps["postgres"] = settings
+        return settings
 
+    def migrate_source(self):
         path = directory / "service.json"
         config = json.loads(path.read_bytes())
         del config["data_directory"]
@@ -265,11 +267,12 @@ class Postgres:
                                    env={**service_environment(), "MIXER_FIXTURE_OWNER": self.dsn(self.owner)},
                                    capture_output=True, timeout=12)
         require(migration.returncode == 0, migration.stderr.decode(errors="replace"))
+
+    def enroll_runtime(self):
         self.query("""
             CREATE ROLE mixer_test_runtime LOGIN NOSUPERUSER NOCREATEROLE NOCREATEDB NOBYPASSRLS;
             GRANT mixer_release_runtime TO mixer_test_runtime;
         """)
-        database_environment["MIXER_FIXTURE_RUNTIME"] = self.dsn(self.runtime)
 
     def backup_halt(self):
         archive = directory / "halted.dump"
@@ -278,11 +281,13 @@ class Postgres:
         return archive
 
     def restore_halt(self, archive):
-        self.query("CREATE DATABASE mixer_halt_restore TEMPLATE template0")
-        self.database = "mixer_halt_restore"
+        # The database archive carries ACLs, while the cluster-level role is provisioned here.
+        self.query("""
+            CREATE ROLE mixer_release_runtime
+              NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
+        """)
         subprocess.run([self.tools["pg_restore"], "-w", "--single-transaction", "--exit-on-error",
                         "--dbname", self.dsn(self.owner), archive], env=self.env, check=True, timeout=15)
-        database_environment["MIXER_FIXTURE_RUNTIME"] = self.dsn(self.runtime)
 
     def snapshot(self):
         # One independent, read-only SQL snapshot after the HTTP commit.
@@ -292,10 +297,14 @@ class Postgres:
               'heads', ARRAY(SELECT sequence FROM mixer_release.channel_heads ORDER BY channel_key),
               'assignments', ARRAY(SELECT encode(signed_assignment, 'hex') FROM mixer_release.assignments
                                    ORDER BY sequence),
-              'audit', ARRAY(SELECT convert_from(event_body, 'UTF8') FROM mixer_release.audit_events ORDER BY id),
-              'outbox', ARRAY(SELECT convert_from(work_body, 'UTF8') FROM mixer_release.outbox ORDER BY id),
-              'idempotency', ARRAY(SELECT json_build_array(key, request_hash, status, encode(response_body, 'hex'))
-                                     FROM mixer_release.idempotency ORDER BY key),
+              'audit', ARRAY(SELECT json_build_array(organization, project, id, event_hash, previous_hash,
+                                                      convert_from(event_body, 'UTF8'))
+                               FROM mixer_release.audit_events ORDER BY organization, project, id),
+              'outbox', ARRAY(SELECT json_build_array(organization, project, id, event_id, convert_from(work_body, 'UTF8'))
+                                FROM mixer_release.outbox ORDER BY organization, project, id),
+              'idempotency', ARRAY(SELECT json_build_array(key, organization, project, request_hash, status,
+                                                            encode(response_body, 'hex'))
+                                     FROM mixer_release.idempotency ORDER BY organization, project, key),
               'tenant', ARRAY(SELECT json_build_array(organization, project, last_event, audit_hash, state_hash)
                                FROM mixer_release.tenant_heads ORDER BY organization, project));
             COMMIT;
@@ -303,37 +312,47 @@ class Postgres:
 
 
 @contextlib.contextmanager
-def postgres():
+def postgres(label="postgres", backup=None):
     # The Unix socket path must fit sockaddr_un even with a long checkout path.
     sockets = Path(tempfile.mkdtemp(prefix="mixer-l05-", dir="/tmp"))
     db = None
+    owned_groups = set()
     try:
-        db = Postgres(sockets)
-        with (directory / "initdb.log").open("wb") as log:
+        db = Postgres(sockets, label)
+        init_label = "initdb" if backup is None else f"{label}_initdb"
+        with (directory / f"{init_label}.log").open("wb") as log:
             initialize = subprocess.Popen(
                 [db.tools["initdb"], "-D", db.data, "-U", db.owner, "--auth-local=trust",
                  "--auth-host=reject", "--no-locale", "--encoding=UTF8"],
                 env=db.env, stdout=log, stderr=log, start_new_session=True,
             )
+            owned_groups.add(initialize.pid)
             unproven_groups.add(initialize.pid)
-        wait_for_owned_exit("initdb", initialize, 30)
+        wait_for_owned_exit(init_label, initialize, 30)
         settings = ["-c", "listen_addresses=", "-c", f"unix_socket_directories={sockets}",
                     "-c", "unix_socket_permissions=0700", "-c", "fsync=on", "-c", "full_page_writes=on",
                     "-c", "synchronous_commit=on"]
-        with owned_server("postgres", [db.tools["postgres"], "-D", db.data, "-p", "5432", *settings],
+        with owned_server(label, [db.tools["postgres"], "-D", db.data, "-p", "5432", *settings],
                           db.env, signal.SIGINT) as process:
-            db.configure(process)
+            owned_groups.add(process.pid)
+            steps[label] = db.wait_for_startup(process)
+            if backup is None:
+                db.migrate_source()
+            else:
+                db.restore_halt(backup)
+            db.enroll_runtime()
             yield db
     finally:
-        if unproven_groups:
-            steps["retained_socket_directory"] = str(sockets)
-            print(f"Unproven process groups {sorted(unproven_groups)}; retained private socket at {sockets}")
+        cleanup = steps.get(f"{label}_cleanup")
+        if remaining := owned_groups & unproven_groups:
+            steps.setdefault("retained_socket_directories", []).append(str(sockets))
+            print(f"Unproven process groups {sorted(remaining)}; retained private socket at {sockets}")
         else:
             socket_empty = not any(sockets.iterdir())
             pidfile_gone = not db or not (db.data / "postmaster.pid").exists()
             shutil.rmtree(sockets)
-            if steps.get("postgres_cleanup"):
-                steps["postgres_cleanup"][-1].update(
+            if cleanup:
+                cleanup[-1].update(
                     socket_directory=str(sockets), socket_directory_removed=True,
                     socket_closed=socket_empty, pidfile_gone=pidfile_gone,
                 )
@@ -374,16 +393,17 @@ def check_committed(db, label, sequence, artifact, rollout, count, previous, rea
     expected_assignments = [(directory / f"{assignment_inputs[index]}.json").read_bytes().removesuffix(b"\n").hex()
                             for index in range(1, sequence + 1)]
     require(snapshot["assignments"] == expected_assignments, "persisted signed assignment history differs")
-    require(list(map(json.loads, snapshot["audit"])) == audit, "SQL audit differs from operator readback")
-    require(list(map(json.loads, snapshot["outbox"])) == outbox, "SQL outbox differs from operator readback")
+    require([json.loads(row[-1]) for row in snapshot["audit"]] == audit, "SQL audit differs from operator readback")
+    require([json.loads(row[-1]) for row in snapshot["outbox"]] == outbox, "SQL outbox differs from operator readback")
     require(snapshot["tenant"] == [["org-a", "project-a", count, event["hash"], event["current"]]],
             "tenant high-water differs from the latest audit event")
     require(len(snapshot["idempotency"]) == count, "wrong committed idempotency count")
     previous_hash = ""
-    for row, body in zip(audit, snapshot["audit"], strict=True):
+    for row, (_, _, _, _, stored_previous_hash, body) in zip(audit, snapshot["audit"], strict=True):
         digest = row["hash"]
         unsigned = body.replace(f'"hash":"{digest}"', '"hash":""', 1)
-        require(row["previous_hash"] == previous_hash and hashlib.sha256(unsigned.encode()).hexdigest() == digest,
+        require(previous_hash == row["previous_hash"] == stored_previous_hash and
+                hashlib.sha256(unsigned.encode()).hexdigest() == digest,
                 "invalid committed audit hash chain")
         previous_hash = digest
     steps.setdefault("committed_transitions", {})[label] = {
@@ -550,11 +570,12 @@ def disposable_directory():
     directory = Path(tempfile.mkdtemp(prefix="local-origin-", dir=args.evidence.parent))
     try:
         yield directory
+        require(not unproven_groups, "fixture has unproven process groups")
     except BaseException:
         if unproven_groups:
             (directory / "HOLD.json").write_text(json.dumps({
                 "unproven_process_groups": sorted(unproven_groups), "fixture": str(directory),
-                "socket_directory": steps.get("retained_socket_directory"),
+                "socket_directories": steps.get("retained_socket_directories", []),
             }, indent=2) + "\n")
         print(f"Preserved failed fixture at {directory}")
         raise
@@ -591,7 +612,7 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
     rollback = command("rollback", first, "rollback", "--reason", reason)
     db = stack.enter_context(postgres()) if args.postgres else None
     development_reason = "local development operation"
-    with service():
+    with service(db):
         steps["before_publish"] = offer("early")
         require(history() == ([], []), "new origin history is nonempty")
         if db:
@@ -696,7 +717,7 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
         steps["audit_channel_sequences"] = [head[0] for head in heads]
         steps["audit"] = [{key: event[key] for key in ("id", "actor", "action", "reason", "hash")} for event in audit]
         steps["outbox_count"] = len(outbox)
-    with service():
+    with service(db):
         if db:
             require(db.snapshot() == committed and history() == (audit, outbox), "restart changed committed history")
             require(offer("outside", 4, first) == steps["after_rollback"], "restart changed committed offer")
@@ -761,7 +782,7 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
         if db:
             require(db.snapshot() == halted_snapshot, "halt retries changed persisted rows")
 
-    with service():
+    with service(db):
         steps["after_halt_restart"] = halted_offers()
         require(steps["after_halt_restart"] == steps["after_halt"], "restart changed halted offers")
         call("halt_retry_after_restart", halt)
@@ -783,24 +804,41 @@ with disposable_directory() as directory, contextlib.ExitStack() as stack:
         steps["after_resume"] = {"early": offer("early", 6, first), "expansion": offer("expansion", 6, first),
                                  "outside": offer("outside")}
     if args.restore_after_halt:
-        require(db.snapshot()["heads"] == [6], "source database did not advance past its backup")
-        db.restore_halt(halted_backup)
-        with service():
-            require(db.snapshot() == halted_snapshot, "restored SQL rows differ from the halted backup")
-            require(halted_offers() == steps["after_halt"], "restored rollout served an offer")
-            call("restored_halt_retry", halt)
-            require(last_output["restored_halt_retry"] == last_output["halt"], "restored halt receipt changed")
-            require(db.snapshot() == halted_snapshot and history() == (halted_audit, halted_outbox),
-                    "replaying halt changed the restored database")
-            call("restored_promotion", command("promote", first, "resume", "--channel", "production", "--rollout", "25"))
-            check_receipt("restored_promotion", "promote", first, 6, 2500)
-            restored_offer = offer("early", 6, first)
-            require(restored_offer == steps["after_resume"]["early"], "restored promotion changed signed bytes")
-            check_committed(db, "restored_promotion", 6, first, 2500, 10, halt_head, development_reason, action="promote")
-            steps["restored_halt"] = {"archive_sha256": hashlib.sha256(halted_backup.read_bytes()).hexdigest(),
-                                      "source_sequence": 6, "restored_sequence": 5,
-                                      "offers": steps["after_halt"], "identical_retry": True,
-                                      "restored_promotion_offer": restored_offer}
+        source_snapshot = db.snapshot()
+        require(source_snapshot["heads"] == [6], "source database did not advance past its backup")
+        with postgres("postgres_restore", halted_backup) as restored:
+            require(steps["postgres"]["system_identifier"] != steps["postgres_restore"]["system_identifier"],
+                    "restore did not use an independent PostgreSQL cluster")
+            with service(restored):
+                require(restored.snapshot() == halted_snapshot, "restored SQL rows differ from the halted backup")
+                require(halted_offers() == steps["after_halt"], "restored rollout served an offer")
+                request(base + "/audit", 403, "FOREIGN")
+                call("restored_halt_retry", halt)
+                require(last_output["restored_halt_retry"] == last_output["halt"], "restored halt receipt changed")
+                require(restored.snapshot() == halted_snapshot and history() == (halted_audit, halted_outbox),
+                        "replaying halt changed the restored database")
+                call("restored_promotion", command("promote", first, "resume",
+                                                  "--channel", "production", "--rollout", "25"))
+                check_receipt("restored_promotion", "promote", first, 6, 2500)
+                restored_offers = {"early": offer("early", 6, first), "expansion": offer("expansion", 6, first),
+                                   "outside": offer("outside")}
+                require(restored_offers == steps["after_resume"], "restored promotion changed signed delivery")
+                _, promoted_snapshot = check_committed(
+                    restored, "restored_promotion", 6, first, 2500, 10, halt_head,
+                    development_reason, action="promote")
+                require(promoted_snapshot["audit"][:-1] == halted_snapshot["audit"] and
+                        promoted_snapshot["outbox"][:-1] == halted_snapshot["outbox"],
+                        "restored promotion rewrote the halt history")
+                promoted_retries = {row[0]: row for row in promoted_snapshot["idempotency"]}
+                require(all(promoted_retries.get(row[0]) == row for row in halted_snapshot["idempotency"]),
+                        "restored promotion rewrote an earlier idempotency response")
+            require(db.snapshot() == source_snapshot, "restore or promotion changed the source database")
+        steps["restored_halt"] = {"archive_sha256": hashlib.sha256(halted_backup.read_bytes()).hexdigest(),
+                                  "source_sequence": 6, "restored_sequence": 5,
+                                  "offers": steps["after_halt"], "identical_retry": True,
+                                  "foreign_audit_denied": True, "source_unchanged": True,
+                                  "halt_history_preserved": True,
+                                  "restored_promotion_offer": restored_offers["early"]}
 
     version = subprocess.run([args.mixer, "version"], cwd=directory, env=environment,
                              capture_output=True, check=True, timeout=5)
