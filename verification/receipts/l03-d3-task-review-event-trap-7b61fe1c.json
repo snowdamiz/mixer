@@ -1,0 +1,538 @@
+{
+  "status": "passed_scoped_macos_native_owned_vm_differential",
+  "gate": "L03",
+  "milestone": "D3",
+  "scope": "Host-only supported compact GuestUI v1 task fixture. Checks exact emitted documents, rejection of stale and noncanonical events, and original Swift source mapping on an event after three successful turns. Uses the owned persistent VM, real native validator and pinned Swift diagnostic mapping. Signed activation, mobile presentation and ingress, performance, and broader L03 conformance are outside this run.",
+  "publicRevision": "7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99",
+  "publicTree": "b2f511b5d42137f25972d5c54e2031798b814520",
+  "checkoutHead": "58951594a866492be7ce204e93a9533f892b2550",
+  "pinValidation": "origin main confirmed with git ls-remote origin refs/heads/main. All compiler, VM and diagnostic bridge inputs are byte-identical to public pin. The canonical codec, capability activation and Android source consulted for the handoff also match.",
+  "sourceTrees": {
+    "compiler": "878ffc7fedfaf5afbc291c48c1a0959a3feab91a",
+    "vm": "62efca2793a308383a8ff43d448c48765d25ff75",
+    "experimental-capability-runtime": "beb11fd9b0115602b4ff22b6201e6e3f22171bf8",
+    "capability-activation": "29fa2954435e018582f8630b9d943b978b4eeefe"
+  },
+  "modelSource": "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+  "canonicalEventCodecInspected": "sdk/Sources/MixerGuest/GuestUIEventCodecV1.swift",
+  "canonicalEventCodecBlob": "1c85fd0ba212479da3842d18d835a0bd6451c293",
+  "fixture": "Review mode for one fixed Inspect pump task. Both modes compile the unchanged TaskCompletion.swift and the same fault-capacity helper. The production compact guest adapter is copied with one test-only capacity substitution. Valid revision-4 input advances internal revision to 5 and passes a local zero-capacity output buffer to the existing Swift renderer. The native observation runs in a separate child.",
+  "guards": [
+    "Locked and offline Cargo with a fresh target and Cargo home. Direct Swift compile with no package fetch, network account, provider, or effects adapter.",
+    "Single 64 KiB unshared guest page, 1,000,000 fuel per turn, zero permitted host calls, exact ABI and no Wasm imports or start section.",
+    "The existing descriptor guard rejected 14 mutations. The actual owned VM GuestUI validator admitted the exact selected bytes before creating a bounded session.",
+    "Canonical frame and revision expectations checked independently; rejected inputs left frame bytes unchanged. The owner closed and a subsequent startup attempt with the closed handle rejected with status 3.",
+    "210-second overall deadline, individual 25/55/145-second deadlines, 2 MB output limit, isolated per-command process groups and disabled core dumps."
+  ],
+  "replay": [
+    "python3",
+    "-B",
+    "verification/local/l03-d3-fc5371517e/replay.py"
+  ],
+  "artifact": "verification/local/l03-d3-fc5371517e/run-vzgscgt7/task-review-fault.wasm",
+  "rawEvidence": "verification/local/l03-d3-fc5371517e/run-vzgscgt7",
+  "versions": {
+    "swift-native": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "swift-guest": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "wasm-ld": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "llvm-objcopy": "llvm-objcopy, compatible with GNU objcopy\nLLVM (http://llvm.org/):\n  LLVM version 21.0.0\n  Optimized build.",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434"
+  },
+  "inputsSHA256": {
+    "TaskCompletion.swift": "617b60024af1accef044dd148360fcf889648594783057c7234b335b468071d7",
+    "InstalledGuest.swift": "41dcd0976c6339d789eec84250522690d19ef90698b4a209787c723705e182fd",
+    "DifferentialCapacity.swift": "6948e1f8e53bd43c3ab504699de89b9d890e7a0b7df57b298c23ee04429e811d",
+    "Probe.swift": "73dcfe097fdcc19054a393be9cc06dae2928cb37ff49a2563e61a8458c370799",
+    "replay.py": "00571fa09dfd7be12a828668fef63179f497dcdd1fe9f199863a186e55348181"
+  },
+  "vmArchiveSHA256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116",
+  "guest": {
+    "bytes": 5359,
+    "sha256": "5d5e123eb5fd33ded05f6521a9be37bb72badca37f08bf6c196940dedcac4795",
+    "descriptor": {
+      "authorization": false,
+      "scope": "bounded scalar descriptor inventory; no executable validation",
+      "typeCount": 11,
+      "functionCount": 13,
+      "startFunction": null,
+      "imports": [],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory",
+          "index": 0
+        },
+        {
+          "name": "mixer_guest_ui_start_v1",
+          "kind": "function",
+          "index": 6,
+          "typeIndex": 5,
+          "signature": {
+            "parameters": [],
+            "results": [
+              "i32"
+            ]
+          }
+        },
+        {
+          "name": "mixer_guest_ui_event_v1",
+          "kind": "function",
+          "index": 9,
+          "typeIndex": 7,
+          "signature": {
+            "parameters": [
+              "i32"
+            ],
+            "results": [
+              "i32"
+            ]
+          }
+        },
+        {
+          "name": "mixer_guest_capability_ready_v1",
+          "kind": "function",
+          "index": 11,
+          "typeIndex": 9,
+          "signature": {
+            "parameters": [],
+            "results": []
+          }
+        }
+      ],
+      "memories": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    "descriptorNegativeControlsRejected": [
+      "differentMaximum",
+      "differentMinimum",
+      "extraFunctionExport",
+      "extraMemory",
+      "extraMemoryExport",
+      "importedFunction",
+      "missingMemory",
+      "missingMemoryExport",
+      "renamedMemoryExport",
+      "sharedMemory",
+      "startSection",
+      "unboundedMemory",
+      "wrongFunctionSignature",
+      "wrongMemoryExportIndex"
+    ]
+  },
+  "frames": [
+    {
+      "revision": 1,
+      "status": "Open",
+      "button": "Complete task",
+      "sha256": "cba98fab9e4bed642f3b0ce41506d7a98eb2bebe37528ce1805821ac2bc49833"
+    },
+    {
+      "revision": 2,
+      "status": "Review required",
+      "button": "Confirm completion",
+      "sha256": "0d04a715c3a5fb3aae1fad401801ead8d555944960daa5f8becfc71b72460eae"
+    },
+    {
+      "revision": 3,
+      "status": "Completed",
+      "button": "Reopen task",
+      "sha256": "d6fa309e765b4ddf5e8ee08dfdee4339ef4d5deb2f8b16e18ea591d0ee07715c"
+    },
+    {
+      "revision": 4,
+      "status": "Open",
+      "button": "Complete task",
+      "sha256": "9f9839813937d389aeef9af99de5ee771c334ec97f92da084018d72ccabc7851"
+    }
+  ],
+  "exactFrameBytes": true,
+  "rejectedWithoutFrameChange": [
+    "stale revision and sequence 1 after revision 2",
+    "otherwise canonical revision 2 with trailing LF"
+  ],
+  "nativeDiagnostic": "probe/TaskCompletion.swift:94: Precondition failed",
+  "guestDiagnostic": "TaskCompletion.swift:94:9: unreachable [function=8 wasmOffset=1883 sourceLine=94]",
+  "guestOperation": "invocation",
+  "guestTrap": "unreachable",
+  "guestStatus": 2,
+  "vmClose": "closed-and-stale-rejected",
+  "firstAttempt": {
+    "status": "harness_input_error",
+    "sourcePinAtAttempt": "fc5371517e5380a87b6ce1bed854613cd1af0f76",
+    "nativeExit": -5,
+    "stderr": "Swift/ErrorType.swift:254: Fatal error: Error raised at top level: initial activation",
+    "correction": "Fixture now sends numeric JSON revision and sequence values to match the canonical codec. The model, VM and diagnostic source were unchanged.",
+    "ownedGroupsAbsent": true
+  },
+  "commands": [
+    {
+      "name": "checkout-head",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit": 0,
+      "seconds": 0.027,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "41ec678a19beabf769d5600cbd5a696db98faa8ea31aa744d7d71694a775da1f",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "public-tree",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99^{tree}"
+      ],
+      "exit": 0,
+      "seconds": 0.024,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e63571cc3641cf646bd5102fa0fa51f7426d0bd4f2fb06c81c6b5d039420efc9",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pin-compare",
+      "argv": [
+        "/usr/bin/git",
+        "diff",
+        "--name-only",
+        "7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99",
+        "--",
+        "compiler",
+        "vm",
+        "experimental-capability-runtime"
+      ],
+      "exit": 0,
+      "seconds": 0.047,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "untracked-inputs",
+      "argv": [
+        "/usr/bin/git",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "--",
+        "compiler",
+        "vm",
+        "experimental-capability-runtime"
+      ],
+      "exit": 0,
+      "seconds": 0.048,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pin-compiler",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99:compiler"
+      ],
+      "exit": 0,
+      "seconds": 0.023,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "a071585bf1e38b9518a0a935cf623e976af2289f2da4c131ad40ae8b3fc6a6dc",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pin-vm",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99:vm"
+      ],
+      "exit": 0,
+      "seconds": 0.028,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "bb38c75cef1d1bd59cfb7b9f081abf854828164a396438a379e2f5ede0b8d577",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pin-experimental-capability-runtime",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99:experimental-capability-runtime"
+      ],
+      "exit": 0,
+      "seconds": 0.027,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "1e1d8223c1d934bf131d1212a68b4857b1af4b51bd704720ee80c324ac312170",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "swift-native",
+      "argv": [
+        "/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0,
+      "seconds": 0.171,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "4b59da256292ae42e3f04ef6d06ea3e139678613a3cd3d0dc37a6757c0bd290a",
+      "stderrSHA256": "bbc8b176d3c74d4c5a7fd00b40280f98168e116d5272273bfe8e71407625540e"
+    },
+    {
+      "name": "swift-guest",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0,
+      "seconds": 0.441,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "f7c8e3e54412f67bf6632e8c6744533677d8d65acd8ce3004b0f3b9806e8aa48",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "wasm-ld",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--version"
+      ],
+      "exit": 0,
+      "seconds": 0.086,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "a8f48fbaeac52309a1e49d809387ff429ebd5800894c3b536ef50f8d16bef9ef",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "llvm-objcopy",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+        "--version"
+      ],
+      "exit": 0,
+      "seconds": 0.03,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "a18e7e502b697e2368faad969c374f13f294dedf56972cf12889cc34f417cceb",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rustc",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "exit": 0,
+      "seconds": 0.053,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cargo",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "exit": 0,
+      "seconds": 0.024,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "macos",
+      "argv": [
+        "/usr/bin/sw_vers"
+      ],
+      "exit": 0,
+      "seconds": 0.029,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "task-review-fault-swift",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-gline-tables-only",
+        "-debug-prefix-map",
+        ".=.",
+        "-debug-prefix-map",
+        "/Users/andreyyurlov=/toolchain",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-D",
+        "REQUIRE_REVIEW",
+        "-emit-object",
+        "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "verification/local/l03-d3-fc5371517e/DifferentialCapacity.swift",
+        "$RUN/InstalledGuest.swift",
+        "-o",
+        "$RUN/task-review-fault.o"
+      ],
+      "exit": 0,
+      "seconds": 0.462,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "task-review-fault-link",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/task-review-fault.o",
+        "-o",
+        "$RUN/task-review-fault-linked.wasm"
+      ],
+      "exit": 0,
+      "seconds": 0.024,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "task-review-fault-line-table",
+      "argv": [
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+        "--wildcard",
+        "--remove-section=.debug_*",
+        "--keep-section=.debug_line",
+        "--remove-section=name",
+        "--remove-section=producers",
+        "$RUN/task-review-fault-linked.wasm",
+        "$RUN/task-review-fault.wasm"
+      ],
+      "exit": 0,
+      "seconds": 0.026,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "owned-vm",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--release",
+        "--lib",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/target"
+      ],
+      "exit": 0,
+      "seconds": 0.924,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "b60184cd01a7980c688cfc5182fd1395f18ea266f5859359853197e7df0607f9"
+    },
+    {
+      "name": "native-probe-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-swift-version",
+        "6",
+        "-g",
+        "-Onone",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/modules",
+        "-I",
+        "$RUN",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "vm/include",
+        "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "verification/local/l03-d3-fc5371517e/DifferentialCapacity.swift",
+        "verification/local/l03-d3-fc5371517e/Probe.swift",
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/target/release/libmixer_vm.a",
+        "-o",
+        "$RUN/probe"
+      ],
+      "exit": 0,
+      "seconds": 2.656,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "native",
+      "argv": [
+        "$RUN/probe",
+        "native"
+      ],
+      "exit": 0,
+      "seconds": 0.089,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "190a02ead1eb59db9878735151002bbe2ec59ffdb72d0a1e9fce5b67a93c92a1",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "native-fault",
+      "argv": [
+        "$RUN/probe",
+        "native-fault"
+      ],
+      "exit": -5,
+      "seconds": 0.025,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "28063b2b1016b1a803264eed8bcf4673892fa05060448f5b5ef0fd4516ba427b"
+    },
+    {
+      "name": "guest-differential",
+      "argv": [
+        "$RUN/probe",
+        "guest",
+        "$RUN/task-review-fault.wasm"
+      ],
+      "exit": 0,
+      "seconds": 0.023,
+      "processGroupAbsent": true,
+      "stdoutSHA256": "43ec7fdd3035a35596b7c68ec3003b3676b43e7bfb86a59fddc380462fbdd5a6",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "nextNativeScenario": {
+    "target": "One separately root-owned Android API 36 emulator, with installed signed GuestUI v1 trial and local development-signed debug payload.",
+    "entry": "CapabilityGuestUIAndroidRuntime.open(configuration:execution:), stage(manifest:assignment:bytes:), and start(); real native button taps through mxis_guest_ui_witness with MXIS_WITNESS_TOGGLE_TAPPED (the trial's mxfield_witness forwards here), then GuestUIExchangeV1.offerNativeInput.",
+    "assertions": [
+      "Drive the same named buttons in native Swift and on the installed guest, comparing the four drawn revision/state/button tuples.",
+      "Tap Complete task again at revision 4 and wait for recoverySnapshot().activation.firstBridgeFailure to report .invocation / .guestTrap(.unreachable) and TaskCompletion.swift:94:9. Check no revision-5 frame published, the app process remains alive, and close() reports guest and presentation retirement."
+    ],
+    "entrySource": [
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidRuntime.swift:27",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift:247",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift:297",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift:112"
+    ]
+  }
+}
