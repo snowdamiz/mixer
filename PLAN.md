@@ -145,6 +145,22 @@ The [engine-pair recipe](tests/integration/fieldlog-android-engine-pair/README.m
 
 The recipe built versions 24101 and 24102 with one development certificate, distinct linked runtimes, and 16 KiB APK alignment. The signed replay passed 35 HTTP and 20 Swift verifier checks and preserved durable state across the origin restart. Both service groups closed, the port was reusable, and the private keys and build scratch were removed. This proof covers newly built host artifacts. The earlier Android engine replacement used a separately built pair.
 
+### Android selected-draft action failure
+
+The rebuilt FieldLog APK with SHA-256 `dd3472914451d292d3e7b837bcb4c5469563ea9205b05324e79817b7a7e1588b` passed static and host verification from the reviewed app tree `3e456ac47f590b5749f465dad193d6551b9c1804`. On an owned AOSP arm64 API 36 emulator, the ordinary editor imported a JPEG through Android DocumentsUI and saved draft `L08ValveA`. Signed sequence 1 initially displayed **Saved draft loaded** and **JPEG linked**. **Check saved draft** later displayed **Saved draft unavailable** and **No photo shown**.
+
+Signed sequence 2 opened the same selected draft and displayed **Follow-up unset** and **JPEG linked**. Two presses of **Mark follow-up required** left the optional value absent. The seed, sequence-1, and sequence-2 workspace snapshots matched byte for byte at revision 3, including the selected draft and photo reference. The workspace SHA-256 was `102c606cf05cc1018f95b0769ed7c6375a62164fceb500b0ba4fe1778951e24c`. Both signed guests reached native health and retired before teardown. The reverse mapping, emulator, private ADB, and origin closed, the disposable instance was removed, and all four ports were reusable. The run stopped before sequence 3, offline editing, or re-upgrade. L08 remains running.
+
+### Recovered Android startup-quarantine packet
+
+The recovered fixture re-signed the verified Android engine-pair APK with fresh development trust material. Version 24102 kept its linked engine, app code, manifest, and permissions. The packaged trust roots and matching installed identity changed. The product verifier accepted all three assignments. Sequences 2 and 3 referenced the same startup-failure artifact. The pinned Mixer VM archive `0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116` started the healthy guest and reported `unreachable` on the failure guest with zero host calls. Both host VM sessions closed. The re-signed APK SHA-256 was `48807d0f23952004e65f63874b90cdc54cf1c4c8f2249b9891e1314bc579504b`. These checks cover host admission and startup behavior.
+
+The installed AOSP arm64 API 36 replay passed the Android startup-quarantine scenario. FieldLog saved an open task through the ordinary editor. The public CLI published all three assignments to the owned release service. The app reported `deterministic_trap` for sequences 2 and 3, kept the sequence-1 healthy candidate, and quarantined artifact `6778642bea9cc16961f641bd77081275a197364366e3ceac438b9a8cdea7d071` after the second failure. The accepted sequence advanced to 3.
+
+After the origin stopped and the reverse mapping was removed, two new app processes reopened without a default network. Both displayed **Using saved checklist release** at sequence 3 and rendered the original healthy guest. The installation ID, failure count, and workspace bytes matched. The workspace SHA-256 was `cbdc01e5ed6769858ec5a010f276998175030a855a3c08322d6b2dc1c8019a13`. The observation record preserves the actual offline heading and the comparison alias used by the first runner. Both guests retired. All 506 command groups closed, the owned AVD was removed, and all four ports were reusable.
+
+The first origin attempt stopped before any device action because the readiness probe used an unsupported Python HTTP context manager. Its origin exited on SIGINT and its process group was absent. The launcher recorded the nonzero exit and retained that setup record. The corrected run used a new origin. D5, L04, and L08 remain running for the remaining targets and cases.
+
 ## November 18 local verification
 
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
