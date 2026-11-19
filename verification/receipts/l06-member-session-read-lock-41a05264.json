@@ -1,0 +1,132 @@
+{
+  "status": "candidate_passed_focused_overlap_migration_required",
+  "productSource": "d650cf0c675ad5e4315a20f5dae3d2641667ee12",
+  "scope": "Two real authenticated Phoenix workspace sessions, ordinary connection pool 8, distinct disposable PostgreSQL clusters for baseline and candidate, synthetic local issuer and no payment service.",
+  "baseline": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l06-active-read-lock.anZphTn8/baseline/result.json",
+    "sha256": "59ccad0acadea732a4187d5610afd848b5318ac055dbf46e9f72bfd10d261c2a",
+    "commandGroups": 4,
+    "testLogSHA256": "3427e98cf2a0f04c614ea863a20e4eec3cc6eb393d98bfae1419293d8963188e",
+    "observed": "L06_ROLE_OVERLAP owner_during_read=503 member_read=200 owner_after_read=200 role_revision=2",
+    "postgresErrors": [
+      "55P03: canceling statement due to lock timeout"
+    ],
+    "testArgv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network-outbound) (allow network-outbound (remote ip \"localhost:*\"))",
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "test/mixer_hosted/browser_auth/l06_role_overlap_test.exs"
+    ],
+    "postgresArgv": [
+      "/opt/homebrew/opt/postgresql@17/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l06-active-read-lock.anZphTn8/baseline/scratch/pg",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "49170",
+      "-k",
+      "",
+      "-c",
+      "fsync=off",
+      "-c",
+      "jit=off",
+      "-c",
+      "log_error_verbosity=verbose",
+      "-c",
+      "log_min_error_statement=panic"
+    ],
+    "postgresLogSHA256": "23cb44ef656f43c806cc1b4876873b82e9aafafa2a485af684accde5267c43b2"
+  },
+  "candidate": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l06-active-read-lock.anZphTn8/candidate/result.json",
+    "sha256": "7621c4ad47c5cf89005c787594a793ec820fc79262672c693700b1dcdc61c2b2",
+    "commandGroups": 4,
+    "testLogSHA256": "cd80cb7d45fc69af3ecc11ce044babf8f7b86900f35f272152b7ef498e29df69",
+    "observed": "L06_ROLE_OVERLAP owner_during_read=200 member_read=200 blocked_authority_writes=2 role_revision=2",
+    "postgresErrors": [
+      "55P03: canceling statement due to lock timeout",
+      "55P03: canceling statement due to lock timeout"
+    ],
+    "testArgv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network-outbound) (allow network-outbound (remote ip \"localhost:*\"))",
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "test/mixer_hosted/browser_auth/l06_role_overlap_test.exs"
+    ],
+    "postgresArgv": [
+      "/opt/homebrew/opt/postgresql@17/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l06-active-read-lock.anZphTn8/candidate/scratch/pg",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "49172",
+      "-k",
+      "",
+      "-c",
+      "fsync=off",
+      "-c",
+      "jit=off",
+      "-c",
+      "log_error_verbosity=verbose",
+      "-c",
+      "log_min_error_statement=panic"
+    ],
+    "postgresLogSHA256": "85dd16d9d82ddb840bb08a7ef589c65f092cd839619318ca13d33723a76e2abf"
+  },
+  "baselineSQLContext": "55P03 while locking a row in mixer_authz_profiles inside mixer_browser_current_active_load",
+  "testOnlyCondition": "A temporary SQL test barrier held the admitted member's session read for 1.35 seconds. The guard and simulated delay are outside the candidate patch.",
+  "candidatePatch": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/l06-active-read-lock.anZphTn8/delivery/shared-browser-read-locks.patch",
+    "sha256": "efd7811082e31e05aa83f5167adc99d952c7ea0bfb01751b5f5f1b017c0fb389"
+  },
+  "byteIdenticalActiveCreateSQL": "1ff08401bf19a34ae520928c4afdd1601611d7d3942ed4ee7e6eb0f74f7394f3",
+  "baselineCleanup": {
+    "port": 49170,
+    "portReusable": true,
+    "ownedDatabaseScratchRemoved": true,
+    "originalBindWithoutReuseFailed": true
+  },
+  "candidateCleanup": {
+    "portReusable": true,
+    "ownedDatabaseScratchRemoved": true
+  },
+  "limits": [
+    "The failure is reproduced under a controlled overlap. The original browser reports did not capture SQLSTATE.",
+    "Candidate review, existing catalog-compatible migration, composed source selection, and ordinary browser requalification are pending."
+  ],
+  "toolVersions": {
+    "postgres": "PostgreSQL 17.11",
+    "elixir": "1.20.4"
+  },
+  "preparationCleanup": {
+    "removedOwnedPreparation": [
+      "source",
+      "home",
+      "tmp",
+      "mix",
+      "hex"
+    ]
+  },
+  "independentReview": {
+    "adoption": "request_changes_for_existing_database_upgrade",
+    "observed": [
+      "Generated ActiveCreate SQL and existing privilege contract match.",
+      "Catalog profiles v2\u2013v5 compare exact current-read SQL. Old app and new database or new app and old database fail admission.",
+      "An in-place migration and rollback must preserve the live function identity, owner, ACL and settings."
+    ]
+  }
+}

@@ -1,0 +1,377 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "status": "passed",
+  "scope": "One independent local reconstruction of the signed release PostgreSQL database",
+  "recordedAtUtc": "2026-11-19T03:03:45.958596+00:00",
+  "source": {
+    "remote": "https://github.com/snowdamiz/mixer.git",
+    "ref": "refs/heads/main",
+    "refObservationCommand": [
+      "git",
+      "ls-remote",
+      "--exit-code",
+      "origin",
+      "refs/heads/main"
+    ],
+    "commit": "7d815263af710c5fa26a2cfd5af07c0a1d29fcfa",
+    "tree": "ddcfaca390d8bf7ec4ff9864fb7ae80c82b35e12",
+    "servicesTree": "7b61ba7507e2fe2013ab7d048eb27ace958a4fa9",
+    "publicInputSHA256": {
+      "services/release/postgres_restore_integration_test.go": "d33aae18f72eee91e7108baea2cc30b6d36613597a7298398bd68bb29adecf0d",
+      "services/release/postgres_integration_test.go": "dda0bab6213add50361382bc6715e4b353dea1cb435e28d9de971bf4d7a380e9",
+      "services/release/postgres.go": "3ce81f5249598709ed95269db51e113c03986e32bb83bff586e5d2f1d2290224",
+      "services/release/migrations/001_release.sql": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605",
+      "services/verification/postgres.py": "45c9671ddb171d077cc79f06fb9a3d546aedfc3e54617394932cd1a6b66e6711",
+      "services/go.mod": "5ec375e73b588601bfe5b9a7a29e6cf10b6401c9e5e7fc355673ee678cbd5d38",
+      "services/go.sum": "a5e7a8db07eba28dbde48bf9a54c4e9084a5a95ded581c0ff44c08b74e3dfe69"
+    },
+    "inputSHA256AfterPrivatePatch": {
+      "services/release/postgres_restore_integration_test.go": "4c1fa1e9bd6467af6416879d1aed50581e0fb1edfc61bd1089c4145fa9e8507d",
+      "services/release/postgres_integration_test.go": "dda0bab6213add50361382bc6715e4b353dea1cb435e28d9de971bf4d7a380e9",
+      "services/release/postgres.go": "3ce81f5249598709ed95269db51e113c03986e32bb83bff586e5d2f1d2290224",
+      "services/release/migrations/001_release.sql": "c352755698244eff1a5d65ac32d0255478ea270be1fc143a94bdbba876b47605",
+      "services/verification/postgres.py": "4543be10721f16bd4f565999a8a95feb93aac5b5d591e80830d5a9777a302116",
+      "services/go.mod": "5ec375e73b588601bfe5b9a7a29e6cf10b6401c9e5e7fc355673ee678cbd5d38",
+      "services/go.sum": "a5e7a8db07eba28dbde48bf9a54c4e9084a5a95ded581c0ff44c08b74e3dfe69"
+    },
+    "privatePatch": {
+      "relativePath": "private-harness.patch",
+      "sha256": "b224b131a4a6357fb2639a54d02db8defb2f2a46cd98665c26f4dd96993a0eaa",
+      "matchesTestInputs": true
+    },
+    "privateAdaptation": "The existing Python harness started and observed both servers. The existing Go test directed pg_restore and the restored-service DSN to the second socket and verified live identities. Original service code and behavior assertions ran unchanged.",
+    "publicRefReadback": {
+      "commit": "d650cf0c675ad5e4315a20f5dae3d2641667ee12",
+      "sameServicesTreeAsTestedPin": true,
+      "servicesTree": "7b61ba7507e2fe2013ab7d048eb27ace958a4fa9"
+    }
+  },
+  "environment": {
+    "host": "Darwin arm64",
+    "python": "3.14.8",
+    "go": "go version go1.26.4 darwin/arm64",
+    "postgresAndArchiveTools": "PostgreSQL 17.11 (Homebrew)",
+    "authorization": "Private Unix sockets, TCP disabled and host auth rejected. Synthetic fixture tokens and signing keys. Normal release service token authorization and separate restricted database runtime login."
+  },
+  "runnerArgv": [
+    "/usr/bin/env",
+    "-i",
+    "PATH=/opt/homebrew/Cellar/postgresql@17/17.11/bin:/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "GOTOOLCHAIN=local",
+    "GOENV=off",
+    "GOWORK=off",
+    "GOCACHE=/private/tmp/mixer-l07-cku82dh_/cache",
+    "GOMODCACHE=/private/tmp/mixer-l07-cku82dh_/modules",
+    "GOPATH=/private/tmp/mixer-l07-cku82dh_/gopath",
+    "GOTMPDIR=/private/tmp/mixer-l07-cku82dh_/tmp",
+    "TMPDIR=/private/tmp/mixer-l07-cku82dh_/tmp",
+    "/opt/homebrew/bin/python3",
+    "/private/tmp/mixer-l07-cku82dh_/services/verification/postgres.py",
+    "--output",
+    "/private/tmp/mixer-l07-cku82dh_/raw/runner",
+    "--scratch",
+    "/private/tmp/mixer-l07-cku82dh_"
+  ],
+  "runnerChildCwd": "/private/tmp/mixer-l07-cku82dh_/services",
+  "clusters": [
+    {
+      "label": "source",
+      "initdbSystemIdentifier": "7709712256455393823",
+      "onlineIdentity": {
+        "systemIdentifier": "7709712256455393823",
+        "dataDirectory": "/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/data",
+        "socketDirectory": "/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/socket",
+        "port": 55431,
+        "listenAddresses": "",
+        "database": "postgres"
+      },
+      "postmasterPIDAndProcessGroup": 25807,
+      "postgresArgv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/data",
+        "-k",
+        "/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/socket",
+        "-p",
+        "55431",
+        "-c",
+        "listen_addresses=",
+        "-c",
+        "fsync=on",
+        "-c",
+        "full_page_writes=on"
+      ],
+      "commands": {
+        "initdb": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+            "-D",
+            "/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/data",
+            "-U",
+            "mixer_migration_owner",
+            "--auth-local=trust",
+            "--auth-host=reject",
+            "--no-locale",
+            "--encoding=UTF8"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true,
+          "elapsedSeconds": 0.613
+        },
+        "controlData": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_controldata",
+            "/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/data"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true,
+          "elapsedSeconds": 0.011
+        },
+        "onlineIdentity": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+            "--no-psqlrc",
+            "--no-password",
+            "--no-align",
+            "--tuples-only",
+            "--set=ON_ERROR_STOP=1",
+            "--dbname",
+            "host=/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/socket port=55431 dbname=postgres user=mixer_migration_owner sslmode=disable",
+            "--command",
+            "SELECT system_identifier::text, current_setting('data_directory'), current_setting('unix_socket_directories'), current_setting('port'), current_setting('listen_addresses'), current_database() FROM pg_control_system()"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true,
+          "elapsedSeconds": 0.022
+        },
+        "shutdown": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+            "-D",
+            "/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/data",
+            "-m",
+            "fast",
+            "-w",
+            "stop"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true,
+          "elapsedSeconds": 0.131
+        }
+      },
+      "postmasterExitCode": 0,
+      "postmasterGroupGone": true,
+      "privateSocketDirectoryEmpty": true,
+      "clusterPathAbsent": true,
+      "shutdownLog": "2026-11-18 22:01:18.470 EST [25807] LOG:  database system is shut down"
+    },
+    {
+      "label": "destination",
+      "initdbSystemIdentifier": "7709712259374990785",
+      "onlineIdentity": {
+        "systemIdentifier": "7709712259374990785",
+        "dataDirectory": "/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/data",
+        "socketDirectory": "/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/socket",
+        "port": 55432,
+        "listenAddresses": "",
+        "database": "postgres"
+      },
+      "postmasterPIDAndProcessGroup": 26483,
+      "postgresArgv": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "-D",
+        "/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/data",
+        "-k",
+        "/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/socket",
+        "-p",
+        "55432",
+        "-c",
+        "listen_addresses=",
+        "-c",
+        "fsync=on",
+        "-c",
+        "full_page_writes=on"
+      ],
+      "commands": {
+        "initdb": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+            "-D",
+            "/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/data",
+            "-U",
+            "mixer_migration_owner",
+            "--auth-local=trust",
+            "--auth-host=reject",
+            "--no-locale",
+            "--encoding=UTF8"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true,
+          "elapsedSeconds": 0.617
+        },
+        "controlData": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_controldata",
+            "/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/data"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true,
+          "elapsedSeconds": 0.007
+        },
+        "onlineIdentity": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+            "--no-psqlrc",
+            "--no-password",
+            "--no-align",
+            "--tuples-only",
+            "--set=ON_ERROR_STOP=1",
+            "--dbname",
+            "host=/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/socket port=55432 dbname=postgres user=mixer_migration_owner sslmode=disable",
+            "--command",
+            "SELECT system_identifier::text, current_setting('data_directory'), current_setting('unix_socket_directories'), current_setting('port'), current_setting('listen_addresses'), current_database() FROM pg_control_system()"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true,
+          "elapsedSeconds": 0.02
+        },
+        "shutdown": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_ctl",
+            "-D",
+            "/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/data",
+            "-m",
+            "fast",
+            "-w",
+            "stop"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true,
+          "elapsedSeconds": 0.128
+        },
+        "freshness": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+            "--no-psqlrc",
+            "--no-password",
+            "--no-align",
+            "--tuples-only",
+            "--set=ON_ERROR_STOP=1",
+            "--dbname",
+            "host=/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/socket port=55432 dbname=postgres user=mixer_migration_owner sslmode=disable",
+            "--command",
+            "SELECT (to_regnamespace('mixer_release') IS NULL)::text || '|' || (NOT EXISTS (SELECT FROM pg_roles WHERE rolname IN ('mixer_release_runtime','mixer_test_runtime')))::text"
+          ],
+          "stdout": "true|true",
+          "exitCode": 0,
+          "groupTerminal": true
+        },
+        "runtimeRoleBootstrap": {
+          "argv": [
+            "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+            "--no-psqlrc",
+            "--no-password",
+            "--no-align",
+            "--tuples-only",
+            "--set=ON_ERROR_STOP=1",
+            "--dbname",
+            "host=/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/socket port=55432 dbname=postgres user=mixer_migration_owner sslmode=disable",
+            "--command",
+            "CREATE ROLE mixer_release_runtime NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS; CREATE ROLE mixer_test_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS; GRANT mixer_release_runtime TO mixer_test_runtime"
+          ],
+          "exitCode": 0,
+          "groupTerminal": true
+        }
+      },
+      "postmasterExitCode": 0,
+      "postmasterGroupGone": true,
+      "privateSocketDirectoryEmpty": true,
+      "clusterPathAbsent": true,
+      "shutdownLog": "2026-11-18 22:01:18.339 EST [26483] LOG:  database system is shut down"
+    }
+  ],
+  "identityEvidence": "Each PostgreSQL system identifier matched across offline pg_controldata, online maintenance SQL and the Go test's pg_control_system() calls. Identifiers, directories, sockets, port numbers and PIDs differed.",
+  "test": {
+    "command": [
+      "/Users/andreyyurlov/.local/share/megpt-ios/go1.26.4/bin/go",
+      "test",
+      "-race",
+      "-tags=postgres_integration",
+      "./release",
+      "-run",
+      "^TestPostgresReleaseBackupRestore$",
+      "-count=1",
+      "-v"
+    ],
+    "archiveCommands": {
+      "pg_dump": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_dump",
+        "--host",
+        "/private/tmp/mixer-l07-cku82dh_/mixer-pg-source-ca6onzx5/socket",
+        "--port",
+        "55431",
+        "--username",
+        "mixer_migration_owner",
+        "--dbname",
+        "test_dc4599bfda813aab",
+        "--no-password",
+        "--format=custom",
+        "--file",
+        "/private/tmp/mixer-l07-cku82dh_/tmp/TestPostgresReleaseBackupRestore1105531106/001/release.dump"
+      ],
+      "pg_restore": [
+        "/opt/homebrew/Cellar/postgresql@17/17.11/bin/pg_restore",
+        "--host",
+        "/private/tmp/mixer-l07-cku82dh_/mixer-pg-destination-k09su2_p/socket",
+        "--port",
+        "55432",
+        "--username",
+        "mixer_migration_owner",
+        "--dbname",
+        "test_d635e7eee71eb958",
+        "--no-password",
+        "--single-transaction",
+        "/private/tmp/mixer-l07-cku82dh_/tmp/TestPostgresReleaseBackupRestore1105531106/001/release.dump"
+      ]
+    },
+    "customArchiveBytes": 45944,
+    "pgDumpMilliseconds": 35,
+    "pgRestoreMilliseconds": 26,
+    "exitCode": 0,
+    "processGroupTerminal": true,
+    "elapsedSeconds": 9.858,
+    "testSeconds": 0.29,
+    "outputExcerpts": [
+      "source system identifier 7709712256455393823; destination system identifier 7709712259374990785",
+      "restored signed artifact, signed assignment, audit, idempotency and tenant read isolation verified via HTTP",
+      "restricted runtime SQL saw 1 artifact, 1 assignment and 3 audit events for tenant A, and zero rows for tenant B",
+      "fresh signed sequence-2 publication updated the offer and delivery and extended the restored audit chain",
+      "--- PASS: TestPostgresReleaseBackupRestore (0.29s)"
+    ],
+    "assertions": [
+      "The source uploaded and validated an Ed25519-signed v3 artifact and published its sequence-1 signed assignment.",
+      "The destination received the two canonical cluster-level runtime role definitions and membership. The archive created and populated the release schema in a new template0 database, including runtime grants. The restored service started as mixer_test_runtime without applying the release migration.",
+      "Restored public and scoped artifact envelopes and payloads, current signed assignment offer, audit response and legacy audit page matched exact bytes.",
+      "The original publication key and body replayed the exact original HTTP 200 response. A fresh key with the same assignment returned HTTP 409. The assignment and audit remained byte-identical.",
+      "Tenant B could not read tenant A data via the service. Direct scoped reader SQL relying on PostgreSQL RLS returned tenant A counts of 1 artifact, 1 assignment and 3 audit events and returned zero for tenant B.",
+      "A fresh signed sequence-2 publication served the exact new offer and artifact. It preserved the prior audit prefix and appended three events with consecutive IDs and correct previous hashes."
+    ]
+  },
+  "cleanup": {
+    "allTwentyRunnerCommandGroupsTerminal": true,
+    "bothPostmastersReapedWithExitZero": true,
+    "bothPostmasterGroupsAbsent": true,
+    "bothSocketDirectoriesEmptyAfterStop": true,
+    "bothClusterPathsAbsent": true,
+    "scratchDirectory": "/private/tmp/mixer-l07-cku82dh_",
+    "scratchDirectoryAbsent": true,
+    "retainedCustodyHolds": []
+  },
+  "evidenceRetention": "The live runner receipt and raw logs were read after terminal custody. The result and quoted output were transcribed from those observations. The first scratch deletion removed the raw files and then hit read-only Go cache directories, so the raw files are no longer available.",
+  "remainingScope": [
+    "Cluster-wide role and configuration backup and restore remain unverified. The local destination roles were provisioned separately.",
+    "This was one small signed fixture in a focused release integration run. Production RPO/RTO, provider or region failover and GA acceptance remain open.",
+    "Hosted build-journal reconciliation was outside this release database exercise. Overall L07 remains pending."
+  ]
+}

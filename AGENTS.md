@@ -991,3 +991,11 @@ The first F05 guest size probe timed out at MixerUI compilation. Preserve PGID
 namespace without inspection, enumeration, probing, signalling, waiting, reuse
 or cleanup. The direct exit does not establish group absence. Use the compact
 verification/receipts/fieldlog-f05-size-attribution-3607a916.json.
+
+The D3 Android parity APK installation exceeded the bounded ADB command with UNKNOWN custody.
+Preserve PID/PGID 42989, private ADB PID/PGID 32396, emulator PID/PGID 32414,
+AVD `fieldlog_combined_a40188fff954`, ports 5660, 5661 and 49332, and the entire
+`verification/local/l03-d3-android-native.nbxGlUwP` run directory and instance without
+inspection, enumeration, probing, signalling, waiting, retry or cleanup.
+Only the copied compact `verification/receipts/l03-d3-android-install-custody-41a05264.json` provides current custody evidence.
+The enclosing replay and outer command exited, and no application frame was observed. Neither fact releases the hold.
