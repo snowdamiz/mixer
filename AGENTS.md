@@ -963,3 +963,11 @@ Minds Simulator UUID 8DE4FDD2-5E76-4148-AAF4-EED4F1C59780 was Booted at baseline
 and Shutdown at cleanup. Pause new Mixer iOS Simulator runs while the device
 owner coordinates recovery. Do not operate on that unrelated Simulator without
 authorization. See verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json.
+
+The v40 free starter restricted dispatch recorded an uncertain worker start
+attempt and unconfirmed shutdown. Preserve PID/PGID 94206 and listener port
+62275, plus the exact `scratch/live-06` and `logs/live-06-worker.log` under
+`/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9`.
+Do not inspect, enumerate, probe, signal, wait on, retry or clean these
+resources. Use the delivered top-level HOLD-live-06.json or the compact
+verification/receipts/l05-starter-package-closure-successor-777e22f9.json.

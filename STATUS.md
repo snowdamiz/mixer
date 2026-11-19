@@ -16,6 +16,10 @@ The full iOS calculation run stopped at installation with CoreSimulator Mach err
 
 In the rebuilt shared-origin replay, both Android APKs installed and matched their pins. Activity Manager reported a launch timeout before the first FieldLog screen. The crash buffer contained repeated Android Bluetooth service failures. iOS ended its rendezvous wait, and the owned emulator, Simulator, private ADB and origin closed. Neither app reached a signed release phase. [Joint native attempt](verification/receipts/fieldlog-rebuilt-shared-native-launch-41a05264.json)
 
+The rebuilt Android app passed a fresh offline run on API 36. It saved a task, reopened it in a new process, and exported a 168-byte report that a separate app read byte for byte. Returning preserved the same workspace at revision 2 with both outbox rows. The emulator and private ADB closed. [Offline report receipt](verification/receipts/fieldlog-rebuilt-android-offline-report-41a05264.json)
+
+Two direct VM replays of the rebuilt 240-byte title review exceeded the 50 ms guest deadline. They took 90.5 and 137.9 ms elapsed, used at most 0.274 ms of guest-thread CPU, and made no capability calls. Successful original and rebuilt turns consumed identical fuel. The measurements indicate an off-CPU stall. Scheduler and kernel state remain unobserved. [Host timing receipt](verification/receipts/fieldlog-signed-title-turn-timeout-diagnosis-745406d2.json)
+
 The exact rebuilt FieldLog APK contained all four selected Swift, NDK and ICU notices. The complete archive and both Python test modes passed five checks each. [Runtime notice receipt](verification/receipts/fieldlog-rebuilt-runtime-notices-41a05264.json)
 
 An instrumented iOS 27 run rendered the signed calculation baseline on the saved task and committed health. The first hydration wake took 5.031 ms elapsed and 1.697 ms thread CPU. The readback kept revision 9 and 11 outbox rows. The Simulator was removed. The external inventory matched after resuming. The earlier effects deadline remains unexplained. [iOS timing receipt](verification/receipts/fieldlog-ios-calculation-baseline-diagnostic-41a05264.json)
@@ -23,6 +27,8 @@ An instrumented iOS 27 run rendered the signed calculation baseline on the saved
 The shared localhost origin served sequences 1–5 to the original iOS packet and the rebuilt Android packet. All 43 host controls passed, and both interrupted 2,048-byte prefixes matched across restart. Native verification and the separate Android 240-byte title deadline remain open. [Shared-origin host replay](verification/receipts/fieldlog-rebuilt-shared-origin-host-41a05264.json)
 
 The interrupted Android conflict Save attempt has no terminal receipt. Its last recorded stage was transport admission. The AVD, private ADB, and recorded process resources are held. [Custody record](verification/receipts/fieldlog-android-conflict-save-interruption-41a05264.json)
+
+The free starter successor passed hosted source admission for v40 in both Python modes. Its installed worker bundle passed 11 tests per mode. Phoenix and PostgreSQL verified exact legacy replay and required a verified local package closure for new registrations. Restricted Oban dispatched one admitted start attempt. The worker returned uncertain and did not acknowledge shutdown. Compiler launch and artifact delivery remain unverified on the successor. Independent review is in progress. [Starter successor receipt](verification/receipts/l05-starter-package-closure-successor-777e22f9.json)
 
 A private local-package starter candidate reached native_succeeded after one compiler start. A free owner downloaded all three artifacts, which matched durable worker sizes and SHA-256 digests. Five invalid package inputs were refused before compilation. Billing remained disabled. Kernel egress isolation and independent source review remain open. [Free starter candidate](verification/receipts/l05-starter-package-closure-f923af86.json)
 

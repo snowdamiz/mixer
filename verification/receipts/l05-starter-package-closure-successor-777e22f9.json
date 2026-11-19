@@ -1,0 +1,513 @@
+{
+  "baseRevision": "0ec7fc06df93fd08d7b0e6e58d57e34ea10741f9",
+  "baseTree": "3e9c8fb8a5c4000ebdf0380f4b69a65be6422751",
+  "canonicalSelection": {
+    "cleanup": {
+      "commands": [
+        {
+          "argv": [
+            "/opt/homebrew/opt/postgresql@17/bin/initdb",
+            "-D",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/selection-01/pg",
+            "-U",
+            "fixture_admin",
+            "--locale=C",
+            "--encoding=UTF8",
+            "--auth=trust",
+            "--no-sync"
+          ],
+          "exit": 0,
+          "groupAbsent": true,
+          "name": "initdb",
+          "observedExitBeforeCleanup": 0,
+          "pid": 23836
+        },
+        {
+          "argv": [
+            "/opt/homebrew/opt/postgresql@17/bin/postgres",
+            "-D",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/selection-01/pg",
+            "-h",
+            "127.0.0.1",
+            "-p",
+            "65489",
+            "-k",
+            "",
+            "-c",
+            "fsync=off",
+            "-c",
+            "jit=off"
+          ],
+          "exit": 0,
+          "groupAbsent": true,
+          "name": "postgres",
+          "observedExitBeforeCleanup": null,
+          "pid": 23865
+        },
+        {
+          "argv": [
+            "/opt/homebrew/opt/postgresql@17/bin/psql",
+            "-XqAt",
+            "-v",
+            "ON_ERROR_STOP=1",
+            "-h",
+            "127.0.0.1",
+            "-p",
+            "65489",
+            "-U",
+            "fixture_admin",
+            "-d",
+            "postgres",
+            "-c",
+            "\nCREATE ROLE browser_admin LOGIN SUPERUSER NOINHERIT;\nCREATE ROLE browser_schema_owner NOLOGIN NOINHERIT;\nCREATE ROLE browser_writer NOLOGIN NOINHERIT;\nCREATE ROLE browser_lifecycle LOGIN NOINHERIT;\nCREATE ROLE browser_ordinary LOGIN NOINHERIT;\nCREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOINHERIT;\nCREATE ROLE mixer_build_create LOGIN NOINHERIT;\n"
+          ],
+          "exit": 0,
+          "groupAbsent": true,
+          "name": "roles",
+          "observedExitBeforeCleanup": 0,
+          "pid": 23874
+        },
+        {
+          "argv": [
+            "mix",
+            "test",
+            "--seed",
+            "0",
+            "--trace",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs"
+          ],
+          "exit": 0,
+          "groupAbsent": true,
+          "name": "phoenix",
+          "observedExitBeforeCleanup": 0,
+          "pid": 23876
+        }
+      ],
+      "fixtureDatabaseDropped": true,
+      "ports": {
+        "postgres": 65489,
+        "worker": 65490
+      },
+      "portsClosed": true
+    },
+    "evidence": {
+      "billingRowsUnchanged": true,
+      "buildRows": 0,
+      "capacityReservations": 0,
+      "files": 975,
+      "mode": "http-controls",
+      "obanJobs": 0,
+      "persistedInputs": 1,
+      "registrationPin": "ab0d3c85d386ae8d37afde119cf255f8883adaae772bd5af3d89d9ddcacad4a2",
+      "sourceBytes": 15324994,
+      "spec": {
+        "application_id": "example.source.app",
+        "build_definition_sha256": "08c8f16dfc7bfe16a661fdfda32dfca872b39bc465aab7057c7bd367948d3a13",
+        "organization_id": "org-d3d6963010894b429eca30f0350162d3",
+        "platform": "ios",
+        "project_id": "project-8476f36b07e54ab6807761ad60462b65",
+        "source": {
+          "kind": "revision",
+          "reference": "starter-242e71ce65479302c180bf58ebec0d76204e43cc6f14e56d0f6694eb6c9a0b0f",
+          "sha256": "242e71ce65479302c180bf58ebec0d76204e43cc6f14e56d0f6694eb6c9a0b0f"
+        },
+        "toolchain_lock_sha256": "d31b723e47113684790c05543da47853af15c2ebc0df6adab498e5a4ac95b07d"
+      },
+      "starterId": "starter-ab0d3c85d386ae8d37afde119cf255f8883adaae772bd5af3d89d9ddcacad4a2",
+      "worker": {
+        "configuration_sha256": "0a23d8060caabb53021c23fba1e952c6595b193e4a14f0f9cbd1e4fef348312e",
+        "id": "l05-successor-worker",
+        "port": 65490
+      },
+      "workerAdmission": {
+        "configurationSha256": "0a23d8060caabb53021c23fba1e952c6595b193e4a14f0f9cbd1e4fef348312e",
+        "differentSourceRefused": true,
+        "ledgerMatchesPersistedInput": true,
+        "listenerJoinedAndPortClosed": true,
+        "sourceSha256": "242e71ce65479302c180bf58ebec0d76204e43cc6f14e56d0f6694eb6c9a0b0f",
+        "starts": 0,
+        "status": "absent",
+        "verifiedRecipe": true,
+        "workerId": "l05-successor-worker"
+      }
+    },
+    "legacyChecks": [
+      "Read the legacy registration and reject new operator provisioning of it",
+      "Reject selection without a matching persisted input and leave zero rows",
+      "List and read the exact persisted input and return an identical selection on retry",
+      "Authenticate against the installed worker with zero starts",
+      "Respond with conflict when the stored source reference differs and preserve the row"
+    ],
+    "newChecks": [
+      "Select the exact local closure and return the same receipt on retry",
+      "Refuse an unprovisioned registration, a mismatched worker startup pin, stale selection ID, stale lock, and stale CLI bytes",
+      "Match the stored spec over authenticated worker query and refuse a different source reference"
+    ],
+    "paymentEnvironmentKeys": [],
+    "test": "mix test --seed 0 --trace test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs",
+    "testsPassed": 1
+  },
+  "cleanup": {
+    "closedDisposablePathsRemoved": true,
+    "retainedForUnknownCustody": [
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/live-06",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/logs/live-06-worker.log"
+    ],
+    "retainedTopLevelRuntimeMetadata": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/logs/live-06-result.json",
+    "temporaryHostedDependencyLinkRemoved": true
+  },
+  "earlierControls": [
+    "Initial isolated CLI export reported Swift identity drift. The exact PATH replay reproduced source digest 242e71ce65479302c180bf58ebec0d76204e43cc6f14e56d0f6694eb6c9a0b0f.",
+    "First hosted compilation required the exact dependency path recorded by the relation manifest. The temporary link was scoped to this worktree.",
+    "A five-second database checkout expired during the export walk. The tested implementation now checks each directory around its descendants without repeating the ancestor walk.",
+    "The initial same-port query fixture collided with listener reuse. The canonical fixture gives the legacy listener its own ephemeral port.",
+    "An early dispatch runner exited on a named-process assertion after the processor connected. The successor inspects the real supervisor child.",
+    "The separate compiler configuration preflight passed with the private worker HOME, TMPDIR, and command control, without compiling a project."
+  ],
+  "exactPatch": {
+    "bytes": 205195,
+    "path": "verification/local/l05-starter-successor-777e22f9/starter-package-closure-successor.patch",
+    "sha256": "63d80a76cb2a17c1a94ac60e873e515271c7a6755bfc877ffaa6316866de5ff3"
+  },
+  "existingOriginalExport": {
+    "admittedByInstalledSuccessorWorker": true,
+    "compilerStarts": 0,
+    "exactOldPreparationRevision": "0ec7fc06df93fd08d7b0e6e58d57e34ea10741f9",
+    "legacyOriginalExportSha256": "7e12a50a6e62d87f706110ad86ab6c30c38c326c27f251fbb4ea1eb12adee53f"
+  },
+  "implementationTree": "a29f481010e8fa7d052d57b44ec90a5229468ffa",
+  "independentIndexReplayMatchedImplementationTree": true,
+  "limits": [
+    "The full native artifact build and worker custody are unresolved in this successor run.",
+    "The bundle was installed from the real source transfer locally. No remote hosted qualification, device execution, push, or deployment was performed.",
+    "Legacy replay requires an already-persisted exact input.",
+    "Existing holds and release gates remain in force."
+  ],
+  "observedAt": "2026-11-19T01:22:51.451181+00:00",
+  "pinControls": {
+    "normal": {
+      "compilerStarts": 0,
+      "mismatchesRefused": [
+        "startup-digest",
+        "worker-policy-marker",
+        "recipe-marker",
+        "incomplete-inputs",
+        "recipe-digest",
+        "source-digest",
+        "lock-digest",
+        "re-pinned-lock-wrong-sdk"
+      ],
+      "optimization": 0,
+      "validExactClosure": true,
+      "workerStateConstructed": false
+    },
+    "optimized": {
+      "compilerStarts": 0,
+      "mismatchesRefused": [
+        "startup-digest",
+        "worker-policy-marker",
+        "recipe-marker",
+        "incomplete-inputs",
+        "recipe-digest",
+        "source-digest",
+        "lock-digest",
+        "re-pinned-lock-wrong-sdk"
+      ],
+      "optimization": 1,
+      "validExactClosure": true,
+      "workerStateConstructed": false
+    }
+  },
+  "predecessorPatch": {
+    "baseRevision": "a4cb2caab453036cc0c6ba66b28f19306a5427a3",
+    "receipt": "verification/receipts/l05-starter-package-closure-f923af86.json",
+    "sha256": "6f66ac7c5f11c246f00ee891c0f7c3d2beb291824a0740b19c12e6fe04ccb5ea"
+  },
+  "replayScripts": [
+    {
+      "bytes": 8948,
+      "path": "verification/local/l05-starter-successor-777e22f9/replay/run.py",
+      "sha256": "adb1952c298b4b66c7ca78d7c1383cd8f26d22cda94e2f74959703cd6220bc5d"
+    },
+    {
+      "bytes": 5540,
+      "path": "verification/local/l05-starter-successor-777e22f9/replay/run-selection.py",
+      "sha256": "af4aa7ec76b03eb38c1558f4b52214715c7a6ce4355398574d9c5c16f5aa6cec"
+    },
+    {
+      "bytes": 1631,
+      "path": "verification/local/l05-starter-successor-777e22f9/replay/processor.exs",
+      "sha256": "fe13b0228734d23271010d317879e7f64f10a70feac5301eb21979a9afe3329a"
+    },
+    {
+      "bytes": 1163,
+      "path": "verification/local/l05-starter-successor-777e22f9/replay/install.py",
+      "sha256": "8e1dc3e3402bf9ce9a00d749c93e4668cb6625045a58467960346a00e768e9c2"
+    },
+    {
+      "bytes": 3886,
+      "path": "verification/local/l05-starter-successor-777e22f9/replay/pins.py",
+      "sha256": "a2f4af61307188478ca5aef8ef727cf1d6662fe7920800cb643a0c0516518ebf"
+    }
+  ],
+  "restrictedDispatch": {
+    "commands": [
+      {
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/initdb",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/live-06/pg",
+          "-U",
+          "fixture_admin",
+          "--locale=C",
+          "--encoding=UTF8",
+          "--auth=trust",
+          "--no-sync"
+        ],
+        "exit": 0,
+        "groupAbsent": true,
+        "name": "initdb",
+        "observedExitBeforeCleanup": 0,
+        "pid": 84976
+      },
+      {
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "-D",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/live-06/pg",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "62274",
+          "-k",
+          "",
+          "-c",
+          "fsync=off",
+          "-c",
+          "jit=off"
+        ],
+        "name": "postgres",
+        "observedExitBeforeCleanup": null,
+        "pid": 85042
+      },
+      {
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/psql",
+          "-XqAt",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "62274",
+          "-U",
+          "fixture_admin",
+          "-d",
+          "postgres",
+          "-c",
+          "\nCREATE ROLE browser_admin LOGIN SUPERUSER NOINHERIT;\nCREATE ROLE browser_schema_owner NOLOGIN NOINHERIT;\nCREATE ROLE browser_writer NOLOGIN NOINHERIT;\nCREATE ROLE browser_lifecycle LOGIN NOINHERIT;\nCREATE ROLE browser_ordinary LOGIN NOINHERIT;\nCREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOINHERIT;\nCREATE ROLE mixer_build_create LOGIN NOINHERIT;\n"
+        ],
+        "exit": 0,
+        "groupAbsent": true,
+        "name": "roles",
+        "observedExitBeforeCleanup": 0,
+        "pid": 85053
+      },
+      {
+        "argv": [
+          "mix",
+          "test",
+          "--seed",
+          "0",
+          "--trace",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/test-fixture/hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs"
+        ],
+        "name": "phoenix",
+        "observedExitBeforeCleanup": null,
+        "pid": 85057
+      },
+      {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "-O",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/installed-delivery/hosted/priv/development/native_artifact_worker.py",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/live-06/starter-proof-wXK4IoBfMRYYKbew/registration.worker-startup.json",
+          "8092274e7c543e4317f8284ca4e223f2718a7d929027bcc5d988a663f3790186",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/live-06/worker-state"
+        ],
+        "name": "worker",
+        "pid": 94206
+      },
+      {
+        "argv": [
+          "mix",
+          "run",
+          "--no-start",
+          "--no-compile",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/processor.exs"
+        ],
+        "name": "processor",
+        "observedExitBeforeCleanup": null,
+        "pid": 94213
+      }
+    ],
+    "fixtureOverlay": {
+      "bytes": 8072,
+      "path": "verification/local/l05-starter-successor-777e22f9/dispatch-proof-fixture.patch",
+      "sha256": "f86201426b23ee40b4a7f7d3ae390e780cb21f3439739085427f168e0d73f258"
+    },
+    "hold": {
+      "action": "Preserve the exact scope and worker log without inspection, probing, signalling, waiting, retry, or cleanup.",
+      "attempt": "live-06",
+      "historicalHoldsReleased": false,
+      "listenerPort": 62275,
+      "otherGroupsObservedAbsent": [
+        84976,
+        85053,
+        94213,
+        85057,
+        85042
+      ],
+      "reason": "The worker ledger showed one admitted start attempt and uncertain status. Shutdown did not return a closed acknowledgment. Compiler spawn and descendant custody remain unproven.",
+      "scope": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/scratch/live-06",
+      "workerLog": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-777e22f9/verification/local/l05-starter-successor-777e22f9/logs/live-06-worker.log",
+      "workerPidAndPgid": 94206
+    },
+    "holdMetadata": {
+      "bytes": 778,
+      "path": "verification/local/l05-starter-successor-777e22f9/HOLD-live-06.json",
+      "sha256": "d4db64d3bb88da366f10581200a1fe1e81602953a1262f591bfa9115c28b8108"
+    },
+    "nativeSpawnObserved": false,
+    "paymentEnvironmentKeys": [],
+    "ports": {
+      "postgres": 62274,
+      "worker": 62275
+    },
+    "processorRole": "mixer_build_processor, non-superuser, builds_v1 / durable_intent_v1",
+    "queued": {
+      "body": {
+        "outcome": "applied",
+        "revision": 0,
+        "selection": {
+          "application_id": "example.source.app",
+          "build_definition_sha256": "ebf70076f02620fc8c6e24544b809ed0cd84fe00f33df22918c3123f9197aaed",
+          "build_id": "build-ee9d4738bdac6719f95cd2025297a961b5c2f9c39a44d8591b9c1f217c76e94b",
+          "organization_id": "org-6c067f9295384f54adbe54ff175bdc80",
+          "platform": "ios",
+          "project_id": "project-857a85780d754ec3907e722185307fa9",
+          "source_sha256": "242e71ce65479302c180bf58ebec0d76204e43cc6f14e56d0f6694eb6c9a0b0f",
+          "toolchain_lock_sha256": "d31b723e47113684790c05543da47853af15c2ebc0df6adab498e5a4ac95b07d"
+        },
+        "state": "queued"
+      },
+      "job": 1,
+      "row": "abba1288-9233-4e41-ac48-735580580208",
+      "sql": {
+        "builds": [
+          [
+            0,
+            null
+          ]
+        ],
+        "intents": [],
+        "jobs": [
+          [
+            1,
+            "available",
+            "created",
+            0,
+            0,
+            null
+          ]
+        ],
+        "reservations": []
+      },
+      "status": 201
+    },
+    "sqlAtTimeout": "Timed out waiting for observed route state: %{builds: [[1, \"start\"]], reservations: [[true, nil]], jobs: [[1, \"completed\", \"created\", 1, 0, nil], [2, \"scheduled\", \"start\", 0, 0, \"71\"]], intents: [[\"e8e4236787a7e9137bbb1e8c7f504de3fd78ea96fdbad09b6d20f07f2bccc38a\", \"admitted\"]]}",
+    "terminalArtifactsObserved": false,
+    "workerLedgerObservation": {
+      "starts": 1,
+      "status": "uncertain"
+    },
+    "workerStartup": "Installed native_artifact_worker.py launched in optimized Python with the startup configuration pin"
+  },
+  "source": {
+    "artifactRetentionImplementationIndex": "Verification retention passed for 49239 tracked files and 945593799 bytes.",
+    "collectorControls": {
+      "normal": {
+        "logSha256": "7d2fa2bf74d0290c2aea705e67d89494dfd40a721e11defd28d7acf5339de058",
+        "passed": 12
+      },
+      "optimized": {
+        "logSha256": "c04927e61710ae9784841204f8ce0651c825b136d879cc9cdf6e7f8eefba78c8",
+        "passed": 12
+      },
+      "selectors": "CurrentCLISelectionControls WorkflowSparseSourceControls WorkspaceSourceCutoverControls"
+    },
+    "hostedFormat": "mix format --check-formatted lib/mixer_hosted/customer_builds/local_starter.ex test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs",
+    "installedSourceTransfer": {
+      "admission": {
+        "identity": "hosted-local-starter-package-closure-source-v40",
+        "runtime_or_GA_accepted": false,
+        "selection_sha256": "639d82d968a703b1a3ac75913eae9ecc342ca9a216502347199b36fa74f5a096",
+        "source_count": 405,
+        "source_digest_sha256": "88f6f8dcc1fed9ab1b9ae75d81d55fbb9c894c41d3f1741f40e8f31113aa315a"
+      },
+      "archiveSha256": "629032708d2c55191b4630f10b50bc722ca6acd0a8c569f1d0290e6902727be9",
+      "installedModules": {
+        "compiler_worker.py": {
+          "bytes": 14941,
+          "sha256": "7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24"
+        },
+        "native_artifact_worker.py": {
+          "bytes": 20466,
+          "sha256": "f97c52eb25e8e1247f4f31f7dc0433e6c2d37b7a39a268f76fc2e61be9f7762e"
+        },
+        "starter_package_closure.py": {
+          "bytes": 1229,
+          "sha256": "b3164d0dfa8210ce26bb5a0f4b21f5ce063d90f5040522ee4d41f61a9960941d"
+        }
+      }
+    },
+    "installedWorkerControls": {
+      "command": "python3 -B [-O] hosted/scripts/test_native_artifact_worker.py (from the extracted source transfer)",
+      "normal": {
+        "logSha256": "58395ed967525e5a3b0e34534e1488ac2cbce389d8fbb65d2fe48f98e02f5660",
+        "passed": 11
+      },
+      "optimized": {
+        "logSha256": "58395ed967525e5a3b0e34534e1488ac2cbce389d8fbb65d2fe48f98e02f5660",
+        "passed": 11
+      }
+    },
+    "normal": {
+      "identity": "hosted-local-starter-package-closure-source-v40",
+      "runtime_or_GA_accepted": false,
+      "selection_sha256": "639d82d968a703b1a3ac75913eae9ecc342ca9a216502347199b36fa74f5a096",
+      "source_count": 405,
+      "source_digest_sha256": "88f6f8dcc1fed9ab1b9ae75d81d55fbb9c894c41d3f1741f40e8f31113aa315a"
+    },
+    "normalCommand": "python3 -B hosted/scripts/test-identity-network.py --check-source",
+    "optimized": {
+      "identity": "hosted-local-starter-package-closure-source-v40",
+      "runtime_or_GA_accepted": false,
+      "selection_sha256": "639d82d968a703b1a3ac75913eae9ecc342ca9a216502347199b36fa74f5a096",
+      "source_count": 405,
+      "source_digest_sha256": "88f6f8dcc1fed9ab1b9ae75d81d55fbb9c894c41d3f1741f40e8f31113aa315a"
+    },
+    "optimizedCommand": "python3 -B -O hosted/scripts/test-identity-network.py --check-workspace-source"
+  },
+  "status": "IMPLEMENTATION_SOURCE_AND_SELECTION_PASS_RESTRICTED_TERMINAL_UNPROVEN",
+  "tools": {
+    "elixir": "1.20.4",
+    "macOS": "27.0.1 arm64",
+    "otp": "29",
+    "postgres": "17.11",
+    "python": "3.14.8",
+    "swift": "Apple Swift 6.4.2",
+    "xcode": "27.2 (27B52)"
+  }
+}
