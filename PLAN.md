@@ -16,6 +16,10 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## November 18 local verification
 
+A private local-package starter candidate reached native_succeeded after one compiler start. A free owner downloaded all three artifacts, which matched durable worker sizes and SHA-256 digests. Five invalid package inputs were refused before compilation. Billing remained disabled. Kernel egress isolation and independent source review remain open. [Free starter candidate](verification/receipts/l05-starter-package-closure-f923af86.json)
+
+The Android combined app and report reader have new verified development APKs. The rebuilt JNI has a new runtime identity and matching signed packet. The signed macOS replay finished the 62-byte task title and hit the 50 ms VM turn limit during review of the 240-byte title. The rebuilt app still needs the joint native replay. [Rebuild and host test receipt](verification/receipts/fieldlog-combined-rebuilt-apks-41a05264.json)
+
 The corrected iOS calculation test opened Filter inspection and the intended saved task. The app retained the exact workspace and accepted the signed 10,540-byte baseline at sequence 1. Activation recorded effects_deadline before a healthy calculation frame. The owned Simulator and release origin closed. [iOS activation observation](verification/receipts/fieldlog-ios-calculation-effects-deadline-41a05264.json)
 
 The Android task-conflict host replay preserved all four prior outbox rows and converged on the local title and peer assignee. Four API 36 attempts stopped during offline setup, an unresponsive System UI dialog, or streamed installation. Separate push-and-install verified the same APK on disk. In that run Wi-Fi was off and LTE remained the default route. The four owned emulators and private ADB groups closed. [Android attempts](verification/receipts/fieldlog-android-task-conflict-preflight-41a05264.json)

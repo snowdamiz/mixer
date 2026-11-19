@@ -934,3 +934,11 @@ The November 18 combined FieldLog cold-draft run returned 74. Emulator PGID 4919
 The November 18 signed row API 36 run timed out while reading the UI, and guest retirement could not be confirmed. Preserve private ADB PGID 26393, emulator PGID 26417, AVD fieldlog_row_65f98002a472, ports 5656, 5657, 31971, 31972 and 31973, and the entire `verification/local/fieldlog-row-native-density-qlrsnv4u/root-row-9jmng3p8` namespace without inspection, process operations, retry or cleanup. The release service and relay closed. Use the [compact record](verification/receipts/fieldlog-android-signed-row-insets-41a05264.json) for coordination.
 
 Two macOS accessibility helper attempts for the signed FieldLog row have unresolved custody. Preserve `verification/local/fieldlog-ios-signed-rows.juYIwvHk/loopback/host-event-loop` (parent PID 48047, helper identity unknown) and `verification/local/fieldlog-ios-signed-rows.juYIwvHk/loopback/host-owned-ax` (helper PID/PGID 60176) without inspection, process operations, retry or cleanup. These are host runs. [Custody records](verification/receipts/fieldlog-signed-row-apple-host-holds-41a05264.json)
+
+The first v38 local-package starter compiler attempt had UNKNOWN worker
+custody. Preserve the exact
+`/Users/andreyyurlov/.t3/worktrees/mixer/t3-f923af86/verification/local/l05-starter-closure-f923af86/work/compile`
+namespace and its `operation`, plus the sibling `work/mixer`, without
+inspection, enumeration, probing, signalling, waiting, retry or cleanup. Use
+the copied top-level `verification/receipts/l05-starter-package-closure-f923af86.json`.
+The separately closed compiler and free-owner runs leave this hold in place.
