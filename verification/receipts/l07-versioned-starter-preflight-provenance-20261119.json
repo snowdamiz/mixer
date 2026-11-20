@@ -1,0 +1,44 @@
+{
+  "status": "native-preflight-closed-wrapper-hold",
+  "baseRevision": "201ead70ff68bfe18de24c0642f518701459e0a4",
+  "baseTree": "bc795366f84ca7d68890b84a97bd8773fe1dc786",
+  "versionedTestPatchSHA256": "1afb68e3fa7a3e9492a9f9e9fa34c2589fd7ef29f37370a64004b83eb04081d8",
+  "commands": [
+    "git worktree add --detach <owned-source> 201ead70ff68bfe18de24c0642f518701459e0a4",
+    "git apply --check <versioned-test-patch>",
+    "git apply <versioned-test-patch>",
+    "python3.14 -B tests/integration/free-project-starter/replay-restart.py --inert-only",
+    "python3.14 -B tests/integration/free-project-starter/replay-restart.py"
+  ],
+  "inert": "Passed. Paused relay EOF and direct old-upstream refusal were separate checks. A replacement reopened the same ledger and authenticated through the relay.",
+  "live": {
+    "twoAuthenticatedSessions": true,
+    "ownedPostgresDataDirectoryVerified": true,
+    "processorAdmittedPaused": true,
+    "buildPOSTAttempts": 1,
+    "buildPOSTStatus": 201,
+    "workerStarts": 1,
+    "compilerStarts": 0,
+    "workerStatus": "closed",
+    "preflightFailed": true,
+    "cliExit": 1,
+    "cliReaped": true,
+    "cliGroupAbsent": true,
+    "command": "/usr/bin/swift",
+    "commandReceiptSHA256": "f627745c1bc0f25cacacf73052d2aaa4943b13a1b6960bc84eb53ca38945b4de",
+    "cliDiagnostic": "files.symlink",
+    "rejectedPathRelativeToRun": "hosted/_build/test/lib/phoenix/priv",
+    "paymentServiceConfigured": false
+  },
+  "wrapperFailure": "The archive was laid out beside hosted under the embedded CLI provenance root. The wrapper then waited for a retained artifact and did not handle the known closed preflight result. It exited 74 after the closure deadline.",
+  "hold": {
+    "resource": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/l07-versioned-root.e5KRA9Gk/source/verification/local/l07-restart-5rf3n08j",
+    "reason": "No terminal custody was collected for the surrounding fixture service groups. Preserve the exact held run, including worker and PostgreSQL resources."
+  },
+  "remaining": [
+    "Separate the pinned CLI provenance from runtime caches and verify startup closure on early worker failures.",
+    "Pin the support scripts and compare the terminal row and ledger inode across old-worker shutdown as well as replacement startup.",
+    "Re-run the real restart and verify terminal artifacts through fresh owner and unrelated tenant sessions."
+  ],
+  "localGate": "L07 running"
+}
