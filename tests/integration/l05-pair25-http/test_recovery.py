@@ -135,8 +135,9 @@ class RecoveryTest(unittest.TestCase):
                         if finishes:
                             reply = worker.request("artifacts", request)
                             self.assertEqual(reply["status"], "native_ready")
-                            output, _ = run.verify_downloads({}, scope, self.sessions, row, run.INERT_DRIVER_LOG)
+                            output, _, terminal = run.verify_downloads({}, scope, self.sessions, row, run.INERT_DRIVER_LOG)
                             self.assertEqual([item["kind"] for item in output], list(run.ATTACHMENTS))
+                            self.assertEqual(terminal["buildId"], scope["build_id"])
                             final = run.read_recovery_detail({}, scope, self.sessions, observed, "final")
                             self.assertEqual(first["detail"], final["detail"])
                             self.assertFalse(any(call.kwargs.get("empty_post") for call in http.call_args_list))

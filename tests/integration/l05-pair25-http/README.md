@@ -105,8 +105,8 @@ listener, no dispatch intent, reservation or coordinator lease, and unchanged
 billing snapshots. The receipt includes scoped HTTP outcomes, bundle hashes,
 and teardown observations. The bridge issues the synthetic session only once
 and forwards the browser's cookie, CSRF header and idempotency key to the local
-Phoenix endpoint. There is no native worker, runner, Docker or Android compiler
-in this mode. The registration uses the fixture's inert Pair25 inputs.
+Phoenix endpoint. These commands use inert Pair25 inputs and stop before worker
+or runner startup.
 
 Run the HTTP smoke using a separate receipt path.
 
@@ -118,6 +118,42 @@ python3 -B tests/integration/l05-pair25-http/run.py --browser smoke \
 The smoke loads the served HTML and JavaScript bundle over loopback. Python
 performs the selection, create and detail requests through the same bridge.
 Rendered UI and browser-originated actions require the interactive run above.
+
+### Complete the queued browser build
+
+Add `--complete` to pass the one verified submission to the ordinary paused
+processor. The receipt ties the completed Oban `created` job to the same job ID
+observed at queue time. Terminal detail and download routes must match the
+original build scope and source pins. Owner, outsider, and anonymous reads
+must return HTTP 200, 404, and 401 respectively for detail, logs, and all three
+downloads. Billing snapshots must match before submission, after queueing, and
+after terminal readback.
+
+For an inert replay, run the HTTP smoke through completion. The stock runner
+protocol returns synthetic artifacts and known log counters.
+
+```sh
+mkdir -p verification/local
+python3 -B tests/integration/l05-pair25-http/run.py --browser smoke --complete \
+  --seconds 45 --scratch "$HOME/.t3/userdata" \
+  --receipt verification/local/pair25-browser-complete-inert.json
+```
+
+For a live replay, prepare a fresh operator stage and daemon as described in
+[One real run](#one-real-run).
+
+```sh
+mkdir -p verification/local
+python3 -B tests/integration/l05-pair25-http/run.py --browser queue --complete \
+  --seconds 900 --scratch "$HOME/.t3/userdata" --operator /absolute/path/pair25-operator.json \
+  --receipt verification/local/pair25-browser-complete-live.json
+```
+
+Follow the four browser steps above. Touch the private `finishFile` after
+capturing the queued build ID. With `--seconds 900`, you have 300 seconds to
+finish the browser steps and a separate 900 seconds for settlement. Once the
+bridge closes, the launcher dispatches the build and uses fresh authenticated
+API sessions to verify the logs and downloads.
 
 If offline Hex reports a missing registry entry, warm a disposable copy
 before starting the fixture. Substitute your configured Hex cache path for

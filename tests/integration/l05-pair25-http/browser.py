@@ -185,6 +185,7 @@ def bridge(dist, auth, evidence, queue):
                         or not UUID4.fullmatch(key)):
                     return self.reply(409)
                 evidence.key = key
+                evidence.receipt["createAttempts"] += 1
             used.add(self.path)
             self.forward(urlsplit(self.path), body)
 

@@ -22,7 +22,7 @@ import sys
 import tarfile
 import tempfile
 import time
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
@@ -343,17 +343,24 @@ def verify_downloads(auth, scope, sessions, worker_row, driver_log):
     for cookie in (owner, outsider):
         require(http(auth, "/auth/session", cookie=cookie)[0] == 200, "readback session unavailable")
     status, _, raw = http(auth, BUILD + query, cookie=owner)
-    require(status == 200 and http(auth, BUILD + query, cookie=outsider)[0] == 404, "detail authorization differs")
+    denied = http(auth, BUILD + query, cookie=outsider)[0]
+    anonymous = http(auth, BUILD + query)[0]
+    require((status, denied, anonymous) == (200, 404, 401), "detail authorization differs")
     detail = json.loads(raw)["build"]
-    require((detail["buildId"], detail["revision"], detail["state"]) ==
-            (scope["build_id"], 2, "native_succeeded"), "ordinary build detail differs")
+    terminal = {field: detail[field] for field in (*DETAIL_SCOPE, "revision", "state", "attempt")}
+    require(terminal == {field: scope[key] for field, key in DETAIL_SCOPE.items()} |
+            {"revision": 2, "state": "native_succeeded", "attempt": 1}, "ordinary build detail differs")
+    terminal.update(ownerHTTP=status, outsiderHTTP=denied, anonymousHTTP=anonymous)
     require([item["kind"] for item in detail["artifacts"]] == list(ATTACHMENTS), "unexpected artifact kinds")
     outputs = []
     for download, worker in zip(detail["artifacts"], worker_row["artifacts"], strict=True):
         kind = download["kind"]
         path = download["downloadPath"]
         media, filename = ATTACHMENTS[kind]
-        require(path.startswith("/console-api/v1/build-artifacts/" + kind + "?"), "invalid download route")
+        route, _, route_query = path.partition("?")
+        require(route == "/console-api/v1/build-artifacts/" + kind
+                and parse_qs(route_query) == {key: [value] for key, value in scope.items()},
+                "download route differs from the original selection")
         status, headers, data = http(auth, path, cookie=owner)
         denied = http(auth, path, cookie=outsider)[0]
         anonymous = http(auth, path)[0]
@@ -384,7 +391,7 @@ def verify_downloads(auth, scope, sessions, worker_row, driver_log):
              "attempt": 1, "events": expected_events}, "stock Linux log events differ from sealed driver readback")
     logs = {"ownerHTTP": status, "outsiderHTTP": denied, "anonymousHTTP": anonymous,
             "events": parsed["events"]}
-    return outputs, logs
+    return outputs, logs, terminal
 
 
 def journal_rows(path, statement):
@@ -744,7 +751,8 @@ def browser_run(root, args, dist, auth, api, sql, worker_port, ports, result):
     require(sql("SELECT count(*) FROM mixer_customer_build_inputs") == "0"
             and sql("SELECT count(*) FROM mixer_managed_linux_pair25_starters") == "1",
             "browser requires one managed registration and zero verified inputs")
-    selection.update(verifiedInputsBefore=0, registeredStarters=1, workerListeningBefore=False, http=[])
+    selection.update(verifiedInputsBefore=0, registeredStarters=1, workerListeningBefore=False,
+                     createAttempts=0, http=[])
     queue = args.browser != "select"
     evidence = browser.BrowserEvidence(expected, selection)
     with browser.bridge(dist, auth, evidence, queue) as (bridge_port, url):
@@ -756,11 +764,12 @@ def browser_run(root, args, dist, auth, api, sql, worker_port, ports, result):
         else:
             handoff = root / "browser.private.json"
             done = root / "browser.done"
+            window = selection["windowSeconds"]
             write(handoff, {"url": url, "finishFile": str(done), "starterId": auth["starter"]["id"],
-                            "scope": evidence.scope, "seconds": args.seconds})
+                            "scope": evidence.scope, "seconds": window})
             print(f"Pair25 private browser handoff file {handoff}", flush=True)
             try:
-                wait(done.is_file, args.seconds, api, interval=0.2)
+                wait(done.is_file, window, api, interval=0.2)
                 selection["finish"] = "operator"
             except TimeoutError:
                 selection["finish"] = "deadline"
@@ -796,11 +805,13 @@ def browser_run(root, args, dist, auth, api, sql, worker_port, ports, result):
     """))
     jobs = json.loads(sql("""
         SELECT coalesce(json_agg(json_build_object(
-          'queue', queue, 'worker', worker, 'state', state, 'attempt', attempt, 'args', args
+          'id', id, 'queue', queue, 'worker', worker, 'state', state, 'attempt', attempt, 'args', args
         )), '[]') FROM oban_jobs
     """))
     require(len(records) == len(jobs) == 1, "browser flow did not persist exactly one build and one job")
     record, = records
+    job, = jobs
+    job_id = job.pop("id")
     queue_scope = {key: evidence.queued[key] for key in (*SPEC_FIELDS, "build_id")}
     journal = record["journal"]
     creation = journal["creation"]
@@ -809,17 +820,19 @@ def browser_run(root, args, dist, auth, api, sql, worker_port, ports, result):
         "toolchain_lock_sha256": expected["toolchain_lock_sha256"],
         "build_definition_sha256": expected["build_definition_sha256"],
     }
-    require(evidence.key is not None and record["requestKey"] == creation["request_key"] == evidence.key
+    require(selection["createAttempts"] == 1 and evidence.key is not None
+            and record["requestKey"] == creation["request_key"] == evidence.key
             and record["buildId"] == evidence.queued["build_id"] and record["revision"] == 0
             and creation["spec"] == spec and journal["events"] == [],
             "queued build did not persist the exact browser submission")
-    require(jobs == [{"queue": "builds", "worker": "MixerHosted.Builds.Coordinator", "state": "available",
-                      "attempt": 0, "args": queue_scope | {"build_record_id": record["id"], "revision": 0,
-                                                           "kind": "created", "attempt": 1, "fence": 1}}],
+    require(job == {"queue": "builds", "worker": "MixerHosted.Builds.Coordinator", "state": "available",
+                    "attempt": 0, "args": queue_scope | {"build_record_id": record["id"], "revision": 0,
+                                                         "kind": "created", "attempt": 1, "fence": 1}},
             "queued build did not persist one undispatched job for the exact record")
     selection.update(buildRows=len(records), jobRows=len(jobs), persistedIdempotencyKeyMatched=True,
                      queuedBuild=evidence.queued | {"record_id": record["id"], "revision": 0},
-                     jobs=snapshot["jobs"])
+                     queuedJobID=job_id, jobs=snapshot["jobs"])
+    return evidence.queued, record["id"], job_id
 
 
 def drive(root, args, env, result):
@@ -914,13 +927,16 @@ def drive(root, args, env, result):
             result["starterRegistration" if args.browser else "starterSelection"] = starter
         result["billingBeforeBuild"] = billing_state()
         if args.browser:
+            billing_key = "billingAfterQueue" if args.complete else "billingAfterReadback"
             try:
-                browser_run(root, args, dist, auth, api, sql, worker_port, ports, result)
+                queued = browser_run(root, args, dist, auth, api, sql, worker_port, ports, result)
             finally:
-                result["billingAfterReadback"] = billing_state()
-            require(result["billingBeforeBuild"] == result["billingAfterReadback"],
-                    "browser flow changed billing state")
-            return
+                result[billing_key] = billing_state()
+            require(result["billingBeforeBuild"] == result[billing_key], "browser flow changed billing state")
+            if not args.complete:
+                return
+            require(args.browser == "smoke" or result["browser"]["finish"] == "operator",
+                    "touch the browser finish file to dispatch the verified queued build")
 
         config = {"tenant": auth["build"]["organization_id"], "worker_id": "pair25-native-worker",
                   "port": worker_port, "token": secrets.token_hex(32)}
@@ -935,17 +951,25 @@ def drive(root, args, env, result):
                    source, proc_env, receipts, stop=lambda: mark("processor.done")) as processor:
             result["processorAdmission"] = ready("processor.ready", processor)
             require(result["processorAdmission"] == {"role": rolename, "paused": True}, "restricted pause differs")
-            result["createAttempts"] = 1
-            status, _, raw = http(auth, BUILD, cookie=auth["cookie"], body=auth["build"])
-            require(status == 201, f"ordinary build create returned {status}: {raw!r}")
-            created = json.loads(raw)
-            scope = created["selection"]
-            require(created["state"] == "queued" and created["outcome"] == "applied"
-                    and {k: v for k, v in scope.items() if k != "build_id"} ==
-                    {k: v for k, v in auth["build"].items() if k != "source_input_id"},
-                    "ordinary create binding differs")
+            if args.browser:
+                scope, record_id, job_id = queued
+                result.update(createAttempts=result["browser"]["createAttempts"],
+                              createHTTP=result["browser"]["createHTTP"])
+            else:
+                result["createAttempts"] = 1
+                status, _, raw = http(auth, BUILD, cookie=auth["cookie"], body=auth["build"])
+                require(status == 201, f"ordinary build create returned {status}: {raw!r}")
+                created = json.loads(raw)
+                scope = created["selection"]
+                require(created["state"] == "queued" and created["outcome"] == "applied"
+                        and {k: v for k, v in scope.items() if k != "build_id"} ==
+                        {k: v for k, v in auth["build"].items() if k != "source_input_id"},
+                        "ordinary create binding differs")
+                result["createHTTP"] = status
             require(observed_db()["jobs"] == [["created", "available"]], "expected one queued build job")
-            write(root / "build.selection", scope)
+            selection_path = root / "build.selection.tmp"
+            write(selection_path, scope)
+            selection_path.rename(root / "build.selection")
             binding = ready("build.binding", processor)
             operation = binding["operation_id"]
             spec = {key: scope[key] for key in SPEC_FIELDS}
@@ -960,9 +984,14 @@ def drive(root, args, env, result):
             require(paused["record"] == [[binding["record_id"], 1]]
                     and paused["jobs"] == [["created", "completed"], ["start", "available"]]
                     and paused["operations"] is None and not listening(worker_port), "worker dispatch preceded binding")
+            if args.browser:
+                [drained_job_id] = json.loads(sql("SELECT json_agg(id) FROM oban_jobs WHERE args->>'kind' = 'created'"))
+                require(binding["record_id"] == record_id and drained_job_id == job_id,
+                        "paused processor did not drain the browser's original job")
+                result["browser"]["drainedJobID"] = drained_job_id
             result["pausedBoundary"] = {"jobs": paused["jobs"], "operationIntents": 0, "workerListening": False}
 
-            if args.select_starter and operator:
+            if (args.select_starter or args.browser) and operator:
                 from linux_android_docker_adapter import DockerRecipe
                 from linux_android_pair25_layout import Pair25Layout
                 admitted_layout = Pair25Layout.read(operator["pair25_root"])
@@ -978,7 +1007,7 @@ def drive(root, args, env, result):
                 operation, sha(literal({key: binding[key] for key in ("ref", "spec", "deadline_ms")}).encode()),
                 recipe, secrets.token_hex(32),
             ))
-            result.update(createHTTP=status, pausedBinding=binding, runnerIdentity=identity)
+            result.update(pausedBinding=binding, runnerIdentity=identity)
             grant = {"identity": identity, "bundle": str(root / "bundle"), "inputs": inputs}
             runner = {"socket_path": str(runner_dir / "runner.sock"), "recipe_sha256": recipe,
                       "store_id": identity["store_id"]}
@@ -1030,7 +1059,7 @@ def drive(root, args, env, result):
                           exit_codes=(0, -signal.SIGKILL) if args.worker_crash else (0,))
                 )
                 wait(lambda: listening(worker_port), 8, worker)
-                if args.select_starter and operator:
+                if (args.select_starter or args.browser) and operator:
                     admitted_layout.recheck_stage()
                     result["approvedProjectionMatchesSelection"] = True
                 result["nativeDispatchPossible"] = bool(operator)
@@ -1352,7 +1381,7 @@ def drive(root, args, env, result):
             if result["cancellationExercised"]:
                 result["cancelledBuild"] = verify_cancelled(auth, scope, sessions)
             else:
-                result["downloads"], result["logs"] = verify_downloads(
+                result["downloads"], result["logs"], result["terminalBuild"] = verify_downloads(
                     auth, scope, sessions, row, driver_log,
                 )
                 if args.worker_crash:
@@ -1366,7 +1395,8 @@ def drive(root, args, env, result):
                     "build or readback changed billing state")
 
     require(not Path(runner["socket_path"]).exists(), "runner socket was retained")
-    verify_port_reuse(ports, result)
+    if not args.browser:
+        verify_port_reuse(ports, result)
 
 
 def main():
@@ -1393,20 +1423,25 @@ def main():
                         help="with inert worker-crash mode, settle the original operation before the first recovery read")
     parser.add_argument("--browser", choices=("select", "queue", "smoke"),
                         help="serve the compiled console for selection, selection plus one build, or a no-browser HTTP smoke")
+    parser.add_argument("--complete", action="store_true",
+                        help="dispatch and read back the original build from --browser queue or smoke")
     parser.add_argument("--npm-cache", type=Path, default=Path.home() / ".npm",
                         help="read-only source for locked console package tarballs")
-    parser.add_argument("--seconds", type=int, help="settlement budget or browser handoff window")
+    parser.add_argument("--seconds", type=int, help="settlement budget and browser handoff window (capped at 300)")
     args = parser.parse_args()
-    if args.browser and (args.operator or args.select_starter or args.cancel or args.worker_crash
-                         or args.inert_finish_on_reopen):
-        parser.error("--browser is a standalone managed Starter mode")
+    if args.complete and args.browser not in ("queue", "smoke"):
+        parser.error("--complete requires --browser queue or smoke")
+    if args.browser and (args.select_starter or args.cancel or args.worker_crash or args.inert_finish_on_reopen):
+        parser.error("--browser handles Starter selection and does not support cancellation or recovery")
+    if args.browser and args.operator and (args.browser != "queue" or not args.complete):
+        parser.error("--operator with --browser requires --browser queue --complete")
     if args.worker_crash and not args.cancel:
         parser.error("--worker-crash requires --cancel")
     if args.inert_finish_on_reopen and (not args.worker_crash or args.operator):
         parser.error("--inert-finish-on-reopen requires --worker-crash without --operator")
     if args.seconds is None:
         args.seconds = 120 if args.browser else 75 if args.worker_crash else 30
-    limit = 300 if args.browser else 1150
+    limit = (900 if args.complete else 300) if args.browser else 1150
     if not 1 <= args.seconds <= limit:
         parser.error(f"use a time budget between 1 and {limit} seconds")
     require(not args.receipt.exists(), "receipt already exists")
@@ -1419,12 +1454,13 @@ def main():
                                 for name in ("run.py", "processor.exs", "api-case.exs")},
               "commands": {}, "cancelAttempts": 0, "cancellationExercised": False, "nativeDispatchPossible": False}
     if args.browser:
-        result["mode"] = "loopback-console"
+        if not args.complete:
+            result["mode"] = "loopback-console"
         result["fixtureSHA256"]["browser.py"] = sha((HERE / "browser.py").read_bytes())
-        result["browser"] = {"mode": args.browser,
+        result["browser"] = {"mode": args.browser, "complete": args.complete,
                              "httpClient": "Python smoke" if args.browser == "smoke" else "external browser"}
         if args.browser != "smoke":
-            result["browser"]["windowSeconds"] = args.seconds
+            result["browser"]["windowSeconds"] = min(args.seconds, 300)
     if args.worker_crash and not args.operator:
         result["inertRecoveryMode"] = "finish-on-reopen" if args.inert_finish_on_reopen else "stay-active"
     env = {key: os.environ[key] for key in ("PATH", "HOME", "MIX_HOME", "HEX_HOME") if key in os.environ}
