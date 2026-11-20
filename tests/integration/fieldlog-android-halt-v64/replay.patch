@@ -1,0 +1,1037 @@
+diff --git a/hosted/scripts/replay-configured-release.sh b/hosted/scripts/replay-configured-release.sh
+index c50eae0e66..b5f348201a 100755
+--- a/hosted/scripts/replay-configured-release.sh
++++ b/hosted/scripts/replay-configured-release.sh
+@@ -3,6 +3,8 @@ set -eu
+ 
+ mode=linux
+ packet=
++halt_cli=
++halt_run=
+ case "$#:${1:-}:${2:-}" in
+   0::) ;;
+   1:--startup-only:) mode=startup-only ;;
+@@ -11,10 +13,16 @@ case "$#:${1:-}:${2:-}" in
+   2:--fieldlog:*) mode=fieldlog; packet=$2 ;;
+   3:--startup-only:--fieldlog) mode=fieldlog-control; packet=$3 ;;
+   1:--fieldlog-control:) mode=fieldlog-control ;;
+-  *) echo "Usage: $0 [--startup-only] [--stock-cli | --fieldlog DELIVERY] | --fieldlog-control" >&2; exit 2 ;;
++  4:--fieldlog-halt:*|4:--fieldlog-halt-control:*)
++    mode=${1#--}; packet=$2; halt_cli=$3; halt_run=$4
++    case "$halt_cli:$halt_run" in /*:/*) ;; *) exit 2 ;; esac
++    [ -f "$halt_cli" ] && [ -x "$halt_cli" ] && [ -d "$halt_run" ] &&
++      [ ! -L "$halt_run" ] && [ -z "$(ls -A "$halt_run")" ] || exit 2
++    ;;
++  *) echo "Usage: $0 [--startup-only] [--stock-cli | --fieldlog DELIVERY] | --fieldlog-control | --fieldlog-halt[-control] DELIVERY CLI EMPTY_RUN_DIRECTORY" >&2; exit 2 ;;
+ esac
+ 
+-if [ "$mode" = fieldlog ] || [ "$#" -eq 3 ]; then
++if [ "$mode" = fieldlog ] || [ "$#" -ge 3 ]; then
+   case "$packet" in
+     /*/delivery-android) [ -d "$packet" ] || exit 2 ;;
+     *) echo "Use the absolute path of the sealed delivery-android directory." >&2; exit 2 ;;
+@@ -109,5 +117,6 @@ env -i PATH="$PATH" HOME="$HOME" TMPDIR="$scratch" MIX_ENV=test HEX_OFFLINE=1 \
+   MIXER_RELEASE_FIXTURE_MODE="$mode" MIXER_RELEASE_FIXTURE_SCRATCH="$scratch" \
+   MIXER_RELEASE_PARENT_NETNS="${MIXER_RELEASE_PARENT_NETNS:-}" \
+   MIXER_RELEASE_PARENT_PIDNS="${MIXER_RELEASE_PARENT_PIDNS:-}" \
+-  MIXER_RELEASE_FIELDLOG_PACKET="$packet" \
++  MIXER_RELEASE_FIELDLOG_PACKET="$packet" MIXER_RELEASE_HALT_CLI="$halt_cli" \
++  MIXER_RELEASE_HALT_RUN="$halt_run" \
+   mix test --warnings-as-errors --trace test/mixer_hosted/releases/configured_release_replay_test.exs
+diff --git a/hosted/test/mixer_hosted/releases/configured_release_replay_test.exs b/hosted/test/mixer_hosted/releases/configured_release_replay_test.exs
+index 1b693a8f99..e93293bef5 100644
+--- a/hosted/test/mixer_hosted/releases/configured_release_replay_test.exs
++++ b/hosted/test/mixer_hosted/releases/configured_release_replay_test.exs
+@@ -21,11 +21,13 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+   alias MixerHosted.Protocol.ArtifactAdmission
+   alias MixerHosted.Releases.{DeliveryRepo, Target, WriterRepo}
+   alias MixerHosted.Test.ConfiguredReleaseReplayRepo, as: FixtureRepo
+-  alias MixerHosted.Test.FieldLogReleasePacket
++  alias MixerHosted.Test.{FieldLogHaltReplay, FieldLogReleasePacket}
+   alias MixerHostedWeb.LocalReleaseController
+ 
+   @mode System.get_env("MIXER_RELEASE_FIXTURE_MODE")
+-  @fieldlog? @mode in ["fieldlog", "fieldlog-control"]
++  @halt? @mode in ["fieldlog-halt", "fieldlog-halt-control"]
++  @ordinary_fieldlog? @mode in ["fieldlog", "fieldlog-control"]
++  @fieldlog? @ordinary_fieldlog? or @halt?
+   @moduletag skip:
+                @mode not in ["linux", "startup-only", "stock-cli", "stock-cli-startup"] and
+                  not @fieldlog?
+@@ -42,7 +44,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+   @validate "/v3/orgs/org-a/projects/project-a/releases/validate"
+   @publish "/v3/orgs/org-a/projects/project-a/channels/beta/publish"
+ 
+-  @tag timeout: if(@mode == "fieldlog", do: 1_700_000, else: 360_000)
++  @tag timeout: if(@mode == "fieldlog" or @halt?, do: 1_700_000, else: 360_000)
+   test "one ordinary API boot replays a signed local release through configured identity" do
+     linux? = @mode in ["linux", "stock-cli", "fieldlog"]
+     stock_cli? = @fieldlog? or @mode in ["stock-cli", "stock-cli-startup"]
+@@ -73,6 +75,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+     signed_bytes = Jason.encode!(signed)
+     uploader_password = if stock_cli?, do: Base.encode16(:crypto.strong_rand_bytes(32))
+     {dns, tls, key} = if linux?, do: start_issuer!(), else: {nil, nil, nil}
++    {tls, key} = if @halt?, do: FieldLogHaltReplay.start_issuer!(), else: {tls, key}
+     load_runtime!(vector, assignment, tls, uploader_password)
+ 
+     %{target: target} = config = Application.fetch_env!(:mixer_hosted, :local_release_target)
+@@ -82,6 +85,18 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+              target.channel == assignment["channel"]
+ 
+     phases = if @fieldlog?, do: FieldLogReleasePacket.admit!(phases, config), else: phases
++
++    {phases, halt} =
++      if @halt? do
++        FieldLogReleasePacket.admit_halt!(
++          System.fetch_env!("MIXER_RELEASE_FIELDLOG_PACKET"),
++          phases,
++          config
++        )
++      else
++        {phases, nil}
++      end
++
+     provision!(target)
+ 
+     if stock_cli? do
+@@ -93,6 +108,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
+ 
+     try do
++      if @halt?, do: FieldLogHaltReplay.connect_issuer!(tls)
++
+       assert {:ok, {%{identity_startup: %{mode: :configured, owner_options: opts}}, :disabled}} =
+                MixerHosted.Application.startup()
+ 
+@@ -140,7 +157,19 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+ 
+       if @mode == "stock-cli-startup", do: assert_relay_transport!(port)
+ 
+-      if @fieldlog? do
++      if @halt? do
++        FieldLogHaltReplay.run!(
++          client,
++          target,
++          phases,
++          halt,
++          fn -> token(key, @stock_scopes <> " mixer.audit.read", 300) end,
++          fn past -> assert_fieldlog_rows!(target, past) end,
++          @mode == "fieldlog-halt-control"
++        )
++      end
++
++      if @ordinary_fieldlog? do
+         run_fieldlog!(client, offer_path, target, phases, key)
+ 
+         if linux? do
+@@ -249,6 +278,13 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+       end
+     end
+ 
++    if @halt? do
++      assert %{accepted: count, key_dir_removed: true} = TLSFixture.info(tls)
++      assert count > 0
++      stop_supervised!(TLSFixture)
++      refute Process.alive?(tls)
++    end
++
+     IO.puts("Configured release replay completed in #{@mode} mode.")
+   end
+ 
+@@ -829,6 +865,13 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+           {"repo/migrations", "20261120000011_add_local_release_halt_health.exs"}
+         ]
+ 
++        migrations =
++          if @halt?,
++            do:
++              migrations ++
++                [{"repo/migrations", "20261120000012_add_local_release_halt_audit.exs"}],
++            else: migrations
++
+         for {dir, file} <- migrations do
+           [{module, _}] = Code.require_file(Path.join(["priv", dir, file]))
+           [version, _] = String.split(file, "_", parts: 2)
+@@ -838,6 +881,14 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+         end
+ 
+         grant!()
++
++        if @halt? do
++          sql!("""
++          GRANT EXECUTE ON FUNCTION
++            public.mixer_release_audit_halts(text,text,text,text,text,text,text,numeric,integer)
++            TO #{@writer}
++          """)
++        end
+       end,
+       after_connect: fn conn -> Postgrex.query!(conn, "SET ROLE mixer_replay_owner", []) end
+     )
+diff --git a/hosted/test/support/fieldlog_halt_replay.ex b/hosted/test/support/fieldlog_halt_replay.ex
+new file mode 100644
+index 0000000000..1480f01290
+--- /dev/null
++++ b/hosted/test/support/fieldlog_halt_replay.ex
+@@ -0,0 +1,271 @@
++defmodule MixerHosted.Test.FieldLogHaltReplay do
++  @moduledoc false
++  import ExUnit.Assertions
++  import ExUnit.Callbacks
++  import MixerHosted.Test.OrdinaryBrowserStartupFixture, only: [http: 3]
++
++  alias MixerHosted.CustomerArtifacts
++  alias MixerHosted.CustomerArtifacts.UploadRepo
++  alias MixerHosted.Identity.{KeyOwner, KeyOwnerSupervisor, TLSFixture}
++  alias MixerHosted.Releases.Target
++  alias MixerHosted.Test.StockReleaseCLI
++
++  @control_active "00000000-0000-4000-8000-000000000001"
++  @control_pending "00000000-0000-4000-8000-000000000002"
++
++  def start_issuer! do
++    tls = start_supervised!({TLSFixture, ip: {127, 0, 0, 1}})
++    key = JOSE.JWK.generate_key({:rsa, 2048})
++    {_, public} = key |> JOSE.JWK.to_public() |> JOSE.JWK.to_map()
++    jwk = Map.merge(public, %{"kid" => "startup-key", "alg" => "RS256", "use" => "sig"})
++    TLSFixture.configure(tls, {:body, Jason.encode!(%{"keys" => [jwk]})})
++    {tls, key}
++  end
++
++  def connect_issuer!(tls) do
++    # Use the same loopback-only TLS transport seam as the v64 HTTP verifier.
++    # The ordinary router, JWT verifier, TLS peer check and SQL authorization stay in path.
++    assert {:ok, {%{identity_startup: %{owner_options: opts}}, :disabled}} =
++             MixerHosted.Application.startup()
++
++    parent = MixerHosted.Supervisor
++    assert :ok = Supervisor.terminate_child(parent, KeyOwnerSupervisor)
++    assert :ok = Supervisor.delete_child(parent, KeyOwnerSupervisor)
++    refute Process.whereis(KeyOwner)
++    fixture = Map.take(GenServer.call(tls, :authority), [:ip, :port])
++
++    assert {:ok, _} =
++             Supervisor.start_child(parent, %{
++               id: KeyOwnerSupervisor,
++               start:
++                 {KeyOwnerSupervisor, :start_fixture, [Keyword.put(opts, :fixture, fixture)]},
++               type: :supervisor
++             })
++  end
++
++  def run!(client, target, [_, staged] = phases, halt, token, verify_rows, control?) do
++    cli = System.fetch_env!("MIXER_RELEASE_HALT_CLI")
++    run = System.fetch_env!("MIXER_RELEASE_HALT_RUN")
++    scratch = System.fetch_env!("MIXER_RELEASE_FIXTURE_SCRATCH")
++    System.put_env("MIXER_TEST_RELEASE_CANDIDATE", scratch)
++
++    for phase <- phases do
++      artifact = %{
++        manifest_sha256: phase.digest,
++        signed_manifest_bytes: phase.manifest,
++        payload: phase.payload
++      }
++
++      for _ <- 1..2 do
++        StockReleaseCLI.publish!(
++          cli,
++          client.http_port,
++          token.(),
++          artifact,
++          phase.signed,
++          phase.assignment
++        )
++      end
++
++      verify_rows.(Enum.take(phases, phase.assignment["sequence"]))
++    end
++
++    scope = Target.signed_scope(target)
++    match = Map.merge(scope, %{"runtime" => target.runtime_sha256, "channel" => target.channel})
++    tenant = URI.encode_query(organization: scope["organization"], project: scope["project"])
++    artifact_path = "/v3/artifacts/#{staged.digest}?#{tenant}"
++    prefix = "/v3/orgs/#{scope["organization"]}/projects/#{scope["project"]}"
++    audit = prefix <> "/audit"
++    halt_audit = audit <> "?view=rollout_halt"
++    headers = [{"authorization", "Bearer " <> token.()}]
++
++    assert %{status: 200, body: legacy} = artifact_audit(client, audit, headers)
++    assert %{"events" => [_, _], "next" => 2} = Jason.decode!(legacy)
++    assert %{status: 200, body: empty} = http(client, halt_audit, headers)
++    assert %{"events" => [], "next" => 0} = Jason.decode!(empty)
++    assert %{status: 401} = http(client, halt_audit, [])
++    assert %{status: 200, body: envelope} = http(client, artifact_path, [])
++    assert envelope == staged.envelope
++
++    atomic_write!(run, "ready.json", %{
++      port: client.http_port,
++      scope: scope,
++      runtime: target.runtime_sha256,
++      channel: target.channel,
++      artifact: staged.digest,
++      sequence: staged.assignment["sequence"],
++      rollout: staged.assignment["rollout_basis_points"]
++    })
++
++    {active, pending, health, source} =
++      if control? do
++        {@control_active, @control_pending,
++         %{"sequence" => 2, "activated" => 1, "pending" => 1, "adverse_signals" => 1},
++         "synthetic host control"}
++      else
++        sample = await_file!(run, "halt-sample.json", 600_000)
++
++        %{"activeInstallation" => active, "pendingInstallation" => pending, "health" => health} =
++          Jason.decode!(sample)
++
++        {active, pending, health, sha(sample)}
++      end
++
++    assert canonical_uuid?(active) and canonical_uuid?(pending) and active != pending
++    assert health == %{"sequence" => 2, "activated" => 1, "pending" => 1, "adverse_signals" => 1}
++
++    offer_paths =
++      for installation <- [active, pending],
++          do: "/v3/updates?" <> URI.encode_query(Map.put(match, "installation", installation))
++
++    offer =
++      ~s({"signed_assignment":) <>
++        staged.signed <>
++        ~s(,"artifact_url":) <> Jason.encode!(artifact_path) <> "}"
++
++    for path <- offer_paths do
++      assert %{status: 200, body: ^offer} = http(client, path, [])
++    end
++
++    signed_path = Path.join(scratch, "halt.assignment.json")
++    health_path = Path.join(scratch, "halt-health.json")
++    File.write!(signed_path, halt.signed, [:exclusive])
++    File.write!(health_path, Jason.encode!(health), [:exclusive])
++
++    expected = %{
++      "status" => "ok",
++      "action" => "halt",
++      "artifact_sha256" => staged.digest,
++      "sequence" => 3,
++      "rollout_basis_points" => 0,
++      "delivery" => "local_only",
++      "health" => health
++    }
++
++    for _ <- 1..2 do
++      assert {output, 0} =
++               System.cmd(
++                 cli,
++                 [
++                   "update",
++                   "halt",
++                   staged.digest,
++                   "--channel",
++                   target.channel,
++                   "--organization",
++                   scope["organization"],
++                   "--project",
++                   scope["project"],
++                   "--assignment",
++                   signed_path,
++                   "--health",
++                   health_path
++                 ],
++                 env: [
++                   {"HOME", scratch},
++                   {"TMPDIR", scratch},
++                   {"MIXER_RELEASE_ORIGIN", "http://127.0.0.1:#{client.http_port}"},
++                   {"MIXER_RELEASE_TOKEN", token.()}
++                 ]
++               )
++
++      assert Jason.decode!(output) == expected
++    end
++
++    for path <- offer_paths do
++      assert %{status: 204, body: ""} = http(client, path, [])
++    end
++
++    headers = [{"authorization", "Bearer " <> token.()}]
++
++    assert %{status: 200, body: committed} = http(client, halt_audit, headers)
++
++    assert %{
++             "events" => [
++               %{
++                 "id" => 3,
++                 "action" => "POST " <> prefix <> "/channels/#{target.channel}/halt",
++                 "rollout_halt" => %{
++                   "scope" => scope,
++                   "runtime" => target.runtime_sha256,
++                   "channel" => target.channel,
++                   "artifact_sha256" => staged.digest,
++                   "halt_sequence" => 3,
++                   "health" => health
++                 }
++               }
++             ],
++             "next" => 3
++           } == Jason.decode!(committed)
++
++    assert %{status: 200, body: ^legacy} = artifact_audit(client, audit, headers)
++    assert %{status: 200, body: ^envelope} = http(client, artifact_path, [])
++
++    atomic_write!(run, "committed.json", %{
++      cli: expected,
++      exactRetry: true,
++      audit: Jason.decode!(committed),
++      sample: source,
++      legacyAuditSHA256: sha(legacy),
++      offerStatusesAfter: [204, 204],
++      historicalArtifactSHA256: sha(envelope),
++      committedUnixNs: System.os_time(:nanosecond)
++    })
++
++    unless control? do
++      assert "done\n" == await_file!(run, "done", 600_000)
++    end
++  end
++
++  defp artifact_audit(client, path, headers) do
++    # The existing reader receives the verified fixture's storage topology.
++    # The uploader profile requires this test-only config to be absent on writes.
++    %{host: host, roots: roots} = Application.fetch_env!(:mixer_hosted, :local_release_target)
++    assert Application.fetch_env(:mixer_hosted, CustomerArtifacts) == :error
++
++    Application.put_env(:mixer_hosted, CustomerArtifacts, %{
++      repo: UploadRepo,
++      host: host,
++      roots: roots
++    })
++
++    try do
++      http(client, path, headers)
++    after
++      Application.delete_env(:mixer_hosted, CustomerArtifacts)
++    end
++  end
++
++  defp atomic_write!(run, name, value) do
++    dest = Path.join(run, name)
++    File.write!(dest <> ".new", Jason.encode!(value) <> "\n", [:exclusive])
++    File.rename!(dest <> ".new", dest)
++  end
++
++  defp await_file!(run, name, milliseconds) do
++    read_until!(Path.join(run, name), System.monotonic_time(:millisecond) + milliseconds)
++  end
++
++  defp read_until!(path, deadline) do
++    case File.lstat(path) do
++      {:ok, %File.Stat{type: :regular, size: size}} when size in 1..4_096 ->
++        File.read!(path)
++
++      {:error, :enoent} ->
++        assert System.monotonic_time(:millisecond) < deadline, "Expected " <> Path.basename(path)
++        Process.sleep(100)
++        read_until!(path, deadline)
++
++      _ ->
++        flunk("Invalid handoff file " <> Path.basename(path))
++    end
++  end
++
++  defp canonical_uuid?(uuid) when is_binary(uuid) do
++    byte_size(uuid) == 36 and
++      Regex.match?(~r/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/, uuid)
++  end
++
++  defp canonical_uuid?(_), do: false
++  defp sha(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
++end
+diff --git a/hosted/test/support/fieldlog_release_packet.ex b/hosted/test/support/fieldlog_release_packet.ex
+index 6659666f3d..c0236f8cc0 100644
+--- a/hosted/test/support/fieldlog_release_packet.ex
++++ b/hosted/test/support/fieldlog_release_packet.ex
+@@ -101,6 +101,50 @@ defmodule MixerHosted.Test.FieldLogReleasePacket do
+     phases
+   end
+ 
++  def admit_halt!(delivery, [baseline, reviewed, _], %{host: host, roots: roots}) do
++    pins =
++      delivery
++      |> Path.dirname()
++      |> Path.join("materials.sha256.json")
++      |> read_regular!(65_536)
++      |> Jason.decode!()
++
++    [staged, halt] =
++      for name <- ["staged.assignment.json", "halt.assignment.json"] do
++        bytes = read_regular!(Path.join(delivery, name), 65_536)
++        assert pins["delivery-android/" <> name] == sha(bytes)
++        bytes
++      end
++
++    now = System.system_time(:second)
++    artifact = %{signed_manifest_bytes: reviewed.manifest, payload: reviewed.payload}
++
++    assert {:ok, staged_assignment} =
++             AssignmentV3.verify(staged, artifact, roots, host, %{
++               channel: "beta",
++               last_sequence: 1,
++               now: now
++             })
++
++    assert staged_assignment.assignment ==
++             %{reviewed.assignment | "rollout_basis_points" => 9_000}
++
++    assert {:ok, halted_assignment} =
++             AssignmentV3.verify_halt(halt, artifact, roots, host, %{
++               channel: "beta",
++               last_sequence: 2,
++               now: now
++             })
++
++    assert halted_assignment.assignment ==
++             %{staged_assignment.assignment | "sequence" => 3, "rollout_basis_points" => 0}
++
++    {[
++       baseline,
++       %{reviewed | signed: staged, assignment: staged_assignment.assignment}
++     ], %{reviewed | signed: halt, assignment: halted_assignment.assignment, action: :halt}}
++  end
++
+   # The host control exercises the private handoff format using fresh test-only
+   # material. Real replay reads the operator's existing signed files unchanged.
+   def synthetic!(scratch, vector) do
+diff --git a/tests/integration/fieldlog-android-halt/README.md b/tests/integration/fieldlog-android-halt/README.md
+new file mode 100644
+index 0000000000..52b9979153
+--- /dev/null
++++ b/tests/integration/fieldlog-android-halt/README.md
+@@ -0,0 +1,188 @@
++# Replay a signed FieldLog halt on Android
++
++Use public Mixer commit `ad295143090e4c975564895030d81e5620b20253` and the
++accompanying test-only patch. Use the supplied `packet` and stock `mixer`
++together. The APK uses one Android development runtime for FieldLog on `beta`.
++The fixture publishes baseline sequence 1, then reviewed sequence 2 at 90%.
++It admits a signed halt at sequence 3 for the reviewed artifact at zero rollout.
++
++## Start the configured origin
++
++Use arm64 macOS with the locked test dependencies, Elixir 1.20.4 on OTP 29,
++PostgreSQL 17, OpenSSL, and Python. Reserve loopback ports 5432 and 47301.
++Use a new private run directory and absolute paths throughout.
++
++```sh
++git apply --check "$handoff/android-halt-v64.patch"
++git apply "$handoff/android-halt-v64.patch"
++export packet="$handoff/packet"
++(cd "$handoff" && shasum -a 256 -c SHA256SUMS)
++(cd "$packet" && shasum -a 256 -c SHA256SUMS)
++export mixer="$handoff/mixer"
++driver="$PWD/tests/integration/fieldlog-android-halt/evidence.py"
++run=$(mktemp -d "$PWD/verification/local/android-halt-run.XXXXXXXX")
++(
++  cd hosted
++  MIX_ENV=test HEX_OFFLINE=1 mix deps.get --check-locked
++  ./scripts/replay-configured-release.sh --fieldlog-halt \
++    "$packet/delivery-android" "$mixer" "$run"
++)
++```
++
++Run the last subshell in its own terminal. Wait for `$run/ready.json`. The
++fixture allows 10 minutes for the sample and 10 more after commit for final
++readback. If you need a new run, stop the owned fixture and confirm cleanup
++before starting with a new run directory.
++
++Start the relay in a second terminal. The relay prints its assigned port.
++It forwards the exact Android update scope and reviewed artifact from Phoenix.
++
++```sh
++python3 -B "$driver" relay "$packet" "$run"
++```
++
++To run the short host control, pass `--fieldlog-halt-control` with a different
++empty run directory. That control provides synthetic installation IDs and
++counts and completes without the relay.
++
++## Capture the installed comparison
++
++Use one owned API 36 arm64 emulator, its private ADB server port, and its exact
++serial. Use two fresh Android users on that emulator so both app data directories
++survive the comparison. You can also use two owned AVDs sequentially if the
++image lacks secondary users. Keep the active AVD's data through the offline
++check. Keep unrelated devices and ADB servers outside this run.
++
++```sh
++pkg=dev.fieldlog.generatedr90.calculation
++activity="$pkg/dev.fieldlog.generatedr90.androidhost.PublicActivity"
++apk="$packet/FieldLog-calculation-debug-api36.apk"
++apk_port=$(cat "$packet/delivery-android/Installed/port.txt")
++d() { adb -P "$adb_port" -s "$serial" "$@"; }
++state() { d exec-out run-as "$pkg" --user "$1" cat files/signed-checklist/recovery/state.json; }
++workspace() { d exec-out run-as "$pkg" --user "$1" cat files/FieldLog/workspace.json; }
++spool() { d exec-out run-as "$pkg" --user "$1" cat files/signed-checklist/artifact.partial; }
++screen_xml() {
++  d shell uiautomator dump "$device_xml" >/dev/null &&
++    d exec-out cat "$device_xml"
++}
++d shell getprop ro.build.version.sdk
++d shell getprop ro.product.cpu.abi
++d install --user "$active_user" "$apk"
++d reverse "tcp:$apk_port" "tcp:$relay_port"
++d shell am start --user "$active_user" -n "$activity"
++```
++
++Set `device_xml` to a new path in `/data/local/tmp` on the owned emulator.
++Record the current Android user, API, ABI, and serial. Pull the installed APK
++from the path returned by `d shell pm path --user "$active_user" "$pkg"`.
++Compare the pulled APK SHA-256 to `packet/build-receipt.json`. Verify the
++installed package source for the pending user too.
++
++1. In the active user, tap **Open signed checklist**. Wait for
++   **Signed checklist | Sequence 2** and the percentages 33%, 100%, and 0%.
++   Compare the FieldLog workspace with the packet seed. Save the live
++   readback, tap **Done**, and save the retired readback.
++
++   ```sh
++   screen_xml > "$run/active-before.xml"
++   state "$active_user" > "$run/active-live.json"
++   workspace "$active_user" > "$run/active-before.workspace"
++   d shell pidof -s "$pkg" > "$run/active-before.pid"
++   # Tap Done and wait for the dialog to close.
++   state "$active_user" > "$run/active-retired.json"
++   ```
++
++2. Create or select the exact owned pending Android user. For a second user on
++   the same AVD, run `d shell cmd package install-existing --user "$pending_user" "$pkg"`
++   and switch with `d shell am switch-user "$pending_user"`. Wait for that
++   user's unlocked launcher before starting the activity. Arm the relay before
++   the pending user's first checklist fetch.
++
++   ```sh
++   printf 'truncate-once\n' > "$run/fault-next.new"
++   mv "$run/fault-next.new" "$run/fault-next"
++   d shell am start --user "$pending_user" -n "$activity"
++   # Tap Open signed checklist and wait for the terminal error label.
++   screen_xml > "$run/pending-before.xml"
++   state "$pending_user" > "$run/pending-before.json"
++   spool "$pending_user" > "$run/pending-before.partial"
++   workspace "$pending_user" > "$run/pending-before.workspace"
++   python3 -B "$driver" sample "$packet" "$run"
++   ```
++
++   The relay closes the connection after 1,024 bytes and keeps the original
++   content length. The pending installation must show **The signed calculation
++   could not be opened** and retain the exact wire prefix in its spool. Its
++   recovery state must have accepted sequence 0 and no candidate. The adverse
++   count describes this deliberately induced transport failure. It does not
++   measure guest crashes or population health.
++
++   If an installation receives a 204 before commit and never gets an offer,
++   its generated ID may be outside the 90% cohort. Re-enroll only that
++   disposable profile from fresh app data and repeat its pre-halt step. Bound
++   the pre-halt enrollment to three attempts per role. Keep every profile
++   that already supplied accepted evidence. If the fault marker was consumed
++   but the pending proof does not match, stop that run and retain its result.
++
++3. Wait for `$run/committed.json`. It contains the stock CLI result, the exact
++   retry result comparison, and the single scoped audit event. Both device
++   users must now check the same installed origin again. In the pending user
++   tap **Check for update**, let the error settle, and capture the same files
++   as `pending-after.json`, `pending-after.partial`, `pending-after.xml`, and
++   `pending-after.workspace`. Tap **Done** and force-stop the exact pending
++   user app before switching back. In the active user, open the checklist or
++   tap **Check for update** and confirm sequence 2 remains usable. Tap **Done**
++   and wait for retirement. The relay must record an empty 204 for each ID
++   after commit.
++
++4. Remove the reverse mapping and stop the owned relay. Put the emulator in
++   airplane mode and check that both default routes are absent. Force-stop
++   the active app, confirm that its process is gone, and start it again in
++   the active user.
++
++   ```sh
++   d reverse --remove "tcp:$apk_port"
++   # Interrupt the owned relay and wait for exit.
++   d reverse --list > "$run/offline.reverse"
++   d shell cmd connectivity airplane-mode enable
++   d shell svc wifi disable
++   d shell svc data disable
++   d shell settings get global airplane_mode_on > "$run/offline.airplane"
++   d shell ip -4 route show table all | awk '$1=="default"' > "$run/offline.ipv4"
++   d shell ip -6 route show table all | awk '$1=="default"' > "$run/offline.ipv6"
++   d shell am force-stop --user "$active_user" "$pkg"
++   d shell pidof -s "$pkg"   # Expect no PID.
++   d shell am start --user "$active_user" -n "$activity"
++   # Tap Open signed checklist and wait for the saved sequence 2.
++   d shell pidof -s "$pkg" > "$run/offline.pid"
++   screen_xml > "$run/offline.xml"
++   state "$active_user" > "$run/offline-live.json"
++   workspace "$active_user" > "$run/offline.workspace"
++   # Tap Done and wait for the dialog to close.
++   state "$active_user" > "$run/offline-retired.json"
++   python3 -B "$driver" finish "$packet" "$run"
++   ```
++
++Expect the same healthy candidate at a new launch and in a new process.
++Compare the workspace bytes to the packet seed. `finish` writes
++`android-halt-result.json` and acknowledges the Phoenix fixture. Require
++one passing ExUnit test and **Removed owned PostgreSQL and fixture scratch**.
++
++Remove the exact device XML and shut down the owned emulator. Remove the
++disposable emulator data and private ADB server after closure. Record the
++origin, relay, and emulator teardown, the released ports, and any retained
++path. Keep the compact receipt and the signed packet together.
++
++## Interpret the result
++
++The pending spool holds an interrupted HTTP response. It carries no local
++assignment authority and remains separate from the recovery store's signed
++pending candidate. The halt stops new offers. Historical artifact bytes still
++resolve in the server. A previously downloaded, valid signed offer can
++remain eligible to activate. If the client later receives a compatible signed
++offer, the updater can compare the replayed prefix and continue. An HTTP 204
++provides no offer to resume against.
++
++For the Android user argument order, see the
++[AOSP run-as implementation](https://raw.githubusercontent.com/aosp-mirror/platform_system_core/master/run-as/run-as.cpp).
+diff --git a/tests/integration/fieldlog-android-halt/evidence.py b/tests/integration/fieldlog-android-halt/evidence.py
+new file mode 100644
+index 0000000000..d794e04104
+--- /dev/null
++++ b/tests/integration/fieldlog-android-halt/evidence.py
+@@ -0,0 +1,290 @@
++#!/usr/bin/env python3
++"""Relay the configured FieldLog origin and verify the Android halt readbacks."""
++
++import argparse
++import base64
++import hashlib
++import http.client
++from http.server import BaseHTTPRequestHandler, HTTPServer
++import json
++import os
++from pathlib import Path
++import runpy
++import sys
++import time
++from types import SimpleNamespace
++from urllib.parse import parse_qsl, urlencode, urlsplit
++from uuid import UUID
++from xml.etree import ElementTree
++
++
++def require(condition, message):
++    if not condition:
++        raise ValueError(message)
++
++
++def sha(data):
++    return hashlib.sha256(data).hexdigest()
++
++
++def read(path):
++    return json.loads(path.read_bytes())
++
++
++def write(path, value):
++    temporary = path.with_suffix(".new")
++    with temporary.open("x") as stream:
++        stream.write(json.dumps(value, sort_keys=True) + "\n")
++    temporary.rename(path)
++
++
++def canonical_id(value):
++    return str(UUID(value)) == value
++
++
++class Packet:
++    def __init__(self, directory, ready):
++        delivery = directory / "delivery-android"
++        signed = (delivery / "staged.assignment.json").read_bytes()
++        self.assignment = json.loads(signed)["assignment"]
++        assignment = self.assignment
++        self.scope = assignment["scope"]
++        self.runtime = assignment["runtime"]
++        self.channel = assignment["channel"]
++        self.sequence = assignment["sequence"]
++        digest = assignment["artifact_sha256"]
++        require(all(
++            ready[key] == value for key, value in {
++                "scope": self.scope, "runtime": self.runtime, "channel": self.channel,
++                "sequence": self.sequence, "artifact": digest, "rollout": 9000,
++            }.items()
++        ), "Packet and configured origin disagree")
++        tenant = {key: self.scope[key] for key in ("organization", "project")}
++        self.path = "/v3/artifacts/" + digest + "?" + urlencode(tenant)
++        self.match = self.scope | {"runtime": self.runtime, "channel": self.channel}
++        payload = (delivery / "reviewed.wasm").read_bytes()
++        manifest = (delivery / "reviewed.manifest.json").read_bytes()
++        self.payload_sha = sha(payload)
++        self.seed = sha((delivery / "Installed/calculation-seed.json").read_bytes())
++        self.offer = b'{"signed_assignment":' + signed + b',"artifact_url":' + json.dumps(self.path).encode() + b'}'
++        self.envelope = b'{"signed_manifest":' + manifest + b',"payload":"' + base64.b64encode(payload) + b'"}'
++
++
++def serve(run, packet, upstream, port):
++    arm = run / "fault-next"
++    events = run / "device-http.jsonl"
++    last = None
++
++    class Handler(BaseHTTPRequestHandler):
++        def setup(self):
++            self.request.settimeout(6)
++            super().setup()
++
++        def log_message(self, *_args):
++            pass
++
++        def do_GET(self):
++            nonlocal last
++            target = urlsplit(self.path)
++            pairs = parse_qsl(target.query, keep_blank_values=True)
++            query = dict(pairs)
++            installation = query.pop("installation", "")
++            if target.path == "/v3/updates":
++                last = None
++                try:
++                    valid = (len(pairs) == len(query) + 1 and canonical_id(installation)
++                             and query == packet.match and not target.fragment)
++                except ValueError:
++                    valid = False
++                if not valid:
++                    return self.send_error(404)
++                kind = "offer"
++            elif self.path == packet.path and last is not None:
++                installation = last
++                kind = "artifact"
++            else:
++                return self.send_error(404)
++
++            connection = http.client.HTTPConnection("127.0.0.1", upstream, timeout=4)
++            try:
++                connection.request("GET", self.path, headers={"Accept-Encoding": "identity"})
++                response = connection.getresponse()
++                body = response.read(65_537)
++                status = response.status
++                content_type = response.getheader("Content-Type")
++                expected = packet.offer if kind == "offer" else packet.envelope
++                require(len(body) <= 65_536 and (
++                    (status == 200 and body == expected and content_type is not None)
++                    or (status == 204 and kind == "offer" and not body)
++                ), "Unexpected configured origin response")
++            except (OSError, ValueError, http.client.HTTPException) as error:
++                print(f"Relay refused upstream: {error}", file=sys.stderr, flush=True)
++                return self.send_error(502)
++            finally:
++                connection.close()
++
++            truncated = kind == "artifact" and arm.is_file()
++            if truncated:
++                require(arm.read_bytes() == b"truncate-once\n", "Bad fault marker")
++                arm.unlink()
++            wire = body[:1024] if truncated else body
++            self.send_response(status)
++            self.send_header("Content-Length", str(len(body)))
++            if content_type:
++                self.send_header("Content-Type", content_type)
++            self.send_header("Connection", "close")
++            self.end_headers()
++            self.wfile.write(wire)
++            self.wfile.flush()
++            self.close_connection = True
++            if kind == "offer" and status == 200:
++                last = installation
++            row = {"unixNs": time.time_ns(), "installation": installation, "kind": kind,
++                   "status": status, "declaredBytes": len(body), "sentBytes": len(wire),
++                   "sha256": sha(wire), "truncated": truncated}
++            with events.open("a") as stream:
++                stream.write(json.dumps(row) + "\n")
++
++    with events.open("x"), HTTPServer(("127.0.0.1", port), Handler) as server:
++        print(server.server_port, flush=True)
++        try:
++            server.serve_forever()
++        except KeyboardInterrupt:
++            pass
++
++
++def validate_states(run, packet, *, offline=False):
++    check = runpy.run_path(str(Path(__file__).resolve().parents[1] /
++                              "fieldlog-task-calculation/android-readback.py"))
++    active, active_hash = check["read_state"](run / "active-live.json")
++    retired, retired_hash = check["read_state"](run / "active-retired.json")
++    pending, pending_hash = check["read_state"](run / "pending-before.json")
++    ids = active["installation"], pending["installation"]
++    require(all(map(canonical_id, ids)) and ids[0] != ids[1], "Two distinct installed IDs required")
++    expected = SimpleNamespace(runtime=packet.runtime, installation=ids[0], sequence=packet.sequence,
++                               artifact=packet.assignment["artifact_sha256"], payload=packet.payload_sha)
++    candidate, launch = check["check_live"](active, expected)
++    check["check_retired"](active, retired, candidate)
++    require(pending["fingerprint"] == packet.runtime and pending["host"]["runtime"] == packet.runtime
++            and pending["host"]["scope"] == packet.scope and pending["channel"] == packet.channel
++            and pending["acceptedSequence"] == 0 and not pending["candidates"]
++            and all(pending[key] is None for key in ("healthy", "pending", "staged", "attempt")),
++            "The separate installation accepted or staged data instead of remaining transport-pending")
++    require(active["host"]["scope"] == packet.scope, "Activated installation scope differs")
++    spool = (run / "pending-before.partial").read_bytes()
++    prefix = packet.envelope[:1024]
++    require(spool == expected.artifact.encode() + prefix, "Expected exact durable interrupted prefix")
++    require({"Signed checklist | Sequence 2", "33%", "100%", "0%"}
++            <= ui_text(run / "active-before.xml"), "Missing activated calculation presentation")
++    text = ui_text(run / "pending-before.xml")
++    require("The signed calculation could not be opened" in text, "Pending adverse UI was not observed")
++    for name in ("active-before.workspace", "pending-before.workspace"):
++        require(sha((run / name).read_bytes()) == packet.seed, f"Saved workspace differs: {name}")
++
++    rows = [json.loads(line) for line in (run / "device-http.jsonl").read_text().splitlines()]
++    if offline:
++        committed = read(run / "committed.json")
++        cutoff = committed["committedUnixNs"]
++    else:
++        cutoff = time.time_ns()
++    before = [row for row in rows if row["unixNs"] < cutoff]
++    for installation, artifact_bytes, truncated in zip(ids, (packet.envelope, prefix), (False, True)):
++        seen_offer = False
++        for row in before:
++            if row["installation"] != installation:
++                continue
++            if row["kind"] == "offer":
++                seen_offer = row["status"] == 200 and row["sha256"] == sha(packet.offer)
++            elif (seen_offer and row["status"] == 200 and row["truncated"] == truncated
++                  and row["sha256"] == sha(artifact_bytes) and row["sentBytes"] == len(artifact_bytes)
++                  and row["declaredBytes"] == len(packet.envelope)):
++                break
++        else:
++            raise ValueError("Missing matching staged offer and transfer for installed ID " + installation)
++
++    return {
++        "activeInstallation": ids[0], "pendingInstallation": ids[1],
++        "health": {"sequence": packet.sequence, "activated": 1, "pending": 1, "adverse_signals": 1},
++        "activeCandidate": candidate, "activeLaunch": launch, "activeStateSHA256": active_hash,
++        "retiredStateSHA256": retired_hash, "pendingStateSHA256": pending_hash,
++        "pendingSpoolSHA256": sha(spool), "workspaceSHA256": packet.seed,
++    }, expected, rows
++
++
++def ui_text(path):
++    return {node.attrib.get("text") for node in ElementTree.parse(path).iter("node")}
++
++
++def finish(run, packet):
++    sample, expected, rows = validate_states(run, packet, offline=True)
++    committed = read(run / "committed.json")
++    require(sample == read(run / "halt-sample.json")
++            and committed["sample"] == sha((run / "halt-sample.json").read_bytes())
++            and committed["cli"]["health"] == sample["health"], "Committed health sample differs")
++    seen = set()
++    for row in rows:
++        if row["unixNs"] >= committed["committedUnixNs"]:
++            require(row["kind"] == "offer" and row["status"] == 204 and row["sentBytes"] == 0,
++                    "Unexpected post-halt relay delivery")
++            seen.add(row["installation"])
++    require({sample["activeInstallation"], sample["pendingInstallation"]} <= seen,
++            "Need one actual post-commit check per installation")
++
++    for suffix in ("json", "partial"):
++        require((run / f"pending-after.{suffix}").read_bytes() == (run / f"pending-before.{suffix}").read_bytes(),
++                "Pending recovery or spool changed on post-halt check")
++    require("The signed calculation could not be opened" in ui_text(run / "pending-after.xml"),
++            "Pending result was not confirmed after the halt")
++
++    check = runpy.run_path(str(Path(__file__).resolve().parents[1] /
++                              "fieldlog-task-calculation/android-readback.py"))
++    live, live_hash = check["read_state"](run / "offline-live.json")
++    retired, retired_hash = check["read_state"](run / "offline-retired.json")
++    candidate, launch = check["check_live"](live, expected)
++    check["check_retired"](live, retired, candidate)
++    require(live["host"]["scope"] == packet.scope and candidate == sample["activeCandidate"]
++            and launch != sample["activeLaunch"], "Offline open did not earn a new launch for the old candidate")
++    require({"Using saved checklist release | Sequence 2", "33%", "100%", "0%"}
++            <= ui_text(run / "offline.xml"), "Missing offline calculation presentation")
++    for name in ("pending-after.workspace", "offline.workspace"):
++        require(sha((run / name).read_bytes()) == packet.seed, f"Saved workspace differs: {name}")
++    before = int((run / "active-before.pid").read_text())
++    after = int((run / "offline.pid").read_text())
++    require(before > 0 and after > 0 and before != after and not (run / "offline.reverse").read_text().strip()
++            and (run / "offline.airplane").read_text().strip() == "1"
++            and not (run / "offline.ipv4").read_text().strip()
++            and not (run / "offline.ipv6").read_text().strip(), "Missing cold process or offline isolation witness")
++    write(run / "android-halt-result.json", sample | {
++        "offerStatuses": [204, 204], "offlineCandidate": candidate, "offlineLaunch": launch,
++        "offlineLiveSHA256": live_hash, "offlineRetiredSHA256": retired_hash,
++        "processIDs": [before, after], "audit": committed["audit"],
++    })
++    with (run / "done.new").open("x") as stream:
++        stream.write("done\n")
++    (run / "done.new").rename(run / "done")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("action", choices=("relay", "sample", "finish"))
++    parser.add_argument("packet", type=Path)
++    parser.add_argument("run", type=Path)
++    parser.add_argument("--port", type=int, default=0)
++    args = parser.parse_args()
++    os.umask(0o077)
++    ready = read(args.run / "ready.json")
++    packet = Packet(args.packet, ready)
++    if args.action == "relay":
++        serve(args.run, packet, ready["port"], args.port)
++    elif args.action == "sample":
++        sample, _, _ = validate_states(args.run, packet)
++        write(args.run / "halt-sample.json", sample)
++    else:
++        finish(args.run, packet)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except (ValueError, OSError, KeyError) as error:
++        sys.exit(f"Android halt evidence refused: {error}")
+diff --git a/tests/integration/fieldlog-task-calculation/android-packaging/Seal.swift b/tests/integration/fieldlog-task-calculation/android-packaging/Seal.swift
+index 317c5a167f..03c0870b81 100644
+--- a/tests/integration/fieldlog-task-calculation/android-packaging/Seal.swift
++++ b/tests/integration/fieldlog-task-calculation/android-packaging/Seal.swift
+@@ -87,7 +87,7 @@ import MixerRuntimeIdentity
+         for (index, variant) in ["baseline", "reviewed", "baseline"].enumerated() {
+             guard let artifact = artifacts[variant] else { throw UpdateError("fieldlog.artifact", "Missing release") }
+             let sequence = UInt64(index + 1)
+-            let assignment: [String: CanonicalValue] = [
++            var assignment: [String: CanonicalValue] = [
+                 "schema": .uint(3), "scope": scopeValue, "channel": .text("beta"), "cohort": .text("sha256-v1"),
+                 "rollout_basis_points": .uint(10000), "sequence": .uint(sequence),
+                 "release_id": .text(artifact.releaseID), "artifact_sha256": .text(artifact.artifactSHA256),
+@@ -97,6 +97,19 @@ import MixerRuntimeIdentity
+             _ = try verifier.verifyAssignment(signedAssignment: signed, artifact: artifact, channel: "beta",
+                 installation: "1f0d30b5-6e05-4e49-b928-a40bc95cb7ce", lastSequence: sequence - 1, now: now)
+             try write(signed, delivery, "sequence-\(sequence).assignment.json")
++            if sequence == 2, ProcessInfo.processInfo.environment["MIXER_FIELDLOG_HALT_PACKET"] == "1" {
++                let installation = "1f0d30b5-6e05-4e49-b928-a40bc95cb7ce"
++                assignment["rollout_basis_points"] = .uint(9_000)
++                let staged = try sign(assignment, field: "assignment", domain: "assignment")
++                _ = try verifier.verifyAssignment(signedAssignment: staged, artifact: artifact,
++                    channel: "beta", installation: installation, lastSequence: 1, now: now)
++                try write(staged, delivery, "staged.assignment.json")
++
++                assignment["sequence"] = .uint(3)
++                assignment["rollout_basis_points"] = .uint(0)
++                try write(try sign(assignment, field: "assignment", domain: "assignment"),
++                    delivery, "halt.assignment.json")
++            }
+         }
+         print(current.runtime)
+     }
+diff --git a/tests/integration/fieldlog-task-calculation/android-packaging/recipe.sha256 b/tests/integration/fieldlog-task-calculation/android-packaging/recipe.sha256
+index 990b83e463..0a08166010 100644
+--- a/tests/integration/fieldlog-task-calculation/android-packaging/recipe.sha256
++++ b/tests/integration/fieldlog-task-calculation/android-packaging/recipe.sha256
+@@ -11,7 +11,7 @@ da2af6128d34a95308db777877578ca383bc0ed1704f550b96dde353786b8f3c  tests/integrat
+ 012e229a00cb38b7d8845643ef1bd8795f3c3e6de2717b22c82bb37d493da1bc  tests/integration/fieldlog-task-calculation/android-packaging/Package.resolved
+ dcc1343ce969a698efd624d2e11ecd72f4a04afd6b8867b045da9f2ad6700fb9  tests/integration/fieldlog-task-calculation/android-packaging/Package.swift
+ 3059993161a0bf7883cc5bb9d6594a92256c5567bd8996573a5895be54f415bf  tests/integration/fieldlog-task-calculation/android-packaging/Probe.swift
+-ee798f8cd17400d8103b443ade7abd482cf0de908b5816c414f4bc7b93eb8c5c  tests/integration/fieldlog-task-calculation/android-packaging/Seal.swift
++a5a3001ded4c95afe141d51d4d29b241a66ef5c8f5a9840c6b13b16ade559972  tests/integration/fieldlog-task-calculation/android-packaging/Seal.swift
+ 9df2da1a7ed2035bbd408a26325b76d39cfcf030c032ee86f0f2d02afd9be824  tests/integration/fieldlog-task-calculation/android-packaging/build-guests.sh
+ 52a6e2d96b5204880df75fd2c78fbf26ae11c8bec59f940b96faf0529a76bc37  tests/integration/fieldlog-task-calculation/android-packaging/build-host.zsh
+ 1ff85f20414827439a244ac026d26a5fc9210c2e7c7c7d6633eff2b254aa1a4d  tests/integration/fieldlog-task-calculation/android-packaging/build-java.zsh

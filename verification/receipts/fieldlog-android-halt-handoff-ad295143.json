@@ -1,0 +1,313 @@
+{
+  "cleanup": {
+    "disposableScratchRemoved": true,
+    "handoffRetained": true,
+    "ownedPhoenixFixtureGroupAbsent": true,
+    "ownedPostgreSQLStoppedAndScratchRemoved": true,
+    "ownedProbeAndRelayGroupsAbsent": true,
+    "portsRebound": [
+      41897,
+      5432,
+      47301
+    ]
+  },
+  "commands": [
+    "swift build --package-path cli --scratch-path <owned>/cli-build --cache-path <owned>/swift-cache --config-path <owned>/swift-config --security-path <owned>/swift-security --disable-index-store --jobs 6 --product mixer",
+    "cd hosted && MIX_ENV=test HEX_OFFLINE=1 mix deps.get --check-locked && MIX_ENV=test HEX_OFFLINE=1 mix compile --warnings-as-errors",
+    "MIXER_FIELDLOG_HALT_PACKET=1 tests/integration/fieldlog-task-calculation/android-packaging/rebuild.sh <owned>/packet-work <handoff>/packet",
+    "cd hosted && ./scripts/replay-configured-release.sh --startup-only --fieldlog <packet>/delivery-android",
+    "cd hosted && ./scripts/replay-configured-release.sh --fieldlog-halt-control <packet>/delivery-android <mixer> <empty-host-control-dir>",
+    "cd hosted && ./scripts/replay-configured-release.sh --fieldlog-halt <packet>/delivery-android <mixer> <empty-handoff-dir>",
+    "python3 -B tests/integration/fieldlog-android-halt/evidence.py {relay,sample,finish} <packet> <handoff-run>",
+    "shasum -a 256 -c SHA256SUMS; apksigner verify --verbose --print-certs -Werr <apk>; zipalign -c -P 16 4 <apk>"
+  ],
+  "handoff": {
+    "cleanBasePatchApplication": true,
+    "cliSHA256": "8a579011999986b425efa24cd23e01f4aa09cdaf6a29d3c4a5024c0c207ba135",
+    "instructionsSHA256": "2db8db4de87d40d8a255feff99abcac10cf48b11e8a7b53fe1b58c99989c3c84",
+    "packetInventoryFiles": 28,
+    "packetInventorySHA256": "20c2f77df13bda1c833ba779c2b39e43d9eb25c161035e9bae4cff6e1ded8084",
+    "patchSHA256": "f438490ce745b7eb97fe808925064c475c3e11b6494b635b514bf56657d3c975",
+    "pathRelativeToCheckout": "verification/local/fieldlog-android-halt.TcxLPVOf/handoff"
+  },
+  "hostChecks": {
+    "calculationWitness": [
+      [
+        1,
+        "Signed checklist",
+        [
+          "0%",
+          "100%",
+          "0%"
+        ]
+      ],
+      [
+        2,
+        "Signed checklist",
+        [
+          "33%",
+          "100%",
+          "0%"
+        ]
+      ],
+      [
+        3,
+        "Signed checklist",
+        [
+          "0%",
+          "100%",
+          "0%"
+        ]
+      ],
+      [
+        3,
+        "Using saved checklist release",
+        [
+          "0%",
+          "100%",
+          "0%"
+        ]
+      ]
+    ],
+    "closedPacketBuildStages": [
+      "app-build",
+      "appearance-export",
+      "build-guests",
+      "host-build",
+      "java-build",
+      "mixer-export",
+      "mixer-overlay",
+      "package",
+      "preflight",
+      "replay-host",
+      "source-check",
+      "source-checkout",
+      "source-fetch",
+      "vm-android",
+      "vm-host"
+    ],
+    "committed": {
+      "audit": {
+        "events": [
+          {
+            "action": "POST /v3/orgs/mixer-local/projects/fieldlog/channels/beta/halt",
+            "id": 3,
+            "rollout_halt": {
+              "artifact_sha256": "3fa904f478dcfd67581766d662c0790cdcdfd7074443032e849924dfbedecb0a",
+              "channel": "beta",
+              "halt_sequence": 3,
+              "health": {
+                "activated": 1,
+                "adverse_signals": 1,
+                "pending": 1,
+                "sequence": 2
+              },
+              "runtime": "f511614b7d73dcfcd6796821081900e940da54ae54cb91ddd6e90cacfc9edfeb",
+              "scope": {
+                "app": "fieldlog",
+                "environment": "development",
+                "organization": "mixer-local",
+                "platform": "android",
+                "project": "fieldlog"
+              }
+            }
+          }
+        ],
+        "next": 3
+      },
+      "cli": {
+        "action": "halt",
+        "artifact_sha256": "3fa904f478dcfd67581766d662c0790cdcdfd7074443032e849924dfbedecb0a",
+        "delivery": "local_only",
+        "health": {
+          "activated": 1,
+          "adverse_signals": 1,
+          "pending": 1,
+          "sequence": 2
+        },
+        "rollout_basis_points": 0,
+        "sequence": 3,
+        "status": "ok"
+      },
+      "committedUnixNs": 1795203356815330000,
+      "exactRetry": true,
+      "historicalArtifactSHA256": "189c24fe881e838ff77f0bcd2c04bf935e1ddb5175884cb404b6f54a24733038",
+      "legacyAuditSHA256": "3bdd0e7e190a35bff3c7f83e4eea0a5959b364c97e580af1e859a7e4686c72f0",
+      "offerStatusesAfter": [
+        204,
+        204
+      ],
+      "sample": "86125bd5ef1e845a3cfadd9026035b7a1ffcd1cf2860c7f67662ea14582b2416"
+    },
+    "configuredHaltControl": "1 passed with explicit synthetic host-only IDs and counts",
+    "configuredHandoffExchange": "1 passed through the ready, sample, commit, relay, and done protocol",
+    "jwkFixture": "Real configured JWT verifier via the v64 local TLS fixture transport seam. One completed loopback JWKS request on the handoff exchange.",
+    "ordinaryConfiguredReplay": "1 passed with the packet's original three assignments",
+    "relay": [
+      {
+        "declaredBytes": 784,
+        "installation": "00000000-0000-4000-8000-000000000001",
+        "kind": "offer",
+        "sentBytes": 784,
+        "sha256": "b5a807749ffbb9638fb707f13aa7e879abb71278911f6a206f0893c25543fe85",
+        "status": 200,
+        "truncated": false
+      },
+      {
+        "declaredBytes": 15531,
+        "installation": "00000000-0000-4000-8000-000000000001",
+        "kind": "artifact",
+        "sentBytes": 15531,
+        "sha256": "189c24fe881e838ff77f0bcd2c04bf935e1ddb5175884cb404b6f54a24733038",
+        "status": 200,
+        "truncated": false
+      },
+      {
+        "declaredBytes": 784,
+        "installation": "00000000-0000-4000-8000-000000000002",
+        "kind": "offer",
+        "sentBytes": 784,
+        "sha256": "b5a807749ffbb9638fb707f13aa7e879abb71278911f6a206f0893c25543fe85",
+        "status": 200,
+        "truncated": false
+      },
+      {
+        "declaredBytes": 15531,
+        "installation": "00000000-0000-4000-8000-000000000002",
+        "kind": "artifact",
+        "sentBytes": 1024,
+        "sha256": "70175dd4a393954d7e9a5bf06b47b1b78c7e3da89afd6e2ea6d0e3a25a652be1",
+        "status": 200,
+        "truncated": true
+      },
+      {
+        "declaredBytes": 0,
+        "installation": "00000000-0000-4000-8000-000000000002",
+        "kind": "offer",
+        "sentBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": 204,
+        "truncated": false
+      },
+      {
+        "declaredBytes": 0,
+        "installation": "00000000-0000-4000-8000-000000000001",
+        "kind": "offer",
+        "sentBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": 204,
+        "truncated": false
+      }
+    ],
+    "scopeLimit": "The macOS Probe supplied real Stage 2 activation and offline recovery readbacks. A host HTTP client received the interrupted bytes. Pending Android state, Android UI snapshots, and emulator network observations were explicit host stand-ins.",
+    "witness": {
+      "corruptSpoolRejected": true,
+      "fixtureExit": 0,
+      "hostOnly": true,
+      "hostProbeSHA256": "aa11a860f232ffa7a8c6becf885320a91060d5b372c119bdca7b587488ac2f54",
+      "observerExit": 0,
+      "offlineProbe": {
+        "candidate": "d591f48dbc39e17458499cc8e9afac200e6a921efa072bff768509a13a68a67e",
+        "label": "Using saved checklist release",
+        "launchID": "36939A8C-35C7-47FC-A1E7-D103F8E77928",
+        "native": [
+          33,
+          100,
+          0
+        ],
+        "percentages": [
+          "33%",
+          "100%",
+          "0%"
+        ],
+        "pid": 11750,
+        "previous": null,
+        "retired": true,
+        "sequence": 2,
+        "storageRefusals": 4,
+        "workspaceSHA256": "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260"
+      },
+      "onlineProbe": {
+        "candidate": "d591f48dbc39e17458499cc8e9afac200e6a921efa072bff768509a13a68a67e",
+        "label": "Signed checklist",
+        "launchID": "D31443FA-2157-40E3-A1C0-F23807EF43E8",
+        "native": [
+          33,
+          100,
+          0
+        ],
+        "percentages": [
+          "33%",
+          "100%",
+          "0%"
+        ],
+        "pid": 11686,
+        "previous": null,
+        "retired": true,
+        "sequence": 2,
+        "storageRefusals": 4,
+        "workspaceSHA256": "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260"
+      },
+      "portsReusable": [
+        41897,
+        5432,
+        47301
+      ]
+    }
+  },
+  "limits": [
+    "Native Android installation, UI and per-installation evidence are pending.",
+    "The proposed pending profile carries an untrusted transport spool. The adverse signal is an induced transport failure.",
+    "The halt suppresses new offers. A previously downloaded valid signed offer can still activate. A later compatible offer is required for prefix-based resumption."
+  ],
+  "observedUTC": "2026-11-20T19:39:42.973815+00:00",
+  "packet": {
+    "androidABI": "arm64-v8a",
+    "androidAPI": 36,
+    "apkAlignment": "16 KiB",
+    "apkRelayPort": 41897,
+    "apkSHA256": "38d141e661762747f88b83957b8f2aac77de25fa903672d8906b5aca56264884",
+    "apkSignatureScheme": 3,
+    "apkSignerSHA256": "7caad1bb27be862a5cfa260f5148a9bd0c201040e945e086cdd4b8aeb71fb412",
+    "apkSigners": 1,
+    "artifactSHA256": "3fa904f478dcfd67581766d662c0790cdcdfd7074443032e849924dfbedecb0a",
+    "channel": "beta",
+    "fieldlogCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldlogTracedTree": "7753563b91fe162cfb058cb175ccde979b430033",
+    "haltAssignmentSHA256": "cf39025c2ff96fe6d32f676f9ea7c986b40a351284100ee2a1253242317a555b",
+    "haltRolloutBasisPoints": 0,
+    "haltSequence": 3,
+    "mixerNativeInputCommit": "5dea19db36610e312b51918b384364ba590b6ef8",
+    "package": "dev.fieldlog.generatedr90.calculation",
+    "recipeLockSHA256": "1f53ecbbaca455e5ce966fa76b36bb004a225c48cca90a04bf4f86d0f074a22e",
+    "runtime": "f511614b7d73dcfcd6796821081900e940da54ae54cb91ddd6e90cacfc9edfeb",
+    "scope": {
+      "app": "fieldlog",
+      "environment": "development",
+      "organization": "mixer-local",
+      "platform": "android",
+      "project": "fieldlog"
+    },
+    "stagedAssignmentSHA256": "8a54ee5e33c8704777a46c9cce52647543d1e38917d31ea274a7205fe29275c5",
+    "stagedRolloutBasisPoints": 9000,
+    "stagedSequence": 2,
+    "toolchainLockSHA256": "d2e786e7243a69ddd7f0c2213521ed31c781551223c95fa31d58c8881752d565",
+    "workspaceSHA256": "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260"
+  },
+  "publicBase": {
+    "commit": "ad295143090e4c975564895030d81e5620b20253",
+    "priorVerifier": "verification/receipts/local-rollout-halt-audit-d4caebb.json",
+    "tree": "b4650d981df6ca3b8aa30ed7365ef68df8060616"
+  },
+  "result": "HOST_PASS_ANDROID_PENDING",
+  "schemaVersion": 1,
+  "scope": "L04/L08 product-plan \u00a722.2.10 test-only host preparation and root-owned Android handoff",
+  "tools": {
+    "buildTools": 36,
+    "mix": "Elixir/Mix 1.20.4, OTP 29",
+    "os": "macOS 27.0.1 arm64",
+    "postgres": "pg_ctl (PostgreSQL) 17.11 (Homebrew)",
+    "python": "3.14.8",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)"
+  }
+}
