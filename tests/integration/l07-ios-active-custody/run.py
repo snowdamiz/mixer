@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replay one signed-in iOS cancellation across active worker custody loss."""
+"""Replay signed-in iOS custody loss with inert cancellation or live build-only completion."""
 
 import argparse
 import ast
@@ -44,7 +44,15 @@ HOSTED_FILES = (
 )
 PAIR = "tests/integration/l05-pair25-http"
 REGISTRATION = "tests/integration/free-project-starter/registration-runner.py"
+PREPARE = "tests/integration/free-project-starter/prepare-starter.py"
 API_TEST = "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs"
+ADOPTED = "a1baffe7014ef2d65004955a6aec29e8bec9a2ba"
+V55_TREE = "908d4ecdd9b9eac889ea57490529c94573fbb374"
+LIVE_OVERLAY = "4b7465bf52cfff893fe21acf3d825d69d7ab4101"
+LIVE_OVERLAY_PINS = {
+    "hosted/priv/development/ios_build_custody.py": "0385c514a1f2e0a18ccaeb665538e831bfd48fcbaa999d7313ab0492c1b4331c",
+    WORKER_TEST: "45b4e3816a8c866145377331a136e4af701391964656ab82698ed7f97bfa9ad6",
+}
 
 
 def git(*args):
@@ -53,15 +61,17 @@ def git(*args):
     )
 
 
-def provision(root, cache, archives, result):
-    hosted_tree = git("rev-parse", f"{BASE}:hosted").decode().strip()
-    if hosted_tree != HOSTED_TREE:
-        raise RuntimeError("pinned hosted tree differs from the first replay")
+def provision(root, cache, archives, result, *, live=False, preflight=False):
+    revision, expected = (ADOPTED, V55_TREE) if live else (BASE, HOSTED_TREE)
+    hosted_tree = git("rev-parse", f"{revision}:hosted").decode().strip()
+    if hosted_tree != expected:
+        raise RuntimeError("pinned hosted tree differs")
     result["baseHostedTree"] = hosted_tree
     archive = root / "base.tar"
     with archive.open("xb") as stream:
         subprocess.run(
-            ["git", "--no-lazy-fetch", "archive", BASE, "hosted", PAIR, REGISTRATION],
+            ["git", "--no-lazy-fetch", "archive", revision, "hosted", PAIR, REGISTRATION,
+             *([PREPARE] if live else [])],
             cwd=REPO, check=True, stdout=stream, timeout=20,
         )
     with tarfile.open(archive) as stream:
@@ -70,10 +80,18 @@ def provision(root, cache, archives, result):
 
     kit = runpy.run_path(str(root / PAIR / "run.py"))
     result["overlaySHA256"] = {}
-    for path in HOSTED_FILES:
-        data = git("show", f"{OVERLAY}:{path}")
+    if live and (git("rev-parse", f"{LIVE_OVERLAY}^").decode().strip() != ADOPTED
+                 or set(git("diff", "--name-only", ADOPTED, LIVE_OVERLAY).decode().splitlines())
+                 != LIVE_OVERLAY_PINS.keys()):
+        raise RuntimeError("tested live overlay parent or changed file roster differs")
+    overlay = LIVE_OVERLAY if live else OVERLAY
+    for path in LIVE_OVERLAY_PINS if live else HOSTED_FILES:
+        data = git("show", f"{overlay}:{path}")
+        digest = kit["sha"](data)
+        if live and digest != LIVE_OVERLAY_PINS[path]:
+            raise RuntimeError(f"live overlay digest differs: {path}")
         (root / path).write_bytes(data)
-        result["overlaySHA256"][path] = kit["sha"](data)
+        result["overlaySHA256"][path] = digest
 
     # Change the platform of the existing fixture-only seed, capacity, and
     # processor pause. All production setup and dispatch stay on stock paths.
@@ -101,6 +119,8 @@ def provision(root, cache, archives, result):
     hosted = root / "hosted"
     mix_lock = (hosted / "mix.lock").read_bytes()
     result["mixLockSHA256"] = kit["sha"](mix_lock)
+    if preflight:
+        return kit
     packages = re.findall(rb'\{:hex, :(\w+), "([^"]+)"', mix_lock)
     if len(packages) != 21:
         raise RuntimeError("unexpected pinned Hex lock entries")
@@ -164,23 +184,25 @@ def environment(root):
                 PYTHONDONTWRITEBYTECODE="1")
 
 
-def db_rows(database, operation):
+def db_rows(database, operation, *, with_plan=False):
     with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True, timeout=1)) as db:
+        db.execute("BEGIN")
         row = db.execute("SELECT value FROM operations WHERE id=?", (operation,)).fetchone()
         claim = db.execute(
-            """SELECT parent_pid, launch, terminal, uncertain
+            """SELECT parent_pid, launch, terminal, uncertain, plan_sha256, guard
                FROM ios_custody_claims WHERE operation=?""", (operation,),
         ).fetchone()
         counts = [db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
                   for table in ("operations", "ios_custody_claims")]
     if row and claim and claim[1]:
-        parent, launch, terminal, uncertain = claim
-        return (json.loads(row[0]), parent, json.loads(launch),
-                json.loads(terminal) if terminal else None, uncertain, counts)
+        parent, launch, terminal, uncertain, plan, guard = claim
+        entry = (json.loads(row[0]), parent, json.loads(launch),
+                 json.loads(terminal) if terminal else None, uncertain, counts)
+        return (*entry, plan, json.loads(guard)) if with_plan else entry
     return None
 
 
-def drive(root, kit, env, pg, result):
+def drive(root, kit, env, pg, result, live_recipe=None):
     require, read, write, wait = (kit[name] for name in ("require", "read", "write", "wait"))
     owned, wire, http = (kit[name] for name in ("owned", "wire", "http"))
     host, db, commands = kit["HOST"], kit["DB"], result["commands"]
@@ -193,7 +215,7 @@ def drive(root, kit, env, pg, result):
         "python": sys.version.split()[0],
     }
     result["stage"] = "restricted-services"
-    spec, registration, policy = make_recipe(root, kit)
+    spec, registration, policy = live_recipe or make_recipe(root, kit)
     code = hosted / "priv/development"
     sys.path.insert(0, str(code))
     import ios_build_custody
@@ -333,6 +355,30 @@ def drive(root, kit, env, pg, result):
 
         def shutdown():
             require(wire(config, "shutdown") == {"status": "closed"}, "authenticated worker shutdown refused")
+
+        if live_recipe:
+            from live import complete_after_cut
+
+            sdk_output = state / operation
+            with ExitStack() as workers:
+                first = launch(workers, "worker-original", "worker", stop=shutdown, exit_codes=(0, -9))
+                wait(lambda: kit["listening"](worker_port) and database.is_file(), 5, first)
+                ledger = database.stat()
+                result["liveCustodyPending"] = True
+                result["liveCustodyPaths"] = {"ledger": str(database), "operation": str(sdk_output)}
+                observer = launch(workers, "independent-parent", "observe")
+                result["xcodeInvocations"] = None
+                mark(root / "processor.run")
+                complete_after_cut(
+                    kit, result, sdk_output, config_path, config_sha, spec, binding, auth, scope,
+                    first, observer, worker_port, processor, ledger,
+                    lambda: db_rows(database, operation, with_plan=True), snapshot, jobs, start_job,
+                    sql, owner_unavailable,
+                    lambda: launch(workers, "worker-reopened", "worker", stop=shutdown),
+                    REBIND_SECONDS,
+                )
+            result["stage"] = "settled"
+            return
 
         result["stage"] = "nested-live-worker-cut"
         with ExitStack() as workers:
@@ -600,9 +646,18 @@ def main():
     parser.add_argument("--hex-cache", type=Path, default=Path.home() / ".hex")
     parser.add_argument("--mix-archives", type=Path, default=Path.home() / ".mix/archives")
     parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
+    parser.add_argument("--live", action="store_true", help="root-owned real unsigned Xcode build")
+    parser.add_argument("--preflight-only", action="store_true", help="check the live inputs without services")
+    parser.add_argument("--export", type=Path, help="already verified, staged Starter export")
+    parser.add_argument("--cli", type=Path, help="canonical path of the staged retained-output CLI")
+    parser.add_argument("--stage-receipt", type=Path, help="verified staging receipt with source and CLI digests")
     args = parser.parse_args()
     if args.receipt.exists() or sys.platform != "darwin":
         parser.error("run on macOS and use a new receipt path")
+    if args.live and not all((args.export, args.cli, args.stage_receipt)):
+        parser.error("--live requires --export, --cli and --stage-receipt")
+    if not args.live and any((args.export, args.cli, args.stage_receipt, args.preflight_only)):
+        parser.error("staged inputs and --preflight-only require --live")
 
     os.umask(0o077)
     scratch_parent = REPO / "verification/local"
@@ -620,12 +675,27 @@ def main():
               "inertTimeoutsSeconds": {"barriers": BARRIER_SECONDS, "recipe": INERT_RECIPE_SECONDS},
               "buildPOSTs": 0, "cancelPOSTs": 0, "commands": {}, "passed": False,
               "backend": "inert nested barrier child", "xcodeInvocations": 0, "scratch": str(root)}
+    if args.live:
+        result.update(base=ADOPTED, overlay=LIVE_OVERLAY, backend="v55 unsigned generic iOS Simulator build only")
+        del result["inertTimeoutsSeconds"]
     kit = None
     error = None
     try:
-        kit = provision(root, args.hex_cache, args.mix_archives, result)
+        kit = provision(root, args.hex_cache, args.mix_archives, result, live=args.live,
+                        preflight=args.preflight_only)
         result["fixtureSHA256"] = kit["sha"](Path(__file__).read_bytes())
-        drive(root, kit, environment(root), args.pg_bin, result)
+        live_recipe = None
+        env = environment(root)
+        if args.live:
+            from live import stage_recipe
+
+            result["stage"] = "live-stage-admission"
+            env.pop("PAIR25_CANCEL")
+            live_recipe = stage_recipe(root, kit, args, result, PREPARE)
+        if not args.preflight_only:
+            drive(root, kit, env, args.pg_bin, result, live_recipe)
+        else:
+            result["stage"] = "live-inputs-admitted"
         result["passed"] = True
     except Exception as failure:
         error = failure
@@ -636,11 +706,15 @@ def main():
         observer = commands.get("independent-parent", {})
         if "independent-parent" in commands and observer.get("exit") not in (0, 3):
             unknown.append("independent CLI or nested child")
+        if result.get("liveCustodyPending"):
+            unknown.append("original live CLI or Xcode closure unproven")
         if kit and isinstance(error, kit["CustodyUnknown"]) and not unknown:
             unknown.append("incomplete process ownership observation")
         if unknown:
             result["custodyHold"] = {"preserved": str(root), "unresolved": unknown}
             result["passed"] = False
+            if args.live:
+                (root / "HOLD.json").write_text(json.dumps(result, indent=2) + "\n")
         else:
             if kit and result.get("ports"):
                 try:
