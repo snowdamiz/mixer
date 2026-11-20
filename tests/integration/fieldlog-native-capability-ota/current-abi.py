@@ -11,6 +11,7 @@ import shutil
 import socket
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
 
 HERE = Path(__file__).resolve().parent
 CALC = HERE.parent / "fieldlog-task-calculation/android-packaging"
@@ -21,7 +22,7 @@ spec = importlib.util.spec_from_file_location("pair", HERE / "package-android-pa
 pair = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pair)
 from package import capture, digest, inventory, pin, read, require, tree, write
-from current_abi_packet import SEALED, bindings, require_members, validate_for_seal
+from current_abi_packet import PACKAGED, SEALED, bindings, packet_hashes, require_members, validate_for_seal
 from current_abi_recipe import CALCULATION_LOCK, verify as verify_recipe
 
 REVISION = "b144c2c2042a4499365d1186f46d43fba1832143"
@@ -217,7 +218,7 @@ def package(work, packet):
             pins = folder / "installed.sha256.json"
             write(pins, inventory(installed, installed))
             apk, java, payload = folder / "FieldLog.apk", variant / "java", variant / "payload"
-            capture(sign_env, sys.executable, "-B", script, "--output", apk, "--mixer-project", project,
+            capture(sign_env, sys.executable, "-EBS", script, "--output", apk, "--mixer-project", project,
                     "--installed-checklist", installed, "--checklist-sha256", pins, "--java-home", java_home,
                     "--android-sdk", sdk, "--swift-android-sdk", swift_sdk, "--jni-library", payload / Path(calc.JNI).name,
                     "--dex", java / "dex/classes.dex", "--manifest-apk", java / "manifest.apk")
@@ -251,7 +252,7 @@ def package(work, packet):
     })
 
 
-def seal(work, packet, recipe_revision):
+def seal(work, packet, recipe_revision, recipe_repo=None):
     stages = {
         "preflight", "fieldlog-fetch", "mixer-export", "stock-export", "build-guests", "fieldlog-checkout",
         "fieldlog-baseline", "fieldlog-clone", "fieldlog-successor-base", "fieldlog-https-overlay",
@@ -265,27 +266,33 @@ def seal(work, packet, recipe_revision):
         and not any(key in row for key in ("collectionErrors", "scratchSampleError", "scratchLimitExceeded"))
         for row in receipts.values()), "Incomplete current ABI build stage")
     tools = read(work / "preflight.json")
-    source_inputs = verify_recipe(HERE.parents[2], recipe_revision)
+    source_inputs = verify_recipe(HERE.parents[2], recipe_revision, git_root=recipe_repo)
     recipe_lock = source_inputs[CALCULATION_LOCK.as_posix()]
     require(recipe_lock == tools["recipeLockSHA256"], "Calculation recipe differs from preflight")
-    validate_for_seal(packet)
-    write(packet / "rebuild.json", {
+    rebuild = {
         "stageResults": {name: {key: row[key] for key in ("exit", "custody")} for name, row in receipts.items()},
         "peakSampledScratchKiB": max(row["peakSampledScratchKiB"] for row in receipts.values()),
         "toolVersions": tools["toolVersions"], "swiftPMInputs": tools["swiftPMInputs"],
         "recipeCommit": recipe_revision, "sourceInputs": source_inputs, "calculationRecipeSHA256": recipe_lock,
-    })
-    with (packet / "android-origin.py").open("xb") as relay:
-        relay.write((HERE / "android-origin.py").read_bytes())
-    pin(packet / "android-origin.py", source_inputs[(HERE / "android-origin.py").relative_to(HERE.parents[2]).as_posix()])
-    require_members(packet, SEALED)
-    pending = work / "handoff-checksums.new"
-    with pending.open("x") as sums:
-        for name in sorted(SEALED):
-            sums.write(f"{digest(packet / name)}  {name}\n")
-    # Publish the complete checksum file without overwriting a prior seal.
-    os.link(pending, packet / "SHA256SUMS")
-    pending.unlink()
+    }
+    with TemporaryDirectory(prefix="handoff-snapshot-", dir=work) as directory:
+        snapshot = Path(directory)
+        packaged = packet_hashes(packet, PACKAGED, snapshot)
+        validate_for_seal(snapshot)
+        write(snapshot / "rebuild.json", rebuild)
+        origin = snapshot / "android-origin.py"
+        origin.write_bytes((HERE / origin.name).read_bytes())
+        pin(origin, source_inputs[(HERE / origin.name).relative_to(HERE.parents[2]).as_posix()])
+        metadata = ("rebuild.json", origin.name)
+        hashes = packaged | {name: digest(snapshot / name) for name in metadata}
+        pending = snapshot / "SHA256SUMS"
+        pending.write_text("".join(f"{value}  {name}\n" for name, value in sorted(hashes.items())))
+        require(packet_hashes(packet, PACKAGED) == packaged, "Handoff changed after validation")
+        for name in metadata:
+            os.link(snapshot / name, packet / name)
+        require_members(packet, SEALED)
+        # Publish the checksum file from the validated snapshot without replacing a prior seal.
+        os.link(pending, packet / pending.name)
 
 
 if __name__ == "__main__":
@@ -294,13 +301,16 @@ if __name__ == "__main__":
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--recipe-revision", help="independently selected recipe commit, required for seal")
+    parser.add_argument("--recipe-repo", type=Path, help="Git repository for a projected recipe")
     args = parser.parse_args()
     if (args.action == "seal") != bool(args.recipe_revision):
         parser.error("--recipe-revision is required for seal and only accepted for seal")
+    if args.recipe_repo is not None and args.action != "seal":
+        parser.error("--recipe-repo is only accepted for seal")
     try:
         source, output = args.input.resolve(strict=True), args.output.resolve()
         if args.action == "seal":
-            seal(source, output, args.recipe_revision)
+            seal(source, output, args.recipe_revision, args.recipe_repo)
         else:
             {"package": package, "adapter-pins": adapter_pins}[args.action](source, output)
     except subprocess.CalledProcessError as error:

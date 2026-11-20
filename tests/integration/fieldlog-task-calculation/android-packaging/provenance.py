@@ -42,10 +42,10 @@ def verify_recipe():
     return digest(lock)
 
 
-def preflight(work):
+def preflight(work, repo=ROOT):
     require(sys.platform == "darwin" and platform.machine() == "arm64", "Run on arm64 macOS")
     recipe_lock = verify_recipe()
-    require(subprocess.run(["git", "-C", ROOT, "merge-base", "--is-ancestor", BASE, "HEAD"],
+    require(subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", BASE, "HEAD"],
                            timeout=15).returncode == 0, "Use the pinned public Mixer base or a descendant")
     home = Path.home()
     swift = home / "Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin"
@@ -164,10 +164,10 @@ def finish(work, output):
 
 
 if __name__ == "__main__":
-    action, scratch, packet = sys.argv[1:]
+    action, scratch, packet, *repo = sys.argv[1:]
     if action == "check":
-        preflight(Path(scratch))
-    elif action == "finish":
+        preflight(Path(scratch), *map(Path, repo))
+    elif action == "finish" and not repo:
         finish(Path(scratch), Path(packet))
     else:
         raise SystemExit(f"Unknown action: {action}")

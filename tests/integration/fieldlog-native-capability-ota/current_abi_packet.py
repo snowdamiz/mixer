@@ -1,9 +1,12 @@
 """Inventory and bind a closed current-ABI Android handoff."""
 
 import base64
+from contextlib import nullcontext
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
+import stat
 import sys
 from urllib.parse import urlencode
 from zipfile import ZipFile
@@ -28,6 +31,8 @@ for label in LABELS:
                                                    "installed.sha256.json", "host.json", "manifest.json", "assignment.json"))
     PACKAGED.update(f"{label}/Installed/{name}" for name in INSTALLED[label])
 SEALED = PACKAGED | {"rebuild.json", "android-origin.py"}
+HANDOFF_LIMIT = 512 * 1024 * 1024
+METADATA_LIMIT = 8 * 1024 * 1024
 
 
 def require_members(packet, expected):
@@ -41,6 +46,35 @@ def require_members(packet, expected):
             files.add(name)
     require(files == expected,
             f"Handoff member mismatch. Missing {sorted(expected - files)}. Extra {sorted(files - expected)}")
+
+
+def packet_hashes(packet, expected, snapshot=None):
+    require_members(packet, expected)
+    remaining = HANDOFF_LIMIT
+    hashes = {}
+    for name in sorted(expected):
+        limit = remaining if name.endswith("/FieldLog.apk") else min(remaining, METADATA_LIMIT)
+        if snapshot is not None:
+            (snapshot / name).parent.mkdir(parents=True, exist_ok=True)
+        target = (snapshot / name).open("xb") if snapshot is not None else nullcontext()
+        checksum = sha256()
+        with target as output, open(packet / name, "rb", opener=open_packet_file) as source:
+            info = os.fstat(source.fileno())
+            require(stat.S_ISREG(info.st_mode), f"Expected a regular handoff file: {name}")
+            require(info.st_size <= limit, f"Handoff size limit exceeded: {name}")
+            while chunk := source.read(min(1024 * 1024, limit + 1)):
+                require(len(chunk) <= limit, f"Handoff size limit exceeded: {name}")
+                limit -= len(chunk)
+                remaining -= len(chunk)
+                checksum.update(chunk)
+                if output is not None:
+                    output.write(chunk)
+        hashes[name] = checksum.hexdigest()
+    return hashes
+
+
+def open_packet_file(path, flags):
+    return os.open(path, flags | os.O_NOFOLLOW | os.O_NONBLOCK)
 
 
 def offer_pins(packet, label):
@@ -102,9 +136,12 @@ def verify_materials(packet, build, inspection, observed):
             name.removeprefix(ASSETS): value for name, value in apk["members"].items() if name.startswith(ASSETS)
         }, f"Installed material pins differ for {label}")
         with ZipFile(folder / "FieldLog.apk") as image:
-            names = [name for name in image.namelist() if name.startswith(ASSETS)]
-            require(len(names) == len(set(names)) and installed == {
-                name.removeprefix(ASSETS): sha256(image.read(name)).hexdigest() for name in names
+            assets = [entry for entry in image.infolist() if entry.filename.startswith(ASSETS)]
+            require(len(assets) == len(installed) and {entry.filename for entry in assets} ==
+                    {ASSETS + name for name in installed}, f"Unexpected packaged APK assets: {label}")
+            require(all(entry.file_size == (folder / "Installed" / entry.filename.removeprefix(ASSETS)).stat().st_size
+                        for entry in assets) and installed == {
+                entry.filename.removeprefix(ASSETS): sha256(image.read(entry)).hexdigest() for entry in assets
             }, f"Installed material differs from packaged APK assets: {label}")
         permissions = digest(folder / "permissions.json")
         identity = read(folder / "Installed/identity.json")["build"]

@@ -15,7 +15,7 @@ jar="$sdk/platforms/android-36/android.jar"
 export JAVA_HOME=${MIXER_JDK:-/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home}
 mkdir "$payload"
 mkdir "$payload/classes" "$payload/dex" "$payload/jni"
-python3 -B - "$pins" "$adapter" > "$payload/adapter-inputs.txt" <<'PYTHON'
+python3 -IBS - "$pins" "$adapter" > "$payload/adapter-inputs.txt" <<'PYTHON'
 from hashlib import sha256
 from pathlib import Path
 import json
@@ -34,6 +34,6 @@ native=("${(@f)$(< "$payload/adapter-inputs.txt")}")
     "${native[@]}" "$app"/Java/dev/fieldlog/generatedr90/androidhost/*.java
 "$JAVA_HOME/bin/jar" --create --file "$payload"/classes.jar -C "$payload"/classes .
 "$tools/d8" --min-api 36 --lib "$jar" --output "$payload"/dex "$payload"/classes.jar
-python3 -B "$recipe/manifest.py" "$app/AndroidManifest.xml" "$payload"/AndroidManifest.xml
+python3 -IBS "$recipe/manifest.py" "$app/AndroidManifest.xml" "$payload"/AndroidManifest.xml
 /usr/bin/arch -arm64 "$tools/aapt2" compile -o "$payload"/network.zip "$app/res/xml/checklist_network.xml"
 /usr/bin/arch -arm64 "$tools/aapt2" link -I "$jar" --manifest "$payload"/AndroidManifest.xml -o "$payload"/manifest.apk "$payload"/network.zip

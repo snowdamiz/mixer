@@ -7,8 +7,7 @@ if [[ $# != 1 || "$1" != /* ]]; then
     echo "Usage: $0 /absolute/NEW_CAMPAIGN" >&2
     exit 2
 fi
-recipe=$(cd "$(dirname "$0")" && pwd -P)
-calc="$recipe/../fieldlog-task-calculation/android-packaging"
+launcher=$(cd "$(dirname "$0")" && pwd -P)
 revision=b144c2c2042a4499365d1186f46d43fba1832143
 fieldlog=552559d2d3278abb9b1aa7dcf0288102c09a202b
 campaign=$1
@@ -27,25 +26,15 @@ export MIXER_SWIFT="$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoo
 unset SDKROOT TOOLCHAINS SWIFT_EXEC DEVELOPER_DIR FIELDLOG_XCODE GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_CONFIG_COUNT
 unset JAVA_TOOL_OPTIONS _JAVA_OPTIONS JDK_JAVA_OPTIONS
 
-repo=$(git -C "$recipe" rev-parse --show-toplevel)
+repo=$(git -C "$launcher" rev-parse --show-toplevel)
 recipe_revision=$(git -C "$repo" rev-parse HEAD)
-verify_recipe() {
-    git --no-replace-objects -C "$repo" show "$recipe_revision:${recipe#"$repo/"}/current_abi_recipe.py" |
-        python3 -IB - "$repo" "$recipe_revision"
-}
-verify_recipe
-
-python3 -B - "$campaign" <<'PY'
-from pathlib import Path
-import sys
-
-campaign = Path(sys.argv[1])
-if campaign.exists() or campaign.is_symlink() or campaign != campaign.resolve() or not campaign.parent.is_dir():
-    raise SystemExit(f"Expected a new canonical campaign directory: {campaign}")
-PY
-git -C "$repo" merge-base --is-ancestor "$revision" HEAD
+git --no-replace-objects -C "$repo" merge-base --is-ancestor "$revision" "$recipe_revision"
 git_dir=$(git -C "$repo" rev-parse --absolute-git-dir)
-mkdir "$campaign"
+recipe_path=${launcher#"$repo/"}
+git --no-replace-objects -C "$repo" show "$recipe_revision:$recipe_path/current_abi_recipe.py" |
+    python3 -IBS - "$repo" "$recipe_revision" "$campaign"
+recipe="$work/recipe-source/$recipe_path"
+calc="$recipe/../fieldlog-task-calculation/android-packaging"
 mkdir -p "$work"/{tmp,logs,mixer,fieldlog,swift-sdks} "$packet" "$next"/{tmp,swift-sdks} "$stock"
 export TMPDIR="$work/tmp" XDG_CACHE_HOME="$work/xdg-cache" GIT_CEILING_DIRECTORIES="$work"
 bundle="$HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle"
@@ -54,7 +43,7 @@ ln -s "$bundle" "$next/swift-sdks/"
 ln -s "$work/mixer" "$next/"
 
 run() {
-    python3 -B "$calc/run.py" "$work" "$packet" "$@"
+    python3 -IBS "$calc/run.py" "$work" "$packet" "$@"
 }
 join_jobs() {
     local failed=0
@@ -64,7 +53,7 @@ join_jobs() {
     return "$failed"
 }
 
-run preflight 60 python3 -B "$calc/provenance.py" check "$work" "$packet"
+run preflight 60 python3 -EBS "$calc/provenance.py" check "$work" "$packet" "$repo"
 git -C "$work/fieldlog" init --quiet --template=
 run fieldlog-fetch 55 git -C "$work/fieldlog" -c http.lowSpeedLimit=1 -c http.lowSpeedTime=20 \
     fetch --quiet --depth=1 https://github.com/snowdamiz/fieldlog.git "$fieldlog" &
@@ -85,22 +74,22 @@ guests=$!
 join_jobs "$fetch" "$mixer" "$stock_source" "$guests"
 
 run fieldlog-checkout 30 git -C "$work/fieldlog" checkout --quiet --detach FETCH_HEAD
-run fieldlog-baseline 90 python3 -B "$calc/../android-source-check.py" "$work/fieldlog"
+run fieldlog-baseline 90 python3 -IBS "$calc/../android-source-check.py" "$work/fieldlog"
 run fieldlog-clone 45 git clone --quiet --no-local "$work/fieldlog" "$next/fieldlog"
-run fieldlog-successor-base 90 python3 -B "$calc/../android-source-check.py" "$next/fieldlog"
+run fieldlog-successor-base 90 python3 -IBS "$calc/../android-source-check.py" "$next/fieldlog"
 run fieldlog-https-overlay 30 git -C "$next/fieldlog" apply --index --whitespace=error \
     --exclude=Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml "$recipe/android-successor.patch"
 run mixer-trace-overlay 30 git -C "$work/mixer" apply --whitespace=error "$calc/rebuild-inputs/mixer-first-open-trace.patch"
-run adapter-inputs 45 python3 -B "$recipe/current-abi.py" adapter-pins "$repo" "$work/current-adapter-pins.json"
+run adapter-inputs 45 python3 -EBS "$recipe/current-abi.py" adapter-pins "$repo" "$work/current-adapter-pins.json"
 
 rustc="$HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc"
 builder="$work/mixer/experimental-capability-runtime/build-vm.py"
 GIT_DIR="$git_dir" DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer \
-    run vm-android 420 python3 -B "$builder" --revision "$revision" --target android --rustc "$rustc" \
+    run vm-android 420 python3 -IBS "$builder" --revision "$revision" --target android --rustc "$rustc" \
     --output "$work/android-engine" --ndk "$ANDROID_HOME/ndk/27.1.12297006" &
 android_vm=$!
 GIT_DIR="$git_dir" DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer \
-    run vm-host 420 python3 -B "$builder" --revision "$revision" --target host --rustc "$rustc" \
+    run vm-host 420 python3 -IBS "$builder" --revision "$revision" --target host --rustc "$rustc" \
     --output "$work/host-engine" &
 host_vm=$!
 run java-old 120 /bin/zsh -f "$calc/build-java.zsh" "$work/fieldlog" "$work/mixer" "$work/java" "$work/current-adapter-pins.json" &
@@ -146,9 +135,8 @@ git -C "$repo" show "$revision:verification/android-default-appearance-packaging
     > "$generated/app/assets/MixerAppearanceV2/descriptor.json"
 git -C "$repo" show 5dea19db36610e312b51918b384364ba590b6ef8:cli/Sources/MixerBuild/Resources/android-build.py \
     > "$generated/android-build.py"
-run package 240 python3 -B "$recipe/current-abi.py" package "$work" "$packet"
-run host-replay 150 python3 -B "$recipe/replay-android-pair.py" "$campaign"
-run inspect 220 python3 -B "$recipe/inspect-current-abi.py" "$work" "$packet"
-verify_recipe
-python3 -B "$recipe/current-abi.py" seal "$work" "$packet" --recipe-revision "$recipe_revision"
+run package 240 python3 -EBS "$recipe/current-abi.py" package "$work" "$packet"
+run host-replay 150 python3 -EBS "$recipe/replay-android-pair.py" "$campaign"
+run inspect 220 python3 -EBS "$recipe/inspect-current-abi.py" "$work" "$packet"
+python3 -EBS "$recipe/current-abi.py" seal "$work" "$packet" --recipe-revision "$recipe_revision" --recipe-repo "$repo"
 (cd "$packet" && shasum -a 256 -c SHA256SUMS)

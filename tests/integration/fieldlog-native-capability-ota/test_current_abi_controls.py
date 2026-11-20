@@ -7,6 +7,7 @@ import io
 import json
 import os
 from pathlib import Path
+import py_compile
 import shutil
 import signal
 import socket
@@ -43,7 +44,9 @@ def original(path, name):
 recipe = load("current_abi", HERE / "current-abi.py")
 replay = load("pair_replay", HERE / "replay-android-pair.py")
 runner = load("stage_runner", RUNNER)
-from current_abi_packet import SEALED, bindings, require_members, verify_materials
+from current_abi_packet import (
+    METADATA_LIMIT, SEALED, bindings, packet_hashes, refusal_responses, require_members, verify_materials,
+)
 from current_abi_recipe import CALCULATION_LOCK, SOURCES
 from package import digest, inventory, read, tree, write
 
@@ -140,7 +143,11 @@ if mode != 'offer-only':
         host_result = read(packet / "host-replay.json")
         verifier = read(packet / "verifier.json")
         refused = observed["offers"]["refused"]
-        host_result["refusalExchange"] = self.observe(packet, "exact")
+        host = read(packet / "old/host.json")
+        host_result["refusalExchange"] = refused | {
+            "runtime": host["runtime"], "installation": verifier["installation"],
+            "responses": refusal_responses(packet, host, verifier["installation"]),
+        }
         host_result["separateVerifierRefusal"] = {"code": verifier["manifestRefusal"], "artifactSHA256": refused["artifactSHA256"]}
         (packet / "host-replay.json").write_text(json.dumps(host_result))
         for name in ("SHA256SUMS", "rebuild.json", "android-origin.py"):
@@ -171,12 +178,41 @@ if mode != 'offer-only':
         self.assertFalse((packet / "SHA256SUMS").exists())
         offer.write_bytes(intact)
         build.write_text(json.dumps(read(build) | {"handoffInputs": observed}))
-        recipe.seal(work, packet, revision)
+
+        replay_path = packet / "host-replay.json"
+        replay_bytes = replay_path.read_bytes()
+        validate = recipe.validate_for_seal
+
+        def drift_after_validation(snapshot):
+            validate(snapshot)
+            replay_path.write_bytes(replay_bytes + b"\n")
+
+        with patch.object(recipe, "validate_for_seal", side_effect=drift_after_validation):
+            with self.assertRaisesRegex(ValueError, "changed .*validation"):
+                recipe.seal(work, packet, revision)
+        self.assertFalse((packet / "SHA256SUMS").exists())
+        self.assertFalse((packet / "rebuild.json").exists())
+        replay_path.write_bytes(replay_bytes)
+
+        campaign = self.scratch / "projection"
+        recipe.verify_recipe(ROOT, revision, campaign=campaign)
+        projected = campaign / "work/recipe-source" / (HERE / "current-abi.py").relative_to(ROOT)
+        subprocess.run([sys.executable, "-EBS", projected, "seal", work, packet,
+                        "--recipe-revision", revision, "--recipe-repo", ROOT], check=True, timeout=20)
         require_members(packet, SEALED | {"SHA256SUMS"})
         files = inventory(packet, packet)
         self.assertEqual(files.pop("SHA256SUMS"), tree(files))
 
-    def test_git_lock_disagrees_with_rehashed_working_files(self):
+    def test_snapshot_rejects_oversized_metadata(self):
+        packet, snapshot = (self.scratch / name for name in ("packet", "snapshot"))
+        packet.mkdir()
+        with (packet / "build.json").open("wb") as stream:
+            stream.truncate(METADATA_LIMIT + 1)
+        with self.assertRaisesRegex(ValueError, "Handoff size limit exceeded: build.json"):
+            packet_hashes(packet, {"build.json"}, snapshot)
+        self.assertEqual((snapshot / "build.json").stat().st_size, 0)
+
+    def copy_recipe(self):
         revision = git("rev-parse", "HEAD").decode().strip()
         lock = self.scratch / CALCULATION_LOCK
         source_paths = SOURCES | {Path(line.split("  ")[1]) for line in (ROOT / CALCULATION_LOCK).read_text().splitlines()}
@@ -188,6 +224,10 @@ if mode != 'offer-only':
         objects = git("rev-parse", "--path-format=absolute", "--git-path", "objects").decode().strip()
         (self.scratch / ".git/objects/info/alternates").write_text(objects + "\n")
         subprocess.run(["git", "-C", self.scratch, "update-ref", "HEAD", revision], timeout=10, check=True)
+        return revision, lock
+
+    def test_git_lock_disagrees_with_rehashed_working_files(self):
+        revision, lock = self.copy_recipe()
         recipe.verify_recipe(self.scratch, revision)
         altered = self.scratch / RUNNER.relative_to(ROOT)
         old = digest(altered)
@@ -204,6 +244,37 @@ if mode != 'offer-only':
         self.assertIn("Recipe source differs:", result.stderr)
         self.assertIn("recipe.sha256", result.stderr)
         self.assertFalse(campaign.exists())
+
+    def test_launcher_uses_verified_sources(self):
+        self.copy_recipe()
+        campaign = self.scratch / "campaign"
+        ambient = self.scratch / "ambient"
+        ambient.mkdir()
+        startup_marker = ambient / "startup-ran"
+        (ambient / "sitecustomize.py").write_text(f"open({str(startup_marker)!r}, 'w').close()\n")
+        helper = self.scratch / CALCULATION_LOCK.parent / "package.py"
+        cache_marker = ambient / "cache-ran"
+        poison = ambient / "poison.py"
+        poison.write_text(f"open({str(cache_marker)!r}, 'w').close()\n")
+        cache = ambient / "cache"
+        with patch.object(sys, "pycache_prefix", str(cache)):
+            cached_helper = importlib.util.cache_from_source(str(helper))
+        py_compile.compile(str(poison), cfile=cached_helper, dfile=str(helper),
+                           invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH, doraise=True)
+
+        launcher = self.scratch / (HERE / "build-current-abi-android-pair.sh").relative_to(ROOT)
+        result = subprocess.run(
+            ["/bin/bash", launcher, campaign], cwd=ambient, capture_output=True, text=True, timeout=40,
+            env=os.environ | {"HOME": str(ambient), "PYTHONPATH": str(ambient), "PYTHONPYCACHEPREFIX": str(cache)},
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual((startup_marker.exists(), cache_marker.exists()), (False, False))
+        work = campaign / "work"
+        receipt = read(work / "logs/preflight.json")
+        self.assertEqual((receipt["exit"], receipt["custody"]), (1, "closed"))
+        self.assertIn(str(ambient / "Library/Developer/Toolchains"), (work / "logs/preflight.log").read_text())
+        self.assertFalse((work / "logs/fieldlog-fetch.json").exists())
+        self.assertEqual((work / "recipe-source" / helper.relative_to(self.scratch)).read_bytes(), helper.read_bytes())
 
     def test_stage_write_failure_collects_inert_child(self):
         real_replace = Path.replace
