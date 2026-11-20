@@ -1,6 +1,9 @@
 import concurrent.futures
 from contextlib import closing, contextmanager, nullcontext
+from dataclasses import asdict
+import hmac
 import json
+import os
 from pathlib import Path
 import plistlib
 import queue
@@ -9,6 +12,7 @@ import shutil
 import socket
 import socketserver
 import sqlite3
+import stat
 import subprocess
 import sys
 import tempfile
@@ -19,10 +23,62 @@ from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "priv" / "development"))
 import native_artifact_worker
+import linux_android_artifact_importer as linux_importer
+from linux_android_runner import LinuxAndroidRunnerClient
 from native_artifact_worker import (
     ANDROID_DRIVER, ANDROID_MANIFEST, ANDROID_PROFILE, KINDS, BuildUncertainty, LaunchGate, NativeWorker,
     OwnedBuildProcess, Refusal, build, digest, exchange, literal, mac, now_ms, retained_android_report, serve,
 )
+
+
+class InertLinuxRunner:
+    """Independently owned inventory that survives the controller's reopen."""
+
+    def __init__(self, store_id, recipe_sha256):
+        self.store_id = store_id
+        self.recipe_sha256 = recipe_sha256
+        self.operations = {}
+        self.requests = []
+        self.starts = []
+        self.observe_intent = lambda request: None
+        self.drop_before_start = False
+        self.drop_start_reply = True
+        self.cleanup_observed = threading.Event()
+        self.transform_reply = lambda reply: reply
+
+    def handle(self, request):
+        identity = request["identity"]
+        if (request["version"] != 1 or identity["store_id"] != self.store_id
+                or identity["recipe_sha256"] != self.recipe_sha256):
+            raise ValueError("unexpected runner identity")
+        action, operation = request["action"], identity["operation_id"]
+        self.observe_intent(request)
+        self.requests.append(request)
+        previous = self.operations.get(operation)
+        if previous is not None and previous[0] != identity:
+            raise ValueError("changed immutable runner identity")
+        status = previous[1] if previous else "absent"
+        if action == "ensure_started" and status == "absent":
+            if self.drop_before_start:
+                self.drop_before_start = False
+                return None
+            self.starts.append(operation)
+            self.operations[operation] = (identity, "running")
+            if self.drop_start_reply:
+                self.drop_start_reply = False
+                return None
+            status = "running"
+        if action == "stop" and status != "stopped":
+            self.operations[operation] = (identity, "stopping")
+            status = "stopping"
+        if status == "stopping" and self.cleanup_observed.is_set():
+            self.operations[operation] = (identity, "stopped")
+            status = "stopped"
+        reply = {"request": request, "status": status}
+        if status == "stopped":
+            reply["terminal"] = {"stop_fenced": True, "container_absent": True,
+                                 "processes_absent": True, "resources_removed": True}
+        return self.transform_reply(reply)
 
 
 class NativeWorkerTest(unittest.TestCase):
@@ -45,7 +101,7 @@ class NativeWorkerTest(unittest.TestCase):
                                    "owner_id": "coordinator", "expires_at": now_ms() + 10_000})
 
     @contextmanager
-    def listener(self, config=None):
+    def listener(self, config=None, *, linux_runner=None):
         config = dict(config or self.config, port=0)
         started = queue.Queue()
         activate = socketserver.TCPServer.server_activate
@@ -57,7 +113,7 @@ class NativeWorkerTest(unittest.TestCase):
 
         def run():
             try:
-                serve(config, str(self.root / "protocol-state"))
+                serve(config, str(self.root / "protocol-state"), linux_runner=linux_runner)
             except Exception as error:
                 errors.append(error)
 
@@ -87,9 +143,676 @@ class NativeWorkerTest(unittest.TestCase):
                     "mac": mac(self.config["token"], "request", nonce, body)}
         with socket.create_connection(address, timeout=5) as conn, conn.makefile("rb") as stream:
             conn.sendall((literal(envelope) + "\n").encode())
-            reply = json.loads(stream.readline())
-        self.assertEqual(mac(self.config["token"], "response", nonce, reply["body"]), reply["mac"])
-        return json.loads(reply["body"])
+            packet = stream.readline(262_145)
+        body = json.loads(packet)["body"]
+        signed = f"response\n{nonce}\n{body}".encode()
+        response_mac = hmac.digest(self.config["token"].encode(), signed, "sha256").hex()
+        self.assertEqual((literal({"body": body, "mac": response_mac}) + "\n").encode(), packet)
+        reply = json.loads(body)
+        self.assertEqual(literal(reply), body)
+        return reply
+
+    @contextmanager
+    def linux_runner_listener(self):
+        path = self.root / "runner.sock"
+        recipe_sha = self.spec["build_definition_sha256"]
+        runner = InertLinuxRunner("f" * 64, recipe_sha)
+        errors = []
+
+        class Handler(socketserver.StreamRequestHandler):
+            timeout = 1
+
+            def handle(self):
+                try:
+                    packet = self.rfile.readline(4097)
+                    if not packet:
+                        return
+                    if len(packet) > 4096 or not packet.endswith(b"\n"):
+                        raise ValueError("invalid fixture request")
+                    reply = runner.handle(json.loads(packet))
+                    if isinstance(reply, bytes):
+                        self.wfile.write(reply)
+                    elif reply is not None:
+                        self.wfile.write((literal(reply) + "\n").encode())
+                except Exception as error:
+                    errors.append(error)
+
+        with socketserver.UnixStreamServer(str(path), Handler) as server:
+            path.chmod(0o600)
+            thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True)
+            thread.start()
+            try:
+                yield runner, LinuxAndroidRunnerClient(path, recipe_sha256=recipe_sha, store_id=runner.store_id)
+            finally:
+                server.shutdown()
+                thread.join(timeout=5)
+                self.assertFalse(thread.is_alive())
+        path.unlink()
+        self.assertEqual([], errors)
+        self.assertEqual(-1, server.socket.fileno())
+
+    def linux_registration(self):
+        spec = dict(self.spec, platform="android")
+        return (dict(self.config, registration={"spec": spec, "files": {}}),
+                dict(self.request, ref=dict(self.ref, platform="android"), spec=dict(spec, build_id="build")))
+
+    def protocol_row(self, request):
+        with closing(sqlite3.connect(self.root / "protocol-state" / "operations.sqlite")) as reader:
+            row = reader.execute("SELECT value FROM operations WHERE id=?", (request["operation_id"],)).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def test_cli_starts_the_configured_linux_worker(self):
+        config, request = self.linux_registration()
+        source = Path(native_artifact_worker.__file__)
+        state = self.root / "cli-state"
+        config_path = self.root / "cli-config.json"
+        with self.linux_runner_listener() as (runner, client):
+            runner.drop_start_reply = False
+            with socket.socket() as reservation:
+                reservation.bind(("127.0.0.1", 0))
+                address = reservation.getsockname()
+            config.update(port=address[1], linux_runner={
+                "socket_path": str(client.socket_path), "recipe_sha256": client.recipe_sha256,
+                "store_id": client.store_id,
+            })
+            configuration = literal(config).encode()
+            config_path.write_bytes(configuration)
+            entry = [sys.executable, "-B"]
+            if sys.flags.optimize:
+                entry.append("-O")
+            entry.extend([str(source), str(config_path)])
+            with subprocess.Popen(entry + [digest(configuration), str(state)],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+                try:
+                    deadline = time.monotonic() + 5
+                    while True:
+                        try:
+                            with socket.create_connection(address, timeout=0.1):
+                                break
+                        except OSError:
+                            self.assertIsNone(process.poll())
+                            self.assertLess(time.monotonic(), deadline)
+                            time.sleep(0.02)
+                    self.assertEqual({"status": "absent"}, self.call(address, "query", request))
+                    self.assertEqual({"status": "running"}, self.call(address, "ensure_started", request))
+                    self.assertEqual([request["operation_id"]], runner.starts)
+                    runner.cleanup_observed.set()
+                    self.assertEqual("stopped", self.call(address, "stop", request)["status"])
+                    self.assertEqual({"status": "closed"}, self.call(address, "shutdown"))
+                    stdout, stderr = process.communicate(timeout=3)
+                    self.assertEqual((0, b"", b""), (process.returncode, stdout, stderr))
+                finally:
+                    if process.poll() is None:
+                        process.terminate()
+                        process.wait(timeout=3)
+
+            invalid_state = self.root / "invalid-state"
+            config["linux_runner"]["recipe_sha256"] = "e" * 64
+            configuration = literal(config).encode()
+            config_path.write_bytes(configuration)
+            result = subprocess.run(entry + [digest(configuration), str(invalid_state)],
+                                    capture_output=True, timeout=3, check=False)
+            self.assertEqual(1, result.returncode)
+            self.assertIn(b"Invalid Linux runner configuration", result.stderr)
+            self.assertFalse(invalid_state.exists())
+            self.assertEqual([request["operation_id"]], runner.starts)
+
+    def linux_completion_config(self, config, client, request, bundle, inputs):
+        identity = asdict(client.operation(request).identity)
+        return dict(
+            config,
+            linux_runner=dict(socket_path=str(client.socket_path), recipe_sha256=client.recipe_sha256,
+                              store_id=client.store_id),
+            linux_artifact_imports={request["operation_id"]: {
+                "identity": identity, "bundle": str(bundle), "inputs": inputs,
+            }},
+        )
+
+    @staticmethod
+    def linux_completion(reply, inputs, readback_sha):
+        return {"request": reply["request"], "status": "completed", "terminal": {
+            "inputs": inputs, "readback_sha256": readback_sha, "exit_code": 0,
+            "start_fenced": True, "container_absent": True, "processes_absent": True, "resources_removed": True,
+        }}
+
+    def test_linux_completion_refuses_unbound_and_malformed_results(self):
+        config, request = self.linux_registration()
+        request = dict(request, guard=dict(request["guard"], expires_at=now_ms() + 60_000))
+        operation = self.root / "protocol-state" / request["operation_id"]
+        inputs = dict(source_tree_sha256="1" * 64, linux_lock_sha256="2" * 64, rendered_driver_sha256="3" * 64)
+
+        with self.linux_runner_listener() as (runner, client):
+            runner.drop_start_reply = False
+            config = self.linux_completion_config(config, client, request, self.root / "unused-bundle", inputs)
+            with self.listener(config) as address:
+                self.assertEqual({"status": "running"}, self.call(address, "ensure_started", request))
+
+                def completed(reply):
+                    return self.linux_completion(reply, inputs, "4" * 64)
+
+                def reject_result(transform, error="uncertain"):
+                    runner.transform_reply = lambda reply: transform(completed(reply))
+                    self.assertEqual({"error": error}, self.call(address, "query", request))
+                    self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", request))
+                    row = self.protocol_row(request)
+                    self.assertEqual("uncertain", row["status"])
+                    self.assertNotIn("manifest_sha256", row)
+                    self.assertNotIn("artifacts", row)
+                    self.assertFalse(operation.exists())
+
+                for field in ("operation_id", "binding_sha256", "recipe_sha256", "store_id"):
+                    with self.subTest(identity=field):
+                        reject_result(lambda r: dict(r, request=dict(
+                            r["request"], identity=dict(r["request"]["identity"], **{field: "0" * 64}),
+                        )))
+                for field, wrong in {"version": 2, "action": "ensure_started", "deadline_ms": 9}.items():
+                    with self.subTest(echo=field):
+                        reject_result(lambda r: dict(r, request=dict(r["request"], **{field: wrong})))
+                reject_result(lambda r: dict(r, request=dict(r["request"], guard=dict(r["request"]["guard"], epoch=2))))
+                reject_result(lambda r: dict(r, bundle="/arbitrary"))
+                reject_result(lambda r: {k: v for k, v in r.items() if k != "terminal"})
+                reject_result(lambda r: dict(r, terminal=[]))
+                reject_result(lambda r: (literal(r)[:-1] + ',"status":"completed"}\n').encode())
+                for field, wrong in (
+                    ("identity", asdict(client.operation(request).identity)),
+                    ("bundle", "/arbitrary"),
+                    ("readback_sha256", "F" * 64),
+                    ("exit_code", False),
+                    ("exit_code", 0.0),
+                    ("exit_code", 1),
+                    ("start_fenced", 1),
+                    ("container_absent", False),
+                    ("processes_absent", False),
+                    ("resources_removed", False),
+                    ("inputs", []),
+                    ("inputs", dict(inputs, extra="0" * 64)),
+                    ("inputs", dict(inputs, linux_lock_sha256="")),
+                    ("inputs", {k: v for k, v in inputs.items() if k != "source_tree_sha256"}),
+                ):
+                    with self.subTest(terminal=field, wrong=wrong):
+                        reject_result(lambda r: dict(r, terminal=dict(r["terminal"], **{field: wrong})))
+                for field in inputs:
+                    with self.subTest(input_pin=field):
+                        reject_result(lambda r: dict(r, terminal=dict(
+                            r["terminal"], inputs=dict(inputs, **{field: "0" * 64}),
+                        )), "unavailable")
+
+                def expire_guard(reply):
+                    clock.return_value = request["guard"]["expires_at"]
+                    return completed(reply)
+
+                runner.transform_reply = expire_guard
+                with patch.object(native_artifact_worker, "now_ms", return_value=now_ms()) as clock:
+                    self.assertEqual({"error": "stale"}, self.call(address, "query", request))
+                expired = dict(request, guard=dict(request["guard"], expires_at=now_ms() - 1))
+                observed = len(runner.requests)
+                self.assertEqual({"error": "stale"}, self.call(address, "artifacts", expired))
+                self.assertEqual(observed, len(runner.requests))
+                self.assertFalse(operation.exists())
+
+                runner.transform_reply = completed
+                self.assertEqual({"error": "uncertain"}, self.call(address, "stop", request))
+                self.assertIs(self.protocol_row(request)["tombstone"], True)
+                self.assertEqual({"error": "uncertain"}, self.call(address, "query", request))
+                self.assertEqual({"error": "uncertain"}, self.call(address, "ensure_started", request))
+                self.assertEqual("query", runner.requests[-1]["action"])
+                self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", request))
+                self.assertFalse(operation.exists())
+                runner.transform_reply = lambda reply: reply
+                runner.cleanup_observed.set()
+                self.assertEqual("stopped", self.call(address, "stop", request)["status"])
+
+    @unittest.skipUnless(os.environ.get("MIXER_PAIR25_BUNDLE"), "requires the operator's retained Pair25 bundle")
+    def test_linux_completion_imports_pair25_and_rehashes_across_worker_restart(self):
+        from test_linux_android_artifact_importer import RECEIPT, RECEIPT_SHA
+
+        payload = RECEIPT.read_bytes()
+        self.assertEqual(RECEIPT_SHA, digest(payload))
+        receipt = json.loads(payload)
+        bundle = Path(os.environ["MIXER_PAIR25_BUNDLE"])
+        inputs = dict(source_tree_sha256=receipt["build"]["source_tree_sha256"],
+                      linux_lock_sha256=receipt["inputHashes"]["localLinuxLockSHA256"],
+                      rendered_driver_sha256=receipt["inputHashes"]["renderedBuildDriverSHA256"])
+        readback_sha = receipt["readbackChecks"]["readbackSHA256"]
+        config, request = self.linux_registration()
+        spec = dict(config["registration"]["spec"], source={"sha256": inputs["source_tree_sha256"]},
+                    toolchain_lock_sha256=inputs["linux_lock_sha256"])
+        config = dict(config, registration=dict(config["registration"], spec=spec))
+        request = dict(request, spec=dict(spec, build_id=request["spec"]["build_id"]),
+                       guard=dict(request["guard"], expires_at=now_ms() + 60_000))
+        operation = request["operation_id"]
+        store = self.root / "protocol-state" / operation / linux_importer.STORE
+        rows = [{k: v for k, v in row.items() if k != "file"} for row in receipt["artifacts"]]
+        expected = dict(status="native_ready", artifacts=rows, profile=ANDROID_PROFILE,
+                        platform="android", operation_id=operation)
+        running, unavailable = {"status": "running"}, {"error": "unavailable"}
+        save = NativeWorker.save
+
+        def fail_completion_commit(worker, operation, value):
+            if value["status"] == "native_ready":
+                worker.db.execute("UPDATE operations SET value=? WHERE id=?", (literal(value), operation))
+                raise sqlite3.OperationalError("fixture failure before completing the publication commit")
+            return save(worker, operation, value)
+
+        with self.linux_runner_listener() as (runner, client):
+            runner.drop_start_reply = False
+            config = self.linux_completion_config(config, client, request, bundle, inputs)
+            with self.listener(config) as address:
+                self.assertEqual(running, self.call(address, "ensure_started", request))
+                runner.transform_reply = lambda reply: self.linux_completion(reply, inputs, readback_sha)
+                import_closed_bundle = linux_importer.import_closed_bundle
+
+                def import_before_guard_expires(*args, **kwargs):
+                    result = import_closed_bundle(*args, **kwargs)
+                    clock.return_value = request["guard"]["expires_at"]
+                    return result
+
+                with (patch.object(native_artifact_worker, "now_ms", return_value=now_ms()) as clock,
+                      patch.object(linux_importer, "import_closed_bundle", side_effect=import_before_guard_expires)):
+                    self.assertEqual({"error": "stale"}, self.call(address, "query", request))
+                self.assertEqual("uncertain", self.protocol_row(request)["status"])
+                self.assertEqual(unavailable, self.call(address, "artifacts", request))
+                with patch.object(NativeWorker, "save", fail_completion_commit):
+                    self.assertEqual({"error": "uncertain"}, self.call(address, "query", request))
+                partial = self.protocol_row(request)
+                self.assertEqual("uncertain", partial["status"])
+                self.assertNotIn("manifest_sha256", partial)
+                self.assertNotIn("artifacts", partial)
+                self.assertEqual(unavailable, self.call(address, "artifacts", request))
+                manifest = store / linux_importer.MANIFEST
+                manifest_sha = digest(manifest.read_bytes())
+                store_identity = (store.stat().st_dev, store.stat().st_ino)
+
+            renewed = dict(request, guard=dict(request["guard"], epoch=2, owner_id="next-coordinator"))
+            with self.listener(config) as address:
+                self.assertEqual(unavailable, self.call(address, "artifacts", renewed))
+                self.assertEqual(running, self.call(address, "ensure_started", renewed))
+                self.assertEqual([operation], runner.starts)
+                admitted = self.protocol_row(request)
+                self.assertEqual("native_ready", admitted["status"])
+                self.assertEqual(renewed["guard"], admitted["guard"])
+                self.assertEqual(rows, admitted["artifacts"])
+                self.assertEqual(manifest_sha, admitted["manifest_sha256"])
+                self.assertEqual(store_identity, (store.stat().st_dev, store.stat().st_ino))
+                self.assertEqual({linux_importer.MANIFEST, *(row["sha256"] for row in rows)},
+                                 {entry.name for entry in store.iterdir()})
+                self.assertEqual(expected, self.call(address, "artifacts", renewed))
+                self.assertEqual({"error": "stale"}, self.call(address, "artifacts", request))
+                for row in receipt["artifacts"]:
+                    retained = store / row["sha256"]
+                    self.assertEqual((bundle / row["file"]).read_bytes(), retained.read_bytes())
+                    self.assertEqual(0o400, stat.S_IMODE(retained.stat().st_mode))
+
+            seen = len(runner.requests)
+            with self.listener(config) as address:
+                self.assertEqual(expected, self.call(address, "artifacts", renewed))
+                self.assertEqual(running, self.call(address, "query", renewed))
+                self.assertEqual(seen, len(runner.requests))
+                reopen = linux_importer.reopen_linux_artifacts
+
+                def rehash_before_guard_expires(*args, **kwargs):
+                    result = reopen(*args, **kwargs)
+                    clock.return_value = renewed["guard"]["expires_at"]
+                    return result
+
+                with (patch.object(native_artifact_worker, "now_ms", return_value=now_ms()) as clock,
+                      patch.object(linux_importer, "reopen_linux_artifacts", side_effect=rehash_before_guard_expires)):
+                    self.assertEqual({"error": "stale"}, self.call(address, "artifacts", renewed))
+                inventory = store / rows[-1]["sha256"]
+                inventory.chmod(0o600)
+                original = inventory.read_bytes()
+                inventory.write_bytes(b"!" + original[1:])
+                inventory.chmod(0o400)
+                self.assertEqual({"error": "uncertain"}, self.call(address, "artifacts", renewed))
+                inventory.chmod(0o600)
+                inventory.write_bytes(original)
+                inventory.chmod(0o400)
+                self.assertEqual(expected, self.call(address, "artifacts", renewed))
+                runner.transform_reply = lambda reply: reply
+                runner.cleanup_observed.set()
+                self.assertEqual("stopped", self.call(address, "stop", renewed)["status"])
+                self.assertEqual(unavailable, self.call(address, "artifacts", renewed))
+            with self.listener(config) as address:
+                self.assertEqual(unavailable, self.call(address, "artifacts", renewed))
+        print("\nPair25 worker publication " + literal(dict(expected, manifest_sha256=manifest_sha)), flush=True)
+
+    def test_linux_runner_server_composes_across_lost_reply_restart_and_cleanup(self):
+        from test_linux_android_runner_server import (
+            ContainerObservation, InertContainerAdapter, LinuxAndroidRunnerServer, open_runner, running_runner,
+        )
+
+        config, request = self.linux_registration()
+        now = now_ms()
+        request = dict(request, guard=dict(request["guard"], expires_at=now + 60_000), deadline_ms=now + 120_000)
+        successor = dict(request, guard=dict(request["guard"], epoch=2, owner_id="successor"))
+        stop = dict(successor, guard=dict(successor["guard"], revision=2))
+        contender = dict(request, operation_id="b" * 64,
+                         ref=dict(request["ref"], build_id="contender"),
+                         spec=dict(request["spec"], build_id="contender"),
+                         guard=dict(request["guard"], record_id="contender"))
+
+        directory = self.root / "r"
+        directory.mkdir(mode=0o700)
+        runner_db = directory / "operations.sqlite"
+        client = LinuxAndroidRunnerClient(
+            directory / "runner.sock", recipe_sha256=request["spec"]["build_definition_sha256"], store_id="f" * 64,
+        )
+        adapter = InertContainerAdapter(runner_db, self.assertEqual)
+        first = client.operation(request).identity
+        other = client.operation(contender)
+        running = {"status": "running"}
+        uncertain, unavailable = {"error": "uncertain"}, {"error": "unavailable"}
+
+        def runner_listener(*, initialize=False):
+            return running_runner(self, open_runner(directory, recipe_sha256=client.recipe_sha256,
+                                                    store_id=client.store_id, adapter=adapter, initialize=initialize))
+
+        def expected_runner_reply(action, request, status):
+            return {"request": {"version": 1, "action": action, **asdict(client.operation(request))}, "status": status}
+
+        def check_binding(request, phase, status, *, fenced=False):
+            operation_id = request["operation_id"]
+            binding = {key: request[key] for key in ("ref", "spec", "deadline_ms")}
+            binding_sha = digest(literal(binding).encode())
+            with closing(sqlite3.connect(runner_db.as_uri() + "?mode=ro", uri=True, timeout=1)) as reader:
+                row = reader.execute("SELECT binding, deadline, guard, phase FROM operation WHERE id = ?",
+                                     (operation_id,)).fetchone()
+            self.assertEqual((binding_sha, request["deadline_ms"], literal(request["guard"]), phase), row)
+            worker = self.protocol_row(request)
+            self.assertEqual(binding, worker["binding"])
+            self.assertEqual(request["guard"], worker["guard"])
+            self.assertEqual({"operation_id": operation_id, "binding_sha256": binding_sha,
+                              "recipe_sha256": client.recipe_sha256, "store_id": client.store_id},
+                             worker["linux_runner"])
+            self.assertEqual(status, worker["status"])
+            self.assertEqual(1, worker["starts"])
+            self.assertIs(worker.get("tombstone", False), fenced)
+            return worker
+
+        def check_contender_held(address):
+            self.assertEqual(unavailable, self.call(address, "ensure_started", contender))
+            self.assertEqual(0, self.protocol_row(contender)["starts"])
+            with self.assertRaisesRegex(Refusal, "^uncertain$"):
+                client.observe("ensure_started", other)
+            self.assertEqual([first], adapter.starts)
+
+        def check_stopped(address, action, request, runner_action):
+            closure = expected_runner_reply(runner_action, request, "stopped")
+            closure["terminal"] = {"stop_fenced": True, "container_absent": True,
+                                   "processes_absent": True, "resources_removed": True}
+            diagnostic = (literal({"operation_id": request["operation_id"], "closure": closure}) + "\n").encode()
+            diagnostic_sha = digest(diagnostic)
+            reply = {"status": "stopped", "diagnostic_sha256": diagnostic_sha}
+            self.assertEqual(reply, self.call(address, action, request))
+            row = check_binding(request, "stopped", "stopped", fenced=True)
+            self.assertEqual(closure, row["closure"])
+            self.assertEqual(diagnostic_sha, row["diagnostic_sha256"])
+            self.assertEqual(diagnostic, (self.root / "protocol-state" / "blobs" / diagnostic_sha).read_bytes())
+            return reply
+
+        with patch.object(native_artifact_worker, "build", side_effect=AssertionError("unexpected native build")) as local_build:
+            with runner_listener(initialize=True), self.listener(config, linux_runner=client) as address:
+                self.assertEqual({"status": "absent"}, self.call(address, "query", request))
+                with patch.object(LinuxAndroidRunnerServer, "send", autospec=True) as dropped:
+                    self.assertEqual(uncertain, self.call(address, "ensure_started", request))
+                dropped.assert_called_once()
+                self.assertEqual(expected_runner_reply("ensure_started", request, "running"), dropped.call_args.args[2])
+                check_binding(request, "started", "uncertain")
+                self.assertEqual([first], adapter.creates)
+                self.assertEqual([first], adapter.starts)
+
+            with runner_listener(), self.listener(config, linux_runner=client) as address:
+                self.assertEqual(running, self.call(address, "query", successor))
+                self.assertEqual(running, self.call(address, "ensure_started", successor))
+                self.assertEqual({"error": "stale"}, self.call(address, "ensure_started", request))
+                self.assertEqual(unavailable, self.call(address, "artifacts", successor))
+                check_contender_held(address)
+
+                adapter.defer_cleanup.add(first)
+                self.assertEqual(uncertain, self.call(address, "stop", stop))
+                check_binding(stop, "stopping", "uncertain", fenced=True)
+
+            with runner_listener(), self.listener(config, linux_runner=client) as address:
+                adapter.observations[first] = ContainerObservation(first, "absent", True, False)
+                self.assertEqual(uncertain, self.call(address, "ensure_started", stop))
+                self.assertEqual(expected_runner_reply("ensure_started", stop, "stopping"),
+                                 client.observe("ensure_started", client.operation(stop)))
+                check_binding(stop, "stopping", "uncertain", fenced=True)
+                check_contender_held(address)
+
+                adapter.defer_cleanup.remove(first)
+                del adapter.observations[first]
+                stopped = check_stopped(address, "ensure_started", stop, "query")
+                self.assertEqual(stopped, self.call(address, "ensure_started", stop))
+                self.assertEqual(unavailable, self.call(address, "artifacts", stop))
+                self.assertEqual("stopped", client.observe("ensure_started", client.operation(stop))["status"])
+
+                self.assertEqual(running, self.call(address, "ensure_started", contender))
+                check_stopped(address, "stop", contender, "stop")
+                self.assertEqual(unavailable, self.call(address, "artifacts", contender))
+
+            with runner_listener(), self.listener(config, linux_runner=client) as address:
+                later = dict(stop, guard=dict(stop["guard"], epoch=3, owner_id="later"))
+                self.assertEqual(stopped, self.call(address, "ensure_started", later))
+                self.assertEqual("stopped", client.observe("ensure_started", client.operation(later))["status"])
+                check_binding(later, "stopped", "stopped", fenced=True)
+
+        local_build.assert_not_called()
+        self.assertEqual([first, other.identity], adapter.creates)
+        self.assertEqual([first, other.identity], adapter.starts)
+        self.assertEqual([first, other.identity], adapter.stops)
+        self.assertEqual({}, adapter.observations)
+        state = self.root / "protocol-state"
+        self.assertEqual({"operations.sqlite", "writer.lock", "blobs"}, {item.name for item in state.iterdir()})
+        self.assertEqual({self.protocol_row(op)["diagnostic_sha256"] for op in (stop, contender)},
+                         {item.name for item in (state / "blobs").iterdir()})
+
+    def test_linux_runner_retains_admission_across_lost_start_and_controller_reopen(self):
+        config, request = self.linux_registration()
+        operation_id = request["operation_id"]
+        contender = dict(request, operation_id="b" * 64, spec=dict(request["spec"], build_id="contender"),
+                         ref=dict(request["ref"], build_id="contender"),
+                         guard=dict(request["guard"], record_id="contender"))
+        next_lease = dict(request, guard=dict(request["guard"], epoch=2, owner_id="new-coordinator"))
+        stop = dict(next_lease, guard=dict(next_lease["guard"], revision=2))
+        unavailable, uncertain = {"error": "unavailable"}, {"error": "uncertain"}
+
+        with self.linux_runner_listener() as (runner, client):
+            def observe_intent(message):
+                row = self.protocol_row(message["identity"])
+                self.assertEqual("uncertain", row["status"])
+                self.assertEqual(1, row["starts"])
+                self.assertEqual(message["identity"], row["linux_runner"])
+                self.assertEqual(message["guard"], row["guard"])
+                self.assertEqual(message["deadline_ms"], row["binding"]["deadline_ms"])
+                self.assertEqual(digest(literal(row["binding"]).encode()), message["identity"]["binding_sha256"])
+                if message["action"] == "stop":
+                    self.assertIs(row.get("tombstone"), True)
+
+            runner.observe_intent = observe_intent
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual(unavailable, self.call(address, "ensure_started", dict(request, command="arbitrary")))
+                foreign = dict(request, spec=dict(request["spec"], organization_id="foreign"))
+                self.assertEqual(unavailable, self.call(address, "ensure_started", foreign))
+                self.assertEqual([], runner.requests)
+                self.assertEqual({"status": "absent"}, self.call(address, "query", request))
+                self.assertEqual(uncertain, self.call(address, "ensure_started", request))
+                self.assertEqual([operation_id], runner.starts)
+                self.assertEqual("uncertain", self.protocol_row(request)["status"])
+                self.assertEqual(unavailable, self.call(address, "artifacts", request))
+
+            wrong_store = LinuxAndroidRunnerClient(client.socket_path, recipe_sha256=client.recipe_sha256,
+                                                   store_id="e" * 64)
+            for other_client in (None, wrong_store):
+                with self.listener(config, linux_runner=other_client) as address:
+                    self.assertEqual(unavailable, self.call(address, "stop", next_lease))
+            self.assertEqual(["ensure_started"], [item["action"] for item in runner.requests])
+
+            with self.listener(config, linux_runner=client) as address:
+                runner.transform_reply = lambda reply: dict(reply, status="absent")
+                self.assertEqual({"status": "absent"}, self.call(address, "query", next_lease))
+                self.assertEqual("uncertain", self.protocol_row(request)["status"])
+                self.assertEqual(unavailable, self.call(address, "ensure_started", contender))
+                runner.transform_reply = lambda reply: reply
+                self.assertEqual({"status": "running"}, self.call(address, "query", next_lease))
+                self.assertEqual({"status": "running"}, self.call(address, "ensure_started", next_lease))
+                self.assertEqual([operation_id], runner.starts)
+                self.assertEqual({"error": "stale"}, self.call(address, "ensure_started", request))
+                self.assertEqual(unavailable, self.call(address, "artifacts", next_lease))
+                self.assertEqual(uncertain, self.call(address, "stop", stop))
+                self.assertIs(self.protocol_row(request)["tombstone"], True)
+
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual(uncertain, self.call(address, "ensure_started", stop))
+                self.assertEqual("query", runner.requests[-1]["action"])
+                self.assertEqual(unavailable, self.call(address, "artifacts", stop))
+                self.assertEqual(unavailable, self.call(address, "ensure_started", contender))
+                runner.cleanup_observed.set()
+
+                def with_wrong_identity(reply, field):
+                    other = dict(reply["request"]["identity"], **{field: "0" * 64})
+                    return dict(reply, request=dict(reply["request"], identity=other))
+
+                for field in ("operation_id", "binding_sha256", "recipe_sha256", "store_id"):
+                    with self.subTest(field=field):
+                        runner.transform_reply = lambda reply: with_wrong_identity(reply, field)
+                        self.assertEqual(uncertain, self.call(address, "stop", stop))
+                runner.transform_reply = lambda reply: dict(reply, terminal=dict(reply["terminal"], processes_absent=1))
+                self.assertEqual(uncertain, self.call(address, "stop", stop))
+                runner.transform_reply = lambda reply: dict(reply, terminal={})
+                self.assertEqual(uncertain, self.call(address, "stop", stop))
+                self.assertEqual(unavailable, self.call(address, "ensure_started", contender))
+                runner.transform_reply = lambda reply: reply
+                fsync = os.fsync
+
+                def fail_directory_sync(fd):
+                    if stat.S_ISDIR(os.fstat(fd).st_mode):
+                        raise OSError("fixture evidence directory sync failure")
+                    return fsync(fd)
+
+                # Both attempts write complete evidence bytes, then fail to
+                # sync them. A retry must still require a successful sync.
+                with patch.object(native_artifact_worker.os, "fsync", side_effect=fail_directory_sync) as sync:
+                    self.assertEqual(uncertain, self.call(address, "stop", stop))
+                    self.assertEqual(uncertain, self.call(address, "stop", stop))
+                self.assertEqual(4, sync.call_count)
+                self.assertEqual("uncertain", self.protocol_row(request)["status"])
+                self.assertEqual(unavailable, self.call(address, "ensure_started", contender))
+
+                save = NativeWorker.save
+
+                def fail_terminal_commit(worker, operation, value):
+                    if value["status"] != "stopped":
+                        return save(worker, operation, value)
+                    worker.db.execute("UPDATE operations SET value=? WHERE id=?", (literal(value), operation))
+                    raise sqlite3.OperationalError("fixture commit failure with a pending write")
+
+                with patch.object(NativeWorker, "save", fail_terminal_commit):
+                    self.assertEqual(uncertain, self.call(address, "stop", stop))
+                    self.assertEqual(unavailable, self.call(address, "ensure_started", contender))
+                    self.assertEqual("uncertain", self.protocol_row(request)["status"])
+
+                stopped = self.call(address, "stop", stop)
+                self.assertEqual("stopped", stopped["status"])
+                settled = self.protocol_row(request)
+                self.assertEqual(stopped["diagnostic_sha256"], settled["diagnostic_sha256"])
+                self.assertEqual("stopped", settled["closure"]["status"])
+                self.assertEqual(stopped, self.call(address, "ensure_started", stop))
+                self.assertEqual(unavailable, self.call(address, "artifacts", stop))
+                self.assertEqual({"status": "running"}, self.call(address, "ensure_started", contender))
+                self.assertEqual([operation_id, contender["operation_id"]], runner.starts)
+                self.assertEqual("stopped", self.call(address, "stop", contender)["status"])
+
+    def test_linux_runner_stop_before_start_is_durable_at_both_ends(self):
+        config, request = self.linux_registration()
+        with self.linux_runner_listener() as (runner, client):
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual({"error": "uncertain"}, self.call(address, "stop", request))
+                row = self.protocol_row(request)
+                self.assertEqual(0, row["starts"])
+                self.assertIs(row["tombstone"], True)
+                self.assertEqual("stopping", runner.operations[request["operation_id"]][1])
+            later = dict(request, guard=dict(request["guard"], epoch=2))
+            with self.listener(config, linux_runner=client) as address:
+                runner.cleanup_observed.set()
+                stopped = self.call(address, "ensure_started", later)
+                self.assertEqual("stopped", stopped["status"])
+                self.assertEqual(stopped, self.call(address, "query", later))
+            self.assertEqual(["stop", "query"], [item["action"] for item in runner.requests])
+            self.assertEqual([], runner.starts)
+
+    def test_linux_runner_retries_same_id_when_first_start_never_reaches_backend(self):
+        config, request = self.linux_registration()
+        with self.linux_runner_listener() as (runner, client):
+            runner.drop_before_start = True
+            runner.drop_start_reply = False
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual({"error": "uncertain"}, self.call(address, "ensure_started", request))
+                self.assertEqual("uncertain", self.protocol_row(request)["status"])
+                self.assertEqual([], runner.starts)
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual({"status": "absent"}, self.call(address, "query", request))
+                self.assertEqual("uncertain", self.protocol_row(request)["status"])
+                self.assertEqual({"status": "running"}, self.call(address, "ensure_started", request))
+                self.assertEqual([request["operation_id"]], runner.starts)
+                runner.cleanup_observed.set()
+                self.assertEqual("stopped", self.call(address, "stop", request)["status"])
+
+    def test_linux_runner_attachment_preserves_legacy_recipe_and_existing_row(self):
+        config, request = self.linux_registration()
+        with self.listener(config) as address:
+            legacy_stop = self.call(address, "stop", request)
+            self.assertEqual("stopped", legacy_stop["status"])
+        with self.linux_runner_listener() as (runner, client):
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual(legacy_stop, self.call(address, "query", request))
+                self.assertEqual(legacy_stop, self.call(address, "stop", request))
+            other_spec = dict(config["registration"]["spec"], build_definition_sha256="c" * 64)
+            config = dict(config, registration={"spec": other_spec, "files": {}})
+            other = dict(request, operation_id="b" * 64, spec=dict(other_spec, build_id="build"))
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual({"status": "absent"}, self.call(address, "query", other))
+            self.assertEqual([], runner.requests)
+
+    def test_linux_runner_refuses_malformed_frames_and_unauthorized_socket_peers(self):
+        config, request = self.linux_registration()
+        with self.linux_runner_listener() as (runner, client):
+            runner.drop_start_reply = False
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual({"status": "running"}, self.call(address, "ensure_started", request))
+                uncertain = {"error": "uncertain"}
+                client.socket_path.chmod(0o660)
+                try:
+                    self.assertEqual(uncertain, self.call(address, "query", request))
+                    self.assertEqual(1, len(runner.requests))
+                finally:
+                    client.socket_path.chmod(0o600)
+                with patch("linux_android_runner.peer_uid", return_value=os.getuid() + 1) as credential_check:
+                    self.assertEqual(uncertain, self.call(address, "query", request))
+                credential_check.assert_called_once()
+                self.assertEqual(1, len(runner.requests))
+
+                for malformed in (b"\n", b" " * 4097, b"{}\n{}\n", b'{"status":"running","status":"running"}\n'):
+                    runner.transform_reply = lambda reply: malformed
+                    self.assertEqual(uncertain, self.call(address, "query", request))
+                runner.transform_reply = lambda reply: reply
+                self.assertEqual({"status": "running"}, self.call(address, "query", request))
+                runner.cleanup_observed.set()
+                self.assertEqual("stopped", self.call(address, "stop", request)["status"])
+
+    def test_linux_runner_deadline_blocks_start_and_live_guard_allows_stop(self):
+        config, request = self.linux_registration()
+        expired = dict(request, deadline_ms=now_ms() - 1)
+        with self.linux_runner_listener() as (runner, client):
+            runner.cleanup_observed.set()
+            with self.listener(config, linux_runner=client) as address:
+                self.assertEqual({"error": "stale"}, self.call(address, "ensure_started", expired))
+                stale = dict(expired, guard=dict(expired["guard"], expires_at=expired["deadline_ms"]))
+                self.assertEqual({"error": "stale"}, self.call(address, "stop", stale))
+                self.assertEqual([], runner.requests)
+                self.assertEqual("stopped", self.call(address, "stop", expired)["status"])
+            self.assertEqual(["stop"], [item["action"] for item in runner.requests])
+            self.assertEqual([], runner.starts)
 
     def test_protocol_rejects_replay_including_shutdown_across_restart(self):
         query_nonce = secrets.token_hex(16)

@@ -1,5 +1,6 @@
 """Opt-in local worker for one operator-registered unsigned iOS Simulator project."""
 from contextlib import ExitStack, contextmanager
+from dataclasses import asdict
 from enum import Enum
 import errno
 import hashlib
@@ -9,6 +10,7 @@ import os
 from pathlib import Path, PurePosixPath
 import plistlib
 import socketserver
+import sqlite3
 import stat
 import subprocess
 import sys
@@ -278,7 +280,7 @@ def command_log(receipt):
     return dict(values, tailTruncated=truncated, phases=[])
 
 
-def publish_customer_log(state, operation, spec, log):
+def publish_customer_log(state, operation, spec, log, *, idempotent=False):
     # Keep the public projection outside the per-operation compiler tree.
     # The final name is immutable and never replaces an earlier publication.
     payload = literal(dict(log, version=1, operationId=operation,
@@ -296,7 +298,13 @@ def publish_customer_log(state, operation, spec, log):
             handle.flush()
             os.fchmod(handle.fileno(), 0o400)
             os.fsync(handle.fileno())
-        os.link(name, state / ("customer-log-v1-" + operation), follow_symlinks=False)
+        destination = state / ("customer-log-v1-" + operation)
+        try:
+            os.link(name, destination, follow_symlinks=False)
+        except FileExistsError:
+            if (not idempotent or destination.lstat().st_mode != stat.S_IFREG | 0o400
+                    or read_owned(destination, 2_048) != payload):
+                raise
     finally:
         os.unlink(name)
 
@@ -681,7 +689,7 @@ def build(recipe, files, output, request, launch):
 
 
 class NativeWorker(Worker):
-    def __init__(self, config, state):
+    def __init__(self, config, state, *, linux_runner=None):
         os.umask(0o077)
         Path(state).mkdir(mode=0o700, exist_ok=True)
         path = Path(state)
@@ -689,7 +697,12 @@ class NativeWorker(Worker):
         if (not path.is_absolute() or path.resolve() != path or info.st_uid != os.getuid()
                 or info.st_mode != stat.S_IFDIR | 0o700):
             raise Refusal("unavailable")
+        if linux_runner is None and "linux_runner" in config:
+            from linux_android_runner import LinuxAndroidRunnerClient
+
+            linux_runner = LinuxAndroidRunnerClient(**config["linux_runner"])
         super().__init__(config, state)
+        self.linux_runner = linux_runner
         self.launch = None
         self.db.execute("CREATE TABLE IF NOT EXISTS request_nonces (nonce BLOB PRIMARY KEY) WITHOUT ROWID")
 
@@ -799,14 +812,181 @@ class NativeWorker(Worker):
     def closure_diagnostic(self, operation, value):
         return self.blob((literal({"operation_id": operation, "closure": value["closure"]}) + "\n").encode())
 
+    def capacity_occupied(self):
+        occupied = self.db.execute(
+            "SELECT 1 FROM operations WHERE json_extract(value,'$.status') IN ('running','uncertain')"
+        ).fetchone()
+        return self.future is not None or occupied is not None
+
+    def request_linux(self, action, request, previous):
+        from linux_android_artifact_importer import ClosedLinuxResult
+
+        runner = self.linux_runner
+        bound = runner.operation(request)
+        identity = asdict(bound.identity)
+        operation = bound.identity.operation_id
+        recorded = previous.get("linux_runner") if previous is not None else None
+        if recorded is not None and recorded != identity:
+            raise Refusal("unavailable")
+
+        reply = super().request("query", request)
+        value = self.load(operation)
+        if action == "artifacts":
+            return self.linux_artifacts(bound, identity, value)
+        if value["status"] == "stopped":
+            return reply
+        if action == "stop":
+            value.update(tombstone=True, status="uncertain", linux_runner=identity)
+            self.save(operation, value)
+        if value["status"] == "native_ready":
+            return {"status": "running"}
+        if value["status"] == "absent":
+            if action == "query":
+                return reply
+            if self.capacity_occupied():
+                raise Refusal("unavailable")
+            value.update(status="uncertain", starts=1, linux_runner=identity)
+            self.save(operation, value)
+
+        # Once fenced, a request to ensure can only observe the same operation.
+        if action == "ensure_started" and value.get("tombstone"):
+            action = "query"
+        observed = runner.observe(action, bound)
+        now = now_ms()
+        if bound.guard.expires_at <= now or (action == "ensure_started" and bound.deadline_ms <= now):
+            raise Refusal("stale")
+        if isinstance(observed, ClosedLinuxResult):
+            if value.get("tombstone"):
+                raise Refusal("uncertain")
+            return self.settle_linux_completion(bound, identity, value, observed)
+        if value.get("tombstone") and observed["status"] == "stopped":
+            return self.settle_linux_stop(operation, value, observed, bound.guard.expires_at)
+        if not value.get("tombstone"):
+            if observed["status"] == "running":
+                return {"status": "running"}
+            if action == "query" and observed["status"] == "absent":
+                # The caller may replay ensure for this ID. The reservation
+                # survives because a delayed ensure could still reach the runner.
+                return {"status": "absent"}
+        raise Refusal("uncertain")
+
+    def settle_linux_completion(self, bound, identity, value, terminal):
+        from linux_android_artifact_importer import (
+            VerifiedLinuxInputs, import_closed_bundle, sync_directory, verify_authority,
+        )
+
+        operation = bound.identity.operation_id
+        # Only the digest-pinned operator configuration selects a bundle.
+        # Neither the public request nor the runner reply supplies its location.
+        try:
+            grant = self.config["linux_artifact_imports"][operation]
+            if set(grant) != {"identity", "bundle", "inputs"} or grant["identity"] != identity:
+                raise Refusal("unavailable")
+            inputs = VerifiedLinuxInputs(**grant["inputs"])
+            bundle = Path(grant["bundle"])
+            if not bundle.is_absolute():
+                raise Refusal("unavailable")
+        except (KeyError, TypeError, ValueError) as error:
+            raise Refusal("unavailable") from error
+        verify_authority(identity, inputs, terminal)
+        self.require_linux_artifact_window(bound)
+        directory = self.state / operation
+        try:
+            # The TCP listener and the state writer lock serialize this import
+            # with guard updates and stop. Sync the new directory entry before
+            # committing a reference to a store underneath it.
+            directory.mkdir(mode=0o700, exist_ok=True)
+            sync_directory(self.state)
+            result = import_closed_bundle(bundle, directory, expected_identity=identity,
+                                          verified_inputs=inputs, terminal=terminal)
+            result.pop("customer_log", None)
+            self.require_linux_artifact_window(bound)
+            with self.db:
+                self.save(operation, dict(value, status="native_ready", **result))
+        except (OSError, sqlite3.Error) as error:
+            raise Refusal("uncertain") from error
+        return {"status": "running"}
+
+    @staticmethod
+    def require_linux_artifact_window(bound):
+        if min(bound.guard.expires_at, bound.deadline_ms) <= now_ms():
+            raise Refusal("stale")
+
+    def linux_artifacts(self, bound, identity, value):
+        from linux_android_artifact_importer import reopen_linux_artifacts, sync_directory
+
+        if value["status"] != "native_ready" or value.get("tombstone"):
+            raise Refusal("unavailable")
+        self.require_linux_artifact_window(bound)
+        operation = bound.identity.operation_id
+        result = reopen_linux_artifacts(self.state / operation, expected_identity=identity,
+                                        manifest_sha256=value["manifest_sha256"])
+        if result["artifacts"] != value["artifacts"]:
+            raise Refusal("uncertain")
+        self.require_linux_artifact_window(bound)
+        if "customer_log" in result:
+            try:
+                publish_customer_log(self.state, operation, value["binding"]["spec"],
+                                     result["customer_log"], idempotent=True)
+                sync_directory(self.state)
+            except (OSError, ValueError) as error:
+                raise Refusal("uncertain") from error
+            self.require_linux_artifact_window(bound)
+        return {"status": "native_ready", "artifacts": result["artifacts"], "profile": ANDROID_PROFILE,
+                "platform": "android", "operation_id": operation}
+
+    def settle_linux_stop(self, operation, value, closure, guard_expires_at):
+        diagnostic = (literal({"operation_id": operation, "closure": closure}) + "\n").encode()
+        sha = digest(diagnostic)
+        directory = self.state / "blobs"
+        try:
+            directory.mkdir(exist_ok=True)
+            with tempfile.TemporaryDirectory(dir=directory) as staging:
+                pending = Path(staging) / "evidence"
+                with pending.open("xb") as handle:
+                    handle.write(diagnostic)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                os.replace(pending, directory / sha)
+            # Always sync on retry, including when a previous rename succeeded.
+            for path in (directory, self.state):
+                fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+                try:
+                    os.fsync(fd)
+                finally:
+                    os.close(fd)
+        except OSError as error:
+            raise Refusal("uncertain") from error
+        if guard_expires_at <= now_ms():
+            raise Refusal("stale")
+        value.update(status="stopped", diagnostic_sha256=sha, closure=closure)
+        try:
+            with self.db:
+                self.save(operation, value)
+        except sqlite3.Error as error:
+            raise Refusal("uncertain") from error
+        return {"status": "stopped", "diagnostic_sha256": sha}
+
     def request(self, action, request):
         if action not in ("query", "ensure_started", "stop", "artifacts"):
             raise Refusal("unavailable")
         self.authorize(request["spec"])
         if action == "ensure_started" and request["deadline_ms"] <= now_ms():
             raise Refusal("stale")
-        reply = super().request("query", request)
         operation = request["operation_id"]
+        if type(operation) is not str:
+            raise Refusal("unavailable")
+        previous = self.load(operation)
+        runner = self.linux_runner
+        registered_for_runner = (runner is not None and request["spec"]["platform"] == "android"
+                                 and request["spec"]["build_definition_sha256"] == runner.recipe_sha256)
+        runner_bound = previous is not None and "linux_runner" in previous
+        unstarted = previous is None or (previous["status"] == "absent" and not previous.get("tombstone"))
+        if registered_for_runner and (runner_bound or unstarted):
+            return self.request_linux(action, request, previous)
+        if runner_bound:
+            raise Refusal("unavailable")
+        reply = super().request("query", request)
         value = self.load(operation)
         status = value["status"]
         if action == "stop":
@@ -837,8 +1017,7 @@ class NativeWorker(Worker):
             return {"status": "running"}
         if action == "ensure_started" and status == "absent" and not value.get("tombstone"):
             recipe = self.verify(request["spec"])
-            occupied = self.db.execute("SELECT 1 FROM operations WHERE json_extract(value,'$.status') IN ('running','uncertain')").fetchone()
-            if self.future is not None or occupied:
+            if self.capacity_occupied():
                 raise Refusal("unavailable")
             value.update(status="running", starts=1)
             self.save(operation, value)
@@ -851,7 +1030,11 @@ class NativeWorker(Worker):
 
     def close(self):
         self.finish()
-        if self.db.execute("SELECT 1 FROM operations WHERE json_extract(value,'$.status')='uncertain'").fetchone():
+        # The independent runner retains custody across controller shutdown.
+        # A local process with unproven custody still prevents shutdown.
+        if self.db.execute("""SELECT 1 FROM operations
+                WHERE json_extract(value,'$.status')='uncertain'
+                  AND json_type(value,'$.linux_runner') IS NULL""").fetchone():
             raise Refusal("uncertain")
         super().close()
 
@@ -885,8 +1068,8 @@ def exchange(worker, envelope):
     return close, {"body": body, "mac": mac(config["token"], "response", nonce, body)}
 
 
-def serve(config, state):
-    worker = NativeWorker(config, state)
+def serve(config, state, *, linux_runner=None):
+    worker = NativeWorker(config, state, linux_runner=linux_runner)
 
     class Handler(socketserver.StreamRequestHandler):
         timeout = 1
@@ -911,8 +1094,30 @@ def serve(config, state):
                 worker.finish()
 
 
+def configured_linux_runner(config):
+    if "linux_runner" not in config:
+        if "linux_artifact_imports" in config:
+            raise Refusal("unavailable")
+        return None
+    from linux_android_runner import LinuxAndroidRunnerClient
+
+    runner = config["linux_runner"]
+    spec = config["registration"]["spec"]
+    if (type(runner) is not dict or set(runner) != {"socket_path", "recipe_sha256", "store_id"}
+            or type(runner["socket_path"]) is not str
+            or spec["platform"] != "android"
+            or spec["build_definition_sha256"] != runner["recipe_sha256"]):
+        raise Refusal("unavailable")
+    return LinuxAndroidRunnerClient(**runner)
+
+
 if __name__ == "__main__":
     configuration = Path(sys.argv[1]).read_bytes()
     if digest(configuration) != sys.argv[2]:
         raise SystemExit("Configuration digest mismatch")
-    serve(json.loads(configuration), sys.argv[3])
+    config = json.loads(configuration)
+    try:
+        linux_runner = configured_linux_runner(config)
+    except (Refusal, KeyError, TypeError, ValueError) as error:
+        raise SystemExit("Invalid Linux runner configuration") from error
+    serve(config, sys.argv[3], linux_runner=linux_runner)
