@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - 'hosted/**'
+      - 'cli/Sources/MixerBuild/Resources/android-build.py'
+      - 'tests/integration/managed-android-local-linux-pair25/**'
       - 'verification/identity-network-current-source-v5/**'
       - 'verification/identity-network-current-source-v6/**'
       - 'verification/identity-network-current-source-v7/**'
@@ -69,6 +71,7 @@ on:
       - 'verification/identity-network-current-source-v50/selection.json'
       - 'verification/identity-network-current-source-v51/selection.json'
       - 'verification/identity-network-current-source-v52/selection.json'
+      - 'verification/identity-network-current-source-v53/selection.json'
       - 'verification/identity-network-current-source-v24/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v25/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v26/selected-source-manifest.json'
@@ -97,6 +100,7 @@ on:
       - 'verification/identity-network-current-source-v50/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v51/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v52/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v53/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v29/preimages/**'
       - 'verification/identity-network-current-source-v31/preimages/**'
       - 'verification/identity-network-current-source-v32/preimages/**'
@@ -120,6 +124,7 @@ on:
       - 'verification/identity-network-current-source-v50/preimages/**'
       - 'verification/identity-network-current-source-v51/preimages/**'
       - 'verification/identity-network-current-source-v52/preimages/**'
+      - 'verification/identity-network-current-source-v53/preimages/**'
       - 'console/src/App.tsx'
       - 'console/src/main.tsx'
       - 'console/src/styles.css'
@@ -160,6 +165,8 @@ on:
   pull_request:
     paths:
       - 'hosted/**'
+      - 'cli/Sources/MixerBuild/Resources/android-build.py'
+      - 'tests/integration/managed-android-local-linux-pair25/**'
       - 'verification/identity-network-current-source-v5/**'
       - 'verification/identity-network-current-source-v6/**'
       - 'verification/identity-network-current-source-v7/**'
@@ -226,6 +233,7 @@ on:
       - 'verification/identity-network-current-source-v50/selection.json'
       - 'verification/identity-network-current-source-v51/selection.json'
       - 'verification/identity-network-current-source-v52/selection.json'
+      - 'verification/identity-network-current-source-v53/selection.json'
       - 'verification/identity-network-current-source-v24/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v25/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v26/selected-source-manifest.json'
@@ -254,6 +262,7 @@ on:
       - 'verification/identity-network-current-source-v50/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v51/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v52/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v53/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v29/preimages/**'
       - 'verification/identity-network-current-source-v31/preimages/**'
       - 'verification/identity-network-current-source-v32/preimages/**'
@@ -277,6 +286,7 @@ on:
       - 'verification/identity-network-current-source-v50/preimages/**'
       - 'verification/identity-network-current-source-v51/preimages/**'
       - 'verification/identity-network-current-source-v52/preimages/**'
+      - 'verification/identity-network-current-source-v53/preimages/**'
       - 'console/src/App.tsx'
       - 'console/src/main.tsx'
       - 'console/src/styles.css'
@@ -326,6 +336,8 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /hosted/
+            /cli/Sources/MixerBuild/Resources/android-build.py
+            /tests/integration/managed-android-local-linux-pair25/
             /AGENTS.md
             /THIRD_PARTY.yml
             /docs/hosted-browser-auth-protocol.md
@@ -441,6 +453,7 @@ jobs:
             /verification/identity-network-current-source-v50/selection.json
             /verification/identity-network-current-source-v51/selection.json
             /verification/identity-network-current-source-v52/selection.json
+            /verification/identity-network-current-source-v53/selection.json
             /verification/identity-network-current-source-v24/selected-source-manifest.json
             /verification/identity-network-current-source-v25/selected-source-manifest.json
             /verification/identity-network-current-source-v26/selected-source-manifest.json
@@ -469,6 +482,7 @@ jobs:
             /verification/identity-network-current-source-v50/selected-source-manifest.json
             /verification/identity-network-current-source-v51/selected-source-manifest.json
             /verification/identity-network-current-source-v52/selected-source-manifest.json
+            /verification/identity-network-current-source-v53/selected-source-manifest.json
             /verification/identity-network-current-source-v29/preimages/
             /verification/identity-network-current-source-v31/preimages/
             /verification/identity-network-current-source-v32/preimages/
@@ -492,6 +506,7 @@ jobs:
             /verification/identity-network-current-source-v50/preimages/
             /verification/identity-network-current-source-v51/preimages/
             /verification/identity-network-current-source-v52/preimages/
+            /verification/identity-network-current-source-v53/preimages/
             /console/src/api/build-submission.ts
             /console/src/brand.css
             /console/src/build-submission-test-runtime.tsx
@@ -546,6 +561,12 @@ jobs:
         run: |
           python3 -B hosted/scripts/test_native_artifact_worker.py
           python3 -B -O hosted/scripts/test_native_artifact_worker.py
+          for optimization in '' -O; do
+            for suite in test_linux_android_runner_server test_linux_android_docker_adapter test_linux_android_runner_cli test_linux_android_artifact_importer; do
+              python3 -B ${optimization:+-O} "hosted/scripts/$suite.py"
+            done
+            python3 -B ${optimization:+-O} tests/integration/managed-android-local-linux-pair25/test_managed_layout.py
+          done
       - name: Resolve locked dependencies
         working-directory: hosted
         run: mix deps.get --check-locked
