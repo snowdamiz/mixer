@@ -266,7 +266,7 @@ def check_retained_android_artifacts(store, value):
         raise Refusal("uncertain") from error
 
 
-def compiler_log(receipt):
+def command_log(receipt):
     fields = ("exitCode", "stdoutBytes", "stderrBytes")
     values = {key: receipt.get(key) for key in fields}
     truncated = receipt.get("outputTruncated")
@@ -274,7 +274,7 @@ def compiler_log(receipt):
             or not -255 <= values["exitCode"] <= 255
             or not all(0 <= values[key] <= 2**32 for key in fields[1:])
             or type(truncated) is not bool):
-        raise ValueError("Invalid compiler log fields")
+        raise ValueError("Invalid command log fields")
     return dict(values, tailTruncated=truncated, phases=[])
 
 
@@ -607,18 +607,28 @@ def build(recipe, files, output, request, launch):
         if isinstance(outcome, BuildUncertainty):
             return outcome
         result["android_driver_outcome"] = outcome.value
+        log_key = "androidDriver"
+        log_receipt = None
         if len(commands) == 2:
             result["android_driver_exit"] = commands[1]["exitCode"]
+            log_receipt = commands[1]
     else:
         compiler = [c for c in commands if c["command"][0] == "/usr/bin/xcodebuild"]
         if len(compiler) > 1 or (not compiler and code <= 0):
             return BuildUncertainty.CLI_RESULT_UNPROVEN
         if not compiler:
             result["preflight_failed"] = True
+        log_key = "compiler"
+        log_receipt = compiler[0] if compiler else None
     try:
         (output / "closure.json").write_text(literal(result))
     except OSError:
         pass
+    try:
+        result["customer_log"] = {"cliExitCode": code,
+                                  log_key: command_log(log_receipt) if log_receipt is not None else None}
+    except ValueError:
+        pass  # Log projection cannot change the original build or closure outcome.
     if android_tools is not None:
         if outcome is AndroidDriverOutcome.SUCCEEDED and code == 0 and not launch.cancelled:
             try:
@@ -629,11 +639,6 @@ def build(recipe, files, output, request, launch):
             except (OSError, ValueError, KeyError, TypeError, Refusal):
                 pass  # Preserve known closure if the retained products are unavailable.
         return result
-    try:
-        result["customer_log"] = {"cliExitCode": code,
-                                  "compiler": compiler_log(compiler[0]) if compiler else None}
-    except ValueError:
-        pass  # Log projection cannot change the original build or closure outcome.
     if not compiler:
         return result
     try:

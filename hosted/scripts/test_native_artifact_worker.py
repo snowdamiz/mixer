@@ -453,6 +453,7 @@ exit 23
                             "android_driver_outcome": "not_started"},
             }, json.loads(raw))
             self.assertFalse((state / request["operation_id"] / "launch.json").exists())
+            self.assertFalse((state / ("customer-log-v1-" + request["operation_id"])).exists())
             spawn.assert_not_called()
             self.assertEqual(first, self.call(address, "ensure_started", request))
             self.assertEqual({"status": "running"}, self.call(address, "ensure_started", later))
@@ -468,6 +469,15 @@ exit 23
             proof = json.loads((state / "blobs" / stopped["diagnostic_sha256"]).read_bytes())
             self.assertEqual(23, proof["closure"]["exit"])
             self.assertTrue(proof["closure"]["cli_reaped"] and proof["closure"]["cli_group_absent"])
+            exported = state / ("customer-log-v1-" + later["operation_id"])
+            self.assertEqual(0o400, exported.stat().st_mode & 0o777)
+            self.assertEqual({
+                "version": 1, "operationId": later["operation_id"],
+                "sourceSha256": request["spec"]["source"]["sha256"],
+                "toolchainLockSha256": request["spec"]["toolchain_lock_sha256"],
+                "buildDefinitionSha256": request["spec"]["build_definition_sha256"],
+                "cliExitCode": 23, "androidDriver": None,
+            }, json.loads(exported.read_bytes()))
             spawn.assert_called_once()
         with self.listener(config) as address:
             self.assertEqual(first, self.call(address, "query", request))
@@ -530,7 +540,7 @@ def run(argv, directory, retained, order):
     start = time.monotonic_ns()
     child = subprocess.Popen(argv, cwd=directory, stdin=subprocess.DEVNULL,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
-    child.communicate()
+    stdout, stderr = child.communicate()
     assert child.returncode >= 0 and child.stdout.closed and child.stderr.closed
     try:
         os.killpg(child.pid, 0)
@@ -543,7 +553,8 @@ def run(argv, directory, retained, order):
     item = dict(facts, schema="mixer.owned-command.2", state="TERMINAL",
                 command=argv, retainedInputDirectories=retained, pid=child.pid,
                 ownedPGID=child.pid, ownedSession=child.pid, runtimeStartedNS=start,
-                terminalNS=terminal, exitCode=child.returncode, groupKillSent=False)
+                terminalNS=terminal, exitCode=child.returncode, groupKillSent=False,
+                stdoutBytes=len(stdout), stderrBytes=len(stderr), outputTruncated=False)
     if directory is not None:
         item["directory"] = directory
     # The probe's directory sorts after the driver's directory.
@@ -585,8 +596,15 @@ sys.exit(exit_code)
                 self.assertEqual((mode == "driver"), "android_driver_exit" in result)
                 markers = list((output / "tmp").glob("*/mixer-verify-*/android-build/driver-ran"))
                 self.assertEqual(int(mode == "driver"), len(markers))
+                self.assertEqual({
+                    "cliExitCode": exit_code,
+                    "androidDriver": {
+                        "exitCode": 0, "stdoutBytes": 0, "stderrBytes": 0,
+                        "tailTruncated": False, "phases": [],
+                    } if mode == "driver" else None,
+                }, result.pop("customer_log"))
                 self.assertEqual(result, json.loads((output / "closure.json").read_bytes()))
-                self.assertFalse({"artifacts", "manifest_sha256", "customer_log"} & result.keys())
+                self.assertFalse({"artifacts", "manifest_sha256"} & result.keys())
 
     def test_android_retained_report_and_bound_artifact_response(self):
         operation = self.request["operation_id"]
@@ -788,6 +806,7 @@ sys.exit(exit_code)
             ("driver_after_cancelled_probe", 1, cancel, {}, True, unproven),
             ("driver_failed", 1, {}, {"exitCode": 23}, False, "failed"),
             ("driver_deadline", 1, {}, deadline, False, "failed"),
+            ("driver_bad_log_stats", 0, {}, {"stderrBytes": 2**32 + 1}, False, "succeeded"),
             ("cancel", 1, {}, cancel, True, "cancelled"),
             ("success", 0, {}, {}, False, "succeeded"),
             ("cli_failed_after_driver", 1, {}, {}, False, "succeeded"),
@@ -825,6 +844,8 @@ sys.exit(exit_code)
                              "descriptorsClosed", "ownedGroupAbsent", "released"), True)
                         item.update(schema="mixer.owned-command.2", state="TERMINAL", pid=pid,
                                     ownedPGID=pid, ownedSession=pid, exitCode=0, groupKillSent=False,
+                                    stdoutBytes=220, stderrBytes=70, outputTruncated=True,
+                                    output="SwiftCompile /private/source.swift\nEXAMPLE_PRIVATE_ENV_TOKEN=opaque",
                                     **command_facts)
                         item.update(fields)
                         nested = tmp / root_name / f"command-{index}"
@@ -878,8 +899,19 @@ sys.exit(exit_code)
                     self.assertEqual(expected, result["android_driver_outcome"])
                     self.assertEqual(driver_fields is not None, "android_driver_exit" in result)
                     self.assertTrue(result["closed"] and result["cli_reaped"] and result["cli_group_absent"])
+                    if name == "driver_bad_log_stats":
+                        self.assertNotIn("customer_log", result)
+                    else:
+                        self.assertEqual({
+                            "cliExitCode": code,
+                            "androidDriver": {
+                                "exitCode": driver_fields.get("exitCode", 0),
+                                "stdoutBytes": 220, "stderrBytes": 70,
+                                "tailTruncated": True, "phases": [],
+                            } if driver_fields is not None else None,
+                        }, result.pop("customer_log"))
                     self.assertEqual(result, json.loads((output / "closure.json").read_bytes()))
-                    self.assertFalse({"preflight_failed", "artifacts", "manifest_sha256", "customer_log"} & result.keys())
+                    self.assertFalse({"preflight_failed", "artifacts", "manifest_sha256"} & result.keys())
 
     def recipe(self):
         return {"cwd": str(self.root), "environment": {}, "argv": ["fixture-cli", str(self.root)],

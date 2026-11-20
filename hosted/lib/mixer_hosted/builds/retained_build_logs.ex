@@ -84,6 +84,12 @@ defmodule MixerHosted.Builds.RetainedBuildLogs do
   defp stamp(%File.Stat{} = stat), do: %File.Stat{stat | atime: nil, access: nil}
 
   defp events(bytes, operation, selection) do
+    {command_key, event, phases} =
+      case selection.platform do
+        "ios" -> {"compiler", "compiler_finished", @phases}
+        "android" -> {"androidDriver", "android_driver_finished", []}
+      end
+
     with {:ok,
           %{
             "version" => 1,
@@ -92,7 +98,7 @@ defmodule MixerHosted.Builds.RetainedBuildLogs do
             "toolchainLockSha256" => lock,
             "buildDefinitionSha256" => definition,
             "cliExitCode" => cli_exit,
-            "compiler" => compiler
+            ^command_key => command
           } = log}
          when map_size(log) == 7 and is_integer(cli_exit) and cli_exit in -255..255 <-
            Jason.decode(bytes),
@@ -100,33 +106,35 @@ defmodule MixerHosted.Builds.RetainedBuildLogs do
            {source, lock, definition} ==
              {selection.source_sha256, selection.toolchain_lock_sha256,
               selection.build_definition_sha256},
-         {:ok, compiler_events} <- compiler_events(compiler) do
-      {:ok, compiler_events ++ [%{event: "build_command_finished", exitCode: cli_exit}]}
+         {:ok, command_events} <- command_events(command, event, phases) do
+      {:ok, command_events ++ [%{event: "build_command_finished", exitCode: cli_exit}]}
     else
       _ -> {:error, :storage_unavailable}
     end
   end
 
-  defp compiler_events(nil), do: {:ok, []}
+  defp command_events(nil, _, _), do: {:ok, []}
 
-  defp compiler_events(
+  defp command_events(
          %{
            "exitCode" => exit,
            "stdoutBytes" => stdout,
            "stderrBytes" => stderr,
            "tailTruncated" => truncated,
            "phases" => phases
-         } = compiler
+         } = command,
+         event,
+         allowed_phases
        )
-       when map_size(compiler) == 5 and is_integer(exit) and exit in -255..255 and
+       when map_size(command) == 5 and is_integer(exit) and exit in -255..255 and
               is_integer(stdout) and stdout in 0..@max_stream_bytes and
               is_integer(stderr) and stderr in 0..@max_stream_bytes and is_boolean(truncated) and
               is_list(phases) do
-    if phases == Enum.filter(@phases, &(&1 in phases)) do
+    if phases == Enum.filter(allowed_phases, &(&1 in phases)) do
       {:ok,
        [
          %{
-           event: "compiler_finished",
+           event: event,
            exitCode: exit,
            stdoutBytes: stdout,
            stderrBytes: stderr,
@@ -139,5 +147,5 @@ defmodule MixerHosted.Builds.RetainedBuildLogs do
     end
   end
 
-  defp compiler_events(_), do: {:error, :storage_unavailable}
+  defp command_events(_, _, _), do: {:error, :storage_unavailable}
 end

@@ -43,9 +43,9 @@ export function BuildLogs(props: {
       </Match>
       <Match when={events()}>{items =>
         <ol aria-label={`Build events for attempt ${props.target.attempt}`}>
-          <For each={items()}>{event => event.event === "compiler_finished" ?
+          <For each={items()}>{event => event.event !== "build_command_finished" ?
             <li>
-              Compiler finished (exit code {event.exitCode}).
+              {event.event === "compiler_finished" ? "Compiler" : "Android build driver"} finished (exit code {event.exitCode}).
               <div>{event.stdoutBytes} bytes on stdout and {event.stderrBytes} bytes on stderr.</div>
               <Show when={event.phases.length}><div>Recorded phases were {event.phases.join(", ")}.</div></Show>
               <Show when={event.tailTruncated}><div>The output tail was truncated.</div></Show>

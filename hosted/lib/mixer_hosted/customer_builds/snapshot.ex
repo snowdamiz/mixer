@@ -65,7 +65,7 @@ defmodule MixerHosted.CustomerBuilds.Snapshot do
 
   defp result(dto, _, _, _, nil), do: {:ok, dto}
 
-  defp result(dto, record, %{state: state} = build, %{platform: "ios"}, :logs)
+  defp result(dto, record, %{state: state} = build, _, :logs)
        when state in [:native_succeeded, :failed, :cancelled, :timed_out] do
     with {:ok, id} <- Ecto.UUID.cast(record.id),
          %{worker_ref: %Lifecycle.WorkerRef{} = ref} <-

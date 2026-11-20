@@ -536,11 +536,21 @@ defmodule MixerHosted.CustomerBuildLogsHTTPSQLTest do
   use MixerHosted.CustomerBuildInputsFixture, create: true, retained_logs: true
 
   test "authenticated terminal logs expose only the exact committed attempt", c do
-    alias MixerHosted.Builds.{Dispatch, Journal, Lifecycle}
     {cookie, csrf} = login(c)
-    seed_input("fieldlog", "ios", "log-input")
-    [input] = Jason.decode!(http(c, list_path(), headers(cookie)).body)["inputs"]
-    created = post(c, cookie, csrf, "log-build", create_body(input))
+    urls = for platform <- ~w(ios android), do: assert_terminal_logs(c, cookie, csrf, platform)
+
+    F.q!(Admin, "UPDATE mixer_authz_memberships SET active=false WHERE id='member-a'")
+    for url <- urls, do: assert(http(c, url, headers(cookie)).status == 404)
+    leases_clean()
+  end
+
+  defp assert_terminal_logs(c, cookie, csrf, platform) do
+    alias MixerHosted.Builds.{Dispatch, Journal, Lifecycle}
+    seed_input("fieldlog", platform, "log-input-" <> platform)
+
+    inputs = Jason.decode!(http(c, list_path(), headers(cookie)).body)["inputs"]
+    input = Enum.find(inputs, &(&1["platform"] == platform))
+    created = post(c, cookie, csrf, "log-build-" <> platform, create_body(input))
     assert created.status == 201
     selection = Jason.decode!(created.body)["selection"]
     url = "/console-api/v1/build-logs?" <> URI.encode_query(selection)
@@ -549,11 +559,27 @@ defmodule MixerHosted.CustomerBuildLogsHTTPSQLTest do
     assert http(c, url <> "&build_id=duplicate", headers(cookie)).status == 400
     assert http(c, url, headers(cookie) ++ [{"x-http-method-override", "POST"}]).status == 400
 
-    [[id, queued]] = F.q!(Admin, "SELECT id::text,journal FROM mixer_builds").rows
+    [[id, queued]] =
+      F.q!(Admin, "SELECT id::text,journal FROM mixer_builds WHERE platform=$1", [platform]).rows
+
     {:ok, build} = Journal.restore(queued)
     {:ok, ref} = Lifecycle.worker_ref(build)
     operation = Dispatch.operation_id(id, ref)
     path = Path.join(c.hosted.native.retained_root, "customer-log-v1-" <> operation)
+
+    {command_key, event, phases} =
+      case platform do
+        "ios" -> {:compiler, "compiler_finished", ["compile"]}
+        "android" -> {:androidDriver, "android_driver_finished", []}
+      end
+
+    diagnostics = %{
+      exitCode: 65,
+      stdoutBytes: 320,
+      stderrBytes: 80,
+      tailTruncated: false,
+      phases: phases
+    }
 
     payload = %{
       version: 1,
@@ -561,15 +587,10 @@ defmodule MixerHosted.CustomerBuildLogsHTTPSQLTest do
       sourceSha256: selection["source_sha256"],
       toolchainLockSha256: selection["toolchain_lock_sha256"],
       buildDefinitionSha256: selection["build_definition_sha256"],
-      cliExitCode: 1,
-      compiler: %{
-        exitCode: 65,
-        stdoutBytes: 320,
-        stderrBytes: 80,
-        tailTruncated: false,
-        phases: ["compile"]
-      }
+      cliExitCode: 1
     }
+
+    payload = Map.put(payload, command_key, diagnostics)
 
     File.write!(path, Jason.encode!(payload))
     File.chmod!(path, 0o400)
@@ -595,26 +616,27 @@ defmodule MixerHosted.CustomerBuildLogsHTTPSQLTest do
         started_at + 1
       )
 
-    F.q!(Admin, "UPDATE mixer_builds SET journal=$1,revision=$2", [
+    F.q!(Admin, "UPDATE mixer_builds SET journal=$1,revision=$2 WHERE platform=$3", [
       finished,
-      length(finished["events"])
+      length(finished["events"]),
+      platform
     ])
 
     response = http(c, url, headers(cookie))
     assert response.status == 200, response.body
     assert response_header(response, "cache-control") == ["no-store"]
     assert %{"buildLogs" => logs} = Jason.decode!(response.body)
-    assert %{"state" => "failed", "attempt" => 1} = logs
+    assert %{"state" => "failed", "attempt" => 1, "platform" => ^platform} = logs
     assert logs["revision"] == length(finished["events"])
 
     assert logs["events"] == [
              %{
-               "event" => "compiler_finished",
+               "event" => event,
                "exitCode" => 65,
                "stdoutBytes" => 320,
                "stderrBytes" => 80,
                "tailTruncated" => false,
-               "phases" => ["compile"]
+               "phases" => phases
              },
              %{"event" => "build_command_finished", "exitCode" => 1}
            ]
@@ -627,6 +649,7 @@ defmodule MixerHosted.CustomerBuildLogsHTTPSQLTest do
           {"project_id", "project-b"},
           {"application_id", "other"},
           {"build_id", "other"},
+          {"platform", if(platform == "ios", do: "android", else: "ios")},
           {"source_sha256", String.duplicate("e", 64)},
           {"toolchain_lock_sha256", String.duplicate("e", 64)},
           {"build_definition_sha256", String.duplicate("e", 64)}
@@ -645,12 +668,42 @@ defmodule MixerHosted.CustomerBuildLogsHTTPSQLTest do
     File.chmod!(path, 0o400)
     assert http(c, url, headers(cookie)).status == 503
     File.rm!(path)
+
+    if platform == "android" do
+      for invalid <- [
+            Map.put(payload, command_key, %{diagnostics | phases: ["compile"]}),
+            payload |> Map.delete(command_key) |> Map.put(:compiler, diagnostics)
+          ] do
+        File.write!(path, Jason.encode!(invalid))
+        File.chmod!(path, 0o400)
+        assert http(c, url, headers(cookie)).status == 503
+        File.rm!(path)
+      end
+
+      valid = Jason.encode!(payload)
+
+      for {size, status} <- [{2_048, 200}, {2_049, 503}] do
+        File.write!(path, String.pad_trailing(valid, size))
+        File.chmod!(path, 0o400)
+        assert http(c, url, headers(cookie)).status == status
+        File.rm!(path)
+      end
+
+      File.write!(path, Jason.encode!(Map.put(payload, command_key, nil)))
+      File.chmod!(path, 0o400)
+      response = http(c, url, headers(cookie))
+      assert response.status == 200
+
+      assert Jason.decode!(response.body)["buildLogs"]["events"] == [
+               %{"event" => "build_command_finished", "exitCode" => 1}
+             ]
+
+      File.rm!(path)
+    end
+
     File.write!(path, Jason.encode!(payload))
     File.chmod!(path, 0o400)
-
-    F.q!(Admin, "UPDATE mixer_authz_memberships SET active=false WHERE id='member-a'")
-    assert http(c, url, headers(cookie)).status == 404
-    leases_clean()
+    url
   end
 end
 

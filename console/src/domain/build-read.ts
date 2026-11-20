@@ -28,7 +28,7 @@ const compilerPhases: readonly ("compile" | "link" | "package")[] = ["compile", 
 
 type RetainedLogState = Extract<BuildState, "native_succeeded" | "failed" | "cancelled" | "timed_out">;
 export interface BuildLogTarget {
-  readonly selection: BuildReadSelection & { readonly platform: "ios" };
+  readonly selection: BuildReadSelection;
   readonly revision: number;
   readonly attempt: number;
   readonly state: RetainedLogState;
@@ -38,15 +38,17 @@ interface CommandFinished {
   readonly event: "build_command_finished";
   readonly exitCode: number;
 }
-interface CompilerFinished {
-  readonly event: "compiler_finished";
+interface CommandDiagnostics {
   readonly exitCode: number;
   readonly stdoutBytes: number;
   readonly stderrBytes: number;
   readonly tailTruncated: boolean;
-  readonly phases: typeof compilerPhases;
 }
-export type BuildLogEvents = readonly [CommandFinished] | readonly [CompilerFinished, CommandFinished];
+type NativeStepFinished = CommandDiagnostics & (
+  { readonly event: "compiler_finished"; readonly phases: typeof compilerPhases } |
+  { readonly event: "android_driver_finished"; readonly phases: readonly [] }
+);
+export type BuildLogEvents = readonly [CommandFinished] | readonly [NativeStepFinished, CommandFinished];
 
 function requireValid(value: boolean): asserts value {
   if (!value) throw new TypeError("Invalid build read");
@@ -145,9 +147,9 @@ export function buildLogTarget({ selection, snapshot }: Readonly<{
   snapshot: BuildReadSnapshot;
 }>): BuildLogTarget | undefined {
   const { state, attempt, workerCompletionPending } = snapshot.report;
-  if (selection.platform !== "ios" || workerCompletionPending || !retainedLogState(state) ||
+  if (workerCompletionPending || !retainedLogState(state) ||
     !integerIn(snapshot.revision, 1, 32)) return undefined;
-  return { selection: { ...selection, platform: selection.platform }, state, attempt, revision: snapshot.revision };
+  return { selection: { ...selection }, state, attempt, revision: snapshot.revision };
 }
 
 /** Capture both the immutable build key and the displayed terminal attempt. */
@@ -155,9 +157,9 @@ export function snapshotBuildLogTarget(input: unknown): BuildLogTarget {
   requireValid(closed(input, ["selection", "revision", "attempt", "state"]));
   const selection = snapshotBuildReadSelection(input.selection);
   const { revision, attempt, state } = input;
-  requireValid(selection.platform === "ios" && retainedLogState(state) &&
+  requireValid(retainedLogState(state) &&
     integerIn(revision, 1, 32) && integerIn(attempt, 1, 5));
-  return Object.freeze({ selection: Object.freeze({ ...selection, platform: selection.platform }), revision, attempt, state });
+  return Object.freeze({ selection, revision, attempt, state });
 }
 
 export function parseBuildLogs(input: unknown, target: BuildLogTarget): BuildLogEvents {
@@ -175,16 +177,25 @@ export function parseBuildLogs(input: unknown, target: BuildLogTarget): BuildLog
   const commandFinished: CommandFinished = Object.freeze({ event: command.event, exitCode: command.exitCode });
   if (events.length === 1) return Object.freeze([commandFinished]);
 
-  const compiler: unknown = events[0];
-  requireValid(closed(compiler, ["event", "exitCode", "stdoutBytes", "stderrBytes", "tailTruncated", "phases"]));
-  const { event, exitCode, stdoutBytes, stderrBytes, tailTruncated, phases } = compiler;
-  requireValid(event === "compiler_finished" && integerIn(exitCode, -255, 255) &&
+  const step: unknown = events[0];
+  requireValid(closed(step, ["event", "exitCode", "stdoutBytes", "stderrBytes", "tailTruncated", "phases"]));
+  const { event, exitCode, stdoutBytes, stderrBytes, tailTruncated, phases } = step;
+  requireValid(integerIn(exitCode, -255, 255) &&
     integerIn(stdoutBytes, 0, 2 ** 32) && integerIn(stderrBytes, 0, 2 ** 32) &&
     typeof tailTruncated === "boolean" && Array.isArray(phases) && phases.length <= compilerPhases.length);
+  const diagnostics = { exitCode, stdoutBytes, stderrBytes, tailTruncated };
+  if (target.selection.platform === "android") {
+    requireValid(event === "android_driver_finished" && phases.length === 0);
+    return Object.freeze([
+      Object.freeze({ ...diagnostics, event, phases: Object.freeze([] as const) }),
+      commandFinished,
+    ]);
+  }
+  requireValid(event === "compiler_finished");
   const knownPhases = compilerPhases.filter(phase => phases.includes(phase));
   requireValid(knownPhases.length === phases.length && knownPhases.every((phase, index) => phase === phases[index]));
   return Object.freeze([
-    Object.freeze({ event, exitCode, stdoutBytes, stderrBytes, tailTruncated, phases: Object.freeze(knownPhases) }),
+    Object.freeze({ ...diagnostics, event, phases: Object.freeze(knownPhases) }),
     commandFinished,
   ]);
 }

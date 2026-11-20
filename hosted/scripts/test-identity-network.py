@@ -2995,9 +2995,15 @@ WORKSPACE_V48_SOURCE_DIGEST = 'af03a3eccf5e40a126de02f3192415db154411ef3a0e30144
 WORKSPACE_V48_SOURCE_COUNT = 407
 WORKSPACE_V48_MANIFEST_SHA256 = '2d008638aad32357947d13a3776c17e8f607d073303c6f2186ef5af6325c8d45'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v49/'
-WORKSPACE_SELECTION_SHA256 = 'e3de220de7fa72d4cd8ffa1436f66d1c749adbf4fe2696272b23048639cb378b'
-WORKSPACE_SOURCE_DIGEST = '30678a747bad08833fc1f2d93f5b326dfa9317f53601ae6aac24c2a2e2d1078e'
+WORKSPACE_V49_SOURCE_BASE = 'verification/identity-network-current-source-v49/'
+WORKSPACE_V49_SELECTION_SHA256 = 'e3de220de7fa72d4cd8ffa1436f66d1c749adbf4fe2696272b23048639cb378b'
+WORKSPACE_V49_SOURCE_DIGEST = '30678a747bad08833fc1f2d93f5b326dfa9317f53601ae6aac24c2a2e2d1078e'
+WORKSPACE_V49_SOURCE_COUNT = 407
+WORKSPACE_V49_MANIFEST_SHA256 = '4a52713c02cc4f711f45b174fea4cd1c47ca2b187de3258b55c8c1b4aae68332'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v50/'
+WORKSPACE_SELECTION_SHA256 = '4e2086e7c88703262a9b7b4c8edcb4654d85428fff69d29de315eacd63d372c3'
+WORKSPACE_SOURCE_DIGEST = '8596a2621937451ce645f6211f04ec70539bb428be52d95f0092c65016b6fecc'
 WORKSPACE_SOURCE_COUNT = 407
 WORKSPACE_LOCAL_SOURCE_MIGRATION = 'hosted/priv/local_source_selection/20261118000012_local_source_selection.exs'
 STARTER_PACKAGE_CLOSURE_SOURCE = 'hosted/priv/development/starter_package_closure.py'
@@ -3370,10 +3376,10 @@ def validate_workspace_v48_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v49_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V48_MANIFEST, {
+        metadata, WORKSPACE_V49_SOURCE_BASE, WORKSPACE_V49_SELECTION_SHA256,
+        WORKSPACE_V49_SOURCE_COUNT, WORKSPACE_V49_SOURCE_DIGEST, WORKSPACE_V48_MANIFEST, {
             'source_count': WORKSPACE_V48_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V48_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V48_SELECTION_SHA256,
@@ -3390,6 +3396,35 @@ def validate_workspace_source_metadata(metadata):
                 'hosted/scripts/test_native_artifact_worker.py',
                 'hosted/test/mixer_hosted/builds/native_development_dispatch_test.exs',
             }, 'managed Android native source membership')
+    require(selection['opt_in_migration'] == WORKSPACE_LOCAL_SOURCE_MIGRATION and
+            WORKSPACE_LOCAL_SOURCE_MIGRATION in manifest, 'opt-in source starter migration')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V49_MANIFEST, {
+            'source_count': WORKSPACE_V49_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V49_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V49_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V49_MANIFEST_SHA256,
+        }, migration_count=20)
+    require(selection['identity'] == 'hosted-retained-android-build-logs-source-v50' and
+            selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'retained Android build logs source scope')
+    require(set(manifest) == set(WORKSPACE_V49_MANIFEST) and set(selection['exact_delta']) == {
+                'console/src/components/BuildLogs.tsx',
+                'console/src/domain/build-read.ts',
+                'console/tests/application-build-page.test.mjs',
+                'console/tests/cookie-build-client.test.mjs',
+                'hosted/lib/mixer_hosted/builds/retained_build_logs.ex',
+                'hosted/lib/mixer_hosted/customer_builds/snapshot.ex',
+                'hosted/priv/development/native_artifact_worker.py',
+                'hosted/scripts/test_native_artifact_worker.py',
+                'hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs',
+            }, 'retained Android build logs source membership')
     require(selection['opt_in_migration'] == WORKSPACE_LOCAL_SOURCE_MIGRATION and
             WORKSPACE_LOCAL_SOURCE_MIGRATION in manifest, 'opt-in source starter migration')
     return selection, manifest
@@ -3479,6 +3514,10 @@ def check_workspace_source(root):
         workspace_source_metadata(root, WORKSPACE_V48_SOURCE_BASE))
     v48_rows = workspace_preimage_rows(v48_selection, WORKSPACE_V48_SOURCE_BASE)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v48_rows}, v48_rows)
+    v49_selection, _ = validate_workspace_v49_metadata(
+        workspace_source_metadata(root, WORKSPACE_V49_SOURCE_BASE))
+    v49_rows = workspace_preimage_rows(v49_selection, WORKSPACE_V49_SOURCE_BASE)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v49_rows}, v49_rows)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows = workspace_preimage_rows(selection)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
@@ -4719,6 +4758,14 @@ class Collector:
         validate_workspace_preimages(v48_preimages, v48_rows)
         metadata.update(v48_metadata)
         metadata.update(v48_preimages)
+        v49_metadata = self.git_blobs(
+            [WORKSPACE_V49_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v49_selection, _ = validate_workspace_v49_metadata(v49_metadata)
+        v49_rows = workspace_preimage_rows(v49_selection, WORKSPACE_V49_SOURCE_BASE)
+        v49_preimages = self.git_blobs(sorted(v49_rows))
+        validate_workspace_preimages(v49_preimages, v49_rows)
+        metadata.update(v49_metadata)
+        metadata.update(v49_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -5496,6 +5543,8 @@ _, WORKSPACE_V47_MANIFEST = validate_workspace_v47_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V47_SOURCE_BASE))
 _, WORKSPACE_V48_MANIFEST = validate_workspace_v48_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V48_SOURCE_BASE))
+_, WORKSPACE_V49_MANIFEST = validate_workspace_v49_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V49_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':

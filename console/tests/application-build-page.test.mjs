@@ -199,7 +199,7 @@ test("normal route opens retained logs from an already successful native catalog
   } finally { f.close(); }
 });
 
-test("selected Android build labels its retained app as an unsigned APK", async () => {
+test("selected Android build shows its unsigned APK and authenticated driver logs", async () => {
   const readAndroid = readPath.replace("build_id=b-ios&platform=ios", "build_id=c-android&platform=android");
   const artifacts = nativeDetail.artifacts.map(artifact => ({
     ...artifact,
@@ -221,7 +221,16 @@ test("selected Android build labels its retained app as an unsigned APK", async 
     const links = artifactLinks(f.container);
     assert.deepEqual(links.map(link => link.textContent), ["Unsigned APK", "Debug symbols", "Resource inventory"]);
     assert.deepEqual(links.map(link => link.getAttribute("href")), artifacts.map(artifact => artifact.downloadPath));
-    assert.doesNotMatch(f.text(), /View build logs/);
+    assert.equal(f.calls.some(call => call.path.startsWith("/console-api/v1/build-logs")), false);
+    f.click("View build logs");
+    const driver = { ...compiler, event: "android_driver_finished", phases: [] };
+    const { artifacts: _artifacts, ...logBuild } = android;
+    (await f.request(readAndroid.replace("/builds?", "/build-logs?")))
+      .resolve(json(logEnvelope(logBuild, [driver, command])));
+    await flush();
+    const events = walk(f.container).find(node => node.getAttribute("aria-label") === "Build events for attempt 1");
+    assert.match(events?.textContent ?? "", /Android build driver finished \(exit code 0\).*320 bytes on stdout.*80 bytes on stderr.*Build command finished \(exit code 0\)/);
+    assert.doesNotMatch(events.textContent, /Compiler finished|Recorded phases/);
   } finally { f.close(); }
 });
 

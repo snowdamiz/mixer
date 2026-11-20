@@ -274,7 +274,9 @@ test("retained build DTOs enforce the selected platform and per-role byte caps",
     assert.equal(snapshot.report.platform, platform);
     assert.equal(snapshot.report.state, "native_succeeded");
     assert.deepEqual(snapshot.artifacts, artifacts);
-    if (platform === "android") assert.equal(buildLogTarget({ selection, snapshot }), undefined);
+    assert.deepEqual(buildLogTarget({ selection, snapshot }), {
+      selection, revision: 2, attempt: 1, state: "native_succeeded",
+    });
 
     for (const artifact of artifacts) {
       artifact.sizeBytes++;
@@ -342,7 +344,7 @@ test("terminal logs use the exact cookie GET and snapshot the selection before f
 test("logs reject invalid target before fetch and every mismatched build or attempt", async () => {
   const client = createCookieBuildClient({ fetch: async () => assert.fail("invalid target reached fetch") });
   for (const input of [null, logTarget({ selection: { ...selected(), buildId: "bad/id" } }),
-    logTarget({ selection: { ...selected(), platform: "android" } }), logTarget({ state: "running" }),
+    logTarget({ selection: { ...selected(), platform: "web" } }), logTarget({ state: "running" }),
     logTarget({ state: "reconciling" }), logTarget({ state: "succeeded" }), logTarget({ attempt: 0 }), logTarget({ attempt: 6 }),
     logTarget({ revision: 0 }), logTarget({ revision: 33 }), logTarget({ token: "private" })]) {
     await assert.rejects(client.readLogs(input), safeError("invalid_request"));
@@ -355,6 +357,23 @@ test("logs reject invalid target before fetch and every mismatched build or atte
     { state: "succeeded" }, { workerCompletionPending: true }, { maxAttempts: 0 }, { failureCode: "compiler_error" }]) {
     await assert.rejects(apiFor(logsDto(changes)).readLogs(logTarget()), safeError("invalid_response"));
   }
+});
+
+test("Android logs accept only a driver event or the CLI-only preflight shape", async () => {
+  const platform = "android";
+  const target = logTarget({ selection: { ...selected(), platform } });
+  const driver = { ...compilerFinished, event: "android_driver_finished", phases: [] };
+  const events = [driver, commandFinished];
+  assert.deepEqual(await apiFor(logsDto({ platform, events })).readLogs(target), events);
+  const preflight = [{ ...commandFinished, exitCode: 23 }];
+  assert.deepEqual(await apiFor(logsDto({ platform, state: "cancelled", events: preflight }))
+    .readLogs({ ...target, state: "cancelled" }), preflight);
+
+  for (const step of [compilerFinished, { ...driver, phases: ["package"] }, { ...driver, stderr: "private" }]) {
+    await assert.rejects(apiFor(logsDto({ platform, events: [step, commandFinished] }))
+      .readLogs(target), safeError("invalid_response"));
+  }
+  await assert.rejects(apiFor(logsDto({ events })).readLogs(logTarget()), safeError("invalid_response"));
 });
 
 test("logs reject other envelopes, raw output and anything outside the retained event grammar", async () => {
