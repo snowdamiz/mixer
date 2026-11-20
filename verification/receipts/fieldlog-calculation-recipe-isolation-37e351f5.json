@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "scope": "Current-ABI read-only calculation pair rebuild recipe controls on macOS arm64",
+  "testedRevision": "964dfc7dd736c4667ebd5254eaeb82d2dcf91050",
+  "producerSnapshotFix": "bdf5bd4556163f9e92580a8744b1a6ec412cee7a",
+  "fixtureSealSHA256": "1d9117c90b71f428d07d7cd1d1944dfb71b35a687a05f45f3900bf5bcb597106",
+  "fixtureMembers": 41,
+  "verification": {
+    "normalPassed": 8,
+    "optimizedPassed": 8,
+    "driverControl": "The pinned android-build.py inspect argv reproduced Python startup and bytecode cache imports without isolation. The projected launcher shim forwarded the same argv with neither import.",
+    "stockCLI": {
+      "revision": "37e351f5ea58662ce71a85b9a740187a95f5608e",
+      "executableSHA256": "ea1c3559fb43493179f929d8617c9e7771080d33be8ce443830b45bd71903f19",
+      "sameAndroidProjectAndOwnedLauncherSourceAs": "b144c2c2042a4499365d1186f46d43fba1832143",
+      "command": "mixer create FieldLog --directory <new path> --application dev.fieldlog.generatedr90.calculation --sdk-path <pinned SDK> --android-adapter-path <pinned adapter> --platform android",
+      "unwrappedLoadedAmbientStartup": true,
+      "wrappedLoadedAmbientStartup": false,
+      "bothReachedExpectedMissingSwiftRefusal": true,
+      "processGroups": {
+        "prepare": {
+          "custody": "closed",
+          "exit": 1
+        },
+        "unwrapped": {
+          "custody": "closed",
+          "exit": 1
+        },
+        "wrapped": {
+          "custody": "closed",
+          "exit": 1
+        }
+      },
+      "peakSampledScratchKiB": 636
+    },
+    "independentReview": [
+      "The sealer hashes the bounded validated snapshot and rejects live handoff drift before publication.",
+      "The stock CLI resolves the isolated Python wrapper and preserves its arguments."
+    ],
+    "ownedFixtureCopyAndControlScratchRemoved": true,
+    "hostedV66PinnedPathsUnchanged": 475
+  },
+  "limitations": [
+    "The exact stock project control stopped before any compiler invocation.",
+    "No fresh full APK rebuild, signing, or Android replay was performed for this recipe correction.",
+    "The ordinary selected-task Android campaign and its custody hold are separate."
+  ]
+}
