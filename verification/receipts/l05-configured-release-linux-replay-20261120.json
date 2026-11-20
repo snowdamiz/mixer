@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "date": "2026-11-20",
+  "gate": "L05",
+  "base": "6ba8a10248cc8f6db08faf6e218d9c9cc5d346e4",
+  "baseTree": "2091d4b62219a818cf4d55a5de1c1febfb70e62d",
+  "baseHostedTree": "475eaa4f54fa36988b57fd04d9308cd50347d874",
+  "fixture": {
+    "runner": "hosted/scripts/replay-configured-release.sh",
+    "runnerSha256": "0f34988e59086a4321b506e9d4e034c1ad383f7c4e177b4038a3c067c84cc19b",
+    "test": "hosted/test/mixer_hosted/releases/configured_release_replay_test.exs",
+    "testSha256": "8a0b17b3937a2d46453665d4fa9df03d7f4f1f4953d400159cac3f3776a2f901",
+    "instructions": "hosted/scripts/replay-configured-release.md",
+    "signedVectorBlob": "b6016b64067ecc773b1b01d6e1968b8664d17c45",
+    "target": ["org-a", "project-a", "fieldlog", "development", "ios", "4458cc1f9ff4357cad2e529d56de9c1e962679a3023ea72c8cb6c909d99bb888", "beta"],
+    "expectedSequence": 7,
+    "expectedManifestSha256": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64"
+  },
+  "observed": {
+    "platform": "Darwin 27.0.0 arm64",
+    "tools": {
+      "elixir": "1.20.4",
+      "otp": "29.1.1",
+      "postgresql": "17.11",
+      "openssl": "4.1.0",
+      "shellcheck": "0.11.0"
+    },
+    "startupControl": {
+      "cwd": "hosted",
+      "command": "./scripts/replay-configured-release.sh --startup-only",
+      "exit": 0,
+      "output": "Result: 1 passed",
+      "checks": [
+        "Exactly one ordinary API application start from config/runtime.exs with configured identity and a cold key owner",
+        "Exact signed artifact staged through restricted PostgreSQL storage authorization before boot",
+        "Restricted writer and reader used PostgreSQL TLS and lacked direct artifact SELECT",
+        "Health 200, validation without bearer 401, exact empty offer 204, staged artifact 404, and empty publication ledger"
+      ]
+    },
+    "directWriterDiagnostic": {
+      "method": "Temporary addition to the startup control called Releases.cli with an explicit synthetic VerifiedIdentity bound to replay-owner. It invoked validate then publish twice through the runtime-provisioned TLS writer.",
+      "exit": 0,
+      "output": "Result: 1 passed",
+      "observed": "One sequence 7 publication with the exact digest, signed assignment bytes, and principal. The updater offer and artifact GET returned 200 and the expected bytes.",
+      "limit": "This diagnostic bypassed the HTTP bearer boundary by calling the writer directly. The temporary change was removed."
+    },
+    "defaultRunnerOnMac": {
+      "command": "./scripts/replay-configured-release.sh",
+      "exit": 2,
+      "output": "Configured identity replay requires a fresh Linux network namespace."
+    },
+    "runtimeProvisioning": {
+      "command": "MIX_ENV=test HEX_OFFLINE=1 mix test --warnings-as-errors --seed 0 test/mixer_hosted/releases/runtime_provisioning_test.exs test/mixer_hosted/releases/configured_release_replay_test.exs",
+      "exit": 0,
+      "output": "Result: 8 passed, 1 skipped"
+    },
+    "staticChecks": ["mix format --check-formatted", "sh -n", "shellcheck"],
+    "cleanup": {
+      "ownedApplicationStopped": true,
+      "ownedPostgresStopped": true,
+      "runnerScratchRemoved": true,
+      "ports5432And47301WithoutListenersAfterRun": true
+    }
+  },
+  "linuxAuthenticatedReplay": "Pending. Darwin has no Linux network namespace or installed standalone Linux runner. The runbook specifies the required private Linux namespace and offline dependency preparation.",
+  "integrationBoundary": "The full minted-token HTTP path and production DNS/JWKS admission still need a Linux execution. Stock CLI upload requires ordinary CustomerArtifacts uploader configuration. L05 remains open.",
+  "externalResourcesUsed": false
+}
