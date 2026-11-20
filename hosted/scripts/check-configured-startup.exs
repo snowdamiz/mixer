@@ -55,6 +55,20 @@ defmodule MixerHostedWeb.Endpoint do
   def config_change(_, _), do: :ok
 end
 
+defmodule MixerHosted.Releases.PublicDelivery do
+  def children(_) do
+    :disabled = Application.get_env(:mixer_hosted, :local_release_delivery, :disabled)
+    []
+  end
+end
+
+defmodule MixerHosted.Releases.WriterRepo do
+  def children(_) do
+    :error = Application.fetch_env(:mixer_hosted, __MODULE__)
+    []
+  end
+end
+
 inputs = [
   "hosted/lib/mixer_hosted/application.ex",
   "hosted/lib/mixer_hosted/builds/operation_intent_schema.ex",

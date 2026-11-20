@@ -50,7 +50,7 @@ development signer holds the private keys outside Phoenix.
 
    ```sh
    psql -X -v ON_ERROR_STOP=1 "$MIXER_LOCAL_ADMIN_DSN" \
-     -f priv/local_release_delivery/provision_reader.sql
+     -f ../docs/operations/provision-local-release-reader.sql
    psql -X "$MIXER_LOCAL_ADMIN_DSN"
    ```
 
