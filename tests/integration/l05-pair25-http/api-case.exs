@@ -254,9 +254,10 @@ defp pair25_wait!(c, renewed, deadline) do
       pair25_publish!("api.cancel-auth", %{cookie: cookie, csrf: csrf})
       pair25_wait!(c, renewed, deadline)
 
-    File.regular?(pair25_path("api.checkout.request")) and
+    (File.regular?(pair25_path("api.checkout.request")) or
+       File.regular?(pair25_path("api.checkout.burst"))) and
         not File.regular?(pair25_path("api.checkout.closed")) ->
-      pair25_checkout_outage!()
+      pair25_checkout_outage!(File.regular?(pair25_path("api.checkout.burst")))
       pair25_wait!(c, renewed, deadline)
 
     not renewed and File.regular?(pair25_path("api.refresh")) ->
@@ -286,15 +287,35 @@ def pair25_checkout_event(
              message: "connection not available and queuing is disabled"
            }}
       },
-      test
+      {test, observer, burst}
     )
     when is_integer(duration) and duration >= 0 and map_size(measurements) == 2 do
-  send(test, {:checkout_refused_before_begin, duration})
+  send(test, {:checkout_refused_before_begin, self(), duration})
+
+  if burst do
+    receive do
+      {:checkout_respond, ^observer} -> :ok
+    after
+      6_000 -> send(test, :checkout_response_wait_expired)
+    end
+  end
 end
+
+def pair25_checkout_event(
+      @checkout_event,
+      _,
+      %{
+        repo: MixerHosted.BrowserAuth.LifecycleRepo,
+        query: "begin",
+        result: {:ok, %Postgrex.Result{command: :begin}}
+      },
+      {test, _, true}
+    ),
+    do: send(test, :checkout_began)
 
 def pair25_checkout_event(_, _, _, _), do: :ok
 
-defp pair25_checkout_outage! do
+defp pair25_checkout_outage!(burst) do
   alias MixerHosted.BrowserAuth.LifecycleRepo
 
   lifecycle = RuntimeOwner.status()
@@ -307,7 +328,16 @@ defp pair25_checkout_outage! do
 
   parent = self()
   observer = make_ref()
-  :ok = :telemetry.attach(observer, @checkout_event, &__MODULE__.pair25_checkout_event/4, parent)
+
+  :ok =
+    :telemetry.attach(
+      observer,
+      @checkout_event,
+      &__MODULE__.pair25_checkout_event/4,
+      {parent, observer, burst}
+    )
+
+  hold_ms = if burst, do: 14_000, else: 5_000
 
   tasks =
     for _ <- 1..2 do
@@ -319,11 +349,11 @@ defp pair25_checkout_outage! do
             receive do
               :release_checkout -> :released
             after
-              5_000 -> raise "Pair25 checkout hold expired"
+              hold_ms -> raise "Pair25 checkout hold expired"
             end
           end,
           queue: false,
-          timeout: 6_000
+          timeout: hold_ms + 1_000
         )
       end)
     end
@@ -338,8 +368,31 @@ defp pair25_checkout_outage! do
              DBConnection.get_connection_metrics(pool)
 
     pair25_publish!("api.checkout.ready", %{held: 2, queue: 0})
-    assert_receive {:checkout_refused_before_begin, duration}, 3_000
-    pair25_publish!("api.checkout.refused", %{before_begin: true, queue_ns: duration})
+
+    if burst do
+      refusals =
+        for _ <- 1..4 do
+          assert_receive {:checkout_refused_before_begin, pid, duration}, 1_000
+          {pid, duration}
+        end
+
+      {handlers, durations} = Enum.unzip(refusals)
+      assert length(Enum.uniq(handlers)) == 4
+      pair25_publish!("api.checkout.refused", %{before_begin: true, queue_ns: durations})
+      pair25_await_burst!("api.checkout.respond", System.monotonic_time(:millisecond) + 4_000)
+      for handler <- handlers, do: send(handler, {:checkout_respond, observer})
+      pair25_await_burst!("api.checkout.drained", System.monotonic_time(:millisecond) + 5_000)
+
+      refute_received :checkout_response_wait_expired
+      refute_received :checkout_began
+      refute_received {:checkout_refused_before_begin, _, _}
+
+      assert [%{ready_conn_count: 0, checkout_queue_length: 0}] =
+               DBConnection.get_connection_metrics(pool)
+    else
+      assert_receive {:checkout_refused_before_begin, _, duration}, 3_000
+      pair25_publish!("api.checkout.refused", %{before_begin: true, queue_ns: duration})
+    end
   after
     :telemetry.detach(observer)
     for task <- tasks, do: send(task.pid, :release_checkout)
@@ -352,6 +405,16 @@ defp pair25_checkout_outage! do
            DBConnection.get_connection_metrics(pool)
 
   pair25_publish!("api.checkout.closed", %{checked_in: 2, generation: lifecycle.generation})
+end
+
+defp pair25_await_burst!(name, deadline) do
+  assert System.monotonic_time(:millisecond) < deadline,
+         "checkout burst timed out waiting for #{name}"
+
+  unless File.regular?(pair25_path(name)) do
+    Process.sleep(20)
+    pair25_await_burst!(name, deadline)
+  end
 end
 
 defp pair25_publish!(name, data) do

@@ -330,7 +330,7 @@ class Run:
             self.receipt["release_publication"]["audit_unchanged"] = True
         require(process.returncode == 0, "release origin did not shut down cleanly")
 
-    def pair25(self, sockets, scratch_parent, operator):
+    def pair25(self, sockets, scratch_parent, operator, *, checkout_burst=False):
         self.ports["release_origin"] = port()
         with ExitStack() as stack:
             release_db = stack.enter_context(self.postgres(
@@ -351,6 +351,8 @@ class Run:
             command = [sys.executable, "-B", ROOT / "tests/integration/l05-pair25-http/run.py",
                        "--worker-crash", "--reserved-scratch", child_scratch, "--receipt", output,
                        "--release-observation", observation_path, "--pg-bin", self.pg]
+            if checkout_burst:
+                command.append("--checkout-burst")
             if operator is None:
                 command.extend(("--inert-finish-on-reopen", "--seconds", "100"))
             else:
@@ -370,6 +372,8 @@ class Run:
                         and evidence["capacityReleased"] is True
                         and evidence["cancelAttempts"] == 0 and evidence["cancellationExercised"] is False,
                         "Pair25 checkout and completion failed: " + stdout[-3_000:].decode(errors="replace"))
+                if checkout_burst:
+                    require("burst" in evidence["combinedOutage"], "Pair25 checkout burst evidence missing")
             finally:
                 if self.receipt["nestedCustodyUnresolved"] and custody.is_file():
                     with custody.open("rb") as stream:
@@ -448,11 +452,15 @@ def main():
     parser.add_argument("--pair25-scratch-parent", type=Path,
                         help="run the Pair25 worker outage with signed delivery, using a short private scratch parent")
     parser.add_argument("--operator", type=Path, help="approved Pair25 operator config for the real compiler retry")
+    parser.add_argument("--checkout-burst", action="store_true",
+                        help="overlap four same-key build retries with signed reads in Pair25 mode")
     args = parser.parse_args()
     if args.pair25_scratch_parent and (args.rehearse_alert or not os.environ.get("HEX_HOME")):
         parser.error("the Pair25 replay requires a private lock-verified HEX_HOME and no alert flag")
     if args.operator and not args.pair25_scratch_parent:
         parser.error("--operator requires --pair25-scratch-parent")
+    if args.checkout_burst and not args.pair25_scratch_parent:
+        parser.error("--checkout-burst requires --pair25-scratch-parent")
     args.receipt = args.receipt.resolve()
     require(not args.receipt.exists() and args.receipt.parent.is_dir(), "choose a new receipt path")
     os.umask(0o077)
@@ -476,7 +484,8 @@ def main():
             receipt["scope"] = "One ordinary Pair25 worker outage with an original-key checkout refusal and signed PostgreSQL delivery."
             receipt["limits"] = "Real managed compiler in operator mode. Inert runner in the default Pair25 mode."
             run.pair25(sockets, args.pair25_scratch_parent.resolve(strict=True),
-                       args.operator.resolve(strict=True) if args.operator else None)
+                       args.operator.resolve(strict=True) if args.operator else None,
+                       checkout_burst=args.checkout_burst)
             receipt["status"] = "PASS_SCOPED_PAIR25_WORKER_OUTAGE_RELEASE"
         else:
             run.exercise(sockets)

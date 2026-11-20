@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """One local authenticated Android build, with a paused registration boundary."""
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager, closing, ExitStack, nullcontext
 from dataclasses import asdict
 import errno
@@ -21,6 +22,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+from threading import Barrier, Event
 import time
 from urllib.parse import parse_qs, urlencode, urlsplit
 
@@ -33,6 +35,7 @@ BROWSER_PIN = "26000a3fa85a96e5e1e13df221528ac7df8b9add"
 INERT_LOCK = b"inert Linux lock\n"
 INERT_DRIVER_LOG = {"exitCode": 0, "stdoutBytes": 320, "stderrBytes": 80, "outputTruncated": False}
 HOST = "127.0.0.1"
+BURST_RETRIES = 4
 DB = "browser_ordinary_installation_r1422"
 BUILD = "/console-api/v1/builds"
 CANCEL = BUILD + "/cancel"
@@ -177,22 +180,62 @@ def http(auth, path, *, cookie=None, body=None, empty_post=False):
             return response.status, dict(response.getheaders()), payload
 
 
+def release_read(configuration, kind):
+    observation = configuration[kind]
+    target = urlsplit(observation["url"])
+    require(target.scheme == "http" and target.hostname == HOST and target.port
+            and target.netloc == f"{HOST}:{target.port}" and target.path.startswith("/v3/")
+            and not target.fragment, "release probe must use a pinned IPv4 loopback route")
+    with closing(HTTPConnection(HOST, target.port, timeout=1)) as connection:
+        connection.request("GET", target.path + ("?" + target.query if target.query else ""))
+        with connection.getresponse() as response:
+            raw = response.read(65_537)
+    require(response.status == 200 and len(raw) <= 65_536 and sha(raw) == observation["sha256"],
+            f"committed release {kind} changed")
+    return {"http": response.status, "bytes": len(raw), "sha256": sha(raw)}
+
+
 def release_snapshot(configuration):
-    snapshot = {}
-    for kind in ("offer", "artifact"):
-        observation = configuration[kind]
-        target = urlsplit(observation["url"])
-        require(target.scheme == "http" and target.hostname == HOST and target.port
-                and target.netloc == f"{HOST}:{target.port}" and target.path.startswith("/v3/")
-                and not target.fragment, "release probe must use a pinned IPv4 loopback route")
-        with closing(HTTPConnection(HOST, target.port, timeout=1)) as connection:
-            connection.request("GET", target.path + ("?" + target.query if target.query else ""))
-            with connection.getresponse() as response:
-                raw = response.read(65_537)
-        require(response.status == 200 and len(raw) <= 65_536 and sha(raw) == observation["sha256"],
-                f"committed release {kind} changed")
-        snapshot[kind] = {"http": response.status, "bytes": len(raw), "sha256": sha(raw)}
-    return snapshot
+    return {kind: release_read(configuration, kind) for kind in ("offer", "artifact")}
+
+
+def checkout_refusal(auth, cookie, body):
+    status, headers, raw = http(auth, BUILD, cookie=cookie, body=body)
+    require(status == 503 and not any(k.lower() == "set-cookie" for k in headers)
+            and json.loads(raw) == {"error": {"code": "authorization_unavailable",
+                                              "message": "Build request refused."}},
+            "original build key did not get the bounded checkout refusal")
+    return status
+
+
+def checkout_burst(auth, cookie, release, refusals_ready, release_responses):
+    kinds = ("offer", "artifact")
+    participants = BURST_RETRIES + len(kinds)
+    start = Barrier(participants, timeout=2)
+    read_signed = Event()
+
+    def retry():
+        start.wait()
+        return checkout_refusal(auth, cookie, auth["build"])
+
+    def signed_read(kind):
+        start.wait()
+        # Phoenix has paused every refused POST before writing its response.
+        require(read_signed.wait(timeout=5), "signed reads timed out waiting for pre-BEGIN refusals")
+        return release_read(release, kind)
+
+    with ThreadPoolExecutor(max_workers=participants) as pool:
+        retries = [pool.submit(retry) for _ in range(BURST_RETRIES)]
+        reads = {kind: pool.submit(signed_read, kind) for kind in kinds}
+        refusal = refusals_ready()
+        require(refusal["before_begin"] is True and len(refusal["queue_ns"]) == BURST_RETRIES,
+                "checkout burst did not observe four pre-BEGIN refusals")
+        read_signed.set()
+        during = {kind: future.result() for kind, future in reads.items()}
+        require(all(not retry.done() for retry in retries),
+                "signed reads did not overlap all the pre-BEGIN refusals")
+        release_responses()
+        return during, refusal, [retry.result() for retry in retries]
 
 
 def wire(config, action, request=None):
@@ -1197,17 +1240,38 @@ def drive(root, args, env, result):
                                 outage_auth = dict(auth, csrf=sessions["owner_csrf"])
                                 require(connect_errno(worker_port) == errno.ECONNREFUSED,
                                         "checkout experiment must run during the worker outage")
-                                mark("api.checkout.request")
+                                if args.checkout_burst:
+                                    job_query = ("SELECT json_agg(json_build_array(id, args->>'kind') ORDER BY id) "
+                                                 "FROM oban_jobs")
+                                    jobs = json.loads(sql(job_query))
+                                    require(len(jobs) == 2 and jobs[0][1] == "created"
+                                            and jobs[1] == [original_job[0], "start"],
+                                            "burst must start with only the original Oban jobs")
+                                mark("api.checkout.burst" if args.checkout_burst else "api.checkout.request")
                                 combined["saturated"] = ready("api.checkout.ready", api, seconds=4)
-                                combined["during"] = release_snapshot(release)
-                                status, headers, raw = http(
-                                    outage_auth, BUILD, cookie=sessions["owner"], body=auth["build"])
-                                combined["refusedHTTP"] = status
-                                require(status == 503 and not any(k.lower() == "set-cookie" for k in headers)
-                                        and json.loads(raw) == {"error": {"code": "authorization_unavailable",
-                                                                          "message": "Build request refused."}},
-                                        "original build key did not get the bounded checkout refusal")
-                                combined["refusal"] = ready("api.checkout.refused", api, seconds=4)
+                                if args.checkout_burst:
+                                    during, refusal, statuses = checkout_burst(
+                                        outage_auth, sessions["owner"], release,
+                                        lambda: ready("api.checkout.refused", api, seconds=4),
+                                        lambda: mark("api.checkout.respond"),
+                                    )
+                                    require(connect_errno(worker_port) == errno.ECONNREFUSED
+                                            and runner_process.poll() is None
+                                            and json.loads(sql(job_query)) == jobs,
+                                            "worker, runner, or original Oban jobs changed during the burst")
+                                    snapshot = observed_db()
+                                    running_admission(snapshot, binding)
+                                    combined.update(during=during, refusal=refusal, refusedHTTP=statuses,
+                                                    burst={"pendingBuildResponsesDuringReads": BURST_RETRIES,
+                                                           "workerConnectErrno": errno.ECONNREFUSED,
+                                                           "unchangedObanJobs": jobs,
+                                                           "heldCapacity": snapshot["capacity"][0]})
+                                    mark("api.checkout.drained")
+                                else:
+                                    combined["during"] = release_snapshot(release)
+                                    combined["refusedHTTP"] = checkout_refusal(
+                                        outage_auth, sessions["owner"], auth["build"])
+                                    combined["refusal"] = ready("api.checkout.refused", api, seconds=4)
                                 combined["recoveredPool"] = ready("api.checkout.closed", api, seconds=4)
                                 require(combined["refusal"]["before_begin"]
                                         and combined["saturated"] == {"held": 2, "queue": 0}
@@ -1504,6 +1568,8 @@ def main():
                         help="read-only source for locked console package tarballs")
     parser.add_argument("--release-observation", type=Path,
                         help="private loopback signed release observation from the combined L07 launcher")
+    parser.add_argument("--checkout-burst", action="store_true",
+                        help="overlap four original-key retries with the two signed reads during the checkout outage")
     parser.add_argument("--seconds", type=int, help="settlement budget and browser handoff window (capped at 300)")
     args = parser.parse_args()
     if args.complete and args.browser not in ("queue", "smoke"):
@@ -1514,6 +1580,8 @@ def main():
         parser.error("--operator with --browser requires --browser queue --complete")
     if args.release_observation and (not args.worker_crash or args.cancel):
         parser.error("--release-observation requires completion-only --worker-crash")
+    if args.checkout_burst and not args.release_observation:
+        parser.error("--checkout-burst requires --release-observation")
     if args.worker_crash and not (args.cancel or args.release_observation):
         parser.error("--worker-crash requires --cancel or --release-observation")
     if args.inert_finish_on_reopen and (not args.worker_crash or args.operator):
