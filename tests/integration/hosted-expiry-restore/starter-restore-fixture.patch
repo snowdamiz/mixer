@@ -1,0 +1,356 @@
+--- a/hosted/test/support/ordinary_browser_startup_fixture.ex
++++ b/hosted/test/support/ordinary_browser_startup_fixture.ex
+@@ -169,33 +169,43 @@
+   end
+
+   def prepare!(create \\ false) do
++    prepare_database!(create, false)
++  end
++
++  def attach_restored_workspace! do
++    prepare_database!(:workspace_builds, true)
++  end
++
++  defp prepare_database!(create, restored?) do
+     refuse_names!(@all_names)
+     prepare_evidence!(create)
+-    conn = F.connection!("browser_admin", "postgres")
+-
+-    try do
+-      Postgrex.query!(
+-        conn,
+-        "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
+-        []
+-      )
+-    after
+-      GenServer.stop(conn)
+-    end
+-
+-    on_exit(fn ->
++    unless restored? do
+       conn = F.connection!("browser_admin", "postgres")
+
+       try do
+-        Postgrex.query!(conn, "SET statement_timeout='15s'", [])
+-
+-        Postgrex.query!(conn, "DROP DATABASE browser_ordinary_installation_r1422", [],
+-          timeout: 20_000
++        Postgrex.query!(
++          conn,
++          "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
++          []
+         )
+       after
+         GenServer.stop(conn)
+       end
+-    end)
++
++      on_exit(fn ->
++        conn = F.connection!("browser_admin", "postgres")
++
++        try do
++          Postgrex.query!(conn, "SET statement_timeout='15s'", [])
++
++          Postgrex.query!(conn, "DROP DATABASE browser_ordinary_installation_r1422", [],
++            timeout: 20_000
++          )
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+
+     for app <- [:ecto_sql, :postgrex, :jason, :jose, :mint, :ssl, :bandit],
+         do: Application.ensure_all_started(app)
+@@ -230,45 +240,47 @@
+          ]}
+     )
+
+-    F.install!()
+-    F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
+-    F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
+-
+-    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
+-        do:
+-          F.q!(
+-            Admin,
+-            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
+-          )
+-
+-    for table <- ~w(sessions session_vault oidc_attempts session_events),
+-        do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
+-
+-    for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
+-    F.provision!()
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <-
+-          ActivationPreparationSchema.provisioning_statements(
+-            "browser_writer",
+-            "browser_lifecycle",
+-            "browser_schema_owner"
+-          ),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
+-    )
+-
+-    F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
+-    )
++    unless restored? do
++      F.install!()
++      F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
++      F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
++
++      for helper <- ~w(profiles principals families credentials organization_heads project_heads),
++          do:
++            F.q!(
++              Admin,
++              "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
++            )
++
++      for table <- ~w(sessions session_vault oidc_attempts session_events),
++          do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
++
++      for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
++      F.provision!()
++      conn = F.connection!("browser_admin")
++
++      for sql <-
++            ActivationPreparationSchema.provisioning_statements(
++              "browser_writer",
++              "browser_lifecycle",
++              "browser_schema_owner"
++            ),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
++      )
++
++      F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
++      )
++    end
+
+     fixture = start_supervised!(TLSFixture)
+     auth = GenServer.call(fixture, :authority)
+@@ -403,101 +415,105 @@
+       custody: custody
+     }
+
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
+-      do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
+-
+-    :ok =
+-      Ecto.Migrator.up(
++    unless restored? do
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
++      conn = F.connection!("browser_admin")
++
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
++        do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
++
++      :ok =
++        Ecto.Migrator.up(
++          Migration,
++          20_261_025_000_000,
++          MixerHosted.Repo.Migrations.AddBuildJournals,
++          log: false
++        )
++
++      :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
++      F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
++
++      F.q!(
+         Migration,
+-        20_261_025_000_000,
+-        MixerHosted.Repo.Migrations.AddBuildJournals,
+-        log: false
+-      )
+-
+-    :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
+-    F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
+-
+-    F.q!(
+-      Migration,
+-      "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
+-    )
+-
+-    F.q!(
+-      Migration,
+-      "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
+-    )
++        "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
++      )
++
++      F.q!(
++        Migration,
++        "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
++      )
++    end
+
+     now = System.system_time(:second)
+     {:ok, snapshot} = TrustSnapshot.new(profile, jwks, now, now + 300)
+     provider = start_supervised!({R686.Provider, %{key: key, wrong_key: wrong, config: config}})
+
+-    {:ok, :ok} =
+-      Migration.transaction(fn ->
+-        Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
+-      end)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
+-    )
+-
+-    for n <- 0..51 do
+-      id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
+-
+-      F.q!(
+-        Admin,
+-        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
+-
+-      F.q!(
+-        Admin,
+-        "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
+-        ["member-" <> id, id]
+-      )
+-
+-      F.q!(
+-        Admin,
+-        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++    unless restored? do
++      {:ok, :ok} =
++        Migration.transaction(fn ->
++          Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
++        end)
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
++      )
++
++      for n <- 0..51 do
++        id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
++          ["member-" <> id, id]
++        )
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++      end
+     end
+
+     authorization =
+@@ -517,6 +533,8 @@
+
+     {:ok, {_, provider_port}} = ThousandIsland.listener_info(authorization)
+
+-    for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++    unless restored? do
++      for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++    end
+
+     base = MixerHosted.RuntimeConfig.load!(MixerHosted.Identity.StartupFixture.foundation_env())
