@@ -1,0 +1,38 @@
+{
+  "status": "source_boot_observed_restore_unrun_paused",
+  "sourceRevision": "4a00e104df3b49f0df4e6505197aa1df265e5bda",
+  "sourceTree": "4bcb9c2a11a4a6f3d01b61801d108fb45b31492c",
+  "command": "python3 -B tests/integration/phoenix-release-restore/replay.py --postgres-bin /opt/homebrew/opt/postgresql@17/bin",
+  "tools": {
+    "host": "Darwin arm64",
+    "postgres": "PostgreSQL 17.11 (Homebrew)",
+    "elixir": "1.20.4",
+    "otp": "29"
+  },
+  "observed": [
+    "Offline locked dependency preparation and warnings-as-errors compilation completed.",
+    "The owned source PostgreSQL cluster reached readiness. The existing configured-release fixture installed the migrations, provisioned its restricted roles and uploader grants, and seeded the synthetic authorization rows.",
+    "The real MixerHosted OTP application started and its startup snapshot matched the fixture.",
+    "The first queue assertion failed before the first HTTP request. The pinned API exposes oban[:queues] as [] and the new fixture expected false.",
+    "ExUnit reported 0/1 passed and 1 skipped. The skipped case was the unselected original configured-release test."
+  ],
+  "cleanup": {
+    "sourcePostgresCleanExitAndGroupAbsent": true,
+    "sourcePostgresPortRebound": true,
+    "sourceMixGroupAbsent": true,
+    "jwksTerminalReport": {
+      "active": 0,
+      "requests": 0,
+      "accepted": 0
+    },
+    "phoenixAndJwksPortsIndividuallyRebound": "unobserved because the assertion preceded listener capture",
+    "scratchRemovedAndAbsenceChecked": "/private/tmp/mixer-release-restore-dnc6x4hc",
+    "targetClusterStarted": false,
+    "newHold": false
+  },
+  "pending": [
+    "The fixture is a work in progress. Correct its queue assertion, ExUnit success output check, and manifest span lookup before the next authorized run.",
+    "HTTP upload, validation, publication, freeze, database dump and restore, target readback, refusals, and exact retry remain unverified.",
+    "No L07 or G30 acceptance status changed."
+  ]
+}

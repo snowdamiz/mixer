@@ -1,0 +1,45 @@
+diff --git a/hosted/test/mixer_hosted/releases/configured_release_replay_test.exs b/hosted/test/mixer_hosted/releases/configured_release_replay_test.exs
+--- a/hosted/test/mixer_hosted/releases/configured_release_replay_test.exs
++++ b/hosted/test/mixer_hosted/releases/configured_release_replay_test.exs
+@@ -800,7 +800,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+     end)
+   end
+ 
+-  defp provision!(target) do
++  def provision!(target) do
+     with_repo("mixer_replay_admin", fn ->
+       for sql <- [
+             "CREATE ROLE mixer_replay_owner NOLOGIN NOINHERIT",
+@@ -844,7 +844,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+     with_repo("mixer_replay_admin", fn -> seed!(target) end)
+   end
+ 
+-  defp provision_uploader!(password) do
++  def provision_uploader!(password) do
+     assert {_, 0} =
+              System.cmd("psql", [
+                "-X",
+@@ -856,7 +856,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+                "-U",
+                "mixer_replay_admin",
+                "-d",
+-               "postgres",
++               System.get_env("PGDATABASE", "postgres"),
+                "-f",
+                "../docs/operations/provision-local-artifact-uploader.sql"
+              ])
+@@ -1109,11 +1109,12 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
+ 
+   defp scratch, do: System.fetch_env!("MIXER_RELEASE_FIXTURE_SCRATCH")
+ 
+-  defp with_repo(user, operation, options \\ []) do
++  def with_repo(user, operation, options \\ []) do
+     settings = [
+       username: user,
+-      database: "postgres",
++      database: System.get_env("PGDATABASE", "postgres"),
+       socket_dir: scratch(),
++      port: String.to_integer(System.get_env("PGPORT", "5432")),
+       ssl: false,
+       pool_size: 2,
+       log: false

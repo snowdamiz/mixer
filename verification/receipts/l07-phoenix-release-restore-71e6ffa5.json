@@ -1,0 +1,255 @@
+{
+  "schema": 1,
+  "scope": "Local L07/G30 signed-release PostgreSQL recovery through the pinned Phoenix API",
+  "status": "passed_scoped_local_with_catalog_repair",
+  "recordedAtUtc": "2026-11-20T18:18:28+00:00",
+  "fixtureCherryPick": "f2a01457af60069e93d5f4258f2632ef902ca875",
+  "fixtureSHA256": {
+    "configured-fixture.patch": "a7fb2e3e4e5663aa32465aca5e7bba464ee1a3827be58d9a6f6fba62ca27e8ef",
+    "release_restore_test.exs": "846c7466b50a58ce6975ab8a0febbc0c45e7add308aabd5d995b8731ac80f468",
+    "replay.py": "130dae3b3f91e69d103a68d9f5e8a82c4694258e9364fed08b5f6f5b7955e3e2",
+    "restore-artifact-key.sql": "6fe21ea57ff4a24e410193848beeeca2c6e7c5e994ea472bc0d8c81c207f9f0c",
+    "snapshot.sql": "b490048b6ddad41ee208b6969ff828b35c20ddd0eafcdabe4a3b5d2d789da67a"
+  },
+  "command": "python3 -B tests/integration/phoenix-release-restore/replay.py --postgres-bin /opt/homebrew/opt/postgresql@17/bin",
+  "commands": [
+    "mix deps.get --check-locked (HEX_OFFLINE=1, copied local Hex cache and Mix archives)",
+    "mix compile --warnings-as-errors (MIX_ENV=test)",
+    "mix test --warnings-as-errors --trace --no-color test/release_restore_test.exs (source and target)",
+    "pg_dump -Fc -f release.dump release_fixture",
+    "pg_dumpall --roles-only --no-role-passwords --no-comments -f roles.sql",
+    "psql -XqAt -v ON_ERROR_STOP=1 -d postgres -f target-roles.sql",
+    "pg_restore --exit-on-error --create -d postgres release.dump",
+    "psql -XqAt -v ON_ERROR_STOP=1 -d release_fixture -f scripts/restore-local-authz-expiry.sql",
+    "psql -XqAt -v ON_ERROR_STOP=1 -d release_fixture -f tests/integration/phoenix-release-restore/restore-artifact-key.sql"
+  ],
+  "exitCode": 0,
+  "sourceRevision": "71e6ffa51e857d5a1eda3f74c26941996ed275de",
+  "sourceTree": "94cde08bd37868e84e4d623e059926a77e86fbbc",
+  "host": "Darwin arm64",
+  "python": "3.14.8",
+  "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+  "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+  "postgresTools": {
+    "initdb": "initdb (PostgreSQL) 17.11 (Homebrew)",
+    "psql": "psql (PostgreSQL) 17.11 (Homebrew)",
+    "pg_dump": "pg_dump (PostgreSQL) 17.11 (Homebrew)",
+    "pg_dumpall": "pg_dumpall (PostgreSQL) 17.11 (Homebrew)",
+    "pg_restore": "pg_restore (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "lockedDependenciesSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+  "postgresSystemIdentifiers": [
+    "7710319494502545307",
+    "7710319528356044889"
+  ],
+  "sourceReadOnlyBeforeDump": true,
+  "sourceStoppedBeforeRestore": true,
+  "targetDatabaseAbsentBeforeRestore": true,
+  "restoredRoleFlagsAndMembershipsMatch": true,
+  "expiryCatalogRepairChangedDefinitions": true,
+  "artifactRequestKeyCheck": {
+    "sourceAndRepaired": "(((octet_length(key) >= 1) AND (octet_length(key) <= 128)) AND (key ~ '^[A-Za-z0-9_.:-]+$'::text))",
+    "rawRestore": "((octet_length(key) >= 1) AND (octet_length(key) <= 128) AND (key ~ '^[A-Za-z0-9_.:-]+$'::text))"
+  },
+  "backupSHA256": "99c3ee5eda0b4cccb75359a01f5f98a2af1da03786c71ee812cfd03e0a4df056",
+  "passwordFreeRolesSHA256": "ed3fce6a6b9b8f7098921ab414231db3ecf88e34e4c5e799a26631d06c8e96f0",
+  "snapshotMatchesAtFreezeAfterDumpBeforeAPIAndAfterRetry": true,
+  "cleanup": {
+    "clustersReapedWithExitZeroAndGroupAbsent": 2,
+    "portsRebound": {
+      "source": 51589,
+      "source-jwks": 51597,
+      "source-phoenix": 51604,
+      "target": 51664,
+      "target-jwks": 51696,
+      "target-phoenix": 51704
+    },
+    "commandGroupsClosed": 53,
+    "scratchRemoved": "/private/tmp/mixer-release-restore-ylojwbqb"
+  },
+  "exUnit": {
+    "source": "Result: 1 passed, 1 skipped",
+    "target": "Result: 1 passed, 1 skipped"
+  },
+  "skippedCase": "The included configured-release fixture's original independent test was outside this replay.",
+  "matchedBytes": {
+    "manifest": {
+      "bytes": 1759,
+      "sha256": "eada3d5078613c7d50510710782e4764344d5db64cb0815c3731d7c0816907d7"
+    },
+    "offer": {
+      "bytes": 759,
+      "sha256": "20efc3d51ba152f3b8340d071558eb000ffde3ba7a7df1c8f09e95a5bc00689b"
+    },
+    "validation": {
+      "bytes": 195,
+      "sha256": "49dd7eab94fa3f63d833182cf14da1299cb86eae2de0ed57b25536615b798c7c"
+    },
+    "publication": {
+      "bytes": 152,
+      "sha256": "d72d853a8fa5bf09a3002caf849e2fe76c1449ed604007d2d622fa73596face3"
+    },
+    "envelope": {
+      "bytes": 15848,
+      "sha256": "c95dacfac677f2dc71b25faa8de3d382f791f1a4bf7c53247b65c1de6fe75a19"
+    },
+    "payload": {
+      "bytes": 10540,
+      "sha256": "575b42b6c6bf3152f90cd18a8cffba29c30dd001bc526b5bb9edb9e8b64974a4"
+    },
+    "ownerPublished": {
+      "bytes": 15848,
+      "sha256": "c95dacfac677f2dc71b25faa8de3d382f791f1a4bf7c53247b65c1de6fe75a19"
+    },
+    "ownerPrivate": {
+      "bytes": 15848,
+      "sha256": "ab6ab6ae59bc36f737a7f7b893ba9cb73ffb5e07e9e7eadfe2b36142894b745c"
+    },
+    "ownerAudit": {
+      "bytes": 3317,
+      "sha256": "cc838ae016c35cdedca62d894ebcf87acfdc67bf74d6bf7a748343888cc97fc9"
+    }
+  },
+  "frozenSnapshotSHA256": "00a5329f2ba94c8a328719a854092d362757a7dc23bf80cd6169c6dc64a8d232",
+  "frozenReleaseAndAuditRows": {
+    "requests": [
+      {
+        "idempotency_key": "publish",
+        "publication_sequence": 1,
+        "request_sha256": "93fbcde5e2235a7dd60f967d33fe9bc251b9bfeca292c9661d1d7697c43c91d7"
+      },
+      {
+        "idempotency_key": "validate",
+        "publication_sequence": null,
+        "request_sha256": "4b52df42c49ca0d1f01a81129e02c4b4ebf38a4b43a9282ae25a2b953b0a28e9"
+      }
+    ],
+    "target": {
+      "app": "fieldlog",
+      "environment": "development",
+      "organization": "mixer-local",
+      "platform": "android",
+      "project": "fieldlog"
+    },
+    "publication": {
+      "action": "publish",
+      "artifact_sha256": "3eaea42ce595c9ec4ca0e2685470a4b317ca2ccd8436e4ea2f2f932ba96aa24e",
+      "idempotency_key": "publish",
+      "previous_sequence": null,
+      "principal_id": "replay-owner",
+      "sequence": 1
+    },
+    "artifacts": [
+      {
+        "digest": "3eaea42ce595c9ec4ca0e2685470a4b317ca2ccd8436e4ea2f2f932ba96aa24e",
+        "sequence": 1,
+        "uploadKey": "upload-3eaea42ce595c9ec4ca0e2685470a4b317ca2ccd8436e4ea2f2f932ba96aa24e",
+        "auditSHA256": "66d9ee3c67b5ed1fd4df9a08f6965cc7eb7b2e8a3b0fd023e9f676106964b655",
+        "requestSHA256": "f8e5bf7436cee3d39c94aa78e3e82b0c6d0308f0e8c86b96b3985831b9ff2c4c",
+        "payloadSHA256": "575b42b6c6bf3152f90cd18a8cffba29c30dd001bc526b5bb9edb9e8b64974a4"
+      },
+      {
+        "digest": "9b88359d4f334aef8093b12401705c5e98a0c48d7911768c1369e3575cb557be",
+        "sequence": 2,
+        "uploadKey": "upload-9b88359d4f334aef8093b12401705c5e98a0c48d7911768c1369e3575cb557be",
+        "auditSHA256": "fa27a800ca243d11dcd1c809d1919152d788d8fc5759e5a874140dc940239847",
+        "requestSHA256": "8f364570ad08772d6fff6111eec8716b4a450bc5d518fe73a5b010b5fa86b25a",
+        "payloadSHA256": "015d7aa255354de4d45bc4bca5fe66a51e8268a7bf35e406d436bbd8621d8a4e"
+      }
+    ],
+    "activeSequence": 1
+  },
+  "targetRefusalStatuses": {
+    "outsiderArtifactRead": 404,
+    "outsiderAuditRead": 404,
+    "otherTenantOffer": 204,
+    "wrongChannel": 204,
+    "duplicateQuery": 400,
+    "crossTenantArtifact": 404,
+    "unpublishedArtifact": 404,
+    "unauthenticatedPrivateRead": 401,
+    "unauthenticatedPublish": 401,
+    "insufficientScope": 403,
+    "outsiderPublish": 403,
+    "wrongTenantPublish": 403,
+    "changedRetry": 409
+  },
+  "exactRequestKeyReplay": {
+    "source": [
+      "publish"
+    ],
+    "target": [
+      "upload (both)",
+      "validate",
+      "publish"
+    ],
+    "identity": "The same synthetic owner bearer, claims, signing root and restored tenant authorization stayed valid across both API boots.",
+    "statusAndBody": "Both upload receipts returned 201. Validate and publish returned 200. The same keys, reason and request bytes returned the original response bodies. A changed publish request returned 409."
+  },
+  "runtime": [
+    "One signed sequence-1 beta publication via loopback HTTP with ordinary bearer verification and local TLS JWKS.",
+    "The test used local services and synthetic credentials. Both Phoenix boots used the API role with no Oban queues.",
+    "Restricted TLS PostgreSQL writer, updater delivery and uploader logins were checked on each boot. The owner artifact and audit GETs used the existing trusted read configuration with the restricted uploader pool.",
+    "The artifact CHECK repair ran only on the disposable target. It accepts the known flattened or pinned expression and revalidates a recreated constraint. The pinned runtime artifact catalog check passed on both Phoenix boots."
+  ],
+  "earlierFreshAttempts": [
+    {
+      "attempt": 1,
+      "observed": "Source publication and owner artifact read succeeded. The outsider read returned 404, and the fixture had expected 403. The pinned policy presents an invisible project as not found.",
+      "cleanup": {
+        "clustersReapedWithExitZeroAndGroupAbsent": 1,
+        "portsRebound": {
+          "source": 60145,
+          "source-jwks": 60154,
+          "source-phoenix": 60161
+        },
+        "commandGroupsClosed": 19,
+        "scratchRemoved": "/private/tmp/mixer-release-restore-ognhuydh"
+      }
+    },
+    {
+      "attempt": 2,
+      "observed": "Source assertions passed and pg_dump completed. PostgreSQL 17 pg_dumpall rejected --no-role-comments. The runner now uses --no-comments.",
+      "cleanup": {
+        "clustersReapedWithExitZeroAndGroupAbsent": 1,
+        "portsRebound": {
+          "source": 62374,
+          "source-jwks": 62526,
+          "source-phoenix": 62534
+        },
+        "commandGroupsClosed": 30,
+        "scratchRemoved": "/private/tmp/mixer-release-restore-fa4bi5o7"
+      }
+    },
+    {
+      "attempt": 3,
+      "observed": "Source assertions and database restore passed. The frozen rows matched before API start. The restored upload replay returned 503 authorization_unavailable with only the two existing expiry CHECK repairs applied.",
+      "cleanup": {
+        "clustersReapedWithExitZeroAndGroupAbsent": 2,
+        "portsRebound": {
+          "source": 63921,
+          "source-jwks": 64193,
+          "source-phoenix": 64200,
+          "target": 64245,
+          "target-jwks": 64254,
+          "target-phoenix": 64261
+        },
+        "commandGroupsClosed": 47,
+        "scratchRemoved": "/private/tmp/mixer-release-restore-xsoq808y"
+      }
+    }
+  ],
+  "isolatedCheckControl": {
+    "observed": "A minimal PostgreSQL 17.11 pg_dump and pg_restore reproduced the artifact request-key conjunction flattening.",
+    "clustersReapedWithExitZeroAndGroupAbsent": 2,
+    "portsRebound": {
+      "source": 65109,
+      "target": 65123
+    },
+    "commandGroupsClosed": 13,
+    "scratchRemoved": "/private/tmp/mixer-release-catalog-control-gon4owi_"
+  },
+  "limits": "Single synthetic release and two scoped tenants on one Mac. This receipt covers the local release database using both catalog repairs. Managed-provider recovery, native updater installation, GA qualification, and the remainder of L07/G30 were outside scope.",
+  "priorCustodyHoldsPreserved": true,
+  "newCustodyHolds": []
+}
