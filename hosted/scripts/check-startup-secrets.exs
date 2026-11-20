@@ -33,6 +33,7 @@ inputs = [
   "hosted/lib/mixer_hosted/builds/operation_intent_schema.ex",
   "hosted/lib/mixer_hosted/builds/processor_profile.ex",
   "hosted/lib/mixer_hosted/billing/processor_profile.ex",
+  "hosted/lib/mixer_hosted/releases/release_jobs/processor_profile.ex",
   "hosted/lib/mixer_hosted/runtime_config.ex",
   "hosted/lib/mixer_hosted/browser_auth/vault.ex",
   "hosted/lib/mixer_hosted/browser_auth/custody.ex",

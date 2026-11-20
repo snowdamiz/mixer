@@ -110,6 +110,7 @@ inputs = [
   "hosted/lib/mixer_hosted/identity/verified_identity.ex",
   "hosted/lib/mixer_hosted/identity/verifier.ex",
   "hosted/lib/mixer_hosted/billing/processor_profile.ex",
+  "hosted/lib/mixer_hosted/releases/release_jobs/processor_profile.ex",
   "hosted/lib/mixer_hosted/runtime_config.ex",
   "hosted/lib/mixer_hosted/browser_auth/installation.ex",
   "hosted/lib/mixer_hosted/browser_auth/supervisor.ex"
