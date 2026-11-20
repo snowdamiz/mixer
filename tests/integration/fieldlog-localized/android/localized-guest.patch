@@ -1,0 +1,33 @@
+--- a/Guest.swift
++++ b/Guest.swift
+@@ -19,5 +19,5 @@
+ private nonisolated(unsafe) var completed = false
+ private nonisolated(unsafe) var reviewPending = false
+ private nonisolated(unsafe) var available = false
+-private let actionID: StaticString = "task.action"
++private let actionID: StaticString = "task.toggle"
+ private enum Request { case none, hydration, read, write }
+@@ -143,11 +143,21 @@
+     output.append(#"{"schemaVersion":1,"revision":"#)
+     output.append(revision)
+     output.append(#","root":{"id":"fieldlog-task","kind":"vStack","properties":{},"actions":[],"children":["#)
++    // This fixture is issued only for the saved pump-inspection task.
++    output.append(#"{"id":"task","kind":"text","properties":{"text":"فحص المضخة 07"},"children":[],"actions":[]},"#)
+     output.append(#"{"id":"status","kind":"text","properties":{"text":""#)
+-    output.append(!available ? "Task unavailable" : completed ? "Completed" : reviewPending ? "Review required" : "Open")
++    #if REQUIRE_REVIEW
++    output.append(!available ? "المهمة غير متاحة" : completed ? "اكتمل الفحص" : reviewPending ? "الفحص بانتظار التأكيد" : "الفحص قيد التنفيذ")
++    #else
++    output.append(!available ? "المهمة غير متاحة" : completed ? "مكتملة" : "مفتوحة")
++    #endif
+     output.append(#""},"children":[],"actions":[]},"#)
+     output.append(#"{"id":"toggle","kind":"button","properties":{"label":""#)
+-    output.append(!available ? "Reload task" : completed ? "Reopen task" : reviewPending ? "Confirm completion" : "Complete task")
++    #if REQUIRE_REVIEW
++    output.append(!available ? "إعادة تحميل المهمة" : completed ? "إعادة فتح الفحص" : reviewPending ? "تأكيد إكمال الفحص" : "وضع علامة مكتملة")
++    #else
++    output.append(!available ? "إعادة تحميل المهمة" : completed ? "إعادة فتح المهمة" : "إكمال المهمة")
++    #endif
+     output.append(#""},"children":[],"actions":[{"id":""#)
+     output.append(actionID)
+     output.append(#"","event":"activate"}]}]}}"#)
